@@ -197,10 +197,15 @@ public class MovieT
   }
 
   public static MovieT DeserializeFromJson(string jsonText) {
-    return Newtonsoft.Json.JsonConvert.DeserializeObject<MovieT>(jsonText);
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<MovieT>(jsonText, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+    });
   }
   public string SerializeToJson() {
-    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+      Formatting = Newtonsoft.Json.Formatting.Indented,
+    });
   }
   public static MovieT DeserializeFromBinary(byte[] fbBuffer) {
     return Movie.GetRootAsMovie(new ByteBuffer(fbBuffer)).UnPack();

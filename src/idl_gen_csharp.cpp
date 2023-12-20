@@ -147,6 +147,21 @@ class CSharpGenerator : public BaseGenerator {
     std::string one_file_code;
     cur_name_space_ = parser_.current_namespace_;
 
+    if (parser_.opts.cs_gen_json_serializer &&
+        parser_.opts.generate_object_based_api) {
+      std::string contractresolvercode;
+      GenJsonContractResolver(&contractresolvercode);
+
+      if (parser_.opts.one_file) {
+        one_file_code += contractresolvercode;
+      } else {
+        if (!SaveType("JsonContractResolver", *parser_.current_namespace_,
+                      contractresolvercode, true, parser_.opts)) {
+          return false;
+        }
+      }
+    }
+
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       std::string enumcode;
@@ -2395,6 +2410,9 @@ class CSharpGenerator : public BaseGenerator {
           auto utype_name = NamespacedName(*field.value.type.enum_def);
           code +=
               "  [Newtonsoft.Json.JsonProperty(\"" + field.name + "_type\")]\n";
+          if (field.deprecated == FieldDef::kDeprecatedReadOnly) {
+            code += "  [JsonReadOnly()]\n";
+          }
           if (IsVector(field.value.type)) {
             code += "  private " + utype_name + "[] " + camel_name + "Type {\n";
             code += "    get {\n";
@@ -2442,6 +2460,8 @@ class CSharpGenerator : public BaseGenerator {
         }
         if (field.attributes.Lookup("hash")) {
           code += "  [Newtonsoft.Json.JsonIgnore()]\n";
+        } else if (field.deprecated == FieldDef::kDeprecatedReadOnly) {
+          code += "  [JsonReadOnly()]\n";
         }
       }
       code += "  public " + type_name + " " + camel_name + " { get; set; }\n";
@@ -2491,12 +2511,18 @@ class CSharpGenerator : public BaseGenerator {
       code += "  public static " + class_name +
               " DeserializeFromJson(string jsonText) {\n";
       code += "    return Newtonsoft.Json.JsonConvert.DeserializeObject<" +
-              class_name + ">(jsonText);\n";
+              class_name +
+              ">(jsonText, new Newtonsoft.Json.JsonSerializerSettings() {\n";
+      code += "      ContractResolver = new JsonContractResolver(),\n";
+      code += "    });\n";
       code += "  }\n";
       code += "  public string SerializeToJson() {\n";
       code +=
-          "    return Newtonsoft.Json.JsonConvert.SerializeObject(this, "
-          "Newtonsoft.Json.Formatting.Indented);\n";
+          "    return Newtonsoft.Json.JsonConvert.SerializeObject(this, new "
+          "Newtonsoft.Json.JsonSerializerSettings() {\n";
+      code += "      ContractResolver = new JsonContractResolver(),\n";
+      code += "      Formatting = Newtonsoft.Json.Formatting.Indented,\n";
+      code += "    });\n";
       code += "  }\n";
     }
     if (parser_.root_struct_def_ == &struct_def) {
@@ -2512,6 +2538,35 @@ class CSharpGenerator : public BaseGenerator {
       code += "    return fbb.DataBuffer.ToSizedArray();\n";
       code += "  }\n";
     }
+    code += "}\n\n";
+  }
+
+  void GenJsonContractResolver(std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    code +=
+        "[AttributeUsage(AttributeTargets.Property | "
+        "AttributeTargets.Field)]\n";
+    code += "class JsonReadOnlyAttribute : Attribute {\n";
+    code += "}\n\n";
+
+    code +=
+        "public class JsonContractResolver : "
+        "Newtonsoft.Json.Serialization.DefaultContractResolver\n";
+    code += "{\n";
+    code +=
+        "  protected override Newtonsoft.Json.Serialization.JsonProperty "
+        "CreateProperty(System.Reflection.MemberInfo member, "
+        "Newtonsoft.Json.MemberSerialization memberSerialization)\n";
+    code += "  {\n";
+    code +=
+        "    var property = base.CreateProperty(member, "
+        "memberSerialization);\n";
+    code +=
+        "    if (Attribute.IsDefined(member, "
+        "typeof(JsonReadOnlyAttribute)))\n";
+    code += "      property.Readable = false;\n";
+    code += "    return property;\n";
+    code += "  }\n";
     code += "}\n\n";
   }
 

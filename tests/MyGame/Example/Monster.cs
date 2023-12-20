@@ -1085,10 +1085,15 @@ public class MonsterT
   }
 
   public static MonsterT DeserializeFromJson(string jsonText) {
-    return Newtonsoft.Json.JsonConvert.DeserializeObject<MonsterT>(jsonText);
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<MonsterT>(jsonText, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+    });
   }
   public string SerializeToJson() {
-    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+      Formatting = Newtonsoft.Json.Formatting.Indented,
+    });
   }
   public static MonsterT DeserializeFromBinary(byte[] fbBuffer) {
     return Monster.GetRootAsMonster(new ByteBuffer(fbBuffer)).UnPack();
