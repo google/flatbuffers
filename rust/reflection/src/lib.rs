@@ -30,7 +30,6 @@ use escape_string::escape;
 use num::traits::float::Float;
 use num::traits::int::PrimInt;
 use num::traits::FromPrimitive;
-use std::error;
 use stdint::uintmax_t;
 use thiserror::Error;
 
@@ -160,6 +159,56 @@ pub unsafe fn get_field_struct<'a>(
     }
 
     Ok(table.get::<Struct>(field.offset(), None))
+}
+
+/// Gets a Vector table field given its exact type. Returns empty vector if the field is not set. Returns error if the type doesn't match.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type Vector
+pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
+    table: &'a Table,
+    field: &Field,
+) -> FlatbufferResult<Option<Vector<'a, T>>> {
+    if field.type_().base_type() != BaseType::Vector
+        || core::mem::size_of::<T>() != get_type_size(field.type_().element())
+    {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            std::any::type_name::<T>().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
+        ));
+    }
+
+    Ok(table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default())))
+}
+
+/// Gets a Table table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type Table
+pub unsafe fn get_field_table<'a>(
+    table: &'a Table,
+    field: &Field,
+) -> FlatbufferResult<Option<Table<'a>>> {
+    if field.type_().base_type() != BaseType::Obj {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Obj"),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
+        ));
+    }
+
+    Ok(table.get::<ForwardsUOffset<Table<'a>>>(field.offset(), None))
 }
 
 /// Gets a [Struct] struct field given its exact type. Returns error if the type doesn't match.
