@@ -232,7 +232,7 @@ def AddAttributes(builder, attributes):
 def FieldStartAttributesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartAttributesVector(builder, numElems: int) -> int:
+def StartAttributesVector(builder, numElems):
     return FieldStartAttributesVector(builder, numElems)
 
 def FieldAddDocumentation(builder, documentation):
@@ -244,7 +244,7 @@ def AddDocumentation(builder, documentation):
 def FieldStartDocumentationVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDocumentationVector(builder, numElems: int) -> int:
+def StartDocumentationVector(builder, numElems):
     return FieldStartDocumentationVector(builder, numElems)
 
 def FieldAddOptional(builder, optional):

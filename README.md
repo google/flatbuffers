@@ -98,10 +98,7 @@ FlatBuffers does not follow traditional SemVer versioning (see [rationale](https
 
 ## Community
 
-* [FlatBuffers Google Group][] to discuss FlatBuffers with other developers and users.
 * [Discord Server](https:///discord.gg/6qgKs3R)
-* [Gitter](https://gitter.im/google/flatbuffers)
-
 
 ## Security
 

@@ -67,7 +67,7 @@ namespace Google.FlatBuffers
         }
 
         /// <summary>
-        /// Create a FlatBufferBuilder backed by the pased in ByteBuffer
+        /// Create a FlatBufferBuilder backed by the passed in ByteBuffer
         /// </summary>
         /// <param name="buffer">The ByteBuffer to write to</param>
         public FlatBufferBuilder(ByteBuffer buffer)
@@ -235,7 +235,7 @@ namespace Google.FlatBuffers
             _space = _bb.Put<T>(_space, ptr, sizeInBytes);
         }
 
-#if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
         /// <summary>
         /// Puts a span of type T into this builder at the
         /// current offset
@@ -399,7 +399,7 @@ namespace Google.FlatBuffers
             Put<T>(ptr, sizeInBytes);
         }
 
-#if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
         /// <summary>
         /// Add a span of type T to the buffer (aligns the data and grows if necessary).
         /// </summary>
@@ -533,10 +533,10 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable boolean value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>       
+        /// it will skip writing to the buffer.</param>
         public void AddBool(int o, bool? x) { if (x.HasValue) { AddBool(x.Value); Slot(o); } }
 
-        
+
         /// <summary>
         /// Adds a SByte to the Table at index `o` in its vtable using the value `x` and default `d`
         /// </summary>
@@ -551,7 +551,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable sbyte value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddSbyte(int o, sbyte? x) { if (x.HasValue) { AddSbyte(x.Value); Slot(o); } }
 
         /// <summary>
@@ -568,7 +568,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable byte value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddByte(int o, byte? x) { if (x.HasValue) { AddByte(x.Value); Slot(o); } }
 
         /// <summary>
@@ -585,7 +585,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable int16 value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddShort(int o, short? x) { if (x.HasValue) { AddShort(x.Value); Slot(o); } }
 
         /// <summary>
@@ -602,7 +602,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable uint16 value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddUshort(int o, ushort? x) { if (x.HasValue) { AddUshort(x.Value); Slot(o); } }
 
         /// <summary>
@@ -619,7 +619,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable int32 value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddInt(int o, int? x) { if (x.HasValue) { AddInt(x.Value); Slot(o); } }
 
         /// <summary>
@@ -636,7 +636,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable uint32 value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddUint(int o, uint? x) { if (x.HasValue) { AddUint(x.Value); Slot(o); } }
 
         /// <summary>
@@ -653,7 +653,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable int64 value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddLong(int o, long? x) { if (x.HasValue) { AddLong(x.Value); Slot(o); } }
 
         /// <summary>
@@ -670,7 +670,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable int64 value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddUlong(int o, ulong? x) { if (x.HasValue) { AddUlong(x.Value); Slot(o); } }
 
         /// <summary>
@@ -687,7 +687,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable single value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddFloat(int o, float? x) { if (x.HasValue) { AddFloat(x.Value); Slot(o); } }
 
         /// <summary>
@@ -704,7 +704,7 @@ namespace Google.FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The nullable double value to put into the buffer. If it doesn't have a value
-        /// it will skip writing to the buffer.</param>  
+        /// it will skip writing to the buffer.</param>
         public void AddDouble(int o, double? x) { if (x.HasValue) { AddDouble(x.Value); Slot(o); } }
 
         /// <summary>
@@ -739,7 +739,7 @@ namespace Google.FlatBuffers
         }
 
 
-#if ENABLE_SPAN_T && (UNSAFE_BYTEBUFFER || NETSTANDARD2_1)
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
         /// <summary>
         /// Creates a string in the buffer from a Span containing
         /// a UTF8 string.

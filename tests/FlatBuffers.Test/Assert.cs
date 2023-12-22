@@ -99,6 +99,26 @@ namespace Google.FlatBuffers.Test
             }
         }
 
+        public static void ArrayEqual<T>(ArraySegment<T> expected, T[] actual)
+        {
+#if NETCOREAPP
+            ArrayEqual(expected.ToArray(), actual);
+#else
+            if (expected.Count != actual.Length)
+            {
+                throw new AssertFailedException(expected, actual);
+            }
+
+            for (var i = 0; i < expected.Count; ++i)
+            {
+                if (!expected.Array[expected.Offset + i].Equals(actual[i]))
+                {
+                    throw new AssertArrayFailedException(i, expected, actual);
+                }
+            }
+#endif
+    }
+
         public static void IsTrue(bool value)
         {
             if (!value)

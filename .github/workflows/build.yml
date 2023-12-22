@@ -9,7 +9,6 @@ on:
       - "*" # new tag version, like `0.8.4` or else
     branches:
       - master
-      - flatbuffers-64
   pull_request:
     branches:
       - master
@@ -22,10 +21,10 @@ jobs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
     name: Build Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       matrix:
-        cxx: [g++-10, clang++-12]
+        cxx: [g++-13, clang++-15]
       fail-fast: false
     steps:
     - uses: actions/checkout@v3
@@ -39,10 +38,6 @@ jobs:
       run: |
         chmod +x flatc
         ./flatc --version
-    # - name: flatc tests
-    #   run: |
-    #     yarn global add esbuild
-    #     python3 tests/flatc/main.py
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -58,27 +53,29 @@ jobs:
       with:
         files: Linux.flatc.binary.${{ matrix.cxx }}.zip
     - name: Generate SLSA subjects - clang
-      if: matrix.cxx == 'clang++-12' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'clang++-15' && startsWith(github.ref, 'refs/tags/')
       id: hash-clang
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
     - name: Generate SLSA subjects - gcc
-      if: matrix.cxx == 'g++-10' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'g++-13' && startsWith(github.ref, 'refs/tags/')
       id: hash-gcc
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
-      
-  build-linux-no-file-tests:    
+
+  build-linux-no-file-tests:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: CXX=clang++-12 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
+      run: CXX=clang++-15 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
       run: make -j
+    - name: test
+      run: ./flattests
 
-  build-linux-out-of-source:    
+  build-linux-out-of-source:
     name: Build Linux with out-of-source build location
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: make build directory
@@ -86,7 +83,7 @@ jobs:
     - name: cmake
       working-directory: build
       run: >
-        CXX=clang++-12 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
+        CXX=clang++-15 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_CPP_STD=17
     - name: build
       working-directory: build
@@ -100,22 +97,23 @@ jobs:
 
   build-linux-cpp-std:
     name: Build Linux C++
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       fail-fast: false
       matrix:
         std: [11, 14, 17, 20, 23]
-        cxx: [g++-10, clang++-12]
+        cxx: [g++-13, clang++-15]
         exclude:
-          # GCC 10.3.0 doesn't support std 23
-          - cxx: g++-10
+          # Clang++15 10.3.0 stdlibc++ doesn't fully support std 23
+          - cxx: clang++-15
             std: 23
+
     steps:
     - uses: actions/checkout@v3
     - name: cmake
       run: >
-        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" 
-        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON 
+        CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles"
+        -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
@@ -126,7 +124,7 @@ jobs:
       if: matrix.std >= 17
       run: ./flattests_cpp17
 
-  build-windows-cpp-std:
+  build-cpp-std:
     name: Build Windows C++
     runs-on: windows-2019
     strategy:
@@ -139,8 +137,8 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
       run: >
-        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release 
-        -DFLATBUFFERS_STRICT_MODE=ON 
+        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release
+        -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
@@ -156,7 +154,7 @@ jobs:
       contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
-    name: Build Windows 2019 
+    name: Build Windows 2019
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v3
@@ -168,8 +166,6 @@ jobs:
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
       run: Release\flattests.exe
-    # - name: flatc tests
-    #   run: python3 tests/flatc/main.py --flatc Release\flatc.exe
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -190,42 +186,14 @@ jobs:
       shell: bash
       run: echo "hashes=$(sha256sum Windows.flatc.binary.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
-  build-windows-2017:
-    name: Build Windows 2017
-    runs-on: windows-2019
-    steps:
-    - uses: actions/checkout@v3
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
-    - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
-    - name: build tool version 15 (VS 2017)
-      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=15.0
-    - name: test
-      run: Release\flattests.exe
-
-  build-windows-2015:
-    name: Build Windows 2015
-    runs-on: windows-2019
-    steps:
-    - uses: actions/checkout@v3
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
-    - name: cmake
-      run: cmake -G "Visual Studio 14 2015" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
-    - name: build tool version 14 (VS 2015)
-      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64 /p:VisualStudioVersion=14.0
-    - name: test
-      run: Release\flattests.exe
-
   build-dotnet-windows:
     name: Build .NET Windows
-    runs-on: windows-2019
+    runs-on: windows-2022-64core
     strategy:
       matrix:
         configuration: [
           '',
-          '-p:UnsafeByteBuffer=true', 
+          '-p:UnsafeByteBuffer=true',
           # Fails two tests currently.
           #'-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
@@ -233,18 +201,18 @@ jobs:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3
-      with: 
-        dotnet-version: '3.1.x'
+      with:
+        dotnet-version: '8.0.x'
     - name: Build
       run: |
         cd tests\FlatBuffers.Test
-        dotnet new sln --force --name FlatBuffers.Core.Test
-        dotnet sln FlatBuffers.Core.Test.sln add FlatBuffers.Core.Test.csproj
-        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Core.Test.sln
+        dotnet new sln --force --name FlatBuffers.Test
+        dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
+        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Test.sln
     - name: Run
       run: |
         cd tests\FlatBuffers.Test
-        out\FlatBuffers.Core.Test.exe
+        out\FlatBuffers.Test.exe
 
   build-mac-intel:
     permissions:
@@ -270,8 +238,6 @@ jobs:
       run: |
         chmod +x Release/flatc
         Release/flatc --version
-    # - name: flatc tests
-    #  run: python3 tests/flatc/main.py --flatc Release/flatc
     - name: upload build artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -336,7 +302,7 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
-   runs-on: ubuntu-latest
+   runs-on: ubuntu-22.04-64core
    steps:
    - uses: actions/checkout@v3
    - name: set up Java
@@ -355,10 +321,10 @@ jobs:
 
   build-generator:
     name: Check Generated Code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       matrix:
-        cxx: [g++-10, clang++-12]
+        cxx: [g++-13, clang++-15]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -386,10 +352,10 @@ jobs:
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     strategy:
       matrix:
-        cxx: [g++-10]
+        cxx: [g++-13]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -404,7 +370,7 @@ jobs:
 
   build-java:
     name: Build Java
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -433,7 +399,7 @@ jobs:
 
   build-kotlin-linux:
     name: Build Kotlin Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -456,16 +422,16 @@ jobs:
 
   build-rust-linux:
     name: Build Rust Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
       working-directory: tests
       run: bash RustTest.sh
-  
+
   build-rust-windows:
     name: Build Rust Windows
-    runs-on: windows-2019
+    runs-on: windows-2022-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -474,7 +440,7 @@ jobs:
 
   build-python:
     name: Build Python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -486,7 +452,7 @@ jobs:
 
   build-go:
     name: Build Go
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -498,7 +464,7 @@ jobs:
 
   build-php:
    name: Build PHP
-   runs-on: ubuntu-latest
+   runs-on: ubuntu-22.04-64core
    steps:
    - uses: actions/checkout@v3
    - name: flatc
@@ -512,7 +478,7 @@ jobs:
 
   build-swift:
     name: Build Swift
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -523,7 +489,7 @@ jobs:
 
   build-swift-wasm:
     name: Build Swift Wasm
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     container:
       image: ghcr.io/swiftwasm/carton:0.15.3
     steps:
@@ -536,7 +502,7 @@ jobs:
 
   build-ts:
     name: Build TS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -554,7 +520,7 @@ jobs:
 
   build-dart:
     name: Build Dart
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
@@ -569,7 +535,7 @@ jobs:
 
   build-nim:
     name: Build Nim
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -578,7 +544,7 @@ jobs:
     - uses: jiro4989/setup-nim-action@v1
     - name: install library
       working-directory: nim
-      run: nimble -y develop
+      run: nimble -y develop && nimble install
     - name: test
       working-directory: tests/nim
       run: python3 testnim.py
@@ -588,7 +554,7 @@ jobs:
     needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-64core
     steps:
       - name: Merge results
         id: hash
