@@ -1,0 +1,12 @@
+name: pre-commit-check
+on:
+  push:
+  pull_request:
+jobs:
+  pre-commit-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: pip install pre-commit
+    - run: pre-commit install
+    - run: pre-commit run --all-files
