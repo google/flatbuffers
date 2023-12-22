@@ -7,6 +7,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: pip install pre-commit
-    - run: pre-commit install
-    - run: pre-commit run --all-files
+    - uses: pre-commit/action@v3.0.0
