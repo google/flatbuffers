@@ -31,7 +31,9 @@ function main()
     checkSizePrefixedBuffer($fbb, $assert);
     test_buffer($assert, $fbb->dataBuffer(), true);
 
-    $fbb = new Google\FlatBuffers\FlatBufferBuilder(1);
+    $fbb->Clear();  // Also, test clear
+    $assert->strictEqual(strlen($fbb->dataBuffer()->data()), 0);
+
     createMonster($fbb, false);
     test_buffer($assert, $fbb->dataBuffer());
 
@@ -39,6 +41,7 @@ function main()
     testByteBuffer($assert);
     fuzzTest1($assert);
 //    testUnicode($assert);
+    testCreateBytesVector($assert);
 
     echo 'FlatBuffers php test: completed successfully' . PHP_EOL;
 }
@@ -166,6 +169,29 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb, $size_pr
     $assert->Equal('Fred', $fred->getName());
 
     $assert->strictEqual($monster->GetTestbool(), true);
+}
+
+function testCreateBytesVector(Assert $assert) {
+    $fbb = new Google\FlatBuffers\FlatBufferBuilder(1);
+
+    foreach  ([[], [1, 2, 3, 0, 4, 5, 255, 6, 7]] as $d) {
+        // Make sure data is not necessarily UTF-8 encoded
+        $data = implode(array_map("chr", $d));
+
+        $fbb->Clear();
+        $name_offset = $fbb->createString("required");
+        $inventory_offset = $fbb->createBytesVector($data);
+
+        \MyGame\Example\Monster::startMonster($fbb);
+        \MyGame\Example\Monster::addName($fbb, $name_offset);
+        \MyGame\Example\Monster::addInventory($fbb, $inventory_offset);
+        $fbb->finish(\MyGame\Example\Monster::endMonster($fbb));
+
+        $decoded_monster = \MyGame\Example\Monster::getRootAsMonster($fbb->dataBuffer());
+        $got = $decoded_monster->getInventoryBytes();
+        $assert->strictEqual($got, $data);
+        $assert->strictEqual(strlen($got), count($d));
+    }
 }
 
 //function testUnicode(Assert $assert) {
