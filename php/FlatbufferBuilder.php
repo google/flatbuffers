@@ -188,11 +188,7 @@ final class FlatbufferBuilder
 
         $nbb->setPosition($new_buf_size - $old_buf_size);
 
-        // TODO(chobie): is this little bit faster?
-        //$nbb->_buffer = substr_replace($nbb->_buffer, $bb->_buffer, $new_buf_size - $old_buf_size, strlen($bb->_buffer));
-        for ($i = $new_buf_size - $old_buf_size, $j = 0; $j < strlen($bb->_buffer); $i++, $j++) {
-            $nbb->_buffer[$i] = $bb->_buffer[$j];
-        }
+        $nbb->_buffer = substr_replace($nbb->_buffer, $bb->_buffer, $new_buf_size - $old_buf_size, strlen($bb->_buffer));
 
         return $nbb;
     }
