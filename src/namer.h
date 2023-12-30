@@ -213,7 +213,7 @@ class Namer {
       // Standard languages *usually* don't use non-ASCII characters for
       // keywords, therefore this operations should be safe.
       for (auto chr = name_cased.begin(); chr != name_cased.end(); chr++) {
-        *chr = std::tolower(*chr);
+        *chr = static_cast<char>(std::tolower(*chr));
       }
     }
     if (keywords_.find(name_cased) == keywords_.end()) {
