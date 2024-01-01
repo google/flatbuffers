@@ -319,14 +319,14 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   const std::string invalid_key = "Barney123";
   std::string_view valid_truncated_key = invalid_key;
   valid_truncated_key.remove_suffix(3);  // "Barney"
-  TEST_NOTNULL(vecoftables->LookupByKey(valid_truncated_key.data()));
+  TEST_NOTNULL(vecoftables->LookupByKey(valid_truncated_key));
 
   // Tests for LookupByKey with a key that is a truncated
   // version of a longer, valid key.
   const std::string valid_key = "Barney";
   std::string_view invalid_truncated_key = valid_key;
   invalid_truncated_key.remove_suffix(3);  // "Bar"
-  TEST_NULL(vecoftables->LookupByKey(invalid_truncated_key.data()));
+  TEST_NULL(vecoftables->LookupByKey(invalid_truncated_key));
 #endif  // FLATBUFFERS_HAS_STRING_VIEW
 
   // Test accessing a vector of sorted structs
