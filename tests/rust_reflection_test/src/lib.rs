@@ -1,4 +1,5 @@
 use flatbuffers_reflection::reflection::{root_as_schema, BaseType, Field};
+use flatbuffers_reflection::reflection_verifier::{verify, verify_with_options};
 use flatbuffers_reflection::{
     get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
@@ -7,8 +8,9 @@ use flatbuffers_reflection::{
     set_any_field_integer, set_any_field_string, set_field, set_string,
 };
 
-use flatbuffers::FlatBufferBuilder;
+use flatbuffers::{FlatBufferBuilder, VerifierOptions};
 
+use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 
@@ -1187,6 +1189,65 @@ fn test_buffer_set_string_diff_type_fails() {
     .unwrap();
 
     assert_eq!(res, false);
+}
+
+#[test]
+fn test_verify_buffer_default_options_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+
+    let res = verify(&buffer, &schema);
+
+    assert!(res.is_ok());
+}
+
+#[test]
+fn test_verify_buffer_limit_max_depth_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let verify_options = VerifierOptions {
+        max_depth: 1,
+        ..Default::default()
+    };
+
+    let res = verify_with_options(&buffer, &schema, &verify_options);
+
+    assert!(res.is_err());
+    assert_eq!(format!("{:#?}", res.err().unwrap()), "DepthLimitReached");
+}
+
+#[test]
+fn test_verify_buffer_limit_max_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let verify_options = VerifierOptions {
+        max_tables: 1,
+        ..Default::default()
+    };
+
+    let res = verify_with_options(&buffer, &schema, &verify_options);
+
+    assert!(res.is_err());
+    assert_eq!(format!("{:#?}", res.err().unwrap()), "TooManyTables");
+}
+
+#[test]
+fn test_verify_buffer_limit_max_size_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let verify_options = VerifierOptions {
+        max_apparent_size: 1 << 6,
+        ..Default::default()
+    };
+
+    let res = verify_with_options(&buffer, &schema, &verify_options);
+
+    assert!(res.is_err());
+    assert_eq!(format!("{:#?}", res.err().unwrap()), "ApparentSizeTooLarge");
 }
 
 fn load_file_as_buffer(path: &str) -> Vec<u8> {

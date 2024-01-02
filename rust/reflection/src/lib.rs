@@ -15,6 +15,7 @@
  */
 
 mod reflection_generated;
+pub mod reflection_verifier;
 mod r#struct;
 pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
