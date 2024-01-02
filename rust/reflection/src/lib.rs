@@ -15,6 +15,7 @@
  */
 
 mod reflection_generated;
+pub mod reflection_verifier;
 mod r#struct;
 pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
@@ -47,6 +48,12 @@ pub enum FlatbufferError {
     TryFromIntError(#[from] std::num::TryFromIntError),
     #[error("Couldn't set string because cache vector is polluted")]
     SetStringPolluted(),
+    #[error("Invalid schema: Polluted buffer or the schema doesn't match the buffer.")]
+    InvalidSchema(),
+    #[error("Type not supported: {0}")]
+    TypeNotSupported(String),
+    #[error("No type or invalid type found in union enum")]
+    InvalidUnionEnum(),
 }
 
 pub type FlatbufferResult<T, E = FlatbufferError> = core::result::Result<T, E>;
