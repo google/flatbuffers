@@ -547,7 +547,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function " +
-            namer_.Method("start", struct_def) +
+            namer_.LegacyPhpMethod("start", struct_def) +
             "(FlatBufferBuilder $builder)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->StartObject(";
@@ -560,7 +560,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return " + namer_.Type(struct_def) + "\n";
     code += Indent + " */\n";
     code += Indent + "public static function " +
-            namer_.Method("create", struct_def);
+            namer_.LegacyPhpMethod("create", struct_def);
     code += "(FlatBufferBuilder $builder, ";
 
     for (auto it = struct_def.fields.vec.begin();
@@ -687,7 +687,7 @@ class PhpGenerator : public BaseGenerator {
 
       code += "\n";
       code += Indent + "public static function " +
-              namer_.Method("finish" + sizePrefixed, struct_def);
+              namer_.LegacyPhpMethod("finish" + sizePrefixed, struct_def);
       code += "Buffer(FlatBufferBuilder $builder, $offset)\n";
       code += Indent + "{\n";
       code += Indent + Indent + "$builder->finish($offset";
@@ -713,7 +713,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return int table offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function " +
-            namer_.Method("end", struct_def);
+            namer_.LegacyPhpMethod("end", struct_def);
     code += "(FlatBufferBuilder $builder)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $builder->endObject();\n";
@@ -838,7 +838,7 @@ class PhpGenerator : public BaseGenerator {
         code += Indent + "{\n";
         code += Indent + Indent + "return self::";
         code += "__has_identifier($buf, self::";
-        code += namer_.Type(struct_def) + "Identifier());\n";
+        code += namer_.LegacyPhpMethod(struct_def, "Identifier") + "());\n";
         code += Indent + "}\n\n";
       }
 
@@ -984,7 +984,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return int offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function " +
-            namer_.Method("create", struct_def);
+            namer_.LegacyPhpMethod("create", struct_def);
     code += "(FlatBufferBuilder $builder";
     StructBuilderArgs(struct_def, "", code_ptr);
     code += ")\n";
