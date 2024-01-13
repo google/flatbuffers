@@ -40,7 +40,7 @@ function run_tests() {
     JYTHONPATH=${runtime_library_dir}:${gen_code_path} \
     COMPARE_GENERATED_TO_GO=0 \
     COMPARE_GENERATED_TO_JAVA=0 \
-    $1 py_test.py $2 $3 $4 $5
+    $1 py_test.py $2 $3 $4 $5 $6
     if [ $1 = python3 ]; then
       PYTHONDONTWRITEBYTECODE=1 \
       PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
@@ -52,12 +52,12 @@ function run_tests() {
 }
 
 # Run test suite with these interpreters. The arguments are benchmark counts.
-run_tests python2.6 100 100 100 false
-run_tests python2.7 100 100 100 false
-run_tests python2.7 100 100 100 true
-run_tests python3 100 100 100 false
-run_tests python3 100 100 100 true
-run_tests pypy 100 100 100 false
+run_tests python2.6 100 100 100 100 false
+run_tests python2.7 100 100 100 100 false
+run_tests python2.7 100 100 100 100 true
+run_tests python3 100 100 100 100 false
+run_tests python3 100 100 100 100 true
+run_tests pypy 100 100 100 100 false
 
 # NOTE: We'd like to support python2.5 in the future.
 
@@ -77,7 +77,7 @@ if $(which coverage >/dev/null); then
 
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONPATH=${runtime_library_dir}:${gen_code_path} \
-  coverage run --source=flatbuffers,MyGame py_test.py 0 0 0 false > /dev/null
+  coverage run --source=flatbuffers,MyGame py_test.py 0 0 0 0 false > /dev/null
 
   echo
   cov_result=`coverage report --omit="*flatbuffers/vendor*,*py_test*" \
