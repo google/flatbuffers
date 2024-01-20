@@ -47,6 +47,10 @@
 #include <iterator>
 #include <memory>
 
+#if !defined(FLATBUFFERS_NAN_DEFAULTS)
+  #include <cmath>
+#endif
+
 #if defined(__unix__) && !defined(FLATBUFFERS_LOCALE_INDEPENDENT)
   #include <unistd.h>
 #endif
@@ -475,6 +479,13 @@ template<> inline bool IsTheSameAs<float>(float e, float def) {
 }
 template<> inline bool IsTheSameAs<double>(double e, double def) {
   return IsFloatTheSameAs(e, def);
+}
+#else
+template<> inline bool IsTheSameAs<float>(float e, float def) {
+  return std::fabs(e - def) < std::numeric_limits<float>::epsilon() || ((std::signbit(e) == std::signbit(def)) && std::isinf(e) && std::isinf(def));
+}
+template<> inline bool IsTheSameAs<double>(double e, double def) {
+  return std::fabs(e - def) < std::numeric_limits<double>::epsilon() || ((std::signbit(e) == std::signbit(def)) && std::isinf(e) && std::isinf(def));
 }
 #endif
 
