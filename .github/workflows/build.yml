@@ -478,9 +478,17 @@ jobs:
 
   build-swift:
     name: Build Swift
+    strategy:
+      matrix:
+        swift: ["5.7", "5.8", "5.9"]
     runs-on: ubuntu-22.04-64core
     steps:
     - uses: actions/checkout@v3
+    - uses: swift-actions/setup-swift@v1
+      with:
+        swift-version: ${{ matrix.swift }}
+    - name: Get swift version
+      run: swift --version
     - name: test
       working-directory: tests/swift/tests
       run: |
@@ -490,15 +498,16 @@ jobs:
   build-swift-wasm:
     name: Build Swift Wasm
     runs-on: ubuntu-22.04-64core
-    container:
-      image: ghcr.io/swiftwasm/carton:0.15.3
     steps:
       - uses: actions/checkout@v3
       - name: Setup Wasmer
         uses: wasmerio/setup-wasmer@v2
+      - uses: swiftwasm/setup-swiftwasm@v1
+        with:
+          swift-version: "wasm-5.9.2-RELEASE"
       - name: Test
         working-directory: tests/swift/Wasm.tests
-        run: carton test
+        run: swift run carton test
 
   build-ts:
     name: Build TS
