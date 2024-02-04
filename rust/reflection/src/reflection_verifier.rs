@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-use crate::reflection_generated::reflection::{BaseType, Field, Object, Schema};
+use crate::FlatbufferResult;
+use crate::{
+    reflection_generated::reflection::{BaseType, Field, Object, Schema},
+    FlatbufferError,
+};
 use flatbuffers::{
     ForwardsUOffset, InvalidFlatbuffer, TableVerifier, UOffsetT, Vector, Verifiable, Verifier,
     VerifierOptions, SIZE_UOFFSET, SIZE_VOFFSET,
 };
 
-use anyhow::{bail, Context, Ok, Result};
-
 /// Verifies a buffer against its schema with default verification options.
-pub fn verify(buffer: &[u8], schema: &Schema) -> Result<()> {
+pub fn verify(buffer: &[u8], schema: &Schema) -> FlatbufferResult<()> {
     verify_with_options(buffer, schema, &VerifierOptions::default())
 }
 
 /// Verifies a buffer against its schema with custom verification options.
-pub fn verify_with_options(buffer: &[u8], schema: &Schema, opts: &VerifierOptions) -> Result<()> {
+pub fn verify_with_options(
+    buffer: &[u8],
+    schema: &Schema,
+    opts: &VerifierOptions,
+) -> FlatbufferResult<()> {
     let mut verifier = Verifier::new(opts, buffer);
     if let Some(table_object) = schema.root_table() {
         if let core::result::Result::Ok(table_pos) = verifier.get_uoffset(0) {
@@ -36,13 +42,17 @@ pub fn verify_with_options(buffer: &[u8], schema: &Schema, opts: &VerifierOption
             return verify_table(
                 &mut verifier,
                 &table_object,
-                table_pos.try_into()?,
+                table_pos
+                    .try_into()
+                    .map_err(|_| FlatbufferError::DerefError())?,
                 schema,
                 &mut verified,
             );
         }
     }
-    bail!("Polluted buffer or the schema doesn't match the buffer.")
+    Err(FlatbufferError::InvalidSchema(String::from(
+        "Polluted buffer or the schema doesn't match the buffer.",
+    )))
 }
 
 fn verify_table(
@@ -51,7 +61,7 @@ fn verify_table(
     table_pos: usize,
     schema: &Schema,
     verified: &mut [bool],
-) -> Result<()> {
+) -> FlatbufferResult<()> {
     if table_pos < verified.len() && verified[table_pos] {
         return Ok(());
     }
@@ -102,17 +112,31 @@ fn verify_table(
             BaseType::Vector => verify_vector(table_verifier, &field, schema, verified)?,
             BaseType::Obj => {
                 if let Some(field_pos) = table_verifier.deref(field.offset())? {
-                    let child_obj = schema.objects().get(field.type_().index().try_into()?);
+                    let child_obj = schema.objects().get(
+                        field
+                            .type_()
+                            .index()
+                            .try_into()
+                            .map_err(|_| FlatbufferError::DerefError())?,
+                    );
                     if child_obj.is_struct() {
-                        table_verifier
-                            .verifier()
-                            .range_in_buffer(field_pos, child_obj.bytesize().try_into()?)?
+                        table_verifier.verifier().range_in_buffer(
+                            field_pos,
+                            child_obj
+                                .bytesize()
+                                .try_into()
+                                .map_err(|_| FlatbufferError::DerefError())?,
+                        )?
                     } else {
                         let field_value = table_verifier.verifier().get_uoffset(field_pos)?;
                         verify_table(
                             table_verifier.verifier(),
                             &child_obj,
-                            field_pos.saturating_add(field_value.try_into()?),
+                            field_pos.saturating_add(
+                                field_value
+                                    .try_into()
+                                    .map_err(|_| FlatbufferError::DerefError())?,
+                            ),
                             schema,
                             verified,
                         )?;
@@ -130,7 +154,11 @@ fn verify_table(
                     verify_union(
                         table_verifier,
                         &field,
-                        field_pos.saturating_add(field_value.try_into()?),
+                        field_pos.saturating_add(
+                            field_value
+                                .try_into()
+                                .map_err(|_| FlatbufferError::DerefError())?,
+                        ),
                         schema,
                         verified,
                     )?
@@ -142,7 +170,11 @@ fn verify_table(
                     table_verifier
                 }
             }
-            _ => bail!("Type not supported."),
+            _ => {
+                return Err(FlatbufferError::InvalidSchema(String::from(
+                    "Type not supported.",
+                )))
+            }
         };
     }
 
@@ -156,7 +188,7 @@ fn verify_vector<'a, 'b, 'c>(
     field: &Field,
     schema: &Schema,
     verified: &mut [bool],
-) -> Result<TableVerifier<'a, 'b, 'c>> {
+) -> FlatbufferResult<TableVerifier<'a, 'b, 'c>> {
     let field_name = field.name().to_owned();
     Ok(match field.type_().element() {
         BaseType::UType | BaseType::UByte => table_verifier
@@ -225,24 +257,61 @@ fn verify_vector<'a, 'b, 'c>(
             if let Some(field_pos) = table_verifier.deref(field.offset())? {
                 let verifier = table_verifier.verifier();
                 let vector_offset = verifier.get_uoffset(field_pos)?;
-                let vector_pos = field_pos.saturating_add(vector_offset.try_into()?);
+                let vector_pos = field_pos.saturating_add(
+                    vector_offset
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
+                );
                 let vector_len = verifier.get_uoffset(vector_pos)?;
                 let vector_start = vector_pos.saturating_add(SIZE_UOFFSET);
-                let child_obj = schema.objects().get(field.type_().index().try_into()?);
+                let child_obj = schema.objects().get(
+                    field
+                        .type_()
+                        .index()
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
+                );
                 if child_obj.is_struct() {
-                    let vector_size = vector_len.saturating_mul(child_obj.bytesize().try_into()?);
-                    verifier.range_in_buffer(vector_start, vector_size.try_into()?)?;
+                    let vector_size = vector_len.saturating_mul(
+                        child_obj
+                            .bytesize()
+                            .try_into()
+                            .map_err(|_| FlatbufferError::DerefError())?,
+                    );
+                    verifier.range_in_buffer(
+                        vector_start,
+                        vector_size
+                            .try_into()
+                            .map_err(|_| FlatbufferError::DerefError())?,
+                    )?;
                 } else {
                     verifier.is_aligned::<UOffsetT>(vector_start)?;
-                    let vector_size = vector_len.saturating_mul(SIZE_UOFFSET.try_into()?);
-                    verifier.range_in_buffer(vector_start, vector_size.try_into()?)?;
+                    let vector_size = vector_len.saturating_mul(
+                        SIZE_UOFFSET
+                            .try_into()
+                            .map_err(|_| FlatbufferError::DerefError())?,
+                    );
+                    verifier.range_in_buffer(
+                        vector_start,
+                        vector_size
+                            .try_into()
+                            .map_err(|_| FlatbufferError::DerefError())?,
+                    )?;
                     let vector_range = core::ops::Range {
                         start: vector_start,
-                        end: vector_start.saturating_add(vector_size.try_into()?),
+                        end: vector_start.saturating_add(
+                            vector_size
+                                .try_into()
+                                .map_err(|_| FlatbufferError::DerefError())?,
+                        ),
                     };
                     for (_, element_pos) in vector_range.step_by(SIZE_UOFFSET).enumerate() {
-                        let table_pos = element_pos
-                            .saturating_add(verifier.get_uoffset(element_pos)?.try_into()?);
+                        let table_pos = element_pos.saturating_add(
+                            verifier
+                                .get_uoffset(element_pos)?
+                                .try_into()
+                                .map_err(|_| FlatbufferError::DerefError())?,
+                        );
                         verify_table(verifier, &child_obj, table_pos, schema, verified)?;
                     }
                 }
@@ -253,7 +322,11 @@ fn verify_vector<'a, 'b, 'c>(
             }
             table_verifier
         }
-        _ => bail!("Type not supported."),
+        _ => {
+            return Err(FlatbufferError::InvalidSchema(String::from(
+                "Type not supported.",
+            )))
+        }
     })
 }
 
@@ -263,29 +336,49 @@ fn verify_union<'a, 'b, 'c>(
     union_pos: usize,
     schema: &Schema,
     verified: &mut [bool],
-) -> Result<TableVerifier<'a, 'b, 'c>> {
-    let union_enum = schema.enums().get(field.type_().index().try_into()?);
+) -> FlatbufferResult<TableVerifier<'a, 'b, 'c>> {
+    let union_enum = schema.enums().get(
+        field
+            .type_()
+            .index()
+            .try_into()
+            .map_err(|_| FlatbufferError::DerefError())?,
+    );
     if union_enum.values().is_empty() {
-        bail!("No type populated for union.");
+        return Err(FlatbufferError::InvalidSchema(String::from(
+            "No type populated for union.",
+        )));
     }
 
-    let enum_offset = field.offset() - u16::try_from(SIZE_VOFFSET)?;
+    let enum_offset =
+        field.offset() - u16::try_from(SIZE_VOFFSET).map_err(|_| FlatbufferError::DerefError())?;
     if let Some(enum_pos) = table_verifier.deref(enum_offset)? {
         let enum_value = table_verifier.verifier().get_u8(enum_pos)?;
         let enum_type = union_enum
             .values()
             .get(enum_value.into())
             .union_type()
-            .context("Enum type not found.")?;
+            .ok_or(FlatbufferError::InvalidSchema(String::from(
+                "Enum type not found.",
+            )))?;
 
         match enum_type.base_type() {
             BaseType::String => <&str>::run_verifier(table_verifier.verifier(), union_pos)?,
             BaseType::Obj => {
-                let child_obj = schema.objects().get(enum_type.index().try_into()?);
+                let child_obj = schema.objects().get(
+                    enum_type
+                        .index()
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
+                );
                 if child_obj.is_struct() {
-                    table_verifier
-                        .verifier()
-                        .range_in_buffer(union_pos, child_obj.bytesize().try_into()?)?
+                    table_verifier.verifier().range_in_buffer(
+                        union_pos,
+                        child_obj
+                            .bytesize()
+                            .try_into()
+                            .map_err(|_| FlatbufferError::DerefError())?,
+                    )?
                 } else {
                     verify_table(
                         table_verifier.verifier(),
@@ -296,7 +389,11 @@ fn verify_union<'a, 'b, 'c>(
                     )?;
                 }
             }
-            _ => bail!("Type not supported."),
+            _ => {
+                return Err(FlatbufferError::InvalidSchema(String::from(
+                    "Type not supported.",
+                )))
+            }
         }
     } else {
         return Ok(InvalidFlatbuffer::new_inconsistent_union(

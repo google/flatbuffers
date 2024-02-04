@@ -1215,7 +1215,7 @@ fn test_verify_buffer_limit_max_depth_fails() {
     let res = verify_with_options(&buffer, &schema, &verify_options);
 
     assert!(res.is_err());
-    assert_eq!(format!("{:#?}", res.err().unwrap()), "DepthLimitReached");
+    assert!(format!("{:#?}", res.err().unwrap()).contains("DepthLimitReached"));
 }
 
 #[test]
@@ -1231,7 +1231,7 @@ fn test_verify_buffer_limit_max_table_fails() {
     let res = verify_with_options(&buffer, &schema, &verify_options);
 
     assert!(res.is_err());
-    assert_eq!(format!("{:#?}", res.err().unwrap()), "TooManyTables");
+    assert!(format!("{:#?}", res.err().unwrap()).contains("TooManyTables"));
 }
 
 #[test]
@@ -1247,7 +1247,7 @@ fn test_verify_buffer_limit_max_size_fails() {
     let res = verify_with_options(&buffer, &schema, &verify_options);
 
     assert!(res.is_err());
-    assert_eq!(format!("{:#?}", res.err().unwrap()), "ApparentSizeTooLarge");
+    assert!(format!("{:#?}", res.err().unwrap()).contains("ApparentSizeTooLarge"));
 }
 
 fn load_file_as_buffer(path: &str) -> Vec<u8> {

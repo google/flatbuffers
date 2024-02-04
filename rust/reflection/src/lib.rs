@@ -26,13 +26,25 @@ use flatbuffers::{
 };
 use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
-use anyhow::{Ok, Result};
 use core::mem::size_of;
 use escape_string::escape;
 use num::traits::float::Float;
 use num::traits::int::PrimInt;
 use num::traits::FromPrimitive;
 use stdint::uintmax_t;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum FlatbufferError {
+    #[error(transparent)]
+    VerificationError(#[from] flatbuffers::InvalidFlatbuffer),
+    #[error("Failed to convert offset types")]
+    DerefError(),
+    #[error("Invalid schema: {0}")]
+    InvalidSchema(String),
+}
+
+pub type FlatbufferResult<T, E = FlatbufferError> = core::result::Result<T, E>;
 
 /// Gets the root table from a trusted Flatbuffer.
 ///
@@ -340,7 +352,7 @@ pub unsafe fn set_string<'a>(
     field: &Field,
     v: &str,
     schema: &Schema,
-) -> Result<bool> {
+) -> FlatbufferResult<bool> {
     let field_type = field.type_().base_type();
     if field_type != BaseType::String {
         return Ok(false);
@@ -363,9 +375,11 @@ pub unsafe fn set_string<'a>(
         // SAFETY: the index was verified above.
         let len_old = unsafe { read_uoffset(buf, string_loc) };
         if buf.len()
-            < string_loc
-                .saturating_add(SIZE_UOFFSET)
-                .saturating_add(len_old.try_into()?)
+            < string_loc.saturating_add(SIZE_UOFFSET).saturating_add(
+                len_old
+                    .try_into()
+                    .map_err(|_| FlatbufferError::DerefError())?,
+            )
         {
             return Ok(false);
         }
@@ -394,7 +408,9 @@ pub unsafe fn set_string<'a>(
                 // Sets the new length.
                 emplace_scalar::<SOffsetT>(
                     &mut buf[string_loc..string_loc + SIZE_UOFFSET],
-                    len_new.try_into()?,
+                    len_new
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
                 );
             }
 
@@ -404,7 +420,10 @@ pub unsafe fn set_string<'a>(
 
         // Replaces the data.
         buf.splice(
-            string_loc + SIZE_SOFFSET..string_loc + SIZE_UOFFSET + usize::try_from(len_old)?,
+            string_loc + SIZE_SOFFSET
+                ..string_loc
+                    + SIZE_UOFFSET
+                    + usize::try_from(len_old).map_err(|_| FlatbufferError::DerefError())?,
             bytes_to_insert,
         );
         Ok(true)
@@ -725,20 +744,29 @@ unsafe fn update_offset(
     schema: &Schema,
     insertion_loc: usize,
     offset: isize,
-) -> Result<()> {
+) -> FlatbufferResult<()> {
     if updated[table_loc] {
         return Ok(());
     }
 
     let slice = &mut buf[table_loc..table_loc + SIZE_SOFFSET];
-    let vtable_offset = isize::try_from(read_scalar::<SOffsetT>(slice))?;
-    let vtable_loc = (isize::try_from(table_loc)? - vtable_offset).try_into()?;
+    let vtable_offset = isize::try_from(read_scalar::<SOffsetT>(slice))
+        .map_err(|_| FlatbufferError::DerefError())?;
+    let vtable_loc = (isize::try_from(table_loc).map_err(|_| FlatbufferError::DerefError())?
+        - vtable_offset)
+        .try_into()
+        .map_err(|_| FlatbufferError::DerefError())?;
 
     if insertion_loc <= table_loc {
         // Checks if insertion point is between the table and a vtable that
         // precedes it.
         if is_update(insertion_loc, vtable_loc, table_loc) {
-            emplace_scalar::<SOffsetT>(slice, (vtable_offset + offset).try_into()?);
+            emplace_scalar::<SOffsetT>(
+                slice,
+                (vtable_offset + offset)
+                    .try_into()
+                    .map_err(|_| FlatbufferError::DerefError())?,
+            );
             updated[table_loc] = true;
         }
 
@@ -766,7 +794,13 @@ unsafe fn update_offset(
         if field_type == BaseType::Obj
             && schema
                 .objects()
-                .get(field.type_().index().try_into()?)
+                .get(
+                    field
+                        .type_()
+                        .index()
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
+                )
                 .is_struct()
         {
             continue;
@@ -775,18 +809,31 @@ unsafe fn update_offset(
         // Updates the relative offset from table to actual data if needed
         let slice = &mut buf[field_loc..field_loc + SIZE_UOFFSET];
         let field_value_offset = read_scalar::<UOffsetT>(slice);
-        let field_value_loc = field_loc.saturating_add(field_value_offset.try_into()?);
+        let field_value_loc = field_loc.saturating_add(
+            field_value_offset
+                .try_into()
+                .map_err(|_| FlatbufferError::DerefError())?,
+        );
         if is_update(insertion_loc, field_loc, field_value_loc) {
             emplace_scalar::<UOffsetT>(
                 slice,
-                (isize::try_from(field_value_offset)? + offset).try_into()?,
+                (isize::try_from(field_value_offset).map_err(|_| FlatbufferError::DerefError())?
+                    + offset)
+                    .try_into()
+                    .map_err(|_| FlatbufferError::DerefError())?,
             );
             updated[field_loc] = true;
         }
 
         match field_type {
             BaseType::Obj => {
-                let field_obj = schema.objects().get(field.type_().index().try_into()?);
+                let field_obj = schema.objects().get(
+                    field
+                        .type_()
+                        .index()
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
+                );
                 update_offset(
                     buf,
                     field_value_loc,
@@ -805,12 +852,19 @@ unsafe fn update_offset(
                 if elem_type == BaseType::Obj
                     && schema
                         .objects()
-                        .get(field.type_().index().try_into()?)
+                        .get(
+                            field
+                                .type_()
+                                .index()
+                                .try_into()
+                                .map_err(|_| FlatbufferError::DerefError())?,
+                        )
                         .is_struct()
                 {
                     continue;
                 }
-                let vec_size = usize::try_from(read_uoffset(buf, field_value_loc))?;
+                let vec_size = usize::try_from(read_uoffset(buf, field_value_loc))
+                    .map_err(|_| FlatbufferError::DerefError())?;
                 for index in 0..vec_size {
                     let elem_loc = field_value_loc + SIZE_UOFFSET + index * SIZE_UOFFSET;
                     if updated[elem_loc] {
@@ -818,17 +872,31 @@ unsafe fn update_offset(
                     }
                     let slice = &mut buf[elem_loc..elem_loc + SIZE_UOFFSET];
                     let elem_value_offset = read_scalar::<UOffsetT>(slice);
-                    let elem_value_loc = elem_loc.saturating_add(elem_value_offset.try_into()?);
+                    let elem_value_loc = elem_loc.saturating_add(
+                        elem_value_offset
+                            .try_into()
+                            .map_err(|_| FlatbufferError::DerefError())?,
+                    );
                     if is_update(insertion_loc, elem_loc, elem_value_loc) {
                         emplace_scalar::<UOffsetT>(
                             slice,
-                            (isize::try_from(elem_value_offset)? + offset).try_into()?,
+                            (isize::try_from(elem_value_offset)
+                                .map_err(|_| FlatbufferError::DerefError())?
+                                + offset)
+                                .try_into()
+                                .map_err(|_| FlatbufferError::DerefError())?,
                         );
                         updated[elem_loc] = true;
                     }
 
                     if elem_type == BaseType::Obj {
-                        let elem_obj = schema.objects().get(field.type_().index().try_into()?);
+                        let elem_obj = schema.objects().get(
+                            field
+                                .type_()
+                                .index()
+                                .try_into()
+                                .map_err(|_| FlatbufferError::DerefError())?,
+                        );
                         update_offset(
                             buf,
                             elem_value_loc,
@@ -842,7 +910,13 @@ unsafe fn update_offset(
                 }
             }
             BaseType::Union => {
-                let union_enum = schema.enums().get(field.type_().index().try_into()?);
+                let union_enum = schema.enums().get(
+                    field
+                        .type_()
+                        .index()
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
+                );
                 let union_type = object
                     .fields()
                     .lookup_by_key(field.name().to_string() + "_type", |field, key| {
@@ -859,9 +933,14 @@ unsafe fn update_offset(
                         value.key_compare_with_value(*key)
                     })
                     .unwrap();
-                let union_object = schema
-                    .objects()
-                    .get(union_enum_value.union_type().unwrap().index().try_into()?);
+                let union_object = schema.objects().get(
+                    union_enum_value
+                        .union_type()
+                        .unwrap()
+                        .index()
+                        .try_into()
+                        .map_err(|_| FlatbufferError::DerefError())?,
+                );
                 update_offset(
                     buf,
                     field_value_loc,
@@ -879,7 +958,12 @@ unsafe fn update_offset(
     // Checks if the vtable offset points beyond the insertion point.
     if is_update(insertion_loc, table_loc, vtable_loc) {
         let slice = &mut buf[table_loc..table_loc + SIZE_SOFFSET];
-        emplace_scalar::<SOffsetT>(slice, (vtable_offset - offset).try_into()?);
+        emplace_scalar::<SOffsetT>(
+            slice,
+            (vtable_offset - offset)
+                .try_into()
+                .map_err(|_| FlatbufferError::DerefError())?,
+        );
         updated[table_loc] = true;
     }
     Ok(())
@@ -895,8 +979,12 @@ fn is_update(insertion_loc: usize, left: usize, right: usize) -> bool {
 /// # Safety
 ///
 /// The value of the corresponding slot must have type `UOffsetT`.
-unsafe fn deref_uoffset<'a>(buf: &'a [u8], field_loc: usize) -> Result<usize> {
-    Ok(field_loc.saturating_add(read_uoffset(buf, field_loc).try_into()?))
+unsafe fn deref_uoffset<'a>(buf: &'a [u8], field_loc: usize) -> FlatbufferResult<usize> {
+    Ok(field_loc.saturating_add(
+        read_uoffset(buf, field_loc)
+            .try_into()
+            .map_err(|_| FlatbufferError::DerefError())?,
+    ))
 }
 
 /// Reads the value of `UOffsetT` at the give location.
