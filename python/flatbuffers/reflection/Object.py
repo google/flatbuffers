@@ -155,7 +155,7 @@ def AddFields(builder, fields):
 def ObjectStartFieldsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartFieldsVector(builder, numElems: int) -> int:
+def StartFieldsVector(builder, numElems):
     return ObjectStartFieldsVector(builder, numElems)
 
 def ObjectAddIsStruct(builder, isStruct):
@@ -185,7 +185,7 @@ def AddAttributes(builder, attributes):
 def ObjectStartAttributesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartAttributesVector(builder, numElems: int) -> int:
+def StartAttributesVector(builder, numElems):
     return ObjectStartAttributesVector(builder, numElems)
 
 def ObjectAddDocumentation(builder, documentation):
@@ -197,7 +197,7 @@ def AddDocumentation(builder, documentation):
 def ObjectStartDocumentationVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDocumentationVector(builder, numElems: int) -> int:
+def StartDocumentationVector(builder, numElems):
     return ObjectStartDocumentationVector(builder, numElems)
 
 def ObjectAddDeclarationFile(builder, declarationFile):
