@@ -234,7 +234,7 @@ function(flatbuffers_generate_headers)
   elseif(TARGET flatbuffers::flatc)
     set(FLATC flatbuffers::flatc)
   else()
-    set(FLATC flatc)
+    message(FATAL_ERROR "flatc was not found, cannot generate flatbuffer headers!")
   endif()
 
   set(working_dir "${CMAKE_CURRENT_SOURCE_DIR}")
