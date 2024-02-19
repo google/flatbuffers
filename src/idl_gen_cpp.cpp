@@ -2530,7 +2530,7 @@ class CppGenerator : public BaseGenerator {
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
       auto full_struct_name = GetUnionElement(ev, false, opts_);
 
-      // @TODO: Mby make this decisions more universal? How?
+      // @TODO: Maybe make this decisions more universal? How?
       code_.SetValue("U_GET_TYPE",
                      EscapeKeyword(Name(field) + UnionTypeFieldSuffix()));
       code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(u->defined_namespace,
