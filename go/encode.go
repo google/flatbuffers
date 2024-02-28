@@ -228,7 +228,7 @@ func GetInt64(buf []byte) (n int64) {
 // SafeGetInt64 first bounds checks the byte slice to ensure a length of 8
 // then decodes a little-endian int64 from the byte slice
 func SafeGetInt64(buf []byte) (n int64, err error) {
-	if len(buf) != 4 {
+	if len(buf) != 8 {
 		n = int64(0)
 		err = fmt.Errorf("Bounds check failed for returning safe int64")
 		return
