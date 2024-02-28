@@ -1,6 +1,7 @@
 package flatbuffers
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -23,14 +24,46 @@ func GetByte(buf []byte) byte {
 	return byte(GetUint8(buf))
 }
 
+// SafeGetByte first bounds checks the byte slice to ensure a length of 1
+// then decodes a little-endian byte from the byte slice
+func SafeGetByte(buf []byte) (byte, error) {
+	x, err := SafeGetUint8(buf)
+	if err != nil {
+		return byte(0), fmt.Errorf("Bounds check failed for returning safe byte value from SafeGetUint8")
+	}
+	return byte(x), nil
+}
+
 // GetBool decodes a little-endian bool from a byte slice.
 func GetBool(buf []byte) bool {
 	return buf[0] == 1
 }
 
+// SafeGetBool first bounds checks the byte slice to ensure a length of 1
+// then decodes a little-endian bool from the byte slice
+func SafeGetBool(buf []byte) (bool, error) {
+	if len(buf) != 1 {
+		return false, fmt.Errorf("Bounds check failed for returning safe boolean")
+	}
+	return buf[0] == 1, nil
+}
+
 // GetUint8 decodes a little-endian uint8 from a byte slice.
 func GetUint8(buf []byte) (n uint8) {
 	n = uint8(buf[0])
+	return
+}
+
+// SafeGetUint8 first bounds checks the byte slice to ensure a length of 1
+// then decodes a little-endian uint8 from the byte slice
+func SafeGetUint8(buf []byte) (n uint8, err error) {
+	if len(buf) != 1 {
+		n = uint8(0)
+		err = fmt.Errorf("Bounds check failed for returning safe uint8")
+		return
+	}
+	n = uint8(buf[0])
+	err = nil
 	return
 }
 
@@ -42,9 +75,37 @@ func GetUint16(buf []byte) (n uint16) {
 	return
 }
 
+// SafeGetUint16 first bounds checks the byte slice to ensure a length of 2
+// then decodes a little-endian uint16 from the byte slice
+func SafeGetUint16(buf []byte) (n uint16, err error) {
+	if len(buf) != 2 {
+		n = uint16(0)
+		err = fmt.Errorf("Bounds check failed for returning safe uint16")
+		return
+	}
+	n |= uint16(buf[0])
+	n |= uint16(buf[1]) << 8
+	return
+}
+
 // GetUint32 decodes a little-endian uint32 from a byte slice.
 func GetUint32(buf []byte) (n uint32) {
 	_ = buf[3] // Force one bounds check. See: golang.org/issue/14808
+	n |= uint32(buf[0])
+	n |= uint32(buf[1]) << 8
+	n |= uint32(buf[2]) << 16
+	n |= uint32(buf[3]) << 24
+	return
+}
+
+// SafeGetUint32 first bounds checks the byte slice to ensure a length of 4
+// then decodes a little-endian uint32 from the byte slice
+func SafeGetUint32(buf []byte) (n uint32, err error) {
+	if len(buf) != 4 {
+		n = uint32(0)
+		err = fmt.Errorf("Bounds check failed for returning safe uint32")
+		return
+	}
 	n |= uint32(buf[0])
 	n |= uint32(buf[1]) << 8
 	n |= uint32(buf[2]) << 16
@@ -66,9 +127,41 @@ func GetUint64(buf []byte) (n uint64) {
 	return
 }
 
+// SafeGetUint64 first bounds checks the byte slice to ensure a length of 8
+// then decodes a little-endian uint64 from the byte slice
+func SafeGetUint64(buf []byte) (n uint64, err error) {
+	if len(buf) != 8 {
+		n = uint64(0)
+		err = fmt.Errorf("Bounds check failed for returning safe uint64")
+		return
+	}
+	n |= uint64(buf[0])
+	n |= uint64(buf[1]) << 8
+	n |= uint64(buf[2]) << 16
+	n |= uint64(buf[3]) << 24
+	n |= uint64(buf[4]) << 32
+	n |= uint64(buf[5]) << 40
+	n |= uint64(buf[6]) << 48
+	n |= uint64(buf[7]) << 56
+	return
+}
+
 // GetInt8 decodes a little-endian int8 from a byte slice.
 func GetInt8(buf []byte) (n int8) {
 	n = int8(buf[0])
+	return
+}
+
+// SafeGetInt8 first bounds checks the byte slice to ensure a length of 1
+// then decodes a little-endian int8 from the byte slice
+func SafeGetInt8(buf []byte) (n int8, err error) {
+	if len(buf) != 1 {
+		n = int8(0)
+		err = fmt.Errorf("Bounds check failed for returning safe int8")
+		return
+	}
+	n = int8(buf[0])
+	err = nil
 	return
 }
 
@@ -80,9 +173,37 @@ func GetInt16(buf []byte) (n int16) {
 	return
 }
 
+// SafeGetInt16 first bounds checks the byte slice to ensure a length of 2
+// then decodes a little-endian int16 from the byte slice
+func SafeGetInt16(buf []byte) (n int16, err error) {
+	if len(buf) != 2 {
+		n = int16(0)
+		err = fmt.Errorf("Bounds check failed for returning safe int16")
+		return
+	}
+	n |= int16(buf[0])
+	n |= int16(buf[1]) << 8
+	return
+}
+
 // GetInt32 decodes a little-endian int32 from a byte slice.
 func GetInt32(buf []byte) (n int32) {
 	_ = buf[3] // Force one bounds check. See: golang.org/issue/14808
+	n |= int32(buf[0])
+	n |= int32(buf[1]) << 8
+	n |= int32(buf[2]) << 16
+	n |= int32(buf[3]) << 24
+	return
+}
+
+// SafeGetInt32 first bounds checks the byte slice to ensure a length of 4
+// then decodes a little-endian int32 from the byte slice
+func SafeGetInt32(buf []byte) (n int32, err error) {
+	if len(buf) != 4 {
+		n = int32(0)
+		err = fmt.Errorf("Bounds check failed for returning safe int32")
+		return
+	}
 	n |= int32(buf[0])
 	n |= int32(buf[1]) << 8
 	n |= int32(buf[2]) << 16
@@ -104,10 +225,39 @@ func GetInt64(buf []byte) (n int64) {
 	return
 }
 
+// SafeGetInt64 first bounds checks the byte slice to ensure a length of 8
+// then decodes a little-endian int64 from the byte slice
+func SafeGetInt64(buf []byte) (n int64, err error) {
+	if len(buf) != 4 {
+		n = int64(0)
+		err = fmt.Errorf("Bounds check failed for returning safe int64")
+		return
+	}
+	n |= int64(buf[0])
+	n |= int64(buf[1]) << 8
+	n |= int64(buf[2]) << 16
+	n |= int64(buf[3]) << 24
+	n |= int64(buf[4]) << 32
+	n |= int64(buf[5]) << 40
+	n |= int64(buf[6]) << 48
+	n |= int64(buf[7]) << 56
+	return
+}
+
 // GetFloat32 decodes a little-endian float32 from a byte slice.
 func GetFloat32(buf []byte) float32 {
 	x := GetUint32(buf)
 	return math.Float32frombits(x)
+}
+
+// SafeGetFloat32 first bounds checks the byte slice to ensure a length of 4
+// then decodes a little-endian float32 from the byte slice
+func SafeGetFloat32(buf []byte) (float32, error) {
+	x, err := SafeGetUint32(buf)
+	if err != nil {
+		return float32(0), fmt.Errorf("Bounds check failed for returning safe float32 from SafeGetUint32")
+	}
+	return math.Float32frombits(x), nil
 }
 
 // GetFloat64 decodes a little-endian float64 from a byte slice.
@@ -116,9 +266,29 @@ func GetFloat64(buf []byte) float64 {
 	return math.Float64frombits(x)
 }
 
+// SafeGetFloat64 first bounds checks the byte slice to ensure a length of 8
+// then decodes a little-endian float64 from the byte slice
+func SafeGetFloat64(buf []byte) (float64, error) {
+	x, err := SafeGetUint64(buf)
+	if err != nil {
+		return float64(0), fmt.Errorf("Bounds check failed for returning safe float64 from SafeGetUint64")
+	}
+	return math.Float64frombits(x), nil
+}
+
 // GetUOffsetT decodes a little-endian UOffsetT from a byte slice.
 func GetUOffsetT(buf []byte) UOffsetT {
 	return UOffsetT(GetUint32(buf))
+}
+
+// SafeGetUOffsetT bounds checks the byte slice to ensure a length of 4
+// then decodes a little-endian UOffsetT from the byte slice
+func SafeGetUOffsetT(buf []byte) (UOffsetT, error) {
+	x, err := SafeGetUint32(buf)
+	if err != nil {
+		return UOffsetT(0), fmt.Errorf("Bounds check failed for returning safe UOffsetT from SafeGetUint32")
+	}
+	return UOffsetT(x), nil
 }
 
 // GetSOffsetT decodes a little-endian SOffsetT from a byte slice.
@@ -126,9 +296,29 @@ func GetSOffsetT(buf []byte) SOffsetT {
 	return SOffsetT(GetInt32(buf))
 }
 
+// SafeGetSOffsetT bounds checks the byte slice to ensure a length of 4
+// then decodes a little-endian SOffsetT from the byte slice
+func SafeGetSOffsetT(buf []byte) (SOffsetT, error) {
+	x, err := SafeGetUint32(buf)
+	if err != nil {
+		return SOffsetT(0), fmt.Errorf("Bounds check failed for returning safe SOffsetT from SafeGetUint32")
+	}
+	return SOffsetT(x), nil
+}
+
 // GetVOffsetT decodes a little-endian VOffsetT from a byte slice.
 func GetVOffsetT(buf []byte) VOffsetT {
 	return VOffsetT(GetUint16(buf))
+}
+
+// SafeGetVOffsetT bounds checks the byte slice to ensure a length of 4
+// then decodes a little-endian VOffsetT from the byte slice
+func SafeGetVOffsetT(buf []byte) (VOffsetT, error) {
+	x, err := SafeGetUint32(buf)
+	if err != nil {
+		return VOffsetT(0), fmt.Errorf("Bounds check failed for returning safe VOffsetT from SafeGetUint32")
+	}
+	return VOffsetT(x), nil
 }
 
 // WriteByte encodes a little-endian uint8 into a byte slice.
