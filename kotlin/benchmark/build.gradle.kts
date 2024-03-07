@@ -69,13 +69,13 @@ kotlin {
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
         implementation(libs.kotlinx.benchmark.runtime)
-        implementation("com.google.flatbuffers:flatbuffers-java:${readJavaFlatBufferVersion()}")
         // json serializers
         implementation(libs.moshi.kotlin)
         implementation(libs.gson)
       }
       kotlin.srcDir("src/jvmMain/generated/kotlin/")
       kotlin.srcDir("src/jvmMain/generated/java/")
+      kotlin.srcDir("../../java/src/main/java")
     }
   }
 }
