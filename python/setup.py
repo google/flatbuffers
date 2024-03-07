@@ -16,7 +16,7 @@ from setuptools import setup
 
 setup(
     name='flatbuffers',
-    version='24.3.6',
+    version='24.3.7',
     license='Apache 2.0',
     license_files='../LICENSE',
     author='Derek Bailey',

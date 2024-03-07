@@ -21,7 +21,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Galaxy extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_24_3_6(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_24_3_7(); }
   public static Galaxy getRootAsGalaxy(ByteBuffer _bb) { return getRootAsGalaxy(_bb, new Galaxy()); }
   public static Galaxy getRootAsGalaxy(ByteBuffer _bb, Galaxy obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
