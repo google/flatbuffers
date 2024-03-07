@@ -39,7 +39,7 @@ class SecondTableInA : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_24_3_6()
+        fun validateVersion() = Constants.FLATBUFFERS_24_3_7()
         fun getRootAsSecondTableInA(_bb: ByteBuffer): SecondTableInA = getRootAsSecondTableInA(_bb, SecondTableInA())
         fun getRootAsSecondTableInA(_bb: ByteBuffer, obj: SecondTableInA): SecondTableInA {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

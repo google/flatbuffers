@@ -77,7 +77,7 @@ def AddGalaxies(builder, galaxies):
 def UniverseStartGalaxiesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartGalaxiesVector(builder, numElems: int) -> int:
+def StartGalaxiesVector(builder, numElems):
     return UniverseStartGalaxiesVector(builder, numElems)
 
 def UniverseEnd(builder):
