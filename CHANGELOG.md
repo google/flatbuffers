@@ -4,6 +4,10 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [24.3.6] (March 24 2024)(https://github.com/google/flatbuffers/releases/tag/v24.3.6)
+
+* Fix typescript object API to allow 0 values for null-default scalars (#7864)
+
 ## [23.5.26 (May 26 2023)](https://github.com/google/flatbuffers/releases/tag/v23.5.26)
 
 * Mostly bug fixing for 64-bit support
