@@ -1505,6 +1505,8 @@ class GoGenerator : public BaseGenerator {
     } else if (type.base_type == BASE_TYPE_UNION) {
       return "*" +
              WrapInNameSpaceAndTrack(type.enum_def, NativeName(*type.enum_def));
+    } else if (IsArray(type)) {
+      return "[]" +  NativeType(type.VectorType());
     }
     FLATBUFFERS_ASSERT(0);
     return std::string();
