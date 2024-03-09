@@ -145,11 +145,17 @@ class LobsterGenerator : public BaseGenerator {
           code += def + "() -> " + name + ":\n        ";
           code += "return " + name + "{ buf_, pos_ + " + offsets + " }\n";
         } else {
-          code += def + "() -> " + name + "?:\n        ";
+          code += def + "() -> " + name;
+          if (!field.IsRequired()) code += "?";
+          code += ":\n        ";
           code += std::string("let o = flatbuffers.field_") +
                   (field.value.type.struct_def->fixed ? "struct" : "table") +
-                  "(buf_, pos_, " + offsets + ")\n        return if o: " + name +
-                  " { buf_, o } else: nil\n";
+                  "(buf_, pos_, " + offsets + ")\n        return ";
+          if (field.IsRequired()) {
+            code += name + " { buf_, assert o }\n";
+          } else {
+            code += "if o: " + name + " { buf_, o } else: nil\n";
+          }
         }
         break;
       }
