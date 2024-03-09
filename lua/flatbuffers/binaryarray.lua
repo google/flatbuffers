@@ -18,7 +18,7 @@ end
 function m.New(sizeOrString)
     -- the array storage itself
     local o = {}
-    
+
     if type(sizeOrString) == "string" then
         o.str = sizeOrString
         o.size = #sizeOrString
@@ -41,10 +41,10 @@ function mt:Slice(startPos, endPos)
     if d then
         -- if the self.data is defined, we are building the buffer
         -- in a Lua table
-        
+
         -- new table to store the slice components
         local b = {}
-        
+
         -- starting with the startPos, put all
         -- values into the new table to be concat later
         -- updated the startPos based on the size of the
@@ -52,7 +52,7 @@ function mt:Slice(startPos, endPos)
         while startPos < endPos do
             local v = d[startPos]
             if not v or v == "" then
-                v = '/0'
+                v = '\0'
             end
             table.insert(b, v)
             startPos = startPos + #v
@@ -73,10 +73,10 @@ end
 function mt:Grow(newsize)
     -- the new table to store the data
     local newT = {}
-    
+
     -- the offset to be applied to existing entries
     local offset = newsize - self.size
-    
+
     -- loop over all the current entries and
     -- add them to the new table at the correct
     -- offset location
@@ -84,7 +84,7 @@ function mt:Grow(newsize)
     for i,data in pairs(d) do
         newT[i + offset] = data
     end
-    
+
     -- update this storage with the new table and size
     self.data = newT
     self.size = newsize
@@ -102,7 +102,7 @@ function mt:Pad(n, startPos)
         s = string.rep('\0', n)
         pads[n] = s
     end
-    
+
     -- store the padding string at the start position in the
     -- Lua table
     self.data[startPos] = s
