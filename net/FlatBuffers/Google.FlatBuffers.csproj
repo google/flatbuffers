@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net6.0;net8.0</TargetFrameworks>
     <Description>A cross-platform memory efficient serialization library</Description>
-    <PackageVersion>23.5.26</PackageVersion>
+    <PackageVersion>24.3.7</PackageVersion>
     <Authors>Google LLC</Authors>
     <PackageProjectUrl>https://github.com/google/flatbuffers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/google/flatbuffers</RepositoryUrl>
