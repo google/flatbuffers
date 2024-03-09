@@ -11,7 +11,7 @@ function type_mt:Pack(value)
     return bpack(self.packFmt, value)
 end
 
-function type_mt:Unpack(buf, pos)    
+function type_mt:Unpack(buf, pos)
     return bunpack(self.packFmt, buf, pos)
 end
 
@@ -21,17 +21,17 @@ function type_mt:ValidNumber(n)
 end
 
 function type_mt:EnforceNumber(n)
-    -- duplicate code since the overhead of function calls 
+    -- duplicate code since the overhead of function calls
     -- for such a popular method is time consuming
-    if not self.min_value and not self.max_value then 
-        return 
-    end
-    
-    if self.min_value <= n and n <= self.max_value then 
+    if not self.min_value and not self.max_value then
         return
-    end    
-    
-    error("Number is not in the valid range") 
+    end
+
+    if self.min_value <= n and n <= self.max_value then
+        return
+    end
+
+    error("Number is not in the valid range")
 end
 
 function type_mt:EnforceNumbers(a,b)
@@ -49,7 +49,7 @@ function type_mt:EnforceNumbers(a,b)
 end
 
 function type_mt:EnforceNumberAndPack(n)
-    return bpack(self.packFmt, n)    
+    return bpack(self.packFmt, n)
 end
 
 function type_mt:ConvertType(n, otherType)
@@ -68,15 +68,15 @@ local bool_mt =
     lua_type = type(true),
     name = "bool",
     packFmt = "<I1",
-    Pack = function(self, value) return value and "1" or "0" end,
-    Unpack = function(self, buf, pos) return buf[pos] == "1" end,
+    Pack = function(self, value) return value and "\1" or "\0" end,
+    Unpack = function(self, buf, pos) return buf[pos] == "\1" end,
     ValidNumber = function(self, n) return true end, -- anything is a valid boolean in Lua
     EnforceNumber = function(self, n) end, -- anything is a valid boolean in Lua
     EnforceNumbers = function(self, a, b) end, -- anything is a valid boolean in Lua
     EnforceNumberAndPack = function(self, n) return self:Pack(n) end,
 }
 
-local uint8_mt = 
+local uint8_mt =
 {
     bytewidth = 1,
     min_value = 0,
@@ -86,7 +86,7 @@ local uint8_mt =
     packFmt = "<I1"
 }
 
-local uint16_mt = 
+local uint16_mt =
 {
     bytewidth = 2,
     min_value = 0,
@@ -96,7 +96,7 @@ local uint16_mt =
     packFmt = "<I2"
 }
 
-local uint32_mt = 
+local uint32_mt =
 {
     bytewidth = 4,
     min_value = 0,
@@ -106,7 +106,7 @@ local uint32_mt =
     packFmt = "<I4"
 }
 
-local uint64_mt = 
+local uint64_mt =
 {
     bytewidth = 8,
     min_value = 0,
@@ -116,7 +116,7 @@ local uint64_mt =
     packFmt = "<I8"
 }
 
-local int8_mt = 
+local int8_mt =
 {
     bytewidth = 1,
     min_value = -2^7,
@@ -126,7 +126,7 @@ local int8_mt =
     packFmt = "<i1"
 }
 
-local int16_mt = 
+local int16_mt =
 {
     bytewidth = 2,
     min_value = -2^15,
@@ -136,7 +136,7 @@ local int16_mt =
     packFmt = "<i2"
 }
 
-local int32_mt = 
+local int32_mt =
 {
     bytewidth = 4,
     min_value = -2^31,
@@ -146,7 +146,7 @@ local int32_mt =
     packFmt = "<i4"
 }
 
-local int64_mt = 
+local int64_mt =
 {
     bytewidth = 8,
     min_value = -2^63,
@@ -156,7 +156,7 @@ local int64_mt =
     packFmt = "<i8"
 }
 
-local float32_mt = 
+local float32_mt =
 {
     bytewidth = 4,
     min_value = nil,
@@ -166,7 +166,7 @@ local float32_mt =
     packFmt = "<f"
 }
 
-local float64_mt = 
+local float64_mt =
 {
     bytewidth = 8,
     min_value = nil,
