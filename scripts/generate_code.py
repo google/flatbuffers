@@ -153,6 +153,10 @@ flatc(
     schema="monster_test.fbs",
     include="include_test",
 )
+flatc(
+    ["--lua", "--bfbs-filenames", str(tests_path)],
+    schema="arrays_test.fbs",
+)
 
 flatc(
     NO_INCL_OPTS + CPP_OPTS + ["--grpc"],
