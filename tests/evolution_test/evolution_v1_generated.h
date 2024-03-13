@@ -494,12 +494,12 @@ inline const Evolution::V1::Root *GetSizePrefixedRoot(const void *buf) {
 
 inline bool VerifyRootBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Evolution::V1::Root>(nullptr);
+  return verifier.VerifyBuffer<Evolution::V1::Root>(nullptr, 8);
 }
 
 inline bool VerifySizePrefixedRootBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Evolution::V1::Root>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<Evolution::V1::Root>(nullptr, 8);
 }
 
 inline void FinishRootBuffer(

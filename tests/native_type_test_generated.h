@@ -301,12 +301,12 @@ inline Geometry::ApplicationData *GetMutableSizePrefixedApplicationData(void *bu
 
 inline bool VerifyApplicationDataBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Geometry::ApplicationData>(nullptr);
+  return verifier.VerifyBuffer<Geometry::ApplicationData>(nullptr, 8);
 }
 
 inline bool VerifySizePrefixedApplicationDataBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr, 8);
 }
 
 inline void FinishApplicationDataBuffer(

@@ -341,11 +341,9 @@ struct FieldDef : public Definition {
 
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
-  bool IsScalarOptional() const {
-    return IsScalar() && IsOptional();
-  }
+  bool IsScalarOptional() const { return IsScalar() && IsOptional(); }
   bool IsScalar() const {
-      return ::flatbuffers::IsScalar(value.type.base_type);
+    return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }
@@ -931,6 +929,7 @@ class Parser : public ParserState {
         uses_flexbuffers_(false),
         has_warning_(false),
         advanced_features_(0),
+        minalign_(AlignOf<largest_scalar_t>()),
         source_(nullptr),
         anonymous_counter_(0),
         parse_depth_counter_(0) {
@@ -1198,6 +1197,9 @@ class Parser : public ParserState {
 
   std::string file_being_parsed_;
 
+  // Keep track of the largest minalign for every reachable struct.
+  size_t minalign_;
+
  private:
   const char *source_;
 
@@ -1222,10 +1224,9 @@ class Parser : public ParserState {
 // These functions return nullptr on success, or an error string,
 // which may happen if the flatbuffer cannot be encoded in JSON (e.g.,
 // it contains non-UTF-8 byte arrays in String values).
-extern bool GenerateTextFromTable(const Parser &parser,
-                                         const void *table,
-                                         const std::string &tablename,
-                                         std::string *text);
+extern bool GenerateTextFromTable(const Parser &parser, const void *table,
+                                  const std::string &tablename,
+                                  std::string *text);
 extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
                                 std::string *text);
 extern const char *GenerateTextFile(const Parser &parser,

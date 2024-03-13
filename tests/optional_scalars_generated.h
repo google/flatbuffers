@@ -920,12 +920,12 @@ inline bool SizePrefixedScalarStuffBufferHasIdentifier(const void *buf) {
 
 inline bool VerifyScalarStuffBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
+  return verifier.VerifyBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier(), 8);
 }
 
 inline bool VerifySizePrefixedScalarStuffBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
+  return verifier.VerifySizePrefixedBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier(), 8);
 }
 
 inline const char *ScalarStuffExtension() {

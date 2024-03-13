@@ -4200,12 +4200,12 @@ inline bool SizePrefixedMonsterBufferHasIdentifier(const void *buf) {
 
 inline bool VerifyMonsterBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier());
+  return verifier.VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier(), 8);
 }
 
 inline bool VerifySizePrefixedMonsterBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier());
+  return verifier.VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier(), 8);
 }
 
 inline const char *MonsterExtension() {

@@ -641,9 +641,13 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("ID", "nullptr");
       }
 
+      code_.SetValue("MINALIGN",
+                     NumToString(parser_.minalign_));
+
       code_ += "inline bool Verify{{STRUCT_NAME}}Buffer(";
       code_ += "    ::flatbuffers::Verifier &verifier) {";
-      code_ += "  return verifier.VerifyBuffer<{{CPP_NAME}}>({{ID}});";
+      code_ +=
+          "  return verifier.VerifyBuffer<{{CPP_NAME}}>({{ID}}, {{MINALIGN}});";
       code_ += "}";
       code_ += "";
 
@@ -651,7 +655,8 @@ class CppGenerator : public BaseGenerator {
       code_ += "    ::flatbuffers::Verifier &verifier) {";
       code_ +=
           "  return "
-          "verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}{{SIZE_T}}>({{ID}});";
+          "verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}{{SIZE_T}}>({{ID}}, "
+          "{{MINALIGN}});";
       code_ += "}";
       code_ += "";
 

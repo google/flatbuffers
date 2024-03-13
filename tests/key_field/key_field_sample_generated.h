@@ -986,12 +986,12 @@ inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
 
 inline bool VerifyFooTableBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<keyfield::sample::FooTable>(nullptr);
+  return verifier.VerifyBuffer<keyfield::sample::FooTable>(nullptr, 8);
 }
 
 inline bool VerifySizePrefixedFooTableBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<keyfield::sample::FooTable>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<keyfield::sample::FooTable>(nullptr, 8);
 }
 
 inline void FinishFooTableBuffer(

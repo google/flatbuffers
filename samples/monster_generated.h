@@ -885,12 +885,12 @@ inline MyGame::Sample::Monster *GetMutableSizePrefixedMonster(void *buf) {
 
 inline bool VerifyMonsterBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<MyGame::Sample::Monster>(nullptr);
+  return verifier.VerifyBuffer<MyGame::Sample::Monster>(nullptr, 8);
 }
 
 inline bool VerifySizePrefixedMonsterBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<MyGame::Sample::Monster>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<MyGame::Sample::Monster>(nullptr, 8);
 }
 
 inline void FinishMonsterBuffer(
