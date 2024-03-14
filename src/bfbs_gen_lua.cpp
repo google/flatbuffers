@@ -46,7 +46,7 @@ std::set<std::string> LuaKeywords() {
 }
 
 Namer::Config LuaDefaultConfig() {
-  return { /*types=*/Case::kUpperCamel,
+  return { /*types=*/Case::kKeep,
            /*constants=*/Case::kUnknown,
            /*methods=*/Case::kUpperCamel,
            /*functions=*/Case::kUpperCamel,
@@ -507,7 +507,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
   std::string GenerateMethod(const r::Field *field) const {
     const r::BaseType base_type = field->type()->base_type();
-    if (IsScalar(base_type)) { return namer_.Type(GenerateType(base_type)); }
+    if (IsScalar(base_type)) { return namer_.Method(GenerateType(base_type)); }
     if (IsStructOrTable(base_type)) { return "Struct"; }
     return "UOffsetTRelative";
   }
