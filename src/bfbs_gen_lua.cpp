@@ -506,9 +506,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   }
 
   std::string GenerateMethod(const r::Field *field) const {
-    const r::BaseType base_type = field->type()->base_type();
+    const r::Type *type = field->type();
+    const r::BaseType base_type = type->base_type();
     if (IsScalar(base_type)) { return namer_.Type(GenerateType(base_type)); }
-    if (IsStructOrTable(base_type)) { return "Struct"; }
+    if (IsStruct(type)) { return "Struct"; }
     return "UOffsetTRelative";
   }
 
