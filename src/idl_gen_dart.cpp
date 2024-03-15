@@ -281,7 +281,15 @@ class DartGenerator : public BaseGenerator {
             enum_type + "Reader();\n\n";
     code += "  @override\n";
     code += "  String toString() {\n";
-    code += "    return '" + enum_type + "{value: $value}';\n";
+    code += "    switch (value) {\n";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      const auto enum_var = namer_.Variant(ev);
+      code += "      case " + enum_def.ToString(ev) + ": return \"" + enum_var +
+              "\";\n";
+    }
+    code += "      default: return \"\";\n";
+    code += "    }\n";
     code += "  }\n";
     code += "}\n\n";
 
