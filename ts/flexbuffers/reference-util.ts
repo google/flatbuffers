@@ -57,7 +57,7 @@ export function readFloat(dataView: DataView, offset: number, width: number): nu
 }
 
 export function indirect(dataView: DataView, offset: number, width: number): number {
-  const step = readUInt(dataView, offset, width) as number;
+  const step = Number(readUInt(dataView, offset, width));
   return offset - step;
 }
 
