@@ -101,6 +101,7 @@ class DartGenerator : public BaseGenerator {
         std::string filename =
             namer_.File(filebase + (component.empty() ? "" : "_" + component));
 
+        std::string rename_namespace = component == current_namespace ? "" : component;
         imports.emplace("import './" + filename + "'" +
                         (rename_namespace.empty()
                              ? ";\n"
