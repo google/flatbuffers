@@ -1423,6 +1423,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
   }
+  template<typename StringType>
+  int KeyCompareWithValue(const StringType& _name) const {
+    if (name()->c_str() < _name) return -1;
+    if (_name < name()->c_str()) return 1;
+    return 0;
+  }
   const ::flatbuffers::Vector<uint8_t> *inventory() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);
   }
