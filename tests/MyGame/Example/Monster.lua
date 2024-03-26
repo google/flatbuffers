@@ -832,7 +832,7 @@ function Monster.StartTestarrayoftablesVector(builder, numElems)
 end
 
 function Monster.AddEnemy(builder, enemy)
-  builder:PrependStructSlot(12, enemy, 0)
+  builder:PrependUOffsetTRelativeSlot(12, enemy, 0)
 end
 
 function Monster.AddTestnestedflatbuffer(builder, testnestedflatbuffer)
@@ -844,7 +844,7 @@ function Monster.StartTestnestedflatbufferVector(builder, numElems)
 end
 
 function Monster.AddTestempty(builder, testempty)
-  builder:PrependStructSlot(14, testempty, 0)
+  builder:PrependUOffsetTRelativeSlot(14, testempty, 0)
 end
 
 function Monster.AddTestbool(builder, testbool)
@@ -952,7 +952,7 @@ function Monster.StartVectorOfDoublesVector(builder, numElems)
 end
 
 function Monster.AddParentNamespaceTest(builder, parentNamespaceTest)
-  builder:PrependStructSlot(34, parentNamespaceTest, 0)
+  builder:PrependUOffsetTRelativeSlot(34, parentNamespaceTest, 0)
 end
 
 function Monster.AddVectorOfReferrables(builder, vectorOfReferrables)

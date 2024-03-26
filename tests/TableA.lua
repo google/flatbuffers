@@ -41,7 +41,7 @@ function TableA.Start(builder)
 end
 
 function TableA.AddB(builder, b)
-  builder:PrependStructSlot(0, b, 0)
+  builder:PrependUOffsetTRelativeSlot(0, b, 0)
 end
 
 function TableA.End(builder)
