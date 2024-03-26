@@ -310,6 +310,7 @@ static bool GenerateRustModuleRootFile(const Parser &parser,
       for (auto it = sub_modules.begin(); it != sub_modules.end(); it++) {
         code += "pub mod " + it->first + " {";
         code.IncrementIdentLevel();
+        code += "#[allow(unused_imports)]";
         code += "use super::*;";
         it->second.GenerateImports(code);
         code.DecrementIdentLevel();
@@ -377,17 +378,25 @@ class RustGenerator : public BaseGenerator {
       code_ += "// @generated";
       code_ += "extern crate alloc;";
       code_ += "extern crate flatbuffers;";
+      code_ += "#[allow(unused_imports)]";
       code_ += "use alloc::boxed::Box;";
+      code_ += "#[allow(unused_imports)]";
       code_ += "use alloc::string::{String, ToString};";
+      code_ += "#[allow(unused_imports)]";
       code_ += "use alloc::vec::Vec;";
+      code_ += "#[allow(unused_imports)]";
       code_ += "use core::mem;";
+      code_ += "#[allow(unused_imports)]";
       code_ += "use core::cmp::Ordering;";
       if (parser_.opts.rust_serialize) {
         code_ += "extern crate serde;";
+        code_ += "#[allow(unused_imports)]";
         code_ +=
             "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
       }
+      code_ += "#[allow(unused_imports)]";
       code_ += "use self::flatbuffers::{EndianScalar, Follow};";
+      code_ += "#[allow(unused_imports)]";
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
       gen_symbol(symbol);
@@ -432,6 +441,7 @@ class RustGenerator : public BaseGenerator {
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
     code_ += "// @generated";
+    code_ += "#![allow(unused)]";
 
     assert(!cur_name_space_);
 
