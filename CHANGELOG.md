@@ -4,6 +4,11 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [24.3.25] (March 25 2024)(https://github.com/google/flatbuffers/releases/tag/v24.3.25)
+
+* Fixed license metadata parsing (#8253)
+* [C++] Allow string_view in `LookUpByKey` in addition to null-terminated c-style strings (#8203)
+
 ## [24.3.7] (March 7 2024)(https://github.com/google/flatbuffers/releases/tag/v24.3.7)
 
 * Just to fix some of the CI build issues from the 24.3.6 release.

@@ -10,7 +10,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
               FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 7,
+              FLATBUFFERS_VERSION_REVISION == 25,
              "Non-compatible flatbuffers version included");
 
 #include "native_type_test_impl.h"
