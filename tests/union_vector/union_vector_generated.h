@@ -1254,12 +1254,12 @@ inline bool SizePrefixedMovieBufferHasIdentifier(const void *buf) {
 
 inline bool VerifyMovieBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Movie>(MovieIdentifier());
+  return verifier.VerifyBuffer<Movie>(MovieIdentifier(), 8);
 }
 
 inline bool VerifySizePrefixedMovieBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Movie>(MovieIdentifier());
+  return verifier.VerifySizePrefixedBuffer<Movie>(MovieIdentifier(), 8);
 }
 
 inline void FinishMovieBuffer(

@@ -32,6 +32,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     uoffset_t max_tables = 1000000;
     // If true, verify all data is aligned.
     bool check_alignment = true;
+    // If true, verify that the root address is aligned to the minalign value.
+    bool check_root_alignment = true;
     // If true, run verifier on nested flatbuffers
     bool check_nested_flatbuffers = true;
     // The maximum size of a buffer.
@@ -60,7 +62,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Central location where any verification failures register.
   bool Check(const bool ok) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
        if (opts_.assert) { FLATBUFFERS_ASSERT(ok); }
     #endif
@@ -74,7 +76,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify any range within the buffer.
   bool Verify(const size_t elem, const size_t elem_len) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       auto upper_bound = elem + elem_len;
       if (upper_bound_ < upper_bound)
@@ -196,7 +198,15 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   template<typename T>
-  bool VerifyBufferFromStart(const char *const identifier, const size_t start) {
+  bool VerifyBufferFromStart(const char *const identifier, const size_t start,
+                             const size_t minalign) {
+    // If we should check for root buffer alignment, make sure address of the
+    // buf_ is a multiple of the minalign.
+    if (opts_.check_root_alignment &&
+        !Check((reinterpret_cast<size_t>(buf_) & (minalign - 1)) == 0)) {
+      return false;
+    }
+
     // Buffers have to be of some size to be valid. The reason it is a runtime
     // check instead of static_assert, is that nested flatbuffers go through
     // this call and their size is determined at runtime.
@@ -212,7 +222,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     const auto o = VerifyOffset<uoffset_t>(start);
     return Check(o != 0) &&
            reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this)
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
            && GetComputedSize()
     #endif
@@ -237,19 +247,36 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer() { return VerifyBuffer<T>(nullptr); }
+  template<typename T> bool VerifyBuffer() {
+    return VerifyBuffer<T>(alignof(uoffset_t));
+  }
 
   template<typename T> bool VerifyBuffer(const char *const identifier) {
-    return VerifyBufferFromStart<T>(identifier, 0);
+    return VerifyBuffer<T>(identifier, alignof(uoffset_t));
+  }
+
+  template<typename T> bool VerifyBuffer(const size_t minalign) {
+    return VerifyBuffer<T>(nullptr, minalign);
+  }
+
+  template<typename T>
+  bool VerifyBuffer(const char *const identifier, const size_t minalign) {
+    return VerifyBufferFromStart<T>(identifier, 0, minalign);
   }
 
   template<typename T, typename SizeT = uoffset_t>
   bool VerifySizePrefixedBuffer(const char *const identifier) {
+    return VerifySizePrefixedBuffer<T, SizeT>(identifier, alignof(uoffset_t));
+  }
+
+  template<typename T, typename SizeT = uoffset_t>
+  bool VerifySizePrefixedBuffer(const char *const identifier,
+                                const size_t minalign) {
     return Verify<SizeT>(0U) &&
            // Ensure the prefixed size is within the bounds of the provided
            // length.
            Check(ReadScalar<SizeT>(buf_) + sizeof(SizeT) <= size_) &&
-           VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
+           VerifyBufferFromStart<T>(identifier, sizeof(SizeT), minalign);
   }
 
   template<typename OffsetT = uoffset_t, typename SOffsetT = soffset_t>
@@ -288,7 +315,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Returns the message size in bytes
   size_t GetComputedSize() const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
       uintptr_t size = upper_bound_;
       // Align the size to uoffset_t

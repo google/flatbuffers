@@ -3508,6 +3508,9 @@ CheckedError Parser::ParseRoot(const char *source, const char **include_paths,
   // Check that all types were defined.
   for (auto it = structs_.vec.begin(); it != structs_.vec.end();) {
     auto &struct_def = **it;
+    if(struct_def.minalign > minalign_) {
+      minalign_ = struct_def.minalign;
+    }
     if (struct_def.predecl) {
       if (opts.proto_mode) {
         // Protos allow enums to be used before declaration, so check if that

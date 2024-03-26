@@ -1500,12 +1500,12 @@ inline bool SizePrefixedSchemaBufferHasIdentifier(const void *buf) {
 
 inline bool VerifySchemaBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<reflection::Schema>(SchemaIdentifier());
+  return verifier.VerifyBuffer<reflection::Schema>(SchemaIdentifier(), 8);
 }
 
 inline bool VerifySizePrefixedSchemaBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<reflection::Schema>(SchemaIdentifier());
+  return verifier.VerifySizePrefixedBuffer<reflection::Schema>(SchemaIdentifier(), 8);
 }
 
 inline const char *SchemaExtension() {

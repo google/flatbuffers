@@ -182,12 +182,12 @@ inline v1::RootTable *GetMutableSizePrefixedRootTable(void *buf) {
 
 inline bool VerifyRootTableBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<v1::RootTable>(nullptr);
+  return verifier.VerifyBuffer<v1::RootTable>(nullptr, 8);
 }
 
 inline bool VerifySizePrefixedRootTableBuffer(
     ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<v1::RootTable>(nullptr);
+  return verifier.VerifySizePrefixedBuffer<v1::RootTable>(nullptr, 8);
 }
 
 inline void FinishRootTableBuffer(
