@@ -306,7 +306,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               code += "  " + offset_prefix;
               code += "  " + offset_prefix_2;
               code +=
-                  "   local obj = "
+                  "    local obj = "
                   "flatbuffers.view.New(flatbuffers.binaryArray.New("
                   "0), 0)\n";
               code += "    " + GenerateGetter(field->type()) + "obj, o)\n";
@@ -316,7 +316,56 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
               code += "\n";
               break;
             }
-            case r::Array:
+            case r::Array: {
+              const r::BaseType vector_base_type = field->type()->element();
+              int32_t element_size = field->type()->element_size();
+              code += "function mt:" + field_name + "(j)\n";
+              code += "  " + offset_prefix;
+
+              if (IsStructOrTable(vector_base_type)) {
+                code += "  local x = o + ((j-1) * " +
+                        NumToString(element_size) + ")\n";
+                if (IsTable(field->type(), /*use_element=*/true)) {
+                  code += "  x = self.view:Indirect(x)\n";
+                } else {
+                  // Vector of structs are inline, so we need to query the
+                  // size of the struct.
+                  const reflection::Object *obj =
+                      GetObjectByIndex(field->type()->index());
+                  element_size = obj->bytesize();
+                }
+
+                // Include the referenced type, thus we need to make sure
+                // we set `use_element` to true.
+                const std::string require_name =
+                    RegisterRequires(field, /*use_element=*/true);
+                code += "  local obj = " + require_name + ".New()\n";
+                code += "  obj:Init(self.view.bytes, x)\n";
+                code += "  return obj\n";
+              } else {
+                code += "  return " + GenerateGetter(field->type()) +
+                        "o + ((j-1) * " + NumToString(element_size) + "))\n";
+              }
+              code += "end\n";
+              code += "\n";
+
+              // If the vector is composed of single byte values, we
+              // generate a helper function to get it as a byte string in
+              // Lua.
+              if (IsSingleByte(vector_base_type)) {
+                code += "function mt:" + field_name + "AsString(start, stop)\n";
+                code += "  local o = self:Offset()\n";
+                code += "  local start = start or 1\n";
+                code += "  local stop = stop or " +
+                        NumToString(field->type()->fixed_length()) + "\n";
+                code +=
+                    "  local a = o + " + NumToString(field->offset()) + "\n";
+                code += "  return self.bytes:Slice(a + start - 1, a + stop)\n";
+                code += "end\n";
+                code += "\n";
+              }
+              break;
+            }
             case r::Vector: {
               const r::BaseType vector_base_type = field->type()->element();
               int32_t element_size = field->type()->element_size();
@@ -416,7 +465,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
           code += "function " + object_name + ".Add" + field_name +
                   "(builder, " + variable_name + ")\n";
-          code += "  builder:Prepend" + GenerateMethod(field) + "Slot(" +
+          code += "  builder:Prepend" +
+                  GenerateMethod(field->type()->base_type()) + "Slot(" +
                   NumToString(field->id()) + ", " + variable_name + ", " +
                   DefaultValue(field) + ")\n";
           code += "end\n";
@@ -496,8 +546,20 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         const r::Object *field_object = GetObject(field->type());
         code += AppendStructBuilderBody(field_object,
                                         prefix + namer_.Variable(*field) + "_");
+      } else if (field->type()->base_type() == r::Array) {
+        r::BaseType element = field->type()->element();
+        if (IsStructOrTable(element)) {
+          ;  // TODO(serprex)
+        } else {
+          code += "  for i = " + NumToString(field->type()->fixed_length()) +
+                  ", 1, -1 do\n";
+          code += "    builder:Prepend" + GenerateMethod(element) + "(" +
+                  prefix + namer_.Variable(*field) + "[i])\n";
+          code += "  end\n";
+        }
       } else {
-        code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
+        code += "  builder:Prepend" +
+                GenerateMethod(field->type()->base_type()) + "(" + prefix +
                 namer_.Variable(*field) + ")\n";
       }
     });
@@ -505,8 +567,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     return code;
   }
 
-  std::string GenerateMethod(const r::Field *field) const {
-    const r::BaseType base_type = field->type()->base_type();
+  std::string GenerateMethod(const r::BaseType base_type) const {
     if (IsScalar(base_type)) { return namer_.Type(GenerateType(base_type)); }
     if (IsStructOrTable(base_type)) { return "Struct"; }
     return "UOffsetTRelative";
@@ -517,6 +578,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     switch (element_type ? type->element() : type->base_type()) {
       case r::String: return "self.view:String(";
       case r::Union: return "self.view:Union(";
+      case r::Array:
       case r::Vector: return GenerateGetter(type, true);
       default:
         return "self.view:Get(flatbuffers.N." +
@@ -531,6 +593,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     if (IsScalar(base_type)) { return GenerateType(base_type); }
     switch (base_type) {
       case r::String: return "string";
+      case r::Array:
       case r::Vector: return GenerateGetter(type, true);
       case r::Obj: return namer_.Type(namer_.Denamespace(GetObject(type)));
 
@@ -618,9 +681,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   void EmitCodeBlock(const std::string &code_block, const std::string &name,
                      const std::string &ns,
                      const std::string &declaring_file) const {
-    const std::string root_type = schema_->root_table()->name()->str();
-    const std::string root_file =
-        schema_->root_table()->declaration_file()->str();
+    const reflection::Object *root_table = schema_->root_table();
     const std::string full_qualified_name = ns.empty() ? name : ns + "." + name;
 
     std::string code = "--[[ " + full_qualified_name + "\n\n";
@@ -632,7 +693,12 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";
-    code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
+    if (root_table != NULL) {
+      const std::string root_type = root_table->name()->str();
+      const std::string root_file =
+          schema_->root_table()->declaration_file()->str();
+      code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
+    }
     code += "\n--]]\n\n";
 
     if (!requires_.empty()) {
