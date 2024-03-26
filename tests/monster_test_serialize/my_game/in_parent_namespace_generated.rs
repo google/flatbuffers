@@ -64,7 +64,7 @@ impl flatbuffers::Verifiable for InParentNamespace<'_> {
 }
 pub struct InParentNamespaceArgs {
 }
-impl<'a> Default for InParentNamespaceArgs {
+impl Default for InParentNamespaceArgs {
   #[inline]
   fn default() -> Self {
     InParentNamespaceArgs {

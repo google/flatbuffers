@@ -62,7 +62,7 @@ impl flatbuffers::Verifiable for PlayerSpectate<'_> {
 }
 pub struct PlayerSpectateArgs {
 }
-impl<'a> Default for PlayerSpectateArgs {
+impl Default for PlayerSpectateArgs {
   #[inline]
   fn default() -> Self {
     PlayerSpectateArgs {

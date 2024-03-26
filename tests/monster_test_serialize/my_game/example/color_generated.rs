@@ -76,7 +76,7 @@ impl flatbuffers::EndianScalar for Color {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for Color {
+impl flatbuffers::Verifiable for Color {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

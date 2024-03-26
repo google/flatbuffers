@@ -87,7 +87,7 @@ impl flatbuffers::EndianScalar for EnumInNestedNS {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for EnumInNestedNS {
+impl flatbuffers::Verifiable for EnumInNestedNS {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

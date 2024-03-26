@@ -531,7 +531,7 @@ pub struct ScalarStuffArgs {
     pub maybe_enum: Option<OptionalByte>,
     pub default_enum: OptionalByte,
 }
-impl<'a> Default for ScalarStuffArgs {
+impl Default for ScalarStuffArgs {
   #[inline]
   fn default() -> Self {
     ScalarStuffArgs {

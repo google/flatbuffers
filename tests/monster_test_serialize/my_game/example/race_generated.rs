@@ -102,7 +102,7 @@ impl flatbuffers::EndianScalar for Race {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for Race {
+impl flatbuffers::Verifiable for Race {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

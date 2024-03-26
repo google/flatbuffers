@@ -76,7 +76,7 @@ impl flatbuffers::Verifiable for Game<'_> {
 pub(crate) struct GameArgs {
     pub value: i32,
 }
-impl<'a> Default for GameArgs {
+impl Default for GameArgs {
   #[inline]
   fn default() -> Self {
     GameArgs {
