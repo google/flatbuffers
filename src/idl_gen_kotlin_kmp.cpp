@@ -384,59 +384,29 @@ class KotlinKMPGenerator : public BaseGenerator {
     auto enum_type = namer_.Type(enum_def);
     auto field_type = GenTypeBasic(enum_def.underlying_type.base_type);
     writer += "@Suppress(\"unused\")";
-    writer += "@JvmInline";
-    writer += "value class " + enum_type + " (val value: " + field_type + ") {";
+    // writer += "@JvmInline";
+    writer += "enum class " + enum_type + " (val value: " + field_type \
+      + ", val sourceName: String) {";
     writer.IncrementIdentLevel();
+    
+    // Write all properties
+    auto vals = enum_def.Vals();
+
+    for (auto it = vals.begin(); it != vals.end(); ++it) {
+      auto &ev = **it;
+      auto val = enum_def.ToString(ev);
+      auto suffix = LiteralSuffix(enum_def.underlying_type);
+      GenerateComment(ev.doc_comment, writer, &comment_config);
+      writer += namer_.Variant(ev) + "(" \
+        + val + suffix + ", \"" + (*it)->name + "\"),";
+    }
+
+    writer += ";";
 
     GenerateCompanionObject(writer, [&]() {
-      // Write all properties
-      auto vals = enum_def.Vals();
-
-      for (auto it = vals.begin(); it != vals.end(); ++it) {
-        auto &ev = **it;
-        auto val = enum_def.ToString(ev);
-        auto suffix = LiteralSuffix(enum_def.underlying_type);
-        writer.SetValue("name", namer_.Variant(ev));
-        writer.SetValue("type", enum_type);
-        writer.SetValue("val", val + suffix);
-        GenerateComment(ev.doc_comment, writer, &comment_config);
-        writer += "val {{name}} = {{type}}({{val}})";
-      }
-
-      // Generate a generate string table for enum values.
-      // Problem is, if values are very sparse that could generate really
-      // big tables. Ideally in that case we generate a map lookup
-      // instead, but for the moment we simply don't output a table at all.
-      auto range = enum_def.Distance();
-      // Average distance between values above which we consider a table
-      // "too sparse". Change at will.
-      static const uint64_t kMaxSparseness = 5;
-      if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
-        GeneratePropertyOneLine(writer, "names", "Array<String>", [&]() {
-          writer += "arrayOf(\\";
-          auto val = enum_def.Vals().front();
-          for (auto it = vals.begin(); it != vals.end(); ++it) {
-            auto ev = *it;
-            for (auto k = enum_def.Distance(val, ev); k > 1; --k)
-              writer += "\"\", \\";
-            val = ev;
-            writer += "\"" + (*it)->name + "\"\\";
-            if (it + 1 != vals.end()) { writer += ", \\"; }
-          }
-          writer += ")";
-        });
-        std::string e_param = "e: " + enum_type;
-        GenerateFunOneLine(
-            writer, "name", e_param, "String",
-            [&]() {
-              writer += "names[e.value.toInt()\\";
-              if (enum_def.MinValue()->IsNonZero())
-                writer += " - " + namer_.Variant(*enum_def.MinValue()) +
-                          ".value.toInt()\\";
-              writer += "]";
-            },
-            parser_.opts.gen_jvmstatic);
-      }
+      writer += "fun name(e: " + enum_type + "): String = e.sourceName";
+      writer += "val names = entries.map { it.sourceName }.toTypedArray()";
+      writer += "operator fun invoke(value: " + field_type + ") = entries[value.toInt()]";
     });
     writer.DecrementIdentLevel();
     writer += "}";
