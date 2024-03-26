@@ -7,6 +7,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 /// an example documentation comment: "monster object"
 class Monster extends Table
@@ -18,6 +19,17 @@ class Monster extends Table
     public static function getRootAsMonster(ByteBuffer $bb)
     {
         $obj = new Monster();
+        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+    }
+
+    /**
+     * @param ByteBuffer $bb
+     * @return Monster
+     */
+    public static function getSizePrefixedRootAsMonster(ByteBuffer $bb)
+    {
+        $obj = new Monster();
+        $bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -1997,5 +2009,10 @@ class Monster extends Table
     public static function finishMonsterBuffer(FlatBufferBuilder $builder, $offset)
     {
         $builder->finish($offset, "MONS");
+    }
+
+    public static function finishSizePrefixedMonsterBuffer(FlatBufferBuilder $builder, $offset)
+    {
+        $builder->finish($offset, "MONS", true);
     }
 }

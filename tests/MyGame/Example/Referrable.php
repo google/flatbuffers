@@ -7,6 +7,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 class Referrable extends Table
 {
@@ -17,6 +18,17 @@ class Referrable extends Table
     public static function getRootAsReferrable(ByteBuffer $bb)
     {
         $obj = new Referrable();
+        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+    }
+
+    /**
+     * @param ByteBuffer $bb
+     * @return Referrable
+     */
+    public static function getSizePrefixedRootAsReferrable(ByteBuffer $bb)
+    {
+        $obj = new Referrable();
+        $bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
