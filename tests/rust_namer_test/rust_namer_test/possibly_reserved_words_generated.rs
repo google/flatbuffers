@@ -9,50 +9,51 @@ use core::mem;
 use core::cmp::Ordering;
 use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
-// struct Vec3, aligned to 4
+// struct PossiblyReservedWords, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Vec3(pub [u8; 12]);
-impl Default for Vec3 { 
+pub struct PossiblyReservedWords(pub [u8; 16]);
+impl Default for PossiblyReservedWords { 
   fn default() -> Self { 
-    Self([0; 12])
+    Self([0; 16])
   }
 }
-impl core::fmt::Debug for Vec3 {
+impl core::fmt::Debug for PossiblyReservedWords {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-    f.debug_struct("Vec3")
-      .field("x", &self.x())
-      .field("y", &self.y())
-      .field("z", &self.z())
+    f.debug_struct("PossiblyReservedWords")
+      .field("follow_", &self.follow_())
+      .field("push_", &self.push_())
+      .field("size", &self.size())
+      .field("alignment", &self.alignment())
       .finish()
   }
 }
 
-impl flatbuffers::SimpleToVerifyInSlice for Vec3 {}
-impl<'a> flatbuffers::Follow<'a> for Vec3 {
-  type Inner = &'a Vec3;
+impl flatbuffers::SimpleToVerifyInSlice for PossiblyReservedWords {}
+impl<'a> flatbuffers::Follow<'a> for PossiblyReservedWords {
+  type Inner = &'a PossiblyReservedWords;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Vec3>::follow(buf, loc)
+    <&'a PossiblyReservedWords>::follow(buf, loc)
   }
 }
-impl<'a> flatbuffers::Follow<'a> for &'a Vec3 {
-  type Inner = &'a Vec3;
+impl<'a> flatbuffers::Follow<'a> for &'a PossiblyReservedWords {
+  type Inner = &'a PossiblyReservedWords;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<Vec3>(buf, loc)
+    flatbuffers::follow_cast_ref::<PossiblyReservedWords>(buf, loc)
   }
 }
-impl<'b> flatbuffers::Push for Vec3 {
-    type Output = Vec3;
+impl<'b> flatbuffers::Push for PossiblyReservedWords {
+    type Output = PossiblyReservedWords;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, <Self as flatbuffers::Push>::size());
+        let src = ::core::slice::from_raw_parts(self as *const PossiblyReservedWords as *const u8, <Self as flatbuffers::Push>::size());
         dst.copy_from_slice(src);
     }
 }
 
-impl<'a> flatbuffers::Verifiable for Vec3 {
+impl<'a> flatbuffers::Verifiable for PossiblyReservedWords {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -62,25 +63,27 @@ impl<'a> flatbuffers::Verifiable for Vec3 {
   }
 }
 
-impl<'a> Vec3 {
+impl<'a> PossiblyReservedWords {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
-    x: f32,
-    y: f32,
-    z: f32,
+    follow_: f32,
+    push_: f32,
+    size: f32,
+    alignment: f32,
   ) -> Self {
-    let mut s = Self([0; 12]);
-    s.set_x(x);
-    s.set_y(y);
-    s.set_z(z);
+    let mut s = Self([0; 16]);
+    s.set_follow_(follow_);
+    s.set_push_(push_);
+    s.set_size(size);
+    s.set_alignment(alignment);
     s
   }
 
   pub const fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Sample.Vec3"
+    "RustNamerTest.PossiblyReservedWords"
   }
 
-  pub fn x(&self) -> f32 {
+  pub fn follow_(&self) -> f32 {
     let mut mem = core::mem::MaybeUninit::<<f32 as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
@@ -95,7 +98,7 @@ impl<'a> Vec3 {
     })
   }
 
-  pub fn set_x(&mut self, x: f32) {
+  pub fn set_follow_(&mut self, x: f32) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -109,7 +112,7 @@ impl<'a> Vec3 {
     }
   }
 
-  pub fn y(&self) -> f32 {
+  pub fn push_(&self) -> f32 {
     let mut mem = core::mem::MaybeUninit::<<f32 as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
@@ -124,7 +127,7 @@ impl<'a> Vec3 {
     })
   }
 
-  pub fn set_y(&mut self, x: f32) {
+  pub fn set_push_(&mut self, x: f32) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -138,7 +141,7 @@ impl<'a> Vec3 {
     }
   }
 
-  pub fn z(&self) -> f32 {
+  pub fn size(&self) -> f32 {
     let mut mem = core::mem::MaybeUninit::<<f32 as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
@@ -153,7 +156,7 @@ impl<'a> Vec3 {
     })
   }
 
-  pub fn set_z(&mut self, x: f32) {
+  pub fn set_size(&mut self, x: f32) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -167,27 +170,59 @@ impl<'a> Vec3 {
     }
   }
 
-  pub fn unpack(&self) -> Vec3T {
-    Vec3T {
-      x: self.x(),
-      y: self.y(),
-      z: self.z(),
+  pub fn alignment(&self) -> f32 {
+    let mut mem = core::mem::MaybeUninit::<<f32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[12..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_alignment(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[12..].as_mut_ptr(),
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn unpack(&self) -> PossiblyReservedWordsT {
+    PossiblyReservedWordsT {
+      follow_: self.follow_(),
+      push_: self.push_(),
+      size: self.size(),
+      alignment: self.alignment(),
     }
   }
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct Vec3T {
-  pub x: f32,
-  pub y: f32,
-  pub z: f32,
+pub struct PossiblyReservedWordsT {
+  pub follow_: f32,
+  pub push_: f32,
+  pub size: f32,
+  pub alignment: f32,
 }
-impl Vec3T {
-  pub fn pack(&self) -> Vec3 {
-    Vec3::new(
-      self.x,
-      self.y,
-      self.z,
+impl PossiblyReservedWordsT {
+  pub fn pack(&self) -> PossiblyReservedWords {
+    PossiblyReservedWords::new(
+      self.follow_,
+      self.push_,
+      self.size,
+      self.alignment,
     )
   }
 }
