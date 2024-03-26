@@ -79,6 +79,7 @@ table Field {
     default_integer:long = 0;
     default_real:double = 0.0;
     deprecated:bool = false;
+    deprecated_readonly:bool = false;
     required:bool = false;
     key:bool = false;
     attributes:[KeyValue];

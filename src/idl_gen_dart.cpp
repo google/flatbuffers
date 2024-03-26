@@ -485,7 +485,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       FieldDef &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       auto offset = static_cast<int>(it - struct_def.fields.vec.begin());
       non_deprecated_fields.push_back(std::make_pair(offset, &field));
     }
@@ -831,6 +831,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef &field = *it->second;
+      if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
       const std::string field_name = namer_.Field(field);
 
       if (IsStruct(field.value.type)) {
@@ -847,6 +848,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
       const FieldDef &field = *it->second;
+      if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
       const std::string field_name = namer_.Field(field);
 
       if (field.padding) {
@@ -878,6 +880,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const auto &field = *it->second;
+      if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
       const auto offset = it->first;
       const std::string add_field = namer_.Method("add", field);
       const std::string field_var = namer_.Variable(field);
@@ -919,6 +922,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef &field = *it->second;
+      if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
 
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
@@ -933,6 +937,7 @@ class DartGenerator : public BaseGenerator {
       for (auto it = non_deprecated_fields.begin();
            it != non_deprecated_fields.end(); ++it) {
         const FieldDef &field = *it->second;
+        if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
 
         code += "    ";
         code += (struct_def.fixed ? "required " : "") +
@@ -945,6 +950,7 @@ class DartGenerator : public BaseGenerator {
       for (auto it = non_deprecated_fields.begin();
            it != non_deprecated_fields.end(); ++it) {
         const FieldDef &field = *it->second;
+        if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
 
         code += "_" + namer_.Variable(field) + " = " + namer_.Variable(field);
         if (it == non_deprecated_fields.end() - 1) {
@@ -982,6 +988,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef &field = *it->second;
+      if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
 
       if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type))
         continue;
@@ -1057,6 +1064,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
       const FieldDef &field = *it->second;
+      if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
       const std::string field_name = namer_.Field(field);
 
       if (field.padding) {
@@ -1091,6 +1099,7 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef &field = *it->second;
+      if (field.deprecated == FieldDef::kDeprecatedReadOnly) continue;
       auto offset = it->first;
 
       std::string field_var =

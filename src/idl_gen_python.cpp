@@ -1038,7 +1038,7 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       GenStructAccessor(struct_def, field, code_ptr, imports);
     }
@@ -1190,7 +1190,7 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       // Determines field type, default value, and typing imports.
       auto base_type = field.value.type.base_type;
@@ -1312,7 +1312,7 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       // Wrties the comparison statement for this field.
       const auto field_field = namer_.Field(field);
@@ -1494,7 +1494,7 @@ class PythonGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       auto field_type = TypeName(field);
       switch (field.value.type.base_type) {
