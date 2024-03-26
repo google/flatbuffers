@@ -1,0 +1,10 @@
+name: pre-commit-check
+on:
+  push:
+  pull_request:
+jobs:
+  pre-commit-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: pre-commit/action@v3.0.0
