@@ -26,7 +26,8 @@ export class StackValue {
   writeToBuffer(byteWidth: number): void {
     const newOffset = this.builder.computeOffset(byteWidth);
     if (this.type === ValueType.FLOAT) {
-      if (this.width === BitWidth.WIDTH32) {
+      const bitWidth = fromByteWidth(byteWidth);
+      if (bitWidth === BitWidth.WIDTH32) {
         this.builder.view.setFloat32(this.builder.offset, this.value as number, true);
       } else {
         this.builder.view.setFloat64(this.builder.offset, this.value as number, true);
