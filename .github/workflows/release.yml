@@ -5,7 +5,7 @@ on:
   # For manual tests.
   workflow_dispatch:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   publish-npm:
