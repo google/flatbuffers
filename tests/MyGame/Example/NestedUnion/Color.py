@@ -3,7 +3,8 @@
 # namespace: NestedUnion
 
 # Composite components of Monster color.
-class Color(object):
+from enum import IntEnum
+class Color(IntEnum):
     Red = 1
     # \brief color Green
     # Green is bit_flag with value (1u << 1)
