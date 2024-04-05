@@ -467,6 +467,20 @@ class CppGenerator : public BaseGenerator {
         }
         if (opts_.generate_object_based_api) {
           auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
+
+          // Check that nativeName doesn't collide the name of another struct.
+          for (const auto &other_struct_def : parser_.structs_.vec) {
+            if (other_struct_def == struct_def) { continue; }
+
+            auto other_name = Name(*other_struct_def);
+            if (nativeName == other_name) {
+              LogCompilerError("Generated Object API type for " +
+                               Name(*struct_def) + " collides with " +
+                               other_name);
+              FLATBUFFERS_ASSERT(true);
+            }
+          }
+
           if (!struct_def->fixed) { code_ += "struct " + nativeName + ";"; }
         }
         code_ += "";
