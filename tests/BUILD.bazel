@@ -1,6 +1,7 @@
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("//:build_defs.bzl", "DEFAULT_FLATC_ARGS", "flatbuffer_cc_library")
+load("//bazel:cc_flatbuffers_library.bzl", "cc_flatbuffers_library")
 load("//bazel:flatbuffers.bzl", "flatbuffers_library")
 load(":defs.bzl", "flatbuffers_as_external_repo_test")
 
@@ -229,6 +230,11 @@ flatbuffers_library(
     srcs = ["included_test.fbs"],
 )
 
+cc_flatbuffers_library(
+    name = "included_test2_cc_fbs",
+    deps = [":included_test2_fbs"],
+)
+
 flatbuffer_cc_library(
     name = "includer_test_fbs",
     srcs = ["includer_test.fbs"],
@@ -239,7 +245,10 @@ flatbuffer_cc_library(
 cc_library(
     name = "include_build_test",
     srcs = ["include_build_test.cc"],
-    deps = [":includer_test_fbs"],
+    deps = [
+        ":included_test2_cc_fbs",
+        ":includer_test_fbs",
+    ],
 )
 
 flatbuffer_cc_library(
