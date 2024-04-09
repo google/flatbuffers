@@ -1,5 +1,7 @@
 """Starlark rules for FlatBuffers."""
 
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:types.bzl", "types")
 
 def _init_flatbuffers_info(*, direct_sources = [], direct_schemas = [], transitive_sources = depset(), transitive_schemas = depset()):
@@ -59,7 +61,136 @@ def _merge_flatbuffers_infos(infos):
         ),
     )
 
+_flatc = {
+    "_flatc": attr.label(
+        default = Label("@//:flatc"),
+        executable = True,
+        cfg = "exec",
+    ),
+}
+
+def _emit_compile(*, ctx, srcs, deps = None):
+    """Emits an action that triggers the compilation of the provided .fbs files.
+
+    Args:
+        ctx: Starlark context that is used to emit actions.
+        srcs: a list of .fbs files to compile.
+        deps: an optional list of targets that provide FlatBuffersInfo.
+
+    Returns:
+        FlatBuffersInfo that contains the result of compiling srcs.
+    """
+    deps = deps or []
+    transitive_sources = depset(
+        direct = srcs,
+        transitive = [dep[FlatBuffersInfo].transitive_sources for dep in deps],
+    )
+
+    generated_schemas = []
+    for src in srcs:
+        schema = ctx.actions.declare_file(paths.replace_extension(src.basename, "") + ".bfbs")
+        generated_schemas.append(schema)
+
+    args = ctx.actions.args()
+    args.add("--binary")
+    args.add("--schema")
+    args.add("-I", ".")
+    args.add("-I", ctx.bin_dir.path)
+    args.add("-I", ctx.genfiles_dir.path)
+    args.add("-o", paths.join(ctx.bin_dir.path, ctx.label.package))
+    args.add_all(srcs)
+
+    ctx.actions.run(
+        executable = ctx.executable._flatc,
+        inputs = transitive_sources,
+        outputs = generated_schemas,
+        arguments = [args],
+        progress_message = "Generating schemas for {0}".format(ctx.label),
+    )
+
+    return _create_flatbuffers_info(
+        srcs = srcs,
+        schemas = generated_schemas,
+        deps = deps,
+    )
+
+def _flatbuffers_library_impl(ctx):
+    flatbuffers_info = _emit_compile(
+        ctx = ctx,
+        srcs = ctx.files.srcs,
+        deps = ctx.attr.deps,
+    )
+
+    return [
+        flatbuffers_info,
+        DefaultInfo(
+            files = depset(flatbuffers_info.direct_schemas),
+            runfiles = ctx.runfiles(files = flatbuffers_info.direct_schemas),
+        ),
+    ]
+
+flatbuffers_library = rule(
+    doc = """\
+Use `flatbuffers_library` to define libraries of FlatBuffers which may be used from multiple
+languages. A `flatbuffers_library` may be used in `deps` of language-specific rules, such as
+`cc_flatbuffers_library`.
+
+A `flatbuffers_library` can also be used in `data` for any supported target. In this case, the
+binary serialized schema (i.e. `.bfbs`) for files directly mentioned by a `flatbuffers_library`
+target will be provided to the target at runtime.
+
+The code should be organized in the following way:
+
+-  one `flatbuffers_library` target per `.fbs` file;
+-  a file named `foo.fbs` should be the only source for a target named `foo_fbs`, which is located
+   in the same package;
+-  a `[language]_flatbuffers_library` that wraps a `flatbuffers_library` named `foo_fbs` should be
+   called `foo_[language]_fbs`, and be located in the same package.
+
+Example:
+
+```build
+load("//third_party/flatbuffers:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
+
+flatbuffers_library(
+    name = "bar_fbs",
+    srcs = ["bar.fbs"],
+)
+
+flatbuffers_library(
+    name = "foo_fbs",
+    srcs = ["foo.fbs"],
+    deps = [":bar_fbs"],
+)
+
+cc_flatbuffers_library(
+    name = "foo_cc_fbs",
+    deps = [":foo_fbs"],
+)
+```
+
+The following rules provide language-specific implementation of FlatBuffers:
+
+-  `cc_flatbuffers_library`
+-  `cc_lite_flatbuffers_library`
+-  `kt_flatbuffers_library`""",
+    attrs = dicts.add({
+        "srcs": attr.label_list(
+            allow_files = [".fbs"],
+        ),
+        "deps": attr.label_list(
+            providers = [FlatBuffersInfo],
+        ),
+    }, _flatc),
+    provides = [FlatBuffersInfo],
+    implementation = _flatbuffers_library_impl,
+)
+
 flatbuffers_common = struct(
+    actions = struct(
+        compile = _emit_compile,
+    ),
+    attrs = dicts.add(_flatc),
     providers = struct(
         create_flatbuffers_info = _create_flatbuffers_info,
         merge_flatbuffers_infos = _merge_flatbuffers_infos,
