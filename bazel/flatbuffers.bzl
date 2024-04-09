@@ -1,5 +1,7 @@
 """Starlark rules for FlatBuffers."""
 
+load("@bazel_skylib//lib:types.bzl", "types")
+
 def _init_flatbuffers_info(*, direct_sources = [], direct_schemas = [], transitive_sources = depset(), transitive_schemas = depset()):
     """_init_flatbuffers_info is a public constructor for FlatBuffersInfo."""
     if not types.is_list(direct_sources):
