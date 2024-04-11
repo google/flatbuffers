@@ -140,6 +140,7 @@ def _make_cc_flatbuffers_library(*, doc, aspect):
                 providers = [FlatBuffersInfo],
                 aspects = [aspect],
             ),
+            "includes": attr.string_list(),
         },
         doc = doc,
         implementation = _cc_flatbuffers_library_impl,

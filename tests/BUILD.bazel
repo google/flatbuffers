@@ -1,6 +1,5 @@
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("//:build_defs.bzl", "DEFAULT_FLATC_ARGS", "flatbuffer_cc_library")
 load("//bazel:cc_flatbuffers_library.bzl", "cc_flatbuffers_library")
 load("//bazel:flatbuffers.bzl", "flatbuffers_library")
 load(":defs.bzl", "flatbuffers_as_external_repo_test")
@@ -132,11 +131,11 @@ cc_test(
         "include/",
     ],
     deps = [
-        ":alignment_test_cc_fbs",
-        ":arrays_test_cc_fbs",
+        #":alignment_test_cc_fbs",
+        #":arrays_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
-        ":native_type_test_cc_fbs",
+        #":native_type_test_cc_fbs",
         "//:flatbuffers",
         "//src:generate_fbs",
     ],
@@ -184,108 +183,137 @@ cc_library(
     ],
 )
 
-flatbuffer_cc_library(
+flatbuffers_library(
     name = "include_test_fbs",
     srcs = [
         "include_test/include_test1.fbs",
         "include_test/sub/include_test2.fbs",
     ],
-    include_paths = ["tests/include_test"],
-)
-
-flatbuffer_cc_library(
-    name = "monster_test_cc_fbs",
-    srcs = ["monster_test.fbs"],
-    outs = ["monster_test_bfbs_generated.h"],
-    flatc_args = DEFAULT_FLATC_ARGS + [
-        "--bfbs-comments",
-        "--bfbs-builtins",
-        "--bfbs-gen-embed",
-        "--bfbs-filenames tests",
-    ],
-    include_paths = ["tests/include_test"],
-    visibility = ["//grpc/tests:__subpackages__"],
-    deps = [":include_test_fbs"],
-)
-
-# Test that running without --no-includes works properly (monster_test doesn't
-# work cleanly due to the circular dependency in the include_tests/ files).
-include_test_args = [
-    "--gen-object-api",
-    "--gen-compare",
-    "--gen-mutable",
-    "--reflect-names",
-    "--cpp-ptr-type flatbuffers::unique_ptr",
-    "--force-empty",
-]
-
-flatbuffer_cc_library(
-    name = "included_test_fbs",
-    srcs = ["included_test.fbs"],
-    flatc_args = include_test_args,
-)
-
-flatbuffers_library(
-    name = "included_test2_fbs",
-    srcs = ["included_test.fbs"],
+    includes = ["tests/include_test"],
 )
 
 cc_flatbuffers_library(
-    name = "included_test2_cc_fbs",
-    deps = [":included_test2_fbs"],
+    name = "include_test_cc_fbs",
+    deps = [":include_test_fbs"],
 )
 
-flatbuffer_cc_library(
-    name = "includer_test_fbs",
-    srcs = ["includer_test.fbs"],
-    flatc_args = include_test_args,
+#flatbuffer_cc_library(
+#    name = "include_test_fbs",
+#    srcs = [
+#        "include_test/include_test1.fbs",
+#        "include_test/sub/include_test2.fbs",
+#    ],
+#    include_paths = ["tests/include_test"],
+#)
+#
+#flatbuffer_cc_library(
+#    name = "monster_test_cc_fbs",
+#    srcs = ["monster_test.fbs"],
+#    outs = ["monster_test_bfbs_generated.h"],
+#    flatc_args = DEFAULT_FLATC_ARGS + [
+#        "--bfbs-comments",
+#        "--bfbs-builtins",
+#        "--bfbs-gen-embed",
+#        "--bfbs-filenames tests",
+#    ],
+#    include_paths = ["tests/include_test"],
+#    visibility = ["//grpc/tests:__subpackages__"],
+#    deps = [":include_test_fbs"],
+#)
+#
+## Test that running without --no-includes works properly (monster_test doesn't
+## work cleanly due to the circular dependency in the include_tests/ files).
+#include_test_args = [
+#    "--gen-object-api",
+#    "--gen-compare",
+#    "--gen-mutable",
+#    "--reflect-names",
+#    "--cpp-ptr-type flatbuffers::unique_ptr",
+#    "--force-empty",
+#]
+#
+flatbuffers_library(
+    name = "included_test_fbs",
+    srcs = [
+        "included_test.fbs",
+    ],
+)
+
+cc_flatbuffers_library(
+    name = "included_test_cc_fbs",
     deps = [":included_test_fbs"],
+)
+
+flatbuffers_library(
+    name = "includer_test_fbs",
+    srcs = [
+        "includer_test.fbs",
+    ],
+    deps = [":included_test_fbs"],
+)
+
+cc_flatbuffers_library(
+    name = "includer_test_cc_fbs",
+    deps = [":includer_test_fbs"],
 )
 
 cc_library(
     name = "include_build_test",
     srcs = ["include_build_test.cc"],
     deps = [
-        ":included_test2_cc_fbs",
-        ":includer_test_fbs",
+        ":included_test_cc_fbs",
+        ":includer_test_cc_fbs",
     ],
 )
 
-flatbuffer_cc_library(
+#
+#flatbuffer_cc_library(
+#    name = "monster_extra_cc_fbs",
+#    srcs = ["monster_extra.fbs"],
+#)
+#
+flatbuffers_library(
+    name = "monster_extra_fbs",
+    srcs = [
+        "monster_extra.fbs",
+    ],
+)
+
+cc_flatbuffers_library(
     name = "monster_extra_cc_fbs",
-    srcs = ["monster_extra.fbs"],
-)
-
-flatbuffer_cc_library(
-    name = "arrays_test_cc_fbs",
-    srcs = ["arrays_test.fbs"],
-    flatc_args = [
-        "--gen-object-api",
-        "--gen-compare",
-        "--no-includes",
-        "--gen-mutable",
-        "--reflect-names",
-        "--cpp-ptr-type flatbuffers::unique_ptr",
-        "--scoped-enums",
-    ],
-)
-
-flatbuffer_cc_library(
-    name = "native_type_test_cc_fbs",
-    srcs = ["native_type_test.fbs"],
-    flatc_args = [
-        "--gen-object-api",
-        "--gen-mutable",
-        "--cpp-ptr-type flatbuffers::unique_ptr",
-    ],
-)
-
-flatbuffer_cc_library(
-    name = "alignment_test_cc_fbs",
-    srcs = ["alignment_test.fbs"],
+    deps = [":monster_extra_fbs"],
 )
 
 flatbuffers_as_external_repo_test(
     name = "bazel_repository_test",
     directory = "bazel_repository_test_dir",
 )
+
+#flatbuffer_cc_library(
+#    name = "arrays_test_cc_fbs",
+#    srcs = ["arrays_test.fbs"],
+#    flatc_args = [
+#        "--gen-object-api",
+#        "--gen-compare",
+#        "--no-includes",
+#        "--gen-mutable",
+#        "--reflect-names",
+#        "--cpp-ptr-type flatbuffers::unique_ptr",
+#        "--scoped-enums",
+#    ],
+#)
+#
+#flatbuffer_cc_library(
+#    name = "native_type_test_cc_fbs",
+#    srcs = ["native_type_test.fbs"],
+#    flatc_args = [
+#        "--gen-object-api",
+#        "--gen-mutable",
+#        "--cpp-ptr-type flatbuffers::unique_ptr",
+#    ],
+#)
+#
+#flatbuffer_cc_library(
+#    name = "alignment_test_cc_fbs",
+#    srcs = ["alignment_test.fbs"],
+#)

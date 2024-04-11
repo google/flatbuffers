@@ -4,7 +4,7 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:types.bzl", "types")
 
-def _init_flatbuffers_info(*, direct_sources = [], direct_schemas = [], transitive_sources = depset(), transitive_schemas = depset()):
+def _init_flatbuffers_info(*, direct_sources = [], direct_schemas = [], direct_includes = [], transitive_sources = depset(), transitive_schemas = depset(), transitive_includes = depset()):
     """_init_flatbuffers_info is a public constructor for FlatBuffersInfo."""
     if not types.is_list(direct_sources):
         fail("direct_sources must be a list (got %s)" % type(direct_sources))
@@ -12,17 +12,25 @@ def _init_flatbuffers_info(*, direct_sources = [], direct_schemas = [], transiti
     if not types.is_list(direct_schemas):
         fail("direct_schemas must be a list (got %s)" % type(direct_schemas))
 
+    if not types.is_list(direct_includes):
+        fail("direct_includes must be a list (got %s)" % type(direct_includes))
+
     if not types.is_depset(transitive_sources):
         fail("transitive_sources must be a depset (got %s)" % type(transitive_sources))
 
     if not types.is_depset(transitive_schemas):
         fail("transitive_schemas must be a depset (got %s)" % type(transitive_schemas))
 
+    if not types.is_depset(transitive_includes):
+        fail("transitive_includes must be a depset (got %s)" % type(transitive_includes))
+
     return {
         "direct_sources": direct_sources,
         "direct_schemas": direct_schemas,
+        "direct_includes": direct_includes,
         "transitive_sources": transitive_sources,
         "transitive_schemas": transitive_schemas,
+        "transitive_includes": transitive_includes,
     }
 
 FlatBuffersInfo, _ = provider(
@@ -32,12 +40,15 @@ FlatBuffersInfo, _ = provider(
         "direct_schemas": "The binary serialized schema files (i.e. .bfbs) of the direct sources.",
         "transitive_sources": "FlatBuffers sources (i.e. .fbs) for this and all its dependent FlatBuffers targets.",
         "transitive_schemas": "A set of binary serialized schema files (i.e. .bfbs) for this and all its dependent FlatBuffers targets.",
+        "direct_includes": "extra include dirs",
+        "transitive_includes": "extra include dirs",
     },
     init = _init_flatbuffers_info,
 )
 
-def _create_flatbuffers_info(*, srcs, schemas, deps = None):
+def _create_flatbuffers_info(*, srcs, schemas, deps = None, includes = None):
     deps = deps or []
+    includes = includes or []
     return FlatBuffersInfo(
         direct_sources = srcs,
         direct_schemas = schemas,
@@ -49,6 +60,8 @@ def _create_flatbuffers_info(*, srcs, schemas, deps = None):
             direct = schemas,
             transitive = [dep[FlatBuffersInfo].transitive_schemas for dep in deps],
         ),
+        direct_includes = includes,
+        transitive_includes = depset(direct = includes, transitive = [dep[FlatBuffersInfo].transitive_includes for dep in deps]),
     )
 
 def _merge_flatbuffers_infos(infos):
@@ -58,6 +71,9 @@ def _merge_flatbuffers_infos(infos):
         ),
         transitive_schemas = depset(
             transitive = [info.transitive_schemas for info in infos],
+        ),
+        transitive_includes = depset(
+            transitive = [info.transitive_includes for info in infos],
         ),
     )
 
@@ -69,7 +85,7 @@ _flatc = {
     ),
 }
 
-def _emit_compile(*, ctx, srcs, deps = None):
+def _emit_compile(*, ctx, srcs, deps = None, includes = None):
     """Emits an action that triggers the compilation of the provided .fbs files.
 
     Args:
@@ -91,10 +107,16 @@ def _emit_compile(*, ctx, srcs, deps = None):
         schema = ctx.actions.declare_file(paths.replace_extension(src.basename, "") + ".bfbs")
         generated_schemas.append(schema)
 
+    includes = includes or []
+    transitive_includes = depset()
+
     args = ctx.actions.args()
     args.add("--binary")
     args.add("--schema")
     args.add("-I", ".")
+
+    args.add_all(includes, before_each = "-I")
+
     args.add("-I", ctx.bin_dir.path)
     args.add("-I", ctx.genfiles_dir.path)
     args.add("-o", paths.join(ctx.bin_dir.path, ctx.label.package))
@@ -119,6 +141,7 @@ def _flatbuffers_library_impl(ctx):
         ctx = ctx,
         srcs = ctx.files.srcs,
         deps = ctx.attr.deps,
+        includes = ctx.attr.includes,
     )
 
     return [
@@ -181,6 +204,7 @@ The following rules provide language-specific implementation of FlatBuffers:
         "deps": attr.label_list(
             providers = [FlatBuffersInfo],
         ),
+        "includes": attr.string_list(),
     }, _flatc),
     provides = [FlatBuffersInfo],
     implementation = _flatbuffers_library_impl,
