@@ -298,7 +298,7 @@ class TypedVector : public Sized {
     return data_ == TypedVector::EmptyTypedVector().data_;
   }
 
-  Type ElementType() { return type_; }
+  Type ElementType() const { return type_; }
 
   friend Reference;
 
