@@ -47,7 +47,8 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
       2 * sizeof(voffset_t);  // Vtable size and Object Size.
   size_t offset = fixed_fields + field_id * sizeof(voffset_t);
   FLATBUFFERS_ASSERT(offset < std::numeric_limits<voffset_t>::max());
-  return static_cast<voffset_t>(offset);}
+  return static_cast<voffset_t>(offset);
+}
 
 template<typename T, typename Alloc = std::allocator<T>>
 const T *data(const std::vector<T, Alloc> &v) {
@@ -241,7 +242,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// called.
   uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
     Finished();
-    uint8_t* raw = buf_.release_raw(size, offset);
+    uint8_t *raw = buf_.release_raw(size, offset);
     Clear();
     return raw;
   }
@@ -561,7 +562,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -743,7 +744,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     AssertScalarT<T>();
     StartVector<T, OffsetT, LenT>(len);
     if (len > 0) {
-// clang-format off
+      // clang-format off
       #if FLATBUFFERS_LITTLEENDIAN
         PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
       #else
@@ -1470,7 +1471,8 @@ T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 
 template<typename T>
 const T *GetTemporaryPointer(const FlatBufferBuilder &fbb, Offset<T> offset) {
-  return GetMutableTemporaryPointer<T>(fbb, offset);
+  return reinterpret_cast<const T *>(fbb.GetCurrentBufferPointer() +
+                                     fbb.GetSize() - offset.o);
 }
 
 }  // namespace flatbuffers
