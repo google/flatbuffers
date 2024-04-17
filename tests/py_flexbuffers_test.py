@@ -1468,20 +1468,22 @@ class EncoderTest(unittest.TestCase):
     def encode_key_vector(value, count, share_keys):
       fbb = flexbuffers.Builder(share_keys=share_keys)
       with fbb.Vector():
+        fbb.Key('aaa')
         for _ in range(count):
           fbb.Key(value)
       return fbb.Finish(), fbb.KeyPool.Elements
 
     data, pool = encode_key_vector('test', 10, share_keys=False)
     self.assertEqual(len(pool), 0)
-    self.assertEqual(len(data), 74)
-    self.assertEqual(flexbuffers.Loads(data), 10 * ['test'])
+    self.assertEqual(len(data), 80)
+    self.assertEqual(flexbuffers.Loads(data), ['aaa'] + 10 * ['test'])
 
     data, pool = encode_key_vector('test', 10, share_keys=True)
-    self.assertEqual(len(pool), 1)
-    self.assertEqual(pool[0], 'test'.encode('ascii'))
-    self.assertEqual(len(data), 29)
-    self.assertEqual(flexbuffers.Loads(data), 10 * ['test'])
+    self.assertEqual(len(pool), 2)
+    self.assertEqual(pool[0], 'aaa'.encode('ascii'))
+    self.assertEqual(pool[1], 'test'.encode('ascii'))
+    self.assertEqual(len(data), 35)
+    self.assertEqual(flexbuffers.Loads(data), ['aaa'] + 10 * ['test'])
 
   def test_share_strings(self):
 
