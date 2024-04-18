@@ -11,6 +11,21 @@ http_archive(
     ],
 )
 
+# Import our own version of skylib before other rule sets (e.g. rules_swift)
+# has a chance to import an old version.
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+    ],
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 http_archive(
     name = "build_bazel_rules_apple",
     sha256 = "34c41bfb59cdaea29ac2df5a2fa79e5add609c71bb303b2ebb10985f93fa20e7",
@@ -101,7 +116,7 @@ load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
 rules_js_dependencies()
 
-load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock", "pnpm_repository")
+load("@aspect_rules_js//npm:npm_import.bzl", "pnpm_repository")
 
 pnpm_repository(name = "pnpm")
 
@@ -129,17 +144,13 @@ nodejs_register_toolchains(
     node_version = DEFAULT_NODE_VERSION,
 )
 
-npm_translate_lock(
-    name = "npm",
-    npmrc = "//:.npmrc",
-    pnpm_lock = "//:pnpm-lock.yaml",
-    # Set this to True when the lock file needs to be updated, commit the
-    # changes, then set to False again.
-    update_pnpm_lock = False,
-    verify_node_modules_ignored = "//:.bazelignore",
+load("@com_github_google_flatbuffers//ts:repositories.bzl", "flatbuffers_npm")
+
+flatbuffers_npm(
+    name = "flatbuffers_npm",
 )
 
-load("@npm//:repositories.bzl", "npm_repositories")
+load("@flatbuffers_npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
 
