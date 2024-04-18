@@ -1035,8 +1035,8 @@ class Builder:
     return self._buf
 
   def _ReadKey(self, offset):
-    key = self._buf[offset:]
-    return key[:key.find(0)]
+    end = self._buf.find(0, offset)
+    return self._buf[offset:end]
 
   def _Align(self, alignment):
     byte_width = 1 << alignment
