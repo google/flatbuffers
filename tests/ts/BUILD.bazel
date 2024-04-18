@@ -1,7 +1,18 @@
 load("@aspect_rules_js//js:defs.bzl", "js_test")
+load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
 load("//:typescript.bzl", "flatbuffer_ts_library")
+load("//tests:defs.bzl", "flatbuffers_as_external_repo_test")
 
 package(default_visibility = ["//visibility:private"])
+
+# This is a copy of //ts:node_modules/flatbuffers. The rules_js-based tests
+# require this target to live in the same or a parent package. Since we don't
+# want to put rules_js targets in the root package, we create a copy here.
+npm_link_package(
+    name = "node_modules/flatbuffers",
+    src = "//ts:flatbuffers",
+    root_package = "tests/ts",
+)
 
 flatbuffer_ts_library(
     name = "typescript_ts_fbs",
@@ -37,8 +48,8 @@ TEST_COMPLEX_ARRAYS_DATA = glob([
     chdir = package_name(),
     data = data + [
         "package.json",
-        "//:node_modules/flatbuffers",
         "//tests:test_data_copied_to_bin",
+        "//tests/ts:node_modules/flatbuffers",
     ],
     entry_point = "%s.js" % test,
 ) for test, data in (
@@ -50,29 +61,7 @@ TEST_COMPLEX_ARRAYS_DATA = glob([
     ("JavaScriptComplexArraysTest", TEST_COMPLEX_ARRAYS_DATA),
 )]
 
-sh_test(
+flatbuffers_as_external_repo_test(
     name = "bazel_repository_test",
-    srcs = ["bazel_repository_test.sh"],
-    data = [
-        "//:distribution",
-        "@bazel_linux_x86_64//file",
-    ] + glob(
-        [
-            "bazel_repository_test_dir/**/*",
-        ],
-        exclude = [
-            "bazel_repository_test_dir/bazel-*/**",
-        ],
-    ),
-    tags = [
-        # Since we have bazel downloading external repositories inside this
-        # test, we need to give it access to the internet.
-        "requires-network",
-    ],
-    # We only have x86_64 Linux bazel exposed so restrict the test to that.
-    target_compatible_with = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:linux",
-    ],
-    deps = ["@bazel_tools//tools/bash/runfiles"],
+    directory = "bazel_repository_test_dir",
 )

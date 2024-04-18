@@ -1,16 +1,20 @@
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@flatbuffers_npm//:npm_link_all_packages.bzl", "npm_link_all_packages")
 
 filegroup(
     name = "distribution",
     srcs = [
         "BUILD.bazel",
         "compile_flat_file.sh",
+        "repositories.bzl",
     ] + glob([
         "*.ts",
     ]),
     visibility = ["//visibility:public"],
 )
+
+npm_link_all_packages(name = "node_modules")
 
 # Add an index to emulate the top-level package.json's "main" entry.
 genrule(
@@ -48,9 +52,7 @@ ts_project(
     },
     visibility = ["//visibility:public"],
     deps = [
-        # Because the main repository instantiates the @npm repository, we need
-        # to depend on the main repository's node import.
-        "@//:node_modules/@types/node",
+        ":node_modules/@types/node",
     ],
 )
 
