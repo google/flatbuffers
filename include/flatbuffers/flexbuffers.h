@@ -1069,14 +1069,12 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     auto sloc = buf_.size();
     WriteBytes(str, len + 1);
     if (flags_ & BUILDER_FLAG_SHARE_KEYS) {
-      auto it = key_pool.find(sloc);
-      if (it != key_pool.end()) {
+      auto ret = key_pool.insert(sloc);
+      if (!ret.second) {
         // Already in the buffer. Remove key we just serialized, and use
         // existing offset instead.
         buf_.resize(sloc);
-        sloc = *it;
-      } else {
-        key_pool.insert(sloc);
+        sloc = *ret.first;
       }
     }
     stack_.push_back(Value(static_cast<uint64_t>(sloc), FBT_KEY, BIT_WIDTH_8));
@@ -1091,15 +1089,13 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     auto sloc = CreateBlob(str, len, 1, FBT_STRING);
     if (flags_ & BUILDER_FLAG_SHARE_STRINGS) {
       StringOffset so(sloc, len);
-      auto it = string_pool.find(so);
-      if (it != string_pool.end()) {
+      auto ret = string_pool.insert(so);
+      if (!ret.second) {
         // Already in the buffer. Remove string we just serialized, and use
         // existing offset instead.
         buf_.resize(reset_to);
-        sloc = it->first;
+        sloc = ret.first->first;
         stack_.back().u_ = sloc;
-      } else {
-        string_pool.insert(so);
       }
     }
     return sloc;
