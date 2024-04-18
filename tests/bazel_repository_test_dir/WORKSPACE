@@ -1,0 +1,6 @@
+workspace(name = "bazel_repository_test")
+
+local_repository(
+    name = "com_github_google_flatbuffers",
+    path = "../../",
+)
