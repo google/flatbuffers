@@ -41,25 +41,37 @@ func NewBuilder(initialSize int) *Builder {
 	return b
 }
 
-// Reset truncates the underlying Builder buffer, facilitating alloc-free
-// reuse of a Builder. It also resets bookkeeping data.
+// Reset resets bookkeeping data and allows reusing the Builder for new data, without
+// allocating a new buffer. This will use the full capacity of the buffer and will
+// overwrite previous data in the buffer.
+// For example, if the initial buffer size was 100kB and 10kB was written in the buffer,
+// then the full 100kB will be available again after Reset().
 func (b *Builder) Reset() {
-	if b.Bytes != nil {
-		b.Bytes = b.Bytes[:cap(b.Bytes)]
-	}
+	b.ResetBuffer(b.Bytes[:cap(b.Bytes)])
 
-	if b.vtables != nil {
-		b.vtables = b.vtables[:0]
-	}
+}
 
-	if b.vtable != nil {
-		b.vtable = b.vtable[:0]
-	}
+// ResetKeep resets bookkeeping data and allows reusing the remaining buffer space in
+// the Builder for new data. This is like Reset(), except that previous data in the
+// buffer is kept.
+// For example, if the initial buffer size was 100kB and 10kB was written in the buffer,
+// then 90kB will be available for use after ResetKeep().
+func (b *Builder) ResetKeep() {
+	// Truncate up to head in order to keep existing data
+	b.ResetBuffer(b.Bytes[:b.head])
+}
 
-	if b.sharedStrings != nil {
-		for key := range b.sharedStrings {
-			delete(b.sharedStrings, key)
-		}
+// ResetBuffer resets bookkeeping data and resets the flatbuffer builder to use the
+// given buffer as storage. Existing data in the buffer will be overwritten
+// (data between the length and the capacity of the buffer is kept).
+func (b *Builder) ResetBuffer(buffer []byte) {
+	b.Bytes = buffer
+
+	b.vtables = b.vtables[:0]
+	b.vtable = b.vtable[:0]
+
+	for key := range b.sharedStrings {
+		delete(b.sharedStrings, key)
 	}
 
 	b.head = UOffsetT(len(b.Bytes))
@@ -219,19 +231,19 @@ func (b *Builder) growByteBuffer() {
 		panic("cannot grow buffer beyond 2 gigabytes")
 	}
 	newLen := len(b.Bytes) * 2
-	if newLen == 0 {
-		newLen = 1
+	if newLen < 16 {
+		newLen = 16
 	}
 
-	if cap(b.Bytes) >= newLen {
-		b.Bytes = b.Bytes[:newLen]
-	} else {
-		extension := make([]byte, newLen-len(b.Bytes))
-		b.Bytes = append(b.Bytes, extension...)
+	// newLen should be at least the existing capacity: if we allocated an initial
+	// buffer and used ResetKeep(), we want to allocate at least the initial capacity.
+	if newLen < cap(b.Bytes) {
+		newLen = cap(b.Bytes)
 	}
 
-	middle := newLen / 2
-	copy(b.Bytes[middle:], b.Bytes[:middle])
+	// newBytes = a number of 0 bytes followed by a copy of b.Bytes
+	newBytes := make([]byte, newLen-len(b.Bytes), newLen)
+	b.Bytes = append(newBytes, b.Bytes...)
 }
 
 // Head gives the start of useful data in the underlying byte buffer.
