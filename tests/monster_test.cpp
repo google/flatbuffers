@@ -313,6 +313,33 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   TEST_NOTNULL(vecoftables->LookupByKey("Fred"));
   TEST_NOTNULL(vecoftables->LookupByKey("Wilma"));
 
+  // Verify the same objects are returned for char*-based and string-based
+  // lookups.
+  TEST_EQ(vecoftables->LookupByKey("Barney"),
+          vecoftables->LookupByKey(std::string("Barney")));
+  TEST_EQ(vecoftables->LookupByKey("Fred"),
+          vecoftables->LookupByKey(std::string("Fred")));
+  TEST_EQ(vecoftables->LookupByKey("Wilma"),
+          vecoftables->LookupByKey(std::string("Wilma")));
+
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  // Tests for LookupByKey with a key that is a truncated
+  // version of a longer, invalid key.
+  const std::string invalid_key = "Barney123";
+  std::string_view valid_truncated_key = invalid_key;
+  valid_truncated_key.remove_suffix(3);  // "Barney"
+  TEST_NOTNULL(vecoftables->LookupByKey(valid_truncated_key));
+  TEST_EQ(vecoftables->LookupByKey("Barney"),
+          vecoftables->LookupByKey(valid_truncated_key));
+
+  // Tests for LookupByKey with a key that is a truncated
+  // version of a longer, valid key.
+  const std::string valid_key = "Barney";
+  std::string_view invalid_truncated_key = valid_key;
+  invalid_truncated_key.remove_suffix(3);  // "Bar"
+  TEST_NULL(vecoftables->LookupByKey(invalid_truncated_key));
+#endif  // FLATBUFFERS_HAS_STRING_VIEW
+
   // Test accessing a vector of sorted structs
   auto vecofstructs = monster->testarrayofsortedstruct();
   if (vecofstructs) {  // not filled in monster_test.bfbs

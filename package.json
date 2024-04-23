@@ -1,6 +1,6 @@
 {
   "name": "flatbuffers",
-  "version": "24.3.7",
+  "version": "24.3.25",
   "description": "Memory Efficient Serialization Library",
   "files": [
     "js/**/*.js",
@@ -29,7 +29,7 @@
     "flatbuffers"
   ],
   "author": "The FlatBuffers project",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/google/flatbuffers/issues"
   },
