@@ -426,26 +426,29 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "return None\n\n";
   }
 
+  template <typename T>
+  std::string ModuleFor(const T *def) const {
+    if (!parser_.opts.one_file) {
+      return namer_.NamespacedType(*def);
+    }
+
+    std::string filename =
+        StripExtension(def->file) + parser_.opts.filename_suffix;
+    if (parser_.file_being_parsed_ == def->file) {
+      return "." + StripPath(filename);  // make it a "local" import
+    }
+
+    std::string module = parser_.opts.include_prefix + filename;
+    std::replace(module.begin(), module.end(), '/', '.');
+    return module;
+  }
+
   // Generate the package reference when importing a struct or enum from its
   // module.
   std::string GenPackageReference(const Type &type) const {
-    if (parser_.opts.one_file) {
-      const std::string &filename =
-          StripExtension(type.struct_def->file) + parser_.opts.filename_suffix;
-      if (parser_.file_being_parsed_ == type.struct_def->file) {
-        return "." + StripPath(filename);  // make it a "local" import
-      }
-      std::string module = parser_.opts.include_prefix + filename;
-      std::replace(module.begin(), module.end(), '/', '.');
-      return module;
-    }
-    if (type.struct_def) {
-      return namer_.NamespacedType(*type.struct_def);
-    } else if (type.enum_def) {
-      return namer_.NamespacedType(*type.enum_def);
-    } else {
-      return "." + GenTypeGet(type);
-    }
+    if (type.struct_def) return ModuleFor(type.struct_def);
+    if (type.enum_def) return ModuleFor(type.enum_def);
+    return "." + GenTypeGet(type);
   }
 
   // Get the value of a vector's struct member.
