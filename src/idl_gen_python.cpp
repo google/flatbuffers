@@ -18,7 +18,9 @@
 
 #include "idl_gen_python.h"
 
+#include <algorithm>
 #include <cctype>
+#include <cstdio>
 #include <set>
 #include <string>
 #include <unordered_set>
@@ -56,7 +58,7 @@ static Namer::Config PythonDefaultConfig() {
            /*variable=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
            /*enum_variant_seperator=*/".",
-           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
+           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,  // Packages in python.
            /*namespace_seperator=*/".",
            /*object_prefix=*/"",
@@ -427,6 +429,16 @@ class PythonGenerator : public BaseGenerator {
   // Generate the package reference when importing a struct or enum from its
   // module.
   std::string GenPackageReference(const Type &type) const {
+    if (parser_.opts.one_file) {
+      const std::string &filename =
+          StripExtension(type.struct_def->file) + parser_.opts.filename_suffix;
+      if (parser_.file_being_parsed_ == type.struct_def->file) {
+        return "." + StripPath(filename);  // make it a "local" import
+      }
+      std::string module = parser_.opts.include_prefix + filename;
+      std::replace(module.begin(), module.end(), '/', '.');
+      return module;
+    }
     if (type.struct_def) {
       return namer_.NamespacedType(*type.struct_def);
     } else if (type.enum_def) {
@@ -2021,7 +2033,7 @@ class PythonGenerator : public BaseGenerator {
     if (!generateStructs(&one_file_code, one_file_imports)) return false;
 
     if (parser_.opts.one_file) {
-      const std::string mod = file_name_ + "_generated";
+      const std::string mod = file_name_ + parser_.opts.filename_suffix;
 
       // Legacy file format uses keep casing.
       return SaveType(mod + ".py", *parser_.current_namespace_, one_file_code,
@@ -2122,11 +2134,13 @@ class PythonGenerator : public BaseGenerator {
   bool SaveType(const std::string &defname, const Namespace &ns,
                 const std::string &classcode, const ImportMap &imports,
                 const std::string &mod, bool needs_imports) const {
-    if (!classcode.length()) return true;
-
     std::string code = "";
-    BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
-    code += classcode;
+    if (classcode.empty()) {
+      BeginFile(LastNamespacePart(ns), false, &code, "", {});
+    } else {
+      BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
+      code += classcode;
+    }
 
     const std::string directories =
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
