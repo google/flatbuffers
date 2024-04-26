@@ -1,5 +1,6 @@
 ---
 buildifier: latest
+bazel: 6.4.0
 platforms:
   ubuntu1804:
     environment:
@@ -30,6 +31,7 @@ platforms:
     test_targets:
     - "//..."
   macos:
+    xcode_version: "14.2"
     build_targets:
     - "//..."
     test_targets:

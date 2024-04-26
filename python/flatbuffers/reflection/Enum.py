@@ -152,7 +152,7 @@ def AddValues(builder, values):
 def EnumStartValuesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartValuesVector(builder, numElems: int) -> int:
+def StartValuesVector(builder, numElems):
     return EnumStartValuesVector(builder, numElems)
 
 def EnumAddIsUnion(builder, isUnion):
@@ -176,7 +176,7 @@ def AddAttributes(builder, attributes):
 def EnumStartAttributesVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartAttributesVector(builder, numElems: int) -> int:
+def StartAttributesVector(builder, numElems):
     return EnumStartAttributesVector(builder, numElems)
 
 def EnumAddDocumentation(builder, documentation):
@@ -188,7 +188,7 @@ def AddDocumentation(builder, documentation):
 def EnumStartDocumentationVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
-def StartDocumentationVector(builder, numElems: int) -> int:
+def StartDocumentationVector(builder, numElems):
     return EnumStartDocumentationVector(builder, numElems)
 
 def EnumAddDeclarationFile(builder, declarationFile):

@@ -139,9 +139,9 @@
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
-#define FLATBUFFERS_VERSION_MAJOR 23
-#define FLATBUFFERS_VERSION_MINOR 5
-#define FLATBUFFERS_VERSION_REVISION 26
+#define FLATBUFFERS_VERSION_MAJOR 24
+#define FLATBUFFERS_VERSION_MINOR 3
+#define FLATBUFFERS_VERSION_REVISION 25
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 namespace flatbuffers {
@@ -363,7 +363,6 @@ inline bool VerifyAlignmentRequirements(size_t align, size_t min_align = 1) {
 }
 
 #if defined(_MSC_VER)
-  #pragma warning(disable: 4351) // C4351: new behavior: elements of array ... will be default initialized
   #pragma warning(push)
   #pragma warning(disable: 4127) // C4127: conditional expression is constant
 #endif

@@ -479,6 +479,11 @@ std::string PosixPath(const std::string &path);
 // creating dirs for any parts of the path that don't exist yet.
 void EnsureDirExists(const std::string &filepath);
 
+// Obtains the relative or absolute path.
+std::string FilePath(const std::string &project,
+                     const std::string &filePath,
+                     bool absolute);
+
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
 std::string AbsolutePath(const std::string &filepath);

@@ -1,3 +1,17 @@
+# Changelog
+
+## 23.5.26
+
+- omit type annotationes for local variables (#7067, #7069, #7070)
+- remove BSD 3-clause license (#7073)
+- correctly parse lists of enums (#7157)
+- align naming conventions for generated code (#7187)
+- add `putBool` to fix errors when serializing structs with booleans (#7359)
+- fix handling of +/-inf defaults in codegen (#7588)
+- fix import issues in generated code (#7621)
+- Fix incorrect storage of floats as ints in some cases (#7703)
+- add final modifiers to the library implementation (#7943)
+
 ## 2.0.5
 
 - switch to null safety (#6696)
