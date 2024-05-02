@@ -149,12 +149,14 @@ class PythonStubGenerator {
 
   struct Imports {
     const PythonStubGenerator::Import &Import(const std::string &module) {
-      imports.emplace_back(module, "");
+      PythonStubGenerator::Import import = {module, ""};
+      imports.push_back(std::move(import));
       return imports.back();
     }
     const PythonStubGenerator::Import &Import(const std::string &module,
                                               const std::string &name) {
-      imports.emplace_back(module, name);
+      PythonStubGenerator::Import import = {module, name};
+      imports.push_back(std::move(import));
       return imports.back();
     }
     std::vector<PythonStubGenerator::Import> imports = {};
