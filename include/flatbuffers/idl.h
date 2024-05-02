@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stack>
+#include <string>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
@@ -705,8 +706,22 @@ struct IDLOptions {
   bool no_leak_private_annotations;
   bool require_json_eof;
   bool keep_proto_id;
+
+  /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
   bool python_typing;
+
+  // The target Python version. Can be one of the following:
+  // -  "2"
+  // -  "3"
+  // -  "2.<minor>"
+  // -  "3.<minor>"
+  // -  "2.<minor>.<micro>"
+  // -  "3.<minor>.<micro>"
+  //
+  // https://docs.python.org/3/faq/general.html#how-does-the-python-version-numbering-scheme-work
+  std::string python_version;
+
   bool ts_omit_entrypoint;
   ProtoIdGapAction proto_id_gap_action;
 

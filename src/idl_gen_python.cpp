@@ -19,18 +19,19 @@
 #include "idl_gen_python.h"
 
 #include <algorithm>
-#include <cctype>
+#include <cstdint>
 #include <cstdio>
 #include <set>
+#include <sstream>
 #include <string>
-#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "flatbuffers/code_generators.h"
-#include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "idl_namer.h"
+#include "namer.h"
 
 namespace flatbuffers {
 namespace python {
@@ -40,13 +41,47 @@ namespace {
 typedef std::pair<std::string, std::string> ImportMapEntry;
 typedef std::set<ImportMapEntry> ImportMap;
 
-static std::set<std::string> PythonKeywords() {
-  return { "False", "None",   "True",     "and",   "as",     "assert",
-           "break", "class",  "continue", "def",   "del",    "elif",
-           "else",  "except", "finally",  "for",   "from",   "global",
-           "if",    "import", "in",       "is",    "lambda", "nonlocal",
-           "not",   "or",     "pass",     "raise", "return", "try",
-           "while", "with",   "yield" };
+struct Version {
+  explicit Version(const std::string &version) {
+    std::stringstream ss(version);
+    char dot;
+    ss >> major >> dot >> minor >> dot >> micro;
+  }
+
+  bool IsValid() const {
+    return (major == 0 || major == 2 || major == 3) && minor >= 0 && micro >= 0;
+  }
+
+  int16_t major = 0;
+  int16_t minor = 0;
+  int16_t micro = 0;
+};
+
+std::set<std::string> Keywords(const Version &version) {
+  switch (version.major) {
+    case 2:
+      // https://docs.python.org/2/reference/lexical_analysis.html#keywords
+      return {
+          "and",   "as",     "assert", "break",  "class", "continue", "def",
+          "del",   "elif",   "else",   "except", "exec",  "finally",  "for",
+          "from",  "global", "if",     "import", "in",    "is",       "lambda",
+          "not",   "or",     "pass",   "print",  "raise", "return",   "try",
+          "while", "with",   "yield",
+      };
+    case 0:
+    case 3:
+      // https://docs.python.org/3/reference/lexical_analysis.html#keywords
+      return {
+          "and",      "as",       "assert",  "async", "await",  "break",
+          "class",    "continue", "def",     "del",   "elif",   "else",
+          "except",   "False",    "finally", "for",   "from",   "global",
+          "if",       "import",   "in",      "is",    "lambda", "None",
+          "nonlocal", "not",      "or",      "pass",  "raise",  "return",
+          "True",     "try",      "while",   "with",  "yield",
+      };
+    default:
+      return {};
+  }
 }
 
 static Namer::Config PythonDefaultConfig() {
@@ -81,12 +116,13 @@ static const std::string Indent = "    ";
 class PythonGenerator : public BaseGenerator {
  public:
   PythonGenerator(const Parser &parser, const std::string &path,
-                  const std::string &file_name)
+                  const std::string &file_name, const Version &version)
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')"),
         namer_(WithFlagOptions(PythonDefaultConfig(), parser.opts, path),
-               PythonKeywords()) {}
+               Keywords(version)),
+        version_(version) {}
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -100,7 +136,9 @@ class PythonGenerator : public BaseGenerator {
   // Begin a class declaration.
   void BeginClass(const StructDef &struct_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
-    code += "class " + namer_.Type(struct_def) + "(object):\n";
+    code += "class " + namer_.Type(struct_def);
+    if (version_.major != 3) code += "(object)";
+    code += ":\n";
     code += Indent + "__slots__ = ['_tab']";
     code += "\n\n";
   }
@@ -108,7 +146,9 @@ class PythonGenerator : public BaseGenerator {
   // Begin enum code with a class declaration.
   void BeginEnum(const EnumDef &enum_def, std::string *code_ptr) const {
     auto &code = *code_ptr;
-    code += "class " + namer_.Type(enum_def) + "(object):\n";
+    code += "class " + namer_.Type(enum_def);
+    if (version_.major != 3) code += "(object)";
+    code += ":\n";
   }
 
   // Starts a new line and then indents.
@@ -1078,8 +1118,9 @@ class PythonGenerator : public BaseGenerator {
                               std::string *code_ptr) const {
     auto &code = *code_ptr;
     code += "\n";
-    code += "class " + namer_.ObjectType(struct_def) + "(object):";
-    code += "\n";
+    code += "class " + namer_.ObjectType(struct_def);
+    if (version_.major != 3) code += "(object)";
+    code += ":\n";
   }
 
   // Gets the accoresponding python builtin type of a BaseType for scalars and
@@ -2164,13 +2205,17 @@ class PythonGenerator : public BaseGenerator {
  private:
   const SimpleFloatConstantGenerator float_const_gen_;
   const IdlNamer namer_;
+  const Version version_;
 };
 
 }  // namespace python
 
 static bool GeneratePython(const Parser &parser, const std::string &path,
                            const std::string &file_name) {
-  python::PythonGenerator generator(parser, path, file_name);
+  python::Version version{parser.opts.python_version};
+  if (!version.IsValid()) return false;
+
+  python::PythonGenerator generator(parser, path, file_name, version);
   return generator.generate();
 }
 
