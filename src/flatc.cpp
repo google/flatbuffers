@@ -672,6 +672,10 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--python-version") {
         if (++argi >= argc) Error("missing value following: " + arg, true);
         opts.python_version = argv[argi];
+      } else if (arg == "--python-gen-stubs" || arg == "--python-gen-stubs=true") {
+        opts.python_gen_stubs = true;
+      } else if (arg == "--no-python-gen-stubs" || arg == "--python-gen-stubs=false") {
+        opts.python_gen_stubs = false;
       } else if (arg == "--ts-omit-entrypoint") {
         opts.ts_omit_entrypoint = true;
       } else if (arg == "--annotate-sparse-vectors") {

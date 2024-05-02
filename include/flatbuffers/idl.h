@@ -722,6 +722,9 @@ struct IDLOptions {
   // https://docs.python.org/3/faq/general.html#how-does-the-python-version-numbering-scheme-work
   std::string python_version;
 
+  // Whether to generate .pyi stub files for every .py file generated.
+  bool python_gen_stubs;
+
   bool ts_omit_entrypoint;
   ProtoIdGapAction proto_id_gap_action;
 
@@ -836,6 +839,7 @@ struct IDLOptions {
         keep_proto_id(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
+        python_gen_stubs(false),
         ts_omit_entrypoint(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),

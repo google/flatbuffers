@@ -22,11 +22,11 @@ gen_code_path=${test_dir}
 runtime_library_dir=${test_dir}/../python
 
 # Emit Python code for the example schema in the test dir:
-${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --gen-object-api
-${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs --gen-object-api --gen-onefile
-${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_extra.fbs --gen-object-api --python-typing --gen-compare
-${test_dir}/../flatc -p -o ${gen_code_path} -I include_test arrays_test.fbs --gen-object-api --python-typing
-${test_dir}/../flatc -p -o ${gen_code_path} -I include_test nested_union_test.fbs --gen-object-api --python-typing
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs      --gen-object-api --python-gen-stubs
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_test.fbs      --gen-object-api --python-gen-stubs --gen-onefile
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_extra.fbs     --gen-object-api --python-gen-stubs --python-typing --gen-compare
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test arrays_test.fbs       --gen-object-api --python-gen-stubs --python-typing
+${test_dir}/../flatc -p -o ${gen_code_path} -I include_test nested_union_test.fbs --gen-object-api --python-gen-stubs --python-typing
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>

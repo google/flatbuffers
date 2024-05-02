@@ -1,0 +1,26 @@
+from __future__ import annotations
+
+import flatbuffers
+import numpy as np
+
+import typing
+from MyGame.Example.StructOfStructs import StructOfStructs, StructOfStructsT
+from MyGame.Example.StructOfStructsOfStructs import StructOfStructsOfStructs
+
+class StructOfStructsOfStructs(object):
+  @classmethod
+  def SizeOf(cls) -> int: ...
+
+  def Init(self, buf: bytes, pos: int) -> None: ...
+  def A(self, obj: StructOfStructs) -> StructOfStructs: ...
+class StructOfStructsOfStructsT(object):
+  a: typing.Optional[StructOfStructsT]
+  @classmethod
+  def InitFromBuf(cls, buf: bytes, pos: int) -> StructOfStructsOfStructsT: ...
+  @classmethod
+  def InitFromPackedBuf(cls, buf: bytes, pos: int = 0) -> StructOfStructsOfStructsT: ...
+  @classmethod
+  def InitFromObj(cls, structOfStructsOfStructs: StructOfStructsOfStructs) -> StructOfStructsOfStructsT: ...
+  def _UnPack(self, structOfStructsOfStructs: StructOfStructsOfStructs) -> None: ...
+  def Pack(self, builder: flatbuffers.Builder) -> None: ...
+
