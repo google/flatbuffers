@@ -2140,6 +2140,7 @@ class PythonGenerator : public BaseGenerator {
     std::string code = "";
     if (classcode.empty()) {
       BeginFile(LastNamespacePart(ns), false, &code, "", {});
+      code += "# NOTE " + defname + " does not declare any structs or enums\n";
     } else {
       BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
       code += classcode;
