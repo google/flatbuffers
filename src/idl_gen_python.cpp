@@ -486,7 +486,7 @@ class PythonStubGenerator {
   }
 
   void GenerateEnumStub(std::stringstream &ss, const EnumDef *enum_def,
-                        [[maybe_unused]] Imports *imports) const {
+                        Imports *imports) const {
     ss << "class " << namer_.Type(*enum_def);
     if (version_.major != 3) ss << "(object)";
     ss << ":\n";
