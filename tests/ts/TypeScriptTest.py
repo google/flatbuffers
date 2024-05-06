@@ -122,8 +122,21 @@ flatc(
     schema="../union_underlying_type_test.fbs"
 )
 
+
+flatc(
+    options=["--ts"],
+    schema="../long_namespace.fbs"
+)
+
+flatc(
+    options=["--ts"],
+    schema="../longer_namespace.fbs"
+)
+
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
+check_call(["tsc", "./com/company/test.ts"])
+check_call(["tsc", "./a/b/c/d.ts"])
 print("Running TypeScript Compiler in old node resolution mode for no_import_ext...")
 check_call(["tsc", "-p", "./tsconfig.node.json"])
 
