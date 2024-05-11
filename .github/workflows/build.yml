@@ -223,8 +223,10 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
+    # Setting up DCMAKE_OSX_ARCHITECTURES to use x86_64 since
+    # the default github action runners are ARM
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: xcodebuild -toolchain clang -configuration Release -target flattests
     - name: check that the binary is x86_64
@@ -383,6 +385,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      # Force Xcode 14.3 since Xcode 15 doesnt support older versions of
+      # kotlin. For Xcode 15, kotlin should be bumpped to 1.9.10
+      # https://stackoverflow.com/a/77150623
+    - name: Set up Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_14.3.app/Contents/Developer
     - uses: gradle/wrapper-validation-action@v1.0.5
     - uses: actions/setup-java@v3
       with:
