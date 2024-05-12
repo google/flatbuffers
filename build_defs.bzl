@@ -7,13 +7,13 @@ Rules for building C++ flatbuffers with Bazel.
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-TRUE_FLATC_PATH = "@com_github_google_flatbuffers//:flatc"
+TRUE_FLATC_PATH = "@flatbuffers//:flatc"
 
 DEFAULT_INCLUDE_PATHS = [
     "./",
     "$(GENDIR)",
     "$(BINDIR)",
-    "$(execpath @com_github_google_flatbuffers//:flatc).runfiles/com_github_google_flatbuffers",
+    "$(execpath @flatbuffers//:flatc).runfiles/flatbuffers",
 ]
 
 def default_include_paths(flatc_path):
@@ -21,7 +21,7 @@ def default_include_paths(flatc_path):
         "./",
         "$(GENDIR)",
         "$(BINDIR)",
-        "$(execpath %s).runfiles/com_github_google_flatbuffers" % (flatc_path),
+        "$(execpath %s).runfiles/flatbuffers" % (flatc_path),
     ]
 
 DEFAULT_FLATC_ARGS = [
@@ -47,7 +47,7 @@ def flatbuffer_library_public(
         compatible_with = None,
         restricted_to = None,
         target_compatible_with = None,
-        flatc_path = "@com_github_google_flatbuffers//:flatc",
+        flatc_path = "@flatbuffers//:flatc",
         output_to_bindir = False,
         tools = None,
         extra_env = None,
@@ -262,8 +262,8 @@ def flatbuffer_cc_library(
             "-parse_headers",
         ],
         deps = [
-            "@com_github_google_flatbuffers//:runtime_cc",
-            "@com_github_google_flatbuffers//:flatbuffers",
+            "@flatbuffers//:runtime_cc",
+            "@flatbuffers//:flatbuffers",
         ] + deps,
         includes = cc_include_paths,
         compatible_with = compatible_with,
