@@ -670,6 +670,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint16ListReader().read(buf, 0);
+    expect(items is Uint16List, true);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 60000]));
   }
@@ -687,15 +688,42 @@ class BuilderTest {
     const buffOffset = 8; // 32-bit offset to the list, + 32-bit length
     for (final lazy in [true, false]) {
       List<int> items = Uint8ListReader(lazy: lazy).read(buf, 0);
+      expect(items is Uint8List, true);
       expect(items, hasLength(6));
-      expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A, 0xFA]));
+      expect(items, orderedEquals(<int>[1, 2, 3, 4, 154, 250]));
 
       // overwrite the buffer to verify the laziness
       buf.buffer.setUint8(buffOffset + 1, 99);
-      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, 0x9A, 0xFA]));
+      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, 154, 250]));
 
       // restore the previous value for the next loop
       buf.buffer.setUint8(buffOffset + 1, 2);
+    }
+  }
+
+  void test_writeList_ofInt8() {
+    List<int> byteList;
+    {
+      Builder builder = Builder(initialSize: 0);
+      int offset = builder.writeListInt8(<int>[1, 2, 3, 4, 0x9A, 0xFA]);
+      builder.finish(offset);
+      byteList = builder.buffer;
+    }
+    // read and verify
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    const buffOffset = 8; // 32-bit offset to the list, + 32-bit length
+    for (final lazy in [true, false]) {
+      List<int> items = Int8ListReader(lazy: lazy).read(buf, 0);
+      expect(items is Int8List, true);
+      expect(items, hasLength(6));
+      expect(items, orderedEquals(<int>[1, 2, 3, 4, -102, -6]));
+
+      // overwrite the buffer to verify the laziness
+      buf.buffer.setInt8(buffOffset + 1, 99);
+      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, -102, -6]));
+
+      // restore the previous value for the next loop
+      buf.buffer.setInt8(buffOffset + 1, 2);
     }
   }
 
