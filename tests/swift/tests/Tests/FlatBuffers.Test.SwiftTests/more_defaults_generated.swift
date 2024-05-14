@@ -29,7 +29,7 @@ extension ABC: Encodable {
 
 public struct MoreDefaults: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_7() }
+  static func validateVersion() { FlatBuffersVersion_24_3_25() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
