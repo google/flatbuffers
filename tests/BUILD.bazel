@@ -134,7 +134,7 @@ cc_test(
         #":alignment_test_cc_fbs",
         #":arrays_test_cc_fbs",
         ":monster_extra_cc_fbs",
-        ":monster_test_cc_fbs",
+        #":monster_test_cc_fbs",
         #":native_type_test_cc_fbs",
         "//:flatbuffers",
         "//src:generate_fbs",
