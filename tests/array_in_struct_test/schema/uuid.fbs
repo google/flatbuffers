@@ -1,4 +1,0 @@
-
-struct Uuid {
-    data: [ubyte:16];
-}
