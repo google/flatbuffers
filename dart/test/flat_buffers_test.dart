@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import './monster_test_my_game.example_generated.dart' as example;
 import './monster_test_my_game.example2_generated.dart' as example2;
-import './list_of_enums_generated.dart' as example3;
+import 'enums_generated.dart' as example3;
 import './bool_structs_generated.dart' as example4;
 
 main() {
