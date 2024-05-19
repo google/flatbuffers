@@ -21,7 +21,7 @@ jobs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
     name: Build Linux
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04-64core
     strategy:
       matrix:
         cxx: [g++-13, clang++-15]
