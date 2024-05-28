@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        cxx: [g++-14, clang++-18]
+        cxx: [g++-13, clang++-18]
       fail-fast: false
     steps:
     - uses: actions/checkout@v3
@@ -57,7 +57,7 @@ jobs:
       id: hash-clang
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
     - name: Generate SLSA subjects - gcc
-      if: matrix.cxx == 'g++-14' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'g++-13' && startsWith(github.ref, 'refs/tags/')
       id: hash-gcc
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
@@ -102,7 +102,7 @@ jobs:
       fail-fast: false
       matrix:
         std: [11, 14, 17, 20, 23]
-        cxx: [g++-14, clang++-18]
+        cxx: [g++-13, clang++-18]
         exclude:
           # Clang++15 10.3.0 stdlibc++ doesn't fully support std 23
           - cxx: clang++-18
@@ -324,7 +324,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        cxx: [g++-14, clang++-18]
+        cxx: [g++-13, clang++-18]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -355,7 +355,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        cxx: [g++-14]
+        cxx: [g++-13]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
