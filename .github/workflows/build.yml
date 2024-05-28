@@ -21,7 +21,7 @@ jobs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
     name: Build Linux
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         cxx: [g++-13, clang++-15]
@@ -63,7 +63,7 @@ jobs:
 
   build-linux-no-file-tests:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -75,7 +75,7 @@ jobs:
 
   build-linux-out-of-source:
     name: Build Linux with out-of-source build location
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: make build directory
@@ -97,7 +97,7 @@ jobs:
 
   build-linux-cpp-std:
     name: Build Linux C++
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -302,7 +302,7 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
-   runs-on: ubuntu-22.04-64core
+   runs-on: ubuntu-24.04
    steps:
    - uses: actions/checkout@v3
    - name: set up Java
@@ -321,7 +321,7 @@ jobs:
 
   build-generator:
     name: Check Generated Code
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         cxx: [g++-13, clang++-15]
@@ -352,7 +352,7 @@ jobs:
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         cxx: [g++-13]
@@ -370,7 +370,7 @@ jobs:
 
   build-java:
     name: Build Java
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -399,7 +399,7 @@ jobs:
 
   build-kotlin-linux:
     name: Build Kotlin Linux
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -422,7 +422,7 @@ jobs:
 
   build-rust-linux:
     name: Build Rust Linux
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -440,7 +440,7 @@ jobs:
 
   build-python:
     name: Build Python
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -452,7 +452,7 @@ jobs:
 
   build-go:
     name: Build Go
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -464,7 +464,7 @@ jobs:
 
   build-php:
    name: Build PHP
-   runs-on: ubuntu-22.04-64core
+   runs-on: ubuntu-24.04
    steps:
    - uses: actions/checkout@v3
    - name: flatc
@@ -478,7 +478,7 @@ jobs:
 
   build-swift:
     name: Build Swift
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -489,7 +489,7 @@ jobs:
 
   build-swift-wasm:
     name: Build Swift Wasm
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     container:
       image: ghcr.io/swiftwasm/carton:0.15.3
     steps:
@@ -502,7 +502,7 @@ jobs:
 
   build-ts:
     name: Build TS
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -520,7 +520,7 @@ jobs:
 
   build-dart:
     name: Build Dart
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
@@ -535,7 +535,7 @@ jobs:
 
   build-nim:
     name: Build Nim
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -554,7 +554,7 @@ jobs:
     needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
       - name: Merge results
         id: hash
