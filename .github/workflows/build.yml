@@ -220,7 +220,7 @@ jobs:
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
-    runs-on: macos-latest
+    runs-on: macos-latest-large
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -379,7 +379,7 @@ jobs:
 
   build-kotlin-macos:
     name: Build Kotlin MacOS
-    runs-on: macos-latest
+    runs-on: macos-latest-large
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -478,7 +478,8 @@ jobs:
 
   build-swift:
     name: Build Swift
-    runs-on: ubuntu-24.04
+    # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: test
