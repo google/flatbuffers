@@ -16,9 +16,21 @@ filegroup(
 )
 
 cc_library(
+    name = "namer",
+    hdrs = [
+        "idl_namer.h",
+        "namer.h",
+    ],
+    strip_include_prefix = "/include",
+    visibility = ["//:__subpackages__"],
+    deps = ["//:runtime_cc"],
+)
+
+cc_library(
     name = "python",
     srcs = ["python.cc"],
     hdrs = ["python.h"],
     strip_include_prefix = "/include",
     visibility = ["//src:__subpackages__"],
+    deps = [":namer"],
 )
