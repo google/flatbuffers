@@ -1,8 +1,18 @@
-# @unused
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(
     default_visibility = ["//visibility:private"],
+)
+
+filegroup(
+    name = "distribution",
+    srcs = [
+        "BUILD.bazel",
+    ] + glob([
+        "*.cc",
+        "*.h",
+    ]),
+    visibility = ["//visibility:public"],
 )
 
 cc_library(

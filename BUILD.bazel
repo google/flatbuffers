@@ -36,6 +36,7 @@ filegroup(
         "package.json",
         "pnpm-lock.yaml",
         "typescript.bzl",
+        "//include/codegen:distribution",
         "//grpc/src/compiler:distribution",
         "//reflection:distribution",
         "//src:distribution",
