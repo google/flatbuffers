@@ -132,15 +132,21 @@ jobs:
   publish-crates:
     name: Publish crates.io
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./rust/flatbuffers
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
+          
+      - name: Publish Flatbuffers
       - uses: katyo/publish-crates@v2
         with:
+          path: .rust/flatbuffers
+          registry-token: ${{ secrets.CARGO_TOKEN }}
+
+      - name: Publish Flexbuffers
+      - uses: katyo/publish-crates@v2
+        with:
+          path: .rust/flexbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
