@@ -16,6 +16,8 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
+#include <cstdio>
+
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -253,6 +255,15 @@ class FlatBufFile : public grpc_generator::File {
   std::string additional_headers() const {
     switch (language_) {
       case kLanguageCpp: {
+        if (!parser_.opts.grpc_additional_headers.empty()) {
+          std::string result = "";
+          for (const std::string &header :
+               parser_.opts.grpc_additional_headers) {
+            if (!result.empty()) result += "\n";
+            result += "#include \"" + header + "\"";
+          }
+          return result;
+        }
         return "#include \"flatbuffers/grpc.h\"\n";
       }
       case kLanguageGo: {
@@ -356,10 +367,16 @@ bool GenerateCppGRPC(const Parser &parser, const std::string &path,
 
   grpc_cpp_generator::Parameters generator_parameters;
   // TODO(wvo): make the other parameters in this struct configurable.
-  generator_parameters.use_system_headers = true;
+  generator_parameters.use_system_headers = opts.grpc_use_system_headers;
   generator_parameters.message_header_extension = suffix;
-
-  FlatBufFile fbfile(parser, file_name, FlatBufFile::kLanguageCpp);
+  generator_parameters.service_header_extension =
+      ".grpc" + opts.grpc_filename_suffix + ".h";
+  generator_parameters.grpc_search_path = opts.grpc_search_path;
+  std::string filename = flatbuffers::StripExtension(parser.file_being_parsed_);
+  if (!opts.keep_prefix) {
+    filename = flatbuffers::StripPath(filename);
+  }
+  FlatBufFile fbfile(parser, filename, FlatBufFile::kLanguageCpp);
 
   std::string header_code =
       grpc_cpp_generator::GetHeaderPrologue(&fbfile, generator_parameters) +
@@ -373,10 +390,14 @@ bool GenerateCppGRPC(const Parser &parser, const std::string &path,
       grpc_cpp_generator::GetSourceServices(&fbfile, generator_parameters) +
       grpc_cpp_generator::GetSourceEpilogue(&fbfile, generator_parameters);
 
-  return flatbuffers::SaveFile((path + file_name + ".grpc.fb.h").c_str(),
-                               header_code, false) &&
-         flatbuffers::SaveFile((path + file_name + ".grpc.fb.cc").c_str(),
-                               source_code, false);
+  return flatbuffers::SaveFile(
+             (path + file_name + ".grpc" + opts.grpc_filename_suffix + ".h")
+                 .c_str(),
+             header_code, false) &&
+         flatbuffers::SaveFile(
+             (path + file_name + ".grpc" + opts.grpc_filename_suffix + ".cc")
+                 .c_str(),
+             source_code, false);
 }
 
 class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
