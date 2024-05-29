@@ -149,6 +149,7 @@ cc_library(
     visibility = ["//:__pkg__"],
     deps = [
         ":flatc_library",
+        "//include/codegen:python",
         "//grpc/src/compiler:cpp_generator",
         "//grpc/src/compiler:go_generator",
         "//grpc/src/compiler:java_generator",
