@@ -1,6 +1,6 @@
 [package]
 name = "flatbuffers"
-version = "24.3.7"
+version = "24.3.25"
 edition = "2018"
 authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
 license = "Apache-2.0"

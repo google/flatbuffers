@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
   kotlin("multiplatform")
+  id("convention.publication")
 }
 
 
