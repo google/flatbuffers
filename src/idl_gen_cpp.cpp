@@ -470,7 +470,11 @@ class CppGenerator : public BaseGenerator {
 
           // Check that nativeName doesn't collide the name of another struct.
           for (const auto &other_struct_def : parser_.structs_.vec) {
-            if (other_struct_def == struct_def) { continue; }
+            if (other_struct_def == struct_def ||
+                other_struct_def->defined_namespace !=
+                    struct_def->defined_namespace) {
+              continue;
+            }
 
             auto other_name = Name(*other_struct_def);
             if (nativeName == other_name) {
