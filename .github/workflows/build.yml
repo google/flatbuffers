@@ -12,6 +12,9 @@ on:
   pull_request:
     branches:
       - master
+  schedule:
+    # Run daily at 4:45 A.M. to catch dependencies that break us.
+    - cron: '45 4 * * *' 
 
 jobs:
   build-linux:
