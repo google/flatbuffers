@@ -1,6 +1,6 @@
 [package]
 name = "flexbuffers"
-version = "2.0.0"
+version = "24.3.25"
 authors = ["Casper Neo <cneo@google.com>", "FlatBuffers Maintainers"]
 edition = "2018"
 license = "Apache-2.0"
