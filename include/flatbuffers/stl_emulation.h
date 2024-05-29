@@ -273,7 +273,7 @@ template<class T, class U>
 FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const Optional<U>& rhs) FLATBUFFERS_NOEXCEPT {
   return static_cast<bool>(lhs) != static_cast<bool>(rhs)
               ? false
-              : !static_cast<bool>(lhs) ? false : (*lhs == *rhs);
+              : !static_cast<bool>(lhs) ? true : (*lhs == *rhs);
 }
 #endif // FLATBUFFERS_USE_STD_OPTIONAL
 
