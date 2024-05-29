@@ -31,6 +31,9 @@ cc_library(
     srcs = ["python.cc"],
     hdrs = ["python.h"],
     strip_include_prefix = "/include",
-    visibility = ["//src:__subpackages__"],
+    visibility = [
+        "//grpc:__subpackages__",
+        "//src:__subpackages__",
+    ],
     deps = [":namer"],
 )

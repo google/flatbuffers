@@ -1,0 +1,11 @@
+namespace example;
+
+table HelloRequest {}
+table HelloResponse {}
+
+rpc_service HelloService {
+  Hello(HelloRequest):HelloResponse;
+  StreamClient(HelloRequest):HelloResponse (streaming: "client");
+  StreamServer(HelloRequest):HelloResponse (streaming: "server");
+  Stream(HelloRequest):HelloResponse (streaming: "bidi");
+}
