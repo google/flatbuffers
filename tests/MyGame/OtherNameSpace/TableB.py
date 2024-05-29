@@ -2,3 +2,4 @@
 
 # namespace: OtherNameSpace
 
+# NOTE TableB.py does not declare any structs or enums

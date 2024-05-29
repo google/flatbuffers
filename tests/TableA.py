@@ -2,3 +2,4 @@
 
 # namespace: 
 
+# NOTE TableA.py does not declare any structs or enums
