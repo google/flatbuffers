@@ -346,8 +346,8 @@ typedef uintmax_t largest_scalar_t;
 // Includes the offset to the root table (uoffset_t), the offset to the vtable
 // of the root table (soffset_t), the size of the vtable (uint16_t), and the
 // size of the referring table (uint16_t).
-#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(uoffset_t) + sizeof(soffset_t) + \
-   sizeof(uint16_t) + sizeof(uint16_t)
+#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(::flatbuffers::uoffset_t) + \
+  sizeof(::flatbuffers::soffset_t) + sizeof(uint16_t) + sizeof(uint16_t)
 
 // We support aligning the contents of buffers up to this size.
 #ifndef FLATBUFFERS_MAX_ALIGNMENT
