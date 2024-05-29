@@ -223,8 +223,6 @@ jobs:
     runs-on: macos-latest-large
     steps:
     - uses: actions/checkout@v3
-    # Setting up DCMAKE_OSX_ARCHITECTURES to use x86_64 since
-    # the default github action runners are ARM
     - name: cmake
       run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
