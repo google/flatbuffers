@@ -139,9 +139,9 @@
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
-#define FLATBUFFERS_VERSION_MAJOR 23
-#define FLATBUFFERS_VERSION_MINOR 5
-#define FLATBUFFERS_VERSION_REVISION 26
+#define FLATBUFFERS_VERSION_MAJOR 24
+#define FLATBUFFERS_VERSION_MINOR 3
+#define FLATBUFFERS_VERSION_REVISION 25
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 namespace flatbuffers {
@@ -459,10 +459,17 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
   return ((~buf_size) + 1) & (scalar_size - 1);
 }
 
+#if !defined(_MSC_VER)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
 // Generic 'operator==' with conditional specialisations.
 // T e - new value of a scalar field.
 // T def - default of scalar (is known at compile-time).
 template<typename T> inline bool IsTheSameAs(T e, T def) { return e == def; }
+#if !defined(_MSC_VER)
+  #pragma GCC diagnostic pop
+#endif
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS) && \
     defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
