@@ -115,4 +115,4 @@ jobs:
           override: true
       - uses: katyo/publish-crates@v2
         with:
-          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          registry-token: ${{ secrets.CARGO_TOKEN }}
