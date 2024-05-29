@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 #include <sstream>
+#include <string>
 
 #include "annotated_binary_text_gen.h"
 #include "binary_annotator.h"
@@ -254,6 +255,8 @@ const static FlatCOption flatc_options[] = {
   { "", "python-no-type-prefix-suffix", "",
     "Skip emission of Python functions that are prefixed with typenames" },
   { "", "python-typing", "", "Generate Python type annotations" },
+  { "", "python-version", "", "Generate code for the given Python version." },
+  { "", "python-gen-numpy", "", "Whether to generate numpy helpers." },
   { "", "ts-omit-entrypoint", "",
     "Omit emission of namespace entrypoint file" },
   { "", "file-names-only", "",
@@ -671,6 +674,18 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.python_no_type_prefix_suffix = true;
       } else if (arg == "--python-typing") {
         opts.python_typing = true;
+      } else if (arg.rfind("--python-version=", 0) == 0) {
+        opts.python_version =
+            arg.substr(std::string("--python-version=").size());
+      } else if (arg == "--python-version") {
+        if (++argi >= argc) Error("missing value following: " + arg, true);
+        opts.python_version = argv[argi];
+      } else if (arg == "--python-gen-numpy" ||
+                 arg == "--python-gen-numpy=true") {
+        opts.python_gen_numpy = true;
+      } else if (arg == "--no-python-gen-numpy" ||
+                 arg == "--python-gen-numpy=false") {
+        opts.python_gen_numpy = false;
       } else if (arg == "--ts-omit-entrypoint") {
         opts.ts_omit_entrypoint = true;
       } else if (arg == "--annotate-sparse-vectors") {
