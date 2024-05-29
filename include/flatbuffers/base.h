@@ -346,8 +346,8 @@ typedef uintmax_t largest_scalar_t;
 // Includes the offset to the root table (uoffset_t), the offset to the vtable
 // of the root table (soffset_t), the size of the vtable (uint16_t), and the
 // size of the referring table (uint16_t).
-#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(uoffset_t) + sizeof(soffset_t) + \
-   sizeof(uint16_t) + sizeof(uint16_t)
+#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(::flatbuffers::uoffset_t) + \
+  sizeof(::flatbuffers::soffset_t) + sizeof(uint16_t) + sizeof(uint16_t)
 
 // We support aligning the contents of buffers up to this size.
 #ifndef FLATBUFFERS_MAX_ALIGNMENT
@@ -459,10 +459,17 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
   return ((~buf_size) + 1) & (scalar_size - 1);
 }
 
+#if !defined(_MSC_VER)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
 // Generic 'operator==' with conditional specialisations.
 // T e - new value of a scalar field.
 // T def - default of scalar (is known at compile-time).
 template<typename T> inline bool IsTheSameAs(T e, T def) { return e == def; }
+#if !defined(_MSC_VER)
+  #pragma GCC diagnostic pop
+#endif
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS) && \
     defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)

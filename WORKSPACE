@@ -83,6 +83,28 @@ http_archive(
     ],
 )
 
+#### Building boring ssl
+# Fetching boringssl within the flatbuffers repository, to patch the issue
+# of not being able to upgrade to Xcode 14.3 due to buildkite throwing errors
+# which was patched in the following below.
+# https://github.com/google/flatbuffers/commit/67eb95de9281087ccbba9aafd6e8ab1958d12045
+# The patch was copied from the following comment on the same issue within tensorflow
+# and fixed to adapt the already existing patch for boringssl.
+# https://github.com/tensorflow/tensorflow/issues/60191#issuecomment-1496073147
+http_archive(
+    name = "boringssl",
+    patch_args = ["-p1"],
+    patches = ["//grpc:boringssl.patch"],
+    # Use github mirror instead of https://boringssl.googlesource.com/boringssl
+    # to obtain a boringssl archive with consistent sha256
+    sha256 = "534fa658bd845fd974b50b10f444d392dfd0d93768c4a51b61263fd37d851c40",
+    strip_prefix = "boringssl-b9232f9e27e5668bc0414879dcdedb2a59ea75f2",
+    urls = [
+        "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/b9232f9e27e5668bc0414879dcdedb2a59ea75f2.tar.gz",
+        "https://github.com/google/boringssl/archive/b9232f9e27e5668bc0414879dcdedb2a59ea75f2.tar.gz",
+    ],
+)
+
 ##### GRPC
 _GRPC_VERSION = "1.49.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
 

@@ -37,6 +37,7 @@ filegroup(
         "pnpm-lock.yaml",
         "typescript.bzl",
         "//grpc/src/compiler:distribution",
+        "//include/codegen:distribution",
         "//reflection:distribution",
         "//src:distribution",
         "//ts:distribution",
