@@ -31,7 +31,7 @@ platforms:
     test_targets:
     - "//..."
   macos:
-    xcode_version: "14.2"
+    xcode_version: "14.3"
     build_targets:
     - "//..."
     test_targets:
