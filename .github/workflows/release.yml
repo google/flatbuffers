@@ -109,7 +109,6 @@ jobs:
         working-directory: ./kotlin
     steps:
       - uses: actions/checkout@v3
-      
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v3
         with:
