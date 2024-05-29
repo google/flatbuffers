@@ -386,7 +386,7 @@ class Builder {
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putFloat64(double value) {
     _prepare(_sizeofFloat64, 1);
-    _setFloat32AtTail(_tail, value);
+    _setFloat64AtTail(_tail, value);
   }
 
   /// Writes a Float32 to the tail of the buffer after preparing space for it.
