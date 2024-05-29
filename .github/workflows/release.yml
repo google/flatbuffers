@@ -140,13 +140,13 @@ jobs:
           override: true
           
       - name: Publish Flatbuffers
-      - uses: katyo/publish-crates@v2
+        uses: katyo/publish-crates@v2
         with:
           path: .rust/flatbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
 
       - name: Publish Flexbuffers
-      - uses: katyo/publish-crates@v2
+        uses: katyo/publish-crates@v2
         with:
           path: .rust/flexbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
