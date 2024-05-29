@@ -5,7 +5,7 @@ on:
   # For manual tests.
   workflow_dispatch:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   publish-npm:
@@ -100,6 +100,53 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          
+  publish-maven-kotlin:
+    name: Publish Maven - Kotlin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./kotlin
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: 'maven'
+          server-id: ossrh
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # this needs to be an env var
+
+      - name: Publish Kotlin Library on Maven
+        run: ./gradlew publishAllPublicationsToSonatypeRepository
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
 
+  publish-crates:
+    name: Publish crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          
+      - name: Publish Flatbuffers
+        uses: katyo/publish-crates@v2
+        with:
+          path: ./rust/flatbuffers
+          registry-token: ${{ secrets.CARGO_TOKEN }}
 
+      - name: Publish Flexbuffers
+        uses: katyo/publish-crates@v2
+        with:
+          path: ./rust/flexbuffers
+          registry-token: ${{ secrets.CARGO_TOKEN }}

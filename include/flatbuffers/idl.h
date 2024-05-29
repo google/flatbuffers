@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stack>
+#include <vector>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
@@ -759,6 +760,12 @@ struct IDLOptions {
   // make the flatbuffer more compact.
   bool set_empty_vectors_to_null;
 
+  /*********************************** gRPC ***********************************/
+  std::string grpc_filename_suffix;
+  bool grpc_use_system_headers;
+  std::string grpc_search_path;
+  std::vector<std::string> grpc_additional_headers;
+
   IDLOptions()
       : gen_jvmstatic(false),
         use_flexbuffers(false),
@@ -829,7 +836,9 @@ struct IDLOptions {
         rust_module_root_file(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
-        set_empty_vectors_to_null(true) {}
+        set_empty_vectors_to_null(true),
+        grpc_filename_suffix(".fb"),
+        grpc_use_system_headers(true) {}
 };
 
 // This encapsulates where the parser is in the current source file.

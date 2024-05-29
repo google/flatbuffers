@@ -258,6 +258,13 @@ const static FlatCOption flatc_options[] = {
     "Omit emission of namespace entrypoint file" },
   { "", "file-names-only", "",
     "Print out generated file names without writing to the files" },
+  { "", "grpc-filename-suffix", "SUFFIX",
+    "The suffix for the generated file names (Default is '.fb')." },
+  { "", "grpc-additional-header", "",
+    "Additional headers to prepend to the generated files." },
+  { "", "grpc-use-system-headers", "",
+    "Use <> for headers included from the generated code." },
+  { "", "grpc-search-path", "PATH", "Prefix to any gRPC includes." },
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -674,6 +681,30 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--file-names-only") {
         // TODO (khhn): Provide 2 implementation
         options.file_names_only = true;
+      } else if (arg == "--grpc-filename-suffix") {
+        if (++argi >= argc) Error("missing gRPC filename suffix: " + arg, true);
+        opts.grpc_filename_suffix = argv[argi];
+      } else if (arg.rfind("--grpc-filename-suffix=", 0) == 0) {
+        opts.grpc_filename_suffix =
+            arg.substr(std::string("--grpc-filename-suffix=").size());
+      } else if (arg == "--grpc-additional-header") {
+        if (++argi >= argc) Error("missing include following: " + arg, true);
+        opts.grpc_additional_headers.push_back(argv[argi]);
+      } else if (arg.rfind("--grpc-additional-header=", 0) == 0) {
+        opts.grpc_additional_headers.push_back(
+            arg.substr(std::string("--grpc-additional-header=").size()));
+      } else if (arg == "--grpc-search-path") {
+        if (++argi >= argc) Error("missing gRPC search path: " + arg, true);
+        opts.grpc_search_path = argv[argi];
+      } else if (arg.rfind("--grpc-search-path=", 0) == 0) {
+        opts.grpc_search_path =
+            arg.substr(std::string("--grpc-search-path=").size());
+      } else if (arg == "--grpc-use-system-headers" ||
+                 arg == "--grpc-use-system-headers=true") {
+        opts.grpc_use_system_headers = true;
+      } else if (arg == "--no-grpc-use-system-headers" ||
+                 arg == "--grpc-use-system-headers=false") {
+        opts.grpc_use_system_headers = false;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 

@@ -1,8 +1,7 @@
 #!/usr/bin/bash
 
-printf -v year '%(%y)T' -1
-printf -v month '%(%-m)T' -1
-printf -v day '%(%-d)T' -1
+# Read the date as in the Pacific TZ, with no leading padding
+read year month day <<<$(date --date="TZ=\"US/Pacific\"" +'%-y %-m %-d')
 
 version="$year.$month.$day"
 version_underscore="$year\_$month\_$day"
@@ -68,6 +67,11 @@ echo "Updating rust/flatbuffers/Cargo.toml..."
 sed -i \
   "s/^version = \".*\"$/version = \"$version\"/g" \
   rust/flatbuffers/Cargo.toml
+
+echo "Updating rust/flexbuffers/Cargo.toml..."
+sed -i \
+  "s/^version = \".*\"$/version = \"$version\"/g" \
+  rust/flexbuffers/Cargo.toml
 
 echo "Updating FlatBuffers.podspec..."
 sed -i \
