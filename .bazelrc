@@ -1,4 +1,12 @@
 # We cannot use "common" here because the "version" command doesn't support
 # --deleted_packages. We need to specify it for both build and query instead.
-build --deleted_packages=tests/ts/bazel_repository_test_dir
-query --deleted_packages=tests/ts/bazel_repository_test_dir
+build --deleted_packages=tests/bazel_repository_test_dir,tests/ts/bazel_repository_test_dir
+query --deleted_packages=tests/bazel_repository_test_dir,tests/ts/bazel_repository_test_dir
+# Point tools such as coursier (used in rules_jvm_external) to Bazel's internal JDK
+# suggested in https://github.com/bazelbuild/rules_jvm_external/issues/445
+common --repo_env=JAVA_HOME=../bazel_tools/jdk
+common --action_env=JAVA_HOME=../bazel_tools/jdk
+# Workaround "Error: need --enable_runfiles on Windows for to support rules_js"
+common:windows --enable_runfiles
+# Swift is not required on Windows
+common:windows --deleted_packages=swift
