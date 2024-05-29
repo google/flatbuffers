@@ -486,10 +486,18 @@ jobs:
 
   build-swift:
     name: Build Swift
+    strategy:
+      matrix:
+        swift: ["5.8", "5.9", "5.10"]
     # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
+    - uses: swift-actions/setup-swift@v2
+      with:
+        swift-version: ${{ matrix.swift }}
+    - name: Get swift version
+      run: swift --version
     - name: test
       working-directory: tests/swift/tests
       run: |
@@ -505,9 +513,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: Setup Wasmer
         uses: wasmerio/setup-wasmer@v2
+      - uses: swiftwasm/setup-swiftwasm@v1
+        with:
+          swift-version: "wasm-5.9.2-RELEASE"
       - name: Test
         working-directory: tests/swift/Wasm.tests
-        run: carton test
+        run: swift run carton test
 
   build-ts:
     name: Build TS
