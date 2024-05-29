@@ -68,6 +68,11 @@ sed -i \
   "s/^version = \".*\"$/version = \"$version\"/g" \
   rust/flatbuffers/Cargo.toml
 
+echo "Updating rust/flexbuffers/Cargo.toml..."
+sed -i \
+  "s/^version = \".*\"$/version = \"$version\"/g" \
+  rust/flexbuffers/Cargo.toml
+
 echo "Updating FlatBuffers.podspec..."
 sed -i \
   -e "s/\(s.version\s*= \).*/\1'$version'/" \

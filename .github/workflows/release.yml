@@ -109,7 +109,6 @@ jobs:
         working-directory: ./kotlin
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v3
         with:
@@ -129,3 +128,25 @@ jobs:
           OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
+
+  publish-crates:
+    name: Publish crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          
+      - name: Publish Flatbuffers
+        uses: katyo/publish-crates@v2
+        with:
+          path: ./rust/flatbuffers
+          registry-token: ${{ secrets.CARGO_TOKEN }}
+
+      - name: Publish Flexbuffers
+        uses: katyo/publish-crates@v2
+        with:
+          path: ./rust/flexbuffers
+          registry-token: ${{ secrets.CARGO_TOKEN }}
