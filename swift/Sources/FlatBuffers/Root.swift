@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// Takes in a prefixed sized buffer, where the prefixed size would be skipped.
 /// And would verify that the buffer passed is a valid `Flatbuffers` Object.
@@ -74,7 +70,8 @@ public func getCheckedPrefixedSizeRoot<T: FlatBufferObject & Verifiable>(
 ///
 /// ``getPrefixedSizeCheckedRoot(byteBuffer:options:)`` would skip the first Bytes in
 /// the ``ByteBuffer`` and then calls ``getRoot(byteBuffer:)``
-public func getPrefixedSizeRoot<T: FlatBufferObject>(byteBuffer: inout ByteBuffer)
+public func getPrefixedSizeRoot<T: FlatBufferObject>(
+  byteBuffer: inout ByteBuffer)
   -> T
 {
   byteBuffer.skipPrefix()

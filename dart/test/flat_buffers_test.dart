@@ -215,6 +215,10 @@ class BuilderTest {
       ..addTestarrayofstringOffset(testArrayOfString);
     final mon = monBuilder.finish();
     fbBuilder.finish(mon);
+
+    final mon3 = example.Monster(fbBuilder.buffer);
+    expect(mon3.name, 'MyMonster');
+    expect(mon3.pos!.test1, 3.0);
   }
 
   void test_error_addInt32_withoutStartTable([Builder? builder]) {
