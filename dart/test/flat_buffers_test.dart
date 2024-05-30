@@ -670,7 +670,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint16ListReader().read(buf, 0);
-    expect(items is Uint16List, true);
+    expect(items is Uint16List, true, skip: Endian.host == Endian.big);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 60000]));
   }

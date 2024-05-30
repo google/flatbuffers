@@ -47,8 +47,10 @@ class BufferContext {
       _buffer.buffer.asInt8List(_buffer.offsetInBytes + offset, length);
 
   @pragma('vm:prefer-inline')
-  Uint16List _asUint16List(int offset, int length) =>
-      _buffer.buffer.asUint16List(_buffer.offsetInBytes + offset, length);
+  Uint16List _asUint16List(int offset, int length) {
+    assert(Endian.host == Endian.little);
+    return _buffer.buffer.asUint16List(_buffer.offsetInBytes + offset, length);
+  }
 
   @pragma('vm:prefer-inline')
   double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
@@ -1174,10 +1176,13 @@ class Uint16ListReader extends Reader<List<int>> {
   @override
   @pragma('vm:prefer-inline')
   List<int> read(BufferContext bc, int offset) {
-    final listOffset = bc.derefObject(offset);
-    final length = bc._getUint32(listOffset);
-
-    return bc._asUint16List(listOffset + _sizeofUint32, length);
+    if (Endian.host == Endian.little) {
+        final listOffset = bc.derefObject(offset);
+        final length = bc._getUint32(listOffset);
+        return bc._asUint16List(listOffset + _sizeofUint32, length);
+	  } else {
+        return _FbUint16List(bc, bc.derefObject(offset));
+	  }
   }
 }
 
@@ -1340,6 +1345,15 @@ class _FbUint32List extends _FbList<int> {
   @override
   @pragma('vm:prefer-inline')
   int operator [](int i) => bc._getUint32(offset + 4 + 4 * i);
+}
+
+/// List backed by 16-bit unsigned integers.
+class _FbUint16List extends _FbList<int> {
+  _FbUint16List(BufferContext bc, int offset) : super(bc, offset);
+
+  @override
+  @pragma('vm:prefer-inline')
+  int operator [](int i) => bc._getUint16(offset + 4 + 2 * i);
 }
 
 /// List backed by 8-bit unsigned integers.
