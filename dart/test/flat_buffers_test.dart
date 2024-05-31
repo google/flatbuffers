@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:typed_data';
 import 'dart:io' as io;
 
@@ -543,7 +545,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float64ListReader().read(buf, 0);
-
+    expect(items is Float64List, Endian.host == Endian.little);
     expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
@@ -563,6 +565,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float32ListReader().read(buf, 0);
+    expect(items is Float32List, Endian.host == Endian.little);
     expect(items, hasLength(5));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
@@ -655,6 +658,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint32ListReader().read(buf, 0);
+    expect(items is Uint32List, Endian.host == Endian.little);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
   }
@@ -670,7 +674,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint16ListReader().read(buf, 0);
-    expect(items is Uint16List, true, skip: Endian.host == Endian.big);
+    expect(items is Uint16List, Endian.host == Endian.little);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 60000]));
   }
@@ -845,9 +849,9 @@ class ObjectAPITest {
     final offset = monster.pack(fbBuilder);
     expect(offset, isNonZero);
     fbBuilder.finish(offset);
-    final data = fbBuilder.buffer;
 
     // TODO currently broken because of struct builder issue, see #6688
+    // final data = fbBuilder.buffer;
     // final monster2 = example.Monster(data); // Monster (reader)
     // expect(
     //     // map Monster => MonsterT, Vec3 => Vec3T, ...
