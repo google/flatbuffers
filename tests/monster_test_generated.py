@@ -39,11 +39,11 @@ def AnyCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
         return None
-    if unionType == Any().Monster:
+    if unionType == Any.Monster:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == Any().TestSimpleTableWithEnum:
+    if unionType == Any.TestSimpleTableWithEnum:
         return TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == Any().MyGame_Example2_Monster:
+    if unionType == Any.MyGame_Example2_Monster:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
@@ -58,11 +58,11 @@ def AnyUniqueAliasesCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
         return None
-    if unionType == AnyUniqueAliases().M:
+    if unionType == AnyUniqueAliases.M:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == AnyUniqueAliases().TS:
+    if unionType == AnyUniqueAliases.TS:
         return TestSimpleTableWithEnumT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == AnyUniqueAliases().M2:
+    if unionType == AnyUniqueAliases.M2:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
@@ -77,11 +77,11 @@ def AnyAmbiguousAliasesCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
         return None
-    if unionType == AnyAmbiguousAliases().M1:
+    if unionType == AnyAmbiguousAliases.M1:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == AnyAmbiguousAliases().M2:
+    if unionType == AnyAmbiguousAliases.M2:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == AnyAmbiguousAliases().M3:
+    if unionType == AnyAmbiguousAliases.M3:
         return MonsterT.InitFromBuf(table.Bytes, table.Pos)
     return None
 

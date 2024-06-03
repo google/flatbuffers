@@ -591,12 +591,21 @@ class PythonStubGenerator {
   void GenerateEnumStub(std::stringstream &stub, const EnumDef *enum_def,
                         Imports *imports) const {
     stub << "class " << namer_.Type(*enum_def);
-    if (version_.major != 3) stub << "(object)";
+
+    if (version_.major == 3){
+      imports->Import("enum", "IntEnum");
+      stub << "(IntEnum)";
+    }
+    else {
+      stub << "(object)";
+    }
+
     stub << ":\n";
     for (const EnumVal *val : enum_def->Vals()) {
       stub << "  " << namer_.Variant(*val) << ": "
            << ScalarType(enum_def->underlying_type.base_type) << "\n";
     }
+
     if (parser_.opts.generate_object_based_api & enum_def->is_union) {
       imports->Import("flatbuffers", "table");
       stub << "def " << namer_.Function(*enum_def)
@@ -2432,7 +2441,7 @@ class PythonGenerator : public BaseGenerator {
     auto field_type = namer_.ObjectType(*ev.union_type.struct_def);
 
     code +=
-        GenIndents(1) + "if unionType == " + union_type + "()." + variant + ":";
+        GenIndents(1) + "if unionType == " + union_type + "." + variant + ":";
     if (parser_.opts.include_dependence_headers) {
       auto package_reference = GenPackageReference(ev.union_type);
       code += GenIndents(2) + "import " + package_reference;
