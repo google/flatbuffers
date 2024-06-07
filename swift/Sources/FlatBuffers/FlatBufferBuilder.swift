@@ -811,7 +811,7 @@ public struct FlatBufferBuilder {
   /// *NOTE: Never call this manually*
   ///
   /// - Parameter element: Element to insert
-  /// - returns: Postion of the Element
+  /// - returns: position of the Element
   @inline(__always)
   @discardableResult
   mutating public func push<T: Scalar>(element: T) -> UOffset {
