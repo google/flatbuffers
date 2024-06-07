@@ -538,7 +538,11 @@ class TSGRPCGenerator : public flatbuffers::BaseGenerator {
                                        const std::string &file_name,
                                        const bool is_interface = false) {
     if (is_interface) return path + file_name + "_grpc.d.ts";
-    return path + file_name + "_grpc.js";
+    // jj changed this to make typescript (.ts) instead of javascript.
+    // This is to make the imports work properly it seems to need to pass
+    // through the typescript compiler.
+    // There is probably a better way (because currently we are ignoring the .d.ts).
+    return path + file_name + "_grpc.ts";
   }
 };
 
