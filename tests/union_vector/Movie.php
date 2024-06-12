@@ -5,6 +5,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 class Movie extends Table
 {
@@ -15,6 +16,17 @@ class Movie extends Table
     public static function getRootAsMovie(ByteBuffer $bb)
     {
         $obj = new Movie();
+        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+    }
+
+    /**
+     * @param ByteBuffer $bb
+     * @return Movie
+     */
+    public static function getSizePrefixedRootAsMovie(ByteBuffer $bb)
+    {
+        $obj = new Movie();
+        $bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
@@ -216,5 +228,10 @@ class Movie extends Table
     public static function finishMovieBuffer(FlatBufferBuilder $builder, $offset)
     {
         $builder->finish($offset, "MOVI");
+    }
+
+    public static function finishSizePrefixedMovieBuffer(FlatBufferBuilder $builder, $offset)
+    {
+        $builder->finish($offset, "MOVI", true);
     }
 }

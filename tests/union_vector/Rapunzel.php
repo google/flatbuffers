@@ -5,6 +5,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 class Rapunzel extends Struct
 {

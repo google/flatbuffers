@@ -95,6 +95,24 @@ final class FlatbufferBuilder
         $this->bb = $this->newByteBuffer($initial_size);
     }
 
+    /**
+     * Clear the buffer.
+     */
+    public function Clear()
+    {
+        $this->space = $this->bb->capacity();
+        $this->bb->setPosition($this->space);
+        $this->minalign = 1;
+        $this->vtable = null;
+        $this->vtable_in_use = 0;
+        $this->nested = false;
+        $this->object_start = null;
+        $this->vtables = array();
+        $this->num_vtables = 0;
+        $this->vector_num_elems = 0;
+        $this->force_defaults = false;
+    }
+
     /// @cond FLATBUFFERS_INTERNAL
     /**
      * create new bytebuffer
@@ -170,11 +188,7 @@ final class FlatbufferBuilder
 
         $nbb->setPosition($new_buf_size - $old_buf_size);
 
-        // TODO(chobie): is this little bit faster?
-        //$nbb->_buffer = substr_replace($nbb->_buffer, $bb->_buffer, $new_buf_size - $old_buf_size, strlen($bb->_buffer));
-        for ($i = $new_buf_size - $old_buf_size, $j = 0; $j < strlen($bb->_buffer); $i++, $j++) {
-            $nbb->_buffer[$i] = $bb->_buffer[$j];
-        }
+        $nbb->_buffer = substr_replace($nbb->_buffer, $bb->_buffer, $new_buf_size - $old_buf_size, strlen($bb->_buffer));
 
         return $nbb;
     }
@@ -717,14 +731,29 @@ final class FlatbufferBuilder
         if (!$this->is_utf8($s)) {
             throw new \InvalidArgumentException("string must be utf-8 encoded value.");
         }
+        $s_len = strlen($s);
 
         $this->notNested();
         $this->addByte(0); // null terminated
-        $this->startVector(1, strlen($s), 1);
-        $this->space -= strlen($s);
-        for ($i =  $this->space, $j = 0 ; $j < strlen($s) ; $i++, $j++) {
-            $this->bb->_buffer[$i] = $s[$j];
-        }
+        $this->startVector(1, $s_len, 1);
+        $this->space -= $s_len;
+        $this->bb->_buffer = substr_replace($this->bb->_buffer, $s, $this->space, $s_len);
+        return $this->endVector();
+    }
+
+    /**
+     * Add the `$data` in the buffer.
+     * @param string $s The bytes to add.
+     * @return int The offset in the buffer where the bytes starts.
+     */
+    public function createBytesVector($data)
+    {
+        $data_len = strlen($data);
+        
+        $this->notNested();
+        $this->startVector(1, $data_len, 1);
+        $this->space -= $data_len;
+        $this->bb->_buffer = substr_replace($this->bb->_buffer, $data, $this->space, $data_len);
         return $this->endVector();
     }
 
@@ -899,30 +928,50 @@ final class FlatbufferBuilder
      * @param $root_table An offest to be added to the buffer.
      * @param $file_identifier A FlatBuffer file identifier to be added to the
      *     buffer before `$root_table`. This defaults to `null`.
+     * @param $size_prefix Whether to include the prefix size or not in the
+     *     buffer. This defaults to `false`.
      * @throws InvalidArgumentException Thrown if an invalid `$identifier` is
      *     given, where its length is not equal to
      *    `Constants::FILE_IDENTIFIER_LENGTH`.
      */
-    public function finish($root_table, $identifier = null)
+    public function finish($root_table, $identifier = null, $size_prefix = false)
     {
+        $prep_size = $size_prefix ? Constants::SIZEOF_INT : 0;
         if ($identifier == null) {
-            $this->prep($this->minalign, Constants::SIZEOF_INT);
+            $this->prep($this->minalign, Constants::SIZEOF_INT + $prep_size);
             $this->addOffset($root_table);
+            if ($prep_size) {
+                $this->addInt($this->bb->capacity() - $this->space);
+            }
             $this->bb->setPosition($this->space);
         } else {
-            $this->prep($this->minalign, Constants::SIZEOF_INT + Constants::FILE_IDENTIFIER_LENGTH);
+            $this->prep($this->minalign,
+                        Constants::SIZEOF_INT + Constants::FILE_IDENTIFIER_LENGTH + $prep_size);
             if (strlen($identifier) != Constants::FILE_IDENTIFIER_LENGTH) {
                 throw new \InvalidArgumentException(
                     sprintf("FlatBuffers: file identifier must be length %d",
                         Constants::FILE_IDENTIFIER_LENGTH));
             }
 
-            for ($i = Constants::FILE_IDENTIFIER_LENGTH - 1; $i >= 0;
-                  $i--) {
+            for ($i = Constants::FILE_IDENTIFIER_LENGTH - 1; $i >= 0; $i--) {
                 $this->addByte(ord($identifier[$i]));
             }
-            $this->finish($root_table);
+            $this->finish($root_table, null, $size_prefix);
         }
+    }
+
+    /**
+     * Finalize a buffer, pointing to the given `$rootTable` with a size prefix.
+     * @param $root_table An offest to be added to the buffer.
+     * @param $file_identifier A FlatBuffer file identifier to be added to the
+     *     buffer before `$root_table`. This defaults to `null`.
+     * @throws InvalidArgumentException Thrown if an invalid `$identifier` is
+     *     given, where its length is not equal to
+     *    `Constants::FILE_IDENTIFIER_LENGTH`.
+     */
+    public function finishSizePrefixed($root_table, $identifier = null)
+    {
+        return $this->finish($root_table, $identifier, true);
     }
 
     /**

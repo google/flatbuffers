@@ -151,6 +151,20 @@ class IdlNamer : public Namer {
     return ConvertCase(d.name, config_.fields, Case::kLowerCamel) + "_type";
   }
 
+  // Php method for structs are a mix of keep case and lower camel case.
+  std::string LegacyPhpMethod(const StructDef &d,
+                              const std::string &suffix) const {
+    return Type(d.name) + suffix;
+  }
+  std::string LegacyPhpMethod(const std::string &prefix,
+                              const StructDef &d) const {
+    return prefix + Type(d.name);
+  }
+  std::string LegacyPhpField(const std::string &prefix,
+                             const FieldDef &field) const {
+    return prefix + ConvertCase(field.name, Case::kUpperCamel);
+  }
+
  private:
   std::string NamespacedString(const struct Namespace *ns,
                                const std::string &str) const {

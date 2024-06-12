@@ -7,6 +7,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 class TestSimpleTableWithEnum extends Table
 {
@@ -17,6 +18,17 @@ class TestSimpleTableWithEnum extends Table
     public static function getRootAsTestSimpleTableWithEnum(ByteBuffer $bb)
     {
         $obj = new TestSimpleTableWithEnum();
+        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+    }
+
+    /**
+     * @param ByteBuffer $bb
+     * @return TestSimpleTableWithEnum
+     */
+    public static function getSizePrefixedRootAsTestSimpleTableWithEnum(ByteBuffer $bb)
+    {
+        $obj = new TestSimpleTableWithEnum();
+        $bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 

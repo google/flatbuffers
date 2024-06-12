@@ -7,6 +7,7 @@ use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
 use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\Constants;
 
 class InParentNamespace extends Table
 {
@@ -17,6 +18,17 @@ class InParentNamespace extends Table
     public static function getRootAsInParentNamespace(ByteBuffer $bb)
     {
         $obj = new InParentNamespace();
+        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+    }
+
+    /**
+     * @param ByteBuffer $bb
+     * @return InParentNamespace
+     */
+    public static function getSizePrefixedRootAsInParentNamespace(ByteBuffer $bb)
+    {
+        $obj = new InParentNamespace();
+        $bb->setPosition($bb->getPosition() + Constants::SIZEOF_INT);
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
