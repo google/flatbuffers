@@ -545,7 +545,6 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float64ListReader().read(buf, 0);
-    expect(items is Float64List, Endian.host == Endian.little);
     expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
@@ -565,7 +564,6 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float32ListReader().read(buf, 0);
-    expect(items is Float32List, Endian.host == Endian.little);
     expect(items, hasLength(5));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));

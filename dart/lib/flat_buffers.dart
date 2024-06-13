@@ -59,18 +59,6 @@ class BufferContext {
   }
 
   @pragma('vm:prefer-inline')
-  Float32List _asFloat32List(int offset, int length) {
-    assert(Endian.host == Endian.little);
-    return _buffer.buffer.asFloat32List(_buffer.offsetInBytes + offset, length);
-  }
-
-  @pragma('vm:prefer-inline')
-  Float64List _asFloat64List(int offset, int length) {
-    assert(Endian.host == Endian.little);
-    return _buffer.buffer.asFloat64List(_buffer.offsetInBytes + offset, length);
-  }
-
-  @pragma('vm:prefer-inline')
   double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
 
   @pragma('vm:prefer-inline')
@@ -906,6 +894,8 @@ class BoolReader extends Reader<bool> {
 /// The reader of lists of 64-bit float values.
 ///
 /// The returned unmodifiable lists lazily read values on access.
+/// 
+/// TODO: Return dart:typed_data Float64List type on LE systems
 class Float64ListReader extends Reader<List<double>> {
   const Float64ListReader();
 
@@ -915,17 +905,15 @@ class Float64ListReader extends Reader<List<double>> {
 
   @override
   @pragma('vm:prefer-inline')
-  List<double> read(BufferContext bc, int offset) {
-    if (Endian.host == Endian.little) {
-        final listOffset = bc.derefObject(offset);
-        final length = bc._getUint32(listOffset);
-        return bc._asFloat64List(listOffset + _sizeofUint32, length);
-	  } else {
-        return _FbFloat64List(bc, bc.derefObject(offset));
-	  }
-  }
+  List<double> read(BufferContext bc, int offset) =>
+    _FbFloat64List(bc, bc.derefObject(offset));
 }
 
+/// The reader of lists of 32-bit float values.
+///
+/// The returned unmodifiable lists lazily read values on access.
+/// 
+/// TODO: Return dart:typed_data Float32List type on LE systems
 class Float32ListReader extends Reader<List<double>> {
   const Float32ListReader();
 
@@ -935,15 +923,8 @@ class Float32ListReader extends Reader<List<double>> {
 
   @override
   @pragma('vm:prefer-inline')
-  List<double> read(BufferContext bc, int offset) {
-    if (Endian.host == Endian.little) {
-        final listOffset = bc.derefObject(offset);
-        final length = bc._getUint32(listOffset);
-        return bc._asFloat32List(listOffset + _sizeofUint32, length);
-	  } else {
-        return _FbFloat32List(bc, bc.derefObject(offset));
-	  }
-  }
+  List<double> read(BufferContext bc, int offset) =>
+      _FbFloat32List(bc, bc.derefObject(offset));
 }
 
 class Float64Reader extends Reader<double> {
