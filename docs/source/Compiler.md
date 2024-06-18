@@ -96,10 +96,10 @@ Additional options:
 
 -   `--scoped-enums` : Use C++11 style scoped and strongly typed enums in
     generated C++. This also implies `--no-prefix`.
-    
+
 -   `--no-emit-min-max-enum-values` : Disable generation of MIN and MAX
     enumerated values for scoped enums and prefixed enums.
-    
+
 -   `--gen-includes` : (deprecated), this is the default behavior.
                        If the original behavior is required (no include
 	                   statements) use `--no-includes.`
@@ -237,6 +237,45 @@ Additional options:
     with typenames
 
 -   `--python-typing` : Generate Python type annotations
+
+Additional gRPC options:
+
+-   `--grpc-filename-suffix`: `[C++]` An optional suffix for the generated
+    files' names. For example, compiling gRPC for C++ with
+    `--grpc-filename-suffix=.fbs` will generate `{name}.fbs.h` and
+    `{name}.fbs.cc` files.
+
+-   `--grpc-additional-header`: `[C++]` Additional headers to include in the
+    generated files.
+
+-   `--grpc-search-path`: `[C++]` An optional prefix for the gRPC runtime path.
+    For example, compiling gRPC for C++ with `--grpc-search-path=some/path` will
+    generate the following includes:
+
+    ```cpp
+      #include "some/path/grpcpp/impl/codegen/async_stream.h"
+      #include "some/path/grpcpp/impl/codegen/async_unary_call.h"
+      #include "some/path/grpcpp/impl/codegen/method_handler.h"
+      ...
+    ```
+
+-   `--grpc-use-system-headers`: `[C++]` Whether to generate `#include <header>`
+    instead of `#include "header.h"` for all headers when compiling gRPC for
+    C++. For example, compiling gRPC for C++ with `--grpc-use-system-headers`
+    will generate the following includes:
+
+    ```cpp
+      #include <some/path/grpcpp/impl/codegen/async_stream.h>
+      #include <some/path/grpcpp/impl/codegen/async_unary_call.h>
+      #include <some/path/grpcpp/impl/codegen/method_handler.h>
+      ...
+    ```
+
+    NOTE: This option can be negated with `--no-grpc-use-system-headers`.
+
+-   `--grpc-python-typed-handlers`: `[Python]` Whether to generate the typed
+    handlers that use the generated Python classes instead of raw bytes for
+    requests/responses.
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.

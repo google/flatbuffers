@@ -784,6 +784,9 @@ struct IDLOptions {
   std::string grpc_search_path;
   std::vector<std::string> grpc_additional_headers;
 
+  /******************************* Python gRPC ********************************/
+  bool grpc_python_typed_handlers;
+
   IDLOptions()
       : gen_jvmstatic(false),
         use_flexbuffers(false),
@@ -857,7 +860,8 @@ struct IDLOptions {
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true),
         grpc_filename_suffix(".fb"),
-        grpc_use_system_headers(true) {}
+        grpc_use_system_headers(true),
+        grpc_python_typed_handlers(false) {}
 };
 
 // This encapsulates where the parser is in the current source file.

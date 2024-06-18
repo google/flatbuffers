@@ -6,8 +6,56 @@
 #include <string>
 #include <vector>
 
+#include "codegen/namer.h"
+
 namespace flatbuffers {
 namespace python {
+static const Namer::Config kConfig = {
+    /*types=*/Case::kKeep,
+    /*constants=*/Case::kScreamingSnake,
+    /*methods=*/Case::kUpperCamel,
+    /*functions=*/Case::kUpperCamel,
+    /*fields=*/Case::kLowerCamel,
+    /*variable=*/Case::kLowerCamel,
+    /*variants=*/Case::kKeep,
+    /*enum_variant_seperator=*/".",
+    /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
+    /*namespaces=*/Case::kKeep,  // Packages in python.
+    /*namespace_seperator=*/".",
+    /*object_prefix=*/"",
+    /*object_suffix=*/"T",
+    /*keyword_prefix=*/"",
+    /*keyword_suffix=*/"_",
+    /*filenames=*/Case::kKeep,
+    /*directories=*/Case::kKeep,
+    /*output_path=*/"",
+    /*filename_suffix=*/"",
+    /*filename_extension=*/".py",
+};
+
+static const Namer::Config kStubConfig = {
+    /*types=*/Case::kKeep,
+    /*constants=*/Case::kScreamingSnake,
+    /*methods=*/Case::kUpperCamel,
+    /*functions=*/Case::kUpperCamel,
+    /*fields=*/Case::kLowerCamel,
+    /*variables=*/Case::kLowerCamel,
+    /*variants=*/Case::kKeep,
+    /*enum_variant_seperator=*/".",
+    /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
+    /*namespaces=*/Case::kKeep,  // Packages in python.
+    /*namespace_seperator=*/".",
+    /*object_prefix=*/"",
+    /*object_suffix=*/"T",
+    /*keyword_prefix=*/"",
+    /*keyword_suffix=*/"_",
+    /*filenames=*/Case::kKeep,
+    /*directories=*/Case::kKeep,
+    /*output_path=*/"",
+    /*filename_suffix=*/"",
+    /*filename_extension=*/".pyi",
+};
+
 // `Version` represent a Python version.
 //
 // The zero value (i.e. `Version{}`) represents both Python2 and Python3.
