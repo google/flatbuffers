@@ -268,6 +268,8 @@ const static FlatCOption flatc_options[] = {
   { "", "grpc-use-system-headers", "",
     "Use <> for headers included from the generated code." },
   { "", "grpc-search-path", "PATH", "Prefix to any gRPC includes." },
+  { "", "grpc-python-typed-handlers", "",
+    "The handlers will use the generated classes rather than raw bytes." },
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -720,6 +722,12 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-grpc-use-system-headers" ||
                  arg == "--grpc-use-system-headers=false") {
         opts.grpc_use_system_headers = false;
+      } else if (arg == "--grpc-python-typed-handlers" ||
+                 arg == "--grpc-python-typed-handlers=true") {
+        opts.grpc_python_typed_handlers = true;
+      } else if (arg == "--no-grpc-python-typed-handlers" ||
+                 arg == "--grpc-python-typed-handlers=false") {
+        opts.grpc_python_typed_handlers = false;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 
