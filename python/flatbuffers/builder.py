@@ -414,7 +414,7 @@ class Builder(object):
             warnings.warn("numElems is deprecated.", 
                           DeprecationWarning, stacklevel=2)
             if numElems != self.vectorNumElems:
-                raise EndVectorLengthMismatched();
+                raise EndVectorLengthMismatched()
 
         # we already made space for this, so write without PrependUint32
         self.PlaceUOffsetT(self.vectorNumElems)
