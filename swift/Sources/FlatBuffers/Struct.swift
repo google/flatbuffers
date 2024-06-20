@@ -24,7 +24,7 @@ public struct Struct {
   /// Hosting Bytebuffer
   public private(set) var bb: ByteBuffer
   /// Current position of the struct
-  public private(set) var postion: Int32
+  public private(set) var position: Int32
 
   /// Initializer for a mutable flatbuffers struct
   /// - Parameters:
@@ -32,7 +32,7 @@ public struct Struct {
   ///   - position: Current position for the struct in the ByteBuffer
   public init(bb: ByteBuffer, position: Int32 = 0) {
     self.bb = bb
-    postion = position
+    self.position = position
   }
 
   /// Reads data from the buffer directly at offset O
@@ -41,7 +41,7 @@ public struct Struct {
   ///   - o: Current offset of the data
   /// - Returns: Data of Type T that conforms to type Scalar
   public func readBuffer<T: Scalar>(of type: T.Type, at o: Int32) -> T {
-    let r = bb.read(def: T.self, position: Int(o + postion))
+    let r = bb.read(def: T.self, position: Int(o + position))
     return r
   }
 }
