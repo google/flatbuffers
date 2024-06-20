@@ -1067,7 +1067,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   size_t Key(const char *str, size_t len) {
     auto sloc = buf_.size();
-    WriteBytes(str, len + 1);
+    WriteBytes(str, len);
+    buf_.push_back(0);
     if (flags_ & BUILDER_FLAG_SHARE_KEYS) {
       auto it = key_pool.find(sloc);
       if (it != key_pool.end()) {
@@ -1572,7 +1573,8 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     auto byte_width = Align(bit_width);
     Write<uint64_t>(len, byte_width);
     auto sloc = buf_.size();
-    WriteBytes(data, len + trailing);
+    WriteBytes(data, len);
+    buf_.insert(buf_.end(), trailing, 0);
     stack_.push_back(Value(static_cast<uint64_t>(sloc), type, bit_width));
     return sloc;
   }
@@ -1837,7 +1839,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyKey(const uint8_t *p) {
     FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
     while (p < buf_ + size_)
-      if (*p++) return true;
+      if (*p++ == 0) return true;
     return false;
   }
 
@@ -1845,7 +1847,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   bool VerifyTerminator(const String &s) {
     return VerifyFromPointer(reinterpret_cast<const uint8_t *>(s.c_str()),
-                             s.size() + 1);
+                             s.size() + 1) &&
+           s.c_str()[s.size()] == 0;
   }
 
   bool VerifyRef(Reference r) {
