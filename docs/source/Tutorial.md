@@ -1454,7 +1454,7 @@ can serialize the monster itself:
   // Finally, create the monster using the `CreateMonster` helper function
   // to set all fields.
   auto orc = CreateMonster(builder, &position, mana, hp, name, inventory,
-                          Color_Red, weapons, Equipment_Weapon, axe.Union(),
+                          Color::Red, weapons, Equipment::Weapon, axe.Union(),
                           path);
 ~~~
 </div>
@@ -1757,9 +1757,9 @@ a bit more flexibility.
   monster_builder.add_hp(hp);
   monster_builder.add_name(name);
   monster_builder.add_inventory(inventory);
-  monster_builder.add_color(Color_Red);
+  monster_builder.add_color(Color::Red);
   monster_builder.add_weapons(weapons);
-  monster_builder.add_equipped_type(Equipment_Weapon);
+  monster_builder.add_equipped_type(Equipment::Weapon);
   monster_builder.add_equipped(axe.Union());
   auto orc = monster_builder.Finish();
 ~~~
@@ -1818,7 +1818,7 @@ Here is a repetition of these lines, to help highlight them more clearly:
 
 <div class="language-cpp">
   ~~~{.cpp}
-    monster_builder.add_equipped_type(Equipment_Weapon); // Union type
+    monster_builder.add_equipped_type(Equipment::Weapon); // Union type
     monster_builder.add_equipped(axe.Union()); // Union data
   ~~~
 </div>
@@ -2846,7 +2846,7 @@ except you need to handle the result as a FlatBuffer `table`:
   auto weapons = monster->weapons(); // A pointer to a `flatbuffers::Vector<>`.
   auto weapon_len = weapons->size();
   auto second_weapon_name = weapons->Get(1)->name()->str();
-  auto second_weapon_damage = weapons->Get(1)->damage()
+  auto second_weapon_damage = weapons->Get(1)->damage();
 ~~~
 </div>
 <div class="language-java">
@@ -2971,7 +2971,7 @@ We can access the type to dynamically cast the data as needed (since the
 ~~~{.cpp}
   auto union_type = monster->equipped_type();
 
-  if (union_type == Equipment_Weapon) {
+  if (union_type == Equipment::Weapon) {
     auto weapon = static_cast<const Weapon*>(monster->equipped()); // Requires `static_cast`
                                                                    // to type `const Weapon*`.
 
