@@ -128,7 +128,7 @@ export class Reference {
   length(): number {
     let size;
     if (this._length > -1) {
-      return this._length;
+      return Number(this._length);
     }
     if (isFixedTypedVector(this.valueType)) {
       this._length = fixedTypedVectorElementSize(this.valueType);
