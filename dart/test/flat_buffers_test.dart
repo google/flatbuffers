@@ -42,10 +42,10 @@ class CheckOtherLangaugesData {
     expect(mon.pos!.y, 2.0);
     expect(mon.pos!.z, 3.0);
     expect(mon.pos!.test1, 3.0);
-    expect(mon.pos!.test2.value, 2.0);
+    expect(mon.pos!.test2.$value, 2.0);
     expect(mon.pos!.test3.a, 5);
     expect(mon.pos!.test3.b, 6);
-    expect(mon.testType!.value, example.AnyTypeId.Monster.value);
+    expect(mon.testType!.$value, example.AnyTypeId.Monster.$value);
     expect(mon.test is example.Monster, true);
     final monster2 = mon.test as example.Monster;
     expect(monster2.name, "Fred");
@@ -903,13 +903,13 @@ class TestPointReader extends TableReader<TestPointImpl> {
 @reflectiveTest
 class GeneratorTest {
   void test_constantEnumValues() async {
-    expect(example.Color.values, same(example.Color.values));
-    expect(example.Race.values, same(example.Race.values));
-    expect(example.AnyTypeId.values, same(example.AnyTypeId.values));
-    expect(example.AnyUniqueAliasesTypeId.values,
-        same(example.AnyUniqueAliasesTypeId.values));
-    expect(example.AnyAmbiguousAliasesTypeId.values,
-        same(example.AnyAmbiguousAliasesTypeId.values));
+    expect(example.Color.$values, same(example.Color.$values));
+    expect(example.Race.$values, same(example.Race.$values));
+    expect(example.AnyTypeId.$values, same(example.AnyTypeId.$values));
+    expect(example.AnyUniqueAliasesTypeId.$values,
+        same(example.AnyUniqueAliasesTypeId.$values));
+    expect(example.AnyAmbiguousAliasesTypeId.$values,
+        same(example.AnyAmbiguousAliasesTypeId.$values));
   }
 }
 
@@ -924,9 +924,9 @@ class ListOfEnumsTest {
     ]);
     var bytes = mytable.toBytes();
     var mytable_read = example3.MyTable(bytes);
-    expect(mytable_read.options![0].value, example3.OptionsEnum.A.value);
-    expect(mytable_read.options![1].value, example3.OptionsEnum.B.value);
-    expect(mytable_read.options![2].value, example3.OptionsEnum.C.value);
+    expect(mytable_read.options![0].$value, example3.OptionsEnum.A.$value);
+    expect(mytable_read.options![1].$value, example3.OptionsEnum.B.$value);
+    expect(mytable_read.options![2].$value, example3.OptionsEnum.C.$value);
   }
 }
 

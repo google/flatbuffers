@@ -8,28 +8,28 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
 class Abc {
-  final int value;
-  const Abc._(this.value);
+  final int $value;
+  const Abc._(this.$value);
 
-  factory Abc.fromValue(int value) {
-    final result = values[value];
+  factory Abc.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum Abc');
+        throw StateError('Invalid value ${$value} for bit flag enum Abc');
     }
     return result;
   }
 
-  static Abc? _createOrNull(int? value) => 
-      value == null ? null : Abc.fromValue(value);
+  static Abc? _createOrNull(int? $value) => 
+      $value == null ? null : Abc.fromValue($value);
 
-  static const int minValue = 0;
-  static const int maxValue = 2;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = 0;
+  static const int $maxValue = 2;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const Abc $void = Abc._(0);
   static const Abc where = Abc._(1);
   static const Abc stackalloc = Abc._(2);
-  static const Map<int, Abc> values = {
+  static const Map<int, Abc> $values = {
     0: $void,
     1: where,
     2: stackalloc};
@@ -38,7 +38,7 @@ class Abc {
 
   @override
   String toString() {
-    return 'Abc{value: $value}';
+    return 'Abc{value: ${$value}}';
   }
 }
 
@@ -54,33 +54,33 @@ class _AbcReader extends fb.Reader<Abc> {
 }
 
 class Public {
-  final int value;
-  const Public._(this.value);
+  final int $value;
+  const Public._(this.$value);
 
-  factory Public.fromValue(int value) {
-    final result = values[value];
+  factory Public.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum Public');
+        throw StateError('Invalid value ${$value} for bit flag enum Public');
     }
     return result;
   }
 
-  static Public? _createOrNull(int? value) => 
-      value == null ? null : Public.fromValue(value);
+  static Public? _createOrNull(int? $value) => 
+      $value == null ? null : Public.fromValue($value);
 
-  static const int minValue = 0;
-  static const int maxValue = 0;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = 0;
+  static const int $maxValue = 0;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const Public NONE = Public._(0);
-  static const Map<int, Public> values = {
+  static const Map<int, Public> $values = {
     0: NONE};
 
   static const fb.Reader<Public> reader = _PublicReader();
 
   @override
   String toString() {
-    return 'Public{value: $value}';
+    return 'Public{value: ${$value}}';
   }
 }
 
@@ -96,28 +96,28 @@ class _PublicReader extends fb.Reader<Public> {
 }
 
 class KeywordsInUnionTypeId {
-  final int value;
-  const KeywordsInUnionTypeId._(this.value);
+  final int $value;
+  const KeywordsInUnionTypeId._(this.$value);
 
-  factory KeywordsInUnionTypeId.fromValue(int value) {
-    final result = values[value];
+  factory KeywordsInUnionTypeId.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum KeywordsInUnionTypeId');
+        throw StateError('Invalid value ${$value} for bit flag enum KeywordsInUnionTypeId');
     }
     return result;
   }
 
-  static KeywordsInUnionTypeId? _createOrNull(int? value) => 
-      value == null ? null : KeywordsInUnionTypeId.fromValue(value);
+  static KeywordsInUnionTypeId? _createOrNull(int? $value) => 
+      $value == null ? null : KeywordsInUnionTypeId.fromValue($value);
 
-  static const int minValue = 0;
-  static const int maxValue = 2;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = 0;
+  static const int $maxValue = 2;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const KeywordsInUnionTypeId NONE = KeywordsInUnionTypeId._(0);
   static const KeywordsInUnionTypeId $static = KeywordsInUnionTypeId._(1);
   static const KeywordsInUnionTypeId internal = KeywordsInUnionTypeId._(2);
-  static const Map<int, KeywordsInUnionTypeId> values = {
+  static const Map<int, KeywordsInUnionTypeId> $values = {
     0: NONE,
     1: $static,
     2: internal};
@@ -126,7 +126,7 @@ class KeywordsInUnionTypeId {
 
   @override
   String toString() {
-    return 'KeywordsInUnionTypeId{value: $value}';
+    return 'KeywordsInUnionTypeId{value: ${$value}}';
   }
 }
 
@@ -190,8 +190,8 @@ class KeywordsInTableT implements fb.Packable {
   @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.startTable(4);
-    fbBuilder.addInt32(0, $is.value);
-    fbBuilder.addInt32(1, private.value);
+    fbBuilder.addInt32(0, $is.$value);
+    fbBuilder.addInt32(1, private.$value);
     fbBuilder.addInt32(2, type);
     fbBuilder.addBool(3, $default);
     return fbBuilder.endTable();
@@ -221,11 +221,11 @@ class KeywordsInTableBuilder {
   }
 
   int addIs(Abc? $is) {
-    fbBuilder.addInt32(0, $is?.value);
+    fbBuilder.addInt32(0, $is?.$value);
     return fbBuilder.offset;
   }
   int addPrivate(Public? private) {
-    fbBuilder.addInt32(1, private?.value);
+    fbBuilder.addInt32(1, private?.$value);
     return fbBuilder.offset;
   }
   int addType(int? type) {
@@ -263,8 +263,8 @@ class KeywordsInTableObjectBuilder extends fb.ObjectBuilder {
   @override
   int finish(fb.Builder fbBuilder) {
     fbBuilder.startTable(4);
-    fbBuilder.addInt32(0, _$is?.value);
-    fbBuilder.addInt32(1, _private?.value);
+    fbBuilder.addInt32(0, _$is?.$value);
+    fbBuilder.addInt32(1, _private?.$value);
     fbBuilder.addInt32(2, _type);
     fbBuilder.addBool(3, _$default);
     return fbBuilder.endTable();
@@ -292,7 +292,7 @@ class Table2 {
 
   KeywordsInUnionTypeId? get typeType => KeywordsInUnionTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 4));
   dynamic get type {
-    switch (typeType?.value) {
+    switch (typeType?.$value) {
       case 1: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
       case 2: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
       default: return null;
@@ -326,7 +326,7 @@ class Table2T implements fb.Packable {
   int pack(fb.Builder fbBuilder) {
     final int? typeOffset = type?.pack(fbBuilder);
     fbBuilder.startTable(2);
-    fbBuilder.addUint8(0, typeType?.value);
+    fbBuilder.addUint8(0, typeType?.$value);
     fbBuilder.addOffset(1, typeOffset);
     return fbBuilder.endTable();
   }
@@ -355,7 +355,7 @@ class Table2Builder {
   }
 
   int addTypeType(KeywordsInUnionTypeId? typeType) {
-    fbBuilder.addUint8(0, typeType?.value);
+    fbBuilder.addUint8(0, typeType?.$value);
     return fbBuilder.offset;
   }
   int addTypeOffset(int? offset) {
@@ -384,7 +384,7 @@ class Table2ObjectBuilder extends fb.ObjectBuilder {
   int finish(fb.Builder fbBuilder) {
     final int? typeOffset = _type?.getOrCreateOffset(fbBuilder);
     fbBuilder.startTable(2);
-    fbBuilder.addUint8(0, _typeType?.value);
+    fbBuilder.addUint8(0, _typeType?.$value);
     fbBuilder.addOffset(1, typeOffset);
     return fbBuilder.endTable();
   }

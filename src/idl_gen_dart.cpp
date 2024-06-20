@@ -220,17 +220,17 @@ class DartGenerator : public BaseGenerator {
     const bool permit_zero = is_bit_flags;
 
     code += "class " + enum_type + " {\n";
-    code += "  final int value;\n";
-    code += "  const " + enum_type + "._(this.value);\n\n";
-    code += "  factory " + enum_type + ".fromValue(int value) {\n";
-    code += "    final result = values[value];\n";
+    code += "  final int $value;\n";
+    code += "  const " + enum_type + "._(this.$value);\n\n";
+    code += "  factory " + enum_type + ".fromValue(int $value) {\n";
+    code += "    final result = $values[$value];\n";
     code += "    if (result == null) {\n";
     if (permit_zero) {
-      code += "      if (value == 0) {\n";
+      code += "      if ($value == 0) {\n";
       code += "        return " + enum_type + "._(0);\n";
       code += "      } else {\n";
     }
-    code += "        throw StateError('Invalid value $value for bit flag enum ";
+    code += "        throw StateError('Invalid value ${$value} for bit flag enum ";
     code += enum_type + "');\n";
     if (permit_zero) { code += "      }\n"; }
     code += "    }\n";
@@ -238,23 +238,23 @@ class DartGenerator : public BaseGenerator {
     code += "    return result;\n";
     code += "  }\n\n";
 
-    code += "  static " + enum_type + "? _createOrNull(int? value) => \n";
+    code += "  static " + enum_type + "? _createOrNull(int? $value) => \n";
     code +=
-        "      value == null ? null : " + enum_type + ".fromValue(value);\n\n";
+        "      $value == null ? null : " + enum_type + ".fromValue($value);\n\n";
 
     // this is meaningless for bit_flags
     // however, note that unlike "regular" dart enums this enum can still have
     // holes.
     if (!is_bit_flags) {
-      code += "  static const int minValue = " +
+      code += "  static const int $minValue = " +
               enum_def.ToString(*enum_def.MinValue()) + ";\n";
-      code += "  static const int maxValue = " +
+      code += "  static const int $maxValue = " +
               enum_def.ToString(*enum_def.MaxValue()) + ";\n";
     }
 
     code +=
-        "  static bool containsValue(int value) =>"
-        " values.containsKey(value);\n\n";
+        "  static bool containsValue(int $value) =>"
+        " $values.containsKey($value);\n\n";
 
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
@@ -268,7 +268,7 @@ class DartGenerator : public BaseGenerator {
               enum_type + "._(" + enum_def.ToString(ev) + ");\n";
     }
 
-    code += "  static const Map<int, " + enum_type + "> values = {\n";
+    code += "  static const Map<int, " + enum_type + "> $values = {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
       const auto enum_var = namer_.Variant(ev);
@@ -281,7 +281,7 @@ class DartGenerator : public BaseGenerator {
             enum_type + "Reader();\n\n";
     code += "  @override\n";
     code += "  String toString() {\n";
-    code += "    return '" + enum_type + "{value: $value}';\n";
+    code += "    return '" + enum_type + "{value: ${$value}}';\n";
     code += "  }\n";
     code += "}\n\n";
 
@@ -684,7 +684,7 @@ class DartGenerator : public BaseGenerator {
       code += "  " + type_name + " get " + field_name;
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         code += " {\n";
-        code += "    switch (" + field_name + "Type?.value) {\n";
+        code += "    switch (" + field_name + "Type?.$value) {\n";
         const auto &enum_def = *field.value.type.enum_def;
         for (auto en_it = enum_def.Vals().begin() + 1;
              en_it != enum_def.Vals().end(); ++en_it) {
@@ -858,7 +858,7 @@ class DartGenerator : public BaseGenerator {
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         code += field_name;
-        if (field.value.type.enum_def) { code += ".value"; }
+        if (field.value.type.enum_def) { code += ".$value"; }
         code += ");\n";
       }
     }
@@ -890,7 +890,7 @@ class DartGenerator : public BaseGenerator {
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
                 NumToString(offset) + ", ";
         code += field_var;
-        if (field.value.type.enum_def) { code += "?.value"; }
+        if (field.value.type.enum_def) { code += "?.$value"; }
         code += ");\n";
       } else if (IsStruct(field.value.type)) {
         code += "  int " + add_field + "(int offset) {\n";
@@ -1026,7 +1026,7 @@ class DartGenerator : public BaseGenerator {
             code +=
                 GenType(field.value.type.VectorType()) + "(" + field_name + "!";
             if (field.value.type.enum_def) {
-              code += ".map((f) => f.value).toList()";
+              code += ".map((f) => f.$value).toList()";
             }
             code += ");\n";
         }
@@ -1071,7 +1071,7 @@ class DartGenerator : public BaseGenerator {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         if (prependUnderscore) { code += "_"; }
         code += field_name;
-        if (field.value.type.enum_def) { code += ".value"; }
+        if (field.value.type.enum_def) { code += ".$value"; }
         code += ");\n";
       }
     }
@@ -1101,7 +1101,7 @@ class DartGenerator : public BaseGenerator {
                 NumToString(offset) + ", " + field_var;
         if (field.value.type.enum_def) {
           bool isNullable = getDefaultValue(field.value).empty();
-          code += (isNullable || !pack) ? "?.value" : ".value";
+          code += (isNullable || !pack) ? "?.$value" : ".$value";
         }
         code += ");\n";
       } else if (IsStruct(field.value.type)) {

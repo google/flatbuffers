@@ -13,25 +13,25 @@ import './include_test1_generated.dart';
 
 ///  Composite components of Monster color.
 class Color {
-  final int value;
-  const Color._(this.value);
+  final int $value;
+  const Color._(this.$value);
 
-  factory Color.fromValue(int value) {
-    final result = values[value];
+  factory Color.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-      if (value == 0) {
+      if ($value == 0) {
         return Color._(0);
       } else {
-        throw StateError('Invalid value $value for bit flag enum Color');
+        throw StateError('Invalid value ${$value} for bit flag enum Color');
       }
     }
     return result;
   }
 
-  static Color? _createOrNull(int? value) => 
-      value == null ? null : Color.fromValue(value);
+  static Color? _createOrNull(int? $value) => 
+      $value == null ? null : Color.fromValue($value);
 
-  static bool containsValue(int value) => values.containsKey(value);
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const Color Red = Color._(1);
 
@@ -41,7 +41,7 @@ class Color {
 
   ///  \brief color Blue (1u << 3)
   static const Color Blue = Color._(8);
-  static const Map<int, Color> values = {
+  static const Map<int, Color> $values = {
     1: Red,
     2: Green,
     8: Blue};
@@ -50,7 +50,7 @@ class Color {
 
   @override
   String toString() {
-    return 'Color{value: $value}';
+    return 'Color{value: ${$value}}';
   }
 }
 
@@ -66,29 +66,29 @@ class _ColorReader extends fb.Reader<Color> {
 }
 
 class Race {
-  final int value;
-  const Race._(this.value);
+  final int $value;
+  const Race._(this.$value);
 
-  factory Race.fromValue(int value) {
-    final result = values[value];
+  factory Race.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum Race');
+        throw StateError('Invalid value ${$value} for bit flag enum Race');
     }
     return result;
   }
 
-  static Race? _createOrNull(int? value) => 
-      value == null ? null : Race.fromValue(value);
+  static Race? _createOrNull(int? $value) => 
+      $value == null ? null : Race.fromValue($value);
 
-  static const int minValue = -1;
-  static const int maxValue = 2;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = -1;
+  static const int $maxValue = 2;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const Race None = Race._(-1);
   static const Race Human = Race._(0);
   static const Race Dwarf = Race._(1);
   static const Race Elf = Race._(2);
-  static const Map<int, Race> values = {
+  static const Map<int, Race> $values = {
     -1: None,
     0: Human,
     1: Dwarf,
@@ -98,7 +98,7 @@ class Race {
 
   @override
   String toString() {
-    return 'Race{value: $value}';
+    return 'Race{value: ${$value}}';
   }
 }
 
@@ -114,30 +114,30 @@ class _RaceReader extends fb.Reader<Race> {
 }
 
 class LongEnum {
-  final int value;
-  const LongEnum._(this.value);
+  final int $value;
+  const LongEnum._(this.$value);
 
-  factory LongEnum.fromValue(int value) {
-    final result = values[value];
+  factory LongEnum.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-      if (value == 0) {
+      if ($value == 0) {
         return LongEnum._(0);
       } else {
-        throw StateError('Invalid value $value for bit flag enum LongEnum');
+        throw StateError('Invalid value ${$value} for bit flag enum LongEnum');
       }
     }
     return result;
   }
 
-  static LongEnum? _createOrNull(int? value) => 
-      value == null ? null : LongEnum.fromValue(value);
+  static LongEnum? _createOrNull(int? $value) => 
+      $value == null ? null : LongEnum.fromValue($value);
 
-  static bool containsValue(int value) => values.containsKey(value);
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const LongEnum LongOne = LongEnum._(2);
   static const LongEnum LongTwo = LongEnum._(4);
   static const LongEnum LongBig = LongEnum._(1099511627776);
-  static const Map<int, LongEnum> values = {
+  static const Map<int, LongEnum> $values = {
     2: LongOne,
     4: LongTwo,
     1099511627776: LongBig};
@@ -146,7 +146,7 @@ class LongEnum {
 
   @override
   String toString() {
-    return 'LongEnum{value: $value}';
+    return 'LongEnum{value: ${$value}}';
   }
 }
 
@@ -162,29 +162,29 @@ class _LongEnumReader extends fb.Reader<LongEnum> {
 }
 
 class AnyTypeId {
-  final int value;
-  const AnyTypeId._(this.value);
+  final int $value;
+  const AnyTypeId._(this.$value);
 
-  factory AnyTypeId.fromValue(int value) {
-    final result = values[value];
+  factory AnyTypeId.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum AnyTypeId');
+        throw StateError('Invalid value ${$value} for bit flag enum AnyTypeId');
     }
     return result;
   }
 
-  static AnyTypeId? _createOrNull(int? value) => 
-      value == null ? null : AnyTypeId.fromValue(value);
+  static AnyTypeId? _createOrNull(int? $value) => 
+      $value == null ? null : AnyTypeId.fromValue($value);
 
-  static const int minValue = 0;
-  static const int maxValue = 3;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = 0;
+  static const int $maxValue = 3;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const AnyTypeId NONE = AnyTypeId._(0);
   static const AnyTypeId Monster = AnyTypeId._(1);
   static const AnyTypeId TestSimpleTableWithEnum = AnyTypeId._(2);
   static const AnyTypeId MyGame_Example2_Monster = AnyTypeId._(3);
-  static const Map<int, AnyTypeId> values = {
+  static const Map<int, AnyTypeId> $values = {
     0: NONE,
     1: Monster,
     2: TestSimpleTableWithEnum,
@@ -194,7 +194,7 @@ class AnyTypeId {
 
   @override
   String toString() {
-    return 'AnyTypeId{value: $value}';
+    return 'AnyTypeId{value: ${$value}}';
   }
 }
 
@@ -210,29 +210,29 @@ class _AnyTypeIdReader extends fb.Reader<AnyTypeId> {
 }
 
 class AnyUniqueAliasesTypeId {
-  final int value;
-  const AnyUniqueAliasesTypeId._(this.value);
+  final int $value;
+  const AnyUniqueAliasesTypeId._(this.$value);
 
-  factory AnyUniqueAliasesTypeId.fromValue(int value) {
-    final result = values[value];
+  factory AnyUniqueAliasesTypeId.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum AnyUniqueAliasesTypeId');
+        throw StateError('Invalid value ${$value} for bit flag enum AnyUniqueAliasesTypeId');
     }
     return result;
   }
 
-  static AnyUniqueAliasesTypeId? _createOrNull(int? value) => 
-      value == null ? null : AnyUniqueAliasesTypeId.fromValue(value);
+  static AnyUniqueAliasesTypeId? _createOrNull(int? $value) => 
+      $value == null ? null : AnyUniqueAliasesTypeId.fromValue($value);
 
-  static const int minValue = 0;
-  static const int maxValue = 3;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = 0;
+  static const int $maxValue = 3;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const AnyUniqueAliasesTypeId NONE = AnyUniqueAliasesTypeId._(0);
   static const AnyUniqueAliasesTypeId M = AnyUniqueAliasesTypeId._(1);
   static const AnyUniqueAliasesTypeId TS = AnyUniqueAliasesTypeId._(2);
   static const AnyUniqueAliasesTypeId M2 = AnyUniqueAliasesTypeId._(3);
-  static const Map<int, AnyUniqueAliasesTypeId> values = {
+  static const Map<int, AnyUniqueAliasesTypeId> $values = {
     0: NONE,
     1: M,
     2: TS,
@@ -242,7 +242,7 @@ class AnyUniqueAliasesTypeId {
 
   @override
   String toString() {
-    return 'AnyUniqueAliasesTypeId{value: $value}';
+    return 'AnyUniqueAliasesTypeId{value: ${$value}}';
   }
 }
 
@@ -258,29 +258,29 @@ class _AnyUniqueAliasesTypeIdReader extends fb.Reader<AnyUniqueAliasesTypeId> {
 }
 
 class AnyAmbiguousAliasesTypeId {
-  final int value;
-  const AnyAmbiguousAliasesTypeId._(this.value);
+  final int $value;
+  const AnyAmbiguousAliasesTypeId._(this.$value);
 
-  factory AnyAmbiguousAliasesTypeId.fromValue(int value) {
-    final result = values[value];
+  factory AnyAmbiguousAliasesTypeId.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum AnyAmbiguousAliasesTypeId');
+        throw StateError('Invalid value ${$value} for bit flag enum AnyAmbiguousAliasesTypeId');
     }
     return result;
   }
 
-  static AnyAmbiguousAliasesTypeId? _createOrNull(int? value) => 
-      value == null ? null : AnyAmbiguousAliasesTypeId.fromValue(value);
+  static AnyAmbiguousAliasesTypeId? _createOrNull(int? $value) => 
+      $value == null ? null : AnyAmbiguousAliasesTypeId.fromValue($value);
 
-  static const int minValue = 0;
-  static const int maxValue = 3;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = 0;
+  static const int $maxValue = 3;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const AnyAmbiguousAliasesTypeId NONE = AnyAmbiguousAliasesTypeId._(0);
   static const AnyAmbiguousAliasesTypeId M1 = AnyAmbiguousAliasesTypeId._(1);
   static const AnyAmbiguousAliasesTypeId M2 = AnyAmbiguousAliasesTypeId._(2);
   static const AnyAmbiguousAliasesTypeId M3 = AnyAmbiguousAliasesTypeId._(3);
-  static const Map<int, AnyAmbiguousAliasesTypeId> values = {
+  static const Map<int, AnyAmbiguousAliasesTypeId> $values = {
     0: NONE,
     1: M1,
     2: M2,
@@ -290,7 +290,7 @@ class AnyAmbiguousAliasesTypeId {
 
   @override
   String toString() {
-    return 'AnyAmbiguousAliasesTypeId{value: $value}';
+    return 'AnyAmbiguousAliasesTypeId{value: ${$value}}';
   }
 }
 
@@ -443,7 +443,7 @@ class TestSimpleTableWithEnumT implements fb.Packable {
   @override
   int pack(fb.Builder fbBuilder) {
     fbBuilder.startTable(1);
-    fbBuilder.addUint8(0, color.value);
+    fbBuilder.addUint8(0, color.$value);
     return fbBuilder.endTable();
   }
 
@@ -471,7 +471,7 @@ class TestSimpleTableWithEnumBuilder {
   }
 
   int addColor(Color? color) {
-    fbBuilder.addUint8(0, color?.value);
+    fbBuilder.addUint8(0, color?.$value);
     return fbBuilder.offset;
   }
 
@@ -492,7 +492,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
   @override
   int finish(fb.Builder fbBuilder) {
     fbBuilder.startTable(1);
-    fbBuilder.addUint8(0, _color?.value);
+    fbBuilder.addUint8(0, _color?.$value);
     return fbBuilder.endTable();
   }
 
@@ -559,7 +559,7 @@ class Vec3T implements fb.Packable {
     fbBuilder.pad(2);
     test3.pack(fbBuilder);
     fbBuilder.pad(1);
-    fbBuilder.putUint8(test2.value);
+    fbBuilder.putUint8(test2.$value);
     fbBuilder.putFloat64(test1);
     fbBuilder.pad(4);
     fbBuilder.putFloat32(z);
@@ -594,7 +594,7 @@ class Vec3Builder {
     fbBuilder.pad(2);
     test3();
     fbBuilder.pad(1);
-    fbBuilder.putUint8(test2.value);
+    fbBuilder.putUint8(test2.$value);
     fbBuilder.putFloat64(test1);
     fbBuilder.pad(4);
     fbBuilder.putFloat32(z);
@@ -634,7 +634,7 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.pad(2);
     _test3.finish(fbBuilder);
     fbBuilder.pad(1);
-    fbBuilder.putUint8(_test2.value);
+    fbBuilder.putUint8(_test2.$value);
     fbBuilder.putFloat64(_test1);
     fbBuilder.pad(4);
     fbBuilder.putFloat32(_z);
@@ -1192,7 +1192,7 @@ class Monster {
   Color get color => Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId? get testType => AnyTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 18));
   dynamic get test {
-    switch (testType?.value) {
+    switch (testType?.$value) {
       case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 20);
       case 2: return TestSimpleTableWithEnum.reader.vTableGetNullable(_bc, _bcOffset, 20);
       case 3: return my_game_example2.Monster.reader.vTableGetNullable(_bc, _bcOffset, 20);
@@ -1237,7 +1237,7 @@ class Monster {
   List<int>? get vectorOfNonOwningReferences => const fb.ListReader<int>(fb.Uint64Reader()).vTableGetNullable(_bc, _bcOffset, 88);
   AnyUniqueAliasesTypeId? get anyUniqueType => AnyUniqueAliasesTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 90));
   dynamic get anyUnique {
-    switch (anyUniqueType?.value) {
+    switch (anyUniqueType?.$value) {
       case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 92);
       case 2: return TestSimpleTableWithEnum.reader.vTableGetNullable(_bc, _bcOffset, 92);
       case 3: return my_game_example2.Monster.reader.vTableGetNullable(_bc, _bcOffset, 92);
@@ -1246,7 +1246,7 @@ class Monster {
   }
   AnyAmbiguousAliasesTypeId? get anyAmbiguousType => AnyAmbiguousAliasesTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 94));
   dynamic get anyAmbiguous {
-    switch (anyAmbiguousType?.value) {
+    switch (anyAmbiguousType?.$value) {
       case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 96);
       case 2: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 96);
       case 3: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 96);
@@ -1526,7 +1526,7 @@ class MonsterT implements fb.Packable {
     final int? anyUniqueOffset = anyUnique?.pack(fbBuilder);
     final int? anyAmbiguousOffset = anyAmbiguous?.pack(fbBuilder);
     final int? vectorOfEnumsOffset = vectorOfEnums == null ? null
-        : fbBuilder.writeListUint8(vectorOfEnums!.map((f) => f.value).toList());
+        : fbBuilder.writeListUint8(vectorOfEnums!.map((f) => f.$value).toList());
     final int? testrequirednestedflatbufferOffset = testrequirednestedflatbuffer == null ? null
         : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = scalarKeySortedTables == null ? null
@@ -1539,8 +1539,8 @@ class MonsterT implements fb.Packable {
     fbBuilder.addInt16(2, hp);
     fbBuilder.addOffset(3, nameOffset);
     fbBuilder.addOffset(5, inventoryOffset);
-    fbBuilder.addUint8(6, color.value);
-    fbBuilder.addUint8(7, testType?.value);
+    fbBuilder.addUint8(6, color.$value);
+    fbBuilder.addUint8(7, testType?.$value);
     fbBuilder.addOffset(8, testOffset);
     fbBuilder.addOffset(9, test4Offset);
     fbBuilder.addOffset(10, testarrayofstringOffset);
@@ -1576,19 +1576,19 @@ class MonsterT implements fb.Packable {
     fbBuilder.addOffset(40, vectorOfCoOwningReferencesOffset);
     fbBuilder.addUint64(41, nonOwningReference);
     fbBuilder.addOffset(42, vectorOfNonOwningReferencesOffset);
-    fbBuilder.addUint8(43, anyUniqueType?.value);
+    fbBuilder.addUint8(43, anyUniqueType?.$value);
     fbBuilder.addOffset(44, anyUniqueOffset);
-    fbBuilder.addUint8(45, anyAmbiguousType?.value);
+    fbBuilder.addUint8(45, anyAmbiguousType?.$value);
     fbBuilder.addOffset(46, anyAmbiguousOffset);
     fbBuilder.addOffset(47, vectorOfEnumsOffset);
-    fbBuilder.addInt8(48, signedEnum.value);
+    fbBuilder.addInt8(48, signedEnum.$value);
     fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
     fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
     if (nativeInline != null) {
       fbBuilder.addStruct(51, nativeInline!.pack(fbBuilder));
     }
-    fbBuilder.addUint64(52, longEnumNonEnumDefault.value);
-    fbBuilder.addUint64(53, longEnumNormalDefault.value);
+    fbBuilder.addUint64(52, longEnumNonEnumDefault.$value);
+    fbBuilder.addUint64(53, longEnumNormalDefault.$value);
     fbBuilder.addFloat32(54, nanDefault);
     fbBuilder.addFloat32(55, infDefault);
     fbBuilder.addFloat32(56, positiveInfDefault);
@@ -1644,11 +1644,11 @@ class MonsterBuilder {
     return fbBuilder.offset;
   }
   int addColor(Color? color) {
-    fbBuilder.addUint8(6, color?.value);
+    fbBuilder.addUint8(6, color?.$value);
     return fbBuilder.offset;
   }
   int addTestType(AnyTypeId? testType) {
-    fbBuilder.addUint8(7, testType?.value);
+    fbBuilder.addUint8(7, testType?.$value);
     return fbBuilder.offset;
   }
   int addTestOffset(int? offset) {
@@ -1792,7 +1792,7 @@ class MonsterBuilder {
     return fbBuilder.offset;
   }
   int addAnyUniqueType(AnyUniqueAliasesTypeId? anyUniqueType) {
-    fbBuilder.addUint8(43, anyUniqueType?.value);
+    fbBuilder.addUint8(43, anyUniqueType?.$value);
     return fbBuilder.offset;
   }
   int addAnyUniqueOffset(int? offset) {
@@ -1800,7 +1800,7 @@ class MonsterBuilder {
     return fbBuilder.offset;
   }
   int addAnyAmbiguousType(AnyAmbiguousAliasesTypeId? anyAmbiguousType) {
-    fbBuilder.addUint8(45, anyAmbiguousType?.value);
+    fbBuilder.addUint8(45, anyAmbiguousType?.$value);
     return fbBuilder.offset;
   }
   int addAnyAmbiguousOffset(int? offset) {
@@ -1812,7 +1812,7 @@ class MonsterBuilder {
     return fbBuilder.offset;
   }
   int addSignedEnum(Race? signedEnum) {
-    fbBuilder.addInt8(48, signedEnum?.value);
+    fbBuilder.addInt8(48, signedEnum?.$value);
     return fbBuilder.offset;
   }
   int addTestrequirednestedflatbufferOffset(int? offset) {
@@ -1828,11 +1828,11 @@ class MonsterBuilder {
     return fbBuilder.offset;
   }
   int addLongEnumNonEnumDefault(LongEnum? longEnumNonEnumDefault) {
-    fbBuilder.addUint64(52, longEnumNonEnumDefault?.value);
+    fbBuilder.addUint64(52, longEnumNonEnumDefault?.$value);
     return fbBuilder.offset;
   }
   int addLongEnumNormalDefault(LongEnum? longEnumNormalDefault) {
-    fbBuilder.addUint64(53, longEnumNormalDefault?.value);
+    fbBuilder.addUint64(53, longEnumNormalDefault?.$value);
     return fbBuilder.offset;
   }
   int addNanDefault(double? nanDefault) {
@@ -2107,7 +2107,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int? anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
     final int? anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int? vectorOfEnumsOffset = _vectorOfEnums == null ? null
-        : fbBuilder.writeListUint8(_vectorOfEnums!.map((f) => f.value).toList());
+        : fbBuilder.writeListUint8(_vectorOfEnums!.map((f) => f.$value).toList());
     final int? testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer == null ? null
         : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = _scalarKeySortedTables == null ? null
@@ -2120,8 +2120,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt16(2, _hp);
     fbBuilder.addOffset(3, nameOffset);
     fbBuilder.addOffset(5, inventoryOffset);
-    fbBuilder.addUint8(6, _color?.value);
-    fbBuilder.addUint8(7, _testType?.value);
+    fbBuilder.addUint8(6, _color?.$value);
+    fbBuilder.addUint8(7, _testType?.$value);
     fbBuilder.addOffset(8, testOffset);
     fbBuilder.addOffset(9, test4Offset);
     fbBuilder.addOffset(10, testarrayofstringOffset);
@@ -2157,19 +2157,19 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addOffset(40, vectorOfCoOwningReferencesOffset);
     fbBuilder.addUint64(41, _nonOwningReference);
     fbBuilder.addOffset(42, vectorOfNonOwningReferencesOffset);
-    fbBuilder.addUint8(43, _anyUniqueType?.value);
+    fbBuilder.addUint8(43, _anyUniqueType?.$value);
     fbBuilder.addOffset(44, anyUniqueOffset);
-    fbBuilder.addUint8(45, _anyAmbiguousType?.value);
+    fbBuilder.addUint8(45, _anyAmbiguousType?.$value);
     fbBuilder.addOffset(46, anyAmbiguousOffset);
     fbBuilder.addOffset(47, vectorOfEnumsOffset);
-    fbBuilder.addInt8(48, _signedEnum?.value);
+    fbBuilder.addInt8(48, _signedEnum?.$value);
     fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
     fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
     if (_nativeInline != null) {
       fbBuilder.addStruct(51, _nativeInline!.finish(fbBuilder));
     }
-    fbBuilder.addUint64(52, _longEnumNonEnumDefault?.value);
-    fbBuilder.addUint64(53, _longEnumNormalDefault?.value);
+    fbBuilder.addUint64(52, _longEnumNonEnumDefault?.$value);
+    fbBuilder.addUint64(53, _longEnumNormalDefault?.$value);
     fbBuilder.addFloat32(54, _nanDefault);
     fbBuilder.addFloat32(55, _infDefault);
     fbBuilder.addFloat32(56, _positiveInfDefault);

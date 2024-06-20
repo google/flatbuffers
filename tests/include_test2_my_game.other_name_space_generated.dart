@@ -10,33 +10,33 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import './include_test1_generated.dart';
 
 class FromInclude {
-  final int value;
-  const FromInclude._(this.value);
+  final int $value;
+  const FromInclude._(this.$value);
 
-  factory FromInclude.fromValue(int value) {
-    final result = values[value];
+  factory FromInclude.fromValue(int $value) {
+    final result = $values[$value];
     if (result == null) {
-        throw StateError('Invalid value $value for bit flag enum FromInclude');
+        throw StateError('Invalid value ${$value} for bit flag enum FromInclude');
     }
     return result;
   }
 
-  static FromInclude? _createOrNull(int? value) => 
-      value == null ? null : FromInclude.fromValue(value);
+  static FromInclude? _createOrNull(int? $value) => 
+      $value == null ? null : FromInclude.fromValue($value);
 
-  static const int minValue = 0;
-  static const int maxValue = 0;
-  static bool containsValue(int value) => values.containsKey(value);
+  static const int $minValue = 0;
+  static const int $maxValue = 0;
+  static bool containsValue(int $value) => $values.containsKey($value);
 
   static const FromInclude IncludeVal = FromInclude._(0);
-  static const Map<int, FromInclude> values = {
+  static const Map<int, FromInclude> $values = {
     0: IncludeVal};
 
   static const fb.Reader<FromInclude> reader = _FromIncludeReader();
 
   @override
   String toString() {
-    return 'FromInclude{value: $value}';
+    return 'FromInclude{value: ${$value}}';
   }
 }
 
