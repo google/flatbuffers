@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # - id: check-executables-have-shebangs
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: requirements-txt-fixer
+
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: v2.2.5
+  #   hooks:
+  #     - id: codespell
+  #       additional_dependencies:
+  #         - tomli
