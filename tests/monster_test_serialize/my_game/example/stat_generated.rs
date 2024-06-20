@@ -2,14 +2,22 @@
 // @generated
 extern crate alloc;
 extern crate flatbuffers;
+#[allow(unused_imports)]
 use alloc::boxed::Box;
+#[allow(unused_imports)]
 use alloc::string::{String, ToString};
+#[allow(unused_imports)]
 use alloc::vec::Vec;
+#[allow(unused_imports)]
 use core::mem;
+#[allow(unused_imports)]
 use core::cmp::Ordering;
 extern crate serde;
+#[allow(unused_imports)]
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+#[allow(unused_imports)]
 use self::flatbuffers::{EndianScalar, Follow};
+#[allow(unused_imports)]
 use super::*;
 pub enum StatOffset {}
 #[derive(Copy, Clone, PartialEq)]

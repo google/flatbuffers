@@ -2,12 +2,19 @@
 // @generated
 extern crate alloc;
 extern crate flatbuffers;
+#[allow(unused_imports)]
 use alloc::boxed::Box;
+#[allow(unused_imports)]
 use alloc::string::{String, ToString};
+#[allow(unused_imports)]
 use alloc::vec::Vec;
+#[allow(unused_imports)]
 use core::mem;
+#[allow(unused_imports)]
 use core::cmp::Ordering;
+#[allow(unused_imports)]
 use self::flatbuffers::{EndianScalar, Follow};
+#[allow(unused_imports)]
 use super::*;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY: u8 = 0;
