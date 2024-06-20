@@ -9,6 +9,21 @@ using global::System;
 using global::System.Collections.Generic;
 using global::Google.FlatBuffers;
 
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+class JsonReadOnlyAttribute : Attribute {
+}
+
+public class JsonContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+{
+  protected override Newtonsoft.Json.Serialization.JsonProperty CreateProperty(System.Reflection.MemberInfo member, Newtonsoft.Json.MemberSerialization memberSerialization)
+  {
+    var property = base.CreateProperty(member, memberSerialization);
+    if (Attribute.IsDefined(member, typeof(JsonReadOnlyAttribute)))
+      property.Readable = false;
+    return property;
+  }
+}
+
 [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum Color : sbyte
 {

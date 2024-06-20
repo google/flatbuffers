@@ -19,7 +19,7 @@ table Monster {
   name:string;
   friendly:bool = false (deprecated);
   inventory:[ubyte];
-  color:Color = Blue;
+  color:Color = Blue (deprecated_readonly);
   weapons:[Weapon];
   equipped:Equipment;
   path:[Vec3];
