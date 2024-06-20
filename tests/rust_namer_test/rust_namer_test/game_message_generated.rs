@@ -91,7 +91,7 @@ impl flatbuffers::EndianScalar for GameMessage {
   }
 }
 
-impl<'a> flatbuffers::Verifiable for GameMessage {
+impl flatbuffers::Verifiable for GameMessage {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize

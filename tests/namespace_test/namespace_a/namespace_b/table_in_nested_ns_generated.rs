@@ -76,7 +76,7 @@ impl flatbuffers::Verifiable for TableInNestedNS<'_> {
 pub struct TableInNestedNSArgs {
     pub foo: i32,
 }
-impl<'a> Default for TableInNestedNSArgs {
+impl Default for TableInNestedNSArgs {
   #[inline]
   fn default() -> Self {
     TableInNestedNSArgs {

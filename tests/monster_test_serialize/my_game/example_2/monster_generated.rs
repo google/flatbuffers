@@ -64,7 +64,7 @@ impl flatbuffers::Verifiable for Monster<'_> {
 }
 pub struct MonsterArgs {
 }
-impl<'a> Default for MonsterArgs {
+impl Default for MonsterArgs {
   #[inline]
   fn default() -> Self {
     MonsterArgs {

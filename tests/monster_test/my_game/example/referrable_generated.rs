@@ -86,7 +86,7 @@ impl flatbuffers::Verifiable for Referrable<'_> {
 pub struct ReferrableArgs {
     pub id: u64,
 }
-impl<'a> Default for ReferrableArgs {
+impl Default for ReferrableArgs {
   #[inline]
   fn default() -> Self {
     ReferrableArgs {
