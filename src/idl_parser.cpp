@@ -3034,7 +3034,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       EXPECT(';');
     } else if (IsIdent("reserved")) {  // Skip these.
       /**
-       * Reserved proto ids can be comma seperated (e.g. 1,2,4,5;)
+       * Reserved proto ids can be comma separated (e.g. 1,2,4,5;)
        * or range based (e.g. 9 to 11;)
        * or combination of them (e.g. 1,2,9 to 11,4,5;)
        * It will be ended by a semicolon.
