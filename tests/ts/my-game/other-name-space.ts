@@ -2,6 +2,6 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { FromInclude } from './other-name-space/from-include.js';
-export { TableB, TableBT } from './other-name-space/table-b.js';
-export { Unused, UnusedT } from './other-name-space/unused.js';
+export { FromInclude } from './other-name-space/from-include.ts';
+export { TableB, TableBT } from './other-name-space/table-b.ts';
+export { Unused, UnusedT } from './other-name-space/unused.ts';

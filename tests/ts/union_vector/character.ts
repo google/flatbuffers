@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import { Attacker, AttackerT } from './attacker.js';
-import { BookReader, BookReaderT } from './book-reader.js';
-import { Rapunzel, RapunzelT } from './rapunzel.js';
+import { Attacker, AttackerT } from './attacker.ts';
+import { BookReader, BookReaderT } from './book-reader.ts';
+import { Rapunzel, RapunzelT } from './rapunzel.ts';
 
 
 export enum Character {

@@ -2,5 +2,5 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { HelloReply } from './models/hello-reply.js';
-export { HelloRequest } from './models/hello-request.js';
+export { HelloReply } from './models/hello-reply.ts';
+export { HelloRequest } from './models/hello-request.ts';

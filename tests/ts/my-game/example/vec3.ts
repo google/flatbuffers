@@ -4,8 +4,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Color } from '../../my-game/example/color.js';
-import { Test, TestT } from '../../my-game/example/test.js';
+import { Color } from '../../my-game/example/color.ts';
+import { Test, TestT } from '../../my-game/example/test.ts';
 
 
 export class Vec3 implements flatbuffers.IUnpackableObject<Vec3T> {

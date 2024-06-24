@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import { Monster, MonsterT } from '../../my-game/example/monster.js';
+import { Monster, MonsterT } from '../../my-game/example/monster.ts';
 
 
 export enum AnyAmbiguousAliases {

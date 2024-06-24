@@ -2,4 +2,4 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { Monster, MonsterT } from './example2/monster.js';
+export { Monster, MonsterT } from './example2/monster.ts';

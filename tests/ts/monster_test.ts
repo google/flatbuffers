@@ -2,5 +2,5 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { TableA, TableAT } from './table-a.js';
-export * as MyGame from './my-game.js';
+export { TableA, TableAT } from './table-a.ts';
+export * as MyGame from './my-game.ts';

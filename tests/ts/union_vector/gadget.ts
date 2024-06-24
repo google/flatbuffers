@@ -2,8 +2,8 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import { FallingTub, FallingTubT } from './falling-tub.js';
-import { HandFan, HandFanT } from './hand-fan.js';
+import { FallingTub, FallingTubT } from './falling-tub.ts';
+import { HandFan, HandFanT } from './hand-fan.ts';
 
 
 export enum Gadget {

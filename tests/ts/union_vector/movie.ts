@@ -4,10 +4,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Attacker, AttackerT } from './attacker.js';
-import { BookReader, BookReaderT } from './book-reader.js';
-import { Character, unionToCharacter, unionListToCharacter } from './character.js';
-import { Rapunzel, RapunzelT } from './rapunzel.js';
+import { Attacker, AttackerT } from './attacker.ts';
+import { BookReader, BookReaderT } from './book-reader.ts';
+import { Character, unionToCharacter, unionListToCharacter } from './character.ts';
+import { Rapunzel, RapunzelT } from './rapunzel.ts';
 
 
 export class Movie implements flatbuffers.IUnpackableObject<MovieT> {

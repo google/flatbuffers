@@ -4,7 +4,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { StructOfStructs, StructOfStructsT } from '../../my-game/example/struct-of-structs.js';
+import { StructOfStructs, StructOfStructsT } from '../../my-game/example/struct-of-structs.ts';
 
 
 export class StructOfStructsOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsOfStructsT> {

@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT } from '../../my-game/example2/monster.js';
-import { Monster, MonsterT } from '../../my-game/example/monster.js';
-import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum.js';
+import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT } from '../../my-game/example2/monster.ts';
+import { Monster, MonsterT } from '../../my-game/example/monster.ts';
+import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum.ts';
 
 
 export enum Any {

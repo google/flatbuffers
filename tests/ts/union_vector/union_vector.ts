@@ -2,11 +2,11 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { Attacker, AttackerT } from './attacker.js';
-export { BookReader, BookReaderT } from './book-reader.js';
-export { Character } from './character.js';
-export { FallingTub, FallingTubT } from './falling-tub.js';
-export { Gadget } from './gadget.js';
-export { HandFan, HandFanT } from './hand-fan.js';
-export { Movie, MovieT } from './movie.js';
-export { Rapunzel, RapunzelT } from './rapunzel.js';
+export { Attacker, AttackerT } from './attacker.ts';
+export { BookReader, BookReaderT } from './book-reader.ts';
+export { Character } from './character.ts';
+export { FallingTub, FallingTubT } from './falling-tub.ts';
+export { Gadget } from './gadget.ts';
+export { HandFan, HandFanT } from './hand-fan.ts';
+export { Movie, MovieT } from './movie.ts';
+export { Rapunzel, RapunzelT } from './rapunzel.ts';

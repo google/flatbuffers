@@ -2,19 +2,19 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { Ability, AbilityT } from './example/ability.js';
-export { Any } from './example/any.js';
-export { AnyAmbiguousAliases } from './example/any-ambiguous-aliases.js';
-export { AnyUniqueAliases } from './example/any-unique-aliases.js';
-export { Color } from './example/color.js';
-export { LongEnum } from './example/long-enum.js';
-export { Monster, MonsterT } from './example/monster.js';
-export { Race } from './example/race.js';
-export { Referrable, ReferrableT } from './example/referrable.js';
-export { Stat, StatT } from './example/stat.js';
-export { StructOfStructs, StructOfStructsT } from './example/struct-of-structs.js';
-export { StructOfStructsOfStructs, StructOfStructsOfStructsT } from './example/struct-of-structs-of-structs.js';
-export { Test, TestT } from './example/test.js';
-export { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from './example/test-simple-table-with-enum.js';
-export { TypeAliases, TypeAliasesT } from './example/type-aliases.js';
-export { Vec3, Vec3T } from './example/vec3.js';
+export { Ability, AbilityT } from './example/ability.ts';
+export { Any } from './example/any.ts';
+export { AnyAmbiguousAliases } from './example/any-ambiguous-aliases.ts';
+export { AnyUniqueAliases } from './example/any-unique-aliases.ts';
+export { Color } from './example/color.ts';
+export { LongEnum } from './example/long-enum.ts';
+export { Monster, MonsterT } from './example/monster.ts';
+export { Race } from './example/race.ts';
+export { Referrable, ReferrableT } from './example/referrable.ts';
+export { Stat, StatT } from './example/stat.ts';
+export { StructOfStructs, StructOfStructsT } from './example/struct-of-structs.ts';
+export { StructOfStructsOfStructs, StructOfStructsOfStructsT } from './example/struct-of-structs-of-structs.ts';
+export { Test, TestT } from './example/test.ts';
+export { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from './example/test-simple-table-with-enum.ts';
+export { TypeAliases, TypeAliasesT } from './example/type-aliases.ts';
+export { Vec3, Vec3T } from './example/vec3.ts';
