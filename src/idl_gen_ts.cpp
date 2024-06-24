@@ -292,7 +292,7 @@ class TsGenerator : public BaseGenerator {
         }
         code += " } from '";
         std::string import_extension =
-            parser_.opts.ts_no_import_ext ? "" : ".js";
+            parser_.opts.ts_no_import_ext ? "" : ".ts";
         code += base_name_rel + import_extension + "';\n";
         export_counter++;
       }
@@ -304,7 +304,7 @@ class TsGenerator : public BaseGenerator {
         auto ts_file_path = it2.second.path + ".ts";
         code += "export * as " + it2.second.symbolic_name + " from './";
         std::string rel_path = it2.second.path;
-        code += rel_path + ".js';\n";
+        code += rel_path + ".ts';\n";
         export_counter++;
       }
 
@@ -319,7 +319,7 @@ class TsGenerator : public BaseGenerator {
       inputpath = path_ + file_name_ + ".ts";
       std::string bundlepath =
           GeneratedFileName(path_, file_name_, parser_.opts);
-      bundlepath = bundlepath.substr(0, bundlepath.size() - 3) + ".js";
+      bundlepath = bundlepath.substr(0, bundlepath.size() - 3) + ".ts";
       std::string cmd = "esbuild";
       cmd += " ";
       cmd += inputpath;
@@ -919,7 +919,7 @@ class TsGenerator : public BaseGenerator {
     import.object_name = object_name;
     import.bare_file_path = bare_file_path;
     import.rel_file_path = rel_file_path;
-    std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".js";
+    std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".ts";
     import.import_statement = "import { " + symbols_expression + " } from '" +
                               rel_file_path + import_extension + "';";
     import.export_statement = "export { " + symbols_expression + " } from '." +
