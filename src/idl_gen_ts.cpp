@@ -271,6 +271,12 @@ class TsGenerator : public BaseGenerator {
           std::copy(it.second.ns->components.begin(),
                     it.second.ns->components.end(),
                     std::back_inserter(rel_components));
+
+        // Remove leading relative components from the path until the first matching directory is found.
+        while (!rel_components.empty() && it.second.symbolic_name != rel_components.front()) {
+          rel_components.erase(rel_components.begin());
+        }
+
         auto base_file_name =
             namer_.File(*(def.second), SkipFile::SuffixAndExtension);
         auto base_name =
