@@ -1095,7 +1095,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = x.byteswap().view(x.dtype.newbyteorder())
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1144,7 +1144,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = x.byteswap().view(x.dtype.newbyteorder())
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1213,7 +1213,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = x.byteswap().view(x.dtype.newbyteorder())
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1287,7 +1287,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = x.byteswap().view(x.dtype.newbyteorder())
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1361,7 +1361,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = x.byteswap().view(x.dtype.newbyteorder())
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1427,7 +1427,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = x.byteswap().view(x.dtype.newbyteorder())
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
