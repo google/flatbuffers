@@ -132,6 +132,7 @@ cc_test(
     deps = [
         ":alignment_test_cc_fbs",
         ":arrays_test_cc_fbs",
+        ":keyword_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
         ":native_type_test_cc_fbs",
@@ -239,6 +240,11 @@ cc_library(
 flatbuffer_cc_library(
     name = "monster_extra_cc_fbs",
     srcs = ["monster_extra.fbs"],
+)
+
+flatbuffer_cc_library(
+    name = "keyword_test_cc_fbs",
+    srcs = ["keyword_test.fbs"],
 )
 
 flatbuffer_cc_library(

@@ -37,6 +37,7 @@
 #include "fuzz_test.h"
 #include "json_test.h"
 #include "key_field_test.h"
+#include "keyword_test_generated.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
 #include "native_inline_table_test_generated.h"
