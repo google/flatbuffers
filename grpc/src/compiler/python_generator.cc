@@ -37,12 +37,14 @@ namespace grpc {
 namespace {
 bool ClientStreaming(const RPCCall *method) {
   const Value *val = method->attributes.Lookup("streaming");
-  return val != nullptr && (val->constant == "client" || val->constant == "bidi");
+  return val != nullptr &&
+         (val->constant == "client" || val->constant == "bidi");
 }
 
 bool ServerStreaming(const RPCCall *method) {
   const Value *val = method->attributes.Lookup("streaming");
-  return val != nullptr && (val->constant == "server" || val->constant == "bidi");
+  return val != nullptr &&
+         (val->constant == "server" || val->constant == "bidi");
 }
 
 void FormatImports(std::stringstream &ss, const Imports &imports) {
@@ -103,9 +105,9 @@ class BaseGenerator {
  protected:
   BaseGenerator(const Parser &parser, const Namer::Config &config,
                 const std::string &path, const Version &version)
-      : parser_{parser},
-        namer_{WithFlagOptions(config, parser.opts, path), Keywords(version)},
-        version_{version} {}
+      : parser_{ parser },
+        namer_{ WithFlagOptions(config, parser.opts, path), Keywords(version) },
+        version_{ version } {}
 
  protected:
   std::string ModuleForFile(const std::string &file) const {
@@ -115,8 +117,7 @@ class BaseGenerator {
     return module;
   }
 
-  template <typename T>
-  std::string ModuleFor(const T *def) const {
+  template<typename T> std::string ModuleFor(const T *def) const {
     if (parser_.opts.one_file) return ModuleForFile(def->file);
     return namer_.NamespacedType(*def);
   }
@@ -365,13 +366,13 @@ class ServiceGenerator : public BaseGenerator {
 
 bool Generate(const Parser &parser, const std::string &path,
               const Version &version) {
-  ServiceGenerator generator{parser, path, version};
+  ServiceGenerator generator{ parser, path, version };
   return generator.Generate();
 }
 
 bool GenerateStub(const Parser &parser, const std::string &path,
                   const Version &version) {
-  StubGenerator generator{parser, path, version};
+  StubGenerator generator{ parser, path, version };
   return generator.Generate();
 }
 
