@@ -140,10 +140,12 @@ class StubGenerator : public BaseGenerator {
       Generate(stub, service, &imports);
     }
 
+    std::string sanitized_suffix{ parser_.opts.grpc_filename_suffix };
+    std::replace(sanitized_suffix.begin(), sanitized_suffix.end(), '.', '_');
     std::string filename =
         namer_.config_.output_path +
         StripPath(StripExtension(parser_.file_being_parsed_)) + "_grpc" +
-        parser_.opts.grpc_filename_suffix + namer_.config_.filename_extension;
+        sanitized_suffix + namer_.config_.filename_extension;
 
     return SaveStub(filename, imports, stub.str());
   }
@@ -254,10 +256,12 @@ class ServiceGenerator : public BaseGenerator {
       GenerateRegister(ss, service, &imports);
     }
 
+    std::string sanitized_suffix{ parser_.opts.grpc_filename_suffix };
+    std::replace(sanitized_suffix.begin(), sanitized_suffix.end(), '.', '_');
     std::string filename =
         namer_.config_.output_path +
         StripPath(StripExtension(parser_.file_being_parsed_)) + "_grpc" +
-        parser_.opts.grpc_filename_suffix + namer_.config_.filename_extension;
+        sanitized_suffix + namer_.config_.filename_extension;
 
     return SaveService(filename, imports, ss.str());
   }
