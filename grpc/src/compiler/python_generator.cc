@@ -107,7 +107,8 @@ class BaseGenerator {
                 const std::string &path, const Version &version)
       : parser_{ parser },
         namer_{ WithFlagOptions(config, parser.opts, path), Keywords(version) },
-        version_{ version } {}
+        version_{ version },
+        path_(path) {}
 
  protected:
   std::string ModuleForFile(const std::string &file) const {
@@ -122,9 +123,29 @@ class BaseGenerator {
     return namer_.NamespacedType(*def);
   }
 
+  std::string NamespaceDir(const Parser &parser, const std::string &path,
+                           const Namespace &ns, const bool dasherize) {
+    EnsureDirExists(path);
+    if (parser.opts.one_file) return path;
+    std::string namespace_dir = path;  // Either empty or ends in separator.
+    auto &namespaces = ns.components;
+    for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+      namespace_dir +=
+          !dasherize ? *it : ConvertCase(*it, Case::kDasher, Case::kUpperCamel);
+      namespace_dir += kPathSeparator;
+      EnsureDirExists(namespace_dir);
+    }
+    return namespace_dir;
+  }
+
+  std::string NamespaceDir(const Namespace &ns, const bool dasherize) {
+    return NamespaceDir(parser_, path_, ns, dasherize);
+  }
+
   const Parser &parser_;
   const IdlNamer namer_;
   const Version version_;
+  const std::string &path_;
 };
 
 class StubGenerator : public BaseGenerator {
@@ -136,14 +157,16 @@ class StubGenerator : public BaseGenerator {
   bool Generate() {
     Imports imports;
     std::stringstream stub;
+    std::string ns_name{};
     for (const ServiceDef *service : parser_.services_.vec) {
       Generate(stub, service, &imports);
+      ns_name = NamespaceDir(*service->defined_namespace, false);
     }
 
     std::string sanitized_suffix{ parser_.opts.grpc_filename_suffix };
     std::replace(sanitized_suffix.begin(), sanitized_suffix.end(), '.', '_');
     std::string filename =
-        namer_.config_.output_path +
+        ns_name + kPathSeparator +
         StripPath(StripExtension(parser_.file_being_parsed_)) + "_grpc" +
         sanitized_suffix + namer_.config_.filename_extension;
 
@@ -250,16 +273,18 @@ class ServiceGenerator : public BaseGenerator {
          << '\n';
     }
 
+    std::string ns_name{};
     for (const ServiceDef *service : parser_.services_.vec) {
       GenerateStub(ss, service, &imports);
       GenerateServicer(ss, service, &imports);
       GenerateRegister(ss, service, &imports);
+      ns_name = NamespaceDir(*service->defined_namespace, false);
     }
 
     std::string sanitized_suffix{ parser_.opts.grpc_filename_suffix };
     std::replace(sanitized_suffix.begin(), sanitized_suffix.end(), '.', '_');
     std::string filename =
-        namer_.config_.output_path +
+        ns_name + kPathSeparator +
         StripPath(StripExtension(parser_.file_being_parsed_)) + "_grpc" +
         sanitized_suffix + namer_.config_.filename_extension;
 
