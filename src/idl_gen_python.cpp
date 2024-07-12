@@ -202,13 +202,11 @@ class PythonStubGenerator {
 
   std::string EnumType(const EnumDef &enum_def, Imports *imports) const {
     imports->Import("typing");
-    const Import &import =
-        imports->Import(ModuleFor(&enum_def), namer_.Type(enum_def));
 
     std::string result = "";
     for (const EnumVal *val : enum_def.Vals()) {
       if (!result.empty()) result += ", ";
-      result += import.name + "." + namer_.Variant(*val);
+      result += namer_.Type(enum_def) + "." + namer_.Variant(*val);
     }
     return "typing.Literal[" + result + "]";
   }
@@ -295,15 +293,12 @@ class PythonStubGenerator {
     stub << "  def InitFromPackedBuf(cls, buf: bytes, pos: int = 0) -> " << name
          << ": ...\n";
 
-    const Import &import =
-        imports->Import(ModuleFor(struct_def), namer_.Type(*struct_def));
-
     stub << "  @classmethod\n";
     stub << "  def InitFromObj(cls, " << namer_.Variable(*struct_def)
-         << ": " + import.name + ") -> " << name << ": ...\n";
+         << ": " + namer_.Type(*struct_def) + ") -> " << name << ": ...\n";
 
     stub << "  def _UnPack(self, " << namer_.Variable(*struct_def) << ": "
-         << import.name << ") -> None: ...\n";
+         << namer_.Type(*struct_def) << ") -> None: ...\n";
 
     stub << "  def Pack(self, builder: flatbuffers.Builder) -> None: ...\n";
 
