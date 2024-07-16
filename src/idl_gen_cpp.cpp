@@ -467,6 +467,24 @@ class CppGenerator : public BaseGenerator {
         }
         if (opts_.generate_object_based_api) {
           auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
+
+          // Check that nativeName doesn't collide the name of another struct.
+          for (const auto &other_struct_def : parser_.structs_.vec) {
+            if (other_struct_def == struct_def ||
+                other_struct_def->defined_namespace !=
+                    struct_def->defined_namespace) {
+              continue;
+            }
+
+            auto other_name = Name(*other_struct_def);
+            if (nativeName == other_name) {
+              LogCompilerError("Generated Object API type for " +
+                               Name(*struct_def) + " collides with " +
+                               other_name);
+              FLATBUFFERS_ASSERT(true);
+            }
+          }
+
           if (!struct_def->fixed) { code_ += "struct " + nativeName + ";"; }
         }
         code_ += "";
@@ -2419,8 +2437,20 @@ class CppGenerator : public BaseGenerator {
 
     // Generate KeyCompareWithValue function
     if (is_string) {
+      // Compares key against a null-terminated char array.
       code_ += "  int KeyCompareWithValue(const char *_{{FIELD_NAME}}) const {";
       code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
+      code_ += "  }";
+      // Compares key against any string-like object (e.g. std::string_view or
+      // std::string) that implements operator< comparison with const char*.
+      code_ += "  template<typename StringType>";
+      code_ +=
+          "  int KeyCompareWithValue(const StringType& _{{FIELD_NAME}}) const "
+          "{";
+      code_ +=
+          "    if ({{FIELD_NAME}}()->c_str() < _{{FIELD_NAME}}) return -1;";
+      code_ += "    if (_{{FIELD_NAME}} < {{FIELD_NAME}}()->c_str()) return 1;";
+      code_ += "    return 0;";
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       std::string input_type = "::flatbuffers::Array<" +

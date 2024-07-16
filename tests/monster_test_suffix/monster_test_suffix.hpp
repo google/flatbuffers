@@ -10,9 +10,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 5 &&
-              FLATBUFFERS_VERSION_REVISION == 26,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
+              FLATBUFFERS_VERSION_MINOR == 3 &&
+              FLATBUFFERS_VERSION_REVISION == 25,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -1422,6 +1422,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
+  }
+  template<typename StringType>
+  int KeyCompareWithValue(const StringType& _name) const {
+    if (name()->c_str() < _name) return -1;
+    if (_name < name()->c_str()) return 1;
+    return 0;
   }
   const ::flatbuffers::Vector<uint8_t> *inventory() const {
     return GetPointer<const ::flatbuffers::Vector<uint8_t> *>(VT_INVENTORY);

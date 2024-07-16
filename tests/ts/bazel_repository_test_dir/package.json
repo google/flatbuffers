@@ -3,6 +3,6 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/node": "18.15.11"
+    "lodash": "4.17.21"
   }
 }
