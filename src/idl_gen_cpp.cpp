@@ -1297,73 +1297,71 @@ class CppGenerator : public BaseGenerator {
       add_sep = true;
     }
 
-    if (opts_.cpp_minify_enums) {
-      code_ += "";
-      code_ += "};\n";
-    } else {
-      const EnumVal *minv = enum_def.MinValue();
-      const EnumVal *maxv = enum_def.MaxValue();
+    const EnumVal *minv = enum_def.MinValue();
+    const EnumVal *maxv = enum_def.MaxValue();
 
-      if (opts_.scoped_enums || opts_.prefixed_enums) {
-        FLATBUFFERS_ASSERT(minv && maxv);
+    if (!opts_.cpp_minify_enums &&
+      opts_.scoped_enums || opts_.prefixed_enums) {
+      FLATBUFFERS_ASSERT(minv && maxv);
 
-        code_.SetValue("SEP", ",\n");
+      code_.SetValue("SEP", ",\n");
 
-        // MIN & MAX are useless for bit_flags
-        if (enum_def.attributes.Lookup("bit_flags")) {
-          code_.SetValue("KEY", GenEnumValDecl(enum_def, "NONE"));
-          code_.SetValue("VALUE", "0");
-          code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
+      // MIN & MAX are useless for bit_flags
+      if (enum_def.attributes.Lookup("bit_flags")) {
+        code_.SetValue("KEY", GenEnumValDecl(enum_def, "NONE"));
+        code_.SetValue("VALUE", "0");
+        code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
 
-          code_.SetValue("KEY", GenEnumValDecl(enum_def, "ANY"));
-          code_.SetValue("VALUE",
-                         NumToStringCpp(enum_def.AllFlags(),
-                                        enum_def.underlying_type.base_type));
-          code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
-        } else if (opts_.emit_min_max_enum_values) {
-          code_.SetValue("KEY", GenEnumValDecl(enum_def, "MIN"));
-          code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*minv)));
-          code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
+        code_.SetValue("KEY", GenEnumValDecl(enum_def, "ANY"));
+        code_.SetValue("VALUE", NumToStringCpp(enum_def.AllFlags(),
+                        enum_def.underlying_type.base_type));
+        code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
+      } else if (opts_.emit_min_max_enum_values) {
+        code_.SetValue("KEY", GenEnumValDecl(enum_def, "MIN"));
+        code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*minv)));
+        code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
 
-          code_.SetValue("KEY", GenEnumValDecl(enum_def, "MAX"));
-          code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*maxv)));
-          code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
-        }
+        code_.SetValue("KEY", GenEnumValDecl(enum_def, "MAX"));
+        code_.SetValue("VALUE", GenEnumValDecl(enum_def, Name(*maxv)));
+        code_ += "{{SEP}}  {{KEY}} = {{VALUE}}\\";
       }
-      code_ += "";
-      code_ += "};";
+    }
 
-      if (opts_.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
-        code_ +=
-            "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, "
-            "{{BASE_TYPE}})";
-      }
-      code_ += "";
+    code_ += "";
+    code_ += "};";
+
+    if (opts_.scoped_enums && enum_def.attributes.Lookup("bit_flags")) {
+      code_ +=
+          "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
+    }
+    code_ += "";
+    if (!opts_.cpp_minify_enums || enum_def.is_union) {
       GenEnumArray(enum_def);
       GenEnumStringTable(enum_def);
-
-      // Generate type traits for unions to map from a type to union enum value.
-      if (enum_def.is_union && !enum_def.uses_multiple_type_instances) {
-        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
-             ++it) {
-          const auto &ev = **it;
-
-          if (it == enum_def.Vals().begin()) {
-            code_ += "template<typename T> struct {{ENUM_NAME}}Traits {";
-          } else {
-            auto name = GetUnionElement(ev, false, opts_);
-            code_ += "template<> struct {{ENUM_NAME}}Traits<" + name + "> {";
-          }
-
-          auto value = GetEnumValUse(enum_def, ev);
-          code_ += "  static const {{ENUM_NAME}} enum_value = " + value + ";";
-          code_ += "};";
-          code_ += "";
-        }
-      }
-
-      GenEnumObjectBasedAPI(enum_def);
     }
+
+    // Generate type traits for unions to map from a type to union enum value.
+    if (!opts_.cpp_minify_enums &&
+      enum_def.is_union && !enum_def.uses_multiple_type_instances) {
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+            ++it) {
+        const auto &ev = **it;
+
+        if (it == enum_def.Vals().begin()) {
+          code_ += "template<typename T> struct {{ENUM_NAME}}Traits {";
+        } else {
+          auto name = GetUnionElement(ev, false, opts_);
+          code_ += "template<> struct {{ENUM_NAME}}Traits<" + name + "> {";
+        }
+
+        auto value = GetEnumValUse(enum_def, ev);
+        code_ += "  static const {{ENUM_NAME}} enum_value = " + value + ";";
+        code_ += "};";
+        code_ += "";
+      }
+    }
+
+    GenEnumObjectBasedAPI(enum_def);
 
     if (enum_def.is_union) {
       code_ += UnionVerifySignature(enum_def) + ";";
