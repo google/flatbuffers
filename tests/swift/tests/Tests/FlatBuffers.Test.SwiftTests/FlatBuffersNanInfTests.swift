@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,12 @@ final class FlatBuffersNanInfTests: XCTestCase {
     let fbb = createTestTable()
     var bb = fbb.sizedBuffer
     do {
+      struct Test: Decodable {
+        let valueInf: Double
+        let value: Int
+        let valueNan: Double
+        let valueNinf: Double
+      }
       let reader: Swift_Tests_NanInfTable = try getCheckedRoot(byteBuffer: &bb)
       let encoder = JSONEncoder()
       encoder.keyEncodingStrategy = .convertToSnakeCase
@@ -59,14 +65,19 @@ final class FlatBuffersNanInfTests: XCTestCase {
           negativeInfinity: "-inf",
           nan: "nan")
       let data = try encoder.encode(reader)
-      XCTAssertEqual(data, jsonData.data(using: .utf8))
+      let decoder = JSONDecoder()
+      decoder.nonConformingFloatDecodingStrategy = .convertFromString(
+        positiveInfinity: "inf",
+        negativeInfinity: "-inf",
+        nan: "nan")
+      decoder.keyDecodingStrategy = .convertFromSnakeCase
+      let value = try decoder.decode(Test.self, from: data)
+      XCTAssertEqual(value.value, 100)
+      XCTAssertEqual(value.valueInf, .infinity)
+      XCTAssertEqual(value.valueNinf, -.infinity)
     } catch {
       XCTFail(error.localizedDescription)
     }
-  }
-
-  var jsonData: String {
-    "{\"value_inf\":\"inf\",\"value\":100,\"value_nan\":\"nan\",\"value_ninf\":\"-inf\"}"
   }
 
 }

@@ -1,10 +1,11 @@
 ---
 buildifier: latest
+bazel: 6.4.0
 platforms:
   ubuntu1804:
     environment:
       CC: clang
-      SWIFT_VERSION: "5.5.3"
+      SWIFT_VERSION: "5.8"
       SWIFT_HOME: "$HOME/swift-$SWIFT_VERSION"
       PATH: "$PATH:$SWIFT_HOME/usr/bin"
     shell_commands:
@@ -18,7 +19,7 @@ platforms:
   ubuntu2004:
     environment:
       CC: clang
-      SWIFT_VERSION: "5.5.3"
+      SWIFT_VERSION: "5.8"
       SWIFT_HOME: "$HOME/swift-$SWIFT_VERSION"
       PATH: "$PATH:$SWIFT_HOME/usr/bin"
     shell_commands:
@@ -30,6 +31,7 @@ platforms:
     test_targets:
     - "//..."
   macos:
+    xcode_version: "14.3"
     build_targets:
     - "//..."
     test_targets:

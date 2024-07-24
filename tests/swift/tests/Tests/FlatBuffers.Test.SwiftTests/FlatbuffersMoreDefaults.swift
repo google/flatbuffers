@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,17 +65,22 @@ class FlatBuffersMoreDefaults: XCTestCase {
     fbb.finish(offset: root)
     var sizedBuffer = fbb.sizedBuffer
     do {
+      struct Test: Decodable {
+        var emptyString: String
+        var someString: String
+      }
       let reader: MoreDefaults = try getCheckedRoot(byteBuffer: &sizedBuffer)
       let encoder = JSONEncoder()
       encoder.keyEncodingStrategy = .convertToSnakeCase
       let data = try encoder.encode(reader)
-      XCTAssertEqual(data, jsonData.data(using: .utf8))
+      let decoder = JSONDecoder()
+      decoder.keyDecodingStrategy = .convertFromSnakeCase
+      let value = try decoder.decode(Test.self, from: data)
+      XCTAssertEqual(value.someString, "some")
+      XCTAssertEqual(value.emptyString, "")
     } catch {
       XCTFail(error.localizedDescription)
     }
   }
 
-  var jsonData: String {
-    "{\"empty_string\":\"\",\"some_string\":\"some\"}"
-  }
 }

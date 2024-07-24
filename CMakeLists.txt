@@ -183,6 +183,10 @@ set(FlatBuffers_Compiler_SRCS
   src/bfbs_gen_lua.h
   src/bfbs_gen_nim.h
   src/bfbs_namer.h
+  include/codegen/idl_namer.h
+  include/codegen/namer.h
+  include/codegen/python.h
+  include/codegen/python.cc
   include/flatbuffers/code_generators.h
   src/binary_annotator.h
   src/binary_annotator.cpp
@@ -556,7 +560,11 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  add_library(flatsample INTERFACE)
+  if(MSVC OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.0")
+    add_library(flatsample INTERFACE)
+  else()
+    add_library(flatsample STATIC)
+  endif()
 
   # Since flatsample has no sources, we have to explicitly set the linker lang.
   set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
@@ -594,7 +602,7 @@ if(FLATBUFFERS_BUILD_GRPCTEST)
   find_package(protobuf CONFIG REQUIRED)
   find_package(gRPC CONFIG REQUIRED)
   add_executable(grpctest ${FlatBuffers_GRPCTest_SRCS})
-  target_link_libraries(grpctext
+  target_link_libraries(grpctest
     PRIVATE
       $<BUILD_INTERFACE:ProjectConfig>
       gRPC::grpc++_unsecure

@@ -47,7 +47,8 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
       2 * sizeof(voffset_t);  // Vtable size and Object Size.
   size_t offset = fixed_fields + field_id * sizeof(voffset_t);
   FLATBUFFERS_ASSERT(offset < std::numeric_limits<voffset_t>::max());
-  return static_cast<voffset_t>(offset);}
+  return static_cast<voffset_t>(offset);
+}
 
 template<typename T, typename Alloc = std::allocator<T>>
 const T *data(const std::vector<T, Alloc> &v) {
@@ -221,21 +222,13 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @return Returns a `uint8_t` pointer to the unfinished buffer.
   uint8_t *GetCurrentBufferPointer() const { return buf_.data(); }
 
-  /// @brief Get the released pointer to the serialized buffer.
-  /// @warning Do NOT attempt to use this FlatBufferBuilder afterwards!
-  /// @return A `FlatBuffer` that owns the buffer and its allocator and
-  /// behaves similar to a `unique_ptr` with a deleter.
-  FLATBUFFERS_ATTRIBUTE([[deprecated("use Release() instead")]])
-  DetachedBuffer ReleaseBufferPointer() {
-    Finished();
-    return buf_.release();
-  }
-
   /// @brief Get the released DetachedBuffer.
   /// @return A `DetachedBuffer` that owns the buffer and its allocator.
   DetachedBuffer Release() {
     Finished();
-    return buf_.release();
+    DetachedBuffer buffer = buf_.release();
+    Clear();
+    return buffer;
   }
 
   /// @brief Get the released pointer to the serialized buffer.
@@ -246,10 +239,12 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// @return A raw pointer to the start of the memory block containing
   /// the serialized `FlatBuffer`.
   /// @remark If the allocator is owned, it gets deleted when the destructor is
-  /// called..
+  /// called.
   uint8_t *ReleaseRaw(size_t &size, size_t &offset) {
     Finished();
-    return buf_.release_raw(size, offset);
+    uint8_t *raw = buf_.release_raw(size, offset);
+    Clear();
+    return raw;
   }
 
   /// @brief get the minimum alignment this buffer needs to be accessed
@@ -567,7 +562,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     return CreateString<OffsetT>(str.c_str(), str.length());
   }
 
-// clang-format off
+  // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const string_view to copy in to the buffer.
@@ -589,14 +584,14 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// @param[in] str A const reference to a std::string like type with support
-  /// of T::c_str() and T::length() to store in the buffer.
+  /// of T::data() and T::length() to store in the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   template<template<typename> class OffsetT = Offset,
            // No need to explicitly declare the T type, let the compiler deduce
            // it.
            int &...ExplicitArgumentBarrier, typename T>
   OffsetT<String> CreateString(const T &str) {
-    return CreateString<OffsetT>(str.c_str(), str.length());
+    return CreateString<OffsetT>(str.data(), str.length());
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -749,7 +744,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     AssertScalarT<T>();
     StartVector<T, OffsetT, LenT>(len);
     if (len > 0) {
-// clang-format off
+      // clang-format off
       #if FLATBUFFERS_LITTLEENDIAN
         PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
       #else
@@ -1261,6 +1256,9 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   FlatBufferBuilderImpl &operator=(const FlatBufferBuilderImpl &);
 
   void Finish(uoffset_t root, const char *file_identifier, bool size_prefix) {
+    // A buffer can only be finished once. To reuse a builder use `clear()`.
+    FLATBUFFERS_ASSERT(!finished);
+
     NotNested();
     buf_.clear_scratch();
 
@@ -1473,7 +1471,8 @@ T *GetMutableTemporaryPointer(FlatBufferBuilder &fbb, Offset<T> offset) {
 
 template<typename T>
 const T *GetTemporaryPointer(const FlatBufferBuilder &fbb, Offset<T> offset) {
-  return GetMutableTemporaryPointer<T>(fbb, offset);
+  return reinterpret_cast<const T *>(fbb.GetCurrentBufferPointer() +
+                                     fbb.GetSize() - offset.o);
 }
 
 }  // namespace flatbuffers

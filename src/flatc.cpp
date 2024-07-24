@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 #include <sstream>
+#include <string>
 
 #include "annotated_binary_text_gen.h"
 #include "binary_annotator.h"
@@ -187,6 +188,7 @@ const static FlatCOption flatc_options[] = {
     "relative to. The 'root' is denoted with  `//`. E.g. if PATH=/a/b/c "
     "then /a/d/e.fbs will be serialized as //../d/e.fbs. (PATH defaults to the "
     "directory of the first provided schema file." },
+  { "", "bfbs-absolute-paths", "", "Uses absolute paths instead of relative paths in the BFBS output." },
   { "", "bfbs-comments", "", "Add doc comments to the binary schema files." },
   { "", "bfbs-builtins", "",
     "Add builtin attributes to the binary schema files." },
@@ -253,10 +255,21 @@ const static FlatCOption flatc_options[] = {
   { "", "python-no-type-prefix-suffix", "",
     "Skip emission of Python functions that are prefixed with typenames" },
   { "", "python-typing", "", "Generate Python type annotations" },
+  { "", "python-version", "", "Generate code for the given Python version." },
+  { "", "python-gen-numpy", "", "Whether to generate numpy helpers." },
   { "", "ts-omit-entrypoint", "",
     "Omit emission of namespace entrypoint file" },
   { "", "file-names-only", "",
     "Print out generated file names without writing to the files" },
+  { "", "grpc-filename-suffix", "SUFFIX",
+    "The suffix for the generated file names (Default is '.fb')." },
+  { "", "grpc-additional-header", "",
+    "Additional headers to prepend to the generated files." },
+  { "", "grpc-use-system-headers", "",
+    "Use <> for headers included from the generated code." },
+  { "", "grpc-search-path", "PATH", "Prefix to any gRPC includes." },
+  { "", "grpc-python-typed-handlers", "",
+    "The handlers will use the generated classes rather than raw bytes." },
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -596,6 +609,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.binary_schema_builtins = true;
       } else if (arg == "--bfbs-gen-embed") {
         opts.binary_schema_gen_embed = true;
+      } else if (arg == "--bfbs-absolute-paths") {
+        opts.binary_schema_absolute_paths = true;
       } else if (arg == "--reflect-types") {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
@@ -661,6 +676,18 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.python_no_type_prefix_suffix = true;
       } else if (arg == "--python-typing") {
         opts.python_typing = true;
+      } else if (arg.rfind("--python-version=", 0) == 0) {
+        opts.python_version =
+            arg.substr(std::string("--python-version=").size());
+      } else if (arg == "--python-version") {
+        if (++argi >= argc) Error("missing value following: " + arg, true);
+        opts.python_version = argv[argi];
+      } else if (arg == "--python-gen-numpy" ||
+                 arg == "--python-gen-numpy=true") {
+        opts.python_gen_numpy = true;
+      } else if (arg == "--no-python-gen-numpy" ||
+                 arg == "--python-gen-numpy=false") {
+        opts.python_gen_numpy = false;
       } else if (arg == "--ts-omit-entrypoint") {
         opts.ts_omit_entrypoint = true;
       } else if (arg == "--annotate-sparse-vectors") {
@@ -671,6 +698,36 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--file-names-only") {
         // TODO (khhn): Provide 2 implementation
         options.file_names_only = true;
+      } else if (arg == "--grpc-filename-suffix") {
+        if (++argi >= argc) Error("missing gRPC filename suffix: " + arg, true);
+        opts.grpc_filename_suffix = argv[argi];
+      } else if (arg.rfind("--grpc-filename-suffix=", 0) == 0) {
+        opts.grpc_filename_suffix =
+            arg.substr(std::string("--grpc-filename-suffix=").size());
+      } else if (arg == "--grpc-additional-header") {
+        if (++argi >= argc) Error("missing include following: " + arg, true);
+        opts.grpc_additional_headers.push_back(argv[argi]);
+      } else if (arg.rfind("--grpc-additional-header=", 0) == 0) {
+        opts.grpc_additional_headers.push_back(
+            arg.substr(std::string("--grpc-additional-header=").size()));
+      } else if (arg == "--grpc-search-path") {
+        if (++argi >= argc) Error("missing gRPC search path: " + arg, true);
+        opts.grpc_search_path = argv[argi];
+      } else if (arg.rfind("--grpc-search-path=", 0) == 0) {
+        opts.grpc_search_path =
+            arg.substr(std::string("--grpc-search-path=").size());
+      } else if (arg == "--grpc-use-system-headers" ||
+                 arg == "--grpc-use-system-headers=true") {
+        opts.grpc_use_system_headers = true;
+      } else if (arg == "--no-grpc-use-system-headers" ||
+                 arg == "--grpc-use-system-headers=false") {
+        opts.grpc_use_system_headers = false;
+      } else if (arg == "--grpc-python-typed-handlers" ||
+                 arg == "--grpc-python-typed-handlers=true") {
+        opts.grpc_python_typed_handlers = true;
+      } else if (arg == "--no-grpc-python-typed-handlers" ||
+                 arg == "--grpc-python-typed-handlers=false") {
+        opts.grpc_python_typed_handlers = false;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 
@@ -724,6 +781,11 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
 flatbuffers::Parser FlatCompiler::GetConformParser(
     const FlatCOptions &options) {
   flatbuffers::Parser conform_parser;
+
+  // conform parser should check advanced options,
+  // so, it have to have knowledge about languages:
+  conform_parser.opts.lang_to_generate = options.opts.lang_to_generate;
+
   if (!options.conform_to_schema.empty()) {
     std::string contents;
     if (!flatbuffers::LoadFile(options.conform_to_schema.c_str(), true,

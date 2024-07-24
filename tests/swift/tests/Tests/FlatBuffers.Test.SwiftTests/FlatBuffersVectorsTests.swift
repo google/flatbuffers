@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,26 @@ final class FlatBuffersVectors: XCTestCase {
     b.finish(offset: o)
     // swiftformat:disable all
     XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0])
+    // swiftformat:enable all
+  }
+
+  func testCreateStructArray() {
+    struct Vec: NativeStruct {
+      let x, y, z: Float32
+    }
+    let vector: [Vec] = [
+      Vec(x: 1, y: 2, z: 3),
+      Vec(x: 4, y: 5, z: 6),
+      Vec(x: 7, y: 8, z: 9),
+    ]
+    var b = FlatBufferBuilder(initialSize: 100)
+    let o = b.createVector(ofStructs: vector)
+    b.finish(offset: o)
+    vector.withUnsafeBytes { pointer in
+      print(Array(pointer))
+    }
+    // swiftformat:disable all
+    XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64, 0, 0, 224, 64, 0, 0, 0, 65, 0, 0, 16, 65])
     // swiftformat:enable all
   }
 

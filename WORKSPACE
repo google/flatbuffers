@@ -11,6 +11,34 @@ http_archive(
     ],
 )
 
+# Import our own version of skylib before other rule sets (e.g. rules_swift)
+# has a chance to import an old version.
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+    ],
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+http_archive(
+    name = "build_bazel_rules_apple",
+    sha256 = "34c41bfb59cdaea29ac2df5a2fa79e5add609c71bb303b2ebb10985f93fa20e7",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/3.1.1/rules_apple.3.1.1.tar.gz",
+)
+
+load(
+    "@build_bazel_rules_apple//apple:repositories.bzl",
+    "apple_rules_dependencies",
+)
+
+apple_rules_dependencies()
+
 http_archive(
     name = "build_bazel_rules_swift",
     sha256 = "a2fd565e527f83fb3f9eb07eb9737240e668c9242d3bc318712efa54a7deda97",
@@ -55,6 +83,28 @@ http_archive(
     ],
 )
 
+#### Building boring ssl
+# Fetching boringssl within the flatbuffers repository, to patch the issue
+# of not being able to upgrade to Xcode 14.3 due to buildkite throwing errors
+# which was patched in the following below.
+# https://github.com/google/flatbuffers/commit/67eb95de9281087ccbba9aafd6e8ab1958d12045
+# The patch was copied from the following comment on the same issue within tensorflow
+# and fixed to adapt the already existing patch for boringssl.
+# https://github.com/tensorflow/tensorflow/issues/60191#issuecomment-1496073147
+http_archive(
+    name = "boringssl",
+    patch_args = ["-p1"],
+    patches = ["//grpc:boringssl.patch"],
+    # Use github mirror instead of https://boringssl.googlesource.com/boringssl
+    # to obtain a boringssl archive with consistent sha256
+    sha256 = "534fa658bd845fd974b50b10f444d392dfd0d93768c4a51b61263fd37d851c40",
+    strip_prefix = "boringssl-b9232f9e27e5668bc0414879dcdedb2a59ea75f2",
+    urls = [
+        "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/b9232f9e27e5668bc0414879dcdedb2a59ea75f2.tar.gz",
+        "https://github.com/google/boringssl/archive/b9232f9e27e5668bc0414879dcdedb2a59ea75f2.tar.gz",
+    ],
+)
+
 ##### GRPC
 _GRPC_VERSION = "1.49.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
 
@@ -79,16 +129,16 @@ grpc_extra_deps()
 
 http_archive(
     name = "aspect_rules_js",
-    sha256 = "bdbd6df52fc7963f55281fe0a140e21de8ec587ab711a8a2fff0715b6710a4f8",
-    strip_prefix = "rules_js-1.32.0",
-    url = "https://github.com/aspect-build/rules_js/releases/download/v1.32.0/rules_js-v1.32.0.tar.gz",
+    sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
+    strip_prefix = "rules_js-1.34.1",
+    url = "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz",
 )
 
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
 rules_js_dependencies()
 
-load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock", "pnpm_repository")
+load("@aspect_rules_js//npm:npm_import.bzl", "pnpm_repository")
 
 pnpm_repository(name = "pnpm")
 
@@ -104,8 +154,8 @@ load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
 rules_ts_dependencies(
     # Since rules_ts doesn't always have the newest integrity hashes, we
     # compute it manually here.
-    #   $ curl --silent https://registry.npmjs.org/typescript/5.0.4 | jq ._integrity
-    ts_integrity = "sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==",
+    #   $ curl --silent https://registry.npmjs.org/typescript/5.3.3 | jq ._integrity
+    ts_integrity = "sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==",
     ts_version_from = "//:package.json",
 )
 
@@ -116,17 +166,13 @@ nodejs_register_toolchains(
     node_version = DEFAULT_NODE_VERSION,
 )
 
-npm_translate_lock(
-    name = "npm",
-    npmrc = "//:.npmrc",
-    pnpm_lock = "//:pnpm-lock.yaml",
-    # Set this to True when the lock file needs to be updated, commit the
-    # changes, then set to False again.
-    update_pnpm_lock = False,
-    verify_node_modules_ignored = "//:.bazelignore",
+load("@com_github_google_flatbuffers//ts:repositories.bzl", "flatbuffers_npm")
+
+flatbuffers_npm(
+    name = "flatbuffers_npm",
 )
 
-load("@npm//:repositories.bzl", "npm_repositories")
+load("@flatbuffers_npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
 
