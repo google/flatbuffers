@@ -474,7 +474,6 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - index: index of the string in the buffer
   ///   - count: length of the string
-  ///   - type: Encoding of the string
   @inline(__always)
   public func readString(
     at index: Int,
