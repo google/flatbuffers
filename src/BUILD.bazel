@@ -139,6 +139,8 @@ cc_library(
         "idl_gen_text.h",
         "idl_gen_ts.cpp",
         "idl_gen_ts.h",
+        "idl_gen_ue.cpp",
+        "idl_gen_ue.h",
         "idl_namer.h",
         "namer.h",
         "util.cpp",

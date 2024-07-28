@@ -172,6 +172,7 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
   src/idl_gen_swift.cpp
+  src/idl_gen_ue.cpp
   src/file_name_saving_file_manager.cpp
   src/file_binary_writer.cpp
   src/file_writer.cpp
