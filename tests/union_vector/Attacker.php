@@ -6,7 +6,7 @@ declare(strict_types=1);
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Attacker extends Table
 {
@@ -52,19 +52,19 @@ class Attacker extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startAttacker(FlatBufferBuilder $builder)
+    public static function startAttacker(FlatbufferBuilder $builder)
     {
         $builder->StartObject(1);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return Attacker
      */
-    public static function createAttacker(FlatBufferBuilder $builder, $sword_attack_damage)
+    public static function createAttacker(FlatbufferBuilder $builder, $sword_attack_damage)
     {
         $builder->startObject(1);
         self::addSwordAttackDamage($builder, $sword_attack_damage);
@@ -73,20 +73,20 @@ class Attacker extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param int
      * @return void
      */
-    public static function addSwordAttackDamage(FlatBufferBuilder $builder, $swordAttackDamage)
+    public static function addSwordAttackDamage(FlatbufferBuilder $builder, $swordAttackDamage)
     {
         $builder->addIntX(0, $swordAttackDamage, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endAttacker(FlatBufferBuilder $builder)
+    public static function endAttacker(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

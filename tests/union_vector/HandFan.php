@@ -6,7 +6,7 @@ declare(strict_types=1);
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class HandFan extends Table
 {
@@ -52,19 +52,19 @@ class HandFan extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startHandFan(FlatBufferBuilder $builder)
+    public static function startHandFan(FlatbufferBuilder $builder)
     {
         $builder->StartObject(1);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return HandFan
      */
-    public static function createHandFan(FlatBufferBuilder $builder, $length)
+    public static function createHandFan(FlatbufferBuilder $builder, $length)
     {
         $builder->startObject(1);
         self::addLength($builder, $length);
@@ -73,20 +73,20 @@ class HandFan extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param int
      * @return void
      */
-    public static function addLength(FlatBufferBuilder $builder, $length)
+    public static function addLength(FlatbufferBuilder $builder, $length)
     {
         $builder->addIntX(0, $length, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endHandFan(FlatBufferBuilder $builder)
+    public static function endHandFan(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

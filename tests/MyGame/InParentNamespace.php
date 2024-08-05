@@ -8,7 +8,7 @@ namespace MyGame;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class InParentNamespace extends Table
 {
@@ -50,19 +50,19 @@ class InParentNamespace extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startInParentNamespace(FlatBufferBuilder $builder)
+    public static function startInParentNamespace(FlatbufferBuilder $builder)
     {
         $builder->StartObject(0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return InParentNamespace
      */
-    public static function createInParentNamespace(FlatBufferBuilder $builder, )
+    public static function createInParentNamespace(FlatbufferBuilder $builder, )
     {
         $builder->startObject(0);
         $o = $builder->endObject();
@@ -70,10 +70,10 @@ class InParentNamespace extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endInParentNamespace(FlatBufferBuilder $builder)
+    public static function endInParentNamespace(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

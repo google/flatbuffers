@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Ability extends Struct
 {
@@ -44,7 +44,7 @@ class Ability extends Struct
     /**
      * @return int offset
      */
-    public static function createAbility(FlatBufferBuilder $builder, $id, $distance)
+    public static function createAbility(FlatbufferBuilder $builder, $id, $distance)
     {
         $builder->prep(4, 8);
         $builder->putUint($distance);

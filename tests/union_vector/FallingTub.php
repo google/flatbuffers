@@ -6,7 +6,7 @@ declare(strict_types=1);
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class FallingTub extends Struct
 {
@@ -34,7 +34,7 @@ class FallingTub extends Struct
     /**
      * @return int offset
      */
-    public static function createFallingTub(FlatBufferBuilder $builder, $weight)
+    public static function createFallingTub(FlatbufferBuilder $builder, $weight)
     {
         $builder->prep(4, 4);
         $builder->putInt($weight);

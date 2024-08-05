@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class TypeAliases extends Table
 {
@@ -178,19 +178,19 @@ class TypeAliases extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startTypeAliases(FlatBufferBuilder $builder)
+    public static function startTypeAliases(FlatbufferBuilder $builder)
     {
         $builder->StartObject(12);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return TypeAliases
      */
-    public static function createTypeAliases(FlatBufferBuilder $builder, $i8, $u8, $i16, $u16, $i32, $u32, $i64, $u64, $f32, $f64, $v8, $vf64)
+    public static function createTypeAliases(FlatbufferBuilder $builder, $i8, $u8, $i16, $u16, $i32, $u32, $i64, $u64, $f32, $f64, $v8, $vf64)
     {
         $builder->startObject(12);
         self::addI8($builder, $i8);
@@ -210,121 +210,121 @@ class TypeAliases extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param sbyte
      * @return void
      */
-    public static function addI8(FlatBufferBuilder $builder, $i8)
+    public static function addI8(FlatbufferBuilder $builder, $i8)
     {
         $builder->addSbyteX(0, $i8, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param byte
      * @return void
      */
-    public static function addU8(FlatBufferBuilder $builder, $u8)
+    public static function addU8(FlatbufferBuilder $builder, $u8)
     {
         $builder->addByteX(1, $u8, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param short
      * @return void
      */
-    public static function addI16(FlatBufferBuilder $builder, $i16)
+    public static function addI16(FlatbufferBuilder $builder, $i16)
     {
         $builder->addShortX(2, $i16, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param ushort
      * @return void
      */
-    public static function addU16(FlatBufferBuilder $builder, $u16)
+    public static function addU16(FlatbufferBuilder $builder, $u16)
     {
         $builder->addUshortX(3, $u16, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param int
      * @return void
      */
-    public static function addI32(FlatBufferBuilder $builder, $i32)
+    public static function addI32(FlatbufferBuilder $builder, $i32)
     {
         $builder->addIntX(4, $i32, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param uint
      * @return void
      */
-    public static function addU32(FlatBufferBuilder $builder, $u32)
+    public static function addU32(FlatbufferBuilder $builder, $u32)
     {
         $builder->addUintX(5, $u32, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param long
      * @return void
      */
-    public static function addI64(FlatBufferBuilder $builder, $i64)
+    public static function addI64(FlatbufferBuilder $builder, $i64)
     {
         $builder->addLongX(6, $i64, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param ulong
      * @return void
      */
-    public static function addU64(FlatBufferBuilder $builder, $u64)
+    public static function addU64(FlatbufferBuilder $builder, $u64)
     {
         $builder->addUlongX(7, $u64, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param float
      * @return void
      */
-    public static function addF32(FlatBufferBuilder $builder, $f32)
+    public static function addF32(FlatbufferBuilder $builder, $f32)
     {
         $builder->addFloatX(8, $f32, 0.0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param double
      * @return void
      */
-    public static function addF64(FlatBufferBuilder $builder, $f64)
+    public static function addF64(FlatbufferBuilder $builder, $f64)
     {
         $builder->addDoubleX(9, $f64, 0.0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param VectorOffset
      * @return void
      */
-    public static function addV8(FlatBufferBuilder $builder, $v8)
+    public static function addV8(FlatbufferBuilder $builder, $v8)
     {
         $builder->addOffsetX(10, $v8, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param array offset array
      * @return int vector offset
      */
-    public static function createV8Vector(FlatBufferBuilder $builder, array $data)
+    public static function createV8Vector(FlatbufferBuilder $builder, array $data)
     {
         $builder->startVector(1, count($data), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
@@ -334,31 +334,31 @@ class TypeAliases extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param int $numElems
      * @return void
      */
-    public static function startV8Vector(FlatBufferBuilder $builder, $numElems)
+    public static function startV8Vector(FlatbufferBuilder $builder, $numElems)
     {
         $builder->startVector(1, $numElems, 1);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param VectorOffset
      * @return void
      */
-    public static function addVf64(FlatBufferBuilder $builder, $vf64)
+    public static function addVf64(FlatbufferBuilder $builder, $vf64)
     {
         $builder->addOffsetX(11, $vf64, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param array offset array
      * @return int vector offset
      */
-    public static function createVf64Vector(FlatBufferBuilder $builder, array $data)
+    public static function createVf64Vector(FlatbufferBuilder $builder, array $data)
     {
         $builder->startVector(8, count($data), 8);
         for ($i = count($data) - 1; $i >= 0; $i--) {
@@ -368,20 +368,20 @@ class TypeAliases extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param int $numElems
      * @return void
      */
-    public static function startVf64Vector(FlatBufferBuilder $builder, $numElems)
+    public static function startVf64Vector(FlatbufferBuilder $builder, $numElems)
     {
         $builder->startVector(8, $numElems, 8);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endTypeAliases(FlatBufferBuilder $builder)
+    public static function endTypeAliases(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

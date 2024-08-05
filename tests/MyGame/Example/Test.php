@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Test extends Struct
 {
@@ -44,7 +44,7 @@ class Test extends Struct
     /**
      * @return int offset
      */
-    public static function createTest(FlatBufferBuilder $builder, $a, $b)
+    public static function createTest(FlatbufferBuilder $builder, $a, $b)
     {
         $builder->prep(2, 4);
         $builder->pad(1);

@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class StructOfStructsOfStructs extends Struct
 {
@@ -38,7 +38,7 @@ class StructOfStructsOfStructs extends Struct
     /**
      * @return int offset
      */
-    public static function createStructOfStructsOfStructs(FlatBufferBuilder $builder, $a_a_id, $a_a_distance, $a_b_a, $a_b_b, $a_c_id, $a_c_distance)
+    public static function createStructOfStructsOfStructs(FlatbufferBuilder $builder, $a_a_id, $a_a_distance, $a_b_a, $a_b_b, $a_c_id, $a_c_distance)
     {
         $builder->prep(4, 20);
         $builder->prep(4, 20);

@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Stat extends Table
 {
@@ -74,19 +74,19 @@ class Stat extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startStat(FlatBufferBuilder $builder)
+    public static function startStat(FlatbufferBuilder $builder)
     {
         $builder->StartObject(3);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return Stat
      */
-    public static function createStat(FlatBufferBuilder $builder, $id, $val, $count)
+    public static function createStat(FlatbufferBuilder $builder, $id, $val, $count)
     {
         $builder->startObject(3);
         self::addId($builder, $id);
@@ -97,40 +97,40 @@ class Stat extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param StringOffset
      * @return void
      */
-    public static function addId(FlatBufferBuilder $builder, $id)
+    public static function addId(FlatbufferBuilder $builder, $id)
     {
         $builder->addOffsetX(0, $id, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param long
      * @return void
      */
-    public static function addVal(FlatBufferBuilder $builder, $val)
+    public static function addVal(FlatbufferBuilder $builder, $val)
     {
         $builder->addLongX(1, $val, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param ushort
      * @return void
      */
-    public static function addCount(FlatBufferBuilder $builder, $count)
+    public static function addCount(FlatbufferBuilder $builder, $count)
     {
         $builder->addUshortX(2, $count, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endStat(FlatBufferBuilder $builder)
+    public static function endStat(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

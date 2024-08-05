@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Vec3 extends Struct
 {
@@ -78,7 +78,7 @@ class Vec3 extends Struct
     /**
      * @return int offset
      */
-    public static function createVec3(FlatBufferBuilder $builder, $x, $y, $z, $test1, $test2, $test3_a, $test3_b)
+    public static function createVec3(FlatbufferBuilder $builder, $x, $y, $z, $test1, $test2, $test3_a, $test3_b)
     {
         $builder->prep(8, 32);
         $builder->pad(2);

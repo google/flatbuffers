@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Referrable extends Table
 {
@@ -59,19 +59,19 @@ class Referrable extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startReferrable(FlatBufferBuilder $builder)
+    public static function startReferrable(FlatbufferBuilder $builder)
     {
         $builder->StartObject(1);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return Referrable
      */
-    public static function createReferrable(FlatBufferBuilder $builder, $id)
+    public static function createReferrable(FlatbufferBuilder $builder, $id)
     {
         $builder->startObject(1);
         self::addId($builder, $id);
@@ -80,20 +80,20 @@ class Referrable extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param ulong
      * @return void
      */
-    public static function addId(FlatBufferBuilder $builder, $id)
+    public static function addId(FlatbufferBuilder $builder, $id)
     {
         $builder->addUlongX(0, $id, 0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endReferrable(FlatBufferBuilder $builder)
+    public static function endReferrable(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

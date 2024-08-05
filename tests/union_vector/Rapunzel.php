@@ -6,7 +6,7 @@ declare(strict_types=1);
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Rapunzel extends Struct
 {
@@ -34,7 +34,7 @@ class Rapunzel extends Struct
     /**
      * @return int offset
      */
-    public static function createRapunzel(FlatBufferBuilder $builder, $hairLength)
+    public static function createRapunzel(FlatbufferBuilder $builder, $hairLength)
     {
         $builder->prep(4, 4);
         $builder->putInt($hairLength);

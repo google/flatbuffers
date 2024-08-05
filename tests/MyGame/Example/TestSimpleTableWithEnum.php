@@ -8,7 +8,7 @@ namespace MyGame\Example;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class TestSimpleTableWithEnum extends Table
 {
@@ -59,19 +59,19 @@ class TestSimpleTableWithEnum extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startTestSimpleTableWithEnum(FlatBufferBuilder $builder)
+    public static function startTestSimpleTableWithEnum(FlatbufferBuilder $builder)
     {
         $builder->StartObject(1);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return TestSimpleTableWithEnum
      */
-    public static function createTestSimpleTableWithEnum(FlatBufferBuilder $builder, $color)
+    public static function createTestSimpleTableWithEnum(FlatbufferBuilder $builder, $color)
     {
         $builder->startObject(1);
         self::addColor($builder, $color);
@@ -80,20 +80,20 @@ class TestSimpleTableWithEnum extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @param byte
      * @return void
      */
-    public static function addColor(FlatBufferBuilder $builder, $color)
+    public static function addColor(FlatbufferBuilder $builder, $color)
     {
         $builder->addByteX(0, $color, 2);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endTestSimpleTableWithEnum(FlatBufferBuilder $builder)
+    public static function endTestSimpleTableWithEnum(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

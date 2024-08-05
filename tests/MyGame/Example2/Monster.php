@@ -8,7 +8,7 @@ namespace MyGame\Example2;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class Monster extends Table
 {
@@ -50,19 +50,19 @@ class Monster extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return void
      */
-    public static function startMonster(FlatBufferBuilder $builder)
+    public static function startMonster(FlatbufferBuilder $builder)
     {
         $builder->StartObject(0);
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return Monster
      */
-    public static function createMonster(FlatBufferBuilder $builder, )
+    public static function createMonster(FlatbufferBuilder $builder, )
     {
         $builder->startObject(0);
         $o = $builder->endObject();
@@ -70,10 +70,10 @@ class Monster extends Table
     }
 
     /**
-     * @param FlatBufferBuilder $builder
+     * @param FlatbufferBuilder $builder
      * @return int table offset
      */
-    public static function endMonster(FlatBufferBuilder $builder)
+    public static function endMonster(FlatbufferBuilder $builder)
     {
         $o = $builder->endObject();
         return $o;

@@ -79,7 +79,7 @@ class PhpGenerator : public BaseGenerator {
       code += "use \\Google\\FlatBuffers\\Struct;\n";
       code += "use \\Google\\FlatBuffers\\Table;\n";
       code += "use \\Google\\FlatBuffers\\ByteBuffer;\n";
-      code += "use \\Google\\FlatBuffers\\FlatBufferBuilder;\n";
+      code += "use \\Google\\FlatBuffers\\FlatbufferBuilder;\n";
       code += "\n";
     }
   }
@@ -498,11 +498,11 @@ class PhpGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += Indent + "/**\n";
-    code += Indent + " * @param FlatBufferBuilder $builder\n";
+    code += Indent + " * @param FlatbufferBuilder $builder\n";
     code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function start" + struct_def.name;
-    code += "(FlatBufferBuilder $builder)\n";
+    code += "(FlatbufferBuilder $builder)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->StartObject(";
     code += NumToString(struct_def.fields.vec.size());
@@ -510,11 +510,11 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "}\n\n";
 
     code += Indent + "/**\n";
-    code += Indent + " * @param FlatBufferBuilder $builder\n";
+    code += Indent + " * @param FlatbufferBuilder $builder\n";
     code += Indent + " * @return " + struct_def.name + "\n";
     code += Indent + " */\n";
     code += Indent + "public static function create" + struct_def.name;
-    code += "(FlatBufferBuilder $builder, ";
+    code += "(FlatbufferBuilder $builder, ";
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -560,13 +560,13 @@ class PhpGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += Indent + "/**\n";
-    code += Indent + " * @param FlatBufferBuilder $builder\n";
+    code += Indent + " * @param FlatbufferBuilder $builder\n";
     code += Indent + " * @param " + GenTypeBasic(field.value.type) + "\n";
     code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function ";
     code += "add" + ConvertCase(field.name, Case::kUpperCamel);
-    code += "(FlatBufferBuilder $builder, ";
+    code += "(FlatbufferBuilder $builder, ";
     code += "$" + ConvertCase(field.name, Case::kLowerCamel);
     code += ")\n";
     code += Indent + "{\n";
@@ -594,13 +594,13 @@ class PhpGenerator : public BaseGenerator {
     auto alignment = InlineAlignment(vector_type);
     auto elem_size = InlineSize(vector_type);
     code += Indent + "/**\n";
-    code += Indent + " * @param FlatBufferBuilder $builder\n";
+    code += Indent + " * @param FlatbufferBuilder $builder\n";
     code += Indent + " * @param array offset array\n";
     code += Indent + " * @return int vector offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function create";
     code += ConvertCase(field.name, Case::kUpperCamel);
-    code += "Vector(FlatBufferBuilder $builder, array $data)\n";
+    code += "Vector(FlatbufferBuilder $builder, array $data)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->startVector(";
     code += NumToString(elem_size);
@@ -623,13 +623,13 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "}\n\n";
 
     code += Indent + "/**\n";
-    code += Indent + " * @param FlatBufferBuilder $builder\n";
+    code += Indent + " * @param FlatbufferBuilder $builder\n";
     code += Indent + " * @param int $numElems\n";
     code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function start";
     code += ConvertCase(field.name, Case::kUpperCamel);
-    code += "Vector(FlatBufferBuilder $builder, $numElems)\n";
+    code += "Vector(FlatbufferBuilder $builder, $numElems)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->startVector(";
     code += NumToString(elem_size);
@@ -643,11 +643,11 @@ class PhpGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += Indent + "/**\n";
-    code += Indent + " * @param FlatBufferBuilder $builder\n";
+    code += Indent + " * @param FlatbufferBuilder $builder\n";
     code += Indent + " * @return int table offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function end" + struct_def.name;
-    code += "(FlatBufferBuilder $builder)\n";
+    code += "(FlatbufferBuilder $builder)\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $builder->endObject();\n";
 
@@ -667,7 +667,7 @@ class PhpGenerator : public BaseGenerator {
       code += "\n";
       code += Indent + "public static function finish";
       code += struct_def.name;
-      code += "Buffer(FlatBufferBuilder $builder, $offset)\n";
+      code += "Buffer(FlatbufferBuilder $builder, $offset)\n";
       code += Indent + "{\n";
       code += Indent + Indent + "$builder->finish($offset";
 
@@ -736,7 +736,7 @@ class PhpGenerator : public BaseGenerator {
         std::string &code = *code_ptr;
         code += Indent + "public static function add";
         code += ConvertCase(field.name, Case::kUpperCamel);
-        code += "(FlatBufferBuilder $builder, $offset)\n";
+        code += "(FlatbufferBuilder $builder, $offset)\n";
         code += Indent + "{\n";
         code += Indent + Indent + "$builder->addOffsetX(";
         code += NumToString(offset) + ", $offset, 0);\n";
@@ -927,7 +927,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return int offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function create" + struct_def.name;
-    code += "(FlatBufferBuilder $builder";
+    code += "(FlatbufferBuilder $builder";
     StructBuilderArgs(struct_def, "", code_ptr);
     code += ")\n";
     code += Indent + "{\n";

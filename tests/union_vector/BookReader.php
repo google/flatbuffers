@@ -6,7 +6,7 @@ declare(strict_types=1);
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
-use \Google\FlatBuffers\FlatBufferBuilder;
+use \Google\FlatBuffers\FlatbufferBuilder;
 
 class BookReader extends Struct
 {
@@ -34,7 +34,7 @@ class BookReader extends Struct
     /**
      * @return int offset
      */
-    public static function createBookReader(FlatBufferBuilder $builder, $booksRead)
+    public static function createBookReader(FlatbufferBuilder $builder, $booksRead)
     {
         $builder->prep(4, 4);
         $builder->putInt($booksRead);
