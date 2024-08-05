@@ -127,7 +127,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getTest($obj)
     {
@@ -136,7 +136,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnVectorOffset
+     * @return VectorOffset
      */
     public function getTest4($j)
     {
@@ -176,7 +176,7 @@ class Monster extends Table
     /// an example documentation comment: this will end up in the generated code
     /// multiline too
     /**
-     * @returnVectorOffset
+     * @return VectorOffset
      */
     public function getTestarrayoftables($j)
     {
@@ -382,7 +382,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnVectorOffset
+     * @return VectorOffset
      */
     public function getTestarrayofsortedstruct($j)
     {
@@ -428,7 +428,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnVectorOffset
+     * @return VectorOffset
      */
     public function getTest5($j)
     {
@@ -492,7 +492,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnVectorOffset
+     * @return VectorOffset
      */
     public function getVectorOfReferrables($j)
     {
@@ -539,7 +539,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnVectorOffset
+     * @return VectorOffset
      */
     public function getVectorOfStrongReferrables($j)
     {
@@ -623,7 +623,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getAnyUnique($obj)
     {
@@ -641,7 +641,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getAnyAmbiguous($obj)
     {
@@ -713,7 +713,7 @@ class Monster extends Table
     }
 
     /**
-     * @returnVectorOffset
+     * @return VectorOffset
      */
     public function getScalarKeySortedTables($j)
     {

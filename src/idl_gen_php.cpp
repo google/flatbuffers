@@ -317,7 +317,7 @@ class PhpGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += Indent + "/**\n";
-    code += Indent + " * @return" + GenTypeBasic(field.value.type) + "\n";
+    code += Indent + " * @return " + GenTypeBasic(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
     code += ConvertCase(field.name, Case::kUpperCamel) + "($obj)\n";
@@ -336,7 +336,7 @@ class PhpGenerator : public BaseGenerator {
     auto vectortype = field.value.type.VectorType();
 
     code += Indent + "/**\n";
-    code += Indent + " * @return" + GenTypeBasic(field.value.type) + "\n";
+    code += Indent + " * @return " + GenTypeBasic(field.value.type) + "\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
     code += ConvertCase(field.name, Case::kUpperCamel);

@@ -52,7 +52,7 @@ class Movie extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getMainCharacter($obj)
     {
