@@ -5,16 +5,23 @@ declare(strict_types=1);
 
 class Gadget
 {
-    const NONE = 0;
-    const FallingTub = 1;
-    const HandFan = 2;
+    public const NONE = 0;
+    public const FallingTub = 1;
+    public const HandFan = 2;
 
-    private static $names = array(
+    /**
+     * @var list<string> $names
+     */
+    private static array $names = array(
         Gadget::NONE=>"NONE",
         Gadget::FallingTub=>"FallingTub",
         Gadget::HandFan=>"HandFan",
     );
 
+    /**
+     * @param int $e
+     * @return string
+     */
     public static function Name($e)
     {
         if (!isset(self::$names[$e])) {

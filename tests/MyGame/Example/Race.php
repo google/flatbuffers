@@ -7,18 +7,25 @@ namespace MyGame\Example;
 
 class Race
 {
-    const None = -1;
-    const Human = 0;
-    const Dwarf = 1;
-    const Elf = 2;
+    public const None = -1;
+    public const Human = 0;
+    public const Dwarf = 1;
+    public const Elf = 2;
 
-    private static $names = array(
+    /**
+     * @var list<string> $names
+     */
+    private static array $names = array(
         Race::None=>"None",
         Race::Human=>"Human",
         Race::Dwarf=>"Dwarf",
         Race::Elf=>"Elf",
     );
 
+    /**
+     * @param int $e
+     * @return string
+     */
     public static function Name($e)
     {
         if (!isset(self::$names[$e])) {

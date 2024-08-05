@@ -7,18 +7,25 @@ namespace MyGame\Example;
 
 class Any
 {
-    const NONE = 0;
-    const Monster = 1;
-    const TestSimpleTableWithEnum = 2;
-    const MyGame_Example2_Monster = 3;
+    public const NONE = 0;
+    public const Monster = 1;
+    public const TestSimpleTableWithEnum = 2;
+    public const MyGame_Example2_Monster = 3;
 
-    private static $names = array(
+    /**
+     * @var list<string> $names
+     */
+    private static array $names = array(
         Any::NONE=>"NONE",
         Any::Monster=>"Monster",
         Any::TestSimpleTableWithEnum=>"TestSimpleTableWithEnum",
         Any::MyGame_Example2_Monster=>"MyGame_Example2_Monster",
     );
 
+    /**
+     * @param int $e
+     * @return string
+     */
     public static function Name($e)
     {
         if (!isset(self::$names[$e])) {

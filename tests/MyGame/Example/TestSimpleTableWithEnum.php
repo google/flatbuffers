@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -16,10 +17,10 @@ class TestSimpleTableWithEnum extends Table
      * @param ByteBuffer $bb
      * @return TestSimpleTableWithEnum
      */
-    public static function getRootAsTestSimpleTableWithEnum(ByteBuffer $bb)
+    public static function getRootAsTestSimpleTableWithEnum(ByteBuffer $bb): TestSimpleTableWithEnum
     {
         $obj = new TestSimpleTableWithEnum();
-        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+        return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
     public static function TestSimpleTableWithEnumIdentifier()
@@ -38,11 +39,11 @@ class TestSimpleTableWithEnum extends Table
     }
 
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return TestSimpleTableWithEnum
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): TestSimpleTableWithEnum
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -50,12 +51,12 @@ class TestSimpleTableWithEnum extends Table
     }
 
     /**
-     * @return byte
+     * @return ByteT
      */
     public function getColor()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\Color::Green;
+        return $o != 0 ? $this->bb->getByte(Constants::asNPos($o + $this->bb_pos)) : \MyGame\Example\Color::Green;
     }
 
     /**
@@ -69,9 +70,10 @@ class TestSimpleTableWithEnum extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return TestSimpleTableWithEnum
+     * @param NPosT $color
+     * @return WPosT
      */
-    public static function createTestSimpleTableWithEnum(FlatbufferBuilder $builder, $color)
+    public static function createTestSimpleTableWithEnum(FlatbufferBuilder $builder, int $color)
     {
         $builder->startObject(1);
         self::addColor($builder, $color);
@@ -81,17 +83,17 @@ class TestSimpleTableWithEnum extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param byte
+     * @param WPosT $color
      * @return void
      */
-    public static function addColor(FlatbufferBuilder $builder, $color)
+    public static function addColor(FlatbufferBuilder $builder, mixed $color)
     {
         $builder->addByteX(0, $color, 2);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return int table offset
+     * @return WPosT table offset
      */
     public static function endTestSimpleTableWithEnum(FlatbufferBuilder $builder)
     {

@@ -8,19 +8,26 @@ namespace MyGame\Example;
 /// Composite components of Monster color.
 class Color
 {
-    const Red = 1;
+    public const Red = 1;
     /// \brief color Green
     /// Green is bit_flag with value (1u << 1)
-    const Green = 2;
+    public const Green = 2;
     /// \brief color Blue (1u << 3)
-    const Blue = 8;
+    public const Blue = 8;
 
-    private static $names = array(
+    /**
+     * @var list<string> $names
+     */
+    private static array $names = array(
         Color::Red=>"Red",
         Color::Green=>"Green",
         Color::Blue=>"Blue",
     );
 
+    /**
+     * @param int $e
+     * @return string
+     */
     public static function Name($e)
     {
         if (!isset(self::$names[$e])) {

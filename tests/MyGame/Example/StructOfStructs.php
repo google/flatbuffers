@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -13,11 +14,11 @@ use \Google\FlatBuffers\FlatbufferBuilder;
 class StructOfStructs extends Struct
 {
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return StructOfStructs
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): StructOfStructs
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -25,7 +26,7 @@ class StructOfStructs extends Struct
     }
 
     /**
-     * @return Ability
+     * @return AbilityT
      */
     public function getA()
     {
@@ -35,7 +36,7 @@ class StructOfStructs extends Struct
     }
 
     /**
-     * @return Test
+     * @return TestT
      */
     public function getB()
     {
@@ -45,7 +46,7 @@ class StructOfStructs extends Struct
     }
 
     /**
-     * @return Ability
+     * @return AbilityT
      */
     public function getC()
     {
@@ -56,7 +57,7 @@ class StructOfStructs extends Struct
 
 
     /**
-     * @return int offset
+     * @return WPosT offset
      */
     public static function createStructOfStructs(FlatbufferBuilder $builder, $a_id, $a_distance, $b_a, $b_b, $c_id, $c_distance)
     {

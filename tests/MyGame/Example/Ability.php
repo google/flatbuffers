@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -13,11 +14,11 @@ use \Google\FlatBuffers\FlatbufferBuilder;
 class Ability extends Struct
 {
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return Ability
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): Ability
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -25,7 +26,7 @@ class Ability extends Struct
     }
 
     /**
-     * @return uint
+     * @return UintT
      */
     public function GetId()
     {
@@ -33,7 +34,7 @@ class Ability extends Struct
     }
 
     /**
-     * @return uint
+     * @return UintT
      */
     public function GetDistance()
     {
@@ -42,7 +43,7 @@ class Ability extends Struct
 
 
     /**
-     * @return int offset
+     * @return WPosT offset
      */
     public static function createAbility(FlatbufferBuilder $builder, $id, $distance)
     {

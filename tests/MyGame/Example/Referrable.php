@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -16,10 +17,10 @@ class Referrable extends Table
      * @param ByteBuffer $bb
      * @return Referrable
      */
-    public static function getRootAsReferrable(ByteBuffer $bb)
+    public static function getRootAsReferrable(ByteBuffer $bb): Referrable
     {
         $obj = new Referrable();
-        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+        return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
     public static function ReferrableIdentifier()
@@ -38,11 +39,11 @@ class Referrable extends Table
     }
 
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return Referrable
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): Referrable
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -50,12 +51,12 @@ class Referrable extends Table
     }
 
     /**
-     * @return ulong
+     * @return UlongT
      */
     public function getId()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getUlong(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
@@ -69,9 +70,10 @@ class Referrable extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return Referrable
+     * @param NPosT $id
+     * @return WPosT
      */
-    public static function createReferrable(FlatbufferBuilder $builder, $id)
+    public static function createReferrable(FlatbufferBuilder $builder, int $id)
     {
         $builder->startObject(1);
         self::addId($builder, $id);
@@ -81,17 +83,17 @@ class Referrable extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param ulong
+     * @param WPosT $id
      * @return void
      */
-    public static function addId(FlatbufferBuilder $builder, $id)
+    public static function addId(FlatbufferBuilder $builder, mixed $id)
     {
         $builder->addUlongX(0, $id, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return int table offset
+     * @return WPosT table offset
      */
     public static function endReferrable(FlatbufferBuilder $builder)
     {

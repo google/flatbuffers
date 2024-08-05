@@ -5,15 +5,18 @@ declare(strict_types=1);
 
 class Character
 {
-    const NONE = 0;
-    const MuLan = 1;
-    const Rapunzel = 2;
-    const Belle = 3;
-    const BookFan = 4;
-    const Other = 5;
-    const Unused = 6;
+    public const NONE = 0;
+    public const MuLan = 1;
+    public const Rapunzel = 2;
+    public const Belle = 3;
+    public const BookFan = 4;
+    public const Other = 5;
+    public const Unused = 6;
 
-    private static $names = array(
+    /**
+     * @var list<string> $names
+     */
+    private static array $names = array(
         Character::NONE=>"NONE",
         Character::MuLan=>"MuLan",
         Character::Rapunzel=>"Rapunzel",
@@ -23,6 +26,10 @@ class Character
         Character::Unused=>"Unused",
     );
 
+    /**
+     * @param int $e
+     * @return string
+     */
     public static function Name($e)
     {
         if (!isset(self::$names[$e])) {

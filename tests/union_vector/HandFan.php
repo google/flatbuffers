@@ -3,6 +3,7 @@
 
 declare(strict_types=1);
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -14,10 +15,10 @@ class HandFan extends Table
      * @param ByteBuffer $bb
      * @return HandFan
      */
-    public static function getRootAsHandFan(ByteBuffer $bb)
+    public static function getRootAsHandFan(ByteBuffer $bb): HandFan
     {
         $obj = new HandFan();
-        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+        return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
     public static function HandFanIdentifier()
@@ -31,11 +32,11 @@ class HandFan extends Table
     }
 
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return HandFan
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): HandFan
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -43,12 +44,12 @@ class HandFan extends Table
     }
 
     /**
-     * @return int
+     * @return IntT
      */
     public function getLength()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getInt(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
@@ -62,9 +63,10 @@ class HandFan extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return HandFan
+     * @param NPosT $length
+     * @return WPosT
      */
-    public static function createHandFan(FlatbufferBuilder $builder, $length)
+    public static function createHandFan(FlatbufferBuilder $builder, int $length)
     {
         $builder->startObject(1);
         self::addLength($builder, $length);
@@ -74,17 +76,17 @@ class HandFan extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param int
+     * @param WPosT $length
      * @return void
      */
-    public static function addLength(FlatbufferBuilder $builder, $length)
+    public static function addLength(FlatbufferBuilder $builder, mixed $length)
     {
         $builder->addIntX(0, $length, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return int table offset
+     * @return WPosT table offset
      */
     public static function endHandFan(FlatbufferBuilder $builder)
     {

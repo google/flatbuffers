@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -16,10 +17,10 @@ class Stat extends Table
      * @param ByteBuffer $bb
      * @return Stat
      */
-    public static function getRootAsStat(ByteBuffer $bb)
+    public static function getRootAsStat(ByteBuffer $bb): Stat
     {
         $obj = new Stat();
-        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+        return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
     public static function StatIdentifier()
@@ -38,11 +39,11 @@ class Stat extends Table
     }
 
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return Stat
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): Stat
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -56,21 +57,21 @@ class Stat extends Table
     }
 
     /**
-     * @return long
+     * @return LongT
      */
     public function getVal()
     {
         $o = $this->__offset(6);
-        return $o != 0 ? $this->bb->getLong($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getLong(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return ushort
+     * @return UshortT
      */
     public function getCount()
     {
         $o = $this->__offset(8);
-        return $o != 0 ? $this->bb->getUshort($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getUshort(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
@@ -84,9 +85,12 @@ class Stat extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return Stat
+     * @param NPosT $id
+     * @param NPosT $val
+     * @param NPosT $count
+     * @return WPosT
      */
-    public static function createStat(FlatbufferBuilder $builder, $id, $val, $count)
+    public static function createStat(FlatbufferBuilder $builder, int $id, int $val, int $count)
     {
         $builder->startObject(3);
         self::addId($builder, $id);
@@ -98,37 +102,37 @@ class Stat extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param StringOffset
+     * @param WPosT $id
      * @return void
      */
-    public static function addId(FlatbufferBuilder $builder, $id)
+    public static function addId(FlatbufferBuilder $builder, mixed $id)
     {
         $builder->addOffsetX(0, $id, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param long
+     * @param WPosT $val
      * @return void
      */
-    public static function addVal(FlatbufferBuilder $builder, $val)
+    public static function addVal(FlatbufferBuilder $builder, mixed $val)
     {
         $builder->addLongX(1, $val, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param ushort
+     * @param WPosT $count
      * @return void
      */
-    public static function addCount(FlatbufferBuilder $builder, $count)
+    public static function addCount(FlatbufferBuilder $builder, mixed $count)
     {
         $builder->addUshortX(2, $count, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return int table offset
+     * @return WPosT table offset
      */
     public static function endStat(FlatbufferBuilder $builder)
     {

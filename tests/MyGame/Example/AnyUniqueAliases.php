@@ -7,18 +7,25 @@ namespace MyGame\Example;
 
 class AnyUniqueAliases
 {
-    const NONE = 0;
-    const M = 1;
-    const TS = 2;
-    const M2 = 3;
+    public const NONE = 0;
+    public const M = 1;
+    public const TS = 2;
+    public const M2 = 3;
 
-    private static $names = array(
+    /**
+     * @var list<string> $names
+     */
+    private static array $names = array(
         AnyUniqueAliases::NONE=>"NONE",
         AnyUniqueAliases::M=>"M",
         AnyUniqueAliases::TS=>"TS",
         AnyUniqueAliases::M2=>"M2",
     );
 
+    /**
+     * @param int $e
+     * @return string
+     */
     public static function Name($e)
     {
         if (!isset(self::$names[$e])) {

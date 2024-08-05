@@ -3,6 +3,7 @@
 
 declare(strict_types=1);
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -11,11 +12,11 @@ use \Google\FlatBuffers\FlatbufferBuilder;
 class Rapunzel extends Struct
 {
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return Rapunzel
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): Rapunzel
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -23,7 +24,7 @@ class Rapunzel extends Struct
     }
 
     /**
-     * @return int
+     * @return IntT
      */
     public function GetHairLength()
     {
@@ -32,7 +33,7 @@ class Rapunzel extends Struct
 
 
     /**
-     * @return int offset
+     * @return WPosT offset
      */
     public static function createRapunzel(FlatbufferBuilder $builder, $hairLength)
     {

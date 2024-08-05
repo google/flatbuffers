@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -13,11 +14,11 @@ use \Google\FlatBuffers\FlatbufferBuilder;
 class Vec3 extends Struct
 {
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return Vec3
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): Vec3
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -25,7 +26,7 @@ class Vec3 extends Struct
     }
 
     /**
-     * @return float
+     * @return FloatT
      */
     public function GetX()
     {
@@ -33,7 +34,7 @@ class Vec3 extends Struct
     }
 
     /**
-     * @return float
+     * @return FloatT
      */
     public function GetY()
     {
@@ -41,7 +42,7 @@ class Vec3 extends Struct
     }
 
     /**
-     * @return float
+     * @return FloatT
      */
     public function GetZ()
     {
@@ -49,7 +50,7 @@ class Vec3 extends Struct
     }
 
     /**
-     * @return double
+     * @return DoubleT
      */
     public function GetTest1()
     {
@@ -57,7 +58,7 @@ class Vec3 extends Struct
     }
 
     /**
-     * @return byte
+     * @return ByteT
      */
     public function GetTest2()
     {
@@ -65,7 +66,7 @@ class Vec3 extends Struct
     }
 
     /**
-     * @return Test
+     * @return TestT
      */
     public function getTest3()
     {
@@ -76,7 +77,7 @@ class Vec3 extends Struct
 
 
     /**
-     * @return int offset
+     * @return WPosT offset
      */
     public static function createVec3(FlatbufferBuilder $builder, $x, $y, $z, $test1, $test2, $test3_a, $test3_b)
     {

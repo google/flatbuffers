@@ -3,6 +3,7 @@
 
 declare(strict_types=1);
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -14,10 +15,10 @@ class Attacker extends Table
      * @param ByteBuffer $bb
      * @return Attacker
      */
-    public static function getRootAsAttacker(ByteBuffer $bb)
+    public static function getRootAsAttacker(ByteBuffer $bb): Attacker
     {
         $obj = new Attacker();
-        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+        return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
     public static function AttackerIdentifier()
@@ -31,11 +32,11 @@ class Attacker extends Table
     }
 
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return Attacker
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): Attacker
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -43,12 +44,12 @@ class Attacker extends Table
     }
 
     /**
-     * @return int
+     * @return IntT
      */
     public function getSwordAttackDamage()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getInt(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
@@ -62,9 +63,10 @@ class Attacker extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return Attacker
+     * @param NPosT $sword_attack_damage
+     * @return WPosT
      */
-    public static function createAttacker(FlatbufferBuilder $builder, $sword_attack_damage)
+    public static function createAttacker(FlatbufferBuilder $builder, int $sword_attack_damage)
     {
         $builder->startObject(1);
         self::addSwordAttackDamage($builder, $sword_attack_damage);
@@ -74,17 +76,17 @@ class Attacker extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param int
+     * @param WPosT $swordAttackDamage
      * @return void
      */
-    public static function addSwordAttackDamage(FlatbufferBuilder $builder, $swordAttackDamage)
+    public static function addSwordAttackDamage(FlatbufferBuilder $builder, mixed $swordAttackDamage)
     {
         $builder->addIntX(0, $swordAttackDamage, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return int table offset
+     * @return WPosT table offset
      */
     public static function endAttacker(FlatbufferBuilder $builder)
     {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example2;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -16,10 +17,10 @@ class Monster extends Table
      * @param ByteBuffer $bb
      * @return Monster
      */
-    public static function getRootAsMonster(ByteBuffer $bb)
+    public static function getRootAsMonster(ByteBuffer $bb): Monster
     {
         $obj = new Monster();
-        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+        return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
     public static function MonsterIdentifier()
@@ -38,11 +39,11 @@ class Monster extends Table
     }
 
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return Monster
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): Monster
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -60,7 +61,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return Monster
+     * @return WPosT
      */
     public static function createMonster(FlatbufferBuilder $builder, )
     {
@@ -71,7 +72,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return int table offset
+     * @return WPosT table offset
      */
     public static function endMonster(FlatbufferBuilder $builder)
     {

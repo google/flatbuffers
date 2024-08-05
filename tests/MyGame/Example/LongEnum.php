@@ -7,16 +7,23 @@ namespace MyGame\Example;
 
 class LongEnum
 {
-    const LongOne = 2;
-    const LongTwo = 4;
-    const LongBig = 1099511627776;
+    public const LongOne = 2;
+    public const LongTwo = 4;
+    public const LongBig = 1099511627776;
 
-    private static $names = array(
+    /**
+     * @var list<string> $names
+     */
+    private static array $names = array(
         LongEnum::LongOne=>"LongOne",
         LongEnum::LongTwo=>"LongTwo",
         LongEnum::LongBig=>"LongBig",
     );
 
+    /**
+     * @param int $e
+     * @return string
+     */
     public static function Name($e)
     {
         if (!isset(self::$names[$e])) {

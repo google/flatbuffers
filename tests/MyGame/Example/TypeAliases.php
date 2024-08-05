@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace MyGame\Example;
 
+use \Google\FlatBuffers\Constants;
 use \Google\FlatBuffers\Struct;
 use \Google\FlatBuffers\Table;
 use \Google\FlatBuffers\ByteBuffer;
@@ -16,10 +17,10 @@ class TypeAliases extends Table
      * @param ByteBuffer $bb
      * @return TypeAliases
      */
-    public static function getRootAsTypeAliases(ByteBuffer $bb)
+    public static function getRootAsTypeAliases(ByteBuffer $bb): TypeAliases
     {
         $obj = new TypeAliases();
-        return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
+        return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
     public static function TypeAliasesIdentifier()
@@ -38,11 +39,11 @@ class TypeAliases extends Table
     }
 
     /**
-     * @param int $_i offset
+     * @param NPosT $_i offset
      * @param ByteBuffer $_bb
      * @return TypeAliases
      **/
-    public function init($_i, ByteBuffer $_bb)
+    public function init(int $_i, ByteBuffer $_bb): TypeAliases
     {
         $this->bb_pos = $_i;
         $this->bb = $_bb;
@@ -50,128 +51,128 @@ class TypeAliases extends Table
     }
 
     /**
-     * @return sbyte
+     * @return SbyteT
      */
     public function getI8()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getSbyte(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return byte
+     * @return ByteT
      */
     public function getU8()
     {
         $o = $this->__offset(6);
-        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getByte(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return short
+     * @return ShortT
      */
     public function getI16()
     {
         $o = $this->__offset(8);
-        return $o != 0 ? $this->bb->getShort($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getShort(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return ushort
+     * @return UshortT
      */
     public function getU16()
     {
         $o = $this->__offset(10);
-        return $o != 0 ? $this->bb->getUshort($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getUshort(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return int
+     * @return IntT
      */
     public function getI32()
     {
         $o = $this->__offset(12);
-        return $o != 0 ? $this->bb->getInt($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getInt(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return uint
+     * @return UintT
      */
     public function getU32()
     {
         $o = $this->__offset(14);
-        return $o != 0 ? $this->bb->getUint($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getUint(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return long
+     * @return LongT
      */
     public function getI64()
     {
         $o = $this->__offset(16);
-        return $o != 0 ? $this->bb->getLong($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getLong(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return ulong
+     * @return UlongT
      */
     public function getU64()
     {
         $o = $this->__offset(18);
-        return $o != 0 ? $this->bb->getUlong($o + $this->bb_pos) : 0;
+        return $o != 0 ? $this->bb->getUlong(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
-     * @return float
+     * @return FloatT
      */
     public function getF32()
     {
         $o = $this->__offset(20);
-        return $o != 0 ? $this->bb->getFloat($o + $this->bb_pos) : 0.0;
+        return $o != 0 ? $this->bb->getFloat(Constants::asNPos($o + $this->bb_pos)) : 0.0;
     }
 
     /**
-     * @return double
+     * @return DoubleT
      */
     public function getF64()
     {
         $o = $this->__offset(22);
-        return $o != 0 ? $this->bb->getDouble($o + $this->bb_pos) : 0.0;
+        return $o != 0 ? $this->bb->getDouble(Constants::asNPos($o + $this->bb_pos)) : 0.0;
     }
 
     /**
-     * @param int offset
-     * @return sbyte
+     * @param UOffsetT $j offset
+     * @return SbyteT
      */
-    public function getV8($j)
+    public function getV8(int $j)
     {
         $o = $this->__offset(24);
-        return $o != 0 ? $this->bb->getSbyte($this->__vector($o) + $j * 1) : 0;
+        return $o != 0 ? $this->bb->getSbyte(Constants::asNPos($this->__vector($o) + $j * 1)) : 0;
     }
 
     /**
-     * @return int
+     * @return UOffsetT
      */
-    public function getV8Length()
+    public function getV8Length(): int
     {
         $o = $this->__offset(24);
         return $o != 0 ? $this->__vector_len($o) : 0;
     }
 
     /**
-     * @param int offset
-     * @return double
+     * @param UOffsetT $j offset
+     * @return DoubleT
      */
-    public function getVf64($j)
+    public function getVf64(int $j)
     {
         $o = $this->__offset(26);
-        return $o != 0 ? $this->bb->getDouble($this->__vector($o) + $j * 8) : 0;
+        return $o != 0 ? $this->bb->getDouble(Constants::asNPos($this->__vector($o) + $j * 8)) : 0;
     }
 
     /**
-     * @return int
+     * @return UOffsetT
      */
-    public function getVf64Length()
+    public function getVf64Length(): int
     {
         $o = $this->__offset(26);
         return $o != 0 ? $this->__vector_len($o) : 0;
@@ -188,9 +189,21 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return TypeAliases
+     * @param NPosT $i8
+     * @param NPosT $u8
+     * @param NPosT $i16
+     * @param NPosT $u16
+     * @param NPosT $i32
+     * @param NPosT $u32
+     * @param NPosT $i64
+     * @param NPosT $u64
+     * @param NPosT $f32
+     * @param NPosT $f64
+     * @param NPosT $v8
+     * @param NPosT $vf64
+     * @return WPosT
      */
-    public static function createTypeAliases(FlatbufferBuilder $builder, $i8, $u8, $i16, $u16, $i32, $u32, $i64, $u64, $f32, $f64, $v8, $vf64)
+    public static function createTypeAliases(FlatbufferBuilder $builder, int $i8, int $u8, int $i16, int $u16, int $i32, int $u32, int $i64, int $u64, int $f32, int $f64, int $v8, int $vf64)
     {
         $builder->startObject(12);
         self::addI8($builder, $i8);
@@ -211,122 +224,122 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param sbyte
+     * @param WPosT $i8
      * @return void
      */
-    public static function addI8(FlatbufferBuilder $builder, $i8)
+    public static function addI8(FlatbufferBuilder $builder, mixed $i8)
     {
         $builder->addSbyteX(0, $i8, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param byte
+     * @param WPosT $u8
      * @return void
      */
-    public static function addU8(FlatbufferBuilder $builder, $u8)
+    public static function addU8(FlatbufferBuilder $builder, mixed $u8)
     {
         $builder->addByteX(1, $u8, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param short
+     * @param WPosT $i16
      * @return void
      */
-    public static function addI16(FlatbufferBuilder $builder, $i16)
+    public static function addI16(FlatbufferBuilder $builder, mixed $i16)
     {
         $builder->addShortX(2, $i16, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param ushort
+     * @param WPosT $u16
      * @return void
      */
-    public static function addU16(FlatbufferBuilder $builder, $u16)
+    public static function addU16(FlatbufferBuilder $builder, mixed $u16)
     {
         $builder->addUshortX(3, $u16, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param int
+     * @param WPosT $i32
      * @return void
      */
-    public static function addI32(FlatbufferBuilder $builder, $i32)
+    public static function addI32(FlatbufferBuilder $builder, mixed $i32)
     {
         $builder->addIntX(4, $i32, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param uint
+     * @param WPosT $u32
      * @return void
      */
-    public static function addU32(FlatbufferBuilder $builder, $u32)
+    public static function addU32(FlatbufferBuilder $builder, mixed $u32)
     {
         $builder->addUintX(5, $u32, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param long
+     * @param WPosT $i64
      * @return void
      */
-    public static function addI64(FlatbufferBuilder $builder, $i64)
+    public static function addI64(FlatbufferBuilder $builder, mixed $i64)
     {
         $builder->addLongX(6, $i64, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param ulong
+     * @param WPosT $u64
      * @return void
      */
-    public static function addU64(FlatbufferBuilder $builder, $u64)
+    public static function addU64(FlatbufferBuilder $builder, mixed $u64)
     {
         $builder->addUlongX(7, $u64, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param float
+     * @param WPosT $f32
      * @return void
      */
-    public static function addF32(FlatbufferBuilder $builder, $f32)
+    public static function addF32(FlatbufferBuilder $builder, mixed $f32)
     {
         $builder->addFloatX(8, $f32, 0.0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param double
+     * @param WPosT $f64
      * @return void
      */
-    public static function addF64(FlatbufferBuilder $builder, $f64)
+    public static function addF64(FlatbufferBuilder $builder, mixed $f64)
     {
         $builder->addDoubleX(9, $f64, 0.0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param VectorOffset
+     * @param WPosT $v8
      * @return void
      */
-    public static function addV8(FlatbufferBuilder $builder, $v8)
+    public static function addV8(FlatbufferBuilder $builder, mixed $v8)
     {
         $builder->addOffsetX(10, $v8, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param array offset array
-     * @return int vector offset
+     * @param list<SbyteT> $data offset array
+     * @return WPosT vector offset
      */
     public static function createV8Vector(FlatbufferBuilder $builder, array $data)
     {
-        $builder->startVector(1, count($data), 1);
+        $builder->startVector(1, Constants::asUOffset(count($data)), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
             $builder->putSbyte($data[$i]);
         }
@@ -335,7 +348,7 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param int $numElems
+     * @param UOffsetT $numElems
      * @return void
      */
     public static function startV8Vector(FlatbufferBuilder $builder, $numElems)
@@ -345,22 +358,22 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param VectorOffset
+     * @param WPosT $vf64
      * @return void
      */
-    public static function addVf64(FlatbufferBuilder $builder, $vf64)
+    public static function addVf64(FlatbufferBuilder $builder, mixed $vf64)
     {
         $builder->addOffsetX(11, $vf64, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param array offset array
-     * @return int vector offset
+     * @param list<DoubleT> $data offset array
+     * @return WPosT vector offset
      */
     public static function createVf64Vector(FlatbufferBuilder $builder, array $data)
     {
-        $builder->startVector(8, count($data), 8);
+        $builder->startVector(8, Constants::asUOffset(count($data)), 8);
         for ($i = count($data) - 1; $i >= 0; $i--) {
             $builder->putDouble($data[$i]);
         }
@@ -369,7 +382,7 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param int $numElems
+     * @param UOffsetT $numElems
      * @return void
      */
     public static function startVf64Vector(FlatbufferBuilder $builder, $numElems)
@@ -379,7 +392,7 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return int table offset
+     * @return WPosT table offset
      */
     public static function endTypeAliases(FlatbufferBuilder $builder)
     {
