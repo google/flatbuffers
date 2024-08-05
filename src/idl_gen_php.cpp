@@ -69,6 +69,7 @@ class PhpGenerator : public BaseGenerator {
     auto &code = *code_ptr;
     code += "<?php\n";
     code = code + "// " + FlatBuffersGeneratedWarning() + "\n\n";
+    code += "declare(strict_types=1);\n\n";
 
     if (!name_space_name.empty()) {
       code += "namespace " + name_space_name + ";\n\n";
