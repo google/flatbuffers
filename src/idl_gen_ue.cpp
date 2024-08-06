@@ -159,8 +159,8 @@ class UeGenerator : public BaseGenerator {
       "if",
       "import",
       "inline",
-      "int",
-      "long",
+      "int32",
+      "int64",
       "module",
       "mutable",
       "namespace",
@@ -179,7 +179,7 @@ class UeGenerator : public BaseGenerator {
       "reinterpret_cast",
       "requires",
       "return",
-      "short",
+      "int16",
       "signed",
       "sizeof",
       "static",
@@ -238,9 +238,7 @@ class UeGenerator : public BaseGenerator {
       // of the include is retained.
       const std::string basename =
           opts_.keep_prefix ? name_without_ext : StripPath(name_without_ext);
-
-      code_ += "#include \"" +
-               GeneratedFileName(opts_.include_prefix, basename, opts_) + "\"";
+      code_ += "#include \"" + basename + ".h\"";
     }
 
     if (!parser_.native_included_files_.empty() || !included_files.empty()) {
@@ -312,13 +310,13 @@ class UeGenerator : public BaseGenerator {
     code_ += GenIncludeGuard();
 
     code_ += "#include \"CoreMinimal.h\"";
-    code_ += "\n\n";
-    code_ += "#include \"" + file_name_ + ".generated.h\"";
-    code_ += "\n\n";
-
-    if (opts_.include_dependence_headers) { GenIncludeDependencies(); }
+    if (opts_.include_dependence_headers)
+      GenIncludeDependencies();
     GenExtraIncludes();
     GenEmbeddedIncludes();
+
+    code_ += "#include \"" + file_name_ + ".generated.h\"";
+    code_ += "";
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
@@ -328,49 +326,49 @@ class UeGenerator : public BaseGenerator {
       if (!struct_def->generated) {
         SetNameSpace(struct_def->defined_namespace);
         code_ += "struct " + Name(*struct_def) + ";";
-        if (!struct_def->fixed) {
-          code_ += "struct " + Name(*struct_def) + "Builder;";
-        }
-        if (opts_.generate_object_based_api) {
-          auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
+        //if (!struct_def->fixed) {
+        //  code_ += "struct " + Name(*struct_def) + "Builder;";
+        //}
+        //if (opts_.generate_object_based_api) {
+        //  auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
 
-          // Check that nativeName doesn't collide the name of another struct.
-          for (const auto &other_struct_def : parser_.structs_.vec) {
-            if (other_struct_def == struct_def ||
-                other_struct_def->defined_namespace !=
-                    struct_def->defined_namespace) {
-              continue;
-            }
+        //  // Check that nativeName doesn't collide the name of another struct.
+        //  for (const auto &other_struct_def : parser_.structs_.vec) {
+        //    if (other_struct_def == struct_def ||
+        //        other_struct_def->defined_namespace !=
+        //            struct_def->defined_namespace) {
+        //      continue;
+        //    }
 
-            auto other_name = Name(*other_struct_def);
-            if (nativeName == other_name) {
-              LogCompilerError("Generated Object API type for " +
-                               Name(*struct_def) + " collides with " +
-                               other_name);
-              FLATBUFFERS_ASSERT(true);
-            }
-          }
+        //    auto other_name = Name(*other_struct_def);
+        //    if (nativeName == other_name) {
+        //      LogCompilerError("Generated Object API type for " +
+        //                       Name(*struct_def) + " collides with " +
+        //                       other_name);
+        //      FLATBUFFERS_ASSERT(true);
+        //    }
+        //  }
 
-          if (!struct_def->fixed) { code_ += "struct " + nativeName + ";"; }
-        }
-        code_ += "";
+        //  if (!struct_def->fixed) { code_ += "struct " + nativeName + ";"; }
+        //}
       }
     }
+    code_ += "";
 
-    // Generate forward declarations for all equal operators
-    if (opts_.generate_object_based_api && opts_.gen_compare) {
-      for (const auto &struct_def : parser_.structs_.vec) {
-        if (!struct_def->generated) {
-          SetNameSpace(struct_def->defined_namespace);
-          auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
-          code_ += "bool operator==(const " + nativeName + " &lhs, const " +
-                   nativeName + " &rhs);";
-          code_ += "bool operator!=(const " + nativeName + " &lhs, const " +
-                   nativeName + " &rhs);";
-        }
-      }
-      code_ += "";
-    }
+    //// Generate forward declarations for all equal operators
+    //if (opts_.generate_object_based_api && opts_.gen_compare) {
+    //  for (const auto &struct_def : parser_.structs_.vec) {
+    //    if (!struct_def->generated) {
+    //      SetNameSpace(struct_def->defined_namespace);
+    //      auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
+    //      code_ += "bool operator==(const " + nativeName + " &lhs, const " +
+    //               nativeName + " &rhs);";
+    //      code_ += "bool operator!=(const " + nativeName + " &lhs, const " +
+    //               nativeName + " &rhs);";
+    //    }
+    //  }
+    //  code_ += "";
+    //}
 
     // Generate preablmle code for mini reflection.
     if (opts_.mini_reflect != IDLOptions::kNone) {
@@ -598,7 +596,7 @@ class UeGenerator : public BaseGenerator {
 
     if (cur_name_space_) SetNameSpace(nullptr);
 
-    const auto file_path = GeneratedFileName(path_, file_name_, opts_);
+    const auto file_path = path_ + file_name_ + ".h";
     const auto final_code = code_.ToString();
 
     // Save the file and optionally generate the binary schema code.
@@ -654,8 +652,11 @@ class UeGenerator : public BaseGenerator {
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
     if (user_facing_type) {
-      if (type.enum_def) return WrapInNameSpace(*type.enum_def);
-      if (type.base_type == BASE_TYPE_BOOL) return "bool";
+      if (type.enum_def)
+        // return WrapInNameSpace(*type.enum_def);
+        return type.enum_def->name;
+      if (type.base_type == BASE_TYPE_BOOL)
+        return "bool";
     }
     // Get real underlying type for union type
     auto base_type = type.base_type;
@@ -670,19 +671,18 @@ class UeGenerator : public BaseGenerator {
   std::string GenTypePointer(const Type &type) const {
     switch (type.base_type) {
       case BASE_TYPE_STRING: {
-        return "::flatbuffers::String";
+        return "FString ";
       }
       case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
-        const auto type_name = GenTypeWire(
-            type.VectorType(), "", VectorElementUserFacing(type.VectorType()));
-        return "::flatbuffers::Vector" +
-               std::string((type.base_type == BASE_TYPE_VECTOR64) ? "64<"
-                                                                  : "<") +
-               type_name + ">";
+        //const auto type_name = GenTypeWire(
+        //    type.VectorType(), "", VectorElementUserFacing(type.VectorType()));
+        const auto type_name = GenTypePointer(type.VectorType());
+        return "TArray<" + type_name + "> ";
       }
       case BASE_TYPE_STRUCT: {
-        return WrapInNameSpace(*type.struct_def);
+        //const auto type_name = WrapInNameSpace(*type.struct_def);
+        return type.struct_def->name;
       }
       case BASE_TYPE_UNION:
         // fall through
@@ -916,7 +916,7 @@ class UeGenerator : public BaseGenerator {
       }
       return WrapInNameSpace(ev.union_type.struct_def->defined_namespace, name);
     } else if (IsString(ev.union_type)) {
-      return native_type ? "std::string" : "::flatbuffers::String";
+      return native_type ? "std::string" : "FString";
     } else {
       FLATBUFFERS_ASSERT(false);
       return Name(ev);
@@ -1141,8 +1141,8 @@ class UeGenerator : public BaseGenerator {
     code_.SetValue("BASE_TYPE", GenTypeBasic(enum_def.underlying_type, false));
 
     GenComment(enum_def.doc_comment);
-    code_ +=
-        (opts_.scoped_enums ? "enum class " : "enum ") + Name(enum_def) + "\\";
+    code_ += "UENUM(BlueprintType)";
+    code_ += "enum class E_" + Name(enum_def) + "\\";
     if (opts_.g_only_fixed_enums) { code_ += " : {{BASE_TYPE}}\\"; }
     code_ += " {";
 
@@ -1200,8 +1200,8 @@ class UeGenerator : public BaseGenerator {
           "FLATBUFFERS_DEFINE_BITMASK_OPERATORS({{ENUM_NAME}}, {{BASE_TYPE}})";
     }
     code_ += "";
-    GenEnumArray(enum_def);
-    GenEnumStringTable(enum_def);
+    //GenEnumArray(enum_def);
+    //GenEnumStringTable(enum_def);
 
     // Generate type traits for unions to map from a type to union enum value.
     if (enum_def.is_union && !enum_def.uses_multiple_type_instances) {
@@ -2286,7 +2286,7 @@ class UeGenerator : public BaseGenerator {
     code_ +=
         "  bool KeyCompareLessThan(const {{STRUCT_NAME}} * const o) const {";
     if (is_string) {
-      // use operator< of ::flatbuffers::String
+      // use operator< of FString
       code_ += "    return *{{FIELD_NAME}}() < *o->{{FIELD_NAME}}();";
     } else if (is_array || is_struct) {
       code_ += "    return KeyCompareWithValue(o->{{FIELD_NAME}}()) < 0;";
@@ -2637,7 +2637,7 @@ class UeGenerator : public BaseGenerator {
       code_ += "  }";
     }
   }
-
+    
   std::string GetNestedFlatBufferName(const FieldDef &field) {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) return "";
@@ -2662,46 +2662,9 @@ class UeGenerator : public BaseGenerator {
     GenComment(struct_def.doc_comment);
 
     code_.SetValue("STRUCT_NAME", Name(struct_def));
-    code_ +=
-        "struct {{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS"
-        " : private ::flatbuffers::Table {";
-    if (opts_.generate_object_based_api) {
-      code_ += "  typedef {{NATIVE_NAME}} NativeTableType;";
-    }
-    code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
-    GenBinarySchemaTypeDef(parser_.root_struct_def_);
 
-    if (opts_.g_cpp_std >= ue::CPP_STD_17) { code_ += "  struct Traits;"; }
-    if (opts_.mini_reflect != IDLOptions::kNone) {
-      code_ +=
-          "  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {";
-      code_ += "    return {{STRUCT_NAME}}TypeTable();";
-      code_ += "  }";
-    }
-
-    GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
-
-    // Generate field id constants.
-    if (!struct_def.fields.vec.empty()) {
-      // We need to add a trailing comma to all elements except the last one as
-      // older versions of gcc complain about this.
-      code_.SetValue("SEP", "");
-      code_ +=
-          "  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {";
-      for (const auto &field : struct_def.fields.vec) {
-        if (field->deprecated) {
-          // Deprecated fields won't be accessible.
-          continue;
-        }
-
-        code_.SetValue("OFFSET_NAME", GenFieldOffsetName(*field));
-        code_.SetValue("OFFSET_VALUE", NumToString(field->value.offset));
-        code_ += "{{SEP}}    {{OFFSET_NAME}} = {{OFFSET_VALUE}}\\";
-        code_.SetValue("SEP", ",\n");
-      }
-      code_ += "";
-      code_ += "  };";
-    }
+    code_ += "USTRUCT()";
+    code_ += "struct F{{STRUCT_NAME}} {";
 
     // Generate the accessors.
     for (const auto &field : struct_def.fields.vec) {
@@ -2711,103 +2674,15 @@ class UeGenerator : public BaseGenerator {
       }
 
       code_.SetValue("FIELD_NAME", Name(*field));
-      GenTableFieldGetter(*field);
-      if (opts_.mutable_buffer) { GenTableFieldSetter(*field); }
+      const auto &type = (*field).value.type;
+      auto typeName = GenTypeGet(type, " ", "", "", true);
+      code_ += "  UPROPERTY() " + typeName + "{{FIELD_NAME}};";
 
-      auto nfn = GetNestedFlatBufferName(*field);
-      if (!nfn.empty()) {
-        code_.SetValue("CPP_NAME", nfn);
-        code_ += "  const {{CPP_NAME}} *{{FIELD_NAME}}_nested_root() const {";
-        code_ += "    const auto _f = {{FIELD_NAME}}();";
-        code_ +=
-            "    return _f ? ::flatbuffers::GetRoot<{{CPP_NAME}}>(_f->Data())";
-        code_ += "              : nullptr;";
-        code_ += "  }";
-      }
-
-      if (field->flexbuffer) {
-        code_ +=
-            "  flexbuffers::Reference {{FIELD_NAME}}_flexbuffer_root()"
-            " const {";
-        // Both Data() and size() are const-methods, therefore call order
-        // doesn't matter.
-        code_ += "    const auto _f = {{FIELD_NAME}}();";
-        code_ += "    return _f ? flexbuffers::GetRoot(_f->Data(), _f->size())";
-        code_ += "              : flexbuffers::Reference();";
-        code_ += "  }";
-      }
-
-      // Generate a comparison function for this field if it is a key.
-      if (field->key) { GenKeyFieldMethods(*field); }
-    }
-
-    if (opts_.cpp_static_reflection) { GenIndexBasedFieldGetter(struct_def); }
-
-    // Generate a verifier function that can check a buffer from an untrusted
-    // source will never cause reads outside the buffer.
-    code_ += "  bool Verify(::flatbuffers::Verifier &verifier) const {";
-    code_ += "    return VerifyTableStart(verifier)\\";
-    for (const auto &field : struct_def.fields.vec) {
-      if (field->deprecated) { continue; }
-      GenVerifyCall(*field, " &&\n           ");
-    }
-
-    code_ += " &&\n           verifier.EndTable();";
-    code_ += "  }";
-
-    if (opts_.generate_object_based_api) {
-      // Generate the UnPack() pre declaration.
-      code_ += "  " + TableUnPackSignature(struct_def, true, opts_) + ";";
-      code_ += "  " + TableUnPackToSignature(struct_def, true, opts_) + ";";
-      code_ += "  " + TablePackSignature(struct_def, true, opts_) + ";";
+      //GenTableFieldGetter(*field);
     }
 
     code_ += "};";  // End of table.
     code_ += "";
-
-    // Explicit specializations for union accessors
-    for (const auto &field : struct_def.fields.vec) {
-      if (field->deprecated || field->value.type.base_type != BASE_TYPE_UNION) {
-        continue;
-      }
-
-      auto u = field->value.type.enum_def;
-      if (u->uses_multiple_type_instances) continue;
-
-      code_.SetValue("FIELD_NAME", Name(*field));
-
-      for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
-        auto &ev = **u_it;
-        if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
-
-        auto full_struct_name = GetUnionElement(ev, false, opts_);
-
-        code_.SetValue(
-            "U_ELEMENT_TYPE",
-            WrapInNameSpace(u->defined_namespace, GetEnumValUse(*u, ev)));
-        code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
-        code_.SetValue("U_ELEMENT_NAME", full_struct_name);
-        code_.SetValue("U_FIELD_NAME", Name(*field) + "_as_" + Name(ev));
-
-        // `template<> const T *union_name_as<T>() const` accessor.
-        code_ +=
-            "template<> "
-            "inline {{U_FIELD_TYPE}}{{STRUCT_NAME}}::{{FIELD_NAME}}_as"
-            "<{{U_ELEMENT_NAME}}>() const {";
-        code_ += "  return {{U_FIELD_NAME}}();";
-        code_ += "}";
-        code_ += "";
-      }
-    }
-
-    GenBuilders(struct_def);
-
-    if (opts_.generate_object_based_api) {
-      // Generate a pre-declaration for a CreateX method that works with an
-      // unpacked C++ object.
-      code_ += TableCreateSignature(struct_def, true, opts_) + ";";
-      code_ += "";
-    }
   }
 
   // Generate code to force vector alignment. Return empty string for vector
@@ -3800,6 +3675,7 @@ class UeGenerator : public BaseGenerator {
     code_.SetValue("ALIGN", NumToString(struct_def.minalign));
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
+    code_ += "USTRUCT()";
     code_ +=
         "FLATBUFFERS_MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
         "{{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS {";
