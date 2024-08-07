@@ -46,10 +46,10 @@ class Movie extends Table
     /**
      * @return ByteT
      */
-    public function getMainCharacterType()
+    public function getMainCharacterType(): int
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getByte(Constants::asNPos($o + $this->bb_pos)) : \Character::NONE;
+        return $o !== 0 ? $this->bb->getByte(Constants::asNPos($o + $this->bb_pos)) : \Character::NONE;
     }
 
     /**
@@ -61,17 +61,17 @@ class Movie extends Table
     public function getMainCharacter(Table|Struct $obj): ?object
     {
         $o = $this->__offset(6);
-        return $o != 0 ? $this->__union($obj, $o) : null;
+        return $o !== 0 ? $this->__union($obj, $o) : null;
     }
 
     /**
      * @param UOffsetT $j offset
-     * @return ByteT
+     * @return ?ByteT
      */
-    public function getCharactersType(int $j)
+    public function getCharactersType(int $j): ?int
     {
         $o = $this->__offset(8);
-        return $o != 0 ? $this->bb->getByte(Constants::asNPos($this->__vector($o) + $j * 1)) : \Character::NONE;
+        return $o !== 0 ? $this->bb->getByte(Constants::asNPos($this->__vector($o) + $j * 1)) : null;
     }
 
     /**
@@ -80,7 +80,7 @@ class Movie extends Table
     public function getCharactersTypeLength(): int
     {
         $o = $this->__offset(8);
-        return $o != 0 ? $this->__vector_len($o) : 0;
+        return $o !== 0 ? $this->__vector_len($o) : 0;
     }
 
     /**
@@ -90,7 +90,7 @@ class Movie extends Table
     public function getCharacters($j, $obj)
     {
         $o = $this->__offset(10);
-        return $o != 0 ? $this->__union($obj, $this->__vector($o) + $j * 4 - $this->bb_pos) : null;
+        return $o !== 0 ? $this->__union($obj, $this->__vector($o) + $j * 4 - $this->bb_pos) : null;
     }
 
     /**
@@ -99,27 +99,26 @@ class Movie extends Table
     public function getCharactersLength(): int
     {
         $o = $this->__offset(10);
-        return $o != 0 ? $this->__vector_len($o) : 0;
+        return $o !== 0 ? $this->__vector_len($o) : 0;
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return void
      */
-    public static function startMovie(FlatbufferBuilder $builder)
+    public static function startMovie(FlatbufferBuilder $builder): void
     {
         $builder->StartObject(4);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param NPosT $main_character_type
+     * @param ByteT $main_character_type
      * @param NPosT $main_character
      * @param NPosT $characters_type
      * @param NPosT $characters
      * @return WPosT
      */
-    public static function createMovie(FlatbufferBuilder $builder, int $main_character_type, int $main_character, int $characters_type, int $characters)
+    public static function createMovie(FlatbufferBuilder $builder, int $main_character_type, int $main_character, int $characters_type, int $characters): int
     {
         $builder->startObject(4);
         self::addMainCharacterType($builder, $main_character_type);
@@ -132,15 +131,18 @@ class Movie extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param WPosT $mainCharacterType
-     * @return void
+     * @param ByteT $mainCharacterType
      */
-    public static function addMainCharacterType(FlatbufferBuilder $builder, mixed $mainCharacterType)
+    public static function addMainCharacterType(FlatbufferBuilder $builder, int $mainCharacterType): void
     {
         $builder->addByteX(0, $mainCharacterType, 0);
     }
 
-    public static function addMainCharacter(FlatbufferBuilder $builder, int $offset)
+    /**
+     * @param FlatbufferBuilder $builder
+     * @param WPosT $offset
+     */
+    public static function addMainCharacter(FlatbufferBuilder $builder, int $offset): void
     {
         $builder->addOffsetX(1, $offset, 0);
     }
@@ -148,9 +150,8 @@ class Movie extends Table
     /**
      * @param FlatbufferBuilder $builder
      * @param WPosT $charactersType
-     * @return void
      */
-    public static function addCharactersType(FlatbufferBuilder $builder, mixed $charactersType)
+    public static function addCharactersType(FlatbufferBuilder $builder, int $charactersType): void
     {
         $builder->addOffsetX(2, $charactersType, 0);
     }
@@ -160,7 +161,7 @@ class Movie extends Table
      * @param list<ByteT> $data offset array
      * @return WPosT vector offset
      */
-    public static function createCharactersTypeVector(FlatbufferBuilder $builder, array $data)
+    public static function createCharactersTypeVector(FlatbufferBuilder $builder, array $data): int
     {
         $builder->startVector(1, Constants::asUOffset(count($data)), 1);
         for ($i = count($data) - 1; $i >= 0; $i--) {
@@ -172,9 +173,8 @@ class Movie extends Table
     /**
      * @param FlatbufferBuilder $builder
      * @param UOffsetT $numElems
-     * @return void
      */
-    public static function startCharactersTypeVector(FlatbufferBuilder $builder, $numElems)
+    public static function startCharactersTypeVector(FlatbufferBuilder $builder, int $numElems): void
     {
         $builder->startVector(1, $numElems, 1);
     }
@@ -182,19 +182,18 @@ class Movie extends Table
     /**
      * @param FlatbufferBuilder $builder
      * @param WPosT $characters
-     * @return void
      */
-    public static function addCharacters(FlatbufferBuilder $builder, mixed $characters)
+    public static function addCharacters(FlatbufferBuilder $builder, int $characters): void
     {
         $builder->addOffsetX(3, $characters, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<IntT> $data offset array
+     * @param list<WPosT> $data offset array
      * @return WPosT vector offset
      */
-    public static function createCharactersVector(FlatbufferBuilder $builder, array $data)
+    public static function createCharactersVector(FlatbufferBuilder $builder, array $data): int
     {
         $builder->startVector(4, Constants::asUOffset(count($data)), 4);
         for ($i = count($data) - 1; $i >= 0; $i--) {
@@ -206,9 +205,8 @@ class Movie extends Table
     /**
      * @param FlatbufferBuilder $builder
      * @param UOffsetT $numElems
-     * @return void
      */
-    public static function startCharactersVector(FlatbufferBuilder $builder, $numElems)
+    public static function startCharactersVector(FlatbufferBuilder $builder, int $numElems): void
     {
         $builder->startVector(4, $numElems, 4);
     }
@@ -217,7 +215,7 @@ class Movie extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT table offset
      */
-    public static function endMovie(FlatbufferBuilder $builder)
+    public static function endMovie(FlatbufferBuilder $builder): int
     {
         $o = $builder->endObject();
         return $o;

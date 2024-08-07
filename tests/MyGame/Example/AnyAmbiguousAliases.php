@@ -26,7 +26,7 @@ class AnyAmbiguousAliases
      * @param int $e
      * @return string
      */
-    public static function Name($e)
+    public static function Name(int $e): string
     {
         if (!isset(self::$names[$e])) {
             throw new \Exception();

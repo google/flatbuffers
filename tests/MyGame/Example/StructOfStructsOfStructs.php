@@ -39,7 +39,7 @@ class StructOfStructsOfStructs extends Struct
     /**
      * @return WPosT offset
      */
-    public static function createStructOfStructsOfStructs(FlatbufferBuilder $builder, $a_a_id, $a_a_distance, $a_b_a, $a_b_b, $a_c_id, $a_c_distance)
+    public static function createStructOfStructsOfStructs(FlatbufferBuilder $builder, $a_a_id, $a_a_distance, $a_b_a, $a_b_b, $a_c_id, $a_c_distance): int
     {
         $builder->prep(4, 20);
         $builder->prep(4, 20);

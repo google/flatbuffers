@@ -45,7 +45,7 @@ class Ability extends Struct
     /**
      * @return WPosT offset
      */
-    public static function createAbility(FlatbufferBuilder $builder, $id, $distance)
+    public static function createAbility(FlatbufferBuilder $builder, $id, $distance): int
     {
         $builder->prep(4, 8);
         $builder->putUint($distance);

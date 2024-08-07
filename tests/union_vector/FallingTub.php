@@ -35,7 +35,7 @@ class FallingTub extends Struct
     /**
      * @return WPosT offset
      */
-    public static function createFallingTub(FlatbufferBuilder $builder, $weight)
+    public static function createFallingTub(FlatbufferBuilder $builder, $weight): int
     {
         $builder->prep(4, 4);
         $builder->putInt($weight);

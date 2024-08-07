@@ -45,7 +45,7 @@ class Test extends Struct
     /**
      * @return WPosT offset
      */
-    public static function createTest(FlatbufferBuilder $builder, $a, $b)
+    public static function createTest(FlatbufferBuilder $builder, $a, $b): int
     {
         $builder->prep(2, 4);
         $builder->pad(1);

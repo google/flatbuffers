@@ -190,7 +190,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + Indent + "$o = $this->__offset(";
     code += NumToString(field.value.offset) + ");\n";
     code += Indent + Indent;
-    code += "return $o != 0 ? $this->__vector_len($o) : 0;\n";
+    code += "return $o !== 0 ? $this->__vector_len($o) : 0;\n";
     code += Indent + "}\n\n";
   }
 
@@ -245,11 +245,21 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " */\n";
     code += Indent + "public function get";
     code += ConvertCase(field.name, Case::kUpperCamel);
-    code += "()\n";
+    code += "(): ";
+    if (IsBool(field.value.type.base_type)) {
+      code += "bool";
+    } else if (IsFloat(field.value.type.base_type)) {
+      code += "float";
+    } else if (IsInteger(field.value.type.base_type)) {
+      code += "int";
+    } else {
+      code += "int";
+    }
+    code += "\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n" + Indent + Indent +
-            "return $o != 0 ? ";
+            "return $o !== 0 ? ";
     code += "$this->bb->get";
     code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) +
             "(Constants::asNPos($o + $this->bb_pos))";
@@ -293,7 +303,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
     code += Indent + Indent;
-    code += "return $o != 0 ? $obj->init(";
+    code += "return $o !== 0 ? $obj->init(";
     if (field.value.type.struct_def->fixed) {
       code += "$o + $this->bb_pos, $this->bb) : ";
     } else {
@@ -314,7 +324,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
     code += Indent + Indent;
-    code += "return $o != 0 ? $this->__string($o + $this->bb_pos) : ";
+    code += "return $o !== 0 ? $this->__string($o + $this->bb_pos) : ";
     code += GenDefaultValue(field.value) + ";\n";
     code += Indent + "}\n\n";
   }
@@ -336,7 +346,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
     code += Indent + Indent;
-    code += "return $o != 0 ? $this->__union($obj, $o) : null;\n";
+    code += "return $o !== 0 ? $this->__union($obj, $o) : null;\n";
     code += Indent + "}\n\n";
   }
 
@@ -353,7 +363,8 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " */\n";
     code += Indent + "public function get";
     code += ConvertCase(field.name, Case::kUpperCamel);
-    code += "(int $j)\n";
+    code += "(int $j): ?";
+    code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) + "\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
@@ -365,10 +376,10 @@ class PhpGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT:
         if (struct_def.fixed) {
           code += Indent + Indent;
-          code += "return $o != 0 ? $obj->init($this->bb_pos +" +
+          code += "return $o !== 0 ? $obj->init($this->bb_pos +" +
                   NumToString(field.value.offset) + ", $this->bb) : null;\n";
         } else {
-          code += Indent + Indent + "return $o != 0 ? $obj->init(";
+          code += Indent + Indent + "return $o !== 0 ? $obj->init(";
           code +=
               field.value.type.struct_def->fixed
                   ? "$o + $this->bb_pos"
@@ -382,7 +393,7 @@ class PhpGenerator : public BaseGenerator {
         break;
       case BASE_TYPE_VECTOR:
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
-          code += Indent + Indent + "return $o != 0 ? $obj->init(";
+          code += Indent + Indent + "return $o !== 0 ? $obj->init(";
           if (vectortype.struct_def->fixed) {
             code += "$this->__vector($o) + $j *";
             code += NumToString(InlineSize(vectortype));
@@ -395,7 +406,7 @@ class PhpGenerator : public BaseGenerator {
         }
         break;
       case BASE_TYPE_UNION:
-        code += Indent + Indent + "return $o != 0 ? $this->";
+        code += Indent + Indent + "return $o !== 0 ? $this->";
         code += GenGetter(field.value.type) + "($obj, $o); null;\n";
         break;
       default: break;
@@ -413,13 +424,23 @@ class PhpGenerator : public BaseGenerator {
 
     code += Indent + "/**\n";
     code += Indent + " * @param UOffsetT $j offset\n";
-    code += Indent + " * @return " +
+    code += Indent + " * @return ?" +
             ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) +
             "T\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
     code += ConvertCase(field.name, Case::kUpperCamel);
-    code += "(int $j)\n";
+    code += "(int $j): ?";
+    if (IsBool(field.value.type.VectorType().base_type)) {
+      code += "bool";
+    } else if (IsFloat(field.value.type.VectorType().base_type)) {
+      code += "float";
+    } else if (IsInteger(field.value.type.VectorType().base_type)) {
+      code += "int";
+    } else {
+      code += "int";
+    }
+    code += "\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
@@ -427,16 +448,15 @@ class PhpGenerator : public BaseGenerator {
     if (IsString(field.value.type.VectorType())) {
       code += Indent + Indent;
       code +=
-          "return $o != 0 ? "
+          "return $o !== 0 ? "
           "$this->__string(Constants::asNPos($this->__vector($o) + $j * ";
       code += NumToString(InlineSize(vectortype)) + ")) : ";
       code += GenDefaultValue(field.value) + ";\n";
     } else {
-      code += Indent + Indent + "return $o != 0 ? $this->bb->get";
+      code += Indent + Indent + "return $o !== 0 ? $this->bb->get";
       code += ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel);
       code += "(Constants::asNPos($this->__vector($o) + $j * ";
-      code += NumToString(InlineSize(vectortype)) + ")) : ";
-      code += GenDefaultValue(field.value) + ";\n";
+      code += NumToString(InlineSize(vectortype)) + ")) : null;\n";
     }
     code += Indent + "}\n\n";
   }
@@ -459,7 +479,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $this->__offset(" +
             NumToString(field.value.offset) + ");\n";
-    code += Indent + Indent + "return $o != 0 ? ";
+    code += Indent + Indent + "return $o !== 0 ? ";
     code += "$this->__union($obj, $this->__vector($o) + $j * ";
     code += NumToString(InlineSize(vectortype)) + " - $this->bb_pos) : null;\n";
     code += Indent + "}\n\n";
@@ -520,10 +540,9 @@ class PhpGenerator : public BaseGenerator {
 
     code += Indent + "/**\n";
     code += Indent + " * @param FlatbufferBuilder $builder\n";
-    code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function start" + struct_def.name;
-    code += "(FlatbufferBuilder $builder)\n";
+    code += "(FlatbufferBuilder $builder): void\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->StartObject(";
     code += NumToString(struct_def.fields.vec.size());
@@ -537,7 +556,14 @@ class PhpGenerator : public BaseGenerator {
       auto &field = **it;
 
       if (field.deprecated) continue;
-      code += Indent + " * @param NPosT $" + field.name + "\n";
+      code += Indent + " * @param ";
+      if (IsScalar(field.value.type.base_type)) {
+        code +=
+            ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) + "T";
+      } else {
+        code += "NPosT";
+      }
+      code += " $" + field.name + "\n";
     }
     code += Indent + " * @return WPosT\n";
     code += Indent + " */\n";
@@ -550,9 +576,18 @@ class PhpGenerator : public BaseGenerator {
 
       if (field.deprecated) continue;
       if (it != struct_def.fields.vec.begin()) { code += ", "; }
-      code += "int $" + field.name;
+      if (IsBool(field.value.type.base_type)) {
+        code += "bool";
+      } else if (IsFloat(field.value.type.base_type)) {
+        code += "float";
+      } else if (IsInteger(field.value.type.base_type)) {
+        code += "int";
+      } else {
+        code += "int";
+      }
+      code += " $" + field.name;
     }
-    code += ")\n";
+    code += "): int\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->startObject(";
     code += NumToString(struct_def.fields.vec.size());
@@ -589,15 +624,33 @@ class PhpGenerator : public BaseGenerator {
 
     code += Indent + "/**\n";
     code += Indent + " * @param FlatbufferBuilder $builder\n";
-    code += Indent + " * @param WPosT $" +
-            ConvertCase(field.name, Case::kLowerCamel) + "\n";
-    code += Indent + " * @return void\n";
+    code += Indent + " * @param ";
+
+    if (IsScalar(field.value.type.base_type)) {
+      code +=
+          ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) + "T";
+    } else {
+      code += "WPosT";
+    }
+
+    code += " $" + ConvertCase(field.name, Case::kLowerCamel) + "\n";
     code += Indent + " */\n";
     code += Indent + "public static function ";
     code += "add" + ConvertCase(field.name, Case::kUpperCamel);
-    code += "(FlatbufferBuilder $builder, mixed ";
-    code += "$" + ConvertCase(field.name, Case::kLowerCamel);
-    code += ")\n";
+    code += "(FlatbufferBuilder $builder, ";
+
+    if (IsBool(field.value.type.base_type)) {
+      code += "bool";
+    } else if (IsFloat(field.value.type.base_type)) {
+      code += "float";
+    } else if (IsInteger(field.value.type.base_type)) {
+      code += "int";
+    } else {
+      code += "int";
+    }
+
+    code += " $" + ConvertCase(field.name, Case::kLowerCamel);
+    code += "): void\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->add";
     code += GenMethod(field) + "X(";
@@ -624,15 +677,19 @@ class PhpGenerator : public BaseGenerator {
     auto elem_size = InlineSize(vector_type);
     code += Indent + "/**\n";
     code += Indent + " * @param FlatbufferBuilder $builder\n";
-    code += Indent + " * @param list<" +
-            ConvertCase(GenTypeBasic(field.value.type.VectorType()),
-                        Case::kUpperCamel) +
-            "T> $data offset array\n";
+    code += Indent + " * @param list<";
+    if (IsScalar(field.value.type.VectorType().base_type)) {
+      code +=
+          ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel) + "T";
+    } else {
+      code += "WPosT";
+    }
+    code += "> $data offset array\n";
     code += Indent + " * @return WPosT vector offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function create";
     code += ConvertCase(field.name, Case::kUpperCamel);
-    code += "Vector(FlatbufferBuilder $builder, array $data)\n";
+    code += "Vector(FlatbufferBuilder $builder, array $data): int\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->startVector(";
     code += NumToString(elem_size);
@@ -657,11 +714,10 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "/**\n";
     code += Indent + " * @param FlatbufferBuilder $builder\n";
     code += Indent + " * @param UOffsetT $numElems\n";
-    code += Indent + " * @return void\n";
     code += Indent + " */\n";
     code += Indent + "public static function start";
     code += ConvertCase(field.name, Case::kUpperCamel);
-    code += "Vector(FlatbufferBuilder $builder, $numElems)\n";
+    code += "Vector(FlatbufferBuilder $builder, int $numElems): void\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$builder->startVector(";
     code += NumToString(elem_size);
@@ -679,7 +735,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @return WPosT table offset\n";
     code += Indent + " */\n";
     code += Indent + "public static function end" + struct_def.name;
-    code += "(FlatbufferBuilder $builder)\n";
+    code += "(FlatbufferBuilder $builder): int\n";
     code += Indent + "{\n";
     code += Indent + Indent + "$o = $builder->endObject();\n";
 
@@ -770,9 +826,13 @@ class PhpGenerator : public BaseGenerator {
       auto offset = it - struct_def.fields.vec.begin();
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         std::string &code = *code_ptr;
+        code += Indent + "/**\n";
+        code += Indent + " * @param FlatbufferBuilder $builder\n";
+        code += Indent + " * @param WPosT $offset\n";
+        code += Indent + " */\n";
         code += Indent + "public static function add";
         code += ConvertCase(field.name, Case::kUpperCamel);
-        code += "(FlatbufferBuilder $builder, int $offset)\n";
+        code += "(FlatbufferBuilder $builder, int $offset): void\n";
         code += Indent + "{\n";
         code += Indent + Indent + "$builder->addOffsetX(";
         code += NumToString(offset) + ", $offset, 0);\n";
@@ -881,7 +941,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + " * @param int $e\n";
     code += Indent + " * @return string\n";
     code += Indent + " */\n";
-    code += Indent + "public static function Name($e)\n";
+    code += Indent + "public static function Name(int $e): string\n";
     code += Indent + "{\n";
     code += Indent + Indent + "if (!isset(self::$names[$e])) {\n";
     code += Indent + Indent + Indent + "throw new \\Exception();\n";
@@ -972,7 +1032,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "public static function create" + struct_def.name;
     code += "(FlatbufferBuilder $builder";
     StructBuilderArgs(struct_def, "", code_ptr);
-    code += ")\n";
+    code += "): int\n";
     code += Indent + "{\n";
 
     StructBuilderBody(struct_def, "", code_ptr);

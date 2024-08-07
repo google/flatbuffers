@@ -53,32 +53,31 @@ class Stat extends Table
     public function getId()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->__string($o + $this->bb_pos) : null;
+        return $o !== 0 ? $this->__string($o + $this->bb_pos) : null;
     }
 
     /**
      * @return LongT
      */
-    public function getVal()
+    public function getVal(): int
     {
         $o = $this->__offset(6);
-        return $o != 0 ? $this->bb->getLong(Constants::asNPos($o + $this->bb_pos)) : 0;
+        return $o !== 0 ? $this->bb->getLong(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
      * @return UshortT
      */
-    public function getCount()
+    public function getCount(): int
     {
         $o = $this->__offset(8);
-        return $o != 0 ? $this->bb->getUshort(Constants::asNPos($o + $this->bb_pos)) : 0;
+        return $o !== 0 ? $this->bb->getUshort(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return void
      */
-    public static function startStat(FlatbufferBuilder $builder)
+    public static function startStat(FlatbufferBuilder $builder): void
     {
         $builder->StartObject(3);
     }
@@ -86,11 +85,11 @@ class Stat extends Table
     /**
      * @param FlatbufferBuilder $builder
      * @param NPosT $id
-     * @param NPosT $val
-     * @param NPosT $count
+     * @param LongT $val
+     * @param UshortT $count
      * @return WPosT
      */
-    public static function createStat(FlatbufferBuilder $builder, int $id, int $val, int $count)
+    public static function createStat(FlatbufferBuilder $builder, int $id, int $val, int $count): int
     {
         $builder->startObject(3);
         self::addId($builder, $id);
@@ -103,29 +102,26 @@ class Stat extends Table
     /**
      * @param FlatbufferBuilder $builder
      * @param WPosT $id
-     * @return void
      */
-    public static function addId(FlatbufferBuilder $builder, mixed $id)
+    public static function addId(FlatbufferBuilder $builder, int $id): void
     {
         $builder->addOffsetX(0, $id, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param WPosT $val
-     * @return void
+     * @param LongT $val
      */
-    public static function addVal(FlatbufferBuilder $builder, mixed $val)
+    public static function addVal(FlatbufferBuilder $builder, int $val): void
     {
         $builder->addLongX(1, $val, 0);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param WPosT $count
-     * @return void
+     * @param UshortT $count
      */
-    public static function addCount(FlatbufferBuilder $builder, mixed $count)
+    public static function addCount(FlatbufferBuilder $builder, int $count): void
     {
         $builder->addUshortX(2, $count, 0);
     }
@@ -134,7 +130,7 @@ class Stat extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT table offset
      */
-    public static function endStat(FlatbufferBuilder $builder)
+    public static function endStat(FlatbufferBuilder $builder): int
     {
         $o = $builder->endObject();
         return $o;

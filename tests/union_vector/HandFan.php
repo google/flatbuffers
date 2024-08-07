@@ -46,27 +46,26 @@ class HandFan extends Table
     /**
      * @return IntT
      */
-    public function getLength()
+    public function getLength(): int
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getInt(Constants::asNPos($o + $this->bb_pos)) : 0;
+        return $o !== 0 ? $this->bb->getInt(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return void
      */
-    public static function startHandFan(FlatbufferBuilder $builder)
+    public static function startHandFan(FlatbufferBuilder $builder): void
     {
         $builder->StartObject(1);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param NPosT $length
+     * @param IntT $length
      * @return WPosT
      */
-    public static function createHandFan(FlatbufferBuilder $builder, int $length)
+    public static function createHandFan(FlatbufferBuilder $builder, int $length): int
     {
         $builder->startObject(1);
         self::addLength($builder, $length);
@@ -76,10 +75,9 @@ class HandFan extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param WPosT $length
-     * @return void
+     * @param IntT $length
      */
-    public static function addLength(FlatbufferBuilder $builder, mixed $length)
+    public static function addLength(FlatbufferBuilder $builder, int $length): void
     {
         $builder->addIntX(0, $length, 0);
     }
@@ -88,7 +86,7 @@ class HandFan extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT table offset
      */
-    public static function endHandFan(FlatbufferBuilder $builder)
+    public static function endHandFan(FlatbufferBuilder $builder): int
     {
         $o = $builder->endObject();
         return $o;

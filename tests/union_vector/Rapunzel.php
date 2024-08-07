@@ -35,7 +35,7 @@ class Rapunzel extends Struct
     /**
      * @return WPosT offset
      */
-    public static function createRapunzel(FlatbufferBuilder $builder, $hairLength)
+    public static function createRapunzel(FlatbufferBuilder $builder, $hairLength): int
     {
         $builder->prep(4, 4);
         $builder->putInt($hairLength);

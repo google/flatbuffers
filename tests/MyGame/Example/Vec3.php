@@ -79,7 +79,7 @@ class Vec3 extends Struct
     /**
      * @return WPosT offset
      */
-    public static function createVec3(FlatbufferBuilder $builder, $x, $y, $z, $test1, $test2, $test3_a, $test3_b)
+    public static function createVec3(FlatbufferBuilder $builder, $x, $y, $z, $test1, $test2, $test3_a, $test3_b): int
     {
         $builder->prep(8, 32);
         $builder->pad(2);

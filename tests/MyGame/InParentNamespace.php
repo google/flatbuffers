@@ -52,9 +52,8 @@ class InParentNamespace extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return void
      */
-    public static function startInParentNamespace(FlatbufferBuilder $builder)
+    public static function startInParentNamespace(FlatbufferBuilder $builder): void
     {
         $builder->StartObject(0);
     }
@@ -63,7 +62,7 @@ class InParentNamespace extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT
      */
-    public static function createInParentNamespace(FlatbufferBuilder $builder, )
+    public static function createInParentNamespace(FlatbufferBuilder $builder, ): int
     {
         $builder->startObject(0);
         $o = $builder->endObject();
@@ -74,7 +73,7 @@ class InParentNamespace extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT table offset
      */
-    public static function endInParentNamespace(FlatbufferBuilder $builder)
+    public static function endInParentNamespace(FlatbufferBuilder $builder): int
     {
         $o = $builder->endObject();
         return $o;

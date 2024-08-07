@@ -53,27 +53,26 @@ class Referrable extends Table
     /**
      * @return UlongT
      */
-    public function getId()
+    public function getId(): int
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getUlong(Constants::asNPos($o + $this->bb_pos)) : 0;
+        return $o !== 0 ? $this->bb->getUlong(Constants::asNPos($o + $this->bb_pos)) : 0;
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return void
      */
-    public static function startReferrable(FlatbufferBuilder $builder)
+    public static function startReferrable(FlatbufferBuilder $builder): void
     {
         $builder->StartObject(1);
     }
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param NPosT $id
+     * @param UlongT $id
      * @return WPosT
      */
-    public static function createReferrable(FlatbufferBuilder $builder, int $id)
+    public static function createReferrable(FlatbufferBuilder $builder, int $id): int
     {
         $builder->startObject(1);
         self::addId($builder, $id);
@@ -83,10 +82,9 @@ class Referrable extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param WPosT $id
-     * @return void
+     * @param UlongT $id
      */
-    public static function addId(FlatbufferBuilder $builder, mixed $id)
+    public static function addId(FlatbufferBuilder $builder, int $id): void
     {
         $builder->addUlongX(0, $id, 0);
     }
@@ -95,7 +93,7 @@ class Referrable extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT table offset
      */
-    public static function endReferrable(FlatbufferBuilder $builder)
+    public static function endReferrable(FlatbufferBuilder $builder): int
     {
         $o = $builder->endObject();
         return $o;

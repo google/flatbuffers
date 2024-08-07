@@ -35,7 +35,7 @@ class BookReader extends Struct
     /**
      * @return WPosT offset
      */
-    public static function createBookReader(FlatbufferBuilder $builder, $booksRead)
+    public static function createBookReader(FlatbufferBuilder $builder, $booksRead): int
     {
         $builder->prep(4, 4);
         $builder->putInt($booksRead);

@@ -52,9 +52,8 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @return void
      */
-    public static function startMonster(FlatbufferBuilder $builder)
+    public static function startMonster(FlatbufferBuilder $builder): void
     {
         $builder->StartObject(0);
     }
@@ -63,7 +62,7 @@ class Monster extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT
      */
-    public static function createMonster(FlatbufferBuilder $builder, )
+    public static function createMonster(FlatbufferBuilder $builder, ): int
     {
         $builder->startObject(0);
         $o = $builder->endObject();
@@ -74,7 +73,7 @@ class Monster extends Table
      * @param FlatbufferBuilder $builder
      * @return WPosT table offset
      */
-    public static function endMonster(FlatbufferBuilder $builder)
+    public static function endMonster(FlatbufferBuilder $builder): int
     {
         $o = $builder->endObject();
         return $o;
