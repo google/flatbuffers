@@ -795,7 +795,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// buffer as a `vector`.
   /// @return Returns a typed `Offset` into the serialized data indicating
   /// where the vector is stored.
-  template<typename T, typename Alloc = std::allocator<T>>
+  template<typename T, typename Alloc = std::allocator<T>, typename = std::enable_if_t<!std::is_same_v<T, bool>>>
   Offset<Vector<T>> CreateVector(const std::vector<T, Alloc> &v) {
     return CreateVector(data(v), v.size());
   }
@@ -809,7 +809,8 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   // vector<bool> may be implemented using a bit-set, so we can't access it as
   // an array. Instead, read elements manually.
   // Background: https://isocpp.org/blog/2012/11/on-vectorbool
-  Offset<Vector<uint8_t>> CreateVector(const std::vector<bool> &v) {
+  template<typename T, typename Alloc = std::allocator<T>, typename = std::enable_if_t<std::is_same_v<T, bool>>>
+  Offset<Vector<uint8_t>> CreateVector(const std::vector<T, Alloc> &v) {
     StartVector<uint8_t>(v.size());
     for (auto i = v.size(); i > 0;) {
       PushElement(static_cast<uint8_t>(v[--i]));
