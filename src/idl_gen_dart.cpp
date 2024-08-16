@@ -207,6 +207,15 @@ class DartGenerator : public BaseGenerator {
   // Generate an enum declaration and an enum string lookup table.
   void GenEnum(EnumDef &enum_def, namespace_code_map &namespace_code) {
     if (enum_def.generated) return;
+
+    // In addition to the global list of keywords, we have to avoid using 'value', 'values', 'minValue' and 'maxValue'
+    // as names of enum properties here, beause we use them as names in the generated class already
+    std::set<std::string> enum_keywords (DartKeywords());
+    enum_keywords.insert("value");
+    enum_keywords.insert("values");
+    enum_keywords.insert("minValue");
+    enum_keywords.insert("maxValue");
+    Namer enum_namer = Namer(WithFlagOptions(DartDefaultConfig(), this->parser_.opts, path_), enum_keywords);
     std::string &code =
         namespace_code[namer_.Namespace(*enum_def.defined_namespace)];
     GenDocComment(enum_def.doc_comment, "", code);
@@ -258,7 +267,7 @@ class DartGenerator : public BaseGenerator {
 
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      const auto enum_var = namer_.Variant(ev);
+      const auto enum_var = enum_namer.Variant(ev.name);
 
       if (!ev.doc_comment.empty()) {
         if (it != enum_def.Vals().begin()) { code += '\n'; }
@@ -271,7 +280,7 @@ class DartGenerator : public BaseGenerator {
     code += "  static const Map<int, " + enum_type + "> values = {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &ev = **it;
-      const auto enum_var = namer_.Variant(ev);
+      const auto enum_var = enum_namer.Variant(ev.name);
       if (it != enum_def.Vals().begin()) code += ",\n";
       code += "    " + enum_def.ToString(ev) + ": " + enum_var;
     }

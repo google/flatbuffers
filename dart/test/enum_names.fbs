@@ -1,0 +1,6 @@
+enum EnumWithReservedNames : uint32 {
+  value = 1,
+  values = 2,
+  minValue = 3,
+  maxValue = 4
+}
