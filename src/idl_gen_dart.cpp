@@ -106,6 +106,10 @@ class DartGenerator : public BaseGenerator {
                         (rename_namespace.empty()
                              ? ";\n"
                              : " as " + ImportAliasName(rename_namespace) + ";\n"));
+
+        if (rename_namespace.empty()) {
+          imports.emplace("export './" + filename + "';\n");
+        }
       }
     }
   }

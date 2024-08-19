@@ -34,6 +34,7 @@ cd ../dart
 
 ../flatc --dart --gen-object-api -o ./test ./test/enums.fbs
 ../flatc --dart --gen-object-api -o ./test ./test/bool_structs.fbs
+../flatc --dart --gen-object-api -o ./test ./test/includes_*.fbs
 
 # update packages
 dart pub get

@@ -94,7 +94,7 @@ class _MyTableReader extends fb.TableReader<MyTable> {
   const _MyTableReader();
 
   @override
-  MyTable createObject(fb.BufferContext bc, int offset) => 
+  MyTable createObject(fb.BufferContext bc, int offset) =>
     MyTable._(bc, offset);
 }
 
