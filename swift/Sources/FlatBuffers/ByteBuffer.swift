@@ -100,7 +100,7 @@ public struct ByteBuffer {
 
   /// The size of the elements written to the buffer + their paddings
   private var _writerSize: Int = 0
-  /// Aliginment of the current  memory being written to the buffer
+  /// Alignment of the current  memory being written to the buffer
   var alignment = 1
   /// Current Index which is being used to write to the buffer, it is written from the end to the start of the buffer
   var writerIndex: Int { _storage.capacity &- _writerSize }
@@ -474,7 +474,6 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - index: index of the string in the buffer
   ///   - count: length of the string
-  ///   - type: Encoding of the string
   @inline(__always)
   public func readString(
     at index: Int,
