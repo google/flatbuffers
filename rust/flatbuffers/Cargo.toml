@@ -17,7 +17,7 @@ std = []
 serialize = ["serde"]
 
 [dependencies]
-bitflags = "1.2.1"
+bitflags = "2.6.0"
 serde = { version = "1.0", optional = true }
 
 [build-dependencies]
