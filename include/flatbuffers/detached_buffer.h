@@ -80,6 +80,11 @@ class DetachedBuffer {
 
   size_t size() const { return size_; }
 
+  uint8_t *begin() { return data(); }
+  const uint8_t *begin() const { return data(); }
+  uint8_t *end() { return data() + size(); }
+  const uint8_t *end() const { return data() + size(); }
+
   // These may change access mode, leave these at end of public section
   FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer &other));
   FLATBUFFERS_DELETE_FUNC(
