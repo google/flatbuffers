@@ -23,7 +23,7 @@ public protocol NativeObject {}
 
 extension NativeObject {
 
-  /// Serialize is a helper function that serailizes the data from the Object API to a bytebuffer directly th
+  /// Serialize is a helper function that serializes the data from the Object API to a bytebuffer directly th
   /// - Parameter type: Type of the Flatbuffer object
   /// - Returns: returns the encoded sized ByteBuffer
   public func serialize<T: ObjectAPIPacker>(type: T.Type) -> ByteBuffer
@@ -33,7 +33,7 @@ extension NativeObject {
     return serialize(builder: &builder, type: type.self)
   }
 
-  /// Serialize is a helper function that serailizes the data from the Object API to a bytebuffer directly.
+  /// Serialize is a helper function that serializes the data from the Object API to a bytebuffer directly.
   ///
   /// - Parameters:
   ///   - builder: A FlatBufferBuilder
