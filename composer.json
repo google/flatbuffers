@@ -1,5 +1,5 @@
 {
-  "name": "tarosky/flatbuffers",
+  "name": "google/flatbuffers",
   "type": "library",
   "description": "FlatBuffers for PHP8+",
   "keywords": [
