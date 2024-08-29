@@ -21,12 +21,12 @@ class Movie extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function MovieIdentifier()
+    public static function MovieIdentifier(): string
     {
         return "MOVI";
     }
 
-    public static function MovieBufferHasIdentifier(ByteBuffer $buf)
+    public static function MovieBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::MovieIdentifier());
     }
@@ -113,9 +113,9 @@ class Movie extends Table
     /**
      * @param FlatbufferBuilder $builder
      * @param ByteT $main_character_type
-     * @param NPosT $main_character
-     * @param NPosT $characters_type
-     * @param NPosT $characters
+     * @param WPosT $main_character
+     * @param WPosT $characters_type
+     * @param WPosT $characters
      * @return WPosT
      */
     public static function createMovie(FlatbufferBuilder $builder, int $main_character_type, int $main_character, int $characters_type, int $characters): int
@@ -158,7 +158,7 @@ class Movie extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<ByteT> $data offset array
+     * @param list<ByteT> $data data
      * @return WPosT vector offset
      */
     public static function createCharactersTypeVector(FlatbufferBuilder $builder, array $data): int
@@ -181,6 +181,16 @@ class Movie extends Table
 
     /**
      * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createCharactersTypeVectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
      * @param WPosT $characters
      */
     public static function addCharacters(FlatbufferBuilder $builder, int $characters): void
@@ -190,7 +200,7 @@ class Movie extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createCharactersVector(FlatbufferBuilder $builder, array $data): int

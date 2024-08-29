@@ -23,17 +23,17 @@ class TestSimpleTableWithEnum extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function TestSimpleTableWithEnumIdentifier()
+    public static function TestSimpleTableWithEnumIdentifier(): string
     {
         return "MONS";
     }
 
-    public static function TestSimpleTableWithEnumBufferHasIdentifier(ByteBuffer $buf)
+    public static function TestSimpleTableWithEnumBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::TestSimpleTableWithEnumIdentifier());
     }
 
-    public static function TestSimpleTableWithEnumExtension()
+    public static function TestSimpleTableWithEnumExtension(): string
     {
         return "mon";
     }

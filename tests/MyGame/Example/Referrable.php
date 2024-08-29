@@ -23,17 +23,17 @@ class Referrable extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function ReferrableIdentifier()
+    public static function ReferrableIdentifier(): string
     {
         return "MONS";
     }
 
-    public static function ReferrableBufferHasIdentifier(ByteBuffer $buf)
+    public static function ReferrableBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::ReferrableIdentifier());
     }
 
-    public static function ReferrableExtension()
+    public static function ReferrableExtension(): string
     {
         return "mon";
     }

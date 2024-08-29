@@ -23,17 +23,17 @@ class Monster extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function MonsterIdentifier()
+    public static function MonsterIdentifier(): string
     {
         return "MONS";
     }
 
-    public static function MonsterBufferHasIdentifier(ByteBuffer $buf)
+    public static function MonsterBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::MonsterIdentifier());
     }
 
-    public static function MonsterExtension()
+    public static function MonsterExtension(): string
     {
         return "mon";
     }

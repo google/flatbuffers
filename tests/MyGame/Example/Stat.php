@@ -23,17 +23,17 @@ class Stat extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function StatIdentifier()
+    public static function StatIdentifier(): string
     {
         return "MONS";
     }
 
-    public static function StatBufferHasIdentifier(ByteBuffer $buf)
+    public static function StatBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::StatIdentifier());
     }
 
-    public static function StatExtension()
+    public static function StatExtension(): string
     {
         return "mon";
     }
@@ -50,10 +50,10 @@ class Stat extends Table
         return $this;
     }
 
-    public function getId()
+    public function getId(): ?string
     {
         $o = $this->__offset(4);
-        return $o !== 0 ? $this->__string($o + $this->bb_pos) : null;
+        return $o !== 0 ? $this->__string(Constants::asNPos($o + $this->bb_pos)) : null;
     }
 
     /**
@@ -84,7 +84,7 @@ class Stat extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param NPosT $id
+     * @param WPosT $id
      * @param LongT $val
      * @param UshortT $count
      * @return WPosT

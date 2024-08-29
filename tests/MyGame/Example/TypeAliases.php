@@ -23,17 +23,17 @@ class TypeAliases extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function TypeAliasesIdentifier()
+    public static function TypeAliasesIdentifier(): string
     {
         return "MONS";
     }
 
-    public static function TypeAliasesBufferHasIdentifier(ByteBuffer $buf)
+    public static function TypeAliasesBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::TypeAliasesIdentifier());
     }
 
-    public static function TypeAliasesExtension()
+    public static function TypeAliasesExtension(): string
     {
         return "mon";
     }
@@ -198,8 +198,8 @@ class TypeAliases extends Table
      * @param UlongT $u64
      * @param FloatT $f32
      * @param DoubleT $f64
-     * @param NPosT $v8
-     * @param NPosT $vf64
+     * @param WPosT $v8
+     * @param WPosT $vf64
      * @return WPosT
      */
     public static function createTypeAliases(FlatbufferBuilder $builder, int $i8, int $u8, int $i16, int $u16, int $i32, int $u32, int $i64, int $u64, float $f32, float $f64, int $v8, int $vf64): int
@@ -322,7 +322,7 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<SbyteT> $data offset array
+     * @param list<SbyteT> $data data
      * @return WPosT vector offset
      */
     public static function createV8Vector(FlatbufferBuilder $builder, array $data): int
@@ -345,6 +345,16 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createV8VectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
      * @param WPosT $vf64
      */
     public static function addVf64(FlatbufferBuilder $builder, int $vf64): void
@@ -354,7 +364,7 @@ class TypeAliases extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<DoubleT> $data offset array
+     * @param list<DoubleT> $data data
      * @return WPosT vector offset
      */
     public static function createVf64Vector(FlatbufferBuilder $builder, array $data): int

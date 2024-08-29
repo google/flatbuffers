@@ -26,32 +26,32 @@ class StructOfStructs extends Struct
     }
 
     /**
-     * @return AbilityT
+     * @return Ability
      */
-    public function getA()
+    public function getA(): Ability
     {
         $obj = new Ability();
-        $obj->init($this->bb_pos + 0, $this->bb);
+        $obj->init(Constants::asNPos($this->bb_pos + 0), $this->bb);
         return $obj;
     }
 
     /**
-     * @return TestT
+     * @return Test
      */
-    public function getB()
+    public function getB(): Test
     {
         $obj = new Test();
-        $obj->init($this->bb_pos + 8, $this->bb);
+        $obj->init(Constants::asNPos($this->bb_pos + 8), $this->bb);
         return $obj;
     }
 
     /**
-     * @return AbilityT
+     * @return Ability
      */
-    public function getC()
+    public function getC(): Ability
     {
         $obj = new Ability();
-        $obj->init($this->bb_pos + 12, $this->bb);
+        $obj->init(Constants::asNPos($this->bb_pos + 12), $this->bb);
         return $obj;
     }
 

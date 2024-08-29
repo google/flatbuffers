@@ -28,7 +28,7 @@ class BookReader extends Struct
      */
     public function GetBooksRead()
     {
-        return $this->bb->getInt($this->bb_pos + 0);
+        return $this->bb->getInt(Constants::asNPos($this->bb_pos + 0));
     }
 
 

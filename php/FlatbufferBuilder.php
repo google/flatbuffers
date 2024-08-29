@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2015 Google Inc.
  *
@@ -19,74 +20,79 @@
 /// @addtogroup flatbuffers_php_api
 /// @{
 
+// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+
+declare(strict_types=1);
+
 namespace Google\FlatBuffers;
 
 final class FlatbufferBuilder
 {
     /**
      * Internal ByteBuffer for the FlatBuffer data.
+     *
      * @var ByteBuffer $bb
      */
-    public $bb;
+    public ByteBuffer $bb;
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
-     * @var int $space
+     * @var NPosT $space Space: [0, $space).
      */
-    protected $space;
+    protected int $space;
 
     /**
-     * @var int $minalign
+     * @var int<1, 8> $minalign
      */
-    protected $minalign = 1;
+    protected int $minalign = 1;
 
     /**
-     * @var array $vtable
+     * @var ?array<VOffsetT, WPosT> $vtable
      */
-    protected $vtable;
+    protected ?array $vtable = null;
 
     /**
-     * @var int $vtable_in_use
+     * @var VOffsetT $vtable_in_use
      */
-    protected $vtable_in_use = 0;
+    protected int $vtable_in_use = 0;
 
     /**
      * @var bool $nested
      */
-    protected $nested = false;
+    protected bool $nested = false;
 
     /**
-     * @var int $object_start
+     * @var WPosT $object_start
      */
-    protected $object_start;
+    protected int $object_start;
 
     /**
-     * @var array $vtables
+     * @var array<int<0, max>, WPosT> $vtables
      */
-    protected $vtables = array();
+    protected array $vtables = [];
 
     /**
-     * @var int $num_vtables
+     * @var int<0, max> $num_vtables
      */
-    protected $num_vtables = 0;
+    protected int $num_vtables = 0;
 
     /**
-     * @var int $vector_num_elems
+     * @var UOffsetT $vector_num_elems
      */
-    protected $vector_num_elems = 0;
+    protected int $vector_num_elems = 0;
 
     /**
      * @var bool $force_defaults
      */
-    protected $force_defaults = false;
+    protected bool $force_defaults = false;
     /// @endcond
 
     /**
      * Create a FlatBufferBuilder with a given initial size.
      *
-     * @param $initial_size initial byte buffer size.
+     * @param BufSizeT $initial_size Initial byte buffer size.
      */
-    public function __construct($initial_size)
+    public function __construct(int $initial_size)
     {
         if ($initial_size <= 0) {
             $initial_size = 1;
@@ -97,12 +103,12 @@ final class FlatbufferBuilder
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
-     * create new bytebuffer
+     * Create new bytebuffer.
      *
-     * @param $size
+     * @param BufSizeT $size
      * @return ByteBuffer
      */
-    private function newByteBuffer($size)
+    private function newByteBuffer(int $size): ByteBuffer
     {
         return new ByteBuffer($size);
     }
@@ -110,408 +116,445 @@ final class FlatbufferBuilder
     /**
      * Returns the current ByteBuffer offset.
      *
-     * @return int
+     * @return WPosT
      */
-    public function offset()
+    public function offset(): int
     {
-        return $this->bb->capacity() - $this->space;
+        return $this->wpos();
     }
 
     /**
-     * padding buffer
+     * Returns the current ByteBuffer offset.
      *
-     * @param $byte_size
+     * @return WPosT
      */
-    public function pad($byte_size)
+    public function wpos(): int
+    {
+        return $this->bb->nposToWpos($this->space);
+    }
+
+    /**
+     * Padding buffer.
+     *
+     * @param int<0, 8> $byte_size
+     */
+    public function pad(int $byte_size): void
     {
         for ($i = 0; $i < $byte_size; $i++) {
-            $this->bb->putByte(--$this->space, "\0");
+            assert(0 < $this->space);
+            $this->bb->putByte(--$this->space, 0);
         }
     }
 
     /**
-     * prepare bytebuffer
+     * Prepare bytebuffer.
      *
-     * @param $size
-     * @param $additional_bytes
-     * @throws \Exception
+     * @param int<1, 8> $size
+     * @param int       $additional_bytes
      */
-    public function prep($size, $additional_bytes)
+    public function prep(int $size, int $additional_bytes): void
     {
         if ($size > $this->minalign) {
+            // TODO: Is this correct?
             $this->minalign = $size;
         }
 
-        $align_size = ((~($this->bb->capacity() - $this->space + $additional_bytes)) + 1) & ($size - 1);
-        while ($this->space < $align_size + $size  + $additional_bytes) {
+        $align_size = (~($this->wpos() + $additional_bytes) + 1) & ($size - 1);
+        assert(0 <= $align_size && $align_size < 8);
+        while ($this->space < $align_size + $size + $additional_bytes) {
             $old_buf_size = $this->bb->capacity();
-            $this->bb = $this->growByteBuffer($this->bb);
-            $this->space += $this->bb->capacity() - $old_buf_size;
+            $this->bb = $this->bb->createByGrowing();
+            $new_buf_size = $this->bb->capacity();
+            $this->space = Constants::asNPos($new_buf_size - $old_buf_size + $this->space);
         }
 
         $this->pad($align_size);
     }
 
     /**
-     * @param ByteBuffer $bb
-     * @return ByteBuffer
-     * @throws \Exception
+     * @param BoolT $x
      */
-    private static function growByteBuffer(ByteBuffer $bb)
+    public function putBool(bool $x): void
     {
-        $old_buf_size = $bb->capacity();
-        if (($old_buf_size & 0xC0000000) != 0) {
-            throw new \Exception("FlatBuffers: cannot grow buffer beyond 2 gigabytes");
-        }
-        $new_buf_size = $old_buf_size << 1;
-
-        $bb->setPosition(0);
-        $nbb = new ByteBuffer($new_buf_size);
-
-        $nbb->setPosition($new_buf_size - $old_buf_size);
-
-        // TODO(chobie): is this little bit faster?
-        //$nbb->_buffer = substr_replace($nbb->_buffer, $bb->_buffer, $new_buf_size - $old_buf_size, strlen($bb->_buffer));
-        for ($i = $new_buf_size - $old_buf_size, $j = 0; $j < strlen($bb->_buffer); $i++, $j++) {
-            $nbb->_buffer[$i] = $bb->_buffer[$j];
-        }
-
-        return $nbb;
+        assert(Constants::SIZEOF_BOOL <= $this->space);
+        $this->bb->putBool($this->space -= Constants::SIZEOF_BOOL, $x);
     }
 
     /**
-     * @param $x
+     * @param ByteT $x
      */
-    public function putBool($x)
+    public function putByte(int $x): void
     {
-        $this->bb->put($this->space -= 1, chr((int)(bool)($x)));
+        assert(Constants::SIZEOF_BYTE <= $this->space);
+        $this->bb->putByte($this->space -= Constants::SIZEOF_BYTE, $x);
     }
 
     /**
-     * @param $x
+     * @param SbyteT $x
      */
-    public function putByte($x)
+    public function putSbyte(int $x): void
     {
-        $this->bb->put($this->space -= 1, chr($x));
+        assert(Constants::SIZEOF_BYTE <= $this->space);
+        $this->bb->putSbyte($this->space -= Constants::SIZEOF_BYTE, $x);
     }
 
     /**
-     * @param $x
+     * @param ShortT $x
      */
-    public function putSbyte($x)
+    public function putShort(int $x): void
     {
-        $this->bb->put($this->space -= 1, chr($x));
+        assert(Constants::SIZEOF_SHORT <= $this->space);
+        $this->bb->putShort($this->space -= Constants::SIZEOF_SHORT, $x);
     }
 
     /**
-     * @param $x
+     * @param UshortT $x
      */
-    public function putShort($x)
+    public function putUshort(int $x): void
     {
-        $this->bb->putShort($this->space -= 2, $x);
+        assert(Constants::SIZEOF_SHORT <= $this->space);
+        $this->bb->putUshort($this->space -= Constants::SIZEOF_SHORT, $x);
     }
 
     /**
-     * @param $x
+     * @param IntT $x
      */
-    public function putUshort($x)
+    public function putInt(int $x): void
     {
-        $this->bb->putUshort($this->space -= 2, $x);
+        assert(Constants::SIZEOF_INT <= $this->space);
+        $this->bb->putInt($this->space -= Constants::SIZEOF_INT, $x);
     }
 
     /**
-     * @param $x
+     * @param UintT $x
      */
-    public function putInt($x)
-    {
-        $this->bb->putInt($this->space -= 4, $x);
-    }
-
-    /**
-     * @param $x
-     */
-    public function putUint($x)
+    public function putUint(int $x): void
     {
         if ($x > PHP_INT_MAX) {
             throw new \InvalidArgumentException("your platform can't handle uint correctly. use 64bit machine.");
         }
 
-        $this->bb->putUint($this->space -= 4, $x);
+        assert(Constants::SIZEOF_INT <= $this->space);
+        $this->bb->putUint($this->space -= Constants::SIZEOF_INT, $x);
     }
 
     /**
-     * @param $x
+     * @param UOffsetT $x
      */
-    public function putLong($x)
+    public function putUOffset(int $x): void
+    {
+        $this->putUint($x);
+    }
+
+    /**
+     * @param LongT $x
+     */
+    public function putLong(int $x): void
     {
         if ($x > PHP_INT_MAX) {
             throw new \InvalidArgumentException("Your platform can't handle long correctly. Use a 64bit machine.");
         }
 
-        $this->bb->putLong($this->space -= 8, $x);
+        assert(Constants::SIZEOF_LONG <= $this->space);
+        $this->bb->putLong($this->space -= Constants::SIZEOF_LONG, $x);
     }
 
     /**
-     * @param $x
+     * @param UlongT $x
      */
-    public function putUlong($x)
+    public function putUlong(int $x): void
     {
         if ($x > PHP_INT_MAX) {
-            throw new \InvalidArgumentException("Your platform can't handle ulong correctly. This is a php limitation. Please wait for the extension release.");
+            throw new \InvalidArgumentException(
+                "Your platform can't handle ulong correctly. This is a php limitation. " .
+                "Please wait for the extension release."
+            );
         }
 
-        $this->bb->putUlong($this->space -= 8, $x);
+        assert(Constants::SIZEOF_LONG <= $this->space);
+        $this->bb->putUlong($this->space -= Constants::SIZEOF_LONG, $x);
     }
 
     /**
-     * @param $x
+     * @param FloatT $x
      */
-    public function putFloat($x)
+    public function putFloat(float $x): void
     {
-        $this->bb->putFloat($this->space -= 4, $x);
+        assert(Constants::SIZEOF_FLOAT <= $this->space);
+        $this->bb->putFloat($this->space -= Constants::SIZEOF_FLOAT, $x);
     }
 
     /**
-     * @param $x
+     * @param DoubleT $x
      */
-    public function putDouble($x)
+    public function putDouble(float $x): void
     {
-        $this->bb->putDouble($this->space -= 8, $x);
+        assert(Constants::SIZEOF_DOUBLE <= $this->space);
+        $this->bb->putDouble($this->space -= Constants::SIZEOF_DOUBLE, $x);
     }
 
     /**
-     * @param $off
+     * TODO: Rename to "putUOffsetOf".
+     *
+     * @param WPosT $wpos
      */
-    public function putOffset($off)
+    public function putOffset(int $wpos): void
     {
-        $new_off = $this->offset() - $off + Constants::SIZEOF_INT;
-        $this->putInt($new_off);
+        $this->putUOffset(Constants::asUOffset($this->wpos() - $wpos + Constants::SIZEOF_UOFFSET));
     }
     /// @endcond
 
     /**
      * Add a `bool` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `bool` to add to the buffer.
+     *
+     * @param BoolT $x The `bool` to add to the buffer.
      */
-    public function addBool($x)
+    public function addBool(bool $x): void
     {
-        $this->prep(1, 0);
+        $this->prep(Constants::SIZEOF_BOOL, 0);
         $this->putBool($x);
     }
 
     /**
      * Add a `byte` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `byte` to add to the buffer.
+     *
+     * @param ByteT $x The `byte` to add to the buffer.
      */
-    public function addByte($x)
+    public function addByte(int $x): void
     {
-        $this->prep(1, 0);
+        $this->prep(Constants::SIZEOF_BYTE, 0);
         $this->putByte($x);
     }
 
     /**
      * Add a `signed byte` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `signed byte` to add to the buffer.
+     *
+     * @param SbyteT $x The `signed byte` to add to the buffer.
      */
-    public function addSbyte($x)
+    public function addSbyte(int $x): void
     {
-        $this->prep(1, 0);
+        $this->prep(Constants::SIZEOF_BYTE, 0);
         $this->putSbyte($x);
     }
 
     /**
      * Add a `short` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `short` to add to the buffer.
+     *
+     * @param ShortT $x The `short` to add to the buffer.
      */
-    public function addShort($x)
+    public function addShort(int $x): void
     {
-        $this->prep(2, 0);
+        $this->prep(Constants::SIZEOF_SHORT, 0);
         $this->putShort($x);
     }
 
     /**
      * Add an `unsigned short` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `unsigned short` to add to the buffer.
+     *
+     * @param UshortT $x The `unsigned short` to add to the buffer.
      */
-    public function addUshort($x)
+    public function addUshort(int $x): void
     {
-        $this->prep(2, 0);
+        $this->prep(Constants::SIZEOF_SHORT, 0);
         $this->putUshort($x);
     }
 
     /**
-     * Add an `int` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `int` to add to the buffer.
+     * @param VOffsetT $x The VOffset value to add to the buffer.
      */
-    public function addInt($x)
+    public function addVOffset(int $x): void
     {
-        $this->prep(4, 0);
+        $this->addUshort($x);
+    }
+
+    /**
+     * Add an `int` to the buffer, properly aligned, and grows the buffer (if necessary).
+     *
+     * @param IntT $x The `int` to add to the buffer.
+     */
+    public function addInt(int $x): void
+    {
+        $this->prep(Constants::SIZEOF_INT, 0);
+        $this->putInt($x);
+    }
+
+    /**
+     * @param SOffsetT $x The SOffset value to add to the buffer.
+     */
+    public function addSOffset(int $x): void
+    {
+        $this->prep(Constants::SIZEOF_INT, 0);
         $this->putInt($x);
     }
 
     /**
      * Add an `unsigned int` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `unsigned int` to add to the buffer.
+     *
+     * @param UintT $x The `unsigned int` to add to the buffer.
      */
-    public function addUint($x)
+    public function addUint(int $x): void
     {
-        $this->prep(4, 0);
+        $this->prep(Constants::SIZEOF_INT, 0);
         $this->putUint($x);
     }
 
     /**
      * Add a `long` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `long` to add to the buffer.
+     *
+     * @param LongT $x The `long` to add to the buffer.
      */
-    public function addLong($x)
+    public function addLong(int $x): void
     {
-        $this->prep(8, 0);
+        $this->prep(Constants::SIZEOF_LONG, 0);
         $this->putLong($x);
     }
 
     /**
      * Add an `unsigned long` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `unsigned long` to add to the buffer.
+     *
+     * @param UlongT $x The `unsigned long` to add to the buffer.
      */
-    public function addUlong($x)
+    public function addUlong(int $x): void
     {
-        $this->prep(8, 0);
+        $this->prep(Constants::SIZEOF_LONG, 0);
         $this->putUlong($x);
     }
 
     /**
      * Add a `float` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `float` to add to the buffer.
+     *
+     * @param FloatT $x The `float` to add to the buffer.
      */
-    public function addFloat($x)
+    public function addFloat(float $x): void
     {
-        $this->prep(4, 0);
+        $this->prep(Constants::SIZEOF_FLOAT, 0);
         $this->putFloat($x);
     }
 
     /**
      * Add a `double` to the buffer, properly aligned, and grows the buffer (if necessary).
-     * @param $x The `double` to add to the buffer.
+     *
+     * @param DoubleT $x The `double` to add to the buffer.
      */
-    public function addDouble($x)
+    public function addDouble(float $x): void
     {
-        $this->prep(8, 0);
+        $this->prep(Constants::SIZEOF_DOUBLE, 0);
         $this->putDouble($x);
     }
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param bool     $x
+     * @param bool     $d
      */
-    public function addBoolX($o, $x, $d)
+    public function addBoolX(int $o, bool $x, bool $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addBool($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param ByteT    $x
+     * @param ByteT    $d
      */
-    public function addByteX($o, $x, $d)
+    public function addByteX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addByte($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param SbyteT   $x
+     * @param SbyteT   $d
      */
-    public function addSbyteX($o, $x, $d)
+    public function addSbyteX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addSbyte($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param ShortT   $x
+     * @param ShortT   $d
      */
-    public function addShortX($o, $x, $d)
+    public function addShortX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addShort($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param UshortT  $x
+     * @param UshortT  $d
      */
-    public function addUshortX($o, $x, $d)
+    public function addUshortX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addUshort($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param IntT     $x
+     * @param IntT     $d
      */
-    public function addIntX($o, $x, $d)
+    public function addIntX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addInt($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param UintT    $x
+     * @param UintT    $d
      */
-    public function addUintX($o, $x, $d)
+    public function addUintX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addUint($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param LongT    $x
+     * @param LongT    $d
      */
-    public function addLongX($o, $x, $d)
+    public function addLongX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addLong($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param UlongT   $x
+     * @param UlongT   $d
      */
-    public function addUlongX($o, $x, $d)
+    public function addUlongX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addUlong($x);
             $this->slot($o);
         }
@@ -519,40 +562,40 @@ final class FlatbufferBuilder
 
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param FloatT   $x
+     * @param FloatT   $d
      */
-    public function addFloatX($o, $x, $d)
+    public function addFloatX(int $o, float $x, float $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addFloat($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
+     * @param VOffsetT $o
+     * @param DoubleT  $x
+     * @param DoubleT  $d
      */
-    public function addDoubleX($o, $x, $d)
+    public function addDoubleX(int $o, float $x, float $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addDouble($x);
             $this->slot($o);
         }
     }
 
     /**
-     * @param $o
-     * @param $x
-     * @param $d
-     * @throws \Exception
+     * @param VOffsetT $o
+     * @param WPosT    $x
+     * @param WPosT    $d
+     * @throws \Exception Exception.
      */
-    public function addOffsetX($o, $x, $d)
+    public function addOffsetX(int $o, int $x, int $d): void
     {
-        if ($this->force_defaults || $x != $d) {
+        if ($this->force_defaults || $x !== $d) {
             $this->addOffset($x);
             $this->slot($o);
         }
@@ -561,44 +604,49 @@ final class FlatbufferBuilder
 
     /**
      * Adds on offset, relative to where it will be written.
-     * @param $off The offset to add to the buffer.
-     * @throws \Exception Throws an exception if `$off` is greater than the underlying ByteBuffer's
-     * offest.
+     *
+     * @param WPosT $wpos The offset to add to the buffer.
+     * @throws \Exception Throws an exception if `$wpos` is greater than the underlying ByteBuffer's offest.
      */
-    public function addOffset($off)
+    public function addOffset(int $wpos): void
     {
-        $this->prep(Constants::SIZEOF_INT, 0); // Ensure alignment is already done
-        if ($off > $this->offset()) {
+        $this->prep(Constants::SIZEOF_UOFFSET, 0); // Ensure alignment is already done
+        if ($wpos > $this->wpos()) {
             throw new \Exception("");
         }
-        $this->putOffset($off);
+        $this->putOffset($wpos);
     }
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
-     * @param $elem_size
-     * @param $num_elems
-     * @param $alignment
-     * @throws \Exception
+     * @param int<1, 8> $elem_size
+     * @param UOffsetT  $num_elems
+     * @param int<1, 8> $alignment
+     * @throws \Exception Exception.
      */
-    public function startVector($elem_size, $num_elems, $alignment)
+    public function startVector(int $elem_size, int $num_elems, int $alignment): void
     {
         $this->notNested();
         $this->vector_num_elems = $num_elems;
-        $this->prep(Constants::SIZEOF_INT, $elem_size * $num_elems);
-        $this->prep($alignment, $elem_size * $num_elems); // Just in case alignemnt > int;
+        $this->prep(Constants::SIZEOF_UOFFSET, $elem_size * $num_elems);
+        // Just in case alignemnt > UOffsetT;
+        $this->prep($alignment, $elem_size * $num_elems);
     }
 
     /**
-     * @return int
+     * @return WPosT
      */
-    public function endVector()
+    public function endVector(): int
     {
-        $this->putUint($this->vector_num_elems);
-        return $this->offset();
+        $this->putUOffset($this->vector_num_elems);
+        return $this->wpos();
     }
 
-    protected function is_utf8($bytes)
+    /**
+     * @param string $bytes
+     * @return bool
+     */
+    protected function is_utf8(string $bytes): bool
     {
         if (function_exists('mb_detect_encoding')) {
             return (bool) mb_detect_encoding($bytes, 'UTF-8', true);
@@ -612,61 +660,73 @@ final class FlatbufferBuilder
 
         for ($j = 0, $i = 0; $i < $len; $i++) {
             // check ACII
-            if ($bytes[$j] == "\x09" ||
-                $bytes[$j] == "\x0A" ||
-                $bytes[$j] == "\x0D" ||
-                ($bytes[$j] >= "\x20" && $bytes[$j] <= "\x7E")) {
+            if (
+                $bytes[$j] === "\x09" ||
+                $bytes[$j] === "\x0A" ||
+                $bytes[$j] === "\x0D" ||
+                ($bytes[$j] >= "\x20" && $bytes[$j] <= "\x7E")
+            ) {
                 $j++;
                 continue;
             }
 
             /* non-overlong 2-byte */
-            if ((($i+1) <= $len) &&
+            if (
+                (($i + 1) <= $len) &&
                 ($bytes[$j] >= "\xC2" && $bytes[$j] <= "\xDF" &&
-                    ($bytes[$j+1] >= "\x80" && $bytes[$j+1] <= "\xBF"))) {
+                    ($bytes[$j + 1] >= "\x80" && $bytes[$j + 1] <= "\xBF"))
+            ) {
                 $j += 2;
                 $i++;
                 continue;
             }
 
             /* excluding overlongs */
-            if ((($i + 2) <= $len) &&
-                $bytes[$j] == "\xE0" &&
-                ($bytes[$j+1] >= "\xA0" && $bytes[$j+1] <= "\xBF" &&
-                    ($bytes[$j+2] >= "\x80" && $bytes[$j+2] <= "\xBF"))) {
+            if (
+                (($i + 2) <= $len) &&
+                $bytes[$j] === "\xE0" &&
+                ($bytes[$j + 1] >= "\xA0" && $bytes[$j + 1] <= "\xBF" &&
+                    ($bytes[$j + 2] >= "\x80" && $bytes[$j + 2] <= "\xBF"))
+            ) {
                 $bytes += 3;
-                $i +=2;
+                $i += 2;
                 continue;
             }
 
             /* straight 3-byte */
-            if ((($i+2) <= $len) &&
+            if (
+                (($i + 2) <= $len) &&
                 (($bytes[$j] >= "\xE1" && $bytes[$j] <= "\xEC") ||
-                    $bytes[$j] == "\xEE" ||
-                    $bytes[$j] = "\xEF") &&
-                ($bytes[$j+1] >= "\x80" && $bytes[$j+1] <= "\xBF") &&
-                ($bytes[$j+2] >= "\x80" && $bytes[$j+2] <= "\xBF")) {
+                    $bytes[$j] === "\xEE" ||
+                    $bytes[$j] === "\xEF") &&
+                ($bytes[$j + 1] >= "\x80" && $bytes[$j + 1] <= "\xBF") &&
+                ($bytes[$j + 2] >= "\x80" && $bytes[$j + 2] <= "\xBF")
+            ) {
                 $j += 3;
                 $i += 2;
                 continue;
             }
 
             /* excluding surrogates */
-            if ((($i+2) <= $len) &&
-                $bytes[$j] == "\xED" &&
-                ($bytes[$j+1] >= "\x80" && $bytes[$j+1] <= "\x9f" &&
-                    ($bytes[$j+2] >= "\x80" && $bytes[$j+2] <= "\xBF"))) {
+            if (
+                (($i + 2) <= $len) &&
+                $bytes[$j] === "\xED" &&
+                ($bytes[$j + 1] >= "\x80" && $bytes[$j + 1] <= "\x9f" &&
+                    ($bytes[$j + 2] >= "\x80" && $bytes[$j + 2] <= "\xBF"))
+            ) {
                 $j += 3;
                 $i += 2;
                 continue;
             }
 
             /* planes 1-3 */
-            if ((($i + 3) <= $len) &&
-                $bytes[$j] == "\xF0" &&
-                ($bytes[$j+1] >= "\x90" && $bytes[$j+1] <= "\xBF") &&
-                ($bytes[$j+2] >= "\x80" && $bytes[$j+2] <= "\xBF") &&
-                ($bytes[$j+3] >= "\x80" && $bytes[$j+3] <= "\xBF")) {
+            if (
+                (($i + 3) <= $len) &&
+                $bytes[$j] === "\xF0" &&
+                ($bytes[$j + 1] >= "\x90" && $bytes[$j + 1] <= "\xBF") &&
+                ($bytes[$j + 2] >= "\x80" && $bytes[$j + 2] <= "\xBF") &&
+                ($bytes[$j + 3] >= "\x80" && $bytes[$j + 3] <= "\xBF")
+            ) {
                 $j += 4;
                 $i += 3;
                 continue;
@@ -674,11 +734,12 @@ final class FlatbufferBuilder
 
 
             /* planes 4-15 */
-            if ((($i+3) <= $len) &&
+            if (
+                (($i + 3) <= $len) &&
                 $bytes[$j] >= "\xF1" && $bytes[$j] <= "\xF3" &&
-                $bytes[$j+1] >= "\x80" && $bytes[$j+1] <= "\xBF" &&
-                $bytes[$j+2] >= "\x80" && $bytes[$j+2] <= "\xBF" &&
-                $bytes[$j+3] >= "\x80" && $bytes[$j+3] <= "\xBF"
+                $bytes[$j + 1] >= "\x80" && $bytes[$j + 1] <= "\xBF" &&
+                $bytes[$j + 2] >= "\x80" && $bytes[$j + 2] <= "\xBF" &&
+                $bytes[$j + 3] >= "\x80" && $bytes[$j + 3] <= "\xBF"
             ) {
                 $j += 4;
                 $i += 3;
@@ -686,11 +747,12 @@ final class FlatbufferBuilder
             }
 
             /* plane 16 */
-            if ((($i+3) <= $len) &&
-                $bytes[$j] == "\xF4" &&
-                ($bytes[$j+1] >= "\x80" && $bytes[$j+1] <= "\x8F") &&
-                ($bytes[$j+2] >= "\x80" && $bytes[$j+2] <= "\xBF") &&
-                ($bytes[$j+3] >= "\x80" && $bytes[$j+3] <= "\xBF")
+            if (
+                (($i + 3) <= $len) &&
+                $bytes[$j] === "\xF4" &&
+                ($bytes[$j + 1] >= "\x80" && $bytes[$j + 1] <= "\x8F") &&
+                ($bytes[$j + 2] >= "\x80" && $bytes[$j + 2] <= "\xBF") &&
+                ($bytes[$j + 3] >= "\x80" && $bytes[$j + 3] <= "\xBF")
             ) {
                 $bytes += 4;
                 $i += 3;
@@ -707,32 +769,49 @@ final class FlatbufferBuilder
 
     /**
      * Encode the string `$s` in the buffer using UTF-8.
+     *
      * @param string $s The string to encode.
-     * @return int The offset in the buffer where the encoded string starts.
-     * @throws InvalidArgumentException Thrown if the input string `$s` is not
-     *     UTF-8.
+     * @return WPosT The offset in the buffer where the encoded string starts.
+     * @throws \InvalidArgumentException Thrown if the input string `$s` is not UTF-8.
      */
-    public function createString($s)
+    public function createString(string $s): int
     {
         if (!$this->is_utf8($s)) {
             throw new \InvalidArgumentException("string must be utf-8 encoded value.");
         }
 
+        $s_size = strlen($s);
+
         $this->notNested();
         $this->addByte(0); // null terminated
-        $this->startVector(1, strlen($s), 1);
-        $this->space -= strlen($s);
-        for ($i =  $this->space, $j = 0 ; $j < strlen($s) ; $i++, $j++) {
-            $this->bb->_buffer[$i] = $s[$j];
-        }
+        $this->startVector(1, Constants::asUOffset($s_size), 1);
+        $this->space = Constants::asNPos($this->space - $s_size);
+        $this->bb->put($this->space, $s);
+        return $this->endVector();
+    }
+
+    /**
+     * Encode the byte string `$bs` in the buffer.
+     *
+     * @param string $bs The byte string to encode.
+     * @return WPosT The offset in the buffer where the encoded string starts.
+     */
+    public function createByteString(string $bs): int
+    {
+        $s_size = strlen($bs);
+
+        $this->notNested();
+        $this->startVector(1, Constants::asUOffset($s_size), 1);
+        $this->space = Constants::asNPos($this->space - $s_size);
+        $this->bb->put($this->space, $bs);
         return $this->endVector();
     }
 
     /// @cond FLATBUFFERS_INTERNAL
     /**
-     * @throws \Exception
+     * @throws \Exception Exception.
      */
-    public function notNested()
+    public function notNested(): void
     {
         if ($this->nested) {
             throw new \Exception("FlatBuffers; object serialization must not be nested");
@@ -740,25 +819,25 @@ final class FlatbufferBuilder
     }
 
     /**
-     * @param $obj
-     * @throws \Exception
+     * @param WPosT $obj
+     * @throws \Exception Exception.
      */
-    public function nested($obj)
+    public function nested(int $obj): void
     {
-        if ($obj != $this->offset()) {
+        if ($obj !== $this->wpos()) {
             throw new \Exception("FlatBuffers: struct must be serialized inline");
         }
     }
 
     /**
-     * @param $numfields
-     * @throws \Exception
+     * @param VOffsetT $numfields
+     * @throws \Exception Exception.
      */
-    public function startObject($numfields)
+    public function startObject(int $numfields): void
     {
         $this->notNested();
-        if ($this->vtable == null || count($this->vtable) < $numfields) {
-            $this->vtable = array();
+        if ($this->vtable === null || count($this->vtable) < $numfields) {
+            $this->vtable = [];
         }
 
         $this->vtable_in_use = $numfields;
@@ -767,180 +846,195 @@ final class FlatbufferBuilder
         }
 
         $this->nested = true;
-        $this->object_start = $this->offset();
+        $this->object_start = $this->wpos();
     }
 
+    // TODO: Is this correct? Both `addStructX` and `addStruct` have the same definition.
     /**
-     * @param $voffset
-     * @param $x
-     * @param $d
-     * @throws \Exception
+     * @param VOffsetT $voffset
+     * @param WPosT    $x
+     * @param WPosT    $d
+     * @throws \Exception Exception.
      */
-    public function addStructX($voffset, $x, $d)
+    public function addStructX(int $voffset, int $x, int $d): void
     {
-        if ($x != $d) {
+        if ($x !== $d) {
             $this->nested($x);
             $this->slot($voffset);
         }
     }
 
     /**
-     * @param $voffset
-     * @param $x
-     * @param $d
-     * @throws \Exception
+     * @param VOffsetT $voffset
+     * @param WPosT    $x
+     * @param WPosT    $d
+     * @throws \Exception Exception.
      */
-    public function addStruct($voffset, $x, $d)
+    public function addStruct(int $voffset, int $x, int $d): void
     {
-        if ($x != $d) {
+        if ($x !== $d) {
             $this->nested($x);
             $this->slot($voffset);
         }
     }
 
     /**
-     * @param $voffset
+     * @param VOffsetT $voffset
      */
-    public function slot($voffset)
+    public function slot(int $voffset): void
     {
-        $this->vtable[$voffset] = $this->offset();
+        $this->vtable[$voffset] = $this->wpos();
     }
 
     /**
-     * @return int
-     * @throws \Exception
+     * @return WPosT
+     * @throws \Exception Exception.
      */
-    public function endObject()
+    public function endObject(): int
     {
-        if ($this->vtable == null || !$this->nested) {
+        if ($this->vtable === null || !$this->nested) {
             throw new \Exception("FlatBuffers: endObject called without startObject");
         }
 
-        $this->addInt(0);
-        $vtableloc = $this->offset();
+        $this->addSOffset(0);
+        $t_wpos = $this->wpos();
 
-        $i = $this->vtable_in_use -1;
+        assert($this->vtable !== null);
+        $i = $this->vtable_in_use - 1;
         // Trim trailing zeroes.
-        for (; $i >= 0 && $this->vtable[$i] == 0; $i--) {}
-        $trimmed_size = $i + 1;
+        for (; $i >= 0 && $this->vtable[$i] === 0; $i--) {
+        }
+        $effective_size = $i + 1;
         for (; $i >= 0; $i--) {
-            $off = ($this->vtable[$i] != 0) ? $vtableloc - $this->vtable[$i] : 0;
-            $this->addShort($off);
+            assert($this->vtable !== null);
+            $this->addVOffset(
+                Constants::asVOffset($this->vtable[$i] !== 0 ? $t_wpos - $this->vtable[$i] : 0)
+            );
         }
 
-        $standard_fields = 2; // the fields below
-        $this->addShort($vtableloc - $this->object_start);
-        $this->addShort(($trimmed_size + $standard_fields) * Constants::SIZEOF_SHORT);
+        $this->addVOffset(Constants::asVOffset($t_wpos - $this->object_start));
+        $this->addVOffset(Constants::asVOffset(($effective_size + 2) * Constants::SIZEOF_VOFFSET));
 
         // search for an existing vtable that matches the current one.
-        $existing_vtable = 0;
+        $shared_vt_wpos = null;
 
+        $current_vt_npos = $this->space;
+        $current_vt_voffset = $this->bb->getVOffset($current_vt_npos);
         for ($i = 0; $i < $this->num_vtables; $i++) {
-            $vt1 = $this->bb->capacity() - $this->vtables[$i];
-            $vt2 = $this->space;
+            $vt_npos = $this->bb->wposToNpos($this->vtables[$i]);
+            $vt_voffset = $this->bb->getVOffset($vt_npos);
 
-            $len = $this->bb->getShort($vt1);
-
-            if ($len == $this->bb->getShort($vt2)) {
-                for ($j = Constants::SIZEOF_SHORT; $j < $len; $j += Constants::SIZEOF_SHORT) {
-                    if ($this->bb->getShort($vt1 + $j) != $this->bb->getShort($vt2 + $j)) {
+            if ($vt_voffset === $current_vt_voffset) {
+                for ($j = Constants::SIZEOF_VOFFSET; $j < $vt_voffset; $j += Constants::SIZEOF_VOFFSET) {
+                    if (
+                        $this->bb->getVOffset(Constants::asVOffset($vt_npos + $j)) !==
+                        $this->bb->getVOffset(Constants::asVOffset($current_vt_npos + $j))
+                    ) {
                         continue 2;
                     }
                 }
-                $existing_vtable = $this->vtables[$i];
+                $shared_vt_wpos = $this->vtables[$i];
                 break;
             }
         }
 
-        if ($existing_vtable != 0) {
+        if ($shared_vt_wpos !== null) {
             // Found a match:
             // Remove the current vtable
-            $this->space = $this->bb->capacity() - $vtableloc;
-            $this->bb->putInt($this->space, $existing_vtable - $vtableloc);
+            $this->space = $this->bb->wposToNpos($t_wpos);
+            $this->bb->putSOffset(
+                $this->space,
+                Constants::asSOffset($shared_vt_wpos - $t_wpos)
+            );
         } else {
             // No Match:
             // Add the location of the current vtable to the list of vtables
-            if ($this->num_vtables == count($this->vtables)) {
+            if ($this->num_vtables === count($this->vtables)) {
                 $vtables = $this->vtables;
-                $this->vtables = array();
+                $this->vtables = [];
                 // copy of
                 for ($i = 0; $i < count($vtables) * 2; $i++) {
-                    $this->vtables[$i] = ($i < count($vtables)) ? $vtables[$i] : 0;
+                    $this->vtables[$i] = $i < count($vtables) ? $vtables[$i] : 0;
                 }
             }
-            $this->vtables[$this->num_vtables++] = $this->offset();
-            $this->bb->putInt($this->bb->capacity() - $vtableloc, $this->offset() - $vtableloc);
+            $this->vtables[$this->num_vtables++] = $this->wpos();
+            $this->bb->putSOffset(
+                $this->bb->wposToNpos($t_wpos),
+                Constants::asSOffset($this->wpos() - $t_wpos)
+            );
         }
 
         $this->nested = false;
         $this->vtable = null;
-        return $vtableloc;
+        return $t_wpos;
     }
 
     /**
-     * @param $table
-     * @param $field
-     * @throws \Exception
+     * @param WPosT    $t_wpos
+     * @param VOffsetT $vt_f_voffset
+     * @throws \Exception Exception.
      */
-    public function required($table, $field)
+    public function required(int $t_wpos, int $vt_f_voffset): void
     {
-        $table_start = $this->bb->capacity() - $table;
-        $vtable_start = $table_start - $this->bb->getInt($table_start);
-        $ok = $this->bb->getShort($vtable_start + $field) != 0;
+        $vt_npos = $this->bb->followSOffset($this->bb->wposToNpos($t_wpos));
+        $ok = $this->bb->getVOffset(Constants::asNPos($vt_npos + $vt_f_voffset)) !== 0;
 
         if (!$ok) {
-            throw new \Exception("FlatBuffers: field "  . $field  .  " must be set");
+            throw new \Exception("FlatBuffers: field "  . $vt_f_voffset  .  " must be set");
         }
     }
     /// @endcond
 
     /**
-     * Finalize a buffer, pointing to the given `$root_table`.
-     * @param $root_table An offest to be added to the buffer.
-     * @param $file_identifier A FlatBuffer file identifier to be added to the
-     *     buffer before `$root_table`. This defaults to `null`.
-     * @throws InvalidArgumentException Thrown if an invalid `$identifier` is
-     *     given, where its length is not equal to
-     *    `Constants::FILE_IDENTIFIER_LENGTH`.
+     * Finalize a buffer, pointing to the given `$root_table_wpos`.
+     *
+     * @param WPosT   $root_table_wpos An offest to be added to the buffer.
+     * @param ?string $identifier      A FlatBuffer file identifier to be added to the
+     *                                 buffer before `$root_table_wpos`. This defaults to `null`.
+     * @throws \InvalidArgumentException Thrown if an invalid `$identifier` is given, where its
+     *                                   length is not equal to `Constants::FILE_IDENTIFIER_LENGTH`.
      */
-    public function finish($root_table, $identifier = null)
+    public function finish(int $root_table_wpos, ?string $identifier = null): void
     {
-        if ($identifier == null) {
+        if ($identifier === null) {
             $this->prep($this->minalign, Constants::SIZEOF_INT);
-            $this->addOffset($root_table);
+            $this->addOffset($root_table_wpos);
             $this->bb->setPosition($this->space);
         } else {
             $this->prep($this->minalign, Constants::SIZEOF_INT + Constants::FILE_IDENTIFIER_LENGTH);
-            if (strlen($identifier) != Constants::FILE_IDENTIFIER_LENGTH) {
+            if (strlen($identifier) !== Constants::FILE_IDENTIFIER_LENGTH) {
                 throw new \InvalidArgumentException(
-                    sprintf("FlatBuffers: file identifier must be length %d",
-                        Constants::FILE_IDENTIFIER_LENGTH));
+                    sprintf(
+                        "FlatBuffers: file identifier must be length %d",
+                        Constants::FILE_IDENTIFIER_LENGTH
+                    )
+                );
             }
 
-            for ($i = Constants::FILE_IDENTIFIER_LENGTH - 1; $i >= 0;
-                  $i--) {
+            for ($i = Constants::FILE_IDENTIFIER_LENGTH - 1; $i >= 0; $i--) {
                 $this->addByte(ord($identifier[$i]));
             }
-            $this->finish($root_table);
+            $this->finish($root_table_wpos);
         }
     }
 
     /**
      * In order to save space, fields that are set to their default value don't
      * get serialized into the buffer.
-     * @param bool $forceDefaults When set to `true`, always serializes default
-     *     values.
+     *
+     * @param bool $forceDefaults When set to `true`, always serializes default values.
      */
-    public function forceDefaults($forceDefaults)
+    public function forceDefaults(bool $forceDefaults): void
     {
         $this->force_defaults = $forceDefaults;
     }
 
     /**
      * Get the ByteBuffer representing the FlatBuffer.
+     *
      * @return ByteBuffer The ByteBuffer containing the FlatBuffer data.
      */
-    public function dataBuffer()
+    public function dataBuffer(): ByteBuffer
     {
         return $this->bb;
     }
@@ -949,7 +1043,7 @@ final class FlatbufferBuilder
     /**
      * @return int
      */
-    public function dataStart()
+    public function dataStart(): int
     {
         return $this->space;
     }
@@ -958,19 +1052,14 @@ final class FlatbufferBuilder
     /**
      * Utility function to copy and return the FlatBuffer data from the
      * underlying ByteBuffer.
-     * @return string A string (representing a byte[]) that contains a copy
-     * of the FlatBuffer data.
+     *
+     * @return string A string (representing a byte[]) that contains a copy of the FlatBuffer data.
      */
-    public function sizedByteArray()
+    public function sizedByteArray(): string
     {
-        $start = $this->space;
-        $length = $this->bb->capacity() - $this->space;
-
-        $result = str_repeat("\0", $length);
-        $this->bb->setPosition($start);
-        $this->bb->getX($result);
-
-        return $result;
+        $this->bb->setPosition($this->space);
+        return $this->bb->get(
+            $this->bb->getPosition(), Constants::asBufSize($this->bb->nposToWpos($this->space)));
     }
 }
 

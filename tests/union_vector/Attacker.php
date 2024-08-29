@@ -21,12 +21,12 @@ class Attacker extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function AttackerIdentifier()
+    public static function AttackerIdentifier(): string
     {
         return "MOVI";
     }
 
-    public static function AttackerBufferHasIdentifier(ByteBuffer $buf)
+    public static function AttackerBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::AttackerIdentifier());
     }

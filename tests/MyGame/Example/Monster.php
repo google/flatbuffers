@@ -24,17 +24,17 @@ class Monster extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function MonsterIdentifier()
+    public static function MonsterIdentifier(): string
     {
         return "MONS";
     }
 
-    public static function MonsterBufferHasIdentifier(ByteBuffer $buf)
+    public static function MonsterBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::MonsterIdentifier());
     }
 
-    public static function MonsterExtension()
+    public static function MonsterExtension(): string
     {
         return "mon";
     }
@@ -51,11 +51,14 @@ class Monster extends Table
         return $this;
     }
 
-    public function getPos()
+    /**
+     * @return ?Vec3
+     */
+    public function getPos(): ?Vec3
     {
         $obj = new Vec3();
         $o = $this->__offset(4);
-        return $o !== 0 ? $obj->init($o + $this->bb_pos, $this->bb) : 0;
+        return $o !== 0 ? $obj->init(Constants::asNPos($o + $this->bb_pos), $this->bb) : null;
     }
 
     /**
@@ -76,10 +79,10 @@ class Monster extends Table
         return $o !== 0 ? $this->bb->getShort(Constants::asNPos($o + $this->bb_pos)) : 100;
     }
 
-    public function getName()
+    public function getName(): ?string
     {
         $o = $this->__offset(10);
-        return $o !== 0 ? $this->__string($o + $this->bb_pos) : null;
+        return $o !== 0 ? $this->__string(Constants::asNPos($o + $this->bb_pos)) : null;
     }
 
     /**
@@ -147,7 +150,7 @@ class Monster extends Table
     {
         $o = $this->__offset(22);
         $obj = new Test();
-        return $o !== 0 ? $obj->init($this->__vector($o) + $j *4, $this->bb) : null;
+        return $o !== 0 ? $obj->init(Constants::asNPos($this->__vector($o) + $j * 4), $this->bb) : null;
     }
 
     /**
@@ -163,10 +166,10 @@ class Monster extends Table
      * @param UOffsetT $j offset
      * @return ?StringT
      */
-    public function getTestarrayofstring(int $j): ?int
+    public function getTestarrayofstring(int $j): ?string
     {
         $o = $this->__offset(24);
-        return $o !== 0 ? $this->__string(Constants::asNPos($this->__vector($o) + $j * 4)) : 0;
+        return $o !== 0 ? $this->__string(Constants::asNPos($this->__vector($o) + $j * 4)) : null;
     }
 
     /**
@@ -200,11 +203,14 @@ class Monster extends Table
         return $o !== 0 ? $this->__vector_len($o) : 0;
     }
 
-    public function getEnemy()
+    /**
+     * @return ?Monster
+     */
+    public function getEnemy(): ?Monster
     {
         $obj = new Monster();
         $o = $this->__offset(28);
-        return $o !== 0 ? $obj->init($this->__indirect(Constants::asNPos($o + $this->bb_pos)), $this->bb) : 0;
+        return $o !== 0 ? $obj->init($this->__indirect(Constants::asNPos($o + $this->bb_pos)), $this->bb) : null;
     }
 
     /**
@@ -234,11 +240,14 @@ class Monster extends Table
         return $this->__vector_as_bytes(30);
     }
 
-    public function getTestempty()
+    /**
+     * @return ?Stat
+     */
+    public function getTestempty(): ?Stat
     {
         $obj = new Stat();
         $o = $this->__offset(32);
-        return $o !== 0 ? $obj->init($this->__indirect(Constants::asNPos($o + $this->bb_pos)), $this->bb) : 0;
+        return $o !== 0 ? $obj->init($this->__indirect(Constants::asNPos($o + $this->bb_pos)), $this->bb) : null;
     }
 
     /**
@@ -372,10 +381,10 @@ class Monster extends Table
      * @param UOffsetT $j offset
      * @return ?StringT
      */
-    public function getTestarrayofstring2(int $j): ?int
+    public function getTestarrayofstring2(int $j): ?string
     {
         $o = $this->__offset(60);
-        return $o !== 0 ? $this->__string(Constants::asNPos($this->__vector($o) + $j * 4)) : 0;
+        return $o !== 0 ? $this->__string(Constants::asNPos($this->__vector($o) + $j * 4)) : null;
     }
 
     /**
@@ -395,7 +404,7 @@ class Monster extends Table
     {
         $o = $this->__offset(62);
         $obj = new Ability();
-        return $o !== 0 ? $obj->init($this->__vector($o) + $j *8, $this->bb) : null;
+        return $o !== 0 ? $obj->init(Constants::asNPos($this->__vector($o) + $j * 8), $this->bb) : null;
     }
 
     /**
@@ -442,7 +451,7 @@ class Monster extends Table
     {
         $o = $this->__offset(66);
         $obj = new Test();
-        return $o !== 0 ? $obj->init($this->__vector($o) + $j *4, $this->bb) : null;
+        return $o !== 0 ? $obj->init(Constants::asNPos($this->__vector($o) + $j * 4), $this->bb) : null;
     }
 
     /**
@@ -492,11 +501,14 @@ class Monster extends Table
         return $o !== 0 ? $this->__vector_len($o) : 0;
     }
 
-    public function getParentNamespaceTest()
+    /**
+     * @return ?InParentNamespace
+     */
+    public function getParentNamespaceTest(): ?InParentNamespace
     {
         $obj = new InParentNamespace();
         $o = $this->__offset(72);
-        return $o !== 0 ? $obj->init($this->__indirect(Constants::asNPos($o + $this->bb_pos)), $this->bb) : 0;
+        return $o !== 0 ? $obj->init($this->__indirect(Constants::asNPos($o + $this->bb_pos)), $this->bb) : null;
     }
 
     /**
@@ -748,11 +760,14 @@ class Monster extends Table
         return $o !== 0 ? $this->__vector_len($o) : 0;
     }
 
-    public function getNativeInline()
+    /**
+     * @return ?Test
+     */
+    public function getNativeInline(): ?Test
     {
         $obj = new Test();
         $o = $this->__offset(106);
-        return $o !== 0 ? $obj->init($o + $this->bb_pos, $this->bb) : 0;
+        return $o !== 0 ? $obj->init(Constants::asNPos($o + $this->bb_pos), $this->bb) : null;
     }
 
     /**
@@ -855,20 +870,20 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param NPosT $pos
+     * @param WPosT $pos
      * @param ShortT $mana
      * @param ShortT $hp
-     * @param NPosT $name
-     * @param NPosT $inventory
+     * @param WPosT $name
+     * @param WPosT $inventory
      * @param ByteT $color
      * @param ByteT $test_type
-     * @param NPosT $test
-     * @param NPosT $test4
-     * @param NPosT $testarrayofstring
-     * @param NPosT $testarrayoftables
-     * @param NPosT $enemy
-     * @param NPosT $testnestedflatbuffer
-     * @param NPosT $testempty
+     * @param WPosT $test
+     * @param WPosT $test4
+     * @param WPosT $testarrayofstring
+     * @param WPosT $testarrayoftables
+     * @param WPosT $enemy
+     * @param WPosT $testnestedflatbuffer
+     * @param WPosT $testempty
      * @param BoolT $testbool
      * @param IntT $testhashs32_fnv1
      * @param UintT $testhashu32_fnv1
@@ -878,34 +893,34 @@ class Monster extends Table
      * @param UintT $testhashu32_fnv1a
      * @param LongT $testhashs64_fnv1a
      * @param UlongT $testhashu64_fnv1a
-     * @param NPosT $testarrayofbools
+     * @param WPosT $testarrayofbools
      * @param FloatT $testf
      * @param FloatT $testf2
      * @param FloatT $testf3
-     * @param NPosT $testarrayofstring2
-     * @param NPosT $testarrayofsortedstruct
-     * @param NPosT $flex
-     * @param NPosT $test5
-     * @param NPosT $vector_of_longs
-     * @param NPosT $vector_of_doubles
-     * @param NPosT $parent_namespace_test
-     * @param NPosT $vector_of_referrables
+     * @param WPosT $testarrayofstring2
+     * @param WPosT $testarrayofsortedstruct
+     * @param WPosT $flex
+     * @param WPosT $test5
+     * @param WPosT $vector_of_longs
+     * @param WPosT $vector_of_doubles
+     * @param WPosT $parent_namespace_test
+     * @param WPosT $vector_of_referrables
      * @param UlongT $single_weak_reference
-     * @param NPosT $vector_of_weak_references
-     * @param NPosT $vector_of_strong_referrables
+     * @param WPosT $vector_of_weak_references
+     * @param WPosT $vector_of_strong_referrables
      * @param UlongT $co_owning_reference
-     * @param NPosT $vector_of_co_owning_references
+     * @param WPosT $vector_of_co_owning_references
      * @param UlongT $non_owning_reference
-     * @param NPosT $vector_of_non_owning_references
+     * @param WPosT $vector_of_non_owning_references
      * @param ByteT $any_unique_type
-     * @param NPosT $any_unique
+     * @param WPosT $any_unique
      * @param ByteT $any_ambiguous_type
-     * @param NPosT $any_ambiguous
-     * @param NPosT $vector_of_enums
+     * @param WPosT $any_ambiguous
+     * @param WPosT $vector_of_enums
      * @param SbyteT $signed_enum
-     * @param NPosT $testrequirednestedflatbuffer
-     * @param NPosT $scalar_key_sorted_tables
-     * @param NPosT $native_inline
+     * @param WPosT $testrequirednestedflatbuffer
+     * @param WPosT $scalar_key_sorted_tables
+     * @param WPosT $native_inline
      * @param UlongT $long_enum_non_enum_default
      * @param UlongT $long_enum_normal_default
      * @param FloatT $nan_default
@@ -1034,7 +1049,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<ByteT> $data offset array
+     * @param list<ByteT> $data data
      * @return WPosT vector offset
      */
     public static function createInventoryVector(FlatbufferBuilder $builder, array $data): int
@@ -1053,6 +1068,16 @@ class Monster extends Table
     public static function startInventoryVector(FlatbufferBuilder $builder, int $numElems): void
     {
         $builder->startVector(1, $numElems, 1);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createInventoryVectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
     }
 
     /**
@@ -1093,7 +1118,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createTest4Vector(FlatbufferBuilder $builder, array $data): int
@@ -1125,7 +1150,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createTestarrayofstringVector(FlatbufferBuilder $builder, array $data): int
@@ -1157,7 +1182,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createTestarrayoftablesVector(FlatbufferBuilder $builder, array $data): int
@@ -1198,7 +1223,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<ByteT> $data offset array
+     * @param list<ByteT> $data data
      * @return WPosT vector offset
      */
     public static function createTestnestedflatbufferVector(FlatbufferBuilder $builder, array $data): int
@@ -1217,6 +1242,16 @@ class Monster extends Table
     public static function startTestnestedflatbufferVector(FlatbufferBuilder $builder, int $numElems): void
     {
         $builder->startVector(1, $numElems, 1);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createTestnestedflatbufferVectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
     }
 
     /**
@@ -1320,7 +1355,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<BoolT> $data offset array
+     * @param list<BoolT> $data data
      * @return WPosT vector offset
      */
     public static function createTestarrayofboolsVector(FlatbufferBuilder $builder, array $data): int
@@ -1339,6 +1374,16 @@ class Monster extends Table
     public static function startTestarrayofboolsVector(FlatbufferBuilder $builder, int $numElems): void
     {
         $builder->startVector(1, $numElems, 1);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createTestarrayofboolsVectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
     }
 
     /**
@@ -1379,7 +1424,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createTestarrayofstring2Vector(FlatbufferBuilder $builder, array $data): int
@@ -1411,7 +1456,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createTestarrayofsortedstructVector(FlatbufferBuilder $builder, array $data): int
@@ -1443,7 +1488,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<ByteT> $data offset array
+     * @param list<ByteT> $data data
      * @return WPosT vector offset
      */
     public static function createFlexVector(FlatbufferBuilder $builder, array $data): int
@@ -1466,6 +1511,16 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createFlexVectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
      * @param WPosT $test5
      */
     public static function addTest5(FlatbufferBuilder $builder, int $test5): void
@@ -1475,7 +1530,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createTest5Vector(FlatbufferBuilder $builder, array $data): int
@@ -1507,7 +1562,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<LongT> $data offset array
+     * @param list<LongT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfLongsVector(FlatbufferBuilder $builder, array $data): int
@@ -1539,7 +1594,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<DoubleT> $data offset array
+     * @param list<DoubleT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfDoublesVector(FlatbufferBuilder $builder, array $data): int
@@ -1580,7 +1635,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfReferrablesVector(FlatbufferBuilder $builder, array $data): int
@@ -1621,7 +1676,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<UlongT> $data offset array
+     * @param list<UlongT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfWeakReferencesVector(FlatbufferBuilder $builder, array $data): int
@@ -1653,7 +1708,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfStrongReferrablesVector(FlatbufferBuilder $builder, array $data): int
@@ -1694,7 +1749,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<UlongT> $data offset array
+     * @param list<UlongT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfCoOwningReferencesVector(FlatbufferBuilder $builder, array $data): int
@@ -1735,7 +1790,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<UlongT> $data offset array
+     * @param list<UlongT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfNonOwningReferencesVector(FlatbufferBuilder $builder, array $data): int
@@ -1803,7 +1858,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<ByteT> $data offset array
+     * @param list<ByteT> $data data
      * @return WPosT vector offset
      */
     public static function createVectorOfEnumsVector(FlatbufferBuilder $builder, array $data): int
@@ -1826,6 +1881,16 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createVectorOfEnumsVectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
      * @param SbyteT $signedEnum
      */
     public static function addSignedEnum(FlatbufferBuilder $builder, int $signedEnum): void
@@ -1844,7 +1909,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<ByteT> $data offset array
+     * @param list<ByteT> $data data
      * @return WPosT vector offset
      */
     public static function createTestrequirednestedflatbufferVector(FlatbufferBuilder $builder, array $data): int
@@ -1867,6 +1932,16 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
+     * @param string $data byte string
+     * @return WPosT vector offset
+     */
+    public static function createTestrequirednestedflatbufferVectorFromString(FlatbufferBuilder $builder, string $data): int
+    {
+        return $builder->createByteString($data);
+    }
+
+    /**
+     * @param FlatbufferBuilder $builder
      * @param WPosT $scalarKeySortedTables
      */
     public static function addScalarKeySortedTables(FlatbufferBuilder $builder, int $scalarKeySortedTables): void
@@ -1876,7 +1951,7 @@ class Monster extends Table
 
     /**
      * @param FlatbufferBuilder $builder
-     * @param list<WPosT> $data offset array
+     * @param list<WPosT> $data data
      * @return WPosT vector offset
      */
     public static function createScalarKeySortedTablesVector(FlatbufferBuilder $builder, array $data): int

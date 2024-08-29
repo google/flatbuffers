@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<ruleset name="PSR-12">
+  <description>PSR-12</description>
+
+  <arg name="colors" />
+  <arg value="ps" />
+
+  <rule ref="PSR12" />
+
+  <rule ref="PHPCompatibility">
+    <config name="testVersion" value="8.0-" />
+  </rule>
+
+  <rule ref="Squiz.Commenting.FunctionComment">
+    <exclude name="Squiz.Commenting.FunctionComment.IncorrectParamVarName" />
+    <exclude name="Squiz.Commenting.FunctionComment.IncorrectTypeHint" />
+    <exclude name="Squiz.Commenting.FunctionComment.InvalidReturn" />
+    <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment" />
+    <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag" />
+    <exclude name="Squiz.Commenting.FunctionComment.MissingReturn" />
+  </rule>
+
+  <file>php</file>
+</ruleset>

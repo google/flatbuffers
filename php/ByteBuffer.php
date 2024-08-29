@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,26 +16,48 @@
  * limitations under the License.
  */
 
+declare(strict_types=1);
+
 namespace Google\FlatBuffers;
 
+use Exception;
+
+// phpcs:disable PSR2.Classes.PropertyDeclaration.Underscore
+
+// /**
+//  * @return bool
+//  */
+// function is_little_endian(): bool
+// {
+//     $v = unpack('S', "\x01\x00");
+//     assert($v !== false && array_key_exists(1, $v) && is_int($v[1]));
+//     return $v[1] === 1;
+// }
+
+// if (!is_little_endian()) {
+//     throw new Exception('Big-endian platform is not supported.');
+// }
+
+/**
+ * @phpstan-type SizeOfType Constants::SIZEOF_BOOL|Constants::SIZEOF_BYTE|Constants::SIZEOF_SHORT|Constants::SIZEOF_INT|Constants::SIZEOF_LONG|Constants::SIZEOF_FLOAT|Constants::SIZEOF_DOUBLE|Constants::FILE_IDENTIFIER_LENGTH
+ */
 class ByteBuffer
 {
     /**
      * @var string $_buffer;
      */
-    public $_buffer;
+    public string $_buffer;
 
     /**
-     * @var int $_pos;
+     * @var NPosT $npos;
      */
-    private $_pos;
+    private int $npos = 0;
 
     /**
-     * @var bool $_is_little_endian
+     * @param string $bytes
+     * @return ByteBuffer
      */
-    private static $_is_little_endian = null;
-
-    public static function wrap($bytes)
+    public static function wrap(string $bytes): ByteBuffer
     {
         $bb = new ByteBuffer(0);
         $bb->_buffer = $bytes;
@@ -43,456 +66,480 @@ class ByteBuffer
     }
 
     /**
-     * @param $size
+     * @param BufSizeT $size
      */
-    public function __construct($size)
+    public function __construct(int $size)
     {
         $this->_buffer = str_repeat("\0", $size);
     }
 
     /**
-     * @return int
+     * @return ByteBuffer
+     * @throws \Exception Exception.
      */
-    public function capacity()
+    public function createByGrowing(): self
     {
-        return strlen($this->_buffer);
+        $old_size = $this->capacity();
+        if (($old_size & 0xC0000000) !== 0) {
+            throw new \Exception("FlatBuffers: cannot grow buffer beyond 2 gigabytes");
+        }
+
+        // Double the size of buffer.
+        $bb = new self($old_size);
+        $bb->_buffer .= $this->_buffer;
+
+        $bb->setPosition($old_size); // Is this correct?
+
+        return $bb;
     }
 
     /**
-     * @return int
+     * @return BufSizeT
      */
-    public function getPosition()
+    public function capacity(): int
     {
-        return $this->_pos;
+        return Constants::asBufSize(strlen($this->_buffer));
     }
 
     /**
-     * @param $pos
+     * @return NPosT
      */
-    public function setPosition($pos)
+    public function getPosition(): int
     {
-        $this->_pos = $pos;
+        return $this->npos;
+    }
+
+    /**
+     * @param NPosT $npos
+     */
+    public function setPosition(int $npos): void
+    {
+        $this->npos = $npos;
     }
 
     /**
      *
      */
-    public function reset()
+    public function reset(): void
     {
-        $this->_pos = 0;
+        $this->npos = 0;
     }
 
     /**
-     * @return int
+     * @return BufSizeT
      */
-    public function length()
+    public function length(): int
     {
-        return strlen($this->_buffer);
+        return Constants::asBufSize(strlen($this->_buffer) - $this->npos);
     }
 
     /**
      * @return string
      */
-    public function data()
+    public function data(): string
     {
-        return substr($this->_buffer, $this->_pos);
+        return substr($this->_buffer, $this->npos);
     }
 
     /**
-     * @return bool
+     * @param NPosT    $npos
+     * @param BufSizeT $size
      */
-    public static function isLittleEndian()
+    public function assertOffsetAndLength(int $npos, int $size): void
     {
-        if (ByteBuffer::$_is_little_endian === null) {
-            ByteBuffer::$_is_little_endian = unpack('S', "\x01\x00")[1] === 1;
-        }
-
-        return ByteBuffer::$_is_little_endian;
-    }
-
-    /**
-     * write little endian value to the buffer.
-     *
-     * @param $offset
-     * @param $count byte length
-     * @param $data actual values
-     */
-    public function writeLittleEndian($offset, $count, $data)
-    {
-        if (ByteBuffer::isLittleEndian()) {
-            for ($i = 0; $i < $count; $i++) {
-                $this->_buffer[$offset + $i] = chr($data >> $i * 8);
-            }
-        } else {
-            for ($i = 0; $i < $count; $i++) {
-                $this->_buffer[$offset + $count - 1 - $i] = chr($data >> $i * 8);
-            }
+        if (strlen($this->_buffer) < $npos + $size) {
+            throw new \OutOfRangeException(
+                sprintf("npos: %d, size: %d, buffer; %d", $npos, $size, strlen($this->_buffer))
+            );
         }
     }
 
     /**
-     * read little endian value from the buffer
-     *
-     * @param $offset
-     * @param $count acutal size
-     * @return int
+     * @param NPosT            $npos
+     * @param SizeOfType       $size
+     * @param string           $pack_code
+     * @param int|float|double $value
      */
-    public function readLittleEndian($offset, $count, $force_bigendian = false)
+    private function writeToBuffer(int $npos, int $size, string $pack_code, int|float $value): void
     {
-        $this->assertOffsetAndLength($offset, $count);
-        $r = 0;
-
-        if (ByteBuffer::isLittleEndian() && $force_bigendian == false) {
-            for ($i = 0; $i < $count; $i++) {
-                $r |= ord($this->_buffer[$offset + $i]) << $i * 8;
-            }
-        } else {
-            for ($i = 0; $i < $count; $i++) {
-                $r |= ord($this->_buffer[$offset + $count -1 - $i]) << $i * 8;
-            }
-        }
-
-        return $r;
+        $this->assertOffsetAndLength($npos, $size);
+        $bytes = pack($pack_code, $value);
+        assert(strlen($bytes) === $size);
+        $this->_buffer = substr_replace($this->_buffer, $bytes, $npos, $size);
     }
 
     /**
-     * @param $offset
-     * @param $length
+     * @param NPosT      $npos
+     * @param SizeOfType $size
+     * @param string     $pack_code
+     * @return int|float|double
      */
-    public function assertOffsetAndLength($offset, $length)
+    private function readFromBuffer(int $npos, int $size, string $pack_code): int|float
     {
-        if ($offset < 0 ||
-            $offset >= strlen($this->_buffer) ||
-            $offset + $length > strlen($this->_buffer)) {
-            throw new \OutOfRangeException(sprintf("offset: %d, length: %d, buffer; %d", $offset, $length, strlen($this->_buffer)));
-        }
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     * @return mixed
-     */
-    public function putSbyte($offset, $value)
-    {
-        self::validateValue(-128, 127, $value, "sbyte");
-
-        $length = strlen($value);
-        $this->assertOffsetAndLength($offset, $length);
-        return $this->_buffer[$offset] = $value;
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     * @return mixed
-     */
-    public function putByte($offset, $value)
-    {
-        self::validateValue(0, 255, $value, "byte");
-
-        $length = strlen($value);
-        $this->assertOffsetAndLength($offset, $length);
-        return $this->_buffer[$offset] = $value;
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function put($offset, $value)
-    {
-        $length = strlen($value);
-        $this->assertOffsetAndLength($offset, $length);
-        for ($i = 0; $i < $length; $i++) {
-            $this->_buffer[$offset + $i] = $value[$i];
-        }
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putShort($offset, $value)
-    {
-        self::validateValue(-32768, 32767, $value, "short");
-
-        $this->assertOffsetAndLength($offset, 2);
-        $this->writeLittleEndian($offset, 2, $value);
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putUshort($offset, $value)
-    {
-        self::validateValue(0, 65535, $value, "short");
-
-        $this->assertOffsetAndLength($offset, 2);
-        $this->writeLittleEndian($offset, 2, $value);
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putInt($offset, $value)
-    {
-        // 2147483647 = (1 << 31) -1 = Maximum signed 32-bit int
-        // -2147483648 = -1 << 31 = Minimum signed 32-bit int
-        self::validateValue(-2147483648, 2147483647, $value, "int");
-
-        $this->assertOffsetAndLength($offset, 4);
-        $this->writeLittleEndian($offset, 4, $value);
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putUint($offset, $value)
-    {
-        // NOTE: We can't put big integer value. this is PHP limitation.
-        // 4294967295 = (1 << 32) -1 = Maximum unsigned 32-bin int
-        self::validateValue(0, 4294967295, $value, "uint",  " php has big numbers limitation. check your PHP_INT_MAX");
-
-        $this->assertOffsetAndLength($offset, 4);
-        $this->writeLittleEndian($offset, 4, $value);
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putLong($offset, $value)
-    {
-        // NOTE: We can't put big integer value. this is PHP limitation.
-        self::validateValue(~PHP_INT_MAX, PHP_INT_MAX, $value, "long",  " php has big numbers limitation. check your PHP_INT_MAX");
-
-        $this->assertOffsetAndLength($offset, 8);
-        $this->writeLittleEndian($offset, 8, $value);
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putUlong($offset, $value)
-    {
-        // NOTE: We can't put big integer value. this is PHP limitation.
-        self::validateValue(0, PHP_INT_MAX, $value, "long", " php has big numbers limitation. check your PHP_INT_MAX");
-
-        $this->assertOffsetAndLength($offset, 8);
-        $this->writeLittleEndian($offset, 8, $value);
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putFloat($offset, $value)
-    {
-        $this->assertOffsetAndLength($offset, 4);
-
-        $floathelper = pack("f", $value);
-        $v = unpack("V", $floathelper);
-        $this->writeLittleEndian($offset, 4, $v[1]);
-    }
-
-    /**
-     * @param $offset
-     * @param $value
-     */
-    public function putDouble($offset, $value)
-    {
-        $this->assertOffsetAndLength($offset, 8);
-
-        $floathelper = pack("d", $value);
-        $v = unpack("V*", $floathelper);
-
-        $this->writeLittleEndian($offset, 4, $v[1]);
-        $this->writeLittleEndian($offset + 4, 4, $v[2]);
-    }
-
-    /**
-     * @param $index
-     * @return mixed
-     */
-    public function getByte($index)
-    {
-        return ord($this->_buffer[$index]);
-    }
-
-    /**
-     * @param $index
-     * @return mixed
-     */
-    public function getSbyte($index)
-    {
-        $v = unpack("c", $this->_buffer[$index]);
+        $this->assertOffsetAndLength($npos, $size);
+        $v = unpack($pack_code, $this->_buffer, $npos);
+        assert($v !== false && array_key_exists(1, $v));
         return $v[1];
     }
 
     /**
-     * @param $buffer
+     * @param NPosT          $npos
+     * @param int<-128, 127> $value
      */
-    public function getX(&$buffer)
+    public function putSbyte(int $npos, int $value): void
     {
-        for ($i = $this->_pos, $j = 0; $j < strlen($buffer); $i++, $j++) {
-            $buffer[$j] = $this->_buffer[$i];
-        }
+        self::validateInt(-128, 127, $value, "sbyte");
+        $this->writeToBuffer($npos, Constants::SIZEOF_BYTE, 'c', $value);
     }
 
     /**
-     * @param $index
-     * @return mixed
+     * @param NPosT       $npos
+     * @param int<0, 255> $value
      */
-    public function get($index)
+    public function putByte(int $npos, int $value): void
     {
-        $this->assertOffsetAndLength($index, 1);
-        return $this->_buffer[$index];
-    }
-
-
-    /**
-     * @param $index
-     * @return mixed
-     */
-    public function getBool($index)
-    {
-        return (bool)ord($this->_buffer[$index]);
+        self::validateInt(0, 255, $value, "byte");
+        $this->writeToBuffer($npos, Constants::SIZEOF_BYTE, 'C', $value);
     }
 
     /**
-     * @param $index
+     * @param NPosT  $npos
+     * @param string $value
+     */
+    public function put(int $npos, string $value): void
+    {
+        $size = Constants::asBufSize(strlen($value));
+        $this->assertOffsetAndLength($npos, $size);
+        $this->_buffer = substr_replace($this->_buffer, $value, $npos, $size);
+    }
+
+    /**
+     * @param NPosT $npos
+     * @param bool  $value
+     */
+    public function putBool(int $npos, bool $value): void
+    {
+        $this->writeToBuffer($npos, Constants::SIZEOF_BYTE, 'C', (int)$value);
+    }
+
+    /**
+     * @param NPosT              $npos
+     * @param int<-32768, 32767> $value
+     */
+    public function putShort(int $npos, int $value): void
+    {
+        self::validateInt(-32768, 32767, $value, "short");
+        $this->writeToBuffer($npos, Constants::SIZEOF_SHORT, 's', $value);
+    }
+
+    /**
+     * @param NPosT         $npos
+     * @param int<0, 65535> $value
+     */
+    public function putUshort(int $npos, int $value): void
+    {
+        self::validateInt(0, 65535, $value, "ushort");
+        $this->writeToBuffer($npos, Constants::SIZEOF_SHORT, 'v', $value);
+    }
+
+    /**
+     * @param NPosT                        $npos
+     * @param int<-2147483648, 2147483647> $value
+     */
+    public function putInt(int $npos, int $value): void
+    {
+        // 2147483647 = (1 << 31) -1 = Maximum signed 32-bit int
+        // -2147483648 = -1 << 31 = Minimum signed 32-bit int
+        self::validateInt(-2147483648, 2147483647, $value, "int");
+        $this->writeToBuffer($npos, Constants::SIZEOF_INT, 'i', $value);
+    }
+
+    /**
+     * @param NPosT    $npos
+     * @param SOffsetT $value
+     */
+    public function putSOffset(int $npos, int $value): void
+    {
+        $this->putInt($npos, $value);
+    }
+
+    /**
+     * @param NPosT              $npos
+     * @param int<0, 4294967295> $value
+     */
+    public function putUint(int $npos, int $value): void
+    {
+        // NOTE: We can't put big integer value. this is PHP limitation.
+        // 4294967295 = (1 << 32) -1 = Maximum unsigned 32-bin int
+        self::validateInt(0, 4294967295, $value, "uint", " php has big numbers limitation. check your PHP_INT_MAX");
+        $this->writeToBuffer($npos, Constants::SIZEOF_INT, 'I', $value);
+    }
+
+    /**
+     * @param NPosT $npos
+     * @param int   $value
+     */
+    public function putLong(int $npos, int $value): void
+    {
+        // NOTE: We can't put big integer value. this is PHP limitation.
+        self::validateInt(
+            ~PHP_INT_MAX,
+            PHP_INT_MAX,
+            $value,
+            "long",
+            " php has big numbers limitation. check your PHP_INT_MAX"
+        );
+        $this->writeToBuffer($npos, Constants::SIZEOF_LONG, 'q', $value);
+    }
+
+    /**
+     * @param NPosT       $npos
+     * @param int<0, max> $value
+     */
+    public function putUlong(int $npos, int $value): void
+    {
+        // NOTE: We can't put big integer value. this is PHP limitation.
+        self::validateInt(0, PHP_INT_MAX, $value, "long", " php has big numbers limitation. check your PHP_INT_MAX");
+        $this->writeToBuffer($npos, Constants::SIZEOF_LONG, 'P', $value);
+    }
+
+    /**
+     * @param NPosT $npos
+     * @param float $value
+     */
+    public function putFloat(int $npos, float $value): void
+    {
+        $this->assertOffsetAndLength($npos, Constants::SIZEOF_FLOAT);
+        $this->writeToBuffer($npos, Constants::SIZEOF_FLOAT, 'f', $value);
+    }
+
+    /**
+     * @param NPosT  $npos
+     * @param double $value
+     */
+    public function putDouble(int $npos, float $value): void
+    {
+        $this->assertOffsetAndLength($npos, Constants::SIZEOF_DOUBLE);
+        $this->writeToBuffer($npos, Constants::SIZEOF_DOUBLE, 'd', $value);
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return int<0, 255>
+     */
+    public function getByte(int $npos): int
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_BYTE, 'C');
+        assert(is_int($value) && 0 <= $value && $value <= 255);
+        return $value;
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return int<-128, 127>
+     */
+    public function getSbyte(int $npos): int
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_BYTE, 'c');
+        assert(is_int($value) && -128 <= $value && $value <= 127);
+        return $value;
+    }
+
+    /**
+     * @param NPosT $npos
+     * @param BufSizeT $size
+     * @return string
+     */
+    public function get(int $npos, int $size): string
+    {
+        $this->assertOffsetAndLength($npos, $size);
+        return substr($this->_buffer, $npos, $size);
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return bool
+     */
+    public function getBool(int $npos): bool
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_BYTE, 'C');
+        assert(is_int($value) && 0 <= $value && $value <= 255);
+        return (bool)$value;
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return int<-32768, 32767>
+     */
+    public function getShort(int $npos): int
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_SHORT, 's');
+        assert(is_int($value) && -32768 <= $value && $value <= 32767);
+        return $value;
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return int<0, 65535>
+     */
+    public function getUshort(int $npos): int
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_SHORT, 'v');
+        assert(is_int($value) && 0 <= $value && $value <= 65535);
+        return $value;
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return VOffsetT
+     */
+    public function getVOffset(int $npos): int
+    {
+        return $this->getUshort($npos);
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return int<-2147483648, 2147483647>
+     */
+    public function getInt(int $npos): int
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_INT, 'i');
+        assert(is_int($value) && -2147483648 <= $value && $value <= 2147483647);
+        return $value;
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return SOffsetT
+     */
+    public function getSOffset(int $npos): int
+    {
+        return $this->getInt($npos);
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return int<0, 4294967295>
+     */
+    public function getUint(int $npos): int
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_INT, 'I');
+        assert(is_int($value) && 0 <= $value && $value <= 4294967295);
+        return $value;
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return UOffsetT
+     */
+    public function getUOffset(int $npos): int
+    {
+        return $this->getUint($npos);
+    }
+
+    /**
+     * @param NPosT $npos
      * @return int
      */
-    public function getShort($index)
+    public function getLong(int $npos): int
     {
-        $result = $this->readLittleEndian($index, 2);
-
-        $sign = $index + (ByteBuffer::isLittleEndian() ? 1 : 0);
-        $issigned = isset($this->_buffer[$sign]) && ord($this->_buffer[$sign]) & 0x80;
-
-        // 65536 = 1 << 16 = Maximum unsigned 16-bit int
-        return $issigned ? $result - 65536 : $result;
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_LONG, 'q');
+        assert(is_int($value));
+        return $value;
     }
 
     /**
-     * @param $index
-     * @return int
+     * @param NPosT $npos
+     * @return int<0, max>
      */
-    public function getUShort($index)
+    public function getUlong(int $npos): int
     {
-        return $this->readLittleEndian($index, 2);
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_LONG, 'P');
+        assert(is_int($value) && 0 <= $value);
+        return $value;
     }
 
     /**
-     * @param $index
-     * @return int
-     */
-    public function getInt($index)
-    {
-        $result = $this->readLittleEndian($index, 4);
-
-        $sign = $index + (ByteBuffer::isLittleEndian() ? 3 : 0);
-        $issigned = isset($this->_buffer[$sign]) && ord($this->_buffer[$sign]) & 0x80;
-
-        if (PHP_INT_SIZE > 4) {
-            // 4294967296 = 1 << 32 = Maximum unsigned 32-bit int
-            return $issigned ? $result - 4294967296 : $result;
-        } else {
-            // 32bit / Windows treated number as signed integer.
-            return $result;
-        }
-    }
-
-    /**
-     * @param $index
-     * @return int
-     */
-    public function getUint($index)
-    {
-        return $this->readLittleEndian($index, 4);
-    }
-
-    /**
-     * @param $index
-     * @return int
-     */
-    public function getLong($index)
-    {
-        return $this->readLittleEndian($index, 8);
-    }
-
-    /**
-     * @param $index
-     * @return int
-     */
-    public function getUlong($index)
-    {
-        return $this->readLittleEndian($index, 8);
-    }
-
-    /**
-     * @param $index
-     * @return mixed
-     */
-    public function getFloat($index)
-    {
-        $i = $this->readLittleEndian($index, 4);
-
-        return self::convertHelper(self::__FLOAT, $i);
-    }
-
-    /**
-     * @param $index
+     * @param NPosT $npos
      * @return float
      */
-    public function getDouble($index)
+    public function getFloat(int $npos): float
     {
-        $i = $this->readLittleEndian($index, 4);
-        $i2 = $this->readLittleEndian($index + 4, 4);
-
-        return self::convertHelper(self::__DOUBLE, $i, $i2);
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_FLOAT, 'f');
+        assert(is_float($value));
+        return $value;
     }
 
-    const __SHORT = 1;
-    const __INT = 2;
-    const __LONG = 3;
-    const __FLOAT = 4;
-    const __DOUBLE = 5;
-    private static function convertHelper($type, $value, $value2 = null) {
-        // readLittleEndian construct unsigned integer value from bytes. we have to encode this value to
-        // correct bytes, and decode as expected types with `unpack` function.
-        // then it returns correct type value.
-        // see also: http://php.net/manual/en/function.pack.php
-
-        switch ($type) {
-            case self::__FLOAT:
-                $inthelper = pack("V", $value);
-                $v = unpack("f", $inthelper);
-                return $v[1];
-                break;
-            case self::__DOUBLE:
-                $inthelper = pack("VV", $value, $value2);
-                $v = unpack("d", $inthelper);
-                return $v[1];
-                break;
-            default:
-                throw new \Exception(sprintf("unexpected type %d specified", $type));
-        }
+    /**
+     * @param NPosT $npos
+     * @return double
+     */
+    public function getDouble(int $npos): float
+    {
+        $value = $this->readFromBuffer($npos, Constants::SIZEOF_DOUBLE, 'd');
+        assert(is_double($value));
+        return $value;
     }
 
-    private static function validateValue($min, $max, $value, $type, $additional_notes = "") {
-        if (
-          !(
-            ($type === "byte" && $min <= ord($value) && ord($value) <= $max) ||
-            ($min <= $value && $value <= $max)
-          )
-        ) {
-            throw new \InvalidArgumentException(sprintf("bad number %s for type %s.%s", $value, $type, $additional_notes));
+    /**
+     * @param int    $min
+     * @param int    $max
+     * @param int    $value
+     * @param string $type
+     * @param string $additional_notes
+     */
+    private static function validateInt(
+        int $min,
+        int $max,
+        int $value,
+        string $type,
+        string $additional_notes = ""
+    ): void {
+        if ($min <= $value && $value <= $max) {
+            return;
         }
+
+        throw new \InvalidArgumentException(sprintf("bad number %s for type %s.%s", $value, $type, $additional_notes));
+    }
+
+    /**
+     * @param NPosT $t_npos
+     * @return NPosT
+     */
+    public function followSOffset(int $t_npos): int
+    {
+        return Constants::asNPos($t_npos - $this->getSOffset($t_npos));
+    }
+
+    /**
+     * @param NPosT $npos
+     * @return NPosT
+     */
+    public function followUOffset(int $npos): int
+    {
+        return Constants::asNPos($this->getUOffset($npos) + $npos);
+    }
+
+    /**
+     * Write position to normal position conversion.
+     *
+     * @param WPosT $wpos
+     * @return NPosT
+     */
+    public function wposToNpos(int $wpos): int
+    {
+        return Constants::asNPos($this->capacity() - $wpos);
+    }
+
+    /**
+     * Normal position to write position conversion.
+     *
+     * @param NPosT $npos
+     * @return WPosT
+     */
+    public function nposToWpos(int $npos): int
+    {
+        return Constants::asWPos($this->capacity() - $npos);
     }
 }

@@ -1,18 +1,38 @@
 {
-  "name": "google/flatbuffers",
+  "name": "tarosky/flatbuffers",
   "type": "library",
-  "description": "FlatBuffers for PHP",
-  "keywords": ["google", "flatbuffers", "serialization"],
-  "homepage": "https://github.com/google/flatbuffers",
+  "description": "FlatBuffers for PHP8+",
+  "keywords": [
+    "google",
+    "flatbuffers",
+    "serialization"
+  ],
+  "homepage": "https://github.com/tarosky/flatbuffers",
   "license": "Apache-2.0",
   "require": {
-    "php": ">=5.4"
+    "php": ">=8.0"
   },
   "require-dev": {
+    "dealerdirect/phpcodesniffer-composer-installer": "*",
+    "phpcompatibility/php-compatibility": "*",
+    "phpstan/phpstan": "^1.11",
+    "squizlabs/php_codesniffer": "*"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   },
   "autoload": {
     "psr-4": {
       "Google\\FlatBuffers\\": "php"
     }
+  },
+  "scripts": {
+    "lint": [
+      "phpcs --standard=phpcs.xml",
+      "phpstan analyse -v"
+    ]
   }
 }

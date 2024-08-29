@@ -30,7 +30,7 @@ class Vec3 extends Struct
      */
     public function GetX()
     {
-        return $this->bb->getFloat($this->bb_pos + 0);
+        return $this->bb->getFloat(Constants::asNPos($this->bb_pos + 0));
     }
 
     /**
@@ -38,7 +38,7 @@ class Vec3 extends Struct
      */
     public function GetY()
     {
-        return $this->bb->getFloat($this->bb_pos + 4);
+        return $this->bb->getFloat(Constants::asNPos($this->bb_pos + 4));
     }
 
     /**
@@ -46,7 +46,7 @@ class Vec3 extends Struct
      */
     public function GetZ()
     {
-        return $this->bb->getFloat($this->bb_pos + 8);
+        return $this->bb->getFloat(Constants::asNPos($this->bb_pos + 8));
     }
 
     /**
@@ -54,7 +54,7 @@ class Vec3 extends Struct
      */
     public function GetTest1()
     {
-        return $this->bb->getDouble($this->bb_pos + 16);
+        return $this->bb->getDouble(Constants::asNPos($this->bb_pos + 16));
     }
 
     /**
@@ -62,16 +62,16 @@ class Vec3 extends Struct
      */
     public function GetTest2()
     {
-        return $this->bb->getByte($this->bb_pos + 24);
+        return $this->bb->getByte(Constants::asNPos($this->bb_pos + 24));
     }
 
     /**
-     * @return TestT
+     * @return Test
      */
-    public function getTest3()
+    public function getTest3(): Test
     {
         $obj = new Test();
-        $obj->init($this->bb_pos + 26, $this->bb);
+        $obj->init(Constants::asNPos($this->bb_pos + 26), $this->bb);
         return $obj;
     }
 

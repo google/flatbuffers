@@ -26,12 +26,12 @@ class StructOfStructsOfStructs extends Struct
     }
 
     /**
-     * @return StructOfStructsT
+     * @return StructOfStructs
      */
-    public function getA()
+    public function getA(): StructOfStructs
     {
         $obj = new StructOfStructs();
-        $obj->init($this->bb_pos + 0, $this->bb);
+        $obj->init(Constants::asNPos($this->bb_pos + 0), $this->bb);
         return $obj;
     }
 

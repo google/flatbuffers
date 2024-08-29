@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,131 +16,163 @@
  * limitations under the License.
  */
 
+declare(strict_types=1);
+
 namespace Google\FlatBuffers;
+
+// phpcs:disable PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.MethodDoubleUnderscore
+// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 
 abstract class Table
 {
     /**
-     * @var int $bb_pos
+     * @var NPosT $bb_pos
      */
-    protected $bb_pos;
+    protected int $bb_pos;
+
     /**
      * @var ByteBuffer $bb
      */
-    protected $bb;
+    protected ByteBuffer $bb;
 
+    /**
+     *
+     */
     public function __construct()
     {
     }
 
-    public function setByteBufferPos($pos)
+    /**
+     * @param NPosT $npos
+     */
+    public function setByteBufferPos(int $npos): void
     {
-        $this->bb_pos = $pos;
+        $this->bb_pos = $npos;
     }
 
-    public function setByteBuffer($bb)
+    /**
+     * @param ByteBuffer $bb
+     */
+    public function setByteBuffer(ByteBuffer $bb): void
     {
         $this->bb = $bb;
     }
 
     /**
+     * @param NPosT $npos
+     * @return NPosT
+     */
+    private function followUOffset(int $npos): int
+    {
+        return Constants::asNPos($npos + $this->bb->getUOffset($npos));
+    }
+
+    // TODO: Use null.
+    /**
      * returns actual vtable offset
      *
-     * @param $vtable_offset
-     * @return int offset > 0 means exist value. 0 means not exist
+     * @param VOffsetT $vt_f_voffset
+     * @return VOffsetT Offset > 0 means exist value. 0 means not exist.
      */
-    protected function __offset($vtable_offset)
+    protected function __offset(int $vt_f_voffset): int
     {
-        $vtable = $this->bb_pos - $this->bb->getInt($this->bb_pos);
-        return $vtable_offset < $this->bb->getShort($vtable) ? $this->bb->getShort($vtable + $vtable_offset) : 0;
+        $vt_npos = $this->bb->followSOffset($this->bb_pos);
+        $vt_len_voffset = $this->bb->getVOffset($vt_npos);
+        return $vt_f_voffset < $vt_len_voffset ?
+            $this->bb->getVOffset(Constants::asVOffset($vt_npos + $vt_f_voffset)) :
+            0;
     }
 
     /**
-     * @param $offset
-     * @return mixed
+     * @param NPosT $t_f_npos
+     * @return NPosT
      */
-    protected function __indirect($offset)
+    protected function __indirect(int $t_f_npos): int
     {
-        return $offset + $this->bb->getInt($offset);
+        return $this->followUOffset($t_f_npos);
     }
 
     /**
-     * fetch utf8 encoded string.
+     * Fetch utf8 encoded string.
      *
-     * @param $offset
+     * @param NPosT $t_f_npos
      * @return string
      */
-    protected function __string($offset)
+    protected function __string(int $t_f_npos): string
     {
-        $offset += $this->bb->getInt($offset);
-        $len = $this->bb->getInt($offset);
-        $startPos = $offset + Constants::SIZEOF_INT;
-        return substr($this->bb->_buffer, $startPos, $len);
+        $s_npos = $this->followUOffset($t_f_npos);
+        $s_len_uoffset = $this->bb->getUOffset($s_npos);
+        $s_body_uoffset = $s_npos + Constants::SIZEOF_UOFFSET;
+        return substr($this->bb->_buffer, $s_body_uoffset, $s_len_uoffset);
     }
 
     /**
-     * @param $offset
-     * @return int
+     * @param VOffsetT $t_f_voffset
+     * @return UOffsetT
      */
-    protected function __vector_len($offset)
+    protected function __vector_len(int $t_f_voffset): int
     {
-        $offset += $this->bb_pos;
-        $offset += $this->bb->getInt($offset);
-        return $this->bb->getInt($offset);
+        return $this->bb->getUOffset(
+            $this->followUOffset(Constants::asUOffset($t_f_voffset + $this->bb_pos))
+        );
     }
 
     /**
-     * @param $offset
-     * @return int
+     * @param VOffsetT $t_f_voffset
+     * @return NPosT
      */
-    protected function __vector($offset)
+    protected function __vector(int $t_f_voffset): int
     {
-        $offset += $this->bb_pos;
-        // data starts after the length
-        return $offset + $this->bb->getInt($offset) + Constants::SIZEOF_INT;
+        return Constants::asNPos(
+            $this->followUOffset(Constants::asNPos($t_f_voffset + $this->bb_pos)) +
+            Constants::SIZEOF_UOFFSET
+        );
     }
 
-    protected function __vector_as_bytes($vector_offset, $elem_size=1)
+    /**
+     * @param VOffsetT $vt_f_voffset
+     * @return string
+     */
+    protected function __vector_as_bytes(int $vt_f_voffset): string
     {
-        $o = $this->__offset($vector_offset);
-        if ($o == 0) {
-            return null;
+        $t_f_voffset = $this->__offset($vt_f_voffset);
+        if ($t_f_voffset === 0) {
+            return '';
         }
 
-        return substr($this->bb->_buffer, $this->__vector($o), $this->__vector_len($o) * $elem_size);
+        return substr($this->bb->_buffer, $this->__vector($t_f_voffset), $this->__vector_len($t_f_voffset));
     }
 
     /**
-     * @param Table $table
-     * @param int $offset
-     * @return Table
+     * @template T of Table|Struct
+     *
+     * @param T        $table
+     * @param VOffsetT $t_f_voffset
+     * @return T
      */
-    protected function __union($table, $offset)
+    protected function __union(Table|Struct $table, int $t_f_voffset): Table|Struct
     {
-        $offset += $this->bb_pos;
-        $table->setByteBufferPos($offset + $this->bb->getInt($offset));
+        $table->setByteBufferPos(
+            $this->followUOffset(Constants::asNPos($t_f_voffset + $this->bb_pos))
+        );
         $table->setByteBuffer($this->bb);
         return $table;
     }
 
     /**
      * @param ByteBuffer $bb
-     * @param string $ident
+     * @param string     $ident
      * @return bool
-     * @throws \ArgumentException
+     * @throws \InvalidArgumentException Invalid argument exception.
      */
-    protected static function __has_identifier($bb, $ident)
+    protected static function __has_identifier(ByteBuffer $bb, string $ident): bool
     {
-        if (strlen($ident) != Constants::FILE_IDENTIFIER_LENGTH) {
-            throw new \ArgumentException("FlatBuffers: file identifier must be length "  . Constants::FILE_IDENTIFIER_LENGTH);
+        if (strlen($ident) !== Constants::FILE_IDENTIFIER_LENGTH) {
+            throw new \InvalidArgumentException(
+                "FlatBuffers: file identifier must be length "  . Constants::FILE_IDENTIFIER_LENGTH
+            );
         }
 
-        for ($i = 0; $i < 4; $i++) {
-            if ($ident[$i] != $bb->get($bb->getPosition() + Constants::SIZEOF_INT + $i)) {
-                return false;
-            }
-        }
-
-        return true;
+        return $ident === $bb->get(Constants::asNPos($bb->getPosition() + Constants::SIZEOF_UOFFSET), 4);
     }
 }

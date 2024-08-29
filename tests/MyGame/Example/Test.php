@@ -30,7 +30,7 @@ class Test extends Struct
      */
     public function GetA()
     {
-        return $this->bb->getShort($this->bb_pos + 0);
+        return $this->bb->getShort(Constants::asNPos($this->bb_pos + 0));
     }
 
     /**
@@ -38,7 +38,7 @@ class Test extends Struct
      */
     public function GetB()
     {
-        return $this->bb->getSbyte($this->bb_pos + 2);
+        return $this->bb->getSbyte(Constants::asNPos($this->bb_pos + 2));
     }
 
 

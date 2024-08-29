@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2015 Google Inc.
  *
@@ -15,26 +16,34 @@
  * limitations under the License.
  */
 
+declare(strict_types=1);
+
 namespace Google\FlatBuffers;
 
 abstract class Struct
 {
     /**
-     * @var int $bb_pos
+     * @var NPosT $bb_pos
      */
-    protected $bb_pos;
+    protected int $bb_pos;
 
     /**
      * @var ByteBuffer $bb
      */
-    protected $bb;
+    protected ByteBuffer $bb;
 
-    public function setByteBufferPos($pos)
+    /**
+     * @param NPosT $npos
+     */
+    public function setByteBufferPos(int $npos): void
     {
-        $this->bb_pos = $pos;
+        $this->bb_pos = $npos;
     }
 
-    public function setByteBuffer($bb)
+    /**
+     * @param ByteBuffer $bb
+     */
+    public function setByteBuffer(ByteBuffer $bb): void
     {
         $this->bb = $bb;
     }

@@ -236,10 +236,10 @@ function fuzzTest1(Assert $assert)
                     $builder->addBoolX($f, $bool_val, 0);
                     break;
                 case 1:
-                    $builder->addByteX($f, $char_val, 0);
+                    $builder->addSbyteX($f, $char_val, 0);
                     break;
                 case 2:
-                    $builder->addSbyteX($f, $uchar_val, 0);
+                    $builder->addByteX($f, $uchar_val, 0);
                     break;
                 case 3:
                     $builder->addShortX($f, $short_val, 0);
@@ -340,14 +340,14 @@ function testByteBuffer(Assert $assert) {
     //Test: ByteBuffer_PutBytePopulatesBufferAtZeroOffset
     $buffer = "\0";
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
-    $uut->putByte(0, "\x63"); // 99
+    $uut->putByte(0, 0x63); // 99
     $assert->Equal("\x63", $uut->_buffer[0]); // don't share buffer as php user might confuse reference.
 
     //Test: ByteBuffer_PutByteCannotPutAtOffsetPastLength
     $buffer = "\0";
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $assert->Throws(new OutOfRangeException(), function()  use ($uut) {
-        $uut->putByte(1, "\x63"); // 99
+        $uut->putByte(1, 0x63); // 99
     });
 
     //Test: ByteBuffer_PutShortPopulatesBufferCorrectly
@@ -467,13 +467,13 @@ function testByteBuffer(Assert $assert) {
     $buffer = str_repeat("\0", 1);
     $buffer[0] = "\x63";
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
-    $assert->Equal("\x63", $uut->get(0));
+    $assert->Equal("\x63", $uut->get(0, 1));
 
     //Test: ByteBuffer_GetByteChecksOffset
     $buffer = str_repeat("\0", 1);
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $assert->Throws(new OutOfRangeException(), function()  use ($uut) {
-        $uut->get(1);
+        $uut->get(1, 1);
     });
 
     //Test: ByteBuffer_GetShortReturnsCorrectData
@@ -577,25 +577,6 @@ function testByteBuffer(Assert $assert) {
     $assert->Throws(new OutOfRangeException(), function()  use ($uut) {
         $uut->getLong(0);
     });
-
-    //Test: big endian
-    $buffer = str_repeat("\0", 2);
-    // 0xFF 0x00
-    // Little Endian: 255
-    // Big Endian: 65280
-    $buffer[0] = chr(0xff);
-    $buffer[1] = chr(0x00);
-    $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
-    $assert->Equal(65280, $uut->readLittleEndian(0, 2, true));
-
-    $buffer = str_repeat("\0", 4);
-    $buffer[0] = chr(0x0D);
-    $buffer[1] = chr(0x0C);
-    $buffer[2] = chr(0x0B);
-    $buffer[3] = chr(0x0A);
-    $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
-    $assert->Equal(0x0D0C0B0A, $uut->readLittleEndian(0, 4, true));
-
 }
 
 class Assert {

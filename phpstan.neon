@@ -1,0 +1,27 @@
+parameters:
+  level: 9
+  paths:
+    - php
+  scanDirectories:
+  scanFiles:
+  typeAliases:
+    VOffsetT: 'int<0, 65535>'
+    UOffsetT: 'int<0, 4294967295>'
+    SOffsetT: 'int<-2147483648, 2147483647>'
+    BufSizeT: 'int<0, 4294967295>'
+    # Offset from the left side of buffer
+    NPosT: 'int<0, 4294967295>'
+    # Offset from the right side of buffer
+    WPosT: 'int<0, 4294967295>'
+    SbyteT: 'int<-128, 127>'
+    ByteT: 'int<0, 255>'
+    BoolT: 'bool'
+    ShortT: 'int<-32768, 32767>'
+    UshortT: 'int<0, 65535>'
+    IntT: 'int<-2147483648, 2147483647>'
+    UintT: 'int<0, 4294967295>'
+    LongT: 'int'
+    UlongT: 'int<0, max>'
+    FloatT: 'float'
+    DoubleT: 'double'
+    StringT: 'string'

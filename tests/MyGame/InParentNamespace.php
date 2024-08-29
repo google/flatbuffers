@@ -23,17 +23,17 @@ class InParentNamespace extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function InParentNamespaceIdentifier()
+    public static function InParentNamespaceIdentifier(): string
     {
         return "MONS";
     }
 
-    public static function InParentNamespaceBufferHasIdentifier(ByteBuffer $buf)
+    public static function InParentNamespaceBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::InParentNamespaceIdentifier());
     }
 
-    public static function InParentNamespaceExtension()
+    public static function InParentNamespaceExtension(): string
     {
         return "mon";
     }

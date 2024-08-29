@@ -21,12 +21,12 @@ class HandFan extends Table
         return $obj->init($bb->followUOffset($bb->getPosition()), $bb);
     }
 
-    public static function HandFanIdentifier()
+    public static function HandFanIdentifier(): string
     {
         return "MOVI";
     }
 
-    public static function HandFanBufferHasIdentifier(ByteBuffer $buf)
+    public static function HandFanBufferHasIdentifier(ByteBuffer $buf): bool
     {
         return self::__has_identifier($buf, self::HandFanIdentifier());
     }

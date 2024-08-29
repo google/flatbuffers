@@ -30,7 +30,7 @@ class Ability extends Struct
      */
     public function GetId()
     {
-        return $this->bb->getUint($this->bb_pos + 0);
+        return $this->bb->getUint(Constants::asNPos($this->bb_pos + 0));
     }
 
     /**
@@ -38,7 +38,7 @@ class Ability extends Struct
      */
     public function GetDistance()
     {
-        return $this->bb->getUint($this->bb_pos + 4);
+        return $this->bb->getUint(Constants::asNPos($this->bb_pos + 4));
     }
 
 
