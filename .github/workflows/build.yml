@@ -537,7 +537,7 @@ jobs:
     - name: test
       working-directory: tests/ts
       run: |
-        pnpm add -g esbuild
+        curl -fsSL https://esbuild.github.io/dl/v0.23.1 | sh
         python3 TypeScriptTest.py
 
   build-dart:
