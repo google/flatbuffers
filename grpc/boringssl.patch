@@ -11,3 +11,31 @@ index 1645a264a..12f8ca999 100644
  add_executable(
    bssl
  
+diff --git a/src/crypto/x509/t_x509.c b/src/crypto/x509/t_x509.c
+index 7c32a8798..6e50d040e 100644
+--- a/src/crypto/x509/t_x509.c
++++ b/src/crypto/x509/t_x509.c
+@@ -318,9 +318,7 @@ int X509_signature_print(BIO *bp, const X509_ALGOR *sigalg,
+ int X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
+ {
+     char *s, *c, *b;
+-    int ret = 0, l, i;
+-
+-    l = 80 - 2 - obase;
++    int ret = 0, i;
+
+     b = X509_NAME_oneline(name, NULL, 0);
+     if (!b)
+@@ -347,12 +345,10 @@ int X509_NAME_print(BIO *bp, const X509_NAME *name, int obase)
+                 if (BIO_write(bp, ", ", 2) != 2)
+                     goto err;
+             }
+-            l--;
+         }
+         if (*s == '\0')
+             break;
+         s++;
+-        l--;
+     }
+
+     ret = 1;

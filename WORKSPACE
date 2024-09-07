@@ -11,6 +11,21 @@ http_archive(
     ],
 )
 
+# Import our own version of skylib before other rule sets (e.g. rules_swift)
+# has a chance to import an old version.
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+    ],
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 http_archive(
     name = "build_bazel_rules_apple",
     sha256 = "34c41bfb59cdaea29ac2df5a2fa79e5add609c71bb303b2ebb10985f93fa20e7",
@@ -68,6 +83,28 @@ http_archive(
     ],
 )
 
+#### Building boring ssl
+# Fetching boringssl within the flatbuffers repository, to patch the issue
+# of not being able to upgrade to Xcode 14.3 due to buildkite throwing errors
+# which was patched in the following below.
+# https://github.com/google/flatbuffers/commit/67eb95de9281087ccbba9aafd6e8ab1958d12045
+# The patch was copied from the following comment on the same issue within tensorflow
+# and fixed to adapt the already existing patch for boringssl.
+# https://github.com/tensorflow/tensorflow/issues/60191#issuecomment-1496073147
+http_archive(
+    name = "boringssl",
+    patch_args = ["-p1"],
+    patches = ["//grpc:boringssl.patch"],
+    # Use github mirror instead of https://boringssl.googlesource.com/boringssl
+    # to obtain a boringssl archive with consistent sha256
+    sha256 = "534fa658bd845fd974b50b10f444d392dfd0d93768c4a51b61263fd37d851c40",
+    strip_prefix = "boringssl-b9232f9e27e5668bc0414879dcdedb2a59ea75f2",
+    urls = [
+        "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/b9232f9e27e5668bc0414879dcdedb2a59ea75f2.tar.gz",
+        "https://github.com/google/boringssl/archive/b9232f9e27e5668bc0414879dcdedb2a59ea75f2.tar.gz",
+    ],
+)
+
 ##### GRPC
 _GRPC_VERSION = "1.49.0"  # https://github.com/grpc/grpc/releases/tag/v1.48.0
 
@@ -101,7 +138,7 @@ load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
 rules_js_dependencies()
 
-load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock", "pnpm_repository")
+load("@aspect_rules_js//npm:npm_import.bzl", "pnpm_repository")
 
 pnpm_repository(name = "pnpm")
 
@@ -129,17 +166,13 @@ nodejs_register_toolchains(
     node_version = DEFAULT_NODE_VERSION,
 )
 
-npm_translate_lock(
-    name = "npm",
-    npmrc = "//:.npmrc",
-    pnpm_lock = "//:pnpm-lock.yaml",
-    # Set this to True when the lock file needs to be updated, commit the
-    # changes, then set to False again.
-    update_pnpm_lock = False,
-    verify_node_modules_ignored = "//:.bazelignore",
+load("@com_github_google_flatbuffers//ts:repositories.bzl", "flatbuffers_npm")
+
+flatbuffers_npm(
+    name = "flatbuffers_npm",
 )
 
-load("@npm//:repositories.bzl", "npm_repositories")
+load("@flatbuffers_npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
 

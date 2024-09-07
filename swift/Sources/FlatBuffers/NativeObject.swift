@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// NativeObject is a protocol that all of the `Object-API` generated code should be
 /// conforming to since it allows developers the ease of use to pack and unpack their
@@ -27,7 +23,7 @@ public protocol NativeObject {}
 
 extension NativeObject {
 
-  /// Serialize is a helper function that serailizes the data from the Object API to a bytebuffer directly th
+  /// Serialize is a helper function that serializes the data from the Object API to a bytebuffer directly th
   /// - Parameter type: Type of the Flatbuffer object
   /// - Returns: returns the encoded sized ByteBuffer
   public func serialize<T: ObjectAPIPacker>(type: T.Type) -> ByteBuffer
@@ -37,7 +33,7 @@ extension NativeObject {
     return serialize(builder: &builder, type: type.self)
   }
 
-  /// Serialize is a helper function that serailizes the data from the Object API to a bytebuffer directly.
+  /// Serialize is a helper function that serializes the data from the Object API to a bytebuffer directly.
   ///
   /// - Parameters:
   ///   - builder: A FlatBufferBuilder
