@@ -529,13 +529,13 @@ jobs:
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
     - name: deps
-      run: yarn
+      run: pnpm
     - name: compile
-      run: yarn compile
+      run: pnpm compile
     - name: test
       working-directory: tests/ts
       run: |
-        yarn global add esbuild
+        pnpm add -g esbuild
         python3 TypeScriptTest.py
 
   build-dart:
