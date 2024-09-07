@@ -531,7 +531,7 @@ jobs:
     - name: pnpm
       run: npm install -g pnpm
     - name: deps
-      run: pnpm
+      run: pnpm i
     - name: compile
       run: pnpm compile
     - name: test
