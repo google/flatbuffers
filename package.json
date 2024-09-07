@@ -37,8 +37,6 @@
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@types/node": "^20.16.5",
-    "@typescript-eslint/eslint-plugin": "^8.4.0",
-    "@typescript-eslint/parser": "^8.4.0",
     "esbuild": "^0.23.1",
     "eslint": "^9.10.0",
     "globals": "^15.9.0",
