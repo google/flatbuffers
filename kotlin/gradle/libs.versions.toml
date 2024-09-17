@@ -6,7 +6,7 @@ plugin-kotlin = "1.6.10"
 plugin-gver = "0.42.0"
 kotlinx-benchmark = "0.4.8"
 junit = "4.12"
-gson = "2.8.5"
+gson = "2.8.9"
 moshi-kotlin = "1.11.0"
 
 [libraries]
