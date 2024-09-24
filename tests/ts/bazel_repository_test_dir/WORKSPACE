@@ -46,8 +46,12 @@ nodejs_register_toolchains(
 
 npm_translate_lock(
     name = "npm",
+    data = [
+        "//:package.json",
+    ],
     npmrc = "//:.npmrc",
     pnpm_lock = "//:pnpm-lock.yaml",
+    update_pnpm_lock = False,
     verify_node_modules_ignored = "//:.bazelignore",
 )
 
@@ -69,3 +73,13 @@ esbuild_register_toolchains(
     name = "esbuild",
     esbuild_version = LATEST_VERSION,
 )
+
+load("@com_github_google_flatbuffers//ts:repositories.bzl", "flatbuffers_npm")
+
+flatbuffers_npm(
+    name = "flatbuffers_npm",
+)
+
+load("@flatbuffers_npm//:repositories.bzl", flatbuffers_npm_repositories = "npm_repositories")
+
+flatbuffers_npm_repositories()

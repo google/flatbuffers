@@ -89,6 +89,7 @@ cc_library(
     visibility = ["//:__pkg__"],
     deps = [
         ":flatbuffers",
+        "//include/codegen:namer",
     ],
 )
 
@@ -155,5 +156,7 @@ cc_library(
         "//grpc/src/compiler:python_generator",
         "//grpc/src/compiler:swift_generator",
         "//grpc/src/compiler:ts_generator",
+        "//include/codegen:namer",
+        "//include/codegen:python",
     ],
 )

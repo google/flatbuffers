@@ -18,7 +18,7 @@ maximum memory efficiency. It allows you to directly access serialized data with
 
 1. Build the compiler for flatbuffers (`flatc`)
 
-    Use `cmake` to create the build files for your platform and then perform the compliation (Linux example).
+    Use `cmake` to create the build files for your platform and then perform the compilation (Linux example).
 
     ```
     cmake -G "Unix Makefiles"

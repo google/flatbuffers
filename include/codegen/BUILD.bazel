@@ -1,0 +1,39 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(
+    default_visibility = ["//visibility:private"],
+)
+
+filegroup(
+    name = "distribution",
+    srcs = [
+        "BUILD.bazel",
+    ] + glob([
+        "*.cc",
+        "*.h",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "namer",
+    hdrs = [
+        "idl_namer.h",
+        "namer.h",
+    ],
+    strip_include_prefix = "/include",
+    visibility = ["//:__subpackages__"],
+    deps = ["//:runtime_cc"],
+)
+
+cc_library(
+    name = "python",
+    srcs = ["python.cc"],
+    hdrs = ["python.h"],
+    strip_include_prefix = "/include",
+    visibility = [
+        "//grpc:__subpackages__",
+        "//src:__subpackages__",
+    ],
+    deps = [":namer"],
+)

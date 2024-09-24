@@ -402,7 +402,8 @@ static void GenerateSection(std::ostream &os, const BinarySection &section,
 }  // namespace
 
 bool AnnotatedBinaryTextGenerator::Generate(
-    const std::string &filename, const std::string &schema_filename) {
+    const std::string &filename, const std::string &schema_filename,
+    const std::string &output_filename) {
   OutputConfig output_config;
   output_config.max_bytes_per_line = options_.max_bytes_per_line;
   output_config.include_vector_contents = options_.include_vector_contents;
@@ -435,18 +436,23 @@ bool AnnotatedBinaryTextGenerator::Generate(
     }
   }
 
-  // Modify the output filename.
-  std::string output_filename = StripExtension(filename);
-  output_filename += options_.output_postfix;
-  output_filename +=
-      "." + (options_.output_extension.empty() ? GetExtension(filename)
-                                               : options_.output_extension);
+  std::string out = output_filename;
+  if (out.empty()) {
+    // Modify the output filename.
+    out = StripExtension(filename);
+    out += options_.output_postfix;
+    out +=
+        "." + (options_.output_extension.empty() ? GetExtension(filename)
+                                                 : options_.output_extension);
+  }
 
-  std::ofstream ofs(output_filename.c_str());
+  std::ofstream ofs(out.c_str());
 
   ofs << "// Annotated Flatbuffer Binary" << std::endl;
   ofs << "//" << std::endl;
-  ofs << "// Schema file: " << schema_filename << std::endl;
+  if (!schema_filename.empty()) {
+    ofs << "// Schema file: " << schema_filename << std::endl;
+  }
   ofs << "// Binary file: " << filename << std::endl;
 
   // Generate each of the binary sections

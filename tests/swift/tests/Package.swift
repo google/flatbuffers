@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.8
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -28,10 +28,15 @@ let package = Package(
     .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1"),
   ],
   targets: [
-    .target(
+    .executableTarget(
       name: "SwiftFlatBuffers",
-      dependencies: ["FlatBuffers"]),
+      dependencies: [
+        .product(name: "FlatBuffers", package: "flatbuffers"),
+      ]),
     .testTarget(
       name: "FlatBuffers.Test.SwiftTests",
-      dependencies: ["FlatBuffers", "GRPC"]),
+      dependencies: [
+        .product(name: "FlatBuffers", package: "flatbuffers"),
+        .product(name: "GRPC", package: "grpc-swift"),
+      ]),
   ])
