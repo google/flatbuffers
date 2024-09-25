@@ -3380,14 +3380,18 @@ class CppGenerator : public BaseGenerator {
 
           if (is_pointer) {
             code += "{ if(" + out_field + ") { ";
-            code += "_e->UnPackTo(" + out_field + ".get(), _resolver);";
+            code += "_e->UnPackTo(" + out_field + GenPtrGet(field) + ", _resolver);";
             code += " } else { ";
           }
           code += out_field + " = ";
           code += GenUnpackVal(field.value.type, "_e", false, field) + ";";
           if (is_pointer) {
-            code += " } } else if (" + out_field + ") { " + out_field +
-                    ".reset(); }";
+            code += " } } else if (" + out_field + ") { " + out_field;
+            if (PtrType(&field) == "naked") {
+              code += " = nullptr; }";
+            } else {
+              code += ".reset(); }";
+            }
           }
         }
         break;
