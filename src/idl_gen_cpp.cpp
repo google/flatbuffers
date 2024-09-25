@@ -3321,7 +3321,7 @@ class CppGenerator : public BaseGenerator {
             if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
               code += indexing + "->UnPackTo(_o->" + name +
-                      "[_i].get(), _resolver);";
+                      "[_i]" + GenPtrGet(field) + ", _resolver);";
               code += " } else { ";
             }
             code += "_o->" + name + "[_i]" + access + " = ";
