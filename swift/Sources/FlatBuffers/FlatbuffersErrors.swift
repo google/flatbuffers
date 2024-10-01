@@ -19,6 +19,8 @@ import Foundation
 /// Collection of thrown from the Flatbuffer verifier
 public enum FlatbuffersErrors: Error, Equatable {
 
+  /// Thrown when trying to verify a buffer that doesnt have the length of an ID
+  case bufferDoesntContainID
   /// Thrown when verifying a file id that doesnt match buffer id
   case bufferIdDidntMatchPassedId
   /// Prefixed size doesnt match the current (readable) buffer size
