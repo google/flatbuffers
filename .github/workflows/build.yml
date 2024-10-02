@@ -14,7 +14,7 @@ on:
       - master
   schedule:
     # Run daily at 4:45 A.M. to catch dependencies that break us.
-    - cron: '45 4 * * *' 
+    - cron: '45 4 * * *'
 
 jobs:
   build-linux:
@@ -42,7 +42,7 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
@@ -170,7 +170,7 @@ jobs:
     - name: test
       run: Release\flattests.exe
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Windows flatc binary
         path: Release\flatc.exe
@@ -242,9 +242,9 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
-        name: Mac flatc binary
+        name: Mac flatc binary Intel
         path: Release/flatc
     # Below if only for release.
     - name: Zip file
@@ -285,9 +285,9 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
-        name: Mac flatc binary
+        name: Mac flatc binary Universal
         path: Release/flatc
     # Below if only for release.
     - name: Zip file
@@ -366,7 +366,7 @@ jobs:
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Linux flatbenchmark results ${{matrix.cxx}}
         path: benchmarks/results_${{matrix.cxx}}
