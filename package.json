@@ -35,12 +35,12 @@
   },
   "homepage": "https://google.github.io/flatbuffers/",
   "devDependencies": {
-    "@eslint/js": "^9.10.0",
-    "@types/node": "^20.16.5",
-    "esbuild": "^0.23.1",
-    "eslint": "^9.10.0",
-    "globals": "^15.9.0",
-    "typescript": "5.5.4",
-    "typescript-eslint": "^8.4.0"
+    "@eslint/js": "^9.11.1",
+    "@types/node": "^22.7.4",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.11.1",
+    "globals": "^15.10.0",
+    "typescript": "5.6.2",
+    "typescript-eslint": "^8.8.0"
   }
 }
