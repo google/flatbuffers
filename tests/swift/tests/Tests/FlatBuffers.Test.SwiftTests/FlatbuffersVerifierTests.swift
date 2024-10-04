@@ -63,6 +63,17 @@ final class FlatbuffersVerifierTests: XCTestCase {
     XCTAssertThrowsError(try Verifier(buffer: &buffer))
   }
 
+  func testFailingID() {
+    let dutData : [UInt8] = [1,2,3,4,5,6,7]
+    var buff  = ByteBuffer(bytes: dutData)
+    do {
+      let _: Monster = try getCheckedRoot(byteBuffer: &buff, fileId: "ABCD")
+      XCTFail("This should always fail")
+    } catch {
+      XCTAssertEqual(error as? FlatbuffersErrors, .bufferDoesntContainID)
+    }
+  }
+
   func testVerifierCheckAlignment() {
     var verifier = try! Verifier(buffer: &buffer)
     do {
