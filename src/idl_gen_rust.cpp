@@ -2704,8 +2704,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";
     code_ += "    #[inline]";
-    code_ += "    fn alignment() -> PushAlignment {";
-    code_ += "        PushAlignment::new({{ALIGN}})";
+    code_ += "    fn alignment() -> flatbuffers::PushAlignment {";
+    code_ += "        flatbuffers::PushAlignment::new({{ALIGN}})";
     code_ += "    }";
     code_ += "}";
     code_ += "";

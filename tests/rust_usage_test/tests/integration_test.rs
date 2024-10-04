@@ -2422,6 +2422,14 @@ mod push_impls {
                     0, 0, 0, 0,
                     0, 0, 0, 1]);
     }
+
+    #[test]
+    fn push_u8_generated_struct_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(my_game::example::Test::new(10, 20));
+        check(&b, &[10, 0, 20, 0, 0, 1]);
+    }
 }
 
 #[cfg(test)]
