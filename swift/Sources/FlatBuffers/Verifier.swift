@@ -89,7 +89,7 @@ public struct Verifier {
 
   /// Checks if the value of Size "X" is within the range of the buffer
   /// - Parameters:
-  ///   - position: Current postion to be read
+  ///   - position: Current position to be read
   ///   - size: `Byte` Size of readable object within the buffer
   /// - Throws: `outOfBounds` if the value is out of the bounds of the buffer
   /// and `apparentSizeTooLarge` if the apparent size is bigger than the one specified
@@ -201,8 +201,12 @@ public struct Verifier {
     _depth -= 1
   }
 
+  @inline(__always)
   mutating func verify(id: String) throws {
     let size = MemoryLayout<Int32>.size
+    guard _capacity >= (size * 2) else {
+      throw FlatbuffersErrors.bufferDoesntContainID
+    }
     let str = _buffer.readString(at: size, count: size)
     if id == str {
       return

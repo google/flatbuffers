@@ -88,7 +88,7 @@ public struct TestMutatingBool: FlatBufferObject, Verifiable, ObjectAPIPacker {
   }
 
   public var b: Property? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : _accessor.readBuffer(of: Property.self, at: o) }
-  public var mutableB: Property_Mutable? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : Property_Mutable(_accessor.bb, o: o + _accessor.postion) }
+  public var mutableB: Property_Mutable? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : Property_Mutable(_accessor.bb, o: o + _accessor.position) }
   public static func startTestMutatingBool(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
   public static func add(b: Property?, _ fbb: inout FlatBufferBuilder) { guard let b = b else { return }; fbb.create(struct: b, position: VTOFFSET.b.p) }
   public static func endTestMutatingBool(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
