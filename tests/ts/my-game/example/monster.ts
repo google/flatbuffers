@@ -813,7 +813,7 @@ mutate_double_inf_default(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.Monster" {
   return 'MyGame.Example.Monster';
 }
 

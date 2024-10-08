@@ -67,7 +67,7 @@ charactersLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "Movie" {
   return 'Movie';
 }
 
