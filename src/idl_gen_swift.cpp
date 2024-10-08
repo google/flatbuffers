@@ -16,8 +16,16 @@
 
 #include "idl_gen_swift.h"
 
+#include <algorithm>
 #include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <iterator>
+#include <map>
+#include <set>
+#include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -148,10 +156,87 @@ static std::string GenArrayMainBody(const std::string &optional) {
          optional + " { ";
 }
 
+template <typename... Ts>
+void Errorf(const std::string &format, Ts... args) {
+  fprintf(stderr, "[ERROR] Swift: ");
+  fprintf(stderr, format.c_str(), args...);
+  fprintf(stderr, "\n");
+}
+
+template <typename... Ts>
+void Fatalf(const std::string &format, Ts... args) {
+  fprintf(stderr, "[FATAL] Swift: ");
+  fprintf(stderr, format.c_str(), args...);
+  fprintf(stderr, "\n");
+  exit(1);
+}
+
+std::map<std::string, std::string> ReadModules(const std::string &modules) {
+  std::map<std::string, std::string> module_by_src;
+  if (modules.empty()) return module_by_src;
+
+  std::vector<std::string> entries;
+  if (modules[0] == '@') {
+    const char *filename = modules.c_str() + 1;
+    if (!FileExists(filename)) {
+      Fatalf("%s does not exist", filename);
+    }
+    std::string s;
+    if (!LoadFile(filename, false, &s)) {
+      Fatalf("%s cannot be read", filename);
+    }
+    entries = StringSplit(s, '\n');
+  } else {
+    entries = StringSplit(modules, ',');
+  }
+
+  for (const std::string &entry : entries) {
+    if (entry.empty()) continue;
+    size_t pos = entry.find(':');
+    if (pos == std::string::npos) {
+      Fatalf("entries must follow \"module:filename.fbs\" format (got %s)",
+             entry.c_str());
+    }
+    module_by_src[entry.substr(0, pos)] = entry.substr(pos + 1);
+  }
+  return module_by_src;
+}
+
 }  // namespace
 
 class SwiftGenerator : public BaseGenerator {
  private:
+  void Import(const std::string &module) {
+    if (module.empty()) return;
+    if (parser_.opts.swift_implementation_only) {
+      code_ += "@_implementationOnly import " + module;
+    } else {
+      code_ += "import " + module;
+    }
+  }
+
+  void ImportDependencies() {
+    std::set<std::string> deps;
+    std::copy(parser_.opts.swift_includes.begin(),
+              parser_.opts.swift_includes.end(),
+              std::inserter(deps, deps.begin()));
+
+    for (const IncludedFile &included_file : parser_.GetIncludedFiles()) {
+      auto it = module_by_src_.find(included_file.schema_name);
+      if (it == module_by_src_.end()) {
+        Errorf("no module is specified for %s",
+               included_file.schema_name.c_str());
+      }
+      deps.insert(it->second);
+    }
+
+    for (const std::string &dep : deps) {
+      Import(dep);
+    }
+    code_ += "";
+  }
+
+  std::map<std::string, std::string> module_by_src_;
   CodeWriter code_;
   std::unordered_set<std::string> keywords_;
   int namespace_depth;
@@ -162,6 +247,7 @@ class SwiftGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", "_", "swift"),
         namer_(WithFlagOptions(SwiftDefaultConfig(), parser.opts, path),
                SwiftKeywords()) {
+    module_by_src_ = ReadModules(parser.opts.swift_module_mappings);
     namespace_depth = 0;
     code_.SetPadding("  ");
   }
@@ -174,10 +260,7 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "// swiftlint:disable all";
     code_ += "// swiftformat:disable all\n";
     if (parser_.opts.include_dependence_headers || parser_.opts.generate_all) {
-      if (parser_.opts.swift_implementation_only)
-        code_ += "@_implementationOnly \\";
-
-      code_ += "import FlatBuffers\n";
+      ImportDependencies();
     }
 
     // Generate code for all the enum declarations.
