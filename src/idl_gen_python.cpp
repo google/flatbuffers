@@ -52,9 +52,9 @@ class PythonStubGenerator {
  public:
   PythonStubGenerator(const Parser &parser, const std::string &path,
                       const Version &version)
-      : parser_{parser},
-        namer_{WithFlagOptions(kStubConfig, parser.opts, path),
-               Keywords(version)},
+      : parser_{ parser },
+        namer_{ WithFlagOptions(kStubConfig, parser.opts, path),
+                Keywords(version) },
         version_(version) {}
 
   bool Generate() {
@@ -140,8 +140,7 @@ class PythonStubGenerator {
     return module;
   }
 
-  template <typename T>
-  std::string ModuleFor(const T *def) const {
+  template<typename T> std::string ModuleFor(const T *def) const {
     if (parser_.opts.one_file) return ModuleForFile(def->file);
     return namer_.NamespacedType(*def);
   }
@@ -165,7 +164,7 @@ class PythonStubGenerator {
     return "None";
   }
 
-  template <typename F>
+  template<typename F>
   std::string UnionType(const EnumDef &enum_def, Imports *imports,
                         F type) const {
     imports->Import("typing");
@@ -181,14 +180,9 @@ class PythonStubGenerator {
           result += import.name;
           break;
         }
-        case BASE_TYPE_STRING:
-          result += "str";
-          break;
-        case BASE_TYPE_NONE:
-          result += "None";
-          break;
-        default:
-          break;
+        case BASE_TYPE_STRING: result += "str"; break;
+        case BASE_TYPE_NONE: result += "None"; break;
+        default: break;
       }
     }
     return "typing.Union[" + result + "]";
@@ -208,13 +202,11 @@ class PythonStubGenerator {
 
   std::string EnumType(const EnumDef &enum_def, Imports *imports) const {
     imports->Import("typing");
-    const Import &import =
-        imports->Import(ModuleFor(&enum_def), namer_.Type(enum_def));
 
     std::string result = "";
     for (const EnumVal *val : enum_def.Vals()) {
       if (!result.empty()) result += ", ";
-      result += import.name + "." + namer_.Variant(*val);
+      result += namer_.Type(enum_def) + "." + namer_.Variant(*val);
     }
     return "typing.Literal[" + result + "]";
   }
@@ -229,18 +221,14 @@ class PythonStubGenerator {
                                                namer_.Type(*type.struct_def));
         return import.name;
       }
-      case BASE_TYPE_STRING:
-        return "str";
+      case BASE_TYPE_STRING: return "str";
       case BASE_TYPE_ARRAY:
       case BASE_TYPE_VECTOR: {
         imports->Import("typing");
         return "typing.List[" + TypeOf(type.VectorType(), imports) + "]";
       }
-      case BASE_TYPE_UNION:
-        return UnionType(*type.enum_def, imports);
-      default:
-        FLATBUFFERS_ASSERT(0);
-        return "";
+      case BASE_TYPE_UNION: return UnionType(*type.enum_def, imports);
+      default: FLATBUFFERS_ASSERT(0); return "";
     }
   }
 
@@ -262,8 +250,7 @@ class PythonStubGenerator {
                             namer_.ObjectType(*field_type.struct_def));
         return field_name + ": " + import.name + " | None";
       }
-      case BASE_TYPE_STRING:
-        return field_name + ": str | None";
+      case BASE_TYPE_STRING: return field_name + ": str | None";
       case BASE_TYPE_ARRAY:
       case BASE_TYPE_VECTOR: {
         imports->Import("typing");
@@ -282,8 +269,7 @@ class PythonStubGenerator {
       case BASE_TYPE_UNION:
         return field_name + ": " +
                UnionObjectType(*field->value.type.enum_def, imports);
-      default:
-        return field_name;
+      default: return field_name;
     }
   }
 
@@ -307,15 +293,12 @@ class PythonStubGenerator {
     stub << "  def InitFromPackedBuf(cls, buf: bytes, pos: int = 0) -> " << name
          << ": ...\n";
 
-    const Import &import =
-        imports->Import(ModuleFor(struct_def), namer_.Type(*struct_def));
-
     stub << "  @classmethod\n";
     stub << "  def InitFromObj(cls, " << namer_.Variable(*struct_def)
-         << ": " + import.name + ") -> " << name << ": ...\n";
+         << ": " + namer_.Type(*struct_def) + ") -> " << name << ": ...\n";
 
     stub << "  def _UnPack(self, " << namer_.Variable(*struct_def) << ": "
-         << import.name << ") -> None: ...\n";
+         << namer_.Type(*struct_def) << ") -> None: ...\n";
 
     stub << "  def Pack(self, builder: flatbuffers.Builder) -> None: ...\n";
 
@@ -424,8 +407,7 @@ class PythonStubGenerator {
             stub << "  def " << name << "(self) -> table.Table | None: ...\n";
             break;
           }
-          default:
-            break;
+          default: break;
         }
       }
     }
@@ -469,9 +451,7 @@ class PythonStubGenerator {
     stub << '\n';
     stub << "def Create" + namer_.Type(*struct_def)
          << "(builder: flatbuffers.Builder";
-    for (const std::string &arg : args) {
-      stub << ", " << arg;
-    }
+    for (const std::string &arg : args) { stub << ", " << arg; }
     stub << ") -> uoffset: ...\n";
   }
 
@@ -546,11 +526,10 @@ class PythonStubGenerator {
                         Imports *imports) const {
     stub << "class " << namer_.Type(*enum_def);
 
-    if (version_.major == 3){
+    if (version_.major == 3) {
       imports->Import("enum", "IntEnum");
       stub << "(IntEnum)";
-    }
-    else {
+    } else {
       stub << "(object)";
     }
 
@@ -573,9 +552,7 @@ class PythonStubGenerator {
     ss << "from __future__ import annotations\n";
     ss << '\n';
     ss << "import flatbuffers\n";
-    if (parser_.opts.python_gen_numpy) {
-      ss << "import numpy as np\n";
-    }
+    if (parser_.opts.python_gen_numpy) { ss << "import numpy as np\n"; }
     ss << '\n';
 
     std::set<std::string> modules;
@@ -607,7 +584,8 @@ class PythonStubGenerator {
   const Parser &parser_;
   const IdlNamer namer_;
   const Version version_;
-};}  // namespace
+};
+}  // namespace
 
 class PythonGenerator : public BaseGenerator {
  public:
@@ -616,8 +594,8 @@ class PythonGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')"),
-        namer_(WithFlagOptions(kConfig, parser.opts, path),
-               Keywords(version)) {}
+        namer_(WithFlagOptions(kConfig, parser.opts, path), Keywords(version)) {
+  }
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
@@ -807,9 +785,8 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
 
-    const ImportMapEntry import_entry = {
-      GenPackageReference(field.value.type), TypeName(field)
-    };
+    const ImportMapEntry import_entry = { GenPackageReference(field.value.type),
+                                          TypeName(field) };
 
     if (parser_.opts.python_typing) {
       const std::string return_type = ReturnType(struct_def, field);
@@ -869,9 +846,8 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field) + "(self)";
 
-    const ImportMapEntry import_entry = {
-      GenPackageReference(field.value.type), TypeName(field)
-    };
+    const ImportMapEntry import_entry = { GenPackageReference(field.value.type),
+                                          TypeName(field) };
 
     if (parser_.opts.python_typing) {
       const std::string return_type = ReturnType(struct_def, field);
@@ -957,11 +933,8 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "return None\n\n";
   }
 
-  template <typename T>
-  std::string ModuleFor(const T *def) const {
-    if (!parser_.opts.one_file) {
-      return namer_.NamespacedType(*def);
-    }
+  template<typename T> std::string ModuleFor(const T *def) const {
+    if (!parser_.opts.one_file) { return namer_.NamespacedType(*def); }
 
     std::string filename =
         StripExtension(def->file) + parser_.opts.filename_suffix;
@@ -991,9 +964,8 @@ class PythonGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
-    const ImportMapEntry import_entry = {
-      GenPackageReference(field.value.type), TypeName(field)
-    };
+    const ImportMapEntry import_entry = { GenPackageReference(field.value.type),
+                                          TypeName(field) };
 
     if (parser_.opts.python_typing) {
       const std::string return_type = ReturnType(struct_def, field);
@@ -1116,8 +1088,7 @@ class PythonGenerator : public BaseGenerator {
     std::string qualified_name = NestedFlatbufferType(unqualified_name);
     if (qualified_name.empty()) { qualified_name = nested->constant; }
 
-    const ImportMapEntry import_entry = { qualified_name,
-                                          unqualified_name };
+    const ImportMapEntry import_entry = { qualified_name, unqualified_name };
 
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
@@ -2226,9 +2197,9 @@ class PythonGenerator : public BaseGenerator {
 
     if (parser_.opts.python_gen_numpy) {
       code_prefix += GenIndents(3) + "if np is not None and type(self." +
-                    field_field + ") is np.ndarray:";
+                     field_field + ") is np.ndarray:";
       code_prefix += GenIndents(4) + field_field +
-                    " = builder.CreateNumpyVector(self." + field_field + ")";
+                     " = builder.CreateNumpyVector(self." + field_field + ")";
       code_prefix += GenIndents(3) + "else:";
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 4);
       code_prefix += "(self." + field_field + "[i])";
@@ -2676,9 +2647,7 @@ class PythonGenerator : public BaseGenerator {
           }
         }
       }
-      if (parser_.opts.python_gen_numpy) {
-        code += "np = import_numpy()\n\n";
-      }
+      if (parser_.opts.python_gen_numpy) { code += "np = import_numpy()\n\n"; }
     }
   }
 
@@ -2719,7 +2688,7 @@ class PythonGenerator : public BaseGenerator {
 
 static bool GeneratePython(const Parser &parser, const std::string &path,
                            const std::string &file_name) {
-  python::Version version{parser.opts.python_version};
+  python::Version version{ parser.opts.python_version };
   if (!version.IsValid()) return false;
 
   python::PythonGenerator generator(parser, path, file_name, version);
