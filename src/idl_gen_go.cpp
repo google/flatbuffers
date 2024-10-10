@@ -1242,6 +1242,20 @@ class GoGenerator : public BaseGenerator {
         code += "\tt." + field_field + " = rcv." + field_field + "Bytes()\n";
       } else if (IsVector(field.value.type)) {
         code += "\t" + length + " := rcv." + field_field + "Length()\n";
+        // Ensure that the array size is not larger than the total data size.
+        // This is necessary to prevent OOM kills on corrupted data in the
+        // next make expression. This is the only case of corrupted data
+        // that can't be handled using recover (construction of elements
+        // should panic later, but it's already too late). The check is
+        // conservative, but it at least ensures that the allocation size
+        // is proportional to the data size. In particular, if the user code
+        // has sanity checked data size when reading from network/file,
+        // we shouldn't do allocations larger than that.
+        code += "\tif " + length + " > len(rcv._tab.Bytes)/" +
+                NumToString(InlineSize(field.value.type.VectorType())) +
+                " {\n";
+        code += "\t\tpanic(\"bad array size\")\n";
+        code += "\t}\n";
         code += "\tt." + field_field + " = make(" +
                 NativeType(field.value.type) + ", " + length + ")\n";
         code += "\tfor j := 0; j < " + length + "; j++ {\n";
