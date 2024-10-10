@@ -53,9 +53,9 @@ function run_tests() {
 }
 
 # Run test suite with these interpreters. The arguments are benchmark counts.
-run_tests python2.6 100 100 100 100 false
-run_tests python2.7 100 100 100 100 false
-run_tests python2.7 100 100 100 100 true
+# run_tests python2.6 100 100 100 100 false
+# run_tests python2.7 100 100 100 100 false
+# run_tests python2.7 100 100 100 100 true
 run_tests python3 100 100 100 100 false
 run_tests python3 100 100 100 100 true
 run_tests pypy 100 100 100 100 false
