@@ -31,6 +31,8 @@ struct Movie;
 struct MovieBuilder;
 struct MovieT;
 
+template<typename T> struct EnumTraits;
+
 inline const ::flatbuffers::TypeTable *AttackerTypeTable();
 
 inline const ::flatbuffers::TypeTable *RapunzelTypeTable();
@@ -1194,6 +1196,34 @@ inline const ::flatbuffers::TypeTable *MovieTypeTable() {
     ::flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
+}
+
+template<>
+struct EnumTraits<Character> {
+    constexpr static auto type_table = CharacterTypeTable;
+    constexpr static auto name = EnumNameCharacter;
+};
+
+inline EnumTraits<Character> EnumValTraits(Character) {
+    return EnumTraits<Character>{};
+}
+
+inline const char *GetEnumName(Character e) {
+    return EnumValTraits(e).name(e);
+}
+
+template<>
+struct EnumTraits<Gadget> {
+    constexpr static auto type_table = GadgetTypeTable;
+    constexpr static auto name = EnumNameGadget;
+};
+
+inline EnumTraits<Gadget> EnumValTraits(Gadget) {
+    return EnumTraits<Gadget>{};
+}
+
+inline const char *GetEnumName(Gadget e) {
+    return EnumValTraits(e).name(e);
 }
 
 inline const Movie *GetMovie(const void *buf) {

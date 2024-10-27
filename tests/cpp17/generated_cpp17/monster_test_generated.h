@@ -61,6 +61,8 @@ struct TypeAliases;
 struct TypeAliasesBuilder;
 struct TypeAliasesT;
 
+template<typename T> struct EnumTraits;
+
 }  // namespace Example
 
 inline const ::flatbuffers::TypeTable *InParentNamespaceTypeTable();
@@ -4209,6 +4211,90 @@ inline const ::flatbuffers::TypeTable *TypeAliasesTypeTable() {
     ::flatbuffers::ST_TABLE, 12, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
+}
+
+template<>
+struct EnumTraits<Color> {
+    constexpr static auto type_table = ColorTypeTable;
+    constexpr static auto name = EnumNameColor;
+};
+
+inline EnumTraits<Color> EnumValTraits(Color) {
+    return EnumTraits<Color>{};
+}
+
+inline const char *GetEnumName(Color e) {
+    return EnumValTraits(e).name(e);
+}
+
+template<>
+struct EnumTraits<Race> {
+    constexpr static auto type_table = RaceTypeTable;
+    constexpr static auto name = EnumNameRace;
+};
+
+inline EnumTraits<Race> EnumValTraits(Race) {
+    return EnumTraits<Race>{};
+}
+
+inline const char *GetEnumName(Race e) {
+    return EnumValTraits(e).name(e);
+}
+
+template<>
+struct EnumTraits<LongEnum> {
+    constexpr static auto type_table = LongEnumTypeTable;
+    constexpr static auto name = EnumNameLongEnum;
+};
+
+inline EnumTraits<LongEnum> EnumValTraits(LongEnum) {
+    return EnumTraits<LongEnum>{};
+}
+
+inline const char *GetEnumName(LongEnum e) {
+    return EnumValTraits(e).name(e);
+}
+
+template<>
+struct EnumTraits<Any> {
+    constexpr static auto type_table = AnyTypeTable;
+    constexpr static auto name = EnumNameAny;
+};
+
+inline EnumTraits<Any> EnumValTraits(Any) {
+    return EnumTraits<Any>{};
+}
+
+inline const char *GetEnumName(Any e) {
+    return EnumValTraits(e).name(e);
+}
+
+template<>
+struct EnumTraits<AnyUniqueAliases> {
+    constexpr static auto type_table = AnyUniqueAliasesTypeTable;
+    constexpr static auto name = EnumNameAnyUniqueAliases;
+};
+
+inline EnumTraits<AnyUniqueAliases> EnumValTraits(AnyUniqueAliases) {
+    return EnumTraits<AnyUniqueAliases>{};
+}
+
+inline const char *GetEnumName(AnyUniqueAliases e) {
+    return EnumValTraits(e).name(e);
+}
+
+template<>
+struct EnumTraits<AnyAmbiguousAliases> {
+    constexpr static auto type_table = AnyAmbiguousAliasesTypeTable;
+    constexpr static auto name = EnumNameAnyAmbiguousAliases;
+};
+
+inline EnumTraits<AnyAmbiguousAliases> EnumValTraits(AnyAmbiguousAliases) {
+    return EnumTraits<AnyAmbiguousAliases>{};
+}
+
+inline const char *GetEnumName(AnyAmbiguousAliases e) {
+    return EnumValTraits(e).name(e);
 }
 
 inline const MyGame::Example::Monster *GetMonster(const void *buf) {
