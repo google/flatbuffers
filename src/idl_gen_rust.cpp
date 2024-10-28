@@ -2703,6 +2703,10 @@ class RustGenerator : public BaseGenerator {
         "{{STRUCT_TY}} as *const u8, Self::size());";
     code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";
+    code_ += "    #[inline]";
+    code_ += "    fn alignment() -> flatbuffers::PushAlignment {";
+    code_ += "        flatbuffers::PushAlignment::new({{ALIGN}})";
+    code_ += "    }";
     code_ += "}";
     code_ += "";
 

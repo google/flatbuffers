@@ -49,6 +49,10 @@ impl<'b> flatbuffers::Push for Test {
         let src = ::core::slice::from_raw_parts(self as *const Test as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
+    #[inline]
+    fn alignment() -> flatbuffers::PushAlignment {
+        flatbuffers::PushAlignment::new(2)
+    }
 }
 
 impl<'a> flatbuffers::Verifiable for Test {
