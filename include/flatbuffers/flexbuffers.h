@@ -367,7 +367,8 @@ inline void IndentString(std::string &s, int indent,
 
 template<typename T>
 void AppendToString(std::string &s, T &&v, bool keys_quoted, bool indented,
-                    int cur_indent, const char *indent_string) {
+                    int cur_indent, const char *indent_string,
+                    bool natural_utf8) {
   s += "[";
   s += indented ? "\n" : " ";
   for (size_t i = 0; i < v.size(); i++) {
@@ -377,7 +378,7 @@ void AppendToString(std::string &s, T &&v, bool keys_quoted, bool indented,
     }
     if (indented) IndentString(s, cur_indent, indent_string);
     v[i].ToString(true, keys_quoted, s, indented, cur_indent,
-                  indent_string);
+                  indent_string, natural_utf8);
   }
   if (indented) {
     s += "\n";
@@ -567,23 +568,24 @@ class Reference {
   // string values at the top level receive "" quotes (inside other values
   // they always do). keys_quoted determines if keys are quoted, at any level.
   void ToString(bool strings_quoted, bool keys_quoted, std::string &s) const {
-    ToString(strings_quoted, keys_quoted, s, false, 0, "");
+    ToString(strings_quoted, keys_quoted, s, false, 0, "", false);
   }
 
   // This version additionally allow you to specify if you want indentation.
   void ToString(bool strings_quoted, bool keys_quoted, std::string &s,
-                bool indented, int cur_indent, const char *indent_string) const {
+                bool indented, int cur_indent, const char *indent_string,
+                bool natural_utf8 = false) const {
     if (type_ == FBT_STRING) {
       String str(Indirect(), byte_width_);
       if (strings_quoted) {
-        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true, false);
+        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true, natural_utf8);
       } else {
         s.append(str.c_str(), str.length());
       }
     } else if (IsKey()) {
       auto str = AsKey();
       if (keys_quoted) {
-        flatbuffers::EscapeString(str, strlen(str), &s, true, false);
+        flatbuffers::EscapeString(str, strlen(str), &s, true, natural_utf8);
       } else {
         s += str;
       }
@@ -623,7 +625,8 @@ class Reference {
         if (indented) IndentString(s, cur_indent + 1, indent_string);
         keys[i].ToString(true, kq, s);
         s += ": ";
-        vals[i].ToString(true, keys_quoted, s, indented, cur_indent + 1, indent_string);
+        vals[i].ToString(true, keys_quoted, s, indented, cur_indent + 1, indent_string,
+                         natural_utf8);
         if (i < keys.size() - 1) {
           s += ",";
           if (!indented) s += " ";
@@ -635,13 +638,15 @@ class Reference {
       s += "}";
     } else if (IsVector()) {
       AppendToString<Vector>(s, AsVector(), keys_quoted, indented,
-                             cur_indent + 1, indent_string);
+                             cur_indent + 1, indent_string, natural_utf8);
     } else if (IsTypedVector()) {
       AppendToString<TypedVector>(s, AsTypedVector(), keys_quoted, indented,
-                                  cur_indent + 1, indent_string);
+                                  cur_indent + 1, indent_string,
+                                  natural_utf8);
     } else if (IsFixedTypedVector()) {
       AppendToString<FixedTypedVector>(s, AsFixedTypedVector(), keys_quoted,
-                                       indented, cur_indent + 1, indent_string);
+                                       indented, cur_indent + 1, indent_string,
+                                       natural_utf8);
     } else if (IsBlob()) {
       auto blob = AsBlob();
       flatbuffers::EscapeString(reinterpret_cast<const char *>(blob.data()),
