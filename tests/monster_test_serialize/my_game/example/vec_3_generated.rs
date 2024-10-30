@@ -55,6 +55,10 @@ impl<'b> flatbuffers::Push for Vec3 {
         let src = ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
+    #[inline]
+    fn alignment() -> flatbuffers::PushAlignment {
+        flatbuffers::PushAlignment::new(8)
+    }
 }
 
 impl<'a> flatbuffers::Verifiable for Vec3 {
