@@ -2809,6 +2809,15 @@ class CppGenerator : public BaseGenerator {
     code_ += "  typedef {{STRUCT_NAME}}Builder Builder;";
     GenBinarySchemaTypeDef(parser_.root_struct_def_);
 
+    if (opts_.generate_type_names) {
+      // Generate the fully qualified type name
+      std::string full_type_name = MakeFullyQualifiedName(struct_def.defined_namespace, struct_def.name);
+      code_ += "  static const char* TypeName() {";
+      code_ += "    return \"" + full_type_name + "\";";
+      code_ += "  }";
+      code_ += "";
+    }
+
     if (opts_.g_cpp_std >= cpp::CPP_STD_17) { code_ += "  struct Traits;"; }
     if (opts_.mini_reflect != IDLOptions::kNone) {
       code_ +=
@@ -2946,6 +2955,17 @@ class CppGenerator : public BaseGenerator {
       code_ += TableCreateSignature(struct_def, true, opts_) + ";";
       code_ += "";
     }
+  }
+
+  std::string MakeFullyQualifiedName(const Namespace *ns, const std::string &name) {
+    std::string qualified_name;
+    for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
+      if (!qualified_name.empty()) qualified_name += ".";
+      qualified_name += *it;
+    }
+    if (!qualified_name.empty()) qualified_name += ".";
+    qualified_name += name;
+    return qualified_name;
   }
 
   // Generate code to force vector alignment. Return empty string for vector

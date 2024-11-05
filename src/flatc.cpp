@@ -728,6 +728,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-grpc-python-typed-handlers" ||
                  arg == "--grpc-python-typed-handlers=false") {
         opts.grpc_python_typed_handlers = false;
+      } else if (arg == "--gen-type-names") {
+        opts.generate_type_names = true;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 
