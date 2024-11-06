@@ -2811,7 +2811,8 @@ class CppGenerator : public BaseGenerator {
 
     if (opts_.generate_type_names) {
       // Generate the fully qualified type name
-      std::string full_type_name = MakeFullyQualifiedName(struct_def.defined_namespace, struct_def.name);
+      std::string full_type_name =
+          MakeFullyQualifiedName(struct_def.defined_namespace, struct_def.name);
       code_ += "  static const char* TypeName() {";
       code_ += "    return \"" + full_type_name + "\";";
       code_ += "  }";
@@ -2957,7 +2958,8 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  std::string MakeFullyQualifiedName(const Namespace *ns, const std::string &name) {
+  std::string MakeFullyQualifiedName(const Namespace *ns,
+                                     const std::string &name) {
     std::string qualified_name;
     for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
       if (!qualified_name.empty()) qualified_name += ".";
