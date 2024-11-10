@@ -169,6 +169,8 @@ the `schema` that defines the template for our monsters:
 
   namespace MyGame.Sample;
 
+  const MAX_MANA:short = 150;
+
   enum Color:byte { Red = 0, Green, Blue = 2 }
 
   union Equipment { Weapon } // Optionally add more tables.
@@ -181,7 +183,7 @@ the `schema` that defines the template for our monsters:
 
   table Monster {
     pos:Vec3; // Struct.
-    mana:short = 150;
+    mana:short = MAX_MANA;
     hp:short = 100;
     name:string;
     friendly:bool = false (deprecated);
@@ -209,6 +211,11 @@ The `schema` starts with a `namespace` declaration. This determines the
 corresponding package/namespace for the generated code. In our example, we have
 the `Sample` namespace inside of the `MyGame` namespace.
 
+After we have a `const` definition. The type of the constant primitive `MAX_MANA`
+is `short` and the value associated is `150`;
+Fields that use constants will be replaced by the value they represent during
+the parsing step. They also generate scoped definition in code (only C++ so far).
+
 Next, we have an `enum` definition. In this example, we have an `enum` of type
 `byte`, named `Color`. We have three values in this `enum`: `Red`, `Green`, and
 `Blue`. We specify `Red = 0` and `Blue = 2`, but we do not specify an explicit
@@ -227,7 +234,9 @@ less memory and have faster lookup.
 
 The `Monster` table is the main object in our FlatBuffer. This will be used as
 the template to store our `orc` monster. We specify some default values for
-fields, such as `mana:short = 150`. If unspecified, scalar fields (like `int`,
+fields, such as `mana:short = MAX_MANA;` using the `const` defined above and 
+`hp:short = 100;`.
+If unspecified, scalar fields (like `int`,
 `uint`, or `float`) will be given a default of `0` while strings and tables will
 be given a default of `null`. Another thing to note is the line `friendly:bool =
 false (deprecated);`. Since you cannot delete fields from a `table` (to support

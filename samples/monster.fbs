@@ -2,6 +2,11 @@
 
 namespace MyGame.Sample;
 
+const DEFAULT_MANA:int32 = 150;
+const NUM_EYES:short = 3;
+const MAX_PERCENT:float = 100.0;
+const MAX_LIFE:float = MAX_PERCENT;
+
 enum Color:byte { Red = 0, Green, Blue = 2 }
 
 union Equipment { Weapon } // Optionally add more tables.
@@ -12,9 +17,17 @@ struct Vec3 {
   z:float;
 }
 
+struct Eye {
+  blind:bool;
+}
+
+struct Eyes {
+  eyes:[Eye:NUM_EYES];
+}
+
 table Monster {
   pos:Vec3;
-  mana:short = 150;
+  mana:int32 = DEFAULT_MANA;
   hp:short = 100;
   name:string;
   friendly:bool = false (deprecated);
@@ -23,11 +36,13 @@ table Monster {
   weapons:[Weapon];
   equipped:Equipment;
   path:[Vec3];
+  eyes:Eyes;
 }
 
 table Weapon {
   name:string;
   damage:short;
+  life:float = MAX_LIFE;
 }
 
 root_type Monster;

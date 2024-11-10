@@ -12,6 +12,8 @@ first:
 
     attribute "priority";
 
+    const MAX_MANA:short = 150;
+
     enum Color : byte { Red = 1, Green, Blue }
 
     union Any { Monster, Weapon, Pickup }
@@ -24,7 +26,7 @@ first:
 
     table Monster {
       pos:Vec3;
-      mana:short = 150;
+      mana:short = MAX_MANA;
       hp:short = 100;
       name:string;
       friendly:bool = false (deprecated, priority: 1);
@@ -216,6 +218,15 @@ types). In the example IDL file above, use [Any] to add a vector of Any to
 Monster table. There is also experimental support for other types besides
 tables in unions, in particular structs and strings. There's no direct support
 for scalars in unions, but they can be wrapped in a struct at no space cost.
+
+### Constant primitives
+
+Defines a (scalar) constant that can be used within the schema itself. It is declared using the
+keyword `const` followed by the `NAME`, the (mandatory) `:type`, and the `= value`.
+Recomendation is to use `UPPER_CASE` with underscores.
+
+They can be used to set fields default values, fixed-size arrays, or other constants.
+(Generating constants in code is supported only for C++ so far.)
 
 ### Namespaces
 
