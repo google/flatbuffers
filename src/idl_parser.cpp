@@ -793,6 +793,24 @@ CheckedError Parser::ParseTypeIdent(Type &type) {
   return NoError();
 }
 
+bool Parser::IsConstantPrimLookUp(const std::string const_prim_name) {
+  for (const auto const_prim_def : const_prims_.vec) {
+    if (const_prim_def->name.compare(const_prim_name) == 0) { return true; }
+  }
+  return false;
+}
+
+CheckedError Parser::ConstantPrimLookUp(const std::string const_prim_name,
+                                        Value *val) {
+  for (const auto const_prim_def : const_prims_.vec) {
+    if (const_prim_def->name.compare(const_prim_name) == 0) {
+      *val = const_prim_def->value;
+      return NoError();
+    }
+  }
+  return Error("Constant primitive doesn't exist: " + const_prim_name);
+}
+
 // Parse any IDL type.
 CheckedError Parser::ParseType(Type &type) {
   if (token_ == kTokenIdentifier) {
@@ -848,11 +866,19 @@ CheckedError Parser::ParseType(Type &type) {
     }
     if (token_ == ':') {
       NEXT();
-      if (token_ != kTokenIntegerConstant) {
-        return Error("length of fixed-length array must be an integer value");
-      }
       uint16_t fixed_length = 0;
-      bool check = StringToNumber(attribute_.c_str(), &fixed_length);
+      bool check = true;
+      if (token_ == kTokenIdentifier) {
+        Value value;
+        ECHECK(ConstantPrimLookUp(attribute_, &value));
+        check = StringToNumber(value.constant.c_str(), &fixed_length);
+      } else if (token_ != kTokenIntegerConstant) {
+        return Error(
+            "length of fixed-length array must be an integer value (or a "
+            "constant primitive)");
+      } else {
+        check = StringToNumber(attribute_.c_str(), &fixed_length);
+      }
       if (!check || fixed_length < 1) {
         return Error(
             "length of fixed-length array must be positive and fit to "
@@ -952,7 +978,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     Type union_type(type.enum_def->underlying_type);
     union_type.base_type = BASE_TYPE_UTYPE;
     ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),union_type, &typefield));
-    
+
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
     advanced_features_ |= reflection::AdvancedUnionFeatures;
     // Only cpp, js and ts supports the union vector feature so far.
@@ -982,7 +1008,15 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   if (token_ == '=') {
     NEXT();
-    ECHECK(ParseSingleValue(&field->name, field->value, true));
+    if (token_ == kTokenIdentifier && IsConstantPrimLookUp(attribute_)) {
+      Value value;
+      ECHECK(ConstantPrimLookUp(attribute_, &value));
+      NEXT();
+      field->value.type = value.type;
+      field->value.constant = value.constant;
+    } else {
+      ECHECK(ParseSingleValue(&field->name, field->value, true));
+    }
     if (IsStruct(type) || (struct_def.fixed && field->value.constant != "0"))
       return Error(
           "default values are not supported for struct fields, table fields, "
@@ -2844,6 +2878,39 @@ CheckedError Parser::ParseDecl(const char *filename) {
   return NoError();
 }
 
+CheckedError Parser::ParseConstPrim() {
+  auto &const_prim_def = *new ConstPrimDef();
+  const_prim_def.defined_namespace = current_namespace_;
+  NEXT();
+  auto name = attribute_;
+  const_prim_def.name = name;
+  EXPECT(kTokenIdentifier);
+  EXPECT(':');
+  ECHECK(ParseType(const_prim_def.value.type));
+  if (!(IsScalar(const_prim_def.value.type
+                     .base_type) /*|| IsString(const_prim_def.value.type)*/)) {
+    return Error("constant primitive can only be scalar" /*+ "or string"*/);
+  }
+  EXPECT('=');
+  Value value;
+  if (token_ == kTokenIdentifier && IsConstantPrimLookUp(attribute_)) {
+    ECHECK(ConstantPrimLookUp(attribute_, &value))
+    NEXT();
+  } else {
+    value.type = const_prim_def.value.type;
+    ECHECK(ParseSingleValue(&const_prim_def.name, value, true));
+  }
+  const_prim_def.value.type = value.type;
+  const_prim_def.value.constant = value.constant;
+  EXPECT(';');
+
+  const auto qualified_name =
+      current_namespace_->GetFullyQualifiedName(const_prim_def.name);
+  if (const_prims_.Add(qualified_name, &const_prim_def))
+    return Error("constant primitive already exists: " + qualified_name);
+  return NoError();
+}
+
 CheckedError Parser::ParseService(const char *filename) {
   std::vector<std::string> service_comment = doc_comment_;
   NEXT();
@@ -2902,6 +2969,9 @@ void Parser::MarkGenerated() {
   // This function marks all existing definitions as having already
   // been generated, which signals no code for included files should be
   // generated.
+  for (auto it = const_prims_.vec.begin(); it != const_prims_.vec.end(); ++it) {
+    (*it)->generated = true;
+  }
   for (auto it = enums_.vec.begin(); it != enums_.vec.end(); ++it) {
     (*it)->generated = true;
   }
@@ -3795,6 +3865,8 @@ CheckedError Parser::DoParse(const char *source, const char **include_paths,
       known_attributes_[name] = false;
     } else if (IsIdent("rpc_service")) {
       ECHECK(ParseService(source_filename));
+    } else if (IsIdent("const")) {
+      ECHECK(ParseConstPrim());
     } else {
       ECHECK(ParseDecl(source_filename));
     }

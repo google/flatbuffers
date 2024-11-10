@@ -186,6 +186,7 @@ inline const char* StringOf(const BaseType t) {
 // clang-format on
 
 struct StructDef;
+struct ConstPrimDef;
 struct EnumDef;
 class Parser;
 
@@ -346,7 +347,7 @@ struct FieldDef : public Definition {
     return IsScalar() && IsOptional();
   }
   bool IsScalar() const {
-      return ::flatbuffers::IsScalar(value.type.base_type);
+    return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }
@@ -423,6 +424,10 @@ struct StructDef : public Definition {
 
   flatbuffers::unique_ptr<std::string> original_location;
   std::vector<voffset_t> reserved_ids;
+};
+
+struct ConstPrimDef : public Definition {
+  Value value;
 };
 
 struct EnumDef;
@@ -1103,6 +1108,9 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseNamespacing(std::string *id,
                                              std::string *last);
   FLATBUFFERS_CHECKED_ERROR ParseTypeIdent(Type &type);
+  FLATBUFFERS_CHECKED_ERROR ConstantPrimLookUp(
+      const std::string const_prim_name, Value *val);
+  bool IsConstantPrimLookUp(const std::string const_prim_name);
   FLATBUFFERS_CHECKED_ERROR ParseType(Type &type);
   FLATBUFFERS_CHECKED_ERROR AddField(StructDef &struct_def,
                                      const std::string &name, const Type &type,
@@ -1154,6 +1162,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR StartEnum(const std::string &name, bool is_union,
                                       EnumDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseDecl(const char *filename);
+  FLATBUFFERS_CHECKED_ERROR ParseConstPrim();
   FLATBUFFERS_CHECKED_ERROR ParseService(const char *filename);
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef *struct_def,
                                              bool isextend, bool inside_oneof);
@@ -1202,6 +1211,7 @@ class Parser : public ParserState {
  public:
   SymbolTable<Type> types_;
   SymbolTable<StructDef> structs_;
+  SymbolTable<ConstPrimDef> const_prims_;
   SymbolTable<EnumDef> enums_;
   SymbolTable<ServiceDef> services_;
   std::vector<Namespace *> namespaces_;
@@ -1256,8 +1266,8 @@ class Parser : public ParserState {
 // it contains non-UTF-8 byte arrays in String values).
 extern bool GenerateTextFromTable(const Parser &parser,
                                          const void *table,
-                                         const std::string &tablename,
-                                         std::string *text);
+                                  const std::string &tablename,
+                                  std::string *text);
 extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
                                 std::string *text);
 extern const char *GenerateTextFile(const Parser &parser,

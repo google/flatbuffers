@@ -456,6 +456,19 @@ class CppGenerator : public BaseGenerator {
 
     FLATBUFFERS_ASSERT(!cur_name_space_);
 
+    // Generate definition for all constant primitives
+    for (const auto &const_prim_def : parser_.const_prims_.vec) {
+      if (!const_prim_def->generated) {
+        SetNameSpace(const_prim_def->defined_namespace);
+        code_ += "constexpr " + GenTypeBasic(const_prim_def->value.type, true) +
+                 " " + Name(*const_prim_def) + " = " +
+                 NumToStringCpp(const_prim_def->value.constant,
+                                const_prim_def->value.type.base_type) +
+                 ";";
+      }
+    }
+    if (parser_.const_prims_.vec.size() > 0) { code_ += ""; }
+
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
     for (const auto &struct_def : parser_.structs_.vec) {
