@@ -131,8 +131,6 @@ static std::set<std::string> RustKeywords() {
     // Terms that we use ourselves
     "follow",
     "push",
-    "size",
-    "alignment",
     "to_little_endian",
     "from_little_endian",
     "ENUM_MAX",
@@ -2700,7 +2698,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ +=
         "        let src = ::core::slice::from_raw_parts(self as *const "
-        "{{STRUCT_TY}} as *const u8, Self::size());";
+        "{{STRUCT_TY}} as *const u8, <Self as flatbuffers::Push>::size());";
     code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";
     code_ += "    #[inline]";
