@@ -339,8 +339,8 @@ typedef uint16_t voffset_t;
 typedef uintmax_t largest_scalar_t;
 
 // In 32bits, this evaluates to 2GB - 1
-#define FLATBUFFERS_MAX_BUFFER_SIZE std::numeric_limits<::flatbuffers::soffset_t>::max()
-#define FLATBUFFERS_MAX_64_BUFFER_SIZE std::numeric_limits<::flatbuffers::soffset64_t>::max()
+#define FLATBUFFERS_MAX_BUFFER_SIZE (std::numeric_limits<::flatbuffers::soffset_t>::max)()
+#define FLATBUFFERS_MAX_64_BUFFER_SIZE (std::numeric_limits<::flatbuffers::soffset64_t>::max)()
 
 // The minimum size buffer that can be a valid flatbuffer.
 // Includes the offset to the root table (uoffset_t), the offset to the vtable

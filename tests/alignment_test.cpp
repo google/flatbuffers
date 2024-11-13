@@ -34,15 +34,18 @@ void AlignmentTest() {
 
   // creating 5 structs with 2 bytes each
   // 10 bytes in total for Vector data is needed
-  std::vector<JustSmallStruct> small_vector = {
-    { 2, 1 }, { 3, 1 }, { 4, 1 }
-  };
+  std::vector<EvenSmallStruct> even_vector = { { 2, 1 }, { 3, 1 }, { 4, 1 } };
+  std::vector<OddSmallStruct> odd_vector = { { 6, 5, 4 },
+                                             { 9, 8, 7 },
+                                             { 1, 2, 3 } };
   // CreateVectorOfStructs is used in the generated CreateSmallStructsDirect()
   // method, but we test it directly
-  Offset<Vector<const JustSmallStruct *>> small_structs_offset =
-      builder.CreateVectorOfStructs<JustSmallStruct>(small_vector);
+  Offset<Vector<const EvenSmallStruct *>> even_structs_offset =
+      builder.CreateVectorOfStructs<EvenSmallStruct>(even_vector);
+  Offset<Vector<const OddSmallStruct *>> odd_structs_offset =
+      builder.CreateVectorOfStructs<OddSmallStruct>(odd_vector);
   Offset<SmallStructs> small_structs_root =
-      CreateSmallStructs(builder, small_structs_offset);
+      CreateSmallStructs(builder, even_structs_offset, odd_structs_offset);
 
   builder.Finish(small_structs_root);
 
@@ -62,13 +65,17 @@ void AlignmentTest() {
   auto root_msg =
       flatbuffers::GetRoot<SmallStructs>(builder.GetBufferPointer());
 
-  TEST_EQ(root_msg->small_structs()->size(), small_vector.size());
-  for (flatbuffers::uoffset_t i = 0; i < root_msg->small_structs()->size();
+  TEST_EQ(root_msg->even_structs()->size(), even_vector.size());
+  for (flatbuffers::uoffset_t i = 0; i < root_msg->even_structs()->size();
        ++i) {
-    TEST_EQ(small_vector[i].var_0(),
-            root_msg->small_structs()->Get(i)->var_0());
-    TEST_EQ(small_vector[i].var_1(),
-            root_msg->small_structs()->Get(i)->var_1());
+    TEST_EQ(even_vector[i].var_0(), root_msg->even_structs()->Get(i)->var_0());
+    TEST_EQ(even_vector[i].var_1(), root_msg->even_structs()->Get(i)->var_1());
+  }
+
+  TEST_EQ(root_msg->odd_structs()->size(), even_vector.size());
+  for (flatbuffers::uoffset_t i = 0; i < root_msg->odd_structs()->size(); ++i) {
+    TEST_EQ(odd_vector[i].var_0(), root_msg->odd_structs()->Get(i)->var_0());
+    TEST_EQ(odd_vector[i].var_1(), root_msg->odd_structs()->Get(i)->var_1());
   }
 }
 

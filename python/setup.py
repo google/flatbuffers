@@ -18,7 +18,6 @@ setup(
     name='flatbuffers',
     version='24.3.25',
     license='Apache 2.0',
-    license_files='../LICENSE',
     author='Derek Bailey',
     author_email='derekbailey@google.com',
     url='https://google.github.io/flatbuffers/',

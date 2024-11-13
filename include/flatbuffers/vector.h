@@ -175,6 +175,11 @@ template<typename T, typename SizeT = uoffset_t> class Vector {
 
   SizeT size() const { return EndianScalar(length_); }
 
+  // Returns true if the vector is empty.
+  //
+  // This just provides another standardized method that is expected of vectors.
+  bool empty() const { return size() == 0; }
+
   // Deprecated: use size(). Here for backwards compatibility.
   FLATBUFFERS_ATTRIBUTE([[deprecated("use size() instead")]])
   SizeT Length() const { return size(); }

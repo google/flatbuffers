@@ -24,7 +24,7 @@
         </developer>
     </developers>
     <properties>
-        <gRPC.version>1.36.0</gRPC.version>
+        <gRPC.version>1.67.1</gRPC.version>
     </properties>
     <dependencies>
         <dependency>

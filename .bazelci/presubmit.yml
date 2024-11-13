@@ -33,6 +33,7 @@ platforms:
   macos:
     xcode_version: "14.3"
     build_targets:
-    - "//..."
+    - "//:flatbuffers"
+    - "//:flatc"
     test_targets:
-    - "//..."
+    - "//tests:flatbuffers_test"
