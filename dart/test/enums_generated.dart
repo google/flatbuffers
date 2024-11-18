@@ -5,6 +5,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
+
 enum OptionsEnum {
   A(1),
   B(2),
@@ -94,7 +95,7 @@ class _MyTableReader extends fb.TableReader<MyTable> {
   const _MyTableReader();
 
   @override
-  MyTable createObject(fb.BufferContext bc, int offset) =>
+  MyTable createObject(fb.BufferContext bc, int offset) => 
     MyTable._(bc, offset);
 }
 
