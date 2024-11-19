@@ -491,6 +491,12 @@ class CppGenerator : public BaseGenerator {
       }
     }
 
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      // Declare EnumTraits as a template class
+      code_ += "template<typename T> struct EnumTraits;";
+      code_ += "";
+    }
+
     // Generate forward declarations for all equal operators
     if (opts_.generate_object_based_api && opts_.gen_compare) {
       for (const auto &struct_def : parser_.structs_.vec) {
@@ -567,6 +573,16 @@ class CppGenerator : public BaseGenerator {
         if (!struct_def->generated) {
           SetNameSpace(struct_def->defined_namespace);
           GenMiniReflect(struct_def, nullptr);
+        }
+      }
+    }
+
+    if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+      // Generate traits for enums.
+      for (const auto &enum_def : parser_.enums_.vec) {
+        if (!enum_def->generated) {
+          SetNameSpace(enum_def->defined_namespace);
+          GenEnumTraits(*enum_def);
         }
       }
     }
@@ -1368,6 +1384,29 @@ class CppGenerator : public BaseGenerator {
       code_ += UnionVectorVerifySignature(enum_def) + ";";
       code_ += "";
     }
+  }
+
+  void GenEnumTraits(const EnumDef &enum_def) {
+    code_.SetValue("ENUM_NAME", Name(enum_def));
+
+    code_ += "template<>";
+    code_ += "struct EnumTraits<{{ENUM_NAME}}> {";
+    if (opts_.mini_reflect != IDLOptions::kNone) {
+      code_ += "    constexpr static auto type_table = {{ENUM_NAME}}TypeTable;";
+    }
+    code_ += "    constexpr static auto name = EnumName{{ENUM_NAME}};";
+    code_ += "};";
+    code_ += "";
+
+    code_ += "inline EnumTraits<{{ENUM_NAME}}> EnumValTraits({{ENUM_NAME}}) {";
+    code_ += "    return EnumTraits<{{ENUM_NAME}}>{};";
+    code_ += "}";
+    code_ += "";
+
+    code_ += "inline const char *GetEnumName({{ENUM_NAME}} e) {";
+    code_ += "    return EnumValTraits(e).name(e);";
+    code_ += "}";
+    code_ += "";
   }
 
   // Generate a union type and a trait type for it.
