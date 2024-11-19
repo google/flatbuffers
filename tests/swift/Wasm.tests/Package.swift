@@ -24,7 +24,7 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../.."),
-    .package(url: "https://github.com/swiftwasm/carton", exact: "1.0.1"),
+    .package(url: "https://github.com/swiftwasm/carton", exact: "1.1.2"),
   ],
   targets: [
     .target(name: "Wasm"),
