@@ -907,10 +907,12 @@ class GoGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       GenStructAccessor(struct_def, field, code_ptr);
-      GenStructMutator(struct_def, field, code_ptr);
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly) {
+        GenStructMutator(struct_def, field, code_ptr);
+      }
       // TODO(michaeltle): Support querying fixed struct by key. Currently,
       // we only support keyed tables.
       if (!struct_def.fixed && field.key) {
@@ -1009,7 +1011,7 @@ class GoGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (IsScalar(field.value.type.base_type) &&
           field.value.type.enum_def != nullptr &&
           field.value.type.enum_def->is_union)
@@ -1225,7 +1227,7 @@ class GoGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const FieldDef &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       const std::string field_field = namer_.Field(field);
       const std::string field_var = namer_.Variable(field);
       const std::string length = field_var + "Length";

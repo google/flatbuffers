@@ -57,10 +57,15 @@ public class ArrayTableT
   }
 
   public static ArrayTableT DeserializeFromJson(string jsonText) {
-    return Newtonsoft.Json.JsonConvert.DeserializeObject<ArrayTableT>(jsonText);
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<ArrayTableT>(jsonText, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+    });
   }
   public string SerializeToJson() {
-    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+      Formatting = Newtonsoft.Json.Formatting.Indented,
+    });
   }
   public static ArrayTableT DeserializeFromBinary(byte[] fbBuffer) {
     return ArrayTable.GetRootAsArrayTable(new ByteBuffer(fbBuffer)).UnPack();
