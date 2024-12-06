@@ -17,6 +17,7 @@
 #include "flatbuffers/flatc.h"
 
 #include <algorithm>
+#include <iterator>
 #include <limits>
 #include <list>
 #include <memory>
@@ -549,6 +550,18 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.gen_generated = true;
       } else if (arg == "--swift-implementation-only") {
         opts.swift_implementation_only = true;
+      } else if (arg == "--swift-module-mappings") {
+        if (++argi >= argc)
+          Error("missing swift module mappings following: ", true);
+        opts.swift_module_mappings = argv[argi];
+      } else if (arg == "--swift-include") {
+        if (++argi >= argc) Error("missing include following: " + arg, true);
+        opts.swift_includes.push_back(argv[argi]);
+      } else if (arg == "--swift-includes") {
+        if (++argi >= argc) Error("missing include following: " + arg, true);
+        std::vector<std::string> includes = StringSplit(argv[argi], ',');
+        std::copy(includes.begin(), includes.end(),
+                  std::back_inserter(opts.swift_includes));
       } else if (arg == "--gen-json-emit") {
         opts.gen_json_coders = true;
       } else if (arg == "--object-prefix") {

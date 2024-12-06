@@ -20,6 +20,8 @@
 #include <ctype.h>
 #include <errno.h>
 
+#include <vector>
+
 #include "flatbuffers/base.h"
 #include "flatbuffers/stl_emulation.h"
 
@@ -406,6 +408,8 @@ inline bool StringIsFlatbufferPositiveInfinity(const std::string &s) {
 inline bool StringIsFlatbufferNegativeInfinity(const std::string &s) {
   return s == "-inf" || s == "-infinity";
 }
+
+std::vector<std::string> StringSplit(const std::string &s, char delim);
 
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
                                  std::string *dest);
