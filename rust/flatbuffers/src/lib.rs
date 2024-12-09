@@ -56,7 +56,7 @@ pub use crate::push::{Push, PushAlignment};
 pub use crate::table::{buffer_has_identifier, Table};
 pub use crate::vector::{follow_cast_ref, Vector, VectorIter};
 pub use crate::verifier::{
-    ErrorTraceDetail, InvalidFlatbuffer, SimpleToVerifyInSlice, Verifiable, Verifier,
+    ErrorTraceDetail, InvalidFlatbuffer, SimpleToVerifyInSlice, TableVerifier, Verifiable, Verifier,
     VerifierOptions,
 };
 pub use crate::vtable::field_index_to_field_offset;
