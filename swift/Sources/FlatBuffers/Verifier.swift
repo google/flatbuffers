@@ -55,7 +55,7 @@ public struct Verifier {
   }
 
   /// Resets the verifier to initial state
-  public mutating func reset() {
+  public func reset() {
     storage.depth = 0
     storage.tableCount = 0
   }
@@ -65,7 +65,7 @@ public struct Verifier {
   ///   - position: Current position
   ///   - type: Type of value to check
   /// - Throws: `missAlignedPointer` if the pointer is not aligned properly
-  public mutating func isAligned<T>(position: Int, type: T.Type) throws {
+  public func isAligned<T>(position: Int, type: T.Type) throws {
 
     /// If check alignment is false this mutating function doesnt continue
     if !_checkAlignment { return }
@@ -89,7 +89,7 @@ public struct Verifier {
   /// - Throws: `outOfBounds` if the value is out of the bounds of the buffer
   /// and `apparentSizeTooLarge` if the apparent size is bigger than the one specified
   /// in `VerifierOptions`
-  public mutating func rangeInBuffer(position: Int, size: Int) throws {
+  public func rangeInBuffer(position: Int, size: Int) throws {
     let end = UInt(clamping: (position &+ size).magnitude)
     if end > _buffer.capacity {
       throw FlatbuffersErrors.outOfBounds(position: end, end: storage.capacity)
@@ -106,7 +106,7 @@ public struct Verifier {
   ///   - position: Current readable position
   ///   - type: Type of value to check
   /// - Throws: FlatbuffersErrors
-  public mutating func inBuffer<T>(position: Int, of type: T.Type) throws {
+  public func inBuffer<T>(position: Int, of type: T.Type) throws {
     try isAligned(position: position, type: type)
     try rangeInBuffer(position: position, size: MemoryLayout<T>.size)
   }
@@ -149,7 +149,7 @@ public struct Verifier {
   /// - Parameter position: Current position to be read
   /// - Throws: `inBuffer` errors
   /// - Returns: a value of type `T` usually a `VTable` or a table offset
-  internal mutating func getValue<T>(at position: Int) throws -> T {
+  internal func getValue<T>(at position: Int) throws -> T {
     try inBuffer(position: position, of: T.self)
     return _buffer.read(def: T.self, position: position)
   }
@@ -160,7 +160,7 @@ public struct Verifier {
   /// - Throws: `inBuffer` errors & `signedOffsetOutOfBounds`
   /// - Returns: Current readable position for a field
   @inline(__always)
-  internal mutating func derefOffset(position: Int) throws -> Int {
+  internal func derefOffset(position: Int) throws -> Int {
     try inBuffer(position: position, of: Int32.self)
 
     let offset = _buffer.read(def: Int32.self, position: position)
@@ -192,12 +192,12 @@ public struct Verifier {
   }
 
   /// finishes the current iteration of verification on an object
-  internal mutating func finish() {
+  internal func finish() {
     storage.depth -= 1
   }
 
   @inline(__always)
-  mutating func verify(id: String) throws {
+  func verify(id: String) throws {
     let size = MemoryLayout<Int32>.size
     guard storage.capacity >= (size * 2) else {
       throw FlatbuffersErrors.bufferDoesntContainID
