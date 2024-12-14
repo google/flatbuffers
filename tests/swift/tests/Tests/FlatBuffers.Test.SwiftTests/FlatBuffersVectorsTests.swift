@@ -65,9 +65,6 @@ final class FlatBuffersVectors: XCTestCase {
     var b = FlatBufferBuilder(initialSize: 100)
     let o = b.createVector(ofStructs: vector)
     b.finish(offset: o)
-    vector.withUnsafeBytes { pointer in
-      print(Array(pointer))
-    }
     // swiftformat:disable all
     XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64, 0, 0, 224, 64, 0, 0, 0, 65, 0, 0, 16, 65])
     // swiftformat:enable all

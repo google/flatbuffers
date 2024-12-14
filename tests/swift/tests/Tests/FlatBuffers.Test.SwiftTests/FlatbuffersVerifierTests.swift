@@ -75,7 +75,7 @@ final class FlatbuffersVerifierTests: XCTestCase {
   }
 
   func testVerifierCheckAlignment() {
-    var verifier = try! Verifier(buffer: &buffer)
+    let verifier = try! Verifier(buffer: &buffer)
     do {
       try verifier.isAligned(position: 20, type: Int.self)
     } catch {
@@ -85,7 +85,7 @@ final class FlatbuffersVerifierTests: XCTestCase {
     }
     XCTAssertNoThrow(try verifier.isAligned(position: 16, type: Int.self))
 
-    var newVerifer = try! Verifier(buffer: &buffer, checkAlignment: false)
+    let newVerifer = try! Verifier(buffer: &buffer, checkAlignment: false)
     XCTAssertNoThrow(try newVerifer.isAligned(position: 16, type: Int.self))
   }
 
@@ -112,7 +112,7 @@ final class FlatbuffersVerifierTests: XCTestCase {
   }
 
   func testPositionInBuffer() {
-    var verifier = try! Verifier(buffer: &buffer)
+    let verifier = try! Verifier(buffer: &buffer)
     XCTAssertNoThrow(try verifier.inBuffer(position: 0, of: Int64.self))
     XCTAssertNoThrow(try verifier.inBuffer(position: 24, of: Int64.self))
     XCTAssertThrowsError(try verifier.inBuffer(position: -9, of: Int64.self))

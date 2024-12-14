@@ -38,5 +38,6 @@ let package = Package(
       dependencies: [
         .product(name: "FlatBuffers", package: "flatbuffers"),
         .product(name: "GRPC", package: "grpc-swift"),
-      ]),
+      ]
+    )
   ])
