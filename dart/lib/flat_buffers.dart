@@ -208,7 +208,6 @@ class Builder {
 
   void addStruct(int field, int offset) {
     assert(_inVTable);
-    _trackField(field);
     _currentVTable!.addField(field, offset);
   }
 
@@ -1393,6 +1392,7 @@ class _VTable {
     assert(!offsetsComputed);
     assert(offset > 0); // it's impossible for field to start at the buffer end
     assert(offset <= 4294967295); // uint32 max
+    assert(fieldOffsets[field] == 0); // only write each field once
     fieldOffsets[field] = offset;
   }
 
