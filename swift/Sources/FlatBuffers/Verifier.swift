@@ -22,21 +22,28 @@ public struct Verifier {
 
   /// Flag to check for alignment if true
   fileprivate let _checkAlignment: Bool
-  /// Capacity of the current buffer
-  fileprivate var _capacity: Int
-  /// Current ApparentSize
-  fileprivate var _apparentSize: UOffset = 0
-  /// Amount of tables present within a buffer
-  fileprivate var _tableCount = 0
-
-  /// Capacity of the buffer
-  internal var capacity: Int { _capacity }
-  /// Current reached depth within the buffer
-  internal var _depth = 0
+  /// Storage for all changing values within the verifier
+  private let storage: Storage
   /// Current verifiable ByteBuffer
   internal var _buffer: ByteBuffer
   /// Options for verification
   internal let _options: VerifierOptions
+
+  /// Current stored capacity within the verifier
+  var capacity: Int {
+    storage.capacity
+  }
+
+  /// Current depth of verifier
+  var depth: Int {
+    storage.depth
+  }
+
+  /// Current table count
+  var tableCount: Int {
+    storage.tableCount
+  }
+
 
   /// Initializer for the verifier
   /// - Parameters:
@@ -54,15 +61,15 @@ public struct Verifier {
     }
 
     _buffer = buffer
-    _capacity = buffer.capacity
     _checkAlignment = checkAlignment
     _options = options
+    storage = Storage(capacity: buffer.capacity)
   }
 
   /// Resets the verifier to initial state
-  public mutating func reset() {
-    _depth = 0
-    _tableCount = 0
+  public func reset() {
+    storage.depth = 0
+    storage.tableCount = 0
   }
 
   /// Checks if the value of type `T` is aligned properly in the buffer
@@ -70,7 +77,7 @@ public struct Verifier {
   ///   - position: Current position
   ///   - type: Type of value to check
   /// - Throws: `missAlignedPointer` if the pointer is not aligned properly
-  public mutating func isAligned<T>(position: Int, type: T.Type) throws {
+  public func isAligned<T>(position: Int, type: T.Type) throws {
 
     /// If check alignment is false this mutating function doesnt continue
     if !_checkAlignment { return }
@@ -94,13 +101,13 @@ public struct Verifier {
   /// - Throws: `outOfBounds` if the value is out of the bounds of the buffer
   /// and `apparentSizeTooLarge` if the apparent size is bigger than the one specified
   /// in `VerifierOptions`
-  public mutating func rangeInBuffer(position: Int, size: Int) throws {
+  public func rangeInBuffer(position: Int, size: Int) throws {
     let end = UInt(clamping: (position &+ size).magnitude)
     if end > _buffer.capacity {
-      throw FlatbuffersErrors.outOfBounds(position: end, end: capacity)
+      throw FlatbuffersErrors.outOfBounds(position: end, end: storage.capacity)
     }
-    _apparentSize = _apparentSize &+ UInt32(size)
-    if _apparentSize > _options._maxApparentSize {
+    storage.apparentSize = storage.apparentSize &+ UInt32(size)
+    if storage.apparentSize > _options._maxApparentSize {
       throw FlatbuffersErrors.apparentSizeTooLarge
     }
   }
@@ -111,7 +118,7 @@ public struct Verifier {
   ///   - position: Current readable position
   ///   - type: Type of value to check
   /// - Throws: FlatbuffersErrors
-  public mutating func inBuffer<T>(position: Int, of type: T.Type) throws {
+  public func inBuffer<T>(position: Int, of type: T.Type) throws {
     try isAligned(position: position, type: type)
     try rangeInBuffer(position: position, size: MemoryLayout<T>.size)
   }
@@ -131,15 +138,15 @@ public struct Verifier {
       type: VOffset.self)
     try rangeInBuffer(position: vtablePosition, size: length)
 
-    _tableCount += 1
+    storage.tableCount += 1
 
-    if _tableCount > _options._maxTableCount {
+    if storage.tableCount > _options._maxTableCount {
       throw FlatbuffersErrors.maximumTables
     }
 
-    _depth += 1
+    storage.depth += 1
 
-    if _depth > _options._maxDepth {
+    if storage.depth > _options._maxDepth {
       throw FlatbuffersErrors.maximumDepth
     }
 
@@ -154,7 +161,7 @@ public struct Verifier {
   /// - Parameter position: Current position to be read
   /// - Throws: `inBuffer` errors
   /// - Returns: a value of type `T` usually a `VTable` or a table offset
-  internal mutating func getValue<T>(at position: Int) throws -> T {
+  internal func getValue<T>(at position: Int) throws -> T {
     try inBuffer(position: position, of: T.self)
     return _buffer.read(def: T.self, position: position)
   }
@@ -165,7 +172,7 @@ public struct Verifier {
   /// - Throws: `inBuffer` errors & `signedOffsetOutOfBounds`
   /// - Returns: Current readable position for a field
   @inline(__always)
-  internal mutating func derefOffset(position: Int) throws -> Int {
+  internal func derefOffset(position: Int) throws -> Int {
     try inBuffer(position: position, of: Int32.self)
 
     let offset = _buffer.read(def: Int32.self, position: position)
@@ -197,14 +204,14 @@ public struct Verifier {
   }
 
   /// finishes the current iteration of verification on an object
-  internal mutating func finish() {
-    _depth -= 1
+  internal func finish() {
+    storage.depth -= 1
   }
 
   @inline(__always)
-  mutating func verify(id: String) throws {
+  func verify(id: String) throws {
     let size = MemoryLayout<Int32>.size
-    guard _capacity >= (size * 2) else {
+    guard storage.capacity >= (size * 2) else {
       throw FlatbuffersErrors.bufferDoesntContainID
     }
     let str = _buffer.readString(at: size, count: size)
@@ -214,4 +221,18 @@ public struct Verifier {
     throw FlatbuffersErrors.bufferIdDidntMatchPassedId
   }
 
+  final private class Storage {
+    /// Current ApparentSize
+    fileprivate var apparentSize: UOffset = 0
+    /// Amount of tables present within a buffer
+    fileprivate var tableCount = 0
+    /// Capacity of the current buffer
+    fileprivate let capacity: Int
+    /// Current reached depth within the buffer
+    fileprivate var depth = 0
+
+    init(capacity: Int) {
+      self.capacity = capacity
+    }
+  }
 }
