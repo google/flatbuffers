@@ -7,9 +7,12 @@
 # 2. Run this script which should update all the version strings in the
 #    appropriate places.
 # 3. `make clean`
-# 4. `make -j`
+# 4. `make -j flatc`
 # 5. Make sure the version is part of flatc: `./flatc --version`
-# 6. Make sure the tests pass: `./flattests`
+# 6. `scripts/generated_code.py`
+# 7. `goldens/generated_code.py`
+# 8. `make -j`
+# 9. Make sure the tests pass: `./flattests`
 
 # Requires the xmlstarlet command.
 #   Install via: apt install xmlstarlet
