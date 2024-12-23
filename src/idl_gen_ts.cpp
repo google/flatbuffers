@@ -901,11 +901,15 @@ class TsGenerator : public BaseGenerator {
 
     std::string bare_file_path;
     std::string rel_file_path;
-    const auto &dep_comps = dependent.defined_namespace->components;
-    for (size_t i = 0; i < dep_comps.size(); i++) {
-      rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+    if (dependent.defined_namespace) {
+      const auto &dep_comps = dependent.defined_namespace->components;
+      for (size_t i = 0; i < dep_comps.size(); i++) {
+        rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
+      }
+      if (dep_comps.size() == 0) { rel_file_path += "."; }
+    } else {
+      rel_file_path += "..";
     }
-    if (dep_comps.size() == 0) { rel_file_path += "."; }
 
     bare_file_path +=
         kPathSeparator +
