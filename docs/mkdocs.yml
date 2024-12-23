@@ -1,0 +1,66 @@
+site_name: FlatBuffers Docs
+docs_dir: source
+site_url: https://flatbuffers.dev
+theme:
+  name: material
+  logo: assets/flatbuffers_logo.svg
+  custom_dir: overrides
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    # Allows code block annotations
+    - content.code.annotate
+
+    # Allows content tabs to link together
+    - content.tabs.link
+  
+    # Expand nav folders by default
+    - navigation.expand
+    
+    # Auto hide the header after scrolling
+    - header.autohide
+
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.snippets:
+      # Allows direct embedded of remote files
+      url_download: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - tables
+
+
+
+nav:
+  - Overview: "index.md"
+  - Tutorial: "tutorial.md"
+  - Compiler (flatc): 
+    - Building: "building.md"
+    - Using: "flatc.md"
+  - Schema (.fbs): 
+    - Overview: "schema.md"
+    - Evolution: "evolution.md"
+    - Grammar: "grammar.md"
