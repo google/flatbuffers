@@ -41,7 +41,7 @@ class Attacker : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_24_3_25()
+        fun validateVersion() = Constants.FLATBUFFERS_24_12_23()
         fun getRootAsAttacker(_bb: ByteBuffer): Attacker = getRootAsAttacker(_bb, Attacker())
         fun getRootAsAttacker(_bb: ByteBuffer, obj: Attacker): Attacker {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
