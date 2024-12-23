@@ -11,8 +11,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 25,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -577,7 +577,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
   auto get_field() const {
          if constexpr (Index == 0) return a();
     else if constexpr (Index == 1) return b();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Test, 4);
@@ -684,7 +684,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
     else if constexpr (Index == 3) return test1();
     else if constexpr (Index == 4) return test2();
     else if constexpr (Index == 5) return test3();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Vec3, 32);
@@ -746,7 +746,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
   auto get_field() const {
          if constexpr (Index == 0) return id();
     else if constexpr (Index == 1) return distance();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Ability, 8);
@@ -808,7 +808,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructs FLATBUFFERS_FINAL_CLASS {
          if constexpr (Index == 0) return a();
     else if constexpr (Index == 1) return b();
     else if constexpr (Index == 2) return c();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(StructOfStructs, 20);
@@ -851,7 +851,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructsOfStructs FLATBUFFERS_FINA
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return a();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(StructOfStructsOfStructs, 20);
@@ -1004,7 +1004,7 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return color();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1105,7 +1105,7 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
          if constexpr (Index == 0) return id();
     else if constexpr (Index == 1) return val();
     else if constexpr (Index == 2) return count();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1216,7 +1216,7 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return id();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1884,7 +1884,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 58) return negative_inf_default();
     else if constexpr (Index == 59) return negative_infinity_default();
     else if constexpr (Index == 60) return double_inf_default();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2690,7 +2690,7 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 9) return f64();
     else if constexpr (Index == 10) return v8();
     else if constexpr (Index == 11) return vf64();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&

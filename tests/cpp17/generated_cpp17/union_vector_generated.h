@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 25,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 struct Attacker;
@@ -293,7 +293,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return hair_length();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Rapunzel, 4);
@@ -334,7 +334,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return books_read();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(BookReader, 4);
@@ -375,7 +375,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) FallingTub FLATBUFFERS_FINAL_CLASS {
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return weight();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(FallingTub, 4);
@@ -416,7 +416,7 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return sword_attack_damage();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -493,7 +493,7 @@ struct HandFan FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   template<size_t Index>
   auto get_field() const {
          if constexpr (Index == 0) return length();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -610,7 +610,7 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 1) return main_character();
     else if constexpr (Index == 2) return characters_type();
     else if constexpr (Index == 3) return characters();
-    else static_assert(Index != Index, "Invalid Field Index");
+    else static_assert(Index != -1, "Invalid Field Index");
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&

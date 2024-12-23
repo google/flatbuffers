@@ -2653,7 +2653,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "if constexpr (Index == {{FIELD_INDEX}}) \\";
       code_ += "return {{FIELD_NAME}}();";
     }
-    code_ += "    else static_assert(Index != Index, \"Invalid Field Index\");";
+    code_ += "    else static_assert(Index != -1, \"Invalid Field Index\");";
     code_ += "  }";
   }
 
