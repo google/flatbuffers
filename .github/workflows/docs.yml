@@ -6,7 +6,7 @@ on:
   # Pushes to main that touch the documentation directory.
   push:
     branches:
-      - main
+      - master
     paths:
       - 'docs/**'
 
