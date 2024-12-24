@@ -41,13 +41,19 @@ Once the project files are generated, build as normal for your platform.
 === "Unix"
 
     ```sh
-    make flatc
+    make -j
     ```
 
 === "Windows"
 
     ```sh
     msbuild.exe FlatBuffers.sln
+    ```
+
+=== "MacOS"
+
+    ```sh
+    xcodebuild -toolchain clang -configuration Release
     ```
 
 ## Building with Bazel
