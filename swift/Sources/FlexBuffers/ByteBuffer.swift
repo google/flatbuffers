@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Common
 import Foundation
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
@@ -182,7 +181,7 @@ public struct ByteBuffer {
   /// Reader is the position of the current Writer Index (capacity - size)
   public var reader: Int { _storage.capacity &- _readerIndex }
   /// Current size of the buffer
-  public var size: UOffset { UOffset(_readerIndex) }
+  public var size: Int { _readerIndex }
   /// Current capacity for the buffer
   public var capacity: Int { _storage.capacity }
 
@@ -194,7 +193,7 @@ public struct ByteBuffer {
     _storage = Storage(
       blob: .byteBuffer(byteBuffer),
       capacity: byteBuffer.capacity)
-    _readerIndex = Int(byteBuffer.size)
+    _readerIndex = byteBuffer.writerIndex
   }
 
   /// Constructor that creates a Flatbuffer from unsafe memory region by copying

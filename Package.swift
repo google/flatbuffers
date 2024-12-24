@@ -27,10 +27,21 @@ let package = Package(
     .library(
       name: "FlatBuffers",
       targets: ["FlatBuffers"]),
+    .library(
+      name: "FlexBuffers",
+      targets: ["FlexBuffers"]),
   ],
   targets: [
     .target(
       name: "FlatBuffers",
+      dependencies: ["Common"],
+      path: "swift/Sources/FlatBuffers"),
+    .target(
+      name: "FlexBuffers",
+      dependencies: ["Common"],
+      path: "swift/Sources/FlexBuffers"),
+    .target(
+      name: "Common",
       dependencies: [],
-      path: "swift/Sources"),
+      path: "swift/Sources/Common"),
   ])
