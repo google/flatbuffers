@@ -3,10 +3,12 @@ on:
   # For manual pushes.
   workflow_dispatch: 
 
-  # Enable for whenever main gets updated.
-  # push:
-  #   branches:
-  #     - main
+  # Pushes to main that touch the documentation directory.
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
 
 permissions:
   contents: write
