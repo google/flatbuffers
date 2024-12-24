@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Common
 import Foundation
 
 /// `Table` is a Flatbuffers object that can read,
