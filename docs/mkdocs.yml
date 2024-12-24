@@ -64,3 +64,4 @@ nav:
     - Overview: "schema.md"
     - Evolution: "evolution.md"
     - Grammar: "grammar.md"
+  - Contributing: "contributing.md"
