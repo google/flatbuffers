@@ -9,6 +9,21 @@ using global::System;
 using global::System.Collections.Generic;
 using global::Google.FlatBuffers;
 
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+class JsonReadOnlyAttribute : Attribute {
+}
+
+public class JsonContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+{
+  protected override Newtonsoft.Json.Serialization.JsonProperty CreateProperty(System.Reflection.MemberInfo member, Newtonsoft.Json.MemberSerialization memberSerialization)
+  {
+    var property = base.CreateProperty(member, memberSerialization);
+    if (Attribute.IsDefined(member, typeof(JsonReadOnlyAttribute)))
+      property.Readable = false;
+    return property;
+  }
+}
+
 [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum Value : byte
 {
@@ -498,10 +513,15 @@ public class CollisionT
   }
 
   public static CollisionT DeserializeFromJson(string jsonText) {
-    return Newtonsoft.Json.JsonConvert.DeserializeObject<CollisionT>(jsonText);
+    return Newtonsoft.Json.JsonConvert.DeserializeObject<CollisionT>(jsonText, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+    });
   }
   public string SerializeToJson() {
-    return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
+    return Newtonsoft.Json.JsonConvert.SerializeObject(this, new Newtonsoft.Json.JsonSerializerSettings() {
+      ContractResolver = new JsonContractResolver(),
+      Formatting = Newtonsoft.Json.Formatting.Indented,
+    });
   }
   public static CollisionT DeserializeFromBinary(byte[] fbBuffer) {
     return Collision.GetRootAsCollision(new ByteBuffer(fbBuffer)).UnPack();

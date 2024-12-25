@@ -303,9 +303,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   MyGame::Sample::Color color() const {
     return static_cast<MyGame::Sample::Color>(GetField<int8_t>(VT_COLOR, 2));
   }
-  bool mutate_color(MyGame::Sample::Color _color = static_cast<MyGame::Sample::Color>(2)) {
-    return SetField<int8_t>(VT_COLOR, static_cast<int8_t>(_color), 2);
-  }
   const ::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Sample::Weapon>> *weapons() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Sample::Weapon>> *>(VT_WEAPONS);
   }
@@ -379,9 +376,6 @@ struct MonsterBuilder {
   void add_inventory(::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> inventory) {
     fbb_.AddOffset(Monster::VT_INVENTORY, inventory);
   }
-  void add_color(MyGame::Sample::Color color) {
-    fbb_.AddElement<int8_t>(Monster::VT_COLOR, static_cast<int8_t>(color), 2);
-  }
   void add_weapons(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Sample::Weapon>>> weapons) {
     fbb_.AddOffset(Monster::VT_WEAPONS, weapons);
   }
@@ -412,7 +406,6 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(
     int16_t hp = 100,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> inventory = 0,
-    MyGame::Sample::Color color = MyGame::Sample::Color_Blue,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<MyGame::Sample::Weapon>>> weapons = 0,
     MyGame::Sample::Equipment equipped_type = MyGame::Sample::Equipment_NONE,
     ::flatbuffers::Offset<void> equipped = 0,
@@ -427,7 +420,6 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(
   builder_.add_hp(hp);
   builder_.add_mana(mana);
   builder_.add_equipped_type(equipped_type);
-  builder_.add_color(color);
   return builder_.Finish();
 }
 
@@ -438,7 +430,6 @@ inline ::flatbuffers::Offset<Monster> CreateMonsterDirect(
     int16_t hp = 100,
     const char *name = nullptr,
     const std::vector<uint8_t> *inventory = nullptr,
-    MyGame::Sample::Color color = MyGame::Sample::Color_Blue,
     const std::vector<::flatbuffers::Offset<MyGame::Sample::Weapon>> *weapons = nullptr,
     MyGame::Sample::Equipment equipped_type = MyGame::Sample::Equipment_NONE,
     ::flatbuffers::Offset<void> equipped = 0,
@@ -454,7 +445,6 @@ inline ::flatbuffers::Offset<Monster> CreateMonsterDirect(
       hp,
       name__,
       inventory__,
-      color,
       weapons__,
       equipped_type,
       equipped,
@@ -626,7 +616,6 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBui
   auto _hp = _o->hp;
   auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
   auto _inventory = _o->inventory.size() ? _fbb.CreateVector(_o->inventory) : 0;
-  auto _color = _o->color;
   auto _weapons = _o->weapons.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Sample::Weapon>> (_o->weapons.size(), [](size_t i, _VectorArgs *__va) { return CreateWeapon(*__va->__fbb, __va->__o->weapons[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _equipped_type = _o->equipped.type;
   auto _equipped = _o->equipped.Pack(_fbb);
@@ -638,7 +627,6 @@ inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBui
       _hp,
       _name,
       _inventory,
-      _color,
       _weapons,
       _equipped_type,
       _equipped,

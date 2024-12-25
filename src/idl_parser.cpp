@@ -1020,7 +1020,10 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
 
   field->doc_comment = dc;
   ECHECK(ParseMetaData(&field->attributes));
-  field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
+  field->deprecated = FieldDef::MakeFieldDeprecated(
+      field->attributes.Lookup("deprecated") != nullptr,
+      field->attributes.Lookup("deprecated_readonly") != nullptr);
+
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
     switch ((IsVector(type)) ? type.element : type.base_type) {
@@ -1280,7 +1283,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     }
     // if this field is a union that is deprecated,
     // the automatically added type field should be deprecated as well
-    if (field->deprecated) { typefield->deprecated = true; }
+    typefield->deprecated = field->deprecated;
   }
 
   EXPECT(';');
@@ -3171,7 +3174,8 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
               field->value.constant = val;
             }  // "false" is default, no need to handle explicitly.
           } else if (key == "deprecated") {
-            field->deprecated = val == "true";
+            field->deprecated = val == "true" ? FieldDef::kDeprecated
+                                              : FieldDef::kNotDeprecated;
           }
           if (!Is(',')) break;
           NEXT();
@@ -4049,8 +4053,9 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder *builder,
       // Is uint64>max(int64) tested?
       IsInteger(value.type.base_type) ? StringToInt(value.constant.c_str()) : 0,
       // result may be platform-dependent if underlying is float (not double)
-      IsFloat(value.type.base_type) ? d : 0.0, deprecated, IsRequired(), key,
-      attr__, docs__, IsOptional(), static_cast<uint16_t>(padding), offset64);
+      IsFloat(value.type.base_type) ? d : 0.0, deprecated,
+      deprecated == FieldDef::kDeprecatedReadOnly, IsRequired(), key, attr__,
+      docs__, IsOptional(), static_cast<uint16_t>(padding), offset64);
   // TODO: value.constant is almost always "0", we could save quite a bit of
   // space by sharing it. Same for common values of value.type.
 }

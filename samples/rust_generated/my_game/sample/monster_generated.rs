@@ -59,7 +59,6 @@ impl<'a> Monster<'a> {
     builder.add_hp(args.hp);
     builder.add_mana(args.mana);
     builder.add_equipped_type(args.equipped_type);
-    builder.add_color(args.color);
     builder.finish()
   }
 
@@ -222,7 +221,6 @@ pub struct MonsterArgs<'a> {
     pub hp: i16,
     pub name: Option<flatbuffers::WIPOffset<&'a str>>,
     pub inventory: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
-    pub color: Color,
     pub weapons: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Weapon<'a>>>>>,
     pub equipped_type: Equipment,
     pub equipped: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
@@ -237,7 +235,6 @@ impl<'a> Default for MonsterArgs<'a> {
       hp: 100,
       name: None,
       inventory: None,
-      color: Color::Blue,
       weapons: None,
       equipped_type: Equipment::NONE,
       equipped: None,
@@ -270,10 +267,6 @@ impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_inventory(&mut self, inventory: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Monster::VT_INVENTORY, inventory);
-  }
-  #[inline]
-  pub fn add_color(&mut self, color: Color) {
-    self.fbb_.push_slot::<Color>(Monster::VT_COLOR, color, Color::Blue);
   }
   #[inline]
   pub fn add_weapons(&mut self, weapons: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Weapon<'b >>>>) {
@@ -377,7 +370,6 @@ impl MonsterT {
     let inventory = self.inventory.as_ref().map(|x|{
       _fbb.create_vector(x)
     });
-    let color = self.color;
     let weapons = self.weapons.as_ref().map(|x|{
       let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
     });
@@ -392,7 +384,6 @@ impl MonsterT {
       hp,
       name,
       inventory,
-      color,
       weapons,
       equipped_type,
       equipped,
