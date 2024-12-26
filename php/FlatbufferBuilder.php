@@ -1059,7 +1059,9 @@ final class FlatbufferBuilder
     {
         $this->bb->setPosition($this->space);
         return $this->bb->get(
-            $this->bb->getPosition(), Constants::asBufSize($this->bb->nposToWpos($this->space)));
+            $this->bb->getPosition(),
+            Constants::asBufSize($this->bb->nposToWpos($this->space))
+        );
     }
 }
 

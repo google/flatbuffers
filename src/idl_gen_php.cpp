@@ -199,10 +199,10 @@ class PhpGenerator : public BaseGenerator {
     std::string &code = *code_ptr;
 
     code += Indent + "/**\n";
-    code += Indent + " * @return string\n";
+    code += Indent + " * @return ?string\n";
     code += Indent + " */\n";
     code += Indent + "public function get";
-    code += ConvertCase(field.name, Case::kUpperCamel) + "Bytes(): string\n";
+    code += ConvertCase(field.name, Case::kUpperCamel) + "Bytes(): ?string\n";
     code += Indent + "{\n";
     code += Indent + Indent + "return $this->__vector_as_bytes(";
     code += NumToString(field.value.offset) + ");\n";

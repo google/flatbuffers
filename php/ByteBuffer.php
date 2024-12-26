@@ -346,7 +346,7 @@ class ByteBuffer
     }
 
     /**
-     * @param NPosT $npos
+     * @param NPosT    $npos
      * @param BufSizeT $size
      * @return string
      */

@@ -105,9 +105,9 @@ class Monster extends Table
     }
 
     /**
-     * @return string
+     * @return ?string
      */
-    public function getInventoryBytes(): string
+    public function getInventoryBytes(): ?string
     {
         return $this->__vector_as_bytes(14);
     }
@@ -233,9 +233,9 @@ class Monster extends Table
     }
 
     /**
-     * @return string
+     * @return ?string
      */
-    public function getTestnestedflatbufferBytes(): string
+    public function getTestnestedflatbufferBytes(): ?string
     {
         return $this->__vector_as_bytes(30);
     }
@@ -436,9 +436,9 @@ class Monster extends Table
     }
 
     /**
-     * @return string
+     * @return ?string
      */
-    public function getFlexBytes(): string
+    public function getFlexBytes(): ?string
     {
         return $this->__vector_as_bytes(64);
     }
@@ -697,9 +697,9 @@ class Monster extends Table
     }
 
     /**
-     * @return string
+     * @return ?string
      */
-    public function getVectorOfEnumsBytes(): string
+    public function getVectorOfEnumsBytes(): ?string
     {
         return $this->__vector_as_bytes(98);
     }
@@ -733,9 +733,9 @@ class Monster extends Table
     }
 
     /**
-     * @return string
+     * @return ?string
      */
-    public function getTestrequirednestedflatbufferBytes(): string
+    public function getTestrequirednestedflatbufferBytes(): ?string
     {
         return $this->__vector_as_bytes(102);
     }

@@ -131,13 +131,13 @@ abstract class Table
 
     /**
      * @param VOffsetT $vt_f_voffset
-     * @return string
+     * @return ?string
      */
-    protected function __vector_as_bytes(int $vt_f_voffset): string
+    protected function __vector_as_bytes(int $vt_f_voffset): ?string
     {
         $t_f_voffset = $this->__offset($vt_f_voffset);
         if ($t_f_voffset === 0) {
-            return '';
+            return null;
         }
 
         return substr($this->bb->_buffer, $this->__vector($t_f_voffset), $this->__vector_len($t_f_voffset));
