@@ -65,4 +65,6 @@ nav:
     - Overview: "schema.md"
     - Evolution: "evolution.md"
     - Grammar: "grammar.md"
+  - Advanced:
+    - Annotating Buffers (.afb): "annotation.md"
   - Contributing: "contributing.md"
