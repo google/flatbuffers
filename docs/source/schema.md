@@ -64,7 +64,7 @@ compatibility.
 
 Table fields have a name identifier, a [type](#types), optional default value,
 optional [attributes](#attributes) and ends with a `;`. See the
-[grammer](grammer.md) for full details.
+[grammar](grammar.md) for full details.
 
 ```ebnf
 field_decl = ident `:` type [ `=` scalar ] metadata `;`
@@ -137,7 +137,7 @@ producer of the buffer does not explicitly set that field, it will be marked
 Required valued fields will cause an error if they are not set. The FlatBuffers
 verifier would consider the whole buffer invalid.
 
-This is enabled by the [`required` attribute](#required-1) on the field.
+This is enabled by the [`required` attribute](#required) on the field.
 
 ```
   hp:short (required)
@@ -474,9 +474,8 @@ Current understood attributes:
   stored in any particular order, they are often optimized for space by sorting
   them to size. This attribute stops that from happening. There should generally
   not be any reason to use this flag.
-- 'native*\*'. Several attributes have been added to support the [C++ object
-  Based API](@ref flatbuffers_cpp_object_based_api). All such attributes are
-  prefixed with the term "native*".
+- 'native*\*'. Several attributes have been added to support the C++ object
+  Based API. All such attributes are prefixed with the term "native*".
 
 ## JSON Parsing
 
@@ -532,7 +531,7 @@ binary representation.
 
 When parsing numbers, the parser is more flexible than JSON. A format of numeric
 literals is more close to the C/C++. According to the
-[grammar](/overview/grammar), it accepts the following numerical literals:
+[grammar](grammar.md), it accepts the following numerical literals:
 
 - An integer literal can have any number of leading zero `0` digits. Unlike
   C/C++, the parser ignores a leading zero, not interpreting it as the beginning
@@ -554,8 +553,6 @@ literals is more close to the C/C++. According to the
 
   - x64 Windows: `MSVC2015` and higher.
   - x64 Linux: `LLVM 6.0`, `GCC 4.9` and higher.
-
-  For details, see [Use in C++](@ref flatbuffers_guide_use_cpp) section.
 
 - For compatibility with a JSON lint tool all numeric literals of scalar fields
   can be wrapped to quoted string:
