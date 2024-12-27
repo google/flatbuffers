@@ -1,9 +1,15 @@
 site_name: FlatBuffers Docs
 docs_dir: source
 site_url: https://flatbuffers.dev
+repo_name: google/FlatBuffers
+repo_url: https://github.com/google/flatbuffers
+edit_uri: edit/master/docs/source/
+copyright: Copyright &copy; 2024 Google
 theme:
   name: material
   logo: assets/flatbuffers_logo.svg
+  icon:
+    repo: fontawesome/brands/github
   custom_dir: overrides
   palette:
     # Palette toggle for light mode
@@ -27,9 +33,26 @@ theme:
   
     # Expand nav folders by default
     - navigation.expand
+
+    # Enable the footer
+    - navigation.footer
     
     # Auto hide the header after scrolling
     - header.autohide
+
+    - content.action.edit
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/google/flatbuffers
+
+    - icon: fontawesome/brands/discord
+      link: https:///discord.gg/6qgKs3R
+
+    - icon: fontawesome/brands/x-twitter
+      link: https://twitter.com/dbaileychess
+
 
 
 markdown_extensions:
