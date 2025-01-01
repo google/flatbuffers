@@ -24,7 +24,7 @@ mutate_hair_length(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "Rapunzel" {
   return 'Rapunzel';
 }
 
