@@ -429,9 +429,6 @@ Current understood attributes:
   it won't be accessible anymore by newer code. Note that if you deprecate a
   field that was previous required, old code may fail to validate new data (when
   using the optional verifier).
-
-### `required`
-
 - `required` (on a non-scalar table field): this field must always be set. By
   default, fields do not need to be present in the binary. This is desirable, as
   it helps with forwards/backwards compatibility, and flexibility of data
@@ -452,6 +449,9 @@ Current understood attributes:
 - `force_align: size` (on a vector): force the alignment of this vector to be
   something different than what the element size would normally dictate. Note:
   Now only work for generated C++ code.
+- `shared` (on a field): For string fields, this enables the usage of string
+  pooling (i.e. `CreateSharedString`) as default serialization behavior. Note:
+  Now only work for generated C++ and Golang code.
 - `bit_flags` (on an unsigned enum): the values of this field indicate bits,
   meaning that any unsigned value N specified in the schema will end up
   representing 1<<N, or if you don't specify values at all, you'll get the

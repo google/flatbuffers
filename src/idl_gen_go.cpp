@@ -1113,8 +1113,13 @@ class GoGenerator : public BaseGenerator {
       if (IsString(field.value.type)) {
         code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
         code += "\tif t." + field_field + " != \"\" {\n";
-        code += "\t\t" + offset + " = builder.CreateString(t." + field_field +
-                ")\n";
+        if (field.shared) {
+          code += "\t\t" + offset + " = builder.CreateSharedString(t." + field_field +
+                  ")\n";
+        } else {
+          code += "\t\t" + offset + " = builder.CreateString(t." + field_field +
+                  ")\n";
+        }
         code += "\t}\n";
       } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
