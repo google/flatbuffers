@@ -2097,7 +2097,7 @@ class PythonGenerator : public BaseGenerator {
   void GenPackForStruct(const StructDef &struct_def,
                         std::string *code_ptr) const {
     auto &code = *code_ptr;
-    const auto struct_fn = namer_.Function(struct_def);
+    const auto struct_fn = namer_.Type(struct_def);
 
     GenReceiverForObjectAPI(struct_def, code_ptr);
     code += "Pack(self, builder):";
