@@ -1,0 +1,93 @@
+site_name: FlatBuffers Docs
+docs_dir: source
+site_url: https://flatbuffers.dev
+repo_name: google/FlatBuffers
+repo_url: https://github.com/google/flatbuffers
+edit_uri: edit/master/docs/source/
+copyright: Copyright &copy; 2024 Google
+theme:
+  name: material
+  logo: assets/flatbuffers_logo.svg
+  icon:
+    repo: fontawesome/brands/github
+  custom_dir: overrides
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    # Allows code block annotations
+    - content.code.annotate
+
+    # Allows content tabs to link together
+    - content.tabs.link
+  
+    # Expand nav folders by default
+    - navigation.expand
+
+    # Enable the footer
+    - navigation.footer
+    
+    # Auto hide the header after scrolling
+    - header.autohide
+
+    - content.action.edit
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/google/flatbuffers
+
+    - icon: fontawesome/brands/discord
+      link: https:///discord.gg/6qgKs3R
+
+    - icon: fontawesome/brands/x-twitter
+      link: https://twitter.com/dbaileychess
+
+
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.snippets:
+      # Allows direct embedded of remote files
+      url_download: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - tables
+
+
+
+nav:
+  - Overview: "index.md"
+  - Quick Start: "quick_start.md"
+  - Tutorial: "tutorial.md"
+  - Compiler (flatc): 
+    - Building: "building.md"
+    - Using: "flatc.md"
+  - Schema (.fbs): 
+    - Overview: "schema.md"
+    - Evolution: "evolution.md"
+    - Grammar: "grammar.md"
+  - Advanced:
+    - Annotating Buffers (.afb): "annotation.md"
+  - Contributing: "contributing.md"
