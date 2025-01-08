@@ -1,5 +1,4 @@
 use flatbuffers_reflection::reflection::{root_as_schema, BaseType, Field};
-use flatbuffers_reflection::reflection_verifier::{verify, verify_with_options};
 use flatbuffers_reflection::{
     get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
@@ -7,8 +6,9 @@ use flatbuffers_reflection::{
     get_field_struct_in_struct, get_field_table, get_field_vector, set_any_field_float,
     set_any_field_integer, set_any_field_string, set_field, set_string,
 };
+use flatbuffers_reflection::{SafeBuffer, Struct};
 
-use flatbuffers::{FlatBufferBuilder, VerifierOptions};
+use flatbuffers::{FlatBufferBuilder, Table, VerifierOptions};
 
 use std::error::Error;
 use std::fs::File;
@@ -1447,18 +1447,18 @@ fn test_buffer_set_string_diff_type_fails() {
 }
 
 #[test]
-fn test_verify_buffer_default_options_succeeds() {
+fn test_create_safe_buffer_default_options_succeeds() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
 
-    let res = verify(&buffer, &schema);
+    let safe_buffer = SafeBuffer::new(&buffer, &schema);
 
-    assert!(res.is_ok());
+    assert!(safe_buffer.is_ok());
 }
 
 #[test]
-fn test_verify_buffer_limit_max_depth_fails() {
+fn test_create_safe_buffer_limit_max_depth_fails() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
@@ -1467,14 +1467,14 @@ fn test_verify_buffer_limit_max_depth_fails() {
         ..Default::default()
     };
 
-    let res = verify_with_options(&buffer, &schema, &verify_options);
+    let safe_buffer = SafeBuffer::new_with_custom_options(&buffer, &schema, &verify_options);
 
-    assert!(res.is_err());
-    assert!(format!("{:#?}", res.err().unwrap()).contains("DepthLimitReached"));
+    assert!(safe_buffer.is_err());
+    assert!(format!("{:#?}", safe_buffer.err().unwrap()).contains("DepthLimitReached"));
 }
 
 #[test]
-fn test_verify_buffer_limit_max_table_fails() {
+fn test_create_safe_buffer_limit_max_table_fails() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
@@ -1483,14 +1483,14 @@ fn test_verify_buffer_limit_max_table_fails() {
         ..Default::default()
     };
 
-    let res = verify_with_options(&buffer, &schema, &verify_options);
+    let safe_buffer = SafeBuffer::new_with_custom_options(&buffer, &schema, &verify_options);
 
-    assert!(res.is_err());
-    assert!(format!("{:#?}", res.err().unwrap()).contains("TooManyTables"));
+    assert!(safe_buffer.is_err());
+    assert!(format!("{:#?}", safe_buffer.err().unwrap()).contains("TooManyTables"));
 }
 
 #[test]
-fn test_verify_buffer_limit_max_size_fails() {
+fn test_create_safe_buffer_limit_max_size_fails() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
@@ -1499,10 +1499,902 @@ fn test_verify_buffer_limit_max_size_fails() {
         ..Default::default()
     };
 
-    let res = verify_with_options(&buffer, &schema, &verify_options);
+    let safe_buffer = SafeBuffer::new_with_custom_options(&buffer, &schema, &verify_options);
 
-    assert!(res.is_err());
-    assert!(format!("{:#?}", res.err().unwrap()).contains("ApparentSizeTooLarge"));
+    assert!(safe_buffer.is_err());
+    assert!(format!("{:#?}", safe_buffer.err().unwrap()).contains("ApparentSizeTooLarge"));
+}
+
+#[test]
+fn test_safe_buffer_integer_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_integer::<i16>(&root_table, "hp");
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), Some(32767));
+}
+
+#[test]
+fn test_safe_buffer_integer_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_field_integer::<i16>(&invalid_table, "hp");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_integer_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_integer::<i16>(&root_table, "nonexistent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_integer_diff_size_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_integer::<i64>(&root_table, "hp");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type i64 and field type Short"
+    );
+}
+
+#[test]
+fn test_safe_buffer_float_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_float::<f32>(&root_table, "testf");
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), Some(3.14));
+}
+
+#[test]
+fn test_safe_buffer_float_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_field_float::<f32>(&invalid_table, "testf");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_float_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_float::<f32>(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_float_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_float::<f64>(&root_table, "testf");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type f64 and field type Float"
+    );
+}
+
+#[test]
+fn test_safe_buffer_string_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_string(&root_table, "name");
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), Some("MyMonster"));
+}
+
+#[test]
+fn test_safe_buffer_string_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_field_string(&invalid_table, "name");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_string_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_string(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_string_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_string(&root_table, "testf");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type String and field type Float"
+    );
+}
+
+#[test]
+fn test_safe_buffer_struct_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_struct(&root_table, "pos");
+
+    assert!(value.is_ok());
+    let optional_value = value.unwrap();
+    assert!(optional_value.is_some());
+    assert_eq!(optional_value.unwrap().buf(), &buffer);
+    assert!(optional_value.unwrap().loc() > root_table.loc());
+}
+
+#[test]
+fn test_safe_buffer_struct_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_field_struct(&invalid_table, "pos");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_struct_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_struct(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_struct_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_struct(&root_table, "testf");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type Obj and field type Float"
+    );
+}
+
+#[test]
+fn test_safe_buffer_vector_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_vector::<u8>(&root_table, "inventory");
+
+    assert!(value.is_ok());
+    let optional_vector = value.unwrap();
+    assert!(optional_vector.is_some());
+    let vector = optional_vector.unwrap();
+    assert_eq!(vector.len(), 5);
+    assert_eq!(vector.get(0), 0);
+    assert_eq!(vector.get(1), 1);
+    assert_eq!(vector.get(2), 2);
+    assert_eq!(vector.get(3), 3);
+    assert_eq!(vector.get(4), 4);
+}
+
+#[test]
+fn test_safe_buffer_vector_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_field_vector::<u8>(&invalid_table, "inventory");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_vector_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_vector::<u8>(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_vector_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_vector::<u8>(&root_table, "testf");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type u8 and field type Float"
+    );
+}
+
+#[test]
+fn test_safe_buffer_table_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_table(&root_table, "testempty");
+
+    assert!(value.is_ok());
+    let optional_nested_table = value.unwrap();
+    assert!(optional_nested_table.is_some());
+    let nested_table = optional_nested_table.unwrap();
+    let nested_field_value = safe_buffer.get_field_string(&nested_table, "id");
+
+    assert!(nested_field_value.is_ok());
+    assert_eq!(nested_field_value.unwrap(), Some("Fred"));
+}
+
+#[test]
+fn test_safe_buffer_table_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_field_table(&invalid_table, "testempty");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_table_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_table(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_table_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_field_table(&root_table, "testf");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type Obj and field type Float"
+    );
+}
+
+#[test]
+fn test_safe_buffer_i16_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_integer(&root_table, "hp");
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 32767);
+}
+
+#[test]
+fn test_safe_buffer_i16_as_integer_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_any_field_integer(&invalid_table, "hp");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_i16_as_integer_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_integer(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_string_as_integer_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_integer(&root_table, "name");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type i64 and field type String"
+    );
+}
+
+#[test]
+fn test_safe_buffer_i16_as_float_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_float(&root_table, "hp");
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), 32767f64);
+}
+
+#[test]
+fn test_safe_buffer_i16_as_float_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_any_field_float(&invalid_table, "hp");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_i16_as_float_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_float(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_string_as_float_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_float(&root_table, "name");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type f64 and field type String"
+    );
+}
+
+#[test]
+fn test_safe_buffer_string_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_string(&root_table, "name");
+
+    assert!(value.is_ok());
+    assert_eq!(value.unwrap(), "MyMonster");
+}
+
+#[test]
+fn test_safe_buffer_i16_as_string_invalid_table_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_table = unsafe { Table::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_any_field_string(&invalid_table, "name");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_i16_as_string_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+
+    let value = safe_buffer.get_any_field_string(&root_table, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_nested_struct_same_type_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let nested_struct_value = safe_buffer.get_field_struct_in_struct(&struct_value, "test3");
+
+    assert!(nested_struct_value.is_ok());
+    let value = nested_struct_value.unwrap();
+    assert_eq!(value.buf(), &buffer);
+    assert!(value.loc() > struct_value.loc());
+}
+
+#[test]
+fn test_safe_buffer_nested_struct_invalid_struct_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_struct = unsafe { Struct::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_field_struct_in_struct(&invalid_struct, "testempty");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_nested_struct_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let value = safe_buffer.get_field_struct_in_struct(&struct_value, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_nested_struct_diff_type_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let nested_struct_value = safe_buffer.get_field_struct_in_struct(&struct_value, "x");
+
+    assert!(nested_struct_value.is_err());
+    assert_eq!(
+        nested_struct_value.unwrap_err().to_string(),
+        "Failed to convert between data type Obj and field type Float"
+    );
+}
+
+#[test]
+fn test_safe_buffer_enum_in_struct_as_integer_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let nested_enum_value = safe_buffer.get_any_field_integer_in_struct(&struct_value, "test2");
+
+    assert!(nested_enum_value.is_ok());
+    assert_eq!(nested_enum_value.unwrap(), 2);
+}
+
+#[test]
+fn test_safe_buffer_enum_in_struct_as_integer_invalid_struct_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_struct = unsafe { Struct::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_any_field_integer_in_struct(&invalid_struct, "test2");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_enum_in_struct_as_integer_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let value = safe_buffer.get_any_field_integer_in_struct(&struct_value, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_struct_in_struct_as_integer_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let nested_struct_value = safe_buffer.get_any_field_integer_in_struct(&struct_value, "test3");
+
+    assert!(nested_struct_value.is_err());
+    assert_eq!(
+        nested_struct_value.unwrap_err().to_string(),
+        "Failed to convert between data type i64 and field type Obj"
+    );
+}
+
+#[test]
+fn test_safe_buffer_i16_in_struct_as_float_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+    print!("outer *** {:#?}", struct_value.loc());
+    let nested_struct_value = safe_buffer
+        .get_field_struct_in_struct(&struct_value, "test3")
+        .unwrap();
+    print!("inner *** {:#?}", nested_struct_value.loc());
+
+    let nested_i16_value = safe_buffer.get_any_field_float_in_struct(&nested_struct_value, "a");
+
+    assert!(nested_i16_value.is_ok());
+    assert_eq!(nested_i16_value.unwrap(), 5f64);
+}
+
+#[test]
+fn test_safe_buffer_f32_in_struct_as_float_invalid_struct_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_struct = unsafe { Struct::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_any_field_float_in_struct(&invalid_struct, "x");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_child_in_struct_as_float_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let value = safe_buffer.get_any_field_float_in_struct(&struct_value, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
+}
+
+#[test]
+fn test_safe_buffer_struct_in_struct_as_float_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let value = safe_buffer.get_any_field_float_in_struct(&struct_value, "test3");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Failed to convert between data type f64 and field type Obj"
+    );
+}
+
+#[test]
+fn test_safe_buffer_f32_in_struct_as_string_succeeds() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let nested_f32_value = safe_buffer.get_any_field_string_in_struct(&struct_value, "x");
+
+    assert!(nested_f32_value.is_ok());
+    assert_eq!(nested_f32_value.unwrap(), String::from("1"));
+}
+
+#[test]
+fn test_safe_buffer_f32_in_struct_as_string_invalid_struct_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let another_buffer = vec![1];
+    let invalid_struct = unsafe { Struct::new(&another_buffer, 0) };
+
+    let value = safe_buffer.get_any_field_string_in_struct(&invalid_struct, "x");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Table or Struct doesn't belong to the buffer"
+    );
+}
+
+#[test]
+fn test_safe_buffer_child_in_struct_as_string_invalid_field_fails() {
+    let buffer = create_test_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let safe_buffer = SafeBuffer::new(&buffer, &schema).unwrap();
+    let root_table = safe_buffer.get_root();
+    let struct_value = safe_buffer
+        .get_field_struct(&root_table, "pos")
+        .unwrap()
+        .unwrap();
+
+    let value = safe_buffer.get_any_field_string_in_struct(&struct_value, "non_existent");
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err().to_string(),
+        "Field not found in the table schema"
+    );
 }
 
 fn load_file_as_buffer(path: &str) -> Vec<u8> {

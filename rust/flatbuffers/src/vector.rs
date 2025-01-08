@@ -122,7 +122,12 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
             match f(&value, &key) {
                 Ordering::Equal => return Some(value),
                 Ordering::Less => left = mid + 1,
-                Ordering::Greater => right = mid - 1,
+                Ordering::Greater => {
+                  if mid == 0 {
+                    return None;
+                  }
+                  right = mid - 1;
+                },
             }
         }
 

@@ -15,10 +15,12 @@
  */
 
 mod reflection_generated;
-pub mod reflection_verifier;
+mod reflection_verifier;
+mod safe_buffer;
 mod r#struct;
 pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
+pub use crate::safe_buffer::SafeBuffer;
 
 use flatbuffers::{
     emplace_scalar, read_scalar, EndianScalar, Follow, ForwardsUOffset, InvalidFlatbuffer,
@@ -54,6 +56,12 @@ pub enum FlatbufferError {
     TypeNotSupported(String),
     #[error("No type or invalid type found in union enum")]
     InvalidUnionEnum(),
+    #[error("RwLock read/write error: {0}")]
+    RwLockPoisonError(String),
+    #[error("Table or Struct doesn't belong to the buffer")]
+    InvalidTableOrStruct(),
+    #[error("Field not found in the table schema")]
+    FieldNotFound(),
 }
 
 pub type FlatbufferResult<T, E = FlatbufferError> = core::result::Result<T, E>;
@@ -218,32 +226,6 @@ pub unsafe fn get_field_table<'a>(
     Ok(table.get::<ForwardsUOffset<Table<'a>>>(field.offset(), None))
 }
 
-/// Gets a [Struct] struct field given its exact type. Returns error if the type doesn't match.
-///
-/// # Safety
-///
-/// The value of the corresponding slot must have type Struct.
-pub unsafe fn get_field_struct_in_struct<'a>(
-    st: &'a Struct,
-    field: &Field,
-) -> FlatbufferResult<Struct<'a>> {
-    // TODO inherited from C++: This does NOT check if the field is a table or struct, but we'd need
-    // access to the schema to check the is_struct flag.
-    if field.type_().base_type() != BaseType::Obj {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            String::from("Obj"),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
-
-    Ok(st.get::<Struct>(field.offset() as usize))
-}
-
 /// Returns the value of any table field as a 64-bit int, regardless of what type it is. Returns default integer if the field is not set or error if the value cannot be parsed as integer.
 /// [num_traits](https://docs.rs/num-traits/latest/num_traits/cast/trait.NumCast.html) is used for number casting.
 ///
@@ -288,6 +270,32 @@ pub unsafe fn get_any_field_string(table: &Table, field: &Field, schema: &Schema
     } else {
         String::from("")
     }
+}
+
+/// Gets a [Struct] struct field given its exact type. Returns error if the type doesn't match.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must have type Struct.
+pub unsafe fn get_field_struct_in_struct<'a>(
+    st: &'a Struct,
+    field: &Field,
+) -> FlatbufferResult<Struct<'a>> {
+    // TODO inherited from C++: This does NOT check if the field is a table or struct, but we'd need
+    // access to the schema to check the is_struct flag.
+    if field.type_().base_type() != BaseType::Obj {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Obj"),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
+        ));
+    }
+
+    Ok(st.get::<Struct>(field.offset() as usize))
 }
 
 /// Returns the value of any struct field as a 64-bit int, regardless of what type it is. Returns error if the value cannot be parsed as integer.
