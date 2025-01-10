@@ -215,11 +215,13 @@ jobs:
     - name: Run net6.0
       run: |
         cd tests\FlatBuffers.Test\bin\Release\net6.0
-        FlatBuffers.Test.exe
+        dir
+        .\FlatBuffers.Test.exe
     - name: Run net8.0
       run: |
         cd tests\FlatBuffers.Test\bin\Release\net8.0
-        FlatBuffers.Test.exe
+        dir
+        .\FlatBuffers.Test.exe
 
   build-mac-intel:
     permissions:
