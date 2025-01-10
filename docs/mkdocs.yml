@@ -108,6 +108,14 @@ markdown_extensions:
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
+  - pymdownx.highlight:
+      extend_pygments_lang:
+        # PHP wasn't highlighting correctly. This is a work around found
+        # https://github.com/squidfunk/mkdocs-material/issues/138#issuecomment-2294025627
+        - name: php
+          lang: php
+          options:
+            startinline: true
   - tables
 
 
@@ -131,6 +139,7 @@ nav:
     - Go: "languages/go.md"
     - Java: "languages/java.md"
     - JavasScript: "languages/javascript.md"
+    - Kotlin: "languages/kotlin.md"
     - Lobster: "languages/lobster.md"
     - Lua: "languages/lua.md"
     - PHP: "languages/php.md"
