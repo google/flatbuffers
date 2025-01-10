@@ -72,7 +72,10 @@ public struct FlatBufferBuilder {
   /// Note: This should be used with caution.
   public var fullSizedByteArray: [UInt8] {
     let ptr = UnsafeBufferPointer(
-      start: _bb.memory.assumingMemoryBound(to: UInt8.self),
+      start: _bb.memory.bindMemory(
+        to: UInt8.self,
+        capacity: _bb.capacity
+      ),
       count: _bb.capacity)
     return Array(ptr)
   }
@@ -98,8 +101,8 @@ public struct FlatBufferBuilder {
   public var sizedBuffer: ByteBuffer {
     assert(finished, "Data shouldn't be called before finish()")
     return ByteBuffer(
-      memory: _bb.memory.advanced(by: _bb.reader),
-      count: Int(_bb.size))
+      copyingMemoryBound: _bb.memory.advanced(by: _bb.reader),
+      capacity: Int(_bb.size))
   }
 
   // MARK: - Init
@@ -283,7 +286,7 @@ public struct FlatBufferBuilder {
     var isAlreadyAdded: Int?
 
     let vt2 = _bb.memory.advanced(by: _bb.writerIndex)
-    let len2 = vt2.load(fromByteOffset: 0, as: Int16.self)
+    let len2 = vt2.bindMemory(to: Int16.self, capacity: 1).pointee
 
     for index in stride(from: 0, to: _vtables.count, by: 1) {
       let position = _bb.capacity &- Int(_vtables[index])

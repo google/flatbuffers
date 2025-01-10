@@ -15,8 +15,8 @@
  */
 
 import Benchmark
-import CoreFoundation
 import FlatBuffers
+import Foundation
 
 @usableFromInline
 struct AA: NativeStruct {
@@ -29,6 +29,15 @@ struct AA: NativeStruct {
 }
 
 let benchmarks = {
+  let oneGB: Int32 = 1_024_000_000
+  let data = {
+    var array = [8888.88, 8888.88]
+    var data = Data()
+    array.withUnsafeBytes { ptr in
+      data.append(contentsOf: ptr)
+    }
+    return data
+  }()
   let ints: [Int] = Array(repeating: 42, count: 100)
   let bytes: [UInt8] = Array(repeating: 42, count: 100)
   let str10 = (0...9).map { _ -> String in "x" }.joined()
@@ -73,12 +82,25 @@ let benchmarks = {
 
   Benchmark("Allocating 1GB", configuration: singleConfiguration) { benchmark in
     for _ in benchmark.scaledIterations {
-      blackHole(FlatBufferBuilder(initialSize: 1_024_000_000))
+      blackHole(FlatBufferBuilder(initialSize: oneGB))
+    }
+  }
+
+  Benchmark(
+    "Allocating ByteBuffer 1GB",
+    configuration: singleConfiguration)
+  { benchmark in
+    let memory = UnsafeMutableRawPointer.allocate(
+      byteCount: 1_024_000_000,
+      alignment: 1)
+    benchmark.startMeasurement()
+    for _ in benchmark.scaledIterations {
+      blackHole(ByteBuffer(assumingMemoryBound: memory, capacity: Int(oneGB)))
     }
   }
 
   Benchmark("Clearing 1GB", configuration: singleConfiguration) { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1_024_000_000)
+    var fb = FlatBufferBuilder(initialSize: oneGB)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
       blackHole(fb.clear())
@@ -196,6 +218,13 @@ let benchmarks = {
       let s = fb.startTable(with: 2)
       fb.add(offset: off, at: 2)
       blackHole(fb.endTable(at: s))
+    }
+  }
+
+  Benchmark("Reading Doubles") { benchmark in
+    let byteBuffer = ByteBuffer(data: data)
+    for _ in benchmark.scaledIterations {
+      blackHole(byteBuffer.read(def: Double.self, position: 0))
     }
   }
 }
