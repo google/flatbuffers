@@ -86,7 +86,10 @@ let benchmarks = {
     }
   }
 
-  Benchmark("Allocating ByteBuffer 1GB", configuration: singleConfiguration) { benchmark in
+  Benchmark(
+    "Allocating ByteBuffer 1GB",
+    configuration: singleConfiguration)
+  { benchmark in
     let memory = UnsafeMutableRawPointer.allocate(
       byteCount: 1_024_000_000,
       alignment: 1)

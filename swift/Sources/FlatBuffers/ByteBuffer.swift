@@ -38,9 +38,10 @@ public struct ByteBuffer {
       case none
     }
 
-    // This storage doesn't own the memory, therefore, we won't deallocate on deinit.
+    /// This storage doesn't own the memory, therefore, we won't deallocate on deinit.
     private let unowned: Bool
-    private let retainedBlob: Blob
+    /// Retained blob of data that requires the storage to retain a pointer to.
+    let retainedBlob: Blob
     /// pointer to the start of the buffer object in memory
     var memory: UnsafeMutableRawPointer
     /// Capacity of UInt8 the buffer can hold
@@ -200,7 +201,9 @@ public struct ByteBuffer {
   #endif
 
   /// Constructor that creates a Flatbuffer from unsafe memory region without copying
-  /// - Parameter:
+  /// **NOTE** Needs a call to `memory.deallocate()` later on to free the memory
+  ///
+  /// - Parameters:
   ///   - assumingMemoryBound: The unsafe memory region
   ///   - capacity: The size of the given memory region
   @inline(__always)
@@ -221,11 +224,11 @@ public struct ByteBuffer {
   ///   - removeBytes: Removes a number of bytes from the current size
   @inline(__always)
   init(
-    memory: UnsafeMutableRawPointer,
+    blob: Storage.Blob,
     count: Int,
     removing removeBytes: Int)
   {
-    _storage = Storage(blob: .pointer(memory), capacity: count)
+    _storage = Storage(blob: blob, capacity: count)
     _writerSize = removeBytes
   }
 
@@ -497,7 +500,7 @@ public struct ByteBuffer {
       removeBytes < _storage.capacity,
       "Can NOT remove more bytes than the ones allocated")
     return ByteBuffer(
-      memory: _storage.memory,
+      blob: _storage.retainedBlob,
       count: _storage.capacity,
       removing: _writerSize &- removeBytes)
   }
