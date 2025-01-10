@@ -34,6 +34,20 @@ Use `cmake` to configure a project based on your environment and platform.
     cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release
     ```
 
+#### Strict Mode
+
+By default, `cmake` will configure targets to **not** build with strict warnings
+on (e.g. `-Werror` or `/WX`). This may cause into issues when submitting code
+changes since our CI requires the code to compile in strict mode.
+
+To enable the extra warnings, turn on strict mode with the
+`FLATBUFFERS_STRICT_MODE` cmake option.
+
+```cmake
+cmake -DFLATBUFFERS_STRICT_MODE=ON
+```
+
+
 ### Building
 
 Once the project files are generated, build as normal for your platform.
@@ -55,6 +69,11 @@ Once the project files are generated, build as normal for your platform.
     ```sh
     xcodebuild -toolchain clang -configuration Release
     ```
+
+
+
+
+
 
 ## Building with Bazel
 
