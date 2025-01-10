@@ -98,8 +98,8 @@ public struct FlatBufferBuilder {
   public var sizedBuffer: ByteBuffer {
     assert(finished, "Data shouldn't be called before finish()")
     return ByteBuffer(
-      memory: _bb.memory.advanced(by: _bb.reader),
-      count: Int(_bb.size))
+      assumingMemoryBound: _bb.memory.advanced(by: _bb.reader),
+      capacity: Int(_bb.size))
   }
 
   // MARK: - Init
