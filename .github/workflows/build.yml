@@ -203,7 +203,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4.2.0
       with:
         dotnet-version: '8.0.x'
     - name: Build
@@ -211,11 +211,16 @@ jobs:
         cd tests\FlatBuffers.Test
         dotnet new sln --force --name FlatBuffers.Test
         dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
-        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Test.sln
-    - name: Run
+        dotnet build -c Release ${{matrix.configuration}} FlatBuffers.Test.sln
+    - name: Run net6.0
       run: |
-        cd tests\FlatBuffers.Test
-        out\FlatBuffers.Test.exe
+        cd tests\FlatBuffers.Test\bin\Release\net6.0
+        dir
+        .\FlatBuffers.Test.exe
+    - name: Run net8.0
+      run: |
+        cd tests\FlatBuffers.Test\bin\Release\net8.0
+        .\FlatBuffers.Test.exe
 
   build-mac-intel:
     permissions:
