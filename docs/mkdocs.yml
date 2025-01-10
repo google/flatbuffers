@@ -53,6 +53,11 @@ extra:
     - icon: fontawesome/brands/x-twitter
       link: https://twitter.com/dbaileychess
 
+plugins:
+  # https://github.com/mkdocs/mkdocs-redirects
+  - redirects:
+      redirect_maps:
+        'flatbuffers_guide_use_cpp.html.md': 'cpp.md'
 
 
 markdown_extensions:
@@ -88,6 +93,8 @@ nav:
     - Overview: "schema.md"
     - Evolution: "evolution.md"
     - Grammar: "grammar.md"
+  - Language Guides:
+    - C++: "cpp.md"
   - Advanced:
     - Annotating Buffers (.afb): "annotation.md"
   - Contributing: "contributing.md"

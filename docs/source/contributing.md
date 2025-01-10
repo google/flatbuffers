@@ -64,6 +64,7 @@ other ways)
 
 ```
 pip install mkdocs-material
+pip install mkdocs-redirects
 ```
 
 Then, in the `root` directory of flatbuffers, run 
