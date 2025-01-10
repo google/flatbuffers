@@ -22,7 +22,7 @@ Older code will simply ignore the new field in the flatbuffer.
 
 !!! tip "Use `id` attributes"
 
-     You can ignore this rule if you use the `id` attribute on all the fields of a table. This
+     You can ignore this rule if you use the `id` attribute on all the fields of a table.
 
 ### Removal
 
