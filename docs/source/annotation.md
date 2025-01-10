@@ -28,15 +28,12 @@ cd tests/annotated_binary
 
 Which will produce a `annotated_binary.afb` file in the current directory.
 
+The `annotated_binary.bin` is the flatbufer binary of the data contained within
+`annotated_binary.json`, which was made by the following command:
 
-!!! Tip
-    
-    The `annotated_binary.bin` is the flatbufer binary of the data contained
-    within `annotated_binary.json`, which was made by the following command:
-
-    ```sh
-    ..\..\flatc -b annotated_binary.fbs annotated_binary.json
-    ```
+```sh
+..\..\flatc -b annotated_binary.fbs annotated_binary.json
+```
 
 ## .afb Text Format
 

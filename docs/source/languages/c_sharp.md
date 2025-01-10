@@ -4,15 +4,15 @@ Use in C\#    {#flatbuffers_guide_use_c-sharp}
 ## Before you get started
 
 Before diving into the FlatBuffers usage in C#, it should be noted that
-the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide to
+the [Tutorial](../tutorial.md) page has a complete guide to
 general FlatBuffers usage in all of the supported languages (including C#).
 This page is designed to cover the nuances of FlatBuffers usage,
 specific to C#.
 
-You should also have read the [Building](@ref flatbuffers_guide_building)
+You should also have read the [Building](../building.md)
 documentation to build `flatc` and should be familiar with
-[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler) and
-[Writing a schema](@ref flatbuffers_guide_writing_schema).
+[Using the schema compiler](../flatc.md) and
+[Writing a schema](../schema.md).
 
 ## FlatBuffers C# code location
 
@@ -62,7 +62,7 @@ by running the following commands from inside the `FlatBuffers.Test` folder:
 
 ## Using the FlatBuffers C# library
 
-*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+*Note: See [Tutorial](../tutorial.md) for a more in-depth
 example of how to use FlatBuffers in C#.*
 
 FlatBuffers supports reading and writing binary FlatBuffers in C#.
@@ -141,7 +141,7 @@ To use it:
 
 ## Buffer verification
 
-As mentioned in [C++ Usage](@ref flatbuffers_guide_use_cpp) buffer
+As mentioned in [C++ Usage](cpp.md) buffer
 accessor functions do not verify buffer offsets at run-time.
 If it is necessary, you can optionally use a buffer verifier before you
 access the data. This verifier will check all offsets, all sizes of

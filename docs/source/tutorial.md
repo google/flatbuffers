@@ -11,13 +11,11 @@ in your application.
 4. Serializing data into a flatbuffer.
 5. Deserializing a flatbuffer.
 
-!!! note
-
-    The tutorial is structured to be language agnostic, with language specifics
-    in code blocks providing more context. Additionally, this tries to cover the
-    major parts and type system of flatbuffers to give a general overview. It's
-    not expected to be an exhaustive list of all features, or provide the best
-    way to do things.
+The tutorial is structured to be language agnostic, with language specifics in
+code blocks providing more context. Additionally, this tries to cover the major
+parts and type system of flatbuffers to give a general overview. It's not
+expected to be an exhaustive list of all features, or provide the best way to do
+things.
 
 ## FlatBuffers Schema (`.fbs`)
 
@@ -123,8 +121,6 @@ root_type Monster; //(14)!
 14. The root of the flatbuffer is always a `table`. This indicates the type of
     `table` the "entry" point of the flatbuffer will point to.
 
-!!! bug "Get FlatBuffers schema syntax highlighting"
-
 ## Compiling Schema to Code (`flatc`)
 
 After a schema file is written, you compile it to code in the languages you wish
@@ -173,11 +169,9 @@ serializing and deserializing the flatbuffer binary data.
     flatc --csharp monster.fbs
     ```
 
-!!! tip
-
-    You can deserialize flatbuffers in languages that differ from the language
-    that serialized it. For purpose of this tutorial, we assume one language
-    is used for both serializing and deserializing.
+You can deserialize flatbuffers in languages that differ from the language that
+serialized it. For purpose of this tutorial, we assume one language is used for
+both serializing and deserializing.
 
 ## Application Integration
 
@@ -209,11 +203,8 @@ For some languages the runtime libraries are just code files you compile into
 your application. While other languages provide packaged libraries via their
 package managers.
 
-!!! note
-
-    The generated files include APIs for both serializing and deserializing
-    flatbuffers. So these steps are identical for both the consumer and
-    producer.
+The generated files include APIs for both serializing and deserializing
+FlatBuffers. So these steps are identical for both the consumer and producer.
 
 ## Serialization
 
@@ -327,11 +318,9 @@ the weapon's name and a numerical value for the damage field.
         Weapon.CreateWeapon(builder, weaponTwoName, weaponTwoDamage);
     ```
 
-!!! Tip
-
-    The generated functions from `flatc`, like `CreateWeapon`, are just composed
-    of various Builder API methods. So its not required to use the generated
-    code, but it does make things much simpler and compact.
+The generated functions from `flatc`, like `CreateWeapon`, are just composed of
+various Builder API methods. So its not required to use the generated code, but
+it does make things much simpler and compact.
 
 Just like the `CreateString` methods, the table serialization functions return
 an offset to the location of the serialized `Weapon` table.
@@ -504,12 +493,6 @@ the necessary values and Offsets to make a `Monster`.
     Offset<Monster> orc = Monster.EndMonster(builder);
     ```
 
-!!! warning
-
-    When serializing tables, you must fully serialize it before attempting to
-    serialize another reference type. If you try to serialize in a nested
-    manner, you will get an assert/exception/panic depending on your language.
-
 ### Finishing
 
 At this point, we have serialized a `Monster` we've named "orc" to the
@@ -571,22 +554,17 @@ like so:
 Now you can write the bytes to a file or send them over the network. The buffer
 stays valid until the Builder is cleared or destroyed.
 
-!!! warning "BINARY Mode"
-
-    Make sure your file mode (or transfer protocol) is set to BINARY, and not
-    TEXT. If you try to transfer a flatbuffer in TEXT mode, the buffer will be
-    corrupted and be hard to diagnose.
+Make sure your file mode (or transfer protocol) is set to BINARY, and not TEXT.
+If you try to transfer a flatbuffer in TEXT mode, the buffer will be corrupted
+and be hard to diagnose.
 
 ## Deserialization
 
-!!! note "Misnomer"
-
-    Deserialization is a bit of a misnomer, since FlatBuffers doesn't
-    deserialize the whole buffer when accessed. It just "decodes" the data that
-    is requested, leaving all the other data untouched. It is up to the
-    application to decide if the data is copied out or even read in the first
-    place. However, we continue to use the word `deserialize` to mean accessing
-    data from a binary flatbuffer.
+Deserialization is a bit of a misnomer, since FlatBuffers doesn't deserialize
+the whole buffer when accessed. It just "decodes" the data that is requested,
+leaving all the other data untouched. It is up to the application to decide if
+the data is copied out or even read in the first place. However, we continue to
+use the word `deserialize` to mean accessing data from a binary flatbuffer.
 
 Now that we have successfully create an orc FlatBuffer, the data can be saved,
 sent over a network, etc. At some point, the buffer will be accessed to obtain
@@ -619,10 +597,8 @@ functions to get the root object given the buffer.
     Monster monster = Monster.GetRootAsMonster(new ByteBuffer(bytes));
     ```
 
-!!! warning "BINARY mode"
-
-    Again, make sure you read the bytes in BINARY mode, otherwise the buffer may
-    be corrupted.
+Again, make sure you read the bytes in BINARY mode, otherwise the buffer may be
+corrupted.
 
 In most languages, the returned object is just a "view" of the data with helpful
 accessors. Data is typically not copied out of the backing buffer. This also
@@ -655,11 +631,9 @@ some of the accessors of the `Monster` root table would look like:
 
 These accessors should hold the values `300`, `150`, and `"Orc"` respectively.
 
-!!! note "Default Values"
-
-    The default value of `150` wasn't stored in the `mana` field, but we are
-    still able to retrieve it. That is because the generated accessors return a
-    hard-coded default value when it doesn't find the value in the buffer.
+The default value of `150` wasn't stored in the `mana` field, but we are still
+able to retrieve it. That is because the generated accessors return a hard-coded
+default value when it doesn't find the value in the buffer.
 
 #### Nested Object Access
 

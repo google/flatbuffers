@@ -316,7 +316,7 @@ that may further help clarify the format.
 
 # FlexBuffers
 
-The [schema-less](@ref flexbuffers) version of FlatBuffers have their
+The [schema-less](flexbuffers.md) version of FlatBuffers have their
 own encoding, detailed here.
 
 It shares many properties mentioned above, in that all data is accessed

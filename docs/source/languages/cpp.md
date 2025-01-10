@@ -3,7 +3,7 @@
 ## Before you get started
 
 Before diving into the FlatBuffers usage in C++, it should be noted that
-the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide
+the [Tutorial](../tutorial.md) page has a complete guide
 to general FlatBuffers usage in all of the supported languages (including C++).
 This page is designed to cover the nuances of FlatBuffers usage, specific to
 C++.
@@ -12,8 +12,8 @@ C++.
 
 This page assumes you have written a FlatBuffers schema and compiled it
 with the Schema Compiler. If you have not, please see
-[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler)
-and [Writing a schema](@ref flatbuffers_guide_writing_schema).
+[Using the schema compiler](../flatc.md)
+and [Writing a schema](../schema.md).
 
 Assuming you wrote a schema, say `mygame.fbs` (though the extension doesn't
 matter), you've generated a C++ header called `mygame_generated.h` using the
@@ -34,7 +34,7 @@ The test code itself is located in
 [test.cpp](https://github.com/google/flatbuffers/blob/master/tests/test.cpp).
 
 This test file is built alongside `flatc`. To review how to build the project,
-please read the [Building](@ref flatbuffers_guide_building) documentation.
+please read the [Building](../building.md) documentation.
 
 To run the tests, execute `flattests` from the root `flatbuffers/` directory.
 For example, on [Linux](https://en.wikipedia.org/wiki/Linux), you would simply
@@ -42,7 +42,7 @@ run: `./flattests`.
 
 ## Using the FlatBuffers C++ library
 
-*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+*Note: See [Tutorial](../tutorial.md) for a more in-depth
 example of how to use FlatBuffers in C++.*
 
 FlatBuffers supports both reading and writing FlatBuffers in C++.
@@ -261,7 +261,7 @@ using hashes which are then represented as typed pointers in the object API.
 
 To make this work have a field in the objects you want to referred to which is
 using the string hashing feature (see `hash` attribute in the
-[schema](@ref flatbuffers_guide_writing_schema) documentation). Then you have
+[schema](../schema.md) documentation). Then you have
 a similar hash in the field referring to it, along with a `cpp_type`
 attribute specifying the C++ type this will refer to (this can be any C++
 type, and will get a `*` added).
@@ -555,11 +555,11 @@ recursion depth. Number of nested declarations in a schema or number of
 nested json-objects is limited. By default, this depth limit set to `64`.
 It is possible to override this limit with `FLATBUFFERS_MAX_PARSING_DEPTH`
 definition. This definition can be helpful for testing purposes or embedded
-applications. For details see [build](@ref flatbuffers_guide_building) of
+applications. For details see [build](../building.md) of
 CMake-based projects.
 
 ## Dependence from C-locale {#flatbuffers_locale_cpp}
-The Flatbuffers [grammar](@ref flatbuffers grammar) uses ASCII
+The Flatbuffers [grammar](../grammar.md) uses ASCII
 character set for identifiers, alphanumeric literals, reserved words.
 
 Internal implementation of the Flatbuffers depends from functions which
@@ -602,7 +602,7 @@ compatible with the `IEEE-754` floating-point standard.
 The schema and json parser may fail if `fast-math` or `/fp:fast` mode is active.
 
 ### Support of hexadecimal and special floating-point numbers
-According to the [grammar](@ref flatbuffers_grammar) `fbs` and `json` files
+According to the [grammar](../grammar.md) `fbs` and `json` files
 may use hexadecimal and special (`NaN`, `Inf`) floating-point literals.
 The Flatbuffers uses `strtof` and `strtod` functions to parse floating-point
 literals. The Flatbuffers library has a code to detect a compiler compatibility
@@ -625,7 +625,7 @@ According to the `IEEE-754`, a comparison with `NaN` always returns
 an unordered result even when compared with itself. As a result, a whole
 Flatbuffers object will be not equal to itself if has one or more `NaN`.
 Flatbuffers scalar fields that have the default value are not actually stored
-in the serialized data but are generated in code (see [Writing a schema](@ref flatbuffers_guide_writing_schema)).
+in the serialized data but are generated in code (see [Writing a schema](../schema.md)).
 Scalar fields with `NaN` defaults break this behavior.
 If a schema has a lot of `NaN` defaults the Flatbuffers can override
 the unordered comparison by the ordered: `(NaN==NaN)->true`.
