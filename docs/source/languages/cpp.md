@@ -651,7 +651,7 @@ NOTE: The examples below are also in the `grpc/samples/greeter` directory.
 
 We will illustrate usage with the following schema:
 
-``` title="grpc/samples/greeter/greeter.fbs"
+```c++ title="grpc/samples/greeter/greeter.fbs"
 --8<-- "https://raw.githubusercontent.com/google/flatbuffers/refs/heads/master/grpc/samples/greeter/greeter.fbs"
 ```
 
@@ -660,13 +660,13 @@ When we run `flatc`, we pass in the `--grpc` option and generage an additional
 
 Example server code looks like this:
 
-``` title="grpc/samples/greeter/server.cpp"
+```c++ title="grpc/samples/greeter/server.cpp"
 --8<-- "https://raw.githubusercontent.com/google/flatbuffers/refs/heads/master/grpc/samples/greeter/server.cpp"
 ```
 
 Example client code looks like this:
 
-``` title="grpc/samples/greeter/client.cpp"
+```c++ title="grpc/samples/greeter/client.cpp"
 --8<-- "https://raw.githubusercontent.com/google/flatbuffers/refs/heads/master/grpc/samples/greeter/client.cpp"
 ```
 
