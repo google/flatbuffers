@@ -32,7 +32,7 @@ public struct FlatBufferBuilder {
   /// Storage for the Vtables used in the buffer are stored in here, so they would be written later in EndTable
   @usableFromInline internal var _vtableStorage = VTableStorage()
   /// Flatbuffer data will be written into
-  @usableFromInline internal var _bb: ByteBuffer
+  @usableFromInline internal var _bb: _InternalByteBuffer
 
   /// Reference Vtables that were already written to the buffer
   private var _vtables: [UOffset] = []
@@ -54,27 +54,35 @@ public struct FlatBufferBuilder {
 
   /// Gives a read access to the buffer's size
   public var size: UOffset { _bb.size }
+  /// Current allocated capacity within the storage
+  @inline(__always)
+  public var capacity: Int { _bb.capacity }
 
   #if !os(WASI)
-  /// Data representation of the buffer
-  ///
-  /// Should only be used after ``finish(offset:addPrefix:)`` is called
-  public var data: Data {
-    assert(finished, "Data shouldn't be called before finish()")
-    return Data(
-      bytes: _bb.memory.advanced(by: _bb.writerIndex),
-      count: _bb.capacity &- _bb.writerIndex)
-  }
+    /// Data representation of the buffer
+    ///
+    /// Should only be used after ``finish(offset:addPrefix:)`` is called
+    public var data: Data {
+      assert(finished, "Data shouldn't be called before finish()")
+      return _bb.withUnsafeSlicedBytes { ptr in
+        var data = Data()
+        data.append(
+          ptr.baseAddress!.bindMemory(
+            to: UInt8.self,
+            capacity: _bb.capacity),
+          count: _bb.capacity)
+        return data
+      }
+    }
   #endif
 
   /// Returns the underlying bytes in the ``ByteBuffer``
   ///
   /// Note: This should be used with caution.
   public var fullSizedByteArray: [UInt8] {
-    let ptr = UnsafeBufferPointer(
-      start: _bb.memory.assumingMemoryBound(to: UInt8.self),
-      count: _bb.capacity)
-    return Array(ptr)
+    _bb.withUnsafeBytes { ptr in
+      Array(ptr)
+    }
   }
 
   /// Returns the written bytes into the ``ByteBuffer``
@@ -82,14 +90,18 @@ public struct FlatBufferBuilder {
   /// Should only be used after ``finish(offset:addPrefix:)`` is called
   public var sizedByteArray: [UInt8] {
     assert(finished, "Data shouldn't be called before finish()")
-    return _bb.underlyingBytes
+    return _bb.withUnsafeSlicedBytes { ptr in
+      Array(ptr)
+    }
   }
 
   /// Returns the original ``ByteBuffer``
   ///
   /// Returns the current buffer that was just created
   /// with the offsets, and data written to it.
-  public var buffer: ByteBuffer { _bb }
+  public var buffer: ByteBuffer {
+    ByteBuffer(byteBuffer: _bb)
+  }
 
   /// Returns a newly created sized ``ByteBuffer``
   ///
@@ -97,9 +109,11 @@ public struct FlatBufferBuilder {
   /// to the main buffer
   public var sizedBuffer: ByteBuffer {
     assert(finished, "Data shouldn't be called before finish()")
-    return ByteBuffer(
-      memory: _bb.memory.advanced(by: _bb.reader),
-      count: Int(_bb.size))
+    return _bb.withUnsafeSlicedBytes { ptr in
+      return ByteBuffer(
+        copyingMemoryBound: ptr.baseAddress!,
+        capacity: ptr.count)
+    }
   }
 
   // MARK: - Init
@@ -114,15 +128,15 @@ public struct FlatBufferBuilder {
   /// however the builder can be force by passing true for `serializeDefaults`
   public init(
     initialSize: Int32 = 1024,
-    serializeDefaults force: Bool = false)
-  {
+    serializeDefaults force: Bool = false
+  ) {
     assert(initialSize > 0, "Size should be greater than zero!")
     guard isLitteEndian else {
       fatalError(
         "Reading/Writing a buffer in big endian machine is not supported on swift")
     }
     serializeDefaults = force
-    _bb = ByteBuffer(initialSize: Int(initialSize))
+    _bb = _InternalByteBuffer(initialSize: Int(initialSize))
   }
 
   /// Clears the builder and the buffer from the written data.
@@ -149,9 +163,10 @@ public struct FlatBufferBuilder {
     for index in stride(from: 0, to: fields.count, by: 1) {
       let start = _bb.capacity &- Int(table.o)
       let startTable = start &- Int(_bb.read(def: Int32.self, position: start))
-      let isOkay = _bb.read(
-        def: VOffset.self,
-        position: startTable &+ Int(fields[index])) != 0
+      let isOkay =
+        _bb.read(
+          def: VOffset.self,
+          position: startTable &+ Int(fields[index])) != 0
       assert(isOkay, "Flatbuffers requires the following field")
     }
   }
@@ -181,8 +196,8 @@ public struct FlatBufferBuilder {
   mutating public func finish(
     offset: Offset,
     fileId: String,
-    addPrefix prefix: Bool = false)
-  {
+    addPrefix prefix: Bool = false
+  ) {
     let size = MemoryLayout<UOffset>.size
     preAlign(
       len: size &+ (prefix ? size : 0) &+ FileIdLength,
@@ -211,8 +226,8 @@ public struct FlatBufferBuilder {
   /// include the size of the current buffer.
   mutating public func finish(
     offset: Offset,
-    addPrefix prefix: Bool = false)
-  {
+    addPrefix prefix: Bool = false
+  ) {
     notNested()
     let size = MemoryLayout<UOffset>.size
     preAlign(len: size &+ (prefix ? size : 0), alignment: _minAlignment)
@@ -249,7 +264,8 @@ public struct FlatBufferBuilder {
   ///
   /// - Parameter startOffset:Start point of the object written
   /// - returns: The root of the table
-  mutating public func endTable(at startOffset: UOffset)  -> UOffset {
+  @inline(__always)
+  mutating public func endTable(at startOffset: UOffset) -> UOffset {
     assert(isNested, "Calling endtable without calling starttable")
     let sizeofVoffset = MemoryLayout<VOffset>.size
     let vTableOffset = push(element: SOffset(0))
@@ -313,7 +329,7 @@ public struct FlatBufferBuilder {
   /// Asserts to see if the object is not nested
   @inline(__always)
   @usableFromInline
-  mutating internal func notNested()  {
+  mutating internal func notNested() {
     assert(!isNested, "Object serialization must not be nested")
   }
 
@@ -335,9 +351,9 @@ public struct FlatBufferBuilder {
   @usableFromInline
   mutating internal func padding(
     bufSize: UInt32,
-    elementSize: UInt32) -> UInt32
-  {
-    ((~bufSize) &+ 1) & (elementSize - 1)
+    elementSize: UInt32
+  ) -> UInt32 {
+    ((~bufSize) &+ 1) & (elementSize &- 1)
   }
 
   /// Prealigns the buffer before writting a new object into the buffer
@@ -348,9 +364,11 @@ public struct FlatBufferBuilder {
   @usableFromInline
   mutating internal func preAlign(len: Int, alignment: Int) {
     minAlignment(size: alignment)
-    _bb.fill(padding: Int(padding(
-      bufSize: _bb.size &+ UOffset(len),
-      elementSize: UOffset(alignment))))
+    _bb.fill(
+      padding: Int(
+        padding(
+          bufSize: _bb.size &+ UOffset(len),
+          elementSize: UOffset(alignment))))
   }
 
   /// Prealigns the buffer before writting a new object into the buffer
@@ -461,8 +479,8 @@ public struct FlatBufferBuilder {
   @inline(__always)
   mutating public func createVector<T: Scalar>(
     _ elements: [T],
-    size: Int) -> Offset
-  {
+    size: Int
+  ) -> Offset {
     let size = size
     startVector(size, elementSize: MemoryLayout<T>.size)
     _bb.push(elements: elements)
@@ -470,19 +488,20 @@ public struct FlatBufferBuilder {
   }
 
   #if swift(>=5.0) && !os(WASI)
-  @inline(__always)
-  /// Creates a vector of bytes in the buffer.
-  ///
-  /// Allows creating a vector from `Data` without copying to a `[UInt8]`
-  ///
-  /// - Parameter bytes: bytes to be written into the buffer
-  /// - Returns: ``Offset`` of the vector
-  mutating public func createVector(bytes: ContiguousBytes) -> Offset {
-    let size = bytes.withUnsafeBytes { ptr in ptr.count }
-    startVector(size, elementSize: MemoryLayout<UInt8>.size)
-    _bb.push(bytes: bytes)
-    return endVector(len: size)
-  }
+    @inline(__always)
+    /// Creates a vector of bytes in the buffer.
+    ///
+    /// Allows creating a vector from `Data` without copying to a `[UInt8]`
+    ///
+    /// - Parameter bytes: bytes to be written into the buffer
+    /// - Returns: ``Offset`` of the vector
+    mutating public func createVector(bytes: ContiguousBytes) -> Offset {
+      bytes.withUnsafeBytes {
+        startVector($0.count, elementSize: MemoryLayout<UInt8>.size)
+        _bb.push(bytes: $0)
+        return endVector(len: $0.count)
+      }
+    }
   #endif
 
   /// Creates a vector of type ``Enum`` into the ``ByteBuffer``
@@ -520,8 +539,8 @@ public struct FlatBufferBuilder {
   @inline(__always)
   mutating public func createVector<T: Enum>(
     _ elements: [T],
-    size: Int) -> Offset
-  {
+    size: Int
+  ) -> Offset {
     let size = size
     startVector(size, elementSize: T.byteSize)
     for index in stride(from: elements.count, to: 0, by: -1) {
@@ -566,8 +585,8 @@ public struct FlatBufferBuilder {
   @inline(__always)
   mutating public func createVector(
     ofOffsets offsets: [Offset],
-    len: Int) -> Offset
-  {
+    len: Int
+  ) -> Offset {
     startVector(len, elementSize: MemoryLayout<Offset>.size)
     for index in stride(from: offsets.count, to: 0, by: -1) {
       push(element: offsets[index &- 1])
@@ -643,8 +662,8 @@ public struct FlatBufferBuilder {
   @inline(__always)
   @discardableResult
   mutating public func create<T: NativeStruct>(
-    struct s: T, position: VOffset) -> Offset
-  {
+    struct s: T, position: VOffset
+  ) -> Offset {
     let offset = create(struct: s)
     _vtableStorage.add(
       loc: (offset: _bb.size, position: VOffset(position)))
@@ -668,8 +687,8 @@ public struct FlatBufferBuilder {
   @inline(__always)
   @discardableResult
   mutating public func create<T: NativeStruct>(
-    struct s: T) -> Offset
-  {
+    struct s: T
+  ) -> Offset {
     let size = MemoryLayout<T>.size
     preAlign(len: size, alignment: MemoryLayout<T>.alignment)
     _bb.push(struct: s, size: size)
@@ -784,8 +803,8 @@ public struct FlatBufferBuilder {
   mutating public func add<T: Scalar>(
     element: T,
     def: T,
-    at position: VOffset)
-  {
+    at position: VOffset
+  ) {
     if element == def && !serializeDefaults { return }
     track(offset: push(element: element), at: position)
   }
@@ -822,6 +841,10 @@ public struct FlatBufferBuilder {
     return _bb.size
   }
 
+  @inline(__always)
+  public func read<T>(def: T.Type, position: Int) -> T {
+    _bb.read(def: def, position: position)
+  }
 }
 
 extension FlatBufferBuilder: CustomDebugStringConvertible {

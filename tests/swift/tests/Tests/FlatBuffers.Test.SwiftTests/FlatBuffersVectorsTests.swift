@@ -143,6 +143,18 @@ final class FlatBuffersVectors: XCTestCase {
     XCTAssertEqual(msg.hasArray, true)
     XCTAssertEqual(msg.arrayCount, 3)
     XCTAssertEqual(msg.array, [1, 2, 3])
+
+
+    let array = msg.withUnsafePointerToArray { ptr in
+      let ptr: UnsafeBufferPointer<UInt64> = UnsafeBufferPointer(
+        start: ptr.baseAddress?.bindMemory(
+          to: UInt64.self,
+          capacity: Int(msg.arrayCount)),
+        count: Int(msg.arrayCount))
+      return Array(ptr)
+    }
+
+    XCTAssertEqual(array, [1, 2, 3])
   }
 }
 
