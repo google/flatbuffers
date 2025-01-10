@@ -209,7 +209,7 @@ variable sized integers (e.g., `varints`).
 
 | Size   | Signed            | Unsigned            | Floating Point       |
 | ------ | ----------------- | ------------------- | -------------------- |
-| 8-bit  | `byte`, `bool`    | `ubyte`             |                      |
+| 8-bit  | `byte`, `bool`    | `ubyte` (`uint8`)   |                      |
 | 16-bit | `short` (`int16`) | `ushort` (`uint16`) |
 | 32-bit | `int` (`int32`)   | `uint` (`uint32`)   | `float` (`float32`)  |
 | 64-bit | `long` (`int64`)  | `ulong` (`uint64`)  | `double` (`float64`) |
