@@ -203,7 +203,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v4.2
+      uses: actions/setup-dotnet@v4.2.0
       with:
         dotnet-version: '8.0.x'
     - name: Build
