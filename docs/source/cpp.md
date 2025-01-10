@@ -1,2 +1,0 @@
-# Language Guide: C++
-
