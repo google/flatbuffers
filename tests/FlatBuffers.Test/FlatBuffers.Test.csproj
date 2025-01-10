@@ -189,12 +189,10 @@
     <Content Include="..\monsterdata_test.mon">
       <Link>Resources\monsterdata_test.mon</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>%(Framework)</TargetPath>
     </Content>
     <Content Include="..\monsterdata_test.json">
       <Link>Resources\monsterdata_test.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>%(Framework)</TargetPath>
     </Content>
   </ItemGroup>
 
