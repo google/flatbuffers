@@ -3261,7 +3261,7 @@ mutators like so:
 </div>
 <div class="language-swift">
 ~~~{.swift}
-  let monster = Monster.getRootAsMonster(bb: ByteBuffer(bytes: buf))
+  let monster: Monster = try! getCheckedRoot(byteBuffer: &byteBuffer)
   monster.mutate(hp: 10) // mutates a value in a table
   /// to mutate structs in swift you have to use the mutable accessors
   monster.mutablePos.mutate(z: 4) // mutates a value in a struct
