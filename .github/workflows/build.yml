@@ -203,7 +203,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4.2
       with:
         dotnet-version: '8.0.x'
     - name: Build
@@ -211,7 +211,7 @@ jobs:
         cd tests\FlatBuffers.Test
         dotnet new sln --force --name FlatBuffers.Test
         dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
-        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Test.sln
+        dotnet build -c Release ${{matrix.configuration}} --property:PublishDir=out FlatBuffers.Test.sln
     - name: Run
       run: |
         cd tests\FlatBuffers.Test
