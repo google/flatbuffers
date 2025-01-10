@@ -4,15 +4,15 @@ Use in PHP    {#flatbuffers_guide_use_php}
 ## Before you get started
 
 Before diving into the FlatBuffers usage in PHP, it should be noted that
-the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide to
+the [Tutorial](../tutorial.md) page has a complete guide to
 general FlatBuffers usage in all of the supported languages
 (including PHP). This page is specifically designed to cover the nuances of
 FlatBuffers usage in PHP.
 
-You should also have read the [Building](@ref flatbuffers_guide_building)
+You should also have read the [Building](../building.md)
 documentation to build `flatc` and should be familiar with
-[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler) and
-[Writing a schema](@ref flatbuffers_guide_writing_schema).
+[Using the schema compiler](../flatc.md) and
+[Writing a schema](../schema.md).
 
 ## FlatBuffers PHP library code location
 
@@ -33,7 +33,7 @@ You can run the test with `php phpTest.php` from the command line.
 
 ## Using theFlatBuffers PHP library
 
-*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+*Note: See [Tutorial](../tutorial.md) for a more in-depth
 example of how to use FlatBuffers in PHP.*
 
 FlatBuffers supports both reading and writing FlatBuffers in PHP.

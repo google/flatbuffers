@@ -20,9 +20,8 @@ of the added field if accessed).
 
 Older code will simply ignore the new field in the flatbuffer.
 
-!!! tip "Use `id` attributes"
-
-     You can ignore this rule if you use the `id` attribute on all the fields of a table.
+You can ignore this rule if you use the `id` attribute on all the fields of a
+table.
 
 ### Removal
 

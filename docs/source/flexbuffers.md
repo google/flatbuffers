@@ -163,7 +163,7 @@ map.get("unknown").isNull();  // true
 # Binary encoding
 
 A description of how FlexBuffers are encoded is in the
-[internals](@ref flatbuffers_internals) document.
+[internals](internals.md) document.
 
 
 # Nesting inside a FlatBuffer

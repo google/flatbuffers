@@ -12,7 +12,7 @@ project.
 
 ## General Documention
 
-- [Tutorial](@ref flatbuffers_guide_tutorial) - select C as language
+- [Tutorial](../tutorial.md) - select C as language
   when scrolling down
 - [FlatCC Guide](https://github.com/dvidelabs/flatcc#flatcc-flatbuffers-in-c-for-c)
 - [The C Builder Interface](https://github.com/dvidelabs/flatcc/blob/master/doc/builder.md#the-builder-interface)

@@ -4,15 +4,15 @@ Use in TypeScript    {#flatbuffers_guide_use_typescript}
 ## Before you get started
 
 Before diving into the FlatBuffers usage in TypeScript, it should be noted that
-the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide to
+the [Tutorial](../tutorial.md) page has a complete guide to
 general FlatBuffers usage in all of the supported languages
 (including TypeScript). This page is specifically designed to cover the nuances
 of FlatBuffers usage in TypeScript.
 
-You should also have read the [Building](@ref flatbuffers_guide_building)
+You should also have read the [Building](../building.md)
 documentation to build `flatc` and should be familiar with
-[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler) and
-[Writing a schema](@ref flatbuffers_guide_writing_schema).
+[Using the schema compiler](../flatc.md) and
+[Writing a schema](../schema.md).
 
 ## FlatBuffers TypeScript library code location
 
@@ -28,7 +28,7 @@ flatbuffers/blob/master/tests/TypeScriptTest.py) Python3 script.
 
 ## Using the FlatBuffers TypeScript library
 
-*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+*Note: See [Tutorial](../tutorial.md) for a more in-depth
 example of how to use FlatBuffers in TypeScript.*
 
 FlatBuffers supports both reading and writing FlatBuffers in TypeScript.

@@ -4,7 +4,7 @@ Use in Rust    {#flatbuffers_guide_use_rust}
 ## Before you get started
 
 Before diving into the FlatBuffers usage in Rust, it should be noted that
-the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide
+the [Tutorial](../tutorial.md) page has a complete guide
 to general FlatBuffers usage in all of the supported languages (including Rust).
 This page is designed to cover the nuances of FlatBuffers usage, specific to
 Rust.
@@ -13,8 +13,8 @@ Rust.
 
 This page assumes you have written a FlatBuffers schema and compiled it
 with the Schema Compiler. If you have not, please see
-[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler)
-and [Writing a schema](@ref flatbuffers_guide_writing_schema).
+[Using the schema compiler](../flatc.md)
+and [Writing a schema](../schema.md).
 
 Assuming you wrote a schema, say `mygame.fbs` (though the extension doesn't
 matter), you've generated a Rust file called `mygame_generated.rs` using the
@@ -36,7 +36,7 @@ The test code itself is located in
 [integration_test.rs](https://github.com/google/flatbuffers/blob/master/tests/rust_usage_test/tests/integration_test.rs)
 
 This test file requires `flatc` to be present. To review how to build the project,
-please read the [Building](@ref flatbuffers_guide_building) documentation.
+please read the [Building](../building.md) documentation.
 
 To run the tests, execute `RustTest.sh` from the `flatbuffers/tests` directory.
 For example, on [Linux](https://en.wikipedia.org/wiki/Linux), you would simply
@@ -47,7 +47,7 @@ be installed.*
 
 ## Using the FlatBuffers Rust library
 
-*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+*Note: See [Tutorial](../tutorial.md) for a more in-depth
 example of how to use FlatBuffers in Rust.*
 
 FlatBuffers supports both reading and writing FlatBuffers in Rust.

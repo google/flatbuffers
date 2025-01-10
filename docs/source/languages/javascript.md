@@ -4,15 +4,15 @@ Use in JavaScript    {#flatbuffers_guide_use_javascript}
 ## Before you get started
 
 Before diving into the FlatBuffers usage in JavaScript, it should be noted that
-the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide to
+the [Tutorial](../tutorial.md) page has a complete guide to
 general FlatBuffers usage in all of the supported languages
 (including JavaScript). This page is specifically designed to cover the nuances
 of FlatBuffers usage in JavaScript.
 
-You should also have read the [Building](@ref flatbuffers_guide_building)
+You should also have read the [Building](../building.md)
 documentation to build `flatc` and should be familiar with
-[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler) and
-[Writing a schema](@ref flatbuffers_guide_writing_schema).
+[Using the schema compiler](../flatc.md) and
+[Writing a schema](../schema.md).
 
 ## FlatBuffers JavaScript library code location
 
@@ -25,13 +25,13 @@ folder as the source.
 
 ## Using the FlatBuffers JavaScript library
 
-*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+*Note: See [Tutorial](../tutorial.md) for a more in-depth
 example of how to use FlatBuffers.*
 
 Due to the complexity related with large amounts of JS flavors and module types,
 native JS support has been replaced in 2.0 by transpilation from TypeScript.
 
-Please look at [TypeScript usage](@ref flatbuffers_guide_use_typescript) and
+Please look at [TypeScript usage](typescript.md) and
 transpile your sources to desired JS flavor. The minimal steps to get up and
 running with JS are:
 

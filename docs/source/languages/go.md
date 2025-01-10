@@ -4,15 +4,15 @@ Use in Go    {#flatbuffers_guide_use_go}
 ## Before you get started
 
 Before diving into the FlatBuffers usage in Go, it should be noted that
-the [Tutorial](@ref flatbuffers_guide_tutorial) page has a complete guide
+the [Tutorial](../tutorial.md) page has a complete guide
 to general FlatBuffers usage in all of the supported languages (including Go).
 This page is designed to cover the nuances of FlatBuffers usage, specific to
 Go.
 
-You should also have read the [Building](@ref flatbuffers_guide_building)
+You should also have read the [Building](../building.md)
 documentation to build `flatc` and should be familiar with
-[Using the schema compiler](@ref flatbuffers_guide_using_schema_compiler) and
-[Writing a schema](@ref flatbuffers_guide_writing_schema).
+[Using the schema compiler](../flatc.md) and
+[Writing a schema](../schema.md).
 
 ## FlatBuffers Go library code location
 
@@ -34,7 +34,7 @@ be installed.*
 
 ## Using the FlatBuffers Go library
 
-*Note: See [Tutorial](@ref flatbuffers_guide_tutorial) for a more in-depth
+*Note: See [Tutorial](../tutorial.md) for a more in-depth
 example of how to use FlatBuffers in Go.*
 
 FlatBuffers supports reading and writing binary FlatBuffers in Go.
