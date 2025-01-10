@@ -2,12 +2,13 @@ use crate::follow::Follow;
 use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
+#[cfg(feature= "std")]
+use std::borrow::Cow;
 use core::ops::Range;
 use core::option::Option;
 
 #[cfg(all(nightly, not(feature = "std")))]
 use core::error::Error;
-use std::borrow::Cow;
 #[cfg(feature = "std")]
 use std::error::Error;
 
