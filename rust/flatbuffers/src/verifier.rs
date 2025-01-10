@@ -7,6 +7,11 @@ use std::borrow::Cow;
 use core::ops::Range;
 use core::option::Option;
 
+#[cfg(not(feature = "std"))]
+use alloc::borrow::Cow;
+#[cfg(feature= "std")]
+use std::borrow::Cow;
+
 #[cfg(all(nightly, not(feature = "std")))]
 use core::error::Error;
 #[cfg(feature = "std")]
