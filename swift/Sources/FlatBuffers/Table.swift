@@ -101,8 +101,7 @@ public struct Table {
   ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
   public func directRead<T>(of type: T.Type, offset o: Int32) -> T {
-    let r = bb.read(def: T.self, position: Int(o))
-    return r
+    bb.read(def: T.self, position: Int(o))
   }
 
   /// Returns that current `Union` object at a specific offset
@@ -129,6 +128,23 @@ public struct Table {
     let o = offset(off)
     guard o != 0 else { return nil }
     return bb.readSlice(index: Int(vector(at: o)), count: Int(vector(count: o)))
+  }
+
+  /// Returns the underlying pointer to a vector within the buffer
+  /// This should only be used by `Scalars`
+  /// - Parameter off: Readable offset
+  /// - Returns: Returns a pointer to the underlying data
+  @inline(__always)
+  public func withUnsafePointerToSlice<T>(
+    at off: Int32,
+    body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T?
+  {
+    let o = offset(off)
+    guard o != 0 else { return nil }
+    return try bb.withUnsafePointerToSlice(
+      index: Int(vector(at: o)),
+      count: Int(vector(count: o)),
+      body: body)
   }
 
   /// Vector count gets the count of Elements within the array
@@ -165,6 +181,85 @@ public struct Table {
   ///   - vOffset: Field offset within a vtable
   ///   - fbb: ByteBuffer
   /// - Returns: an position of a field
+  @inline(__always)
+  static public func offset(
+    _ o: Int32,
+    vOffset: Int32,
+    fbb: inout FlatBufferBuilder) -> Int32
+  {
+    let vTable = Int32(fbb.capacity) - o
+    return vTable + Int32(fbb.read(
+      def: Int16.self,
+      position: Int(vTable + vOffset - fbb.read(
+        def: Int32.self,
+        position: Int(vTable)))))
+  }
+
+  /// Compares two objects at offset A and offset B within a ByteBuffer
+  /// - Parameters:
+  ///   - off1: first offset to compare
+  ///   - off2: second offset to compare
+  ///   - fbb: Bytebuffer
+  /// - Returns: returns the difference between
+  @inline(__always)
+  static public func compare(
+    _ off1: Int32,
+    _ off2: Int32,
+    fbb: inout FlatBufferBuilder) -> Int32
+  {
+    let memorySize = Int32(MemoryLayout<Int32>.size)
+    let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))
+    let _off2 = off2 + fbb.read(def: Int32.self, position: Int(off2))
+    let len1 = fbb.read(def: Int32.self, position: Int(_off1))
+    let len2 = fbb.read(def: Int32.self, position: Int(_off2))
+    let startPos1 = _off1 + memorySize
+    let startPos2 = _off2 + memorySize
+    let minValue = min(len1, len2)
+    for i in 0...minValue {
+      let b1 = fbb.read(def: Int8.self, position: Int(i + startPos1))
+      let b2 = fbb.read(def: Int8.self, position: Int(i + startPos2))
+      if b1 != b2 {
+        return Int32(b2 - b1)
+      }
+    }
+    return len1 - len2
+  }
+
+  /// Compares two objects at offset A and array of `Bytes` within a ByteBuffer
+  /// - Parameters:
+  ///   - off1: Offset to compare to
+  ///   - key: bytes array to compare to
+  ///   - fbb: Bytebuffer
+  /// - Returns: returns the difference between
+  @inline(__always)
+  static public func compare(
+    _ off1: Int32,
+    _ key: [Byte],
+    fbb: inout FlatBufferBuilder) -> Int32
+  {
+    let memorySize = Int32(MemoryLayout<Int32>.size)
+    let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))
+    let len1 = fbb.read(def: Int32.self, position: Int(_off1))
+    let len2 = Int32(key.count)
+    let startPos1 = _off1 + memorySize
+    let minValue = min(len1, len2)
+    for i in 0..<minValue {
+      let b = fbb.read(def: Int8.self, position: Int(i + startPos1))
+      let byte = key[Int(i)]
+      if b != byte {
+        return Int32(b - Int8(byte))
+      }
+    }
+    return len1 - len2
+  }
+
+  /// Gets a vtable value according to an table Offset and a field offset
+  /// - Parameters:
+  ///   - o: offset relative to entire buffer
+  ///   - vOffset: Field offset within a vtable
+  ///   - fbb: ByteBuffer
+  /// - Returns: an position of a field
+  @inline(__always)
   static public func offset(
     _ o: Int32,
     vOffset: Int32,
@@ -184,6 +279,7 @@ public struct Table {
   ///   - off2: second offset to compare
   ///   - fbb: Bytebuffer
   /// - Returns: returns the difference between
+  @inline(__always)
   static public func compare(
     _ off1: Int32,
     _ off2: Int32,
@@ -213,6 +309,7 @@ public struct Table {
   ///   - key: bytes array to compare to
   ///   - fbb: Bytebuffer
   /// - Returns: returns the difference between
+  @inline(__always)
   static public func compare(
     _ off1: Int32,
     _ key: [Byte],

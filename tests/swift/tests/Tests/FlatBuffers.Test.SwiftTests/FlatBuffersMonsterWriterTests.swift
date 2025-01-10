@@ -39,6 +39,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       .appendingPathExtension("mon")
     let data = try! Data(contentsOf: url)
     let _data = ByteBuffer(data: data)
+
     readVerifiedMonster(fb: _data)
   }
 
@@ -48,6 +49,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(bytes.sizedByteArray, [48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
     // swiftformat:enable all
     var buffer = bytes.buffer
+    print(buffer)
     let monster: MyGame_Example_Monster = getRoot(byteBuffer: &buffer)
     readMonster(monster: monster)
     mutateMonster(fb: bytes.buffer)
@@ -130,6 +132,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let name = fbb.create(string: "Frodo")
     let bools = fbb.createVector(boolArray)
+
     let root = Monster.createMonster(
       &fbb,
       nameOffset: name,
@@ -176,8 +179,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let unlignedPtr = UnsafeMutableRawPointer(baseAddress)
         var bytes = ByteBuffer(
           assumingMemoryBound: unlignedPtr,
-          capacity: ptr.count - 1,
-          allowReadingUnalignedBuffers: true)
+          capacity: ptr.count - 1)
         var monster: Monster = getRoot(byteBuffer: &bytes)
         self.readFlatbufferMonster(monster: &monster)
         return true
@@ -186,7 +188,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(testUnaligned(), true)
   }
 
-  func testCopyUnalignedToAlignedBuffers() {
+  func testReadingRemovedSizeUnalignedBuffer() {
     // Aligned read
     let fbb = createMonster(withPrefix: true)
     let testUnaligned: () -> Bool = {
@@ -201,8 +203,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         let unlignedPtr = UnsafeMutableRawPointer(baseAddress)
         let bytes = ByteBuffer(
           assumingMemoryBound: unlignedPtr,
-          capacity: ptr.count - 1,
-          allowReadingUnalignedBuffers: false)
+          capacity: ptr.count - 1)
         var newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes)
         var monster: Monster = getRoot(byteBuffer: &newBuf)
         self.readFlatbufferMonster(monster: &monster)
@@ -210,6 +211,18 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       }
     }
     XCTAssertEqual(testUnaligned(), true)
+  }
+
+  func testForceRetainedObject() {
+    let byteBuffer = {
+      // swiftformat:disable all
+      var data: Data? = Data([48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28, 0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0, 0, 0, 0, 0, 1, 60, 0, 0, 0, 68, 0, 0, 0, 76, 0, 0, 0, 0, 0, 0, 1, 88, 0, 0, 0, 120, 0, 0, 0, 0, 0, 80, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 64, 2, 0, 5, 0, 6, 0, 0, 0, 2, 0, 0, 0, 64, 0, 0, 0, 48, 0, 0, 0, 2, 0, 0, 0, 30, 0, 40, 0, 10, 0, 20, 0, 152, 255, 255, 255, 4, 0, 0, 0, 4, 0, 0, 0, 70, 114, 101, 100, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 50, 0, 0, 0, 5, 0, 0, 0, 116, 101, 115, 116, 49, 0, 0, 0, 9, 0, 0, 0, 77, 121, 77, 111, 110, 115, 116, 101, 114, 0, 0, 0, 3, 0, 0, 0, 20, 0, 0, 0, 36, 0, 0, 0, 4, 0, 0, 0, 240, 255, 255, 255, 32, 0, 0, 0, 248, 255, 255, 255, 36, 0, 0, 0, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0, 12, 0, 0, 0, 28, 0, 0, 0, 5, 0, 0, 0, 87, 105, 108, 109, 97, 0, 0, 0, 6, 0, 0, 0, 66, 97, 114, 110, 101, 121, 0, 0, 5, 0, 0, 0, 70, 114, 111, 100, 111, 0, 0, 0])
+      // swiftformat:enable all
+      let buffer = ByteBuffer(data: data!)
+      data = nil
+      return buffer
+    }()
+    readVerifiedMonster(fb: byteBuffer)
   }
 
   func readMonster(monster: Monster) {
@@ -286,6 +299,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
   func mutateMonster(fb: ByteBuffer) {
     var fb = fb
+    print(fb)
     let monster: Monster = getRoot(byteBuffer: &fb)
     XCTAssertFalse(monster.mutate(mana: 10))
     XCTAssertEqual(monster.testarrayoftables(at: 0)?.name, "Barney")
@@ -352,6 +366,15 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       sum += monster.inventory(at: i)
     }
     XCTAssertEqual(sum, 10)
+
+    monster.withUnsafePointerToInventory { ptr in
+      var sum: UInt8 = 0
+      for pointee in ptr.startIndex..<ptr.endIndex {
+        sum += ptr[pointee]
+      }
+      XCTAssertEqual(sum, 10)
+    }
+
     XCTAssertEqual(monster.test4Count, 2)
 
     let test0 = monster.test4(at: 0)
@@ -365,6 +388,23 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       sum1 = Int(a) + Int(b)
     }
     XCTAssertEqual(sum0 + sum1, 100)
+
+    monster.withUnsafePointerToTest4 { ptr in
+      guard let ptr = ptr.baseAddress else { return }
+
+      let bindedMemory: UnsafeBufferPointer<MyGame_Example_Test> =
+        UnsafeBufferPointer(
+          start: ptr.bindMemory(
+            to: MyGame_Example_Test.self,
+            capacity: Int(monster.test4Count)),
+          count: Int(monster.test4Count))
+      var pointerSum = 0
+      for pointee in bindedMemory.startIndex..<bindedMemory.endIndex {
+        pointerSum += Int(bindedMemory[pointee].a) +
+          Int(bindedMemory[pointee].b)
+      }
+      XCTAssertEqual(pointerSum, 100)
+    }
 
     let mutableTest0 = monster.mutableTest4(at: 0)
     let mutableTest1 = monster.mutableTest4(at: 1)
@@ -498,7 +538,8 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     let monster: Monster = getRoot(byteBuffer: &buffer)
     let values = monster.inventory
 
-    XCTAssertEqual(byteArray, values)
+    monster.withUnsafePointerToInventory {
+      XCTAssertEqual(Array($0), values)
+    }
   }
-
 }

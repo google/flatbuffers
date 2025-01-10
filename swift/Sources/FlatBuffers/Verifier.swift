@@ -83,15 +83,18 @@ public struct Verifier {
     if !_checkAlignment { return }
 
     /// advance pointer to position X
-    let ptr = _buffer._storage.memory.advanced(by: position)
-    /// Check if the pointer is aligned
-    if Int(bitPattern: ptr) & (MemoryLayout<T>.alignment &- 1) == 0 {
-      return
-    }
+    try _buffer.withUnsafeBytes { pointer in
+      let ptr = pointer.baseAddress!.advanced(by: position)
 
-    throw FlatbuffersErrors.missAlignedPointer(
-      position: position,
-      type: String(describing: T.self))
+      /// Check if the pointer is aligned
+      if Int(bitPattern: ptr) & (MemoryLayout<T>.alignment &- 1) == 0 {
+        return
+      }
+
+      throw FlatbuffersErrors.missAlignedPointer(
+        position: position,
+        type: String(describing: T.self))
+    }
   }
 
   /// Checks if the value of Size "X" is within the range of the buffer

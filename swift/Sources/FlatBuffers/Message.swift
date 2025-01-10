@@ -19,14 +19,16 @@ import Foundation
 /// FlatBufferGRPCMessage protocol that should allow us to invoke
 /// initializers directly from the GRPC generated code
 public protocol FlatBufferGRPCMessage {
-
-  /// Raw pointer which would be pointing to the beginning of the readable bytes
-  var rawPointer: UnsafeMutableRawPointer { get }
-
   /// Size of readable bytes in the buffer
   var size: Int { get }
 
   init(byteBuffer: ByteBuffer)
+
+  @discardableResult
+  @inline(__always)
+  func withUnsafeReadableBytes<T>(
+    _ body: (UnsafeRawBufferPointer) throws
+      -> T) rethrows -> T
 }
 
 /// Message is a wrapper around Buffers to to able to send Flatbuffers `Buffers` through the
@@ -41,9 +43,6 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
       o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) +
         Int32(buffer.reader))
   }
-
-  public var rawPointer: UnsafeMutableRawPointer {
-    buffer.memory.advanced(by: buffer.reader) }
 
   public var size: Int { Int(buffer.size) }
 
@@ -61,5 +60,14 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   public init(builder: inout FlatBufferBuilder) {
     buffer = builder.sizedBuffer
     builder.clear()
+  }
+
+  @discardableResult
+  @inline(__always)
+  public func withUnsafeReadableBytes<T>(
+    _ body: (UnsafeRawBufferPointer) throws
+      -> T) rethrows -> T
+  {
+    try buffer.withUnsafeBytes { try body($0) }
   }
 }
