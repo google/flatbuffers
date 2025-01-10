@@ -157,8 +157,8 @@ public struct ByteBuffer {
   /// Constructor that creates a Flatbuffer object from a UInt8
   /// - Parameter
   ///   - bytes: Array of UInt8
-  public init(bytes: [UInt8])
-  {
+  @inline(__always)
+  public init(bytes: [UInt8]) {
     _storage = Storage(blob: .array(bytes), capacity: bytes.count)
     _writerSize = _storage.capacity
   }
@@ -167,9 +167,8 @@ public struct ByteBuffer {
   /// Constructor that creates a Flatbuffer from the Swift Data type object
   /// - Parameter
   ///   - data: Swift data Object
-  public init(
-    data: Data)
-  {
+  @inline(__always)
+  public init(data: Data) {
     _storage = Storage(blob: .data(data), capacity: data.count)
     _writerSize = _storage.capacity
   }
@@ -178,6 +177,7 @@ public struct ByteBuffer {
   /// Constructor that creates a Flatbuffer instance with a size
   /// - Parameter:
   ///   - size: Length of the buffer
+  @inline(__always)
   init(initialSize size: Int) {
     let size = size.convertToPowerofTwo
     _storage = Storage(count: size, alignment: alignment)
@@ -189,6 +189,7 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - contiguousBytes: Binary stripe to use as the buffer
   ///   - count: amount of readable bytes
+  @inline(__always)
   public init<Bytes: ContiguousBytes>(
     contiguousBytes: Bytes,
     count: Int)
@@ -202,6 +203,7 @@ public struct ByteBuffer {
   /// - Parameter:
   ///   - assumingMemoryBound: The unsafe memory region
   ///   - capacity: The size of the given memory region
+  @inline(__always)
   public init(
     assumingMemoryBound memory: UnsafeMutableRawPointer,
     capacity: Int)
@@ -217,6 +219,7 @@ public struct ByteBuffer {
   ///   - memory: Current memory of the buffer
   ///   - count: count of bytes
   ///   - removeBytes: Removes a number of bytes from the current size
+  @inline(__always)
   init(
     memory: UnsafeMutableRawPointer,
     count: Int,

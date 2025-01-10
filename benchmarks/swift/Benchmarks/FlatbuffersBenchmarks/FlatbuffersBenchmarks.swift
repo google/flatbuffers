@@ -29,6 +29,7 @@ struct AA: NativeStruct {
 }
 
 let benchmarks = {
+  let oneGB: Int32 = 1_024_000_000
   let data = {
     var array = [8888.88, 8888.88]
     var data = Data()
@@ -81,12 +82,22 @@ let benchmarks = {
 
   Benchmark("Allocating 1GB", configuration: singleConfiguration) { benchmark in
     for _ in benchmark.scaledIterations {
-      blackHole(FlatBufferBuilder(initialSize: 1_024_000_000))
+      blackHole(FlatBufferBuilder(initialSize: oneGB))
+    }
+  }
+
+  Benchmark("Allocating ByteBuffer 1GB", configuration: singleConfiguration) { benchmark in
+    let memory = UnsafeMutableRawPointer.allocate(
+      byteCount: 1_024_000_000,
+      alignment: 1)
+    benchmark.startMeasurement()
+    for _ in benchmark.scaledIterations {
+      blackHole(ByteBuffer(assumingMemoryBound: memory, capacity: Int(oneGB)))
     }
   }
 
   Benchmark("Clearing 1GB", configuration: singleConfiguration) { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1_024_000_000)
+    var fb = FlatBufferBuilder(initialSize: oneGB)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
       blackHole(fb.clear())
@@ -208,7 +219,7 @@ let benchmarks = {
   }
 
   Benchmark("Reading Doubles") { benchmark in
-    let byteBuffer = ByteBuffer(data: data, allowReadingUnalignedBuffers: true)
+    let byteBuffer = ByteBuffer(data: data)
     for _ in benchmark.scaledIterations {
       blackHole(byteBuffer.read(def: Double.self, position: 0))
     }
