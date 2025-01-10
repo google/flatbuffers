@@ -74,8 +74,7 @@ public struct FlatBufferBuilder {
     let ptr = UnsafeBufferPointer(
       start: _bb.memory.bindMemory(
         to: UInt8.self,
-        capacity: _bb.capacity
-      ),
+        capacity: _bb.capacity),
       count: _bb.capacity)
     return Array(ptr)
   }
@@ -340,7 +339,7 @@ public struct FlatBufferBuilder {
     bufSize: UInt32,
     elementSize: UInt32) -> UInt32
   {
-    ((~bufSize) &+ 1) & (elementSize - 1)
+    ((~bufSize) &+ 1) & (elementSize &- 1)
   }
 
   /// Prealigns the buffer before writting a new object into the buffer

@@ -143,6 +143,8 @@ final class FlatBuffersVectors: XCTestCase {
     XCTAssertEqual(msg.hasArray, true)
     XCTAssertEqual(msg.arrayCount, 3)
     XCTAssertEqual(msg.array, [1, 2, 3])
+
+    XCTAssertEqual(Array(msg.arrayPointer!), [1, 2, 3])
   }
 }
 

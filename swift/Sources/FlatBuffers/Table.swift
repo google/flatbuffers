@@ -101,8 +101,7 @@ public struct Table {
   ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
   public func directRead<T>(of type: T.Type, offset o: Int32) -> T {
-    let r = bb.read(def: T.self, position: Int(o))
-    return r
+    bb.read(def: T.self, position: Int(o))
   }
 
   /// Returns that current `Union` object at a specific offset
@@ -129,6 +128,18 @@ public struct Table {
     let o = offset(off)
     guard o != 0 else { return nil }
     return bb.readSlice(index: Int(vector(at: o)), count: Int(vector(count: o)))
+  }
+
+  /// Returns the underlying pointer to a vector within the buffer
+  /// This should only be used by `Scalars`
+  /// - Parameter off: Readable offset
+  /// - Returns: Returns a pointer to the underlying data
+  public func getBufferPointer<T>(at off: Int32) -> UnsafeBufferPointer<T>? {
+    let o = offset(off)
+    guard o != 0 else { return nil }
+    return bb.bufferPointer(
+      index: Int(vector(at: o)),
+      count: Int(vector(count: o)))
   }
 
   /// Vector count gets the count of Elements within the array

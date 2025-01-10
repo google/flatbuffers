@@ -67,16 +67,16 @@ public struct ByteBuffer {
       switch blob {
       #if !os(WASI)
       case .data(let data):
-        (self.memory, self.capacity) = data.withUnsafeBytes {
+        (memory, capacity) = data.withUnsafeBytes {
           (UnsafeMutableRawPointer(mutating: $0.baseAddress!), $0.count)
         }
       case .bytes(let bytes):
-        (self.memory, self.capacity) = bytes.withUnsafeBytes {
+        (memory, capacity) = bytes.withUnsafeBytes {
           (UnsafeMutableRawPointer(mutating: $0.baseAddress!), $0.count)
         }
       #endif
       case .array(let array):
-        (self.memory, self.capacity) = array.withUnsafeBytes {
+        (memory, capacity) = array.withUnsafeBytes {
           (UnsafeMutableRawPointer(mutating: $0.baseAddress!), $0.count)
         }
       case .pointer(let unsafeMutableRawPointer):
@@ -389,7 +389,7 @@ public struct ByteBuffer {
     }
     assert(index < _storage.capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    withUnsafePointer(to: value) {
+    _ = withUnsafePointer(to: value) {
       memcpy(
         _storage.memory.advanced(by: index),
         $0,
@@ -466,6 +466,24 @@ public struct ByteBuffer {
     return Array(array)
   }
 
+  /// Provides a pointer towards the underlying primitive types
+  /// - Parameters:
+  ///   - index: index of the object to be read from the buffer
+  ///   - count: count of bytes in memory
+  @inline(__always)
+  public func bufferPointer<T>(
+    index: Int,
+    count: Int) -> UnsafeBufferPointer<T>
+  {
+    assert(
+      index + count <= _storage.capacity,
+      "Reading out of bounds is illegal")
+    let start = _storage.memory
+      .advanced(by: index)
+      .bindMemory(to: T.self, capacity: count)
+    return UnsafeBufferPointer(start: start, count: count)
+  }
+
   #if !os(WASI)
   /// Reads a string from the buffer and encodes it to a swift string
   /// - Parameters:
@@ -484,7 +502,7 @@ public struct ByteBuffer {
     let start = _storage.memory.advanced(by: index)
       .bindMemory(to: UInt8.self, capacity: count)
     let bufprt = UnsafeBufferPointer(start: start, count: count)
-    return String(bytes: Array(bufprt), encoding: type)
+    return String(bytes: bufprt, encoding: type)
   }
   #else
   /// Reads a string from the buffer and encodes it to a swift string

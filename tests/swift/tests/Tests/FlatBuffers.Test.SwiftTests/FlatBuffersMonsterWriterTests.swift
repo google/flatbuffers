@@ -363,6 +363,15 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       sum += monster.inventory(at: i)
     }
     XCTAssertEqual(sum, 10)
+
+    if let ptr = monster.inventoryPointer {
+      sum = 0
+      for pointee in ptr.startIndex..<ptr.endIndex {
+        sum += ptr[pointee]
+      }
+      XCTAssertEqual(sum, 10)
+    }
+
     XCTAssertEqual(monster.test4Count, 2)
 
     let test0 = monster.test4(at: 0)
@@ -376,6 +385,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       sum1 = Int(a) + Int(b)
     }
     XCTAssertEqual(sum0 + sum1, 100)
+
+    if let ptr = monster.test4Pointer {
+      var pointerSum = 0
+      for pointee in ptr.startIndex..<ptr.endIndex {
+        pointerSum += Int(ptr[pointee].a) + Int(ptr[pointee].b)
+      }
+      XCTAssertEqual(pointerSum, 100)
+    }
 
     let mutableTest0 = monster.mutableTest4(at: 0)
     let mutableTest1 = monster.mutableTest4(at: 1)
@@ -401,6 +418,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       XCTAssertEqual(monster.testarrayofbools.isEmpty, true)
     } else {
       XCTAssertEqual(monster.testarrayofbools.isEmpty, false)
+    }
+
+    if let ptr = monster.testarrayofboolsPointer, !ptr.isEmpty {
+      XCTAssertEqual(Array(ptr), [true, false, true])
     }
   }
 
