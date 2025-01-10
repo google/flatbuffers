@@ -214,7 +214,7 @@ jobs:
         dotnet build -c Release ${{matrix.configuration}} FlatBuffers.Test.sln
     - name: Run
       run: |
-        cd tests\FlatBuffers.Test
+        cd tests\FlatBuffers.Test\bin\Release
         FlatBuffers.Test.exe
 
   build-mac-intel:
