@@ -488,7 +488,12 @@ for it. The builder will automatically resize the backing buffer when necessary.
 
     ```c++
     // Construct a Builder with 1024 byte backing array.
-    flatbuffers::FlatBufferBuidler builder(1024);
+    flatbuffers::FlatBufferBuilder builder(1024);
+    ```
+
+=== "C"
+
+    ```c
     ```
 
 === "C#"
@@ -496,6 +501,66 @@ for it. The builder will automatically resize the backing buffer when necessary.
     ```c#
     // Construct a Builder with 1024 byte backing array.
     FlatBufferBuilder builder = new FlatBufferBuilder(1024);
+    ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
     ```
 
 Once a Builder is available, data can be serialized to it via the Builder APIs
@@ -527,12 +592,78 @@ Builder `CreateString` method:
     flatbuffers::Offset<String> weapon_two_name = builder.CreateString("Axe");
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
     Offset<String> weaponOneName = builder.CreateString("Sword");
     Offset<String> weaponTwoName = builder.CreateString("Axe");
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 This performs the actual serialization (the string data is copied into the
 backing array) and returns an offset. Think of the offset as a handle to that
@@ -559,6 +690,11 @@ the weapon's name and a numerical value for the damage field.
         CreateWeapon(builder, weapon_two_name, weapon_two_damage);
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -571,6 +707,67 @@ the weapon's name and a numerical value for the damage field.
     Offset<Weapon> axe =
         Weapon.CreateWeapon(builder, weaponTwoName, weaponTwoDamage);
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 The generated functions from `flatc`, like `CreateWeapon`, are just composed of
 various Builder API methods. So its not required to use the generated code, but
@@ -625,6 +822,11 @@ The Builder provides multiple ways to create `vectors`.
     auto weapons = builder.CreateVector(weapons_vector);
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -637,6 +839,67 @@ The Builder provides multiple ways to create `vectors`.
     // a FlatBuffer vector.
     var weapons = Monster.CreateWeaponsVector(builder, weaps);
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 While we are at it, let us serialize the other two vector fields: the
 `inventory` field is just a vector of scalars, and the `path` field is a vector
@@ -659,6 +922,11 @@ bit more directly.
     flatbuffers::Offset<flatbuffers::Vector<unsigned char>> inventory =
         builder.CreateVector(treasure, 10);
 
+    ```
+
+=== "C"
+
+    ```c
     ```
 
 === "C#"
@@ -684,6 +952,67 @@ bit more directly.
     }
     Offset<Vector<byte>> inventory = builder.EndVector();
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 #### Unions
 
@@ -724,6 +1053,11 @@ the necessary values and Offsets to make a `Monster`.
 
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -747,6 +1081,67 @@ the necessary values and Offsets to make a `Monster`.
     Offset<Monster> orc = Monster.EndMonster(builder);
     ```
 
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
+
 ### Finishing
 
 At this point, we have serialized a `Monster` we've named "orc" to the
@@ -765,6 +1160,11 @@ deserializing the buffer later.
     builder.Finish(orc);
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -772,6 +1172,67 @@ deserializing the buffer later.
     // You could also call `Monster.FinishMonsterBuffer(builder, orc);`
     builder.Finish(orc.Value);
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 Once you finish a Builder, you can no longer serialize more data to it.
 
@@ -791,6 +1252,11 @@ like so:
     int size = builder.GetSize();
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -804,6 +1270,67 @@ like so:
     // Alternatively this copies the above data out of the ByteBuffer for you:
     byte[] buf = builder.SizedByteArray();
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 Now you can write the bytes to a file or send them over the network. The buffer
 stays valid until the Builder is cleared or destroyed.
@@ -842,6 +1369,11 @@ functions to get the root object given the buffer.
     Monster monster = GetMonster(buffer_pointer);
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -850,6 +1382,67 @@ functions to get the root object given the buffer.
     // Get an view to the root object inside the buffer.
     Monster monster = Monster.GetRootAsMonster(new ByteBuffer(bytes));
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 Again, make sure you read the bytes in BINARY mode, otherwise the buffer may be
 corrupted.
@@ -872,6 +1465,11 @@ some of the accessors of the `Monster` root table would look like:
     auto name = monster->name()->c_str();
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -882,6 +1480,67 @@ some of the accessors of the `Monster` root table would look like:
     var mana = monster.Mana;
     var name = monster.Name;
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 These accessors should hold the values `300`, `150`, and `"Orc"` respectively.
 
@@ -905,6 +1564,11 @@ For example, accessing the `pos` `struct`, which is type `Vec3` you would do:
     auto z = pos->z();
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -913,6 +1577,67 @@ For example, accessing the `pos` `struct`, which is type `Vec3` you would do:
     var y = pos.Y;
     var z = pos.Z;
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 Where `x`, `y`, and `z` will contain `1.0`, `2.0`, and `3.0` respectively.
 
@@ -929,12 +1654,78 @@ You can also iterate over the length of the vector.
     auto third_item = inv->Get(2);
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
     int invLength = monster.InventoryLength;
     var thirdItem = monster.Inventory(2);
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 For vectors of tables, you can access the elements like any other vector, except
 you need to handle the result as a FlatBuffer table. Here we iterate over the
@@ -949,6 +1740,11 @@ you need to handle the result as a FlatBuffer table. Here we iterate over the
     auto second_weapon_damage = weapons->Get(1)->damage()
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -956,6 +1752,67 @@ you need to handle the result as a FlatBuffer table. Here we iterate over the
     var secondWeaponName = monster.Weapons(1).Name;
     var secondWeaponDamage = monster.Weapons(1).Damage;
     ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
+    ```
+
 
 ### Union Access
 
@@ -979,6 +1836,11 @@ only stores a FlatBuffer `table`).
     }
     ```
 
+=== "C"
+
+    ```c
+    ```
+
 === "C#"
 
     ```c#
@@ -990,4 +1852,64 @@ only stores a FlatBuffer `table`).
         var weaponName = weapon.Name;     // "Axe"
         var weaponDamage = weapon.Damage; // 5
     }
+    ```
+
+=== "Dart"
+
+    ```dart
+    ```
+
+=== "Go"
+
+    ```go
+    ```
+
+=== "Java"
+
+    ```java
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    ```
+
+=== "Kotlin"
+
+    ```kotlin
+    ```
+
+=== "Lobster"
+
+    ```lobster
+    ```
+
+=== "Lua"
+
+    ```lua
+    ```
+
+=== "PHP"
+
+    ```php
+    ```
+
+=== "Python"
+
+    ```py
+    ```
+
+=== "Rust"
+
+    ```rust
+    ```
+
+=== "Swift"
+
+    ```swift
+    ```
+
+=== "TypeScript"
+
+    ```ts
     ```
