@@ -217,6 +217,22 @@ public struct ByteBuffer {
     _writerSize = capacity
   }
 
+  /// Constructor that creates a Flatbuffer from unsafe memory region by copying
+  /// the underlying data to a new pointer
+  ///
+  /// - Parameters:
+  ///   - copyingMemoryBound: The unsafe memory region
+  ///   - capacity: The size of the given memory region
+  @inline(__always)
+  public init(
+    copyingMemoryBound memory: UnsafeMutableRawPointer,
+    capacity: Int)
+  {
+    _storage = Storage(count: capacity, alignment: alignment)
+    _storage.copy(from: memory, count: capacity)
+    _writerSize = _storage.capacity
+  }
+
   /// Creates a copy of the existing flatbuffer, by copying it to a different memory.
   /// - Parameters:
   ///   - memory: Current memory of the buffer
