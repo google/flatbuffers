@@ -5,8 +5,6 @@ import numpy as np
 
 import flatbuffers
 import typing
-from MyGame.Example.NestedStruct import NestedStruct
-from MyGame.Example.TestEnum import TestEnum
 
 uoffset: typing.TypeAlias = flatbuffers.number_types.UOffsetTFlags.py_type
 
