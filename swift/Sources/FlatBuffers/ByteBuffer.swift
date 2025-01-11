@@ -26,8 +26,22 @@ public struct ByteBuffer {
   /// deallocating the memory that was held by (memory: UnsafeMutableRawPointer)
   @usableFromInline
   final class Storage {
-    // This storage doesn't own the memory, therefore, we won't deallocate on deinit.
+    @usableFromInline
+    enum Blob {
+      #if !os(WASI)
+      case data(Data)
+      case bytes(ContiguousBytes)
+      #endif
+
+      case array([UInt8])
+      case pointer(UnsafeMutableRawPointer)
+      case none
+    }
+
+    /// This storage doesn't own the memory, therefore, we won't deallocate on deinit.
     private let unowned: Bool
+    /// Retained blob of data that requires the storage to retain a pointer to.
+    let retainedBlob: Blob
     /// pointer to the start of the buffer object in memory
     var memory: UnsafeMutableRawPointer
     /// Capacity of UInt8 the buffer can hold
@@ -40,13 +54,40 @@ public struct ByteBuffer {
         alignment: alignment)
       capacity = count
       unowned = false
+      retainedBlob = .none
     }
 
     @usableFromInline
-    init(memory: UnsafeMutableRawPointer, capacity: Int, unowned: Bool) {
-      self.memory = memory
-      self.capacity = capacity
-      self.unowned = unowned
+    init(blob: Blob, capacity count: Int) {
+      capacity = count
+      retainedBlob = blob
+      unowned = true
+      memory = UnsafeMutableRawPointer.allocate(byteCount: 2, alignment: 1)
+
+      switch blob {
+      #if !os(WASI)
+      case .data(var data):
+        data.withUnsafeBytes { ptr in
+          self.memory = UnsafeMutableRawPointer(mutating: ptr.baseAddress!)
+          self.capacity = ptr.count
+        }
+      case .bytes(var bytes):
+        bytes.withUnsafeBytes { ptr in
+          self.memory = UnsafeMutableRawPointer(mutating: ptr.baseAddress!)
+          self.capacity = ptr.count
+        }
+      #endif
+      case .array(var array):
+        array.withUnsafeBytes { ptr in
+          self.memory = UnsafeMutableRawPointer(mutating: ptr.baseAddress!)
+          self.capacity = ptr.count
+        }
+      case .pointer(let unsafeMutableRawPointer):
+        memory = unsafeMutableRawPointer
+      case .none:
+        fatalError(
+          "This initializer should only work when there is a data blob")
+      }
     }
 
     deinit {
@@ -113,105 +154,83 @@ public struct ByteBuffer {
   public var memory: UnsafeMutableRawPointer { _storage.memory }
   /// Current capacity for the buffer
   public var capacity: Int { _storage.capacity }
-  /// Crash if the trying to read an unaligned buffer instead of allowing users to read them.
-  public let allowReadingUnalignedBuffers: Bool
 
   /// Constructor that creates a Flatbuffer object from a UInt8
   /// - Parameter
   ///   - bytes: Array of UInt8
-  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
-  public init(
-    bytes: [UInt8],
-    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
-  {
-    var b = bytes
-    _storage = Storage(count: bytes.count, alignment: alignment)
+  @inline(__always)
+  public init(bytes: [UInt8]) {
+    _storage = Storage(blob: .array(bytes), capacity: bytes.count)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = allowUnalignedBuffers
-    b.withUnsafeMutableBytes { bufferPointer in
-      _storage.copy(from: bufferPointer.baseAddress!, count: bytes.count)
-    }
   }
 
   #if !os(WASI)
   /// Constructor that creates a Flatbuffer from the Swift Data type object
   /// - Parameter
   ///   - data: Swift data Object
-  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
-  public init(
-    data: Data,
-    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
-  {
-    var b = data
-    _storage = Storage(count: data.count, alignment: alignment)
+  @inline(__always)
+  public init(data: Data) {
+    _storage = Storage(blob: .data(data), capacity: data.count)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = allowUnalignedBuffers
-    b.withUnsafeMutableBytes { bufferPointer in
-      _storage.copy(from: bufferPointer.baseAddress!, count: data.count)
-    }
   }
   #endif
 
   /// Constructor that creates a Flatbuffer instance with a size
   /// - Parameter:
   ///   - size: Length of the buffer
-  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
+  @inline(__always)
   init(initialSize size: Int) {
     let size = size.convertToPowerofTwo
     _storage = Storage(count: size, alignment: alignment)
     _storage.initialize(for: size)
-    allowReadingUnalignedBuffers = false
   }
 
-  #if swift(>=5.0) && !os(WASI)
+  #if !os(WASI)
   /// Constructor that creates a Flatbuffer object from a ContiguousBytes
   /// - Parameters:
   ///   - contiguousBytes: Binary stripe to use as the buffer
   ///   - count: amount of readable bytes
-  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
+  @inline(__always)
   public init<Bytes: ContiguousBytes>(
     contiguousBytes: Bytes,
-    count: Int,
-    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
+    count: Int)
   {
-    _storage = Storage(count: count, alignment: alignment)
+    _storage = Storage(blob: .bytes(contiguousBytes), capacity: count)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = allowUnalignedBuffers
-    contiguousBytes.withUnsafeBytes { buf in
-      _storage.copy(from: buf.baseAddress!, count: buf.count)
-    }
   }
   #endif
 
   /// Constructor that creates a Flatbuffer from unsafe memory region without copying
-  /// - Parameter:
+  /// **NOTE** Needs a call to `memory.deallocate()` later on to free the memory
+  ///
+  /// - Parameters:
   ///   - assumingMemoryBound: The unsafe memory region
   ///   - capacity: The size of the given memory region
-  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
+  @inline(__always)
   public init(
     assumingMemoryBound memory: UnsafeMutableRawPointer,
-    capacity: Int,
-    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
+    capacity: Int)
   {
-    _storage = Storage(memory: memory, capacity: capacity, unowned: true)
+    _storage = Storage(
+      blob: .pointer(memory),
+      capacity: capacity)
     _writerSize = capacity
-    allowReadingUnalignedBuffers = allowUnalignedBuffers
   }
 
-  /// Creates a copy of the buffer that's being built by calling sizedBuffer
+  /// Constructor that creates a Flatbuffer from unsafe memory region by copying
+  /// the underlying data to a new pointer
+  ///
   /// - Parameters:
-  ///   - memory: Current memory of the buffer
-  ///   - count: count of bytes
-  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
-  init(
-    memory: UnsafeMutableRawPointer,
-    count: Int,
-    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
+  ///   - copyingMemoryBound: The unsafe memory region
+  ///   - capacity: The size of the given memory region
+  @inline(__always)
+  public init(
+    copyingMemoryBound memory: UnsafeMutableRawPointer,
+    capacity: Int)
   {
-    _storage = Storage(count: count, alignment: alignment)
-    _storage.copy(from: memory, count: count)
+    _storage = Storage(count: capacity, alignment: alignment)
+    _storage.copy(from: memory, count: capacity)
     _writerSize = _storage.capacity
-    allowReadingUnalignedBuffers = allowUnalignedBuffers
   }
 
   /// Creates a copy of the existing flatbuffer, by copying it to a different memory.
@@ -219,17 +238,14 @@ public struct ByteBuffer {
   ///   - memory: Current memory of the buffer
   ///   - count: count of bytes
   ///   - removeBytes: Removes a number of bytes from the current size
-  ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
+  @inline(__always)
   init(
-    memory: UnsafeMutableRawPointer,
+    blob: Storage.Blob,
     count: Int,
-    removing removeBytes: Int,
-    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
+    removing removeBytes: Int)
   {
-    _storage = Storage(count: count, alignment: alignment)
-    _storage.copy(from: memory, count: count)
+    _storage = Storage(blob: blob, capacity: count)
     _writerSize = removeBytes
-    allowReadingUnalignedBuffers = allowUnalignedBuffers
   }
 
   /// Fills the buffer with padding by adding to the writersize
@@ -429,10 +445,8 @@ public struct ByteBuffer {
   ///   - position: the index of the object in the buffer
   @inline(__always)
   public func read<T>(def: T.Type, position: Int) -> T {
-    if allowReadingUnalignedBuffers {
-      return _storage.memory.advanced(by: position).loadUnaligned(as: T.self)
-    }
-    return _storage.memory.advanced(by: position).load(as: T.self)
+    _storage.memory.advanced(by: position).assumingMemoryBound(to: T.self)
+      .pointee
   }
 
   /// Reads a slice from the memory assuming a type of T
@@ -502,7 +516,7 @@ public struct ByteBuffer {
       removeBytes < _storage.capacity,
       "Can NOT remove more bytes than the ones allocated")
     return ByteBuffer(
-      memory: _storage.memory,
+      blob: _storage.retainedBlob,
       count: _storage.capacity,
       removing: _writerSize &- removeBytes)
   }
