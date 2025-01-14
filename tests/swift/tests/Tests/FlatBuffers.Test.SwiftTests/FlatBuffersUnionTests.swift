@@ -93,7 +93,8 @@ final class FlatBuffersUnionTests: XCTestCase {
     // swiftformat:disable all
     XCTAssertEqual(builder.sizedByteArray, [12, 0, 0, 0, 0, 0, 6, 0, 8, 0, 4, 0, 6, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0])
     // swiftformat:enable all
-    let monster = ColorsNameSpace.Monster.getRootAsMonster(bb: builder.sizedBuffer)
+    let monster = ColorsNameSpace.Monster
+      .getRootAsMonster(bb: builder.sizedBuffer)
     XCTAssertEqual(monster.colorsCount, 2)
     XCTAssertEqual(monster.colors(at: 0), .blue)
     XCTAssertEqual(monster.colors(at: 1), .green)

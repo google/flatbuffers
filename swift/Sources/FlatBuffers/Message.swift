@@ -40,7 +40,7 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   public var object: T {
     T.init(
       buffer,
-      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) +
+      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) &+
         Int32(buffer.reader))
   }
 
@@ -64,10 +64,12 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
 
   @discardableResult
   @inline(__always)
-  public func withUnsafeReadableBytes<T>(
+  public func withUnsafeReadableBytes<Data>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T) rethrows -> T
+      -> Data) rethrows -> Data
   {
-    try buffer.withUnsafeBytes { try body($0) }
+    return try buffer.readWithUnsafeRawPointer(position: buffer.reader) {
+      try body(UnsafeRawBufferPointer(start: $0, count: size))
+    }
   }
 }

@@ -253,7 +253,7 @@ struct _InternalByteBuffer {
     }
     assert(index < _storage.capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    withUnsafePointer(to: value) {
+    _ = withUnsafePointer(to: value) {
       memcpy(
         _storage.memory.advanced(by: index),
         $0,
