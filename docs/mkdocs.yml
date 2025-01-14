@@ -4,7 +4,7 @@ site_url: https://flatbuffers.dev
 repo_name: google/FlatBuffers
 repo_url: https://github.com/google/flatbuffers
 edit_uri: edit/master/docs/source/
-copyright: Copyright &copy; 2024 Google
+copyright: Copyright &copy; 2025 Google
 theme:
   name: material
   logo: assets/flatbuffers_logo.svg
