@@ -213,6 +213,25 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(testUnaligned(), true)
   }
 
+  func testCreateMessage() {
+    let fbb = createMonster(withPrefix: false)
+    let byteBuffer = fbb.buffer
+    let firstMessage = Message<Monster>(byteBuffer: byteBuffer)
+    firstMessage.withUnsafeReadableBytes { ptr in
+      var bytes = ByteBuffer(contiguousBytes: ptr, count: ptr.count)
+      var monster: Monster = getRoot(byteBuffer: &bytes)
+      self.readFlatbufferMonster(monster: &monster)
+    }
+
+    let secondByteBuffer = fbb.sizedBuffer
+    let secondMessage = Message<Monster>(byteBuffer: secondByteBuffer)
+    secondMessage.withUnsafeReadableBytes { ptr in
+      var bytes = ByteBuffer(contiguousBytes: ptr, count: ptr.count)
+      var monster: Monster = getRoot(byteBuffer: &bytes)
+      self.readFlatbufferMonster(monster: &monster)
+    }
+  }
+
   func testForceRetainedObject() {
     let byteBuffer = {
       // swiftformat:disable all
