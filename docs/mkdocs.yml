@@ -65,6 +65,7 @@ plugins:
         'flatbuffers_guide_tutorial.html.md': 'tutorial.md'
         'flatbuffers_guide_using_schema_compiler.html.md': 'flatc.md'
         'flatbuffers_guide_writing_schema.html.md': 'schema.md'
+        'md__schemas.html.md': 'schema.md' # issue #8485
         'flatbuffers_guide_use_c.html.md': 'languages/c.md'
         'flatbuffers_guide_use_cpp.html.md': 'languages/cpp.md'
         'flatbuffers_guide_use_c-sharp.html.md': 'languages/c_sharp.md'
