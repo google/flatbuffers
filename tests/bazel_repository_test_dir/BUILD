@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
 # This test doesn't actually make use of the flatbuffers library. It's just
 # here to make sure we can link the library properly when it comes from an
 # external repository.  You're welcome to expand this test to do more.
