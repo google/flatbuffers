@@ -88,7 +88,7 @@ const static FlatCOption flatc_options[] = {
     "Output fields whose value is the default when writing JSON" },
   { "", "unknown-json", "",
     "Allow fields in JSON that are not defined in the schema. These fields "
-    "will be discared when generating binaries." },
+    "will be discarded when generating binaries." },
   { "", "no-prefix", "",
     "Don't prefix enum values with the enum type in C++." },
   { "", "scoped-enums", "",
