@@ -195,27 +195,27 @@ inline const char *EnumNameGadget(Gadget e) {
 }
 
 template<typename T> struct GadgetTraits {
-  static const Gadget enum_value = Gadget::NONE;
+  static inline const Gadget enum_value = Gadget::NONE;
 };
 
 template<> struct GadgetTraits<FallingTub> {
-  static const Gadget enum_value = Gadget::FallingTub;
+  static inline const Gadget enum_value = Gadget::FallingTub;
 };
 
 template<> struct GadgetTraits<HandFan> {
-  static const Gadget enum_value = Gadget::HandFan;
+  static inline const Gadget enum_value = Gadget::HandFan;
 };
 
 template<typename T> struct GadgetUnionTraits {
-  static const Gadget enum_value = Gadget::NONE;
+  static inline const Gadget enum_value = Gadget::NONE;
 };
 
 template<> struct GadgetUnionTraits<FallingTub> {
-  static const Gadget enum_value = Gadget::FallingTub;
+  static inline const Gadget enum_value = Gadget::FallingTub;
 };
 
 template<> struct GadgetUnionTraits<HandFanT> {
-  static const Gadget enum_value = Gadget::HandFan;
+  static inline const Gadget enum_value = Gadget::HandFan;
 };
 
 struct GadgetUnion {
