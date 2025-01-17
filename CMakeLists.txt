@@ -487,6 +487,9 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
                         OUTPUT_NAME flatbuffers
                         SOVERSION "${FlatBuffers_Library_SONAME_FULL}"
                         VERSION "${FlatBuffers_Library_SONAME_FULL}")
+  if(MINGW)
+    set_target_properties(flatbuffers_shared PROPERTIES SUFFIX "-${FlatBuffers_Library_SONAME_FULL}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  endif(MINGW)
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatbuffers_shared include/flatbuffers/pch/pch.h)
   endif()
@@ -660,7 +663,7 @@ if(FLATBUFFERS_INSTALL)
     install(
       TARGETS flatbuffers_shared EXPORT FlatBuffersSharedTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
