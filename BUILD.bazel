@@ -31,6 +31,7 @@ filegroup(
         ".bazelignore",
         ".npmrc",
         "BUILD.bazel",
+        "MODULE.bazel",
         "WORKSPACE",
         "build_defs.bzl",
         "package.json",
