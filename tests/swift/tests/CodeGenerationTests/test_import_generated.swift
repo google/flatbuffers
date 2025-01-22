@@ -6,7 +6,7 @@
 
 internal struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_24_12_23() }
+  static func validateVersion() { FlatBuffersVersion_25_1_21() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
