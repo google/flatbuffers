@@ -69,7 +69,7 @@ def flatbuffer_ts_library(
         reflection_name = reflection_name,
         reflection_visibility = visibility,
         target_compatible_with = target_compatible_with,
-        flatc_path = "@com_github_google_flatbuffers//ts:compile_flat_file",
+        flatc_path = Label("//ts:compile_flat_file"),
         toolchains = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
         tools = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
     )

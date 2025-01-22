@@ -68,7 +68,7 @@ sh_binary(
     name = "compile_flat_file",
     srcs = ["compile_flat_file.sh"],
     data = [
-        "@com_github_google_flatbuffers//:flatc",
+        "//:flatc",
         "@nodejs_linux_amd64//:node_bin",
     ],
     # We just depend directly on the linux amd64 nodejs binary, so only support
