@@ -48,6 +48,10 @@ bazel_dep(
     version = "1.18.0",
     repo_name = "build_bazel_rules_swift",
 )
+bazel_dep(
+    name = "bazel_skylib",
+    version = "1.7.1",
+)
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(

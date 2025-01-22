@@ -575,6 +575,21 @@ jobs:
       working-directory: tests/nim
       run: python3 testnim.py
 
+  bazel:
+    name: Bazel
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: bazel build
+        run: >
+          bazel build 
+          //:flatc
+          //:flatbuffers
+      - name: bazel test
+        run: >
+          bazel test 
+          //tests:flatbuffers_test
+
   release-digests:
     if: startsWith(github.ref, 'refs/tags/')
     needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
