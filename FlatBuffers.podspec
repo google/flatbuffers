@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'FlatBuffers'
-  s.version          = '24.12.23'
+  s.version          = '25.1.21'
   s.summary          = 'FlatBuffers: Memory Efficient Serialization Library'
 
   s.description      = "FlatBuffers is a cross platform serialization library architected for
