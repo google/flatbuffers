@@ -14,7 +14,7 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
   { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
 # --- end runfiles.bash initialization v3 ---
 
-BAZEL_BIN="$(rlocation bazel_linux_x86_64/file/bazel)"
+BAZEL_BIN="$(rlocation {{BAZEL_PATH}})"
 readonly BAZEL_BIN
 
 if [[ ! -x "${BAZEL_BIN}" ]]; then
