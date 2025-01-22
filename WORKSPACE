@@ -1,6 +1,6 @@
 workspace(name = "com_github_google_flatbuffers")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "platforms",
@@ -191,12 +191,22 @@ esbuild_register_toolchains(
     esbuild_version = LATEST_ESBUILD_VERSION,
 )
 
-http_file(
-    name = "bazel_linux_x86_64",
-    downloaded_file_path = "bazel",
-    executable = True,
-    sha256 = "e78fc3394deae5408d6f49a15c7b1e615901969ecf6e50d55ef899996b0b8458",
+http_archive(
+    name = "rules_bazel_integration_test",
+    sha256 = "3e24bc0fba88177cd0ae87c1e37bf7de5d5af8e812f00817a58498b1a8368fca",
     urls = [
-        "https://github.com/bazelbuild/bazel/releases/download/6.3.2/bazel-6.3.2-linux-x86_64",
+        "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.31.0/rules_bazel_integration_test.v0.31.0.tar.gz",
     ],
 )
+
+load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
+
+bazel_integration_test_rules_dependencies()
+
+load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
+
+bazel_starlib_dependencies()
+
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
+
+bazel_binaries(versions = ["6.3.2"])
