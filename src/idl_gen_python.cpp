@@ -2686,14 +2686,11 @@ class PythonGenerator : public BaseGenerator {
   bool SaveType(const std::string &defname, const Namespace &ns,
                 const std::string &classcode, const ImportMap &imports,
                 const std::string &mod, bool needs_imports) const {
+    if (classcode.empty()) return true;
+
     std::string code = "";
-    if (classcode.empty()) {
-      BeginFile(LastNamespacePart(ns), false, &code, "", {});
-      code += "# NOTE " + defname + " does not declare any structs or enums\n";
-    } else {
-      BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
-      code += classcode;
-    }
+    BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
+    code += classcode;
 
     const std::string directories =
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
