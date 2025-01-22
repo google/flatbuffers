@@ -7,13 +7,19 @@ Rules for building C++ flatbuffers with Bazel.
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-TRUE_FLATC_PATH = "@com_github_google_flatbuffers//:flatc"
+def repo_name(label):
+    if hasattr(label, "repo_name"):  # Added in Bazel 7.1
+        return label.repo_name
+    else:
+        return "com_github_google_flatbuffers"
+
+TRUE_FLATC_PATH = Label("//:flatc")
 
 DEFAULT_INCLUDE_PATHS = [
     "./",
     "$(GENDIR)",
     "$(BINDIR)",
-    "$(execpath @com_github_google_flatbuffers//:flatc).runfiles/com_github_google_flatbuffers",
+    "$(execpath %s).runfiles/%s" % (TRUE_FLATC_PATH, repo_name(TRUE_FLATC_PATH)),
 ]
 
 def default_include_paths(flatc_path):
@@ -21,7 +27,7 @@ def default_include_paths(flatc_path):
         "./",
         "$(GENDIR)",
         "$(BINDIR)",
-        "$(execpath %s).runfiles/com_github_google_flatbuffers" % (flatc_path),
+        "$(execpath %s).runfiles/%s" % (flatc_path, repo_name(flatc_path)),
     ]
 
 DEFAULT_FLATC_ARGS = [
@@ -47,7 +53,7 @@ def flatbuffer_library_public(
         compatible_with = None,
         restricted_to = None,
         target_compatible_with = None,
-        flatc_path = "@com_github_google_flatbuffers//:flatc",
+        flatc_path = None,
         output_to_bindir = False,
         tools = None,
         extra_env = None,
@@ -87,6 +93,11 @@ def flatbuffer_library_public(
     optionally a Fileset([reflection_name]) with all generated reflection
     binaries.
     """
+    if flatc_path == None:
+        flatc_path = TRUE_FLATC_PATH
+    else:
+        flatc_path = native.package_relative_label(flatc_path)
+
     reflection_include_paths = include_paths
     if include_paths == None:
         include_paths = default_include_paths(flatc_path)
@@ -262,8 +273,8 @@ def flatbuffer_cc_library(
             "-parse_headers",
         ],
         deps = [
-            "@com_github_google_flatbuffers//:runtime_cc",
-            "@com_github_google_flatbuffers//:flatbuffers",
+            Label("//:runtime_cc"),
+            Label("//:flatbuffers"),
         ] + deps,
         includes = cc_include_paths,
         compatible_with = compatible_with,
