@@ -209,4 +209,4 @@ bazel_starlib_dependencies()
 
 load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
 
-bazel_binaries(versions = ["6.3.2"])
+bazel_binaries(versions = ["6.5.0"])
