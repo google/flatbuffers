@@ -3,6 +3,7 @@ buildifier: latest
 matrix:
   bazel:
     - 6.x
+    - 7.x
 tasks:
   verify_ubuntu2004:
     platform: ubuntu2004
@@ -16,8 +17,12 @@ tasks:
       - "echo --- Downloading and extracting Swift $SWIFT_VERSION to $SWIFT_HOME"
       - "mkdir $SWIFT_HOME"
       - "curl https://download.swift.org/swift-${SWIFT_VERSION}-release/ubuntu2004/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu20.04.tar.gz | tar xvz --strip-components=1 -C $SWIFT_HOME"
+    build_flags:
+    - "--noenable_bzlmod"
     build_targets:
     - "//..."
+    test_flags:
+    - "--noenable_bzlmod"
     test_targets:
     - "//..."
   verify_ubuntu2204:
@@ -32,16 +37,24 @@ tasks:
       - "echo --- Downloading and extracting Swift $SWIFT_VERSION to $SWIFT_HOME"
       - "mkdir $SWIFT_HOME"
       - "curl https://download.swift.org/swift-${SWIFT_VERSION}-release/ubuntu2204/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu22.04.tar.gz | tar xvz --strip-components=1 -C $SWIFT_HOME"
+    build_flags:
+    - "--noenable_bzlmod"
     build_targets:
     - "//..."
+    test_flags:
+    - "--noenable_bzlmod"
     test_targets:
     - "//..."
   verify_macos:
     platform: macos
     bazel: ${{ bazel }}
     xcode_version: "14.3"
+    build_flags:
+    - "--noenable_bzlmod"
     build_targets:
     - "//:flatbuffers"
     - "//:flatc"
+    test_flags:
+    - "--noenable_bzlmod"
     test_targets:
     - "//tests:flatbuffers_test"
