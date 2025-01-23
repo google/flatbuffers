@@ -20,9 +20,8 @@ of the added field if accessed).
 
 Older code will simply ignore the new field in the flatbuffer.
 
-!!! tip "Use `id` attributes"
-
-     You can ignore this rule if you use the `id` attribute on all the fields of a table. This
+You can ignore this rule if you use the `id` attribute on all the fields of a
+table.
 
 ### Removal
 
@@ -254,3 +253,24 @@ your schema changes have been committed, ensuring consistency with the rest of
 the world. If this is not practical for you, use explicit field `id`s, which
 should always generate a merge conflict if two people try to allocate the same
 id.
+
+## Checking Conformity
+
+To check that schema are properly evolved, the [`flatc`](flatc.md) compiler has
+a [option](flatc.md#additional-options) to do just that:
+
+```sh
+--conform FILE
+``` 
+
+Where `FILE` is the base schema the rest of the input schemas must evolve from.
+It returns `0` if they are properly evolved, otherwise returns a non-zero value
+and provides errors on the reason why the schema are not properly evolved.
+
+As an example, the following checks if `schema_v2.fbs` is properly evolved from
+`schema_v1.fbs`.
+
+```sh
+flatc --conform schema_v1.fbs schema_v2.fbs
+```
+

@@ -47,7 +47,7 @@ def flatbuffer_ts_library(
         reflection binaries for the schemas.
     """
     srcs_lib = "%s_srcs" % (name)
-    out_base = [s.replace(".fbs", "").split("/")[-1].split(":")[-1] for s in srcs]
+    out_base = [native.package_relative_label(s).name.removesuffix(".fbs") for s in srcs]
 
     if len(srcs) != 1:
         fail("flatbuffer_ts_library only supports one .fbs file per target currently.")
@@ -69,7 +69,7 @@ def flatbuffer_ts_library(
         reflection_name = reflection_name,
         reflection_visibility = visibility,
         target_compatible_with = target_compatible_with,
-        flatc_path = "@com_github_google_flatbuffers//ts:compile_flat_file",
+        flatc_path = Label("//ts:compile_flat_file"),
         toolchains = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
         tools = ["@aspect_rules_esbuild//esbuild:resolved_toolchain"],
     )

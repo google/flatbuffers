@@ -97,8 +97,8 @@ jobs:
       - name: Publish Maven
         run: mvn --batch-mode clean deploy
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USER_V2 }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN_V2 }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
           
   publish-maven-kotlin:
@@ -124,8 +124,8 @@ jobs:
       - name: Publish Kotlin Library on Maven
         run: ./gradlew publishAllPublicationsToSonatypeRepository
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USER_V2 }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN_V2 }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
 

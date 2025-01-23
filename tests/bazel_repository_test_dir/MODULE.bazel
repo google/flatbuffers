@@ -1,0 +1,12 @@
+module(name = "bazel_repository_test")
+
+bazel_dep(name = "flatbuffers", repo_name = "com_github_google_flatbuffers")
+local_path_override(
+    module_name = "flatbuffers",
+    path = "../../",
+)
+
+bazel_dep(
+    name = "rules_cc",
+    version = "0.0.16",
+)

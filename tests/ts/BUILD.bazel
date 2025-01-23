@@ -18,6 +18,7 @@ flatbuffer_ts_library(
     name = "typescript_ts_fbs",
     srcs = ["typescript_keywords.fbs"],
     deps = [
+        "//reflection/ts:reflection_ts_fbs",
         "//tests/ts/test_dir:include_ts_fbs",
         "//tests/ts/test_dir:typescript_transitive_ts_fbs",
     ],

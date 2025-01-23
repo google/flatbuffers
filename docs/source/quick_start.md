@@ -82,8 +82,8 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
     const Monster snowman = GetMonster(flatbuffer);
 
     // Access the monster's fields directly.
-    ASSERT_EQ(snowman.name(), "Abominable Snowman");
-    ASSERT_EQ(snowman.health(), 100);
+    ASSERT_EQ(snowman->name(), "Abominable Snowman");
+    ASSERT_EQ(snowman->health(), 100);
     ```    
     
     See [`Rust` examples](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.rs#L92-L106)

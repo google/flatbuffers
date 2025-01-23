@@ -209,16 +209,14 @@ variable sized integers (e.g., `varints`).
 
 | Size   | Signed            | Unsigned            | Floating Point       |
 | ------ | ----------------- | ------------------- | -------------------- |
-| 8-bit  | `byte`, `bool`    | `ubyte`             |                      |
+| 8-bit  | `byte`, `bool`    | `ubyte` (`uint8`)   |                      |
 | 16-bit | `short` (`int16`) | `ushort` (`uint16`) |
 | 32-bit | `int` (`int32`)   | `uint` (`uint32`)   | `float` (`float32`)  |
 | 64-bit | `long` (`int64`)  | `ulong` (`uint64`)  | `double` (`float64`) |
 
-!!! note "Alias Types"
-
-    The type names in parentheses are alias names such that for example `uint8`
-    can be used in place of `ubyte`, and `int32` can be used in place of `int`
-    without affecting code generation.
+The type names in parentheses are alias names such that for example `uint8` can
+be used in place of `ubyte`, and `int32` can be used in place of `int` without
+affecting code generation.
 
 ### Non-scalars
 

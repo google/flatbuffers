@@ -4,8 +4,6 @@
 ![Build status](https://github.com/google/flatbuffers/actions/workflows/build.yml/badge.svg?branch=master)
 [![BuildKite status](https://badge.buildkite.com/7979d93bc6279aa539971f271253c65d5e8fe2fe43c90bbb25.svg)](https://buildkite.com/bazel/flatbuffers)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/flatbuffers.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:flatbuffers)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/google/flatbuffers/badge)](https://api.securityscorecards.dev/projects/github.com/google/flatbuffers)
-[![Join the chat at https://gitter.im/google/flatbuffers](https://badges.gitter.im/google/flatbuffers.svg)](https://gitter.im/google/flatbuffers?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Discord Chat](https://img.shields.io/discord/656202785926152206.svg)](https:///discord.gg/6qgKs3R)
 [![Twitter Follow](https://img.shields.io/twitter/follow/wvo.svg?style=social)](https://twitter.com/wvo)
 [![Twitter Follow](https://img.shields.io/twitter/follow/dbaileychess.svg?style=social)](https://twitter.com/dbaileychess)
