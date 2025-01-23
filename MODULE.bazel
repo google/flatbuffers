@@ -62,7 +62,6 @@ npm.npm_translate_lock(
     # to the specified package instead.
     root_package = "ts",
     verify_node_modules_ignored = "//:.bazelignore",
-    defs_bzl_filename = "npm_link_all_packages.bzl",
 )
 use_repo(npm, "flatbuffers_npm")
 
