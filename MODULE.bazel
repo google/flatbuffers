@@ -57,7 +57,7 @@ npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(
     name = "flatbuffers_npm",
     npmrc = "//:.npmrc",
-    pnpm_lock = "//:pnpm-lock.yaml",
+    pnpm_lock = "//ts:pnpm-lock.yaml",
     # Override the Bazel package where pnpm-lock.yaml is located and link
     # to the specified package instead.
     root_package = "ts",
