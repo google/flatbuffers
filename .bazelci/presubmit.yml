@@ -38,6 +38,18 @@ tasks:
     - "//..."
     test_targets:
     - "//..."
+  test_module_cpp:
+    platform: ubuntu2204
+    bazel: ${{ bazel }}
+    working_directory: tests/bazel_repository_test_dir
+    build_targets:
+    - "//..."
+  test_module_ts:
+    platform: ubuntu2204
+    bazel: ${{ bazel }}
+    working_directory: tests/ts/bazel_repository_test_dir
+    test_targets:
+    - "//..."
   verify_macos:
     platform: macos
     bazel: ${{ bazel }}

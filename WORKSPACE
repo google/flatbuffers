@@ -190,23 +190,3 @@ esbuild_register_toolchains(
     name = "esbuild",
     esbuild_version = LATEST_ESBUILD_VERSION,
 )
-
-http_archive(
-    name = "rules_bazel_integration_test",
-    sha256 = "3e24bc0fba88177cd0ae87c1e37bf7de5d5af8e812f00817a58498b1a8368fca",
-    urls = [
-        "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.31.0/rules_bazel_integration_test.v0.31.0.tar.gz",
-    ],
-)
-
-load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
-
-bazel_integration_test_rules_dependencies()
-
-load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
-
-bazel_starlib_dependencies()
-
-load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
-
-bazel_binaries(versions = ["6.5.0"])
