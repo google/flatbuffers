@@ -3,6 +3,8 @@ buildifier: latest
 matrix:
   bazel:
     - 6.x
+    - 7.x
+    - 8.x
 tasks:
   verify_ubuntu2004:
     platform: ubuntu2004
@@ -39,7 +41,7 @@ tasks:
   verify_macos:
     platform: macos
     bazel: ${{ bazel }}
-    xcode_version: "14.3"
+    xcode_version: "15.2"
     build_targets:
     - "//:flatbuffers"
     - "//:flatc"
