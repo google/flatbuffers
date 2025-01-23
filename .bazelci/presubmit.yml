@@ -39,7 +39,7 @@ tasks:
   verify_macos:
     platform: macos
     bazel: ${{ bazel }}
-    xcode_version: "14.3"
+    xcode_version: "15.2"
     build_targets:
     - "//:flatbuffers"
     - "//:flatc"
