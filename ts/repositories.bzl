@@ -16,7 +16,6 @@ def flatbuffers_npm(name):
         #   $ bazel run -- @pnpm//:pnpm --dir $PWD install --lockfile-only
         update_pnpm_lock = False,
         verify_node_modules_ignored = "@com_github_google_flatbuffers//:.bazelignore",
-        defs_bzl_filename = "npm_link_all_packages.bzl",
         data = [
             "@com_github_google_flatbuffers//:package.json",
         ],
