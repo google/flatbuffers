@@ -10,7 +10,7 @@ filegroup(
 # flatbuffer_ts_library() only supports .fbs file but not filegroups
 exports_files(
     srcs = ["reflection.fbs"],
-    visibility = ["//visibility:public"],
+    visibility = ["//reflection/ts:__pkg__"],
 )
 
 filegroup(
