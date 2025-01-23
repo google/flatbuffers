@@ -20,6 +20,22 @@ tasks:
     - "//..."
     test_targets:
     - "//..."
+  verify_ubuntu2204:
+    platform: ubuntu2204
+    bazel: ${{ bazel }}
+    environment:
+      CC: clang
+      SWIFT_VERSION: "5.8"
+      SWIFT_HOME: "$HOME/swift-$SWIFT_VERSION"
+      PATH: "$PATH:$SWIFT_HOME/usr/bin"
+    shell_commands:
+      - "echo --- Downloading and extracting Swift $SWIFT_VERSION to $SWIFT_HOME"
+      - "mkdir $SWIFT_HOME"
+      - "curl https://download.swift.org/swift-${SWIFT_VERSION}-release/ubuntu2204/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu22.04.tar.gz | tar xvz --strip-components=1 -C $SWIFT_HOME"
+    build_targets:
+    - "//..."
+    test_targets:
+    - "//..."
   verify_macos:
     platform: macos
     bazel: ${{ bazel }}
