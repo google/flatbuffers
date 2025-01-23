@@ -1,8 +1,12 @@
 ---
 buildifier: latest
-bazel: 6.4.0
-platforms:
-  ubuntu1804:
+matrix:
+  bazel:
+    - 6.x
+tasks:
+  verify_ubuntu1804:
+    platform: ubuntu1804
+    bazel: ${{ bazel }}
     environment:
       CC: clang
       SWIFT_VERSION: "5.8"
@@ -16,7 +20,9 @@ platforms:
     - "//..."
     test_targets:
     - "//..."
-  ubuntu2004:
+  verify_ubuntu2004:
+    platform: ubuntu2004
+    bazel: ${{ bazel }}
     environment:
       CC: clang
       SWIFT_VERSION: "5.8"
@@ -30,7 +36,9 @@ platforms:
     - "//..."
     test_targets:
     - "//..."
-  macos:
+  verify_macos:
+    platform: macos
+    bazel: ${{ bazel }}
     xcode_version: "14.3"
     build_targets:
     - "//:flatbuffers"
