@@ -7,19 +7,13 @@ Rules for building C++ flatbuffers with Bazel.
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-def repo_name(label):
-    if hasattr(label, "repo_name"):  # Added in Bazel 7.1
-        return label.repo_name
-    else:
-        return "com_github_google_flatbuffers"
-
 TRUE_FLATC_PATH = Label("//:flatc")
 
 DEFAULT_INCLUDE_PATHS = [
     "./",
     "$(GENDIR)",
     "$(BINDIR)",
-    "$(execpath %s).runfiles/%s" % (TRUE_FLATC_PATH, repo_name(TRUE_FLATC_PATH)),
+    "$(execpath %s).runfiles/%s" % (TRUE_FLATC_PATH, TRUE_FLATC_PATH.repo_name),
 ]
 
 def default_include_paths(flatc_path):
@@ -27,7 +21,7 @@ def default_include_paths(flatc_path):
         "./",
         "$(GENDIR)",
         "$(BINDIR)",
-        "$(execpath %s).runfiles/%s" % (flatc_path, repo_name(flatc_path)),
+        "$(execpath %s).runfiles/%s" % (flatc_path, flatc_path.repo_name),
     ]
 
 DEFAULT_FLATC_ARGS = [

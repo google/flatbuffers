@@ -8,7 +8,6 @@ filegroup(
         "BUILD.bazel",
         "compile_flat_file.sh",
         "pnpm-lock.yaml",
-        "repositories.bzl",
     ] + glob([
         "*.ts",
     ]),
