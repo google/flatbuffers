@@ -2,7 +2,6 @@
 buildifier: latest
 matrix:
   bazel:
-    - 6.x
     - 7.x
     - 8.x
 tasks:

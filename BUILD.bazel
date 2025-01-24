@@ -32,7 +32,6 @@ filegroup(
         ".npmrc",
         "BUILD.bazel",
         "MODULE.bazel",
-        "WORKSPACE",
         "build_defs.bzl",
         "package.json",
         "pnpm-lock.yaml",
