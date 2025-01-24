@@ -75,6 +75,20 @@ Once the project files are generated, build as normal for your platform.
 
 ## Building with Bazel
 
+You can use [Bazelisk](https://github.com/bazelbuild/bazelisk) to manage your Bazel environment.
+For Swift support, you also need Clang and [Swift SDK](https://download.swift.org/).
+
+```sh
+curl -sL --fail https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64 -o bazelisk && chmod +x bazelisk
+sudo apt install -y clang
+SWIFT_VERSION="6.0.3"
+curl -L https://download.swift.org/swift-${SWIFT_VERSION}-release/debian12/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-debian12.tar.gz | tar xz
+CC=clang PATH=$PATH:$(pwd)/swift-${SWIFT_VERSION}-RELEASE-debian12/usr/bin bazel build //...
+CC=clang PATH=$PATH:$(pwd)/swift-${SWIFT_VERSION}-RELEASE-debian12/usr/bin bazel test //...
+```
+
+If you are unsure which versions to use, check our CI config at `.bazelci/presubmit.yml`.
+
 ## Building with VCPKG
 
 You can download and install flatbuffers using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
