@@ -1,6 +1,6 @@
 """WORKSPACE macro to load flatbuffers's npm package list."""
 
-load("@aspect_rules_js//npm:npm_import.bzl", _npm_translate_lock = "npm_translate_lock")
+load("@aspect_rules_js//npm:repositories.bzl", _npm_translate_lock = "npm_translate_lock")
 
 def flatbuffers_npm(name):
     _npm_translate_lock(

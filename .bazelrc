@@ -12,3 +12,7 @@ common:windows --enable_runfiles
 common:windows --deleted_packages=swift
 # Ignore warnings in external dependencies
 build --per_file_copt=external/.*@-Wno-everything --host_per_file_copt=external/.*@-Wno-everything
+# Honor the setting of `skipLibCheck` in the tsconfig.json file.
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+# Use "tsc" as the transpiler when ts_project has no `transpiler` set.
+common --@aspect_rules_ts//ts:default_to_tsc_transpiler
