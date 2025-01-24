@@ -7,19 +7,13 @@ Rules for building C++ flatbuffers with Bazel.
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-def repo_name(label):
-    if hasattr(label, "repo_name"):  # Added in Bazel 7.1
-        return label.repo_name
-    else:
-        return "com_github_google_flatbuffers"
-
 TRUE_FLATC_PATH = Label("//:flatc")
 
 DEFAULT_INCLUDE_PATHS = [
     "./",
     "$(GENDIR)",
     "$(BINDIR)",
-    "$(execpath %s).runfiles/%s" % (TRUE_FLATC_PATH, repo_name(TRUE_FLATC_PATH)),
+    "$(execpath %s).runfiles/%s" % (TRUE_FLATC_PATH, TRUE_FLATC_PATH.repo_name),
 ]
 
 def default_include_paths(flatc_path):
@@ -27,7 +21,7 @@ def default_include_paths(flatc_path):
         "./",
         "$(GENDIR)",
         "$(BINDIR)",
-        "$(execpath %s).runfiles/%s" % (flatc_path, repo_name(flatc_path)),
+        "$(execpath %s).runfiles/%s" % (flatc_path, flatc_path.repo_name),
     ]
 
 DEFAULT_FLATC_ARGS = [
@@ -142,6 +136,8 @@ def flatbuffer_library_public(
         reflection_genrule_cmd = " ".join([
             "SRCS=($(SRCS));",
             "for f in $${SRCS[@]:0:%s}; do" % len(srcs),
+            # Move the .fbs file into the current package if it is not there already
+            'if [[ $$(dirname $$f) != "{0}" ]]; then s="$$f"; f="{0}/$$(basename "$$f")"; mkdir -p "{0}"; mv "$$s" "$$f"; fi;'.format(native.package_relative_label(":invalid").package),
             "$(location %s)" % (TRUE_FLATC_PATH),
             "-b --schema",
             " ".join(flatc_args),
@@ -152,9 +148,10 @@ def flatbuffer_library_public(
             "done",
         ])
         reflection_outs = [
-            (out_prefix + "%s.bfbs") % (s.replace(".fbs", "").split("/")[-1])
+            (out_prefix + "%s.bfbs") % (native.package_relative_label(s).name.removesuffix(".fbs"))
             for s in srcs
         ]
+
         native.genrule(
             name = "%s_srcs" % reflection_name,
             srcs = srcs + includes,

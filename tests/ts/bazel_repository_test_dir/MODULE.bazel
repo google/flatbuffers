@@ -1,10 +1,26 @@
 module(name = "bazel_repository_test")
 
 bazel_dep(name = "flatbuffers", repo_name = "com_github_google_flatbuffers")
-
 local_path_override(
-    module_name = "com_github_google_flatbuffers",
+    module_name = "flatbuffers",
     path = "../../../",
+)
+
+bazel_dep(
+    name = "aspect_rules_esbuild",
+    version = "0.21.0",
+)
+bazel_dep(
+    name = "aspect_rules_js",
+    version = "2.1.3",
+)
+bazel_dep(
+    name = "aspect_rules_ts",
+    version = "3.4.0",
+)
+bazel_dep(
+    name = "rules_nodejs",
+    version = "6.3.3",
 )
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
@@ -19,6 +35,5 @@ use_repo(npm, "npm")
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 use_repo(node, "nodejs_linux_amd64")
 
-rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext", dev_dependency = True)
-rules_ts_ext.deps()
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
 use_repo(rules_ts_ext, "npm_typescript")

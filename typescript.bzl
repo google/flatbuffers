@@ -47,7 +47,7 @@ def flatbuffer_ts_library(
         reflection binaries for the schemas.
     """
     srcs_lib = "%s_srcs" % (name)
-    out_base = [s.replace(".fbs", "").split("/")[-1].split(":")[-1] for s in srcs]
+    out_base = [native.package_relative_label(s).name.removesuffix(".fbs") for s in srcs]
 
     if len(srcs) != 1:
         fail("flatbuffer_ts_library only supports one .fbs file per target currently.")
