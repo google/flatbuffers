@@ -1,3 +1,0 @@
-# This file is needed during the transition to Bzlmod
-# Remove this file if we only support Bazel 8+ which
-# defaults to --enable_workspace=false.
