@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stack>
+#include <string>
 #include <vector>
 
 #include "flatbuffers/base.h"
@@ -777,6 +778,10 @@ struct IDLOptions {
   // If set (default behavior), empty vector fields will be set to nullptr to
   // make the flatbuffer more compact.
   bool set_empty_vectors_to_null;
+
+  /********************************** swift ***********************************/
+  std::string swift_module_mappings;
+  std::vector<std::string> swift_includes;
 
   /*********************************** gRPC ***********************************/
   std::string grpc_filename_suffix;

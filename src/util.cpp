@@ -472,4 +472,19 @@ std::string ConvertCase(const std::string &input, Case output_case,
   }
 }
 
+std::vector<std::string> StringSplit(const std::string &s, char delim) {
+  std::vector<std::string> result;
+  size_t prev = 0;
+  while (true) {
+    size_t pos = s.find(delim, prev);
+    if (pos == std::string::npos) break;
+    result.push_back(s.substr(prev, pos));
+    prev = pos + 1;
+  }
+  if (prev <= s.length()) {
+    result.push_back(s.substr(prev));
+  }
+  return result;
+}
+
 }  // namespace flatbuffers
