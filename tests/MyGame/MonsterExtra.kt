@@ -187,7 +187,7 @@ class MonsterExtra : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_25_1_21()
+        fun validateVersion() = Constants.FLATBUFFERS_25_1_24()
         fun getRootAsMonsterExtra(_bb: ByteBuffer): MonsterExtra = getRootAsMonsterExtra(_bb, MonsterExtra())
         fun getRootAsMonsterExtra(_bb: ByteBuffer, obj: MonsterExtra): MonsterExtra {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
