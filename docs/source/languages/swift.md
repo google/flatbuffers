@@ -57,7 +57,7 @@ a data object from the server, which you can pass into the `GetRootAsMonster` fu
     let url = URL(fileURLWithPath: path, isDirectory: true).appendingPathComponent("monsterdata_test").appendingPathExtension("mon")
     guard let data = try? Data(contentsOf: url) else { return }
 
-    let monster = Monster.getRootAsMonster(bb: ByteBuffer(data: data))
+    let monster: Monster = try! getCheckedRoot(byteBuffer: &byteBuffer)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you can access values like this:
