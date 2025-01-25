@@ -236,35 +236,35 @@ inline const char *EnumNameAny(Any e) {
 }
 
 template<typename T> struct AnyTraits {
-  static const Any enum_value = Any::NONE;
+  static inline const Any enum_value = Any::NONE;
 };
 
 template<> struct AnyTraits<MyGame::Example::Monster> {
-  static const Any enum_value = Any::Monster;
+  static inline const Any enum_value = Any::Monster;
 };
 
 template<> struct AnyTraits<MyGame::Example::TestSimpleTableWithEnum> {
-  static const Any enum_value = Any::TestSimpleTableWithEnum;
+  static inline const Any enum_value = Any::TestSimpleTableWithEnum;
 };
 
 template<> struct AnyTraits<MyGame::Example2::Monster> {
-  static const Any enum_value = Any::MyGame_Example2_Monster;
+  static inline const Any enum_value = Any::MyGame_Example2_Monster;
 };
 
 template<typename T> struct AnyUnionTraits {
-  static const Any enum_value = Any::NONE;
+  static inline const Any enum_value = Any::NONE;
 };
 
 template<> struct AnyUnionTraits<MyGame::Example::MonsterT> {
-  static const Any enum_value = Any::Monster;
+  static inline const Any enum_value = Any::Monster;
 };
 
 template<> struct AnyUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
-  static const Any enum_value = Any::TestSimpleTableWithEnum;
+  static inline const Any enum_value = Any::TestSimpleTableWithEnum;
 };
 
 template<> struct AnyUnionTraits<MyGame::Example2::MonsterT> {
-  static const Any enum_value = Any::MyGame_Example2_Monster;
+  static inline const Any enum_value = Any::MyGame_Example2_Monster;
 };
 
 struct AnyUnion {
@@ -363,35 +363,35 @@ inline const char *EnumNameAnyUniqueAliases(AnyUniqueAliases e) {
 }
 
 template<typename T> struct AnyUniqueAliasesTraits {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::NONE;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::NONE;
 };
 
 template<> struct AnyUniqueAliasesTraits<MyGame::Example::Monster> {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::M;
 };
 
 template<> struct AnyUniqueAliasesTraits<MyGame::Example::TestSimpleTableWithEnum> {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::TS;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::TS;
 };
 
 template<> struct AnyUniqueAliasesTraits<MyGame::Example2::Monster> {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
 };
 
 template<typename T> struct AnyUniqueAliasesUnionTraits {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::NONE;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::NONE;
 };
 
 template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::MonsterT> {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::M;
 };
 
 template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example::TestSimpleTableWithEnumT> {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::TS;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::TS;
 };
 
 template<> struct AnyUniqueAliasesUnionTraits<MyGame::Example2::MonsterT> {
-  static const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
+  static inline const AnyUniqueAliases enum_value = AnyUniqueAliases::M2;
 };
 
 struct AnyUniqueAliasesUnion {
