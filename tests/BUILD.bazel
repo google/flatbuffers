@@ -1,7 +1,6 @@
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("//:build_defs.bzl", "DEFAULT_FLATC_ARGS", "flatbuffer_cc_library")
-load(":defs.bzl", "flatbuffers_as_external_repo_test")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -268,9 +267,4 @@ flatbuffer_cc_library(
 flatbuffer_cc_library(
     name = "alignment_test_cc_fbs",
     srcs = ["alignment_test.fbs"],
-)
-
-flatbuffers_as_external_repo_test(
-    name = "bazel_repository_test",
-    directory = "bazel_repository_test_dir",
 )
