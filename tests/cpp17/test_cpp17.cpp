@@ -111,7 +111,7 @@ void StringifyAnyFlatbuffersTypeTest() {
           y = 2.2
           z = 3.3
           test1 = 6.6
-          test2 = 2
+          test2 = Green
           test3 = MyGame.Example.Test{
             a = 11
             b = 90
@@ -126,8 +126,8 @@ void StringifyAnyFlatbuffersTypeTest() {
           6,
           7
         ]
-        color = 8
-        test_type = 0
+        color = Blue
+        test_type = NONE
         testbool = 1
         testhashs32_fnv1 = 4
         testhashu32_fnv1 = 5
@@ -143,11 +143,11 @@ void StringifyAnyFlatbuffersTypeTest() {
         single_weak_reference = 15
         co_owning_reference = 16
         non_owning_reference = 17
-        any_unique_type = 0
-        any_ambiguous_type = 0
-        signed_enum = -1
-        long_enum_non_enum_default = 0
-        long_enum_normal_default = 2
+        any_unique_type = NONE
+        any_ambiguous_type = NONE
+        signed_enum = None
+        long_enum_non_enum_default = 
+        long_enum_normal_default = LongOne
         nan_default = nan
         inf_default = inf
         positive_inf_default = inf
