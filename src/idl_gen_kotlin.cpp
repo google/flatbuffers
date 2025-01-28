@@ -918,7 +918,7 @@ class KotlinGenerator : public BaseGenerator {
     FieldDef *key_field = nullptr;
     for (auto it = fields_vec.begin(); it != fields_vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       if (field.key) key_field = &field;
 
       GenerateComment(field.doc_comment, writer, &comment_config);
@@ -1212,7 +1212,8 @@ class KotlinGenerator : public BaseGenerator {
       }
 
       // Generate mutators for scalar fields or vectors of scalars.
-      if (parser_.opts.mutable_buffer) {
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser_.opts.mutable_buffer) {
         auto value_type = field.value.type;
         auto underlying_type = value_base_type == BASE_TYPE_VECTOR
                                    ? value_type.VectorType()

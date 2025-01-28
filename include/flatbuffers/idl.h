@@ -326,7 +326,7 @@ struct Definition {
 
 struct FieldDef : public Definition {
   FieldDef()
-      : deprecated(false),
+      : deprecated(kNotDeprecated),
         key(false),
         shared(false),
         native_inline(false),
@@ -353,8 +353,24 @@ struct FieldDef : public Definition {
   bool IsDefault() const { return presence == kDefault; }
 
   Value value;
-  bool deprecated;  // Field is allowed to be present in old data, but can't be.
-                    // written in new data nor accessed in new code.
+
+  enum Deprecated {
+    kNotDeprecated,
+    kDeprecated,
+    kDeprecatedReadOnly,
+  };
+  Deprecated static MakeFieldDeprecated(bool deprecated, bool readonly) {
+    FLATBUFFERS_ASSERT(!(deprecated && readonly));
+    // clang-format off
+    return readonly   ? FieldDef::kDeprecatedReadOnly
+         : deprecated ? FieldDef::kDeprecated
+                      : FieldDef::kNotDeprecated;
+    // clang-format on
+  }
+  Deprecated deprecated;  // Field is allowed to be present in old data, but
+                          // can't be written in new data, but can optionally
+                          // still be accessed in new code.
+
   bool key;         // Field functions as a key for creating sorted vectors.
   bool shared;  // Field will be using string pooling (i.e. CreateSharedString)
                 // as default serialization behavior if field is a string.
@@ -972,6 +988,7 @@ class Parser : public ParserState {
     namespaces_.push_back(empty_namespace_);
     current_namespace_ = empty_namespace_;
     known_attributes_["deprecated"] = true;
+    known_attributes_["deprecated_readonly"] = true;
     known_attributes_["required"] = true;
     known_attributes_["key"] = true;
     known_attributes_["shared"] = true;

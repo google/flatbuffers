@@ -82,22 +82,29 @@ class Field(object):
         return False
 
     # Field
-    def Required(self):
+    def DeprecatedReadonly(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         if o != 0:
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
     # Field
-    def Key(self):
+    def Required(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
     # Field
-    def Attributes(self, j):
+    def Key(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
+        return False
+
+    # Field
+    def Attributes(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
@@ -110,19 +117,19 @@ class Field(object):
 
     # Field
     def AttributesLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # Field
     def AttributesIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
         return o == 0
 
     # Field
     def Documentation(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
             a = self._tab.Vector(o)
             return self._tab.String(a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
@@ -130,19 +137,19 @@ class Field(object):
 
     # Field
     def DocumentationLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
     # Field
     def DocumentationIsNone(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
         return o == 0
 
     # Field
     def Optional(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(26))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
         if o != 0:
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
@@ -150,7 +157,7 @@ class Field(object):
     # Number of padding octets to always add after this field. Structs only.
     # Field
     def Padding(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint16Flags, o + self._tab.Pos)
         return 0
@@ -158,13 +165,13 @@ class Field(object):
     # If the field uses 64-bit offsets.
     # Field
     def Offset64(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(32))
         if o != 0:
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
 def FieldStart(builder):
-    builder.StartObject(14)
+    builder.StartObject(15)
 
 def Start(builder):
     FieldStart(builder)
@@ -211,20 +218,26 @@ def FieldAddDeprecated(builder, deprecated):
 def AddDeprecated(builder, deprecated):
     FieldAddDeprecated(builder, deprecated)
 
+def FieldAddDeprecatedReadonly(builder, deprecatedReadonly):
+    builder.PrependBoolSlot(7, deprecatedReadonly, 0)
+
+def AddDeprecatedReadonly(builder, deprecatedReadonly):
+    FieldAddDeprecatedReadonly(builder, deprecatedReadonly)
+
 def FieldAddRequired(builder, required):
-    builder.PrependBoolSlot(7, required, 0)
+    builder.PrependBoolSlot(8, required, 0)
 
 def AddRequired(builder, required):
     FieldAddRequired(builder, required)
 
 def FieldAddKey(builder, key):
-    builder.PrependBoolSlot(8, key, 0)
+    builder.PrependBoolSlot(9, key, 0)
 
 def AddKey(builder, key):
     FieldAddKey(builder, key)
 
 def FieldAddAttributes(builder, attributes):
-    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
+    builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
 
 def AddAttributes(builder, attributes):
     FieldAddAttributes(builder, attributes)
@@ -236,7 +249,7 @@ def StartAttributesVector(builder, numElems):
     return FieldStartAttributesVector(builder, numElems)
 
 def FieldAddDocumentation(builder, documentation):
-    builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
+    builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
 
 def AddDocumentation(builder, documentation):
     FieldAddDocumentation(builder, documentation)
@@ -248,19 +261,19 @@ def StartDocumentationVector(builder, numElems):
     return FieldStartDocumentationVector(builder, numElems)
 
 def FieldAddOptional(builder, optional):
-    builder.PrependBoolSlot(11, optional, 0)
+    builder.PrependBoolSlot(12, optional, 0)
 
 def AddOptional(builder, optional):
     FieldAddOptional(builder, optional)
 
 def FieldAddPadding(builder, padding):
-    builder.PrependUint16Slot(12, padding, 0)
+    builder.PrependUint16Slot(13, padding, 0)
 
 def AddPadding(builder, padding):
     FieldAddPadding(builder, padding)
 
 def FieldAddOffset64(builder, offset64):
-    builder.PrependBoolSlot(13, offset64, 0)
+    builder.PrependBoolSlot(14, offset64, 0)
 
 def AddOffset64(builder, offset64):
     FieldAddOffset64(builder, offset64)

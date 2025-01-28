@@ -1886,7 +1886,8 @@ class CppGenerator : public BaseGenerator {
 
   // Generate a member, including a default value for scalars and raw pointers.
   void GenMember(const FieldDef &field) {
-    if (!field.deprecated &&  // Deprecated fields won't be accessible.
+    if (field.deprecated !=
+            FieldDef::kDeprecated &&  // Deprecated fields won't be accessible.
         field.value.type.base_type != BASE_TYPE_UTYPE &&
         (!IsVector(field.value.type) ||
          field.value.type.element != BASE_TYPE_UTYPE)) {
@@ -1930,7 +1931,7 @@ class CppGenerator : public BaseGenerator {
   bool NeedsCopyCtorAssignOp(const StructDef &struct_def) {
     for (const auto &field : struct_def.fields.vec) {
       const auto &type = field->value.type;
-      if (field->deprecated) continue;
+      if (field->deprecated == FieldDef::kDeprecated) continue;
       if (type.base_type == BASE_TYPE_STRUCT) {
         const auto cpp_type = field->attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field->attributes.Lookup("cpp_ptr_type");
@@ -2034,7 +2035,9 @@ class CppGenerator : public BaseGenerator {
     std::string swaps;
     for (const auto &field : struct_def.fields.vec) {
       const auto &type = field->value.type;
-      if (field->deprecated || type.base_type == BASE_TYPE_UTYPE) continue;
+      if (field->deprecated == FieldDef::kDeprecated ||
+          type.base_type == BASE_TYPE_UTYPE)
+        continue;
       if (type.base_type == BASE_TYPE_STRUCT) {
         if (!initializer_list.empty()) { initializer_list += ",\n        "; }
         const auto cpp_type = field->attributes.Lookup("cpp_type");
@@ -2135,7 +2138,8 @@ class CppGenerator : public BaseGenerator {
       const auto accessor = Name(field) + accessSuffix;
       const auto lhs_accessor = "lhs." + accessor;
       const auto rhs_accessor = "rhs." + accessor;
-      if (!field.deprecated &&  // Deprecated fields won't be accessible.
+      if (field.deprecated != FieldDef::kDeprecated &&  // Deprecated fields
+                                                        // won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE &&
           (!IsVector(field.value.type) ||
            field.value.type.element != BASE_TYPE_UTYPE)) {
@@ -2637,7 +2641,7 @@ class CppGenerator : public BaseGenerator {
     bool need_else = false;
     // Generate one index-based getter for each field.
     for (const auto &field : struct_def.fields.vec) {
-      if (field->deprecated) {
+      if (field->deprecated == FieldDef::kDeprecated) {
         // Deprecated fields won't be accessible.
         continue;
       }
@@ -2677,7 +2681,7 @@ class CppGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto &field = **it;
-      if (field.deprecated) {
+      if (field.deprecated == FieldDef::kDeprecated) {
         // Deprecated fields won't be accessible.
         continue;
       }
@@ -2827,7 +2831,7 @@ class CppGenerator : public BaseGenerator {
       code_ +=
           "  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {";
       for (const auto &field : struct_def.fields.vec) {
-        if (field->deprecated) {
+        if (field->deprecated == FieldDef::kDeprecated) {
           // Deprecated fields won't be accessible.
           continue;
         }
@@ -2843,14 +2847,17 @@ class CppGenerator : public BaseGenerator {
 
     // Generate the accessors.
     for (const auto &field : struct_def.fields.vec) {
-      if (field->deprecated) {
+      if (field->deprecated == FieldDef::kDeprecated) {
         // Deprecated fields won't be accessible.
         continue;
       }
 
       code_.SetValue("FIELD_NAME", Name(*field));
       GenTableFieldGetter(*field);
-      if (opts_.mutable_buffer) { GenTableFieldSetter(*field); }
+      if (field->deprecated != FieldDef::kDeprecatedReadOnly &&
+          opts_.mutable_buffer) {
+        GenTableFieldSetter(*field);
+      }
 
       auto nfn = GetNestedFlatBufferName(*field);
       if (!nfn.empty()) {
@@ -2886,7 +2893,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "  bool Verify(::flatbuffers::Verifier &verifier) const {";
     code_ += "    return VerifyTableStart(verifier)\\";
     for (const auto &field : struct_def.fields.vec) {
-      if (field->deprecated) { continue; }
+      if (field->deprecated == FieldDef::kDeprecated) { continue; }
       GenVerifyCall(*field, " &&\n           ");
     }
 
@@ -2905,7 +2912,8 @@ class CppGenerator : public BaseGenerator {
 
     // Explicit specializations for union accessors
     for (const auto &field : struct_def.fields.vec) {
-      if (field->deprecated || field->value.type.base_type != BASE_TYPE_UNION) {
+      if (field->deprecated == FieldDef::kDeprecated ||
+          field->value.type.base_type != BASE_TYPE_UNION) {
         continue;
       }
 
@@ -3671,7 +3679,7 @@ class CppGenerator : public BaseGenerator {
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         const auto &field = **it;
-        if (field.deprecated) { continue; }
+        if (field.deprecated == FieldDef::kDeprecated) { continue; }
 
         // Assign a value from |this| to |_o|.   Values from |this| are stored
         // in a variable |_e| by calling this->field_type().  The value is then
