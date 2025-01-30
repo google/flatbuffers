@@ -727,7 +727,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "mod bitflags_{{ENUM_NAMESPACE}} {";
       code_ += "  flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment, "    ");
-      code_ += "    #[derive(Default)]";
+      code_ += "    #[derive(Default, Debug, Clone, Copy, PartialEq)]";
       code_ += "    {{ACCESS_TYPE}} struct {{ENUM_TY}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
         this->GenComment(ev.doc_comment, "    ");
