@@ -30,9 +30,9 @@ use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
 use core::mem::size_of;
 use escape_string::escape;
-use num::traits::float::Float;
-use num::traits::int::PrimInt;
-use num::traits::FromPrimitive;
+use num_traits::float::Float;
+use num_traits::int::PrimInt;
+use num_traits::FromPrimitive;
 use stdint::uintmax_t;
 use thiserror::Error;
 
