@@ -33,7 +33,6 @@ use escape_string::escape;
 use num_traits::float::Float;
 use num_traits::int::PrimInt;
 use num_traits::FromPrimitive;
-use stdint::uintmax_t;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -541,7 +540,9 @@ pub unsafe fn set_string(
 
     if delta != 0 {
         // Rounds the delta up to the nearest multiple of the maximum int size to keep the types after the insersion point aligned.
-        let mask = (size_of::<uintmax_t>() - 1) as isize;
+        // stdint crate defines intmax_t as an alias for c_long; use it directly to avoid extra
+        // dependency.
+        let mask = (size_of::<core::ffi::c_long>() - 1) as isize;
         let offset = (delta + mask) & !mask;
         let mut visited_vec = vec![false; buf.len()];
 
