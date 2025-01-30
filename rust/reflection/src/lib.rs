@@ -29,7 +29,6 @@ use flatbuffers::{
 use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
 use core::mem::size_of;
-use escape_string::escape;
 use num_traits::float::Float;
 use num_traits::int::PrimInt;
 use num_traits::FromPrimitive;
@@ -716,7 +715,8 @@ unsafe fn get_any_value_string(
                     }
                     let mut field_value = get_any_field_string(&table, &field, schema);
                     if field.type_().base_type() == BaseType::String {
-                        field_value = escape(field_value.as_str()).to_string();
+                        // Escape the string
+                        field_value = format!("{:?}", field_value.as_str());
                     }
                     s += field.name();
                     s += ": ";
