@@ -1,0 +1,9 @@
+[package]
+name = "rust_reflection_test"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+flatbuffers-reflection = { path = "../../rust/reflection" }
+flatbuffers = { path = "../../rust/flatbuffers" }
+assert_approx_eq = "1.1.0"

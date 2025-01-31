@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+use core::cmp::Ordering;
 use core::fmt::{Debug, Formatter, Result};
 use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
 use core::marker::PhantomData;
@@ -100,6 +101,37 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         // Safety:
         // Valid vector at time of construction, verified that idx < element count
         unsafe { T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx) }
+    }
+
+    #[inline(always)]
+    pub fn lookup_by_key<K: Ord>(
+        &self,
+        key: K,
+        f: fn(&<T as Follow<'a>>::Inner, &K) -> Ordering,
+    ) -> Option<T::Inner> {
+        if self.is_empty() {
+            return None;
+        }
+
+        let mut left: usize = 0;
+        let mut right = self.len() - 1;
+
+        while left <= right {
+            let mid = (left + right) / 2;
+            let value = self.get(mid);
+            match f(&value, &key) {
+                Ordering::Equal => return Some(value),
+                Ordering::Less => left = mid + 1,
+                Ordering::Greater => {
+                  if mid == 0 {
+                    return None;
+                  }
+                  right = mid - 1;
+                },
+            }
+        }
+
+        None
     }
 
     #[inline(always)]

@@ -72,6 +72,7 @@ We generate [SLSA3 signatures](slsa.dev) using the OpenSSF's [slsa-framework/sls
 ```shell
 $ slsa-verifier -artifact-path <downloaded.zip> -provenance attestation.intoto.jsonl -source github.com/google/flatbuffers -tag <version>
   PASSED: Verified SLSA provenance
+```
 
 ## Building for Android
 

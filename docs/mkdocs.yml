@@ -1,0 +1,159 @@
+site_name: FlatBuffers Docs
+docs_dir: source
+site_url: https://flatbuffers.dev
+repo_name: google/FlatBuffers
+repo_url: https://github.com/google/flatbuffers
+edit_uri: edit/master/docs/source/
+copyright: Copyright &copy; 2025 Google
+theme:
+  name: material
+  logo: assets/flatbuffers_logo.svg
+  icon:
+    repo: fontawesome/brands/github
+  custom_dir: overrides
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    # Allows code block annotations
+    - content.code.annotate
+
+    # Allows content tabs to link together
+    - content.tabs.link
+  
+    # Expand nav folders by default
+    - navigation.expand
+
+    # Enable the footer
+    - navigation.footer
+    
+    # Auto hide the header after scrolling
+    - header.autohide
+
+    - content.action.edit
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/google/flatbuffers
+
+    - icon: fontawesome/brands/discord
+      link: https:///discord.gg/6qgKs3R
+
+    - icon: fontawesome/brands/x-twitter
+      link: https://twitter.com/dbaileychess
+
+plugins:
+  # Use redirects to update links from the original docs to the new ones.
+  #
+  # https://github.com/mkdocs/mkdocs-redirects
+  - redirects:
+      # Note the .html are suffixed with .md to avoid warnings. Got from 
+      # https://github.com/mkdocs/mkdocs-redirects/issues/51#issuecomment-2408548029
+      redirect_maps:
+        'flatbuffers_guide_building.html.md': 'building.md'
+        'flatbuffers_guide_tutorial.html.md': 'tutorial.md'
+        'flatbuffers_guide_using_schema_compiler.html.md': 'flatc.md'
+        'flatbuffers_guide_writing_schema.html.md': 'schema.md'
+        'md__schemas.html.md': 'schema.md' # issue #8485
+        'flatbuffers_guide_use_c.html.md': 'languages/c.md'
+        'flatbuffers_guide_use_cpp.html.md': 'languages/cpp.md'
+        'flatbuffers_guide_use_c-sharp.html.md': 'languages/c_sharp.md'
+        'flatbuffers_guide_use_dart.html.md': 'languages/dart.md'
+        'flatbuffers_guide_use_go.html.md': 'languages/go.md'
+        'flatbuffers_guide_use_java.html.md': 'languages/java.md'
+        'flatbuffers_guide_use_javascript.html.md': 'languages/javascript.md'
+        'flatbuffers_guide_use_lobster.html.md': 'languages/lobster.md'
+        'flatbuffers_guide_use_lua.html.md': 'languages/lua.md'
+        'flatbuffers_guide_use_php.html.md': 'languages/php.md'
+        'flatbuffers_guide_use_python.html.md': 'languages/python.md'
+        'flatbuffers_guide_use_rust.html.md': 'languages/rust.md'
+        'flatbuffers_guide_use_swift.html.md': 'languages/swift.md'
+        'flatbuffers_guide_use_typescript.html.md': 'languages/typescript.md'
+        'flatbuffers_grpc_guide_use_cpp.html.md' : "languages/cpp.md#grpc"
+        'flatbuffers_support.html.md': 'support.md'
+        'flatbuffers_white_paper.html.md': 'white_paper.md'
+        'flatbuffers_grammar.html.md': 'grammar.md'
+        'flatbuffers_internals.html.md': 'internals.md'
+        'intermediate_representation.html.md': 'intermediate_representation.md'
+        'flatbuffers_benchmarks.html.md': 'benchmarks.md'
+        'flexbuffers.html.md': 'flexbuffers.md'
+        'contributing.html.md': 'contributing.md'
+
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.snippets:
+      # Allows direct embedded of remote files
+      url_download: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.highlight:
+      extend_pygments_lang:
+        # PHP wasn't highlighting correctly. This is a work around found
+        # https://github.com/squidfunk/mkdocs-material/issues/138#issuecomment-2294025627
+        - name: php
+          lang: php
+          options:
+            startinline: true
+  - tables
+
+
+
+nav:
+  - Overview: "index.md"
+  - Quick Start: "quick_start.md"
+  - Tutorial: "tutorial.md"
+  - Compiler (flatc): 
+    - Building: "building.md"
+    - Using: "flatc.md"
+  - Schema (.fbs): 
+    - Overview: "schema.md"
+    - Evolution: "evolution.md"
+    - Grammar: "grammar.md"
+  - Language Guides:
+    - C: "languages/c.md"
+    - C++: "languages/cpp.md"
+    - C#: "languages/c_sharp.md"
+    - Dart: "languages/dart.md"
+    - Go: "languages/go.md"
+    - Java: "languages/java.md"
+    - JavasScript: "languages/javascript.md"
+    - Kotlin: "languages/kotlin.md"
+    - Lobster: "languages/lobster.md"
+    - Lua: "languages/lua.md"
+    - PHP: "languages/php.md"
+    - Python: "languages/python.md"
+    - Rust: "languages/rust.md"
+    - Swift: "languages/swift.md"
+    - TypeScript: "languages/typescript.md"
+  - Supported Configurations: "support.md"
+  - White Paper: "white_paper.md"
+  - Advanced:
+    - FlatBuffers Internals: "internals.md"
+    - Intermediate Representation: "intermediate_representation.md"
+    - Annotating Buffers (.afb): "annotation.md"
+    - Benchmarks: "benchmarks.md"
+  - FlexBuffers (Schema-less version): "flexbuffers.md"
+  - Contributing: "contributing.md"
