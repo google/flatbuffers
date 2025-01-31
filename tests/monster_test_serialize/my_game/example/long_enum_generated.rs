@@ -14,7 +14,7 @@ use super::*;
 #[allow(non_upper_case_globals)]
 mod bitflags_long_enum {
   flatbuffers::bitflags::bitflags! {
-    #[derive(Default)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct LongEnum: u64 {
       const LongOne = 2;
       const LongTwo = 4;
@@ -38,11 +38,7 @@ impl<'a> flatbuffers::Follow<'a> for LongEnum {
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = flatbuffers::read_scalar_at::<u64>(buf, loc);
-    // Safety:
-    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
-    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-    // https://github.com/bitflags/bitflags/issues/262
-    Self::from_bits_unchecked(b)
+    Self::from_bits_retain(b)
   }
 }
 
@@ -64,11 +60,7 @@ impl flatbuffers::EndianScalar for LongEnum {
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u64) -> Self {
     let b = u64::from_le(v);
-    // Safety:
-    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
-    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-    // https://github.com/bitflags/bitflags/issues/262
-    unsafe { Self::from_bits_unchecked(b) }
+    Self::from_bits_retain(b)
   }
 }
 
