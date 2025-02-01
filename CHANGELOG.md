@@ -4,6 +4,17 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [25.1.24] (January 24 2024)(https://github.com/google/flatbuffers/releases/tag/v25.1.24))
+
+* Mostly related to bazel build support.
+* Min bazel supported is now 7 or higher, as WORKSPACE files are removed (#8509)
+* Minor C++ codegen fix removing extra semicolon (#8488)
+
+## [25.1.21] (January 21 2025)(https://github.com/google/flatbuffers/releases/tag/v25.1.21)
+
+* Rust Full Reflection (#8102)
+* Mostly documentation updates hosted at https://flatbuffers.dev
+
 ## [24.3.25] (March 25 2024)(https://github.com/google/flatbuffers/releases/tag/v24.3.25)
 
 * Fixed license metadata parsing (#8253)

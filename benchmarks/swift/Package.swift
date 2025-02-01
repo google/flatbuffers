@@ -26,7 +26,7 @@ let package = Package(
     .package(path: "../.."),
     .package(
       url: "https://github.com/ordo-one/package-benchmark",
-      from: "1.12.0"),
+      from: "1.27.0"),
   ],
   targets: [
     .executableTarget(

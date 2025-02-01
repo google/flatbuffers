@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 25,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 1 &&
+              FLATBUFFERS_VERSION_REVISION == 24,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -607,7 +607,7 @@ inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_functi
   { auto _e = name(); if (_e) _o->name = _e->str(); }
   { auto _e = inventory(); if (_e) { _o->inventory.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->inventory.begin()); } }
   { auto _e = color(); _o->color = _e; }
-  { auto _e = weapons(); if (_e) { _o->weapons.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->weapons[_i]) { _e->Get(_i)->UnPackTo(_o->weapons[_i].get(), _resolver); } else { _o->weapons[_i] = std::unique_ptr<MyGame::Sample::WeaponT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->weapons.resize(0); } }
+  { auto _e = weapons(); if (_e) { _o->weapons.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->weapons[_i]) { _e->Get(_i)->UnPackTo(_o->weapons[_i].get(), _resolver); } else { _o->weapons[_i] = std::unique_ptr<MyGame::Sample::WeaponT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->weapons.resize(0); } }
   { auto _e = equipped_type(); _o->equipped.type = _e; }
   { auto _e = equipped(); if (_e) _o->equipped.value = MyGame::Sample::EquipmentUnion::UnPack(_e, equipped_type(), _resolver); }
   { auto _e = path(); if (_e) { _o->path.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->path[_i] = *_e->Get(_i); } } else { _o->path.resize(0); } }
