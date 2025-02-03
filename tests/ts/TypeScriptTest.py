@@ -122,6 +122,14 @@ flatc(
     schema="../union_underlying_type_test.fbs"
 )
 
+flatc(options=["--ts"], schema="../long_namespace.fbs")
+esbuild("./long-namespace/com/company.ts", "./long-namespace/long_namespace_generated.cjs")
+
+flatc(options=["--ts"], schema="../longer_namespace.fbs")
+esbuild(
+    "./longer-namespace/a/b/c.ts", "./longer-namespace/longer_namespace_generated.cjs"
+)
+
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
 print("Running TypeScript Compiler in old node resolution mode for no_import_ext...")
