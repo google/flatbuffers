@@ -1,0 +1,28 @@
+{
+    "name": "flatbuffers",
+    "version": "24.3.7",
+    "description": "FlatBuffers is a cross platform serialization library architected for maximum memory efficiency",
+    "keywords": "FlatBuffers, serialization",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/google/flatbuffers"
+    },
+    "authors": [
+      {
+        "name": "FPL",
+        "maintainer": true
+      }
+    ],
+    "license": "Apache-2.0",
+    "frameworks": [
+      "arduino",
+      "espidf"
+    ],
+    "platforms": "espressif32",
+    "build": {
+      "includeDir": "include",
+      "srcFilter": "-<*>"
+    }
+  }
+
+
