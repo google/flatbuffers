@@ -29,11 +29,9 @@ use flatbuffers::{
 use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
 use core::mem::size_of;
-use escape_string::escape;
-use num::traits::float::Float;
-use num::traits::int::PrimInt;
-use num::traits::FromPrimitive;
-use stdint::uintmax_t;
+use num_traits::float::Float;
+use num_traits::int::PrimInt;
+use num_traits::FromPrimitive;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -541,7 +539,9 @@ pub unsafe fn set_string(
 
     if delta != 0 {
         // Rounds the delta up to the nearest multiple of the maximum int size to keep the types after the insersion point aligned.
-        let mask = (size_of::<uintmax_t>() - 1) as isize;
+        // stdint crate defines intmax_t as an alias for c_long; use it directly to avoid extra
+        // dependency.
+        let mask = (size_of::<core::ffi::c_long>() - 1) as isize;
         let offset = (delta + mask) & !mask;
         let mut visited_vec = vec![false; buf.len()];
 
@@ -715,7 +715,8 @@ unsafe fn get_any_value_string(
                     }
                     let mut field_value = get_any_field_string(&table, &field, schema);
                     if field.type_().base_type() == BaseType::String {
-                        field_value = escape(field_value.as_str()).to_string();
+                        // Escape the string
+                        field_value = format!("{:?}", field_value.as_str());
                     }
                     s += field.name();
                     s += ": ";
