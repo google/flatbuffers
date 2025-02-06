@@ -263,8 +263,8 @@ class TsGenerator : public BaseGenerator {
       for (const auto &def : it.second.definitions) {
         std::vector<std::string> rel_components;
         // build path for root level vs child level
-        if (it.second.ns->components.size() > 1)
-          std::copy(it.second.ns->components.begin() + 1,
+        if (it.second.ns->components.size() > 0)
+          std::copy(it.second.ns->components.begin() + it.second.ns->components.size() - 1,
                     it.second.ns->components.end(),
                     std::back_inserter(rel_components));
         else
