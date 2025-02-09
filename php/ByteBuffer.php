@@ -165,7 +165,12 @@ class ByteBuffer
         $this->assertOffsetAndLength($npos, $size);
         $bytes = pack($pack_code, $value);
         assert(strlen($bytes) === $size);
-        $this->_buffer = substr_replace($this->_buffer, $bytes, $npos, $size);
+
+        // Don't use `substr_replace()`. It's too slow.
+        // There's no equivalent of C's `memcpy()` in PHP.
+        for ($i = 0; $i < $size; $i++) {
+            $this->_buffer[$npos + $i] = $bytes[$i];
+        }
     }
 
     /**
@@ -210,7 +215,12 @@ class ByteBuffer
     {
         $size = Constants::asBufSize(strlen($value));
         $this->assertOffsetAndLength($npos, $size);
-        $this->_buffer = substr_replace($this->_buffer, $value, $npos, $size);
+
+        // Don't use `substr_replace()`. It's too slow.
+        // There's no equivalent of C's `memcpy()` in PHP.
+        for ($i = 0; $i < $size; $i++) {
+            $this->_buffer[$npos + $i] = $value[$i];
+        }
     }
 
     /**
