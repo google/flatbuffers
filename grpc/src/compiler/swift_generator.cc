@@ -428,10 +428,7 @@ grpc::string GenerateHeader() {
   code += "  }\n";
 
   code += "  func serialize(into buffer: inout NIO.ByteBuffer) throws {\n";
-  code +=
-      "    let buf = UnsafeRawBufferPointer(start: self.rawPointer, count: "
-      "Int(self.size))\n";
-  code += "    buffer.writeBytes(buf)\n";
+  code += "    withUnsafeReadableBytes { buffer.writeBytes($0) }\n";
   code += "  }\n";
   code += "}\n";
   code += "extension Message: GRPCFlatBufPayload {}\n";

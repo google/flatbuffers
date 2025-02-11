@@ -25,14 +25,17 @@ public struct Swift_Tests_Vectors: FlatBufferObject, Verifiable {
   public var none_Count: Int32 { let o = _accessor.offset(VTOFFSET.none_.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func none_(at index: Int32) -> UInt64 { let o = _accessor.offset(VTOFFSET.none_.v); return o == 0 ? 0 : _accessor.directRead(of: UInt64.self, offset: _accessor.vector(at: o) + index * 8) }
   public var none_: [UInt64] { return _accessor.getVector(at: VTOFFSET.none_.v) ?? [] }
+  public func withUnsafePointerToNone<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.none_.v, body: body) }
   public var hasEmpty: Bool { let o = _accessor.offset(VTOFFSET.empty.v); return o == 0 ? false : true }
   public var emptyCount: Int32 { let o = _accessor.offset(VTOFFSET.empty.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func empty(at index: Int32) -> UInt64 { let o = _accessor.offset(VTOFFSET.empty.v); return o == 0 ? 0 : _accessor.directRead(of: UInt64.self, offset: _accessor.vector(at: o) + index * 8) }
   public var empty: [UInt64] { return _accessor.getVector(at: VTOFFSET.empty.v) ?? [] }
+  public func withUnsafePointerToEmpty<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.empty.v, body: body) }
   public var hasArray: Bool { let o = _accessor.offset(VTOFFSET.array.v); return o == 0 ? false : true }
   public var arrayCount: Int32 { let o = _accessor.offset(VTOFFSET.array.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func array(at index: Int32) -> UInt64 { let o = _accessor.offset(VTOFFSET.array.v); return o == 0 ? 0 : _accessor.directRead(of: UInt64.self, offset: _accessor.vector(at: o) + index * 8) }
   public var array: [UInt64] { return _accessor.getVector(at: VTOFFSET.array.v) ?? [] }
+  public func withUnsafePointerToArray<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.array.v, body: body) }
   public static func startVectors(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 3) }
   public static func addVectorOf(none_: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: none_, at: VTOFFSET.none_.p) }
   public static func addVectorOf(empty: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: empty, at: VTOFFSET.empty.p) }
