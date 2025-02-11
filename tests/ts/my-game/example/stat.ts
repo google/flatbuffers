@@ -63,7 +63,7 @@ mutate_count(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.Stat" {
   return 'MyGame.Example.Stat';
 }
 
