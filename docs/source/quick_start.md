@@ -30,7 +30,7 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
     code:
 
     ```sh
-    ./flatc --cpp --rust mosnter.fbs
+    ./flatc --cpp --rust monster.fbs
     ```
 
     Which generates `monster_generated.h` and `monster_generated.rs` files.
@@ -61,7 +61,7 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
 
 5.  **Transmit/Store the serialized FlatBuffer**
   
-    Use your serialized buffer however you want. Send it to someone, save if for
+    Use your serialized buffer however you want. Send it to someone, save it for
     later, etc...
 
     ```c++ title="my_monster_factory.cc" linenums="13"
