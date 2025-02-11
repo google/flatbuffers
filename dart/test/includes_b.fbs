@@ -1,0 +1,7 @@
+include 'includes_a.fbs';
+
+namespace a;
+
+table b {
+  my_a: a;
+}
