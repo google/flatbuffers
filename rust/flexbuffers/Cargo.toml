@@ -1,6 +1,6 @@
 [package]
 name = "flexbuffers"
-version = "24.3.25"
+version = "25.2.10"
 authors = ["Casper Neo <cneo@google.com>", "FlatBuffers Maintainers"]
 edition = "2018"
 license = "Apache-2.0"
@@ -24,5 +24,5 @@ deserialize_human_readable = []
 serde = "1.0.119"
 serde_derive = "1.0.119"
 byteorder = "1.4.2"
-num_enum = "0.7.3"
-bitflags = "2.6.0"
+num_enum = "0.5.1"
+bitflags = "1.2.1"
