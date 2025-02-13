@@ -79,7 +79,7 @@ class BuilderNotFinishedError(RuntimeError):
 
 class EndVectorLengthMismatched(RuntimeError):
     """
-    The number of elements passed to EndVector does not match the number 
+    The number of elements passed to EndVector does not match the number
     specified in StartVector.
     """
     pass
@@ -146,7 +146,7 @@ class Builder(object):
         ## @endcond
         self.finished = False
 
-    def Clear(self) -> None:
+    def Clear(self):
         ## @cond FLATBUFFERS_INTERNAL
         self.current_vtable = None
         self.head = UOffsetTFlags.py_type(len(self.Bytes))
@@ -409,9 +409,9 @@ class Builder(object):
         ## @cond FLATBUFFERS_INTERNAL
         self.nested = False
         ## @endcond
-               
+
         if numElems:
-            warnings.warn("numElems is deprecated.", 
+            warnings.warn("numElems is deprecated.",
                           DeprecationWarning, stacklevel=2)
             if numElems != self.vectorNumElems:
                 raise EndVectorLengthMismatched();
