@@ -1,6 +1,6 @@
 module(
     name = "flatbuffers",
-    version = "25.1.24",
+    version = "25.2.10",
     compatibility_level = 1,
     repo_name = "com_github_google_flatbuffers",
 )
@@ -23,7 +23,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "grpc",
-    version = "1.69.0",
+    version = "1.70.1",
     repo_name = "com_github_grpc_grpc",
 )
 bazel_dep(
@@ -44,8 +44,12 @@ bazel_dep(
     version = "6.3.3",
 )
 bazel_dep(
+    name = "rules_shell",
+    version = "0.3.0",
+)
+bazel_dep(
     name = "rules_swift",
-    version = "1.18.0",
+    version = "2.1.1",
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(

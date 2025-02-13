@@ -25,9 +25,9 @@ use crate::{
     FlatbufferResult, ForwardsUOffset,
 };
 use flatbuffers::{Follow, Table, Vector, VerifierOptions};
-use num::traits::float::Float;
-use num::traits::int::PrimInt;
-use num::traits::FromPrimitive;
+use num_traits::float::Float;
+use num_traits::int::PrimInt;
+use num_traits::FromPrimitive;
 use std::collections::HashMap;
 
 #[derive(Debug)]
