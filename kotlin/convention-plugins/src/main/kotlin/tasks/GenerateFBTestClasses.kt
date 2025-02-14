@@ -4,6 +4,7 @@ import org.gradle.api.*
 import org.gradle.api.file.*
 import org.gradle.api.provider.*
 import org.gradle.api.tasks.*
+import org.gradle.process.*
 import javax.inject.*
 
 abstract class GenerateFBTestClasses : DefaultTask() {
@@ -11,6 +12,7 @@ abstract class GenerateFBTestClasses : DefaultTask() {
   abstract val inputFiles: ConfigurableFileCollection
 
   @get:Input
+  @get:Optional
   abstract val includeFolder: Property<String>
 
   @get:Input
@@ -19,27 +21,21 @@ abstract class GenerateFBTestClasses : DefaultTask() {
   @get:Input
   abstract val variants: ListProperty<String>
 
-  @Inject
-  protected open fun getExecActionFactory(): org.gradle.process.internal.ExecActionFactory? {
-    throw UnsupportedOperationException()
-  }
-
-  init {
-    includeFolder.set("")
-  }
+  @get:Inject
+  internal abstract val execOperations: ExecOperations
 
   @TaskAction
   fun compile() {
-    val execAction = getExecActionFactory()!!.newExecAction()
-    val flatcBinary = project.layout.projectDirectory.file("../../flatc").asFile.absolutePath
-    val sources = inputFiles.asPath.split(":")
-    val langs = variants.get().map { "--$it" }
-    val args = mutableListOf(flatcBinary, "-o", outputFolder.get(), *langs.toTypedArray())
-    if (includeFolder.get().isNotEmpty()) {
-      args.add("-I")
-      args.add(includeFolder.get())
+    val rootDirectory = project.layout.projectDirectory.dir("../..")
+    val flatcBinary = rootDirectory.file("flatc").asFile.absolutePath
+
+    execOperations.exec {
+      executable = flatcBinary
+
+      args("-o", outputFolder.get())
+      args(variants.get().map { "--$it" })
+      includeFolder.orNull?.let { args("-I", it) }
+      args(inputFiles.asPath.split(":"))
     }
-    args.addAll(sources)
-    execAction.commandLine = args
   }
 }
