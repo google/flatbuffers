@@ -41,7 +41,10 @@ kotlin {
   }
 
   sourceSets {
-    val jvmMain by getting {
+    jvmMain {
+      kotlin.srcDir("src/jvmMain/generated/kotlin/")
+      kotlin.srcDir("src/jvmMain/generated/java/")
+
       dependencies {
         implementation(kotlin("stdlib-common"))
         implementation(project(":flatbuffers-kotlin"))
@@ -50,8 +53,6 @@ kotlin {
         implementation(libs.moshi.kotlin)
         implementation(libs.gson)
       }
-      kotlin.srcDir("src/jvmMain/generated/kotlin/")
-      kotlin.srcDir("src/jvmMain/generated/java/")
     }
   }
 }
