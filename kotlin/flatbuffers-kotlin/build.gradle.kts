@@ -94,5 +94,3 @@ project.tasks.forEach {
   if (it.name.contains("compileKotlin"))
     it.dependsOn("generateFBTestClassesKt")
 }
-
-fun String.intProperty() = findProperty(this).toString().toInt()
