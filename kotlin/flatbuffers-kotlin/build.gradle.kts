@@ -23,6 +23,9 @@ kotlin {
     binaries.executable()
   }
 
+  linuxX64()
+  linuxArm64()
+
   macosX64()
   macosArm64()
   iosArm64()
@@ -31,6 +34,7 @@ kotlin {
   sourceSets {
     all {
       languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
+      languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
     }
 
     commonMain {
