@@ -1,7 +1,8 @@
 import groovy.xml.XmlParser
+import tasks.*
 
 plugins {
-  kotlin("multiplatform")
+  id("convention.multiplatform")
   id("org.jetbrains.kotlinx.benchmark")
   id("io.morethan.jmhreport")
   id("de.undercouch.download")
@@ -88,45 +89,6 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFi
   src(listOf("$baseUrl/canada.json", "$baseUrl/twitter.json", "$baseUrl/citm_catalog.json"))
   dest(File("${project.projectDir.absolutePath}/src/jvmMain/resources"))
   overwrite(false)
-}
-
-abstract class GenerateFBTestClasses : DefaultTask() {
-  @get:InputFiles
-  abstract val inputFiles: ConfigurableFileCollection
-
-  @get:Input
-  abstract val includeFolder: Property<String>
-
-  @get:Input
-  abstract val outputFolder: Property<String>
-
-  @get:Input
-  abstract val variants: ListProperty<String>
-
-  @Inject
-  protected open fun getExecActionFactory(): org.gradle.process.internal.ExecActionFactory? {
-    throw UnsupportedOperationException()
-  }
-
-  init {
-    includeFolder.set("")
-  }
-
-  @TaskAction
-  fun compile() {
-    val execAction = getExecActionFactory()!!.newExecAction()
-    val sources = inputFiles.asPath.split(":")
-    val langs = variants.get().map { "--$it" }
-    val args = mutableListOf("flatc","-o", outputFolder.get(), *langs.toTypedArray())
-    if (includeFolder.get().isNotEmpty()) {
-      args.add("-I")
-      args.add(includeFolder.get())
-    }
-    args.addAll(sources)
-    println(args)
-    execAction.commandLine = args
-    print(execAction.execute())
-  }
 }
 
 // Use the default greeting

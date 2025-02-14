@@ -1,15 +1,9 @@
-import org.gradle.internal.impldep.org.fusesource.jansi.AnsiRenderer.test
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
-import org.jetbrains.kotlin.cli.common.toBooleanLenient
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
+import tasks.*
 
 plugins {
-  kotlin("multiplatform")
+  id("convention.multiplatform")
   id("convention.publication")
 }
-
 
 val libName = "Flatbuffers"
 group = "com.google.flatbuffers.kotlin"
@@ -93,9 +87,8 @@ tasks.register<GenerateFBTestClasses>("generateFBTestClassesKt") {
     "$rootDir/../tests/optional_scalars.fbs")
   includeFolder.set("$rootDir/../tests/include_test")
   outputFolder.set("${projectDir}/src/commonTest/generated/kotlin/")
-  variant.set("kotlin-kmp")
+  variants.add("kotlin-kmp")
 }
-
 
 project.tasks.forEach {
   if (it.name.contains("compileKotlin"))
@@ -103,41 +96,3 @@ project.tasks.forEach {
 }
 
 fun String.intProperty() = findProperty(this).toString().toInt()
-
-abstract class GenerateFBTestClasses : DefaultTask() {
-  @get:InputFiles
-  abstract val inputFiles: ConfigurableFileCollection
-
-  @get:Input
-  abstract val includeFolder: Property<String>
-
-  @get:Input
-  abstract val outputFolder: Property<String>
-
-  @get:Input
-  abstract val variant: Property<String>
-
-  @Inject
-  protected open fun getExecActionFactory(): org.gradle.process.internal.ExecActionFactory? {
-    throw UnsupportedOperationException()
-  }
-
-  init {
-    includeFolder.set("")
-  }
-
-  @TaskAction
-  fun compile() {
-    val execAction = getExecActionFactory()!!.newExecAction()
-    val sources = inputFiles.asPath.split(":")
-    val args = mutableListOf("flatc","-o", outputFolder.get(), "--${variant.get()}")
-    if (includeFolder.get().isNotEmpty()) {
-      args.add("-I")
-      args.add(includeFolder.get())
-    }
-    args.addAll(sources)
-    println(args)
-    execAction.commandLine = args
-    print(execAction.execute())
-  }
-}
