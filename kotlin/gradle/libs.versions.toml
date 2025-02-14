@@ -2,26 +2,21 @@
 # Version 1.9.10 fix
 # https://youtrack.jetbrains.com/issue/KT-60230/Native-unknown-options-iossimulatorversionmin-sdkversion-with-Xcode-15-beta-3
 kotlin = "1.9.10"
-plugin-kotlin = "1.6.10"
-plugin-gver = "0.42.0"
+
+jmhreport = "0.9.0"
+download = "5.3.0"
+
 kotlinx-benchmark = "0.4.8"
-junit = "4.12"
 gson = "2.8.9"
 moshi-kotlin = "1.11.0"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kotlinx-benchmark" }
+jmhreport = { id = "io.morethan.jmhreport", version.ref = "jmhreport" }
+download = { id = "de.undercouch.download", version.ref = "download" }
 
 [libraries]
-kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi-kotlin" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
-
-junit = { module="junit:junit", version.ref="junit"}
-kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin"}
-
-plugin-kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-plugin-kotlinx-benchmark = { module="org.jetbrains.kotlinx:kotlinx-benchmark-plugin", version.ref="kotlinx-benchmark"}
-plugin-jmhreport = { module = "gradle.plugin.io.morethan.jmhreport:gradle-jmh-report", version="0.9.0" }
-plugin-download = { module = "de.undercouch:gradle-download-task", version = "5.3.0"}
