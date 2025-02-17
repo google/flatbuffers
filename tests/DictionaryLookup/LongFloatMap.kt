@@ -58,7 +58,7 @@ class LongFloatMap : Table() {
         }
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_24_12_23()
+        fun validateVersion() = Constants.FLATBUFFERS_25_2_10()
         fun getRootAsLongFloatMap(_bb: ByteBuffer): LongFloatMap = getRootAsLongFloatMap(_bb, LongFloatMap())
         fun getRootAsLongFloatMap(_bb: ByteBuffer, obj: LongFloatMap): LongFloatMap {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

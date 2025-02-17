@@ -14,6 +14,7 @@ Install:
 
 ```
 pip install mkdocs-material
+pip install mkdocs-redirects
 ```
 
 Build and Serve:

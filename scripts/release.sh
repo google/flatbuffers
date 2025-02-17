@@ -13,6 +13,13 @@
 # 7. `goldens/generated_code.py`
 # 8. `make -j`
 # 9. Make sure the tests pass: `./flattests`
+# 10. Do a search for the old version string in the code base. It should only
+#     appear in the changelog.
+# 11. Update the CHANGELOG.md
+# 12. Make the git commit with the message: "FlatBuffers Version X.X.X"
+# 13. Tag the commit with `git -tag -a -m "FlatBuffers Version X.X.X` vX.X.X
+# 14. Push the tag `git push origin vX.X.X`
+# 15. Make a release from the tag at https://github.com/google/flatbuffers/tags
 
 # Requires the xmlstarlet command.
 #   Install via: apt install xmlstarlet
@@ -113,3 +120,8 @@ grep -rl 'FLATBUFFERS_\d*' *  --exclude=release.sh | xargs -i@ \
   sed -i \
     -e "s/\(FLATBUFFERS_\)[0-9]\{2\}.*()/\1$version_underscore()/g" \
     @
+  
+echo "Updating MODULES.bazel..."
+sed -i \
+  "3s/version = \".*\"/version = \"$version\"/" \
+  MODULE.bazel
