@@ -542,9 +542,19 @@ class BuilderTest {
       byteList = builder.buffer;
     }
 
+    // verify alignment
+    ByteData byteData = ByteData.view(Uint8List.fromList(byteList).buffer);
+    int vectorOffset = byteData.getUint32(0, Endian.little);
+    expect(vectorOffset, 8);
+    int length = byteData.getUint32(vectorOffset, Endian.little);
+    expect(length, values.length);
+    int floatDataOffset = vectorOffset + 4;
+    expect(floatDataOffset % 8, 0);
+
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float64ListReader().read(buf, 0);
+    expect(items is Float64List, Endian.host == Endian.little);
     expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
@@ -561,10 +571,21 @@ class BuilderTest {
       builder.finish(offset);
       byteList = builder.buffer;
     }
+
+    // verify alignment
+    ByteData byteData = ByteData.view(Uint8List.fromList(byteList).buffer);
+    int vectorOffset = byteData.getUint32(0, Endian.little);
+    expect(vectorOffset, 4);
+    int length = byteData.getUint32(vectorOffset, Endian.little);
+    expect(length, values.length);
+    int floatDataOffset = vectorOffset + 4;
+    expect(floatDataOffset % 4, 0);
+
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float32ListReader().read(buf, 0);
-    expect(items, hasLength(5));
+    expect(items is Float32List, Endian.host == Endian.little);
+    expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
     }
