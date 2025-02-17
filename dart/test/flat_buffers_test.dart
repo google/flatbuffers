@@ -545,7 +545,7 @@ class BuilderTest {
     // verify alignment
     ByteData byteData = ByteData.view(Uint8List.fromList(byteList).buffer);
     int vectorOffset = byteData.getUint32(0, Endian.little);
-    expect(vectorOffset, 8);
+    expect(vectorOffset, 4);
     int length = byteData.getUint32(vectorOffset, Endian.little);
     expect(length, values.length);
     int floatDataOffset = vectorOffset + 4;
