@@ -328,7 +328,7 @@ class SwiftGenerator : public BaseGenerator {
       } else {
         code_ +=
             "_{{FIELDVAR}} = {{VALUETYPE}}({{ACCESS}}.bb, o: "
-            "{{ACCESS}}.postion + {{OFFSET}})";
+            "{{ACCESS}}.position + {{OFFSET}})";
       }
     }
     Outdent();
@@ -361,7 +361,7 @@ class SwiftGenerator : public BaseGenerator {
       } else if (IsStruct(field.value.type)) {
         code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
         code_ += GenReaderMainBody() + "return " +
-                 GenConstructor("{{ACCESS}}.postion + {{OFFSET}}");
+                 GenConstructor("{{ACCESS}}.position + {{OFFSET}}");
       }
       if (parser_.opts.mutable_buffer && !IsStruct(field.value.type))
         code_ += GenMutate("{{OFFSET}}", "", IsEnum(field.value.type));
@@ -754,7 +754,7 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
-               GenConstructor("o + {{ACCESS}}.postion");
+               GenConstructor("o + {{ACCESS}}.position");
       return;
     }
     switch (field.value.type.base_type) {
@@ -763,7 +763,7 @@ class SwiftGenerator : public BaseGenerator {
         code_.SetValue("CONSTANT", "nil");
         code_ += GenReaderMainBody(is_required) + GenOffset() +
                  required_reader +
-                 GenConstructor(GenIndirect("o + {{ACCESS}}.postion"));
+                 GenConstructor(GenIndirect("o + {{ACCESS}}.position"));
         break;
 
       case BASE_TYPE_STRING: {
@@ -1845,7 +1845,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "static func validateVersion() { FlatBuffersVersion_24_3_25() }";
+    return "static func validateVersion() { FlatBuffersVersion_25_2_10() }";
   }
 
   std::string GenType(const Type &type,

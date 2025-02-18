@@ -135,7 +135,7 @@ class DartGenerator : public BaseGenerator {
       code = code + "// " + FlatBuffersGeneratedWarning() + "\n";
       code = code +
              "// ignore_for_file: unused_import, unused_field, unused_element, "
-             "unused_local_variable\n\n";
+             "unused_local_variable, constant_identifier_names\n\n";
 
       if (!kv->first.empty()) { code += "library " + kv->first + ";\n\n"; }
 
@@ -215,36 +215,45 @@ class DartGenerator : public BaseGenerator {
         namer_.Type(enum_def) + (enum_def.is_union ? "TypeId" : "");
     const bool is_bit_flags =
         enum_def.attributes.Lookup("bit_flags") != nullptr;
+
     // The flatbuffer schema language allows bit flag enums to potentially have
     // a default value of zero, even if it's not a valid enum value...
-    const bool permit_zero = is_bit_flags;
+    const bool auto_default = is_bit_flags && !enum_def.FindByValue("0");
 
-    code += "class " + enum_type + " {\n";
-    code += "  final int value;\n";
-    code += "  const " + enum_type + "._(this.value);\n\n";
-    code += "  factory " + enum_type + ".fromValue(int value) {\n";
-    code += "    final result = values[value];\n";
-    code += "    if (result == null) {\n";
-    if (permit_zero) {
-      code += "      if (value == 0) {\n";
-      code += "        return " + enum_type + "._(0);\n";
-      code += "      } else {\n";
+    code += "enum " + enum_type + " {\n";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      const auto enum_var = namer_.Variant(ev);
+      if (it != enum_def.Vals().begin()) code += ",\n";
+      code += "  " + enum_var + "(" + enum_def.ToString(ev) + ")";
     }
-    code += "        throw StateError('Invalid value $value for bit flag enum ";
-    code += enum_type + "');\n";
-    if (permit_zero) { code += "      }\n"; }
-    code += "    }\n";
+    if (auto_default) { code += ",\n  _default(0)"; }
+    code += ";\n\n";
 
-    code += "    return result;\n";
+    code += "  final int value;\n";
+    code += "  const " + enum_type + "(this.value);\n\n";
+    code += "  factory " + enum_type + ".fromValue(int value) {\n";
+    code += "    switch (value) {\n";
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      auto &ev = **it;
+      const auto enum_var = namer_.Variant(ev);
+      code += "      case " + enum_def.ToString(ev) + ":";
+      code += " return " + enum_type + "." + enum_var + ";\n";
+    }
+    if (auto_default) {
+      code += "      case 0: return " + enum_type + "._default;\n";
+    }
+    code += "      default: throw StateError(";
+    code += "'Invalid value $value for bit flag enum');\n";
+    code += "    }\n";
     code += "  }\n\n";
 
-    code += "  static " + enum_type + "? _createOrNull(int? value) => \n";
+    code += "  static " + enum_type + "? _createOrNull(int? value) =>\n";
     code +=
         "      value == null ? null : " + enum_type + ".fromValue(value);\n\n";
 
-    // this is meaningless for bit_flags
-    // however, note that unlike "regular" dart enums this enum can still have
-    // holes.
+    // This is meaningless for bit_flags, however, note that unlike "regular"
+    // dart enums this enum can still have holes.
     if (!is_bit_flags) {
       code += "  static const int minValue = " +
               enum_def.ToString(*enum_def.MinValue()) + ";\n";
@@ -252,37 +261,8 @@ class DartGenerator : public BaseGenerator {
               enum_def.ToString(*enum_def.MaxValue()) + ";\n";
     }
 
-    code +=
-        "  static bool containsValue(int value) =>"
-        " values.containsKey(value);\n\n";
-
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
-      const auto enum_var = namer_.Variant(ev);
-
-      if (!ev.doc_comment.empty()) {
-        if (it != enum_def.Vals().begin()) { code += '\n'; }
-        GenDocComment(ev.doc_comment, "  ", code);
-      }
-      code += "  static const " + enum_type + " " + enum_var + " = " +
-              enum_type + "._(" + enum_def.ToString(ev) + ");\n";
-    }
-
-    code += "  static const Map<int, " + enum_type + "> values = {\n";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
-      const auto enum_var = namer_.Variant(ev);
-      if (it != enum_def.Vals().begin()) code += ",\n";
-      code += "    " + enum_def.ToString(ev) + ": " + enum_var;
-    }
-    code += "};\n\n";
-
     code += "  static const " + _kFb + ".Reader<" + enum_type + "> reader = _" +
-            enum_type + "Reader();\n\n";
-    code += "  @override\n";
-    code += "  String toString() {\n";
-    code += "    return '" + enum_type + "{value: $value}';\n";
-    code += "  }\n";
+            enum_type + "Reader();\n";
     code += "}\n\n";
 
     GenEnumReader(enum_def, enum_type, code);
@@ -552,8 +532,7 @@ class DartGenerator : public BaseGenerator {
           if (auto val = enum_def.FindByValue(defaultValue)) {
             constructor_args += " = " + namer_.EnumVariant(enum_def, *val);
           } else {
-            constructor_args += " = const " + namer_.Type(enum_def) + "._(" +
-                                defaultValue + ")";
+            constructor_args += " = " + namer_.Type(enum_def) + "._default";
           }
         } else {
           constructor_args += " = " + defaultValue;

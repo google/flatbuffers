@@ -14,7 +14,7 @@ on:
       - master
   schedule:
     # Run daily at 4:45 A.M. to catch dependencies that break us.
-    - cron: '45 4 * * *' 
+    - cron: '45 4 * * *'
 
 jobs:
   build-linux:
@@ -42,7 +42,7 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
@@ -170,7 +170,7 @@ jobs:
     - name: test
       run: Release\flattests.exe
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Windows flatc binary
         path: Release\flatc.exe
@@ -203,7 +203,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4.2.0
       with:
         dotnet-version: '8.0.x'
     - name: Build
@@ -211,11 +211,16 @@ jobs:
         cd tests\FlatBuffers.Test
         dotnet new sln --force --name FlatBuffers.Test
         dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
-        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Test.sln
-    - name: Run
+        dotnet build -c Release ${{matrix.configuration}} FlatBuffers.Test.sln
+    - name: Run net6.0
       run: |
-        cd tests\FlatBuffers.Test
-        out\FlatBuffers.Test.exe
+        cd tests\FlatBuffers.Test\bin\Release\net6.0
+        dir
+        .\FlatBuffers.Test.exe
+    - name: Run net8.0
+      run: |
+        cd tests\FlatBuffers.Test\bin\Release\net8.0
+        .\FlatBuffers.Test.exe
 
   build-mac-intel:
     permissions:
@@ -242,9 +247,9 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
-        name: Mac flatc binary
+        name: Mac flatc binary Intel
         path: Release/flatc
     # Below if only for release.
     - name: Zip file
@@ -285,9 +290,9 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
-        name: Mac flatc binary
+        name: Mac flatc binary Universal
         path: Release/flatc
     # Below if only for release.
     - name: Zip file
@@ -366,7 +371,7 @@ jobs:
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Linux flatbenchmark results ${{matrix.cxx}}
         path: benchmarks/results_${{matrix.cxx}}
@@ -382,13 +387,15 @@ jobs:
 
   build-kotlin-macos:
     name: Build Kotlin MacOS
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
     - name: Checkout
       uses: actions/checkout@v3
       # Force Xcode 14.3 since Xcode 15 doesnt support older versions of
       # kotlin. For Xcode 15, kotlin should be bumpped to 1.9.10
       # https://stackoverflow.com/a/77150623
+      # For now, run with macos-13 which has this 14.3 installed: 
+      # https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
     - name: Set up Xcode version
       run: sudo xcode-select -s /Applications/Xcode_14.3.app/Contents/Developer
     - uses: gradle/wrapper-validation-action@v1.0.5
@@ -488,7 +495,7 @@ jobs:
     name: Build Swift
     strategy:
       matrix:
-        swift: ["5.8", "5.9", "5.10"]
+        swift: ["5.9", "5.10", "6.0"]
     # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
     runs-on: ubuntu-22.04
     steps:
@@ -508,17 +515,16 @@ jobs:
     name: Build Swift Wasm
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/swiftwasm/carton:0.15.3
+      image: ghcr.io/swiftwasm/carton:0.20.1
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Wasmer
-        uses: wasmerio/setup-wasmer@v2
-      - uses: swiftwasm/setup-swiftwasm@v1
-        with:
-          swift-version: "wasm-5.9.2-RELEASE"
-      - name: Test
-        working-directory: tests/swift/Wasm.tests
-        run: swift run carton test
+       - uses: actions/checkout@v3
+       - uses: bytecodealliance/actions/wasmtime/setup@v1
+       - uses: swiftwasm/setup-swiftwasm@v1
+         with:
+           swift-version: "wasm-6.0.2-RELEASE"
+       - name: Test
+         working-directory: tests/swift/Wasm.tests
+         run: swift run carton test
 
   build-ts:
     name: Build TS
@@ -568,6 +574,21 @@ jobs:
     - name: test
       working-directory: tests/nim
       run: python3 testnim.py
+
+  bazel:
+    name: Bazel
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: bazel build
+        run: >
+          bazel build 
+          //:flatc
+          //:flatbuffers
+      - name: bazel test
+        run: >
+          bazel test 
+          //tests:flatbuffers_test
 
   release-digests:
     if: startsWith(github.ref, 'refs/tags/')

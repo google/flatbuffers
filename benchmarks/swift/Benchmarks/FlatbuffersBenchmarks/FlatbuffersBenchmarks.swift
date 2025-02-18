@@ -178,4 +178,24 @@ let benchmarks = {
     let root = Offset(offset: fb.endTable(at: start))
     fb.finish(offset: root)
   }
+
+  Benchmark("Vector of Offsets") { benchmark in
+    let rawSize = ((16 * 5) * benchmark.scaledIterations.count) / 1024
+    var fb = FlatBufferBuilder(initialSize: Int32(rawSize * 1600))
+    benchmark.startMeasurement()
+    for _ in benchmark.scaledIterations {
+      let offsets = [
+        fb.create(string: "T"),
+        fb.create(string: "2"),
+        fb.create(string: "3"),
+      ]
+      let off = fb.createVector(ofOffsets: [
+        fb.createVector(ofOffsets: offsets),
+        fb.createVector(ofOffsets: offsets),
+      ])
+      let s = fb.startTable(with: 2)
+      fb.add(offset: off, at: 2)
+      blackHole(fb.endTable(at: s))
+    }
+  }
 }
