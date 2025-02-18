@@ -178,11 +178,11 @@ public struct ByteBuffer {
 
   /// The size of the elements written to the buffer + their paddings
   private var _readerIndex: Int = 0
-  /// Reader is the position of the current Writer Index (capacity - size)
-  public var reader: Int { _storage.capacity &- _readerIndex }
+//  /// Reader is the position of the current Writer Index (capacity - size)
+//  var reader: Int { _storage.capacity &- _readerIndex }
   /// Current size of the buffer
-  public var size: Int { _readerIndex }
-  /// Current capacity for the buffer
+  public var count: Int { _readerIndex }
+  /// Current capacity for the buffer including unused space
   public var capacity: Int { _storage.capacity }
 
   /// Constructor that creates a Flatbuffer object from an InternalByteBuffer
@@ -315,6 +315,68 @@ public struct ByteBuffer {
     }
   }
 
+  @inline(__always)
+  public func readUInt64(offset: Int, byteWidth: UInt8) -> UInt64 {
+    readSizedScalar(
+      def: UInt64.self,
+      t1: UInt8.self,
+      t2: UInt16.self,
+      t3: UInt32.self,
+      t4: UInt64.self,
+      position: offset,
+      byteWidth: byteWidth)
+  }
+
+  @inline(__always)
+  public func readInt64(offset: Int, byteWidth: UInt8) -> Int64 {
+    readSizedScalar(
+      def: Int64.self,
+      t1: Int8.self,
+      t2: Int16.self,
+      t3: Int32.self,
+      t4: Int64.self,
+      position: offset,
+      byteWidth: byteWidth)
+  }
+
+  @inline(__always)
+  public func readDouble(offset: Int, byteWidth: UInt8) -> Double {
+    switch byteWidth {
+    case 4:
+      Double(read(def: Float32.self, position: offset))
+    default:
+      read(def: Double.self, position: offset)
+    }
+  }
+
+  @inline(__always)
+  func readSizedScalar<
+    T: BinaryInteger,
+    T1: BinaryInteger,
+    T2: BinaryInteger,
+    T3: BinaryInteger,
+    T4: BinaryInteger
+  >(
+    def: T.Type,
+    t1: T1.Type,
+    t2: T2.Type,
+    t3: T3.Type,
+    t4: T4.Type,
+    position: Int,
+    byteWidth: UInt8) -> T
+  {
+    switch byteWidth {
+    case 1:
+      numericCast(read(def: T1.self, position: position))
+    case 2:
+      numericCast(read(def: T2.self, position: position))
+    case 4:
+      numericCast(read(def: T3.self, position: position))
+    default:
+      numericCast(read(def: T4.self, position: position))
+    }
+  }
+
   /// Reads a slice from the memory assuming a type of T
   /// - Parameters:
   ///   - index: index of the object to be read from the buffer
@@ -336,6 +398,42 @@ public struct ByteBuffer {
     }
   }
 
+  @inline(__always)
+  public func readString(
+    at index: Int,
+    count: Int,
+    type: String.Encoding) -> String?
+  {
+    assert(
+      index + count <= _storage.capacity,
+      "Reading out of bounds is illegal")
+    return _storage.readWithUnsafeRawPointer(position: index) {
+      let buf = UnsafeBufferPointer(
+        start: $0.bindMemory(to: UInt8.self, capacity: count),
+        count: count)
+      return String(
+        bytes: buf,
+        encoding: type)
+    }
+  }
+
+  /// Reads a string from the buffer and encodes it to a swift string
+  /// - Parameters:
+  ///   - index: index of the string in the buffer
+  ///   - count: length of the string
+  @inline(__always)
+  public func readString(
+    at index: Int,
+    count: Int) -> String?
+  {
+    assert(
+      index + count <= _storage.capacity,
+      "Reading out of bounds is illegal")
+    return _storage.readWithUnsafeRawPointer(position: index) {
+      String(cString: $0.bindMemory(to: UInt8.self, capacity: count))
+    }
+  }
+
   /// Provides a pointer towards the underlying primitive types
   /// - Parameters:
   ///   - index: index of the object to be read from the buffer
@@ -353,74 +451,6 @@ public struct ByteBuffer {
     return try _storage.readWithUnsafeRawPointer(position: index) {
       try body(UnsafeRawBufferPointer(start: $0, count: count))
     }
-  }
-
-  #if !os(WASI)
-  /// Reads a string from the buffer and encodes it to a swift string
-  /// - Parameters:
-  ///   - index: index of the string in the buffer
-  ///   - count: length of the string
-  ///   - type: Encoding of the string
-  @inline(__always)
-  public func readString(
-    at index: Int,
-    count: Int,
-    type: String.Encoding = .utf8) -> String?
-  {
-    assert(
-      index + count <= _storage.capacity,
-      "Reading out of bounds is illegal")
-    return _storage.readWithUnsafeRawPointer(position: index) {
-      let buf = UnsafeBufferPointer(
-        start: $0.bindMemory(to: UInt8.self, capacity: count),
-        count: count)
-      return String(
-        bytes: buf,
-        encoding: type)
-    }
-  }
-  #else
-  /// Reads a string from the buffer and encodes it to a swift string
-  /// - Parameters:
-  ///   - index: index of the string in the buffer
-  ///   - count: length of the string
-  @inline(__always)
-  public func readString(
-    at index: Int,
-    count: Int) -> String?
-  {
-    assert(
-      index + count <= _storage.capacity,
-      "Reading out of bounds is illegal")
-    return _storage.readWithUnsafeRawPointer(position: index) {
-      String(cString: $0.bindMemory(to: UInt8.self, capacity: count))
-    }
-  }
-  #endif
-
-  /// Creates a new Flatbuffer object that's duplicated from the current one
-  /// - Parameter removeBytes: the amount of bytes to remove from the current Size
-  @inline(__always)
-  public func duplicate(removing removeBytes: Int = 0) -> ByteBuffer {
-    assert(removeBytes > 0, "Can NOT remove negative bytes")
-    assert(
-      removeBytes < _storage.capacity,
-      "Can NOT remove more bytes than the ones allocated")
-    return ByteBuffer(
-      blob: _storage.retainedBlob,
-      count: _storage.capacity,
-      removing: _readerIndex &- removeBytes)
-  }
-
-  /// SkipPrefix Skips the first 4 bytes in case one of the following
-  /// functions are called `getPrefixedSizeCheckedRoot` & `getPrefixedSizeRoot`
-  /// which allows us to skip the first 4 bytes instead of recreating the buffer
-  @discardableResult
-  @usableFromInline
-  @inline(__always)
-  mutating func skipPrefix() -> Int32 {
-    _readerIndex = _readerIndex &- MemoryLayout<Int32>.size
-    return read(def: Int32.self, position: 0)
   }
 
   @discardableResult
@@ -448,17 +478,5 @@ public struct ByteBuffer {
     _ body: (UnsafeRawPointer) throws -> T) rethrows -> T
   {
     try _storage.readWithUnsafeRawPointer(position: position, body)
-  }
-}
-
-extension ByteBuffer: CustomDebugStringConvertible {
-
-  public var debugDescription: String {
-    """
-    buffer located at: \(_storage.retainedBlob), 
-    with capacity of \(_storage.capacity),
-    { writtenSize: \(_readerIndex), readerSize: \(reader), 
-    size: \(size) }
-    """
   }
 }

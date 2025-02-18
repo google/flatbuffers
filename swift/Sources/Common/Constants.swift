@@ -86,6 +86,10 @@ extension Int64: Scalar {
   public typealias NumericValue = Int64
 }
 
+extension UInt: Scalar {
+  public typealias NumericValue = UInt
+}
+
 extension UInt8: Scalar {
   public typealias NumericValue = UInt8
 }

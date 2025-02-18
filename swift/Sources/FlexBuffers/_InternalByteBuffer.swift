@@ -139,15 +139,12 @@ struct _InternalByteBuffer {
 
   /// Makes sure that buffer has enouch space for each of the objects that will be written into it
   /// - Parameter size: size of object
-  @discardableResult
   @inline(__always)
   mutating func ensureSpace(size: Int) {
-    if size &+ writerIndex > _storage.capacity {
-      _storage.reallocate(size, writerSize: writerIndex, alignment: alignment)
-    }
+    guard size &+ writerIndex > _storage.capacity else { return }
+    _storage.reallocate(size, writerSize: writerIndex, alignment: alignment)
   }
 
-  @discardableResult
   @inline(__always)
   mutating func addPadding(bytes: Int) {
     writerIndex = writerIndex &+ numericCast(padding(

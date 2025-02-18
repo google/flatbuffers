@@ -30,36 +30,42 @@ public struct Value: Equatable {
   let type: FlexBufferType
   let bitWidth: BitWidth
 
+  @inline(__always)
   private init() {
     sloc = .i(0)
     type = .null
     bitWidth = .w8
   }
 
+  @inline(__always)
   init(bool: Bool) {
     sloc = .u(bool ? 1 : 0)
     type = .bool
     bitWidth = .w8
   }
 
+  @inline(__always)
   init(v: UInt64, type: FlexBufferType, bitWidth: BitWidth) {
     sloc = .u(v)
     self.type = type
     self.bitWidth = bitWidth
   }
 
+  @inline(__always)
   init(v: Int64, type: FlexBufferType, bitWidth: BitWidth) {
     sloc = .i(v)
     self.type = type
     self.bitWidth = bitWidth
   }
 
+  @inline(__always)
   init(v: Double, type: FlexBufferType, bitWidth: BitWidth) {
     sloc = .f(v)
     self.type = type
     self.bitWidth = bitWidth
   }
 
+  @inline(__always)
   init(sloc: Union, type: FlexBufferType, bitWidth: BitWidth) {
     self.sloc = sloc
     self.type = type

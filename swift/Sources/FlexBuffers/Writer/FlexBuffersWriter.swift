@@ -61,6 +61,13 @@ public struct FlexBuffersWriter {
     }
   }
 
+  public var byteBuffer: ByteBuffer {
+    assert(
+      finished == true,
+      "function finish() should be called before accessing data")
+    return ByteBuffer(byteBuffer: _bb)
+  }
+
   /// Resets the internal state. Automatically called before building a new flexbuffer.
   public mutating func reset() {
     _bb.clear()
@@ -701,7 +708,7 @@ public struct FlexBuffersWriter {
       }
     }
     assert(
-      !typed || isTypedVectorType(type: vectorType),
+      !typed || isTypedVectorElementType(type: vectorType),
       """
       If you get this assert, your typed types are not one of:
       Int / UInt / Float / Key.

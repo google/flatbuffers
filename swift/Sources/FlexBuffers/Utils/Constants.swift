@@ -40,10 +40,17 @@ extension BuilderFlag: Comparable {
   }
 }
 
-extension UInt: Scalar {
-  public typealias NumericValue = UInt
+enum StaticJSON {
+  static let null = "null"
 }
 
-extension Int: Scalar {
-  public typealias NumericValue = Int
+extension Optional {
+  var valueOrNull: String {
+    if let value = self {
+      return "\(value)"
+    } else {
+      return StaticJSON.null
+    }
+  }
 }
+

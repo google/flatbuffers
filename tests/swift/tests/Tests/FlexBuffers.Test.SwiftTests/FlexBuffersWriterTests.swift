@@ -126,35 +126,8 @@ final class FlexBuffersWriterTests: XCTestCase {
   }
 
   func testNestingVectorInMap() {
-    var fbx = FlexBuffersWriter(
-      initialSize: 8,
-      flags: .shareKeysAndStrings)
+    let buf: ByteBuffer = createSizedBuffer()
 
-    fbx.map { map in
-      map.vector(key: "vec") { v in
-        v.add(int64: -100)
-        v.add(string: "Fred")
-        v.indirect(float32: 4.0)
-        let lv = v.lastValue()
-        let blob: [UInt8] = [77]
-        v.add(blob: blob, length: blob.count)
-        v.add(bool: false)
-        v.reuse(value: lv!)
-      }
-      let ints: [Int32] = [1, 2, 3]
-      map.create(vector: ints, key: "bar")
-      map.createFixed(vector: ints, key: "bar3")
-      let bools = [true, false, true, false]
-      map.create(vector: bools, key: "bools")
-      map.add(bool: true, key: "bool")
-      map.add(double: 100, key: "foo")
-      map.map(key: "mymap") { m in
-        m.add(string: "Fred", key: "foo")
-      }
-    }
-
-    fbx.finish()
-    let buf: ByteBuffer = fbx.sizedByteBuffer
     buf.withUnsafeBytes {
       // swiftformat:disable all
       XCTAssertEqual(
