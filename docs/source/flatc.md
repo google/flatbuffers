@@ -6,7 +6,7 @@ schema definitions into generated code files for a variety of languages.
 After [building](building.md) `flatc`, it is used as follows:
 
 ```sh
-flatc [ GENERATOR_OPTIONS ] [ -o PATH ] [- I PATH ] 
+flatc [ GENERATOR_OPTIONS ] [ -o PATH ] [ -I PATH ] 
   FILES... 
   [ -- BINARY_FILES... ]
 ```
