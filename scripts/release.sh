@@ -79,6 +79,11 @@ sed -i \
   -e "s/\(<PackageVersion>\).*\(<\/PackageVersion>\)/\1$version\2/" \
   net/FlatBuffers/Google.FlatBuffers.csproj
 
+echo "Updating net/FlatBuffers.Tools/FlatBuffers.Tools.nuspec..."
+sed -i \
+  -e "s/\(<version>\).*\(<\/version>\)/\1$version\2/" \
+  net/FlatBuffers.Tools/FlatBuffers.Tools.nuspec
+
 echo "Updating dart/pubspec.yaml..."
 sed -i \
   -e "s/\(version: \).*/\1$version/" \

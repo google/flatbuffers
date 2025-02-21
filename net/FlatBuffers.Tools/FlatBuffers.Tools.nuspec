@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>FlatBuffers.Tools</id>
+    
+    <!-- This will be replaced with the correct version by scripts/release.sh -->
+    <version>25.2.10</version>
+    
+    <authors>Google LLC</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>FlatBuffers compiler tools</description>
+    <tags>flatbuffers compiler tools</tags>
+  </metadata>
+  <files>
+    <file src="../../build/Release/flatc.exe" target="tools\flatc.exe" />
+  </files>
+</package>
