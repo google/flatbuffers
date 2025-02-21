@@ -199,11 +199,11 @@ schema, as well as a lot of helper functions.
 And example of usage, for the time being, can be found in
 `tests/rust_reflection_test/src/lib.rs`. Two sets of APIs are provided:
 
-- Unsafe getters/setters, which you can use when you are processing trusted data
-   (either from a source you know, or has been verified)
+- [Unsafe getters/setters](https://docs.rs/flatbuffers-reflection/latest/flatbuffers_reflection/#functions),
+ which you can use when you are processing trusted data (either from a source you know, or has been verified)
 
-- Safe getters in `SafeBuffer`, which does verification when constructed so you can
-   use it for any data source
+- Safe getters in [SafeBuffer](https://docs.rs/flatbuffers-reflection/latest/flatbuffers_reflection/struct.SafeBuffer.html),
+ which does verification when constructed so you can use it for any data source
 
 ## Useful tools created by others
 
