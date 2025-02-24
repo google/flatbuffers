@@ -3147,7 +3147,7 @@ class CppGenerator : public BaseGenerator {
                 code_ += "_fbb.CreateVectorOfStructs\\";
                 if (field->offset64) {
                   // This is normal 32-bit vector, with 64-bit addressing.
-                  code_ += "64<::flatbuffers::Vector>\\";
+                  code_ += "64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>\\";
                 } else {
                   code_ += "<" + type + ">\\";
                 }
@@ -3166,7 +3166,7 @@ class CppGenerator : public BaseGenerator {
               // If the field uses 64-bit addressing, create a 64-bit vector.
               code_.SetValue("64OFFSET", field->offset64 ? "64" : "");
               code_.SetValue("TYPE",
-                             field->offset64 ? "::flatbuffers::Vector" : type);
+                             field->offset64 ? "::flatbuffers::Vector, ::flatbuffers::uoffset_t" : type);
 
               code_ += "_fbb.CreateVector{{64OFFSET}}<{{TYPE}}>\\";
             }
@@ -3499,7 +3499,7 @@ class CppGenerator : public BaseGenerator {
                   code += "_fbb.CreateVectorOfStructs";
                   if (field.offset64) {
                     // This is normal 32-bit vector, with 64-bit addressing.
-                    code += "64<::flatbuffers::Vector>";
+                    code += "64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>";
                   }
                 }
                 code += "(" + value + ")";
@@ -3576,7 +3576,7 @@ class CppGenerator : public BaseGenerator {
                 code += "_fbb.CreateVector";
                 if (field.offset64) {
                   // This is normal 32-bit vector, with 64-bit addressing.
-                  code += "64<::flatbuffers::Vector>";
+                  code += "64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>";
                 }
                 code += "(" + value + ")";
               }

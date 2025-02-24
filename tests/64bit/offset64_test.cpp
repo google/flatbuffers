@@ -41,7 +41,7 @@ void Offset64Test() {
     // Then serialize all the fields that have 64-bit offsets, as these must be
     // serialized before any 32-bit fields are added to the buffer.
     const Offset64<Vector<uint8_t>> far_vector_offset =
-        builder.CreateVector64<Vector>(far_data);
+        builder.CreateVector64<Vector, uoffset_t>(far_data);
 
     const Offset64<String> far_string_offset =
         builder.CreateString<Offset64>("some far string");
@@ -136,7 +136,7 @@ void Offset64NestedFlatBuffer() {
     fbb.Clear();
 
     const Offset64<Vector64<uint8_t>> nested_flatbuffer_offset =
-        fbb.CreateVector64<Vector64>(nested_data);
+        fbb.CreateVector64(nested_data);
 
     // Now that we are done with the 64-bit fields, we can create and add the
     // normal fields.
@@ -387,7 +387,7 @@ void Offset64ManyVectors() {
   // of putting all 64-bit things at the tail of the buffer.
   std::array<Offset64<Vector<int8_t>>, kNumVectors> offsets_64bit;
   for (size_t i = 0; i < kNumVectors; ++i) {
-    offsets_64bit[i] = builder.CreateVector64<Vector>(data);
+    offsets_64bit[i] = builder.CreateVector64<Vector, uoffset_t>(data);
   }
 
   // Create some unrelated, 64-bit offset value for later testing.

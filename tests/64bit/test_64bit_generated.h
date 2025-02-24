@@ -148,7 +148,7 @@ inline ::flatbuffers::Offset<WrapperTable> CreateWrapperTable(
 inline ::flatbuffers::Offset<WrapperTable> CreateWrapperTableDirect(
     ::flatbuffers::FlatBufferBuilder64 &_fbb,
     const std::vector<int8_t> *vector = nullptr) {
-  auto vector__ = vector ? _fbb.CreateVector64<::flatbuffers::Vector>(*vector) : 0;
+  auto vector__ = vector ? _fbb.CreateVector64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>(*vector) : 0;
   return CreateWrapperTable(
       _fbb,
       vector__);
@@ -373,11 +373,11 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTableDirect(
     const std::vector<LeafStruct> *big_struct_vector = nullptr,
     const std::vector<::flatbuffers::Offset<WrapperTable>> *many_vectors = nullptr,
     const std::vector<uint8_t> *forced_aligned_vector = nullptr) {
-  auto far_vector__ = far_vector ? _fbb.CreateVector64<::flatbuffers::Vector>(*far_vector) : 0;
+  auto far_vector__ = far_vector ? _fbb.CreateVector64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>(*far_vector) : 0;
   auto far_string__ = far_string ? _fbb.CreateString<::flatbuffers::Offset64>(far_string) : 0;
   auto big_vector__ = big_vector ? _fbb.CreateVector64(*big_vector) : 0;
   auto nested_root__ = nested_root ? _fbb.CreateVector64(*nested_root) : 0;
-  auto far_struct_vector__ = far_struct_vector ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector>(*far_struct_vector) : 0;
+  auto far_struct_vector__ = far_struct_vector ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>(*far_struct_vector) : 0;
   auto big_struct_vector__ = big_struct_vector ? _fbb.CreateVectorOfStructs64(*big_struct_vector) : 0;
   if (forced_aligned_vector) { _fbb.ForceVectorAlignment64(forced_aligned_vector->size(), sizeof(uint8_t), 32); }
   auto forced_aligned_vector__ = forced_aligned_vector ? _fbb.CreateVector64(*forced_aligned_vector) : 0;
@@ -430,7 +430,7 @@ inline ::flatbuffers::Offset<WrapperTable> CreateWrapperTable(::flatbuffers::Fla
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder64 *__fbb; const WrapperTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _vector = _o->vector.size() ? _fbb.CreateVector64<::flatbuffers::Vector>(_o->vector) : 0;
+  auto _vector = _o->vector.size() ? _fbb.CreateVector64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>(_o->vector) : 0;
   return CreateWrapperTable(
       _fbb,
       _vector);
@@ -513,13 +513,13 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBuffe
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder64 *__fbb; const RootTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _far_vector = _o->far_vector.size() ? _fbb.CreateVector64<::flatbuffers::Vector>(_o->far_vector) : 0;
+  auto _far_vector = _o->far_vector.size() ? _fbb.CreateVector64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>(_o->far_vector) : 0;
   auto _a = _o->a;
   auto _far_string = _o->far_string.empty() ? 0 : _fbb.CreateString<::flatbuffers::Offset64>(_o->far_string);
   auto _big_vector = _o->big_vector.size() ? _fbb.CreateVector64(_o->big_vector) : 0;
   auto _near_string = _o->near_string.empty() ? 0 : _fbb.CreateString(_o->near_string);
   auto _nested_root = _o->nested_root.size() ? _fbb.CreateVector64(_o->nested_root) : 0;
-  auto _far_struct_vector = _o->far_struct_vector.size() ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector>(_o->far_struct_vector) : 0;
+  auto _far_struct_vector = _o->far_struct_vector.size() ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector, ::flatbuffers::uoffset_t>(_o->far_struct_vector) : 0;
   auto _big_struct_vector = _o->big_struct_vector.size() ? _fbb.CreateVectorOfStructs64(_o->big_struct_vector) : 0;
   auto _many_vectors = _o->many_vectors.size() ? _fbb.CreateVector<::flatbuffers::Offset<WrapperTable>> (_o->many_vectors.size(), [](size_t i, _VectorArgs *__va) { return CreateWrapperTable(*__va->__fbb, __va->__o->many_vectors[i].get(), __va->__rehasher); }, &_va ) : 0;
   _fbb.ForceVectorAlignment64(_o->forced_aligned_vector.size(), sizeof(uint8_t), 32);
