@@ -16,11 +16,60 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
 enum Color : int32_t {
   Color_Red = 1,
   Color_Blue = 2,
-  Color_Orange = 3
+  Color_Orange = 3,
+  Color_MIN = Color_Red,
+  Color_MAX = Color_Orange
 };
+
+inline const Color (&EnumValuesColor())[3] {
+  static const Color values[] = {
+    Color_Red,
+    Color_Blue,
+    Color_Orange
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesColor() {
+  static const char * const names[4] = {
+    "Red",
+    "Blue",
+    "Orange",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameColor(Color e) {
+  if (::flatbuffers::IsOutRange(e, Color_Red, Color_Orange)) return "";
+  const size_t index = static_cast<size_t>(e) - static_cast<size_t>(Color_Red);
+  return EnumNamesColor()[index];
+}
+
 enum Size : int32_t {
   Size_Small = 10,
   Size_Large = 100,
-  Size_Medium = 1000
+  Size_Medium = 1000,
+  Size_MIN = Size_Small,
+  Size_MAX = Size_Medium
 };
+
+inline const Size (&EnumValuesSize())[3] {
+  static const Size values[] = {
+    Size_Small,
+    Size_Large,
+    Size_Medium
+  };
+  return values;
+}
+
+inline const char *EnumNameSize(Size e) {
+  switch (e) {
+    case Size_Small: return "Small";
+    case Size_Large: return "Large";
+    case Size_Medium: return "Medium";
+    default: return "";
+  }
+}
+
 #endif  // FLATBUFFERS_GENERATED_ENUMS_H_
