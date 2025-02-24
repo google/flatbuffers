@@ -272,8 +272,11 @@ const static FlatCOption flatc_options[] = {
     "The handlers will use the generated classes rather than raw bytes." },
 };
 
-auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
-static std::set<FlatCOption, decltype(cmp)> language_options(cmp);
+struct cmp {
+  bool operator()(FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; }
+};
+
+static std::set<FlatCOption, cmp> language_options((cmp()));
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
                                     size_t max_col, size_t start_col) {
