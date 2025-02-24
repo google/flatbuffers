@@ -149,9 +149,42 @@ template<> inline std::string NumToString<char>(char t) {
   return NumToString(static_cast<int>(t));
 }
 
+#if defined _MSC_VER && _MSC_VER <= 1800
+#define FLATBUFFERS_EXPLICIT_INF_NAN_CONVERSION
+#endif
+
+template <typename T>
+bool ExplicitlyConvertSpecialValues(T value, std::string &result, typename std::enable_if<std::is_floating_point<T>::value>::type* = 0) {
+#ifdef FLATBUFFERS_EXPLICIT_INF_NAN_CONVERSION
+  if (value == std::numeric_limits<T>::infinity()) {
+    result = "inf";
+    return true;
+  }
+  if (value == -std::numeric_limits<T>::infinity()) {
+    result = "-inf";
+    return true;
+  }
+  if (std::isnan(value)) {
+    result = std::signbit(value) ? "-nan" : "nan";
+    return true;
+  }
+#endif
+  return false;
+}
+
+template <typename T>
+bool ExplicitlyConvertSpecialValues(T value, std::string &result, typename std::enable_if<!std::is_floating_point<T>::value>::type* = 0) {
+  (void)value;
+  (void)result;
+  return false;
+}
 // Special versions for floats/doubles.
 template<typename T> std::string FloatToString(T t, int precision) {
   // clang-format off
+  std::string res;
+  if (ExplicitlyConvertSpecialValues(t, res)) {
+    return res;
+  }
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
     // to_string() prints different numbers of digits for floats depending on
@@ -306,12 +339,37 @@ inline bool StringToIntegerImpl(T *val, const char *const str,
   }
 }
 
+inline bool MatchFloatToString(const char *const str, const char *const constant_str, const char *& end) {
+  if (strcmp(str, constant_str) == 0) {
+    end = const_cast<char*>(str + strlen(constant_str));
+    return true;
+  }
+  return false;
+}
+
 template<typename T>
 inline bool StringToFloatImpl(T *val, const char *const str) {
   // Type T must be either float or double.
   FLATBUFFERS_ASSERT(str && val);
   auto end = str;
-  strtoval_impl(val, str, const_cast<char **>(&end));
+#ifdef FLATBUFFERS_EXPLICIT_INF_NAN_CONVERSION
+  if (MatchFloatToString(str, "inf", end) ||
+      MatchFloatToString(str, "+inf", end) ||
+      MatchFloatToString(str, "infinity", end) ||
+      MatchFloatToString(str, "+infinity", end)) {
+      *val = std::numeric_limits<T>::infinity();
+  } else if (MatchFloatToString(str, "-inf", end) ||
+             MatchFloatToString(str, "-infinity", end)) {
+      *val = -std::numeric_limits<T>::infinity();
+  } else if (MatchFloatToString(str, "nan", end) ||
+             MatchFloatToString(str, "+nan", end)) {
+      *val = std::numeric_limits<T>::quiet_NaN();
+  } else if (MatchFloatToString(str, "-nan", end)) {
+      *val = -std::numeric_limits<T>::quiet_NaN();
+  } else {
+      strtoval_impl(val, str, const_cast<char **>(&end));
+  }
+#endif
   auto done = (end != str) && (*end == '\0');
   if (!done) *val = 0;  // erase partial result
   if (done && std::isnan(*val)) { *val = std::numeric_limits<T>::quiet_NaN(); }
