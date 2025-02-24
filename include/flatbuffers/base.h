@@ -172,6 +172,15 @@ namespace flatbuffers {
 #else
   #define FLATBUFFERS_CONSTEXPR const
   #define FLATBUFFERS_CONSTEXPR_CPP11
+  #if defined _MSC_VER && _MSC_VER == 1800
+    // disable VS2013 warning when if() condition is a constant expression
+    #pragma warning (disable: 4127)
+  #endif
+#endif
+
+#if defined _MSC_VER && _MSC_VER == 1800
+  // disabled the warning about behavior change that now conforms to the standard
+  #pragma warning (disable: 4351)
 #endif
 
 #if (defined(__cplusplus) && __cplusplus >= 201402L) || \
