@@ -170,7 +170,9 @@ struct RootTableT : public ::flatbuffers::NativeTable {
   std::vector<uint8_t> forced_aligned_vector{};
   RootTableT() = default;
   RootTableT(const RootTableT &o);
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
   RootTableT(RootTableT&&) FLATBUFFERS_NOEXCEPT = default;
+#endif
   RootTableT &operator=(RootTableT o) FLATBUFFERS_NOEXCEPT;
 };
 

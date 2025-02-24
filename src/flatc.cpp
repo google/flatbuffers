@@ -778,9 +778,8 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
   }
 }
 
-flatbuffers::Parser FlatCompiler::GetConformParser(
-    const FlatCOptions &options) {
-  flatbuffers::Parser conform_parser;
+void FlatCompiler::GetConformParser(
+    const FlatCOptions &options, flatbuffers::Parser &conform_parser) {
 
   // conform parser should check advanced options,
   // so, it have to have knowledge about languages:
@@ -801,7 +800,6 @@ flatbuffers::Parser FlatCompiler::GetConformParser(
                 options.conform_include_directories);
     }
   }
-  return conform_parser;
 }
 
 std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
@@ -985,7 +983,8 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 
 int FlatCompiler::Compile(const FlatCOptions &options) {
   // TODO(derekbailey): change to std::optional<Parser>
-  Parser conform_parser = GetConformParser(options);
+  Parser conform_parser;
+  GetConformParser(options, conform_parser);
 
   // TODO(derekbailey): split to own method.
   if (!options.annotate_schema.empty()) {

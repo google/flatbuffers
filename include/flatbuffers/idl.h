@@ -1009,8 +1009,10 @@ class Parser : public ParserState {
   Parser(const Parser &) = delete;
   Parser &operator=(const Parser &) = delete;
 
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
   Parser(Parser &&) = default;
   Parser &operator=(Parser &&) = default;
+#endif
 
   ~Parser() {
     for (auto it = namespaces_.begin(); it != namespaces_.end(); ++it) {

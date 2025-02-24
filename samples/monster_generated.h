@@ -248,7 +248,9 @@ struct MonsterT : public ::flatbuffers::NativeTable {
   std::vector<MyGame::Sample::Vec3> path{};
   MonsterT() = default;
   MonsterT(const MonsterT &o);
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
+#endif
   MonsterT &operator=(MonsterT o) FLATBUFFERS_NOEXCEPT;
 };
 

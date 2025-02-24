@@ -116,7 +116,7 @@ class FlatCompiler {
 
   void ValidateOptions(const FlatCOptions &options);
 
-  Parser GetConformParser(const FlatCOptions &options);
+  void GetConformParser(const FlatCOptions &options, Parser &conform_parser);
 
   std::unique_ptr<Parser> GenerateCode(const FlatCOptions &options,
                                        Parser &conform_parser);

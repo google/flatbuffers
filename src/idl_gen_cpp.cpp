@@ -2018,9 +2018,11 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("NATIVE_NAME",
                    NativeName(Name(struct_def), &struct_def, opts_));
     code_ += "  {{NATIVE_NAME}}(const {{NATIVE_NAME}} &o);";
+    code_ += "#ifdef FLATBUFFERS_DEFAULT_DECLARATION";
     code_ +=
         "  {{NATIVE_NAME}}({{NATIVE_NAME}}&&) FLATBUFFERS_NOEXCEPT = "
         "default;";
+    code_ += "#endif";
     code_ +=
         "  {{NATIVE_NAME}} &operator=({{NATIVE_NAME}} o) FLATBUFFERS_NOEXCEPT;";
   }
