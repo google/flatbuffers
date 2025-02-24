@@ -196,7 +196,7 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
 
   if (!ProtobufIdSanityCheck(struct_def, gap_action, no_log)) { return {}; }
 
-  static constexpr int UNION_ID = -1;
+  static FLATBUFFERS_CONSTEXPR int UNION_ID = -1;
   using ProtoIdFieldNamePair = std::pair<int, std::string>;
   std::vector<ProtoIdFieldNamePair> proto_ids;
 
