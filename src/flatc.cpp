@@ -431,11 +431,10 @@ void FlatCompiler::AnnotateBinaries(const uint8_t *binary_schema,
   }
 }
 
-FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
-                                                         const char **argv) {
+void FlatCompiler::ParseFromCommandLineArguments(int argc,
+                                                         const char **argv,
+                                                         FlatCOptions& options) {
   if (argc <= 1) { Error("Need to provide at least one argument."); }
-
-  FlatCOptions options;
 
   options.program_name = std::string(argv[0]);
 
@@ -734,7 +733,7 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         auto code_generator_it = code_generators_.find(arg);
         if (code_generator_it == code_generators_.end()) {
           Error("unknown commandline argument: " + arg, true);
-          return options;
+          return;
         }
 
         std::shared_ptr<CodeGenerator> code_generator =
@@ -754,8 +753,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       options.filenames.push_back(flatbuffers::PosixPath(argv[argi]));
     }
   }
-
-  return options;
 }
 
 void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
