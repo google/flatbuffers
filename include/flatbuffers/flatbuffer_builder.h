@@ -112,7 +112,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   /// @brief Move constructor for FlatBufferBuilder.
-  FlatBufferBuilderImpl(FlatBufferBuilderImpl &&other) noexcept
+  FlatBufferBuilderImpl(FlatBufferBuilderImpl &&other) FLATBUFFERS_NOEXCEPT
       : buf_(1024, nullptr, false, AlignOf<largest_scalar_t>(),
              static_cast<SizeT>(Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
                                           : FLATBUFFERS_MAX_BUFFER_SIZE)),
@@ -133,7 +133,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   }
 
   /// @brief Move assignment operator for FlatBufferBuilder.
-  FlatBufferBuilderImpl &operator=(FlatBufferBuilderImpl &&other) noexcept {
+  FlatBufferBuilderImpl &operator=(FlatBufferBuilderImpl &&other) FLATBUFFERS_NOEXCEPT {
     // Move construct a temporary and swap idiom
     FlatBufferBuilderImpl temp(std::move(other));
     Swap(temp);

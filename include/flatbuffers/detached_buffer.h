@@ -45,7 +45,7 @@ class DetachedBuffer {
         cur_(cur),
         size_(sz) {}
 
-  DetachedBuffer(DetachedBuffer &&other) noexcept
+  DetachedBuffer(DetachedBuffer &&other) FLATBUFFERS_NOEXCEPT
       : allocator_(other.allocator_),
         own_allocator_(other.own_allocator_),
         buf_(other.buf_),
@@ -55,7 +55,7 @@ class DetachedBuffer {
     other.reset();
   }
 
-  DetachedBuffer &operator=(DetachedBuffer &&other) noexcept {
+  DetachedBuffer &operator=(DetachedBuffer &&other) FLATBUFFERS_NOEXCEPT {
     if (this == &other) return *this;
 
     destroy();
