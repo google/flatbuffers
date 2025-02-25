@@ -2496,7 +2496,7 @@ class RustGenerator : public BaseGenerator {
         "pub unsafe fn size_prefixed_root_as_{{STRUCT_FN}}"
         "_unchecked(buf: &[u8]) -> {{STRUCT_TY}} {";
     code_ +=
-        "  unsafe { flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}> "
+        "  unsafe { flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}>"
         "(buf) }";
     code_ += "}";
 

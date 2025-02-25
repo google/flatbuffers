@@ -1002,7 +1002,7 @@ pub unsafe fn root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff {
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `ScalarStuff`.
 pub unsafe fn size_prefixed_root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<ScalarStuff> (buf) }
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<ScalarStuff>(buf) }
 }
 pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
 

@@ -200,7 +200,7 @@ pub unsafe fn root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable {
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `ArrayTable`.
 pub unsafe fn size_prefixed_root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<ArrayTable> (buf) }
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<ArrayTable>(buf) }
 }
 pub const ARRAY_TABLE_IDENTIFIER: &str = "ARRT";
 

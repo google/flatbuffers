@@ -458,7 +458,7 @@ pub unsafe fn root_as_monster_unchecked(buf: &[u8]) -> Monster {
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `Monster`.
 pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster {
-  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster> (buf) }
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster>(buf) }
 }
 #[inline]
 pub fn finish_monster_buffer<'a, 'b, A: flatbuffers::Allocator + 'a>(
