@@ -2,6 +2,8 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:types.bzl", "types")
+load("@rules_cc//cc:defs.bzl", "cc_common", "CcInfo")
+load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain", "find_cc_toolchain")
 
 ################################## providers ###################################
 
@@ -148,7 +150,7 @@ The code should be organized in the following way:
 Example:
 
 ```build
-load("@com_github_google_flatbuffers//:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
+load("@flatbuffers//:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
 
 flatbuffers_library(
     name = "bar_fbs",
@@ -170,8 +172,7 @@ cc_flatbuffers_library(
 The following rules provide language-specific implementation of FlatBuffers:
 
 -  `cc_flatbuffers_library`
--  `cc_lite_flatbuffers_library`
--  `kt_flatbuffers_library`""",
+""",
     attrs = {
         "srcs": attr.label_list(
             allow_files = [".fbs"],
@@ -182,6 +183,141 @@ The following rules provide language-specific implementation of FlatBuffers:
     } | _flatc_attr,
     provides = [FlatBuffersInfo],
     implementation = _flatbuffers_library_impl,
+)
+
+def _cc_flatbuffers_aspect_impl(target, ctx):
+    if CcInfo in target:  # target already provides CcInfo.
+        return []
+
+    filename_suffix = ".fbs"
+
+    hdrs = [
+        ctx.actions.declare_file(paths.replace_extension(src.basename, "") + filename_suffix + ".h")
+        for src in target[FlatBuffersInfo].direct_sources
+    ]
+
+    args = ctx.actions.args()
+    args.add("-c")
+    args.add("-I", ".")
+    args.add("-I", ctx.bin_dir.path)
+    args.add("-I", ctx.genfiles_dir.path)
+    args.add("-o", paths.join(ctx.bin_dir.path, ctx.label.package))
+    args.add("--filename-suffix", filename_suffix)
+    args.add("--cpp-std", "C++17")
+    args.add("--no-union-value-namespacing")
+    args.add("--keep-prefix")
+
+    args.add("--gen-object-api")
+    args.add("--gen-compare")
+    args.add("--gen-mutable")
+    args.add("--reflect-names")
+
+    args.add_all(target[FlatBuffersInfo].direct_sources)
+
+    ctx.actions.run(
+        executable = ctx.executable._flatc,
+        inputs = target[FlatBuffersInfo].transitive_sources,
+        outputs = hdrs,
+        arguments = [args],
+        progress_message = "Generating FlatBuffers C++ code for {0}".format(ctx.label),
+        mnemonic = "GenerateFlatBuffersCc",
+    )
+
+    cc_toolchain = find_cc_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        ctx = ctx,
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features + ["parse_headers"],
+        unsupported_features = ctx.disabled_features,
+    )
+
+    deps = getattr(ctx.rule.attr, "deps", [])
+    compilation_contexts = [dep[CcInfo].compilation_context for dep in [ctx.attr._runtime] + deps]
+
+    compilation_context, _ = cc_common.compile(
+        name = ctx.label.name,
+        actions = ctx.actions,
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        public_hdrs = hdrs,
+        compilation_contexts = compilation_contexts,
+    )
+
+    return [
+        CcInfo(
+            compilation_context = compilation_context,
+        ),
+        OutputGroupInfo(
+            srcs = depset(hdrs),
+        ),
+    ]
+
+_cc_flatbuffers_aspect = aspect(
+    attrs = {
+        "_runtime": attr.label(
+            default = Label("//:runtime_cc"),
+            providers = [CcInfo],
+        ),
+    } | _flatc_attr,
+    attr_aspects = ["deps"],
+    fragments = ["cpp"],
+    implementation = _cc_flatbuffers_aspect_impl,
+    toolchains = use_cc_toolchain(),
+)
+
+def _cc_flatbuffers_library_impl(ctx):
+    if len(ctx.attr.deps) != 1:
+        fail("deps requires exactly one target (got %d)" % len(ctx.attr.deps))
+
+    dep = ctx.attr.deps[0]
+    return [
+        dep[CcInfo],
+        dep[OutputGroupInfo],
+    ]
+
+cc_flatbuffers_library = rule(
+    attrs = {
+        "deps": attr.label_list(
+            providers = [FlatBuffersInfo],
+            aspects = [_cc_flatbuffers_aspect],
+        ),
+    },
+    doc = """\
+`cc_flatbuffers_library` generates C++ code from `.fbs` files.
+
+`cc_flatbuffers_library` does:
+
+-  generate additional object-based API;
+-  generate operator== for object-based API types;
+-  generate accessors that can mutate buffers in-place;
+-  add minimal type/name reflection.
+
+Example:
+
+```build
+load("@flatbuffers//:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
+
+flatbuffers_library(
+    name = "foo_fbs",
+    srcs = ["foo.fbs"],
+)
+
+cc_flatbuffers_library(
+    name = "foo_cc_fbs",
+    deps = [":foo_fbs"],
+)
+
+# An example library that uses the generated C++ code from `foo_cc_fbs`.
+cc_library(
+    name = "foo_user",
+    hdrs = ["foo_user.h"],
+    deps = [":foo_cc_fbs"],
+)
+```
+
+Where `foo_user.h` would include the generated code via: `#include "path/to/project/foo.fbs.h"`.
+""",
+    implementation = _cc_flatbuffers_library_impl,
 )
 
 flatbuffers_common = struct(
