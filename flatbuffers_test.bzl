@@ -2,7 +2,7 @@ load("@bazel_skylib//lib:unittest.bzl", "unittest")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("//:flatbuffers.bzl", "flatbuffers_library", "cc_flatbuffers_library")
+load("//:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
 
 _DEMO_FBS = """
 namespace ns;
@@ -79,7 +79,7 @@ def _test_cc_flatbuffers_library(name):
         deps = [
             "{0}_cc_fbs_lib".format(name),
             "@googletest//:gtest_main",
-        ]
+        ],
     )
 
 def flatbuffers_test(name):

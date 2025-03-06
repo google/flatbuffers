@@ -2,8 +2,8 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:types.bzl", "types")
-load("@rules_cc//cc:defs.bzl", "cc_common", "CcInfo")
-load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain", "find_cc_toolchain")
+load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
 
 ################################## providers ###################################
 
