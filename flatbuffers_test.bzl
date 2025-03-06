@@ -2,13 +2,15 @@ load("@bazel_skylib//lib:unittest.bzl", "unittest")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("//:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library")
+load("@rules_python//python:defs.bzl", "py_test")
+load("//:flatbuffers.bzl", "cc_flatbuffers_library", "flatbuffers_library", "py_flatbuffers_library")
 
 _DEMO_FBS = """
 namespace ns;
 
 table DemoTable {
   name:string;
+  uint8s:[uint8];
 }
 """
 
@@ -82,9 +84,57 @@ def _test_cc_flatbuffers_library(name):
         ],
     )
 
+def _test_py_flatbuffers_library(name):
+    fbs = "{0}_fbs".format(name)
+    write_file(
+        name = fbs,
+        content = [_DEMO_FBS],
+        out = "{0}.fbs".format(name),
+        testonly = True,
+    )
+
+    flatbuffers_library(
+        name = "{0}_fbs_lib".format(name),
+        srcs = [fbs],
+        testonly = True,
+    )
+
+    py_flatbuffers_library(
+        name = "{0}_py_fbs_lib".format(name),
+        deps = ["{0}_fbs_lib".format(name)],
+        testonly = True,
+    )
+
+    test_py = "{0}_test_py".format(name)
+    write_file(
+        name = test_py,
+        content = ["""
+import unittest
+
+from %s_fbs import DemoTable
+
+class TestFlatBuffersLibrary(unittest.TestCase):
+
+  def test_declares_types(self):
+    self.assertTrue(hasattr(DemoTable, "Uint8sAsNumpy"))
+
+if __name__ == "__main__":
+  unittest.main()
+""" % (name)],
+        out = "{0}.py".format(name),
+        testonly = True,
+    )
+
+    py_test(
+        name = name,
+        srcs = [test_py],
+        deps = ["{0}_py_fbs_lib".format(name)],
+    )
+
 def flatbuffers_test(name):
     unittest.suite(
         name,
         _test_flatbuffers_library,
         _test_cc_flatbuffers_library,
+        _test_py_flatbuffers_library,
     )

@@ -48,6 +48,10 @@ bazel_dep(
     version = "6.3.3",
 )
 bazel_dep(
+    name = "rules_python",
+    version = "1.2.0",
+)
+bazel_dep(
     name = "rules_shell",
     version = "0.3.0",
 )

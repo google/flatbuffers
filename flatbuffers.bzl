@@ -4,6 +4,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:types.bzl", "types")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "cc_common")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain", "use_cc_toolchain")
+load("@rules_python//python:py_cc_link_params_info.bzl", "PyCcLinkParamsInfo")
 
 ################################## providers ###################################
 
@@ -318,6 +319,175 @@ cc_library(
 Where `foo_user.h` would include the generated code via: `#include "path/to/project/foo.fbs.h"`.
 """,
     implementation = _cc_flatbuffers_library_impl,
+)
+
+PyFlatbuffersInfo = provider(
+    doc = "An internal provider used to pass information from py_flatbuffers_aspect to py_flatbuffers_library.",
+    fields = {
+        "direct_py_sources": "A list of all .py files generated for this flatbuffers_library.",
+        "transitive_py_sources": "A transitive closure of all .py files generated for this library all all its dependencies.",
+        "direct_pyi_sources": "A list of all .pyi files generated for this flatbuffers_library.",
+        "transitive_pyi_sources": "A transitive closure of all .pyi files generated for this library all all its dependencies.",
+        "cc_info": "A CcInfo provider that propagates the compilation and linking context of the transitive C++ dependencies.",
+        "transitive_runfiles": "A list of runfiles for this library and all its dependencies.",
+        "imports": "A depset of import path strings to be added to the `PYTHONPATH` of executable Python targets.",
+    },
+)
+
+def _py_flatbuffers_aspect_impl(target, ctx):
+    if PyInfo in target:  # target already provides PyInfo.
+        return []
+
+    direct_py_sources = [
+        ctx.actions.declare_file(paths.replace_extension(src.basename, "_fbs.py"))
+        for src in target[FlatBuffersInfo].direct_sources
+    ]
+    direct_pyi_sources = [
+        ctx.actions.declare_file(paths.replace_extension(src.basename, "_fbs.pyi"))
+        for src in target[FlatBuffersInfo].direct_sources
+    ]
+
+    args = ctx.actions.args()
+    args.add("-c")
+    args.add("-I", paths.join(".", ctx.label.workspace_root))
+    args.add("-I", ".")
+    args.add("-I", ctx.label.package)
+    args.add("-I", ctx.bin_dir.path)
+    args.add("-I", paths.join(ctx.bin_dir.path, ctx.label.workspace_root))
+    args.add("-I", ctx.genfiles_dir.path)
+    args.add("-o", paths.join(ctx.bin_dir.path, ctx.label.workspace_root, ctx.label.package))
+    args.add("--gen-onefile")
+    args.add("--gen-compare")
+    args.add("--gen-object-api")
+    args.add("--filename-suffix", "_fbs")
+    args.add("--python")
+    args.add("--python-typing")
+
+    args.add("--python-version", "3")
+    args.add("--python-gen-numpy")
+
+    args.add_all(target[FlatBuffersInfo].direct_sources)
+
+    ctx.actions.run(
+        arguments = [args],
+        executable = ctx.executable._flatc,
+        inputs = target[FlatBuffersInfo].transitive_sources,
+        outputs = direct_py_sources + direct_pyi_sources,
+        progress_message = "Generating FlatBuffers Python code for {0}".format(ctx.label),
+        mnemonic = "GenerateFlatBuffersPy",
+    )
+
+    runtime = ctx.attr._runtime[PyInfo]
+    transitive_py_sources = [runtime.transitive_sources]
+    transitive_pyi_sources = [runtime.transitive_pyi_files]
+    for dep in getattr(ctx.rule.attr, "deps", []):
+        transitive_py_sources.append(dep[PyFlatbuffersInfo].transitive_py_sources)
+        transitive_pyi_sources.append(dep[PyFlatbuffersInfo].transitive_pyi_sources)
+
+    return [
+        PyFlatbuffersInfo(
+            direct_py_sources = direct_py_sources,
+            transitive_py_sources = depset(
+                direct = direct_py_sources,
+                transitive = transitive_py_sources,
+            ),
+            direct_pyi_sources = direct_pyi_sources,
+            transitive_pyi_sources = depset(
+                direct = direct_pyi_sources,
+                transitive = transitive_pyi_sources,
+            ),
+            cc_info = ctx.attr._runtime[PyCcLinkParamsInfo].cc_info,
+            transitive_runfiles = [
+                ctx.runfiles(
+                    files = direct_py_sources,
+                    transitive_files = depset(transitive = transitive_py_sources),
+                    collect_default = True,
+                ),
+                ctx.attr._runtime[DefaultInfo].default_runfiles,
+                ctx.attr._runtime[DefaultInfo].data_runfiles,
+            ],
+            imports = runtime.imports,
+        ),
+        OutputGroupInfo(
+            srcs = depset(direct_py_sources + direct_pyi_sources),
+        ),
+    ]
+
+_py_flatbuffers_aspect = aspect(
+    attrs = {
+        "_runtime": attr.label(
+            default = Label("//python:flatbuffers"),
+            providers = [PyInfo],
+        ),
+    } | _flatc_attr,
+    attr_aspects = ["deps"],
+    fragments = ["py"],
+    implementation = _py_flatbuffers_aspect_impl,
+)
+
+def _py_flatbuffers_library_impl(ctx):
+    if len(ctx.attr.deps) != 1:
+        fail("deps requires exactly one target (got %d)" % len(ctx.attr.deps))
+
+    py_flatbuffers_info = ctx.attr.deps[0][PyFlatbuffersInfo]
+    return [
+        PyInfo(
+            transitive_sources = py_flatbuffers_info.transitive_py_sources,
+            direct_original_sources = depset(py_flatbuffers_info.direct_py_sources),
+            transitive_original_sources = py_flatbuffers_info.transitive_py_sources,
+            direct_pyi_files = depset(py_flatbuffers_info.direct_pyi_sources),
+            transitive_pyi_files = py_flatbuffers_info.transitive_pyi_sources,
+            imports = py_flatbuffers_info.imports,
+        ),
+        PyCcLinkParamsInfo(
+            cc_info = py_flatbuffers_info.cc_info,
+        ),
+        DefaultInfo(
+            files = py_flatbuffers_info.transitive_py_sources,
+            runfiles = ctx.runfiles(
+                transitive_files = py_flatbuffers_info.transitive_py_sources,
+                collect_default = True,
+            ).merge_all(py_flatbuffers_info.transitive_runfiles),
+        ),
+    ]
+
+py_flatbuffers_library = rule(
+    attrs = {
+        "deps": attr.label_list(
+            aspects = [_py_flatbuffers_aspect],
+            providers = [FlatBuffersInfo],
+        ),
+    },
+    doc = """\
+`py_flatbuffers_library` generates Python code from `.fbs` files.
+
+Example:
+
+```build
+load("@flatbuffers//:flatbuffers.bzl", "py_flatbuffers_library", "flatbuffers_library")
+
+flatbuffers_library(
+    name = "foo_fbs",
+    srcs = ["foo.fbs"],
+)
+
+py_flatbuffers_library(
+    name = "foo_py_fbs",
+    deps = [":foo_fbs"],
+)
+
+# An example library that uses the generated Python code from `foo_py_fbs`.
+py_library(
+    name = "foo_user",
+    hdrs = ["foo_user.py"],
+    deps = [":foo_py_fbs"],
+)
+```
+
+Where `foo_user.py` would include the generated code via: `from path.to.project import foo_fbs`.
+""",
+    provides = [PyInfo],
+    implementation = _py_flatbuffers_library_impl,
 )
 
 flatbuffers_common = struct(
