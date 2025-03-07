@@ -1,3 +1,5 @@
+"""Provides tests for flatbuffers.bzl."""
+
 load("@bazel_skylib//lib:unittest.bzl", "unittest")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
