@@ -170,7 +170,7 @@ impl<'a> SafeTable<'a> {
     pub fn get_field_vector<T: Follow<'a, Inner = T>>(
         &self,
         field_name: &str,
-    ) -> FlatbufferResult<Option<Vector<'a, T>>> {
+    ) -> FlatbufferResult<Vector<'a, T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             unsafe { get_field_vector(&Table::new(&self.safe_buf.buf, self.loc), &field) }

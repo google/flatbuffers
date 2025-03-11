@@ -187,10 +187,10 @@ pub unsafe fn get_field_struct<'a>(
 /// # Safety
 ///
 /// The value of the corresponding slot must be a vector of elements of type `T`.
-pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
+pub unsafe fn get_field_vector<'a, T: Follow<'a>>(
     table: &Table<'a>,
     field: &Field,
-) -> FlatbufferResult<Option<Vector<'a, T>>> {
+) -> FlatbufferResult<Vector<'a, T>> {
     if field.type_().base_type() != BaseType::Vector
         || core::mem::size_of::<T>() != get_type_size(field.type_().element())
     {
@@ -204,8 +204,9 @@ pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
                 .to_string(),
         ));
     }
-
-    Ok(table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default())))
+    // SAFETY: get() always returns either Some or default, which is a Some in this case. Therefore
+    // it always returns a Some, so we can use unwrap_unchecked().
+    Ok(table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default())).unwrap_unchecked())
 }
 
 /// Get a vector table field, whose elements have unknown type.
@@ -220,7 +221,7 @@ pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
 pub unsafe fn get_field_vector_of_any<'a>(
     table: &Table<'a>,
     field: &Field,
-) -> FlatbufferResult<Option<VectorOfAny<'a>>> {
+) -> FlatbufferResult<VectorOfAny<'a>> {
     if field.type_().base_type() != BaseType::Vector {
         return Err(FlatbufferError::FieldTypeMismatch(
             String::from("VectorOfAny"),
@@ -232,8 +233,9 @@ pub unsafe fn get_field_vector_of_any<'a>(
                 .to_string(),
         ));
     }
-
-    Ok(table.get::<ForwardsUOffset<VectorOfAny<'a>>>(field.offset(), Some(VectorOfAny::default())))
+    // SAFETY: get() always returns either Some or default, which is a Some in this case. Therefore
+    // it always returns a Some, so we can use unwrap_unchecked().
+    Ok(table.get::<ForwardsUOffset<VectorOfAny<'a>>>(field.offset(), Some(VectorOfAny::default())).unwrap_unchecked())
 }
 
 /// Gets a Table table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
