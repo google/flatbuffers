@@ -616,7 +616,7 @@ pub unsafe fn set_string(
 }
 
 /// Returns the size of a scalar type in the `BaseType` enum. In the case of structs, returns the size of their offset (`UOffsetT`) in the buffer.
-fn get_type_size(base_type: BaseType) -> usize {
+pub fn get_type_size(base_type: BaseType) -> usize {
     match base_type {
         BaseType::UType | BaseType::Bool | BaseType::Byte | BaseType::UByte => 1,
         BaseType::Short | BaseType::UShort => 2,
