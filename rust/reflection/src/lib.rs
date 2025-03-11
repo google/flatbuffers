@@ -17,6 +17,8 @@
 mod reflection_generated;
 mod reflection_verifier;
 pub mod safe_buffer;
+mod vector_of_any;
+pub use vector_of_any::VectorOfAny;
 mod r#struct;
 pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
@@ -172,11 +174,19 @@ pub unsafe fn get_field_struct<'a>(
     Ok(table.get::<Struct>(field.offset(), None))
 }
 
-/// Gets a Vector table field given its exact type. Returns empty vector if the field is not set. Returns error if the type doesn't match.
+/// Get a vector table field, whose elements have type `T`.
+/// 
+/// Returns an empty vector if the field is not set.
+/// 
+/// Returns an error if the field is not a vector or its elements have a different size to `T`.
+/// 
+/// Does not work with vectors of structs, because a struct element's size cannot be checked on
+/// older schema versions without access to the schema. To use with vectors of tables, use `T =
+/// ForwardsUOffset<Table<'a>>`.
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type Vector
+/// The value of the corresponding slot must be a vector of elements of type `T`.
 pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
     table: &Table<'a>,
     field: &Field,
@@ -196,6 +206,34 @@ pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
     }
 
     Ok(table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default())))
+}
+
+/// Get a vector table field, whose elements have unknown type.
+/// 
+/// Returns an empty vector if the field is not set.
+/// 
+/// Returns an error if the field is not a vector.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must be a vector of elements of type `T`.
+pub unsafe fn get_field_vector_of_any<'a>(
+    table: &Table<'a>,
+    field: &Field,
+) -> FlatbufferResult<Option<VectorOfAny<'a>>> {
+    if field.type_().base_type() != BaseType::Vector {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("VectorOfAny"),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
+        ));
+    }
+
+    Ok(table.get::<ForwardsUOffset<VectorOfAny<'a>>>(field.offset(), Some(VectorOfAny::default())))
 }
 
 /// Gets a Table table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
