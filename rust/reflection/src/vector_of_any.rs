@@ -24,7 +24,7 @@ impl<'a> VectorOfAny<'a> {
     }
 
     /// Get a slice of all the bytes from the start of the vector to the *end of the buffer*.
-    /// 
+    ///
     /// We don't know the size of the elements in the vector, so we can't return just its contents.
     #[inline(always)]
     pub fn bytes(&self) -> &'a [u8] {
@@ -33,9 +33,9 @@ impl<'a> VectorOfAny<'a> {
 
     /// Get a slice of bytes corresponding to the struct at [index], assuming this is a vector of
     /// structs of type [obj].
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if [index] is out of bounds or if [obj] is not a struct.
     #[inline(always)]
     pub fn get_struct(&self, index: usize, obj: Object<'_>) -> &'a [u8] {
@@ -70,5 +70,3 @@ impl Default for VectorOfAny<'_> {
         Self { buf: &[], loc: 0 }
     }
 }
-
-

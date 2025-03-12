@@ -82,21 +82,17 @@ pub unsafe fn get_any_root(data: &[u8]) -> Table {
 pub unsafe fn get_field_integer<T: for<'a> Follow<'a, Inner = T> + PrimInt + FromPrimitive>(
     table: &Table,
     field: &Field,
-) -> FlatbufferResult<Option<T>> {
-    if size_of::<T>() != get_type_size(field.type_().base_type()) {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            std::any::type_name::<T>().to_string(),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
+) -> Option<T> {
+    debug_assert_eq!(
+        size_of::<T>(),
+        get_type_size(field.type_().base_type()),
+        "Type size mismatch: {} vs {}",
+        std::any::type_name::<T>(),
+        field.type_().base_type().variant_name().unwrap_or_default()
+    );
 
     let default = T::from_i64(field.default_integer());
-    Ok(table.get::<T>(field.offset(), default))
+    table.get::<T>(field.offset(), default)
 }
 
 /// Gets a floating point table field given its exact type. Returns default float value if the field is not set. Returns [None] if no default value is found. Returns error if the type doesn't match.
@@ -107,21 +103,17 @@ pub unsafe fn get_field_integer<T: for<'a> Follow<'a, Inner = T> + PrimInt + Fro
 pub unsafe fn get_field_float<T: for<'a> Follow<'a, Inner = T> + Float>(
     table: &Table,
     field: &Field,
-) -> FlatbufferResult<Option<T>> {
-    if size_of::<T>() != get_type_size(field.type_().base_type()) {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            std::any::type_name::<T>().to_string(),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
+) -> Option<T> {
+    debug_assert_eq!(
+        size_of::<T>(),
+        get_type_size(field.type_().base_type()),
+        "Type size mismatch: {} vs {}",
+        std::any::type_name::<T>(),
+        field.type_().base_type().variant_name().unwrap_or_default()
+    );
 
     let default = T::from(field.default_real());
-    Ok(table.get::<T>(field.offset(), default))
+    table.get::<T>(field.offset(), default)
 }
 
 /// Gets a String table field given its exact type. Returns empty string if the field is not set. Returns [None] if no default value is found. Returns error if the type size doesn't match.
@@ -129,57 +121,30 @@ pub unsafe fn get_field_float<T: for<'a> Follow<'a, Inner = T> + Float>(
 /// # Safety
 ///
 /// The value of the corresponding slot must have type String
-pub unsafe fn get_field_string<'a>(
-    table: &Table<'a>,
-    field: &Field,
-) -> FlatbufferResult<Option<&'a str>> {
-    if field.type_().base_type() != BaseType::String {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            String::from("String"),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
-
-    Ok(table.get::<ForwardsUOffset<&'a str>>(field.offset(), Some("")))
+pub unsafe fn get_field_string<'a>(table: &Table<'a>, field: &Field) -> Option<&'a str> {
+    debug_assert_eq!(field.type_().base_type(), BaseType::String);
+    table.get::<ForwardsUOffset<&'a str>>(field.offset(), Some(""))
 }
 
-/// Gets a [Struct] table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
+/// Gets a [Struct] table field given its exact type. Returns [None] if the field is not set.
 ///
 /// # Safety
 ///
 /// The value of the corresponding slot must have type Struct
-pub unsafe fn get_field_struct<'a>(
-    table: &Table<'a>,
-    field: &Field,
-) -> FlatbufferResult<Option<Struct<'a>>> {
+pub unsafe fn get_field_struct<'a>(table: &Table<'a>, field: &Field) -> Option<Struct<'a>> {
     // TODO inherited from C++: This does NOT check if the field is a table or struct, but we'd need
     // access to the schema to check the is_struct flag.
-    if field.type_().base_type() != BaseType::Obj {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            String::from("Obj"),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
+    debug_assert_eq!(field.type_().base_type(), BaseType::Obj);
 
-    Ok(table.get::<Struct>(field.offset(), None))
+    table.get::<Struct>(field.offset(), None)
 }
 
 /// Get a vector table field, whose elements have type `T`.
-/// 
+///
 /// Returns an empty vector if the field is not set.
-/// 
+///
 /// Returns an error if the field is not a vector or its elements have a different size to `T`.
-/// 
+///
 /// Does not work with vectors of structs, because a struct element's size cannot be checked on
 /// older schema versions without access to the schema. To use with vectors of tables, use `T =
 /// ForwardsUOffset<Table<'a>>`.
@@ -190,76 +155,44 @@ pub unsafe fn get_field_struct<'a>(
 pub unsafe fn get_field_vector<'a, T: Follow<'a>>(
     table: &Table<'a>,
     field: &Field,
-) -> FlatbufferResult<Vector<'a, T>> {
-    if field.type_().base_type() != BaseType::Vector
-        || core::mem::size_of::<T>() != get_type_size(field.type_().element())
-    {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            std::any::type_name::<T>().to_string(),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
+) -> Vector<'a, T> {
+    debug_assert_eq!(field.type_().base_type(), BaseType::Vector);
+    debug_assert_eq!(
+        core::mem::size_of::<T>(),
+        get_type_size(field.type_().element())
+    );
     // SAFETY: get() always returns either Some or default, which is a Some in this case. Therefore
     // it always returns a Some, so we can use unwrap_unchecked().
-    Ok(table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default())).unwrap_unchecked())
+    table
+        .get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default()))
+        .unwrap_unchecked()
 }
 
 /// Get a vector table field, whose elements have unknown type.
-/// 
+///
 /// Returns an empty vector if the field is not set.
-/// 
-/// Returns an error if the field is not a vector.
 ///
 /// # Safety
 ///
 /// The value of the corresponding slot must be a vector of elements of type `T`.
-pub unsafe fn get_field_vector_of_any<'a>(
-    table: &Table<'a>,
-    field: &Field,
-) -> FlatbufferResult<VectorOfAny<'a>> {
-    if field.type_().base_type() != BaseType::Vector {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            String::from("VectorOfAny"),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
+pub unsafe fn get_field_vector_of_any<'a>(table: &Table<'a>, field: &Field) -> VectorOfAny<'a> {
+    debug_assert_eq!(field.type_().base_type(), BaseType::Vector);
     // SAFETY: get() always returns either Some or default, which is a Some in this case. Therefore
     // it always returns a Some, so we can use unwrap_unchecked().
-    Ok(table.get::<ForwardsUOffset<VectorOfAny<'a>>>(field.offset(), Some(VectorOfAny::default())).unwrap_unchecked())
+    table
+        .get::<ForwardsUOffset<VectorOfAny<'a>>>(field.offset(), Some(VectorOfAny::default()))
+        .unwrap_unchecked()
 }
 
-/// Gets a Table table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
+/// Gets a Table table field given its exact type. Returns [None] if the field is not set.
 ///
 /// # Safety
 ///
 /// The value of the corresponding slot must have type Table
-pub unsafe fn get_field_table<'a>(
-    table: &Table<'a>,
-    field: &Field,
-) -> FlatbufferResult<Option<Table<'a>>> {
-    if field.type_().base_type() != BaseType::Obj {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            String::from("Obj"),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
+pub unsafe fn get_field_table<'a>(table: &Table<'a>, field: &Field) -> Option<Table<'a>> {
+    debug_assert_eq!(field.type_().base_type(), BaseType::Obj);
 
-    Ok(table.get::<ForwardsUOffset<Table<'a>>>(field.offset(), None))
+    table.get::<ForwardsUOffset<Table<'a>>>(field.offset(), None)
 }
 
 /// Returns the value of any table field as a 64-bit int, regardless of what type it is. Returns default integer if the field is not set or error if the value cannot be parsed as integer.
@@ -313,25 +246,12 @@ pub unsafe fn get_any_field_string(table: &Table, field: &Field, schema: &Schema
 /// # Safety
 ///
 /// The value of the corresponding slot must have type Struct.
-pub unsafe fn get_field_struct_in_struct<'a>(
-    st: &Struct<'a>,
-    field: &Field,
-) -> FlatbufferResult<Struct<'a>> {
+pub unsafe fn get_field_struct_in_struct<'a>(st: &Struct<'a>, field: &Field) -> Struct<'a> {
     // TODO inherited from C++: This does NOT check if the field is a table or struct, but we'd need
     // access to the schema to check the is_struct flag.
-    if field.type_().base_type() != BaseType::Obj {
-        return Err(FlatbufferError::FieldTypeMismatch(
-            String::from("Obj"),
-            field
-                .type_()
-                .base_type()
-                .variant_name()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    }
+    debug_assert_eq!(field.type_().base_type(), BaseType::Obj);
 
-    Ok(st.get::<Struct>(field.offset() as usize))
+    st.get::<Struct>(field.offset() as usize)
 }
 
 /// Returns the value of any struct field as a 64-bit int, regardless of what type it is. Returns error if the value cannot be parsed as integer.

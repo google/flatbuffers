@@ -15,13 +15,14 @@
  */
 
 use crate::r#struct::Struct;
+use crate::reflection::BaseType;
 use crate::reflection_generated::reflection::{Field, Schema};
 use crate::reflection_verifier::verify_with_options;
 use crate::{
     get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
     get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
-    get_field_struct_in_struct, get_field_table, get_field_vector, FlatbufferError,
+    get_field_struct_in_struct, get_field_table, get_field_vector, get_type_size, FlatbufferError,
     FlatbufferResult, ForwardsUOffset,
 };
 use flatbuffers::{Follow, Table, Vector, VerifierOptions};
@@ -102,15 +103,18 @@ pub struct SafeTable<'a> {
 impl<'a> SafeTable<'a> {
     /// Gets an integer table field given its exact type. Returns default integer value if the field is not set. Returns [None] if no default value is found. Returns error if
     /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// the [field_name] doesn't match the table.
     pub fn get_field_integer<T: for<'b> Follow<'b, Inner = T> + PrimInt + FromPrimitive>(
         &self,
         field_name: &str,
     ) -> FlatbufferResult<Option<T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_integer::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            Ok(
+                unsafe {
+                    get_field_integer::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field)
+                },
+            )
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -118,15 +122,14 @@ impl<'a> SafeTable<'a> {
 
     /// Gets a floating point table field given its exact type. Returns default float value if the field is not set. Returns [None] if no default value is found. Returns error if
     /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// the [field_name] doesn't match the table.
     pub fn get_field_float<T: for<'b> Follow<'b, Inner = T> + Float>(
         &self,
         field_name: &str,
     ) -> FlatbufferResult<Option<T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_float::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            Ok(unsafe { get_field_float::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field) })
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -134,12 +137,11 @@ impl<'a> SafeTable<'a> {
 
     /// Gets a String table field given its exact type. Returns empty string if the field is not set. Returns [None] if no default value is found. Returns error if
     /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// the [field_name] doesn't match the table.
     pub fn get_field_string(&self, field_name: &str) -> FlatbufferResult<Option<&str>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_string(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            Ok(unsafe { get_field_string(&Table::new(&self.safe_buf.buf, self.loc), &field) })
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -147,13 +149,12 @@ impl<'a> SafeTable<'a> {
 
     /// Gets a [SafeStruct] table field given its exact type. Returns [None] if the field is not set. Returns error if
     /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// the [field_name] doesn't match the table.
     pub fn get_field_struct(&self, field_name: &str) -> FlatbufferResult<Option<SafeStruct<'a>>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let optional_st =
-                unsafe { get_field_struct(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
+                unsafe { get_field_struct(&Table::new(&self.safe_buf.buf, self.loc), &field) };
             Ok(optional_st.map(|st| SafeStruct {
                 safe_buf: self.safe_buf,
                 loc: st.loc(),
@@ -167,13 +168,26 @@ impl<'a> SafeTable<'a> {
     /// the table doesn't match the buffer or
     /// the [field_name] doesn't match the table or
     /// the field type doesn't match.
-    pub fn get_field_vector<T: Follow<'a, Inner = T>>(
+    pub fn get_field_vector<T: Follow<'a>>(
         &self,
         field_name: &str,
     ) -> FlatbufferResult<Vector<'a, T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
+            if field.type_().base_type() != BaseType::Vector
+                || core::mem::size_of::<T>() != get_type_size(field.type_().element())
+            {
+                return Err(FlatbufferError::FieldTypeMismatch(
+                    "Vector".to_string(),
+                    field
+                        .type_()
+                        .base_type()
+                        .variant_name()
+                        .unwrap_or_default()
+                        .to_string(),
+                ));
+            }
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_vector(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            Ok(unsafe { get_field_vector(&Table::new(&self.safe_buf.buf, self.loc), &field) })
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -181,13 +195,31 @@ impl<'a> SafeTable<'a> {
 
     /// Gets a [SafeTable] table field given its exact type. Returns [None] if the field is not set. Returns error if
     /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// the [field_name] doesn't match the table.
     pub fn get_field_table(&self, field_name: &str) -> FlatbufferResult<Option<SafeTable<'a>>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
+            if field.type_().base_type() != BaseType::Obj
+                || self
+                    .safe_buf
+                    .schema
+                    .objects()
+                    .get(field.type_().index() as usize)
+                    .is_struct()
+            {
+                return Err(FlatbufferError::FieldTypeMismatch(
+                    "Table".to_string(),
+                    field
+                        .type_()
+                        .base_type()
+                        .variant_name()
+                        .unwrap_or_default()
+                        .to_string(),
+                ));
+            }
+
             // SAFETY: the buffer was verified during construction.
             let optional_table =
-                unsafe { get_field_table(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
+                unsafe { get_field_table(&Table::new(&self.safe_buf.buf, self.loc), &field) };
             Ok(optional_table.map(|t| SafeTable {
                 safe_buf: self.safe_buf,
                 loc: t.loc(),
@@ -252,13 +284,12 @@ pub struct SafeStruct<'a> {
 impl<'a> SafeStruct<'a> {
     /// Gets a [SafeStruct] struct field given its exact type. Returns error if
     /// the struct doesn't match the buffer or
-    /// the [field_name] doesn't match the struct or
-    /// the field type doesn't match.
+    /// the [field_name] doesn't match the struct.
     pub fn get_field_struct(&self, field_name: &str) -> FlatbufferResult<SafeStruct<'a>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let st = unsafe {
-                get_field_struct_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)?
+                get_field_struct_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)
             };
             Ok(SafeStruct {
                 safe_buf: self.safe_buf,
