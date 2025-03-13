@@ -143,24 +143,27 @@ pub unsafe fn get_field_struct<'a>(table: &Table<'a>, field: &Field) -> Option<S
 ///
 /// Returns an empty vector if the field is not set.
 ///
-/// Returns an error if the field is not a vector or its elements have a different size to `T`.
-///
-/// Does not work with vectors of structs, because a struct element's size cannot be checked on
-/// older schema versions without access to the schema. To use with vectors of tables, use `T =
-/// ForwardsUOffset<Table<'a>>`.
+/// Non-scalar values such as tables or strings are not stored inline. In such cases, you should use
+/// `ForwardsUOffset`. So for example, use `T = ForwardsUOffset<Table<'a>>` for a vector of tables,
+/// or `T = ForwardsUOffset<&'a str>` for a vector of strings.
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must be a vector of elements of type `T`.
+/// The value of the corresponding slot must be a vector of elements of type `T` which are stored
+/// inline.
 pub unsafe fn get_field_vector<'a, T: Follow<'a>>(
     table: &Table<'a>,
     field: &Field,
 ) -> Vector<'a, T> {
     debug_assert_eq!(field.type_().base_type(), BaseType::Vector);
-    debug_assert_eq!(
-        core::mem::size_of::<T>(),
-        get_type_size(field.type_().element())
-    );
+    if field.type_().element() != BaseType::Obj {
+        // Skip this check in the case that it is a vector of structs, because the struct element's
+        // size cannot be checked on older schema versions without access to the schema.
+        debug_assert_eq!(
+            core::mem::size_of::<T>(),
+            get_type_size(field.type_().element())
+        );
+    }
     // SAFETY: get() always returns either Some or default, which is a Some in this case. Therefore
     // it always returns a Some, so we can use unwrap_unchecked().
     table
