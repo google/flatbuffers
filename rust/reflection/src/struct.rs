@@ -33,6 +33,11 @@ impl<'a> Struct<'a> {
         self.loc
     }
 
+    #[inline]
+    pub fn bytes(&self) -> &'a [u8] {
+        &self.buf[self.loc..]
+    }
+    
     /// # Safety
     ///
     /// [buf] must contain a valid struct at [loc]
