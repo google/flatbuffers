@@ -1767,19 +1767,19 @@ mod write_and_read_examples {
         assert_eq!(
             format!("{:.5?}", &m),
             "Monster { pos: Some(Vec3 { x: 1.00000, y: 2.00000, z: 3.00000, \
-            test1: 3.00000, test2: Green, test3: Test { a: 5, b: 6 } }), \
-            mana: 150, hp: 80, name: \"MyMonster\", \
-            inventory: Some([0, 1, 2, 3, 4]), color: Blue, test_type: Monster, \
-            test: Monster { pos: None, mana: 150, hp: 100, name: \"Fred\", \
-            inventory: None, color: Blue, test_type: NONE, test: None, \
-            test4: None, testarrayofstring: None, testarrayoftables: None, \
-            enemy: None, testnestedflatbuffer: None, testempty: None, \
-            testbool: false, testhashs32_fnv1: 0, testhashu32_fnv1: 0, \
-            testhashs64_fnv1: 0, testhashu64_fnv1: 0, testhashs32_fnv1a: 0, \
-            testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, testhashu64_fnv1a: 0, \
-            testarrayofbools: None, testf: 3.14159, testf2: 3.00000, testf3: 0.00000, \
-            testarrayofstring2: None, testarrayofsortedstruct: None, flex: None, \
-            test5: None, vector_of_longs: None, vector_of_doubles: None, \
+            test1: 3.00000, test2: Color(Green), test3: Test { a: 5, b: 6 } \
+            }), mana: 150, hp: 80, name: \"MyMonster\", inventory: Some([0, 1, \
+            2, 3, 4]), color: Color(Blue), test_type: Monster, test: Monster { \
+            pos: None, mana: 150, hp: 100, name: \"Fred\", inventory: None, \
+            color: Color(Blue), test_type: NONE, test: None, test4: None, \
+            testarrayofstring: None, testarrayoftables: None, enemy: None, \
+            testnestedflatbuffer: None, testempty: None, testbool: false, \
+            testhashs32_fnv1: 0, testhashu32_fnv1: 0, testhashs64_fnv1: 0, \
+            testhashu64_fnv1: 0, testhashs32_fnv1a: 0, testhashu32_fnv1a: 0, \
+            testhashs64_fnv1a: 0, testhashu64_fnv1a: 0, testarrayofbools: \
+            None, testf: 3.14159, testf2: 3.00000, testf3: 0.00000, \
+            testarrayofstring2: None, testarrayofsortedstruct: None, flex: \
+            None, test5: None, vector_of_longs: None, vector_of_doubles: None, \
             parent_namespace_test: None, vector_of_referrables: None, \
             single_weak_reference: 0, vector_of_weak_references: None, \
             vector_of_strong_referrables: None, co_owning_reference: 0, \
@@ -1787,22 +1787,22 @@ mod write_and_read_examples {
             vector_of_non_owning_references: None, any_unique_type: NONE, \
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
-            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
-            native_inline: None, long_enum_non_enum_default: (empty), \
-            long_enum_normal_default: LongOne, nan_default: NaN, inf_default: \
-            inf, positive_inf_default: inf, infinity_default: inf, \
-            positive_infinity_default: inf, negative_inf_default: -inf, \
-            negative_infinity_default: -inf, double_inf_default: inf }, \
-            test4: Some([Test { a: 10, b: 20 }, Test { a: 30, b: 40 }]), \
-            testarrayofstring: Some([\"test1\", \"test2\"]), \
-            testarrayoftables: None, enemy: None, testnestedflatbuffer: None, \
-            testempty: None, testbool: false, testhashs32_fnv1: 0, \
-            testhashu32_fnv1: 0, testhashs64_fnv1: 0, testhashu64_fnv1: 0, \
-            testhashs32_fnv1a: 0, testhashu32_fnv1a: 0, testhashs64_fnv1a: 0, \
-            testhashu64_fnv1a: 0, testarrayofbools: None, testf: 3.14159, \
-            testf2: 3.00000, testf3: 0.00000, testarrayofstring2: None, \
-            testarrayofsortedstruct: None, flex: None, test5: None, \
-            vector_of_longs: None, vector_of_doubles: None, \
+            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: \
+            None, native_inline: None, long_enum_non_enum_default: \
+            LongEnum(0x0), long_enum_normal_default: LongEnum(LongOne), \
+            nan_default: NaN, inf_default: inf, positive_inf_default: inf, \
+            infinity_default: inf, positive_infinity_default: inf, \
+            negative_inf_default: -inf, negative_infinity_default: -inf, \
+            double_inf_default: inf }, test4: Some([Test { a: 10, b: 20 }, \
+            Test { a: 30, b: 40 }]), testarrayofstring: Some([\"test1\", \
+            \"test2\"]), testarrayoftables: None, enemy: None, \
+            testnestedflatbuffer: None, testempty: None, testbool: false, \
+            testhashs32_fnv1: 0, testhashu32_fnv1: 0, testhashs64_fnv1: 0, \
+            testhashu64_fnv1: 0, testhashs32_fnv1a: 0, testhashu32_fnv1a: 0, \
+            testhashs64_fnv1a: 0, testhashu64_fnv1a: 0, testarrayofbools: \
+            None, testf: 3.14159, testf2: 3.00000, testf3: 0.00000, \
+            testarrayofstring2: None, testarrayofsortedstruct: None, flex: \
+            None, test5: None, vector_of_longs: None, vector_of_doubles: None, \
             parent_namespace_test: None, vector_of_referrables: None, \
             single_weak_reference: 0, vector_of_weak_references: None, \
             vector_of_strong_referrables: None, co_owning_reference: 0, \
@@ -1810,12 +1810,13 @@ mod write_and_read_examples {
             vector_of_non_owning_references: None, any_unique_type: NONE, \
             any_unique: None, any_ambiguous_type: NONE, any_ambiguous: None, \
             vector_of_enums: None, signed_enum: None, \
-            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: None, \
-            native_inline: None, long_enum_non_enum_default: (empty), \
-            long_enum_normal_default: LongOne, nan_default: NaN, inf_default: \
-            inf, positive_inf_default: inf, infinity_default: inf, \
-            positive_infinity_default: inf, negative_inf_default: -inf, \
-            negative_infinity_default: -inf, double_inf_default: inf }"
+            testrequirednestedflatbuffer: None, scalar_key_sorted_tables: \
+            None, native_inline: None, long_enum_non_enum_default: \
+            LongEnum(0x0), long_enum_normal_default: LongEnum(LongOne), \
+            nan_default: NaN, inf_default: inf, positive_inf_default: inf, \
+            infinity_default: inf, positive_infinity_default: inf, \
+            negative_inf_default: -inf, negative_infinity_default: -inf, \
+            double_inf_default: inf }"
         );
     }
 
@@ -2421,6 +2422,14 @@ mod push_impls {
                     0, 0, 0, 0,
                     0, 0, 0, 0,
                     0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn push_u8_generated_struct_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(my_game::example::Test::new(10, 20));
+        check(&b, &[10, 0, 20, 0, 0, 1]);
     }
 }
 

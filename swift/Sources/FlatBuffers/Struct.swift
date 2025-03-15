@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// Struct is a representation of a mutable `Flatbuffers` struct
 /// since native structs are value types and cant be mutated
@@ -28,7 +24,7 @@ public struct Struct {
   /// Hosting Bytebuffer
   public private(set) var bb: ByteBuffer
   /// Current position of the struct
-  public private(set) var postion: Int32
+  public private(set) var position: Int32
 
   /// Initializer for a mutable flatbuffers struct
   /// - Parameters:
@@ -36,7 +32,7 @@ public struct Struct {
   ///   - position: Current position for the struct in the ByteBuffer
   public init(bb: ByteBuffer, position: Int32 = 0) {
     self.bb = bb
-    postion = position
+    self.position = position
   }
 
   /// Reads data from the buffer directly at offset O
@@ -45,7 +41,7 @@ public struct Struct {
   ///   - o: Current offset of the data
   /// - Returns: Data of Type T that conforms to type Scalar
   public func readBuffer<T: Scalar>(of type: T.Type, at o: Int32) -> T {
-    let r = bb.read(def: T.self, position: Int(o + postion))
+    let r = bb.read(def: T.self, position: Int(o + position))
     return r
   }
 }

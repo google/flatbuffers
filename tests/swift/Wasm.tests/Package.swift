@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.9
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -24,11 +24,13 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../.."),
+    .package(url: "https://github.com/swiftwasm/carton", exact: "1.1.2"),
   ],
   targets: [
-    .target(
-      name: "Wasm"),
+    .target(name: "Wasm"),
     .testTarget(
       name: "FlatBuffers.Test.Swift.WasmTests",
-      dependencies: ["FlatBuffers"]),
+      dependencies: [
+        .product(name: "FlatBuffers", package: "flatbuffers"),
+      ]),
   ])

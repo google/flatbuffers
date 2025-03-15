@@ -470,7 +470,11 @@ class CppGenerator : public BaseGenerator {
 
           // Check that nativeName doesn't collide the name of another struct.
           for (const auto &other_struct_def : parser_.structs_.vec) {
-            if (other_struct_def == struct_def) { continue; }
+            if (other_struct_def == struct_def ||
+                other_struct_def->defined_namespace !=
+                    struct_def->defined_namespace) {
+              continue;
+            }
 
             auto other_name = Name(*other_struct_def);
             if (nativeName == other_name) {
@@ -2649,7 +2653,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "if constexpr (Index == {{FIELD_INDEX}}) \\";
       code_ += "return {{FIELD_NAME}}();";
     }
-    code_ += "    else static_assert(Index != Index, \"Invalid Field Index\");";
+    code_ += "    else static_assert(Index != -1, \"Invalid Field Index\");";
     code_ += "  }";
   }
 
@@ -3305,7 +3309,7 @@ class CppGenerator : public BaseGenerator {
                 "static_cast<::flatbuffers::hash_value_t>(" + indexing + "));";
             if (PtrType(&field) == "naked") {
               code += " else ";
-              code += "_o->" + name + "[_i]" + access + " = nullptr";
+              code += "_o->" + name + "[_i]" + access + " = nullptr; ";
             } else {
               // code += " else ";
               // code += "_o->" + name + "[_i]" + access + " = " +
@@ -3323,9 +3327,10 @@ class CppGenerator : public BaseGenerator {
             code += "_o->" + name + "[_i]" + access + " = ";
             code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
                                  field);
-            if (is_pointer) { code += "; }"; }
+            code += "; ";
+            if (is_pointer) { code += "} "; }
           }
-          code += "; } } else { " + vector_field + ".resize(0); }";
+          code += "} } else { " + vector_field + ".resize(0); }";
         }
         break;
       }

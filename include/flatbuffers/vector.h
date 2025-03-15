@@ -56,12 +56,24 @@ struct VectorIterator {
     return data_ == other.data_;
   }
 
+  bool operator!=(const VectorIterator &other) const {
+    return data_ != other.data_;
+  }
+
   bool operator<(const VectorIterator &other) const {
     return data_ < other.data_;
   }
 
-  bool operator!=(const VectorIterator &other) const {
-    return data_ != other.data_;
+  bool operator>(const VectorIterator &other) const {
+    return data_ > other.data_;
+  }
+
+  bool operator<=(const VectorIterator &other) const {
+    return !(data_ > other.data_);
+  }
+
+  bool operator>=(const VectorIterator &other) const {
+    return !(data_ < other.data_);
   }
 
   difference_type operator-(const VectorIterator &other) const {
@@ -162,6 +174,11 @@ template<typename T, typename SizeT = uoffset_t> class Vector {
       scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1);
 
   SizeT size() const { return EndianScalar(length_); }
+
+  // Returns true if the vector is empty.
+  //
+  // This just provides another standardized method that is expected of vectors.
+  bool empty() const { return size() == 0; }
 
   // Deprecated: use size(). Here for backwards compatibility.
   FLATBUFFERS_ATTRIBUTE([[deprecated("use size() instead")]])

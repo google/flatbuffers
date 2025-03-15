@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// ``FlatBufferBuilder`` builds a `FlatBuffer` through manipulating its internal state.
 ///
@@ -150,12 +146,12 @@ public struct FlatBufferBuilder {
   /// by the generated code*
   @inline(__always)
   mutating public func require(table: Offset, fields: [Int32]) {
-    for field in fields {
+    for index in stride(from: 0, to: fields.count, by: 1) {
       let start = _bb.capacity &- Int(table.o)
       let startTable = start &- Int(_bb.read(def: Int32.self, position: start))
       let isOkay = _bb.read(
         def: VOffset.self,
-        position: startTable &+ Int(field)) != 0
+        position: startTable &+ Int(fields[index])) != 0
       assert(isOkay, "Flatbuffers requires the following field")
     }
   }
@@ -289,13 +285,13 @@ public struct FlatBufferBuilder {
     let vt2 = _bb.memory.advanced(by: _bb.writerIndex)
     let len2 = vt2.load(fromByteOffset: 0, as: Int16.self)
 
-    for table in _vtables {
-      let position = _bb.capacity &- Int(table)
+    for index in stride(from: 0, to: _vtables.count, by: 1) {
+      let position = _bb.capacity &- Int(_vtables[index])
       let vt1 = _bb.memory.advanced(by: position)
       let len1 = _bb.read(def: Int16.self, position: position)
       if len2 != len1 || 0 != memcmp(vt1, vt2, Int(len2)) { continue }
 
-      isAlreadyAdded = Int(table)
+      isAlreadyAdded = Int(_vtables[index])
       break
     }
 
@@ -384,7 +380,7 @@ public struct FlatBufferBuilder {
   @inline(__always)
   @usableFromInline
   mutating internal func track(offset: UOffset, at position: VOffset) {
-    _vtableStorage.add(loc: FieldLoc(offset: offset, position: position))
+    _vtableStorage.add(loc: (offset: offset, position: position))
   }
 
   // MARK: - Inserting Vectors
@@ -528,8 +524,8 @@ public struct FlatBufferBuilder {
   {
     let size = size
     startVector(size, elementSize: T.byteSize)
-    for e in elements.reversed() {
-      _bb.push(value: e.value, len: T.byteSize)
+    for index in stride(from: elements.count, to: 0, by: -1) {
+      _bb.push(value: elements[index &- 1].value, len: T.byteSize)
     }
     return endVector(len: size)
   }
@@ -573,8 +569,8 @@ public struct FlatBufferBuilder {
     len: Int) -> Offset
   {
     startVector(len, elementSize: MemoryLayout<Offset>.size)
-    for o in offsets.reversed() {
-      push(element: o)
+    for index in stride(from: offsets.count, to: 0, by: -1) {
+      push(element: offsets[index &- 1])
     }
     return endVector(len: len)
   }
@@ -597,8 +593,8 @@ public struct FlatBufferBuilder {
   @inline(__always)
   mutating public func createVector(ofStrings str: [String]) -> Offset {
     var offsets: [Offset] = []
-    for s in str {
-      offsets.append(create(string: s))
+    for index in stride(from: 0, to: str.count, by: 1) {
+      offsets.append(create(string: str[index]))
     }
     return createVector(ofOffsets: offsets)
   }
@@ -650,9 +646,8 @@ public struct FlatBufferBuilder {
     struct s: T, position: VOffset) -> Offset
   {
     let offset = create(struct: s)
-    _vtableStorage.add(loc: FieldLoc(
-      offset: _bb.size,
-      position: VOffset(position)))
+    _vtableStorage.add(
+      loc: (offset: _bb.size, position: VOffset(position)))
     return offset
   }
 
@@ -815,7 +810,7 @@ public struct FlatBufferBuilder {
   /// *NOTE: Never call this manually*
   ///
   /// - Parameter element: Element to insert
-  /// - returns: Postion of the Element
+  /// - returns: position of the Element
   @inline(__always)
   @discardableResult
   mutating public func push<T: Scalar>(element: T) -> UOffset {
@@ -836,9 +831,12 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     buffer debug:
     \(_bb)
     builder debug:
-    { finished: \(finished), serializeDefaults: \(serializeDefaults), isNested: \(isNested) }
+    { finished: \(finished), serializeDefaults: \(
+      serializeDefaults), isNested: \(isNested) }
     """
   }
+
+  typealias FieldLoc = (offset: UOffset, position: VOffset)
 
   /// VTableStorage is a class to contain the VTable buffer that would be serialized into buffer
   @usableFromInline
@@ -923,12 +921,5 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
     func load(at index: Int) -> FieldLoc {
       memory.load(fromByteOffset: index, as: FieldLoc.self)
     }
-
   }
-
-  internal struct FieldLoc {
-    var offset: UOffset
-    var position: VOffset
-  }
-
 }

@@ -4,7 +4,7 @@
 
 public struct BytesCount: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
 
   private var _x: Int64
 
@@ -47,7 +47,7 @@ extension BytesCount: Encodable {
 
 public struct BytesCount_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -72,7 +72,7 @@ public struct BytesCount_Mutable: FlatBufferObject {
 
 public struct InternalMessage: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -155,7 +155,7 @@ public class InternalMessageT: NativeObject {
 }
 public struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -173,8 +173,8 @@ public struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
   public var id: Int64 { let o = _accessor.offset(VTOFFSET.id.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int64.self, at: o) }
   @discardableResult public func mutate(id: Int64) -> Bool {let o = _accessor.offset(VTOFFSET.id.v);  return _accessor.mutate(id, index: o) }
   public var position: BytesCount! { let o = _accessor.offset(VTOFFSET.position.v); return _accessor.readBuffer(of: BytesCount.self, at: o) }
-  public var mutablePosition: BytesCount_Mutable! { let o = _accessor.offset(VTOFFSET.position.v); return BytesCount_Mutable(_accessor.bb, o: o + _accessor.postion) }
-  public var pointer: InternalMessage! { let o = _accessor.offset(VTOFFSET.pointer.v); return InternalMessage(_accessor.bb, o: _accessor.indirect(o + _accessor.postion)) }
+  public var mutablePosition: BytesCount_Mutable! { let o = _accessor.offset(VTOFFSET.position.v); return BytesCount_Mutable(_accessor.bb, o: o + _accessor.position) }
+  public var pointer: InternalMessage! { let o = _accessor.offset(VTOFFSET.pointer.v); return InternalMessage(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
   public static func startMessage(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 3) }
   public static func add(id: Int64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: id, def: 0, at: VTOFFSET.id.p) }
   public static func add(position: BytesCount?, _ fbb: inout FlatBufferBuilder) { guard let position = position else { return }; fbb.create(struct: position, position: VTOFFSET.position.p) }

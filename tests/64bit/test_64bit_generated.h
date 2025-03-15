@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 25,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 2 &&
+              FLATBUFFERS_VERSION_REVISION == 10,
              "Non-compatible flatbuffers version included");
 
 // For access to the binary schema that produced this file.
@@ -499,7 +499,7 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = nested_root(); if (_e) { _o->nested_root.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->nested_root.begin()); } }
   { auto _e = far_struct_vector(); if (_e) { _o->far_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->far_struct_vector[_i] = *_e->Get(_i); } } else { _o->far_struct_vector.resize(0); } }
   { auto _e = big_struct_vector(); if (_e) { _o->big_struct_vector.resize(_e->size()); for (::flatbuffers::uoffset64_t _i = 0; _i < _e->size(); _i++) { _o->big_struct_vector[_i] = *_e->Get(_i); } } else { _o->big_struct_vector.resize(0); } }
-  { auto _e = many_vectors(); if (_e) { _o->many_vectors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->many_vectors[_i]) { _e->Get(_i)->UnPackTo(_o->many_vectors[_i].get(), _resolver); } else { _o->many_vectors[_i] = std::unique_ptr<WrapperTableT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->many_vectors.resize(0); } }
+  { auto _e = many_vectors(); if (_e) { _o->many_vectors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->many_vectors[_i]) { _e->Get(_i)->UnPackTo(_o->many_vectors[_i].get(), _resolver); } else { _o->many_vectors[_i] = std::unique_ptr<WrapperTableT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->many_vectors.resize(0); } }
   { auto _e = forced_aligned_vector(); if (_e) { _o->forced_aligned_vector.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->forced_aligned_vector.begin()); } }
 }
 

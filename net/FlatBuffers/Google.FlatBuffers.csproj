@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net8.0</TargetFrameworks>
     <Description>A cross-platform memory efficient serialization library</Description>
-    <PackageVersion>24.3.25</PackageVersion>
+    <PackageVersion>25.2.10</PackageVersion>
     <Authors>Google LLC</Authors>
     <PackageProjectUrl>https://github.com/google/flatbuffers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/google/flatbuffers</RepositoryUrl>

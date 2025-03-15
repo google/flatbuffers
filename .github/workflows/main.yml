@@ -1,7 +1,7 @@
 name: OSS-Fuzz
 permissions: read-all
 
-on: 
+on:
   pull_request:
     branches:
       - master
@@ -27,7 +27,7 @@ jobs:
        language: c++
        fuzz-seconds: 60
    - name: Upload Crash
-     uses: actions/upload-artifact@v1
+     uses: actions/upload-artifact@v4
      if: failure() && steps.build.outcome == 'success'
      with:
        name: artifacts

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
 /// it allows users to write and read data directly from memory thus the use of its
@@ -104,7 +100,7 @@ public struct ByteBuffer {
 
   /// The size of the elements written to the buffer + their paddings
   private var _writerSize: Int = 0
-  /// Aliginment of the current  memory being written to the buffer
+  /// Alignment of the current  memory being written to the buffer
   var alignment = 1
   /// Current Index which is being used to write to the buffer, it is written from the end to the start of the buffer
   var writerIndex: Int { _storage.capacity &- _writerSize }
@@ -121,11 +117,11 @@ public struct ByteBuffer {
   public let allowReadingUnalignedBuffers: Bool
 
   /// Constructor that creates a Flatbuffer object from a UInt8
-  /// - Parameter 
+  /// - Parameter
   ///   - bytes: Array of UInt8
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   public init(
-    bytes: [UInt8], 
+    bytes: [UInt8],
     allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
   {
     var b = bytes
@@ -133,17 +129,17 @@ public struct ByteBuffer {
     _writerSize = _storage.capacity
     allowReadingUnalignedBuffers = allowUnalignedBuffers
     b.withUnsafeMutableBytes { bufferPointer in
-      self._storage.copy(from: bufferPointer.baseAddress!, count: bytes.count)
+      _storage.copy(from: bufferPointer.baseAddress!, count: bytes.count)
     }
   }
 
   #if !os(WASI)
   /// Constructor that creates a Flatbuffer from the Swift Data type object
-  /// - Parameter 
+  /// - Parameter
   ///   - data: Swift data Object
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   public init(
-    data: Data, 
+    data: Data,
     allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
   {
     var b = data
@@ -151,7 +147,7 @@ public struct ByteBuffer {
     _writerSize = _storage.capacity
     allowReadingUnalignedBuffers = allowUnalignedBuffers
     b.withUnsafeMutableBytes { bufferPointer in
-      self._storage.copy(from: bufferPointer.baseAddress!, count: data.count)
+      _storage.copy(from: bufferPointer.baseAddress!, count: data.count)
     }
   }
   #endif
@@ -175,7 +171,7 @@ public struct ByteBuffer {
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   public init<Bytes: ContiguousBytes>(
     contiguousBytes: Bytes,
-    count: Int, 
+    count: Int,
     allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
   {
     _storage = Storage(count: count, alignment: alignment)
@@ -208,7 +204,7 @@ public struct ByteBuffer {
   ///   - count: count of bytes
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   init(
-    memory: UnsafeMutableRawPointer, 
+    memory: UnsafeMutableRawPointer,
     count: Int,
     allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
   {
@@ -228,7 +224,7 @@ public struct ByteBuffer {
     memory: UnsafeMutableRawPointer,
     count: Int,
     removing removeBytes: Int,
-    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false) 
+    allowReadingUnalignedBuffers allowUnalignedBuffers: Bool = false)
   {
     _storage = Storage(count: count, alignment: alignment)
     _storage.copy(from: memory, count: count)
@@ -255,9 +251,9 @@ public struct ByteBuffer {
       ensureSpace(size: ptr.count)
       memcpy(
         _storage.memory.advanced(by: writerIndex &- ptr.count),
-        UnsafeRawPointer(ptr.baseAddress!),
+        ptr.baseAddress!,
         ptr.count)
-      self._writerSize = self._writerSize &+ ptr.count
+      _writerSize = _writerSize &+ ptr.count
     }
   }
 
@@ -268,10 +264,11 @@ public struct ByteBuffer {
   mutating func push<T: NativeStruct>(elements: [T]) {
     elements.withUnsafeBytes { ptr in
       ensureSpace(size: ptr.count)
-      _storage.memory
-        .advanced(by: writerIndex &- ptr.count)
-        .copyMemory(from: ptr.baseAddress!, byteCount: ptr.count)
-      self._writerSize = self._writerSize &+ ptr.count
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- ptr.count),
+        ptr.baseAddress!,
+        ptr.count)
+      _writerSize = _writerSize &+ ptr.count
     }
   }
 
@@ -285,9 +282,9 @@ public struct ByteBuffer {
       ensureSpace(size: ptr.count)
       memcpy(
         _storage.memory.advanced(by: writerIndex &- ptr.count),
-        UnsafeRawPointer(ptr.baseAddress!),
+        ptr.baseAddress!,
         ptr.count)
-      self._writerSize = self._writerSize &+ ptr.count
+      _writerSize = _writerSize &+ ptr.count
     }
   }
   #endif
@@ -300,13 +297,12 @@ public struct ByteBuffer {
   @inline(__always)
   mutating func push<T: NativeStruct>(struct value: T, size: Int) {
     ensureSpace(size: size)
-    var v = value
-    withUnsafeBytes(of: &v) {
+    withUnsafePointer(to: value) {
       memcpy(
         _storage.memory.advanced(by: writerIndex &- size),
-        $0.baseAddress!,
+        $0,
         size)
-      self._writerSize = self._writerSize &+ size
+      _writerSize = _writerSize &+ size
     }
   }
 
@@ -318,13 +314,12 @@ public struct ByteBuffer {
   @usableFromInline
   mutating func push<T: Scalar>(value: T, len: Int) {
     ensureSpace(size: len)
-    var v = value
-    withUnsafeBytes(of: &v) {
+    withUnsafePointer(to: value) {
       memcpy(
         _storage.memory.advanced(by: writerIndex &- len),
-        $0.baseAddress!,
+        $0,
         len)
-      self._writerSize = self._writerSize &+ len
+      _writerSize = _writerSize &+ len
     }
   }
 
@@ -359,7 +354,7 @@ public struct ByteBuffer {
   {
     memcpy(
       _storage.memory.advanced(by: writerIndex &- len),
-      UnsafeRawPointer(bytes.baseAddress!),
+      bytes.baseAddress!,
       len)
     _writerSize = _writerSize &+ len
     return true
@@ -381,7 +376,12 @@ public struct ByteBuffer {
     }
     assert(index < _storage.capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    _storage.memory.storeBytes(of: value, toByteOffset: index, as: T.self)
+    withUnsafePointer(to: value) {
+      memcpy(
+        _storage.memory.advanced(by: index),
+        $0,
+        MemoryLayout<T>.size)
+    }
   }
 
   /// Makes sure that buffer has enouch space for each of the objects that will be written into it
@@ -429,11 +429,9 @@ public struct ByteBuffer {
   ///   - position: the index of the object in the buffer
   @inline(__always)
   public func read<T>(def: T.Type, position: Int) -> T {
-    #if swift(>=5.7)
     if allowReadingUnalignedBuffers {
       return _storage.memory.advanced(by: position).loadUnaligned(as: T.self)
     }
-    #endif
     return _storage.memory.advanced(by: position).load(as: T.self)
   }
 
@@ -480,7 +478,6 @@ public struct ByteBuffer {
   /// - Parameters:
   ///   - index: index of the string in the buffer
   ///   - count: length of the string
-  ///   - type: Encoding of the string
   @inline(__always)
   public func readString(
     at index: Int,
@@ -538,7 +535,8 @@ extension ByteBuffer: CustomDebugStringConvertible {
   public var debugDescription: String {
     """
     buffer located at: \(_storage.memory), with capacity of \(_storage.capacity)
-    { writerSize: \(_writerSize), readerSize: \(reader), writerIndex: \(writerIndex) }
+    { writerSize: \(_writerSize), readerSize: \(reader), writerIndex: \(
+      writerIndex) }
     """
   }
 }

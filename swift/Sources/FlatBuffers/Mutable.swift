@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// Mutable is a protocol that allows us to mutate Scalar values within a ``ByteBuffer``
 public protocol Mutable {
   /// makes Flatbuffer accessed within the Protocol
   var bb: ByteBuffer { get }
-  /// makes position of the ``Table``/``struct`` accessed within the Protocol
-  var postion: Int32 { get }
+  /// makes position of the ``Table``/``Struct`` accessed within the Protocol
+  var position: Int32 { get }
 }
 
 extension Mutable {
@@ -49,7 +45,7 @@ extension Mutable where Self == Table {
   ///   - index: index of the Element
   public func mutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
     guard index != 0 else { return false }
-    return mutate(value: value, o: index + postion)
+    return mutate(value: value, o: index + position)
   }
 
   /// Directly mutates the element by calling mutate
@@ -70,7 +66,7 @@ extension Mutable where Self == Struct {
   ///   - value: New value to be inserted to the buffer
   ///   - index: index of the Element
   public func mutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
-    mutate(value: value, o: index + postion)
+    mutate(value: value, o: index + position)
   }
 
   /// Directly mutates the element by calling mutate

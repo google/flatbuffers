@@ -12,6 +12,9 @@ on:
   pull_request:
     branches:
       - master
+  schedule:
+    # Run daily at 4:45 A.M. to catch dependencies that break us.
+    - cron: '45 4 * * *'
 
 jobs:
   build-linux:
@@ -21,10 +24,10 @@ jobs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
     name: Build Linux
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        cxx: [g++-13, clang++-15]
+        cxx: [g++-13, clang++-18]
       fail-fast: false
     steps:
     - uses: actions/checkout@v3
@@ -39,7 +42,7 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
@@ -53,7 +56,7 @@ jobs:
       with:
         files: Linux.flatc.binary.${{ matrix.cxx }}.zip
     - name: Generate SLSA subjects - clang
-      if: matrix.cxx == 'clang++-15' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.cxx == 'clang++-18' && startsWith(github.ref, 'refs/tags/')
       id: hash-clang
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
     - name: Generate SLSA subjects - gcc
@@ -63,11 +66,11 @@ jobs:
 
   build-linux-no-file-tests:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: CXX=clang++-15 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
+      run: CXX=clang++-18 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
       run: make -j
     - name: test
@@ -75,7 +78,7 @@ jobs:
 
   build-linux-out-of-source:
     name: Build Linux with out-of-source build location
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: make build directory
@@ -83,7 +86,7 @@ jobs:
     - name: cmake
       working-directory: build
       run: >
-        CXX=clang++-15 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
+        CXX=clang++-18 cmake .. -G "Unix Makefiles" -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_CPP_STD=17
     - name: build
       working-directory: build
@@ -97,15 +100,15 @@ jobs:
 
   build-linux-cpp-std:
     name: Build Linux C++
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         std: [11, 14, 17, 20, 23]
-        cxx: [g++-13, clang++-15]
+        cxx: [g++-13, clang++-18]
         exclude:
           # Clang++15 10.3.0 stdlibc++ doesn't fully support std 23
-          - cxx: clang++-15
+          - cxx: clang++-18
             std: 23
 
     steps:
@@ -167,7 +170,7 @@ jobs:
     - name: test
       run: Release\flattests.exe
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Windows flatc binary
         path: Release\flatc.exe
@@ -200,7 +203,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4.2.0
       with:
         dotnet-version: '8.0.x'
     - name: Build
@@ -208,11 +211,16 @@ jobs:
         cd tests\FlatBuffers.Test
         dotnet new sln --force --name FlatBuffers.Test
         dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
-        dotnet build -c Release ${{matrix.configuration}} -o out FlatBuffers.Test.sln
-    - name: Run
+        dotnet build -c Release ${{matrix.configuration}} FlatBuffers.Test.sln
+    - name: Run net6.0
       run: |
-        cd tests\FlatBuffers.Test
-        out\FlatBuffers.Test.exe
+        cd tests\FlatBuffers.Test\bin\Release\net6.0
+        dir
+        .\FlatBuffers.Test.exe
+    - name: Run net8.0
+      run: |
+        cd tests\FlatBuffers.Test\bin\Release\net8.0
+        .\FlatBuffers.Test.exe
 
   build-mac-intel:
     permissions:
@@ -220,11 +228,11 @@ jobs:
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
-    runs-on: macos-latest
+    runs-on: macos-latest-large
     steps:
     - uses: actions/checkout@v3
     - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: xcodebuild -toolchain clang -configuration Release -target flattests
     - name: check that the binary is x86_64
@@ -239,9 +247,9 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
-        name: Mac flatc binary
+        name: Mac flatc binary Intel
         path: Release/flatc
     # Below if only for release.
     - name: Zip file
@@ -282,9 +290,9 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
-        name: Mac flatc binary
+        name: Mac flatc binary Universal
         path: Release/flatc
     # Below if only for release.
     - name: Zip file
@@ -302,7 +310,7 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
-   runs-on: ubuntu-22.04-64core
+   runs-on: ubuntu-24.04
    steps:
    - uses: actions/checkout@v3
    - name: set up Java
@@ -321,10 +329,10 @@ jobs:
 
   build-generator:
     name: Check Generated Code
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        cxx: [g++-13, clang++-15]
+        cxx: [g++-13, clang++-18]
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -352,7 +360,7 @@ jobs:
 
   build-benchmarks:
     name: Build Benchmarks (on Linux)
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         cxx: [g++-13]
@@ -363,14 +371,14 @@ jobs:
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: Linux flatbenchmark results ${{matrix.cxx}}
         path: benchmarks/results_${{matrix.cxx}}
 
   build-java:
     name: Build Java
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -379,10 +387,17 @@ jobs:
 
   build-kotlin-macos:
     name: Build Kotlin MacOS
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      # Force Xcode 14.3 since Xcode 15 doesnt support older versions of
+      # kotlin. For Xcode 15, kotlin should be bumpped to 1.9.10
+      # https://stackoverflow.com/a/77150623
+      # For now, run with macos-13 which has this 14.3 installed: 
+      # https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
+    - name: Set up Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_14.3.app/Contents/Developer
     - uses: gradle/wrapper-validation-action@v1.0.5
     - uses: actions/setup-java@v3
       with:
@@ -399,7 +414,7 @@ jobs:
 
   build-kotlin-linux:
     name: Build Kotlin Linux
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -422,7 +437,7 @@ jobs:
 
   build-rust-linux:
     name: Build Rust Linux
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -440,7 +455,7 @@ jobs:
 
   build-python:
     name: Build Python
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -452,7 +467,7 @@ jobs:
 
   build-go:
     name: Build Go
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -464,7 +479,7 @@ jobs:
 
   build-php:
    name: Build PHP
-   runs-on: ubuntu-22.04-64core
+   runs-on: ubuntu-24.04
    steps:
    - uses: actions/checkout@v3
    - name: flatc
@@ -478,9 +493,18 @@ jobs:
 
   build-swift:
     name: Build Swift
-    runs-on: ubuntu-22.04-64core
+    strategy:
+      matrix:
+        swift: ["5.9", "5.10", "6.0"]
+    # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
+    - uses: swift-actions/setup-swift@v2
+      with:
+        swift-version: ${{ matrix.swift }}
+    - name: Get swift version
+      run: swift --version
     - name: test
       working-directory: tests/swift/tests
       run: |
@@ -489,20 +513,22 @@ jobs:
 
   build-swift-wasm:
     name: Build Swift Wasm
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/swiftwasm/carton:0.15.3
+      image: ghcr.io/swiftwasm/carton:0.20.1
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Wasmer
-        uses: wasmerio/setup-wasmer@v2
-      - name: Test
-        working-directory: tests/swift/Wasm.tests
-        run: carton test
+       - uses: actions/checkout@v3
+       - uses: bytecodealliance/actions/wasmtime/setup@v1
+       - uses: swiftwasm/setup-swiftwasm@v1
+         with:
+           swift-version: "wasm-6.0.2-RELEASE"
+       - name: Test
+         working-directory: tests/swift/Wasm.tests
+         run: swift run carton test
 
   build-ts:
     name: Build TS
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -520,7 +546,7 @@ jobs:
 
   build-dart:
     name: Build Dart
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
@@ -535,7 +561,7 @@ jobs:
 
   build-nim:
     name: Build Nim
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v3
     - name: flatc
@@ -549,12 +575,27 @@ jobs:
       working-directory: tests/nim
       run: python3 testnim.py
 
+  bazel:
+    name: Bazel
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: bazel build
+        run: >
+          bazel build 
+          //:flatc
+          //:flatbuffers
+      - name: bazel test
+        run: >
+          bazel test 
+          //tests:flatbuffers_test
+
   release-digests:
     if: startsWith(github.ref, 'refs/tags/')
     needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
-    runs-on: ubuntu-22.04-64core
+    runs-on: ubuntu-24.04
     steps:
       - name: Merge results
         id: hash

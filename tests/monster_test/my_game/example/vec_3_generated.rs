@@ -50,8 +50,12 @@ impl<'b> flatbuffers::Push for Vec3 {
     type Output = Vec3;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, Self::size());
+        let src = ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, <Self as flatbuffers::Push>::size());
         dst.copy_from_slice(src);
+    }
+    #[inline]
+    fn alignment() -> flatbuffers::PushAlignment {
+        flatbuffers::PushAlignment::new(8)
     }
 }
 

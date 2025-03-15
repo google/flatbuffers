@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import './monster_test_my_game.example_generated.dart' as example;
 import './monster_test_my_game.example2_generated.dart' as example2;
-import './list_of_enums_generated.dart' as example3;
+import 'enums_generated.dart' as example3;
 import './bool_structs_generated.dart' as example4;
 
 main() {
@@ -63,11 +63,11 @@ class CheckOtherLangaugesData {
     expect(
         mon.toString(),
         'Monster{'
-        'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, '
+        'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color.Green, test3: Test{a: 5, b: 6}}, '
         'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
-        'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
+        'color: Color.Blue, testType: AnyTypeId.Monster, '
         'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-        'inventory: null, color: Color{value: 8}, testType: null, '
+        'inventory: null, color: Color.Blue, testType: null, '
         'test: null, test4: null, testarrayofstring: null, '
         'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
         'testempty: null, testbool: false, testhashs32Fnv1: 0, '
@@ -82,18 +82,18 @@ class CheckOtherLangaugesData {
         'coOwningReference: 0, vectorOfCoOwningReferences: null, '
         'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
         'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race.None, '
         'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
         'nativeInline: null, '
-        'longEnumNonEnumDefault: LongEnum{value: 0}, '
-        'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
+        'longEnumNonEnumDefault: LongEnum._default, '
+        'longEnumNormalDefault: LongEnum.LongOne, nanDefault: NaN, '
         'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
         'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
         '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
         'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
         'testarrayofstring: [test1, test2], testarrayoftables: null, '
         'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-        'inventory: null, color: Color{value: 8}, testType: null, '
+        'inventory: null, color: Color.Blue, testType: null, '
         'test: null, test4: null, testarrayofstring: null, '
         'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
         'testempty: null, testbool: false, testhashs32Fnv1: 0, '
@@ -108,11 +108,11 @@ class CheckOtherLangaugesData {
         'coOwningReference: 0, vectorOfCoOwningReferences: null, '
         'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
         'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race.None, '
         'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
         'nativeInline: null, '
-        'longEnumNonEnumDefault: LongEnum{value: 0}, '
-        'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
+        'longEnumNonEnumDefault: LongEnum._default, '
+        'longEnumNormalDefault: LongEnum.LongOne, nanDefault: NaN, '
         'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
         'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
         '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
@@ -137,12 +137,12 @@ class CheckOtherLangaugesData {
         'vectorOfNonOwningReferences: null, '
         'anyUniqueType: null, anyUnique: null, '
         'anyAmbiguousType: null, '
-        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
+        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race.None, '
         'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
         'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}], '
         'nativeInline: Test{a: 1, b: 2}, '
-        'longEnumNonEnumDefault: LongEnum{value: 0}, '
-        'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
+        'longEnumNonEnumDefault: LongEnum._default, '
+        'longEnumNormalDefault: LongEnum.LongOne, nanDefault: NaN, '
         'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
         'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
         '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}');
@@ -215,6 +215,10 @@ class BuilderTest {
       ..addTestarrayofstringOffset(testArrayOfString);
     final mon = monBuilder.finish();
     fbBuilder.finish(mon);
+
+    final mon3 = example.Monster(fbBuilder.buffer);
+    expect(mon3.name, 'MyMonster');
+    expect(mon3.pos!.test1, 3.0);
   }
 
   void test_error_addInt32_withoutStartTable([Builder? builder]) {

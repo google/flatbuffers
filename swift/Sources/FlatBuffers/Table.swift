@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// `Table` is a Flatbuffers object that can read,
 /// mutate scalar fields within a valid flatbuffers buffer
@@ -28,7 +24,7 @@ public struct Table {
   /// Hosting Bytebuffer
   public private(set) var bb: ByteBuffer
   /// Current position of the table within the buffer
-  public private(set) var postion: Int32
+  public private(set) var position: Int32
 
   /// Initializer for the table interface to allow generated code to read
   /// data from memory
@@ -42,7 +38,7 @@ public struct Table {
         "Reading/Writing a buffer in big endian machine is not supported on swift")
     }
     self.bb = bb
-    postion = position
+    self.position = position
   }
 
   /// Gets the offset of the current field within the buffer by reading
@@ -50,7 +46,7 @@ public struct Table {
   /// - Parameter o: current offset
   /// - Returns: offset of field within buffer
   public func offset(_ o: Int32) -> Int32 {
-    let vtable = postion - bb.read(def: Int32.self, position: Int(postion))
+    let vtable = position - bb.read(def: Int32.self, position: Int(position))
     return o < bb
       .read(def: VOffset.self, position: Int(vtable)) ? Int32(bb.read(
         def: Int16.self,
@@ -68,7 +64,7 @@ public struct Table {
   /// String reads from the buffer with respect to position of the current table.
   /// - Parameter offset: Offset of the string
   public func string(at offset: Int32) -> String? {
-    directString(at: offset + postion)
+    directString(at: offset + position)
   }
 
   /// Direct string reads from the buffer disregarding the position of the table.
@@ -88,7 +84,7 @@ public struct Table {
   ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
   public func readBuffer<T>(of type: T.Type, at o: Int32) -> T {
-    directRead(of: T.self, offset: o + postion)
+    directRead(of: T.self, offset: o + position)
   }
 
   /// Reads from the buffer disregarding the position of the table.
@@ -114,7 +110,7 @@ public struct Table {
   /// - Parameter o: offset
   /// - Returns: A flatbuffers object
   public func union<T: FlatbuffersInitializable>(_ o: Int32) -> T {
-    let o = o + postion
+    let o = o + position
     return directUnion(o)
   }
 
@@ -140,7 +136,7 @@ public struct Table {
   /// - returns: Count of elements
   public func vector(count o: Int32) -> Int32 {
     var o = o
-    o += postion
+    o += position
     o += bb.read(def: Int32.self, position: Int(o))
     return bb.read(def: Int32.self, position: Int(o))
   }
@@ -150,7 +146,7 @@ public struct Table {
   /// - returns: the start index of the vector
   public func vector(at o: Int32) -> Int32 {
     var o = o
-    o += postion
+    o += position
     return o + bb.read(def: Int32.self, position: Int(o)) + 4
   }
 

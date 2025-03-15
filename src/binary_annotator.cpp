@@ -120,12 +120,13 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
 }  // namespace
 
 std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
-  flatbuffers::Verifier verifier(bfbs_, static_cast<size_t>(bfbs_length_));
-
-  if ((is_size_prefixed_ &&
-       !reflection::VerifySizePrefixedSchemaBuffer(verifier)) ||
-      !reflection::VerifySchemaBuffer(verifier)) {
-    return {};
+  if (bfbs_ != nullptr && bfbs_length_ != 0) {
+    flatbuffers::Verifier verifier(bfbs_, static_cast<size_t>(bfbs_length_));
+    if ((is_size_prefixed_ &&
+         !reflection::VerifySizePrefixedSchemaBuffer(verifier)) ||
+        !reflection::VerifySchemaBuffer(verifier)) {
+      return {};
+    }
   }
 
   // The binary is too short to read as a flatbuffers.
@@ -141,8 +142,7 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
 
   if (IsValidOffset(root_table_offset)) {
     // Build the root table, and all else will be referenced from it.
-    BuildTable(root_table_offset, BinarySectionType::RootTable,
-               schema_->root_table());
+    BuildTable(root_table_offset, BinarySectionType::RootTable, RootTable());
   }
 
   // Now that all the sections are built, make sure the binary sections are
@@ -203,7 +203,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 
   BinaryRegionComment root_offset_comment;
   root_offset_comment.type = BinaryRegionCommentType::RootTableOffset;
-  root_offset_comment.name = schema_->root_table()->name()->str();
+  root_offset_comment.name = RootTable()->name()->str();
 
   if (!IsValidOffset(root_table_loc)) {
     SetError(root_offset_comment,
@@ -1514,6 +1514,13 @@ bool BinaryAnnotator::ContainsSection(const uint64_t offset) {
   // And check that if the offset is covered by the section.
   return offset >= it->first && offset < it->second.regions.back().offset +
                                              it->second.regions.back().length;
+}
+
+const reflection::Object *BinaryAnnotator::RootTable() const {
+  if (!root_table_.empty()) {
+    return schema_->objects()->LookupByKey(root_table_);
+  }
+  return schema_->root_table();
 }
 
 }  // namespace flatbuffers
