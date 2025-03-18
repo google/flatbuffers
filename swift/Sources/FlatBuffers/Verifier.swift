@@ -83,15 +83,18 @@ public struct Verifier {
     if !_checkAlignment { return }
 
     /// advance pointer to position X
-    let ptr = _buffer._storage.memory.advanced(by: position)
-    /// Check if the pointer is aligned
-    if Int(bitPattern: ptr) & (MemoryLayout<T>.alignment &- 1) == 0 {
-      return
-    }
+    try _buffer.withUnsafeBytes { pointer in
+      let ptr = pointer.baseAddress!.advanced(by: position)
 
-    throw FlatbuffersErrors.missAlignedPointer(
-      position: position,
-      type: String(describing: T.self))
+      /// Check if the pointer is aligned
+      if Int(bitPattern: ptr) & (MemoryLayout<T>.alignment &- 1) == 0 {
+        return
+      }
+
+      throw FlatbuffersErrors.missAlignedPointer(
+        position: position,
+        type: String(describing: T.self))
+    }
   }
 
   /// Checks if the value of Size "X" is within the range of the buffer
@@ -134,17 +137,17 @@ public struct Verifier {
 
     let length = Int(vtableLength)
     try isAligned(
-      position: Int(clamping: (vtablePosition + length).magnitude),
+      position: Int(clamping: (vtablePosition &+ length).magnitude),
       type: VOffset.self)
     try rangeInBuffer(position: vtablePosition, size: length)
 
-    storage.tableCount += 1
+    storage.tableCount &+= 1
 
     if storage.tableCount > _options._maxTableCount {
       throw FlatbuffersErrors.maximumTables
     }
 
-    storage.depth += 1
+    storage.depth &+= 1
 
     if storage.depth > _options._maxDepth {
       throw FlatbuffersErrors.maximumDepth
@@ -211,7 +214,7 @@ public struct Verifier {
   @inline(__always)
   func verify(id: String) throws {
     let size = MemoryLayout<Int32>.size
-    guard storage.capacity >= (size * 2) else {
+    guard storage.capacity >= (size &* 2) else {
       throw FlatbuffersErrors.bufferDoesntContainID
     }
     let str = _buffer.readString(at: size, count: size)

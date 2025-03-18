@@ -20,11 +20,9 @@ import XCTest
 final class FlatbuffersVerifierTests: XCTestCase {
 
   lazy var validStorage: ByteBuffer.Storage = ByteBuffer.Storage(
-    count: Int(FlatBufferMaxSize) - 1,
-    alignment: 1)
+    count: Int(FlatBufferMaxSize) - 1)
   lazy var errorStorage: ByteBuffer.Storage = ByteBuffer.Storage(
-    count: Int(FlatBufferMaxSize) + 1,
-    alignment: 1)
+    count: Int(FlatBufferMaxSize) + 1)
 
   var buffer: ByteBuffer!
 
@@ -35,7 +33,8 @@ final class FlatbuffersVerifierTests: XCTestCase {
 
   override func setUp() {
     // swiftformat:disable all
-    buffer = ByteBuffer(initialSize: 32)
+    let memory = UnsafeMutableRawPointer.allocate(byteCount: 32, alignment: 1)
+    buffer = ByteBuffer(assumingMemoryBound: memory, capacity: 32)
     add(buffer: &buffer, v: 4, p: 16)
     add(buffer: &buffer, v: 4, p: 20)
 
@@ -52,13 +51,15 @@ final class FlatbuffersVerifierTests: XCTestCase {
   }
 
   func testVeriferInitPassing() {
-    var buffer = ByteBuffer(initialSize: 0)
+    let memory = UnsafeMutableRawPointer.allocate(byteCount: 8, alignment: 1)
+    var buffer = ByteBuffer(assumingMemoryBound: memory, capacity: 8)
     buffer._storage = validStorage
     XCTAssertNoThrow(try Verifier(buffer: &buffer))
   }
 
   func testVeriferInitFailing() {
-    var buffer = ByteBuffer(initialSize: 0)
+    let memory = UnsafeMutableRawPointer.allocate(byteCount: 8, alignment: 1)
+    var buffer = ByteBuffer(assumingMemoryBound: memory, capacity: 8)
     buffer._storage = errorStorage
     XCTAssertThrowsError(try Verifier(buffer: &buffer))
   }
