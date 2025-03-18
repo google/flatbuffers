@@ -64,7 +64,7 @@ extension String: FlatbuffersInitializable {
     let v = Int(o)
     let count = bb.read(def: Int32.self, position: v)
     self = bb.readString(
-      at: MemoryLayout<Int32>.size + v,
+      at: MemoryLayout<Int32>.size &+ v,
       count: Int(count)) ?? ""
   }
 }
