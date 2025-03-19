@@ -17,8 +17,7 @@ public extension GRPCFlatBufPayload {
     self.init(byteBuffer: FlatBuffers.ByteBuffer(contiguousBytes: serializedByteBuffer.readableBytesView, count: serializedByteBuffer.readableBytes))
   }
   func serialize(into buffer: inout NIO.ByteBuffer) throws {
-    let buf = UnsafeRawBufferPointer(start: self.rawPointer, count: Int(self.size))
-    buffer.writeBytes(buf)
+    withUnsafeReadableBytes { buffer.writeBytes($0) }
   }
 }
 extension Message: GRPCFlatBufPayload {}
