@@ -511,7 +511,7 @@ flatc(
 
 # Sample files
 samples_schema = "monster.fbs"
-flatc(BASE_OPTS + CPP_OPTS + LOBSTER_OPTS, schema=samples_schema, cwd=samples_path)
+flatc(BASE_OPTS + CPP_OPTS + LOBSTER_OPTS + SWIFT_OPTS, schema=samples_schema, cwd=samples_path)
 flatc(RUST_OPTS, prefix="rust_generated", schema=samples_schema, cwd=samples_path)
 flatc(
     BINARY_OPTS + ["--bfbs-filenames", str(samples_path)],
