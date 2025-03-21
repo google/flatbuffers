@@ -73,5 +73,7 @@ node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 use_repo(node, "nodejs_linux_amd64")
 
 rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
-rules_ts_ext.deps()
-use_repo(rules_ts_ext, "npm_typescript")
+rules_ts_ext.deps(
+    name = "flatbuffers_npm_typescript",
+)
+use_repo(rules_ts_ext, npm_typescript = "flatbuffers_npm_typescript")
