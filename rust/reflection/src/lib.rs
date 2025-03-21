@@ -52,8 +52,12 @@ pub enum FlatbufferError {
     SetStringPolluted,
     #[error("Invalid schema: Polluted buffer or the schema doesn't match the buffer.")]
     InvalidSchema,
-    #[error("Type not supported: {0}")]
-    TypeNotSupported(String),
+    #[error("Unsupported table field type: {0:?}")]
+    UnsupportedTableFieldType(BaseType),
+    #[error("Unsupported vector element type: {0:?}")]
+    UnsupportedVectorElementType(BaseType),
+    #[error("Unsupported union element type: {0:?}")]
+    UnsupportedUnionElementType(BaseType),
     #[error("No type or invalid type found in union enum")]
     InvalidUnionEnum,
     #[error("Table or Struct doesn't belong to the buffer")]

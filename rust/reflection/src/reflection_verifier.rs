@@ -154,15 +154,8 @@ fn verify_table(
                     table_verifier
                 }
             }
-            _ => {
-                return Err(FlatbufferError::TypeNotSupported(
-                    field
-                        .type_()
-                        .base_type()
-                        .variant_name()
-                        .unwrap_or_default()
-                        .to_string(),
-                ));
+            other => {
+                return Err(FlatbufferError::UnsupportedTableFieldType(other));
             }
         };
     }
@@ -340,15 +333,8 @@ fn verify_vector<'a, 'b, 'c>(
             }
             Ok(table_verifier)
         }
-        _ => {
-            return Err(FlatbufferError::TypeNotSupported(
-                field
-                    .type_()
-                    .base_type()
-                    .variant_name()
-                    .unwrap_or_default()
-                    .to_string(),
-            ))
+        other => {
+            return Err(FlatbufferError::UnsupportedVectorElementType(other));
         }
     }
 }
@@ -399,14 +385,8 @@ fn verify_union<'a, 'b, 'c>(
                     )?;
                 }
             }
-            _ => {
-                return Err(FlatbufferError::TypeNotSupported(
-                    enum_type
-                        .base_type()
-                        .variant_name()
-                        .unwrap_or_default()
-                        .to_string(),
-                ))
+            other => {
+                return Err(FlatbufferError::UnsupportedUnionElementType(other));
             }
         }
     } else {
