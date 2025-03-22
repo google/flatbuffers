@@ -31,7 +31,15 @@ function check_test_result() {
     fi
 }
 
-cd ./rust_serialize_test
+cd ./rust_module_test
+cargo build $TARGET_FLAG --package rust_module_test_a
+check_test_result "Rust module a test"
+cargo build $TARGET_FLAG --package rust_module_test_b
+check_test_result "Rust module b test"
+cargo build $TARGET_FLAG --package rust_module_test_c
+check_test_result "Rust module c test"
+
+cd ../rust_serialize_test
 cargo run $TARGET_FLAG -- --quiet
 check_test_result "Rust serde tests"
 
