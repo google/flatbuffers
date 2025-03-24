@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
 use core::cmp::max;
 use core::convert::Infallible;
