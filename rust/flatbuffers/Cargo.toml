@@ -9,7 +9,7 @@ homepage = "https://google.github.io/flatbuffers/"
 repository = "https://github.com/google/flatbuffers"
 keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
-rust = "1.51"
+rust-version = "1.81"
 
 [features]
 default = ["std"]
