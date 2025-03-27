@@ -76,7 +76,7 @@ Now you can access the data from the `Monster monster`:
 
 ## Differences between Kotlin and Java code
 
-Kotlin generated code was designed to be as close as possible to the java counterpart, as for now, we only support kotlin on java virtual machine. So the differences in implementation and usage are basically the ones introduced by the Kotlin language itself. You can find more in-depth information [here](https://kotlinlang.org/docs/reference/comparison-to-java.html).
+Kotlin generated code was designed to be as close as possible to the java counterpart, as for now, we only support kotlin on java virtual machine. So the differences in implementation and usage are basically the ones introduced by the Kotlin language itself. You can find more in-depth information in [Comparison to Java](https://kotlinlang.org/docs/comparison-to-java.html).
 
 The most obvious ones are:
 
