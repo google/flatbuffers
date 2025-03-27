@@ -54,7 +54,7 @@ class LogHelper {
   std::ostream& get_os() const { return *os_; }
 };
 
-// Abort the program after logging the mesage if the given condition is not
+// Abort the program after logging the message if the given condition is not
 // true. Otherwise, do nothing.
 #define GRPC_CODEGEN_CHECK(x)                                            \
   (x) ? (void)0                                                          \
@@ -62,7 +62,7 @@ class LogHelper {
                                   << "CHECK FAILED: " << __FILE__ << ":" \
                                   << __LINE__ << ": "
 
-// Abort the program after logging the mesage.
+// Abort the program after logging the message.
 #define GRPC_CODEGEN_FAIL GRPC_CODEGEN_CHECK(false)
 
 namespace grpc_java_generator {

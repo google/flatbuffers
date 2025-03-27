@@ -20,7 +20,7 @@ use crate::flexbuffer_type::FlexBufferType;
 use crate::flexbuffer_type::FlexBufferType::*;
 
 /// Internal representation of FlexBuffer Types and Data before writing.
-/// These get placed on the builder's stack and are eventually commited.
+/// These get placed on the builder's stack and are eventually committed.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Value {
     // Inline types
@@ -29,7 +29,7 @@ pub enum Value {
     UInt(u64),
     Float(f64),
     Bool(bool),
-    /// Null termintated, c_string. Only used with `Map`s.
+    /// Null terminated, c_string. Only used with `Map`s.
     Key(usize),
     /// The other ~20 or so types.
     Reference {

@@ -44,7 +44,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   ok = parser1.Parse(schema_file.c_str(), include_directories);
   assert(ok);
 
-  // inizialize parser by deserializing bfbs schema
+  // initialize parser by deserializing bfbs schema
   flatbuffers::Parser parser2;
   ok = parser2.Deserialize(reinterpret_cast<const uint8_t *>(bfbs_file.c_str()),
                            bfbs_file.length());

@@ -54,10 +54,10 @@ static Namer::Config KotlinDefaultConfig() {
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kUpperCamel,
-           /*enum_variant_seperator=*/"",  // I.e. Concatenate.
+           /*enum_variant_separator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kLowerCamel,
-           /*namespace_seperator=*/".",
+           /*namespace_separator=*/".",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
@@ -166,7 +166,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     return type.enum_def != nullptr && IsInteger(type.base_type);
   }
 
-  std::string GenerateKotlinPrimiteArray(const Type &type) const {
+  std::string GenerateKotlinPrimitiveArray(const Type &type) const {
     if (IsScalar(type.base_type) && !IsEnum(type)) { return GenType(type); }
 
     if (IsEnum(type) || type.base_type == BASE_TYPE_UTYPE) {
@@ -504,7 +504,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     }
   }
 
-  // Recusively generate struct construction statements of the form:
+  // Recursively generate struct construction statements of the form:
   // builder.putType(name);
   // and insert manual padding.
   void GenStructBody(const StructDef &struct_def, CodeWriter &writer,
@@ -560,7 +560,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   // e.g:
   // Array<Offset<Monster>> generates boxing.
   // So we creates a new type to avoid it:
-  // typealias MonterOffsetArray = IntArray
+  // typealias MonsterOffsetArray = IntArray
   void GenStructOffsetAlias(StructDef &struct_def, CodeWriter &writer) const {
     if (struct_def.generated) return;
     auto name = namer_.Type(struct_def);
@@ -584,7 +584,7 @@ class KotlinKMPGenerator : public BaseGenerator {
   // e.g:
   // Array<Offset<Monster>> generates boxing.
   // So we creates a new type to avoid it:
-  // typealias MonterOffsetArray = IntArray
+  // typealias MonsterOffsetArray = IntArray
   void GenEnumOffsetAlias(EnumDef &enum_def, CodeWriter &writer) const {
     if (enum_def.generated) return;
     // This assumes offset as Ints always.
@@ -610,7 +610,7 @@ class KotlinKMPGenerator : public BaseGenerator {
 
     {
       auto esc_type = namer_.EscapeKeyword(struct_def.name);
-      // Generate the init() method that sets the field in a pre-existing
+      // Generate the init() method that sets the field in a preexisting
       // accessor object. This is to allow object reuse.
       GenerateFunOneLine(writer, "init", "i: Int, buffer: ReadWriteBuffer",
                          esc_type, [&]() { writer += "reset(i, buffer)"; });
@@ -1167,7 +1167,7 @@ class KotlinKMPGenerator : public BaseGenerator {
       }
 
       if (value_base_type == BASE_TYPE_VECTOR) {
-        // Generate Lenght functions for vectors
+        // Generate Length functions for vectors
         GenerateGetterOneLine(writer, field_name + "Length", "Int", [&]() {
           writer += LookupFieldOneLine(offset_val, "vectorLength(it)", "0");
         });

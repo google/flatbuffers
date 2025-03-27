@@ -2,7 +2,7 @@
 
 # Steps to do a release:
 #
-# 1. Make sure the repo builds and ./flatttests passes first, so that any
+# 1. Make sure the repo builds and ./flattests passes first, so that any
 #    version changes are localized.
 # 2. Run this script which should update all the version strings in the
 #    appropriate places.

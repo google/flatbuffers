@@ -69,7 +69,7 @@ class JSONTest {
     val obj = map["object"]
     assertEquals(true, obj.isMap)
     assertEquals("{\"field1\":\"hello\"}", obj.toJson())
-    // TODO: Kotlin Double.toString() produce different strings dependending on the platform, so on JVM
+    // TODO: Kotlin Double.toString() produce different strings depending on the platform, so on JVM
     // is 1.2E33, while on js is 1.2e+33. For now we are disabling this test.
     //
     // val minified = data.filterNot { it == ' '.toByte() || it == '\n'.toByte() }.toByteArray().decodeToString()

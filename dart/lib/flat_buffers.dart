@@ -489,7 +489,7 @@ class Builder {
     _currentTableEndTail = _tail;
   }
 
-  /// Finish a Struct vector.  Most callers should preferto use [writeListOfStructs].
+  /// Finish a Struct vector.  Most callers should prefer to use [writeListOfStructs].
   ///
   /// Most callers should prefer [writeListOfStructs].
   int endStructVector(int count) {
@@ -641,7 +641,7 @@ class Builder {
     return result;
   }
 
-  /// Write the given list of bools as unsigend 8-bit integer [values].
+  /// Write the given list of bools as unsigned 8-bit integer [values].
   int writeListBool(List<bool> values) {
     return writeListUint8(values.map((b) => b ? 1 : 0).toList());
   }

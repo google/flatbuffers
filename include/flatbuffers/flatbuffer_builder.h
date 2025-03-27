@@ -565,7 +565,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
-  /// @param[in] str A const string_view to copy in to the buffer.
+  /// @param[in] str A const string_view to copy into the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   template<template <typename> class OffsetT = Offset>
   OffsetT<String>CreateString(flatbuffers::string_view str) {

@@ -171,7 +171,7 @@ static T *LookupTableByName(const SymbolTable<T> &table,
   TD(FloatConstant, 259, "float constant") \
   TD(Identifier, 260, "identifier")
 #ifdef __GNUC__
-__extension__  // Stop GCC complaining about trailing comma with -Wpendantic.
+__extension__  // Stop GCC complaining about trailing comma with -Wpedantic.
 #endif
 enum {
   #define FLATBUFFERS_TOKEN(NAME, VALUE, STRING) kToken ## NAME = VALUE,
@@ -685,10 +685,10 @@ CheckedError Parser::Next() {
             start_digits = cursor_;  // see digit in cursor_ position
             c = *cursor_++;
           }
-          // hex-float can't begind with '.'
+          // hex-float can't begin with '.'
           auto use_hex = dot_lvl && (c == '0') && is_alpha_char(*cursor_, 'X');
           if (use_hex) start_digits = ++cursor_;  // '0x' is the prefix, skip it
-          // Read an integer number or mantisa of float-point number.
+          // Read an integer number or mantissa of float-point number.
           do {
             if (use_hex) {
               while (is_xdigit(*cursor_)) cursor_++;
@@ -900,7 +900,7 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
   std::string name = attribute_;
 
   if (LookupCreateStruct(name, false, false))
-    return Error("field name can not be the same as table/struct name");
+    return Error("field name cannot be the same as table/struct name");
 
   if (!IsLowerSnakeCase(name)) {
     Warning("field names should be lowercase snake_case, got: " + name);
@@ -2101,7 +2101,7 @@ CheckedError Parser::ParseSingleValue(const std::string *name, Value &e,
                                       bool check_now) {
   if (token_ == '+' || token_ == '-') {
     const char sign = static_cast<char>(token_);
-    // Get an indentifier: NAN, INF, or function name like cos/sin/deg.
+    // Get an identifier: NAN, INF, or function name like cos/sin/deg.
     NEXT();
     if (token_ != kTokenIdentifier) return Error("constant name expected");
     attribute_.insert(size_t(0), size_t(1), sign);
@@ -2532,7 +2532,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   }
   EnumValBuilder evb(*this, *enum_def);
   EXPECT('{');
-  // A lot of code generatos expect that an enum is not-empty.
+  // A lot of code generators expect that an enum is not-empty.
   if ((is_union || Is('}')) && !opts.proto_mode) {
     evb.CreateEnumerator("NONE");
     ECHECK(evb.AcceptEnumerator());
@@ -3034,7 +3034,7 @@ CheckedError Parser::ParseProtoFields(StructDef *struct_def, bool isextend,
       EXPECT(';');
     } else if (IsIdent("reserved")) {  // Skip these.
       /**
-       * Reserved proto ids can be comma seperated (e.g. 1,2,4,5;)
+       * Reserved proto ids can be comma separated (e.g. 1,2,4,5;)
        * or range based (e.g. 9 to 11;)
        * or combination of them (e.g. 1,2,9 to 11,4,5;)
        * It will be ended by a semicolon.

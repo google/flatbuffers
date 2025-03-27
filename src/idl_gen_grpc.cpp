@@ -168,7 +168,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
       auto it = vars.find(s.substr(pos + 1, pos2 - pos - 1));
       // If unknown placeholder, ignore.
       if (it == vars.end()) break;
-      // Subtitute placeholder.
+      // Substitute placeholder.
       s.replace(pos, pos2 - pos + 1, it->second);
     }
     Print(s.c_str());

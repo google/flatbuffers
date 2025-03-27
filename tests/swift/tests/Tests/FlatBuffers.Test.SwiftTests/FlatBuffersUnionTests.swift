@@ -19,7 +19,7 @@ import XCTest
 
 final class FlatBuffersUnionTests: XCTestCase {
 
-  func testCreateMonstor() {
+  func testCreateMonster() {
 
     var b = FlatBufferBuilder(initialSize: 20)
     let dmg: Int16 = 5

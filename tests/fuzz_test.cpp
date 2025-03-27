@@ -33,7 +33,7 @@ static void CompareTableFieldValue(flatbuffers::Table *table,
 // different kinds of data in different combinations
 void FuzzTest1() {
   // Values we're testing against: chosen to ensure no bits get chopped
-  // off anywhere, and also be different from eachother.
+  // off anywhere, and also be different from each other.
   const uint8_t bool_val = true;
   const int8_t char_val = -127;  // 0x81
   const uint8_t uchar_val = 0xFF;
@@ -156,7 +156,7 @@ void FuzzTest2() {
   // num_struct_definitions will be structs, the rest tables. For each
   // generate random fields, some of which may be struct/table types
   // referring to previously generated structs/tables.
-  // Simultanenously, we generate instances_per_definition JSON data
+  // Simultaneously, we generate instances_per_definition JSON data
   // definitions, which will have identical structure to the schema
   // being generated. We generate multiple instances such that when creating
   // hierarchy, we get some variety by picking one randomly.

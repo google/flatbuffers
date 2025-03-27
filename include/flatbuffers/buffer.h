@@ -155,7 +155,7 @@ template<typename T> struct IndirectHelper<const T *> {
 /// characters in the buffer.  The returned char * has length
 /// 'flatbuffers::FlatBufferBuilder::kFileIdentifierLength'.
 /// This function is UNDEFINED for FlatBuffers whose schema does not include
-/// a file_identifier (likely points at padding or the start of a the root
+/// a file_identifier (likely points at padding or the start of the root
 /// vtable).
 inline const char *GetBufferIdentifier(const void *buf,
                                        bool size_prefixed = false) {

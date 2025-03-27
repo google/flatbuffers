@@ -499,13 +499,13 @@ void EqualOperatorTest() {
     TEST_EQ(a == b, true);
 
     // Adding only a table to one of the monster vectors should make it not
-    // equal (due to size mistmatch).
+    // equal (due to size mismatch).
     a.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
     a.testarrayoftables.back()->nan_default = 0;
     TEST_EQ(a == b, false);
 
-    // Adding an equalivant table to the other monster vector should make it
+    // Adding an equivalent table to the other monster vector should make it
     // equal again.
     b.testarrayoftables.push_back(
         flatbuffers::unique_ptr<MonsterT>(new MonsterT));
@@ -1170,7 +1170,7 @@ void NestedVerifierTest() {
     mon_builder.add_testnestedflatbuffer(nested_monster_bytes);
     FinishMonsterBuffer(builder, mon_builder.Finish());
 
-    // Verify the root monster, which includes verifing the nested monster
+    // Verify the root monster, which includes verifying the nested monster
     flatbuffers::Verifier verifier(builder.GetBufferPointer(),
                                    builder.GetSize());
     TEST_EQ(true, VerifyMonsterBuffer(verifier));
@@ -1289,7 +1289,7 @@ void FlatbuffersIteratorsTest() {
 }
 
 void PrivateAnnotationsLeaks() {
-  // Simple schemas and a "has optional scalar" sentinal.
+  // Simple schemas and a "has optional scalar" sentinel.
   std::vector<std::string> schemas;
   std::vector<std::string> failure_schemas;
 

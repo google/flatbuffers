@@ -56,10 +56,10 @@ static Namer::Config KotlinDefaultConfig() {
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/"",  // I.e. Concatenate.
+           /*enum_variant_separator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
            /*namespaces=*/Case::kKeep,
-           /*namespace_seperator=*/"__",
+           /*namespace_separator=*/"__",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
@@ -435,7 +435,7 @@ class KotlinGenerator : public BaseGenerator {
     }
   }
 
-  // Recusively generate struct construction statements of the form:
+  // Recursively generate struct construction statements of the form:
   // builder.putType(name);
   // and insert manual padding.
   void GenStructBody(const StructDef &struct_def, CodeWriter &writer,
@@ -499,7 +499,7 @@ class KotlinGenerator : public BaseGenerator {
     writer.IncrementIdentLevel();
 
     {
-      // Generate the __init() method that sets the field in a pre-existing
+      // Generate the __init() method that sets the field in a preexisting
       // accessor object. This is to allow object reuse.
       GenerateFun(writer, "__init", "_i: Int, _bb: ByteBuffer", "",
                   [&]() { writer += "__reset(_i, _bb)"; });
@@ -606,7 +606,7 @@ class KotlinGenerator : public BaseGenerator {
         writer += GenOffsetGetter(key_field) + "\\";
         writer += ", byteKey, bb)";
       } else {
-        auto cast = CastToUsigned(key_field->value.type);
+        auto cast = CastToUnsigned(key_field->value.type);
         auto get_val = GenLookupByKey(key_field, "bb");
         writer += "val value = " + get_val + cast;
         writer += "val comp = value.compareTo(key)";
@@ -928,7 +928,7 @@ class KotlinGenerator : public BaseGenerator {
       auto field_default_value = GenDefaultValue(field);
       auto return_type = GetterReturnType(field);
       auto bbgetter = ByteBufferGetter(field.value.type, "bb");
-      auto ucast = CastToUsigned(field);
+      auto ucast = CastToUnsigned(field);
       auto offset_val = NumToString(field.value.offset);
       auto offset_prefix =
           "val o = __offset(" + offset_val + "); return o != 0 ? ";
@@ -1110,7 +1110,7 @@ class KotlinGenerator : public BaseGenerator {
       }
 
       if (value_base_type == BASE_TYPE_VECTOR) {
-        // Generate Lenght functions for vectors
+        // Generate Length functions for vectors
         GenerateGetter(writer, field_name + "Length", "Int", [&]() {
           writer += OffsetWrapperOneLine(offset_val, "__vector_len(o)", "0");
         });
@@ -1286,18 +1286,18 @@ class KotlinGenerator : public BaseGenerator {
     }
   }
 
-  static std::string CastToUsigned(const FieldDef &field) {
-    return CastToUsigned(field.value.type);
+  static std::string CastToUnsigned(const FieldDef &field) {
+    return CastToUnsigned(field.value.type);
   }
 
-  static std::string CastToUsigned(const Type type) {
+  static std::string CastToUnsigned(const Type type) {
     switch (type.base_type) {
       case BASE_TYPE_UINT: return ".toUInt()";
       case BASE_TYPE_UCHAR:
       case BASE_TYPE_UTYPE: return ".toUByte()";
       case BASE_TYPE_USHORT: return ".toUShort()";
       case BASE_TYPE_ULONG: return ".toULong()";
-      case BASE_TYPE_VECTOR: return CastToUsigned(type.VectorType());
+      case BASE_TYPE_VECTOR: return CastToUnsigned(type.VectorType());
       default: return "";
     }
   }

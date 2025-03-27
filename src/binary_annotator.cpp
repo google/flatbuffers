@@ -306,7 +306,7 @@ BinaryAnnotator::VTable *BinaryAnnotator::GetOrBuildVTable(
 
   BinaryRegionComment ref_table_len_comment;
   ref_table_len_comment.type =
-      BinaryRegionCommentType::VTableRefferingTableLength;
+      BinaryRegionCommentType::VTableReferringTableLength;
 
   // Ensure we can read the next uint16_t field, which is the size of the
   // referring table.
@@ -537,7 +537,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
                                     vtable_offset_comment)));
 
     // There isn't much to do with an invalid vtable offset, as we won't be able
-    // to intepret the rest of the table fields.
+    // to interpret the rest of the table fields.
     return;
   }
 
@@ -1477,7 +1477,7 @@ void BinaryAnnotator::FixMissingSections() {
         section.regions.back().offset + section.regions.back().length;
 
     if (offset < section_start_offset) {
-      // We are at an offset that is less then the current section.
+      // We are at an offset that is less than the current section.
       const uint64_t pad_bytes = section_start_offset - offset + 1;
 
       sections_to_insert.push_back(

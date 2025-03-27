@@ -134,7 +134,7 @@ class ByteBuffer
      * read little endian value from the buffer
      *
      * @param $offset
-     * @param $count acutal size
+     * @param $count actual size
      * @return int
      */
     public function readLittleEndian($offset, $count, $force_bigendian = false)

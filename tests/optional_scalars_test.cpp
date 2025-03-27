@@ -11,7 +11,7 @@ namespace flatbuffers {
 namespace tests {
 
 void OptionalScalarsTest() {
-  // Simple schemas and a "has optional scalar" sentinal.
+  // Simple schemas and a "has optional scalar" sentinel.
   std::vector<std::string> schemas;
   schemas.push_back("table Monster { mana : int; }");
   schemas.push_back("table Monster { mana : int = 42; }");

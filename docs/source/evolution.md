@@ -30,7 +30,7 @@ anymore.** You simply stop writing them to the buffer.
 
 Its encouraged to mark the field deprecated by adding the `deprecated`
 attribute. This will skip the generation of accessors and setters in the code,
-to enforce the field not to be used any more.
+to enforce the field not to be used anymore.
 
 ### Name Changes
 
@@ -128,7 +128,7 @@ table T {
     }
     ```
 
-    This is OK. This adds the a new field in the beginning, but because all the
+    This is OK. This adds a new field in the beginning, but because all the
     `id` attributes were added, it is OK.
 
 === "Changing Types"
@@ -261,7 +261,7 @@ a [option](flatc.md#additional-options) to do just that:
 
 ```sh
 --conform FILE
-``` 
+```
 
 Where `FILE` is the base schema the rest of the input schemas must evolve from.
 It returns `0` if they are properly evolved, otherwise returns a non-zero value

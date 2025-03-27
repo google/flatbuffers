@@ -538,7 +538,7 @@ pub unsafe fn set_string(
     let mut bytes_to_insert = v.as_bytes().to_vec();
 
     if delta != 0 {
-        // Rounds the delta up to the nearest multiple of the maximum int size to keep the types after the insersion point aligned.
+        // Rounds the delta up to the nearest multiple of the maximum int size to keep the types after the insertion point aligned.
         // stdint crate defines intmax_t as an alias for c_long; use it directly to avoid extra
         // dependency.
         let mask = (size_of::<core::ffi::c_long>() - 1) as isize;

@@ -506,7 +506,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "";
     }
 
-    // Generate preablmle code for mini reflection.
+    // Generate preamble code for mini reflection.
     if (opts_.mini_reflect != IDLOptions::kNone) {
       // To break cyclic dependencies, first pre-declare all tables/structs.
       for (const auto &struct_def : parser_.structs_.vec) {
@@ -2012,7 +2012,7 @@ class CppGenerator : public BaseGenerator {
   // declarations if required. Tables that are default-copyable do not get
   // user-provided copy/move constructors and assignment operators so they
   // remain aggregates.
-  void GenCopyMoveCtorAndAssigOpDecls(const StructDef &struct_def) {
+  void GenCopyMoveCtorAndAssignOpDecls(const StructDef &struct_def) {
     if (opts_.g_cpp_std < cpp::CPP_STD_11) return;
     if (!NeedsCopyCtorAssignOp(struct_def)) return;
     code_.SetValue("NATIVE_NAME",
@@ -2232,7 +2232,7 @@ class CppGenerator : public BaseGenerator {
     for (const auto field : struct_def.fields.vec) { GenMember(*field); }
     GenOperatorNewDelete(struct_def);
     GenDefaultConstructor(struct_def);
-    GenCopyMoveCtorAndAssigOpDecls(struct_def);
+    GenCopyMoveCtorAndAssignOpDecls(struct_def);
     code_ += "};";
     code_ += "";
   }
@@ -2354,7 +2354,7 @@ class CppGenerator : public BaseGenerator {
       const bool is_array = IsArray(curr_field->value.type);
       const bool is_struct = IsStruct(curr_field->value.type);
 
-      // If encouter a key field, call KeyCompareWithValue to compare this
+      // If encounter a key field, call KeyCompareWithValue to compare this
       // field.
       if (curr_field->key) {
         code_ += space +
@@ -2530,7 +2530,7 @@ class CppGenerator : public BaseGenerator {
       if (ev.union_type.base_type == BASE_TYPE_NONE) { continue; }
       auto full_struct_name = GetUnionElement(ev, false, opts_);
 
-      // @TODO: Mby make this decisions more universal? How?
+      // @TODO: Maybe make this decisions more universal? How?
       code_.SetValue("U_GET_TYPE",
                      EscapeKeyword(Name(field) + UnionTypeFieldSuffix()));
       code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(u->defined_namespace,
@@ -4148,10 +4148,10 @@ static bool GenerateCPP(const Parser &parser, const std::string &path,
 static std::string CPPMakeRule(const Parser &parser, const std::string &path,
                                const std::string &file_name) {
   const auto filebase = StripPath(StripExtension(file_name));
-  cpp::CppGenerator geneartor(parser, path, file_name, parser.opts);
+  cpp::CppGenerator generator(parser, path, file_name, parser.opts);
   const auto included_files = parser.GetIncludedFilesRecursive(file_name);
   std::string make_rule =
-      geneartor.GeneratedFileName(path, filebase, parser.opts) + ": ";
+      generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
   for (const std::string &included_file : included_files) {
     make_rule += " " + included_file;
   }

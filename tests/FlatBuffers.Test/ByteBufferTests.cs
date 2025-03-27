@@ -363,7 +363,7 @@ namespace Google.FlatBuffers.Test
             fData[7] = 15.9994F;
             fData[8] = 18.9984F;
 
-            // Tranfer it to a byte array
+            // Transfer it to a byte array
             var buffer = new byte[sizeof(float) * fData.Length];
             Buffer.BlockCopy(fData, 0, buffer, 0, buffer.Length);
 
