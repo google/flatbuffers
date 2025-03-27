@@ -29,7 +29,7 @@ Some tips for good pull requests:
   When in doubt, try to stay true to the existing code of the project.
 * Write a descriptive commit message. What problem are you solving and what
   are the consequences? Where and what did you test? Some good tips:
-  [here](http://robots.thoughtbot.com/5-useful-tips-for-a-better-commit-message)
+  [robots.thoughtbot.com: 5 Useful Tips For A Better Commit Message](http://robots.thoughtbot.com/5-useful-tips-for-a-better-commit-message)
   and [here](https://www.kernel.org/doc/Documentation/SubmittingPatches).
 * If your PR consists of multiple commits which are successive improvements /
   fixes to your first commit, consider squashing them into a single commit
