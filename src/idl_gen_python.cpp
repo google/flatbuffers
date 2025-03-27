@@ -2333,7 +2333,7 @@ class PythonGenerator : public BaseGenerator {
           break;
         }
         default:
-          // Generates code for scalar values. If the value equals to the
+          // Generates code for scalar values. If the value equals the
           // default value, builder will automatically ignore it. So we don't
           // need to check the value ahead.
           code += GenIndents(2) + struct_type + "Add" + field_method +
