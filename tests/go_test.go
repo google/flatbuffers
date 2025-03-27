@@ -2427,7 +2427,7 @@ func BenchmarkVtableDeduplication(b *testing.B) {
 	prePop := 10
 	builder := flatbuffers.NewBuilder(0)
 
-	// pre-populate some vtables:
+	// prepopulate some vtables:
 	for i := 0; i < prePop; i++ {
 		builder.StartObject(i)
 		for j := 0; j < i; j++ {

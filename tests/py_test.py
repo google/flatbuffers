@@ -2894,7 +2894,7 @@ def BenchmarkVtableDeduplication(count):
 
     layouts = list(layouts)
 
-    # pre-populate vtables:
+    # prepopulate vtables:
     for layout in layouts:
       builder.StartObject(n)
       for j in layout:
