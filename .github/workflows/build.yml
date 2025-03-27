@@ -392,7 +392,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       # Force Xcode 14.3 since Xcode 15 doesnt support older versions of
-      # kotlin. For Xcode 15, kotlin should be bumpped to 1.9.10
+      # kotlin. For Xcode 15, kotlin should be bumped to 1.9.10
       # https://stackoverflow.com/a/77150623
       # For now, run with macos-13 which has this 14.3 installed: 
       # https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
