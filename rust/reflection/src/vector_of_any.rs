@@ -67,6 +67,7 @@ impl<'a> Follow<'a> for VectorOfAny<'a> {
 
 impl Default for VectorOfAny<'_> {
     fn default() -> Self {
-        Self { buf: &[], loc: 0 }
+        // Need to include length prefix, even if it is just zero.
+        Self { buf: &[0; core::mem::size_of::<UOffsetT>()], loc: 0 }
     }
 }
