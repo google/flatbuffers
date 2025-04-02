@@ -927,8 +927,8 @@ final class FlatbufferBuilder
             if ($vt_voffset === $current_vt_voffset) {
                 for ($j = Constants::SIZEOF_VOFFSET; $j < $vt_voffset; $j += Constants::SIZEOF_VOFFSET) {
                     if (
-                        $this->bb->getVOffset(Constants::asVOffset($vt_npos + $j)) !==
-                        $this->bb->getVOffset(Constants::asVOffset($current_vt_npos + $j))
+                        $this->bb->getVOffset(Constants::asNPos($vt_npos + $j)) !==
+                        $this->bb->getVOffset(Constants::asNPos($current_vt_npos + $j))
                     ) {
                         continue 2;
                     }
