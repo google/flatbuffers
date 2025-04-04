@@ -141,7 +141,7 @@ impl<'a> SafeTable<'a> {
     pub fn get_field_string(&self, field_name: &str) -> FlatbufferResult<Option<&str>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            Ok(unsafe { get_field_string(&Table::new(&self.safe_buf.buf, self.loc), &field) })
+            Ok(Some(unsafe { get_field_string(&Table::new(&self.safe_buf.buf, self.loc), &field) }))
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
