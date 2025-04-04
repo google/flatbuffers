@@ -560,7 +560,10 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
                 )?;
                 Ok(self)
             }
-            _ => InvalidFlatbuffer::new_inconsistent_union(key_field_name.into(), val_field_name.into()),
+            _ => InvalidFlatbuffer::new_inconsistent_union(
+                key_field_name.into(),
+                val_field_name.into(),
+            ),
         }
     }
     pub fn finish(self) -> &'ver mut Verifier<'opts, 'buf> {
