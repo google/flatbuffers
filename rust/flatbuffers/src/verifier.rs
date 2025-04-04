@@ -345,7 +345,7 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
         if pos % core::mem::align_of::<T>() == 0 {
             Ok(())
         } else {
-            panic!("{}",InvalidFlatbuffer::Unaligned {
+            Err(InvalidFlatbuffer::Unaligned {
                 unaligned_type: Cow::Borrowed(core::any::type_name::<T>()),
                 position: pos,
                 error_trace: Default::default(),
