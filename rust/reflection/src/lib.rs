@@ -125,9 +125,9 @@ pub unsafe fn get_field_float<T: for<'a> Follow<'a, Inner = T> + Float>(
 /// # Safety
 ///
 /// The value of the corresponding slot must have type String
-pub unsafe fn get_field_string<'a>(table: &Table<'a>, field: &Field) -> Option<&'a str> {
+pub unsafe fn get_field_string<'a>(table: &Table<'a>, field: &Field) -> &'a str {
     debug_assert_eq!(field.type_().base_type(), BaseType::String);
-    table.get::<ForwardsUOffset<&'a str>>(field.offset(), Some(""))
+    table.get::<ForwardsUOffset<&'a str>>(field.offset(), Some("")).unwrap()
 }
 
 /// Gets a [Struct] table field given its exact type. Returns [None] if the field is not set.
@@ -168,11 +168,10 @@ pub unsafe fn get_field_vector<'a, T: Follow<'a>>(
             get_type_size(field.type_().element())
         );
     }
-    // SAFETY: get() always returns either Some or default, which is a Some in this case. Therefore
-    // it always returns a Some, so we can use unwrap_unchecked().
+
     table
         .get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default()))
-        .unwrap_unchecked()
+        .unwrap()
 }
 
 /// Get a vector table field, whose elements have unknown type.
@@ -184,11 +183,9 @@ pub unsafe fn get_field_vector<'a, T: Follow<'a>>(
 /// The value of the corresponding slot must be a vector of elements of type `T`.
 pub unsafe fn get_field_vector_of_any<'a>(table: &Table<'a>, field: &Field) -> VectorOfAny<'a> {
     debug_assert_eq!(field.type_().base_type(), BaseType::Vector);
-    // SAFETY: get() always returns either Some or default, which is a Some in this case. Therefore
-    // it always returns a Some, so we can use unwrap_unchecked().
     table
         .get::<ForwardsUOffset<VectorOfAny<'a>>>(field.offset(), Some(VectorOfAny::default()))
-        .unwrap_unchecked()
+        .unwrap()
 }
 
 /// Gets a Table table field given its exact type. Returns [None] if the field is not set.
