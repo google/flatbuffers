@@ -127,7 +127,9 @@ pub unsafe fn get_field_float<T: for<'a> Follow<'a, Inner = T> + Float>(
 /// The value of the corresponding slot must have type String
 pub unsafe fn get_field_string<'a>(table: &Table<'a>, field: &Field) -> &'a str {
     debug_assert_eq!(field.type_().base_type(), BaseType::String);
-    table.get::<ForwardsUOffset<&'a str>>(field.offset(), Some("")).unwrap()
+    table
+        .get::<ForwardsUOffset<&'a str>>(field.offset(), Some(""))
+        .unwrap()
 }
 
 /// Gets a [Struct] table field given its exact type. Returns [None] if the field is not set.

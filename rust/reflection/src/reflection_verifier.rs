@@ -364,7 +364,9 @@ fn verify_vector_of_unions<'a, 'b, 'c>(
 
     let enum_values = child_enum.values();
 
-    for (enum_pos, union_offset_pos) in enum_vector_range.zip(value_vector_range.step_by(SIZE_UOFFSET)) {
+    for (enum_pos, union_offset_pos) in
+        enum_vector_range.zip(value_vector_range.step_by(SIZE_UOFFSET))
+    {
         let enum_value = verifier.get_u8(enum_pos)?;
         if enum_value == 0 {
             // Discriminator is NONE. This should never happen: the C++ implementation forbids it.
@@ -387,7 +389,8 @@ fn verify_vector_of_unions<'a, 'b, 'c>(
         } else {
             return Err(FlatbufferError::InvalidUnionEnum);
         };
-        let union_pos = union_offset_pos.saturating_add(verifier.get_uoffset(union_offset_pos)?.try_into()?);
+        let union_pos =
+            union_offset_pos.saturating_add(verifier.get_uoffset(union_offset_pos)?.try_into()?);
         verifier.in_buffer::<u8>(union_pos)?;
 
         match enum_type.base_type() {
