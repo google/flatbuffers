@@ -299,7 +299,10 @@ fn verify_vector_of_unions<'a, 'b, 'c>(
 
     // Assuming the schema is valid, the previous field must be the enum vector, which consists of
     // of 1-byte enums.
-    let enum_field_offset = field.offset() - u16::try_from(SIZE_VOFFSET).unwrap();
+    let enum_field_offset = field
+        .offset()
+        .checked_sub(u16::try_from(SIZE_VOFFSET).unwrap())
+        .ok_or(FlatbufferError::InvalidUnionEnum)?;
 
     // Either both vectors must be present, or both must be absent.
     let (value_field_pos, enum_field_pos) = match (
