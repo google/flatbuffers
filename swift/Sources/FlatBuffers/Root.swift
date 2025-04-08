@@ -101,7 +101,7 @@ public func getCheckedRoot<T: FlatBufferObject & Verifiable>(
   try ForwardOffset<T>.verify(&verifier, at: 0, of: T.self)
   return T.init(
     byteBuffer,
-    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader)) +
+    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader)) &+
       Int32(byteBuffer.reader))
 }
 
@@ -111,6 +111,6 @@ public func getCheckedRoot<T: FlatBufferObject & Verifiable>(
 public func getRoot<T: FlatBufferObject>(byteBuffer: inout ByteBuffer) -> T {
   T.init(
     byteBuffer,
-    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader)) +
+    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader)) &+
       Int32(byteBuffer.reader))
 }
