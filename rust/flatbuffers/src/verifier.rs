@@ -275,7 +275,7 @@ fn trace_elem<T>(res: Result<T>, index: usize, position: usize) -> Result<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct VerifierOptions {
+pub struct VerifierOptions<'a> {
     /// Maximum depth of nested tables allowed in a valid flatbuffer.
     pub max_depth: usize,
     /// Maximum number of tables allowed in a valid flatbuffer.
@@ -289,9 +289,12 @@ pub struct VerifierOptions {
     // probably want an option to ignore utf8 errors since strings come from c++
     // options to error un-recognized enums and unions? possible footgun.
     // Ignore nested flatbuffers, etc?
+
+    /// The name of the table to use as the root table instead of the schema root.
+    pub root_table_name: Option<&'a str>,
 }
 
-impl Default for VerifierOptions {
+impl Default for VerifierOptions<'_> {
     fn default() -> Self {
         Self {
             max_depth: 64,
@@ -299,6 +302,7 @@ impl Default for VerifierOptions {
             // size_ might do something different.
             max_apparent_size: 1 << 31,
             ignore_missing_null_terminator: false,
+            root_table_name: None,
         }
     }
 }
@@ -307,7 +311,7 @@ impl Default for VerifierOptions {
 #[derive(Debug)]
 pub struct Verifier<'opts, 'buf> {
     buffer: &'buf [u8],
-    opts: &'opts VerifierOptions,
+    opts: &'opts VerifierOptions<'opts>,
     depth: usize,
     num_tables: usize,
     apparent_size: usize,
