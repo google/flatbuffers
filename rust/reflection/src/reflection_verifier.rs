@@ -28,12 +28,13 @@ pub fn verify_with_options(
     schema: &Schema,
     opts: &VerifierOptions,
     buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    root_table_name: Option<&str>,
 ) -> FlatbufferResult<()> {
     let mut verifier = Verifier::new(opts, buffer);
-    let root_table = match opts.root_table_name {
-        Some(root_table_name) => schema
+    let root_table = match root_table_name {
+        Some(name) => schema
             .objects()
-            .lookup_by_key(root_table_name, |o, k| o.key_compare_with_value(k)),
+            .lookup_by_key(name, |o, k| o.key_compare_with_value(k)),
         None => schema.root_table(),
     };
     if let Some(table_object) = root_table {
