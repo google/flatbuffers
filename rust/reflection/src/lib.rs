@@ -22,6 +22,7 @@ pub use vector_of_any::VectorOfAny;
 mod r#struct;
 pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
+pub use crate::reflection_verifier::verify_with_options;
 pub use crate::safe_buffer::SafeBuffer;
 
 use flatbuffers::{

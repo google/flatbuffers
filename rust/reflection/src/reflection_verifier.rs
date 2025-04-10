@@ -28,10 +28,17 @@ pub fn verify_with_options(
     schema: &Schema,
     opts: &VerifierOptions,
     buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    root_table_name: Option<&str>,
 ) -> FlatbufferResult<()> {
     let mut verifier = Verifier::new(opts, buffer);
-    if let Some(table_object) = schema.root_table() {
-        if let core::result::Result::Ok(table_pos) = verifier.get_uoffset(0) {
+    let root_table = match root_table_name {
+        Some(name) => schema
+            .objects()
+            .lookup_by_key(name, |o, k| o.key_compare_with_value(k)),
+        None => schema.root_table(),
+    };
+    if let Some(table_object) = root_table {
+        if let Ok(table_pos) = verifier.get_uoffset(0) {
             // Inserts -1 as object index for root table
             buf_loc_to_obj_idx.insert(table_pos.try_into()?, -1);
             let mut verified = vec![false; buffer.len()];
