@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Common
 import Foundation
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
