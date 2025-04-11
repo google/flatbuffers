@@ -757,14 +757,14 @@ public struct FlexBuffersWriter {
   private mutating func write(offset: UInt64, byteWidth: Int) {
     let offset: UInt64 = numericCast(writerIndex) &- offset
     assert(byteWidth == 8 || offset < UInt64.one << (byteWidth * 8))
-    _ = withUnsafePointer(to: offset) {
+    withUnsafePointer(to: offset) {
       _bb.writeBytes($0, len: byteWidth)
     }
   }
 
   @inline(__always)
   private mutating func write<T>(value: T, byteWidth: Int) where T: Scalar {
-    _ = withUnsafePointer(to: value) {
+    withUnsafePointer(to: value) {
       _bb.writeBytes($0, len: byteWidth)
     }
   }
