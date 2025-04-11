@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+#if canImport(Common)
 @_exported import Common
+#endif
 import Foundation
 
 /// Type aliases

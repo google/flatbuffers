@@ -40,8 +40,6 @@ public struct Map: Sized {
 
   @inline(__always)
   public subscript(key: String) -> Reference? {
-    let count = keys.count
-    let mid = count / 2
     guard let position = binarySearch(vector: keys, target: key)
     else { return nil }
 

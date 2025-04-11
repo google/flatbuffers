@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Common
 import Foundation
 
 /// ``FlatBufferBuilder`` builds a `FlatBuffer` through manipulating its internal state.
