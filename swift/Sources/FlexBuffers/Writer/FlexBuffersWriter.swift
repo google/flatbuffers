@@ -716,8 +716,15 @@ public struct FlexBuffersWriter {
 
     let byteWidth = align(width: bitWidth)
 
+    let currentSize: Int = count &* step &* byteWidth
+    let requiredSize: Int = if !typed {
+      currentSize &* prefixElements
+    } else {
+      currentSize
+    }
+
     _bb.ensureSpace(
-      size: count &* step &* byteWidth)
+      size: requiredSize)
 
     if keys != nil {
       write(offset: keys!.u, byteWidth: byteWidth)
@@ -757,14 +764,14 @@ public struct FlexBuffersWriter {
   private mutating func write(offset: UInt64, byteWidth: Int) {
     let offset: UInt64 = numericCast(writerIndex) &- offset
     assert(byteWidth == 8 || offset < UInt64.one << (byteWidth * 8))
-    _ = withUnsafePointer(to: offset) {
+    withUnsafePointer(to: offset) {
       _bb.writeBytes($0, len: byteWidth)
     }
   }
 
   @inline(__always)
   private mutating func write<T>(value: T, byteWidth: Int) where T: Scalar {
-    _ = withUnsafePointer(to: value) {
+    withUnsafePointer(to: value) {
       _bb.writeBytes($0, len: byteWidth)
     }
   }
