@@ -41,7 +41,7 @@ public func getRoot(buffer: ByteBuffer) throws -> Reference? {
 
 @inline(__always)
 public func getRootChecked(buffer: ByteBuffer) throws -> Reference? {
-  #warning("TODO: Implement")
+  // TODO(mustiikhalil): implement verifier
   return try getRoot(buffer: buffer)
 }
 

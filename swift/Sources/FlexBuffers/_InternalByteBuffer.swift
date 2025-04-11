@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import Common
 import Foundation
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
@@ -162,7 +161,7 @@ struct _InternalByteBuffer {
   }
 
   mutating func write<T>(_ v: T, len: Int) {
-    _ = withUnsafePointer(to: v) {
+    withUnsafePointer(to: v) {
       memcpy(
         _storage.memory.advanced(by: writerIndex),
         $0,
