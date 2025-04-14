@@ -188,7 +188,8 @@ const static FlatCOption flatc_options[] = {
     "relative to. The 'root' is denoted with  `//`. E.g. if PATH=/a/b/c "
     "then /a/d/e.fbs will be serialized as //../d/e.fbs. (PATH defaults to the "
     "directory of the first provided schema file." },
-  { "", "bfbs-absolute-paths", "", "Uses absolute paths instead of relative paths in the BFBS output." },
+  { "", "bfbs-absolute-paths", "",
+    "Uses absolute paths instead of relative paths in the BFBS output." },
   { "", "bfbs-comments", "", "Add doc comments to the binary schema files." },
   { "", "bfbs-builtins", "",
     "Add builtin attributes to the binary schema files." },
@@ -205,6 +206,10 @@ const static FlatCOption flatc_options[] = {
   { "", "filename-ext", "EXT",
     "The extension appended to the generated file names. Default is "
     "language-specific (e.g., '.h' for C++)" },
+  { "", "module-mapping", "PATH=MODULE",
+    "Adds a mapping from schema path to module name. Can be used in module "
+    "based languages to include schema files that are compiled in separate "
+    "modules. Multiple uses are accumulated." },
   { "", "include-prefix", "PATH",
     "Prefix this PATH to any generated include statements." },
   { "", "keep-prefix", "",
@@ -630,6 +635,18 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--filename-ext") {
         if (++argi >= argc) Error("missing filename extension: " + arg, true);
         opts.filename_extension = argv[argi];
+      } else if (arg == "--module-mapping") {
+        if (++argi >= argc) Error("missing module mapping: " + arg, true);
+
+        std::string mapping = argv[argi];
+        size_t position = mapping.rfind("=");
+        if (position == std::string::npos) {
+          Error("invalid module mapping: " + mapping, true);
+        }
+
+        std::string schema = mapping.substr(0, position);
+        std::string module = mapping.substr(position + 1);
+        opts.module_map.schema_to_module[schema] = module;
       } else if (arg == "--force-defaults") {
         opts.force_defaults = true;
       } else if (arg == "--force-empty") {
