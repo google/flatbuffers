@@ -569,8 +569,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           spacing +
           "off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: "
-          "{{VOFFSET}}, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: "
-          "{{VOFFSET}}, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } ";
+          "{{VOFFSET}}, fbb: &fbb), Table.offset(Int32($0.o), vOffset: "
+          "{{VOFFSET}}, fbb: &fbb), fbb: &fbb) < 0 } ";
       code_ += spacing + "return fbb.createVector(ofOffsets: off)";
       Outdent();
       code_ += "}";
@@ -832,6 +832,7 @@ class SwiftGenerator : public BaseGenerator {
           "{{ACCESS_TYPE}} var {{FIELDVAR}}: [{{VALUETYPE}}] { return "
           "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? [] }";
       if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
+      GenUnsafeBufferPointer(field);
       return;
     }
 
@@ -845,6 +846,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
                GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
 
+      GenUnsafeBufferPointer(field);
       return;
     }
 
@@ -885,6 +887,16 @@ class SwiftGenerator : public BaseGenerator {
         }
       }
     }
+  }
+
+  void GenUnsafeBufferPointer(const FieldDef &field) {
+    code_.SetValue("functionName",
+                   namer_.Variable("withUnsafePointerTo", field));
+    code_ +=
+        "{{ACCESS_TYPE}} func {{functionName}}<T>(_ body: "
+        "(UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try "
+        "{{ACCESS}}.withUnsafePointerToSlice(at: {{TABLEOFFSET}}.{{OFFSET}}.v, "
+        "body: body) }";
   }
 
   void GenerateCodingKeys(const StructDef &struct_def) {
