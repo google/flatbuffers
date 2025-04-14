@@ -30,7 +30,7 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
     code:
 
     ```sh
-    ./flatc --cpp --rust mosnter.fbs
+    ./flatc --cpp --rust monster.fbs
     ```
 
     Which generates `monster_generated.h` and `monster_generated.rs` files.
