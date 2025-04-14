@@ -3193,7 +3193,7 @@ class CppGenerator : public BaseGenerator {
                                 const char *vec_type_access) {
     auto type_name = WrapInNameSpace(*afield.value.type.enum_def);
     return type_name + "Union::UnPack(" + "_e" + vec_elem_access + ", " +
-           EscapeKeyword(afield.name + UnionTypeFieldSuffix()) + "()" +
+           EscapeKeyword(Name(afield) + UnionTypeFieldSuffix()) + "()" +
            vec_type_access + ", _resolver)";
   }
 
@@ -3339,7 +3339,7 @@ class CppGenerator : public BaseGenerator {
                            BASE_TYPE_UNION);
         // Generate code that sets the union type, of the form:
         //   _o->field.type = _e;
-        code += "_o->" + union_field->name + ".type = _e;";
+        code += "_o->" + Name(*union_field) + ".type = _e;";
         break;
       }
       case BASE_TYPE_UNION: {
