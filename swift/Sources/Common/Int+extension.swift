@@ -22,9 +22,9 @@ extension Int {
   ///
   /// This is used since the UnsafeMutableRawPointer will face issues when writing/reading
   /// if the buffer alignment exceeds that actual size of the buffer
-  var convertToPowerofTwo: Int {
+  public var convertToPowerofTwo: Int {
     guard self > 0 else { return 1 }
-    var n = UOffset(self)
+    var n = UInt32(self)
 
     #if arch(arm) || arch(i386)
     let max = UInt32(Int.max)
