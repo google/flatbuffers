@@ -706,6 +706,7 @@ struct IDLOptions {
   bool no_leak_private_annotations;
   bool require_json_eof;
   bool keep_proto_id;
+  bool generate_type_names;
 
   /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
