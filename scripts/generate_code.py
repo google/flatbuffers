@@ -104,7 +104,7 @@ JAVA_OPTS = ["--java"]
 KOTLIN_OPTS = ["--kotlin"]
 PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
-PYTHON_OPTS = ["--python", "--python-typing"]
+PYTHON_OPTS = ["--python", "--python-typing", "--python-decode-obj-api-string"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
 PROTO_OPTS = ["--proto"]
 
