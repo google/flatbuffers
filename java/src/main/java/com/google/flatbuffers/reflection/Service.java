@@ -14,13 +14,12 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-public final class Service extends Table {
+public final class Service extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static Service getRootAsService(ByteBuffer _bb) { return getRootAsService(_bb, new Service()); }
   public static Service getRootAsService(ByteBuffer _bb, Service obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
@@ -35,15 +34,15 @@ public final class Service extends Table {
   public int callsLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.RPCCall callsByKey(String key) { int o = __offset(6); return o != 0 ? com.google.flatbuffers.reflection.RPCCall.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.RPCCall callsByKey(com.google.flatbuffers.reflection.RPCCall obj, String key) { int o = __offset(6); return o != 0 ? com.google.flatbuffers.reflection.RPCCall.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.RPCCall.Vector callsVector() { return callsVector(new com.google.flatbuffers.reflection.RPCCall.Vector()); }
-  public com.google.flatbuffers.reflection.RPCCall.Vector callsVector(com.google.flatbuffers.reflection.RPCCall.Vector obj) { int o = __offset(6); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.RPCCall._Vector callsVector() { return callsVector(new com.google.flatbuffers.reflection.RPCCall._Vector()); }
+  public com.google.flatbuffers.reflection.RPCCall._Vector callsVector(com.google.flatbuffers.reflection.RPCCall._Vector obj) { int o = __offset(6); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public com.google.flatbuffers.reflection.KeyValue attributes(int j) { return attributes(new com.google.flatbuffers.reflection.KeyValue(), j); }
   public com.google.flatbuffers.reflection.KeyValue attributes(com.google.flatbuffers.reflection.KeyValue obj, int j) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int attributesLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.KeyValue attributesByKey(String key) { int o = __offset(8); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.KeyValue attributesByKey(com.google.flatbuffers.reflection.KeyValue obj, String key) { int o = __offset(8); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector() { return attributesVector(new com.google.flatbuffers.reflection.KeyValue.Vector()); }
-  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector(com.google.flatbuffers.reflection.KeyValue.Vector obj) { int o = __offset(8); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.KeyValue._Vector attributesVector() { return attributesVector(new com.google.flatbuffers.reflection.KeyValue._Vector()); }
+  public com.google.flatbuffers.reflection.KeyValue._Vector attributesVector(com.google.flatbuffers.reflection.KeyValue._Vector obj) { int o = __offset(8); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public String documentation(int j) { int o = __offset(10); return o != 0 ? __string(__vector(o) + j * 4) : null; }
   public int documentationLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
   public StringVector documentationVector() { return documentationVector(new StringVector()); }
@@ -112,8 +111,8 @@ public final class Service extends Table {
     return null;
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public Service get(int j) { return get(new Service(), j); }
     public Service get(Service obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

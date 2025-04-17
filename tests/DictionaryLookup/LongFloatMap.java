@@ -14,13 +14,12 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-public final class LongFloatMap extends Table {
+public final class LongFloatMap extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static LongFloatMap getRootAsLongFloatMap(ByteBuffer _bb) { return getRootAsLongFloatMap(_bb, new LongFloatMap()); }
   public static LongFloatMap getRootAsLongFloatMap(ByteBuffer _bb, LongFloatMap obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
@@ -32,8 +31,8 @@ public final class LongFloatMap extends Table {
   public int entriesLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
   public DictionaryLookup.LongFloatEntry entriesByKey(long key) { int o = __offset(4); return o != 0 ? DictionaryLookup.LongFloatEntry.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public DictionaryLookup.LongFloatEntry entriesByKey(DictionaryLookup.LongFloatEntry obj, long key) { int o = __offset(4); return o != 0 ? DictionaryLookup.LongFloatEntry.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public DictionaryLookup.LongFloatEntry.Vector entriesVector() { return entriesVector(new DictionaryLookup.LongFloatEntry.Vector()); }
-  public DictionaryLookup.LongFloatEntry.Vector entriesVector(DictionaryLookup.LongFloatEntry.Vector obj) { int o = __offset(4); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public DictionaryLookup.LongFloatEntry._Vector entriesVector() { return entriesVector(new DictionaryLookup.LongFloatEntry._Vector()); }
+  public DictionaryLookup.LongFloatEntry._Vector entriesVector(DictionaryLookup.LongFloatEntry._Vector obj) { int o = __offset(4); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
 
   public static int createLongFloatMap(FlatBufferBuilder builder,
       int entriesOffset) {
@@ -53,8 +52,8 @@ public final class LongFloatMap extends Table {
   public static void finishLongFloatMapBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset); }
   public static void finishSizePrefixedLongFloatMapBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset); }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public LongFloatMap get(int j) { return get(new LongFloatMap(), j); }
     public LongFloatMap get(LongFloatMap obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

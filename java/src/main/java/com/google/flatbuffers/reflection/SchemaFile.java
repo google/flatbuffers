@@ -14,7 +14,6 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -25,7 +24,7 @@ import java.nio.ByteOrder;
  * symbols and examining the `declaration_file` field.
  */
 @SuppressWarnings("unused")
-public final class SchemaFile extends Table {
+public final class SchemaFile extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static SchemaFile getRootAsSchemaFile(ByteBuffer _bb) { return getRootAsSchemaFile(_bb, new SchemaFile()); }
   public static SchemaFile getRootAsSchemaFile(ByteBuffer _bb, SchemaFile obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
@@ -90,8 +89,8 @@ public final class SchemaFile extends Table {
     return null;
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public SchemaFile get(int j) { return get(new SchemaFile(), j); }
     public SchemaFile get(SchemaFile obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
