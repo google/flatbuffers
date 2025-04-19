@@ -93,7 +93,8 @@ final class FlatBuffersUnionTests: XCTestCase {
     // swiftformat:disable all
     XCTAssertEqual(builder.sizedByteArray, [12, 0, 0, 0, 0, 0, 6, 0, 8, 0, 4, 0, 6, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0])
     // swiftformat:enable all
-    let monster = ColorsNameSpace.Monster.getRootAsMonster(bb: builder.buffer)
+    let monster = ColorsNameSpace.Monster
+      .getRootAsMonster(bb: builder.sizedBuffer)
     XCTAssertEqual(monster.colorsCount, 2)
     XCTAssertEqual(monster.colors(at: 0), .blue)
     XCTAssertEqual(monster.colors(at: 1), .green)
@@ -122,7 +123,7 @@ final class FlatBuffersUnionTests: XCTestCase {
       charactersVectorOffset: characterVector)
     Movie.finish(&fb, end: end)
 
-    var buffer = fb.buffer
+    var buffer = fb.sizedBuffer
     var movie: Movie = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(movie.charactersTypeCount, Int32(characterType.count))
     XCTAssertEqual(movie.charactersCount, Int32(characters.count))
@@ -152,7 +153,7 @@ final class FlatBuffersUnionTests: XCTestCase {
     let newMovie = Movie.pack(&fb, obj: &objc)
     fb.finish(offset: newMovie)
 
-    var _buffer = fb.buffer
+    var _buffer = fb.sizedBuffer
     let packedMovie: Movie = getRoot(byteBuffer: &_buffer)
 
     XCTAssertEqual(
@@ -203,7 +204,7 @@ final class FlatBuffersUnionTests: XCTestCase {
     let newMovie = Movie.pack(&fb, obj: &objc)
     fb.finish(offset: newMovie)
 
-    var _buffer = fb.buffer
+    var _buffer = fb.sizedBuffer
     let packedMovie: Movie = getRoot(byteBuffer: &_buffer)
     XCTAssertEqual(packedMovie.mainCharacter(type: String.self), string)
     XCTAssertEqual(
