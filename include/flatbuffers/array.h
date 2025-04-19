@@ -245,7 +245,7 @@ const Array<E, length> &CastToArrayOfEnum(const T (&arr)[length]) {
 
 template<typename T, uint16_t length>
 bool operator==(const Array<T, length> &lhs,
-                const Array<T, length> &rhs) noexcept {
+                const Array<T, length> &rhs) FLATBUFFERS_NOEXCEPT {
   return std::addressof(lhs) == std::addressof(rhs) ||
          (lhs.size() == rhs.size() &&
           std::memcmp(lhs.Data(), rhs.Data(), rhs.size() * sizeof(T)) == 0);
