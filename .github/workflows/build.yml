@@ -21,14 +21,19 @@ jobs:
     permissions:
       contents: write
     outputs:
-      digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
-      digests-clang: ${{ steps.hash-clang.outputs.hashes }}
+      digests-gcc-x86_64: ${{ steps.hash-gcc-x86_64.outputs.hashes }}
+      digests-clang-x86_64: ${{ steps.hash-clang-x86_64.outputs.hashes }}
+      digests-gcc-aarch64: ${{ steps.hash-gcc-aarch64.outputs.hashes }}
+      digests-clang-aarch64: ${{ steps.hash-clang-aarch64.outputs.hashes }}
     name: Build Linux
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
         cxx: [g++-13, clang++-18]
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
       fail-fast: false
+    runs-on: ${{ matrix.os }}
+    env:
+      ARCH: ${{ matrix.os == 'ubuntu-24.04' && 'x86_64' || 'aarch64' }}
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -44,25 +49,34 @@ jobs:
     - name: upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: Linux flatc binary ${{ matrix.cxx }}
+        name: Linux flatc binary ${{ matrix.cxx }} on ${{ matrix.os }}
         path: flatc
     # Below if only for release.
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
-      run: zip Linux.flatc.binary.${{ matrix.cxx }}.zip flatc
+      run: zip Linux.flatc.binary.${{ matrix.cxx }}.${{ env.ARCH }}.zip flatc
     - name: Release zip file
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: Linux.flatc.binary.${{ matrix.cxx }}.zip
-    - name: Generate SLSA subjects - clang
-      if: matrix.cxx == 'clang++-18' && startsWith(github.ref, 'refs/tags/')
-      id: hash-clang
-      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
-    - name: Generate SLSA subjects - gcc
-      if: matrix.cxx == 'g++-13' && startsWith(github.ref, 'refs/tags/')
-      id: hash-gcc
-      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
+        files: Linux.flatc.binary.${{ matrix.cxx }}.${{ env.ARCH }}.zip
+    # SLSA subjects
+    - name: Generate SLSA subjects - clang / x86_64
+      if: matrix.cxx == 'clang++-18' && env.ARCH == 'x86_64' && startsWith(github.ref, 'refs/tags/')
+      id: hash-clang-x86_64
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.${{ env.ARCH }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
+    - name: Generate SLSA subjects - gcc / x86_64
+      if: matrix.cxx == 'g++-13' && env.ARCH == 'x86_64' && startsWith(github.ref, 'refs/tags/')
+      id: hash-gcc-x86_64
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.${{ env.ARCH }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
+    - name: Generate SLSA subjects - clang / aarch64
+      if: matrix.cxx == 'clang++-18' && env.ARCH == 'aarch64' && startsWith(github.ref, 'refs/tags/')
+      id: hash-clang-aarch64
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.${{ env.ARCH }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
+    - name: Generate SLSA subjects - gcc / aarch64
+      if: matrix.cxx == 'g++-13' && env.ARCH == 'aarch64' && startsWith(github.ref, 'refs/tags/')
+      id: hash-gcc-aarch64
+      run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.${{ env.ARCH }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
   build-linux-no-file-tests:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
@@ -600,15 +614,19 @@ jobs:
       - name: Merge results
         id: hash
         env:
-          LINUXGCC_DIGESTS: "${{ needs.build-linux.outputs.digests-gcc }}"
-          LINUXCLANG_DIGESTS: "${{ needs.build-linux.outputs.digests-clang }}"
+          LINUXGCC_X86_64_DIGESTS: "${{ needs.build-linux.outputs.digests-gcc-x86_64 }}"
+          LINUXCLANG_X86_64_DIGESTS: "${{ needs.build-linux.outputs.digests-clang-x86_64 }}"
+          LINUXGCC_AARCH64_DIGESTS: "${{ needs.build-linux.outputs.digests-gcc-aarch64 }}"
+          LINUXCLANG_AARCH64_DIGESTS: "${{ needs.build-linux.outputs.digests-clang-aarch64 }}"
           MAC_DIGESTS: "${{ needs.build-mac-universal.outputs.digests }}"
           MACINTEL_DIGESTS: "${{ needs.build-mac-intel.outputs.digests }}"
           WINDOWS_DIGESTS: "${{ needs.build-windows.outputs.digests }}"
         run: |
           set -euo pipefail
-          echo "$LINUXGCC_DIGESTS" | base64 -d > checksums.txt
-          echo "$LINUXCLANG_DIGESTS" | base64 -d >> checksums.txt
+          echo "$LINUXGCC_X86_64_DIGESTS" | base64 -d > checksums.txt
+          echo "$LINUXCLANG_X86_64_DIGESTS" | base64 -d >> checksums.txt
+          echo "$LINUXGCC_AARCH64_DIGESTS" | base64 -d > checksums.txt
+          echo "$LINUXCLANG_AARCH64_DIGESTS" | base64 -d >> checksums.txt
           echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
           echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
           echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
