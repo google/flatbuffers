@@ -122,7 +122,7 @@ fn generated_code_creates_correct_example() {
 }
 
 #[test]
-fn struct_netsted_struct_is_32_bytes() {
+fn struct_nested_struct_is_32_bytes() {
     assert_eq!(32, ::core::mem::size_of::<NestedStruct>());
 }
 
@@ -254,7 +254,7 @@ impl<T: Arbitrary + Debug + PartialEq, const N: usize> Arbitrary for FakeArray<T
         let x: [T; N] = array_init(|_| {
             loop {
                 let generated_scalar = T::arbitrary(g);
-                // Verify that generated scalar is not Nan, which is not equals to itself, 
+                // Verify that generated scalar is not Nan, which is not equal to itself,
                 // therefore we can't use it to validate input == output
                 if generated_scalar == generated_scalar { return generated_scalar; }
             }
@@ -289,7 +289,7 @@ mod array_fuzz {
                 assert_eq!(got, xs.0);
             }
             #[test]
-            fn $test_name() { 
+            fn $test_name() {
                 quickcheck::QuickCheck::new().max_tests(MAX_TESTS).quickcheck($fn_name as fn(FakeArray<$ty, ARRAY_SIZE>));
             }
         )

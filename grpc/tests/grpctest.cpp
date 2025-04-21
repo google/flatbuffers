@@ -52,7 +52,7 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
       override {
     for (int i = 0; i < 5; i++) {
       fbb_.Clear();
-      // Create 5 monsters for resposne.
+      // Create 5 monsters for response.
       auto monster_offset =
           CreateMonster(fbb_, 0, 0, 0,
                         fbb_.CreateString(request->GetRoot()->id()->str() +
@@ -74,7 +74,7 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
 
 // Track the server instance, so we can terminate it later.
 grpc::Server *server_instance = nullptr;
-// Mutex to protec this variable.
+// Mutex to protect this variable.
 std::mutex wait_for_server;
 std::condition_variable server_instance_cv;
 

@@ -40,10 +40,10 @@ static Namer::Config DartDefaultConfig() {
            /*fields=*/Case::kLowerCamel,
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/".",
+           /*enum_variant_separator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kSnake2,
-           /*namespace_seperator=*/".",
+           /*namespace_separator=*/".",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"$",
@@ -57,7 +57,7 @@ static Namer::Config DartDefaultConfig() {
 
 static std::set<std::string> DartKeywords() {
   // see https://www.dartlang.org/guides/language/language-tour#keywords
-  // yield*, async*, and sync* shouldn't be proble
+  // yield*, async*, and sync* shouldn't be problems
   return {
     "abstract", "else",       "import",    "show",     "as",        "enum",
     "in",       "static",     "assert",    "export",   "interface", "super",

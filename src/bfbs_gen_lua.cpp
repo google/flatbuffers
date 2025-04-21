@@ -53,10 +53,10 @@ Namer::Config LuaDefaultConfig() {
            /*fields=*/Case::kUpperCamel,
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/"",
+           /*enum_variant_separator=*/"",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
-           /*namespace_seperator=*/"__",
+           /*namespace_separator=*/"__",
            /*object_prefix=*/"",
            /*object_suffix=*/"",
            /*keyword_prefix=*/"",
@@ -206,7 +206,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         code += "\n";
       }
 
-      // Generates a init method that receives a pre-existing accessor object,
+      // Generates a init method that receives a preexisting accessor object,
       // so that objects can be reused.
 
       code += "function mt:Init(buf, pos)\n";
@@ -222,7 +222,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         const std::string field_name = namer_.Field(*field);
         const r::BaseType base_type = field->type()->base_type();
 
-        // Generate some fixed strings so we don't repeat outselves later.
+        // Generate some fixed strings so we don't repeat ourselves later.
         const std::string getter_signature =
             "function mt:" + field_name + "()\n";
         const std::string offset_prefix = "local o = self.view:Offset(" +
@@ -645,7 +645,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     code += code_block;
     code += "return " + name;
 
-    // Namespaces are '.' deliminted, so replace it with the path separator.
+    // Namespaces are '.' delimited, so replace it with the path separator.
     std::string path = ns;
 
     if (ns.empty()) {

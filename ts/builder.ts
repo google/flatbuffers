@@ -420,7 +420,7 @@ export class Builder {
     }
   
     /**
-     * Finalize a buffer, poiting to the given `root_table`.
+     * Finalize a buffer, pointing to the given `root_table`.
      */
     finish(root_table: Offset, opt_file_identifier?: string, opt_size_prefix?: boolean): void {
       const size_prefix = opt_size_prefix ? SIZE_PREFIX_LENGTH : 0;

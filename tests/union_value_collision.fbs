@@ -1,4 +1,4 @@
-namespace union_value_collsion;
+namespace union_value_collision;
 
 table IntValue {
 	value:int;
@@ -12,7 +12,7 @@ union Value { IntValue }
 
 union Other { IntValue }
 
-// This table tests collsions of Unions and fields named value.
+// This table tests collisions of Unions and fields named value.
 table Collision {
   some_value : Value;
   value : Other;

@@ -9,7 +9,7 @@ and pugixml, also one of the fastest XML parsers.
 We also compare against code that doesn't use a serialization library
 at all (the column "Raw structs"), which is what you get if you write
 hardcoded code that just writes structs. This is the fastest possible,
-but of course is not cross platform nor has any kind of forwards /
+but of course it is not cross platform and it has no forwards /
 backwards compatibility.
 
 We compare against Flatbuffers with the binary wire format (as

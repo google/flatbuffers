@@ -15,7 +15,7 @@
  */
 
 // clang-format off
-// Dont't remove `format off`, it prevent reordering of win-includes.
+// Don't remove `format off`, it prevent reordering of win-includes.
 
 #include <cstring>
 #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || \

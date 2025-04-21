@@ -176,7 +176,7 @@ static std::string GenerateComment(const BinaryRegionComment &comment,
     case BinaryRegionCommentType::FileIdentifier: s = "File Identifier"; break;
     case BinaryRegionCommentType::Padding: s = "padding"; break;
     case BinaryRegionCommentType::VTableSize: s = "size of this vtable"; break;
-    case BinaryRegionCommentType::VTableRefferingTableLength:
+    case BinaryRegionCommentType::VTableReferringTableLength:
       s = "size of referring table";
       break;
     case BinaryRegionCommentType::VTableFieldOffset:

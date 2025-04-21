@@ -47,8 +47,8 @@ static grpc::string GenerateMessage(const std::vector<std::string> &components,
 
 static void GenerateClientFuncName(const grpc_generator::Method *method,
                             grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
-  auto vars = *dictonary;
+                            std::map<grpc::string, grpc::string> *dictionary) {
+  auto vars = *dictionary;
   if (method->NoStreaming()) {
     printer->Print(vars,
                    "  $GenAccess$func $MethodName$(\n"
@@ -85,8 +85,8 @@ static void GenerateClientFuncName(const grpc_generator::Method *method,
 
 static void GenerateClientFuncBody(const grpc_generator::Method *method,
                             grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
-  auto vars = *dictonary;
+                            std::map<grpc::string, grpc::string> *dictionary) {
+  auto vars = *dictionary;
   vars["Interceptor"] =
       "interceptors: self.interceptors?.make$MethodName$Interceptors() ?? []";
   if (method->NoStreaming()) {
@@ -135,8 +135,8 @@ static void GenerateClientFuncBody(const grpc_generator::Method *method,
 
 void GenerateClientProtocol(const grpc_generator::Service *service,
                             grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
-  auto vars = *dictonary;
+                            std::map<grpc::string, grpc::string> *dictionary) {
+  auto vars = *dictionary;
   printer->Print(
       vars,
       "$ACCESS$ protocol $ServiceQualifiedName$ClientProtocol: GRPCClient {");
@@ -208,8 +208,8 @@ void GenerateClientProtocol(const grpc_generator::Service *service,
 }
 
 void GenerateClientClass(grpc_generator::Printer *printer,
-                         std::map<grpc::string, grpc::string> *dictonary) {
-  auto vars = *dictonary;
+                         std::map<grpc::string, grpc::string> *dictionary) {
+  auto vars = *dictionary;
   printer->Print(vars,
                  "$ACCESS$ final class $ServiceQualifiedName$ServiceClient: "
                  "$ServiceQualifiedName$ClientProtocol {\n");
@@ -304,8 +304,8 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
 
 void GenerateServerProtocol(const grpc_generator::Service *service,
                             grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
-  auto vars = *dictonary;
+                            std::map<grpc::string, grpc::string> *dictionary) {
+  auto vars = *dictionary;
   printer->Print(vars,
                  "$ACCESS$ protocol $ServiceQualifiedName$Provider: "
                  "CallHandlerProvider {\n");

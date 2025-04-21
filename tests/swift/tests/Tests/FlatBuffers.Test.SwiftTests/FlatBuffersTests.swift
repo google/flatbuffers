@@ -21,7 +21,7 @@ final class FlatBuffersTests: XCTestCase {
 
   let country = "Norway"
 
-  func testEndian() { XCTAssertEqual(isLitteEndian, true) }
+  func testEndian() { XCTAssertEqual(isLittleEndian, true) }
 
   func testOffset() {
     let o = Offset()

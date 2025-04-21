@@ -13,7 +13,7 @@ function main() {
   testRoundTrip();
   testRoundTripWithBuilder();
   testDeduplicationOff();
-  testBugWhereOffestWereStoredAsIntInsteadOfUInt();
+  testBugWhereOffsetWereStoredAsIntInsteadOfUInt();
 
   console.log('FlexBuffers test: completed successfully');
 }
@@ -362,7 +362,7 @@ function testGoldBuffer() {
   });
 }
 
-function testBugWhereOffestWereStoredAsIntInsteadOfUInt() {
+function testBugWhereOffsetWereStoredAsIntInsteadOfUInt() {
   // Reported in https://github.com/google/flatbuffers/issues/5949#issuecomment-688421193
   const object = {'channels_in': 64, 'dilation_height_factor': 1, 'dilation_width_factor': 1, 'fused_activation_function': 1, 'pad_values': 1, 'padding': 0, 'stride_height': 1, 'stride_width': 1};
   let data1 = flexbuffers.encode(object);

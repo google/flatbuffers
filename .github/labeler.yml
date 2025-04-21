@@ -3,7 +3,7 @@
 # See https://github.com/actions/labeler for file format
 # and https://github.com/google/flatbuffers/labels for a list of valid labels
 #
-# See .github/workflows/label.yml for Github Action workflow script
+# See .github/workflows/label.yml for GitHub Action workflow script
 
 c#:
   - '**/*.cs'

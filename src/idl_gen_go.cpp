@@ -67,10 +67,10 @@ static Namer::Config GoDefaultConfig() {
            /*fields=*/Case::kUpperCamel,
            /*variables=*/Case::kLowerCamel,
            /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/"",  // I.e. Concatenate.
+           /*enum_variant_separator=*/"",  // I.e. Concatenate.
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
-           /*namespace_seperator=*/"__",
+           /*namespace_separator=*/"__",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
@@ -638,7 +638,7 @@ class GoGenerator : public BaseGenerator {
     code += ") flatbuffers.UOffsetT {\n";
   }
 
-  // Recursively generate struct construction statements and instert manual
+  // Recursively generate struct construction statements and insert manual
   // padding.
   void StructBuilderBody(const StructDef &struct_def, const char *nameprefix,
                          std::string *code_ptr) {
@@ -897,7 +897,7 @@ class GoGenerator : public BaseGenerator {
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
     }
-    // Generate the Init method that sets the field in a pre-existing
+    // Generate the Init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     InitializeExisting(struct_def, code_ptr);
     // Generate _tab accessor

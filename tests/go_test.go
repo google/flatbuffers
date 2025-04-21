@@ -616,7 +616,7 @@ func CheckObjectAPI(buf []byte, offset flatbuffers.UOffsetT, sizePrefix bool, fa
 func checkFuzz(fuzzFields, fuzzObjects int, fail func(string, ...interface{})) {
 
 	// Values we're testing against: chosen to ensure no bits get chopped
-	// off anywhere, and also be different from eachother.
+	// off anywhere, and also be different from each other.
 	boolVal := true
 	int8Val := int8(-127) // 0x81
 	uint8Val := uint8(0xFF)
@@ -1515,11 +1515,11 @@ func CheckVtableDeduplication(fail func(string, ...interface{})) {
 	got := b.Bytes[b.Head():]
 
 	want := []byte{
-		240, 255, 255, 255, // == -12. offset to dedupped vtable.
+		240, 255, 255, 255, // == -12. offset to deduped vtable.
 		99, 0,
 		88,
 		77,
-		248, 255, 255, 255, // == -8. offset to dedupped vtable.
+		248, 255, 255, 255, // == -8. offset to deduped vtable.
 		66, 0,
 		55,
 		44,
@@ -1587,7 +1587,7 @@ func CheckNotInObjectError(fail func(string, ...interface{})) {
 	b.EndObject()
 }
 
-// CheckStringIsNestedError verifies that a string can not be created inside
+// CheckStringIsNestedError verifies that a string cannot be created inside
 // another object.
 func CheckStringIsNestedError(fail func(string, ...interface{})) {
 	b := flatbuffers.NewBuilder(0)
@@ -1645,7 +1645,7 @@ func CheckSharedStrings(fail func(string, ...interface{})) {
 	}
 }
 
-// CheckByteStringIsNestedError verifies that a bytestring can not be created
+// CheckByteStringIsNestedError verifies that a bytestring cannot be created
 // inside another object.
 func CheckByteStringIsNestedError(fail func(string, ...interface{})) {
 	b := flatbuffers.NewBuilder(0)
@@ -2427,7 +2427,7 @@ func BenchmarkVtableDeduplication(b *testing.B) {
 	prePop := 10
 	builder := flatbuffers.NewBuilder(0)
 
-	// pre-populate some vtables:
+	// prepopulate some vtables:
 	for i := 0; i < prePop; i++ {
 		builder.StartObject(i)
 		for j := 0; j < i; j++ {

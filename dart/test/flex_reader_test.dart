@@ -629,7 +629,7 @@ void main() {
         [true, false, true, true]);
   });
 
-  test('bug where offest were stored as int instead of uint', () {
+  test('bug where offset were stored as int instead of uint', () {
     const data = [
       99,
       104,

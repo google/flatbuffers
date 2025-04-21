@@ -44,7 +44,7 @@ added to xcode or the path of the package you will be using. Note: sometimes xco
 and wont see the generated files, so it's better that you copy them to xcode.
 
 For example, here is how you would read a FlatBuffer binary file in Swift: First,
-include the library and copy thegenerated code. Then read a FlatBuffer binary file or
+include the library and copy the generated code. Then read a FlatBuffer binary file or
 a data object from the server, which you can pass into the `GetRootAsMonster` function.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.swift}

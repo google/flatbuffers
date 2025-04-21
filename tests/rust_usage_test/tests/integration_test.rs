@@ -1372,7 +1372,7 @@ mod roundtrip_table {
     #[cfg(not(miri))]  // slow.
     fn table_of_mixed_scalars_fuzz() {
         // Values we're testing against: chosen to ensure no bits get chopped
-        // off anywhere, and also be different from eachother.
+        // off anywhere, and also be different from each other.
         let bool_val: bool = true;
         let char_val: i8 = -127;  // 0x81
         let uchar_val: u8 = 0xFF;

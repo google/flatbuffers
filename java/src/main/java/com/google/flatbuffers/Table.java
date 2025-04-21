@@ -161,7 +161,7 @@ public class Table {
    * Initialize vector as a ByteBuffer.
    *
    * This is more efficient than using duplicate, since it doesn't copy the data
-   * nor allocattes a new {@link ByteBuffer}, creating no garbage to be collected.
+   * nor allocates a new {@link ByteBuffer}, creating no garbage to be collected.
    *
    * @param bb The {@link ByteBuffer} for the array
    * @param vector_offset The position of the vector in the byte buffer

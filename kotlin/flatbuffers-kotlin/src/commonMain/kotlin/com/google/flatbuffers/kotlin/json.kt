@@ -136,7 +136,7 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
     if (readPos < data.limit) {
       val tok = skipWhitespace(data)
       if (tok != CHAR_EOF) {
-        makeError(data, "Extraneous charaters after parse has finished", tok)
+        makeError(data, "Extraneous characters after parse has finished", tok)
       }
     }
     output.finish()

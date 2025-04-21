@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
   auto done =
       flatbuffers::LoadFile(crash_file_name.c_str(), true, &crash_file_data);
   if (!done) {
-    std::cerr << "Can not load file: '" << crash_file_name << "'";
+    std::cerr << "Cannot load file: '" << crash_file_name << "'";
     return -1;
   }
   if (crash_file_data.size() < 3) {

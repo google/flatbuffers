@@ -96,7 +96,7 @@ func (b *Builder) StartObject(numfields int) {
 
 // WriteVtable serializes the vtable for the current object, if applicable.
 //
-// Before writing out the vtable, this checks pre-existing vtables for equality
+// Before writing out the vtable, this checks preexisting vtables for equality
 // to this one. If an equal vtable is found, point the object to the existing
 // vtable and return.
 //
@@ -586,7 +586,7 @@ func (b *Builder) Slot(slotnum int) {
 }
 
 // FinishWithFileIdentifier finalizes a buffer, pointing to the given `rootTable`.
-// as well as applys a file identifier
+// as well as applies a file identifier
 func (b *Builder) FinishWithFileIdentifier(rootTable UOffsetT, fid []byte) {
 	if fid == nil || len(fid) != fileIdentifierLength {
 		panic("incorrect file identifier length")

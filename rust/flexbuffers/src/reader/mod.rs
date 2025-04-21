@@ -32,10 +32,10 @@ pub use vector::VectorReader;
 /// All the possible errors when reading a flexbuffer.
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum Error {
-    /// One of the following data errors occured:
+    /// One of the following data errors occurred:
     ///
     /// *    The read flexbuffer had an offset that pointed outside the flexbuffer.
-    /// *    The 'negative indicies' where length and map keys are stored were out of bounds
+    /// *    The 'negative indices' where length and map keys are stored were out of bounds
     /// *    The buffer was too small to contain a flexbuffer root.
     FlexbufferOutOfBounds,
     /// Failed to parse a valid FlexbufferType and Bitwidth from a type byte.
@@ -60,7 +60,7 @@ pub enum Error {
     KeyNotFound,
     /// Failed to parse a Utf8 string.
     /// The Option will be `None` if and only if this Error was deserialized.
-    // NOTE: std::str::Utf8Error does not implement Serialize, Deserialize, nor Default. We tell
+    // NOTE: None of Serialize, Deserialize, and Default are implemented by std::str::Utf8Error. We tell
     // serde to skip the field and default to None. We prefer to have the boxed error so it can be
     // used with std::error::Error::source, though another (worse) option could be to drop that
     // information.

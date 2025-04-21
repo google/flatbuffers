@@ -30,7 +30,7 @@ public struct TableVerifier {
   /// Length of current VTable
   fileprivate var _vtableLength: Int
 
-  /// `Verifier` object created in the base verifable call.
+  /// `Verifier` object created in the base verifiable call.
   fileprivate var _verifier: Verifier
 
   /// Creates a `TableVerifier` verifier that allows the Flatbuffer object
@@ -54,7 +54,7 @@ public struct TableVerifier {
   }
 
   /// Dereference the current object position from the `VTable`
-  /// - Parameter field: Current VTable refrence to  position.
+  /// - Parameter field: Current VTable reference to  position.
   /// - Throws: A `FlatbuffersErrors` incase the voffset is not aligned/outOfBounds/apparentSizeTooLarge
   /// - Returns: An optional position for current field
   internal mutating func dereference(_ field: VOffset) throws -> Int? {
@@ -133,7 +133,7 @@ public struct TableVerifier {
     if let _key = keyPos,
        let _val = valPos
     {
-      /// verifiying that the key is within the buffer
+      /// verifying that the key is within the buffer
       try T.T.verify(&_verifier, at: _key, of: T.T.self)
       guard let _enum = try T.init(value: _verifier._buffer.read(
         def: T.T.self,
@@ -195,7 +195,7 @@ public struct TableVerifier {
     }
   }
 
-  /// Finishs the current Table verifier, and subtracts the current
+  /// Finishes the current Table verifier, and subtracts the current
   /// table from the incremented depth.
   public mutating func finish() {
     _verifier.finish()
