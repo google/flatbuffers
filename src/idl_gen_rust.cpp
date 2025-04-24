@@ -2884,13 +2884,30 @@ class RustGenerator : public BaseGenerator {
     // Generate Struct Object.
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
-      code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
+      code_ += "#[derive(Debug, Copy, Clone, PartialEq)]";
       code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef &field) {
         (void)field;  // unused.
         code_ += "pub {{FIELD}}: {{FIELD_OTY}},";
       });
       code_ += "}";
+
+      // Struct default trait implementation
+      code_ += "impl std::default::Default for {{STRUCT_OTY}} {";
+      code_ += "    fn default() -> Self {";
+      code_ += "      Self {";
+      ForAllStructFields(struct_def, [&](const FieldDef &field) {
+        const Type &type = field.value.type;
+        if (IsArray(type)) {
+          code_ += "      {{FIELD}}: [Default::default(); " + NumToString(type.fixed_length) + "],";
+        } else {
+          code_ += "      {{FIELD}}: Default::default(),";
+        }
+      });
+      code_ += "    }";
+      code_ += "  }";
+      code_ += "}";
+
       // The `pack` method that turns the native struct into its Flatbuffers
       // counterpart.
       code_ += "impl {{STRUCT_OTY}} {";
