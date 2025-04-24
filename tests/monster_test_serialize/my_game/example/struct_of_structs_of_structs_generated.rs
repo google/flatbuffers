@@ -110,9 +110,16 @@ impl<'a> StructOfStructsOfStructs {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct StructOfStructsOfStructsT {
   pub a: StructOfStructsT,
+}
+impl std::default::Default for StructOfStructsOfStructsT {
+    fn default() -> Self {
+      Self {
+        a: Default::default(),
+    }
+  }
 }
 impl StructOfStructsOfStructsT {
   pub fn pack(&self) -> StructOfStructsOfStructs {
