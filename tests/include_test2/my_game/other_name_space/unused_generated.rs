@@ -114,7 +114,7 @@ impl<'a> Unused {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnusedT {
   pub a: i32,
 }

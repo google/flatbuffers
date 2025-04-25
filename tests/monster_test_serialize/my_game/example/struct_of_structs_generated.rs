@@ -144,7 +144,7 @@ impl<'a> StructOfStructs {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StructOfStructsT {
   pub a: AbilityT,
   pub b: TestT,

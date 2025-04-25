@@ -147,7 +147,7 @@ impl<'a> Test {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TestT {
   pub a: i16,
   pub b: i8,

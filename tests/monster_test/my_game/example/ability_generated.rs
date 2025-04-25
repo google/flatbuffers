@@ -157,7 +157,7 @@ impl<'a> Ability {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AbilityT {
   pub id: u32,
   pub distance: u32,

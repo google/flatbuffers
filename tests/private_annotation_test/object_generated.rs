@@ -114,7 +114,7 @@ impl<'a> Object {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ObjectT {
   pub value: i32,
 }

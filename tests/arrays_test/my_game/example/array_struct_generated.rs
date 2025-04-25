@@ -240,7 +240,7 @@ impl<'a> ArrayStruct {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ArrayStructT {
   pub a: f32,
   pub b: [i32; 15],

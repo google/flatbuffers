@@ -147,7 +147,7 @@ impl<'a> StructInNestedNS {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StructInNestedNST {
   pub a: i32,
   pub b: i32,

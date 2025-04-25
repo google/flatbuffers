@@ -280,7 +280,7 @@ impl<'a> Vec3 {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Vec3T {
   pub x: f32,
   pub y: f32,

@@ -213,7 +213,7 @@ impl<'a> PossiblyReservedWords {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PossiblyReservedWordsT {
   pub follow_: f32,
   pub push_: f32,

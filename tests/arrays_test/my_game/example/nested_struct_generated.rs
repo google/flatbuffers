@@ -174,7 +174,7 @@ impl<'a> NestedStruct {
   }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NestedStructT {
   pub a: [i32; 2],
   pub b: TestEnum,
