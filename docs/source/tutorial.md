@@ -2011,6 +2011,8 @@ like so:
     let buf = builder.sizedByteArray
     // or you can use to get an object of type Data
     let bufData = ByteBuffer(data: builder.data)
+    // or
+    let buf = builder.sizedBuffer
     ```
 
 === "TypeScript"
