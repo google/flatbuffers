@@ -84,9 +84,6 @@ struct MonsterBuilder:
     def add_inventory(inventory:flatbuffers.offset):
         b_.PrependUOffsetTRelativeSlot(5, inventory)
         return this
-    def add_color(color:Color):
-        b_.PrependInt8Slot(6, color, 2)
-        return this
     def add_weapons(weapons:flatbuffers.offset):
         b_.PrependUOffsetTRelativeSlot(7, weapons)
         return this
