@@ -273,7 +273,7 @@ static bool IsBitFlagsEnum(const EnumDef &enum_def) {
 // TableArgs make required non-scalars "Option<_>".
 // TODO(cneo): Rework how we do defaults and stuff.
 static bool IsOptionalToBuilder(const FieldDef &field) {
-  return field.IsOptional() || !IsScalar(field.value.type.base_type);
+  return field.IsOptional() || (!field.IsRequired() && !IsScalar(field.value.type.base_type));
 }
 }  // namespace
 
@@ -514,7 +514,8 @@ class RustGenerator : public BaseGenerator {
       case ftBool:
       case ftEnumKey:
       case ftUnionKey:
-      case ftUnionValue: {
+      case ftUnionValue:
+      case ftStruct: {
         return false;
       }
       default: {
@@ -1024,11 +1025,9 @@ class RustGenerator : public BaseGenerator {
   std::string GetDefaultValue(const FieldDef &field,
                               const DefaultContext context) {
     if (context == kBuilder) {
-      // Builders and Args structs model nonscalars "optional" even if they're
-      // required or have defaults according to the schema. I guess its because
-      // WIPOffset is not nullable.
-      if (!IsScalar(field.value.type.base_type) || field.IsOptional()) {
-        return "None";
+      if (IsOptionalToBuilder(field)) { return "None"; }
+      if (IsTable(field.value.type) || IsVector(field.value.type)) {
+        return "flatbuffers::WIPOffset::new(0)";  // TODO is this safe?
       }
     } else {
       // This for defaults in objects.
@@ -1063,7 +1062,12 @@ class RustGenerator : public BaseGenerator {
             namer_.EnumVariant(*field.value.type.enum_def, *ev));
       }
       case ftUnionValue: {
-        return ObjectFieldType(field, true) + "::NONE";
+        if (field.IsRequired()) {
+          return context == kObject ? "Default::default()" : "flatbuffers::WIPOffset::new(0)";  // TODO is this safe?;
+        } else {
+          return context == kObject ? "Default::default()" : "None";
+        }
+
       }
       case ftString: {
         // Required fields do not have defaults defined by the schema, but we
@@ -1075,6 +1079,7 @@ class RustGenerator : public BaseGenerator {
             field.IsRequired() ? "\"\"" : "\"" + field.value.constant + "\"";
         if (context == kObject) return defval + ".to_string()";
         if (context == kAccessor) return "&" + defval;
+        if (context == kBuilder) return "flatbuffers::WIPOffset::new(0)"; // TODO is this safe?
         FLATBUFFERS_ASSERT(false);
         return "INVALID_CODE_GENERATION";
       }
@@ -1138,7 +1143,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftStruct: {
         const auto typname = WrapInNameSpace(*type.struct_def);
-        return WrapOption("&" + lifetime + " " + typname);
+        return WrapOption(typname);
       }
       case ftTable: {
         const auto typname = WrapInNameSpace(*type.struct_def);
@@ -1153,7 +1158,7 @@ class RustGenerator : public BaseGenerator {
         return WrapOption(WrapInNameSpace(*type.enum_def));
       }
       case ftUnionValue: {
-        return "Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>";
+        return "flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>";
       }
 
       case ftVectorOfInteger:
@@ -1709,8 +1714,10 @@ class RustGenerator : public BaseGenerator {
               return;
             if (IsOptionalToBuilder(field)) {
               code_ +=
-                  "  if let Some(x) = args.{{FIELD}} "
-                  "{ builder.add_{{FIELD}}(x); }";
+                  "  if let Some(x) = args.{{FIELD}} ";
+              code_ += IsStruct(field.value.type) ? "{ builder.add_{{FIELD}}(&x); }" : "{ builder.add_{{FIELD}}(x); }";
+            } else if (IsStruct(field.value.type)) {
+              code_ += "  builder.add_{{FIELD}}(&args.{{FIELD}});";
             } else {
               code_ += "  builder.add_{{FIELD}}(args.{{FIELD}});";
             }
@@ -2270,7 +2277,11 @@ class RustGenerator : public BaseGenerator {
           code_ +=
               "  let {{DISCRIMINANT}} = "
               "self.{{FIELD}}.{{ENUM_METHOD}}_type();";
-          code_ += "  let {{FIELD}} = self.{{FIELD}}.pack(_fbb);";
+          if (field.IsRequired()) {
+            code_ += "  let {{FIELD}} = self.{{FIELD}}.pack(_fbb).expect(\"{{FIELD}}\");";
+          } else {
+            code_ += "  let {{FIELD}} = self.{{FIELD}}.pack(_fbb);";
+          }
           return;
         }
         // The rest of the types require special casing around optionalness
@@ -2281,15 +2292,14 @@ class RustGenerator : public BaseGenerator {
         }
         case ftStruct: {
           // Hold the struct in a variable so we can reference it.
-          if (field.IsRequired()) {
-            code_ += "  let {{FIELD}}_tmp = Some(self.{{FIELD}}.pack());";
-          } else {
+          if (field.IsOptional()) {
             code_ +=
-                "  let {{FIELD}}_tmp = self.{{FIELD}}"
+                "  let {{FIELD}} = self.{{FIELD}}"
                 ".as_ref().map(|x| x.pack());";
+            // code_ += "  let {{FIELD}} = {{FIELD}}_tmp.as_ref();";
+          } else {
+            code_ += "  let {{FIELD}} = self.{{FIELD}}.pack();";
           }
-          code_ += "  let {{FIELD}} = {{FIELD}}_tmp.as_ref();";
-
           return;
         }
         case ftTable: {
@@ -2369,10 +2379,10 @@ class RustGenerator : public BaseGenerator {
     } else {
       // For some reason Args has optional types for required fields.
       // TODO(cneo): Fix this... but its a breaking change?
-      code_ += "  let {{FIELD}} = Some({";
+      code_ += "  let {{FIELD}} = {";
       code_ += "    let x = &self.{{FIELD}};";
       code_ += "    " + expr;
-      code_ += "  });";
+      code_ += "  };";
     }
   }
 
