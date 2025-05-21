@@ -96,7 +96,16 @@ struct JsonPrinter {
       // print as numeric value
     }
 
-    text += NumToString(val);
+    auto val_str = NumToString(val);
+    if (StringIsFlatbufferNan(val_str)) {
+      val_str = "NaN";
+    } else if (StringIsFlatbufferPositiveInfinity(val_str)) {
+      val_str = "Infinity";
+    } else if (StringIsFlatbufferNegativeInfinity(val_str)) {
+      val_str = "-Infinity";
+    }
+
+    text += val_str;
     return;
   }
 
