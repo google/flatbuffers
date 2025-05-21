@@ -24,7 +24,7 @@ mutate_weight(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "FallingTub" {
   return 'FallingTub';
 }
 
