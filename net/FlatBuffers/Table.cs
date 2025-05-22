@@ -183,6 +183,12 @@ namespace Google.FlatBuffers
             var len_2 = bb.GetInt(offset_2);
             var startPos_1 = offset_1 + sizeof(int);
             var startPos_2 = offset_2 + sizeof(int);
+
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+            var span_1 = bb.ToReadOnlySpan(startPos_1, len_1);
+            var span_2 = bb.ToReadOnlySpan(startPos_2, len_2);
+            return span_1.SequenceCompareTo(span_2);
+#else
             var len = Math.Min(len_1, len_2);
             for(int i = 0; i < len; i++) {
                 byte b1 = bb.Get(i + startPos_1);
@@ -191,6 +197,7 @@ namespace Google.FlatBuffers
                     return b1 - b2;
             }
             return len_1 - len_2;
+#endif
         }
 
         // Compare string from the ByteBuffer with the string object
@@ -200,6 +207,11 @@ namespace Google.FlatBuffers
             var len_1 = bb.GetInt(offset_1);
             var len_2 = key.Length;
             var startPos_1 = offset_1 + sizeof(int);
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+            ReadOnlySpan<byte> span = bb.ToReadOnlySpan(startPos_1, len_1);
+            ReadOnlySpan<byte> keySpan = key;
+            return span.SequenceCompareTo(keySpan);
+#else
             var len = Math.Min(len_1, len_2);
             for (int i = 0; i < len; i++) {
                 byte b = bb.Get(i + startPos_1);
@@ -207,6 +219,7 @@ namespace Google.FlatBuffers
                     return b - key[i];
             }
             return len_1 - len_2;
+#endif
         }
     }
 }
