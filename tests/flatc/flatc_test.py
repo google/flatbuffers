@@ -84,7 +84,7 @@ def assert_file_contains(file, needles):
         contents = file.read()
         for needle in [needles] if isinstance(needles, str) else needles:
             assert needle in contents, (
-                "coudn't find '" + needle + "' in file: " + str(file)
+                "couldn't find '" + needle + "' in file: " + str(file)
             )
     return file
 
@@ -130,7 +130,7 @@ def run_all(*modules):
                 print(" [FAILED]: " + str(e))
                 module_failing = module_failing + 1
         print(
-            "{0}: {1} of {2} passsed".format(
+            "{0}: {1} of {2} passed".format(
                 module.__name__, module_passing, module_passing + module_failing
             )
         )

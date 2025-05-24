@@ -392,7 +392,7 @@ class DecoderTest(unittest.TestCase):
 
             self._check_int(data, value)
 
-  def test_inidirect_uint(self):
+  def test_indirect_uint(self):
     for value in (1, *UINT_MIN_MAX_VALUES):
       for bw in 1, 2, 4, 8:
         for ebw in uint_sizes(value):

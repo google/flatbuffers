@@ -41,10 +41,10 @@ static Namer::Config RustDefaultConfig() {
            /*fields=*/Case::kKeep,
            /*variables=*/Case::kUnknown,  // Unused.
            /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/"::",
+           /*enum_variant_separator=*/"::",
            /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
            /*namespaces=*/Case::kSnake,
-           /*namespace_seperator=*/"::",
+           /*namespace_separator=*/"::",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
@@ -1956,7 +1956,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {";
     code_ += "    use self::flatbuffers::Verifiable;";
     code_ += "    v.visit_table(pos)?\\";
-    // Escape newline and insert it onthe next line so we can end the builder
+    // Escape newline and insert it on the next line so we can end the builder
     // with a nice semicolon.
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
       if (GetFullType(field.value.type) == ftUnionKey) return;

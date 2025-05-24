@@ -338,7 +338,7 @@ class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):
     return monster
 
   def _create_and_load_object_class(self, b):
-    """ Finishs the creation of a monster flatbuffer and loads it into an
+    """ Finishes the creation of a monster flatbuffer and loads it into an
 
         object class.
     """
@@ -766,7 +766,7 @@ class TestFuzz(unittest.TestCase):
                                                ofInt64Bytes, 0)
 
   # Values we're testing against: chosen to ensure no bits get chopped
-  # off anywhere, and also be different from eachother.
+  # off anywhere, and also be different from each other.
   boolVal = True
   int8Val = N.Int8Flags.py_type(-127)  # 0x81
   uint8Val = N.Uint8Flags.py_type(0xFF)
@@ -2529,7 +2529,7 @@ class TestVtableDeduplication(unittest.TestCase):
         240,
         255,
         255,
-        255,  # == -12. offset to dedupped vtable.
+        255,  # == -12. offset to deduped vtable.
         99,
         0,
         88,
@@ -2537,7 +2537,7 @@ class TestVtableDeduplication(unittest.TestCase):
         248,
         255,
         255,
-        255,  # == -8. offset to dedupped vtable.
+        255,  # == -8. offset to deduped vtable.
         66,
         0,
         55,
@@ -2570,7 +2570,7 @@ class TestVtableDeduplication(unittest.TestCase):
     table1 = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - obj1)
     table2 = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - obj2)
 
-    def _checkTable(tab, voffsett_value, b, c, d):
+    def _checkTable(tab, voffset_value, b, c, d):
       # vtable size
       got = tab.GetVOffsetTSlot(0, 0)
       self.assertEqual(12, got, 'case 0, 0')
@@ -2581,7 +2581,7 @@ class TestVtableDeduplication(unittest.TestCase):
 
       # default value
       got = tab.GetVOffsetTSlot(4, 0)
-      self.assertEqual(voffsett_value, got, 'case 4, 0')
+      self.assertEqual(voffset_value, got, 'case 4, 0')
 
       got = tab.GetSlot(6, 0, N.Uint8Flags)
       self.assertEqual(b, got, 'case 6, 0')
@@ -2894,7 +2894,7 @@ def BenchmarkVtableDeduplication(count):
 
     layouts = list(layouts)
 
-    # pre-populate vtables:
+    # prepopulate vtables:
     for layout in layouts:
       builder.StartObject(n)
       for j in layout:

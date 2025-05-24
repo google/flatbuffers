@@ -563,7 +563,7 @@ final class FlatbufferBuilder
      * Adds on offset, relative to where it will be written.
      * @param $off The offset to add to the buffer.
      * @throws \Exception Throws an exception if `$off` is greater than the underlying ByteBuffer's
-     * offest.
+     * offset.
      */
     public function addOffset($off)
     {
@@ -586,7 +586,7 @@ final class FlatbufferBuilder
         $this->notNested();
         $this->vector_num_elems = $num_elems;
         $this->prep(Constants::SIZEOF_INT, $elem_size * $num_elems);
-        $this->prep($alignment, $elem_size * $num_elems); // Just in case alignemnt > int;
+        $this->prep($alignment, $elem_size * $num_elems); // Just in case alignment > int;
     }
 
     /**
@@ -611,7 +611,7 @@ final class FlatbufferBuilder
         }
 
         for ($j = 0, $i = 0; $i < $len; $i++) {
-            // check ACII
+            // check ASCII
             if ($bytes[$j] == "\x09" ||
                 $bytes[$j] == "\x0A" ||
                 $bytes[$j] == "\x0D" ||
@@ -896,7 +896,7 @@ final class FlatbufferBuilder
 
     /**
      * Finalize a buffer, pointing to the given `$root_table`.
-     * @param $root_table An offest to be added to the buffer.
+     * @param $root_table An offset to be added to the buffer.
      * @param $file_identifier A FlatBuffer file identifier to be added to the
      *     buffer before `$root_table`. This defaults to `null`.
      * @throws InvalidArgumentException Thrown if an invalid `$identifier` is

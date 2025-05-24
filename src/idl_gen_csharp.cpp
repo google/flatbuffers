@@ -544,7 +544,7 @@ class CSharpGenerator : public BaseGenerator {
     }
   }
 
-  // Recusively generate struct construction statements of the form:
+  // Recursively generate struct construction statements of the form:
   // builder.putType(name);
   // and insert manual padding.
   void GenStructBody(const StructDef &struct_def, std::string *code_ptr,
@@ -894,7 +894,7 @@ class CSharpGenerator : public BaseGenerator {
       }
     }
 
-    // Generate the __init method that sets the field in a pre-existing
+    // Generate the __init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
     code += "{ ";
@@ -1072,7 +1072,7 @@ class CSharpGenerator : public BaseGenerator {
               code += offset_prefix + GenGetter(Type(BASE_TYPE_STRING));
               code += "(o + __p.bb_pos) : null";
             }
-            // As<> accesors for Unions
+            // As<> assessors for Unions
             // Loop through all the possible union types and generate an As
             // accessor that casts to the correct type.
             for (auto uit = field.value.type.enum_def->Vals().begin();
@@ -1419,7 +1419,7 @@ class CSharpGenerator : public BaseGenerator {
             code += "(";
             // At the moment there is no support of the type Vector with
             // optional enum, e.g. if we have enum type SomeEnum there is no way
-            // to define `SomeEmum?[] enums` in FlatBuffer schema, so isOptional
+            // to define `SomeEnum?[] enums` in FlatBuffer schema, so isOptional
             // = false
             code += SourceCastBasic(vector_type, false);
             code += "data[i]";
@@ -1573,7 +1573,7 @@ class CSharpGenerator : public BaseGenerator {
     if (!struct_def.attributes.Lookup("private")) code += "public ";
     code += "static struct Vector : BaseVector\n{\n";
 
-    // Generate the __assign method that sets the field in a pre-existing
+    // Generate the __assign method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     std::string method_indent = "    ";
     code += method_indent + "public Vector ";
@@ -1854,25 +1854,25 @@ class CSharpGenerator : public BaseGenerator {
                                 const std::string &camel_name_short,
                                 bool is_vector) const {
     auto &code = *code_ptr;
-    std::string varialbe_name = "_o." + camel_name;
+    std::string variable_name = "_o." + camel_name;
     std::string class_member = "Value";
     if (class_member == enum_def.name) class_member += "_";
     std::string type_suffix = "";
     std::string func_suffix = "()";
     std::string indent = "    ";
     if (is_vector) {
-      varialbe_name = "_o_" + camel_name;
+      variable_name = "_o_" + camel_name;
       type_suffix = "(_j)";
       func_suffix = "(_j)";
       indent = "      ";
     }
     if (is_vector) {
-      code += indent + "var " + varialbe_name + " = new ";
+      code += indent + "var " + variable_name + " = new ";
     } else {
-      code += indent + varialbe_name + " = new ";
+      code += indent + variable_name + " = new ";
     }
     code += NamespacedName(enum_def) + "Union();\n";
-    code += indent + varialbe_name + ".Type = this." + camel_name_short +
+    code += indent + variable_name + ".Type = this." + camel_name_short +
             "Type" + type_suffix + ";\n";
     code += indent + "switch (this." + camel_name_short + "Type" + type_suffix +
             ") {\n";
@@ -1884,7 +1884,7 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += indent + "  case " + NamespacedName(enum_def) + "." + ev.name +
                 ":\n";
-        code += indent + "    " + varialbe_name + "." + class_member +
+        code += indent + "    " + variable_name + "." + class_member +
                 " = this." + camel_name;
         if (IsString(ev.union_type)) {
           code += "AsString" + func_suffix + ";\n";
@@ -1899,7 +1899,7 @@ class CSharpGenerator : public BaseGenerator {
     }
     code += indent + "}\n";
     if (is_vector) {
-      code += indent + "_o." + camel_name + ".Add(" + varialbe_name + ");\n";
+      code += indent + "_o." + camel_name + ".Add(" + variable_name + ");\n";
     }
   }
 

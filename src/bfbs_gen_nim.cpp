@@ -62,10 +62,10 @@ Namer::Config NimDefaultConfig() {
            /*fields=*/Case::kLowerCamel,
            /*variable=*/Case::kLowerCamel,
            /*variants=*/Case::kUpperCamel,
-           /*enum_variant_seperator=*/".",
+           /*enum_variant_separator=*/".",
            /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
            /*namespaces=*/Case::kKeep,
-           /*namespace_seperator=*/"/",
+           /*namespace_separator=*/"/",
            /*object_prefix=*/"",
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
@@ -290,7 +290,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         code += "  for i in countup(0, len - 1):\n";
         code += "    result.add(self." + field_name + "(i))\n";
 
-        (void)IsSingleByte(vector_base_type);  // unnused function warning
+        (void)IsSingleByte(vector_base_type);  // unused function warning
       }
     });
 
@@ -663,7 +663,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     }
     code += code_block;
 
-    // Namespaces are '.' deliminted, so replace it with the path separator.
+    // Namespaces are '.' delimited, so replace it with the path separator.
     std::string path = ns;
 
     if (ns.empty()) {

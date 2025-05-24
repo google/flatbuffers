@@ -30,13 +30,13 @@ theme:
 
     # Allows content tabs to link together
     - content.tabs.link
-  
+
     # Expand nav folders by default
     - navigation.expand
 
     # Enable the footer
     - navigation.footer
-    
+
     # Auto hide the header after scrolling
     - header.autohide
 
@@ -58,7 +58,7 @@ plugins:
   #
   # https://github.com/mkdocs/mkdocs-redirects
   - redirects:
-      # Note the .html are suffixed with .md to avoid warnings. Got from 
+      # Note the .html are suffixed with .md to avoid warnings. Got from
       # https://github.com/mkdocs/mkdocs-redirects/issues/51#issuecomment-2408548029
       redirect_maps:
         'flatbuffers_guide_building.html.md': 'building.md'
@@ -111,7 +111,7 @@ markdown_extensions:
           case: lower
   - pymdownx.highlight:
       extend_pygments_lang:
-        # PHP wasn't highlighting correctly. This is a work around found
+        # PHP wasn't highlighting correctly. This is a workaround found
         # https://github.com/squidfunk/mkdocs-material/issues/138#issuecomment-2294025627
         - name: php
           lang: php
@@ -125,10 +125,10 @@ nav:
   - Overview: "index.md"
   - Quick Start: "quick_start.md"
   - Tutorial: "tutorial.md"
-  - Compiler (flatc): 
+  - Compiler (flatc):
     - Building: "building.md"
     - Using: "flatc.md"
-  - Schema (.fbs): 
+  - Schema (.fbs):
     - Overview: "schema.md"
     - Evolution: "evolution.md"
     - Grammar: "grammar.md"

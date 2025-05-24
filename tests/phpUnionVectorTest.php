@@ -38,7 +38,7 @@ class Assert {
             throw new \Exception("passed statement don't throw an exception.");
         } catch (\Exception $e) {
             if (get_class($e) != get_class($class)) {
-                throw new Exception("passed statement doesn't throw " . get_class($class) . ". throwws " . get_class($e));
+                throw new Exception("passed statement doesn't throw " . get_class($class) . ". throws " . get_class($e));
             }
         }
     }

@@ -39,7 +39,7 @@ pub trait Buffer: Deref<Target = [u8]> + Sized {
     /// Creates an empty instance of a `Buffer`. This is different than `Default` b/c it
     /// guarantees that the buffer instance will have length zero.
     ///
-    /// Most impls shold be able to implement this via `Default`.
+    /// Most impls should be able to implement this via `Default`.
     fn empty() -> Self;
 
     /// Based off of the `empty` function, allows override for optimization purposes.

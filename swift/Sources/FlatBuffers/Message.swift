@@ -36,7 +36,7 @@ public protocol FlatBufferGRPCMessage {
 public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   internal var buffer: ByteBuffer
 
-  /// Returns the an object of type T that would be  read from the buffer
+  /// Returns an object of type T that would be read from the buffer
   public var object: T {
     T.init(
       buffer,

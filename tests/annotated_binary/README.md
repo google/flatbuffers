@@ -22,7 +22,7 @@ cd tests\annotated_binary
 ..\..\flatc --annotate annotated_binary.fbs -- annotated_binary.bin
 ```
 
-The `annotated_binary.bin` is the flatbufer binary of the data contained within
+The `annotated_binary.bin` is the flatbuffer binary of the data contained within
  `annotated_binary.json`, which was made by the following command:
 
 ```sh
@@ -41,7 +41,7 @@ The offset is the 1st column, expressed in hexadecimal format (e.g. `+0x003c`).
 
 ### Binary Sections
 
-Binary sections are comprised of contigious [binary regions](#binary-regions) 
+Binary sections are comprised of contiguous [binary regions](#binary-regions) 
 that are logically grouped together. For example, a binary section may be a
 single instance of a flatbuffer `Table` or its `vtable`. The sections may be 
 labelled with the name of the associated type, as defined in the input schema.
@@ -59,7 +59,7 @@ vtable (AnnotatedBinary.Bar):
 
 ### Binary Regions
 
-Binary regions are contigious bytes regions that are grouped together to form 
+Binary regions are contiguous bytes regions that are grouped together to form 
 some sort of value, e.g. a `scalar` or an array of scalars. A binary region may
 be split up over multiple text lines, if the size of the region is large.
 
@@ -79,12 +79,12 @@ for the wire format.
 
 The third column is the type to interpret the bytes as. Some types are special
 to flatbuffer internals (e.g. `SOffet32`, `Offset32`, and `VOffset16`) which are
-used by flatbuffers to point to various offsetes. The other types are specified
+used by flatbuffers to point to various offsets. The other types are specified
 as C++-like types which are the standard fix-width scalars. For the above
 example, the type is `uint16_t` which is a 16-bit unsigned integer type.
 
 The fourth column shows the raw bytes as a compacted, big-endian value. The raw
-bytes are duplicated in this fashion since it is more intutive to read the data
+bytes are duplicated in this fashion since it is more intuitive to read the data
 in the big-endian format (e.g., `0x0008`). This value is followed by the decimal
 representation of the value (e.g., `(8)`). (For strings, the raw string value
 is shown instead). 

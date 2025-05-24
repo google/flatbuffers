@@ -23,7 +23,7 @@
 namespace flatbuffers {
 
 // Convenience class to easily parse or generate text for arbitrary FlatBuffers.
-// Simply pre-populate it with all schema filenames that may be in use, and
+// Simply prepopulate it with all schema filenames that may be in use, and
 // This class will look them up using the file_identifier declared in the
 // schema.
 class Registry {

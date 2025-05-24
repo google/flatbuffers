@@ -33,7 +33,7 @@ public struct Table {
   ///   - position: Current table position
   /// - Note: This will `CRASH` if read on a big endian machine
   public init(bb: ByteBuffer, position: Int32 = 0) {
-    guard isLitteEndian else {
+    guard isLittleEndian else {
       fatalError(
         "Reading/Writing a buffer in big endian machine is not supported on swift")
     }

@@ -38,10 +38,10 @@ static Namer::Config JavaDefaultConfig() {
     /*fields=*/Case::kLowerCamel,
     /*variables=*/Case::kLowerCamel,
     /*variants=*/Case::kKeep,
-    /*enum_variant_seperator=*/".",
+    /*enum_variant_separator=*/".",
     /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
     /*namespaces=*/Case::kKeep,
-    /*namespace_seperator=*/".",
+    /*namespace_separator=*/".",
     /*object_prefix=*/"",
     /*object_suffix=*/"T",
     /*keyword_prefix=*/"",
@@ -558,7 +558,7 @@ class JavaGenerator : public BaseGenerator {
     }
   }
 
-  // Recusively generate struct construction statements of the form:
+  // Recursively generate struct construction statements of the form:
   // builder.putType(name);
   // and insert manual padding.
   void GenStructBody(const StructDef &struct_def, std::string &code,
@@ -739,7 +739,7 @@ class JavaGenerator : public BaseGenerator {
         }
       }
     }
-    // Generate the __init method that sets the field in a pre-existing
+    // Generate the __init method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
     code += "{ ";
@@ -1304,7 +1304,7 @@ class JavaGenerator : public BaseGenerator {
     code += "class Vector extends ";
     code += "BaseVector {\n";
 
-    // Generate the __assign method that sets the field in a pre-existing
+    // Generate the __assign method that sets the field in a preexisting
     // accessor object. This is to allow object reuse.
     std::string method_indent = "    ";
     code += method_indent + "public Vector ";
@@ -1449,7 +1449,7 @@ class JavaGenerator : public BaseGenerator {
         if (ev.union_type.base_type == BASE_TYPE_STRING ||
             (ev.union_type.base_type == BASE_TYPE_STRUCT &&
              ev.union_type.struct_def->fixed)) {
-          continue;  // This branch is due to bad implemantation of Unions in
+          continue;  // This branch is due to bad implementation of Unions in
                      // Java which doesn't handle non Table types. Should be
                      // deleted when issue #6561 is fixed.
         }

@@ -196,7 +196,7 @@ function fuzzTest1(Assert $assert)
 {
 
     // Values we're testing against: chosen to ensure no bits get chopped
-    // off anywhere, and also be different from eachother.
+    // off anywhere, and also be different from each other.
     $bool_val = true;
     $char_val = -127; // 0x81
     $uchar_val = 0xFF;
@@ -355,7 +355,7 @@ function testByteBuffer(Assert $assert) {
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $uut->putShort(0, 1);
 
-    // Ensure Endiannes was written correctly
+    // Ensure Endianness was written correctly
     $assert->Equal(chr(0x01), $uut->_buffer[0]);
     $assert->Equal(chr(0x00), $uut->_buffer[1]);
 
@@ -363,7 +363,7 @@ function testByteBuffer(Assert $assert) {
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $uut->putShort(0, -32768);
 
-    // Ensure Endiannes was written correctly
+    // Ensure Endianness was written correctly
     $assert->Equal(chr(0x00), $uut->_buffer[0]);
     $assert->Equal(chr(0x80), $uut->_buffer[1]);
 

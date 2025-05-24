@@ -1307,7 +1307,7 @@ class Builder:
     return len(self._stack)
 
   def _EndVector(self, start, typed, fixed):
-    """Finishes vector construction by encodung its elements."""
+    """Finishes vector construction by encoding its elements."""
     vec = self._CreateVector(self._stack[start:], typed, fixed)
     del self._stack[start:]
     self._stack.append(vec)
@@ -1421,7 +1421,7 @@ class Builder:
     return len(self._stack)
 
   def _EndMap(self, start):
-    """Finishes map construction by encodung its elements."""
+    """Finishes map construction by encoding its elements."""
     # Interleaved keys and values on the stack.
     stack = self._stack[start:]
 

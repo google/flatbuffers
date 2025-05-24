@@ -86,7 +86,7 @@ public struct ByteBuffer {
     func initialize(for size: Int) {
       assert(
         isOwned,
-        "initalize should NOT be called on a buffer that is built by assumingMemoryBound")
+        "initialize should NOT be called on a buffer that is built by assumingMemoryBound")
       withUnsafeRawPointer {
         memset($0, 0, size)
       }

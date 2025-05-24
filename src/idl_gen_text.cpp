@@ -104,7 +104,7 @@ struct JsonPrinter {
     if (!opts.protobuf_ascii_alike) text += ',';
   }
 
-  // Print a vector or an array of JSON values, comma seperated, wrapped in
+  // Print a vector or an array of JSON values, comma separated, wrapped in
   // "[]".
   template<typename Container, typename SizeT = typename Container::size_type>
   const char *PrintContainer(PrintScalarTag, const Container &c, SizeT size,
@@ -126,7 +126,7 @@ struct JsonPrinter {
     return nullptr;
   }
 
-  // Print a vector or an array of JSON values, comma seperated, wrapped in
+  // Print a vector or an array of JSON values, comma separated, wrapped in
   // "[]".
   template<typename Container, typename SizeT = typename Container::size_type>
   const char *PrintContainer(PrintPointerTag, const Container &c, SizeT size,
@@ -284,7 +284,7 @@ struct JsonPrinter {
           fd.value.offset);
     } else if (fd.flexbuffer && opts.json_nested_flexbuffers) {
       // We could verify this FlexBuffer before access, but since this sits
-      // inside a FlatBuffer that we don't know wether it has been verified or
+      // inside a FlatBuffer that we don't know whether it has been verified or
       // not, there is little point making this part safer than the parent..
       // The caller should really be verifying the whole.
       // If the whole buffer is corrupt, we likely crash before we even get

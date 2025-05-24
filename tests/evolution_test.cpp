@@ -68,7 +68,7 @@ void EvolutionTest(const std::string &tests_data_path) {
   // still be accessible, but not interpretable.
   TEST_EQ(static_cast<uint8_t>(root_v2_viewed_from_v1->c_type()), 3);
   TEST_NOTNULL(root_v2_viewed_from_v1->c());
-  // The field 'd' enum in verison 2 has new members and should still be
+  // The field 'd' enum in version 2 has new members and should still be
   // accessible, but not interpretable.
   TEST_EQ(static_cast<int8_t>(root_v2_viewed_from_v1->d()), 3);
   // The field 'a' in version 2 is deprecated and should return the default

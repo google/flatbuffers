@@ -19,7 +19,7 @@ and [Writing a schema](../schema.md).
 Assuming you wrote a schema, say `mygame.fbs` (though the extension doesn't
 matter), you've generated a Rust file called `mygame_generated.rs` using the
 compiler (e.g. `flatc --rust mygame.fbs` or via helpers listed in "Useful
-tools created by others" section bellow), you can now start using this in
+tools created by others" section below), you can now start using this in
 your program by including the file. As noted, this header relies on the crate
 `flatbuffers`, which should be in your include `Cargo.toml`.
 

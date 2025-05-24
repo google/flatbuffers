@@ -254,7 +254,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   BreakSequence(input, "//", '@');  // "//" -> "@/"
   BreakSequence(input, "/*", '@');  // "/*" -> "@*"
   // { "$schema: "text" } is exceptional case.
-  // This key:value ignored by the parser. Numbers can not have $.
+  // This key:value ignored by the parser. Numbers cannot have $.
   BreakSequence(input, "$schema", '@');  // "$schema" -> "@schema"
   // Break all known scalar functions (todo: add them to regex?):
   for (auto f : { "deg", "rad", "sin", "cos", "tan", "asin", "acos", "atan" }) {
@@ -283,7 +283,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // Each test should pass at least two times to ensure that the parser doesn't
   // have any hidden-states or locale-depended effects.
   for (auto cnt = 0; cnt < (extra_rep_number + 2); cnt++) {
-    // Each even run (0,2,4..) will test locale independed code.
+    // Each even run (0,2,4..) will test locale independent code.
     auto use_locale = !!OneTimeTestInit::test_locale() && (0 == (cnt % 2));
     // Set new locale.
     if (use_locale) {
@@ -313,7 +313,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     }
 
     // Try to make quoted string and test it.
-    std::string qouted_input;
+    std::string quoted_input;
     if (true == recheck.quoted) {
       // we can't simply remove quotes, they may be nested "'12'".
       // Original string "\'12\'" converted to "'12'".
@@ -322,14 +322,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       assert(recheck.len >= 2);
     } else {
       const auto quote = (flags & flags_quotes_kind) ? '\"' : '\'';
-      qouted_input = input;  // copy
-      qouted_input.insert(recheck.pos + recheck.len, 1, quote);
-      qouted_input.insert(recheck.pos, 1, quote);
+      quoted_input = input;  // copy
+      quoted_input.insert(recheck.pos + recheck.len, 1, quote);
+      quoted_input.insert(recheck.pos, 1, quote);
     }
 
     // Test quoted version of the string
-    if (!qouted_input.empty()) {
-      auto fix_scalar = "{\"Y\" : " + qouted_input + "}";
+    if (!quoted_input.empty()) {
+      auto fix_scalar = "{\"Y\" : " + quoted_input + "}";
       std::string fix_back;
       auto fix_done = Parse(parser, fix_scalar, &fix_back);
 

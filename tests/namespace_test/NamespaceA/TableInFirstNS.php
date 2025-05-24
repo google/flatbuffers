@@ -58,7 +58,7 @@ class TableInFirstNS extends Table
     }
 
     /**
-     * @returnint
+     * @return int
      */
     public function getFooUnion($obj)
     {

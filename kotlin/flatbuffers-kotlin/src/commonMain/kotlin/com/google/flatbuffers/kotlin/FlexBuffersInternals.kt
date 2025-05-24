@@ -82,7 +82,7 @@ private inline fun arrayWidthInUBits(size: Int, crossinline elemWidthBlock: (Int
   var bitWidth = W_8.max(size.toULong().widthInUBits())
   // Check bit widths and types for all elements.
   for (i in 0 until size) {
-    // since we know its inline types we can just assume elmentWidth to be the value width in bits.
+    // since we know its inline types we can just assume elementWidth to be the value width in bits.
     bitWidth = bitWidth.max(elemWidthBlock(i))
   }
   return bitWidth

@@ -255,7 +255,7 @@ public class FlatBufferBuilder {
      *
      * @param bb The current buffer with the existing data.
      * @param bb_factory The factory to be used for allocating the new internal buffer
-     * @return A new byte buffer with the old data copied copied to it.  The data is
+     * @return A new byte buffer with the old data copied to it.  The data is
      * located at the end of the buffer.
      */
     static ByteBuffer growByteBuffer(ByteBuffer bb, ByteBufferFactory bb_factory) {

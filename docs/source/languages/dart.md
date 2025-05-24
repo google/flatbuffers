@@ -66,7 +66,7 @@ var pos = monster.pos;
 
 ## Differences from the Dart SDK Front End flat_buffers
 
-The work in this repository is signfiicantly based on the implementation used
+The work in this repository is significantly based on the implementation used
 internally by the Dart SDK in the front end/analyzer package. Several
 significant changes have been made.
 
