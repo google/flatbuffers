@@ -960,10 +960,12 @@ class Pool:
 
   def FindOrInsert(self, data, offset):
     do = data, offset
-    index = _BinarySearch(self._pool, do, lambda a, b: a[0] < b[0])
-    if index != -1:
+    pred = lambda a, b: a[0] < b[0]
+    index = _LowerBound(self._pool, do, pred)
+    if index != len(self._pool) and not pred(do, self._pool[index]):
       _, offset = self._pool[index]
       return offset
+    # Insert sorted using index found by _LowerBound
     self._pool.insert(index, do)
     return None
 
@@ -1033,8 +1035,8 @@ class Builder:
     return self._buf
 
   def _ReadKey(self, offset):
-    key = self._buf[offset:]
-    return key[:key.find(0)]
+    end = self._buf.find(0, offset)
+    return self._buf[offset:end]
 
   def _Align(self, alignment):
     byte_width = 1 << alignment
