@@ -96,7 +96,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 #endif
 
   // Make sure the template deduces an initializer as std::vector<std::string>
-  builder.CreateVectorOfStrings({ "hello", "world" });
+  builder.CreateVectorOfStrings(std::vector<std::string>{ "hello", "world" });
 
   // Create many vectors of strings
   std::vector<std::string> manyNames;

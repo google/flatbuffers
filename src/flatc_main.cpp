@@ -176,8 +176,8 @@ int main(int argc, const char *argv[]) {
       flatbuffers::NewTsCodeGenerator());
 
   // Create the FlatC options by parsing the command line arguments.
-  const flatbuffers::FlatCOptions &options =
-      flatc.ParseFromCommandLineArguments(argc, argv);
+  flatbuffers::FlatCOptions options;
+  flatc.ParseFromCommandLineArguments(argc, argv, options);
 
   // Compile with the extracted FlatC options.
   return flatc.Compile(options);

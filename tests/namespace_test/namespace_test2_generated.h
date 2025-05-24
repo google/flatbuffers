@@ -75,7 +75,9 @@ struct TableInFirstNST : public ::flatbuffers::NativeTable {
   std::unique_ptr<NamespaceA::NamespaceB::StructInNestedNS> foo_struct{};
   TableInFirstNST() = default;
   TableInFirstNST(const TableInFirstNST &o);
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
   TableInFirstNST(TableInFirstNST&&) FLATBUFFERS_NOEXCEPT = default;
+#endif
   TableInFirstNST &operator=(TableInFirstNST o) FLATBUFFERS_NOEXCEPT;
 };
 
@@ -207,7 +209,9 @@ struct TableInCT : public ::flatbuffers::NativeTable {
   std::unique_ptr<NamespaceA::SecondTableInAT> refer_to_a2{};
   TableInCT() = default;
   TableInCT(const TableInCT &o);
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
   TableInCT(TableInCT&&) FLATBUFFERS_NOEXCEPT = default;
+#endif
   TableInCT &operator=(TableInCT o) FLATBUFFERS_NOEXCEPT;
 };
 
@@ -294,7 +298,9 @@ struct SecondTableInAT : public ::flatbuffers::NativeTable {
   std::unique_ptr<NamespaceC::TableInCT> refer_to_c{};
   SecondTableInAT() = default;
   SecondTableInAT(const SecondTableInAT &o);
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
   SecondTableInAT(SecondTableInAT&&) FLATBUFFERS_NOEXCEPT = default;
+#endif
   SecondTableInAT &operator=(SecondTableInAT o) FLATBUFFERS_NOEXCEPT;
 };
 
