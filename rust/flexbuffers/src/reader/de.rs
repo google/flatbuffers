@@ -163,7 +163,7 @@ impl<'de> VariantAccess<'de> for Reader<&'de [u8]> {
 impl<'de> Deserializer<'de> for Reader<&'de [u8]> {
     type Error = DeserializationError;
     fn is_human_readable(&self) -> bool {
-        cfg!(deserialize_human_readable)
+        cfg!(feature = "deserialize_human_readable")
     }
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
