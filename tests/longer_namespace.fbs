@@ -1,0 +1,7 @@
+namespace longer_namespace.a.b.c;
+
+table Person {
+  name:string;
+  age:short;
+}
+root_type Person;
