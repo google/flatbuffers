@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct StructInNestedNS, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct StructInNestedNS(pub [u8; 8]);
 impl Default for StructInNestedNS { 
   fn default() -> Self { 
@@ -24,6 +24,17 @@ impl core::fmt::Debug for StructInNestedNS {
       .field("a", &self.a())
       .field("b", &self.b())
       .finish()
+  }
+}
+impl core::cmp::Ord for StructInNestedNS {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.a().cmp(&other.a())
+      .then(self.b().cmp(&other.b()))
+  }
+}
+impl core::cmp::PartialOrd for StructInNestedNS {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 

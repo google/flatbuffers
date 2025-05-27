@@ -13,7 +13,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct Test, aligned to 2
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Test(pub [u8; 4]);
 impl Default for Test { 
   fn default() -> Self { 
@@ -26,6 +26,17 @@ impl core::fmt::Debug for Test {
       .field("a", &self.a())
       .field("b", &self.b())
       .finish()
+  }
+}
+impl core::cmp::Ord for Test {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.a().cmp(&other.a())
+      .then(self.b().cmp(&other.b()))
+  }
+}
+impl core::cmp::PartialOrd for Test {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 

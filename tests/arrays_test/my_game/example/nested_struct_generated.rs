@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct NestedStruct, aligned to 8
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct NestedStruct(pub [u8; 32]);
 impl Default for NestedStruct { 
   fn default() -> Self { 
@@ -26,6 +26,19 @@ impl core::fmt::Debug for NestedStruct {
       .field("c", &self.c())
       .field("d", &self.d())
       .finish()
+  }
+}
+impl core::cmp::Ord for NestedStruct {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.a().cmp(&other.a())
+      .then(self.b().cmp(&other.b()))
+      .then(self.c().cmp(&other.c()))
+      .then(self.d().cmp(&other.d()))
+  }
+}
+impl core::cmp::PartialOrd for NestedStruct {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 

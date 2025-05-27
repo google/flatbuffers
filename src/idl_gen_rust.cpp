@@ -2625,7 +2625,7 @@ class RustGenerator : public BaseGenerator {
     // hold for PartialOrd/Ord.
     code_ += "// struct {{STRUCT_TY}}, aligned to {{ALIGN}}";
     code_ += "#[repr(transparent)]";
-    code_ += "#[derive(Clone, Copy, PartialEq)]";
+    code_ += "#[derive(Clone, Copy, PartialEq, Eq)]";
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}(pub [u8; {{STRUCT_SIZE}}]);";
     code_ += "impl Default for {{STRUCT_TY}} { ";
     code_ += "  fn default() -> Self { ";
@@ -2644,6 +2644,30 @@ class RustGenerator : public BaseGenerator {
       code_ += "    .field(\"{{FIELD}}\", &self.{{FIELD}}())";
     });
     code_ += "      .finish()";
+    code_ += "  }";
+    code_ += "}";
+
+    // Ord for structs.
+    code_ += "impl core::cmp::Ord for {{STRUCT_TY}} {";
+    code_ += "  fn cmp(&self, other: &Self) -> core::cmp::Ordering {";
+    bool first = true;
+    ForAllStructFields(struct_def, [&](const FieldDef &field) {
+      // Floating point types don't impl Ord, use `total_cmp` instead.
+      const auto cmp_fn =
+          IsFloat(field.value.type.base_type) ? "total_cmp" : "cmp";
+      const auto cmp_expr = "self." + namer_.Field(field) + "()." + cmp_fn +
+                            "(&other." + namer_.Field(field) + "())";
+      // If we are not the first comparison, we use `then` to chain.
+      code_ += first ? "  " + cmp_expr : "    .then(" + cmp_expr + ")";
+      first = false;
+    });
+    code_ += "  }";
+    code_ += "}";
+
+    // PartialOrd for structs.
+    code_ += "impl core::cmp::PartialOrd for {{STRUCT_TY}} {";
+    code_ += "  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {";
+    code_ += "    Some(self.cmp(other))";
     code_ += "  }";
     code_ += "}";
     code_ += "";

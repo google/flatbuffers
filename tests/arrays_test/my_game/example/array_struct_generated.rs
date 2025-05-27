@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct ArrayStruct, aligned to 8
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct ArrayStruct(pub [u8; 160]);
 impl Default for ArrayStruct { 
   fn default() -> Self { 
@@ -28,6 +28,21 @@ impl core::fmt::Debug for ArrayStruct {
       .field("e", &self.e())
       .field("f", &self.f())
       .finish()
+  }
+}
+impl core::cmp::Ord for ArrayStruct {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.a().total_cmp(&other.a())
+      .then(self.b().cmp(&other.b()))
+      .then(self.c().cmp(&other.c()))
+      .then(self.d().cmp(&other.d()))
+      .then(self.e().cmp(&other.e()))
+      .then(self.f().cmp(&other.f()))
+  }
+}
+impl core::cmp::PartialOrd for ArrayStruct {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 
