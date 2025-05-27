@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct Ability, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Ability(pub [u8; 8]);
 impl Default for Ability { 
   fn default() -> Self { 
@@ -24,6 +24,17 @@ impl core::fmt::Debug for Ability {
       .field("id", &self.id())
       .field("distance", &self.distance())
       .finish()
+  }
+}
+impl core::cmp::Ord for Ability {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.id().cmp(&other.id())
+      .then(self.distance().cmp(&other.distance()))
+  }
+}
+impl core::cmp::PartialOrd for Ability {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 
