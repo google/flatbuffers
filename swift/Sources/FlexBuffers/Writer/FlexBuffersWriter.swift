@@ -16,6 +16,7 @@
 
 import Foundation
 
+private let twentyFourBytes: Int = 24
 public typealias FlexBuffersWriterBuilder = (inout FlexBuffersWriter) -> Void
 
 public struct FlexBuffersWriter {
@@ -718,7 +719,12 @@ public struct FlexBuffersWriter {
 
     let currentSize: Int = count &* step &* byteWidth
     let requiredSize: Int = if !typed {
-      currentSize &* prefixElements
+      // We ensure that we have enough space
+      // for loop two write operations &
+      // 24 bytes for when its not fixed,
+      // and keys isn't null. As an extra safe
+      // guard
+      (currentSize &* 2) &+ twentyFourBytes
     } else {
       currentSize
     }
