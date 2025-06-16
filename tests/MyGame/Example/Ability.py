@@ -32,9 +32,9 @@ def CreateAbility(builder, id, distance):
 class AbilityT(object):
 
     # AbilityT
-    def __init__(self):
-        self.id = 0  # type: int
-        self.distance = 0  # type: int
+    def __init__(self, id: int = 0, distance: int = 0):
+        self.id = id
+        self.distance = distance
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

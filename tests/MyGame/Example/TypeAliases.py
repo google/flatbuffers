@@ -249,26 +249,26 @@ def End(builder):
     return TypeAliasesEnd(builder)
 
 try:
-    from typing import List
+    from typing import List, Optional
 except:
     pass
 
 class TypeAliasesT(object):
 
     # TypeAliasesT
-    def __init__(self):
-        self.i8 = 0  # type: int
-        self.u8 = 0  # type: int
-        self.i16 = 0  # type: int
-        self.u16 = 0  # type: int
-        self.i32 = 0  # type: int
-        self.u32 = 0  # type: int
-        self.i64 = 0  # type: int
-        self.u64 = 0  # type: int
-        self.f32 = 0.0  # type: float
-        self.f64 = 0.0  # type: float
-        self.v8 = None  # type: List[int]
-        self.vf64 = None  # type: List[float]
+    def __init__(self, i8: int = 0, u8: int = 0, i16: int = 0, u16: int = 0, i32: int = 0, u32: int = 0, i64: int = 0, u64: int = 0, f32: float = 0.0, f64: float = 0.0, v8: Optional[List[int]] = None, vf64: Optional[List[float]] = None):
+        self.i8 = i8
+        self.u8 = u8
+        self.i16 = i16
+        self.u16 = u16
+        self.i32 = i32
+        self.u32 = u32
+        self.i64 = i64
+        self.u64 = u64
+        self.f32 = f32
+        self.f64 = f64
+        self.v8 = v8
+        self.vf64 = vf64
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

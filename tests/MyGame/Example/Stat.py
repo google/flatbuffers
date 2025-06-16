@@ -79,14 +79,18 @@ def StatEnd(builder):
 def End(builder):
     return StatEnd(builder)
 
+try:
+    from typing import Optional
+except:
+    pass
 
 class StatT(object):
 
     # StatT
-    def __init__(self):
-        self.id = None  # type: str
-        self.val = 0  # type: int
-        self.count = 0  # type: int
+    def __init__(self, id: Optional[str] = None, val: int = 0, count: int = 0):
+        self.id = id
+        self.val = val
+        self.count = count
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

@@ -57,10 +57,10 @@ except:
 class StructOfStructsT(object):
 
     # StructOfStructsT
-    def __init__(self):
-        self.a = None  # type: Optional[MyGame.Example.Ability.AbilityT]
-        self.b = None  # type: Optional[MyGame.Example.Test.TestT]
-        self.c = None  # type: Optional[MyGame.Example.Ability.AbilityT]
+    def __init__(self, a: Optional['MyGame.Example.Ability.AbilityT'] = None, b: Optional['MyGame.Example.Test.TestT'] = None, c: Optional['MyGame.Example.Ability.AbilityT'] = None):
+        self.a = a
+        self.b = b
+        self.c = c
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

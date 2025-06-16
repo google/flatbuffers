@@ -107,20 +107,20 @@ def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c, d_d, e, f):
 
 import MyGame.Example.NestedStruct
 try:
-    from typing import List
+    from typing import List, Optional
 except:
     pass
 
 class ArrayStructT(object):
 
     # ArrayStructT
-    def __init__(self):
-        self.a = 0.0  # type: float
-        self.b = None  # type: List[int]
-        self.c = 0  # type: int
-        self.d = None  # type: List[MyGame.Example.NestedStruct.NestedStructT]
-        self.e = 0  # type: int
-        self.f = None  # type: List[int]
+    def __init__(self, a: float = 0.0, b: Optional[List[int]] = None, c: int = 0, d: Optional[List['MyGame.Example.NestedStruct.NestedStructT']] = None, e: int = 0, f: Optional[List[int]] = None):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.e = e
+        self.f = f
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

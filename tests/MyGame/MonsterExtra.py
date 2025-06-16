@@ -224,24 +224,24 @@ def End(builder: flatbuffers.Builder) -> int:
     return MonsterExtraEnd(builder)
 
 try:
-    from typing import List
+    from typing import List, Optional
 except:
     pass
 
 class MonsterExtraT(object):
 
     # MonsterExtraT
-    def __init__(self):
-        self.d0 = float('nan')  # type: float
-        self.d1 = float('nan')  # type: float
-        self.d2 = float('inf')  # type: float
-        self.d3 = float('-inf')  # type: float
-        self.f0 = float('nan')  # type: float
-        self.f1 = float('nan')  # type: float
-        self.f2 = float('inf')  # type: float
-        self.f3 = float('-inf')  # type: float
-        self.dvec = None  # type: List[float]
-        self.fvec = None  # type: List[float]
+    def __init__(self, d0: float = float('nan'), d1: float = float('nan'), d2: float = float('inf'), d3: float = float('-inf'), f0: float = float('nan'), f1: float = float('nan'), f2: float = float('inf'), f3: float = float('-inf'), dvec: Optional[List[float]] = None, fvec: Optional[List[float]] = None):
+        self.d0 = d0
+        self.d1 = d1
+        self.d2 = d2
+        self.d3 = d3
+        self.f0 = f0
+        self.f1 = f1
+        self.f2 = f2
+        self.f3 = f3
+        self.dvec = dvec
+        self.fvec = fvec
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
