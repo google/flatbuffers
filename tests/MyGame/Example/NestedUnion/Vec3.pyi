@@ -30,6 +30,15 @@ class Vec3T(object):
   test1: float
   test2: typing.Literal[Color.Red, Color.Green, Color.Blue]
   test3: TestT | None
+  def __init__(
+    self,
+    x: float = ...,
+    y: float = ...,
+    z: float = ...,
+    test1: float = ...,
+    test2: typing.Literal[Color.Red, Color.Green, Color.Blue] = ...,
+    test3: 'TestT' | None = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> Vec3T: ...
   @classmethod

@@ -19,6 +19,11 @@ class Test(object):
 class TestT(object):
   a: int
   b: int
+  def __init__(
+    self,
+    a: int = ...,
+    b: int = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> TestT: ...
   @classmethod

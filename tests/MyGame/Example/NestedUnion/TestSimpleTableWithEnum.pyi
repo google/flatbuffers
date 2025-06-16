@@ -19,6 +19,10 @@ class TestSimpleTableWithEnum(object):
   def Color(self) -> typing.Literal[Color.Red, Color.Green, Color.Blue]: ...
 class TestSimpleTableWithEnumT(object):
   color: typing.Literal[Color.Red, Color.Green, Color.Blue]
+  def __init__(
+    self,
+    color: typing.Literal[Color.Red, Color.Green, Color.Blue] = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> TestSimpleTableWithEnumT: ...
   @classmethod
