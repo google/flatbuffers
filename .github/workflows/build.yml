@@ -625,7 +625,7 @@ jobs:
           set -euo pipefail
           echo "$LINUXGCC_X86_64_DIGESTS" | base64 -d > checksums.txt
           echo "$LINUXCLANG_X86_64_DIGESTS" | base64 -d >> checksums.txt
-          echo "$LINUXGCC_AARCH64_DIGESTS" | base64 -d > checksums.txt
+          echo "$LINUXGCC_AARCH64_DIGESTS" | base64 -d >> checksums.txt
           echo "$LINUXCLANG_AARCH64_DIGESTS" | base64 -d >> checksums.txt
           echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
           echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
