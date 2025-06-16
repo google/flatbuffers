@@ -58,13 +58,13 @@ except:
 class Vec3T(object):
 
     # Vec3T
-    def __init__(self):
-        self.x = 0.0  # type: float
-        self.y = 0.0  # type: float
-        self.z = 0.0  # type: float
-        self.test1 = 0.0  # type: float
-        self.test2 = 0  # type: int
-        self.test3 = None  # type: Optional[MyGame.Example.Test.TestT]
+    def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0, test1: float = 0.0, test2: int = 0, test3: Optional['MyGame.Example.Test.TestT'] = None):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.test1 = test1
+        self.test2 = test2
+        self.test3 = test3
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
