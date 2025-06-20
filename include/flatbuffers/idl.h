@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stack>
+#include <unordered_map>
 #include <vector>
 
 #include "flatbuffers/base.h"
@@ -625,6 +626,23 @@ struct IncludedFile {
   std::string filename;
 };
 
+struct ProtobufToFbsIdMap {
+  using FieldName = std::string;
+  using FieldID = voffset_t;
+  using FieldNameToIdMap = std::unordered_map<FieldName, FieldID>;
+
+  FieldNameToIdMap field_to_id;
+  bool successful = false;
+};
+
+struct ModuleMap {
+  using Schema = std::string;
+  using Module = std::string;
+  using SchemaToModuleMap = std::unordered_map<Schema, Module>;
+
+  SchemaToModuleMap schema_to_module;
+};
+
 // Since IncludedFile is contained within a std::set, need to provide ordering.
 inline bool operator<(const IncludedFile &a, const IncludedFile &b) {
   return a.filename < b.filename;
@@ -693,6 +711,7 @@ struct IDLOptions {
   std::string proto_namespace_suffix;
   std::string filename_suffix;
   std::string filename_extension;
+  ModuleMap module_map;
   bool no_warnings;
   bool warnings_as_errors;
   std::string project_root;
@@ -834,6 +853,7 @@ struct IDLOptions {
         cpp_static_reflection(false),
         filename_suffix("_generated"),
         filename_extension(),
+        module_map(ModuleMap()),
         no_warnings(false),
         warnings_as_errors(false),
         project_root(""),
