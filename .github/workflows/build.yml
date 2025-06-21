@@ -534,6 +534,8 @@ jobs:
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+    - name: pnpm
+      run: npm install -g pnpm esbuild
     - name: deps
       run: pnpm i
     - name: compile
