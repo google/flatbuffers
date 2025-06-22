@@ -45,6 +45,9 @@
     "typescript-eslint": "^8.34.1"
   },
   "pnpm": {
-    "onlyBuiltDependencies": []
+    "onlyBuiltDependencies": [],
+    "ignoredBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
