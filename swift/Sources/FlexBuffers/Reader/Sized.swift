@@ -14,34 +14,30 @@
  * limitations under the License.
  */
 
-import Foundation
+protocol Sized {
+  var byteBuffer: ByteBuffer { get }
+  var offset: Int { get }
+  var byteWidth: UInt8 { get }
+  var count: Int { get }
+}
 
-extension Int {
+extension Sized {
 
-  /// Moves the current int into the nearest power of two
-  ///
-  /// This is used since the UnsafeMutableRawPointer will face issues when writing/reading
-  /// if the buffer alignment exceeds that actual size of the buffer
-  var convertToPowerofTwo: Int {
-    guard self > 0 else { return 1 }
-    var n = UOffset(self)
+  @inline(__always)
+  func getReference(at index: Int) -> Reference? {
+    if index >= count { return nil }
+    let bWidth = Int(byteWidth)
 
-    #if arch(arm) || arch(i386)
-    let max = UInt32(Int.max)
-    #else
-    let max = UInt32.max
-    #endif
+    let packedType = byteBuffer.read(
+      def: UInt8.self,
+      position: (offset &+ (count &* bWidth)) &+ index)
 
-    n -= 1
-    n |= n >> 1
-    n |= n >> 2
-    n |= n >> 4
-    n |= n >> 8
-    n |= n >> 16
-    if n != max {
-      n += 1
-    }
+    let offset = offset &+ (index &* bWidth)
 
-    return Int(n)
+    return Reference(
+      byteBuffer: byteBuffer,
+      offset: offset,
+      parentWidth: byteWidth,
+      packedType: packedType)
   }
 }
