@@ -257,7 +257,7 @@ class TsGenerator : public BaseGenerator {
     for (const auto &it : ns_defs_) {
       code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n" +
         "/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */\n\n";
-      
+
       // export all definitions in ns entry point module
       int export_counter = 0;
       for (const auto &def : it.second.definitions) {
@@ -567,7 +567,7 @@ class TsGenerator : public BaseGenerator {
 
   static Type GetUnionUnderlyingType(const Type &type)
   {
-    if (type.enum_def != nullptr && 
+    if (type.enum_def != nullptr &&
         type.enum_def->underlying_type.base_type != type.base_type) {
       return type.enum_def->underlying_type;
     } else {
@@ -1849,7 +1849,7 @@ class TsGenerator : public BaseGenerator {
               code += "BigInt(0)";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
-                code += field.value.constant;
+                code += "null";
               } else {
                 code += "0";
               }
