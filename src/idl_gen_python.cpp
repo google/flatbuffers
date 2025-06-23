@@ -549,6 +549,8 @@ class PythonStubGenerator {
     stub << "class " << namer_.Type(*enum_def);
     imports->Export(ModuleFor(enum_def), namer_.Type(*enum_def));
 
+    imports->Import("typing", "cast");
+
     if (version_.major == 3){
       imports->Import("enum", "IntEnum");
       stub << "(IntEnum)";
@@ -559,8 +561,8 @@ class PythonStubGenerator {
 
     stub << ":\n";
     for (const EnumVal *val : enum_def->Vals()) {
-      stub << "  " << namer_.Variant(*val) << ": "
-           << ScalarType(enum_def->underlying_type.base_type) << "\n";
+      stub << "  " << namer_.Variant(*val) << " = cast("
+           << ScalarType(enum_def->underlying_type.base_type) << ", ...)\n";
     }
 
     if (parser_.opts.generate_object_based_api & enum_def->is_union) {
