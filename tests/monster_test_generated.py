@@ -728,7 +728,7 @@ class StatT(object):
 
     # StatT
     def __init__(self):
-        self.id = None  # type: str
+        self.id = None  # type: Optional[str]
         self.val = 0  # type: int
         self.count = 0  # type: int
 
@@ -1973,13 +1973,13 @@ class MonsterT(object):
         self.pos = None  # type: Optional[Vec3T]
         self.mana = 150  # type: int
         self.hp = 100  # type: int
-        self.name = None  # type: str
+        self.name = None  # type: Optional[str]
         self.inventory = None  # type: List[int]
         self.color = 8  # type: int
         self.testType = 0  # type: int
         self.test = None  # type: Union[None, MonsterT, TestSimpleTableWithEnumT, MonsterT]
         self.test4 = None  # type: List[TestT]
-        self.testarrayofstring = None  # type: List[str]
+        self.testarrayofstring = None  # type: List[Optional[str]]
         self.testarrayoftables = None  # type: List[MonsterT]
         self.enemy = None  # type: Optional[MonsterT]
         self.testnestedflatbuffer = None  # type: List[int]
@@ -1997,7 +1997,7 @@ class MonsterT(object):
         self.testf = 3.14159  # type: float
         self.testf2 = 3.0  # type: float
         self.testf3 = 0.0  # type: float
-        self.testarrayofstring2 = None  # type: List[str]
+        self.testarrayofstring2 = None  # type: List[Optional[str]]
         self.testarrayofsortedstruct = None  # type: List[AbilityT]
         self.flex = None  # type: List[int]
         self.test5 = None  # type: List[TestT]
