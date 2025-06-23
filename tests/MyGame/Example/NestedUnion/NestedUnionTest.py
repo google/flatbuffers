@@ -105,7 +105,7 @@ class NestedUnionTestT(object):
 
     # NestedUnionTestT
     def __init__(self):
-        self.name = None  # type: str
+        self.name = None  # type: Optional[str]
         self.dataType = 0  # type: int
         self.data = None  # type: Union[None, MyGame.Example.NestedUnion.Vec3.Vec3T, MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumT]
         self.id = 0  # type: int
