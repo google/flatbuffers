@@ -35,7 +35,7 @@ func (t *Table) ByteVector(off UOffsetT) []byte {
 	off += GetUOffsetT(t.Bytes[off:])
 	start := off + UOffsetT(SizeUOffsetT)
 	length := GetUOffsetT(t.Bytes[off:])
-	return t.Bytes[start : start+length]
+	return t.Bytes[start : start+length : start+length]
 }
 
 // VectorLen retrieves the length of the vector whose offset is stored at
