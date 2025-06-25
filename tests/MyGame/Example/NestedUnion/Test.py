@@ -34,9 +34,9 @@ def CreateTest(builder, a, b):
 class TestT(object):
 
     # TestT
-    def __init__(self):
-        self.a = 0  # type: int
-        self.b = 0  # type: int
+    def __init__(self, a: int = 0, b: int = 0):
+        self.a = a
+        self.b = b
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

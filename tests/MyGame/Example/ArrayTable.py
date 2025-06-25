@@ -68,8 +68,8 @@ except:
 class ArrayTableT(object):
 
     # ArrayTableT
-    def __init__(self):
-        self.a = None  # type: Optional[MyGame.Example.ArrayStruct.ArrayStructT]
+    def __init__(self, a: Optional['MyGame.Example.ArrayStruct.ArrayStructT'] = None):
+        self.a = a
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

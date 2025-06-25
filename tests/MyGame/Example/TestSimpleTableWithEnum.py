@@ -57,8 +57,8 @@ def End(builder):
 class TestSimpleTableWithEnumT(object):
 
     # TestSimpleTableWithEnumT
-    def __init__(self):
-        self.color = 2  # type: int
+    def __init__(self, color: int = 2):
+        self.color = color
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
