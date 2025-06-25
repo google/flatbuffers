@@ -1,0 +1,1698 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://flatbuffers.dev/languages/c/">
+      
+      
+        <link rel="prev" href="../../grammar/">
+      
+      
+        <link rel="next" href="../cpp/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>C - FlatBuffers Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#flatbuffers_guide_use_c" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="FlatBuffers Docs" class="md-header__button md-logo" aria-label="FlatBuffers Docs" data-md-component="logo">
+      
+  <img src="../../assets/flatbuffers_logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FlatBuffers Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              C
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/google/flatbuffers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    google/FlatBuffers
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="FlatBuffers Docs" class="md-nav__button md-logo" aria-label="FlatBuffers Docs" data-md-component="logo">
+      
+  <img src="../../assets/flatbuffers_logo.svg" alt="logo">
+
+    </a>
+    FlatBuffers Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/google/flatbuffers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    google/FlatBuffers
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Compiler (flatc)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Compiler (flatc)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../building/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Building
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flatc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Using
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Schema (.fbs)
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Schema (.fbs)
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Evolution
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Grammar
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Language Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Language Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    C
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    C
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#general-documention" class="md-nav__link">
+    <span class="md-ellipsis">
+      General Documention
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Platforms
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modular-object-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modular Object Creation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#top-down-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Top Down Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-reflection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Reflection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mutations-and-reflection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mutations and Reflection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#namespaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Namespaces
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-for-present-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checking for Present Members
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alternative-ways-to-add-a-union" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternative ways to add a Union
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-not-integrate-with-the-flatc-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why not integrate with the flatc tool?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cpp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    C++
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../c_sharp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    C#
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../go/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Go
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Java
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../javascript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    JavasScript
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kotlin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Kotlin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lobster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lobster
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lua/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lua
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../php/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PHP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rust
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../swift/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Swift
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typescript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    TypeScript
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Supported Configurations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../white_paper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    White Paper
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../internals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FlatBuffers Internals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../intermediate_representation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intermediate Representation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../annotation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Annotating Buffers (.afb)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Benchmarks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flexbuffers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FlexBuffers (Schema-less version)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#general-documention" class="md-nav__link">
+    <span class="md-ellipsis">
+      General Documention
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Platforms
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modular-object-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modular Object Creation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#top-down-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Top Down Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-reflection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Reflection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mutations-and-reflection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mutations and Reflection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#namespaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Namespaces
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-for-present-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checking for Present Members
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alternative-ways-to-add-a-union" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternative ways to add a Union
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-not-integrate-with-the-flatc-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why not integrate with the flatc tool?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/google/flatbuffers/edit/master/docs/source/languages/c.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="flatbuffers_guide_use_c">Use in C</h1>
+<p>The C language binding exists in a separate project named <a href="https://github.com/dvidelabs/flatcc">FlatCC</a>.</p>
+<p>The <code>flatcc</code> C schema compiler can generate code offline as well as
+online via a C library. It can also generate buffer verifiers and fast
+JSON parsers, printers.</p>
+<p>Great care has been taken to ensure compatibility with the main <code>flatc</code>
+project.</p>
+<h2 id="general-documention">General Documention</h2>
+<ul>
+<li><a href="../../tutorial/">Tutorial</a> - select C as language
+  when scrolling down</li>
+<li><a href="https://github.com/dvidelabs/flatcc#flatcc-flatbuffers-in-c-for-c">FlatCC Guide</a></li>
+<li><a href="https://github.com/dvidelabs/flatcc/blob/master/doc/builder.md#the-builder-interface">The C Builder Interface</a></li>
+<li><a href="https://github.com/dvidelabs/flatcc/blob/master/samples/monster/monster.c">The Monster Sample in C</a></li>
+<li><a href="https://github.com/dvidelabs/flatcc">GitHub</a></li>
+</ul>
+<h2 id="supported-platforms">Supported Platforms</h2>
+<ul>
+<li>Ubuntu (clang / gcc, ninja / gnu make)</li>
+<li>OS-X (clang / gcc, ninja / gnu make)</li>
+<li>Windows MSVC 2010, 2013, 2015</li>
+</ul>
+<p>CI builds recent versions of gcc, clang and MSVC on OS-X, Ubuntu, and
+Windows, and occasionally older compiler versions. See main project <a href="https://github.com/dvidelabs/flatcc#status">Status</a>.</p>
+<p>Other platforms may well work, including Centos, but are not tested
+regularly.</p>
+<p>The monster sample project was specifically written for C99 in order to
+follow the C++ version and for that reason it will not work with MSVC
+2010.</p>
+<h2 id="modular-object-creation">Modular Object Creation</h2>
+<p>In the tutorial we used the call <code>Monster_create_as_root</code> to create the
+root buffer object since this is easier in simple use cases. Sometimes
+we need more modularity so we can reuse a function to create nested
+tables and root tables the same way. For this we need the
+<code>flatcc_builder_buffer_create_call</code>. It is best to keep <code>flatcc_builder</code>
+calls isolated at the top driver level, so we get:</p>
+<div class="language-c">
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_ref_t</span><span class="p">)</span><span class="w"> </span><span class="n">create_orc</span><span class="p">(</span><span class="n">flatcc_builder_t</span><span class="w"> </span><span class="o">*</span><span class="n">B</span><span class="p">)</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ... same as in the tutorial.</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">s</span><span class="p">(</span><span class="n">Monster_create</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="p">...));</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">create_monster_buffer</span><span class="p">()</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">      </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="n">buf</span><span class="p">;</span>
+<span class="w">      </span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">;</span>
+<span class="w">      </span><span class="n">flatcc_builder_t</span><span class="w"> </span><span class="n">builder</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">B</span><span class="p">;</span>
+
+<span class="w">      </span><span class="c1">// Initialize the builder object.</span>
+<span class="w">      </span><span class="n">B</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">builder</span><span class="p">;</span>
+<span class="w">      </span><span class="n">flatcc_builder_init</span><span class="p">(</span><span class="n">B</span><span class="p">);</span>
+<span class="w">      </span><span class="c1">// Only use `buffer_create` without `create/start/end_as_root`.</span>
+<span class="w">      </span><span class="n">flatcc_builder_buffer_create</span><span class="p">(</span><span class="n">create_orc</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="c1">// Allocate and copy buffer to user memory.</span>
+<span class="w">      </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flatcc_builder_finalize_buffer</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">size</span><span class="p">);</span>
+<span class="w">      </span><span class="c1">// ... write the buffer to disk or network, or something.</span>
+
+<span class="w">      </span><span class="n">free</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+<span class="w">      </span><span class="n">flatcc_builder_clear</span><span class="p">(</span><span class="n">B</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+</code></pre></div>
+</div>
+
+<p>The same principle applies with <code>start/end</code> vs <code>start/end_as_root</code> in
+the top-down approach.</p>
+<h2 id="top-down-example">Top Down Example</h2>
+<p>The tutorial uses a bottom up approach. In C it is also possible to use
+a top-down approach by starting and ending objects nested within each
+other. In the tutorial there is no deep nesting, so the difference is
+limited, but it shows the idea:</p>
+<div class="language-c">
+<br>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">treasure</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">};</span>
+<span class="w">  </span><span class="kt">size_t</span><span class="w"> </span><span class="n">treasure_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c_vec_len</span><span class="p">(</span><span class="n">treasure</span><span class="p">);</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Weapon_ref_t</span><span class="p">)</span><span class="w"> </span><span class="n">axe</span><span class="p">;</span>
+
+<span class="w">  </span><span class="c1">// NOTE: if we use end_as_root, we MUST also start as root.</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_start_as_root</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_pos_create</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">3.0f</span><span class="p">));</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_hp_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="mi">300</span><span class="p">));</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_mana_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="mi">150</span><span class="p">));</span>
+<span class="w">  </span><span class="c1">// We use create_str instead of add because we have no existing string reference.</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_name_create_str</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Orc&quot;</span><span class="p">));</span>
+<span class="w">  </span><span class="c1">// Again we use create because we no existing vector object, only a C-array.</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_inventory_create</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">treasure</span><span class="p">,</span><span class="w"> </span><span class="n">treasure_count</span><span class="p">));</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_color_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">ns</span><span class="p">(</span><span class="n">Color_Red</span><span class="p">)));</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_start</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_push_create</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">flatbuffers_string_create_str</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Sword&quot;</span><span class="p">),</span><span class="w"> </span><span class="mi">3</span><span class="p">));</span>
+<span class="w">      </span><span class="c1">// We reuse the axe object later. Note that we dereference a pointer</span>
+<span class="w">      </span><span class="c1">// because push always returns a short-term pointer to the stored element.</span>
+<span class="w">      </span><span class="c1">// We could also have created the axe object first and simply pushed it.</span>
+<span class="w">      </span><span class="n">axe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_push_create</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">flatbuffers_string_create_str</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Axe&quot;</span><span class="p">),</span><span class="w"> </span><span class="mi">5</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_end</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="c1">// We can have more control with the table elements added to a vector:</span>
+<span class="w">      </span><span class="c1">//</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_start</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_push_start</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Weapon_name_create_str</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Sword&quot;</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Weapon_damage_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_push_end</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_push_start</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_push_start</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Weapon_name_create_str</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Axe&quot;</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Weapon_damage_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">));</span>
+<span class="w">      </span><span class="n">axe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_push_end</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">      </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_weapons_end</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// Unions can get their type by using a type-specific add/create/start method.</span>
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_equipped_Weapon_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">axe</span><span class="p">));</span>
+
+<span class="w">  </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_end_as_root</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+</code></pre></div>
+</div>
+
+<h2 id="basic-reflection">Basic Reflection</h2>
+<p>The C-API does support reading binary schema (.bfbs)
+files via code generated from the <code>reflection.fbs</code> schema, and an
+<a href="https://github.com/dvidelabs/flatcc/tree/master/samples/reflection">example usage</a>
+shows how to use this. The reflection schema files are pre-generated
+in the <a href="https://github.com/dvidelabs/flatcc/tree/master/include/flatcc/reflection">runtime distribution</a>.</p>
+<h2 id="mutations-and-reflection">Mutations and Reflection</h2>
+<p>The C-API does not support mutating reflection like C++ does, nor does
+the reader interface support mutating scalars (and it is generally
+unsafe to do so even after verification).</p>
+<p>The generated reader interface supports sorting vectors in-place after
+casting them to a mutating type because it is not practical to do so
+while building a buffer. This is covered in the builder documentation.<br />
+The reflection example makes use of this feature to look up objects by
+name.</p>
+<p>It is possible to build new buffers using complex objects from existing
+buffers as source. This can be very efficient due to direct copy
+semantics without endian conversion or temporary stack allocation.</p>
+<p>Scalars, structs and strings can be used as source, as well vectors of
+these.</p>
+<p>It is currently not possible to use an existing table or vector of table
+as source, but it would be possible to add support for this at some
+point.</p>
+<h2 id="namespaces">Namespaces</h2>
+<p>The <code>FLATBUFFERS_WRAP_NAMESPACE</code> approach used in the tutorial is convenient
+when each function has a very long namespace prefix. But it isn't always
+the best approach. If the namespace is absent, or simple and
+informative, we might as well use the prefix directly. The
+<a href="https://github.com/dvidelabs/flatcc/blob/master/samples/reflection/bfbs2json.c">reflection example</a>
+mentioned above uses this approach.</p>
+<h2 id="checking-for-present-members">Checking for Present Members</h2>
+<p>Not all languages support testing if a field is present, but in C we can
+elaborate the reader section of the tutorial with tests for this. Recall
+that <code>mana</code> was set to the default value <code>150</code> and therefore shouldn't
+be present.</p>
+<div class="language-c">
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">hp_present</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_hp_is_present</span><span class="p">(</span><span class="n">monster</span><span class="p">));</span><span class="w"> </span><span class="c1">// 1</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">mana_present</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_mana_is_present</span><span class="p">(</span><span class="n">monster</span><span class="p">));</span><span class="w"> </span><span class="c1">// 0</span>
+</code></pre></div>
+</div>
+
+<h2 id="alternative-ways-to-add-a-union">Alternative ways to add a Union</h2>
+<p>In the tutorial we used a single call to add a union.  Here we show
+different ways to accomplish the same thing. The last form is rarely
+used, but is the low-level way to do it. It can be used to group small
+values together in the table by adding type and data at different
+points in time.</p>
+<div class="language-c">
+<div class="highlight"><pre><span></span><code><span class="w">   </span><span class="n">ns</span><span class="p">(</span><span class="n">Equipment_union_ref_t</span><span class="p">)</span><span class="w"> </span><span class="n">equipped</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ns</span><span class="p">(</span><span class="n">Equipment_as_Weapon</span><span class="p">(</span><span class="n">axe</span><span class="p">));</span>
+<span class="w">   </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_equipped_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">equipped</span><span class="p">));</span>
+<span class="w">   </span><span class="c1">// or alternatively</span>
+<span class="w">   </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_equipped_Weapon_add</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">axe</span><span class="p">);</span>
+<span class="w">   </span><span class="c1">// or alternatively</span>
+<span class="w">   </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_equipped_add_type</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">ns</span><span class="p">(</span><span class="n">Equipment_Weapon</span><span class="p">));</span>
+<span class="w">   </span><span class="n">ns</span><span class="p">(</span><span class="n">Monster_equipped_add_member</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">axe</span><span class="p">));</span>
+</code></pre></div>
+</div>
+
+<h2 id="why-not-integrate-with-the-flatc-tool">Why not integrate with the <code>flatc</code> tool?</h2>
+<p><a href="https://github.com/dvidelabs/flatcc/issues/1">It was considered how the C code generator could be integrated into the
+<code>flatc</code> tool</a>, but it
+would either require that the standalone C implementation of the schema
+compiler was dropped, or it would lead to excessive code duplication, or
+a complicated intermediate representation would have to be invented.
+Neither of these alternatives are very attractive, and it isn't a big
+deal to use the <code>flatcc</code> tool instead of <code>flatc</code> given that the
+FlatBuffers C runtime library needs to be made available regardless.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../grammar/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Grammar">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Grammar
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../cpp/" class="md-footer__link md-footer__link--next" aria-label="Next: C++">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                C++
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Google
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/google/flatbuffers" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https:///discord.gg/6qgKs3R" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M524.531 69.836a1.5 1.5 0 0 0-.764-.7A485 485 0 0 0 404.081 32.03a1.82 1.82 0 0 0-1.923.91 338 338 0 0 0-14.9 30.6 447.9 447.9 0 0 0-134.426 0 310 310 0 0 0-15.135-30.6 1.89 1.89 0 0 0-1.924-.91 483.7 483.7 0 0 0-119.688 37.107 1.7 1.7 0 0 0-.788.676C39.068 183.651 18.186 294.69 28.43 404.354a2.02 2.02 0 0 0 .765 1.375 487.7 487.7 0 0 0 146.825 74.189 1.9 1.9 0 0 0 2.063-.676A348 348 0 0 0 208.12 430.4a1.86 1.86 0 0 0-1.019-2.588 321 321 0 0 1-45.868-21.853 1.885 1.885 0 0 1-.185-3.126 251 251 0 0 0 9.109-7.137 1.82 1.82 0 0 1 1.9-.256c96.229 43.917 200.41 43.917 295.5 0a1.81 1.81 0 0 1 1.924.233 235 235 0 0 0 9.132 7.16 1.884 1.884 0 0 1-.162 3.126 301.4 301.4 0 0 1-45.89 21.83 1.875 1.875 0 0 0-1 2.611 391 391 0 0 0 30.014 48.815 1.86 1.86 0 0 0 2.063.7A486 486 0 0 0 610.7 405.729a1.88 1.88 0 0 0 .765-1.352c12.264-126.783-20.532-236.912-86.934-334.541M222.491 337.58c-28.972 0-52.844-26.587-52.844-59.239s23.409-59.241 52.844-59.241c29.665 0 53.306 26.82 52.843 59.239 0 32.654-23.41 59.241-52.843 59.241m195.38 0c-28.971 0-52.843-26.587-52.843-59.239s23.409-59.241 52.843-59.241c29.667 0 53.307 26.82 52.844 59.239 0 32.654-23.177 59.241-52.844 59.241"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/dbaileychess" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8l164.9-188.5L26.8 48h145.6l100.5 132.9zm-24.8 373.8h39.1L151.1 88h-42z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate", "content.tabs.link", "navigation.expand", "navigation.footer", "header.autohide", "content.action.edit"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+    
+  </body>
+</html>
