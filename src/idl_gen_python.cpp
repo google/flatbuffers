@@ -1628,7 +1628,7 @@ class PythonGenerator : public BaseGenerator {
     } else if (IsInteger(base_type)) {
       return "int";
     } else if (base_type == BASE_TYPE_STRING) {
-      return "str";
+      return "Optional[str]";
     } else {
       FLATBUFFERS_ASSERT(false && "base_type is not a scalar or string type.");
       return "";
@@ -1769,7 +1769,7 @@ class PythonGenerator : public BaseGenerator {
       }
 
       const auto default_value = GetDefaultValue(field);
-      // Wrties the init statement.
+      // Writes the init statement.
       const auto field_field = namer_.Field(field);
       code += GenIndents(2) + "self." + field_field + " = " + default_value +
               "  # type: " + field_type;
