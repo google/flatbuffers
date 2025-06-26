@@ -127,6 +127,27 @@ jobs:
       if: matrix.std >= 17
       run: ./flattests_cpp17
 
+  build-linux-x86:
+    name: Build Linux (x86)
+    runs-on: ubuntu-24.04
+    container:
+      image: i386/debian:bullseye
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y build-essential cmake git clang g++ curl unzip
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: cmake
+      run: CXX=g++ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
+    - name: build
+      run: make -j$(nproc)
+    - name: test
+      run: ./flattests
+    - name: Check architecture
+      run: file flattests | grep "ELF 32-bit"
+
   build-cpp-std:
     name: Build Windows C++
     runs-on: windows-2019
