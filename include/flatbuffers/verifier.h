@@ -258,15 +258,15 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template<typename OffsetT = uoffset_t, typename SOffsetT = soffset_t>
   size_t VerifyOffset(const size_t start) const {
     if (!Verify<OffsetT>(start)) return 0;
-    const auto o = ReadScalar<OffsetT>(buf_ + start);
+    const auto o = static_cast<size_t>(ReadScalar<OffsetT>(buf_ + start));
     // May not point to itself.
     if (!Check(o != 0)) return 0;
     // Can't wrap around larger than the max size.
     if (!Check(static_cast<SOffsetT>(o) >= 0)) return 0;
     // Must be inside the buffer to create a pointer from it (pointer outside
     // buffer is UB).
-    if (!Verify(start + o, 1)) return 0;
-    return o;
+    if (!static_cast<size_t>(Verify(start + o, 1))) return 0;
+    return static_cast<size_t>(o);
   }
 
   template<typename OffsetT = uoffset_t>

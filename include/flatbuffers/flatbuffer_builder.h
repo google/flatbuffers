@@ -288,7 +288,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   void Align(size_t elem_size) {
     TrackMinAlign(elem_size);
-    buf_.fill(PaddingBytes(buf_.size(), elem_size));
+    buf_.fill(PaddingBytes(static_cast<size_t>(buf_.size()), elem_size));
   }
 
   void PushFlatBuffer(const uint8_t *bytes, size_t size) {
@@ -516,7 +516,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   void PreAlign(size_t len, size_t alignment) {
     if (len == 0) return;
     TrackMinAlign(alignment);
-    buf_.fill(PaddingBytes(GetSize() + len, alignment));
+    buf_.fill(PaddingBytes(static_cast<size_t>(GetSize()) + len, alignment));
   }
 
   // Aligns such than when "len" bytes are written, an object of type `AlignT`
@@ -712,7 +712,7 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     ForceVectorAlignment(len, elemsize, alignment);
 
     // Update the 64 bit region.
-    length_of_64_bit_region_ = GetSize();
+    length_of_64_bit_region_ = static_cast<size_t>(GetSize());
   }
 
   // Similar to ForceVectorAlignment but for String fields.

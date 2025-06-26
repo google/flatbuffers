@@ -268,8 +268,8 @@ template<typename SizeT = uoffset_t> class vector_downward {
 
   void reallocate(size_t len) {
     auto old_reserved = reserved_;
-    auto old_size = size();
-    auto old_scratch_size = scratch_size();
+    auto old_size = static_cast<size_t>(size());
+    auto old_scratch_size = static_cast<size_t>(scratch_size());
     reserved_ +=
         (std::max)(len, old_reserved ? old_reserved / 2 : initial_size_);
     reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
