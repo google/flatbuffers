@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct Vec3, aligned to 8
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Vec3(pub [u8; 32]);
 impl Default for Vec3 { 
   fn default() -> Self { 
@@ -28,6 +28,21 @@ impl core::fmt::Debug for Vec3 {
       .field("test2", &self.test2())
       .field("test3", &self.test3())
       .finish()
+  }
+}
+impl core::cmp::Ord for Vec3 {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.x().total_cmp(&other.x())
+      .then(self.y().total_cmp(&other.y()))
+      .then(self.z().total_cmp(&other.z()))
+      .then(self.test1().total_cmp(&other.test1()))
+      .then(self.test2().cmp(&other.test2()))
+      .then(self.test3().cmp(&other.test3()))
+  }
+}
+impl core::cmp::PartialOrd for Vec3 {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 
