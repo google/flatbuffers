@@ -154,10 +154,6 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
     swap(string_pool, other.string_pool);
   }
 
-  ~FlatBufferBuilderImpl() {
-    if (string_pool) delete string_pool;
-  }
-
   void Reset() {
     Clear();       // clear builder state
     buf_.reset();  // deallocate buffer
@@ -598,13 +594,17 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
   /// If a string with this exact contents has already been serialized before,
   /// instead simply returns the offset of the existing string. This uses a map
   /// stored on the heap, but only stores the numerical offsets.
+  /// ATTENTION: The implementation does not use a cryptographic hash function.
+  /// DO NOT use it for large amounts of user-sourced input or your program may
+  /// become vulnerable to HashDoS attacks.
   /// @param[in] str A const char pointer to the data to be stored as a string.
   /// @param[in] len The number of bytes that should be stored from `str`.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char *str, size_t len) {
     FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
     if (!string_pool) {
-      string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
+      string_pool = std::make_unique<StringOffsetMap>(
+          8, StringOffsetHash{ buf_ }, StringOffsetEqual{ buf_ });
     }
 
     const size_t size_before_string = buf_.size();
@@ -1328,21 +1328,40 @@ template<bool Is64Aware = false> class FlatBufferBuilderImpl {
 
   bool dedup_vtables_;
 
-  struct StringOffsetCompare {
-    explicit StringOffsetCompare(const vector_downward<SizeT> &buf)
+  struct StringOffsetHash {
+    explicit StringOffsetHash(const vector_downward<SizeT> &buf) : buf_(&buf) {}
+    size_t operator()(const Offset<String> &str) const {
+      auto stra = reinterpret_cast<const String *>(buf_->data_at(str.o));
+      // FNV1a hash
+      size_t hash = 0xcbf29ce484222325;
+      const size_t size = stra->size();
+      auto *data = stra->data();
+      for (size_t i = 0; i < size; ++i) {
+        hash = (hash ^ data[i]) * 0x100000001b3;
+      }
+      return hash;
+    }
+    const vector_downward<SizeT> *buf_;
+  };
+
+  struct StringOffsetEqual {
+    explicit StringOffsetEqual(const vector_downward<SizeT> &buf)
         : buf_(&buf) {}
     bool operator()(const Offset<String> &a, const Offset<String> &b) const {
       auto stra = reinterpret_cast<const String *>(buf_->data_at(a.o));
       auto strb = reinterpret_cast<const String *>(buf_->data_at(b.o));
-      return StringLessThan(stra->data(), stra->size(), strb->data(),
-                            strb->size());
+      if (stra->size() != strb->size())
+        return false;
+      else
+        return !memcmp(stra->data(), strb->data(), stra->size() - 1);
     }
     const vector_downward<SizeT> *buf_;
   };
 
   // For use with CreateSharedString. Instantiated on first use only.
-  typedef std::set<Offset<String>, StringOffsetCompare> StringOffsetMap;
-  StringOffsetMap *string_pool;
+  using StringOffsetMap =
+      std::unordered_set<Offset<String>, StringOffsetHash, StringOffsetEqual>;
+  std::unique_ptr<StringOffsetMap> string_pool;
 
  private:
   void CanAddOffset64() {
