@@ -928,5 +928,20 @@ void FieldIdentifierTest() {
 #endif
 }
 
+void ZeroOnFloatToIntTest() {
+  flatbuffers::IDLOptions opts;
+  {
+    opts.zero_on_float_to_int = true;
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(true, parser.Parse("table T{ i: int = 1.0; }"));
+  }
+
+  {
+    opts.zero_on_float_to_int = false;
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(false, parser.Parse("table T{ i: int = 1.0; }"));
+  }
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
