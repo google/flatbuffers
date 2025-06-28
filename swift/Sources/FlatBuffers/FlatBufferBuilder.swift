@@ -343,19 +343,6 @@ public struct FlatBufferBuilder {
     }
   }
 
-  /// Gets the padding for the current element
-  /// - Parameters:
-  ///   - bufSize: Current size of the buffer + the offset of the object to be written
-  ///   - elementSize: Element size
-  @inline(__always)
-  @usableFromInline
-  mutating internal func padding(
-    bufSize: UInt32,
-    elementSize: UInt32) -> UInt32
-  {
-    ((~bufSize) &+ 1) & (elementSize &- 1)
-  }
-
   /// Prealigns the buffer before writting a new object into the buffer
   /// - Parameters:
   ///   - len:Length of the object
@@ -364,11 +351,9 @@ public struct FlatBufferBuilder {
   @usableFromInline
   mutating internal func preAlign(len: Int, alignment: Int) {
     minAlignment(size: alignment)
-    _bb.fill(
-      padding: Int(
-        padding(
-          bufSize: _bb.size &+ UOffset(len),
-          elementSize: UOffset(alignment))))
+    _bb.fill(padding: numericCast(padding(
+      bufSize: numericCast(_bb.size) &+ numericCast(len),
+      elementSize: numericCast(alignment))))
   }
 
   /// Prealigns the buffer before writting a new object into the buffer

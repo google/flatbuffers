@@ -31,13 +31,10 @@ template<typename T, uint16_t length> class Array {
   // Array<T> can carry only POD data types (scalars or structs).
   typedef typename flatbuffers::bool_constant<flatbuffers::is_scalar<T>::value>
       scalar_tag;
-  typedef
-      typename flatbuffers::conditional<scalar_tag::value, T, const T *>::type
-          IndirectHelperType;
 
  public:
   typedef uint16_t size_type;
-  typedef typename IndirectHelper<IndirectHelperType>::return_type return_type;
+  typedef typename IndirectHelper<T>::return_type return_type;
   typedef VectorConstIterator<T, return_type, uoffset_t> const_iterator;
   typedef VectorReverseIterator<const_iterator> const_reverse_iterator;
 
@@ -50,7 +47,7 @@ template<typename T, uint16_t length> class Array {
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
-    return IndirectHelper<IndirectHelperType>::Read(Data(), i);
+    return IndirectHelper<T>::Read(Data(), i);
   }
 
   return_type operator[](uoffset_t i) const { return Get(i); }

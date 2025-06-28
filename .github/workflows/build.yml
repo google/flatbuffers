@@ -394,7 +394,7 @@ jobs:
       # Force Xcode 14.3 since Xcode 15 doesnt support older versions of
       # kotlin. For Xcode 15, kotlin should be bumpped to 1.9.10
       # https://stackoverflow.com/a/77150623
-      # For now, run with macos-13 which has this 14.3 installed: 
+      # For now, run with macos-13 which has this 14.3 installed:
       # https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
     - name: Set up Xcode version
       run: sudo xcode-select -s /Applications/Xcode_14.3.app/Contents/Developer
@@ -534,14 +534,15 @@ jobs:
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
+    - name: pnpm
+      run: npm install -g pnpm esbuild
     - name: deps
-      run: yarn
+      run: pnpm i
     - name: compile
-      run: yarn compile
+      run: pnpm compile
     - name: test
       working-directory: tests/ts
       run: |
-        yarn global add esbuild
         python3 TypeScriptTest.py
 
   build-dart:
@@ -582,12 +583,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: bazel build
         run: >
-          bazel build 
+          bazel build
           //:flatc
           //:flatbuffers
       - name: bazel test
         run: >
-          bazel test 
+          bazel test
           //tests:flatbuffers_test
 
   release-digests:
