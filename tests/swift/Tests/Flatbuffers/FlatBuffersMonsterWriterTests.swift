@@ -535,11 +535,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     // strips out the nested directories.
     let filePath = URL(filePath: #file)
       .deletingLastPathComponent()
-      .deletingLastPathComponent()
-      .deletingLastPathComponent()
     return filePath.absoluteString
     #else
     return FileManager.default.currentDirectoryPath
+      .appending("/tests/swift/Tests/Flatbuffers")
     #endif
   }
 
