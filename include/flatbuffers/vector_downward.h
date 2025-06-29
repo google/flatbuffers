@@ -48,7 +48,7 @@ template<typename SizeT = uoffset_t> class vector_downward {
         cur_(nullptr),
         scratch_(nullptr) {}
 
-  vector_downward(vector_downward &&other) noexcept
+  vector_downward(vector_downward &&other) FLATBUFFERS_NOEXCEPT
       // clang-format on
       : allocator_(other.allocator_),
         own_allocator_(other.own_allocator_),
@@ -70,7 +70,7 @@ template<typename SizeT = uoffset_t> class vector_downward {
     other.scratch_ = nullptr;
   }
 
-  vector_downward &operator=(vector_downward &&other) noexcept {
+  vector_downward &operator=(vector_downward &&other) FLATBUFFERS_NOEXCEPT {
     // Move construct a temporary and swap idiom
     vector_downward temp(std::move(other));
     swap(temp);
