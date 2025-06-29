@@ -397,6 +397,41 @@ func (b *Builder) CreateByteVector(v []byte) UOffsetT {
 	return b.EndVector(len(v))
 }
 
+// CreateUninitializedVector is a low-level function to create a vector with
+// uninitialized data. The arguments are the same as for StartVector.
+//
+// Return the offset of the vector, as well as the raw bytes of the vector,
+// which can be filled in after this function returns.
+//
+// Beware that the returned slice is only valid as long as the underlying buffer
+// is not reallocated. So the data should be written to the slice before adding
+// anything to the builder. Another option is to ignore the []byte return value,
+// and instead finish the whole buffer and then mutate it in-place.
+func (b *Builder) CreateUninitializedVector(elemSize, numElems, alignment int) (UOffsetT, []byte) {
+	b.StartVector(elemSize, numElems, alignment)
+	l := UOffsetT(elemSize * numElems)
+
+	// Skip ahead over the elements that the vector would contain
+	b.head -= l
+
+	vecHead := b.head
+	return b.EndVector(numElems), b.Bytes[vecHead : vecHead+l]
+}
+
+// CreateUninitializedByteVector is a low-level function to create a byte vector with
+// uninitialized data of a given length. It avoids a copy in CreateByteVector.
+//
+// Return the offset of the vector, as well as the raw bytes of the vector,
+// which can be filled in after this function returns.
+//
+// Beware that the returned slice is only valid as long as the underlying buffer
+// is not reallocated. So the data should be written to the slice before adding
+// anything to the builder. Another option is to ignore the []byte return value,
+// and instead finish the whole buffer and then mutate it in-place.
+func (b *Builder) CreateUninitializedByteVector(numElems int) (UOffsetT, []byte) {
+	return b.CreateUninitializedVector(SizeByte, numElems, SizeByte)
+}
+
 func (b *Builder) assertNested() {
 	// If you get this assert, you're in an object while trying to write
 	// data that belongs outside of an object.
