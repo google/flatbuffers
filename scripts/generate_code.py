@@ -23,7 +23,7 @@ from pathlib import Path
 from util import flatc, root_path, tests_path, args, flatc_path
 
 # Specify the other paths that will be referenced
-swift_code_gen = Path(root_path, "tests/swift/tests/CodeGenerationTests")
+swift_code_gen = Path(root_path, "tests/swift/fuzzer/CodeGenerationTests")
 ts_code_gen = Path(root_path, "tests/ts")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
@@ -405,7 +405,7 @@ dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
 # Swift Tests
-swift_prefix = "swift/tests/Tests/FlatBuffers.Test.SwiftTests"
+swift_prefix = "swift/Tests/Flatbuffers"
 flatc(
     SWIFT_OPTS + BASE_OPTS + ["--grpc"],
     schema="monster_test.fbs",
