@@ -5,6 +5,7 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if !os(Windows)
 import Foundation
 import GRPC
 import NIO
@@ -142,3 +143,5 @@ public protocol models_GreeterServerInterceptorFactoryProtocol {
   func makeSayManyHellosInterceptors() -> [ServerInterceptor<Message<models_HelloRequest>, Message<models_HelloReply>>]
 
 }
+#endif
+

@@ -394,6 +394,8 @@ grpc::string Generate(grpc_generator::File *file,
   GenerateClientClass(&*printer, &vars);
   printer->Print("\n");
   GenerateServerProtocol(service, &*printer, &vars);
+  printer->Print("\n");
+  printer->Print("#endif\n");
   return output;
 }
 
@@ -409,6 +411,7 @@ grpc::string GenerateHeader() {
   code += "// swiftlint:disable all\n";
   code += "// swiftformat:disable all\n";
   code += "\n";
+  code += "#if !os(Windows)\n";
   code += "import Foundation\n";
   code += "import GRPC\n";
   code += "import NIO\n";
