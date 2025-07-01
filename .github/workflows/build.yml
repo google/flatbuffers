@@ -129,7 +129,7 @@ jobs:
 
   build-cpp-std:
     name: Build Windows C++
-    runs-on: windows-2019
+    runs-on: windows-2022
     strategy:
       matrix:
         std: [11, 14, 17, 20, 23]
@@ -140,7 +140,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
       run: >
-        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release
+        cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
         -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
@@ -157,14 +157,14 @@ jobs:
       contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
-    name: Build Windows 2019
-    runs-on: windows-2019
+    name: Build Windows 2022
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
@@ -344,13 +344,13 @@ jobs:
 
   build-generator-windows:
     name: Check Generated Code on Windows
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: Generate
@@ -500,9 +500,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: swift-actions/setup-swift@v2
+    - uses: vapor/swiftly-action@v0.2
       with:
-        swift-version: ${{ matrix.swift }}
+        toolchain: ${{ matrix.swift }}
     - name: Get swift version
       run: swift --version
     - name: test
