@@ -500,9 +500,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: swift-actions/setup-swift@next
+    - uses: vapor/swiftly-action@v0.2
       with:
-        swift-version: ${{ matrix.swift }}
+        toolchain: ${{ matrix.swift }}
     - name: Get swift version
       run: swift --version
     - name: test
