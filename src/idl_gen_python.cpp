@@ -2028,6 +2028,20 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
+  void GenUnPackForString(const StructDef &struct_def, const FieldDef &field,
+                          std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    const auto field_field = namer_.Field(field);
+    const auto field_method = namer_.Method(field);
+    const auto struct_var = namer_.Variable(struct_def);
+
+    code += GenIndents(2) + "self." + field_field + " = " + struct_var + "." +
+            field_method + "()";
+    code += GenIndents(2) + "if self." + field_field + " is not None:";
+    code += GenIndents(3) + "self." + field_field + " = self." + field_field +
+            ".decode('utf-8')";
+  }
+
   void GenUnPackForScalar(const StructDef &struct_def, const FieldDef &field,
                           std::string *code_ptr) const {
     auto &code = *code_ptr;
@@ -2067,6 +2081,14 @@ class PythonGenerator : public BaseGenerator {
             GenUnPackForStructVector(struct_def, field, &code);
           } else {
             GenUnPackForScalarVector(struct_def, field, &code);
+          }
+          break;
+        }
+        case BASE_TYPE_STRING: {
+          if (parser_.opts.python_decode_obj_api_strings) {
+            GenUnPackForString(struct_def, field, &code);
+          } else {
+            GenUnPackForScalar(struct_def, field, &code);
           }
           break;
         }
@@ -2686,14 +2708,11 @@ class PythonGenerator : public BaseGenerator {
   bool SaveType(const std::string &defname, const Namespace &ns,
                 const std::string &classcode, const ImportMap &imports,
                 const std::string &mod, bool needs_imports) const {
+    if (classcode.empty()) return true;
+
     std::string code = "";
-    if (classcode.empty()) {
-      BeginFile(LastNamespacePart(ns), false, &code, "", {});
-      code += "# NOTE " + defname + " does not declare any structs or enums\n";
-    } else {
-      BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
-      code += classcode;
-    }
+    BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
+    code += classcode;
 
     const std::string directories =
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);

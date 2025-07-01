@@ -18,29 +18,18 @@
 import PackageDescription
 
 let package = Package(
-  name: "FlatBuffers.Test.Swift",
+  name: "fuzzer",
   platforms: [
-    .iOS(.v11),
+    .iOS(.v12),
     .macOS(.v10_14),
   ],
   dependencies: [
     .package(path: "../../.."),
-    .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1"),
-    // Prevent the build system from pulling 2.29.1 to prevent Swift 5.8 build breaks.
-    // The patch update introduced code that uses "switch expression syntax" that wasn't valid until Swift 5.9 [1].
-    // [1] https://github.com/swiftlang/swift-evolution/blob/main/proposals/0380-if-switch-expressions.md
-    .package(url: "https://github.com/apple/swift-nio-ssl.git", exact: "2.29.0"),
   ],
   targets: [
     .executableTarget(
-      name: "SwiftFlatBuffers",
+      name: "fuzzer",
       dependencies: [
         .product(name: "FlatBuffers", package: "flatbuffers"),
-      ]),
-    .testTarget(
-      name: "FlatBuffers.Test.SwiftTests",
-      dependencies: [
-        .product(name: "FlatBuffers", package: "flatbuffers"),
-        .product(name: "GRPC", package: "grpc-swift"),
       ]),
   ])
