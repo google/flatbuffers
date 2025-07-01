@@ -500,7 +500,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: swift-actions/setup-swift@v2
+    - uses: swift-actions/setup-swift@next
       with:
         swift-version: ${{ matrix.swift }}
     - name: Get swift version
