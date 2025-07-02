@@ -1189,6 +1189,58 @@ class CSharpGenerator : public BaseGenerator {
         }
         code += " }\n";
       }
+      
+      // Generate Length property and ByteBuffer accessor for arrays in structs.
+      if (IsArray(field.value.type) && struct_def.fixed &&
+          IsScalar(field.value.type.VectorType().base_type)) {
+        auto camel_name = Name(field);
+        if (camel_name == struct_def.name) { camel_name += "_"; }
+        
+        // Generate Length constant
+        code += "  public const int " + camel_name;
+        code += "Length = ";
+        code += NumToString(field.value.type.fixed_length);
+        code += ";\n";
+        
+        // Generate GetBytes methods for scalar arrays (similar to vector pattern)
+        code += "#if ENABLE_SPAN_T\n";
+        code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
+                "> Get";
+        code += camel_name;
+        code += "Bytes() { return ";
+        
+        // For byte arrays, we can return the span directly
+        if (field.value.type.VectorType().base_type == BASE_TYPE_UCHAR) {
+          code += "__p.bb.ToSpan(__p.bb_pos + ";
+          code += NumToString(field.value.offset);
+          code += ", ";
+          code += NumToString(field.value.type.fixed_length *
+                             SizeOf(field.value.type.VectorType().base_type));
+          code += ")";
+        } else {
+          // For other types, we need to cast the byte span
+          code += "System.Runtime.InteropServices.MemoryMarshal.Cast<byte, " +
+                  GenTypeBasic(field.value.type.VectorType()) + ">(__p.bb.ToSpan(__p.bb_pos + ";
+          code += NumToString(field.value.offset);
+          code += ", ";
+          code += NumToString(field.value.type.fixed_length *
+                             SizeOf(field.value.type.VectorType().base_type));
+          code += "))";
+        }
+        code += "; }\n";
+        code += "#else\n";
+        code += "  public ArraySegment<byte>? Get";
+        code += camel_name;
+        code += "Bytes() { return ";
+        code += "__p.bb.ToArraySegment(__p.bb_pos + ";
+        code += NumToString(field.value.offset);
+        code += ", ";
+        code += NumToString(field.value.type.fixed_length *
+                           SizeOf(field.value.type.VectorType().base_type));
+        code += ");}\n";
+        code += "#endif\n";
+      }
+      
       // generate object accessors if is nested_flatbuffer
       if (field.nested_flatbuffer) {
         auto nested_type_name = NamespacedName(*field.nested_flatbuffer);
