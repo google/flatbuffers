@@ -47,8 +47,8 @@ except:
 class StructOfStructsOfStructsT(object):
 
     # StructOfStructsOfStructsT
-    def __init__(self):
-        self.a = None  # type: Optional[MyGame.Example.StructOfStructs.StructOfStructsT]
+    def __init__(self, a: Optional['MyGame.Example.StructOfStructs.StructOfStructsT'] = None):
+        self.a = a
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

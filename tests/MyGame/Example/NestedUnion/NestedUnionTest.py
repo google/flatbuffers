@@ -97,18 +97,18 @@ import MyGame.Example.NestedUnion.Any
 import MyGame.Example.NestedUnion.TestSimpleTableWithEnum
 import MyGame.Example.NestedUnion.Vec3
 try:
-    from typing import Union
+    from typing import Optional, Union
 except:
     pass
 
 class NestedUnionTestT(object):
 
     # NestedUnionTestT
-    def __init__(self):
-        self.name = None  # type: str
-        self.dataType = 0  # type: int
-        self.data = None  # type: Union[None, MyGame.Example.NestedUnion.Vec3.Vec3T, MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumT]
-        self.id = 0  # type: int
+    def __init__(self, name: Optional[str] = None, dataType: int = 0, data: Union[None, 'MyGame.Example.NestedUnion.Vec3.Vec3T', 'MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumT'] = None, id: int = 0):
+        self.name = name
+        self.dataType = dataType
+        self.data = data
+        self.id = id
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

@@ -97,18 +97,18 @@ def CreateNestedStruct(builder, a, b, c, d):
     return builder.Offset()
 
 try:
-    from typing import List
+    from typing import List, Optional
 except:
     pass
 
 class NestedStructT(object):
 
     # NestedStructT
-    def __init__(self):
-        self.a = None  # type: List[int]
-        self.b = 0  # type: int
-        self.c = None  # type: List[int]
-        self.d = None  # type: List[int]
+    def __init__(self, a: Optional[List[int]] = None, b: int = 0, c: Optional[List[int]] = None, d: Optional[List[int]] = None):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
