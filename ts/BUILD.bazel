@@ -1,13 +1,14 @@
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
-load("@flatbuffers_npm//:npm_link_all_packages.bzl", "npm_link_all_packages")
+load("@flatbuffers_npm//:defs.bzl", "npm_link_all_packages")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 filegroup(
     name = "distribution",
     srcs = [
         "BUILD.bazel",
         "compile_flat_file.sh",
-        "repositories.bzl",
+        "pnpm-lock.yaml",
     ] + glob([
         "*.ts",
     ]),
@@ -68,7 +69,7 @@ sh_binary(
     name = "compile_flat_file",
     srcs = ["compile_flat_file.sh"],
     data = [
-        "@com_github_google_flatbuffers//:flatc",
+        "//:flatc",
         "@nodejs_linux_amd64//:node_bin",
     ],
     # We just depend directly on the linux amd64 nodejs binary, so only support

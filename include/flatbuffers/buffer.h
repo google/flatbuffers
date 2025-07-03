@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/stl_emulation.h"
 
 namespace flatbuffers {
 
@@ -36,6 +37,10 @@ template<typename T = void> struct Offset {
   bool IsNull() const { return !o; }
 };
 
+template<typename T> struct is_specialisation_of_Offset : false_type {};
+template<typename T>
+struct is_specialisation_of_Offset<Offset<T>> : true_type {};
+
 // Wrapper for uoffset64_t Offsets.
 template<typename T = void> struct Offset64 {
   // The type of offset to use.
@@ -47,6 +52,10 @@ template<typename T = void> struct Offset64 {
   Offset64<> Union() const { return o; }
   bool IsNull() const { return !o; }
 };
+
+template<typename T> struct is_specialisation_of_Offset64 : false_type {};
+template<typename T>
+struct is_specialisation_of_Offset64<Offset64<T>> : true_type {};
 
 // Litmus check for ensuring the Offsets are the expected size.
 static_assert(sizeof(Offset<>) == 4, "Offset has wrong size");
@@ -90,7 +99,7 @@ static inline bool StringLessThan(const char *a_data, uoffset_t a_size,
 // return type like this.
 // The typedef is for the convenience of callers of this function
 // (avoiding the need for a trailing return decltype)
-template<typename T> struct IndirectHelper {
+template<typename T, typename Enable = void> struct IndirectHelper {
   typedef T return_type;
   typedef T mutable_return_type;
   static const size_t element_stride = sizeof(T);
@@ -135,10 +144,20 @@ struct IndirectHelper<OffsetT<T>> {
 };
 
 // For vector of structs.
-template<typename T> struct IndirectHelper<const T *> {
-  typedef const T *return_type;
-  typedef T *mutable_return_type;
-  static const size_t element_stride = sizeof(T);
+template<typename T>
+struct IndirectHelper<
+    T, typename std::enable_if<
+           !std::is_scalar<typename std::remove_pointer<T>::type>::value &&
+           !is_specialisation_of_Offset<T>::value &&
+           !is_specialisation_of_Offset64<T>::value>::type> {
+ private:
+  typedef typename std::remove_pointer<typename std::remove_cv<T>::type>::type
+      pointee_type;
+
+ public:
+  typedef const pointee_type *return_type;
+  typedef pointee_type *mutable_return_type;
+  static const size_t element_stride = sizeof(pointee_type);
 
   static return_type Read(const uint8_t *const p, const size_t i) {
     // Structs are stored inline, relative to the first struct pointer.

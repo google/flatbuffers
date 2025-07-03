@@ -16,6 +16,16 @@ public enum MyGame_Sample_Color: Int8, Enum, Verifiable {
   public static var min: MyGame_Sample_Color { return .red }
 }
 
+extension MyGame_Sample_Color: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .red: try container.encode("Red")
+    case .green: try container.encode("Green")
+    case .blue: try container.encode("Blue")
+    }
+  }
+}
 
 public enum MyGame_Sample_Equipment: UInt8, UnionEnum {
   public typealias T = UInt8
@@ -33,10 +43,35 @@ public enum MyGame_Sample_Equipment: UInt8, UnionEnum {
   public static var min: MyGame_Sample_Equipment { return .none_ }
 }
 
+extension MyGame_Sample_Equipment: Encodable {
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .none_: try container.encode("NONE")
+    case .weapon: try container.encode("Weapon")
+    }
+  }
+}
 
-public struct MyGame_Sample_Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
+public struct MyGame_Sample_EquipmentUnion {
+  public var type: MyGame_Sample_Equipment
+  public var value: NativeObject?
+  public init(_ v: NativeObject?, type: MyGame_Sample_Equipment) {
+    self.type = type
+    self.value = v
+  }
+  public func pack(builder: inout FlatBufferBuilder) -> Offset {
+    switch type {
+    case .weapon:
+      var __obj = value as? MyGame_Sample_WeaponT
+      return MyGame_Sample_Weapon.pack(&builder, obj: &__obj)
+    default: return Offset()
+    }
+  }
+}
+public struct MyGame_Sample_Vec3: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
 
   private var _x: Float32
   private var _y: Float32
@@ -61,6 +96,12 @@ public struct MyGame_Sample_Vec3: NativeStruct, Verifiable, FlatbuffersInitializ
     _z = 0.0
   }
 
+  public init(_ _t: inout MyGame_Sample_Vec3_Mutable) {
+    _x = _t.x
+    _y = _t.y
+    _z = _t.z
+  }
+
   public var x: Float32 { _x }
   public var y: Float32 { _y }
   public var z: Float32 { _z }
@@ -70,9 +111,30 @@ public struct MyGame_Sample_Vec3: NativeStruct, Verifiable, FlatbuffersInitializ
   }
 }
 
+extension MyGame_Sample_Vec3: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case x = "x"
+    case y = "y"
+    case z = "z"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    if x != 0.0 {
+      try container.encodeIfPresent(x, forKey: .x)
+    }
+    if y != 0.0 {
+      try container.encodeIfPresent(y, forKey: .y)
+    }
+    if z != 0.0 {
+      try container.encodeIfPresent(z, forKey: .z)
+    }
+  }
+}
+
 public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -84,11 +146,24 @@ public struct MyGame_Sample_Vec3_Mutable: FlatBufferObject {
   @discardableResult public func mutate(y: Float32) -> Bool { return _accessor.mutate(y, index: 4) }
   public var z: Float32 { return _accessor.readBuffer(of: Float32.self, at: 8) }
   @discardableResult public func mutate(z: Float32) -> Bool { return _accessor.mutate(z, index: 8) }
+  
+
+  public mutating func unpack() -> MyGame_Sample_Vec3 {
+    return MyGame_Sample_Vec3(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_Vec3?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_Vec3) -> Offset {
+    return builder.create(struct: obj)
+  }
 }
 
-public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable {
+public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -123,6 +198,7 @@ public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable {
   public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
   public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
   public func mutate(inventory: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.inventory.v); return _accessor.directMutate(inventory, index: _accessor.vector(at: o) + index * 1) }
+  public func withUnsafePointerToInventory<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.inventory.v, body: body) }
   public var color: MyGame_Sample_Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : MyGame_Sample_Color(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .blue }
   @discardableResult public func mutate(color: MyGame_Sample_Color) -> Bool {let o = _accessor.offset(VTOFFSET.color.v);  return _accessor.mutate(color.rawValue, index: o) }
   public var hasWeapons: Bool { let o = _accessor.offset(VTOFFSET.weapons.v); return o == 0 ? false : true }
@@ -134,6 +210,7 @@ public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable {
   public var pathCount: Int32 { let o = _accessor.offset(VTOFFSET.path.v); return o == 0 ? 0 : _accessor.vector(count: o) }
   public func path(at index: Int32) -> MyGame_Sample_Vec3? { let o = _accessor.offset(VTOFFSET.path.v); return o == 0 ? nil : _accessor.directRead(of: MyGame_Sample_Vec3.self, offset: _accessor.vector(at: o) + index * 12) }
   public func mutablePath(at index: Int32) -> MyGame_Sample_Vec3_Mutable? { let o = _accessor.offset(VTOFFSET.path.v); return o == 0 ? nil : MyGame_Sample_Vec3_Mutable(_accessor.bb, o: _accessor.vector(at: o) + index * 12) }
+  public func withUnsafePointerToPath<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.path.v, body: body) }
   public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 11) }
   public static func add(pos: MyGame_Sample_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
   public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
@@ -175,6 +252,53 @@ public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable {
     MyGame_Sample_Monster.addVectorOf(path: path, &fbb)
     return MyGame_Sample_Monster.endMonster(&fbb, start: __start)
   }
+  
+
+  public mutating func unpack() -> MyGame_Sample_MonsterT {
+    return MyGame_Sample_MonsterT(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_MonsterT?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_MonsterT) -> Offset {
+    let __name: Offset
+    if let s = obj.name {
+      __name = builder.create(string: s)
+    } else {
+      __name = Offset()
+    }
+
+    let __inventory = builder.createVector(obj.inventory)
+    var __weapons__: [Offset] = []
+    for var i in obj.weapons {
+      __weapons__.append(MyGame_Sample_Weapon.pack(&builder, obj: &i))
+    }
+    let __weapons = builder.createVector(ofOffsets: __weapons__)
+    let __equipped = obj.equipped?.pack(builder: &builder) ?? Offset()
+    MyGame_Sample_Monster.startVectorOfPath(obj.path.count, in: &builder)
+    for i in obj.path {
+      guard let _o = i else { continue }
+      builder.create(struct: _o)
+    }
+    let __path = builder.endVector(len: obj.path.count)
+    let __root = MyGame_Sample_Monster.startMonster(&builder)
+    MyGame_Sample_Monster.add(pos: obj.pos, &builder)
+    MyGame_Sample_Monster.add(mana: obj.mana, &builder)
+    MyGame_Sample_Monster.add(hp: obj.hp, &builder)
+    MyGame_Sample_Monster.add(name: __name, &builder)
+    MyGame_Sample_Monster.addVectorOf(inventory: __inventory, &builder)
+    MyGame_Sample_Monster.add(color: obj.color, &builder)
+    MyGame_Sample_Monster.addVectorOf(weapons: __weapons, &builder)
+    if let o = obj.equipped?.type {
+      MyGame_Sample_Monster.add(equippedType: o, &builder)
+      MyGame_Sample_Monster.add(equipped: __equipped, &builder)
+    }
+
+    MyGame_Sample_Monster.addVectorOf(path: __path, &builder)
+    return MyGame_Sample_Monster.endMonster(&builder, start: __root)
+  }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
@@ -198,9 +322,117 @@ public struct MyGame_Sample_Monster: FlatBufferObject, Verifiable {
   }
 }
 
-public struct MyGame_Sample_Weapon: FlatBufferObject, Verifiable {
+extension MyGame_Sample_Monster: Encodable {
 
-  static func validateVersion() { FlatBuffersVersion_24_3_25() }
+  enum CodingKeys: String, CodingKey {
+    case pos = "pos"
+    case mana = "mana"
+    case hp = "hp"
+    case name = "name"
+    case inventory = "inventory"
+    case color = "color"
+    case weapons = "weapons"
+    case equippedType = "equipped_type"
+    case equipped = "equipped"
+    case path = "path"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(pos, forKey: .pos)
+    if mana != 150 {
+      try container.encodeIfPresent(mana, forKey: .mana)
+    }
+    if hp != 100 {
+      try container.encodeIfPresent(hp, forKey: .hp)
+    }
+    try container.encodeIfPresent(name, forKey: .name)
+    if inventoryCount > 0 {
+      try container.encodeIfPresent(inventory, forKey: .inventory)
+    }
+    if color != .blue {
+      try container.encodeIfPresent(color, forKey: .color)
+    }
+    if weaponsCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .weapons)
+      for index in 0..<weaponsCount {
+        guard let type = weapons(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+    if equippedType != .none_ {
+      try container.encodeIfPresent(equippedType, forKey: .equippedType)
+    }
+    switch equippedType {
+    case .weapon:
+      let _v = equipped(type: MyGame_Sample_Weapon.self)
+      try container.encodeIfPresent(_v, forKey: .equipped)
+    default: break;
+    }
+    if pathCount > 0 {
+      var contentEncoder = container.nestedUnkeyedContainer(forKey: .path)
+      for index in 0..<pathCount {
+        guard let type = path(at: index) else { continue }
+        try contentEncoder.encode(type)
+      }
+    }
+  }
+}
+
+public class MyGame_Sample_MonsterT: NativeObject {
+
+  public var pos: MyGame_Sample_Vec3?
+  public var mana: Int16
+  public var hp: Int16
+  public var name: String?
+  public var inventory: [UInt8]
+  public var color: MyGame_Sample_Color
+  public var weapons: [MyGame_Sample_WeaponT?]
+  public var equipped: MyGame_Sample_EquipmentUnion?
+  public var path: [MyGame_Sample_Vec3?]
+
+  public init(_ _t: inout MyGame_Sample_Monster) {
+    pos = _t.pos
+    mana = _t.mana
+    hp = _t.hp
+    name = _t.name
+    inventory = []
+    for index in 0..<_t.inventoryCount {
+        inventory.append(_t.inventory(at: index))
+    }
+    color = _t.color
+    weapons = []
+    for index in 0..<_t.weaponsCount {
+        var __v_ = _t.weapons(at: index)
+        weapons.append(__v_?.unpack())
+    }
+    switch _t.equippedType {
+    case .weapon:
+      var _v = _t.equipped(type: MyGame_Sample_Weapon.self)
+      equipped = MyGame_Sample_EquipmentUnion(_v?.unpack(), type: .weapon)
+    default: break
+    }
+    path = []
+    for index in 0..<_t.pathCount {
+        path.append(_t.path(at: index))
+    }
+  }
+
+  public init() {
+    pos = MyGame_Sample_Vec3()
+    mana = 150
+    hp = 100
+    inventory = []
+    color = .blue
+    weapons = []
+    path = []
+  }
+
+  public func serialize() -> ByteBuffer { return serialize(type: MyGame_Sample_Monster.self) }
+
+}
+public struct MyGame_Sample_Weapon: FlatBufferObject, Verifiable, ObjectAPIPacker {
+
+  static func validateVersion() { FlatBuffersVersion_25_2_10() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -232,6 +464,29 @@ public struct MyGame_Sample_Weapon: FlatBufferObject, Verifiable {
     MyGame_Sample_Weapon.add(damage: damage, &fbb)
     return MyGame_Sample_Weapon.endWeapon(&fbb, start: __start)
   }
+  
+
+  public mutating func unpack() -> MyGame_Sample_WeaponT {
+    return MyGame_Sample_WeaponT(&self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_WeaponT?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_WeaponT) -> Offset {
+    let __name: Offset
+    if let s = obj.name {
+      __name = builder.create(string: s)
+    } else {
+      __name = Offset()
+    }
+
+    let __root = MyGame_Sample_Weapon.startWeapon(&builder)
+    MyGame_Sample_Weapon.add(name: __name, &builder)
+    MyGame_Sample_Weapon.add(damage: obj.damage, &builder)
+    return MyGame_Sample_Weapon.endWeapon(&builder, start: __root)
+  }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
@@ -241,3 +496,35 @@ public struct MyGame_Sample_Weapon: FlatBufferObject, Verifiable {
   }
 }
 
+extension MyGame_Sample_Weapon: Encodable {
+
+  enum CodingKeys: String, CodingKey {
+    case name = "name"
+    case damage = "damage"
+  }
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(name, forKey: .name)
+    if damage != 0 {
+      try container.encodeIfPresent(damage, forKey: .damage)
+    }
+  }
+}
+
+public class MyGame_Sample_WeaponT: NativeObject {
+
+  public var name: String?
+  public var damage: Int16
+
+  public init(_ _t: inout MyGame_Sample_Weapon) {
+    name = _t.name
+    damage = _t.damage
+  }
+
+  public init() {
+    damage = 0
+  }
+
+  public func serialize() -> ByteBuffer { return serialize(type: MyGame_Sample_Weapon.self) }
+
+}

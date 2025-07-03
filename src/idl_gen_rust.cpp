@@ -131,8 +131,6 @@ static std::set<std::string> RustKeywords() {
     // Terms that we use ourselves
     "follow",
     "push",
-    "size",
-    "alignment",
     "to_little_endian",
     "from_little_endian",
     "ENUM_MAX",
@@ -729,7 +727,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "mod bitflags_{{ENUM_NAMESPACE}} {";
       code_ += "  flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment, "    ");
-      code_ += "    #[derive(Default)]";
+      code_ += "    #[derive(Default, Debug, Clone, Copy, PartialEq)]";
       code_ += "    {{ACCESS_TYPE}} struct {{ENUM_TY}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
         this->GenComment(ev.doc_comment, "    ");
@@ -845,20 +843,7 @@ class RustGenerator : public BaseGenerator {
     code_ +=
         "    let b = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc);";
     if (IsBitFlagsEnum(enum_def)) {
-      // Safety:
-      // This is safe because we know bitflags is implemented with a repr
-      // transparent uint of the correct size. from_bits_unchecked will be
-      // replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-      // https://github.com/bitflags/bitflags/issues/262
-      code_ += "    // Safety:";
-      code_ +=
-          "    // This is safe because we know bitflags is implemented with a "
-          "repr transparent uint of the correct size.";
-      code_ +=
-          "    // from_bits_unchecked will be replaced by an equivalent but "
-          "safe from_bits_retain in bitflags 2.0";
-      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
-      code_ += "    Self::from_bits_unchecked(b)";
+      code_ += "    Self::from_bits_retain(b)";
     } else {
       code_ += "    Self(b)";
     }
@@ -886,20 +871,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  fn from_little_endian(v: {{BASE_TYPE}}) -> Self {";
     code_ += "    let b = {{BASE_TYPE}}::from_le(v);";
     if (IsBitFlagsEnum(enum_def)) {
-      // Safety:
-      // This is safe because we know bitflags is implemented with a repr
-      // transparent uint of the correct size. from_bits_unchecked will be
-      // replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-      // https://github.com/bitflags/bitflags/issues/262
-      code_ += "    // Safety:";
-      code_ +=
-          "    // This is safe because we know bitflags is implemented with a "
-          "repr transparent uint of the correct size.";
-      code_ +=
-          "    // from_bits_unchecked will be replaced by an equivalent but "
-          "safe from_bits_retain in bitflags 2.0";
-      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
-      code_ += "    unsafe { Self::from_bits_unchecked(b) }";
+      code_ += "    Self::from_bits_retain(b)";
     } else {
       code_ += "    Self(b)";
     }
@@ -2700,8 +2672,12 @@ class RustGenerator : public BaseGenerator {
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ +=
         "        let src = ::core::slice::from_raw_parts(self as *const "
-        "{{STRUCT_TY}} as *const u8, Self::size());";
+        "{{STRUCT_TY}} as *const u8, <Self as flatbuffers::Push>::size());";
     code_ += "        dst.copy_from_slice(src);";
+    code_ += "    }";
+    code_ += "    #[inline]";
+    code_ += "    fn alignment() -> flatbuffers::PushAlignment {";
+    code_ += "        flatbuffers::PushAlignment::new({{ALIGN}})";
     code_ += "    }";
     code_ += "}";
     code_ += "";
