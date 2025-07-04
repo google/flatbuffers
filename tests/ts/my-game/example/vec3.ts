@@ -66,7 +66,7 @@ test3(obj?:Test):Test|null {
   return (obj || new Test()).__init(this.bb_pos + 26, this.bb!);
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.Vec3" {
   return 'MyGame.Example.Vec3';
 }
 
