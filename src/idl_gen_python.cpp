@@ -1726,10 +1726,10 @@ class PythonGenerator : public BaseGenerator {
         field_type = package_reference + "." + object_type + "]";
         import_list->insert("import " + package_reference);
       }
-      field_type = "List[" + field_type;
+      field_type = "Optional[List[" + field_type + "]";
     } else {
       field_type =
-          "List[" + GetBasePythonTypeForScalarAndString(base_type) + "]";
+          "Optional[List[" + GetBasePythonTypeForScalarAndString(base_type) + "]]";
     }
   }
 
