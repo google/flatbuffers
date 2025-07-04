@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct Object, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Object(pub [u8; 4]);
 impl Default for Object { 
   fn default() -> Self { 
@@ -23,6 +23,16 @@ impl core::fmt::Debug for Object {
     f.debug_struct("Object")
       .field("value", &self.value())
       .finish()
+  }
+}
+impl core::cmp::Ord for Object {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.value().cmp(&other.value())
+  }
+}
+impl core::cmp::PartialOrd for Object {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 
