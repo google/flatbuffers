@@ -1628,7 +1628,7 @@ class PythonGenerator : public BaseGenerator {
     } else if (IsInteger(base_type)) {
       return "int";
     } else if (base_type == BASE_TYPE_STRING) {
-      return "str";
+      return "Optional[str]";
     } else {
       FLATBUFFERS_ASSERT(false && "base_type is not a scalar or string type.");
       return "";
@@ -1726,10 +1726,10 @@ class PythonGenerator : public BaseGenerator {
         field_type = package_reference + "." + object_type + "]";
         import_list->insert("import " + package_reference);
       }
-      field_type = "List[" + field_type;
+      field_type = "Optional[List[" + field_type + "]";
     } else {
       field_type =
-          "List[" + GetBasePythonTypeForScalarAndString(base_type) + "]";
+          "Optional[List[" + GetBasePythonTypeForScalarAndString(base_type) + "]]";
     }
   }
 
@@ -1769,7 +1769,7 @@ class PythonGenerator : public BaseGenerator {
       }
 
       const auto default_value = GetDefaultValue(field);
-      // Wrties the init statement.
+      // Writes the init statement.
       const auto field_field = namer_.Field(field);
       code += GenIndents(2) + "self." + field_field + " = " + default_value +
               "  # type: " + field_type;

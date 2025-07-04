@@ -105,10 +105,10 @@ class NestedStructT(object):
 
     # NestedStructT
     def __init__(self):
-        self.a = None  # type: List[int]
+        self.a = None  # type: Optional[List[int]]
         self.b = 0  # type: int
-        self.c = None  # type: List[int]
-        self.d = None  # type: List[int]
+        self.c = None  # type: Optional[List[int]]
+        self.d = None  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

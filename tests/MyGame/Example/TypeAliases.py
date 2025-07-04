@@ -267,8 +267,8 @@ class TypeAliasesT(object):
         self.u64 = 0  # type: int
         self.f32 = 0.0  # type: float
         self.f64 = 0.0  # type: float
-        self.v8 = None  # type: List[int]
-        self.vf64 = None  # type: List[float]
+        self.v8 = None  # type: Optional[List[int]]
+        self.vf64 = None  # type: Optional[List[float]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

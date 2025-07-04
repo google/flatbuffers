@@ -116,11 +116,11 @@ class ArrayStructT(object):
     # ArrayStructT
     def __init__(self):
         self.a = 0.0  # type: float
-        self.b = None  # type: List[int]
+        self.b = None  # type: Optional[List[int]]
         self.c = 0  # type: int
-        self.d = None  # type: List[MyGame.Example.NestedStruct.NestedStructT]
+        self.d = None  # type: Optional[List[MyGame.Example.NestedStruct.NestedStructT]]
         self.e = 0  # type: int
-        self.f = None  # type: List[int]
+        self.f = None  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
