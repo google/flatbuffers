@@ -49,6 +49,7 @@ static Namer::Config RustDefaultConfig() {
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
            /*keyword_suffix=*/"_",
+           /*keywords_casing=*/Namer::Config::KeywordsCasing::CASE_SENSITIVE,
            /*filenames=*/Case::kSnake,
            /*directories=*/Case::kSnake,
            /*output_path=*/"",
