@@ -40,7 +40,7 @@ mutate_length(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "HandFan" {
   return 'HandFan';
 }
 

@@ -29,7 +29,7 @@ c(obj?:Ability):Ability|null {
   return (obj || new Ability()).__init(this.bb_pos + 12, this.bb!);
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.StructOfStructs" {
   return 'MyGame.Example.StructOfStructs';
 }
 
