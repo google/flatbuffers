@@ -342,7 +342,7 @@ BinaryAnnotator::VTable *BinaryAnnotator::GetOrBuildVTable(
 
   const uint64_t offset_start = offset;
 
-  // A mapping between field (and its id) to the relative offset (uin16_t) from
+  // A mapping between field (and its id) to the relative offset (uint16_t) from
   // the start of the table.
   std::map<uint16_t, VTable::Entry> fields;
 
