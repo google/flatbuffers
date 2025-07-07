@@ -728,7 +728,7 @@ class StatT(object):
 
     # StatT
     def __init__(self):
-        self.id = None  # type: str
+        self.id = None  # type: Optional[str]
         self.val = 0  # type: int
         self.count = 0  # type: int
 
@@ -1973,16 +1973,16 @@ class MonsterT(object):
         self.pos = None  # type: Optional[Vec3T]
         self.mana = 150  # type: int
         self.hp = 100  # type: int
-        self.name = None  # type: str
-        self.inventory = None  # type: List[int]
+        self.name = None  # type: Optional[str]
+        self.inventory = None  # type: Optional[List[int]]
         self.color = 8  # type: int
         self.testType = 0  # type: int
         self.test = None  # type: Union[None, MonsterT, TestSimpleTableWithEnumT, MonsterT]
-        self.test4 = None  # type: List[TestT]
-        self.testarrayofstring = None  # type: List[str]
-        self.testarrayoftables = None  # type: List[MonsterT]
+        self.test4 = None  # type: Optional[List[TestT]]
+        self.testarrayofstring = None  # type: Optional[List[Optional[str]]]
+        self.testarrayoftables = None  # type: Optional[List[MonsterT]]
         self.enemy = None  # type: Optional[MonsterT]
-        self.testnestedflatbuffer = None  # type: List[int]
+        self.testnestedflatbuffer = None  # type: Optional[List[int]]
         self.testempty = None  # type: Optional[StatT]
         self.testbool = False  # type: bool
         self.testhashs32Fnv1 = 0  # type: int
@@ -1993,33 +1993,33 @@ class MonsterT(object):
         self.testhashu32Fnv1a = 0  # type: int
         self.testhashs64Fnv1a = 0  # type: int
         self.testhashu64Fnv1a = 0  # type: int
-        self.testarrayofbools = None  # type: List[bool]
+        self.testarrayofbools = None  # type: Optional[List[bool]]
         self.testf = 3.14159  # type: float
         self.testf2 = 3.0  # type: float
         self.testf3 = 0.0  # type: float
-        self.testarrayofstring2 = None  # type: List[str]
-        self.testarrayofsortedstruct = None  # type: List[AbilityT]
-        self.flex = None  # type: List[int]
-        self.test5 = None  # type: List[TestT]
-        self.vectorOfLongs = None  # type: List[int]
-        self.vectorOfDoubles = None  # type: List[float]
+        self.testarrayofstring2 = None  # type: Optional[List[Optional[str]]]
+        self.testarrayofsortedstruct = None  # type: Optional[List[AbilityT]]
+        self.flex = None  # type: Optional[List[int]]
+        self.test5 = None  # type: Optional[List[TestT]]
+        self.vectorOfLongs = None  # type: Optional[List[int]]
+        self.vectorOfDoubles = None  # type: Optional[List[float]]
         self.parentNamespaceTest = None  # type: Optional[InParentNamespaceT]
-        self.vectorOfReferrables = None  # type: List[ReferrableT]
+        self.vectorOfReferrables = None  # type: Optional[List[ReferrableT]]
         self.singleWeakReference = 0  # type: int
-        self.vectorOfWeakReferences = None  # type: List[int]
-        self.vectorOfStrongReferrables = None  # type: List[ReferrableT]
+        self.vectorOfWeakReferences = None  # type: Optional[List[int]]
+        self.vectorOfStrongReferrables = None  # type: Optional[List[ReferrableT]]
         self.coOwningReference = 0  # type: int
-        self.vectorOfCoOwningReferences = None  # type: List[int]
+        self.vectorOfCoOwningReferences = None  # type: Optional[List[int]]
         self.nonOwningReference = 0  # type: int
-        self.vectorOfNonOwningReferences = None  # type: List[int]
+        self.vectorOfNonOwningReferences = None  # type: Optional[List[int]]
         self.anyUniqueType = 0  # type: int
         self.anyUnique = None  # type: Union[None, MonsterT, TestSimpleTableWithEnumT, MonsterT]
         self.anyAmbiguousType = 0  # type: int
         self.anyAmbiguous = None  # type: Union[None, MonsterT, MonsterT, MonsterT]
-        self.vectorOfEnums = None  # type: List[int]
+        self.vectorOfEnums = None  # type: Optional[List[int]]
         self.signedEnum = -1  # type: int
-        self.testrequirednestedflatbuffer = None  # type: List[int]
-        self.scalarKeySortedTables = None  # type: List[StatT]
+        self.testrequirednestedflatbuffer = None  # type: Optional[List[int]]
+        self.scalarKeySortedTables = None  # type: Optional[List[StatT]]
         self.nativeInline = None  # type: Optional[TestT]
         self.longEnumNonEnumDefault = 0  # type: int
         self.longEnumNormalDefault = 2  # type: int
@@ -2719,8 +2719,8 @@ class TypeAliasesT(object):
         self.u64 = 0  # type: int
         self.f32 = 0.0  # type: float
         self.f64 = 0.0  # type: float
-        self.v8 = None  # type: List[int]
-        self.vf64 = None  # type: List[float]
+        self.v8 = None  # type: Optional[List[int]]
+        self.vf64 = None  # type: Optional[List[float]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
