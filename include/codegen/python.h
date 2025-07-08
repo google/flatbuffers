@@ -85,7 +85,12 @@ struct Imports {
   const python::Import &Import(const std::string &module,
                                const std::string &name);
 
+  const python::Import &Export(const std::string &module);
+  const python::Import &Export(const std::string &module,
+                               const std::string &name);
+
   std::vector<python::Import> imports;
+  std::vector<python::Import> exports;
 };
 }  // namespace python
 }  // namespace flatbuffers

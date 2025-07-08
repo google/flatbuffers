@@ -7,7 +7,6 @@ import flatbuffers
 import typing
 from MyGame.Example.NestedUnion.Color import Color
 from MyGame.Example.NestedUnion.Test import Test, TestT
-from MyGame.Example.NestedUnion.Vec3 import Vec3
 
 uoffset: typing.TypeAlias = flatbuffers.number_types.UOffsetTFlags.py_type
 
