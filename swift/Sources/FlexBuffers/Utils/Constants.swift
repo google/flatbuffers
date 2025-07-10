@@ -15,7 +15,7 @@
  */
 
 #if canImport(Common)
-@_exported import Common
+import Common
 #endif
 import Foundation
 
