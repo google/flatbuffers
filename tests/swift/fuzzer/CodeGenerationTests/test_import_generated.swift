@@ -2,6 +2,10 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if canImport(Common)
+@_implementationOnly import Common
+#endif
+
 @_implementationOnly import FlatBuffers
 
 internal struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
