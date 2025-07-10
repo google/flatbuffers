@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#if canImport(Common)
+import Common
+#endif
+
 import Foundation
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
