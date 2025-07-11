@@ -84,7 +84,7 @@ class StatT(object):
 
     # StatT
     def __init__(self):
-        self.id = None  # type: str
+        self.id = None  # type: Optional[str]
         self.val = 0  # type: int
         self.count = 0  # type: int
 
