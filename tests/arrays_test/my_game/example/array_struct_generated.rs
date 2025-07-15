@@ -36,21 +36,21 @@ impl<'a> flatbuffers::Follow<'a> for ArrayStruct {
   type Inner = &'a ArrayStruct;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a ArrayStruct>::follow(buf, loc)
+    unsafe { <&'a ArrayStruct>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a ArrayStruct {
   type Inner = &'a ArrayStruct;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<ArrayStruct>(buf, loc)
+    unsafe { flatbuffers::follow_cast_ref::<ArrayStruct>(buf, loc) }
   }
 }
 impl<'b> flatbuffers::Push for ArrayStruct {
     type Output = ArrayStruct;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const ArrayStruct as *const u8, <Self as flatbuffers::Push>::size());
+        let src = unsafe { ::core::slice::from_raw_parts(self as *const ArrayStruct as *const u8, <Self as flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
     #[inline]
