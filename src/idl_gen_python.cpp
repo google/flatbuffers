@@ -1092,19 +1092,6 @@ class PythonGenerator : public BaseGenerator {
     code += "\n";
   }
 
-  std::string NestedFlatbufferType(std::string unqualified_name) const {
-    StructDef *nested_root = parser_.LookupStruct(unqualified_name);
-    std::string qualified_name;
-    if (nested_root == nullptr) {
-      qualified_name = namer_.NamespacedType(
-          parser_.current_namespace_->components, unqualified_name);
-      // Double check qualified name just to be sure it exists.
-      nested_root = parser_.LookupStruct(qualified_name);
-    }
-    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
-    return qualified_name;
-  }
-
   // Returns a nested flatbuffer as itself.
   void GetVectorAsNestedFlatbuffer(const StructDef &struct_def,
                                    const FieldDef &field, std::string *code_ptr,
@@ -1112,11 +1099,19 @@ class PythonGenerator : public BaseGenerator {
     auto nested = field.attributes.Lookup("nested_flatbuffer");
     if (!nested) { return; }  // There is no nested flatbuffer.
 
-    const std::string unqualified_name = nested->constant;
-    std::string qualified_name = NestedFlatbufferType(unqualified_name);
-    if (qualified_name.empty()) { qualified_name = nested->constant; }
+    StructDef *nested_root = parser_.LookupStruct(nested->constant);
+    std::string qualified_name = nested->constant;
+    if (nested_root == nullptr) {
+      qualified_name = namer_.NamespacedType(
+          parser_.current_namespace_->components, nested->constant);
+      // Double check qualified name just to be sure it exists.
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root); // Guaranteed to exist by parser.
 
-    const ImportMapEntry import_entry = { qualified_name,
+    std::string unqualified_name = namer_.Type(*nested_root);
+
+    const ImportMapEntry import_entry = { ModuleFor(nested_root),
                                           unqualified_name };
 
     auto &code = *code_ptr;
