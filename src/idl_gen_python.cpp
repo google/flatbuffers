@@ -290,6 +290,7 @@ class PythonStubGenerator {
   void GenerateObjectStub(std::stringstream &stub, const StructDef *struct_def,
                           Imports *imports) const {
     std::string name = namer_.ObjectType(*struct_def);
+    imports->Export(ModuleFor(struct_def), namer_.Type(*struct_def));
 
     stub << "class " << name;
     if (version_.major != 3) stub << "(object)";
@@ -327,6 +328,7 @@ class PythonStubGenerator {
   void GenerateStructStub(std::stringstream &stub, const StructDef *struct_def,
                           Imports *imports) const {
     std::string type = namer_.Type(*struct_def);
+    imports->Export(ModuleFor(struct_def), namer_.Type(*struct_def));
 
     stub << "class " << type;
     if (version_.major != 3) stub << "(object)";
@@ -545,6 +547,7 @@ class PythonStubGenerator {
   void GenerateEnumStub(std::stringstream &stub, const EnumDef *enum_def,
                         Imports *imports) const {
     stub << "class " << namer_.Type(*enum_def);
+    imports->Export(ModuleFor(enum_def), namer_.Type(*enum_def));
 
     if (version_.major == 3){
       imports->Import("enum", "IntEnum");
@@ -589,18 +592,32 @@ class PythonStubGenerator {
       }
     }
 
+    // Remove imports from exports
+    for (const Import &import : imports.exports) {
+      if (import.name == "") {
+        modules.erase(import.module);
+      } else {
+        auto search = names_by_module.find(import.module);
+        if (search != names_by_module.end()) {
+          search->second.erase(import.name);
+        }
+      }
+    }
+
     for (const std::string &module : modules) {
       ss << "import " << module << '\n';
     }
     for (const auto &import : names_by_module) {
-      ss << "from " << import.first << " import ";
-      size_t i = 0;
-      for (const std::string &name : import.second) {
-        if (i > 0) ss << ", ";
-        ss << name;
-        ++i;
+      if (!import.second.empty()) {
+        ss << "from " << import.first << " import ";
+        size_t i = 0;
+        for (const std::string &name : import.second) {
+          if (i > 0) ss << ", ";
+          ss << name;
+          ++i;
+        }
+        ss << '\n';
       }
-      ss << '\n';
     }
   }
 
