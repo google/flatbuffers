@@ -5,11 +5,12 @@ import numpy as np
 
 import flatbuffers
 import typing
+from typing import cast
 
 uoffset: typing.TypeAlias = flatbuffers.number_types.UOffsetTFlags.py_type
 
 class Color(object):
-  Red: int
-  Green: int
-  Blue: int
+  Red = cast(int, ...)
+  Green = cast(int, ...)
+  Blue = cast(int, ...)
 
