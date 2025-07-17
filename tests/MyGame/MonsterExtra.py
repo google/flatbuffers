@@ -240,8 +240,8 @@ class MonsterExtraT(object):
         self.f1 = float('nan')  # type: float
         self.f2 = float('inf')  # type: float
         self.f3 = float('-inf')  # type: float
-        self.dvec = None  # type: List[float]
-        self.fvec = None  # type: List[float]
+        self.dvec = None  # type: Optional[List[float]]
+        self.fvec = None  # type: Optional[List[float]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

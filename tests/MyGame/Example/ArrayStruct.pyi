@@ -5,7 +5,6 @@ import numpy as np
 
 import flatbuffers
 import typing
-from MyGame.Example.ArrayStruct import ArrayStruct
 from MyGame.Example.NestedStruct import NestedStruct, NestedStructT
 from MyGame.Example.TestEnum import TestEnum
 
