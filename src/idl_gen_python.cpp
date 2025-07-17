@@ -587,6 +587,7 @@ class PythonStubGenerator {
     std::map<std::string, std::set<std::string>> names_by_module;
     for (const Import &import : imports.imports) {
       if (import.IsLocal()) continue;  // skip all local imports
+      if (import.module == "flatbuffers" && import.name == "") continue; // skip double include hardcoded flatbuffers
       if (import.name == "") {
         modules.insert(import.module);
       } else {
