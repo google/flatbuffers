@@ -26,7 +26,7 @@ mod serialize;
 mod vector;
 pub use de::DeserializationError;
 pub use iter::ReaderIterator;
-pub use map::{MapReader, MapReaderIndexer};
+pub use map::MapReader;
 pub use vector::VectorReader;
 
 /// All the possible errors when reading a flexbuffer.
