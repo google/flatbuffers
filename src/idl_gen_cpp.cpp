@@ -1355,7 +1355,12 @@ class CppGenerator : public BaseGenerator {
         }
 
         auto value = GetEnumValUse(enum_def, ev);
-        code_ += "  static const {{ENUM_NAME}} enum_value = " + value + ";";
+        if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+          code_ +=
+              "  static inline const {{ENUM_NAME}} enum_value = " + value + ";";
+        } else {
+          code_ += "  static const {{ENUM_NAME}} enum_value = " + value + ";";
+        }
         code_ += "};";
         code_ += "";
       }
@@ -1390,7 +1395,12 @@ class CppGenerator : public BaseGenerator {
         }
 
         auto value = GetEnumValUse(enum_def, ev);
-        code_ += "  static const {{ENUM_NAME}} enum_value = " + value + ";";
+        if (opts_.g_cpp_std >= cpp::CPP_STD_17) {
+          code_ +=
+              "  static inline const {{ENUM_NAME}} enum_value = " + value + ";";
+        } else {
+          code_ += "  static const {{ENUM_NAME}} enum_value = " + value + ";";
+        }
         code_ += "};";
         code_ += "";
       }
