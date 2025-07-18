@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #if canImport(Common)
 import Common
 #endif
@@ -72,14 +73,32 @@ public struct FlexBuffersWriter {
     return ByteBuffer(byteBuffer: _bb)
   }
 
+  #if !os(WASI)
+  /// Data representation of the buffer
+  ///
+  /// Should only be used after ``finish(offset:addPrefix:)`` is called
+  public var data: Data {
+    assert(finished, "Data shouldn't be called before finish()")
+    return _bb.withUnsafeSlicedBytes { ptr in
+      var data = Data()
+      data.append(
+        ptr.baseAddress!.bindMemory(
+          to: UInt8.self,
+          capacity: ptr.count),
+        count: ptr.count)
+      return data
+    }
+  }
+  #endif
+
   /// Resets the internal state. Automatically called before building a new flexbuffer.
-  public mutating func reset() {
-    _bb.clear()
-    stack.removeAll(keepingCapacity: true)
+  public mutating func reset(keepingCapacity: Bool = false) {
+    _bb.clear(keepingCapacity: keepingCapacity)
+    stack.removeAll(keepingCapacity: keepingCapacity)
     finished = false
     minBitWidth = .w8
-    keyPool.removeAll()
-    stringPool.removeAll()
+    keyPool.removeAll(keepingCapacity: keepingCapacity)
+    stringPool.removeAll(keepingCapacity: keepingCapacity)
   }
 
   // MARK: - Storing root

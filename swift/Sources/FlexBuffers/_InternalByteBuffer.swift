@@ -30,8 +30,6 @@ struct _InternalByteBuffer {
   /// deallocating the memory that was held by (memory: UnsafeMutableRawPointer)
   @usableFromInline
   final class Storage {
-    // This storage doesn't own the memory, therefore, we won't deallocate on deinit.
-    private let unowned: Bool
     /// pointer to the start of the buffer object in memory
     var memory: UnsafeMutableRawPointer
     /// Capacity of UInt8 the buffer can hold
@@ -43,35 +41,25 @@ struct _InternalByteBuffer {
         byteCount: count,
         alignment: alignment)
       capacity = count
-      unowned = false
     }
 
     @usableFromInline
     init(memory: UnsafeMutableRawPointer, capacity: Int, unowned: Bool) {
       self.memory = memory
       self.capacity = capacity
-      self.unowned = unowned
     }
 
     deinit {
-      if !unowned {
-        memory.deallocate()
-      }
+      memory.deallocate()
     }
 
     @usableFromInline
     func copy(from ptr: UnsafeRawPointer, count: Int) {
-      assert(
-        !unowned,
-        "copy should NOT be called on a buffer that is built by assumingMemoryBound")
       memory.copyMemory(from: ptr, byteCount: count)
     }
 
     @usableFromInline
     func initialize(for size: Int) {
-      assert(
-        !unowned,
-        "initalize should NOT be called on a buffer that is built by assumingMemoryBound")
       memset(memory, 0, size)
     }
 
@@ -100,6 +88,8 @@ struct _InternalByteBuffer {
   }
 
   @usableFromInline var _storage: Storage
+  // Initial size of the internal storage
+  private let initialSize: Int
   /// The size of the elements written to the buffer + their paddings
   var writerIndex: Int = 0
   /// Alignment of the current  memory being written to the buffer
@@ -122,17 +112,21 @@ struct _InternalByteBuffer {
   ///   - size: Length of the buffer
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   init(initialSize size: Int) {
-    let size = size.convertToPowerofTwo
-    _storage = Storage(count: size, alignment: alignment)
-    _storage.initialize(for: size)
+    initialSize = size.convertToPowerofTwo
+    _storage = Storage(count: initialSize, alignment: alignment)
+    _storage.initialize(for: initialSize)
   }
 
   /// Clears the current instance of the buffer, replacing it with new memory
   @inline(__always)
-  mutating public func clear() {
+  mutating public func clear(keepingCapacity: Bool = false) {
     writerIndex = 0
     alignment = 1
-    _storage.initialize(for: _storage.capacity)
+    if keepingCapacity {
+      _storage.initialize(for: _storage.capacity)
+    } else {
+      _storage = Storage(count: initialSize, alignment: alignment)
+    }
   }
 
   @inline(__always)

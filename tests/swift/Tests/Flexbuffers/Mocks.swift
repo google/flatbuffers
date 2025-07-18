@@ -32,7 +32,11 @@ func createProperBuffer() -> FlexBuffersWriter {
   var fbx = FlexBuffersWriter(
     initialSize: 8,
     flags: .shareKeysAndStrings)
+  write(fbx: &fbx)
+  return fbx
+}
 
+func write(fbx: inout FlexBuffersWriter) {
   fbx.map { map in
     map.vector(key: "vec") { v in
       v.add(int64: -100)
@@ -57,5 +61,4 @@ func createProperBuffer() -> FlexBuffersWriter {
   }
 
   fbx.finish()
-  return fbx
 }

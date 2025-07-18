@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #if canImport(Common)
 import Common
 #endif
@@ -72,8 +73,8 @@ public struct FlatBufferBuilder {
       data.append(
         ptr.baseAddress!.bindMemory(
           to: UInt8.self,
-          capacity: _bb.capacity),
-        count: _bb.capacity)
+          capacity: ptr.count),
+        count: ptr.count)
       return data
     }
   }
@@ -143,13 +144,13 @@ public struct FlatBufferBuilder {
   }
 
   /// Clears the builder and the buffer from the written data.
-  mutating public func clear() {
+  mutating public func clear(keepingCapacity: Bool = false) {
     _minAlignment = 0
     isNested = false
-    stringOffsetMap.removeAll(keepingCapacity: true)
-    _vtables.removeAll(keepingCapacity: true)
-    _vtableStorage.clear()
-    _bb.clear()
+    stringOffsetMap.removeAll(keepingCapacity: keepingCapacity)
+    _vtables.removeAll(keepingCapacity: keepingCapacity)
+    _vtableStorage.reset(keepingCapacity: keepingCapacity)
+    _bb.clear(keepingCapacity: keepingCapacity)
   }
 
   // MARK: - Create Tables
@@ -852,10 +853,6 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
   /// VTableStorage is a class to contain the VTable buffer that would be serialized into buffer
   @usableFromInline
   internal class VTableStorage {
-    /// Memory check since deallocating each time we want to clear would be expensive
-    /// and memory leaks would happen if we dont deallocate the first allocated memory.
-    /// memory is promised to be available before adding `FieldLoc`
-    private var memoryInUse = false
     /// Size of FieldLoc in memory
     let size = MemoryLayout<FieldLoc>.stride
     /// Memeory buffer
@@ -903,6 +900,24 @@ extension FlatBufferBuilder: CustomDebugStringConvertible {
       writtenIndex = writtenIndex &+ size
       numOfFields = numOfFields &+ 1
       maxOffset = max(loc.position, maxOffset)
+    }
+
+    /// Clears the data stored related to the encoded buffer
+    @inline(__always)
+    func reset(keepingCapacity: Bool) {
+      maxOffset = 0
+      numOfFields = 0
+      writtenIndex = 0
+      if keepingCapacity {
+        memset(memory.baseAddress!, 0, memory.count)
+      } else {
+        capacity = 0
+        let memory = UnsafeMutableRawBufferPointer.allocate(
+          byteCount: 0,
+          alignment: 0)
+        self.memory.deallocate()
+        self.memory = memory
+      }
     }
 
     /// Clears the data stored related to the encoded buffer
