@@ -47,13 +47,11 @@ let package = Package(
     .testTarget(
       name: "FlatbuffersTests",
       dependencies: .dependencies,
-      path: "tests/swift/Tests/Flatbuffers"
-    ),
+      path: "tests/swift/Tests/Flatbuffers"),
     .testTarget(
       name: "FlexbuffersTests",
       dependencies: ["FlexBuffers"],
-      path: "tests/swift/Tests/Flexbuffers"
-    )
+      path: "tests/swift/Tests/Flexbuffers"),
   ])
 
 extension Array where Element == Package.Dependency {
@@ -75,7 +73,7 @@ extension Array where Element == PackageDescription.Target.Dependency {
     // Test only Dependency
     [
       .product(name: "GRPC", package: "grpc-swift"),
-      "FlatBuffers"
+      "FlatBuffers",
     ]
     #endif
   }
