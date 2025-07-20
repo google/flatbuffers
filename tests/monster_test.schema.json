@@ -18,16 +18,13 @@
       "enum": ["LongOne", "LongTwo", "LongBig"]
     },
     "MyGame_Example_Any" : {
-      "type" : "string",
-      "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
+      "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
     },
     "MyGame_Example_AnyUniqueAliases" : {
-      "type" : "string",
-      "enum": ["NONE", "M", "TS", "M2"]
+      "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
     },
     "MyGame_Example_AnyAmbiguousAliases" : {
-      "type" : "string",
-      "enum": ["NONE", "M1", "M2", "M3"]
+      "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }]
     },
     "MyGame_OtherNameSpace_Unused" : {
       "type" : "object",
@@ -200,10 +197,10 @@
                 "$ref" : "#/definitions/MyGame_Example_Color"
               },
         "test_type" : {
-                "$ref" : "#/definitions/MyGame_Example_Any"
+                "type" : "string", "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
               },
         "test" : {
-                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
+                "oneOf": [{ "type": "object", "properties": { "type": { "const": "Monster" }, "value": { "$ref" : "#/definitions/MyGame_Example_Monster" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "TestSimpleTableWithEnum" }, "value": { "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "MyGame_Example2_Monster" }, "value": { "$ref" : "#/definitions/MyGame_Example2_Monster" } }, "required": ["type", "value"] }]
               },
         "test4" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"}
@@ -309,16 +306,16 @@
                 "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
               },
         "any_unique_type" : {
-                "$ref" : "#/definitions/MyGame_Example_AnyUniqueAliases"
+                "type" : "string", "enum": ["NONE", "M", "TS", "M2"]
               },
         "any_unique" : {
-                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
+                "oneOf": [{ "type": "object", "properties": { "type": { "const": "M" }, "value": { "$ref" : "#/definitions/MyGame_Example_Monster" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "TS" }, "value": { "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "M2" }, "value": { "$ref" : "#/definitions/MyGame_Example2_Monster" } }, "required": ["type", "value"] }]
               },
         "any_ambiguous_type" : {
-                "$ref" : "#/definitions/MyGame_Example_AnyAmbiguousAliases"
+                "type" : "string", "enum": ["NONE", "M1", "M2", "M3"]
               },
         "any_ambiguous" : {
-                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }]
+                "oneOf": [{ "type": "object", "properties": { "type": { "const": "M1" }, "value": { "$ref" : "#/definitions/MyGame_Example_Monster" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "M2" }, "value": { "$ref" : "#/definitions/MyGame_Example_Monster" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "M3" }, "value": { "$ref" : "#/definitions/MyGame_Example_Monster" } }, "required": ["type", "value"] }]
               },
         "vector_of_enums" : {
                 "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Color"}
@@ -366,6 +363,152 @@
                 "type" : "number"
               }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "NONE" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["test"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "Monster" }
+            }
+          },
+          "then": {
+            "properties": {
+              "test": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "TestSimpleTableWithEnum" }
+            }
+          },
+          "then": {
+            "properties": {
+              "test": { "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "MyGame_Example2_Monster" }
+            }
+          },
+          "then": {
+            "properties": {
+              "test": { "$ref" : "#/definitions/MyGame_Example2_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "NONE" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["any_unique"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "M" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_unique": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "TS" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_unique": { "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "M2" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_unique": { "$ref" : "#/definitions/MyGame_Example2_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "NONE" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["any_ambiguous"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "M1" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_ambiguous": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "M2" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_ambiguous": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "M3" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_ambiguous": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        }
+      ],
       "required" : ["name"],
       "additionalProperties" : false
     },
