@@ -102,6 +102,42 @@ static std::string GenArrayType(const Type &type) {
     element_type = GenTypeRef(type.struct_def);
   } else if (type.enum_def != nullptr) {
     element_type = GenTypeRef(type.enum_def);
+  } else if (type.element == BASE_TYPE_UNION) {
+    // Vector of union values
+    std::string union_type_string("\"anyOf\": [");
+    const auto &union_types = type.enum_def->Vals();
+    bool first = true;
+    for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+      const auto &union_type = *ut;
+      if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+
+      if (!first) union_type_string.append(",");
+      first = false;
+
+      if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+        union_type_string.append(
+            "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
+      } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
+        union_type_string.append("{ \"type\": \"string\" }");
+      }
+    }
+    union_type_string.append("]");
+    element_type = union_type_string;
+  } else if (type.element == BASE_TYPE_UTYPE) {
+    // Vector of union type indicators (the _type field for a vector of unions)
+    std::string enumdef = "\"type\" : \"string\", \"enum\": [";
+    const auto &union_types = type.enum_def->Vals();
+    bool first = true;
+    for (auto enum_value = union_types.begin(); enum_value != union_types.end();
+         ++enum_value) {
+      if ((*enum_value)->union_type.base_type == BASE_TYPE_NONE) { continue; }
+
+      if (!first) enumdef.append(", ");
+      first = false;
+      enumdef.append("\"" + (*enum_value)->name + "\"");
+    }
+    enumdef.append("]");
+    element_type = enumdef;
   } else {
     element_type = GenType(type.element);
   }
