@@ -112,35 +112,78 @@ static std::string GenBaseType(const Type &type) {
   return GenType(type.base_type);
 }
 
-static std::string GenArrayType(const Type &type) {
+static std::string GenUnionArrayItemType(const EnumDef &enum_def,
+                                         const std::string &field_name) {
+  std::string result = "\"type\": \"object\", \"properties\": {";
+
+  result += "\"" + field_name + "_type\": {";
+  result += "\"type\": \"string\", \"enum\": [";
+
+  const auto &union_types = enum_def.Vals();
+  bool first = true;
+  for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+    const auto &union_type = *ut;
+    if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+
+    if (!first) result.append(", ");
+    first = false;
+    result.append("\"" + union_type->name + "\"");
+  }
+  result += "]}, ";
+
+  result += "\"" + field_name + "\": {}";
+  result += "}, \"required\": [\"" + field_name + "_type\", \"" + field_name +
+            "\"], ";
+
+  result += "\"allOf\": [";
+  first = true;
+  for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+    const auto &union_type = *ut;
+    if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+
+    if (!first) result.append(", ");
+    first = false;
+
+    result += "{\"if\": {\"properties\": {\"" + field_name +
+              "_type\": {\"const\": \"" + union_type->name + "\"}}}, ";
+    result += "\"then\": {\"properties\": {\"" + field_name + "\": {";
+
+    if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+      result += GenTypeRef(union_type->union_type.struct_def);
+    } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
+      result += "\"type\": \"string\"";
+    }
+
+    result += "}}}}";
+  }
+  result += "], \"additionalProperties\": false";
+
+  return result;
+}
+
+static std::string SingularizeFieldName(const std::string &field_name) {
+  if (field_name.length() > 1 && field_name.back() == 's') {
+    return field_name.substr(0, field_name.length() - 1);
+  }
+  return field_name;
+}
+
+static std::string GenArrayType(const Type &type,
+                                const std::string &field_name = "") {
   std::string element_type;
-  if (type.struct_def != nullptr) {
-    element_type = GenTypeRef(type.struct_def);
-  } else if (type.enum_def != nullptr) {
-    element_type = GenTypeRef(type.enum_def);
-  } else if (type.element == BASE_TYPE_UNION) {
+
+  // Handle union arrays first, before checking struct_def or enum_def
+  if (type.element == BASE_TYPE_UNION) {
     if (type.enum_def != nullptr) {
-      std::string union_type_string("\"anyOf\": [");
-      const auto &union_types = type.enum_def->Vals();
-      bool first = true;
-      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-        const auto &union_type = *ut;
-        if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
-
-        if (!first) union_type_string.append(",");
-        first = false;
-
-        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
-          union_type_string.append(
-              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-        } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
-          union_type_string.append("{ \"type\": \"string\" }");
-        }
+      std::string union_field_name;
+      if (field_name.empty()) {
+        union_field_name = type.enum_def->name;
+      } else {
+        union_field_name = SingularizeFieldName(field_name);
       }
-      union_type_string.append("]");
-      element_type = union_type_string;
+      element_type = GenUnionArrayItemType(*type.enum_def, union_field_name);
     } else {
-      element_type = "\"type\": \"object\"";  // Fallback
+      element_type = "\"type\": \"object\"";
     }
   } else if (type.element == BASE_TYPE_UTYPE) {
     if (type.enum_def != nullptr) {
@@ -158,15 +201,72 @@ static std::string GenArrayType(const Type &type) {
       enumdef.append("]");
       element_type = enumdef;
     } else {
-      // Fallback if enum_def is not set properly - just allow any string
       element_type = "\"type\" : \"string\"";
     }
-
+  } else if (type.struct_def != nullptr) {
+    element_type = GenTypeRef(type.struct_def);
+  } else if (type.enum_def != nullptr) {
+    element_type = GenTypeRef(type.enum_def);
   } else {
     element_type = GenType(type.element);
   }
 
   return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
+}
+
+static std::string GenType(const Type &type, const std::string &field_name) {
+  switch (type.base_type) {
+    case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+    case BASE_TYPE_VECTOR: {
+      return GenArrayType(type, field_name);
+    }
+    case BASE_TYPE_STRUCT: {
+      return GenTypeRef(type.struct_def);
+    }
+    case BASE_TYPE_UNION: {
+      std::string union_type_string("\"anyOf\": [");
+      const auto &union_types = type.enum_def->Vals();
+      bool first = true;
+
+      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+        const auto &union_type = *ut;
+        if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+
+        if (!first) union_type_string.append(",");
+        first = false;
+
+        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+          union_type_string.append(
+              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
+        } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
+          union_type_string.append("{ \"type\": \"string\" }");
+        }
+      }
+      union_type_string.append("]");
+      return union_type_string;
+    }
+    case BASE_TYPE_UTYPE: {
+      if (IsBitFlagsEnum(*type.enum_def)) {
+        return "\"type\" : \"string\", \"pattern\" : \"^(" +
+               GenerateBitFlagsPattern(*type.enum_def) + ")(\\\\s+(" +
+               GenerateBitFlagsPattern(*type.enum_def) + "))*$\"";
+      } else {
+        std::string enumdef = GenType("string") + ", \"enum\": [";
+        for (auto enum_value = type.enum_def->Vals().begin();
+             enum_value != type.enum_def->Vals().end(); ++enum_value) {
+          enumdef.append("\"" + (*enum_value)->name + "\"");
+          if (*enum_value != type.enum_def->Vals().back()) {
+            enumdef.append(", ");
+          }
+        }
+        enumdef.append("]");
+        return enumdef;
+      }
+    }
+    default: {
+      return GenBaseType(type);
+    }
+  }
 }
 
 static std::string GenType(const Type &type) {
@@ -225,7 +325,7 @@ static std::string GenType(const Type &type) {
 }
 
 static std::string GenNullableType(const FieldDef &field) {
-  const std::string base_type = GenType(field.value.type);
+  const std::string base_type = GenType(field.value.type, field.name);
 
   bool can_be_null = false;
 
@@ -371,8 +471,27 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += Indent(3) + "\"properties\" : {" + NewLine();
 
       const auto &properties = structure->fields.vec;
+      std::vector<const FieldDef *> filtered_properties;
+
+      // Filter out auto-generated _type fields for union vectors
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto &property = *prop;
+        // Skip auto-generated _type fields for union vectors only
+        // Keep _type fields for regular unions
+        if (property->sibling_union_field != nullptr &&
+            IsVector(property->sibling_union_field->value.type) &&
+            property->sibling_union_field->value.type.element ==
+                BASE_TYPE_UNION) {
+          continue;
+        }
+
+        filtered_properties.push_back(property);
+      }
+
+      for (auto prop = filtered_properties.cbegin();
+           prop != filtered_properties.cend(); ++prop) {
+        const auto &property = *prop;
+
         std::string arrayInfo = "";
         if (IsArray(property->value.type)) {
           arrayInfo = "," + NewLine() + Indent(8) + "\"minItems\": " +
@@ -397,13 +516,16 @@ class JsonSchemaGenerator : public BaseGenerator {
         }
 
         typeLine += NewLine() + Indent(7) + "}";
-        if (property != properties.back()) { typeLine.append(","); }
+        if (std::next(prop) != filtered_properties.cend()) {
+          typeLine.append(",");
+        }
         code_ += typeLine + NewLine();
       }
       code_ += Indent(3) + "}," + NewLine();  // close properties
       std::vector<std::string> union_conditions;
 
-      for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
+      for (auto prop = filtered_properties.cbegin();
+           prop != filtered_properties.cend(); ++prop) {
         const auto &property = *prop;
 
         // Add conditionals to point the correct underlying data to the _type
