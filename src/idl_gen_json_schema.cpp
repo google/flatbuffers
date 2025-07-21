@@ -227,6 +227,23 @@ static std::string GenType(const Type &type) {
   }
 }
 
+static std::string GenNullableType(const FieldDef &field) {
+  const std::string base_type = GenType(field.value.type);
+
+  bool can_be_null = false;
+
+  if (field.IsOptional()) {
+    can_be_null = true;
+  } else if (!field.IsRequired() && !IsScalar(field.value.type.base_type)) {
+    can_be_null = true;
+  }
+
+  if (can_be_null) {
+    return "\"anyOf\": [{ \"type\": \"null\" }, { " + base_type + " }]";
+  } else {
+    return base_type;
+  }
+}
 }  // namespace
 
 class JsonSchemaGenerator : public BaseGenerator {
@@ -373,7 +390,7 @@ class JsonSchemaGenerator : public BaseGenerator {
         }
         std::string typeLine = Indent(4) + "\"" + property->name + "\"";
         typeLine += " : {" + NewLine() + Indent(8);
-        typeLine += GenType(property->value.type);
+        typeLine += GenNullableType(*property);
         typeLine += arrayInfo;
         typeLine += deprecated_info;
         auto description = PrepareDescription(property->doc_comment);

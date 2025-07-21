@@ -59,13 +59,13 @@
                 "type" : "string", "enum": ["NONE", "MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused"]
               },
         "main_character" : {
-                "oneOf": [{ "type": "object", "properties": { "type": { "const": "MuLan" }, "value": { "$ref" : "#/definitions/Attacker" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "Rapunzel" }, "value": { "$ref" : "#/definitions/Rapunzel" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "Belle" }, "value": { "$ref" : "#/definitions/BookReader" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "BookFan" }, "value": { "$ref" : "#/definitions/BookReader" } }, "required": ["type", "value"] }]
+                "anyOf": [{ "type": "null" }, { "oneOf": [{ "type": "object", "properties": { "type": { "const": "MuLan" }, "value": { "$ref" : "#/definitions/Attacker" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "Rapunzel" }, "value": { "$ref" : "#/definitions/Rapunzel" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "Belle" }, "value": { "$ref" : "#/definitions/BookReader" } }, "required": ["type", "value"] },{ "type": "object", "properties": { "type": { "const": "BookFan" }, "value": { "$ref" : "#/definitions/BookReader" } }, "required": ["type", "value"] }] }]
               },
         "characters_type" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/Character"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/Character"} }]
               },
         "characters" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/Character"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/Character"} }]
               }
       },
       "allOf": [
