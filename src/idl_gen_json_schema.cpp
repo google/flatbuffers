@@ -44,6 +44,22 @@ template<class T> static std::string GenTypeRef(const T *enum_def) {
   return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
 }
 
+static bool IsBitFlagsEnum(const EnumDef &enum_def) {
+  return enum_def.attributes.Lookup("bit_flags") != nullptr;
+}
+
+static std::string GenerateBitFlagsPattern(const EnumDef &enum_def) {
+  std::string pattern = "";
+  bool first = true;
+  for (auto enum_value = enum_def.Vals().begin();
+       enum_value != enum_def.Vals().end(); ++enum_value) {
+    if (!first) pattern.append("|");
+    first = false;
+    pattern.append((*enum_value)->name);
+  }
+  return pattern;
+}
+
 static std::string GenType(const std::string &name) {
   return "\"type\" : \"" + name + "\"";
 }
@@ -103,41 +119,49 @@ static std::string GenArrayType(const Type &type) {
   } else if (type.enum_def != nullptr) {
     element_type = GenTypeRef(type.enum_def);
   } else if (type.element == BASE_TYPE_UNION) {
-    // Vector of union values
-    std::string union_type_string("\"anyOf\": [");
-    const auto &union_types = type.enum_def->Vals();
-    bool first = true;
-    for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-      const auto &union_type = *ut;
-      if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+    if (type.enum_def != nullptr) {
+      std::string union_type_string("\"anyOf\": [");
+      const auto &union_types = type.enum_def->Vals();
+      bool first = true;
+      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+        const auto &union_type = *ut;
+        if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
 
-      if (!first) union_type_string.append(",");
-      first = false;
+        if (!first) union_type_string.append(",");
+        first = false;
 
-      if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
-        union_type_string.append(
-            "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-      } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
-        union_type_string.append("{ \"type\": \"string\" }");
+        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+          union_type_string.append(
+              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
+        } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
+          union_type_string.append("{ \"type\": \"string\" }");
+        }
       }
+      union_type_string.append("]");
+      element_type = union_type_string;
+    } else {
+      element_type = "\"type\": \"object\"";  // Fallback
     }
-    union_type_string.append("]");
-    element_type = union_type_string;
   } else if (type.element == BASE_TYPE_UTYPE) {
-    // Vector of union type indicators (the _type field for a vector of unions)
-    std::string enumdef = "\"type\" : \"string\", \"enum\": [";
-    const auto &union_types = type.enum_def->Vals();
-    bool first = true;
-    for (auto enum_value = union_types.begin(); enum_value != union_types.end();
-         ++enum_value) {
-      if ((*enum_value)->union_type.base_type == BASE_TYPE_NONE) { continue; }
+    if (type.enum_def != nullptr) {
+      std::string enumdef = "\"type\" : \"string\", \"enum\": [";
+      const auto &union_types = type.enum_def->Vals();
+      bool first = true;
+      for (auto enum_value = union_types.begin();
+           enum_value != union_types.end(); ++enum_value) {
+        if ((*enum_value)->union_type.base_type == BASE_TYPE_NONE) { continue; }
 
-      if (!first) enumdef.append(", ");
-      first = false;
-      enumdef.append("\"" + (*enum_value)->name + "\"");
+        if (!first) enumdef.append(", ");
+        first = false;
+        enumdef.append("\"" + (*enum_value)->name + "\"");
+      }
+      enumdef.append("]");
+      element_type = enumdef;
+    } else {
+      // Fallback if enum_def is not set properly - just allow any string
+      element_type = "\"type\" : \"string\"";
     }
-    enumdef.append("]");
-    element_type = enumdef;
+
   } else {
     element_type = GenType(type.element);
   }
@@ -180,16 +204,22 @@ static std::string GenType(const Type &type) {
       return union_type_string;
     }
     case BASE_TYPE_UTYPE: {
-      std::string enumdef = GenType("string") + ", \"enum\": [";
-      for (auto enum_value = type.enum_def->Vals().begin();
-           enum_value != type.enum_def->Vals().end(); ++enum_value) {
-        enumdef.append("\"" + (*enum_value)->name + "\"");
-        if (*enum_value != type.enum_def->Vals().back()) {
-          enumdef.append(", ");
+      if (IsBitFlagsEnum(*type.enum_def)) {
+        return "\"type\" : \"string\", \"pattern\" : \"^(" +
+               GenerateBitFlagsPattern(*type.enum_def) + ")(\\\\s+(" +
+               GenerateBitFlagsPattern(*type.enum_def) + "))*$\"";
+      } else {
+        std::string enumdef = GenType("string") + ", \"enum\": [";
+        for (auto enum_value = type.enum_def->Vals().begin();
+             enum_value != type.enum_def->Vals().end(); ++enum_value) {
+          enumdef.append("\"" + (*enum_value)->name + "\"");
+          if (*enum_value != type.enum_def->Vals().back()) {
+            enumdef.append(", ");
+          }
         }
+        enumdef.append("]");
+        return enumdef;
       }
-      enumdef.append("]");
-      return enumdef;
     }
     default: {
       return GenBaseType(type);
@@ -294,15 +324,22 @@ class JsonSchemaGenerator : public BaseGenerator {
         union_type_string.append("]");
         code_ += Indent(3) + union_type_string + NewLine();
       } else {
-        code_ += Indent(3) + GenType("string") + "," + NewLine();
-        auto enumdef(Indent(3) + "\"enum\": [");
-        for (auto enum_value = (*e)->Vals().begin();
-             enum_value != (*e)->Vals().end(); ++enum_value) {
-          enumdef.append("\"" + (*enum_value)->name + "\"");
-          if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
+        if (IsBitFlagsEnum(**e)) {
+          code_ += Indent(3) + "\"type\" : \"string\"," + NewLine();
+          code_ += Indent(3) + "\"pattern\" : \"^(" +
+                   GenerateBitFlagsPattern(**e) + ")(\\\\s+(" +
+                   GenerateBitFlagsPattern(**e) + "))*$\"" + NewLine();
+        } else {
+          code_ += Indent(3) + GenType("string") + "," + NewLine();
+          auto enumdef(Indent(3) + "\"enum\": [");
+          for (auto enum_value = (*e)->Vals().begin();
+               enum_value != (*e)->Vals().end(); ++enum_value) {
+            enumdef.append("\"" + (*enum_value)->name + "\"");
+            if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
+          }
+          enumdef.append("]");
+          code_ += enumdef + NewLine();
         }
-        enumdef.append("]");
-        code_ += enumdef + NewLine();
       }
       code_ += Indent(2) + "}," + NewLine();  // close type
     }

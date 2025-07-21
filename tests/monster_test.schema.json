@@ -7,7 +7,7 @@
     },
     "MyGame_Example_Color" : {
       "type" : "string",
-      "enum": ["Red", "Green", "Blue"]
+      "pattern" : "^(Red|Green|Blue)(\\s+(Red|Green|Blue))*$"
     },
     "MyGame_Example_Race" : {
       "type" : "string",
@@ -15,7 +15,7 @@
     },
     "MyGame_Example_LongEnum" : {
       "type" : "string",
-      "enum": ["LongOne", "LongTwo", "LongBig"]
+      "pattern" : "^(LongOne|LongTwo|LongBig)(\\s+(LongOne|LongTwo|LongBig))*$"
     },
     "MyGame_Example_Any" : {
       "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
