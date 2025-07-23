@@ -1202,7 +1202,7 @@ class TsGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
 
       const auto field_method = namer_.Method(field);
       const auto field_field = namer_.Field(field);
@@ -1473,7 +1473,8 @@ class TsGenerator : public BaseGenerator {
       constructor_func += "  public " + field_field + ": " + field_type +
                           " = " + field_default_val;
 
-      if (!struct_def.fixed) {
+      if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          !struct_def.fixed) {
         if (!field_offset_decl.empty()) {
           pack_func_offset_decl += field_offset_decl + "\n";
         }
@@ -1494,7 +1495,8 @@ class TsGenerator : public BaseGenerator {
       if (std::next(it) != struct_def.fields.vec.end()) {
         constructor_func += ",\n";
 
-        if (!struct_def.fixed && has_create) {
+        if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+            !struct_def.fixed && has_create) {
           pack_func_create_call += ",\n    ";
         }
 
@@ -1502,7 +1504,8 @@ class TsGenerator : public BaseGenerator {
         unpack_to_func += "\n";
       } else {
         constructor_func += "\n";
-        if (!struct_def.fixed) {
+        if (field.deprecated != FieldDef::kDeprecatedReadOnly &&
+            !struct_def.fixed) {
           pack_func_offset_decl += (pack_func_offset_decl.empty() ? "" : "\n");
           pack_func_create_call += "\n  ";
         }
@@ -1604,7 +1607,7 @@ class TsGenerator : public BaseGenerator {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto &field = **it;
-      if (field.deprecated) continue;
+      if (field.deprecated == FieldDef::kDeprecated) continue;
       std::string offset_prefix = "";
 
       if (field.value.type.base_type == BASE_TYPE_ARRAY) {
@@ -1881,8 +1884,9 @@ class TsGenerator : public BaseGenerator {
       code += "}\n\n";
 
       // Adds the mutable scalar value to the output
-      if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer &&
-          !IsUnion(field.value.type)) {
+      if (IsScalar(field.value.type.base_type) &&
+          field.deprecated != FieldDef::kDeprecatedReadOnly &&
+          parser.opts.mutable_buffer && !IsUnion(field.value.type)) {
         std::string type =
             GenTypeName(imports, struct_def, field.value.type, true);
 
