@@ -31,6 +31,13 @@ class NestedStructT(object):
   b: typing.Literal[TestEnum.A, TestEnum.B, TestEnum.C]
   c: typing.List[typing.Literal[TestEnum.A, TestEnum.B, TestEnum.C]]
   d: typing.List[int]
+  def __init__(
+    self,
+    a: typing.List[int] | None = ...,
+    b: typing.Literal[TestEnum.A, TestEnum.B, TestEnum.C] = ...,
+    c: typing.List[typing.Literal[TestEnum.A, TestEnum.B, TestEnum.C]] | None = ...,
+    d: typing.List[int] | None = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> NestedStructT: ...
   @classmethod

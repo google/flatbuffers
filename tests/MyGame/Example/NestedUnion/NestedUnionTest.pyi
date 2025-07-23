@@ -26,6 +26,13 @@ class NestedUnionTestT(object):
   dataType: typing.Literal[Any.NONE, Any.Vec3, Any.TestSimpleTableWithEnum]
   data: typing.Union[None, Vec3T, TestSimpleTableWithEnumT]
   id: int
+  def __init__(
+    self,
+    name: str | None = ...,
+    dataType: typing.Literal[Any.NONE, Any.Vec3, Any.TestSimpleTableWithEnum] = ...,
+    data: typing.Union[None, Vec3T, TestSimpleTableWithEnumT] = ...,
+    id: int = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> NestedUnionTestT: ...
   @classmethod
