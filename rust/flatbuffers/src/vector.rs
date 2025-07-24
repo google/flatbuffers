@@ -90,6 +90,14 @@ impl<'a, T: 'a> Vector<'a, T> {
         let len = self.len();
         &self.0[self.1 + SIZE_UOFFSET..self.1 + SIZE_UOFFSET + sz * len]
     }
+
+    /// # Safety
+    ///
+    /// The underlying bytes must be interpretable as a vector of the *same number* of `U`'s.
+    #[inline(always)]
+    pub unsafe fn cast<U: 'a>(&self) -> Vector<'a, U> {
+        Vector::new(self.0, self.1)
+    }
 }
 
 impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
@@ -123,11 +131,11 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
                 Ordering::Equal => return Some(value),
                 Ordering::Less => left = mid + 1,
                 Ordering::Greater => {
-                  if mid == 0 {
-                    return None;
-                  }
-                  right = mid - 1;
-                },
+                    if mid == 0 {
+                        return None;
+                    }
+                    right = mid - 1;
+                }
             }
         }
 
