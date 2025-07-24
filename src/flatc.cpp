@@ -273,8 +273,11 @@ const static FlatCOption flatc_options[] = {
     "The handlers will use the generated classes rather than raw bytes." },
 };
 
-auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
-static std::set<FlatCOption, decltype(cmp)> language_options(cmp);
+struct cmp {
+  bool operator()(const FlatCOption& a, const FlatCOption& b) const { return a.long_opt < b.long_opt; }
+};
+
+static std::set<FlatCOption, cmp> language_options((cmp()));
 
 static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
                                     size_t max_col, size_t start_col) {
@@ -432,11 +435,10 @@ void FlatCompiler::AnnotateBinaries(const uint8_t *binary_schema,
   }
 }
 
-FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
-                                                         const char **argv) {
+void FlatCompiler::ParseFromCommandLineArguments(int argc,
+                                                         const char **argv,
+                                                         FlatCOptions& options) {
   if (argc <= 1) { Error("Need to provide at least one argument."); }
-
-  FlatCOptions options;
 
   options.program_name = std::string(argv[0]);
 
@@ -737,7 +739,7 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         auto code_generator_it = code_generators_.find(arg);
         if (code_generator_it == code_generators_.end()) {
           Error("unknown commandline argument: " + arg, true);
-          return options;
+          return;
         }
 
         std::shared_ptr<CodeGenerator> code_generator =
@@ -757,8 +759,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       options.filenames.push_back(flatbuffers::PosixPath(argv[argi]));
     }
   }
-
-  return options;
 }
 
 void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
@@ -781,9 +781,8 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
   }
 }
 
-flatbuffers::Parser FlatCompiler::GetConformParser(
-    const FlatCOptions &options) {
-  flatbuffers::Parser conform_parser;
+void FlatCompiler::GetConformParser(
+    const FlatCOptions &options, flatbuffers::Parser &conform_parser) {
 
   // conform parser should check advanced options,
   // so, it have to have knowledge about languages:
@@ -804,7 +803,6 @@ flatbuffers::Parser FlatCompiler::GetConformParser(
                 options.conform_include_directories);
     }
   }
-  return conform_parser;
 }
 
 std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
@@ -988,7 +986,8 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 
 int FlatCompiler::Compile(const FlatCOptions &options) {
   // TODO(derekbailey): change to std::optional<Parser>
-  Parser conform_parser = GetConformParser(options);
+  Parser conform_parser;
+  GetConformParser(options, conform_parser);
 
   // TODO(derekbailey): split to own method.
   if (!options.annotate_schema.empty()) {

@@ -34,6 +34,15 @@ extern void LogCompilerWarn(const std::string &warn);
 extern void LogCompilerError(const std::string &err);
 
 struct FlatCOptions {
+  FlatCOptions() = default;
+  FlatCOptions(const FlatCOptions&) = delete;
+  FlatCOptions(FlatCOptions&&) = delete;
+
+  ~FlatCOptions() = default;
+
+  FlatCOptions& operator=(const FlatCOptions&) = delete;
+  FlatCOptions& operator=(FlatCOptions&&) = delete;
+
   IDLOptions opts;
 
   std::string program_name;
@@ -95,7 +104,7 @@ class FlatCompiler {
   std::string GetUsageString(const std::string &program_name) const;
 
   // Parse the FlatC options from command line arguments.
-  FlatCOptions ParseFromCommandLineArguments(int argc, const char **argv);
+  void ParseFromCommandLineArguments(int argc, const char **argv, FlatCOptions& options);
 
  private:
   void ParseFile(flatbuffers::Parser &parser, const std::string &filename,
@@ -116,7 +125,7 @@ class FlatCompiler {
 
   void ValidateOptions(const FlatCOptions &options);
 
-  Parser GetConformParser(const FlatCOptions &options);
+  void GetConformParser(const FlatCOptions &options, Parser &conform_parser);
 
   std::unique_ptr<Parser> GenerateCode(const FlatCOptions &options,
                                        Parser &conform_parser);
