@@ -172,7 +172,7 @@ export class ByteBuffer {
      */
     __offset(bb_pos: number, vtable_offset: number): Offset {
       const vtable = bb_pos - this.readInt32(bb_pos);
-      return vtable_offset < this.readInt16(vtable) ? this.readInt16(vtable + vtable_offset) : 0;
+      return vtable_offset < this.readUint16(vtable) ? this.readUint16(vtable + vtable_offset) : 0;
     }
   
     /**
