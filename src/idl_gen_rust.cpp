@@ -1658,7 +1658,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  type Inner = {{STRUCT_TY}}<'a>;";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    Self { _tab: flatbuffers::Table::new(buf, loc) }";
+    code_ += "    Self { _tab: unsafe { flatbuffers::Table::new(buf, loc) } }";
     code_ += "  }";
     code_ += "}";
     code_ += "";
