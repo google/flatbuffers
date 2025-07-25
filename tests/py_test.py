@@ -2712,7 +2712,7 @@ class TestNestedUnionTables(unittest.TestCase):
 
   def test_nested_union_tables(self):
     nestUnion = MyGame.Example.NestedUnion.NestedUnionTest.NestedUnionTestT()
-    nestUnion.name = b"testUnion1"
+    nestUnion.name = "testUnion1"
     nestUnion.id = 1
     nestUnion.data = MyGame.Example.NestedUnion.Vec3.Vec3T()
     nestUnion.dataType = MyGame.Example.NestedUnion.Any.Any.Vec3
