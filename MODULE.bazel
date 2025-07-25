@@ -1,29 +1,29 @@
 module(
     name = "flatbuffers",
-    version = "24.3.25",
+    version = "25.2.10",
     compatibility_level = 1,
     repo_name = "com_github_google_flatbuffers",
 )
 
 bazel_dep(
     name = "aspect_bazel_lib",
-    version = "1.40.0",
+    version = "2.11.0",
 )
 bazel_dep(
     name = "aspect_rules_esbuild",
-    version = "0.15.0",
+    version = "0.21.0",
 )
 bazel_dep(
     name = "aspect_rules_js",
-    version = "1.34.1",
+    version = "2.3.8",
 )
 bazel_dep(
     name = "aspect_rules_ts",
-    version = "1.4.5",
+    version = "3.6.0",
 )
 bazel_dep(
     name = "grpc",
-    version = "1.69.0",
+    version = "1.70.1",
     repo_name = "com_github_grpc_grpc",
 )
 bazel_dep(
@@ -41,11 +41,15 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_nodejs",
-    version = "5.8.3",
+    version = "6.3.3",
+)
+bazel_dep(
+    name = "rules_shell",
+    version = "0.3.0",
 )
 bazel_dep(
     name = "rules_swift",
-    version = "1.18.0",
+    version = "2.1.1",
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(

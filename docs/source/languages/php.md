@@ -48,7 +48,7 @@ function). Then you can read a FlatBuffer binary file, which you
 pass the contents of to the `GetRootAsMonster` function:
 
 ~~~{.php}
-  // It is recommended that your use PSR autoload when using FlatBuffers in PHP.
+  // It is recommended that you use PSR autoload when using FlatBuffers in PHP.
   // Here is an example:
   function __autoload($class_name) {
     // The last segment of the class name matches the file name.
@@ -69,7 +69,7 @@ pass the contents of to the `GetRootAsMonster` function:
   // Read the contents of the FlatBuffer binary file.
   $filename = "monster.dat";
   $handle = fopen($filename, "rb");
-  $contents = $fread($handle, filesize($filename));
+  $contents = fread($handle, filesize($filename));
   fclose($handle);
 
   // Pass the contents to `GetRootAsMonster`.

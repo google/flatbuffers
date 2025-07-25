@@ -8,19 +8,19 @@ local_path_override(
 
 bazel_dep(
     name = "aspect_rules_esbuild",
-    version = "0.15.0",
+    version = "0.21.0",
 )
 bazel_dep(
     name = "aspect_rules_js",
-    version = "1.34.1",
+    version = "2.1.3",
 )
 bazel_dep(
     name = "aspect_rules_ts",
-    version = "1.4.5",
+    version = "3.4.0",
 )
 bazel_dep(
     name = "rules_nodejs",
-    version = "5.8.3",
+    version = "6.3.3",
 )
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")

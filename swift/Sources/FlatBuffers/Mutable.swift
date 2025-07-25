@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#if canImport(Common)
+import Common
+#endif
+
 import Foundation
 
 /// Mutable is a protocol that allows us to mutate Scalar values within a ``ByteBuffer``

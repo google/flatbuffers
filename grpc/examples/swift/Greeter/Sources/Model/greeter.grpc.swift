@@ -5,6 +5,7 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if !os(Windows)
 import Foundation
 import GRPC
 import NIO
@@ -17,8 +18,7 @@ public extension GRPCFlatBufPayload {
     self.init(byteBuffer: FlatBuffers.ByteBuffer(contiguousBytes: serializedByteBuffer.readableBytesView, count: serializedByteBuffer.readableBytes))
   }
   func serialize(into buffer: inout NIO.ByteBuffer) throws {
-    let buf = UnsafeRawBufferPointer(start: self.rawPointer, count: Int(self.size))
-    buffer.writeBytes(buf)
+    withUnsafeReadableBytes { buffer.writeBytes($0) }
   }
 }
 extension Message: GRPCFlatBufPayload {}
@@ -143,3 +143,5 @@ public protocol models_GreeterServerInterceptorFactoryProtocol {
   func makeSayManyHellosInterceptors() -> [ServerInterceptor<Message<models_HelloRequest>, Message<models_HelloReply>>]
 
 }
+#endif
+

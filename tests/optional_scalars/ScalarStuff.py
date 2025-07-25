@@ -508,47 +508,89 @@ def ScalarStuffEnd(builder):
 def End(builder):
     return ScalarStuffEnd(builder)
 
+try:
+    from typing import Optional
+except:
+    pass
 
 class ScalarStuffT(object):
 
     # ScalarStuffT
-    def __init__(self):
-        self.justI8 = 0  # type: int
-        self.maybeI8 = None  # type: Optional[int]
-        self.defaultI8 = 42  # type: int
-        self.justU8 = 0  # type: int
-        self.maybeU8 = None  # type: Optional[int]
-        self.defaultU8 = 42  # type: int
-        self.justI16 = 0  # type: int
-        self.maybeI16 = None  # type: Optional[int]
-        self.defaultI16 = 42  # type: int
-        self.justU16 = 0  # type: int
-        self.maybeU16 = None  # type: Optional[int]
-        self.defaultU16 = 42  # type: int
-        self.justI32 = 0  # type: int
-        self.maybeI32 = None  # type: Optional[int]
-        self.defaultI32 = 42  # type: int
-        self.justU32 = 0  # type: int
-        self.maybeU32 = None  # type: Optional[int]
-        self.defaultU32 = 42  # type: int
-        self.justI64 = 0  # type: int
-        self.maybeI64 = None  # type: Optional[int]
-        self.defaultI64 = 42  # type: int
-        self.justU64 = 0  # type: int
-        self.maybeU64 = None  # type: Optional[int]
-        self.defaultU64 = 42  # type: int
-        self.justF32 = 0.0  # type: float
-        self.maybeF32 = None  # type: Optional[float]
-        self.defaultF32 = 42.0  # type: float
-        self.justF64 = 0.0  # type: float
-        self.maybeF64 = None  # type: Optional[float]
-        self.defaultF64 = 42.0  # type: float
-        self.justBool = False  # type: bool
-        self.maybeBool = None  # type: Optional[bool]
-        self.defaultBool = True  # type: bool
-        self.justEnum = 0  # type: int
-        self.maybeEnum = None  # type: Optional[int]
-        self.defaultEnum = 1  # type: int
+    def __init__(
+        self,
+        justI8 = 0,
+        maybeI8 = None,
+        defaultI8 = 42,
+        justU8 = 0,
+        maybeU8 = None,
+        defaultU8 = 42,
+        justI16 = 0,
+        maybeI16 = None,
+        defaultI16 = 42,
+        justU16 = 0,
+        maybeU16 = None,
+        defaultU16 = 42,
+        justI32 = 0,
+        maybeI32 = None,
+        defaultI32 = 42,
+        justU32 = 0,
+        maybeU32 = None,
+        defaultU32 = 42,
+        justI64 = 0,
+        maybeI64 = None,
+        defaultI64 = 42,
+        justU64 = 0,
+        maybeU64 = None,
+        defaultU64 = 42,
+        justF32 = 0.0,
+        maybeF32 = None,
+        defaultF32 = 42.0,
+        justF64 = 0.0,
+        maybeF64 = None,
+        defaultF64 = 42.0,
+        justBool = False,
+        maybeBool = None,
+        defaultBool = True,
+        justEnum = 0,
+        maybeEnum = None,
+        defaultEnum = 1,
+    ):
+        self.justI8 = justI8  # type: int
+        self.maybeI8 = maybeI8  # type: Optional[int]
+        self.defaultI8 = defaultI8  # type: int
+        self.justU8 = justU8  # type: int
+        self.maybeU8 = maybeU8  # type: Optional[int]
+        self.defaultU8 = defaultU8  # type: int
+        self.justI16 = justI16  # type: int
+        self.maybeI16 = maybeI16  # type: Optional[int]
+        self.defaultI16 = defaultI16  # type: int
+        self.justU16 = justU16  # type: int
+        self.maybeU16 = maybeU16  # type: Optional[int]
+        self.defaultU16 = defaultU16  # type: int
+        self.justI32 = justI32  # type: int
+        self.maybeI32 = maybeI32  # type: Optional[int]
+        self.defaultI32 = defaultI32  # type: int
+        self.justU32 = justU32  # type: int
+        self.maybeU32 = maybeU32  # type: Optional[int]
+        self.defaultU32 = defaultU32  # type: int
+        self.justI64 = justI64  # type: int
+        self.maybeI64 = maybeI64  # type: Optional[int]
+        self.defaultI64 = defaultI64  # type: int
+        self.justU64 = justU64  # type: int
+        self.maybeU64 = maybeU64  # type: Optional[int]
+        self.defaultU64 = defaultU64  # type: int
+        self.justF32 = justF32  # type: float
+        self.maybeF32 = maybeF32  # type: Optional[float]
+        self.defaultF32 = defaultF32  # type: float
+        self.justF64 = justF64  # type: float
+        self.maybeF64 = maybeF64  # type: Optional[float]
+        self.defaultF64 = defaultF64  # type: float
+        self.justBool = justBool  # type: bool
+        self.maybeBool = maybeBool  # type: Optional[bool]
+        self.defaultBool = defaultBool  # type: bool
+        self.justEnum = justEnum  # type: int
+        self.maybeEnum = maybeEnum  # type: Optional[int]
+        self.defaultEnum = defaultEnum  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

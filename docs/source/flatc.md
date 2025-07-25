@@ -131,7 +131,7 @@ list of `FILES...`.
 -   `--gen-mutable` : Generate additional non-const accessors for mutating
     FlatBuffers in-place.
 
--   `--gen-onefile` : Generate single output file for C#, Go, and Python.
+-   `--gen-onefile` : Generate a single output file for C#, Go, Java, Kotlin and Python.
 
 -   `--gen-name-strings` : Generate type name functions for C++.
 
@@ -258,6 +258,8 @@ list of `FILES...`.
     with typenames
 
 -   `--python-typing` : Generate Python type annotations
+
+-   `--python-decode-obj-api-strings` : Decode bytes automaticaly with utf-8
 
 Additional gRPC options:
 

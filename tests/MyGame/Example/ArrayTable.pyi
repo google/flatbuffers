@@ -3,10 +3,8 @@ from __future__ import annotations
 import flatbuffers
 import numpy as np
 
-import flatbuffers
 import typing
 from MyGame.Example.ArrayStruct import ArrayStruct, ArrayStructT
-from MyGame.Example.ArrayTable import ArrayTable
 
 uoffset: typing.TypeAlias = flatbuffers.number_types.UOffsetTFlags.py_type
 
@@ -21,6 +19,10 @@ class ArrayTable(object):
   def A(self) -> ArrayStruct | None: ...
 class ArrayTableT(object):
   a: ArrayStructT | None
+  def __init__(
+    self,
+    a: 'ArrayStructT' | None = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> ArrayTableT: ...
   @classmethod
