@@ -1954,10 +1954,16 @@ class PythonGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
 
-      // Wrties the comparison statement for this field.
-      const auto field_field = namer_.Field(field);
-      code += " and \\" + GenIndents(3) + "self." + field_field +
-              " == " + "other." + field_field;
+      // Writes the comparison statement for this field.
+      const auto field_name = namer_.Field(field);
+      if (parser_.opts.python_gen_numpy &&
+          field.value.type.base_type == BASE_TYPE_VECTOR) {
+        code += " and \\" + GenIndents(3) + "np.array_equal(self." +
+                field_name + ", " + "other." + field_name + ")";
+      } else {
+        code += " and \\" + GenIndents(3) + "self." + field_name +
+                " == " + "other." + field_name;
+      }
     }
     code += "\n";
   }

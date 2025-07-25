@@ -1091,6 +1091,29 @@ class TestByteLayout(unittest.TestCase):
     # 1-byte pad:
     self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
 
+  def test_comparison_of_np_arrays(self):
+    """
+    MonsterT dvec and fvec are np.array types which can not be compared with == directly
+    This tests ensures that the __eq__ is generated correctly
+    """
+    try:
+      # if numpy exists, then we should be able to get the
+      # vector as a numpy array
+      import numpy as np
+      vec1 = np.array([1, 2], dtype=np.float32)
+      vec2 = np.array([3, 4], dtype=np.float32)
+
+      monsterA = MyGame.MonsterExtra.MonsterExtraT(d0=1, d1=1, d2=1, d3=1, f0=1, f1=1, f2=1, f3=1, dvec=vec1, fvec=vec2)
+      assert monsterA == monsterA
+
+      monsterB = MyGame.MonsterExtra.MonsterExtraT(d0=2, d1=1, d2=1, d3=1, f0=1, f1=1, f2=1, f3=1, dvec=vec1, fvec=vec2)
+      assert monsterA != monsterB
+    except ImportError:
+      b = flatbuffers.Builder(0)
+      x = 0
+      assertRaises(self, lambda: b.CreateNumpyVector(x),
+                   NumpyRequiredForThisFeature)
+
   def test_create_numpy_vector_int8(self):
     try:
       # if numpy exists, then we should be able to get the

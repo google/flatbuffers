@@ -282,8 +282,8 @@ class MonsterExtraT(object):
             self.f1 == other.f1 and \
             self.f2 == other.f2 and \
             self.f3 == other.f3 and \
-            self.dvec == other.dvec and \
-            self.fvec == other.fvec
+            np.array_equal(self.dvec, other.dvec) and \
+            np.array_equal(self.fvec, other.fvec)
 
     # MonsterExtraT
     def _UnPack(self, monsterExtra):
