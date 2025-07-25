@@ -97,6 +97,27 @@ def assertRaises(test_case, fn, exception_class):
   test_case.assertTrue(isinstance(exc, exception_class))
 
 
+def byte_swap_array(np_version, arr):
+    """
+    Performs byte swapping on a NumPy array, adapting to different NumPy versions.
+
+    Args:
+        np_version: Version of NumPu (np.__version__)
+        arr: The input NumPy array.
+
+    Returns:
+        A new NumPy array with byte order swapped.
+    """
+    numpy_version_tuple = tuple(map(int, np_version.split('.')[:3]))
+    min_version_for_new_method_tuple = (2, 0, 0)
+
+    if numpy_version_tuple >= min_version_for_new_method_tuple:
+        # 'S' indicates swap byte order.
+        return arr.byteswap().view(arr.dtype.newbyteorder('S'))
+    else:
+        return arr.byteswap().newbyteorder()
+
+
 class TestWireFormat(unittest.TestCase):
 
   def test_wire_format(self):
@@ -1095,7 +1116,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1144,7 +1165,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1213,7 +1234,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1287,7 +1308,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1361,7 +1382,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1427,7 +1448,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
