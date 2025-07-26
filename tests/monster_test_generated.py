@@ -1089,7 +1089,7 @@ class Monster(object):
     def TestnestedflatbufferNestedRoot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
-            from MyGame.Example.Monster import Monster
+            from .monster_test_generated import Monster
             return Monster.GetRootAs(self._tab.Bytes, self._tab.Vector(o))
         return 0
 
@@ -1620,7 +1620,7 @@ class Monster(object):
     def TestrequirednestedflatbufferNestedRoot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
         if o != 0:
-            from MyGame.Example.Monster import Monster
+            from .monster_test_generated import Monster
             return Monster.GetRootAs(self._tab.Bytes, self._tab.Vector(o))
         return 0
 
