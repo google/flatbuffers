@@ -303,7 +303,7 @@ public struct FlatBufferBuilder {
     var isAlreadyAdded: Int?
 
     let vt2 = _bb.memory.advanced(by: _bb.writerIndex)
-    let len2 = vt2.load(fromByteOffset: 0, as: Int16.self)
+    let len2 = _bb.read(def: Int16.self, position: _bb.writerIndex)
 
     for index in stride(from: 0, to: _vtables.count, by: 1) {
       let position = _bb.capacity &- Int(_vtables[index])
