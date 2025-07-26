@@ -224,26 +224,7 @@ static std::string GenType(const Type &type, const std::string &field_name) {
       return GenTypeRef(type.struct_def);
     }
     case BASE_TYPE_UNION: {
-      std::string union_type_string("\"anyOf\": [");
-      const auto &union_types = type.enum_def->Vals();
-      bool first = true;
-
-      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-        const auto &union_type = *ut;
-        if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
-
-        if (!first) union_type_string.append(",");
-        first = false;
-
-        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
-          union_type_string.append(
-              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-        } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
-          union_type_string.append("{ \"type\": \"string\" }");
-        }
-      }
-      union_type_string.append("]");
-      return union_type_string;
+      return "\"type\": \"object\"";
     }
     case BASE_TYPE_UTYPE: {
       if (IsBitFlagsEnum(*type.enum_def)) {
