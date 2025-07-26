@@ -788,6 +788,10 @@ struct IDLOptions {
   /******************************* Python gRPC ********************************/
   bool grpc_python_typed_handlers;
 
+  // If set, when a float value is received for an integer field, set the value
+  // to 0 to avoid precision loss.
+  bool zero_on_float_to_int;
+
   IDLOptions()
       : gen_jvmstatic(false),
         use_flexbuffers(false),
@@ -862,7 +866,8 @@ struct IDLOptions {
         set_empty_vectors_to_null(true),
         grpc_filename_suffix(".fb"),
         grpc_use_system_headers(true),
-        grpc_python_typed_handlers(false) {}
+        grpc_python_typed_handlers(false),
+        zero_on_float_to_int(false) {}
 };
 
 // This encapsulates where the parser is in the current source file.
