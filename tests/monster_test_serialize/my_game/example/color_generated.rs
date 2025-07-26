@@ -15,7 +15,7 @@ use super::*;
 mod bitflags_color {
   flatbuffers::bitflags::bitflags! {
     /// Composite components of Monster color.
-    #[derive(Default)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq)]
     pub struct Color: u8 {
       const Red = 1;
       /// \brief color Green
@@ -41,12 +41,8 @@ impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
-    // Safety:
-    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
-    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-    // https://github.com/bitflags/bitflags/issues/262
-    Self::from_bits_unchecked(b)
+    let b = unsafe { flatbuffers::read_scalar_at::<u8>(buf, loc) };
+    Self::from_bits_retain(b)
   }
 }
 
@@ -54,7 +50,7 @@ impl flatbuffers::Push for Color {
     type Output = Color;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        flatbuffers::emplace_scalar::<u8>(dst, self.bits());
+        unsafe { flatbuffers::emplace_scalar::<u8>(dst, self.bits()); }
     }
 }
 
@@ -68,11 +64,7 @@ impl flatbuffers::EndianScalar for Color {
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u8) -> Self {
     let b = u8::from_le(v);
-    // Safety:
-    // This is safe because we know bitflags is implemented with a repr transparent uint of the correct size.
-    // from_bits_unchecked will be replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-    // https://github.com/bitflags/bitflags/issues/262
-    unsafe { Self::from_bits_unchecked(b) }
+    Self::from_bits_retain(b)
   }
 }
 

@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
+#if canImport(Common)
+import Common
+#endif
 import Foundation
 
-/// A boolean to see if the system is littleEndian
-let isLitteEndian: Bool = {
-  let number: UInt32 = 0x12345678
-  return number == number.littleEndian
-}()
-/// Constant for the file id length
-let FileIdLength = 4
 /// Type aliases
 public typealias Byte = UInt8
 public typealias UOffset = UInt32
@@ -35,80 +31,31 @@ public let FlatBufferMaxSize = UInt32
 /// Protocol that All Scalars should conform to
 ///
 /// Scalar is used to conform all the numbers that can be represented in a FlatBuffer. It's used to write/read from the buffer.
-public protocol Scalar: Equatable {
-  associatedtype NumericValue
-  var convertedEndian: NumericValue { get }
-}
 
-extension Scalar where Self: Verifiable {}
+extension Scalar where Self: FixedWidthInteger {}
 
-extension Scalar where Self: FixedWidthInteger {
-  /// Converts the value from BigEndian to LittleEndian
-  ///
-  /// Converts values to little endian on machines that work with BigEndian, however this is NOT TESTED yet.
-  public var convertedEndian: NumericValue {
-    self as! Self.NumericValue
-  }
-}
+extension Double: Verifiable {}
 
-extension Double: Scalar, Verifiable {
-  public typealias NumericValue = UInt64
+extension Float32: Verifiable {}
 
-  public var convertedEndian: UInt64 {
-    bitPattern.littleEndian
-  }
-}
+extension Bool: Verifiable {}
 
-extension Float32: Scalar, Verifiable {
-  public typealias NumericValue = UInt32
+extension Int: Verifiable {}
 
-  public var convertedEndian: UInt32 {
-    bitPattern.littleEndian
-  }
-}
+extension Int8: Verifiable {}
 
-extension Bool: Scalar, Verifiable {
-  public var convertedEndian: UInt8 {
-    self == true ? 1 : 0
-  }
+extension Int16: Verifiable {}
 
-  public typealias NumericValue = UInt8
-}
+extension Int32: Verifiable {}
 
-extension Int: Scalar, Verifiable {
-  public typealias NumericValue = Int
-}
+extension Int64: Verifiable {}
 
-extension Int8: Scalar, Verifiable {
-  public typealias NumericValue = Int8
-}
+extension UInt8: Verifiable {}
 
-extension Int16: Scalar, Verifiable {
-  public typealias NumericValue = Int16
-}
+extension UInt16: Verifiable {}
 
-extension Int32: Scalar, Verifiable {
-  public typealias NumericValue = Int32
-}
+extension UInt32: Verifiable {}
 
-extension Int64: Scalar, Verifiable {
-  public typealias NumericValue = Int64
-}
+extension UInt64: Verifiable {}
 
-extension UInt8: Scalar, Verifiable {
-  public typealias NumericValue = UInt8
-}
-
-extension UInt16: Scalar, Verifiable {
-  public typealias NumericValue = UInt16
-}
-
-extension UInt32: Scalar, Verifiable {
-  public typealias NumericValue = UInt32
-}
-
-extension UInt64: Scalar, Verifiable {
-  public typealias NumericValue = UInt64
-}
-
-public func FlatBuffersVersion_24_3_25() {}
+public func FlatBuffersVersion_25_2_10() {}

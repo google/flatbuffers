@@ -57,8 +57,11 @@ def End(builder):
 class ReferrableT(object):
 
     # ReferrableT
-    def __init__(self):
-        self.id = 0  # type: int
+    def __init__(
+        self,
+        id = 0,
+    ):
+        self.id = id  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

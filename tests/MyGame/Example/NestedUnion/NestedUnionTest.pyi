@@ -3,10 +3,8 @@ from __future__ import annotations
 import flatbuffers
 import numpy as np
 
-import flatbuffers
 import typing
 from MyGame.Example.NestedUnion.Any import Any
-from MyGame.Example.NestedUnion.NestedUnionTest import NestedUnionTest
 from MyGame.Example.NestedUnion.TestSimpleTableWithEnum import TestSimpleTableWithEnumT
 from MyGame.Example.NestedUnion.Vec3 import Vec3T
 from flatbuffers import table
@@ -28,6 +26,13 @@ class NestedUnionTestT(object):
   dataType: typing.Literal[Any.NONE, Any.Vec3, Any.TestSimpleTableWithEnum]
   data: typing.Union[None, Vec3T, TestSimpleTableWithEnumT]
   id: int
+  def __init__(
+    self,
+    name: str | None = ...,
+    dataType: typing.Literal[Any.NONE, Any.Vec3, Any.TestSimpleTableWithEnum] = ...,
+    data: typing.Union[None, Vec3T, TestSimpleTableWithEnumT] = ...,
+    id: int = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> NestedUnionTestT: ...
   @classmethod
