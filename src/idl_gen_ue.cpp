@@ -682,7 +682,7 @@ class UeGenerator : public BaseGenerator {
       }
       case BASE_TYPE_STRUCT: {
         //const auto type_name = WrapInNameSpace(*type.struct_def);
-        return type.struct_def->name;
+        return "F" + type.struct_def->name;
       }
       case BASE_TYPE_UNION:
         // fall through
@@ -2664,7 +2664,9 @@ class UeGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
 
     code_ += "USTRUCT()";
-    code_ += "struct F{{STRUCT_NAME}} {";
+    code_ += "struct F{{STRUCT_NAME}} {\n";
+    code_ += "  GENERATED_BODY()\n";
+    code_ += "";
 
     // Generate the accessors.
     for (const auto &field : struct_def.fields.vec) {
@@ -2676,10 +2678,180 @@ class UeGenerator : public BaseGenerator {
       code_.SetValue("FIELD_NAME", Name(*field));
       const auto &type = (*field).value.type;
       auto typeName = GenTypeGet(type, " ", "", "", true);
-      code_ += "  UPROPERTY() " + typeName + "{{FIELD_NAME}};";
+    code_ += "  UPROPERTY(BlueprintReadWrite)\n  " + typeName + "{{FIELD_NAME}};\n";
 
       //GenTableFieldGetter(*field);
     }
+
+    code_ += "\n  // Unpacks from the FlatBuffers accessor object into this USTRUCT.\n";
+    code_ += "  void UnPackFrom(const {{STRUCT_NAME}}& InFlatBufferObject)\n  {";
+    for (const auto &field : struct_def.fields.vec) {
+      if (field->deprecated) continue;
+      const auto& type = field->value.type;
+      const std::string field_name = Name(*field);
+      const std::string ue_field_name = field_name; // Assuming same case for now
+
+      if (IsScalar(type.base_type) && !IsStruct(type)) {
+        code_ += "\n    this->" + ue_field_name + " = InFlatBufferObject." + field_name + "();";
+      } else if (IsString(type)) {
+        code_ += "\n    if (const auto* fb_string = InFlatBufferObject." + field_name + "()) {";
+        code_ += "\n        this->" + ue_field_name + " = FString(fb_string->c_str());";
+        code_ += "\n    }";
+      } else if (IsStruct(type) && !type.struct_def->fixed) { // Table
+        code_ += "\n    if (const auto* SubObject = InFlatBufferObject." + field_name + "()) {";
+        code_ += "\n        this->" + ue_field_name + ".UnPackFrom(*SubObject);";
+        code_ += "\n    }";
+      } else if (IsStruct(type) && type.struct_def->fixed) { // Struct
+        code_ += "\n    if (const auto* fb_struct = InFlatBufferObject." + field_name + "()) {";
+        const auto& struct_def_inner = *type.struct_def;
+        for (const auto& struct_field : struct_def_inner.fields.vec) {
+            if (struct_field->deprecated) continue;
+            const std::string sub_field_name = Name(*struct_field);
+            code_ += "\n        this->" + ue_field_name + "." + sub_field_name + " = fb_struct->" + sub_field_name + "();";
+        }
+        code_ += "\n    }";
+      } else if (IsUnion(type)) {
+        const auto& enum_def = *type.enum_def;
+        const std::string type_field_name = field_name + UnionTypeFieldSuffix();
+        const std::string ue_type_field_name = Name(*field) + "_type";
+
+        code_ += "\n    this->" + ue_type_field_name + " = InFlatBufferObject." + type_field_name + "();";
+        code_ += "\n    if (const auto* unionTable = InFlatBufferObject." + field_name + "()) {";
+        code_ += "\n      switch(this->" + ue_type_field_name + ") {";
+        for (const auto& ev : enum_def.Vals()) {
+            if (ev->IsZero()) continue;
+            const std::string case_label = "E_" + Name(enum_def) + "::" + Name(*ev);
+            const std::string ue_value_field_name = Name(*field) + "_" + ev->name;
+            code_ += "\n        case " + case_label + ": {";
+            if (IsStruct(ev->union_type)) {
+                code_ += "\n          const auto* accessor = reinterpret_cast<const " + ev->union_type.struct_def->name + "*>(unionTable);";
+                code_ += "\n          this->" + ue_value_field_name + ".UnPackFrom(*accessor);";
+            } else if (IsString(ev->union_type)) {
+                code_ += "\n          const auto* accessor = reinterpret_cast<const flatbuffers::String*>(unionTable);";
+                code_ += "\n          this->" + ue_value_field_name + " = FString(accessor->c_str());";
+            }
+            code_ += "\n          break;\n        }";
+        }
+        code_ += "\n        default: break;\n      }\n    }";
+      } else if (IsVector(type)) {
+        const auto& vec_type = type.VectorType();
+        code_ += "\n    if (const auto* fb_vector = InFlatBufferObject." + field_name + "()) {";
+        code_ += "\n        this->" + ue_field_name + ".Empty(fb_vector->size());";
+        code_ += "\n        for (flatbuffers::uoffset_t i = 0; i < fb_vector->size(); ++i) {";
+        if (IsScalar(vec_type.base_type) && !IsStruct(vec_type)) {
+            code_ += "\n            this->" + ue_field_name + ".Add(fb_vector->Get(i));";
+        } else if (IsString(vec_type)) {
+            code_ += "\n            this->" + ue_field_name + ".Add(FString(fb_vector->Get(i)->c_str()));";
+        } else if (IsStruct(vec_type) && !vec_type.struct_def->fixed) { // Vector of Tables
+            code_ += "\n            F" + vec_type.struct_def->name + " Element;";
+            code_ += "\n            Element.UnPackFrom(*fb_vector->Get(i));";
+            code_ += "\n            this->" + ue_field_name + ".Add(MoveTemp(Element));";
+        } else if (IsStruct(vec_type) && vec_type.struct_def->fixed) { // Vector of Structs
+            const auto& struct_def_inner = *vec_type.struct_def;
+            code_ += "\n            F" + struct_def_inner.name + " Element;";
+            for (const auto& struct_field : struct_def_inner.fields.vec) {
+                if (struct_field->deprecated) continue;
+                code_ += "\n            Element." + Name(*struct_field) + " = fb_vector->Get(i)->" + Name(*struct_field) + "();";
+            }
+            code_ += "\n            this->" + ue_field_name + ".Add(Element);";
+        }
+        code_ += "\n        }";
+        code_ += "\n    }";
+      }
+    }
+    code_ += "\n  }\n";
+
+    code_ += "\n  // Packs this USTRUCT into a new FlatBuffer.\n";
+    code_ += "  flatbuffers::Offset<{{STRUCT_NAME}}> Pack(flatbuffers::FlatBufferBuilder& fbb) const\n  {";
+    code_ += "\n    // Step 1: Serialize all non-scalar fields (strings, vectors, tables).";
+    for (const auto &field : struct_def.fields.vec) {
+       if (field->deprecated || (IsScalar(field->value.type.base_type) && !IsStruct(field->value.type))) continue;
+        const auto& type = field->value.type;
+        const std::string field_name = Name(*field);
+        const std::string ue_field_name = field_name;
+        const std::string offset_var = field_name + "_offset";
+        if (IsString(type)) {
+            code_ += "\n    auto " + offset_var + " = this->" + ue_field_name + ".IsEmpty() ? 0 : fbb.CreateString(TCHAR_TO_UTF8(*this->" + ue_field_name + "));";
+        } else if (IsStruct(type) && !type.struct_def->fixed) { // Table
+            code_ += "\n    auto " + offset_var + " = this->" + ue_field_name + ".Pack(fbb);";
+        } else if (IsVector(type)) {
+            const auto& vec_type = type.VectorType();
+            code_ += "\n    auto " + offset_var + " = this->" + ue_field_name + ".Num() > 0";
+            if (IsScalar(vec_type.base_type) && !IsStruct(vec_type)) {
+                code_ += "\n        ? fbb.CreateVector(this->" + ue_field_name + ".GetData(), this->" + ue_field_name + ".Num())";
+            } else if (IsStruct(vec_type) && vec_type.struct_def->fixed) {
+                code_ += "\n        ? fbb.CreateVectorOfStructs(this->" + ue_field_name + ".GetData(), this->" + ue_field_name + ".Num())";
+            } else { // Vector of Strings or Tables
+                std::string native_type = IsString(vec_type) ? "flatbuffers::String" : vec_type.struct_def->name;
+                code_ += "\n        ? fbb.CreateVector<flatbuffers::Offset<" + native_type + ">>([this, &fbb]() {";
+                code_ += "\n            std::vector<flatbuffers::Offset<" + native_type + ">> temp;";
+                code_ += "\n            temp.reserve(this->" + ue_field_name + ".Num());";
+                code_ += "\n            for (const auto& e : this->" + ue_field_name + ") {";
+                if (IsString(vec_type)) {
+                    code_ += "\n                temp.push_back(fbb.CreateString(TCHAR_TO_UTF8(*e)));";
+                } else { // Table
+                    code_ += "\n                temp.push_back(e.Pack(fbb));";
+                }
+                code_ += "\n            }";
+                code_ += "\n            return temp;";
+                code_ += "\n        }())";
+            }
+            code_ += "\n        : 0;";
+        } else if (IsUnion(type)) {
+            const auto& enum_def = *type.enum_def;
+            const std::string ue_type_field_name = Name(*field) + "_type";
+            code_ += "\n    flatbuffers::Offset<void> " + offset_var + ";";
+            code_ += "\n    switch(this->" + ue_type_field_name + ") {";
+            for (const auto& ev : enum_def.Vals()) {
+                if (ev->IsZero()) continue;
+                const std::string case_label = "E_" + Name(enum_def) + "::" + Name(*ev);
+                const std::string ue_value_field_name = Name(*field) + "_" + ev->name;
+                code_ += "\n      case " + case_label + ": {";
+                if (IsStruct(ev->union_type)) {
+                    code_ += "\n        " + offset_var + " = this->" + ue_value_field_name + ".Pack(fbb).Union();";
+                } else if (IsString(ev->union_type)) {
+                    code_ += "\n        " + offset_var + " = fbb.CreateString(TCHAR_TO_UTF8(*this->" + ue_value_field_name + ")).Union();";
+                }
+                code_ += "\n        break;\n      }";
+            }
+            code_ += "\n      default: break;\n    }";
+        }
+    }
+    code_ += "\n";
+    code_ += "\n    // Step 2: Build the table with the offsets and scalar values.";
+    code_ += "\n    {{STRUCT_NAME}}Builder builder(fbb);";
+     for (const auto &field : struct_def.fields.vec) {
+        if (field->deprecated) continue;
+        const auto& type = field->value.type;
+        const std::string field_name = Name(*field);
+        const std::string ue_field_name = field_name;
+        const std::string offset_var = field_name + "_offset";
+        if (IsScalar(type.base_type) && !IsStruct(type)) {
+            code_ += "\n    builder.add_" + field_name + "(this->" + ue_field_name + ");";
+        } else if (IsStruct(type) && type.struct_def->fixed) {
+            const auto& struct_def_inner = *type.struct_def;
+            const std::string fb_struct_type = struct_def_inner.name;
+            const std::string temp_var_name = field_name + "_temp_struct";
+            code_ += "\n    " + fb_struct_type + " " + temp_var_name + "(";
+            bool first = true;
+            for (const auto& struct_field : struct_def_inner.fields.vec) {
+                if (!first) code_ += ", ";
+                first = false;
+                code_ += "this->" + ue_field_name + "." + Name(*struct_field);
+            }
+            code_ += ");";
+            code_ += "\n    builder.add_" + field_name + "(&" + temp_var_name + ");";
+        } else if (IsUnion(type)) {
+            const std::string type_field_name = field_name + UnionTypeFieldSuffix();
+            const std::string ue_type_field_name = Name(*field) + "_type";
+            code_ += "\n    builder.add_" + type_field_name + "(this->" + ue_type_field_name + ");";
+            code_ += "\n    if (" + offset_var + ".o != 0) builder.add_" + field_name + "(" + offset_var + ");";
+        } else {
+            code_ += "\n    if (" + offset_var + ".o != 0) builder.add_" + field_name + "(" + offset_var + ");";
+        }
+     }
+    code_ += "\n    return builder.Finish();";
+    code_ += "\n  }\n";
 
     code_ += "};";  // End of table.
     code_ += "";
@@ -3678,7 +3850,7 @@ class UeGenerator : public BaseGenerator {
     code_ += "USTRUCT()";
     code_ +=
         "FLATBUFFERS_MANUALLY_ALIGNED_STRUCT({{ALIGN}}) "
-        "{{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS {";
+        "F{{STRUCT_NAME}} FLATBUFFERS_FINAL_CLASS {";
     code_ += " private:";
 
     int padding_id = 0;
