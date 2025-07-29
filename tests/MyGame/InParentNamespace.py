@@ -44,7 +44,9 @@ def End(builder):
 class InParentNamespaceT(object):
 
     # InParentNamespaceT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod

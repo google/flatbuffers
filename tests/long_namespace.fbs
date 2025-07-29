@@ -1,0 +1,7 @@
+namespace com.company.test;
+
+table Person {
+  name:string;
+  age:short;
+}
+root_type Person;

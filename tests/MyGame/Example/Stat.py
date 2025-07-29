@@ -83,10 +83,15 @@ def End(builder):
 class StatT(object):
 
     # StatT
-    def __init__(self):
-        self.id = None  # type: str
-        self.val = 0  # type: int
-        self.count = 0  # type: int
+    def __init__(
+        self,
+        id = None,
+        val = 0,
+        count = 0,
+    ):
+        self.id = id  # type: Optional[str]
+        self.val = val  # type: int
+        self.count = count  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):

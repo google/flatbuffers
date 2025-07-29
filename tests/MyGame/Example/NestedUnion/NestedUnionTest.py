@@ -104,11 +104,17 @@ except:
 class NestedUnionTestT(object):
 
     # NestedUnionTestT
-    def __init__(self):
-        self.name = None  # type: str
-        self.dataType = 0  # type: int
-        self.data = None  # type: Union[None, MyGame.Example.NestedUnion.Vec3.Vec3T, MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumT]
-        self.id = 0  # type: int
+    def __init__(
+        self,
+        name = None,
+        dataType = 0,
+        data = None,
+        id = 0,
+    ):
+        self.name = name  # type: Optional[str]
+        self.dataType = dataType  # type: int
+        self.data = data  # type: Union[None, 'MyGame.Example.NestedUnion.Vec3.Vec3T', 'MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumT']
+        self.id = id  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -132,6 +138,8 @@ class NestedUnionTestT(object):
         if nestedUnionTest is None:
             return
         self.name = nestedUnionTest.Name()
+        if self.name is not None:
+            self.name = self.name.decode('utf-8')
         self.dataType = nestedUnionTest.DataType()
         self.data = MyGame.Example.NestedUnion.Any.AnyCreator(self.dataType, nestedUnionTest.Data())
         self.id = nestedUnionTest.Id()

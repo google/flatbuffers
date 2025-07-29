@@ -34,21 +34,21 @@ impl<'a> flatbuffers::Follow<'a> for NestedStruct {
   type Inner = &'a NestedStruct;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a NestedStruct>::follow(buf, loc)
+    unsafe { <&'a NestedStruct>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a NestedStruct {
   type Inner = &'a NestedStruct;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<NestedStruct>(buf, loc)
+    unsafe { flatbuffers::follow_cast_ref::<NestedStruct>(buf, loc) }
   }
 }
 impl<'b> flatbuffers::Push for NestedStruct {
     type Output = NestedStruct;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, <Self as flatbuffers::Push>::size());
+        let src = unsafe { ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, <Self as flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
     #[inline]
