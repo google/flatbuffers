@@ -167,7 +167,7 @@ public struct Table {
   public func vector(at o: Int32) -> Int32 {
     var o = o
     o &+= position
-    return o &+ bb.read(def: Int32.self, position: Int(o)) + 4
+    return o &+ bb.read(def: Int32.self, position: Int(o)) &+ 4
   }
 
   /// Reading an indirect offset of a table.
@@ -176,7 +176,7 @@ public struct Table {
   ///   - fbb: ByteBuffer
   /// - Returns: table offset
   static public func indirect(_ o: Int32, _ fbb: ByteBuffer) -> Int32 {
-    o + fbb.read(def: Int32.self, position: Int(o))
+    o &+ fbb.read(def: Int32.self, position: Int(o))
   }
 
   /// Gets a vtable value according to an table Offset and a field offset

@@ -31,15 +31,12 @@ struct _InternalByteBuffer {
   final class Storage {
     /// pointer to the start of the buffer object in memory
     private(set) var memory: UnsafeMutableRawPointer
-    /// Capacity of UInt8 the buffer can hold
-    private(set) var capacity: Int
 
     @usableFromInline
     init(count: Int, alignment: Int) {
       memory = UnsafeMutableRawPointer.allocate(
         byteCount: count,
         alignment: alignment)
-      capacity = count
     }
 
     deinit {
@@ -54,15 +51,12 @@ struct _InternalByteBuffer {
     /// Reallocates the buffer incase the object to be written doesnt fit in the current buffer
     /// - Parameter size: Size of the current object
     @usableFromInline
-    func reallocate(_ size: Int, writerSize: Int, alignment: Int) {
-      let currentWritingIndex = capacity &- writerSize
-      while capacity <= writerSize &+ size {
-        capacity = capacity << 1
-      }
-
-      /// solution take from Apple-NIO
-      capacity = capacity.convertToPowerofTwo
-
+    func reallocate(
+      capacity: Int,
+      writerSize: Int,
+      currentWritingIndex: Int,
+      alignment: Int
+    ) {
       let newData = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,
         alignment: alignment)
@@ -84,7 +78,7 @@ struct _InternalByteBuffer {
   /// Alignment of the current  memory being written to the buffer
   var alignment = 1
   /// Current Index which is being used to write to the buffer, it is written from the end to the start of the buffer
-  var writerIndex: Int { _storage.capacity &- _writerSize }
+  var writerIndex: Int { capacity &- _writerSize }
 
   /// Reader is the position of the current Writer Index (capacity - size)
   public var reader: Int { writerIndex }
@@ -94,7 +88,7 @@ struct _InternalByteBuffer {
   @usableFromInline
   var memory: UnsafeMutableRawPointer { _storage.memory }
   /// Current capacity for the buffer
-  public var capacity: Int { _storage.capacity }
+  public private(set) var capacity: Int
 
   /// Constructor that creates a Flatbuffer instance with a size
   /// - Parameter:
@@ -102,6 +96,7 @@ struct _InternalByteBuffer {
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   init(initialSize size: Int) {
     initialSize = size.convertToPowerofTwo
+    capacity = initialSize
     _storage = Storage(count: initialSize, alignment: alignment)
     _storage.initialize(for: initialSize)
   }
@@ -246,11 +241,11 @@ struct _InternalByteBuffer {
   func write<T>(value: T, index: Int, direct: Bool = false) {
     var index = index
     if !direct {
-      index = _storage.capacity &- index
+      index = capacity &- index
     }
-    assert(index < _storage.capacity, "Write index is out of writing bound")
+    assert(index < capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    withUnsafePointer(to: value) {
+    _ = withUnsafePointer(to: value) {
       memcpy(
         _storage.memory.advanced(by: index),
         $0,
@@ -262,10 +257,24 @@ struct _InternalByteBuffer {
   /// - Parameter size: size of object
   @discardableResult
   @usableFromInline
-  @inline(__always)
   mutating func ensureSpace(size: Int) -> Int {
-    if size &+ _writerSize > _storage.capacity {
-      _storage.reallocate(size, writerSize: _writerSize, alignment: alignment)
+    let expectedWriterIndex = size &+ _writerSize
+    if expectedWriterIndex > capacity {
+      
+      let currentWritingIndex = capacity &- _writerSize
+      while capacity <= expectedWriterIndex {
+        capacity = capacity << 1
+      }
+
+      /// solution take from Apple-NIO
+      capacity = capacity.convertToPowerofTwo
+
+      
+      _storage.reallocate(
+        capacity: capacity,
+        writerSize: _writerSize,
+        currentWritingIndex: currentWritingIndex,
+        alignment: alignment)
     }
     assert(size < FlatBufferMaxSize, "Buffer can't grow beyond 2 Gigabytes")
     return size
@@ -295,8 +304,9 @@ struct _InternalByteBuffer {
     _writerSize = 0
     alignment = 1
     if keepingCapacity {
-      _storage.initialize(for: _storage.capacity)
+      _storage.initialize(for: capacity)
     } else {
+      capacity = initialSize
       _storage = Storage(count: initialSize, alignment: alignment)
     }
   }
@@ -358,7 +368,7 @@ extension _InternalByteBuffer: CustomDebugStringConvertible {
 
   public var debugDescription: String {
     """
-    buffer located at: \(_storage.memory), with capacity of \(_storage.capacity)
+    buffer located at: \(_storage.memory), with capacity of \(capacity)
     { writerSize: \(_writerSize), readerSize: \(reader), writerIndex: \(
       writerIndex) }
     """
