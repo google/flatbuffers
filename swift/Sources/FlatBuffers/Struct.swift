@@ -45,7 +45,7 @@ public struct Struct {
   ///   - o: Current offset of the data
   /// - Returns: Data of Type T that conforms to type Scalar
   public func readBuffer<T: Scalar>(of type: T.Type, at o: Int32) -> T {
-    let r = bb.read(def: T.self, position: Int(o + position))
+    let r = bb.read(def: T.self, position: Int(o &+ position))
     return r
   }
 }
