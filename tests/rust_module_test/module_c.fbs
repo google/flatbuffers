@@ -1,0 +1,7 @@
+include "module_b.fbs";
+
+namespace baz;
+
+table Baz {
+  value: bar.Bar;
+}
