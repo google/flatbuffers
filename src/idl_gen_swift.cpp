@@ -174,10 +174,12 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "// swiftlint:disable all";
     code_ += "// swiftformat:disable all\n";
     if (parser_.opts.include_dependence_headers || parser_.opts.generate_all) {
-      if (parser_.opts.swift_implementation_only)
-        code_ += "@_implementationOnly \\";
-
-      code_ += "import FlatBuffers\n";
+      code_.SetValue("IMPLEMENTONLY", parser_.opts.swift_implementation_only ? "@_implementationOnly " : "");
+      code_ += "#if canImport(Common)";
+      code_ += "{{IMPLEMENTONLY}}import Common";
+      code_ += "#endif";
+      code_ += "";
+      code_ += "{{IMPLEMENTONLY}}import FlatBuffers\n";
     }
 
     // Generate code for all the enum declarations.

@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#if canImport(Common)
+import Common
+#endif
+
 import Foundation
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
@@ -25,12 +29,10 @@ struct _InternalByteBuffer {
   /// deallocating the memory that was held by (memory: UnsafeMutableRawPointer)
   @usableFromInline
   final class Storage {
-    // This storage doesn't own the memory, therefore, we won't deallocate on deinit.
-    private let unowned: Bool
     /// pointer to the start of the buffer object in memory
-    var memory: UnsafeMutableRawPointer
+    private(set) var memory: UnsafeMutableRawPointer
     /// Capacity of UInt8 the buffer can hold
-    var capacity: Int
+    private(set) var capacity: Int
 
     @usableFromInline
     init(count: Int, alignment: Int) {
@@ -38,20 +40,14 @@ struct _InternalByteBuffer {
         byteCount: count,
         alignment: alignment)
       capacity = count
-      unowned = false
     }
 
     deinit {
-      if !unowned {
-        memory.deallocate()
-      }
+      memory.deallocate()
     }
 
     @usableFromInline
     func initialize(for size: Int) {
-      assert(
-        !unowned,
-        "initalize should NOT be called on a buffer that is built by assumingMemoryBound")
       memset(memory, 0, size)
     }
 
@@ -82,6 +78,7 @@ struct _InternalByteBuffer {
 
   @usableFromInline var _storage: Storage
 
+  private let initialSize: Int
   /// The size of the elements written to the buffer + their paddings
   private var _writerSize: Int = 0
   /// Alignment of the current  memory being written to the buffer
@@ -104,9 +101,9 @@ struct _InternalByteBuffer {
   ///   - size: Length of the buffer
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   init(initialSize size: Int) {
-    let size = size.convertToPowerofTwo
-    _storage = Storage(count: size, alignment: alignment)
-    _storage.initialize(for: size)
+    initialSize = size.convertToPowerofTwo
+    _storage = Storage(count: initialSize, alignment: alignment)
+    _storage.initialize(for: initialSize)
   }
 
   /// Fills the buffer with padding by adding to the writersize
@@ -253,7 +250,7 @@ struct _InternalByteBuffer {
     }
     assert(index < _storage.capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    _ = withUnsafePointer(to: value) {
+    withUnsafePointer(to: value) {
       memcpy(
         _storage.memory.advanced(by: index),
         $0,
@@ -294,10 +291,14 @@ struct _InternalByteBuffer {
 
   /// Clears the current instance of the buffer, replacing it with new memory
   @inline(__always)
-  mutating public func clear() {
+  mutating public func clear(keepingCapacity: Bool = false) {
     _writerSize = 0
     alignment = 1
-    _storage.initialize(for: _storage.capacity)
+    if keepingCapacity {
+      _storage.initialize(for: _storage.capacity)
+    } else {
+      _storage = Storage(count: initialSize, alignment: alignment)
+    }
   }
 
   /// Reads an object from the buffer

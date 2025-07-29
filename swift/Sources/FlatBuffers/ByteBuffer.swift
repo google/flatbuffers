@@ -293,7 +293,7 @@ public struct ByteBuffer {
     }
     assert(index < _storage.capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    _ = withUnsafePointer(to: value) { ptr in
+    withUnsafePointer(to: value) { ptr in
       _storage.withUnsafeRawPointer {
         memcpy(
           $0.advanced(by: index),

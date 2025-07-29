@@ -726,6 +726,7 @@ struct IDLOptions {
   /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
   bool python_typing;
+  bool python_decode_obj_api_strings=false;
 
   // The target Python version. Can be one of the following:
   // -  "0"
