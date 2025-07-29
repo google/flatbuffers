@@ -1729,6 +1729,7 @@ int FlatBufferTests(const std::string &tests_data_path) {
   EmbeddedSchemaAccess();
   Offset64Tests();
   UnionUnderlyingTypeTest();
+  ZeroOnFloatToIntTest();
   return 0;
 }
 }  // namespace
