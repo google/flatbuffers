@@ -303,12 +303,12 @@ public struct FlatBufferBuilder {
     var isAlreadyAdded: Int?
 
     let vt2 = _bb.memory.advanced(by: _bb.writerIndex)
-    let len2 = vt2.load(fromByteOffset: 0, as: Int16.self)
+    let len2 = vt2.bindMemory(to: Int16.self, capacity: 1).pointee
 
     for index in stride(from: 0, to: _vtables.count, by: 1) {
       let position = _bb.capacity &- Int(_vtables[index])
       let vt1 = _bb.memory.advanced(by: position)
-      let len1 = _bb.read(def: Int16.self, position: position)
+      let len1 = vt1.bindMemory(to: Int16.self, capacity: 1).pointee
       if len2 != len1 || 0 != memcmp(vt1, vt2, Int(len2)) { continue }
 
       isAlreadyAdded = Int(_vtables[index])
