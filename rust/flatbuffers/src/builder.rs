@@ -87,11 +87,17 @@ pub struct AllocatorAdapter<E: ExternalAllocator> {
 
 impl<E: ExternalAllocator> AllocatorAdapter<E> {
     /// Creates a FlatBufferBuilder that uses this adapter.
+    /// 
+    /// The returned builder uses `'static` lifetime because it owns the adapter,
+    /// which in turn owns the allocator. If the allocator type `E` has lifetime
+    /// constraints, they will be enforced at the call site.
+    #[inline]
     pub fn new_builder(alloc: E) -> FlatBufferBuilder<'static, Self> {
         FlatBufferBuilder::new_in(Self::new(alloc))
     }
 
     // The existing new() method for the adapter remains private.
+    #[inline]
     fn new(alloc: E) -> Self {
         Self {
             alloc,
@@ -118,10 +124,9 @@ impl<E: ExternalAllocator> DerefMut for AllocatorAdapter<E> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         if self.capacity == 0 {
             // Return a mutable reference to an empty slice
-            // This is safe because we're not actually accessing any memory
-            // Use a static empty slice instead of null pointer
-            static mut EMPTY: [u8; 0] = [];
-            unsafe { &mut EMPTY }
+            // Safety: Creating an empty slice from a dangling pointer is safe
+            // as long as the length is 0
+            unsafe { core::slice::from_raw_parts_mut(NonNull::dangling().as_ptr(), 0) }
         } else {
             // Safety: The pointer and capacity are managed internally and are valid.
             unsafe { core::slice::from_raw_parts_mut(self.buf.as_ptr(), self.capacity) }
@@ -135,12 +140,21 @@ unsafe impl<E: ExternalAllocator> Allocator for AllocatorAdapter<E> {
     fn grow_downwards(&mut self) -> Result<(), Self::Error> {
         let old_capacity = self.capacity;
         let min_size = 8;
-        let new_capacity = (old_capacity * 2).max(min_size);
+        
+        // Prevent overflow and respect the FlatBuffers size limit
+        let new_capacity = old_capacity
+            .saturating_mul(2)
+            .max(min_size)
+            .min(FLATBUFFERS_MAX_BUFFER_SIZE);
         
         if new_capacity > old_capacity {
             let new_buf = self.alloc.reallocate(self.buf, old_capacity, new_capacity);
             self.buf = new_buf;
             self.capacity = new_capacity;
+            
+            // The grow_downwards contract requires old data to be at the end
+            // This is handled by the ExternalAllocator implementation
+            debug_assert!(new_capacity >= old_capacity);
         }
         
         Ok(())
@@ -148,6 +162,15 @@ unsafe impl<E: ExternalAllocator> Allocator for AllocatorAdapter<E> {
 
     fn len(&self) -> usize {
         self.capacity
+    }
+}
+
+impl<E: ExternalAllocator> Drop for AllocatorAdapter<E> {
+    fn drop(&mut self) {
+        // Only deallocate if a buffer was actually allocated.
+        if self.capacity > 0 {
+            self.alloc.deallocate(self.buf, self.capacity);
+        }
     }
 }
 
