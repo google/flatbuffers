@@ -60,6 +60,11 @@ pub unsafe trait Allocator: DerefMut<Target = [u8]> {
 
 /// A trait for supplying memory to a FlatBufferBuilder from an external source.
 ///
+/// This trait should be implemented for custom memory sources, like arena allocators,
+/// that cannot conform to the `DerefMut<Target = [u8]>` requirement of the primary
+/// `Allocator` trait. It can be used with the `FlatBufferBuilder::new_with_external_allocator`
+/// constructor.
+///
 /// # Safety
 /// The implementer must ensure that reallocate and deallocate handle memory
 /// correctly, as the FlatBufferBuilder will rely on these operations for its
@@ -72,16 +77,22 @@ pub unsafe trait ExternalAllocator {
     fn deallocate(&mut self, buf: NonNull<u8>, size: usize);
 }
 
-/// A bridge struct that wraps an ExternalAllocator and implements the Allocator trait.
-/// This allows external allocators to be used with the existing FlatBufferBuilder architecture.
-struct ExternalAllocatorBridge<'a> {
-    alloc: &'a mut dyn ExternalAllocator,
+/// An adapter that wraps any type implementing `ExternalAllocator`
+/// to make it compatible with the `Allocator` trait.
+pub struct AllocatorAdapter<E: ExternalAllocator> {
+    alloc: E,
     buf: NonNull<u8>,
     capacity: usize,
 }
 
-impl<'a> ExternalAllocatorBridge<'a> {
-    fn new(alloc: &'a mut dyn ExternalAllocator) -> Self {
+impl<E: ExternalAllocator> AllocatorAdapter<E> {
+    /// Creates a FlatBufferBuilder that uses this adapter.
+    pub fn new_builder(alloc: E) -> FlatBufferBuilder<'static, Self> {
+        FlatBufferBuilder::new_in(Self::new(alloc))
+    }
+
+    // The existing new() method for the adapter remains private.
+    fn new(alloc: E) -> Self {
         Self {
             alloc,
             buf: NonNull::dangling(),
@@ -90,7 +101,7 @@ impl<'a> ExternalAllocatorBridge<'a> {
     }
 }
 
-impl<'a> Deref for ExternalAllocatorBridge<'a> {
+impl<E: ExternalAllocator> Deref for AllocatorAdapter<E> {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
@@ -103,7 +114,7 @@ impl<'a> Deref for ExternalAllocatorBridge<'a> {
     }
 }
 
-impl<'a> DerefMut for ExternalAllocatorBridge<'a> {
+impl<E: ExternalAllocator> DerefMut for AllocatorAdapter<E> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         if self.capacity == 0 {
             // Return a mutable reference to an empty slice
@@ -118,7 +129,7 @@ impl<'a> DerefMut for ExternalAllocatorBridge<'a> {
     }
 }
 
-unsafe impl<'a> Allocator for ExternalAllocatorBridge<'a> {
+unsafe impl<E: ExternalAllocator> Allocator for AllocatorAdapter<E> {
     type Error = Infallible;
 
     fn grow_downwards(&mut self) -> Result<(), Self::Error> {
@@ -311,14 +322,18 @@ impl<'fbb> FlatBufferBuilder<'fbb, DefaultAllocator> {
     }
 }
 
-impl<'a> FlatBufferBuilder<'a, ExternalAllocatorBridge<'a>> {
-    /// Creates a new FlatBufferBuilder with a custom external allocator.
-    pub fn new_with_external_allocator(
-        alloc: &'a mut dyn ExternalAllocator,
-    ) -> Self {
-        Self {
-            allocator: ExternalAllocatorBridge::new(alloc),
-            head: ReverseIndex::end(),
+
+
+impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
+
+
+
+    /// Create a [`FlatBufferBuilder`] that is ready for writing with a custom [`Allocator`].
+    pub fn new_in(allocator: A) -> Self {
+        let head = ReverseIndex::end();
+        FlatBufferBuilder {
+            allocator,
+            head,
 
             field_locs: Vec::new(),
             written_vtable_revpos: Vec::new(),
@@ -333,9 +348,6 @@ impl<'a> FlatBufferBuilder<'a, ExternalAllocatorBridge<'a>> {
             _phantom: PhantomData,
         }
     }
-}
-
-impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
 
 
@@ -1105,9 +1117,10 @@ mod tests {
         }
 
         let arena = Bump::new();
-        let mut bump_allocator = BumpaloBridge { arena: &arena };
+        let bump_allocator = BumpaloBridge { arena: &arena };
 
-        let mut builder = FlatBufferBuilder::new_with_external_allocator(&mut bump_allocator);
+        // Correct: Call the constructor on the adapter.
+        let mut builder = AllocatorAdapter::new_builder(bump_allocator);
 
         // Test basic functionality - create byte strings instead of strings
         builder.create_byte_string(b"hello bumpalo");
