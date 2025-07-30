@@ -200,7 +200,7 @@
                 "type" : "string", "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
               },
         "test" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }]
+                "anyOf": [{ "type": "null" }, { "type": "object" }]
               },
         "test4" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"} }]
@@ -309,13 +309,13 @@
                 "type" : "string", "enum": ["NONE", "M", "TS", "M2"]
               },
         "any_unique" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }]
+                "anyOf": [{ "type": "null" }, { "type": "object" }]
               },
         "any_ambiguous_type" : {
                 "type" : "string", "enum": ["NONE", "M1", "M2", "M3"]
               },
         "any_ambiguous" : {
-                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }] }]
+                "anyOf": [{ "type": "null" }, { "type": "object" }]
               },
         "vector_of_enums" : {
                 "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Color"} }]
