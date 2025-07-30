@@ -20,6 +20,7 @@ use core::cmp::max;
 use core::convert::Infallible;
 use core::fmt::{Debug, Display};
 use core::iter::{DoubleEndedIterator, ExactSizeIterator};
+use core::marker::PhantomData;
 
 use core::ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
 use core::ptr::{write_bytes, NonNull};
@@ -33,15 +34,7 @@ use crate::vector::Vector;
 use crate::vtable::{field_index_to_field_offset, VTable};
 use crate::vtable_writer::VTableWriter;
 
-/// Represents the buffer returned when a FlatBufferBuilder is collapsed.
-pub enum CollapsedBuffer<'a> {
-    /// An owned buffer for when the default allocator is used.
-    /// The tuple contains the buffer and the starting index of the data.
-    Owned(Vec<u8>, usize),
-    /// A raw pointer to the buffer for when an external allocator is used.
-    /// The tuple contains the buffer pointer, its capacity, and the starting index of the data.
-    External(&'a mut dyn ExternalAllocator, NonNull<u8>, usize, usize),
-}
+
 
 /// Trait to implement custom allocation strategies for [`FlatBufferBuilder`].
 ///
@@ -77,6 +70,74 @@ pub unsafe trait ExternalAllocator {
 
     /// Deallocates the buffer.
     fn deallocate(&mut self, buf: NonNull<u8>, size: usize);
+}
+
+/// A bridge struct that wraps an ExternalAllocator and implements the Allocator trait.
+/// This allows external allocators to be used with the existing FlatBufferBuilder architecture.
+struct ExternalAllocatorBridge<'a> {
+    alloc: &'a mut dyn ExternalAllocator,
+    buf: NonNull<u8>,
+    capacity: usize,
+}
+
+impl<'a> ExternalAllocatorBridge<'a> {
+    fn new(alloc: &'a mut dyn ExternalAllocator) -> Self {
+        Self {
+            alloc,
+            buf: NonNull::dangling(),
+            capacity: 0,
+        }
+    }
+}
+
+impl<'a> Deref for ExternalAllocatorBridge<'a> {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        if self.capacity == 0 {
+            &[]
+        } else {
+            // Safety: The pointer and capacity are managed internally and are valid.
+            unsafe { core::slice::from_raw_parts(self.buf.as_ptr(), self.capacity) }
+        }
+    }
+}
+
+impl<'a> DerefMut for ExternalAllocatorBridge<'a> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        if self.capacity == 0 {
+            // Return a mutable reference to an empty slice
+            // This is safe because we're not actually accessing any memory
+            // Use a static empty slice instead of null pointer
+            static mut EMPTY: [u8; 0] = [];
+            unsafe { &mut EMPTY }
+        } else {
+            // Safety: The pointer and capacity are managed internally and are valid.
+            unsafe { core::slice::from_raw_parts_mut(self.buf.as_ptr(), self.capacity) }
+        }
+    }
+}
+
+unsafe impl<'a> Allocator for ExternalAllocatorBridge<'a> {
+    type Error = Infallible;
+
+    fn grow_downwards(&mut self) -> Result<(), Self::Error> {
+        let old_capacity = self.capacity;
+        let min_size = 8;
+        let new_capacity = (old_capacity * 2).max(min_size);
+        
+        if new_capacity > old_capacity {
+            let new_buf = self.alloc.reallocate(self.buf, old_capacity, new_capacity);
+            self.buf = new_buf;
+            self.capacity = new_capacity;
+        }
+        
+        Ok(())
+    }
+
+    fn len(&self) -> usize {
+        self.capacity
+    }
 }
 
 /// Default [`FlatBufferBuilder`] allocator backed by a [`Vec<u8>`].
@@ -153,18 +214,7 @@ struct FieldLoc {
     id: VOffsetT,
 }
 
-// This enum holds the state of the allocator. It makes invalid states
-// (like having an external allocator but no buffer) impossible.
-enum AllocatorState<'a> {
-    // The default, owned Vec<u8> based allocator.
-    Owned(DefaultAllocator),
-    // A borrowed external allocator, along with the buffer it manages.
-    External {
-        alloc: &'a mut dyn ExternalAllocator,
-        buf: NonNull<u8>,
-        capacity: usize,
-    },
-}
+
 
 /// FlatBufferBuilder builds a FlatBuffer through manipulating its internal
 /// buffer. It can be used to write any valid FlatBuffer data.
@@ -180,9 +230,8 @@ enum AllocatorState<'a> {
 /// builder.finish(table_off, None);
 /// let buf = builder.finished_data();
 /// ```
-pub struct FlatBufferBuilder<'a> {
-    // This is the ONLY field for allocation.
-    alloc_state: AllocatorState<'a>,
+pub struct FlatBufferBuilder<'fbb, A: Allocator = DefaultAllocator> {
+    allocator: A,
     head: ReverseIndex,
 
     field_locs: Vec<FieldLoc>,
@@ -193,10 +242,12 @@ pub struct FlatBufferBuilder<'a> {
 
     min_align: usize,
     force_defaults: bool,
-    strings_pool: Vec<WIPOffset<&'a str>>,
+    strings_pool: Vec<WIPOffset<&'fbb str>>,
+
+    _phantom: PhantomData<&'fbb ()>,
 }
 
-impl<'a> FlatBufferBuilder<'a> {
+impl<'fbb> FlatBufferBuilder<'fbb, DefaultAllocator> {
     /// Create a new [`FlatBufferBuilder`] that is ready for writing.
     pub fn new() -> Self {
         Self::with_capacity(0)
@@ -208,7 +259,7 @@ impl<'a> FlatBufferBuilder<'a> {
         let mut alloc = DefaultAllocator::new();
         alloc.0.reserve(size);
         Self {
-            alloc_state: AllocatorState::Owned(alloc),
+            allocator: alloc,
             head: ReverseIndex::end(),
 
             field_locs: Vec::new(),
@@ -220,6 +271,8 @@ impl<'a> FlatBufferBuilder<'a> {
             min_align: 0,
             force_defaults: false,
             strings_pool: Vec::new(),
+
+            _phantom: PhantomData,
         }
     }
 
@@ -233,7 +286,7 @@ impl<'a> FlatBufferBuilder<'a> {
     pub fn from_vec(buffer: Vec<u8>) -> Self {
         let head = ReverseIndex::end();
         Self {
-            alloc_state: AllocatorState::Owned(DefaultAllocator::from_vec(buffer)),
+            allocator: DefaultAllocator::from_vec(buffer),
             head,
 
             field_locs: Vec::new(),
@@ -245,33 +298,26 @@ impl<'a> FlatBufferBuilder<'a> {
             min_align: 0,
             force_defaults: false,
             strings_pool: Vec::new(),
+
+            _phantom: PhantomData,
         }
     }
 
-    /// Destroy the [`FlatBufferBuilder`], returning its underlying buffer.
-    pub fn collapse(self) -> CollapsedBuffer<'a> {
-        let index = self.head.to_forward_index(self.buffer());
-        match self.alloc_state {
-            AllocatorState::Owned(alloc) => {
-                CollapsedBuffer::Owned(alloc.0, index)
-            }
-            AllocatorState::External { alloc, buf, capacity } => {
-                CollapsedBuffer::External(alloc, buf, capacity, index)
-            }
-        }
+    /// Destroy the [`FlatBufferBuilder`], returning its underlying buffer and the index
+    /// into it that represents the start of valid data.
+    pub fn collapse(self) -> (Vec<u8>, usize) {
+        let index = self.head.to_forward_index(&self.allocator);
+        (self.allocator.0, index)
     }
+}
 
+impl<'a> FlatBufferBuilder<'a, ExternalAllocatorBridge<'a>> {
     /// Creates a new FlatBufferBuilder with a custom external allocator.
     pub fn new_with_external_allocator(
         alloc: &'a mut dyn ExternalAllocator,
-    ) -> FlatBufferBuilder<'a> {
-        FlatBufferBuilder {
-            // Start with a dangling pointer and zero capacity. The first `grow` will allocate.
-            alloc_state: AllocatorState::External {
-                alloc,
-                buf: NonNull::dangling(),
-                capacity: 0,
-            },
+    ) -> Self {
+        Self {
+            allocator: ExternalAllocatorBridge::new(alloc),
             head: ReverseIndex::end(),
 
             field_locs: Vec::new(),
@@ -283,39 +329,15 @@ impl<'a> FlatBufferBuilder<'a> {
             min_align: 0,
             force_defaults: false,
             strings_pool: Vec::new(),
-        }
-    }
 
-    // Centralize buffer access - these two methods isolate the logic
-    #[inline]
-    fn buffer(&self) -> &[u8] {
-        match &self.alloc_state {
-            AllocatorState::Owned(alloc) => &alloc.0,
-            AllocatorState::External { buf, capacity, .. } => {
-                // Safety: The pointer and capacity are managed internally and are valid.
-                unsafe { core::slice::from_raw_parts(buf.as_ptr(), *capacity) }
-            }
+            _phantom: PhantomData,
         }
     }
+}
 
-    #[inline]
-    fn buffer_mut(&mut self) -> &mut [u8] {
-        match &mut self.alloc_state {
-            AllocatorState::Owned(alloc) => &mut alloc.0,
-            AllocatorState::External { buf, capacity, .. } => {
-                // Safety: The pointer and capacity are managed internally and are valid.
-                unsafe { core::slice::from_raw_parts_mut(buf.as_ptr(), *capacity) }
-            }
-        }
-    }
+impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
-    #[inline]
-    fn buffer_len(&self) -> usize {
-        match &self.alloc_state {
-            AllocatorState::Owned(alloc) => alloc.len(),
-            AllocatorState::External { capacity, .. } => *capacity,
-        }
-    }
+
 
     /// Reset the FlatBufferBuilder internal state. Use this method after a
     /// call to a `finish` function in order to re-use a FlatBufferBuilder.
@@ -331,7 +353,7 @@ impl<'a> FlatBufferBuilder<'a> {
     pub fn reset(&mut self) {
         // memset only the part of the buffer that could be dirty:
         let range = self.head.range_to_end();
-        self.buffer_mut()[range]
+        self.allocator[range]
             .iter_mut()
             .for_each(|x| *x = 0);
 
@@ -355,8 +377,7 @@ impl<'a> FlatBufferBuilder<'a> {
         self.align(sz, P::alignment());
         self.make_space(sz);
         {
-            let range = self.head.range_to_end();
-            let (dst, rest) = self.buffer_mut()[range].split_at_mut(sz);
+            let (dst, rest) = self.allocator[self.head.range_to_end()].split_at_mut(sz);
             // Safety:
             // Called make_space above
             unsafe { x.push(dst, rest.len()) };
@@ -447,7 +468,7 @@ impl<'a> FlatBufferBuilder<'a> {
     ///
     /// Asserts that the builder is in a nested state.
     #[inline]
-    pub fn end_vector<T: Push>(&mut self, num_elems: usize) -> WIPOffset<Vector<'a, T>> {
+    pub fn end_vector<T: Push>(&mut self, num_elems: usize) -> WIPOffset<Vector<'fbb, T>> {
         self.assert_nested("end_vector");
         self.nested = false;
         let o = self.push::<UOffsetT>(num_elems as UOffsetT);
@@ -455,7 +476,7 @@ impl<'a> FlatBufferBuilder<'a> {
     }
 
     #[inline]
-    pub fn create_shared_string<'b>(&'a mut self, s: &'b str) -> WIPOffset<&'a str> {
+    pub fn create_shared_string<'b>(&mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested(
             "create_shared_string can not be called when a table or vector is under construction",
         );
@@ -463,7 +484,7 @@ impl<'a> FlatBufferBuilder<'a> {
         let found = self.strings_pool.binary_search_by(|offset| {
             let ptr = offset.value() as usize;
             // Gets The pointer to the size of the string
-            let str_memory = &self.buffer()[self.buffer().len() - ptr..];
+            let str_memory = &self.allocator[self.allocator.len() - ptr..];
             // Gets the size of the written string from buffer
             let size =
                 u32::from_le_bytes([str_memory[0], str_memory[1], str_memory[2], str_memory[3]])
@@ -491,7 +512,7 @@ impl<'a> FlatBufferBuilder<'a> {
     ///
     /// The wire format represents this as a zero-terminated byte vector.
     #[inline]
-    pub fn create_string<'b>(&'a mut self, s: &'b str) -> WIPOffset<&'a str> {
+    pub fn create_string<'b>(&mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested(
             "create_string can not be called when a table or vector is under construction",
         );
@@ -500,7 +521,7 @@ impl<'a> FlatBufferBuilder<'a> {
 
     /// Create a zero-terminated byte vector.
     #[inline]
-    pub fn create_byte_string(&mut self, data: &[u8]) -> WIPOffset<&'a [u8]> {
+    pub fn create_byte_string(&mut self, data: &[u8]) -> WIPOffset<&'fbb [u8]> {
         self.assert_not_nested(
             "create_byte_string can not be called when a table or vector is under construction",
         );
@@ -517,9 +538,9 @@ impl<'a> FlatBufferBuilder<'a> {
     /// vector manually: use `start_vector`, `push`, and `end_vector`.
     #[inline]
     pub fn create_vector<'b, T: Push + 'b>(
-        &'a mut self,
+        &mut self,
         items: &'b [T],
-    ) -> WIPOffset<Vector<'a, T::Output>> {
+    ) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elem_size = T::size();
         let slice_size = items.len() * elem_size;
         self.align(slice_size, T::alignment().max_of(SIZE_UOFFSET));
@@ -528,8 +549,7 @@ impl<'a> FlatBufferBuilder<'a> {
         self.head -= slice_size;
         let mut written_len = self.head.distance_to_end();
 
-        let range = self.head.range_to(self.head + slice_size);
-        let buf = &mut self.buffer_mut()[range];
+        let buf = &mut self.allocator[self.head.range_to(self.head + slice_size)];
         for (item, out) in items.iter().zip(buf.chunks_exact_mut(elem_size)) {
             written_len -= elem_size;
 
@@ -549,7 +569,7 @@ impl<'a> FlatBufferBuilder<'a> {
     pub fn create_vector_from_iter<T: Push>(
         &mut self,
         items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
-    ) -> WIPOffset<Vector<'a, T::Output>> {
+    ) -> WIPOffset<Vector<'fbb, T::Output>> {
         let elem_size = T::size();
         self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
         let mut actual = 0;
@@ -576,7 +596,7 @@ impl<'a> FlatBufferBuilder<'a> {
     /// whether it has been finished.
     #[inline]
     pub fn unfinished_data(&self) -> &[u8] {
-        &self.buffer()[self.head.range_to_end()]
+        &self.allocator[self.head.range_to_end()]
     }
     /// Get the byte slice for the data that has been written after a call to
     /// one of the `finish` functions.
@@ -585,7 +605,7 @@ impl<'a> FlatBufferBuilder<'a> {
     #[inline]
     pub fn finished_data(&self) -> &[u8] {
         self.assert_finished("finished_bytes cannot be called when the buffer is not yet finished");
-        &self.buffer()[self.head.range_to_end()]
+        &self.allocator[self.head.range_to_end()]
     }
     /// Returns a mutable view of a finished buffer and location of where the flatbuffer starts.
     /// Note that modifying the flatbuffer data may corrupt it.
@@ -593,8 +613,8 @@ impl<'a> FlatBufferBuilder<'a> {
     /// Panics if the flatbuffer is not finished.
     #[inline]
     pub fn mut_finished_buffer(&mut self) -> (&mut [u8], usize) {
-        let index = self.head.to_forward_index(self.buffer());
-        (self.buffer_mut(), index)
+        let index = self.head.to_forward_index(&self.allocator);
+        (&mut self.allocator[..], index)
     }
     /// Assert that a field is present in the just-finished Table.
     ///
@@ -612,11 +632,10 @@ impl<'a> FlatBufferBuilder<'a> {
         // The value of TableFinishedWIPOffset is the offset from the end of the allocator
         // to an SOffsetT pointing to a valid VTable
         //
-        // `self.buffer_len() = self.used_space() + self.head`
-        // `self.buffer_len() - tab_revloc = self.used_space() - tab_revloc + self.head`
-        // `self.buffer_len() - tab_revloc = idx + self.head`
-        let buffer_slice = &self.buffer()[self.head.range_to_end()];
-        let tab = unsafe { Table::new(buffer_slice, idx) };
+        // `self.allocator.len() = self.used_space() + self.head`
+        // `self.allocator.len() - tab_revloc = self.used_space() - tab_revloc + self.head`
+        // `self.allocator.len() - tab_revloc = idx + self.head`
+        let tab = unsafe { Table::new(&self.allocator[self.head.range_to_end()], idx) };
         let o = tab.vtable().get(slot_byte_loc) as usize;
         assert!(o != 0, "missing required field {}", assert_msg_name);
     }
@@ -723,11 +742,10 @@ impl<'a> FlatBufferBuilder<'a> {
         
         // Clone field_locs to avoid borrowing issues
         let field_locs = self.field_locs.clone();
-        let range = vt_start_pos.range_to(vt_end_pos);
         
         {
             // write the vtable header:
-            let vtfw = &mut VTableWriter::init(&mut self.buffer_mut()[range]);
+            let vtfw = &mut VTableWriter::init(&mut self.allocator[vt_start_pos.range_to(vt_end_pos)]);
             vtfw.write_vtable_byte_length(vtable_byte_len as VOffsetT);
             vtfw.write_object_inline_size(table_object_size as VOffsetT);
 
@@ -737,20 +755,20 @@ impl<'a> FlatBufferBuilder<'a> {
                 vtfw.write_field_offset(fl.id, pos);
             }
         }
-        let new_vt_bytes = &self.buffer()[vt_start_pos.range_to(vt_end_pos)];
+        let new_vt_bytes = &self.allocator[vt_start_pos.range_to(vt_end_pos)];
         let found = self
             .written_vtable_revpos
             .binary_search_by(|old_vtable_revpos: &UOffsetT| {
-                let old_vtable_pos = self.buffer_len() - *old_vtable_revpos as usize;
+                let old_vtable_pos = self.allocator.len() - *old_vtable_revpos as usize;
                 // Safety:
                 // Already written vtables are valid by construction
-                let old_vtable = unsafe { VTable::init(self.buffer(), old_vtable_pos) };
+                let old_vtable = unsafe { VTable::init(&self.allocator, old_vtable_pos) };
                 new_vt_bytes.cmp(old_vtable.as_bytes())
             });
         let final_vtable_revpos = match found {
             Ok(i) => {
                 // The new vtable is a duplicate so clear it.
-                VTableWriter::init(&mut self.buffer_mut()[vt_start_pos.range_to(vt_end_pos)]).clear();
+                VTableWriter::init(&mut self.allocator[vt_start_pos.range_to(vt_end_pos)]).clear();
                 self.head += vtable_byte_len;
                 self.written_vtable_revpos[i]
             }
@@ -762,17 +780,17 @@ impl<'a> FlatBufferBuilder<'a> {
             }
         };
         // Write signed offset from table to its vtable.
-        let table_pos = self.buffer_len() - object_revloc_to_vtable.value() as usize;
+        let table_pos = self.allocator.len() - object_revloc_to_vtable.value() as usize;
         if cfg!(debug_assertions) {
             // Safety:
             // Verified slice length
             let tmp_soffset_to_vt = unsafe {
-                read_scalar::<UOffsetT>(&self.buffer()[table_pos..table_pos + SIZE_UOFFSET])
+                read_scalar::<UOffsetT>(&self.allocator[table_pos..table_pos + SIZE_UOFFSET])
             };
             assert_eq!(tmp_soffset_to_vt, 0xF0F0_F0F0);
         }
 
-        let buf = &mut self.buffer_mut()[table_pos..table_pos + SIZE_SOFFSET];
+        let buf = &mut self.allocator[table_pos..table_pos + SIZE_SOFFSET];
         // Safety:
         // Verified length of buf above
         unsafe {
@@ -791,25 +809,9 @@ impl<'a> FlatBufferBuilder<'a> {
     #[inline]
     fn grow_allocator(&mut self) {
         let starting_active_size = self.used_space();
-        let required_size = starting_active_size * 2; // Double the current size
-        
-        match &mut self.alloc_state {
-            AllocatorState::Owned(alloc) => {
-                if required_size > alloc.len() {
-                    alloc.grow_downwards().expect("Default allocator failed to grow");
-                }
-            }
-            AllocatorState::External { alloc, buf, capacity } => {
-                // Always allocate at least 8 bytes for the first allocation
-                let min_size = 8;
-                let new_cap = (*capacity * 2).max(min_size);
-                if new_cap > *capacity {
-                    let new_buf = alloc.reallocate(*buf, *capacity, new_cap);
-                    *buf = new_buf;
-                    *capacity = new_cap;
-                }
-            }
-        }
+        self.allocator
+            .grow_downwards()
+            .expect("Flatbuffer allocation failure");
         
         let ending_active_size = self.used_space();
         debug_assert_eq!(starting_active_size, ending_active_size);
@@ -877,8 +879,8 @@ impl<'a> FlatBufferBuilder<'a> {
     #[inline]
     fn push_bytes_unprefixed(&mut self, x: &[u8]) -> UOffsetT {
         let n = self.make_space(x.len());
-        self.buffer_mut()[n.range_to(n + x.len())].copy_from_slice(x);
-        n.to_forward_index(self.buffer()) as UOffsetT
+        self.allocator[n.range_to(n + x.len())].copy_from_slice(x);
+        n.to_forward_index(&self.allocator) as UOffsetT
     }
 
     #[inline]
@@ -897,7 +899,7 @@ impl<'a> FlatBufferBuilder<'a> {
     }
     #[inline]
     fn unused_ready_space(&self) -> usize {
-        self.buffer().len() - self.head.distance_to_end()
+        self.allocator.len() - self.head.distance_to_end()
     }
     #[inline]
     fn assert_nested(&self, fn_name: &'static str) {
@@ -941,7 +943,7 @@ fn padding_bytes(buf_size: usize, scalar_size: usize) -> usize {
     (!buf_size).wrapping_add(1) & (scalar_size.wrapping_sub(1))
 }
 
-impl<'a> Default for FlatBufferBuilder<'a> {
+impl<'fbb> Default for FlatBufferBuilder<'fbb> {
     fn default() -> Self {
         Self::with_capacity(0)
     }
