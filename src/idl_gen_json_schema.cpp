@@ -112,78 +112,34 @@ static std::string GenBaseType(const Type &type) {
   return GenType(type.base_type);
 }
 
-static std::string GenUnionArrayItemType(const EnumDef &enum_def,
-                                         const std::string &field_name) {
-  std::string result = "\"type\": \"object\", \"properties\": {";
-
-  result += "\"" + field_name + "_type\": {";
-  result += "\"type\": \"string\", \"enum\": [";
-
-  const auto &union_types = enum_def.Vals();
-  bool first = true;
-  for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-    const auto &union_type = *ut;
-    if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
-
-    if (!first) result.append(", ");
-    first = false;
-    result.append("\"" + union_type->name + "\"");
-  }
-  result += "]}, ";
-
-  result += "\"" + field_name + "\": {}";
-  result += "}, \"required\": [\"" + field_name + "_type\", \"" + field_name +
-            "\"], ";
-
-  result += "\"allOf\": [";
-  first = true;
-  for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
-    const auto &union_type = *ut;
-    if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
-
-    if (!first) result.append(", ");
-    first = false;
-
-    result += "{\"if\": {\"properties\": {\"" + field_name +
-              "_type\": {\"const\": \"" + union_type->name + "\"}}}, ";
-    result += "\"then\": {\"properties\": {\"" + field_name + "\": {";
-
-    if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
-      result += GenTypeRef(union_type->union_type.struct_def);
-    } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
-      result += "\"type\": \"string\"";
-    }
-
-    result += "}}}}";
-  }
-  result += "], \"additionalProperties\": false";
-
-  return result;
-}
-
-static std::string SingularizeFieldName(const std::string &field_name) {
-  if (field_name.length() > 1 && field_name.back() == 's') {
-    return field_name.substr(0, field_name.length() - 1);
-  }
-  return field_name;
-}
-
 static std::string GenArrayType(const Type &type,
                                 const std::string &field_name = "") {
   std::string element_type;
 
-  // Handle union arrays first, before checking struct_def or enum_def
   if (type.element == BASE_TYPE_UNION) {
     if (type.enum_def != nullptr) {
-      std::string union_field_name;
-      if (field_name.empty()) {
-        union_field_name = type.enum_def->name;
-      } else {
-        union_field_name = SingularizeFieldName(field_name);
+      std::string union_type_string("\"anyOf\": [");
+      const auto &union_types = type.enum_def->Vals();
+      bool first = true;
+
+      for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+        const auto &union_type = *ut;
+        if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+
+        if (!first) union_type_string.append(", ");
+        first = false;
+
+        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+          union_type_string.append(
+              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
+        } else if (union_type->union_type.base_type == BASE_TYPE_STRING) {
+          union_type_string.append("{ \"type\": \"string\" }");
+        }
       }
-      element_type = GenUnionArrayItemType(*type.enum_def, union_field_name);
+      union_type_string.append("]");
+      element_type = union_type_string;
     } else {
-      element_type = "\"type\": \"object\"";
+      element_type = "\"anyOf\": [{}]";
     }
   } else if (type.element == BASE_TYPE_UTYPE) {
     if (type.enum_def != nullptr) {
@@ -405,15 +361,15 @@ class JsonSchemaGenerator : public BaseGenerator {
       if ((*e)->is_union) {
         std::string union_type_string("\"anyOf\": [");
         const auto &union_types = (*e)->Vals();
+        bool first = true;
         for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
           const auto &union_type = *ut;
           if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
           if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+            if (!first) union_type_string.append(",");
+            first = false;
             union_type_string.append(
                 "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-          }
-          if (union_type != *union_types.rbegin()) {
-            union_type_string.append(",");
           }
         }
         union_type_string.append("]");
@@ -452,25 +408,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       code_ += Indent(3) + "\"properties\" : {" + NewLine();
 
       const auto &properties = structure->fields.vec;
-      std::vector<const FieldDef *> filtered_properties;
-
-      // Filter out auto-generated _type fields for union vectors
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
-        const auto &property = *prop;
-        // Skip auto-generated _type fields for union vectors only
-        // Keep _type fields for regular unions
-        if (property->sibling_union_field != nullptr &&
-            IsVector(property->sibling_union_field->value.type) &&
-            property->sibling_union_field->value.type.element ==
-                BASE_TYPE_UNION) {
-          continue;
-        }
-
-        filtered_properties.push_back(property);
-      }
-
-      for (auto prop = filtered_properties.cbegin();
-           prop != filtered_properties.cend(); ++prop) {
         const auto &property = *prop;
 
         std::string arrayInfo = "";
@@ -497,16 +435,14 @@ class JsonSchemaGenerator : public BaseGenerator {
         }
 
         typeLine += NewLine() + Indent(7) + "}";
-        if (std::next(prop) != filtered_properties.cend()) {
-          typeLine.append(",");
-        }
+        if (std::next(prop) != properties.cend()) { typeLine.append(","); }
         code_ += typeLine + NewLine();
       }
       code_ += Indent(3) + "}," + NewLine();  // close properties
       std::vector<std::string> union_conditions;
 
-      for (auto prop = filtered_properties.cbegin();
-           prop != filtered_properties.cend(); ++prop) {
+      for (auto prop = properties.cbegin();
+           prop != properties.cend(); ++prop) {
         const auto &property = *prop;
 
         // Add conditionals to point the correct underlying data to the _type
