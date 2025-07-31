@@ -682,6 +682,17 @@ if(FLATBUFFERS_INSTALL)
   endif()
 endif()
 
+add_custom_command(
+  OUTPUT $<CONFIG>/FlatBuffers.Tools.${PROJECT_VERSION}.nupkg
+  COMMAND nuget pack ${CMAKE_SOURCE_DIR}/net/FlatBuffers.Tools/FlatBuffers.Tools.nuspec -OutputDirectory $<CONFIG>
+  DEPENDS flatbuffers flatc
+  COMMENT "Creating NuGet package"
+)
+
+add_custom_target(create_nuget_package ALL
+  DEPENDS $<CONFIG>/FlatBuffers.Tools.${PROJECT_VERSION}.nupkg
+)
+
 if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
