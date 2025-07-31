@@ -214,7 +214,7 @@ vf64Array():Float64Array|null {
   return offset ? new Float64Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.TypeAliases" {
   return 'MyGame.Example.TypeAliases';
 }
 
