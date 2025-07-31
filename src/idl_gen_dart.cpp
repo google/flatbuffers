@@ -48,6 +48,7 @@ static Namer::Config DartDefaultConfig() {
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"$",
            /*keyword_suffix=*/"",
+           /*keywords_casing=*/Namer::Config::KeywordsCasing::CASE_SENSITIVE,
            /*filenames=*/Case::kKeep,
            /*directories=*/Case::kKeep,
            /*output_path=*/"",
