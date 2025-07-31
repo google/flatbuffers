@@ -53,6 +53,9 @@ static bool IsOffset(const BinaryRegionType type) {
 
 template<typename T> std::string ToString(T value) {
   if (std::is_floating_point<T>::value) {
+    std::string res;
+    if (ExplicitlyConvertSpecialValues(value, res))
+        return res;
     std::stringstream ss;
     ss << value;
     return ss.str();

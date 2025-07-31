@@ -1331,7 +1331,9 @@ struct MonsterT : public ::flatbuffers::NativeTable {
   double double_inf_default = std::numeric_limits<double>::infinity();
   MonsterT() = default;
   MonsterT(const MonsterT &o);
+#ifdef FLATBUFFERS_DEFAULT_DECLARATION
   MonsterT(MonsterT&&) FLATBUFFERS_NOEXCEPT = default;
+#endif
   MonsterT &operator=(MonsterT o) FLATBUFFERS_NOEXCEPT;
 };
 
