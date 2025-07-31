@@ -19,6 +19,8 @@ struct ScalarStuff;
 struct ScalarStuffBuilder;
 struct ScalarStuffT;
 
+template<typename T> struct EnumTraits;
+
 inline const ::flatbuffers::TypeTable *ScalarStuffTypeTable();
 
 enum class OptionalByte : int8_t {
@@ -926,6 +928,20 @@ inline const ::flatbuffers::TypeTable *ScalarStuffTypeTable() {
     ::flatbuffers::ST_TABLE, 36, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
+}
+
+template<>
+struct EnumTraits<OptionalByte> {
+    constexpr static auto type_table = OptionalByteTypeTable;
+    constexpr static auto name = EnumNameOptionalByte;
+};
+
+inline EnumTraits<OptionalByte> EnumValTraits(OptionalByte) {
+    return EnumTraits<OptionalByte>{};
+}
+
+inline const char *GetEnumName(OptionalByte e) {
+    return EnumValTraits(e).name(e);
 }
 
 inline const optional_scalars::ScalarStuff *GetScalarStuff(const void *buf) {
