@@ -684,10 +684,10 @@ namespace Google.FlatBuffers
       {
         return false;
       }
-      // Check union data
-      offset = GetVOffset(tablePos, valueVOffset);
       // Take type id
       var typeId = verifier_buffer.Get(Convert.ToInt32(offset));
+      // Check union data
+      offset = GetVOffset(tablePos, valueVOffset);
       if (offset == 0)
       {
         // When value data is not present, allow union verification function to deal with illegal offset
