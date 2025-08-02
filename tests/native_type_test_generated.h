@@ -115,8 +115,14 @@ FLATBUFFERS_STRUCT_END(Vector3DAlt, 12);
 
 struct ApplicationDataT : public ::flatbuffers::NativeTable {
   typedef ApplicationData TableType;
+  std::unique_ptr<Native::Vector3D> position{};
+  Native::Vector3D position_inline{};
   std::vector<Native::Vector3D> vectors{};
   std::vector<Native::Vector3D> vectors_alt{};
+  ApplicationDataT() = default;
+  ApplicationDataT(const ApplicationDataT &o);
+  ApplicationDataT(ApplicationDataT&&) FLATBUFFERS_NOEXCEPT = default;
+  ApplicationDataT &operator=(ApplicationDataT o) FLATBUFFERS_NOEXCEPT;
 };
 
 struct ApplicationData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -126,9 +132,23 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     return ApplicationDataTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VECTORS = 4,
-    VT_VECTORS_ALT = 6
+    VT_POSITION = 4,
+    VT_POSITION_INLINE = 6,
+    VT_VECTORS = 8,
+    VT_VECTORS_ALT = 10
   };
+  const Geometry::Vector3D *position() const {
+    return GetStruct<const Geometry::Vector3D *>(VT_POSITION);
+  }
+  Geometry::Vector3D *mutable_position() {
+    return GetStruct<Geometry::Vector3D *>(VT_POSITION);
+  }
+  const Geometry::Vector3D *position_inline() const {
+    return GetStruct<const Geometry::Vector3D *>(VT_POSITION_INLINE);
+  }
+  Geometry::Vector3D *mutable_position_inline() {
+    return GetStruct<Geometry::Vector3D *>(VT_POSITION_INLINE);
+  }
   const ::flatbuffers::Vector<const Geometry::Vector3D *> *vectors() const {
     return GetPointer<const ::flatbuffers::Vector<const Geometry::Vector3D *> *>(VT_VECTORS);
   }
@@ -143,6 +163,8 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<Geometry::Vector3D>(verifier, VT_POSITION, 4) &&
+           VerifyField<Geometry::Vector3D>(verifier, VT_POSITION_INLINE, 4) &&
            VerifyOffset(verifier, VT_VECTORS) &&
            verifier.VerifyVector(vectors()) &&
            VerifyOffset(verifier, VT_VECTORS_ALT) &&
@@ -158,6 +180,12 @@ struct ApplicationDataBuilder {
   typedef ApplicationData Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_position(const Geometry::Vector3D *position) {
+    fbb_.AddStruct(ApplicationData::VT_POSITION, position);
+  }
+  void add_position_inline(const Geometry::Vector3D *position_inline) {
+    fbb_.AddStruct(ApplicationData::VT_POSITION_INLINE, position_inline);
+  }
   void add_vectors(::flatbuffers::Offset<::flatbuffers::Vector<const Geometry::Vector3D *>> vectors) {
     fbb_.AddOffset(ApplicationData::VT_VECTORS, vectors);
   }
@@ -177,27 +205,50 @@ struct ApplicationDataBuilder {
 
 inline ::flatbuffers::Offset<ApplicationData> CreateApplicationData(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Geometry::Vector3D *position = nullptr,
+    const Geometry::Vector3D *position_inline = nullptr,
     ::flatbuffers::Offset<::flatbuffers::Vector<const Geometry::Vector3D *>> vectors = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<const Geometry::Vector3DAlt *>> vectors_alt = 0) {
   ApplicationDataBuilder builder_(_fbb);
   builder_.add_vectors_alt(vectors_alt);
   builder_.add_vectors(vectors);
+  builder_.add_position_inline(position_inline);
+  builder_.add_position(position);
   return builder_.Finish();
 }
 
 inline ::flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    const Geometry::Vector3D *position = nullptr,
+    const Geometry::Vector3D *position_inline = nullptr,
     const std::vector<Geometry::Vector3D> *vectors = nullptr,
     const std::vector<Geometry::Vector3DAlt> *vectors_alt = nullptr) {
   auto vectors__ = vectors ? _fbb.CreateVectorOfStructs<Geometry::Vector3D>(*vectors) : 0;
   auto vectors_alt__ = vectors_alt ? _fbb.CreateVectorOfStructs<Geometry::Vector3DAlt>(*vectors_alt) : 0;
   return Geometry::CreateApplicationData(
       _fbb,
+      position,
+      position_inline,
       vectors__,
       vectors_alt__);
 }
 
 ::flatbuffers::Offset<ApplicationData> CreateApplicationData(::flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+inline ApplicationDataT::ApplicationDataT(const ApplicationDataT &o)
+      : position((o.position) ? new Native::Vector3D(*o.position) : nullptr),
+        position_inline(o.position_inline),
+        vectors(o.vectors),
+        vectors_alt(o.vectors_alt) {
+}
+
+inline ApplicationDataT &ApplicationDataT::operator=(ApplicationDataT o) FLATBUFFERS_NOEXCEPT {
+  std::swap(position, o.position);
+  std::swap(position_inline, o.position_inline);
+  std::swap(vectors, o.vectors);
+  std::swap(vectors_alt, o.vectors_alt);
+  return *this;
+}
 
 inline ApplicationDataT *ApplicationData::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<ApplicationDataT>(new ApplicationDataT());
@@ -208,6 +259,8 @@ inline ApplicationDataT *ApplicationData::UnPack(const ::flatbuffers::resolver_f
 inline void ApplicationData::UnPackTo(ApplicationDataT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
+  { auto _e = position(); if (_e) _o->position = std::unique_ptr<Native::Vector3D>(new Native::Vector3D(::flatbuffers::UnPack(*_e))); }
+  { auto _e = position_inline(); if (_e) _o->position_inline = ::flatbuffers::UnPack(*_e); }
   { auto _e = vectors(); if (_e) { _o->vectors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors[_i] = ::flatbuffers::UnPack(*_e->Get(_i)); } } else { _o->vectors.resize(0); } }
   { auto _e = vectors_alt(); if (_e) { _o->vectors_alt.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors_alt[_i] = ::flatbuffers::UnPackVector3DAlt(*_e->Get(_i)); } } else { _o->vectors_alt.resize(0); } }
 }
@@ -220,10 +273,14 @@ inline ::flatbuffers::Offset<ApplicationData> CreateApplicationData(::flatbuffer
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const ApplicationDataT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _position = Geometry::Vector3D{}; if (_o->position) _position = ::flatbuffers::Pack(*_o->position);
+  auto _position_inline = ::flatbuffers::Pack(_o->position_inline);
   auto _vectors = _o->vectors.size() ? _fbb.CreateVectorOfNativeStructs<Geometry::Vector3D, Native::Vector3D>(_o->vectors) : 0;
   auto _vectors_alt = _o->vectors_alt.size() ? _fbb.CreateVectorOfNativeStructs<Geometry::Vector3DAlt, Native::Vector3D>(_o->vectors_alt, ::flatbuffers::PackVector3DAlt) : 0;
   return Geometry::CreateApplicationData(
       _fbb,
+      _o->position ? &_position : nullptr,
+      &_position_inline,
       _vectors,
       _vectors_alt);
 }
@@ -266,6 +323,8 @@ inline const ::flatbuffers::TypeTable *Vector3DAltTypeTable() {
 
 inline const ::flatbuffers::TypeTable *ApplicationDataTypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
+    { ::flatbuffers::ET_SEQUENCE, 0, 0 },
+    { ::flatbuffers::ET_SEQUENCE, 0, 0 },
     { ::flatbuffers::ET_SEQUENCE, 1, 0 },
     { ::flatbuffers::ET_SEQUENCE, 1, 1 }
   };
@@ -274,11 +333,13 @@ inline const ::flatbuffers::TypeTable *ApplicationDataTypeTable() {
     Geometry::Vector3DAltTypeTable
   };
   static const char * const names[] = {
+    "position",
+    "position_inline",
     "vectors",
     "vectors_alt"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
