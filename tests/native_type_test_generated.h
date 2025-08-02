@@ -25,6 +25,13 @@ struct ApplicationData;
 struct ApplicationDataBuilder;
 struct ApplicationDataT;
 
+bool operator==(const Vector3D &lhs, const Vector3D &rhs);
+bool operator!=(const Vector3D &lhs, const Vector3D &rhs);
+bool operator==(const Vector3DAlt &lhs, const Vector3DAlt &rhs);
+bool operator!=(const Vector3DAlt &lhs, const Vector3DAlt &rhs);
+bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+
 inline const ::flatbuffers::TypeTable *Vector3DTypeTable();
 
 inline const ::flatbuffers::TypeTable *Vector3DAltTypeTable();
@@ -72,6 +79,18 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3D FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vector3D, 12);
 
+inline bool operator==(const Vector3D &lhs, const Vector3D &rhs) {
+  return
+      (lhs.x() == rhs.x()) &&
+      (lhs.y() == rhs.y()) &&
+      (lhs.z() == rhs.z());
+}
+
+inline bool operator!=(const Vector3D &lhs, const Vector3D &rhs) {
+    return !(lhs == rhs);
+}
+
+
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3DAlt FLATBUFFERS_FINAL_CLASS {
  private:
   float a_;
@@ -112,6 +131,18 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3DAlt FLATBUFFERS_FINAL_CLASS {
   }
 };
 FLATBUFFERS_STRUCT_END(Vector3DAlt, 12);
+
+inline bool operator==(const Vector3DAlt &lhs, const Vector3DAlt &rhs) {
+  return
+      (lhs.a() == rhs.a()) &&
+      (lhs.b() == rhs.b()) &&
+      (lhs.c() == rhs.c());
+}
+
+inline bool operator!=(const Vector3DAlt &lhs, const Vector3DAlt &rhs) {
+    return !(lhs == rhs);
+}
+
 
 struct ApplicationDataT : public ::flatbuffers::NativeTable {
   typedef ApplicationData TableType;
@@ -234,6 +265,20 @@ inline ::flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(
 }
 
 ::flatbuffers::Offset<ApplicationData> CreateApplicationData(::flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+  return
+      ((lhs.position == rhs.position) || (lhs.position && rhs.position && *lhs.position == *rhs.position)) &&
+      (lhs.position_inline == rhs.position_inline) &&
+      (lhs.vectors == rhs.vectors) &&
+      (lhs.vectors_alt == rhs.vectors_alt);
+}
+
+inline bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline ApplicationDataT::ApplicationDataT(const ApplicationDataT &o)
       : position((o.position) ? new Native::Vector3D(*o.position) : nullptr),

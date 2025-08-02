@@ -334,6 +334,16 @@ flatc(
 )
 
 flatc(
+    ["--cpp", "--gen-mutable", "--gen-compare", "--gen-object-api", "--reflect-names"],
+    schema="native_type_test.fbs",
+)
+
+flatc(
+    ["--cpp", "--gen-mutable", "--gen-compare", "--gen-object-api", "--reflect-names"],
+    schema="native_inline_table_test.fbs",
+)
+
+flatc(
     RUST_OPTS,
     prefix="arrays_test",
     schema="arrays_test.fbs",
