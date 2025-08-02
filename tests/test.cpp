@@ -909,7 +909,8 @@ void NativeTypeTest() {
   const int N = 3;
 
   Geometry::ApplicationDataT src_data;
-  src_data.position = flatbuffers::unique_ptr<Native::Vector3D>(new Native::Vector3D(1.0f, 2.0f, 3.0f));
+  src_data.position = flatbuffers::unique_ptr<Native::Vector3D>(
+      new Native::Vector3D(1.0f, 2.0f, 3.0f));
   src_data.position_inline = Native::Vector3D(4.0f, 5.0f, 6.0f);
   src_data.vectors.reserve(N);
   src_data.vectors_alt.reserve(N);

@@ -3218,7 +3218,7 @@ class CppGenerator : public BaseGenerator {
             if (pack_name) { unpack_call += pack_name->constant; }
             unpack_call += "(*" + val + ")";
             if (invector || afield.native_inline) {
-              return unpack_call; 
+              return unpack_call;
             } else {
               const auto name = native_type->constant;
               const auto ptype = GenTypeNativePtr(name, &afield, true);
