@@ -909,6 +909,9 @@ void NativeTypeTest() {
   const int N = 3;
 
   Geometry::ApplicationDataT src_data;
+  src_data.position = flatbuffers::unique_ptr<Native::Vector3D>(
+      new Native::Vector3D(1.0f, 2.0f, 3.0f));
+  src_data.position_inline = Native::Vector3D(4.0f, 5.0f, 6.0f);
   src_data.vectors.reserve(N);
   src_data.vectors_alt.reserve(N);
 
@@ -923,6 +926,13 @@ void NativeTypeTest() {
   fbb.Finish(Geometry::ApplicationData::Pack(fbb, &src_data));
 
   auto dstDataT = Geometry::UnPackApplicationData(fbb.GetBufferPointer());
+
+  TEST_EQ(dstDataT->position->x, 1.0f);
+  TEST_EQ(dstDataT->position->y, 2.0f);
+  TEST_EQ(dstDataT->position->z, 3.0f);
+  TEST_EQ(dstDataT->position_inline.x, 4.0f);
+  TEST_EQ(dstDataT->position_inline.y, 5.0f);
+  TEST_EQ(dstDataT->position_inline.z, 6.0f);
 
   for (int i = 0; i < N; ++i) {
     const Native::Vector3D &v = dstDataT->vectors[i];
