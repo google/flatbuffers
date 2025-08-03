@@ -264,6 +264,22 @@ namespace Google.FlatBuffers
         }
 #endif
 
+        public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
+            where T : struct
+        {
+            AssertOffsetAndLength(pos, len);
+            int totalBytes = padLeft + len + padRight;
+            byte[] raw = _buffer.Buffer;
+            T[] arr = new T[totalBytes];
+            Buffer.BlockCopy(raw, pos, arr, padLeft, len);
+            return arr;
+        }
+		
+		public byte[] ToSizedArrayPadded(int padLeft, int padRight)
+        {
+            return ToArrayPadded<byte>(Position, Length - Position, padLeft, padRight);
+        }
+
         public byte[] ToSizedArray()
         {
             return ToArray<byte>(Position, Length - Position);
