@@ -235,7 +235,12 @@ struct Value {
 // Helper class that retains the original order of a set of identifiers and
 // also provides quick lookup.
 template<typename T> class SymbolTable {
+  SymbolTable(const SymbolTable&) = delete;
+
  public:
+  SymbolTable() = default;
+  SymbolTable(SymbolTable&&) = default;
+
   ~SymbolTable() {
     for (auto it = vec.begin(); it != vec.end(); ++it) { delete *it; }
   }
