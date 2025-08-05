@@ -240,6 +240,7 @@ template<typename T> class SymbolTable {
  public:
   SymbolTable() = default;
   SymbolTable(SymbolTable&&) = default;
+  SymbolTable& operator=(SymbolTable&&) = default;
 
   ~SymbolTable() {
     for (auto it = vec.begin(); it != vec.end(); ++it) { delete *it; }
