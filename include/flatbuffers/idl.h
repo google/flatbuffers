@@ -342,11 +342,9 @@ struct FieldDef : public Definition {
 
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
-  bool IsScalarOptional() const {
-    return IsScalar() && IsOptional();
-  }
+  bool IsScalarOptional() const { return IsScalar() && IsOptional(); }
   bool IsScalar() const {
-      return ::flatbuffers::IsScalar(value.type.base_type);
+    return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }
@@ -457,7 +455,8 @@ struct EnumVal {
   friend bool operator==(const EnumVal &lhs, const EnumVal &rhs);
 
   EnumVal(const std::string &_name, int64_t _val) : name(_name), value(_val) {}
-  EnumVal() : value(0) {}
+
+  EnumVal() : name(), value(0) {}
 
   int64_t value;
 };
@@ -710,7 +709,7 @@ struct IDLOptions {
   /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
   bool python_typing;
-  bool python_decode_obj_api_strings=false;
+  bool python_decode_obj_api_strings = false;
 
   // The target Python version. Can be one of the following:
   // -  "0"
@@ -778,6 +777,10 @@ struct IDLOptions {
   // If set (default behavior), empty vector fields will be set to nullptr to
   // make the flatbuffer more compact.
   bool set_empty_vectors_to_null;
+
+  // If set, preserves the case and format of
+  // names derived from the IDL
+  bool preserve_case;
 
   /*********************************** gRPC ***********************************/
   std::string grpc_filename_suffix;
@@ -860,6 +863,7 @@ struct IDLOptions {
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true),
+        preserve_case(false),
         grpc_filename_suffix(".fb"),
         grpc_use_system_headers(true),
         grpc_python_typed_handlers(false) {}
@@ -1255,10 +1259,9 @@ class Parser : public ParserState {
 // These functions return nullptr on success, or an error string,
 // which may happen if the flatbuffer cannot be encoded in JSON (e.g.,
 // it contains non-UTF-8 byte arrays in String values).
-extern bool GenerateTextFromTable(const Parser &parser,
-                                         const void *table,
-                                         const std::string &tablename,
-                                         std::string *text);
+extern bool GenerateTextFromTable(const Parser &parser, const void *table,
+                                  const std::string &tablename,
+                                  std::string *text);
 extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
                                 std::string *text);
 extern const char *GenerateTextFile(const Parser &parser,

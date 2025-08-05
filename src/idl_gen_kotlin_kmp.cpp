@@ -1067,9 +1067,8 @@ class KotlinKMPGenerator : public BaseGenerator {
               // fun pos(obj: Vec3) : Vec3? = obj.init(bufferPos + 4, bb)
               // ? adds nullability annotation
               GenerateFunOneLine(
-                  writer, field_name, "obj: " + field_type, return_type, [&]() {
-                    writer += "obj.init(bufferPos + {{offset}}, bb)";
-                  });
+                  writer, field_name, "obj: " + field_type, return_type,
+                  [&]() { writer += "obj.init(bufferPos + {{offset}}, bb)"; });
             } else {
               // create getter with object reuse
               // ex:
@@ -1554,7 +1553,7 @@ class KotlinKMPGenerator : public BaseGenerator {
 }  // namespace kotlin
 
 static bool GenerateKotlinKMP(const Parser &parser, const std::string &path,
-                       const std::string &file_name) {
+                              const std::string &file_name) {
   kotlin::KotlinKMPGenerator generator(parser, path, file_name);
   return generator.generate();
 }

@@ -1,9 +1,9 @@
 #include "alignment_test.h"
 
-#include "tests/alignment_test_generated.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/util.h"
 #include "test_assert.h"
+#include "tests/alignment_test_generated.h"
 
 namespace flatbuffers {
 namespace tests {
@@ -26,7 +26,6 @@ void AlignmentTest() {
 
   Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
   TEST_ASSERT(verifier.VerifyBuffer<BadAlignmentRoot>(nullptr));
-
 
   // ============= Test Small Structs Vector misalignment ========
 

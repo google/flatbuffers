@@ -377,8 +377,8 @@ void AppendToString(std::string &s, T &&v, bool keys_quoted, bool indented,
       s += indented ? "\n" : " ";
     }
     if (indented) IndentString(s, cur_indent, indent_string);
-    v[i].ToString(true, keys_quoted, s, indented, cur_indent,
-                  indent_string, natural_utf8);
+    v[i].ToString(true, keys_quoted, s, indented, cur_indent, indent_string,
+                  natural_utf8);
   }
   if (indented) {
     s += "\n";
@@ -393,7 +393,6 @@ template<typename T>
 void AppendToString(std::string &s, T &&v, bool keys_quoted) {
   AppendToString(s, v, keys_quoted);
 }
-
 
 class Reference {
  public:
@@ -578,7 +577,8 @@ class Reference {
     if (type_ == FBT_STRING) {
       String str(Indirect(), byte_width_);
       if (strings_quoted) {
-        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true, natural_utf8);
+        flatbuffers::EscapeString(str.c_str(), str.length(), &s, true,
+                                  natural_utf8);
       } else {
         s.append(str.c_str(), str.length());
       }
@@ -625,8 +625,8 @@ class Reference {
         if (indented) IndentString(s, cur_indent + 1, indent_string);
         keys[i].ToString(true, kq, s);
         s += ": ";
-        vals[i].ToString(true, keys_quoted, s, indented, cur_indent + 1, indent_string,
-                         natural_utf8);
+        vals[i].ToString(true, keys_quoted, s, indented, cur_indent + 1,
+                         indent_string, natural_utf8);
         if (i < keys.size() - 1) {
           s += ",";
           if (!indented) s += " ";
@@ -641,8 +641,7 @@ class Reference {
                              cur_indent + 1, indent_string, natural_utf8);
     } else if (IsTypedVector()) {
       AppendToString<TypedVector>(s, AsTypedVector(), keys_quoted, indented,
-                                  cur_indent + 1, indent_string,
-                                  natural_utf8);
+                                  cur_indent + 1, indent_string, natural_utf8);
     } else if (IsFixedTypedVector()) {
       AppendToString<FixedTypedVector>(s, AsFixedTypedVector(), keys_quoted,
                                        indented, cur_indent + 1, indent_string,
@@ -1359,9 +1358,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   // Undo the last element serialized. Call once for a value and once for a
   // key.
-  void Undo() {
-      stack_.pop_back();
-  }
+  void Undo() { stack_.pop_back(); }
 
   // Overloaded Add that tries to call the correct function above.
   void Add(int8_t i) { Int(i); }
@@ -1725,7 +1722,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         max_vectors_(buf_len),
         check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
-    FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) < FLATBUFFERS_MAX_BUFFER_SIZE);
+    FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) <
+                       FLATBUFFERS_MAX_BUFFER_SIZE);
     if (reuse_tracker_) {
       reuse_tracker_->clear();
       reuse_tracker_->resize(size_, PackedType(BIT_WIDTH_8, FBT_NULL));

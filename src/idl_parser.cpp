@@ -948,11 +948,13 @@ CheckedError Parser::ParseField(StructDef &struct_def) {
     // For union fields, add a second auto-generated field to hold the type,
     // with a special suffix.
 
-    // To ensure compatibility with many codes that rely on the BASE_TYPE_UTYPE value to identify union type fields.
+    // To ensure compatibility with many codes that rely on the BASE_TYPE_UTYPE
+    // value to identify union type fields.
     Type union_type(type.enum_def->underlying_type);
     union_type.base_type = BASE_TYPE_UTYPE;
-    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),union_type, &typefield));
-    
+    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(), union_type,
+                    &typefield));
+
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
     advanced_features_ |= reflection::AdvancedUnionFeatures;
     // Only cpp, js and ts supports the union vector feature so far.
@@ -2372,12 +2374,8 @@ template<typename T> void EnumDef::ChangeEnumValue(EnumVal *ev, T new_value) {
 }
 
 namespace EnumHelper {
-template<BaseType E> struct EnumValType {
-  typedef int64_t type;
-};
-template<> struct EnumValType<BASE_TYPE_ULONG> {
-  typedef uint64_t type;
-};
+template<BaseType E> struct EnumValType { typedef int64_t type; };
+template<> struct EnumValType<BASE_TYPE_ULONG> { typedef uint64_t type; };
 }  // namespace EnumHelper
 
 struct EnumValBuilder {
@@ -2482,8 +2480,8 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
   EnumDef *enum_def;
   ECHECK(StartEnum(enum_name, is_union, &enum_def));
   if (filename != nullptr && !opts.project_root.empty()) {
-    enum_def->declaration_file =
-        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
+    enum_def->declaration_file = &GetPooledString(FilePath(
+        opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   enum_def->doc_comment = enum_comment;
   if (!opts.proto_mode) {
@@ -2511,14 +2509,15 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef **dest,
     if (explicit_underlying_type) {
       // Specify the integer type underlying this enum.
       ECHECK(ParseType(enum_def->underlying_type));
-      if (!IsInteger(enum_def->underlying_type.base_type) || IsBool(enum_def->underlying_type.base_type)) {
-        return Error("underlying " + std::string(is_union ? "union" : "enum") + "type must be integral");
+      if (!IsInteger(enum_def->underlying_type.base_type) ||
+          IsBool(enum_def->underlying_type.base_type)) {
+        return Error("underlying " + std::string(is_union ? "union" : "enum") +
+                     "type must be integral");
       }
-        
+
       // Make this type refer back to the enum it was derived from.
       enum_def->underlying_type.enum_def = enum_def;
     }
-
   }
   ECHECK(ParseMetaData(&enum_def->attributes));
   const auto underlying_type = enum_def->underlying_type.base_type;
@@ -2682,8 +2681,7 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions &opts) {
       IDLOptions::kKotlin | IDLOptions::kKotlinKmp | IDLOptions::kCpp |
       IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kTs |
       IDLOptions::kBinary | IDLOptions::kGo | IDLOptions::kPython |
-      IDLOptions::kJson |
-      IDLOptions::kNim;
+      IDLOptions::kJson | IDLOptions::kNim;
   unsigned long langs = opts.lang_to_generate;
   return (langs > 0 && langs < IDLOptions::kMAX) && !(langs & ~supported_langs);
 }
@@ -2719,8 +2717,8 @@ bool Parser::Supports64BitOffsets() const {
 }
 
 bool Parser::SupportsUnionUnderlyingType() const {
-    return (opts.lang_to_generate & ~(IDLOptions::kCpp | IDLOptions::kTs |
-         IDLOptions::kBinary)) == 0;
+  return (opts.lang_to_generate &
+          ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kBinary)) == 0;
 }
 
 Namespace *Parser::UniqueNamespace(Namespace *ns) {
@@ -2761,8 +2759,8 @@ CheckedError Parser::ParseDecl(const char *filename) {
   struct_def->doc_comment = dc;
   struct_def->fixed = fixed;
   if (filename && !opts.project_root.empty()) {
-    struct_def->declaration_file =
-        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
+    struct_def->declaration_file = &GetPooledString(FilePath(
+        opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   ECHECK(ParseMetaData(&struct_def->attributes));
   struct_def->sortbysize =
@@ -2855,8 +2853,8 @@ CheckedError Parser::ParseService(const char *filename) {
   service_def.doc_comment = service_comment;
   service_def.defined_namespace = current_namespace_;
   if (filename != nullptr && !opts.project_root.empty()) {
-    service_def.declaration_file =
-        &GetPooledString(FilePath(opts.project_root, filename, opts.binary_schema_absolute_paths));
+    service_def.declaration_file = &GetPooledString(FilePath(
+        opts.project_root, filename, opts.binary_schema_absolute_paths));
   }
   if (services_.Add(current_namespace_->GetFullyQualifiedName(service_name),
                     &service_def))
@@ -3937,12 +3935,12 @@ void Parser::Serialize() {
     std::vector<Offset<flatbuffers::String>> included_files;
     for (auto f = files_included_per_file_.begin();
          f != files_included_per_file_.end(); f++) {
-
       const auto filename__ = builder_.CreateSharedString(FilePath(
           opts.project_root, f->first, opts.binary_schema_absolute_paths));
       for (auto i = f->second.begin(); i != f->second.end(); i++) {
         included_files.push_back(builder_.CreateSharedString(
-            FilePath(opts.project_root, i->filename, opts.binary_schema_absolute_paths)));
+            FilePath(opts.project_root, i->filename,
+                     opts.binary_schema_absolute_paths)));
       }
       const auto included_files__ = builder_.CreateVector(included_files);
       included_files.clear();
@@ -4456,8 +4454,11 @@ std::string Parser::ConformTo(const Parser &base) {
       }
     }
     // Check underlying type changes
-    if (enum_def_base->underlying_type.base_type != enum_def.underlying_type.base_type) {
-      return "underlying type differ for " + std::string(enum_def.is_union ? "union: " : "enum: ") + qualified_name;
+    if (enum_def_base->underlying_type.base_type !=
+        enum_def.underlying_type.base_type) {
+      return "underlying type differ for " +
+             std::string(enum_def.is_union ? "union: " : "enum: ") +
+             qualified_name;
     }
   }
   return "";

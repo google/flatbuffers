@@ -432,9 +432,7 @@ class CSharpGenerator : public BaseGenerator {
       GenEnum_ObjectAPI(enum_def, code_ptr, opts);
     }
 
-    if (enum_def.is_union) {
-      code += GenUnionVerify(enum_def.underlying_type);
-    }
+    if (enum_def.is_union) { code += GenUnionVerify(enum_def.underlying_type); }
   }
 
   bool HasUnionStringValue(const EnumDef &enum_def) const {

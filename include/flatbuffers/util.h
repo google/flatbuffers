@@ -480,8 +480,7 @@ std::string PosixPath(const std::string &path);
 void EnsureDirExists(const std::string &filepath);
 
 // Obtains the relative or absolute path.
-std::string FilePath(const std::string &project,
-                     const std::string &filePath,
+std::string FilePath(const std::string &project, const std::string &filePath,
                      bool absolute);
 
 // Obtains the absolute path from any other path.
@@ -725,12 +724,15 @@ enum class Case {
   kKeep = 8,
   // the_quick_brown_fox123 (as opposed to the_quick_brown_fox_123)
   kSnake2 = 9,
+  // taken from IDL
+  kIDL = 10
 };
 
 // Convert the `input` string of case `input_case` to the specified
 // `output_case`.
 std::string ConvertCase(const std::string &input, Case output_case,
-                        Case input_case = Case::kSnake);
+                        Case input_case = Case::kSnake,
+                        bool ignore_preserve_case = false);
 
 }  // namespace flatbuffers
 

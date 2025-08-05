@@ -34,6 +34,7 @@ echo "************************ PHP:"
 
 php phpTest.php
 sh phpUnionVectorTest.sh
+sh phpUnionVectorTest_preserve_case.sh
 
 echo "************************ Dart:"
 

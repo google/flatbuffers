@@ -23,7 +23,7 @@
 namespace flatbuffers {
 
 // Helper class to verify the integrity of a FlatBuffer
-template <bool TrackVerifierBufferSize>
+template<bool TrackVerifierBufferSize>
 class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
  public:
   struct Options {
@@ -68,9 +68,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     #endif
     // clang-format on
     if (TrackVerifierBufferSize) {
-      if (!ok) {
-        upper_bound_ = 0;
-      }
+      if (!ok) { upper_bound_ = 0; }
     }
     return ok;
   }
@@ -79,9 +77,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   bool Verify(const size_t elem, const size_t elem_len) const {
     if (TrackVerifierBufferSize) {
       auto upper_bound = elem + elem_len;
-      if (upper_bound_ < upper_bound) {
-        upper_bound_ =  upper_bound;
-      }
+      if (upper_bound_ < upper_bound) { upper_bound_ = upper_bound; }
     }
     return Check(elem_len < size_ && elem <= size_ - elem_len);
   }
@@ -303,7 +299,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
       uintptr_t size = upper_bound_;
       // Align the size to uoffset_t
       size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
-      return (size > size_) ?  0 : size;
+      return (size > size_) ? 0 : size;
     }
     // Must use SizeVerifier, or (deprecated) turn on
     // FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE, for this to work.

@@ -1,0 +1,62 @@
+load("@aspect_rules_js//js:defs.bzl", "js_test")
+load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
+load("//:typescript.bzl", "flatbuffer_ts_library")
+
+package(default_visibility = ["//visibility:private"])
+
+# This is a copy of //ts:node_modules/flatbuffers. The rules_js-based tests
+# require this target to live in the same or a parent package. Since we don't
+# want to put rules_js targets in the root package, we create a copy here.
+npm_link_package(
+    name = "node_modules/flatbuffers",
+    src = "//ts:flatbuffers",
+    root_package = "tests/ts",
+)
+
+flatbuffer_ts_library(
+    name = "typescript_ts_fbs",
+    srcs = ["typescript_keywords.fbs"],
+    deps = [
+        "//reflection/ts:reflection_ts_fbs",
+        "//tests/ts/test_dir:include_ts_fbs",
+        "//tests/ts/test_dir:typescript_transitive_ts_fbs",
+    ],
+)
+
+TEST_DATA = glob([
+    "MyGame/*.js",
+    "MyGame/Example/*.js",
+    "MyGame/example2/*.js",
+])
+
+TEST_UNION_VECTOR_DATA = glob([
+    "union_vector/*.js",
+])
+
+TEST_COMPLEX_ARRAYS_DATA = glob([
+    "arrays_test_complex/**/*.js",
+])
+
+# Here we're running the tests against the checked-in generated files. These
+# are kept up-to-date with a CI-based mechanism. The intent of running these
+# tests here via bazel is not to validate that they're up-to-date. Instead, we
+# just want to make it easy to run these tests while making other changes. For
+# example, this is useful when making changes to the rules_js setup to validate
+# that the basic infrastructure is still working.
+[js_test(
+    name = "%s_test" % test,
+    chdir = package_name(),
+    data = data + [
+        "package.json",
+        "//tests:test_data_copied_to_bin",
+        "//tests/ts:node_modules/flatbuffers",
+    ],
+    entry_point = "%s.js" % test,
+) for test, data in (
+    ("JavaScriptTest", TEST_DATA),
+    ("JavaScriptUnionVectorTest", TEST_UNION_VECTOR_DATA),
+    # TODO(philsc): Figure out how to run this test with flexbuffers available.
+    # At the moment the flexbuffer library is not exposed as a bazel target.
+    #("JavaScriptFlexBuffersTest", TBD_DATA)
+    ("JavaScriptComplexArraysTest", TEST_COMPLEX_ARRAYS_DATA),
+)]
