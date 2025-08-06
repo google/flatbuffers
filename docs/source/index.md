@@ -31,8 +31,6 @@ It is available as Open Source on
     FlatBuffers enables the schema to evolve over time while still maintaining
   forwards and backwards compatibility with old flatbuffers.
 
-  required.
-
 - :material-scale-off:{ .lg .middle } **Small Footprint**
 
     ---
