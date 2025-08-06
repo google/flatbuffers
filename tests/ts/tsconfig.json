@@ -15,6 +15,8 @@
     "namespace_test/**/*.ts",
     "union_vector/**/*.ts",
     "arrays_test_complex/**/*.ts",
-    "union_underlying_type_test.ts"
+    "union_underlying_type_test.ts",
+    "long-namespace/**/*.ts",
+    "longer-namespace/**/*.ts"
   ]
 }
