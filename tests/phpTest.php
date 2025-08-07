@@ -1,4 +1,19 @@
 <?php
+
+$base = dirname(dirname(__FILE__));
+$runtimeFiles = [
+    "Constants.php",
+    "ByteBuffer.php",
+    "FlatbufferBuilder.php",
+    "Table.php",
+    "Struct.php",
+];
+
+foreach ($runtimeFiles as $file) {
+    $path = join(DIRECTORY_SEPARATOR, [$base, "php", $file]);
+    echo "Requiring: $path\n";
+    require $path;
+}
 // manual load for testing. please use PSR style autoloader when you use flatbuffers.
 require join(DIRECTORY_SEPARATOR, array(dirname(dirname(__FILE__)), "php", "Constants.php"));
 require join(DIRECTORY_SEPARATOR, array(dirname(dirname(__FILE__)), "php", "ByteBuffer.php"));
@@ -155,17 +170,17 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
 //    $monster = \MyGame\Example\Monster::GetRootAsMonster($bb);
 //    $assert->strictEqual($monster->GetName(), $json["name"]);
 //
-//    //$assert->deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
+//    //$assert->deepEqual(Buffer.from(monster.name(flatbuffers.Encoding.UTF8_BYTES)), Buffer.from(json.name));
 //    //assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
 //    foreach ($json["testarrayoftables"]as $i => $table) {
 //        $value = $monster->GetTestArrayOfTables($i);
 //        $assert->strictEqual($value->GetName(), $table["name"]);
-//        //assert.deepEqual(new Buffer(value.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(table.name));
+//        //assert.deepEqual(Buffer.from(value.name(flatbuffers.Encoding.UTF8_BYTES)), Buffer.from(table.name));
 //    }
 //    $assert->strictEqual($monster->GetTestarrayofstringLength(), $json["testarrayofstring"]["length"]);
 //    foreach ($json["testarrayofstring"] as $i => $string) {
 //        $assert->strictEqual($monster->GetTestarrayofstring($i), $string);
-//        //assert.deepEqual(new Buffer(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), new Buffer(string));
+//        //assert.deepEqual(Buffer.from(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), Buffer.from(string));
 //    }
 //
 //    // Test writing
@@ -187,7 +202,7 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
 //    \MyGame\Example\Monster::addTestarrayoftables($fbb, $testarrayoftablesOffset);
 //    \MyGame\Example\Monster::addName($fbb, $name);
 //    \MyGame\Example\Monster::finishMonsterBuffer($fbb, \MyGame\Example\Monster::endMonster($fbb));
-//    //;assert.deepEqual(new Buffer(fbb.asUint8Array()), correct);
+//    //;assert.deepEqual(Buffer.from(fbb.asUint8Array()), correct);
 //}
 
 // Low level stress/fuzz test: serialize/deserialize a variety of

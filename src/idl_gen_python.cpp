@@ -1977,14 +1977,29 @@ class PythonGenerator : public BaseGenerator {
     const auto field_field = namer_.Field(field);
     const auto field_method = namer_.Method(field);
     const auto struct_var = namer_.Variable(struct_def);
+
+    // Find the associated type field
+    std::string type_field_name = field.name + "_type";
+    const FieldDef *type_field = nullptr;
+    for (auto f : struct_def.fields.vec) {
+      if (f->name == type_field_name) {
+        type_field = f;
+        break;
+      }
+    }
+    FLATBUFFERS_ASSERT(type_field != nullptr);  // Safety check
+
+    const auto field_type_field = namer_.Field(*type_field);
+
     const EnumDef &enum_def = *field.value.type.enum_def;
     auto union_type = namer_.Type(enum_def);
 
     if (parser_.opts.include_dependence_headers) {
       union_type = namer_.NamespacedType(enum_def) + "." + union_type;
     }
+
     code += GenIndents(2) + "self." + field_field + " = " + union_type +
-            "Creator(" + "self." + field_field + "Type, " + struct_var + "." +
+            "Creator(" + "self." + field_type_field + ", " + struct_var + "." +
             field_method + "())";
   }
 

@@ -136,7 +136,8 @@ void FlexBuffersTest() {
   std::string jsonback_indented;
   jroot.ToString(true, false, jsonback_indented, true, 0, "  ");
   auto jsontest_indented =
-    "{\n  a: [\n    123,\n    456.0\n  ],\n  b: \"hello\",\n  c: true,\n  d: false\n}";
+      "{\n  a: [\n    123,\n    456.0\n  ],\n  b: \"hello\",\n  c: true,\n  d: "
+      "false\n}";
   TEST_EQ_STR(jsontest_indented, jsonback_indented.c_str());
 
   slb.Clear();
