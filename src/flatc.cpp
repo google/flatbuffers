@@ -758,6 +758,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
     }
   }
 
+  ValidateOptions(options);
+
   return options;
 }
 
