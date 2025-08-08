@@ -119,23 +119,42 @@ static std::string GenType(const Type &type) {
       return GenTypeRef(type.struct_def);
     }
     case BASE_TYPE_UNION: {
-      std::string union_type_string("\"anyOf\": [");
+      std::string union_type_string("\"oneOf\": [");
       const auto &union_types = type.enum_def->Vals();
+      bool first = true;
+
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
         const auto &union_type = *ut;
         if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
         if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+          if (!first) union_type_string.append(",");
+          first = false;
+
           union_type_string.append(
-              "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-        }
-        if (union_type != *type.enum_def->Vals().rbegin()) {
-          union_type_string.append(",");
+              "{ \"type\": \"object\", \"properties\": { ");
+          union_type_string.append("\"type\": { \"const\": \"" +
+                                   union_type->name + "\" }, ");
+          union_type_string.append(
+              "\"value\": { " + GenTypeRef(union_type->union_type.struct_def) +
+              " }");
+          union_type_string.append(" }, \"required\": [\"type\", \"value\"] }");
         }
       }
       union_type_string.append("]");
       return union_type_string;
     }
-    case BASE_TYPE_UTYPE: return GenTypeRef(type.enum_def);
+    case BASE_TYPE_UTYPE: {
+      std::string enumdef = GenType("string") + ", \"enum\": [";
+      for (auto enum_value = type.enum_def->Vals().begin();
+           enum_value != type.enum_def->Vals().end(); ++enum_value) {
+        enumdef.append("\"" + (*enum_value)->name + "\"");
+        if (*enum_value != type.enum_def->Vals().back()) {
+          enumdef.append(", ");
+        }
+      }
+      enumdef.append("]");
+      return enumdef;
+    }
     default: {
       return GenBaseType(type);
     }
@@ -221,15 +240,34 @@ class JsonSchemaGenerator : public BaseGenerator {
     for (auto e = parser_.enums_.vec.cbegin(); e != parser_.enums_.vec.cend();
          ++e) {
       code_ += Indent(2) + "\"" + GenFullName(*e) + "\" : {" + NewLine();
-      code_ += Indent(3) + GenType("string") + "," + NewLine();
-      auto enumdef(Indent(3) + "\"enum\": [");
-      for (auto enum_value = (*e)->Vals().begin();
-           enum_value != (*e)->Vals().end(); ++enum_value) {
-        enumdef.append("\"" + (*enum_value)->name + "\"");
-        if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
+
+      if ((*e)->is_union) {
+        std::string union_type_string("\"anyOf\": [");
+        const auto &union_types = (*e)->Vals();
+        for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+          const auto &union_type = *ut;
+          if (union_type->union_type.base_type == BASE_TYPE_NONE) { continue; }
+          if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+            union_type_string.append(
+                "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
+          }
+          if (union_type != *union_types.rbegin()) {
+            union_type_string.append(",");
+          }
+        }
+        union_type_string.append("]");
+        code_ += Indent(3) + union_type_string + NewLine();
+      } else {
+        code_ += Indent(3) + GenType("string") + "," + NewLine();
+        auto enumdef(Indent(3) + "\"enum\": [");
+        for (auto enum_value = (*e)->Vals().begin();
+             enum_value != (*e)->Vals().end(); ++enum_value) {
+          enumdef.append("\"" + (*enum_value)->name + "\"");
+          if (*enum_value != (*e)->Vals().back()) { enumdef.append(", "); }
+        }
+        enumdef.append("]");
+        code_ += enumdef + NewLine();
       }
-      enumdef.append("]");
-      code_ += enumdef + NewLine();
       code_ += Indent(2) + "}," + NewLine();  // close type
     }
     for (auto s = parser_.structs_.vec.cbegin();
@@ -276,6 +314,71 @@ class JsonSchemaGenerator : public BaseGenerator {
         code_ += typeLine + NewLine();
       }
       code_ += Indent(3) + "}," + NewLine();  // close properties
+      std::vector<std::string> union_conditions;
+
+      for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
+        const auto &property = *prop;
+
+        // Add conditionals to point the correct underlying data to the _type
+        if (property->value.type.base_type == BASE_TYPE_UNION) {
+          const auto &union_types = property->value.type.enum_def->Vals();
+          const std::string type_field_name = property->name + "_type";
+
+          for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
+            const auto &union_type = *ut;
+            if (union_type->union_type.base_type == BASE_TYPE_NONE) {
+              std::string none_condition;
+              none_condition += Indent(4) + "{" + NewLine();
+              none_condition += Indent(5) + "\"if\": {" + NewLine();
+              none_condition += Indent(6) + "\"properties\": {" + NewLine();
+              none_condition += Indent(7) + "\"" + type_field_name +
+                                "\": { \"const\": \"" + union_type->name +
+                                "\" }" + NewLine();
+              none_condition += Indent(6) + "}" + NewLine();
+              none_condition += Indent(5) + "}," + NewLine();
+              none_condition += Indent(5) + "\"then\": {" + NewLine();
+              none_condition += Indent(6) + "\"not\": {" + NewLine();
+              none_condition += Indent(7) + "\"required\": [\"" +
+                                property->name + "\"]" + NewLine();
+              none_condition += Indent(6) + "}" + NewLine();
+              none_condition += Indent(5) + "}" + NewLine();
+              none_condition += Indent(4) + "}";
+
+              union_conditions.push_back(none_condition);
+            }
+            if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+              std::string condition;
+              condition += Indent(4) + "{" + NewLine();
+              condition += Indent(5) + "\"if\": {" + NewLine();
+              condition += Indent(6) + "\"properties\": {" + NewLine();
+              condition += Indent(7) + "\"" + type_field_name +
+                           "\": { \"const\": \"" + union_type->name + "\" }" +
+                           NewLine();
+              condition += Indent(6) + "}" + NewLine();
+              condition += Indent(5) + "}," + NewLine();
+              condition += Indent(5) + "\"then\": {" + NewLine();
+              condition += Indent(6) + "\"properties\": {" + NewLine();
+              condition += Indent(7) + "\"" + property->name + "\": { " +
+                           GenTypeRef(union_type->union_type.struct_def) +
+                           " }" + NewLine();
+              condition += Indent(6) + "}" + NewLine();
+              condition += Indent(5) + "}" + NewLine();
+              condition += Indent(4) + "}";
+
+              union_conditions.push_back(condition);
+            }
+          }
+        }
+      }
+      if (!union_conditions.empty()) {
+        code_ += Indent(3) + "\"allOf\": [" + NewLine();
+        for (size_t i = 0; i < union_conditions.size(); ++i) {
+          code_ += union_conditions[i];
+          if (i < union_conditions.size() - 1) { code_ += ","; }
+          code_ += NewLine();
+        }
+        code_ += Indent(3) + "]," + NewLine();
+      }
 
       std::vector<FieldDef *> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
