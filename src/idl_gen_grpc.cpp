@@ -372,6 +372,7 @@ bool GenerateCppGRPC(const Parser &parser, const std::string &path,
   generator_parameters.service_header_extension =
       ".grpc" + opts.grpc_filename_suffix + ".h";
   generator_parameters.grpc_search_path = opts.grpc_search_path;
+  generator_parameters.generate_callback_api = opts.grpc_callback_api;
   std::string filename = flatbuffers::StripExtension(parser.file_being_parsed_);
   if (!opts.keep_prefix) {
     filename = flatbuffers::StripPath(filename);
