@@ -1611,11 +1611,13 @@ class RustGenerator : public BaseGenerator {
 
   void ForAllTableFields(const StructDef &struct_def,
                          std::function<void(const FieldDef &)> cb,
-                         bool reversed = false) {
+                         bool readOnly = false, bool reversed = false) {
     // TODO(cneo): Remove `reversed` overload. It's only here to minimize the
     // diff when refactoring to the `ForAllX` helper functions.
     auto go = [&](const FieldDef &field) {
-      if (field.deprecated) return;
+      if ((!readOnly && field.deprecated) ||
+          (readOnly && field.deprecated == FieldDef::kDeprecated))
+        return;
       code_.SetValue("OFFSET_NAME", namer_.LegacyRustFieldOffsetName(field));
       code_.SetValue("OFFSET_VALUE", NumToString(field.value.offset));
       code_.SetValue("FIELD", namer_.Field(field));
@@ -1670,7 +1672,8 @@ class RustGenerator : public BaseGenerator {
       code_ +=
           "pub const {{OFFSET_NAME}}: flatbuffers::VOffsetT = "
           "{{OFFSET_VALUE}};";
-    });
+    },
+    /*readOnly=*/true);
     code_ += "";
 
     if (parser_.opts.generate_name_strings) {
@@ -1715,6 +1718,7 @@ class RustGenerator : public BaseGenerator {
               code_ += "  builder.add_{{FIELD}}(args.{{FIELD}});";
             }
           },
+          /*readOnly=*/false,
           /*reverse=*/true);
     }
     code_ += "    builder.finish()";
@@ -1814,12 +1818,14 @@ class RustGenerator : public BaseGenerator {
           code_ += "    {{EXPR}}";
           code_ += "  };";
         }
-      });
+      },
+      /*readOnly=*/true);
       code_ += "    {{STRUCT_OTY}} {";
       ForAllObjectTableFields(struct_def, [&](const FieldDef &field) {
         if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
         code_ += "    {{FIELD}},";
-      });
+      },
+      /*readOnly=*/true);
       code_ += "    }";
       code_ += "  }";
     }
@@ -1891,7 +1897,8 @@ class RustGenerator : public BaseGenerator {
         }
         code_ += "}";
       }
-    });
+    },
+    /*readOnly=*/true);
 
     // Explicit specializations for union accessors
     ForAllTableFields(struct_def, [&](const FieldDef &field) {
@@ -1944,7 +1951,8 @@ class RustGenerator : public BaseGenerator {
             code_ += "}";
             code_ += "";
           });
-    });
+    },
+    /*readOnly=*/true);
     code_ += "}";  // End of table impl.
     code_ += "";
 
@@ -1993,7 +2001,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "        _ => Ok(()),";
       code_ += "      }";
       code_ += "   })?\\";
-    });
+    },
+    /*readOnly=*/true);
     code_ += "\n     .finish();";
     code_ += "    Ok(())";
     code_ += "  }";
@@ -2206,7 +2215,8 @@ class RustGenerator : public BaseGenerator {
         // Most fields.
         code_ += "    ds.field(\"{{FIELD}}\", &self.{{FIELD}}());";
       }
-    });
+    },
+    /*readOnly=*/true);
     code_ += "      ds.finish()";
     code_ += "  }";
     code_ += "}";
@@ -2225,7 +2235,8 @@ class RustGenerator : public BaseGenerator {
       // skip making a field for the discriminant.
       if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
       code_ += "pub {{FIELD}}: {{FIELD_OTY}},";
-    });
+    },
+    /*readOnly=*/true);
     code_ += "}";
 
     code_ += "impl Default for {{STRUCT_OTY}} {";
@@ -2235,7 +2246,8 @@ class RustGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
       std::string default_value = GetDefaultValue(field, kObject);
       code_ += "    {{FIELD}}: " + default_value + ",";
-    });
+    },
+    /*readOnly=*/true);
     code_ += "    }";
     code_ += "  }";
     code_ += "}";
@@ -2349,11 +2361,14 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
   }
   void ForAllObjectTableFields(const StructDef &table,
-                               std::function<void(const FieldDef &)> cb) {
+                               std::function<void(const FieldDef &)> cb,
+                               bool readOnly = false) {
     const std::vector<FieldDef *> &v = table.fields.vec;
     for (auto it = v.begin(); it != v.end(); it++) {
       const FieldDef &field = **it;
-      if (field.deprecated) continue;
+      if ((!readOnly && field.deprecated) ||
+          (readOnly && field.deprecated == FieldDef::kDeprecated))
+        continue;
       code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("FIELD_OTY", ObjectFieldType(field, true));
       code_.IncrementIdentLevel();
