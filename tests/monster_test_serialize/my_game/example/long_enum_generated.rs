@@ -37,7 +37,7 @@ impl<'a> flatbuffers::Follow<'a> for LongEnum {
   type Inner = Self;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<u64>(buf, loc);
+    let b = unsafe { flatbuffers::read_scalar_at::<u64>(buf, loc) };
     Self::from_bits_retain(b)
   }
 }
@@ -46,7 +46,7 @@ impl flatbuffers::Push for LongEnum {
     type Output = LongEnum;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        flatbuffers::emplace_scalar::<u64>(dst, self.bits());
+        unsafe { flatbuffers::emplace_scalar::<u64>(dst, self.bits()); }
     }
 }
 
