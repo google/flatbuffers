@@ -1,6 +1,8 @@
 #ifndef NATIVE_TYPE_TEST_IMPL_H
 #define NATIVE_TYPE_TEST_IMPL_H
 
+#include <vector>
+
 namespace Native {
 struct Vector3D {
   float x;
@@ -16,6 +18,20 @@ struct Vector3D {
     this->x = _x;
     this->y = _y;
     this->z = _z;
+  }
+};
+
+struct Matrix {
+  int rows;
+  int columns;
+  std::vector<float> values;
+
+  Matrix() : Matrix(0, 0) {}
+
+  Matrix(int _rows, int _columns) {
+    this->rows = _rows;
+    this->columns = _columns;
+    values.resize(_rows * _columns);
   }
 };
 }  // namespace Native
