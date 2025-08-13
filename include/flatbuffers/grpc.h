@@ -121,7 +121,10 @@ class SliceAllocator : public Allocator {
     memcpy_downward(old_p, old_size, new_p, new_size, in_use_back,
                     in_use_front);
     slice_ = new_slice;
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wreturn-local-addr"
     return new_p;
+    #pragma GCC diagnostic pop
   }
 
  private:
