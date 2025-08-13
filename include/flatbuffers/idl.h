@@ -342,6 +342,7 @@ struct FieldDef : public Definition {
 
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
+
   bool IsScalarOptional() const {
     return IsScalar() && IsOptional();
   }
@@ -784,6 +785,9 @@ struct IDLOptions {
   bool grpc_use_system_headers;
   std::string grpc_search_path;
   std::vector<std::string> grpc_additional_headers;
+  // Generate C++ gRPC Callback API (modern async API) service code when used
+  // together with --grpc. This is an additive, opt-in feature.
+  bool grpc_callback_api;
 
   /******************************* Python gRPC ********************************/
   bool grpc_python_typed_handlers;
@@ -862,6 +866,7 @@ struct IDLOptions {
         set_empty_vectors_to_null(true),
         grpc_filename_suffix(".fb"),
         grpc_use_system_headers(true),
+        grpc_callback_api(false),
         grpc_python_typed_handlers(false) {}
 };
 
