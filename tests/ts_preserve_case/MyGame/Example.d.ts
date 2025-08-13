@@ -1,0 +1,16 @@
+export { Ability, AbilityT } from './Example/Ability.js';
+export { Any } from './Example/Any.js';
+export { AnyAmbiguousAliases } from './Example/AnyAmbiguousAliases.js';
+export { AnyUniqueAliases } from './Example/AnyUniqueAliases.js';
+export { Color } from './Example/Color.js';
+export { LongEnum } from './Example/LongEnum.js';
+export { Monster, MonsterT } from './Example/Monster.js';
+export { Race } from './Example/Race.js';
+export { Referrable, ReferrableT } from './Example/Referrable.js';
+export { Stat, StatT } from './Example/Stat.js';
+export { StructOfStructs, StructOfStructsT } from './Example/StructOfStructs.js';
+export { StructOfStructsOfStructs, StructOfStructsOfStructsT } from './Example/StructOfStructsOfStructs.js';
+export { Test, TestT } from './Example/Test.js';
+export { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from './Example/TestSimpleTableWithEnum.js';
+export { TypeAliases, TypeAliasesT } from './Example/TypeAliases.js';
+export { Vec3, Vec3T } from './Example/Vec3.js';

@@ -21,9 +21,9 @@
 #include <string>
 
 #if defined(__ANDROID__)
-#define INCLUDE_64_BIT_TESTS 0
+#  define INCLUDE_64_BIT_TESTS 0
 #else
-#define INCLUDE_64_BIT_TESTS 1
+#  define INCLUDE_64_BIT_TESTS 1
 #endif
 
 #include "alignment_test.h"
@@ -50,7 +50,7 @@
 #  include "tests/arrays_test_generated.h"
 #endif
 #if INCLUDE_64_BIT_TESTS
-#include "tests/64bit/offset64_test.h"
+#  include "tests/64bit/offset64_test.h"
 #endif
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
@@ -128,8 +128,8 @@ void GenerateTableTextTest(const std::string &tests_data_path) {
   TEST_EQ(abilities->Get(2)->distance(), 12);
 
   std::string jsongen;
-  auto result = GenTextFromTable(parser, monster, "MyGame.Example.Monster",
-                                      &jsongen);
+  auto result =
+      GenTextFromTable(parser, monster, "MyGame.Example.Monster", &jsongen);
   TEST_NULL(result);
   // Test sub table
   const Vec3 *pos = monster->pos();
@@ -141,14 +141,12 @@ void GenerateTableTextTest(const std::string &tests_data_path) {
       "{x: 1.0,y: 2.0,z: 3.0,test1: 3.0,test2: \"Green\",test3: {a: 5,b: 6}}");
   const Test &test3 = pos->test3();
   jsongen.clear();
-  result =
-      GenTextFromTable(parser, &test3, "MyGame.Example.Test", &jsongen);
+  result = GenTextFromTable(parser, &test3, "MyGame.Example.Test", &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{a: 5,b: 6}");
   const Test *test4 = monster->test4()->Get(0);
   jsongen.clear();
-  result =
-      GenTextFromTable(parser, test4, "MyGame.Example.Test", &jsongen);
+  result = GenTextFromTable(parser, test4, "MyGame.Example.Test", &jsongen);
   TEST_NULL(result);
   TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
@@ -1578,38 +1576,36 @@ void DoNotRequireEofTest(const std::string &tests_data_path) {
 #endif
 
 void UnionUnderlyingTypeTest() {
-    using namespace UnionUnderlyingType;
-    TEST_ASSERT(sizeof(ABC) == sizeof(uint32_t));
-    TEST_ASSERT(static_cast<int32_t>(ABC::A) == 555);
-    TEST_ASSERT(static_cast<int32_t>(ABC::B) == 666);
-    TEST_ASSERT(static_cast<int32_t>(ABC::C) == 777);
+  using namespace UnionUnderlyingType;
+  TEST_ASSERT(sizeof(ABC) == sizeof(uint32_t));
+  TEST_ASSERT(static_cast<int32_t>(ABC::A) == 555);
+  TEST_ASSERT(static_cast<int32_t>(ABC::B) == 666);
+  TEST_ASSERT(static_cast<int32_t>(ABC::C) == 777);
 
-    DT buffer;
-    AT a;
-    a.a = 42;
-    BT b;
-    b.b = "foo";
-    CT c;
-    c.c = true;
-    buffer.test_union = ABCUnion();
-    buffer.test_union.Set(a);
-    buffer.test_vector_of_union.resize(3);
-    buffer.test_vector_of_union[0].Set(a);
-    buffer.test_vector_of_union[1].Set(b);
-    buffer.test_vector_of_union[2].Set(c);
+  DT buffer;
+  AT a;
+  a.a = 42;
+  BT b;
+  b.b = "foo";
+  CT c;
+  c.c = true;
+  buffer.test_union = ABCUnion();
+  buffer.test_union.Set(a);
+  buffer.test_vector_of_union.resize(3);
+  buffer.test_vector_of_union[0].Set(a);
+  buffer.test_vector_of_union[1].Set(b);
+  buffer.test_vector_of_union[2].Set(c);
 
-    flatbuffers::FlatBufferBuilder fbb;
-    auto offset = D::Pack(fbb, &buffer);
-    fbb.Finish(offset);
+  flatbuffers::FlatBufferBuilder fbb;
+  auto offset = D::Pack(fbb, &buffer);
+  fbb.Finish(offset);
 
-    auto *root =
-    flatbuffers::GetRoot<D>(fbb.GetBufferPointer());
-    DT unpacked;
-    root->UnPackTo(&unpacked);
+  auto *root = flatbuffers::GetRoot<D>(fbb.GetBufferPointer());
+  DT unpacked;
+  root->UnPackTo(&unpacked);
 
-    TEST_ASSERT(unpacked.test_union == buffer.test_union);
-    TEST_ASSERT(unpacked.test_vector_of_union == buffer.test_vector_of_union);
-
+  TEST_ASSERT(unpacked.test_union == buffer.test_union);
+  TEST_ASSERT(unpacked.test_vector_of_union == buffer.test_vector_of_union);
 }
 
 static void Offset64Tests() {

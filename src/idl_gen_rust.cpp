@@ -841,7 +841,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ +=
-        "    let b = unsafe { flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc) };";
+        "    let b = unsafe { "
+        "flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc) };";
     if (IsBitFlagsEnum(enum_def)) {
       code_ += "    Self::from_bits_retain(b)";
     } else {
@@ -2663,7 +2664,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    unsafe { flatbuffers::follow_cast_ref::<{{STRUCT_TY}}>(buf, loc) }";
+    code_ +=
+        "    unsafe { flatbuffers::follow_cast_ref::<{{STRUCT_TY}}>(buf, loc) "
+        "}";
     code_ += "  }";
     code_ += "}";
     code_ += "impl<'b> flatbuffers::Push for {{STRUCT_TY}} {";
@@ -2671,7 +2674,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ +=
-        "        let src = unsafe { ::core::slice::from_raw_parts(self as *const "
+        "        let src = unsafe { ::core::slice::from_raw_parts(self as "
+        "*const "
         "{{STRUCT_TY}} as *const u8, <Self as flatbuffers::Push>::size()) };";
     code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";

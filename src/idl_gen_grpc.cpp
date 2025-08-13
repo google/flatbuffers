@@ -373,9 +373,7 @@ bool GenerateCppGRPC(const Parser &parser, const std::string &path,
       ".grpc" + opts.grpc_filename_suffix + ".h";
   generator_parameters.grpc_search_path = opts.grpc_search_path;
   std::string filename = flatbuffers::StripExtension(parser.file_being_parsed_);
-  if (!opts.keep_prefix) {
-    filename = flatbuffers::StripPath(filename);
-  }
+  if (!opts.keep_prefix) { filename = flatbuffers::StripPath(filename); }
   FlatBufFile fbfile(parser, filename, FlatBufFile::kLanguageCpp);
 
   std::string header_code =
@@ -444,7 +442,7 @@ bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
   }
   if (!nservices) return true;
 
-  flatbuffers::python::Version version{parser.opts.python_version};
+  flatbuffers::python::Version version{ parser.opts.python_version };
   if (!version.IsValid()) return false;
 
   if (!flatbuffers::python::grpc::Generate(parser, path, version)) {

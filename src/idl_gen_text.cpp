@@ -30,12 +30,8 @@ namespace flatbuffers {
 
 struct PrintScalarTag {};
 struct PrintPointerTag {};
-template<typename T> struct PrintTag {
-  typedef PrintScalarTag type;
-};
-template<> struct PrintTag<const void *> {
-  typedef PrintPointerTag type;
-};
+template<typename T> struct PrintTag { typedef PrintScalarTag type; };
+template<> struct PrintTag<const void *> { typedef PrintPointerTag type; };
 
 struct JsonPrinter {
   // If indentation is less than 0, that indicates we don't want any newlines
@@ -386,14 +382,14 @@ static const char *GenerateTextImpl(const Parser &parser, const Table *table,
 // Generate a text representation of a flatbuffer in JSON format.
 // Deprecated: please use `GenTextFromTable`
 bool GenerateTextFromTable(const Parser &parser, const void *table,
-                             const std::string &table_name,
-                             std::string *_text) {
+                           const std::string &table_name, std::string *_text) {
   return GenTextFromTable(parser, table, table_name, _text) != nullptr;
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
 const char *GenTextFromTable(const Parser &parser, const void *table,
-                             const std::string &table_name, std::string *_text) {
+                             const std::string &table_name,
+                             std::string *_text) {
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) { return "unknown struct"; }
   auto root = static_cast<const Table *>(table);
@@ -427,7 +423,7 @@ const char *GenerateTextFile(const Parser &parser, const std::string &path,
 }
 
 const char *GenTextFile(const Parser &parser, const std::string &path,
-                             const std::string &file_name) {
+                        const std::string &file_name) {
   if (parser.opts.use_flexbuffers) {
     std::string json;
     parser.flex_root_.ToString(true, parser.opts.strict_json, json);

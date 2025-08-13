@@ -1,0 +1,8 @@
+{
+  "name": "bazel_repository_test",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "lodash": "4.17.21"
+  }
+}

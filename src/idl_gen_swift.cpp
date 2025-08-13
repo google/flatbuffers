@@ -174,7 +174,9 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "// swiftlint:disable all";
     code_ += "// swiftformat:disable all\n";
     if (parser_.opts.include_dependence_headers || parser_.opts.generate_all) {
-      code_.SetValue("IMPLEMENTONLY", parser_.opts.swift_implementation_only ? "@_implementationOnly " : "");
+      code_.SetValue("IMPLEMENTONLY", parser_.opts.swift_implementation_only
+                                          ? "@_implementationOnly "
+                                          : "");
       code_ += "#if canImport(Common)";
       code_ += "{{IMPLEMENTONLY}}import Common";
       code_ += "#endif";
@@ -568,11 +570,10 @@ class SwiftGenerator : public BaseGenerator {
                "_ fbb: inout FlatBufferBuilder) -> Offset {";
       Indent();
       code_ += spacing + "var off = offsets";
-      code_ +=
-          spacing +
-          "off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: "
-          "{{VOFFSET}}, fbb: &fbb), Table.offset(Int32($0.o), vOffset: "
-          "{{VOFFSET}}, fbb: &fbb), fbb: &fbb) < 0 } ";
+      code_ += spacing +
+               "off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: "
+               "{{VOFFSET}}, fbb: &fbb), Table.offset(Int32($0.o), vOffset: "
+               "{{VOFFSET}}, fbb: &fbb), fbb: &fbb) < 0 } ";
       code_ += spacing + "return fbb.createVector(ofOffsets: off)";
       Outdent();
       code_ += "}";
