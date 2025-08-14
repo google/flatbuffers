@@ -620,12 +620,22 @@ class CSharpGenerator : public BaseGenerator {
   std::string GenKeyGetter(flatbuffers::StructDef &struct_def,
                            flatbuffers::FieldDef *key_field) const {
     // Get the getter for the key of the struct.
-    return GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
-                                   "builder.DataBuffer.Length - o1.Value") +
-           ".CompareTo(" +
-           GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
-                                   "builder.DataBuffer.Length - o2.Value") +
-           ")";
+    if (IsString(key_field->value.type)) {
+      return "string.CompareOrdinal(" +
+         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer", 
+           "builder.DataBuffer.Length - o1.Value") +
+         ", " +
+         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
+           "builder.DataBuffer.Length - o2.Value") + 
+         ")";
+    } else {
+      return GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
+                     "builder.DataBuffer.Length - o1.Value") +
+         ".CompareTo(" +
+         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer", 
+                     "builder.DataBuffer.Length - o2.Value") +
+         ")";
+    }
   }
 
   // Get the value of a table verification function start
@@ -1539,7 +1549,11 @@ class CSharpGenerator : public BaseGenerator {
           "(start + middle), bb);\n";
 
       code += "      obj_.__assign(tableOffset, bb);\n";
-      code += "      int comp = obj_." + name + ".CompareTo(key);\n";
+      if (IsString(key_field->value.type)) {
+        code += "      int comp = string.CompareOrdinal(obj_." + name + ", key);\n";
+      } else {
+        code += "      int comp = obj_." + name + ".CompareTo(key);\n";
+      }
       code += "      if (comp > 0) {\n";
       code += "        span = middle;\n";
       code += "      } else if (comp < 0) {\n";
