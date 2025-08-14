@@ -693,6 +693,7 @@ namespace Google.FlatBuffers
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
         public unsafe string GetStringUTF8(int startPos, int len)
         {
+            AssertOffsetAndLength(startPos, len);
             fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan.Slice(startPos)))
             {
                 return Encoding.UTF8.GetString(buffer, len);
