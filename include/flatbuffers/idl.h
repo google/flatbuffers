@@ -226,9 +226,12 @@ struct Type {
 struct Value {
   Value()
       : constant("0"),
+        has_non_scalar_constant(false),
         offset(static_cast<voffset_t>(~(static_cast<voffset_t>(0U)))) {}
   Type type;
   std::string constant;
+  // not the most elegant solution, but much better than a full refactor.
+  bool has_non_scalar_constant;
   voffset_t offset;
 };
 
@@ -342,11 +345,9 @@ struct FieldDef : public Definition {
 
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
-  bool IsScalarOptional() const {
-    return IsScalar() && IsOptional();
-  }
+  bool IsScalarOptional() const { return IsScalar() && IsOptional(); }
   bool IsScalar() const {
-      return ::flatbuffers::IsScalar(value.type.base_type);
+    return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }
@@ -710,7 +711,7 @@ struct IDLOptions {
   /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
   bool python_typing;
-  bool python_decode_obj_api_strings=false;
+  bool python_decode_obj_api_strings = false;
 
   // The target Python version. Can be one of the following:
   // -  "0"
@@ -1255,10 +1256,9 @@ class Parser : public ParserState {
 // These functions return nullptr on success, or an error string,
 // which may happen if the flatbuffer cannot be encoded in JSON (e.g.,
 // it contains non-UTF-8 byte arrays in String values).
-extern bool GenerateTextFromTable(const Parser &parser,
-                                         const void *table,
-                                         const std::string &tablename,
-                                         std::string *text);
+extern bool GenerateTextFromTable(const Parser &parser, const void *table,
+                                  const std::string &tablename,
+                                  std::string *text);
 extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
                                 std::string *text);
 extern const char *GenerateTextFile(const Parser &parser,
