@@ -275,6 +275,11 @@ namespace Google.FlatBuffers
         }
 
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+        public ReadOnlySpan<byte> ToSizedReadOnlySpan()
+        {
+            return _buffer.ReadOnlySpan.Slice(Position, Length - Position);
+        }
+
         public ReadOnlyMemory<byte> ToReadOnlyMemory(int pos, int len)
         {
             return _buffer.ReadOnlyMemory.Slice(pos, len);
@@ -288,6 +293,11 @@ namespace Google.FlatBuffers
         public Span<byte> ToSpan(int pos, int len)
         {
             return _buffer.Span.Slice(pos, len);
+        }
+
+        public ReadOnlySpan<byte> ToReadOnlySpan(int pos, int len)
+        {
+            return _buffer.ReadOnlySpan.Slice(pos, len);
         }
 #else
         public ArraySegment<byte> ToArraySegment(int pos, int len)
@@ -380,18 +390,19 @@ namespace Google.FlatBuffers
 #elif ENABLE_SPAN_T
         protected void WriteLittleEndian(int offset, int count, ulong data)
         {
+            Span<byte> span = _buffer.Span.Slice(offset, count);
             if (BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    _buffer.Span[offset + i] = (byte)(data >> i * 8);
+                    span[i] = (byte)(data >> i * 8);
                 }
             }
             else
             {
                 for (int i = 0; i < count; i++)
                 {
-                    _buffer.Span[offset + count - 1 - i] = (byte)(data >> i * 8);
+                    span[count - 1 - i] = (byte)(data >> i * 8);
                 }
             }
         }
@@ -399,19 +410,20 @@ namespace Google.FlatBuffers
         protected ulong ReadLittleEndian(int offset, int count)
         {
             AssertOffsetAndLength(offset, count);
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset, count);
             ulong r = 0;
             if (BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    r |= (ulong)_buffer.Span[offset + i] << i * 8;
+                    r |= (ulong)span[i] << i * 8;
                 }
             }
             else
             {
                 for (int i = 0; i < count; i++)
                 {
-                    r |= (ulong)_buffer.Span[offset + count - 1 - i] << i * 8;
+                    r |= (ulong)span[count - 1 - i] << i * 8;
                 }
             }
             return r;
@@ -445,8 +457,7 @@ namespace Google.FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(byte) * count);
             Span<byte> span = _buffer.Span.Slice(offset, count);
-            for (var i = 0; i < span.Length; ++i)
-                span[i] = value;
+            span.Fill(value);
         }
 #else
         public void PutSbyte(int offset, sbyte value)
