@@ -454,13 +454,15 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
         code += proto_name + " = Proto(\"" + object_names.full_name +
                 "\", \"flatbuffers: " + object_names.full_name + "\")\n";
         code += proto_name + ".fields = Construct_Fields(\n";
-        code += "  fb_basic_fields";
 
         // add all types to the ProtoField definition so wireshark lookup works
+        bool first = true;
         for (const auto *dep : deps) {
           std::string dep_full_name = dep->name()->str();
           to_underscore(dep_full_name);
-          code += ",\n  " + dep_full_name + "_member_fields";
+          if (!first) { code += ",\n"; }
+          code += "  " + dep_full_name + "_member_fields";
+          first = false;
         }
 
         code += "\n)\n\n";
