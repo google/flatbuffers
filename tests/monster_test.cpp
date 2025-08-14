@@ -676,14 +676,14 @@ void TestMonsterExtraFloats(const std::string &tests_data_path) {
   auto result = GenText(parser, def_obj, &jsongen);
   TEST_NULL(result);
   // Check expected default values.
-  TEST_EQ(std::string::npos != jsongen.find("f0: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("f1: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("f2: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("f3: -inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d0: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d1: nan"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d2: inf"), true);
-  TEST_EQ(std::string::npos != jsongen.find("d3: -inf"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f0: NaN"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f1: NaN"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f2: Infinity"), true);
+  TEST_EQ(std::string::npos != jsongen.find("f3: -Infinity"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d0: NaN"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d1: NaN"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d2: Infinity"), true);
+  TEST_EQ(std::string::npos != jsongen.find("d3: -Infinity"), true);
   // Parse 'mosterdata_extra.json'.
   const auto extra_base = tests_data_path + "monsterdata_extra";
   jsongen = "";
