@@ -271,6 +271,14 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
       code += "-- Enum: " + object_names.full_name + "\n";
       code += "" + enum_lookup_table_name + " = {\n";
 
+      // TODO: we now know if an enum is bit_flags, we need to add new entries
+      // for each flag if this is set for now, just make sure to add NONE if we
+      // are a bit_flags enum
+      if (auto attrs = enum_def->attributes();
+          attrs && attrs->LookupByKey("bit_flags") != nullptr) {
+        code += "  [0] = \"NONE\",\n";
+      }
+
       // add each enum value entry
       ForAllEnumValues(enum_def, [&](const r::EnumVal *enum_val) {
         const std::string name = enum_val->name()->str();
@@ -360,7 +368,7 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
     // write lookup files to disk
     for (const auto &file : files) {
       const std::string file_name =
-          options_.output_path + "01_" + file.first + "_lookup.lua";
+          options_.output_path + "02_" + file.first + "_lookup.lua";
       SaveFile(file_name.c_str(), file.second, false);
     }
 
@@ -492,7 +500,7 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
             "the parser, not a TvbRange (or anything else!)\")\n\n";
         code += "  FB_VERBOSE = verbose and verbose or false\n\n";
         code += "  local subtree = tree:add(" + proto_name +
-                ", buffer(offset), buffer(offset):raw(), file_name)\n\n";
+                ", buffer(offset))\n\n";
 
         code +=
             "  offset = offset + Parse_Root_Offset(buffer, offset, "
@@ -534,7 +542,7 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
     // write all files to disk
     for (const auto &file : files) {
       const std::string file_name =
-          options_.output_path + "02_" + file.first + ".lua";
+          options_.output_path + "03_" + file.first + ".lua";
       SaveFile(file_name.c_str(), file.second, false);
     }
 
@@ -807,9 +815,10 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
                          [&](const r::EnumVal *enum_val) {
                            // for each enum value, get the target object and its
                            // parser function
-                           int32_t union_type_index = enum_val->value();
+                           int32_t union_type_index =
+                               enum_val->union_type()->index();
 
-                           if (union_type_index == 0) {
+                           if (union_type_index == -1) {
                              // skip the NONE entry, as it doesn't have a parser
                              return;
                            }
@@ -821,7 +830,7 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
                                enum_target_object->name()->str();
                            to_underscore(enum_target_name_underscore);
 
-                           code += "    [" + NumToString(union_type_index) +
+                           code += "    [" + NumToString(enum_val->value()) +
                                    "] = " + "Parse_" +
                                    enum_target_name_underscore + ",\n";
                          });
@@ -893,14 +902,21 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
 
       for (const auto field : *obj->fields()) {
         const auto type = field->type();
-        if (type->base_type() == r::BaseType::Obj ||
-            type->base_type() == r::BaseType::Union) {
-          const auto *dep = schema->objects()->Get(type->index());
-          collect(dep);
+        if (type->base_type() == r::BaseType::Obj) {
+          const auto idx = type->index();
+          collect(schema->objects()->Get(idx));
         } else if (type->base_type() == r::BaseType::Vector &&
                    type->element() == r::BaseType::Obj) {
           const auto *dep = schema->objects()->Get(type->index());
           collect(dep);
+        } else if (type->base_type() == r::BaseType::Union) {
+          // unions can have multiple types, so we need to collect all of them
+          ForAllEnumValues(schema->enums()->Get(type->index()),
+                           [&](const r::EnumVal *enum_val) {
+                             const auto idx = enum_val->union_type()->index();
+                             if (idx == -1) { return; }
+                             collect(schema->objects()->Get(idx));
+                           });
         }
       }
     };
