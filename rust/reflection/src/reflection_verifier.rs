@@ -28,10 +28,17 @@ pub fn verify_with_options(
     schema: &Schema,
     opts: &VerifierOptions,
     buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    root_table_name: Option<&str>,
 ) -> FlatbufferResult<()> {
     let mut verifier = Verifier::new(opts, buffer);
-    if let Some(table_object) = schema.root_table() {
-        if let core::result::Result::Ok(table_pos) = verifier.get_uoffset(0) {
+    let root_table = match root_table_name {
+        Some(name) => schema
+            .objects()
+            .lookup_by_key(name, |o, k| o.key_compare_with_value(k)),
+        None => schema.root_table(),
+    };
+    if let Some(table_object) = root_table {
+        if let Ok(table_pos) = verifier.get_uoffset(0) {
             // Inserts -1 as object index for root table
             buf_loc_to_obj_idx.insert(table_pos.try_into()?, -1);
             let mut verified = vec![false; buffer.len()];
@@ -62,7 +69,8 @@ fn verify_table(
 
     let mut table_verifier = verifier.visit_table(table_pos)?;
 
-    for field in &table_object.fields() {
+    let fields = table_object.fields();
+    for field in &fields {
         let field_name = field.name().to_owned();
         table_verifier = match field.type_().base_type() {
             BaseType::UType | BaseType::UByte => {
@@ -154,15 +162,8 @@ fn verify_table(
                     table_verifier
                 }
             }
-            _ => {
-                return Err(FlatbufferError::TypeNotSupported(
-                    field
-                        .type_()
-                        .base_type()
-                        .variant_name()
-                        .unwrap_or_default()
-                        .to_string(),
-                ));
+            other => {
+                return Err(FlatbufferError::UnsupportedTableFieldType(other));
             }
         };
     }
@@ -202,91 +203,30 @@ fn verify_vector<'a, 'b, 'c>(
     buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
 ) -> FlatbufferResult<TableVerifier<'a, 'b, 'c>> {
     let field_name = field.name().to_owned();
+    macro_rules! visit_vec {
+        ($t:ty) => {
+            table_verifier
+                .visit_field::<ForwardsUOffset<Vector<$t>>>(
+                    field_name,
+                    field.offset(),
+                    field.required(),
+                )
+                .map_err(FlatbufferError::VerificationError)
+        };
+    }
     match field.type_().element() {
-        BaseType::UType | BaseType::UByte => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<u8>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::Bool => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<bool>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::Byte => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<i8>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::Short => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<i16>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::UShort => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<u16>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::Int => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<i32>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::UInt => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<u32>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::Long => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<i64>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::ULong => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<u64>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::Float => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<f32>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::Double => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<f64>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
-        BaseType::String => table_verifier
-            .visit_field::<ForwardsUOffset<Vector<ForwardsUOffset<&str>>>>(
-                field_name,
-                field.offset(),
-                field.required(),
-            )
-            .map_err(FlatbufferError::VerificationError),
+        BaseType::UType | BaseType::UByte => visit_vec!(u8),
+        BaseType::Bool => visit_vec!(bool),
+        BaseType::Byte => visit_vec!(i8),
+        BaseType::Short => visit_vec!(i16),
+        BaseType::UShort => visit_vec!(u16),
+        BaseType::Int => visit_vec!(i32),
+        BaseType::UInt => visit_vec!(u32),
+        BaseType::Long => visit_vec!(i64),
+        BaseType::ULong => visit_vec!(u64),
+        BaseType::Float => visit_vec!(f32),
+        BaseType::Double => visit_vec!(f64),
+        BaseType::String => visit_vec!(ForwardsUOffset<&str>),
         BaseType::Obj => {
             if let Some(field_pos) = table_verifier.deref(field.offset())? {
                 let verifier = table_verifier.verifier();
@@ -340,17 +280,154 @@ fn verify_vector<'a, 'b, 'c>(
             }
             Ok(table_verifier)
         }
-        _ => {
-            return Err(FlatbufferError::TypeNotSupported(
-                field
-                    .type_()
-                    .base_type()
-                    .variant_name()
-                    .unwrap_or_default()
-                    .to_string(),
-            ))
+        BaseType::Union => {
+            verify_vector_of_unions(table_verifier, field, schema, verified, buf_loc_to_obj_idx)
+        }
+        other => {
+            return Err(FlatbufferError::UnsupportedVectorElementType(other));
         }
     }
+}
+
+fn verify_vector_of_unions<'a, 'b, 'c>(
+    mut table_verifier: TableVerifier<'a, 'b, 'c>,
+    field: &Field,
+    schema: &Schema,
+    verified: &mut [bool],
+    buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+) -> FlatbufferResult<TableVerifier<'a, 'b, 'c>> {
+    let field_type = field.type_();
+    // If the schema is valid, none of these asserts can fail.
+    debug_assert_eq!(field_type.base_type(), BaseType::Vector);
+    debug_assert_eq!(field_type.element(), BaseType::Union);
+    let child_enum_idx = field_type.index();
+    let child_enum = schema.enums().get(child_enum_idx.try_into()?);
+    debug_assert!(!child_enum.values().is_empty());
+
+    // Assuming the schema is valid, the previous field must be the enum vector, which consists of
+    // of 1-byte enums.
+    let enum_field_offset = field
+        .offset()
+        .checked_sub(u16::try_from(SIZE_VOFFSET).unwrap())
+        .ok_or(FlatbufferError::InvalidUnionEnum)?;
+
+    // Either both vectors must be present, or both must be absent.
+    let (value_field_pos, enum_field_pos) = match (
+        table_verifier.deref(field.offset())?,
+        table_verifier.deref(enum_field_offset)?,
+    ) {
+        (Some(value_field_pos), Some(enum_field_pos)) => (value_field_pos, enum_field_pos),
+        (None, None) => {
+            if field.required() {
+                return InvalidFlatbuffer::new_missing_required(field.name().to_owned())?;
+            } else {
+                return Ok(table_verifier);
+            }
+        }
+        _ => {
+            return InvalidFlatbuffer::new_inconsistent_union(
+                format!("{}_type", field.name()),
+                field.name().to_owned(),
+            )?;
+        }
+    };
+
+    let verifier = table_verifier.verifier();
+    let enum_vector_offset = verifier.get_uoffset(enum_field_pos)?;
+    let enum_vector_pos = enum_field_pos.saturating_add(enum_vector_offset.try_into()?);
+    let enum_vector_len = verifier.get_uoffset(enum_vector_pos)?;
+    let enum_vector_start = enum_vector_pos.saturating_add(SIZE_UOFFSET);
+
+    let value_vector_offset = verifier.get_uoffset(value_field_pos)?;
+    let value_vector_pos = value_field_pos.saturating_add(value_vector_offset.try_into()?);
+    let value_vector_len = verifier.get_uoffset(value_vector_pos)?;
+    let value_vector_start = value_vector_pos.saturating_add(SIZE_UOFFSET);
+
+    // Both vectors should have the same length.
+    // The C++ verifier instead assumes that the length of the value vector is the length of the enum vector:
+    // https://github.com/google/flatbuffers/blob/bd1b2d0bafb8be6059a29487db9e5ace5c32914d/src/reflection.cpp#L147-L162
+    // This has been reported at https://github.com/google/flatbuffers/issues/8567
+    if enum_vector_len != value_vector_len {
+        return InvalidFlatbuffer::new_inconsistent_union(
+            format!("{}_type", field.name()),
+            field.name().to_owned(),
+        )?;
+    }
+
+    // Regardless of its contents, the value vector in a vector of unions must be a vector of
+    // offsets. Source: https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#unions
+    verifier.is_aligned::<UOffsetT>(value_vector_start)?;
+    let value_vector_size = value_vector_len.saturating_mul(SIZE_UOFFSET.try_into()?);
+    verifier.range_in_buffer(value_vector_start, value_vector_size.try_into()?)?;
+    let value_vector_range = core::ops::Range {
+        start: value_vector_start,
+        end: value_vector_start.saturating_add(value_vector_size.try_into()?),
+    };
+
+    // The enums must have a size of 1 byte, so we just use the length of the vector.
+    let enum_vector_size = enum_vector_len;
+    verifier.range_in_buffer(enum_vector_start, enum_vector_size.try_into()?)?;
+    let enum_vector_range = core::ops::Range {
+        start: enum_vector_start,
+        end: enum_vector_start.saturating_add(enum_vector_size.try_into()?),
+    };
+
+    let enum_values = child_enum.values();
+
+    for (enum_pos, union_offset_pos) in
+        enum_vector_range.zip(value_vector_range.step_by(SIZE_UOFFSET))
+    {
+        let enum_value = verifier.get_u8(enum_pos)?;
+        if enum_value == 0 {
+            // Discriminator is NONE. This should never happen: the C++ implementation forbids it.
+            // For example, the C++ JSON parser forbids the type entry to be NONE for a vector of
+            // unions: in
+            // https://github.com/google/flatbuffers/blob/bd1b2d0bafb8be6059a29487db9e5ace5c32914d/src/idl_parser.cpp#L1383
+            // the second argument is 'true', meaning that the NONE entry is skipped for the reverse
+            // lookup.
+            //
+            // This should possibly be an error, but we can be forgiving and just ignore the
+            // corresponding union entry entirely.
+            continue;
+        }
+
+        let enum_value: usize = enum_value.into();
+        let enum_type = if enum_value < enum_values.len() {
+            enum_values.get(enum_value).union_type().expect(
+                "Schema verification should have checked that every union enum value has a type",
+            )
+        } else {
+            return Err(FlatbufferError::InvalidUnionEnum);
+        };
+        let union_pos =
+            union_offset_pos.saturating_add(verifier.get_uoffset(union_offset_pos)?.try_into()?);
+        verifier.in_buffer::<u8>(union_pos)?;
+
+        match enum_type.base_type() {
+            BaseType::String => <&str>::run_verifier(verifier, union_pos)?,
+            BaseType::Obj => {
+                let child_obj = schema.objects().get(enum_type.index().try_into()?);
+                buf_loc_to_obj_idx.insert(union_pos, enum_type.index());
+                if child_obj.is_struct() {
+                    verify_struct(verifier, &child_obj, union_pos, schema, buf_loc_to_obj_idx)?
+                } else {
+                    verify_table(
+                        verifier,
+                        &child_obj,
+                        union_pos,
+                        schema,
+                        verified,
+                        buf_loc_to_obj_idx,
+                    )?;
+                }
+            }
+            other => {
+                return Err(FlatbufferError::UnsupportedUnionElementType(other));
+            }
+        }
+        verified[union_pos] = true;
+    }
+    Ok(table_verifier)
 }
 
 fn verify_union<'a, 'b, 'c>(
@@ -399,14 +476,8 @@ fn verify_union<'a, 'b, 'c>(
                     )?;
                 }
             }
-            _ => {
-                return Err(FlatbufferError::TypeNotSupported(
-                    enum_type
-                        .base_type()
-                        .variant_name()
-                        .unwrap_or_default()
-                        .to_string(),
-                ))
+            other => {
+                return Err(FlatbufferError::UnsupportedUnionElementType(other));
             }
         }
     } else {
