@@ -34,7 +34,24 @@ public final class IntVector extends BaseVector {
    *         `vector`.
    */
   public IntVector __assign(int _vector, ByteBuffer _bb) {
+    if(_bb == null){
+      throw new IllegalArgumentException("ByteBuffer cannot be null");
+    }
     __reset(_vector, Constants.SIZEOF_INT, _bb); return this;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
+    for(int i = 0; i < length(); i++){
+      if(i > 0){
+        sb.append(", ");
+      }
+      sb.append(get(i));
+    }
+    sb.append("]");
+    return sb.toString();
   }
 
   /**
@@ -44,6 +61,9 @@ public final class IntVector extends BaseVector {
    * @return the 32-bit value at the given index.
    */
   public int get(int j) {
+    if(j < 0 || j >= length()){
+      throw new IndexOutOfBoundsException("Index " + j + " is out of bounds for length " + length());
+    }
     return bb.getInt(__element(j));
   }
 
@@ -51,9 +71,12 @@ public final class IntVector extends BaseVector {
    * Reads the integer at the given index, zero-extends it to type long, and returns the result,
    * which is therefore in the range 0 through 4294967295.
    *
+   * Java does not natively support unsigned integers, so this method returns a 'long' to represent the unsigned 32-bit value.
+   * 
    * @param j The index from which the integer will be read.
    * @return the unsigned 32-bit at the given index.
    */
+
   public long getAsUnsigned(int j) {
     return (long) get(j) & 0xFFFFFFFFL;
   }
