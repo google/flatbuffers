@@ -3193,7 +3193,7 @@ class CppGenerator : public BaseGenerator {
                                 const char *vec_type_access) {
     auto type_name = WrapInNameSpace(*afield.value.type.enum_def);
     return type_name + "Union::UnPack(" + "_e" + vec_elem_access + ", " +
-           EscapeKeyword(afield.name + UnionTypeFieldSuffix()) + "()" +
+           EscapeKeyword(Name(afield) + UnionTypeFieldSuffix()) + "()" +
            vec_type_access + ", _resolver)";
   }
 
@@ -3217,7 +3217,13 @@ class CppGenerator : public BaseGenerator {
             const auto pack_name = struct_attrs.Lookup("native_type_pack_name");
             if (pack_name) { unpack_call += pack_name->constant; }
             unpack_call += "(*" + val + ")";
-            return unpack_call;
+            if (invector || afield.native_inline) {
+              return unpack_call;
+            } else {
+              const auto name = native_type->constant;
+              const auto ptype = GenTypeNativePtr(name, &afield, true);
+              return ptype + "(new " + name + "(" + unpack_call + "))";
+            }
           } else if (invector || afield.native_inline) {
             return "*" + val;
           } else {
@@ -3339,7 +3345,7 @@ class CppGenerator : public BaseGenerator {
                            BASE_TYPE_UNION);
         // Generate code that sets the union type, of the form:
         //   _o->field.type = _e;
-        code += "_o->" + union_field->name + ".type = _e;";
+        code += "_o->" + Name(*union_field) + ".type = _e;";
         break;
       }
       case BASE_TYPE_UNION: {
@@ -3601,12 +3607,16 @@ class CppGenerator : public BaseGenerator {
         if (IsStruct(field.value.type)) {
           const auto &struct_attribs = field.value.type.struct_def->attributes;
           const auto native_type = struct_attribs.Lookup("native_type");
-          if (native_type) {
+          if (native_type && field.native_inline) {
             code += "::flatbuffers::Pack";
             const auto pack_name =
                 struct_attribs.Lookup("native_type_pack_name");
             if (pack_name) { code += pack_name->constant; }
             code += "(" + value + ")";
+          } else if (native_type && !field.native_inline) {
+            code += WrapInNameSpace(*field.value.type.struct_def) + "{};";
+            code += " if (_o->" + Name(field) + ") _" + Name(field) +
+                    " = ::flatbuffers::Pack(*_o->" + Name(field) + ")";
           } else if (field.native_inline) {
             code += "&" + value;
           } else {
@@ -3735,16 +3745,22 @@ class CppGenerator : public BaseGenerator {
         if (field->deprecated) { continue; }
 
         bool pass_by_address = false;
+        bool check_ptr = false;
         if (field->value.type.base_type == BASE_TYPE_STRUCT) {
           if (IsStruct(field->value.type)) {
             auto native_type =
                 field->value.type.struct_def->attributes.Lookup("native_type");
+            auto native_inline = field->attributes.Lookup("native_inline");
             if (native_type) { pass_by_address = true; }
+            if (native_type && !native_inline) { check_ptr = true; }
           }
         }
 
         // Call the CreateX function using values from |_o|.
-        if (pass_by_address) {
+        if (pass_by_address && check_ptr) {
+          code_ += ",\n      _o->" + Name(*field) + " ? &_" + Name(*field) +
+                   " : nullptr\\";
+        } else if (pass_by_address) {
           code_ += ",\n      &_" + Name(*field) + "\\";
         } else {
           code_ += ",\n      _" + Name(*field) + "\\";

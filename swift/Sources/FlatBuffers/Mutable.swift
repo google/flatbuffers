@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#if canImport(Common)
+import Common
+#endif
+
 import Foundation
 
 /// Mutable is a protocol that allows us to mutate Scalar values within a ``ByteBuffer``
@@ -45,7 +49,7 @@ extension Mutable where Self == Table {
   ///   - index: index of the Element
   public func mutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
     guard index != 0 else { return false }
-    return mutate(value: value, o: index + position)
+    return mutate(value: value, o: index &+ position)
   }
 
   /// Directly mutates the element by calling mutate
@@ -66,7 +70,7 @@ extension Mutable where Self == Struct {
   ///   - value: New value to be inserted to the buffer
   ///   - index: index of the Element
   public func mutate<T: Scalar>(_ value: T, index: Int32) -> Bool {
-    mutate(value: value, o: index + position)
+    mutate(value: value, o: index &+ position)
   }
 
   /// Directly mutates the element by calling mutate
