@@ -271,6 +271,9 @@ const static FlatCOption flatc_options[] = {
   { "", "grpc-search-path", "PATH", "Prefix to any gRPC includes." },
   { "", "grpc-python-typed-handlers", "",
     "The handlers will use the generated classes rather than raw bytes." },
+  { "", "grpc-callback-api", "",
+    "Generate gRPC code using the callback (reactor) API instead of legacy "
+    "sync/async." },
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -731,6 +734,12 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-grpc-python-typed-handlers" ||
                  arg == "--grpc-python-typed-handlers=false") {
         opts.grpc_python_typed_handlers = false;
+      } else if (arg == "--grpc-callback-api" ||
+                 arg == "--grpc-callback-api=true") {
+        opts.grpc_callback_api = true;
+      } else if (arg == "--no-grpc-callback-api" ||
+                 arg == "--grpc-callback-api=false") {
+        opts.grpc_callback_api = false;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 

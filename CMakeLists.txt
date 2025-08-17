@@ -278,6 +278,8 @@ set(FlatBuffers_GRPCTest_SRCS
   tests/test_builder.cpp
   grpc/tests/grpctest.cpp
   grpc/tests/message_builder_test.cpp
+  grpc/tests/grpctest_callback_compile.cpp
+  grpc/tests/grpctest_callback_client_compile.cpp
 )
 
 # TODO(dbaileychess): Figure out how this would now work. I posted a question on

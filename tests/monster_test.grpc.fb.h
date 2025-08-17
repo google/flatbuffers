@@ -16,6 +16,9 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/stub_options.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
+#include <grpcpp/impl/codegen/callback_common.h>
+#include <grpcpp/impl/codegen/server_callback_handlers.h>
+#include <grpcpp/support/client_callback.h>
 
 namespace grpc {
 class CompletionQueue;
@@ -82,10 +85,16 @@ class MonsterStorage final {
     virtual ::grpc::ClientAsyncReaderWriterInterface< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* AsyncGetMinMaxHitPointsRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncReaderWriterInterface< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* PrepareAsyncGetMinMaxHitPointsRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
   };
+  // Forward declaration for nested CallbackService (callback API)
+  class CallbackService;
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
     ::grpc::Status Store(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Monster>& request, flatbuffers::grpc::Message<Stat>* response) override;
+    // Callback unary (function form). Request/response must outlive callback.
+    void async_Store(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Monster>& request, flatbuffers::grpc::Message<Stat>* response, std::function<void(::grpc::Status)> on_done);
+    // Callback unary (reactor form).
+    void async_Store(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Monster>& request, flatbuffers::grpc::Message<Stat>* response, ::grpc::ClientUnaryReactor* reactor);
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< flatbuffers::grpc::Message<Stat>>> AsyncStore(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Monster>& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< flatbuffers::grpc::Message<Stat>>>(AsyncStoreRaw(context, request, cq));
     }
@@ -119,6 +128,12 @@ class MonsterStorage final {
     std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>> PrepareAsyncGetMinMaxHitPoints(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>>(PrepareAsyncGetMinMaxHitPointsRaw(context, cq));
     }
+  // Server streaming callback reactor entry.
+  void async_Retrieve(::grpc::ClientContext* context, const flatbuffers::grpc::Message<Stat>& request, ::grpc::ClientReadReactor< flatbuffers::grpc::Message<Monster> >* reactor);
+  // Client streaming callback reactor entry.
+  void async_GetMaxHitPoint(::grpc::ClientContext* context, flatbuffers::grpc::Message<Stat>* response, ::grpc::ClientWriteReactor< flatbuffers::grpc::Message<Monster> >* reactor);
+  // Bidirectional streaming callback reactor entry.
+  void async_GetMinMaxHitPoints(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat> >* reactor);
   
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
@@ -342,6 +357,23 @@ class MonsterStorage final {
   typedef   WithSplitStreamingMethod_Retrieve<  Service   >   SplitStreamedService;
   typedef   WithStreamedUnaryMethod_Store<  WithSplitStreamingMethod_Retrieve<  Service   >   >   StreamedService;
 };
+
+#if defined(GRPC_CALLBACK_API_NONEXPERIMENTAL)
+class MonsterStorage::CallbackService : public ::grpc::Service {
+ public:
+  CallbackService();
+  virtual ~CallbackService();
+  virtual ::grpc::ServerUnaryReactor* Store(::grpc::CallbackServerContext* context, const flatbuffers::grpc::Message<Monster>* request, flatbuffers::grpc::Message<Stat>* response);
+  virtual ::grpc::ServerWriteReactor<flatbuffers::grpc::Message<Monster>>* Retrieve(::grpc::CallbackServerContext* context, const flatbuffers::grpc::Message<Stat>* request);
+  virtual ::grpc::ServerReadReactor<flatbuffers::grpc::Message<Monster>>* GetMaxHitPoint(::grpc::CallbackServerContext* context, flatbuffers::grpc::Message<Stat>* response);
+  virtual ::grpc::ServerBidiReactor<flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* GetMinMaxHitPoints(::grpc::CallbackServerContext* context);
+};
+#else
+// Callback API requested but not available in this gRPC version.
+#endif // GRPC_CALLBACK_API_NONEXPERIMENTAL
+
+// FlatBuffers: Callback API code generated.
+#define FLATBUFFERS_GENERATED_GRPC_CALLBACK_API 1
 
 }  // namespace Example
 }  // namespace MyGame
