@@ -767,6 +767,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
     }
   }
 
+  ValidateOptions(options);
+
   return options;
 }
 
@@ -775,9 +777,8 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
 
   if (!options.filenames.size()) Error("missing input files", false, true);
 
-  if (opts.proto_mode) {
-    if (options.any_generator)
-      Error("cannot generate code directly from .proto files", true);
+  if (opts.proto_mode && options.any_generator) {
+    Warn("cannot generate code directly from .proto files", true);
   } else if (!options.any_generator && options.conform_to_schema.empty() &&
              options.annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
