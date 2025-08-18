@@ -879,8 +879,7 @@ class PythonGenerator : public BaseGenerator {
       code += "(self, i):";
     }
 
-    if (parser_.opts.include_dependence_headers &&
-        !parser_.opts.python_typing) {
+    if (IsForeign(field.value.type) && !parser_.opts.python_typing) {
       code += GenIndents(2);
       code += "from " + import_entry.first + " import " + import_entry.second +
               "\n";
@@ -945,8 +944,7 @@ class PythonGenerator : public BaseGenerator {
       code += "x = self._tab.Indirect(o + self._tab.Pos)\n";
     }
 
-    if (parser_.opts.include_dependence_headers &&
-        !parser_.opts.python_typing) {
+    if (IsForeign(field.value.type) && !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
       code += "from " + import_entry.first + " import " + import_entry.second +
               "\n";
@@ -1017,8 +1015,11 @@ class PythonGenerator : public BaseGenerator {
   template<typename T> std::string ModuleFor(const T *def) const {
     if (!parser_.opts.one_file) { return namer_.NamespacedType(*def); }
 
+    std::string def_file{ def->file };
+    if (def->declaration_file) { def_file = def->declaration_file->substr(2); }
+
     std::string filename =
-        StripExtension(def->file) + parser_.opts.filename_suffix;
+        StripExtension(def_file) + parser_.opts.filename_suffix;
     if (parser_.file_being_parsed_ == def->file) {
       return "." + StripPath(filename);  // make it a "local" import
     }
@@ -1034,6 +1035,19 @@ class PythonGenerator : public BaseGenerator {
     if (type.struct_def) return ModuleFor(type.struct_def);
     if (type.enum_def) return ModuleFor(type.enum_def);
     return "." + GenTypeGet(type);
+  }
+
+  bool IsLocal(const Type &type) const {
+    Definition *def = nullptr;
+    if (type.struct_def) def = type.struct_def;
+    if (type.enum_def) def = type.enum_def;
+
+    return def && def->file == parser_.file_being_parsed_;
+  }
+
+  bool IsForeign(const Type &type) const {
+    return parser_.opts.include_dependence_headers &&
+           (!parser_.opts.one_file || !IsLocal(type));
   }
 
   // Get the value of a vector's struct member.
@@ -1064,8 +1078,7 @@ class PythonGenerator : public BaseGenerator {
     if (!(vectortype.struct_def->fixed)) {
       code += Indent + Indent + Indent + "x = self._tab.Indirect(x)\n";
     }
-    if (parser_.opts.include_dependence_headers &&
-        !parser_.opts.python_typing) {
+    if (IsForeign(field.value.type) && !parser_.opts.python_typing) {
       code += Indent + Indent + Indent;
       code += "from " + import_entry.first + " import " + import_entry.second +
               "\n";
@@ -1721,7 +1734,7 @@ class PythonGenerator : public BaseGenerator {
       switch (ev.union_type.base_type) {
         case BASE_TYPE_STRUCT:
           field_type = namer_.ObjectType(*ev.union_type.struct_def);
-          if (parser_.opts.include_dependence_headers) {
+          if (IsForeign(ev.union_type)) {
             auto package_reference = GenPackageReference(ev.union_type);
             field_type = package_reference + "." + field_type;
             import_list->insert("import " + package_reference);
@@ -1740,7 +1753,7 @@ class PythonGenerator : public BaseGenerator {
     field_types += "]";
 
     // Gets the import lists for the union.
-    if (parser_.opts.include_dependence_headers) {
+    if (IsForeign(field.value.type)) {
       const auto package_reference = GenPackageReference(field.value.type);
       import_list->insert("import " + package_reference);
     }
@@ -1753,7 +1766,7 @@ class PythonGenerator : public BaseGenerator {
     auto &output = *out_ptr;
     const Type &type = field.value.type;
     const std::string object_type = namer_.ObjectType(*type.struct_def);
-    if (parser_.opts.include_dependence_headers) {
+    if (IsForeign(type)) {
       auto package_reference = GenPackageReference(type);
       output = package_reference + "." + object_type + "]";
       import_list->insert("import " + package_reference);
@@ -1774,7 +1787,7 @@ class PythonGenerator : public BaseGenerator {
       const std::string object_type =
           namer_.ObjectType(*vector_type.struct_def);
       field_type = object_type + "]";
-      if (parser_.opts.include_dependence_headers) {
+      if (IsForeign(vector_type)) {
         auto package_reference = GenPackageReference(vector_type);
         field_type = package_reference + "." + object_type + "]";
         import_list->insert("import " + package_reference);
@@ -1950,9 +1963,9 @@ class PythonGenerator : public BaseGenerator {
     const auto field_method = namer_.Method(field);
     auto field_type = TypeName(field);
 
-    if (parser_.opts.include_dependence_headers) {
+    if (IsForeign(field.value.type)) {
       auto package_reference = GenPackageReference(field.value.type);
-      field_type = package_reference + "." + TypeName(field);
+      field_type = package_reference + "." + field_type;
     }
 
     code += GenIndents(2) + "if " + struct_var + "." + field_method + "(";
@@ -1980,7 +1993,7 @@ class PythonGenerator : public BaseGenerator {
     const EnumDef &enum_def = *field.value.type.enum_def;
     auto union_type = namer_.Type(enum_def);
 
-    if (parser_.opts.include_dependence_headers) {
+    if (IsForeign(field.value.type)) {
       union_type = namer_.NamespacedType(enum_def) + "." + union_type;
     }
     code += GenIndents(2) + "self." + field_field + " = " + union_type +
@@ -2005,7 +2018,7 @@ class PythonGenerator : public BaseGenerator {
     auto field_type = TypeName(field);
     auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
-    if (parser_.opts.include_dependence_headers) {
+    if (IsForeign(field.value.type)) {
       auto package_reference = GenPackageReference(field.value.type);
       field_type = package_reference + "." + TypeName(field);
     }
@@ -2037,7 +2050,7 @@ class PythonGenerator : public BaseGenerator {
     auto field_type = TypeName(field);
     auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
-    if (parser_.opts.include_dependence_headers) {
+    if (IsForeign(field.value.type)) {
       auto package_reference = GenPackageReference(field.value.type);
       field_type = package_reference + "." + TypeName(field);
     }
@@ -2487,7 +2500,7 @@ class PythonGenerator : public BaseGenerator {
 
     code +=
         GenIndents(1) + "if unionType == " + union_type + "." + variant + ":";
-    if (parser_.opts.include_dependence_headers) {
+    if (IsForeign(ev.union_type)) {
       auto package_reference = GenPackageReference(ev.union_type);
       code += GenIndents(2) + "import " + package_reference;
       field_type = package_reference + "." + field_type;

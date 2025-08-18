@@ -568,7 +568,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.include_dependence_headers = false;
       } else if (arg == "--gen-onefile") {
         opts.one_file = true;
-        opts.include_dependence_headers = false;
       } else if (arg == "--raw-binary") {
         options.raw_binary = true;
       } else if (arg == "--size-prefixed") {
