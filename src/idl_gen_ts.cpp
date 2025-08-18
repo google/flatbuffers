@@ -1944,11 +1944,15 @@ class TsGenerator : public BaseGenerator {
 
     // Emit the fully qualified name
     if (parser_.opts.generate_name_strings) {
+      const std::string fullyQualifiedName = struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
+
       GenDocComment(code_ptr);
-      code += "static getFullyQualifiedName():string {\n";
+      code += "static getFullyQualifiedName(): \"";
+      code += fullyQualifiedName;
+      code += "\" {\n";
       code +=
           "  return '" +
-          struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name) +
+          fullyQualifiedName +
           "';\n";
       code += "}\n\n";
     }
