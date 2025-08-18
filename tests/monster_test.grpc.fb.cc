@@ -153,31 +153,31 @@ MonsterStorage::CallbackService::CallbackService() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::CallbackUnaryHandler< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
-          [this](::grpc::CallbackServerContext* ctx, const flatbuffers::grpc::Message<Monster>* req, flatbuffers::grpc::Message<Stat>* resp) {
-            return this->Store(ctx, req, resp);
-          })));
+      new ::grpc::internal::CallbackUnaryHandler<flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+        [this](::grpc::CallbackServerContext* ctx, const flatbuffers::grpc::Message<Monster>* req, flatbuffers::grpc::Message<Stat>* resp) {
+          return this->Store(ctx, req, resp);
+        })));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[1],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
-      new ::grpc::internal::CallbackServerStreamingHandler< flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>(
-          [this](::grpc::CallbackServerContext* ctx, const flatbuffers::grpc::Message<Stat>* req) {
-            return this->Retrieve(ctx, req);
-          })));
+      new ::grpc::internal::CallbackServerStreamingHandler<flatbuffers::grpc::Message<Stat>, flatbuffers::grpc::Message<Monster>>(
+        [this](::grpc::CallbackServerContext* ctx, const flatbuffers::grpc::Message<Stat>* req) {
+          return this->Retrieve(ctx, req);
+        })));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[2],
       ::grpc::internal::RpcMethod::CLIENT_STREAMING,
-      new ::grpc::internal::CallbackClientStreamingHandler< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
-          [this](::grpc::CallbackServerContext* ctx, flatbuffers::grpc::Message<Stat>* resp) {
-            return this->GetMaxHitPoint(ctx, resp);
-          })));
+      new ::grpc::internal::CallbackClientStreamingHandler<flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+        [this](::grpc::CallbackServerContext* ctx, flatbuffers::grpc::Message<Stat>* resp) {
+          return this->GetMaxHitPoint(ctx, resp);
+        })));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       MonsterStorage_method_names[3],
       ::grpc::internal::RpcMethod::BIDI_STREAMING,
-      new ::grpc::internal::CallbackBidiHandler< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
-          [this](::grpc::CallbackServerContext* ctx) {
-            return this->GetMinMaxHitPoints(ctx);
-          })));
+      new ::grpc::internal::CallbackBidiHandler<flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>(
+        [this](::grpc::CallbackServerContext* ctx) {
+          return this->GetMinMaxHitPoints(ctx);
+        })));
 }
 
 MonsterStorage::CallbackService::~CallbackService() {}
