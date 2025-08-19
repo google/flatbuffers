@@ -31,6 +31,7 @@ let package = Package(
       name: "FlexBuffers",
       targets: ["FlexBuffers"]),
   ],
+  dependencies: .dependencies,
   targets: [
     .target(
       name: "FlatBuffers",
@@ -42,6 +43,38 @@ let package = Package(
       path: "swift/Sources/FlexBuffers"),
     .target(
       name: "Common",
-      dependencies: [],
       path: "swift/Sources/Common"),
+    .testTarget(
+      name: "FlatbuffersTests",
+      dependencies: .dependencies,
+      path: "tests/swift/Tests/Flatbuffers"),
+    .testTarget(
+      name: "FlexbuffersTests",
+      dependencies: ["FlexBuffers"],
+      path: "tests/swift/Tests/Flexbuffers"),
   ])
+
+extension Array where Element == Package.Dependency {
+  static var dependencies: [Package.Dependency] {
+    #if os(Windows)
+    []
+    #else
+    // Test only Dependency
+    [.package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1")]
+    #endif
+  }
+}
+
+extension Array where Element == PackageDescription.Target.Dependency {
+  static var dependencies: [PackageDescription.Target.Dependency] {
+    #if os(Windows)
+    ["FlatBuffers"]
+    #else
+    // Test only Dependency
+    [
+      .product(name: "GRPC", package: "grpc-swift"),
+      "FlatBuffers",
+    ]
+    #endif
+  }
+}

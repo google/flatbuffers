@@ -129,7 +129,7 @@ jobs:
 
   build-cpp-std:
     name: Build Windows C++
-    runs-on: windows-2019
+    runs-on: windows-2022
     strategy:
       matrix:
         std: [11, 14, 17, 20, 23]
@@ -140,7 +140,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
       run: >
-        cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release
+        cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
         -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
@@ -157,14 +157,14 @@ jobs:
       contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
-    name: Build Windows 2019
-    runs-on: windows-2019
+    name: Build Windows 2022
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: test
@@ -344,13 +344,13 @@ jobs:
 
   build-generator-windows:
     name: Check Generated Code on Windows
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: cmake
-      run: cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
     - name: Generate
@@ -492,27 +492,37 @@ jobs:
        sh phpUnionVectorTest.sh
 
   build-swift:
-    name: Build Swift
+    name: Test Swift
     strategy:
       matrix:
-        swift: ["5.9", "5.10", "6.0"]
+        swift: ["5.9", "5.10", "6.1"]
     # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: swift-actions/setup-swift@v2
+    - uses: vapor/swiftly-action@v0.2
       with:
-        swift-version: ${{ matrix.swift }}
+        toolchain: ${{ matrix.swift }}
     - name: Get swift version
       run: swift --version
     - name: test
-      working-directory: tests/swift/tests
       run: |
         swift build --build-tests
         swift test
 
+  build-swift-windows:
+    name: Test swift windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: '6.1'
+      - run: swift build
+      - run: swift test
+
   build-swift-wasm:
-    name: Build Swift Wasm
+    name: Test Swift Wasm
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/swiftwasm/carton:0.20.1

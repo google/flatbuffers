@@ -5,6 +5,7 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if !os(Windows)
 import Foundation
 import GRPC
 import NIO
@@ -205,3 +206,5 @@ public protocol MyGame_Example_MonsterStorageServerInterceptorFactoryProtocol {
   func makeGetMinMaxHitPointsInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
 
 }
+#endif
+

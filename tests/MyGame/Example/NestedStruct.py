@@ -104,11 +104,17 @@ except:
 class NestedStructT(object):
 
     # NestedStructT
-    def __init__(self):
-        self.a = None  # type: List[int]
-        self.b = 0  # type: int
-        self.c = None  # type: List[int]
-        self.d = None  # type: List[int]
+    def __init__(
+        self,
+        a = None,
+        b = 0,
+        c = None,
+        d = None,
+    ):
+        self.a = a  # type: Optional[List[int]]
+        self.b = b  # type: int
+        self.c = c  # type: Optional[List[int]]
+        self.d = d  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
