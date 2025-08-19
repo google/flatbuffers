@@ -334,7 +334,7 @@ flatc(
 )
 
 flatc(
-    ["--cpp", "--gen-mutable", "--gen-object-api", "--reflect-names"],
+    ["--cpp", "--gen-compare", "--gen-mutable", "--gen-object-api", "--reflect-names"],
     schema="native_type_test.fbs",
 )
 
