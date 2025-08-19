@@ -28,6 +28,9 @@ struct ApplicationData;
 struct ApplicationDataBuilder;
 struct ApplicationDataT;
 
+bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+
 inline const ::flatbuffers::TypeTable *Vector3DTypeTable();
 
 inline const ::flatbuffers::TypeTable *Vector3DAltTypeTable();
@@ -378,6 +381,22 @@ inline Native::Matrix *Matrix::UnPack(const ::flatbuffers::resolver_function_t *
 inline ::flatbuffers::Offset<Matrix> Matrix::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const Native::Matrix* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   return CreateMatrix(_fbb, _o, _rehasher);
 }
+
+
+inline bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+  return
+      (lhs.vectors == rhs.vectors) &&
+      (lhs.vectors_alt == rhs.vectors_alt) &&
+      ((lhs.position == rhs.position) || (lhs.position && rhs.position && *lhs.position == *rhs.position)) &&
+      (lhs.position_inline == rhs.position_inline) &&
+      ((lhs.matrix == rhs.matrix) || (lhs.matrix && rhs.matrix && *lhs.matrix == *rhs.matrix)) &&
+      (lhs.matrices.size() == rhs.matrices.size() && std::equal(lhs.matrices.cbegin(), lhs.matrices.cend(), rhs.matrices.cbegin(), [](std::unique_ptr<Native::Matrix> const &a, std::unique_ptr<Native::Matrix> const &b) { return (a == b) || (a && b && *a == *b); }));
+}
+
+inline bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline ApplicationDataT::ApplicationDataT(const ApplicationDataT &o)
       : vectors(o.vectors),

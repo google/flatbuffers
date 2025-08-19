@@ -19,6 +19,10 @@ struct Vector3D {
     this->y = _y;
     this->z = _z;
   }
+
+  bool operator==(const Vector3D &other) const {
+    return (x == other.x) && (y == other.y) && (z == other.z);
+  }
 };
 
 struct Matrix {
@@ -32,6 +36,11 @@ struct Matrix {
     this->rows = _rows;
     this->columns = _columns;
     values.resize(_rows * _columns);
+  }
+
+  bool operator==(const Matrix &other) const {
+    return (rows == other.rows) && (columns == other.columns) &&
+           (values == other.values);
   }
 };
 }  // namespace Native
