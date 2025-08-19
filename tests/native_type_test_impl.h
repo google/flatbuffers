@@ -17,6 +17,10 @@ struct Vector3D {
     this->y = _y;
     this->z = _z;
   }
+
+  bool operator==(const Vector3D &other) const {
+    return (x == other.x) && (y == other.y) && (z == other.z);
+  }
 };
 }  // namespace Native
 
