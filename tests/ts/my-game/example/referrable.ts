@@ -40,7 +40,7 @@ mutate_id(value:bigint):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.Referrable" {
   return 'MyGame.Example.Referrable';
 }
 
