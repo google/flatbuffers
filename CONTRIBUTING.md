@@ -40,3 +40,26 @@ Some tips for good pull requests:
 # The small print
 Contributions made by corporations are covered by a different agreement than
 the one above, the Software Grant and Corporate Contributor License Agreement.
+
+# Code
+
+TL/DR
+
+See [how to build flatc](https://flatbuffers.dev/building/).
+
+When making changes, build `flatc` and then re-generate the goldens files to see the effect of your changes:
+
+```
+$ cp build/flatc .
+$ goldens/generate_goldens.py
+```
+
+Re-generate other code files to see the effects of the changes:
+
+```
+$ scripts/generate_code.py
+```
+
+Run tests with [TestAll.sh](tests/TestAll.sh) in [tests](tests), or directly any of the sub-scripts run by it.
+
+[Format the code](Formatters.md) before submitting a PR.

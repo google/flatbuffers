@@ -59,5 +59,21 @@ const python::Import &python::Imports::Import(const std::string &module,
   imports.push_back(std::move(import));
   return imports.back();
 }
+
+const python::Import &python::Imports::Export(const std::string &module) {
+  python::Import import;
+  import.module = module;
+  exports.push_back(std::move(import));
+  return exports.back();
+}
+
+const python::Import &python::Imports::Export(const std::string &module,
+                                              const std::string &name) {
+  python::Import import;
+  import.module = module;
+  import.name = name;
+  exports.push_back(std::move(import));
+  return exports.back();
+}
 }  // namespace python
 }  // namespace flatbuffers

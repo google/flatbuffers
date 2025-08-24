@@ -25,7 +25,7 @@ extension FlexBufferVector {
     json += "["
     for i in 0..<count {
       if let val = self[i]?.jsonString() {
-        let comma = i == count - 1 ? "" : ", "
+        let comma = i == count &- 1 ? "" : ", "
         json += "\(val)\(comma)"
       }
     }
