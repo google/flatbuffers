@@ -2,6 +2,10 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if canImport(Common)
+import Common
+#endif
+
 import FlatBuffers
 
 public struct Property: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {

@@ -139,7 +139,7 @@ nav:
     - Dart: "languages/dart.md"
     - Go: "languages/go.md"
     - Java: "languages/java.md"
-    - JavasScript: "languages/javascript.md"
+    - JavaScript: "languages/javascript.md"
     - Kotlin: "languages/kotlin.md"
     - Lobster: "languages/lobster.md"
     - Lua: "languages/lua.md"

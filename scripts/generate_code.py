@@ -104,7 +104,7 @@ JAVA_OPTS = ["--java"]
 KOTLIN_OPTS = ["--kotlin"]
 PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
-PYTHON_OPTS = ["--python", "--python-typing", "--python-decode-obj-api-string"]
+PYTHON_OPTS = ["--python", "--python-typing", "--python-decode-obj-api-strings"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
 PROTO_OPTS = ["--proto"]
 
@@ -331,6 +331,16 @@ if not args.skip_monster_extra:
 flatc(
     CPP_OPTS + CS_OPTS + NO_INCL_OPTS + JAVA_OPTS + ["--jsonschema", "--scoped-enums"],
     schema="arrays_test.fbs",
+)
+
+flatc(
+    ["--cpp", "--gen-mutable", "--gen-object-api", "--reflect-names"],
+    schema="native_type_test.fbs",
+)
+
+flatc(
+    ["--cpp", "--gen-mutable", "--gen-compare", "--gen-object-api", "--reflect-names"],
+    schema="native_inline_table_test.fbs",
 )
 
 flatc(

@@ -43,6 +43,34 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     readVerifiedMonster(fb: _data)
   }
 
+  func testCreateMonsterData() {
+    let bytes = createMonster(withPrefix: false)
+    var buffer = ByteBuffer(data: bytes.data)
+    let monster: MyGame_Example_Monster = getRoot(byteBuffer: &buffer)
+    readMonster(monster: monster)
+    mutateMonster(fb: bytes.buffer)
+    readMonster(monster: monster)
+  }
+
+  func testCreateMonsterResetTests() {
+    var builder = createMonster(withPrefix: false)
+    var buffer = ByteBuffer(data: builder.data)
+    let monster: MyGame_Example_Monster = getRoot(byteBuffer: &buffer)
+    readMonster(monster: monster)
+    builder.clear()
+    XCTAssertEqual(builder.capacity, 1)
+    XCTAssertEqual(builder.size, 0)
+
+    write(fbb: &builder, prefix: false)
+    var _buffer = ByteBuffer(data: builder.data)
+    XCTAssertEqual(_buffer.capacity, 304)
+    let _monster: MyGame_Example_Monster = getRoot(byteBuffer: &_buffer)
+    readMonster(monster: _monster)
+    builder.clear(keepingCapacity: true)
+    XCTAssertEqual(builder.capacity, 512)
+    XCTAssertEqual(builder.size, 0)
+  }
+
   func testCreateMonster() {
     let bytes = createMonster(withPrefix: false)
     // swiftformat:disable all
@@ -257,6 +285,11 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
   func createMonster(withPrefix prefix: Bool) -> FlatBufferBuilder {
     var fbb = FlatBufferBuilder(initialSize: 1)
+    write(fbb: &fbb, prefix: prefix)
+    return fbb
+  }
+
+  func write(fbb: inout FlatBufferBuilder, prefix: Bool = false) {
     let names = [
       fbb.create(string: "Frodo"),
       fbb.create(string: "Barney"),
@@ -313,7 +346,6 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     Monster.addVectorOf(testarrayoftables: sortedArray, &fbb)
     let end = Monster.endMonster(&fbb, start: mStart)
     Monster.finish(&fbb, end: end, prefix: prefix)
-    return fbb
   }
 
   func mutateMonster(fb: ByteBuffer) {

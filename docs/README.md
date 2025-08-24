@@ -6,7 +6,7 @@ https://flatbuffers.dev.
 
 ## Local Building
 
-The documentation can be built and served locally during development, see [https//flatbuffers.dev/contributing/#local-development] for full details.
+The documentation can be built and served locally during development, see <https://flatbuffers.dev/contributing/#local-development> for full details.
 
 __tl;dr__
 

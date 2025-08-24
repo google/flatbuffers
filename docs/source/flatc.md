@@ -259,6 +259,8 @@ list of `FILES...`.
 
 -   `--python-typing` : Generate Python type annotations
 
+-   `--python-decode-obj-api-strings` : Decode bytes automaticaly with utf-8
+
 Additional gRPC options:
 
 -   `--grpc-filename-suffix`: `[C++]` An optional suffix for the generated
