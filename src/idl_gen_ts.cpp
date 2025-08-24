@@ -257,20 +257,15 @@ class TsGenerator : public BaseGenerator {
     for (const auto &it : ns_defs_) {
       code = "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n" +
         "/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */\n\n";
-      
+
       // export all definitions in ns entry point module
       int export_counter = 0;
       for (const auto &def : it.second.definitions) {
         std::vector<std::string> rel_components;
         // build path for root level vs child level
-        if (it.second.ns->components.size() > 1)
-          std::copy(it.second.ns->components.begin() + 1,
-                    it.second.ns->components.end(),
-                    std::back_inserter(rel_components));
-        else
-          std::copy(it.second.ns->components.begin(),
-                    it.second.ns->components.end(),
-                    std::back_inserter(rel_components));
+        if (it.second.ns->components.size() > 0) {
+          rel_components.push_back(it.second.ns->components.back());
+        }
         auto base_file_name =
             namer_.File(*(def.second), SkipFile::SuffixAndExtension);
         auto base_name =
@@ -303,8 +298,12 @@ class TsGenerator : public BaseGenerator {
         if (it2.second.ns->components.size() != child_ns_level) continue;
         auto ts_file_path = it2.second.path + ".ts";
         code += "export * as " + it2.second.symbolic_name + " from './";
-        std::string rel_path = it2.second.path;
-        code += rel_path + ".js';\n";
+        int count = it2.second.ns->components.size() > 1 ? 2 : 1;
+        std::vector<std::string> rel_path;
+        std::copy(it2.second.ns->components.end() - count,
+                  it2.second.ns->components.end(),
+                  std::back_inserter(rel_path));
+        code += namer_.Directories(rel_path, SkipDir::OutputPathAndTrailingPathSeparator) + ".js';\n";
         export_counter++;
       }
 
@@ -567,7 +566,7 @@ class TsGenerator : public BaseGenerator {
 
   static Type GetUnionUnderlyingType(const Type &type)
   {
-    if (type.enum_def != nullptr && 
+    if (type.enum_def != nullptr &&
         type.enum_def->underlying_type.base_type != type.base_type) {
       return type.enum_def->underlying_type;
     } else {
@@ -1849,7 +1848,7 @@ class TsGenerator : public BaseGenerator {
               code += "BigInt(0)";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
-                code += field.value.constant;
+                code += "null";
               } else {
                 code += "0";
               }
@@ -1945,11 +1944,15 @@ class TsGenerator : public BaseGenerator {
 
     // Emit the fully qualified name
     if (parser_.opts.generate_name_strings) {
+      const std::string fullyQualifiedName = struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
+
       GenDocComment(code_ptr);
-      code += "static getFullyQualifiedName():string {\n";
+      code += "static getFullyQualifiedName(): \"";
+      code += fullyQualifiedName;
+      code += "\" {\n";
       code +=
           "  return '" +
-          struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name) +
+          fullyQualifiedName +
           "';\n";
       code += "}\n\n";
     }
