@@ -21,15 +21,15 @@ It is available as Open Source on
 - :material-memory:{ .lg .middle } **Memory Efficiency and Speed**
 
     ---
-    The only memory needed to access your data is that of the buffer. No heap is
-  required.
+    The only memory needed to access your data is that of the buffer.
+  No heap is required.
 
 - :material-compare-horizontal:{ .lg .middle } **Backwards and Forwards
   Compatibility**
 
     ---
-    The only memory needed to access your data is that of the buffer. No heap is
-  required.
+    FlatBuffers enables the schema to evolve over time while still maintaining
+  forwards and backwards compatibility with old flatbuffers.
 
 - :material-scale-off:{ .lg .middle } **Small Footprint**
 
