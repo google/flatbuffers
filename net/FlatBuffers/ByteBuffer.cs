@@ -274,8 +274,8 @@ namespace Google.FlatBuffers
             Buffer.BlockCopy(raw, pos, arr, padLeft, len);
             return arr;
         }
-		
-		public byte[] ToSizedArrayPadded(int padLeft, int padRight)
+
+        public byte[] ToSizedArrayPadded(int padLeft, int padRight)
         {
             return ToArrayPadded<byte>(Position, Length - Position, padLeft, padRight);
         }
