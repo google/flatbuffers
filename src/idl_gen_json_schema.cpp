@@ -112,8 +112,7 @@ static std::string GenBaseType(const Type &type) {
   return GenType(type.base_type);
 }
 
-static std::string GenArrayType(const Type &type,
-                                const std::string &field_name = "") {
+static std::string GenArrayType(const Type &type) {
   std::string element_type;
 
   if (type.element == BASE_TYPE_UNION) {
@@ -174,7 +173,7 @@ static std::string GenType(const Type &type, const std::string &field_name) {
   switch (type.base_type) {
     case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
     case BASE_TYPE_VECTOR: {
-      return GenArrayType(type, field_name);
+      return GenArrayType(type);
     }
     case BASE_TYPE_STRUCT: {
       return GenTypeRef(type.struct_def);
