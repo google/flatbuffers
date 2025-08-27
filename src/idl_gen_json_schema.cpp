@@ -169,45 +169,10 @@ static std::string GenArrayType(const Type &type) {
   return "\"type\" : \"array\", \"items\" : {" + element_type + "}";
 }
 
-static std::string GenType(const Type &type, const std::string &field_name) {
-  switch (type.base_type) {
-    case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
-    case BASE_TYPE_VECTOR: {
-      return GenArrayType(type);
-    }
-    case BASE_TYPE_STRUCT: {
-      return GenTypeRef(type.struct_def);
-    }
-    case BASE_TYPE_UNION: {
-      return "\"type\": \"object\"";
-    }
-    case BASE_TYPE_UTYPE: {
-      if (IsBitFlagsEnum(*type.enum_def)) {
-        return "\"type\" : \"string\", \"pattern\" : \"^(" +
-               GenerateBitFlagsPattern(*type.enum_def) + ")(\\\\s+(" +
-               GenerateBitFlagsPattern(*type.enum_def) + "))*$\"";
-      } else {
-        std::string enumdef = GenType("string") + ", \"enum\": [";
-        for (auto enum_value = type.enum_def->Vals().begin();
-             enum_value != type.enum_def->Vals().end(); ++enum_value) {
-          enumdef.append("\"" + (*enum_value)->name + "\"");
-          if (*enum_value != type.enum_def->Vals().back()) {
-            enumdef.append(", ");
-          }
-        }
-        enumdef.append("]");
-        return enumdef;
-      }
-    }
-    default: {
-      return GenBaseType(type);
-    }
-  }
-}
 
 static std::string GenType(const Type &type) {
   switch (type.base_type) {
-    case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+    case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();
     case BASE_TYPE_VECTOR: {
       return GenArrayType(type);
     }
@@ -261,7 +226,7 @@ static std::string GenType(const Type &type) {
 }
 
 static std::string GenNullableType(const FieldDef &field) {
-  const std::string base_type = GenType(field.value.type, field.name);
+  const std::string base_type = GenType(field.value.type);
 
   bool can_be_null = false;
 
