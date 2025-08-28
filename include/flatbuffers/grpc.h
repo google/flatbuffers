@@ -121,7 +121,7 @@ class SliceAllocator : public Allocator {
     memcpy_downward(old_p, old_size, new_p, new_size, in_use_back,
                     in_use_front);
     slice_ = new_slice;
-    return new_p;
+    return const_cast<uint8_t *>(slice_.begin());
   }
 
  private:
