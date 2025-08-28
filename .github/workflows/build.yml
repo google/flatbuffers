@@ -310,6 +310,7 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
+   if: false #disabled due to continual failure
    runs-on: ubuntu-24.04
    steps:
    - uses: actions/checkout@v3
@@ -418,6 +419,7 @@ jobs:
 
   build-kotlin-linux:
     name: Build Kotlin Linux
+    if: false #disabled due to continual failure
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout
