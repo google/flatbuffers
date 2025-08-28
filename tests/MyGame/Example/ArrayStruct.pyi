@@ -3,7 +3,6 @@ from __future__ import annotations
 import flatbuffers
 import numpy as np
 
-import flatbuffers
 import typing
 from MyGame.Example.NestedStruct import NestedStruct, NestedStructT
 from MyGame.Example.TestEnum import TestEnum
@@ -36,6 +35,15 @@ class ArrayStructT(object):
   d: typing.List[NestedStructT]
   e: int
   f: typing.List[int]
+  def __init__(
+    self,
+    a: float = ...,
+    b: typing.List[int] | None = ...,
+    c: int = ...,
+    d: typing.List['NestedStructT'] | None = ...,
+    e: int = ...,
+    f: typing.List[int] | None = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> ArrayStructT: ...
   @classmethod

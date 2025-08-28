@@ -52,7 +52,7 @@ extension Map {
     json += "{"
     for i in 0..<count {
       if let key = keys[i]?.cString {
-        let comma = i == count - 1 ? "" : ", "
+        let comma = i == count &- 1 ? "" : ", "
         let value = values[i]?.jsonString() ?? StaticJSON.null
         json += "\"\(key)\": \(value)\(comma)"
       }

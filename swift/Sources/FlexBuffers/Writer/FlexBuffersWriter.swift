@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #if canImport(Common)
 import Common
 #endif
@@ -72,14 +73,32 @@ public struct FlexBuffersWriter {
     return ByteBuffer(byteBuffer: _bb)
   }
 
+  #if !os(WASI)
+  /// Data representation of the buffer
+  ///
+  /// Should only be used after ``finish(offset:addPrefix:)`` is called
+  public var data: Data {
+    assert(finished, "Data shouldn't be called before finish()")
+    return _bb.withUnsafeSlicedBytes { ptr in
+      var data = Data()
+      data.append(
+        ptr.baseAddress!.bindMemory(
+          to: UInt8.self,
+          capacity: ptr.count),
+        count: ptr.count)
+      return data
+    }
+  }
+  #endif
+
   /// Resets the internal state. Automatically called before building a new flexbuffer.
-  public mutating func reset() {
-    _bb.clear()
-    stack.removeAll(keepingCapacity: true)
+  public mutating func reset(keepingCapacity: Bool = false) {
+    _bb.clear(keepingCapacity: keepingCapacity)
+    stack.removeAll(keepingCapacity: keepingCapacity)
     finished = false
     minBitWidth = .w8
-    keyPool.removeAll()
-    stringPool.removeAll()
+    keyPool.removeAll(keepingCapacity: keepingCapacity)
+    stringPool.removeAll(keepingCapacity: keepingCapacity)
   }
 
   // MARK: - Storing root
@@ -124,7 +143,7 @@ public struct FlexBuffersWriter {
   {
     let vec = createVector(
       start: start,
-      count: stack.count - start,
+      count: stack.count &- start,
       step: 1,
       typed: typed,
       fixed: fixed,
@@ -192,7 +211,7 @@ public struct FlexBuffersWriter {
       typed: true,
       fixed: false)
     let vec = createVector(
-      start: start + 1,
+      start: start &+ 1,
       count: len,
       step: 2,
       typed: false,
@@ -579,7 +598,7 @@ public struct FlexBuffersWriter {
 
     var sloc: UInt = numericCast(writerIndex)
     key.withCString {
-      _bb.writeBytes($0, len: len + 1)
+      _bb.writeBytes($0, len: len &+ 1)
     }
 
     if flags > .shareKeys {
@@ -686,7 +705,7 @@ public struct FlexBuffersWriter {
       /// If this vector is part of a map, we will pre-fix an offset to the keys
       /// to this vector.
       bitWidth = max(bitWidth, keys!.elementWidth(size: writerIndex, index: 0))
-      prefixElements += 2
+      prefixElements = prefixElements &+ 2
     }
     var vectorType: FlexBufferType = .key
 

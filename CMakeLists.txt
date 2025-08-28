@@ -122,6 +122,7 @@ endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 if(NOT WIN32)
+  include(CheckSymbolExists)
   check_symbol_exists(realpath "stdlib.h" HAVE_REALPATH)
   if(NOT HAVE_REALPATH)
     add_definitions(-DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION)

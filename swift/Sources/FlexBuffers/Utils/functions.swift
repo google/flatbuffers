@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #if canImport(Common)
 import Common
 #endif
@@ -116,9 +117,9 @@ func toFixedTypedVectorElementType(type: FlexBufferType)
   let fixedType: UInt64 = numericCast(
     type.rawValue &- FlexBufferType.vectorInt2
       .rawValue)
-  let len: Int = numericCast((fixedType / 3) + 2)
+  let len: Int = numericCast(fixedType.dividedReportingOverflow(by: 3).partialValue &+ 2)
   return (
-    FlexBufferType(rawValue: (fixedType % 3) + FlexBufferType.int.rawValue),
+    FlexBufferType(rawValue: (fixedType.quotientAndRemainder(dividingBy: 3).remainder) &+ FlexBufferType.int.rawValue),
     len)
 }
 

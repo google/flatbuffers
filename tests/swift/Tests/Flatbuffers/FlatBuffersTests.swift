@@ -120,6 +120,22 @@ final class FlatBuffersTests: XCTestCase {
     XCTAssertEqual(scalarTable.justEnum, .one)
     XCTAssertNil(scalarTable.maybeEnum)
   }
+
+  func testAlignmentCrash() {
+      var builder = FlatBufferBuilder(initialSize: 256)
+
+      // Create two identical tables to trigger vtable deduplication
+      let str1 = builder.create(string: "test")
+      let start1 = builder.startTable(with: 1)
+      builder.add(offset: str1, at: 0)
+      _ = builder.endTable(at: start1)
+
+      // Second table triggers vtable comparison where crash occurs
+      let str2 = builder.create(string: "crash")
+      let start2 = builder.startTable(with: 1)
+      builder.add(offset: str2, at: 0)
+      _ = builder.endTable(at: start2) // ← Crashes here on ARM64
+  }
 }
 
 class Country {
