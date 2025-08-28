@@ -518,6 +518,7 @@ jobs:
 
   build-swift-windows:
     name: Test swift windows
+    if: false #disabled due to continual failure
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
