@@ -33,7 +33,8 @@ func (FlatbuffersCodec) Unmarshal(data []byte, v interface{}) error {
 	off := GetUOffsetT(data)
 
 	// The root UOffsetT must be within the data buffer
-	if int(off) > len(data)-SizeUOffsetT {
+	// Compare in the unsigned domain to avoid signedness pitfalls
+	if off > UOffsetT(len(data)-SizeUOffsetT) {
 		return ErrInvalidRootOffset
 	}
 
