@@ -25,7 +25,8 @@ func (FlatbuffersCodec) Marshal(v interface{}) ([]byte, error) {
 
 // Unmarshal parses the wire format into v.
 func (FlatbuffersCodec) Unmarshal(data []byte, v interface{}) error {
-	// Need at least 4 bytes to read the root UOffsetT
+	// Need at least 4 bytes to read the root table offset (UOffsetT).
+	// Vtable soffset_t and metadata are read later during field access.
 	if len(data) < SizeUOffsetT {
 		return ErrInsufficientData
 	}
