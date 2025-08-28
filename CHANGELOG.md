@@ -4,6 +4,10 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## Unreleased
+
+* flatc: `--grpc-callback-api` flag generates C++ gRPC Callback API server `CallbackService` skeletons AND client native callback/async stubs (unary + all streaming reactor forms) (opt-in, non-breaking, issue #8596).
+
 ## [25.2.10] (February 10 2025)(https://github.com/google/flatbuffers/releases/tag/v25.2.10)
 
 * Removed the old documentation pages. The new one is live at https://flatbuffers.dev
