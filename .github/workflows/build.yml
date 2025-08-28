@@ -520,13 +520,14 @@ jobs:
 
   build-swift-windows:
     name: Test swift windows
-    if: false #disabled due to continual failure
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
       - uses: SwiftyLab/setup-swift@latest
         with:
           swift-version: '6.1'
+          # To be removed when swiftylab fixes the CI
+          visual-studio-components: Microsoft.VisualStudio.Component.Windows11SDK.22621
       - run: swift build
       - run: swift test
 
