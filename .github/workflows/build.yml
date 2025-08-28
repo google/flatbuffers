@@ -317,7 +317,7 @@ jobs:
      uses: actions/setup-java@v3
      with:
        distribution: 'temurin'
-       java-version: '11'
+       java-version: '21'
    - name: set up flatc
      run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
@@ -402,7 +402,7 @@ jobs:
     - uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: '11'
+        java-version: '21'
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
@@ -421,7 +421,7 @@ jobs:
     - uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: '11'
+        java-version: '21'
     - uses: gradle/wrapper-validation-action@v1.0.5
     - name: Build flatc
       run: |
