@@ -2702,7 +2702,7 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
-            IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kNim |
+            IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kPython | IDLOptions::kNim |
             IDLOptions::kJson | IDLOptions::kKotlinKmp)) == 0;
 }
 
