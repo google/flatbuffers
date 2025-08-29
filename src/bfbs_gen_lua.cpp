@@ -217,7 +217,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       // Create all the field accessors.
       ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
         // Skip writing deprecated fields altogether.
-        if (field->deprecated()) { return; }
+        if (field->deprecated() && !field->deprecated_readonly()) { return; }
 
         const std::string field_name = namer_.Field(*field);
         const r::BaseType base_type = field->type()->base_type();

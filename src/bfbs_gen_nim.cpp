@@ -195,7 +195,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     // Create all the field accessors.
     ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
       // Skip writing deprecated fields altogether.
-      if (field->deprecated()) { return; }
+      if (field->deprecated() && !field->deprecated_readonly()) { return; }
 
       const std::string field_name = namer_.Field(*field);
       const r::BaseType base_type = field->type()->base_type();
@@ -256,7 +256,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
           }
         }
         code += getter_signature + getter_code;
-        if (IsScalar(base_type)) { code += setter_signature + setter_code; }
+        if (!field->deprecated_readonly() && IsScalar(base_type)) {
+          code += setter_signature + setter_code;
+        }
       } else if (base_type == r::Array || base_type == r::Vector) {
         const r::BaseType vector_base_type = field->type()->element();
         uint32_t element_size = field->type()->element_size();

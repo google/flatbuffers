@@ -24,11 +24,5 @@ public class JsonContractResolver : Newtonsoft.Json.Serialization.DefaultContrac
   }
 }
 
-[Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-public enum Color : sbyte
-{
-  Purple = 0,
-};
-
 
 }

@@ -611,13 +611,14 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_DEFAULT_INTEGER = 12,
     VT_DEFAULT_REAL = 14,
     VT_DEPRECATED = 16,
-    VT_REQUIRED = 18,
-    VT_KEY = 20,
-    VT_ATTRIBUTES = 22,
-    VT_DOCUMENTATION = 24,
-    VT_OPTIONAL = 26,
-    VT_PADDING = 28,
-    VT_OFFSET64 = 30
+    VT_DEPRECATED_READONLY = 18,
+    VT_REQUIRED = 20,
+    VT_KEY = 22,
+    VT_ATTRIBUTES = 24,
+    VT_DOCUMENTATION = 26,
+    VT_OPTIONAL = 28,
+    VT_PADDING = 30,
+    VT_OFFSET64 = 32
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -651,6 +652,9 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool deprecated() const {
     return GetField<uint8_t>(VT_DEPRECATED, 0) != 0;
+  }
+  bool deprecated_readonly() const {
+    return GetField<uint8_t>(VT_DEPRECATED_READONLY, 0) != 0;
   }
   bool required() const {
     return GetField<uint8_t>(VT_REQUIRED, 0) != 0;
@@ -686,6 +690,7 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<int64_t>(verifier, VT_DEFAULT_INTEGER, 8) &&
            VerifyField<double>(verifier, VT_DEFAULT_REAL, 8) &&
            VerifyField<uint8_t>(verifier, VT_DEPRECATED, 1) &&
+           VerifyField<uint8_t>(verifier, VT_DEPRECATED_READONLY, 1) &&
            VerifyField<uint8_t>(verifier, VT_REQUIRED, 1) &&
            VerifyField<uint8_t>(verifier, VT_KEY, 1) &&
            VerifyOffset(verifier, VT_ATTRIBUTES) &&
@@ -725,6 +730,9 @@ struct FieldBuilder {
   }
   void add_deprecated(bool deprecated) {
     fbb_.AddElement<uint8_t>(Field::VT_DEPRECATED, static_cast<uint8_t>(deprecated), 0);
+  }
+  void add_deprecated_readonly(bool deprecated_readonly) {
+    fbb_.AddElement<uint8_t>(Field::VT_DEPRECATED_READONLY, static_cast<uint8_t>(deprecated_readonly), 0);
   }
   void add_required(bool required) {
     fbb_.AddElement<uint8_t>(Field::VT_REQUIRED, static_cast<uint8_t>(required), 0);
@@ -769,6 +777,7 @@ inline ::flatbuffers::Offset<Field> CreateField(
     int64_t default_integer = 0,
     double default_real = 0.0,
     bool deprecated = false,
+    bool deprecated_readonly = false,
     bool required = false,
     bool key = false,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<reflection::KeyValue>>> attributes = 0,
@@ -790,6 +799,7 @@ inline ::flatbuffers::Offset<Field> CreateField(
   builder_.add_optional(optional);
   builder_.add_key(key);
   builder_.add_required(required);
+  builder_.add_deprecated_readonly(deprecated_readonly);
   builder_.add_deprecated(deprecated);
   return builder_.Finish();
 }
@@ -803,6 +813,7 @@ inline ::flatbuffers::Offset<Field> CreateFieldDirect(
     int64_t default_integer = 0,
     double default_real = 0.0,
     bool deprecated = false,
+    bool deprecated_readonly = false,
     bool required = false,
     bool key = false,
     std::vector<::flatbuffers::Offset<reflection::KeyValue>> *attributes = nullptr,
@@ -822,6 +833,7 @@ inline ::flatbuffers::Offset<Field> CreateFieldDirect(
       default_integer,
       default_real,
       deprecated,
+      deprecated_readonly,
       required,
       key,
       attributes__,
