@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct Unused, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Unused(pub [u8; 4]);
 impl Default for Unused { 
   fn default() -> Self { 
@@ -23,6 +23,16 @@ impl core::fmt::Debug for Unused {
     f.debug_struct("Unused")
       .field("a", &self.a())
       .finish()
+  }
+}
+impl core::cmp::Ord for Unused {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.a().cmp(&other.a())
+  }
+}
+impl core::cmp::PartialOrd for Unused {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 
