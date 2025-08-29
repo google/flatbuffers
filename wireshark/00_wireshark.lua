@@ -135,7 +135,7 @@ function Parse_String(buffer, offset, tree, field_type)
     if FB_VERBOSE then
         subtree = tree:add(fb_struct, string_struct_buffer, string_struct_bytes, description)
 
-        local length_buffer = GetNumberBuffer(buffer, offset, fb_uint32)
+        local length_buffer = buffer(offset, 4)
         local length_value = length_buffer:le_uint()
         local len_tree = subtree:add(fb_uint32, length_buffer, length_value)
         len_tree:prepend_text("length: ")
