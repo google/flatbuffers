@@ -39,6 +39,7 @@
 #include "idl_gen_swift.h"
 #include "idl_gen_text.h"
 #include "idl_gen_ts.h"
+#include "idl_gen_ue.h"
 
 static const char *g_program_name = nullptr;
 
@@ -174,6 +175,11 @@ int main(int argc, const char *argv[]) {
       flatbuffers::FlatCOption{ "T", "ts", "",
                                 "Generate TypeScript code for tables/structs" },
       flatbuffers::NewTsCodeGenerator());
+
+    flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "ue", "ue", "",
+                                "Generate ue headers for tables/structs" },
+      flatbuffers::NewUeCodeGenerator());
 
   // Create the FlatC options by parsing the command line arguments.
   const flatbuffers::FlatCOptions &options =
