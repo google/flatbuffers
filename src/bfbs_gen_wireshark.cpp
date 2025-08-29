@@ -331,7 +331,8 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
 
       // add each field to the table
       ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
-        code += "  \"" + namer_.Variable(field->name()->str()) + "\",\n";
+        code += "  [" + NumToString(field->id()) + "] = \"" +
+                namer_.Variable(field->name()->str()) + "\",\n";
       });
 
       code += "}\n\n";
