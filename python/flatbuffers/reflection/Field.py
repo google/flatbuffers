@@ -163,8 +163,15 @@ class Field(object):
             return bool(self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos))
         return False
 
+    # Field
+    def DefaultNonScalar(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(32))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
 def FieldStart(builder):
-    builder.StartObject(14)
+    builder.StartObject(15)
 
 def Start(builder):
     FieldStart(builder)
@@ -264,6 +271,12 @@ def FieldAddOffset64(builder, offset64):
 
 def AddOffset64(builder, offset64):
     FieldAddOffset64(builder, offset64)
+
+def FieldAddDefaultNonScalar(builder, defaultNonScalar):
+    builder.PrependUOffsetTRelativeSlot(14, flatbuffers.number_types.UOffsetTFlags.py_type(defaultNonScalar), 0)
+
+def AddDefaultNonScalar(builder, defaultNonScalar):
+    FieldAddDefaultNonScalar(builder, defaultNonScalar)
 
 def FieldEnd(builder):
     return builder.EndObject()
