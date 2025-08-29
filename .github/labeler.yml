@@ -95,3 +95,8 @@ CI:
 grpc:
   - grpc/**/*
   - src/idl_gen_grpc.cpp
+
+wireshark:
+  - wireshark/**/*
+  - src/bfbs_gen_wireshark.cpp
+  
