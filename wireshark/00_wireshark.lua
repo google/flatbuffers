@@ -152,16 +152,16 @@ function Parse_String(buffer, offset, tree, field_type)
     }
 end
 
-function Parse_Struct(buffer, offset, tree, field_type, struct_size, member_names, member_list)
+function Parse_Struct(buffer, offset, tree, field_type, struct_size, member_list)
     local struct_buffer = buffer(offset, struct_size)
     local struct_bytes = struct_buffer:raw()
 
     local subtree = tree:add(field_type, struct_buffer, struct_bytes, field_type.name)
 
-    for i = 1, #member_names do
+    for i = 1, #member_list do
         local data_item_offset = member_list[i][1]
         -- call this members' parser
-        member_list[i][3](buffer, offset + data_item_offset, subtree, member_names[i][2])
+        member_list[i][3](buffer, offset + data_item_offset, subtree, member_list[i][1])
     end
 
     return {
@@ -232,7 +232,7 @@ local function Parse_VTable(buffer)
     }
 end
 
-local function Parse_TableInfo(buffer, offset, tree, field_type, member_names)
+local function Parse_TableInfo(buffer, offset, tree, field_type, member_list)
     local vtable_offset_buffer = buffer(offset, 4)
     local vtable_offset = vtable_offset_buffer:le_int()
 
@@ -271,7 +271,7 @@ local function Parse_TableInfo(buffer, offset, tree, field_type, member_names)
         if (#vtable_data.entries ~= 0) then
             for i = 1, #vtable_data.entries do
                 local entry_offset = entry_start + ((i - 1) * 2)
-                Parse_VOffset(buffer, entry_offset, vtable_subtree, member_names[i], buffer:offset() + offset)
+                Parse_VOffset(buffer, entry_offset, vtable_subtree, member_list[i][1], buffer:offset() + offset)
             end
         end
     end
@@ -283,9 +283,9 @@ local function Parse_TableInfo(buffer, offset, tree, field_type, member_names)
     }
 end
 
-function Parse_Table(buffer, offset, tree, field_type, member_names, member_list)
+function Parse_Table(buffer, offset, tree, field_type, member_list)
     -- we know its a table, so parse the table info to get the offsets
-    local entry_list = Parse_TableInfo(buffer, offset, tree, field_type, member_names)
+    local entry_list = Parse_TableInfo(buffer, offset, tree, field_type, member_list)
 
     for i = 1, #entry_list.value do
         local table_tree = entry_list.tree
@@ -293,7 +293,7 @@ function Parse_Table(buffer, offset, tree, field_type, member_names, member_list
         -- parse the data item here
         local data_item_offset = (entry_list.value[i] == 0) and 0 or (offset + entry_list.value[i])
         -- call this members' parser
-        member_list[i][2](buffer, data_item_offset, table_tree, member_names[i])
+        member_list[i][2](buffer, data_item_offset, table_tree, member_list[i][1])
     end
 
     return {
