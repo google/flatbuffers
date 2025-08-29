@@ -67,6 +67,7 @@ Namer::Config TypeScriptDefaultConfig() {
            /*object_suffix=*/"T",
            /*keyword_prefix=*/"",
            /*keyword_suffix=*/"_",
+           /*keywords_casing=*/Namer::Config::KeywordsCasing::CASE_SENSITIVE,
            /*filenames=*/Case::kDasher,
            /*directories=*/Case::kDasher,
            /*output_path=*/"",
