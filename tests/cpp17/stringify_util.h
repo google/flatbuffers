@@ -150,11 +150,9 @@ std::optional<std::string> StringifyFlatbufferValue(T &&val,
     return detail::StringifyArithmeticType(static_cast<int>(val));
   }
 
-  // Is it an enum? If so, print it like an int, since Flatbuffers doesn't yet
-  // have type-based reflection for enums, so we can't print the enum's name :(
+  // Is it an enum? If so, print the enum's name without quotes.
   else if constexpr (std::is_enum_v<decayed>) {
-    return StringifyFlatbufferValue(
-        static_cast<std::underlying_type_t<decayed>>(val), indent);
+    return GetEnumName(val);
   }
 
   // Is it an int, double, float, uint32_t, etc.?
