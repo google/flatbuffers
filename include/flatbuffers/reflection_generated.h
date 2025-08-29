@@ -45,7 +45,7 @@ struct SchemaFileBuilder;
 struct Schema;
 struct SchemaBuilder;
 
-enum BaseType : int8_t {
+enum BaseType {
   None = 0,
   UType = 1,
   Bool = 2,
@@ -128,7 +128,7 @@ inline const char *EnumNameBaseType(BaseType e) {
 }
 
 /// New schema language features that are not supported by old code generators.
-enum AdvancedFeatures : uint64_t {
+enum AdvancedFeatures {
   AdvancedArrayFeatures = 1ULL,
   AdvancedUnionFeatures = 2ULL,
   OptionalScalars = 4ULL,
