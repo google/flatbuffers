@@ -45,7 +45,7 @@ struct SchemaFileBuilder;
 struct Schema;
 struct SchemaBuilder;
 
-enum BaseType {
+enum BaseType : int8_t {
   None = 0,
   UType = 1,
   Bool = 2,
@@ -128,7 +128,7 @@ inline const char *EnumNameBaseType(BaseType e) {
 }
 
 /// New schema language features that are not supported by old code generators.
-enum AdvancedFeatures {
+enum AdvancedFeatures : uint64_t {
   AdvancedArrayFeatures = 1ULL,
   AdvancedUnionFeatures = 2ULL,
   OptionalScalars = 4ULL,
@@ -617,7 +617,8 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_DOCUMENTATION = 24,
     VT_OPTIONAL = 26,
     VT_PADDING = 28,
-    VT_OFFSET64 = 30
+    VT_OFFSET64 = 30,
+    VT_DEFAULT_NON_SCALAR = 32
   };
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
@@ -675,6 +676,9 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool offset64() const {
     return GetField<uint8_t>(VT_OFFSET64, 0) != 0;
   }
+  const ::flatbuffers::String *default_non_scalar() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_DEFAULT_NON_SCALAR);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -697,6 +701,8 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_OPTIONAL, 1) &&
            VerifyField<uint16_t>(verifier, VT_PADDING, 2) &&
            VerifyField<uint8_t>(verifier, VT_OFFSET64, 1) &&
+           VerifyOffset(verifier, VT_DEFAULT_NON_SCALAR) &&
+           verifier.VerifyString(default_non_scalar()) &&
            verifier.EndTable();
   }
 };
@@ -747,6 +753,9 @@ struct FieldBuilder {
   void add_offset64(bool offset64) {
     fbb_.AddElement<uint8_t>(Field::VT_OFFSET64, static_cast<uint8_t>(offset64), 0);
   }
+  void add_default_non_scalar(::flatbuffers::Offset<::flatbuffers::String> default_non_scalar) {
+    fbb_.AddOffset(Field::VT_DEFAULT_NON_SCALAR, default_non_scalar);
+  }
   explicit FieldBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -775,10 +784,12 @@ inline ::flatbuffers::Offset<Field> CreateField(
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<::flatbuffers::String>>> documentation = 0,
     bool optional = false,
     uint16_t padding = 0,
-    bool offset64 = false) {
+    bool offset64 = false,
+    ::flatbuffers::Offset<::flatbuffers::String> default_non_scalar = 0) {
   FieldBuilder builder_(_fbb);
   builder_.add_default_real(default_real);
   builder_.add_default_integer(default_integer);
+  builder_.add_default_non_scalar(default_non_scalar);
   builder_.add_documentation(documentation);
   builder_.add_attributes(attributes);
   builder_.add_type(type);
@@ -809,10 +820,12 @@ inline ::flatbuffers::Offset<Field> CreateFieldDirect(
     const std::vector<::flatbuffers::Offset<::flatbuffers::String>> *documentation = nullptr,
     bool optional = false,
     uint16_t padding = 0,
-    bool offset64 = false) {
+    bool offset64 = false,
+    const char *default_non_scalar = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto attributes__ = attributes ? _fbb.CreateVectorOfSortedTables<reflection::KeyValue>(attributes) : 0;
   auto documentation__ = documentation ? _fbb.CreateVector<::flatbuffers::Offset<::flatbuffers::String>>(*documentation) : 0;
+  auto default_non_scalar__ = default_non_scalar ? _fbb.CreateString(default_non_scalar) : 0;
   return reflection::CreateField(
       _fbb,
       name__,
@@ -828,7 +841,8 @@ inline ::flatbuffers::Offset<Field> CreateFieldDirect(
       documentation__,
       optional,
       padding,
-      offset64);
+      offset64,
+      default_non_scalar__);
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {

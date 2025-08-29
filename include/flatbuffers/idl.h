@@ -226,9 +226,12 @@ struct Type {
 struct Value {
   Value()
       : constant("0"),
+        has_non_scalar_constant(false),
         offset(static_cast<voffset_t>(~(static_cast<voffset_t>(0U)))) {}
   Type type;
   std::string constant;
+  // not the most elegant solution, but much better than a full refactor.
+  bool has_non_scalar_constant;
   voffset_t offset;
 };
 
@@ -347,7 +350,7 @@ struct FieldDef : public Definition {
     return IsScalar() && IsOptional();
   }
   bool IsScalar() const {
-      return ::flatbuffers::IsScalar(value.type.base_type);
+    return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }
@@ -1262,8 +1265,8 @@ class Parser : public ParserState {
 // it contains non-UTF-8 byte arrays in String values).
 extern bool GenerateTextFromTable(const Parser &parser,
                                          const void *table,
-                                         const std::string &tablename,
-                                         std::string *text);
+                                  const std::string &tablename,
+                                  std::string *text);
 extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
                                 std::string *text);
 extern const char *GenerateTextFile(const Parser &parser,
