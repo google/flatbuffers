@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "definitions": {
+    "Character" : {
+      "anyOf": [{ "$ref" : "#/definitions/Attacker" },{ "$ref" : "#/definitions/Rapunzel" },{ "$ref" : "#/definitions/BookReader" },{ "$ref" : "#/definitions/BookReader" }]
+    },
+    "Gadget" : {
+      "anyOf": [{ "$ref" : "#/definitions/FallingTub" },{ "$ref" : "#/definitions/HandFan" }]
+    },
+    "Attacker" : {
+      "type" : "object",
+      "properties" : {
+        "sword_attack_damage" : {
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+              }
+      },
+      "additionalProperties" : false
+    },
+    "Rapunzel" : {
+      "type" : "object",
+      "properties" : {
+        "hair_length" : {
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+              }
+      },
+      "additionalProperties" : false
+    },
+    "BookReader" : {
+      "type" : "object",
+      "properties" : {
+        "books_read" : {
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+              }
+      },
+      "additionalProperties" : false
+    },
+    "FallingTub" : {
+      "type" : "object",
+      "properties" : {
+        "weight" : {
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+              }
+      },
+      "additionalProperties" : false
+    },
+    "HandFan" : {
+      "type" : "object",
+      "properties" : {
+        "length" : {
+                "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
+              }
+      },
+      "additionalProperties" : false
+    },
+    "Movie" : {
+      "type" : "object",
+      "properties" : {
+        "main_character_type" : {
+                "type" : "string", "enum": ["NONE", "MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused"]
+              },
+        "main_character" : {
+                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/Attacker" },{ "$ref" : "#/definitions/Rapunzel" },{ "$ref" : "#/definitions/BookReader" },{ "$ref" : "#/definitions/BookReader" },{ "type": "string" },{ "type": "string" }] }]
+              },
+        "characters_type" : {
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "string", "enum": ["MuLan", "Rapunzel", "Belle", "BookFan", "Other", "Unused"]} }]
+              },
+        "characters" : {
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"anyOf": [{ "$ref" : "#/definitions/Attacker" }, { "$ref" : "#/definitions/Rapunzel" }, { "$ref" : "#/definitions/BookReader" }, { "$ref" : "#/definitions/BookReader" }, { "type": "string" }, { "type": "string" }]} }]
+              }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "main_character_type": { "const": "NONE" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["main_character"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "main_character_type": { "const": "MuLan" }
+            }
+          },
+          "then": {
+            "properties": {
+              "main_character": { "$ref" : "#/definitions/Attacker" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "main_character_type": { "const": "Rapunzel" }
+            }
+          },
+          "then": {
+            "properties": {
+              "main_character": { "$ref" : "#/definitions/Rapunzel" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "main_character_type": { "const": "Belle" }
+            }
+          },
+          "then": {
+            "properties": {
+              "main_character": { "$ref" : "#/definitions/BookReader" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "main_character_type": { "const": "BookFan" }
+            }
+          },
+          "then": {
+            "properties": {
+              "main_character": { "$ref" : "#/definitions/BookReader" }
+            }
+          }
+        }
+      ],
+      "additionalProperties" : false
+    }
+  },
+  "$ref" : "#/definitions/Movie"
+}

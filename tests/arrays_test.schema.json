@@ -9,7 +9,7 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647},
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647} }],
                 "minItems": 2,
                 "maxItems": 2
               },
@@ -17,12 +17,12 @@
                 "$ref" : "#/definitions/MyGame_Example_TestEnum"
               },
         "c" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_TestEnum"},
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_TestEnum"} }],
                 "minItems": 2,
                 "maxItems": 2
               },
         "d" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807},
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807} }],
                 "minItems": 2,
                 "maxItems": 2
               }
@@ -36,7 +36,7 @@
                 "type" : "number"
               },
         "b" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647},
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647} }],
                 "minItems": 15,
                 "maxItems": 15
               },
@@ -44,7 +44,7 @@
                 "type" : "integer", "minimum" : -128, "maximum" : 127
               },
         "d" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"},
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"} }],
                 "minItems": 2,
                 "maxItems": 2
               },
@@ -52,7 +52,7 @@
                 "type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647
               },
         "f" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807},
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807} }],
                 "minItems": 2,
                 "maxItems": 2
               }
@@ -63,7 +63,7 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "$ref" : "#/definitions/MyGame_Example_ArrayStruct"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_ArrayStruct" }]
               }
       },
       "additionalProperties" : false

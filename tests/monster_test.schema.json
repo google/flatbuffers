@@ -7,7 +7,7 @@
     },
     "MyGame_Example_Color" : {
       "type" : "string",
-      "enum": ["Red", "Green", "Blue"]
+      "pattern" : "^(Red|Green|Blue)(\\s+(Red|Green|Blue))*$"
     },
     "MyGame_Example_Race" : {
       "type" : "string",
@@ -15,19 +15,16 @@
     },
     "MyGame_Example_LongEnum" : {
       "type" : "string",
-      "enum": ["LongOne", "LongTwo", "LongBig"]
+      "pattern" : "^(LongOne|LongTwo|LongBig)(\\s+(LongOne|LongTwo|LongBig))*$"
     },
     "MyGame_Example_Any" : {
-      "type" : "string",
-      "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
+      "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
     },
     "MyGame_Example_AnyUniqueAliases" : {
-      "type" : "string",
-      "enum": ["NONE", "M", "TS", "M2"]
+      "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
     },
     "MyGame_Example_AnyAmbiguousAliases" : {
-      "type" : "string",
-      "enum": ["NONE", "M1", "M2", "M3"]
+      "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }]
     },
     "MyGame_OtherNameSpace_Unused" : {
       "type" : "object",
@@ -42,7 +39,7 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "$ref" : "#/definitions/TableA"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/TableA" }]
               }
       },
       "additionalProperties" : false
@@ -51,7 +48,7 @@
       "type" : "object",
       "properties" : {
         "b" : {
-                "$ref" : "#/definitions/MyGame_OtherNameSpace_TableB"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_OtherNameSpace_TableB" }]
               }
       },
       "additionalProperties" : false
@@ -108,7 +105,7 @@
                 "$ref" : "#/definitions/MyGame_Example_Color"
               },
         "test3" : {
-                "$ref" : "#/definitions/MyGame_Example_Test"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Test" }]
               }
       },
       "additionalProperties" : false
@@ -129,13 +126,13 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "$ref" : "#/definitions/MyGame_Example_Ability"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Ability" }]
               },
         "b" : {
-                "$ref" : "#/definitions/MyGame_Example_Test"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Test" }]
               },
         "c" : {
-                "$ref" : "#/definitions/MyGame_Example_Ability"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Ability" }]
               }
       },
       "additionalProperties" : false
@@ -144,7 +141,7 @@
       "type" : "object",
       "properties" : {
         "a" : {
-                "$ref" : "#/definitions/MyGame_Example_StructOfStructs"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_StructOfStructs" }]
               }
       },
       "additionalProperties" : false
@@ -153,7 +150,7 @@
       "type" : "object",
       "properties" : {
         "id" : {
-                "type" : "string"
+                "anyOf": [{ "type": "null" }, { "type" : "string" }]
               },
         "val" : {
                 "type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807
@@ -178,7 +175,7 @@
       "description" : "an example documentation comment: \"monster object\"",
       "properties" : {
         "pos" : {
-                "$ref" : "#/definitions/MyGame_Example_Vec3"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Vec3" }]
               },
         "mana" : {
                 "type" : "integer", "minimum" : -32768, "maximum" : 32767
@@ -194,35 +191,35 @@
                 "deprecated" : true
               },
         "inventory" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }]
               },
         "color" : {
                 "$ref" : "#/definitions/MyGame_Example_Color"
               },
         "test_type" : {
-                "$ref" : "#/definitions/MyGame_Example_Any"
+                "type" : "string", "enum": ["NONE", "Monster", "TestSimpleTableWithEnum", "MyGame_Example2_Monster"]
               },
         "test" : {
-                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
+                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }]
               },
         "test4" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"} }]
               },
         "testarrayofstring" : {
-                "type" : "array", "items" : {"type" : "string"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "string"} }]
               },
         "testarrayoftables" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Monster"},
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Monster"} }],
                 "description" : "an example documentation comment: this will end up in the generated code\nmultiline too"
               },
         "enemy" : {
-                "$ref" : "#/definitions/MyGame_Example_Monster"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Monster" }]
               },
         "testnestedflatbuffer" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }]
               },
         "testempty" : {
-                "$ref" : "#/definitions/MyGame_Example_Stat"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Stat" }]
               },
         "testbool" : {
                 "type" : "boolean"
@@ -252,7 +249,7 @@
                 "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
               },
         "testarrayofbools" : {
-                "type" : "array", "items" : {"type" : "boolean"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "boolean"} }]
               },
         "testf" : {
                 "type" : "number"
@@ -264,76 +261,76 @@
                 "type" : "number"
               },
         "testarrayofstring2" : {
-                "type" : "array", "items" : {"type" : "string"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "string"} }]
               },
         "testarrayofsortedstruct" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Ability"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Ability"} }]
               },
         "flex" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }]
               },
         "test5" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Test"} }]
               },
         "vector_of_longs" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -9223372036854775808, "maximum" : 9223372036854775807} }]
               },
         "vector_of_doubles" : {
-                "type" : "array", "items" : {"type" : "number"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "number"} }]
               },
         "parent_namespace_test" : {
-                "$ref" : "#/definitions/MyGame_InParentNamespace"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_InParentNamespace" }]
               },
         "vector_of_referrables" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"} }]
               },
         "single_weak_reference" : {
                 "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
               },
         "vector_of_weak_references" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615} }]
               },
         "vector_of_strong_referrables" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Referrable"} }]
               },
         "co_owning_reference" : {
                 "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
               },
         "vector_of_co_owning_references" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615} }]
               },
         "non_owning_reference" : {
                 "type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615
               },
         "vector_of_non_owning_references" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" : 18446744073709551615} }]
               },
         "any_unique_type" : {
-                "$ref" : "#/definitions/MyGame_Example_AnyUniqueAliases"
+                "type" : "string", "enum": ["NONE", "M", "TS", "M2"]
               },
         "any_unique" : {
-                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }]
+                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" },{ "$ref" : "#/definitions/MyGame_Example2_Monster" }] }]
               },
         "any_ambiguous_type" : {
-                "$ref" : "#/definitions/MyGame_Example_AnyAmbiguousAliases"
+                "type" : "string", "enum": ["NONE", "M1", "M2", "M3"]
               },
         "any_ambiguous" : {
-                "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }]
+                "anyOf": [{ "type": "null" }, { "anyOf": [{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" },{ "$ref" : "#/definitions/MyGame_Example_Monster" }] }]
               },
         "vector_of_enums" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Color"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Color"} }]
               },
         "signed_enum" : {
                 "$ref" : "#/definitions/MyGame_Example_Race"
               },
         "testrequirednestedflatbuffer" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255} }]
               },
         "scalar_key_sorted_tables" : {
-                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Stat"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_Stat"} }]
               },
         "native_inline" : {
-                "$ref" : "#/definitions/MyGame_Example_Test"
+                "anyOf": [{ "type": "null" }, { "$ref" : "#/definitions/MyGame_Example_Test" }]
               },
         "long_enum_non_enum_default" : {
                 "$ref" : "#/definitions/MyGame_Example_LongEnum"
@@ -366,6 +363,152 @@
                 "type" : "number"
               }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "NONE" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["test"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "Monster" }
+            }
+          },
+          "then": {
+            "properties": {
+              "test": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "TestSimpleTableWithEnum" }
+            }
+          },
+          "then": {
+            "properties": {
+              "test": { "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "test_type": { "const": "MyGame_Example2_Monster" }
+            }
+          },
+          "then": {
+            "properties": {
+              "test": { "$ref" : "#/definitions/MyGame_Example2_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "NONE" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["any_unique"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "M" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_unique": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "TS" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_unique": { "$ref" : "#/definitions/MyGame_Example_TestSimpleTableWithEnum" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_unique_type": { "const": "M2" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_unique": { "$ref" : "#/definitions/MyGame_Example2_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "NONE" }
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["any_ambiguous"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "M1" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_ambiguous": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "M2" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_ambiguous": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "any_ambiguous_type": { "const": "M3" }
+            }
+          },
+          "then": {
+            "properties": {
+              "any_ambiguous": { "$ref" : "#/definitions/MyGame_Example_Monster" }
+            }
+          }
+        }
+      ],
       "required" : ["name"],
       "additionalProperties" : false
     },
@@ -403,10 +546,10 @@
                 "type" : "number"
               },
         "v8" : {
-                "type" : "array", "items" : {"type" : "integer", "minimum" : -128, "maximum" : 127}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "integer", "minimum" : -128, "maximum" : 127} }]
               },
         "vf64" : {
-                "type" : "array", "items" : {"type" : "number"}
+                "anyOf": [{ "type": "null" }, { "type" : "array", "items" : {"type" : "number"} }]
               }
       },
       "additionalProperties" : false

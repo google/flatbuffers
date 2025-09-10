@@ -357,6 +357,12 @@ flatc(
 )
 
 flatc(
+    ["--jsonschema", "--schema"],
+    prefix="union_vector",
+    schema="union_vector/union_vector.fbs",
+)
+
+flatc(
     RUST_OPTS,
     prefix="arrays_test",
     schema="arrays_test.fbs",
