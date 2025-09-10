@@ -614,7 +614,7 @@ jobs:
 
   release-digests:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
+    needs: [build-linux, build-windows, build-mac-universal]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
     runs-on: ubuntu-24.04
@@ -625,14 +625,12 @@ jobs:
           LINUXGCC_DIGESTS: "${{ needs.build-linux.outputs.digests-gcc }}"
           LINUXCLANG_DIGESTS: "${{ needs.build-linux.outputs.digests-clang }}"
           MAC_DIGESTS: "${{ needs.build-mac-universal.outputs.digests }}"
-          MACINTEL_DIGESTS: "${{ needs.build-mac-intel.outputs.digests }}"
           WINDOWS_DIGESTS: "${{ needs.build-windows.outputs.digests }}"
         run: |
           set -euo pipefail
           echo "$LINUXGCC_DIGESTS" | base64 -d > checksums.txt
           echo "$LINUXCLANG_DIGESTS" | base64 -d >> checksums.txt
           echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
-          echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
           echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
           echo "digests=$(cat checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
