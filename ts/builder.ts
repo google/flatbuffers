@@ -202,42 +202,42 @@ export class Builder {
       this.writeFloat64(value);
     }
   
-    addFieldInt8(voffset: number, value: number, defaultValue: number): void {
+    addFieldInt8(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addInt8(value);
         this.slot(voffset);
       }
     }
   
-    addFieldInt16(voffset: number, value: number, defaultValue: number): void {
+    addFieldInt16(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addInt16(value);
         this.slot(voffset);
       }
     }
   
-    addFieldInt32(voffset: number, value: number, defaultValue: number): void {
+    addFieldInt32(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addInt32(value);
         this.slot(voffset);
       }
     }
   
-    addFieldInt64(voffset: number, value: bigint, defaultValue: bigint): void {
+    addFieldInt64(voffset: number, value: bigint, defaultValue: bigint|null): void {
       if (this.force_defaults || value !== defaultValue) {
         this.addInt64(value);
         this.slot(voffset);
       }
     }
   
-    addFieldFloat32(voffset: number, value: number, defaultValue: number): void {
+    addFieldFloat32(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addFloat32(value);
         this.slot(voffset);
       }
     }
   
-    addFieldFloat64(voffset: number, value: number, defaultValue: number): void {
+    addFieldFloat64(voffset: number, value: number, defaultValue: number|null): void {
       if (this.force_defaults || value != defaultValue) {
         this.addFloat64(value);
         this.slot(voffset);
@@ -539,9 +539,24 @@ export class Builder {
       this.addInt8(0);
       this.startVector(1, utf8.length, 1);
       this.bb.setPosition(this.space -= utf8.length);
-      for (let i = 0, offset = this.space, bytes = this.bb.bytes(); i < utf8.length; i++) {
-        bytes[offset++] = utf8[i];
+      this.bb.bytes().set(utf8, this.space);
+      return this.endVector();
+    }
+  
+    /**
+     * Create a byte vector.
+     *
+     * @param v The bytes to add
+     * @returns The offset in the buffer where the byte vector starts
+     */
+    createByteVector(v: Uint8Array | null | undefined): Offset {
+      if (v === null || v === undefined) {
+        return 0;
       }
+
+      this.startVector(1, v.length, 1);
+      this.bb.setPosition(this.space -= v.length);
+      this.bb.bytes().set(v, this.space);
       return this.endVector();
     }
   

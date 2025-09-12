@@ -4,6 +4,39 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## Unreleased
+
+* flatc: `--grpc-callback-api` flag generates C++ gRPC Callback API server `CallbackService` skeletons AND client native callback/async stubs (unary + all streaming reactor forms) (opt-in, non-breaking, issue #8596).
+
+## [25.2.10] (February 10 2025)(https://github.com/google/flatbuffers/releases/tag/v25.2.10)
+
+* Removed the old documentation pages. The new one is live at https://flatbuffers.dev
+* Swift version 6.0 support (#8414)
+
+## [25.1.24] (January 24 2025)(https://github.com/google/flatbuffers/releases/tag/v25.1.24)
+
+* Mostly related to bazel build support.
+* Min bazel supported is now 7 or higher, as WORKSPACE files are removed (#8509)
+* Minor C++ codegen fix removing extra semicolon (#8488)
+
+## [25.1.21] (January 21 2025)(https://github.com/google/flatbuffers/releases/tag/v25.1.21)
+
+* Rust Full Reflection (#8102)
+* Mostly documentation updates hosted at https://flatbuffers.dev
+
+## [24.3.25] (March 25 2024)(https://github.com/google/flatbuffers/releases/tag/v24.3.25)
+
+* Fixed license metadata parsing (#8253)
+* [C++] Allow string_view in `LookUpByKey` in addition to null-terminated c-style strings (#8203)
+
+## [24.3.7] (March 7 2024)(https://github.com/google/flatbuffers/releases/tag/v24.3.7)
+
+* Just to fix some of the CI build issues from the 24.3.6 release.
+
+## [24.3.6] (March 6 2024)(https://github.com/google/flatbuffers/releases/tag/v24.3.6)
+
+* Fix typescript object API to allow 0 values for null-default scalars (#7864)
+
 ## [23.5.26 (May 26 2023)](https://github.com/google/flatbuffers/releases/tag/v23.5.26)
 
 * Mostly bug fixing for 64-bit support

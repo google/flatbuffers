@@ -5,23 +5,23 @@ on:
   # For manual tests.
   workflow_dispatch:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   publish-npm:
     name: Publish NPM
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
-          
+
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+
   publish-pypi:
     name: Publish PyPi
     runs-on: ubuntu-latest
@@ -33,16 +33,16 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      
+
       - name: Install Dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install setuptools wheel twine
-      
+
       - name: Build
         run: |
           python3 setup.py sdist bdist_wheel
-         
+
       - name: Upload to PyPi
         run: |
           python3 -m twine upload dist/*
@@ -60,20 +60,19 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
-          
+          dotnet-version: '8.0.x'
       - name: Build
         run: |
           dotnet build Google.FlatBuffers.csproj -c Release
-          
+
       - name: Pack
         run: |
           dotnet pack Google.FlatBuffers.csproj -c Release
-          
+
       - name: Upload to NuGet
         run: |
-          dotnet nuget push .\bin\Release\Google.FlatBuffers.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json 
-   
+          dotnet nuget push .\bin\Release\Google.FlatBuffers.*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+
   publish-maven:
     name: Publish Maven
     runs-on: ubuntu-latest
@@ -82,7 +81,7 @@ jobs:
         working-directory: ./java
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v3
         with:
@@ -94,13 +93,60 @@ jobs:
           server-password: OSSRH_PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # this needs to be an env var
-      
+
       - name: Publish Maven
         run: mvn --batch-mode clean deploy
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USER_V2 }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN_V2 }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
           
-      
-    
+  publish-maven-kotlin:
+    name: Publish Maven - Kotlin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./kotlin
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: 'maven'
+          server-id: ossrh
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # this needs to be an env var
+
+      - name: Publish Kotlin Library on Maven
+        run: ./gradlew publishAllPublicationsToSonatypeRepository
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USER_V2 }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_TOKEN_V2 }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+
+  publish-crates:
+    name: Publish crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          
+      - name: Publish Flatbuffers
+        uses: katyo/publish-crates@v2
+        with:
+          path: ./rust/flatbuffers
+          registry-token: ${{ secrets.CARGO_TOKEN }}
+
+      - name: Publish Flexbuffers
+        uses: katyo/publish-crates@v2
+        with:
+          path: ./rust/flexbuffers
+          registry-token: ${{ secrets.CARGO_TOKEN }}

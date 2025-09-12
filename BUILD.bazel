@@ -1,18 +1,9 @@
-load("@aspect_rules_js//npm:defs.bzl", "npm_link_package")
-load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 licenses(["notice"])
 
 package(
     default_visibility = ["//visibility:public"],
-)
-
-npm_link_all_packages(name = "node_modules")
-
-npm_link_package(
-    name = "node_modules/flatbuffers",
-    src = "//ts:flatbuffers",
 )
 
 exports_files([
@@ -37,11 +28,16 @@ config_setting(
 filegroup(
     name = "distribution",
     srcs = [
+        ".bazelignore",
+        ".npmrc",
         "BUILD.bazel",
-        "WORKSPACE",
+        "MODULE.bazel",
         "build_defs.bzl",
+        "package.json",
+        "pnpm-lock.yaml",
         "typescript.bzl",
         "//grpc/src/compiler:distribution",
+        "//include/codegen:distribution",
         "//reflection:distribution",
         "//src:distribution",
         "//ts:distribution",
@@ -125,15 +121,7 @@ filegroup(
 # Library used by flatbuffer_cc_library rules.
 cc_library(
     name = "runtime_cc",
-    hdrs = [
-        "include/flatbuffers/base.h",
-        "include/flatbuffers/flatbuffers.h",
-        "include/flatbuffers/flexbuffers.h",
-        "include/flatbuffers/stl_emulation.h",
-        "include/flatbuffers/util.h",
-        "include/flatbuffers/vector.h",
-        "include/flatbuffers/verifier.h",
-    ],
+    hdrs = ["//:public_headers"],
     linkstatic = 1,
     strip_include_prefix = "/include",
 )

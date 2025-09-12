@@ -17,15 +17,21 @@
 #ifndef FLATBUFFERS_BINARY_ANNOTATOR_H_
 #define FLATBUFFERS_BINARY_ANNOTATOR_H_
 
+#include <cstddef>
+#include <cstdint>
+#include <iomanip>
+#include <ios>
 #include <list>
 #include <map>
+#include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/reflection.h"
+#include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/stl_emulation.h"
-#include "flatbuffers/util.h"
 
 namespace flatbuffers {
 
@@ -227,7 +233,7 @@ inline static std::string ToString(const BinaryRegionType type) {
     case BinaryRegionType::Uint8: return "uint8_t";
     case BinaryRegionType::Uint16: return "uint16_t";
     case BinaryRegionType::Uint32: return "uint32_t";
-    case BinaryRegionType::Uint64: return "uint64_t"; ;
+    case BinaryRegionType::Uint64: return "uint64_t";
     case BinaryRegionType::Int8: return "int8_t";
     case BinaryRegionType::Int16: return "int16_t";
     case BinaryRegionType::Int32: return "int32_t";
@@ -250,6 +256,18 @@ class BinaryAnnotator {
       : bfbs_(bfbs),
         bfbs_length_(bfbs_length),
         schema_(reflection::GetSchema(bfbs)),
+        root_table_(""),
+        binary_(binary),
+        binary_length_(binary_length),
+        is_size_prefixed_(is_size_prefixed) {}
+
+  BinaryAnnotator(const reflection::Schema *schema,
+                  const std::string &root_table, const uint8_t *binary,
+                  uint64_t binary_length, bool is_size_prefixed)
+      : bfbs_(nullptr),
+        bfbs_length_(0),
+        schema_(schema),
+        root_table_(root_table),
         binary_(binary),
         binary_length_(binary_length),
         is_size_prefixed_(is_size_prefixed) {}
@@ -329,7 +347,7 @@ class BinaryAnnotator {
   }
 
   // Adds the provided `section` keyed by the `offset` it occurs at. If a
-  // section is already added at that offset, it doesn't replace the exisiting
+  // section is already added at that offset, it doesn't replace the existing
   // one.
   void AddSection(const uint64_t offset, const BinarySection &section) {
     sections_.insert(std::make_pair(offset, section));
@@ -384,10 +402,13 @@ class BinaryAnnotator {
 
   bool ContainsSection(const uint64_t offset);
 
+  const reflection::Object *RootTable() const;
+
   // The schema for the binary file
   const uint8_t *bfbs_;
   const uint64_t bfbs_length_;
   const reflection::Schema *schema_;
+  const std::string root_table_;
 
   // The binary data itself.
   const uint8_t *binary_;

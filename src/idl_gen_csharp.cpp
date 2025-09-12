@@ -431,6 +431,10 @@ class CSharpGenerator : public BaseGenerator {
     if (opts.generate_object_based_api) {
       GenEnum_ObjectAPI(enum_def, code_ptr, opts);
     }
+
+    if (enum_def.is_union) {
+      code += GenUnionVerify(enum_def.underlying_type);
+    }
   }
 
   bool HasUnionStringValue(const EnumDef &enum_def) const {
@@ -846,7 +850,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_23_5_26(); ";
+      code += "FLATBUFFERS_25_2_10(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1754,8 +1758,6 @@ class CSharpGenerator : public BaseGenerator {
     code += "    }\n";
     code += "  }\n";
     code += "}\n\n";
-
-    code += GenUnionVerify(enum_def.underlying_type);
 
     // JsonConverter
     if (opts.cs_gen_json_serializer) {

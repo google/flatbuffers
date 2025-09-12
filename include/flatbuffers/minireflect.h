@@ -408,8 +408,9 @@ inline std::string FlatBufferToString(const uint8_t *buffer,
                                       const TypeTable *type_table,
                                       bool multi_line = false,
                                       bool vector_delimited = true,
-                                      const std::string &indent = "") {
-  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ", false, indent,
+                                      const std::string &indent = "",
+                                      bool quotes = false) {
+  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ", quotes, indent,
                                    vector_delimited);
   IterateFlatBuffer(buffer, type_table, &tostring_visitor);
   return tostring_visitor.s;

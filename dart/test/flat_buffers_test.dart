@@ -9,9 +9,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import './monster_test_my_game.example_generated.dart' as example;
 import './monster_test_my_game.example2_generated.dart' as example2;
-import './list_of_enums_generated.dart' as example3;
+import 'enums_generated.dart' as example3;
 import './bool_structs_generated.dart' as example4;
-import './keyword_test_keyword_test_generated.dart' as keyword_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -62,92 +61,91 @@ class CheckOtherLangaugesData {
 
     // this will fail if accessing any field fails.
     expect(
-      mon.toString(),
-      'Monster{'
-      'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color{value: 2}, test3: Test{a: 5, b: 6}}, '
-      'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
-      'color: Color{value: 8}, testType: AnyTypeId{value: 1}, '
-      'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: null, '
-      'test: null, test4: null, testarrayofstring: null, '
-      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
-      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
-      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
-      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
-      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
-      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
-      'testarrayofsortedstruct: null, flex: null, test5: null, '
-      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
-      'vectorOfReferrables: null, singleWeakReference: 0, '
-      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
-      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
-      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
-      'nativeInline: null, '
-      'longEnumNonEnumDefault: LongEnum{value: 0}, '
-      'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
-      'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
-      'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
-      '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
-      'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
-      'testarrayofstring: [test1, test2], testarrayoftables: null, '
-      'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
-      'inventory: null, color: Color{value: 8}, testType: null, '
-      'test: null, test4: null, testarrayofstring: null, '
-      'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
-      'testempty: null, testbool: false, testhashs32Fnv1: 0, '
-      'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
-      'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
-      'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
-      'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
-      'testarrayofsortedstruct: null, flex: null, test5: null, '
-      'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
-      'vectorOfReferrables: null, singleWeakReference: 0, '
-      'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
-      'coOwningReference: 0, vectorOfCoOwningReferences: null, '
-      'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
-      'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
-      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
-      'nativeInline: null, '
-      'longEnumNonEnumDefault: LongEnum{value: 0}, '
-      'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
-      'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
-      'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
-      '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
-      'testnestedflatbuffer: null, testempty: null, testbool: true, '
-      'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
-      'testhashs64Fnv1: 7930699090847568257, '
-      'testhashu64Fnv1: 7930699090847568257, '
-      'testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, '
-      'testhashs64Fnv1a: 4898026182817603057, '
-      'testhashu64Fnv1a: 4898026182817603057, '
-      'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
-      'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
-      'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
-      'Ability{id: 5, distance: 12}], '
-      'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
-      'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
-      'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
-      'parentNamespaceTest: null, vectorOfReferrables: null, '
-      'singleWeakReference: 0, vectorOfWeakReferences: null, '
-      'vectorOfStrongReferrables: null, coOwningReference: 0, '
-      'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
-      'vectorOfNonOwningReferences: null, '
-      'anyUniqueType: null, anyUnique: null, '
-      'anyAmbiguousType: null, '
-      'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race{value: -1}, '
-      'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
-      'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}], '
-      'nativeInline: Test{a: 1, b: 2}, '
-      'longEnumNonEnumDefault: LongEnum{value: 0}, '
-      'longEnumNormalDefault: LongEnum{value: 2}, nanDefault: NaN, '
-      'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
-      'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
-      '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}'
-    );
+        mon.toString(),
+        'Monster{'
+        'pos: Vec3{x: 1.0, y: 2.0, z: 3.0, test1: 3.0, test2: Color.Green, test3: Test{a: 5, b: 6}}, '
+        'mana: 150, hp: 80, name: MyMonster, inventory: [0, 1, 2, 3, 4], '
+        'color: Color.Blue, testType: AnyTypeId.Monster, '
+        'test: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+        'inventory: null, color: Color.Blue, testType: null, '
+        'test: null, test4: null, testarrayofstring: null, '
+        'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+        'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+        'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+        'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+        'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+        'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+        'testarrayofsortedstruct: null, flex: null, test5: null, '
+        'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+        'vectorOfReferrables: null, singleWeakReference: 0, '
+        'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+        'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+        'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+        'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
+        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race.None, '
+        'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
+        'nativeInline: null, '
+        'longEnumNonEnumDefault: LongEnum._default, '
+        'longEnumNormalDefault: LongEnum.LongOne, nanDefault: NaN, '
+        'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
+        'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
+        '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
+        'test4: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+        'testarrayofstring: [test1, test2], testarrayoftables: null, '
+        'enemy: Monster{pos: null, mana: 150, hp: 100, name: Fred, '
+        'inventory: null, color: Color.Blue, testType: null, '
+        'test: null, test4: null, testarrayofstring: null, '
+        'testarrayoftables: null, enemy: null, testnestedflatbuffer: null, '
+        'testempty: null, testbool: false, testhashs32Fnv1: 0, '
+        'testhashu32Fnv1: 0, testhashs64Fnv1: 0, testhashu64Fnv1: 0, '
+        'testhashs32Fnv1a: 0, testhashu32Fnv1a: 0, testhashs64Fnv1a: 0, '
+        'testhashu64Fnv1a: 0, testarrayofbools: null, testf: 3.14159, '
+        'testf2: 3.0, testf3: 0.0, testarrayofstring2: null, '
+        'testarrayofsortedstruct: null, flex: null, test5: null, '
+        'vectorOfLongs: null, vectorOfDoubles: null, parentNamespaceTest: null, '
+        'vectorOfReferrables: null, singleWeakReference: 0, '
+        'vectorOfWeakReferences: null, vectorOfStrongReferrables: null, '
+        'coOwningReference: 0, vectorOfCoOwningReferences: null, '
+        'nonOwningReference: 0, vectorOfNonOwningReferences: null, '
+        'anyUniqueType: null, anyUnique: null, anyAmbiguousType: null, '
+        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race.None, '
+        'testrequirednestedflatbuffer: null, scalarKeySortedTables: null, '
+        'nativeInline: null, '
+        'longEnumNonEnumDefault: LongEnum._default, '
+        'longEnumNormalDefault: LongEnum.LongOne, nanDefault: NaN, '
+        'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
+        'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
+        '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}, '
+        'testnestedflatbuffer: null, testempty: null, testbool: true, '
+        'testhashs32Fnv1: -579221183, testhashu32Fnv1: 3715746113, '
+        'testhashs64Fnv1: 7930699090847568257, '
+        'testhashu64Fnv1: 7930699090847568257, '
+        'testhashs32Fnv1a: -1904106383, testhashu32Fnv1a: 2390860913, '
+        'testhashs64Fnv1a: 4898026182817603057, '
+        'testhashu64Fnv1a: 4898026182817603057, '
+        'testarrayofbools: [true, false, true], testf: 3.14159, testf2: 3.0, '
+        'testf3: 0.0, testarrayofstring2: null, testarrayofsortedstruct: ['
+        'Ability{id: 0, distance: 45}, Ability{id: 1, distance: 21}, '
+        'Ability{id: 5, distance: 12}], '
+        'flex: null, test5: [Test{a: 10, b: 20}, Test{a: 30, b: 40}], '
+        'vectorOfLongs: [1, 100, 10000, 1000000, 100000000], '
+        'vectorOfDoubles: [-1.7976931348623157e+308, 0.0, 1.7976931348623157e+308], '
+        'parentNamespaceTest: null, vectorOfReferrables: null, '
+        'singleWeakReference: 0, vectorOfWeakReferences: null, '
+        'vectorOfStrongReferrables: null, coOwningReference: 0, '
+        'vectorOfCoOwningReferences: null, nonOwningReference: 0, '
+        'vectorOfNonOwningReferences: null, '
+        'anyUniqueType: null, anyUnique: null, '
+        'anyAmbiguousType: null, '
+        'anyAmbiguous: null, vectorOfEnums: null, signedEnum: Race.None, '
+        'testrequirednestedflatbuffer: null, scalarKeySortedTables: [Stat{id: '
+        'miss, val: 0, count: 0}, Stat{id: hit, val: 10, count: 1}], '
+        'nativeInline: Test{a: 1, b: 2}, '
+        'longEnumNonEnumDefault: LongEnum._default, '
+        'longEnumNormalDefault: LongEnum.LongOne, nanDefault: NaN, '
+        'infDefault: Infinity, positiveInfDefault: Infinity, infinityDefault: '
+        'Infinity, positiveInfinityDefault: Infinity, negativeInfDefault: '
+        '-Infinity, negativeInfinityDefault: -Infinity, doubleInfDefault: Infinity}');
   }
 }
 
@@ -217,6 +215,10 @@ class BuilderTest {
       ..addTestarrayofstringOffset(testArrayOfString);
     final mon = monBuilder.finish();
     fbBuilder.finish(mon);
+
+    final mon3 = example.Monster(fbBuilder.buffer);
+    expect(mon3.name, 'MyMonster');
+    expect(mon3.pos!.test1, 3.0);
   }
 
   void test_error_addInt32_withoutStartTable([Builder? builder]) {
@@ -769,7 +771,6 @@ class BuilderTest {
 class ObjectAPITest {
   void test_tableStat() {
     final object1 = example.StatT(count: 3, id: "foo", val: 4);
-    expect(object1 is Packable, isTrue);
     final fbb = Builder();
     fbb.finish(object1.pack(fbb));
     final object2 = example.Stat(fbb.buffer).unpack();

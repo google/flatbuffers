@@ -86,7 +86,7 @@ void TriviallyCopyableTest() {
   // clang-format off
   #if __GNUG__ && __GNUC__ < 5 && \
       !(defined(__clang__) && __clang_major__ >= 16)
-    TEST_EQ(__has_trivial_copy(Vec3), true);
+    TEST_EQ(__is_trivially_copyable(Vec3), true);
   #else
     #if __cplusplus >= 201103L
       TEST_EQ(std::is_trivially_copyable<Vec3>::value, true);
@@ -834,6 +834,24 @@ void FixedLengthArrayConstructorTest() {
   TEST_EQ(arr_struct.e(), 10);
   TEST_EQ(arr_struct.f()->Get(0), -2);
   TEST_EQ(arr_struct.f()->Get(1), -1);
+
+  // Test for each loop over NestedStruct entries
+  for (auto i : *arr_struct.d()) {
+    for (auto a : *i->a()) {
+      TEST_EQ(a, 1);
+      break;  // one iteration is enough, just testing compilation
+    }
+    TEST_EQ(i->b(), MyGame::Example::TestEnum::B);
+    for (auto c : *i->c()) {
+      TEST_EQ(c, MyGame::Example::TestEnum::A);
+      break;  // one iteration is enough, just testing compilation
+    }
+    for (auto d : *i->d()) {
+      TEST_EQ(d, -2);
+      break;  // one iteration is enough, just testing compilation
+    }
+    break;  // one iteration is enough, just testing compilation
+  }
 }
 #else
 void FixedLengthArrayConstructorTest() {}
@@ -891,6 +909,9 @@ void NativeTypeTest() {
   const int N = 3;
 
   Geometry::ApplicationDataT src_data;
+  src_data.position = flatbuffers::unique_ptr<Native::Vector3D>(
+      new Native::Vector3D(1.0f, 2.0f, 3.0f));
+  src_data.position_inline = Native::Vector3D(4.0f, 5.0f, 6.0f);
   src_data.vectors.reserve(N);
   src_data.vectors_alt.reserve(N);
 
@@ -905,6 +926,13 @@ void NativeTypeTest() {
   fbb.Finish(Geometry::ApplicationData::Pack(fbb, &src_data));
 
   auto dstDataT = Geometry::UnPackApplicationData(fbb.GetBufferPointer());
+
+  TEST_EQ(dstDataT->position->x, 1.0f);
+  TEST_EQ(dstDataT->position->y, 2.0f);
+  TEST_EQ(dstDataT->position->z, 3.0f);
+  TEST_EQ(dstDataT->position_inline.x, 4.0f);
+  TEST_EQ(dstDataT->position_inline.y, 5.0f);
+  TEST_EQ(dstDataT->position_inline.z, 6.0f);
 
   for (int i = 0; i < N; ++i) {
     const Native::Vector3D &v = dstDataT->vectors[i];

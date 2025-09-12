@@ -174,10 +174,12 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "// swiftlint:disable all";
     code_ += "// swiftformat:disable all\n";
     if (parser_.opts.include_dependence_headers || parser_.opts.generate_all) {
-      if (parser_.opts.swift_implementation_only)
-        code_ += "@_implementationOnly \\";
-
-      code_ += "import FlatBuffers\n";
+      code_.SetValue("IMPLEMENTONLY", parser_.opts.swift_implementation_only ? "@_implementationOnly " : "");
+      code_ += "#if canImport(Common)";
+      code_ += "{{IMPLEMENTONLY}}import Common";
+      code_ += "#endif";
+      code_ += "";
+      code_ += "{{IMPLEMENTONLY}}import FlatBuffers\n";
     }
 
     // Generate code for all the enum declarations.
@@ -328,7 +330,7 @@ class SwiftGenerator : public BaseGenerator {
       } else {
         code_ +=
             "_{{FIELDVAR}} = {{VALUETYPE}}({{ACCESS}}.bb, o: "
-            "{{ACCESS}}.postion + {{OFFSET}})";
+            "{{ACCESS}}.position + {{OFFSET}})";
       }
     }
     Outdent();
@@ -361,7 +363,7 @@ class SwiftGenerator : public BaseGenerator {
       } else if (IsStruct(field.value.type)) {
         code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
         code_ += GenReaderMainBody() + "return " +
-                 GenConstructor("{{ACCESS}}.postion + {{OFFSET}}");
+                 GenConstructor("{{ACCESS}}.position + {{OFFSET}}");
       }
       if (parser_.opts.mutable_buffer && !IsStruct(field.value.type))
         code_ += GenMutate("{{OFFSET}}", "", IsEnum(field.value.type));
@@ -569,8 +571,8 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           spacing +
           "off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: "
-          "{{VOFFSET}}, fbb: fbb.buffer), Table.offset(Int32($0.o), vOffset: "
-          "{{VOFFSET}}, fbb: fbb.buffer), fbb: fbb.buffer) < 0 } ";
+          "{{VOFFSET}}, fbb: &fbb), Table.offset(Int32($0.o), vOffset: "
+          "{{VOFFSET}}, fbb: &fbb), fbb: &fbb) < 0 } ";
       code_ += spacing + "return fbb.createVector(ofOffsets: off)";
       Outdent();
       code_ += "}";
@@ -754,7 +756,7 @@ class SwiftGenerator : public BaseGenerator {
       code_.SetValue("VALUETYPE", GenType(field.value.type) + Mutable());
       code_.SetValue("CONSTANT", "nil");
       code_ += GenReaderMainBody(is_required) + GenOffset() + required_reader +
-               GenConstructor("o + {{ACCESS}}.postion");
+               GenConstructor("o + {{ACCESS}}.position");
       return;
     }
     switch (field.value.type.base_type) {
@@ -763,7 +765,7 @@ class SwiftGenerator : public BaseGenerator {
         code_.SetValue("CONSTANT", "nil");
         code_ += GenReaderMainBody(is_required) + GenOffset() +
                  required_reader +
-                 GenConstructor(GenIndirect("o + {{ACCESS}}.postion"));
+                 GenConstructor(GenIndirect("o + {{ACCESS}}.position"));
         break;
 
       case BASE_TYPE_STRING: {
@@ -832,6 +834,7 @@ class SwiftGenerator : public BaseGenerator {
           "{{ACCESS_TYPE}} var {{FIELDVAR}}: [{{VALUETYPE}}] { return "
           "{{ACCESS}}.getVector(at: {{TABLEOFFSET}}.{{OFFSET}}.v) ?? [] }";
       if (parser_.opts.mutable_buffer) code_ += GenMutateArray();
+      GenUnsafeBufferPointer(field);
       return;
     }
 
@@ -845,6 +848,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ += GenArrayMainBody(nullable) + GenOffset() + const_string +
                GenConstructor("{{ACCESS}}.vector(at: o) + index * {{SIZE}}");
 
+      GenUnsafeBufferPointer(field);
       return;
     }
 
@@ -885,6 +889,16 @@ class SwiftGenerator : public BaseGenerator {
         }
       }
     }
+  }
+
+  void GenUnsafeBufferPointer(const FieldDef &field) {
+    code_.SetValue("functionName",
+                   namer_.Variable("withUnsafePointerTo", field));
+    code_ +=
+        "{{ACCESS_TYPE}} func {{functionName}}<T>(_ body: "
+        "(UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try "
+        "{{ACCESS}}.withUnsafePointerToSlice(at: {{TABLEOFFSET}}.{{OFFSET}}.v, "
+        "body: body) }";
   }
 
   void GenerateCodingKeys(const StructDef &struct_def) {
@@ -1845,7 +1859,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "static func validateVersion() { FlatBuffersVersion_23_5_26() }";
+    return "static func validateVersion() { FlatBuffersVersion_25_2_10() }";
   }
 
   std::string GenType(const Type &type,

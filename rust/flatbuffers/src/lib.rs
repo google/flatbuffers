@@ -48,15 +48,15 @@ mod vtable;
 mod vtable_writer;
 
 pub use crate::array::{array_init, emplace_scalar_array, Array};
-pub use crate::builder::FlatBufferBuilder;
+pub use crate::builder::{Allocator, DefaultAllocator, FlatBufferBuilder};
 pub use crate::endian_scalar::{emplace_scalar, read_scalar, read_scalar_at, EndianScalar};
 pub use crate::follow::{Follow, FollowStart};
 pub use crate::primitives::*;
-pub use crate::push::Push;
+pub use crate::push::{Push, PushAlignment};
 pub use crate::table::{buffer_has_identifier, Table};
 pub use crate::vector::{follow_cast_ref, Vector, VectorIter};
 pub use crate::verifier::{
-    ErrorTraceDetail, InvalidFlatbuffer, SimpleToVerifyInSlice, Verifiable, Verifier,
+    ErrorTraceDetail, InvalidFlatbuffer, SimpleToVerifyInSlice, TableVerifier, Verifiable, Verifier,
     VerifierOptions,
 };
 pub use crate::vtable::field_index_to_field_offset;

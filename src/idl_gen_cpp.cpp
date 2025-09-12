@@ -467,6 +467,24 @@ class CppGenerator : public BaseGenerator {
         }
         if (opts_.generate_object_based_api) {
           auto nativeName = NativeName(Name(*struct_def), struct_def, opts_);
+
+          // Check that nativeName doesn't collide the name of another struct.
+          for (const auto &other_struct_def : parser_.structs_.vec) {
+            if (other_struct_def == struct_def ||
+                other_struct_def->defined_namespace !=
+                    struct_def->defined_namespace) {
+              continue;
+            }
+
+            auto other_name = Name(*other_struct_def);
+            if (nativeName == other_name) {
+              LogCompilerError("Generated Object API type for " +
+                               Name(*struct_def) + " collides with " +
+                               other_name);
+              FLATBUFFERS_ASSERT(true);
+            }
+          }
+
           if (!struct_def->fixed) { code_ += "struct " + nativeName + ";"; }
         }
         code_ += "";
@@ -2417,8 +2435,20 @@ class CppGenerator : public BaseGenerator {
 
     // Generate KeyCompareWithValue function
     if (is_string) {
+      // Compares key against a null-terminated char array.
       code_ += "  int KeyCompareWithValue(const char *_{{FIELD_NAME}}) const {";
       code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
+      code_ += "  }";
+      // Compares key against any string-like object (e.g. std::string_view or
+      // std::string) that implements operator< comparison with const char*.
+      code_ += "  template<typename StringType>";
+      code_ +=
+          "  int KeyCompareWithValue(const StringType& _{{FIELD_NAME}}) const "
+          "{";
+      code_ +=
+          "    if ({{FIELD_NAME}}()->c_str() < _{{FIELD_NAME}}) return -1;";
+      code_ += "    if (_{{FIELD_NAME}} < {{FIELD_NAME}}()->c_str()) return 1;";
+      code_ += "    return 0;";
     } else if (is_array) {
       const auto &elem_type = field.value.type.VectorType();
       std::string input_type = "::flatbuffers::Array<" +
@@ -2623,7 +2653,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "if constexpr (Index == {{FIELD_INDEX}}) \\";
       code_ += "return {{FIELD_NAME}}();";
     }
-    code_ += "    else static_assert(Index != Index, \"Invalid Field Index\");";
+    code_ += "    else static_assert(Index != -1, \"Invalid Field Index\");";
     code_ += "  }";
   }
 
@@ -3163,7 +3193,7 @@ class CppGenerator : public BaseGenerator {
                                 const char *vec_type_access) {
     auto type_name = WrapInNameSpace(*afield.value.type.enum_def);
     return type_name + "Union::UnPack(" + "_e" + vec_elem_access + ", " +
-           EscapeKeyword(afield.name + UnionTypeFieldSuffix()) + "()" +
+           EscapeKeyword(Name(afield) + UnionTypeFieldSuffix()) + "()" +
            vec_type_access + ", _resolver)";
   }
 
@@ -3187,7 +3217,13 @@ class CppGenerator : public BaseGenerator {
             const auto pack_name = struct_attrs.Lookup("native_type_pack_name");
             if (pack_name) { unpack_call += pack_name->constant; }
             unpack_call += "(*" + val + ")";
-            return unpack_call;
+            if (invector || afield.native_inline) {
+              return unpack_call;
+            } else {
+              const auto name = native_type->constant;
+              const auto ptype = GenTypeNativePtr(name, &afield, true);
+              return ptype + "(new " + name + "(" + unpack_call + "))";
+            }
           } else if (invector || afield.native_inline) {
             return "*" + val;
           } else {
@@ -3279,7 +3315,7 @@ class CppGenerator : public BaseGenerator {
                 "static_cast<::flatbuffers::hash_value_t>(" + indexing + "));";
             if (PtrType(&field) == "naked") {
               code += " else ";
-              code += "_o->" + name + "[_i]" + access + " = nullptr";
+              code += "_o->" + name + "[_i]" + access + " = nullptr; ";
             } else {
               // code += " else ";
               // code += "_o->" + name + "[_i]" + access + " = " +
@@ -3297,9 +3333,10 @@ class CppGenerator : public BaseGenerator {
             code += "_o->" + name + "[_i]" + access + " = ";
             code += GenUnpackVal(field.value.type.VectorType(), indexing, true,
                                  field);
-            if (is_pointer) { code += "; }"; }
+            code += "; ";
+            if (is_pointer) { code += "} "; }
           }
-          code += "; } } else { " + vector_field + ".resize(0); }";
+          code += "} } else { " + vector_field + ".resize(0); }";
         }
         break;
       }
@@ -3308,7 +3345,7 @@ class CppGenerator : public BaseGenerator {
                            BASE_TYPE_UNION);
         // Generate code that sets the union type, of the form:
         //   _o->field.type = _e;
-        code += "_o->" + union_field->name + ".type = _e;";
+        code += "_o->" + Name(*union_field) + ".type = _e;";
         break;
       }
       case BASE_TYPE_UNION: {
@@ -3570,12 +3607,16 @@ class CppGenerator : public BaseGenerator {
         if (IsStruct(field.value.type)) {
           const auto &struct_attribs = field.value.type.struct_def->attributes;
           const auto native_type = struct_attribs.Lookup("native_type");
-          if (native_type) {
+          if (native_type && field.native_inline) {
             code += "::flatbuffers::Pack";
             const auto pack_name =
                 struct_attribs.Lookup("native_type_pack_name");
             if (pack_name) { code += pack_name->constant; }
             code += "(" + value + ")";
+          } else if (native_type && !field.native_inline) {
+            code += WrapInNameSpace(*field.value.type.struct_def) + "{};";
+            code += " if (_o->" + Name(field) + ") _" + Name(field) +
+                    " = ::flatbuffers::Pack(*_o->" + Name(field) + ")";
           } else if (field.native_inline) {
             code += "&" + value;
           } else {
@@ -3704,16 +3745,22 @@ class CppGenerator : public BaseGenerator {
         if (field->deprecated) { continue; }
 
         bool pass_by_address = false;
+        bool check_ptr = false;
         if (field->value.type.base_type == BASE_TYPE_STRUCT) {
           if (IsStruct(field->value.type)) {
             auto native_type =
                 field->value.type.struct_def->attributes.Lookup("native_type");
+            auto native_inline = field->attributes.Lookup("native_inline");
             if (native_type) { pass_by_address = true; }
+            if (native_type && !native_inline) { check_ptr = true; }
           }
         }
 
         // Call the CreateX function using values from |_o|.
-        if (pass_by_address) {
+        if (pass_by_address && check_ptr) {
+          code_ += ",\n      _o->" + Name(*field) + " ? &_" + Name(*field) +
+                   " : nullptr\\";
+        } else if (pass_by_address) {
           code_ += ",\n      &_" + Name(*field) + "\\";
         } else {
           code_ += ",\n      _" + Name(*field) + "\\";

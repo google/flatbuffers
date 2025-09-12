@@ -290,7 +290,7 @@ namespace Google.FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanReadCppGeneratedWireFile()
         {
-            var data = File.ReadAllBytes(@"../monsterdata_test.mon");
+            var data = File.ReadAllBytes(@"monsterdata_test.mon");
             var bb = new ByteBuffer(data);
             TestBuffer(bb);
             TestObjectAPI(Monster.GetRootAsMonster(bb));
@@ -299,7 +299,7 @@ namespace Google.FlatBuffers.Test
         [FlatBuffersTestMethod]
         public void CanReadJsonFile()
         {
-            var jsonText = File.ReadAllText(@"../monsterdata_test.json");
+            var jsonText = File.ReadAllText(@"monsterdata_test.json");
             var mon = MonsterT.DeserializeFromJson(jsonText);
             var fbb = new FlatBufferBuilder(1);
             Monster.FinishMonsterBuffer(fbb, Monster.Pack(fbb, mon));
@@ -1193,6 +1193,36 @@ namespace Google.FlatBuffers.Test
                 Assert.IsTrue(monster.ScalarKeySortedTablesByKey(i) != null);
                 Assert.AreEqual(monster.ScalarKeySortedTablesByKey(i).Value.Count, i);
             }
+        }
+
+        [FlatBuffersTestMethod]
+        public void TestVerifyingUnions()
+        {
+            var fbb = new FlatBufferBuilder(1);
+            var name_inner = fbb.CreateString("inner");
+            var name_outer = fbb.CreateString("outer");
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, name_inner);
+            var monster_inner = Monster.EndMonster(fbb);
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, name_outer);
+            Monster.AddTest(fbb, monster_inner.Value);
+            Monster.AddTestType(fbb, Any.Monster);
+            var monster_outer = Monster.EndMonster(fbb);
+            fbb.Finish(monster_outer.Value);
+            var bytes = fbb.SizedByteArray();
+            var bytes_to_corrupt_inner_name = fbb.SizedByteArray();
+            var bytes_to_corrupt_outer_name = fbb.SizedByteArray();
+
+            bytes_to_corrupt_inner_name[bytes.Length - name_inner.Value] = 0xFF;
+            bytes_to_corrupt_outer_name[bytes.Length - name_outer.Value] = 0xFF;
+            var valid = Monster.VerifyMonster(new ByteBuffer(bytes));
+            var valid_after_inner_corrupt = Monster.VerifyMonster(new ByteBuffer(bytes_to_corrupt_inner_name));
+            var valid_after_outer_corrupt = Monster.VerifyMonster(new ByteBuffer(bytes_to_corrupt_outer_name));
+
+            Assert.IsTrue(valid);
+            Assert.IsFalse(valid_after_inner_corrupt);
+            Assert.IsFalse(valid_after_outer_corrupt);
         }
     }
 }

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "es2020",
+    "moduleResolution": "Bundler",
     "lib": ["ES2020", "DOM"],
     "declaration": true,
     "outDir": "./mjs",

@@ -97,6 +97,27 @@ def assertRaises(test_case, fn, exception_class):
   test_case.assertTrue(isinstance(exc, exception_class))
 
 
+def byte_swap_array(np_version, arr):
+    """
+    Performs byte swapping on a NumPy array, adapting to different NumPy versions.
+
+    Args:
+        np_version: Version of NumPu (np.__version__)
+        arr: The input NumPy array.
+
+    Returns:
+        A new NumPy array with byte order swapped.
+    """
+    numpy_version_tuple = tuple(map(int, np_version.split('.')[:3]))
+    min_version_for_new_method_tuple = (2, 0, 0)
+
+    if numpy_version_tuple >= min_version_for_new_method_tuple:
+        # 'S' indicates swap byte order.
+        return arr.byteswap().view(arr.dtype.newbyteorder('S'))
+    else:
+        return arr.byteswap().newbyteorder()
+
+
 class TestWireFormat(unittest.TestCase):
 
   def test_wire_format(self):
@@ -1070,6 +1091,29 @@ class TestByteLayout(unittest.TestCase):
     # 1-byte pad:
     self.assertBuilderEquals(b, [3, 0, 0, 0, 1, 2, 3, 0])
 
+  def test_comparison_of_np_arrays(self):
+    """
+    MonsterT dvec and fvec are np.array types which can not be compared with == directly
+    This tests ensures that the __eq__ is generated correctly
+    """
+    try:
+      # if numpy exists, then we should be able to get the
+      # vector as a numpy array
+      import numpy as np
+      vec1 = np.array([1, 2], dtype=np.float32)
+      vec2 = np.array([3, 4], dtype=np.float32)
+
+      monsterA = MyGame.MonsterExtra.MonsterExtraT(d0=1, d1=1, d2=1, d3=1, f0=1, f1=1, f2=1, f3=1, dvec=vec1, fvec=vec2)
+      assert monsterA == monsterA
+
+      monsterB = MyGame.MonsterExtra.MonsterExtraT(d0=2, d1=1, d2=1, d3=1, f0=1, f1=1, f2=1, f3=1, dvec=vec1, fvec=vec2)
+      assert monsterA != monsterB
+    except ImportError:
+      b = flatbuffers.Builder(0)
+      x = 0
+      assertRaises(self, lambda: b.CreateNumpyVector(x),
+                   NumpyRequiredForThisFeature)
+
   def test_create_numpy_vector_int8(self):
     try:
       # if numpy exists, then we should be able to get the
@@ -1095,7 +1139,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1144,7 +1188,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1213,7 +1257,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1287,7 +1331,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1361,7 +1405,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -1427,7 +1471,7 @@ class TestByteLayout(unittest.TestCase):
 
       # Reverse endian:
       b = flatbuffers.Builder(0)
-      x_other_endian = x.byteswap().newbyteorder()
+      x_other_endian = byte_swap_array(np.__version__, x)
       b.CreateNumpyVector(x_other_endian)
       self.assertBuilderEquals(
           b,
@@ -2017,10 +2061,10 @@ class TestByteLayout(unittest.TestCase):
         ])
 
 
-def make_monster_from_generated_code(sizePrefix=False, file_identifier=None):
+def make_monster_from_generated_code(b=None, sizePrefix=False, file_identifier=None):
   """ Use generated code to build the example Monster. """
-
-  b = flatbuffers.Builder(0)
+  if b is None:
+    b = flatbuffers.Builder(0)
   string = b.CreateString('MyMonster')
   test1 = b.CreateString('test1')
   test2 = b.CreateString('test2')
@@ -2712,7 +2756,7 @@ class TestNestedUnionTables(unittest.TestCase):
 
   def test_nested_union_tables(self):
     nestUnion = MyGame.Example.NestedUnion.NestedUnionTest.NestedUnionTestT()
-    nestUnion.name = b"testUnion1"
+    nestUnion.name = "testUnion1"
     nestUnion.id = 1
     nestUnion.data = MyGame.Example.NestedUnion.Vec3.Vec3T()
     nestUnion.dataType = MyGame.Example.NestedUnion.Any.Any.Vec3
@@ -2766,6 +2810,43 @@ class TestNestedUnionTables(unittest.TestCase):
     self.assertEqual(nestUnionDecodeTFromBuf2.data.test3.a, nestUnion.data.test3.a)
     self.assertEqual(nestUnionDecodeTFromBuf2.data.test3.b, nestUnion.data.test3.b)
 
+
+class TestBuilderClear(unittest.TestCase):
+
+  def test_consistency(self):
+    """ Checks if clear resets the state of the builder. """
+    b = flatbuffers.Builder(0)
+
+    # Add some data to the buffer
+    off1 = b.CreateString('a' * 1024)
+    want = b.Bytes[b.Head():]
+
+    # Reset the builder
+    b.Clear()
+
+    # Readd the same data into the buffer
+    off2 = b.CreateString('a' * 1024)
+    got = b.Bytes[b.Head():]
+
+    # Expect to get the same data into the buffer at the same offset
+    self.assertEqual(off1, off2)
+    self.assertEqual(want, got)
+
+  def test_repeated_clear_after_builder_reuse(self):
+    init_buf = None
+    init_off = None
+    b = flatbuffers.Builder(0)
+
+    for i in range(5):
+      buf, off = make_monster_from_generated_code(b)
+      b.Clear()
+
+      if i > 0:
+        self.assertEqual(init_buf, buf)
+        self.assertEqual(init_off, off)
+      else:
+        init_buf = buf
+        init_off = off
 
 def CheckAgainstGoldDataGo():
   try:
@@ -2912,6 +2993,18 @@ def BenchmarkMakeMonsterFromGeneratedCode(count, length):
          (count, length, duration, rate, data_rate)))
 
 
+def BenchmarkBuilderClear(count, length):
+  b = flatbuffers.Builder(length)
+  duration = timeit.timeit(stmt=lambda: make_monster_from_generated_code(b),
+                           number=count)
+  rate = float(count) / duration
+  data = float(length * count) / float(1024 * 1024)
+  data_rate = data / float(duration)
+
+  print(('built %d %d-byte flatbuffers (reused buffer) in %.2fsec:'
+         ' %.2f/sec, %.2fMB/sec' % (count, length, duration, rate, data_rate)))
+
+
 def backward_compatible_run_tests(**kwargs):
   if PY_VERSION < (2, 6):
     sys.stderr.write('Python version less than 2.6 are not supported')
@@ -2940,10 +3033,10 @@ def backward_compatible_run_tests(**kwargs):
 def main():
   import os
   import sys
-  if not len(sys.argv) == 5:
+  if not len(sys.argv) == 6:
     sys.stderr.write('Usage: %s <benchmark vtable count> '
                      '<benchmark read count> <benchmark build count> '
-                     '<is_onefile>\n' % sys.argv[0])
+                     '<benchmark clear builder> <is_onefile>\n' % sys.argv[0])
     sys.stderr.write('       Provide COMPARE_GENERATED_TO_GO=1   to check'
                      'for bytewise comparison to Go data.\n')
     sys.stderr.write('       Provide COMPARE_GENERATED_TO_JAVA=1 to check'
@@ -2951,9 +3044,9 @@ def main():
     sys.stderr.flush()
     sys.exit(1)
 
-  kwargs = dict(argv=sys.argv[:-4])
+  kwargs = dict(argv=sys.argv[:-5])
 
-  create_namespace_shortcut(sys.argv[4].lower() == 'true')
+  create_namespace_shortcut(sys.argv[5].lower() == 'true')
 
   # show whether numpy is present, as it changes the test logic:
   try:
@@ -2978,6 +3071,7 @@ def main():
   bench_vtable = int(sys.argv[1])
   bench_traverse = int(sys.argv[2])
   bench_build = int(sys.argv[3])
+  bench_clear = int(sys.argv[4])
   if bench_vtable:
     BenchmarkVtableDeduplication(bench_vtable)
   if bench_traverse:
@@ -2986,7 +3080,9 @@ def main():
   if bench_build:
     buf, off = make_monster_from_generated_code()
     BenchmarkMakeMonsterFromGeneratedCode(bench_build, len(buf))
-
+  if bench_clear:
+    buf, off = make_monster_from_generated_code()
+    BenchmarkBuilderClear(bench_build, len(buf))
 
 if __name__ == '__main__':
   main()

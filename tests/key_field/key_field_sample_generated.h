@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 5 &&
-              FLATBUFFERS_VERSION_REVISION == 26,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 2 &&
+              FLATBUFFERS_VERSION_REVISION == 10,
              "Non-compatible flatbuffers version included");
 
 namespace keyfield {
@@ -597,6 +597,12 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   int KeyCompareWithValue(const char *_c) const {
     return strcmp(c()->c_str(), _c);
+  }
+  template<typename StringType>
+  int KeyCompareWithValue(const StringType& _c) const {
+    if (c()->c_str() < _c) return -1;
+    if (_c < c()->c_str()) return 1;
+    return 0;
   }
   const ::flatbuffers::Vector<const keyfield::sample::Baz *> *d() const {
     return GetPointer<const ::flatbuffers::Vector<const keyfield::sample::Baz *> *>(VT_D);

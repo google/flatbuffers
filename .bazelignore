@@ -1,1 +1,5 @@
-node_modules
+ts/node_modules
+
+# Test workspaces
+tests/bazel_repository_test_dir
+tests/ts/bazel_repository_test_dir

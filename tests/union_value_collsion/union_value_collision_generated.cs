@@ -37,25 +37,6 @@ public class ValueUnion {
   }
 }
 
-
-
-static public class ValueVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((Value)typeId)
-    {
-      case Value.IntValue:
-        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
-  }
-}
-
 public class ValueUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   public override bool CanConvert(System.Type objectType) {
     return objectType == typeof(ValueUnion) || objectType == typeof(System.Collections.Generic.List<ValueUnion>);
@@ -97,6 +78,25 @@ public class ValueUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   }
 }
 
+
+
+static public class ValueVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Value)typeId)
+    {
+      case Value.IntValue:
+        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
+  }
+}
+
 [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
 public enum Other : byte
 {
@@ -122,25 +122,6 @@ public class OtherUnion {
       default: return 0;
       case Other.IntValue: return union_value_collsion.IntValue.Pack(builder, _o.AsIntValue()).Value;
     }
-  }
-}
-
-
-
-static public class OtherVerify
-{
-  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
-  {
-    bool result = true;
-    switch((Other)typeId)
-    {
-      case Other.IntValue:
-        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
-        break;
-      default: result = true;
-        break;
-    }
-    return result;
   }
 }
 
@@ -185,11 +166,30 @@ public class OtherUnion_JsonConverter : Newtonsoft.Json.JsonConverter {
   }
 }
 
+
+
+static public class OtherVerify
+{
+  static public bool Verify(Google.FlatBuffers.Verifier verifier, byte typeId, uint tablePos)
+  {
+    bool result = true;
+    switch((Other)typeId)
+    {
+      case Other.IntValue:
+        result = union_value_collsion.IntValueVerify.Verify(verifier, tablePos);
+        break;
+      default: result = true;
+        break;
+    }
+    return result;
+  }
+}
+
 public struct IntValue : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_5_26(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
   public static IntValue GetRootAsIntValue(ByteBuffer _bb) { return GetRootAsIntValue(_bb, new IntValue()); }
   public static IntValue GetRootAsIntValue(ByteBuffer _bb, IntValue obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -250,7 +250,7 @@ public struct Collide : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_5_26(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
   public static Collide GetRootAsCollide(ByteBuffer _bb) { return GetRootAsCollide(_bb, new Collide()); }
   public static Collide GetRootAsCollide(ByteBuffer _bb, Collide obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -365,7 +365,7 @@ public struct Collision : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_23_5_26(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
   public static Collision GetRootAsCollision(ByteBuffer _bb) { return GetRootAsCollision(_bb, new Collision()); }
   public static Collision GetRootAsCollision(ByteBuffer _bb, Collision obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool VerifyCollision(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("", false, CollisionVerify.Verify); }
