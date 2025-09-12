@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google Inc. All rights reserved.
+ * Copyright 2024 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-#if !os(WASI)
 import Foundation
-#else
-import SwiftOverlayShims
-#endif
 
 /// FlatBufferGRPCMessage protocol that should allow us to invoke
 /// initializers directly from the GRPC generated code
 public protocol FlatBufferGRPCMessage {
-
-  /// Raw pointer which would be pointing to the beginning of the readable bytes
-  var rawPointer: UnsafeMutableRawPointer { get }
-
   /// Size of readable bytes in the buffer
   var size: Int { get }
 
   init(byteBuffer: ByteBuffer)
+
+  @discardableResult
+  @inline(__always)
+  func withUnsafeReadableBytes<T>(
+    _ body: (UnsafeRawBufferPointer) throws
+      -> T) rethrows -> T
 }
 
 /// Message is a wrapper around Buffers to to able to send Flatbuffers `Buffers` through the
@@ -42,12 +40,9 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   public var object: T {
     T.init(
       buffer,
-      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) +
+      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) &+
         Int32(buffer.reader))
   }
-
-  public var rawPointer: UnsafeMutableRawPointer {
-    buffer.memory.advanced(by: buffer.reader) }
 
   public var size: Int { Int(buffer.size) }
 
@@ -65,5 +60,16 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   public init(builder: inout FlatBufferBuilder) {
     buffer = builder.sizedBuffer
     builder.clear()
+  }
+
+  @discardableResult
+  @inline(__always)
+  public func withUnsafeReadableBytes<Data>(
+    _ body: (UnsafeRawBufferPointer) throws
+      -> Data) rethrows -> Data
+  {
+    return try buffer.readWithUnsafeRawPointer(position: buffer.reader) {
+      try body(UnsafeRawBufferPointer(start: $0, count: size))
+    }
   }
 }

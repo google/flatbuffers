@@ -131,8 +131,6 @@ static std::set<std::string> RustKeywords() {
     // Terms that we use ourselves
     "follow",
     "push",
-    "size",
-    "alignment",
     "to_little_endian",
     "from_little_endian",
     "ENUM_MAX",
@@ -729,7 +727,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "mod bitflags_{{ENUM_NAMESPACE}} {";
       code_ += "  flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment, "    ");
-      code_ += "    #[derive(Default)]";
+      code_ += "    #[derive(Default, Debug, Clone, Copy, PartialEq)]";
       code_ += "    {{ACCESS_TYPE}} struct {{ENUM_TY}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal &ev) {
         this->GenComment(ev.doc_comment, "    ");
@@ -843,22 +841,9 @@ class RustGenerator : public BaseGenerator {
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ +=
-        "    let b = flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc);";
+        "    let b = unsafe { flatbuffers::read_scalar_at::<{{BASE_TYPE}}>(buf, loc) };";
     if (IsBitFlagsEnum(enum_def)) {
-      // Safety:
-      // This is safe because we know bitflags is implemented with a repr
-      // transparent uint of the correct size. from_bits_unchecked will be
-      // replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-      // https://github.com/bitflags/bitflags/issues/262
-      code_ += "    // Safety:";
-      code_ +=
-          "    // This is safe because we know bitflags is implemented with a "
-          "repr transparent uint of the correct size.";
-      code_ +=
-          "    // from_bits_unchecked will be replaced by an equivalent but "
-          "safe from_bits_retain in bitflags 2.0";
-      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
-      code_ += "    Self::from_bits_unchecked(b)";
+      code_ += "    Self::from_bits_retain(b)";
     } else {
       code_ += "    Self(b)";
     }
@@ -870,8 +855,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ +=
-        "        flatbuffers::emplace_scalar::<{{BASE_TYPE}}>(dst, "
-        "{{INTO_BASE}});";
+        "        unsafe { flatbuffers::emplace_scalar::<{{BASE_TYPE}}>(dst, "
+        "{{INTO_BASE}}); }";
     code_ += "    }";
     code_ += "}";
     code_ += "";
@@ -886,20 +871,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  fn from_little_endian(v: {{BASE_TYPE}}) -> Self {";
     code_ += "    let b = {{BASE_TYPE}}::from_le(v);";
     if (IsBitFlagsEnum(enum_def)) {
-      // Safety:
-      // This is safe because we know bitflags is implemented with a repr
-      // transparent uint of the correct size. from_bits_unchecked will be
-      // replaced by an equivalent but safe from_bits_retain in bitflags 2.0
-      // https://github.com/bitflags/bitflags/issues/262
-      code_ += "    // Safety:";
-      code_ +=
-          "    // This is safe because we know bitflags is implemented with a "
-          "repr transparent uint of the correct size.";
-      code_ +=
-          "    // from_bits_unchecked will be replaced by an equivalent but "
-          "safe from_bits_retain in bitflags 2.0";
-      code_ += "    // https://github.com/bitflags/bitflags/issues/262";
-      code_ += "    unsafe { Self::from_bits_unchecked(b) }";
+      code_ += "    Self::from_bits_retain(b)";
     } else {
       code_ += "    Self(b)";
     }
@@ -1686,7 +1658,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  type Inner = {{STRUCT_TY}}<'a>;";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    Self { _tab: flatbuffers::Table::new(buf, loc) }";
+    code_ += "    Self { _tab: unsafe { flatbuffers::Table::new(buf, loc) } }";
     code_ += "  }";
     code_ += "}";
     code_ += "";
@@ -2509,7 +2481,7 @@ class RustGenerator : public BaseGenerator {
     code_ +=
         "pub unsafe fn root_as_{{STRUCT_FN}}_unchecked"
         "(buf: &[u8]) -> {{STRUCT_TY}} {";
-    code_ += "  flatbuffers::root_unchecked::<{{STRUCT_TY}}>(buf)";
+    code_ += "  unsafe { flatbuffers::root_unchecked::<{{STRUCT_TY}}>(buf) }";
     code_ += "}";
     code_ += "#[inline]";
     code_ +=
@@ -2523,8 +2495,8 @@ class RustGenerator : public BaseGenerator {
         "pub unsafe fn size_prefixed_root_as_{{STRUCT_FN}}"
         "_unchecked(buf: &[u8]) -> {{STRUCT_TY}} {";
     code_ +=
-        "  flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}>"
-        "(buf)";
+        "  unsafe { flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}>"
+        "(buf) }";
     code_ += "}";
 
     if (parser_.file_identifier_.length()) {
@@ -2684,14 +2656,14 @@ class RustGenerator : public BaseGenerator {
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    <&'a {{STRUCT_TY}}>::follow(buf, loc)";
+    code_ += "    unsafe { <&'a {{STRUCT_TY}}>::follow(buf, loc) }";
     code_ += "  }";
     code_ += "}";
     code_ += "impl<'a> flatbuffers::Follow<'a> for &'a {{STRUCT_TY}} {";
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
-    code_ += "    flatbuffers::follow_cast_ref::<{{STRUCT_TY}}>(buf, loc)";
+    code_ += "    unsafe { flatbuffers::follow_cast_ref::<{{STRUCT_TY}}>(buf, loc) }";
     code_ += "  }";
     code_ += "}";
     code_ += "impl<'b> flatbuffers::Push for {{STRUCT_TY}} {";
@@ -2699,9 +2671,13 @@ class RustGenerator : public BaseGenerator {
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ +=
-        "        let src = ::core::slice::from_raw_parts(self as *const "
-        "{{STRUCT_TY}} as *const u8, Self::size());";
+        "        let src = unsafe { ::core::slice::from_raw_parts(self as *const "
+        "{{STRUCT_TY}} as *const u8, <Self as flatbuffers::Push>::size()) };";
     code_ += "        dst.copy_from_slice(src);";
+    code_ += "    }";
+    code_ += "    #[inline]";
+    code_ += "    fn alignment() -> flatbuffers::PushAlignment {";
+    code_ += "        flatbuffers::PushAlignment::new({{ALIGN}})";
     code_ += "    }";
     code_ += "}";
     code_ += "";

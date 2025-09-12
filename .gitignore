@@ -153,3 +153,7 @@ cmake-build-debug/
 _deps/
 **/.gradle/**
 kotlin/**/generated
+MODULE.bazel.lock
+
+# Ignore the generated docs
+docs/site

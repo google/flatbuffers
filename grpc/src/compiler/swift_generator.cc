@@ -394,6 +394,8 @@ grpc::string Generate(grpc_generator::File *file,
   GenerateClientClass(&*printer, &vars);
   printer->Print("\n");
   GenerateServerProtocol(service, &*printer, &vars);
+  printer->Print("\n");
+  printer->Print("#endif\n");
   return output;
 }
 
@@ -409,6 +411,7 @@ grpc::string GenerateHeader() {
   code += "// swiftlint:disable all\n";
   code += "// swiftformat:disable all\n";
   code += "\n";
+  code += "#if !os(Windows)\n";
   code += "import Foundation\n";
   code += "import GRPC\n";
   code += "import NIO\n";
@@ -428,10 +431,7 @@ grpc::string GenerateHeader() {
   code += "  }\n";
 
   code += "  func serialize(into buffer: inout NIO.ByteBuffer) throws {\n";
-  code +=
-      "    let buf = UnsafeRawBufferPointer(start: self.rawPointer, count: "
-      "Int(self.size))\n";
-  code += "    buffer.writeBytes(buf)\n";
+  code += "    withUnsafeReadableBytes { buffer.writeBytes($0) }\n";
   code += "  }\n";
   code += "}\n";
   code += "extension Message: GRPCFlatBufPayload {}\n";

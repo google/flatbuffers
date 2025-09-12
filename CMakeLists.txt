@@ -112,6 +112,7 @@ endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 if(NOT WIN32)
+  include(CheckSymbolExists)
   check_symbol_exists(realpath "stdlib.h" HAVE_REALPATH)
   if(NOT HAVE_REALPATH)
     add_definitions(-DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION)
@@ -183,6 +184,10 @@ set(FlatBuffers_Compiler_SRCS
   src/bfbs_gen_lua.h
   src/bfbs_gen_nim.h
   src/bfbs_namer.h
+  include/codegen/idl_namer.h
+  include/codegen/namer.h
+  include/codegen/python.h
+  include/codegen/python.cc
   include/flatbuffers/code_generators.h
   src/binary_annotator.h
   src/binary_annotator.cpp
@@ -274,6 +279,8 @@ set(FlatBuffers_GRPCTest_SRCS
   tests/test_builder.cpp
   grpc/tests/grpctest.cpp
   grpc/tests/message_builder_test.cpp
+  grpc/tests/grpctest_callback_compile.cpp
+  grpc/tests/grpctest_callback_client_compile.cpp
 )
 
 # TODO(dbaileychess): Figure out how this would now work. I posted a question on

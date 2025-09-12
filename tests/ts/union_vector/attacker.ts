@@ -40,7 +40,7 @@ mutate_sword_attack_damage(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "Attacker" {
   return 'Attacker';
 }
 

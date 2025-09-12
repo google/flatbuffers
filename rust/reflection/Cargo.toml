@@ -1,0 +1,10 @@
+[package]
+name = "flatbuffers-reflection"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+flatbuffers = { path = "../flatbuffers"}
+num-traits = "0.2.19"
+anyhow = "1.0.75"
+thiserror = "1.0"

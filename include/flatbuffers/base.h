@@ -139,9 +139,9 @@
   #endif
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
-#define FLATBUFFERS_VERSION_MAJOR 24
-#define FLATBUFFERS_VERSION_MINOR 3
-#define FLATBUFFERS_VERSION_REVISION 25
+#define FLATBUFFERS_VERSION_MAJOR 25
+#define FLATBUFFERS_VERSION_MINOR 2
+#define FLATBUFFERS_VERSION_REVISION 10
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 namespace flatbuffers {
@@ -339,15 +339,15 @@ typedef uint16_t voffset_t;
 typedef uintmax_t largest_scalar_t;
 
 // In 32bits, this evaluates to 2GB - 1
-#define FLATBUFFERS_MAX_BUFFER_SIZE std::numeric_limits<::flatbuffers::soffset_t>::max()
-#define FLATBUFFERS_MAX_64_BUFFER_SIZE std::numeric_limits<::flatbuffers::soffset64_t>::max()
+#define FLATBUFFERS_MAX_BUFFER_SIZE (std::numeric_limits<::flatbuffers::soffset_t>::max)()
+#define FLATBUFFERS_MAX_64_BUFFER_SIZE (std::numeric_limits<::flatbuffers::soffset64_t>::max)()
 
 // The minimum size buffer that can be a valid flatbuffer.
 // Includes the offset to the root table (uoffset_t), the offset to the vtable
 // of the root table (soffset_t), the size of the vtable (uint16_t), and the
 // size of the referring table (uint16_t).
-#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(uoffset_t) + sizeof(soffset_t) + \
-   sizeof(uint16_t) + sizeof(uint16_t)
+#define FLATBUFFERS_MIN_BUFFER_SIZE sizeof(::flatbuffers::uoffset_t) + \
+  sizeof(::flatbuffers::soffset_t) + sizeof(uint16_t) + sizeof(uint16_t)
 
 // We support aligning the contents of buffers up to this size.
 #ifndef FLATBUFFERS_MAX_ALIGNMENT
@@ -459,10 +459,17 @@ inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
   return ((~buf_size) + 1) & (scalar_size - 1);
 }
 
+#if !defined(_MSC_VER)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
 // Generic 'operator==' with conditional specialisations.
 // T e - new value of a scalar field.
 // T def - default of scalar (is known at compile-time).
 template<typename T> inline bool IsTheSameAs(T e, T def) { return e == def; }
+#if !defined(_MSC_VER)
+  #pragma GCC diagnostic pop
+#endif
 
 #if defined(FLATBUFFERS_NAN_DEFAULTS) && \
     defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)

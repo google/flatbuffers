@@ -21,15 +21,24 @@ table BadAlignmentRoot {
   small: [BadAlignmentSmall];
 }
 
-// sizeof(JustSmallStruct) == 2
-// alignof(JustSmallStruct) == 1
-struct JustSmallStruct {
+// sizeof(EvenSmallStruct) == 2
+// alignof(EvenSmallStruct) == 1
+struct EvenSmallStruct {
   var_0: uint8;
   var_1: uint8;
 }
 
+// sizeof(OddSmallStruct) == 3
+// alignof(OddSmallStruct) == 1
+struct OddSmallStruct {
+  var_0: uint8;
+  var_1: uint8;
+  var_2: uint8;
+}
+
 table SmallStructs {
-  small_structs: [JustSmallStruct];
+  even_structs: [EvenSmallStruct];
+  odd_structs: [OddSmallStruct];
 }
 
 root_type SmallStructs;

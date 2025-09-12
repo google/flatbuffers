@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stack>
+#include <vector>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffers.h"
@@ -340,6 +341,7 @@ struct FieldDef : public Definition {
                                       const Parser &parser) const;
 
   bool Deserialize(Parser &parser, const reflection::Field *field);
+
 
   bool IsScalarOptional() const {
     return IsScalar() && IsOptional();
@@ -705,8 +707,27 @@ struct IDLOptions {
   bool no_leak_private_annotations;
   bool require_json_eof;
   bool keep_proto_id;
+
+  /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
   bool python_typing;
+  bool python_decode_obj_api_strings=false;
+
+  // The target Python version. Can be one of the following:
+  // -  "0"
+  // -  "2"
+  // -  "3"
+  // -  "2.<minor>"
+  // -  "3.<minor>"
+  // -  "2.<minor>.<micro>"
+  // -  "3.<minor>.<micro>"
+  //
+  // https://docs.python.org/3/faq/general.html#how-does-the-python-version-numbering-scheme-work
+  std::string python_version;
+
+  // Whether to generate numpy helpers.
+  bool python_gen_numpy;
+
   bool ts_omit_entrypoint;
   ProtoIdGapAction proto_id_gap_action;
 
@@ -758,6 +779,18 @@ struct IDLOptions {
   // If set (default behavior), empty vector fields will be set to nullptr to
   // make the flatbuffer more compact.
   bool set_empty_vectors_to_null;
+
+  /*********************************** gRPC ***********************************/
+  std::string grpc_filename_suffix;
+  bool grpc_use_system_headers;
+  std::string grpc_search_path;
+  std::vector<std::string> grpc_additional_headers;
+  // Generate C++ gRPC Callback API (modern async API) service code when used
+  // together with --grpc. This is an additive, opt-in feature.
+  bool grpc_callback_api;
+
+  /******************************* Python gRPC ********************************/
+  bool grpc_python_typed_handlers;
 
   IDLOptions()
       : gen_jvmstatic(false),
@@ -821,6 +854,7 @@ struct IDLOptions {
         keep_proto_id(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
+        python_gen_numpy(true),
         ts_omit_entrypoint(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
@@ -829,7 +863,11 @@ struct IDLOptions {
         rust_module_root_file(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
-        set_empty_vectors_to_null(true) {}
+        set_empty_vectors_to_null(true),
+        grpc_filename_suffix(".fb"),
+        grpc_use_system_headers(true),
+        grpc_callback_api(false),
+        grpc_python_typed_handlers(false) {}
 };
 
 // This encapsulates where the parser is in the current source file.

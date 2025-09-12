@@ -594,7 +594,7 @@ anyAmbiguous<T extends flatbuffers.Table>(obj:any):any|null {
 
 vectorOfEnums(index: number):Color|null {
   const offset = this.bb!.__offset(this.bb_pos, 98);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : null;
 }
 
 vectorOfEnumsLength():number {
@@ -813,7 +813,7 @@ mutate_double_inf_default(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.Monster" {
   return 'MyGame.Example.Monster';
 }
 

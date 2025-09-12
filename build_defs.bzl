@@ -7,13 +7,13 @@ Rules for building C++ flatbuffers with Bazel.
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-TRUE_FLATC_PATH = "@com_github_google_flatbuffers//:flatc"
+TRUE_FLATC_PATH = Label("//:flatc")
 
 DEFAULT_INCLUDE_PATHS = [
     "./",
     "$(GENDIR)",
     "$(BINDIR)",
-    "$(execpath @com_github_google_flatbuffers//:flatc).runfiles/com_github_google_flatbuffers",
+    "$(execpath %s).runfiles/%s" % (TRUE_FLATC_PATH, TRUE_FLATC_PATH.repo_name),
 ]
 
 def default_include_paths(flatc_path):
@@ -21,7 +21,7 @@ def default_include_paths(flatc_path):
         "./",
         "$(GENDIR)",
         "$(BINDIR)",
-        "$(execpath %s).runfiles/com_github_google_flatbuffers" % (flatc_path),
+        "$(execpath %s).runfiles/%s" % (flatc_path, flatc_path.repo_name),
     ]
 
 DEFAULT_FLATC_ARGS = [
@@ -47,7 +47,7 @@ def flatbuffer_library_public(
         compatible_with = None,
         restricted_to = None,
         target_compatible_with = None,
-        flatc_path = "@com_github_google_flatbuffers//:flatc",
+        flatc_path = None,
         output_to_bindir = False,
         tools = None,
         extra_env = None,
@@ -87,6 +87,11 @@ def flatbuffer_library_public(
     optionally a Fileset([reflection_name]) with all generated reflection
     binaries.
     """
+    if flatc_path == None:
+        flatc_path = TRUE_FLATC_PATH
+    else:
+        flatc_path = native.package_relative_label(flatc_path)
+
     reflection_include_paths = include_paths
     if include_paths == None:
         include_paths = default_include_paths(flatc_path)
@@ -131,6 +136,8 @@ def flatbuffer_library_public(
         reflection_genrule_cmd = " ".join([
             "SRCS=($(SRCS));",
             "for f in $${SRCS[@]:0:%s}; do" % len(srcs),
+            # Move the .fbs file into the current package if it is not there already
+            'if [[ $$(dirname $$f) != "{0}" ]]; then s="$$f"; f="{0}/$$(basename "$$f")"; mkdir -p "{0}"; mv "$$s" "$$f"; fi;'.format(native.package_relative_label(":invalid").package),
             "$(location %s)" % (TRUE_FLATC_PATH),
             "-b --schema",
             " ".join(flatc_args),
@@ -141,9 +148,10 @@ def flatbuffer_library_public(
             "done",
         ])
         reflection_outs = [
-            (out_prefix + "%s.bfbs") % (s.replace(".fbs", "").split("/")[-1])
+            (out_prefix + "%s.bfbs") % (native.package_relative_label(s).name.removesuffix(".fbs"))
             for s in srcs
         ]
+
         native.genrule(
             name = "%s_srcs" % reflection_name,
             srcs = srcs + includes,
@@ -262,8 +270,8 @@ def flatbuffer_cc_library(
             "-parse_headers",
         ],
         deps = [
-            "@com_github_google_flatbuffers//:runtime_cc",
-            "@com_github_google_flatbuffers//:flatbuffers",
+            Label("//:runtime_cc"),
+            Label("//:flatbuffers"),
         ] + deps,
         includes = cc_include_paths,
         compatible_with = compatible_with,

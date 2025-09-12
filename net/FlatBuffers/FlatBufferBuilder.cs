@@ -957,6 +957,21 @@ namespace Google.FlatBuffers
             return _bb.ToSizedArray();
         }
 
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+        /// <summary>
+        /// A utility function return the ByteBuffer data as a
+        /// `ReadOnlySpan<byte>`.
+        /// </summary>
+        /// <returns>
+        /// A `ReadOnlySpan<byte>` that references the internal 
+        /// ByteBuffer data.
+        /// </returns>
+        public ReadOnlySpan<byte> SizedReadOnlySpan()
+        {
+            return _bb.ToSizedReadOnlySpan();
+        }
+#endif
+
         /// <summary>
         /// Finalize a buffer, pointing to the given `rootTable`.
         /// </summary>
