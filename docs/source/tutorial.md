@@ -2056,7 +2056,7 @@ functions to get the root object given the buffer.
     ```c++
     uint8_t *buffer_pointer = /* the data you just read */;
 
-    // Get an view to the root object inside the buffer.
+    // Get a view to the root object inside the buffer.
     Monster monster = GetMonster(buffer_pointer);
     ```
 
@@ -2076,7 +2076,7 @@ functions to get the root object given the buffer.
     ```c#
     byte[] bytes = /* the data you just read */
 
-    // Get an view to the root object inside the buffer.
+    // Get a view to the root object inside the buffer.
     Monster monster = Monster.GetRootAsMonster(new ByteBuffer(bytes));
     ```
 
