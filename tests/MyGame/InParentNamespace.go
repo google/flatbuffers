@@ -44,6 +44,10 @@ func FinishInParentNamespaceBuffer(builder *flatbuffers.Builder, offset flatbuff
 	builder.Finish(offset)
 }
 
+func VerifyInParentNamespace(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, InParentNamespaceVerify)
+}
+
 func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &InParentNamespace{}
@@ -53,6 +57,10 @@ func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffs
 
 func FinishSizePrefixedInParentNamespaceBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyInParentNamespace(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, InParentNamespaceVerify)
 }
 
 func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -69,4 +77,12 @@ func InParentNamespaceStart(builder *flatbuffers.Builder) {
 }
 func InParentNamespaceEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'InParentNamespace' table.
+func InParentNamespaceVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

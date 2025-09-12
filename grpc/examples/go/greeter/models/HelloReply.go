@@ -21,6 +21,10 @@ func FinishHelloReplyBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOf
 	builder.Finish(offset)
 }
 
+func VerifyHelloReply(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, HelloReplyVerify)
+}
+
 func GetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *HelloReply {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &HelloReply{}
@@ -30,6 +34,10 @@ func GetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *H
 
 func FinishSizePrefixedHelloReplyBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyHelloReply(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, HelloReplyVerify)
 }
 
 func (rcv *HelloReply) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -57,4 +65,13 @@ func HelloReplyAddMessage(builder *flatbuffers.Builder, message flatbuffers.UOff
 }
 func HelloReplyEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'HelloReply' table.
+func HelloReplyVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyString(tablePos, 4 /*Message*/, false)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

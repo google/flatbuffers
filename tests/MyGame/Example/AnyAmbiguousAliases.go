@@ -74,3 +74,19 @@ func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAlia
 	}
 	return nil
 }
+
+func AnyAmbiguousAliasesVerify(verifier *flatbuffers.Verifier, typeId byte, tablePos flatbuffers.UOffsetT) bool {
+	var result bool
+
+	switch AnyAmbiguousAliases(typeId) {
+	case AnyAmbiguousAliasesM1:
+		result = MonsterVerify(verifier, tablePos)
+	case AnyAmbiguousAliasesM2:
+		result = MonsterVerify(verifier, tablePos)
+	case AnyAmbiguousAliasesM3:
+		result = MonsterVerify(verifier, tablePos)
+	default:
+		result = true
+	}
+	return result
+}

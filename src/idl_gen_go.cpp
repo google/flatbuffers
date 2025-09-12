@@ -150,6 +150,7 @@ class GoGenerator : public BaseGenerator {
     GenNativeUnion(enum_def, code_ptr);
     GenNativeUnionPack(enum_def, code_ptr);
     GenNativeUnionUnPack(enum_def, code_ptr);
+    GenNativeUnionVerify(enum_def, code_ptr);
   }
 
   bool generateStructs(std::string *one_file_code) {
@@ -159,6 +160,7 @@ class GoGenerator : public BaseGenerator {
       std::string declcode;
       auto &struct_def = **it;
       GenStruct(struct_def, &declcode);
+      GenStructVerifier(struct_def, &declcode);
       if (parser_.opts.one_file) {
         *one_file_code += declcode;
       } else {
@@ -359,6 +361,19 @@ class GoGenerator : public BaseGenerator {
                 "BufferHasIdentifier(buf, " + struct_type + "Identifier)\n";
         code += "}\n\n";
       }
+
+      code += "func " + size_prefix[i] + "Verify" + struct_type +
+              "(buf []byte) bool {\n";
+      if (has_file_identifier) {
+        code +=
+            "\treturn "
+            "flatbuffers.NewVerifier(buf).VerifyBuffer(" + struct_type + "Identifier, " +
+            is_size[i] + ", " + struct_type + "Verify)\n";
+      } else {
+        code += "\treturn flatbuffers.NewVerifier(buf).VerifyBuffer(\"\", " +
+                is_size[i] + ", " + struct_type + "Verify)\n";
+      }
+      code += "}\n\n";
     }
   }
 
@@ -678,6 +693,25 @@ class GoGenerator : public BaseGenerator {
     code += ")\n}\n";
   }
 
+  // Get the value of a table verification function start
+  void GetStartOfTableVerifier(const StructDef &struct_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "\n";
+    code += "// Verification function for '" + struct_def.name + "' table.\n";
+    code += "func " + namer_.Type(struct_def) + "Verify";
+    code += "(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {\n";
+    code += "\tresult := true\n";
+    code += "\tresult = result && verifier.VerifyTableStart(tablePos)\n";
+  }
+
+  // Get the value of a table verification function end
+  void GetEndOfTableVerifier(std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    code += "\tresult = result && verifier.VerifyTableEnd(tablePos)\n";
+    code += "\treturn result\n";
+    code += "}\n";
+  }
+
   // Set the value of a table's field.
   void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
                          const size_t offset, std::string *code_ptr) {
@@ -881,6 +915,141 @@ class GoGenerator : public BaseGenerator {
     GetEndOffsetOnTable(struct_def, code_ptr);
   }
 
+
+  std::string GetNestedFlatBufferName(const FieldDef &field) {
+    auto nested = field.attributes.Lookup("nested_flatbuffer");
+    if (!nested) return "";
+    std::string qualified_name = nested->constant;
+    auto nested_root = parser_.LookupStruct(nested->constant);
+    if (nested_root == nullptr) {
+      qualified_name =
+          parser_.current_namespace_->GetFullyQualifiedName(nested->constant);
+      nested_root = parser_.LookupStruct(qualified_name);
+    }
+    FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
+    auto name = WrapInNameSpaceAndTrack(nested_root, nested_root->name);
+    return name;
+  }
+
+  // Generate the code to call the appropriate Verify function(s) for a field.
+  void GenVerifyCall(CodeWriter &code_, const FieldDef &field, const char *prefix) {
+    code_.SetValue("PRE", prefix);
+    code_.SetValue("NAME", namer_.Function(field));
+    code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
+    code_.SetValue("REQUIRED_FLAG", field.IsRequired() ? "true" : "false");
+    code_.SetValue("TYPE", TypeName(field));
+    code_.SetValue("INLINESIZE", NumToString(InlineSize(field.value.type)));
+    code_.SetValue("OFFSET", NumToString(field.value.offset));
+    
+    if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type)) {
+      code_.SetValue("ALIGN", NumToString(InlineAlignment(field.value.type)));
+      code_ +=
+        "{{PRE}}\tresult = result && verifier.VerifyField(tablePos, "
+        "{{OFFSET}} /*{{NAME}}*/, {{INLINESIZE}} /*{{TYPE}}*/, {{ALIGN}}, {{REQUIRED_FLAG}})";
+    } else {
+      // TODO - probably code below should go to this 'else' - code_ += "{{PRE}}VerifyOffset{{REQUIRED}}(verifier, {{OFFSET}})\\";
+    }
+
+    switch (field.value.type.base_type) {
+      case BASE_TYPE_UNION: {
+        code_.SetValue("ENUM_NAME", field.value.type.enum_def->name);
+        code_.SetValue("SUFFIX", UnionTypeFieldSuffix());
+        // Caution: This construction assumes, that UNION type id element has been created just before union data and
+        // its offset precedes union. Such assumption is common in flatbuffer implementation
+        code_.SetValue("TYPE_ID_OFFSET", NumToString(field.value.offset - sizeof(voffset_t)));
+        code_ += "{{PRE}}\tresult = result && verifier.VerifyUnion(tablePos, {{TYPE_ID_OFFSET}}, "
+          "{{OFFSET}} /*{{NAME}}*/, {{ENUM_NAME}}Verify, {{REQUIRED_FLAG}})";
+        break;
+      }
+      case BASE_TYPE_STRUCT: {
+        if (!field.value.type.struct_def->fixed) {
+          code_ += "{{PRE}}\tresult = result && verifier.VerifyTable(tablePos, "
+            "{{OFFSET}} /*{{NAME}}*/, {{TYPE}}Verify, {{REQUIRED_FLAG}})";
+        }
+        break;
+      }
+      case BASE_TYPE_STRING: {
+        code_ += "{{PRE}}\tresult = result && verifier.VerifyString(tablePos, "
+          "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}})";
+        break;
+      }
+      case BASE_TYPE_VECTOR: {
+
+        switch (field.value.type.element) {
+          case BASE_TYPE_STRING: {
+            code_ += "{{PRE}}\tresult = result && verifier.VerifyVectorOfStrings(tablePos, "
+              "{{OFFSET}} /*{{NAME}}*/, {{REQUIRED_FLAG}})";
+            break;
+          }
+          case BASE_TYPE_STRUCT: {
+            if (!field.value.type.struct_def->fixed) {
+              code_ += "{{PRE}}\tresult = result && verifier.VerifyVectorOfTables(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{TYPE}}Verify, {{REQUIRED_FLAG}})";
+            } else {
+              code_.SetValue(
+                  "VECTOR_ELEM_INLINESIZE",
+                  NumToString(InlineSize(field.value.type.VectorType())));
+              code_ +=
+                  "{{PRE}}\tresult = result && "
+                  "verifier.VerifyVectorOfData(tablePos, "
+                  "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} "
+                  "/*{{TYPE}}*/, {{REQUIRED_FLAG}})";         
+            }
+            break;
+          }
+          case BASE_TYPE_UNION: {
+            // Vectors of unions are not yet supported for go
+            break;
+          }
+          default:
+            // Generate verifier for vector of data.
+            // It may be either nested flatbuffer of just vector of bytes
+            auto nfn = GetNestedFlatBufferName(field);
+            if (!nfn.empty()) {
+              code_.SetValue("CPP_NAME", nfn);
+              // FIXME: file_identifier.
+              code_ +="{{PRE}}\tresult = result && verifier.VerifyNestedBuffer(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{CPP_NAME}}Verify, {{REQUIRED_FLAG}})";
+            } else if (field.flexbuffer) {
+              code_ += "{{PRE}}\tresult = result && verifier.VerifyNestedBuffer(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, nil, {{REQUIRED_FLAG}})";
+            } else {
+              code_.SetValue("VECTOR_ELEM_INLINESIZE", NumToString(InlineSize(field.value.type.VectorType())));
+              code_ +=
+                "{{PRE}}\tresult = result && verifier.VerifyVectorOfData(tablePos, "
+                "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} /*{{TYPE}}*/, {{REQUIRED_FLAG}})";
+            }
+            break;
+        }
+
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+
+  // Generate table constructors, conditioned on its members' types.
+  void GenTableVerifier(const StructDef &struct_def, std::string *code_ptr) {
+    CodeWriter code_;
+    
+    GetStartOfTableVerifier(struct_def, code_ptr);
+
+    // Generate struct fields accessors
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto &field = **it;
+      if (field.deprecated) continue;
+
+      GenVerifyCall(code_, field, "");
+    }
+
+    *code_ptr += code_.ToString();
+    
+    GetEndOfTableVerifier(code_ptr);
+  }
+
   // Generate struct or table methods.
   void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
     if (struct_def.generated) return;
@@ -926,6 +1095,22 @@ class GoGenerator : public BaseGenerator {
     } else {
       // Create a set of functions that allow table construction.
       GenTableBuilders(struct_def, code_ptr);
+    }
+  }
+
+  // Generate struct or table methods.
+  void GenStructVerifier(const StructDef &struct_def, std::string *code_ptr) {
+    if (struct_def.generated) return;
+
+    cur_name_space_ = struct_def.defined_namespace;
+
+    // Generate verifiers
+    if (struct_def.fixed) {
+      // Fixed size structures do not require table members
+      // verification - instead structure size is verified using VerifyField
+    } else {
+      // Create table verification function
+       GenTableVerifier(struct_def, code_ptr);
     }
   }
 
@@ -1090,6 +1275,55 @@ class GoGenerator : public BaseGenerator {
     }
     code += "\t}\n";
     code += "\treturn nil\n";
+    code += "}\n\n";
+  }
+
+  // Generate enum declarations.
+  void GenNativeUnionVerifyForStruct(const EnumDef &enum_def, const EnumVal &ev,
+                                     std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    auto field_type = ev.union_type.struct_def->name;
+
+    code += "\tcase " + enum_def.name + ev.name + ":\n";
+    if (! ev.union_type.struct_def->fixed) {
+      code += "\t\tresult = " + field_type + "Verify(verifier, tablePos)\n";
+    } else {
+      code += "\t\tresult = verifier.VerifyUnionData(tablePos, " +
+        NumToString(InlineSize(ev.union_type)) + ", " +
+        NumToString(InlineAlignment(ev.union_type)) + 
+        ")\n";
+    }
+  }
+
+  void GenNativeUnionVerify(const EnumDef &enum_def, std::string *code_ptr) {
+    std::string &code = *code_ptr;
+    
+    code += "func " + enum_def.name +
+      "Verify(verifier *flatbuffers.Verifier, typeId byte, tablePos flatbuffers.UOffsetT) bool" +
+      " {\n";
+    code += "\tvar result bool\n";
+    code += "\n";
+    code += "\tswitch " + enum_def.name + "(typeId) {\n";
+    
+    for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
+         ++it2) {
+      const EnumVal &ev = **it2;
+      if (ev.IsZero()) continue;
+      // Union only supports string and table.
+      switch (ev.union_type.base_type) {
+        case BASE_TYPE_STRUCT:
+          GenNativeUnionVerifyForStruct(enum_def, ev, &code);
+          break;
+        case BASE_TYPE_STRING:
+          // Not supported
+          break;
+        default: break;
+      }
+    };
+    code += "\tdefault:\n";
+    code += "\t\tresult = true\n";
+    code += "\t}\n";
+    code += "\treturn result\n";
     code += "}\n\n";
   }
 

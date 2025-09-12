@@ -76,3 +76,19 @@ func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
 	}
 	return nil
 }
+
+func AnyUniqueAliasesVerify(verifier *flatbuffers.Verifier, typeId byte, tablePos flatbuffers.UOffsetT) bool {
+	var result bool
+
+	switch AnyUniqueAliases(typeId) {
+	case AnyUniqueAliasesM:
+		result = MonsterVerify(verifier, tablePos)
+	case AnyUniqueAliasesTS:
+		result = TestSimpleTableWithEnumVerify(verifier, tablePos)
+	case AnyUniqueAliasesM2:
+		result = MonsterVerify(verifier, tablePos)
+	default:
+		result = true
+	}
+	return result
+}

@@ -525,6 +525,11 @@ func MonsterBufferHasIdentifier(buf []byte) bool {
 	return flatbuffers.BufferHasIdentifier(buf, MonsterIdentifier)
 }
 
+func VerifyMonster(buf []byte) bool {
+	identifierBytes := []byte(MonsterIdentifier)
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(identifierBytes, false, MonsterVerify)
+}
+
 func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Monster{}
@@ -539,6 +544,11 @@ func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbu
 
 func SizePrefixedMonsterBufferHasIdentifier(buf []byte) bool {
 	return flatbuffers.SizePrefixedBufferHasIdentifier(buf, MonsterIdentifier)
+}
+
+func SizePrefixedVerifyMonster(buf []byte) bool {
+	identifierBytes := []byte(MonsterIdentifier)
+	return flatbuffers.NewVerifier(buf).VerifyBuffer(identifierBytes, true, MonsterVerify)
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -1851,4 +1861,73 @@ func MonsterAddDoubleInfDefault(builder *flatbuffers.Builder, doubleInfDefault f
 }
 func MonsterEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'Monster' table.
+func MonsterVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyField(tablePos, 4 /*Pos*/, 32 /*Vec3*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 6 /*Mana*/, 2 /*int16*/, 2, false)
+	result = result && verifier.VerifyField(tablePos, 8 /*Hp*/, 2 /*int16*/, 2, false)
+	result = result && verifier.VerifyString(tablePos, 10 /*Name*/, true)
+	result = result && verifier.VerifyVectorOfData(tablePos, 14 /*Inventory*/, 1 /*byte*/, false)
+	result = result && verifier.VerifyField(tablePos, 16 /*Color*/, 1 /*Color*/, 1, false)
+	result = result && verifier.VerifyField(tablePos, 18 /*TestType*/, 1 /*Any*/, 1, false)
+	result = result && verifier.VerifyUnion(tablePos, 18, 20 /*Test*/, AnyVerify, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 22 /*Test4*/, 4 /*Test*/, false)
+	result = result && verifier.VerifyVectorOfStrings(tablePos, 24 /*Testarrayofstring*/, false)
+	result = result && verifier.VerifyVectorOfTables(tablePos, 26 /*Testarrayoftables*/, MonsterVerify, false)
+	result = result && verifier.VerifyTable(tablePos, 28 /*Enemy*/, MonsterVerify, false)
+	result = result && verifier.VerifyNestedBuffer(tablePos, 30 /*Testnestedflatbuffer*/, MonsterVerify, false)
+	result = result && verifier.VerifyTable(tablePos, 32 /*Testempty*/, StatVerify, false)
+	result = result && verifier.VerifyField(tablePos, 34 /*Testbool*/, 1 /*bool*/, 1, false)
+	result = result && verifier.VerifyField(tablePos, 36 /*Testhashs32Fnv1*/, 4 /*int32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 38 /*Testhashu32Fnv1*/, 4 /*uint32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 40 /*Testhashs64Fnv1*/, 8 /*int64*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 42 /*Testhashu64Fnv1*/, 8 /*uint64*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 44 /*Testhashs32Fnv1a*/, 4 /*int32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 46 /*Testhashu32Fnv1a*/, 4 /*uint32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 48 /*Testhashs64Fnv1a*/, 8 /*int64*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 50 /*Testhashu64Fnv1a*/, 8 /*uint64*/, 8, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 52 /*Testarrayofbools*/, 1 /*bool*/, false)
+	result = result && verifier.VerifyField(tablePos, 54 /*Testf*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 56 /*Testf2*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 58 /*Testf3*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyVectorOfStrings(tablePos, 60 /*Testarrayofstring2*/, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 62 /*Testarrayofsortedstruct*/, 8 /*Ability*/, false)
+	result = result && verifier.VerifyNestedBuffer(tablePos, 64 /*Flex*/, nil, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 66 /*Test5*/, 4 /*Test*/, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 68 /*VectorOfLongs*/, 8 /*int64*/, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 70 /*VectorOfDoubles*/, 8 /*float64*/, false)
+	result = result && verifier.VerifyTable(tablePos, 72 /*ParentNamespaceTest*/, MyGame.InParentNamespaceVerify, false)
+	result = result && verifier.VerifyVectorOfTables(tablePos, 74 /*VectorOfReferrables*/, ReferrableVerify, false)
+	result = result && verifier.VerifyField(tablePos, 76 /*SingleWeakReference*/, 8 /*uint64*/, 8, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 78 /*VectorOfWeakReferences*/, 8 /*uint64*/, false)
+	result = result && verifier.VerifyVectorOfTables(tablePos, 80 /*VectorOfStrongReferrables*/, ReferrableVerify, false)
+	result = result && verifier.VerifyField(tablePos, 82 /*CoOwningReference*/, 8 /*uint64*/, 8, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 84 /*VectorOfCoOwningReferences*/, 8 /*uint64*/, false)
+	result = result && verifier.VerifyField(tablePos, 86 /*NonOwningReference*/, 8 /*uint64*/, 8, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 88 /*VectorOfNonOwningReferences*/, 8 /*uint64*/, false)
+	result = result && verifier.VerifyField(tablePos, 90 /*AnyUniqueType*/, 1 /*AnyUniqueAliases*/, 1, false)
+	result = result && verifier.VerifyUnion(tablePos, 90, 92 /*AnyUnique*/, AnyUniqueAliasesVerify, false)
+	result = result && verifier.VerifyField(tablePos, 94 /*AnyAmbiguousType*/, 1 /*AnyAmbiguousAliases*/, 1, false)
+	result = result && verifier.VerifyUnion(tablePos, 94, 96 /*AnyAmbiguous*/, AnyAmbiguousAliasesVerify, false)
+	result = result && verifier.VerifyVectorOfData(tablePos, 98 /*VectorOfEnums*/, 1 /*Color*/, false)
+	result = result && verifier.VerifyField(tablePos, 100 /*SignedEnum*/, 1 /*Race*/, 1, false)
+	result = result && verifier.VerifyNestedBuffer(tablePos, 102 /*Testrequirednestedflatbuffer*/, MonsterVerify, false)
+	result = result && verifier.VerifyVectorOfTables(tablePos, 104 /*ScalarKeySortedTables*/, StatVerify, false)
+	result = result && verifier.VerifyField(tablePos, 106 /*NativeInline*/, 4 /*Test*/, 2, false)
+	result = result && verifier.VerifyField(tablePos, 108 /*LongEnumNonEnumDefault*/, 8 /*LongEnum*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 110 /*LongEnumNormalDefault*/, 8 /*LongEnum*/, 8, false)
+	result = result && verifier.VerifyField(tablePos, 112 /*NanDefault*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 114 /*InfDefault*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 116 /*PositiveInfDefault*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 118 /*InfinityDefault*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 120 /*PositiveInfinityDefault*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 122 /*NegativeInfDefault*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 124 /*NegativeInfinityDefault*/, 4 /*float32*/, 4, false)
+	result = result && verifier.VerifyField(tablePos, 126 /*DoubleInfDefault*/, 8 /*float64*/, 8, false)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

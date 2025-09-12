@@ -47,6 +47,10 @@ func FinishReferrableBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOf
 	builder.Finish(offset)
 }
 
+func VerifyReferrable(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, ReferrableVerify)
+}
+
 func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *Referrable {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Referrable{}
@@ -56,6 +60,10 @@ func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *R
 
 func FinishSizePrefixedReferrableBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyReferrable(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, ReferrableVerify)
 }
 
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -124,4 +132,13 @@ func ReferrableAddId(builder *flatbuffers.Builder, id uint64) {
 }
 func ReferrableEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'Referrable' table.
+func ReferrableVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyField(tablePos, 4 /*Id*/, 8 /*uint64*/, 8, false)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

@@ -21,6 +21,10 @@ func FinishHelloRequestBuffer(builder *flatbuffers.Builder, offset flatbuffers.U
 	builder.Finish(offset)
 }
 
+func VerifyHelloRequest(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", false, HelloRequestVerify)
+}
+
 func GetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) *HelloRequest {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &HelloRequest{}
@@ -30,6 +34,10 @@ func GetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) 
 
 func FinishSizePrefixedHelloRequestBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func SizePrefixedVerifyHelloRequest(buf []byte) bool {
+	return flatbuffers.NewVerifier(buf).VerifyBuffer("", true, HelloRequestVerify)
 }
 
 func (rcv *HelloRequest) Init(buf []byte, i flatbuffers.UOffsetT) {
@@ -57,4 +65,13 @@ func HelloRequestAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT
 }
 func HelloRequestEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
+}
+
+// Verification function for 'HelloRequest' table.
+func HelloRequestVerify(verifier *flatbuffers.Verifier, tablePos flatbuffers.UOffsetT) bool {
+	result := true
+	result = result && verifier.VerifyTableStart(tablePos)
+	result = result && verifier.VerifyString(tablePos, 4 /*Name*/, false)
+	result = result && verifier.VerifyTableEnd(tablePos)
+	return result
 }

@@ -17,6 +17,7 @@ go_library(
         "sizes.go",
         "struct.go",
         "table.go",
+		"verify.go",
     ],
     importpath = "github.com/google/flatbuffers/go",
     visibility = ["//visibility:public"],
