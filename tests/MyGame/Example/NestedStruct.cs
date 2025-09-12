@@ -17,13 +17,27 @@ public struct NestedStruct : IFlatbufferObject
   public NestedStruct __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public int A(int j) { return __p.bb.GetInt(__p.bb_pos + 0 + j * 4); }
-  public void MutateA(int j, int a) { __p.bb.PutInt(__p.bb_pos + 0 + j * 4, a); }
+  public const int ALength = 2;
+#if ENABLE_SPAN_T
+  public Span<int> GetABytes() { return System.Runtime.InteropServices.MemoryMarshal.Cast<byte, int>(__p.bb.ToSpan(__p.bb_pos + 0, 8)); }
+#else
+  public ArraySegment<byte>? GetABytes() { return __p.bb.ToArraySegment(__p.bb_pos + 0, 8);}
+#endif
   public MyGame.Example.TestEnum B { get { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 8); } }
-  public void MutateB(MyGame.Example.TestEnum b) { __p.bb.PutSbyte(__p.bb_pos + 8, (sbyte)b); }
   public MyGame.Example.TestEnum C(int j) { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 9 + j * 1); }
-  public void MutateC(int j, MyGame.Example.TestEnum c) { __p.bb.PutSbyte(__p.bb_pos + 9 + j * 1, (sbyte)c); }
+  public const int CLength = 2;
+#if ENABLE_SPAN_T
+  public Span<MyGame.Example.TestEnum> GetCBytes() { return System.Runtime.InteropServices.MemoryMarshal.Cast<byte, MyGame.Example.TestEnum>(__p.bb.ToSpan(__p.bb_pos + 9, 2)); }
+#else
+  public ArraySegment<byte>? GetCBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 9, 2);}
+#endif
   public long D(int j) { return __p.bb.GetLong(__p.bb_pos + 16 + j * 8); }
-  public void MutateD(int j, long d) { __p.bb.PutLong(__p.bb_pos + 16 + j * 8, d); }
+  public const int DLength = 2;
+#if ENABLE_SPAN_T
+  public Span<long> GetDBytes() { return System.Runtime.InteropServices.MemoryMarshal.Cast<byte, long>(__p.bb.ToSpan(__p.bb_pos + 16, 16)); }
+#else
+  public ArraySegment<byte>? GetDBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 16, 16);}
+#endif
 
   public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C, long[] D) {
     builder.Prep(8, 32);
