@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#if canImport(Common)
+import Common
+#endif
+
 import Foundation
 
 /// Enum is a protocol that all flatbuffers enums should conform to

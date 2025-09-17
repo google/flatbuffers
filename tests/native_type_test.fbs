@@ -17,6 +17,8 @@ struct Vector3DAlt (native_type:"Native::Vector3D", native_type_pack_name:"Vecto
 table ApplicationData {
   vectors:[Vector3D];
   vectors_alt:[Vector3DAlt];
+  position:Vector3D;
+  position_inline:Vector3D (native_inline);
 }
 
 root_type ApplicationData;

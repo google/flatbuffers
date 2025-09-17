@@ -23,7 +23,7 @@ from pathlib import Path
 from util import flatc, root_path, tests_path, args, flatc_path
 
 # Specify the other paths that will be referenced
-swift_code_gen = Path(root_path, "tests/swift/tests/CodeGenerationTests")
+swift_code_gen = Path(root_path, "tests/swift/fuzzer/CodeGenerationTests")
 ts_code_gen = Path(root_path, "tests/ts")
 samples_path = Path(root_path, "samples")
 reflection_path = Path(root_path, "reflection")
@@ -104,7 +104,7 @@ JAVA_OPTS = ["--java"]
 KOTLIN_OPTS = ["--kotlin"]
 PHP_OPTS = ["--php"]
 DART_OPTS = ["--dart"]
-PYTHON_OPTS = ["--python", "--python-typing"]
+PYTHON_OPTS = ["--python", "--python-typing", "--python-decode-obj-api-strings"]
 BINARY_OPTS = ["-b", "--schema", "--bfbs-comments", "--bfbs-builtins"]
 PROTO_OPTS = ["--proto"]
 
@@ -154,11 +154,24 @@ flatc(
     include="include_test",
 )
 
+"""NOTE: The C++ gRPC golden is generated with the callback API enabled so that
+the repository goldens exercise the callback client & server code paths.
+If you need the legacy (non-callback) variant for comparison, invoke flatc
+manually without --grpc-callback-api; we intentionally do not keep both to
+minimize golden churn."""
 flatc(
-    NO_INCL_OPTS + CPP_OPTS + ["--grpc"],
+    NO_INCL_OPTS + CPP_OPTS + ["--grpc", "--grpc-callback-api"],
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
+)
+
+# Also generate a suffix variant exercising the callback API to keep prior
+# *_generated naming convention in sync with new callback additions.
+flatc(
+    NO_INCL_OPTS + CPP_OPTS + ["--grpc", "--grpc-callback-api", "--filename-suffix", "_generated"],
+    schema="monster_test.fbs",
+    include="include_test",
 )
 
 flatc(
@@ -334,6 +347,16 @@ flatc(
 )
 
 flatc(
+    ["--cpp", "--gen-mutable", "--gen-object-api", "--reflect-names"],
+    schema="native_type_test.fbs",
+)
+
+flatc(
+    ["--cpp", "--gen-mutable", "--gen-compare", "--gen-object-api", "--reflect-names"],
+    schema="native_inline_table_test.fbs",
+)
+
+flatc(
     RUST_OPTS,
     prefix="arrays_test",
     schema="arrays_test.fbs",
@@ -405,7 +428,7 @@ dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
 # Swift Tests
-swift_prefix = "swift/tests/Tests/FlatBuffers.Test.SwiftTests"
+swift_prefix = "swift/Tests/Flatbuffers"
 flatc(
     SWIFT_OPTS + BASE_OPTS + ["--grpc"],
     schema="monster_test.fbs",

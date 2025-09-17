@@ -37,6 +37,8 @@ struct Parameters {
   std::string message_header_extension;
   // Default: ".grpc.fb.h"
   std::string service_header_extension;
+  // Generate modern callback-based async API service code (CallbackService)
+  bool generate_callback_api = false;
 };
 
 // Return the prologue of the generated header file.

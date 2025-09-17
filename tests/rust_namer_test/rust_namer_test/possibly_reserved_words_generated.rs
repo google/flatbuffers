@@ -34,21 +34,21 @@ impl<'a> flatbuffers::Follow<'a> for PossiblyReservedWords {
   type Inner = &'a PossiblyReservedWords;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a PossiblyReservedWords>::follow(buf, loc)
+    unsafe { <&'a PossiblyReservedWords>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a PossiblyReservedWords {
   type Inner = &'a PossiblyReservedWords;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<PossiblyReservedWords>(buf, loc)
+    unsafe { flatbuffers::follow_cast_ref::<PossiblyReservedWords>(buf, loc) }
   }
 }
 impl<'b> flatbuffers::Push for PossiblyReservedWords {
     type Output = PossiblyReservedWords;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const PossiblyReservedWords as *const u8, <Self as flatbuffers::Push>::size());
+        let src = unsafe { ::core::slice::from_raw_parts(self as *const PossiblyReservedWords as *const u8, <Self as flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
     #[inline]

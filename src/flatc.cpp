@@ -256,6 +256,7 @@ const static FlatCOption flatc_options[] = {
     "Skip emission of Python functions that are prefixed with typenames" },
   { "", "python-typing", "", "Generate Python type annotations" },
   { "", "python-version", "", "Generate code for the given Python version." },
+  { "", "python-decode-obj-api-strings", "", "Decode bytes to strings for the Python Object API"},
   { "", "python-gen-numpy", "", "Whether to generate numpy helpers." },
   { "", "ts-omit-entrypoint", "",
     "Omit emission of namespace entrypoint file" },
@@ -270,6 +271,9 @@ const static FlatCOption flatc_options[] = {
   { "", "grpc-search-path", "PATH", "Prefix to any gRPC includes." },
   { "", "grpc-python-typed-handlers", "",
     "The handlers will use the generated classes rather than raw bytes." },
+  { "", "grpc-callback-api", "",
+    "Generate gRPC code using the callback (reactor) API instead of legacy "
+    "sync/async." },
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
@@ -682,6 +686,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--python-version") {
         if (++argi >= argc) Error("missing value following: " + arg, true);
         opts.python_version = argv[argi];
+      } else if (arg == "--python-decode-obj-api-strings") {
+        opts.python_decode_obj_api_strings = true;
       } else if (arg == "--python-gen-numpy" ||
                  arg == "--python-gen-numpy=true") {
         opts.python_gen_numpy = true;
@@ -728,6 +734,12 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-grpc-python-typed-handlers" ||
                  arg == "--grpc-python-typed-handlers=false") {
         opts.grpc_python_typed_handlers = false;
+      } else if (arg == "--grpc-callback-api" ||
+                 arg == "--grpc-callback-api=true") {
+        opts.grpc_callback_api = true;
+      } else if (arg == "--no-grpc-callback-api" ||
+                 arg == "--grpc-callback-api=false") {
+        opts.grpc_callback_api = false;
       } else {
         if (arg == "--proto") { opts.proto_mode = true; }
 
@@ -755,6 +767,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
     }
   }
 
+  ValidateOptions(options);
+
   return options;
 }
 
@@ -763,9 +777,8 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
 
   if (!options.filenames.size()) Error("missing input files", false, true);
 
-  if (opts.proto_mode) {
-    if (options.any_generator)
-      Error("cannot generate code directly from .proto files", true);
+  if (opts.proto_mode && options.any_generator) {
+    Warn("cannot generate code directly from .proto files", true);
   } else if (!options.any_generator && options.conform_to_schema.empty() &&
              options.annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
