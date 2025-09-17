@@ -353,6 +353,7 @@ class CSharpGenerator : public BaseGenerator {
       case BASE_TYPE_ULONG: return value.constant;
       case BASE_TYPE_UINT:
       case BASE_TYPE_LONG: return value.constant + longSuffix;
+      case BASE_TYPE_STRING: return value.constant;
       default:
         if (IsFloat(value.type.base_type))
           return CSharpFloatGen.GenFloatConstant(field);
@@ -1006,7 +1007,9 @@ class CSharpGenerator : public BaseGenerator {
             code += " { get";
             member_suffix += "} ";
             code += offset_prefix + getter + "(o + " + "__p.";
-            code += "bb_pos) : null";
+            // code += "bb_pos) : null";
+            code += "bb_pos) : " + GenDefaultValue(field, true);
+
             break;
           case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
