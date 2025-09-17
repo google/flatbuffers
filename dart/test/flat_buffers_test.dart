@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:typed_data';
 import 'dart:io' as io;
 
@@ -540,10 +542,19 @@ class BuilderTest {
       byteList = builder.buffer;
     }
 
+    // verify alignment
+    ByteData byteData = ByteData.view(Uint8List.fromList(byteList).buffer);
+    int vectorOffset = byteData.getUint32(0, Endian.little);
+    expect(vectorOffset, 4);
+    int length = byteData.getUint32(vectorOffset, Endian.little);
+    expect(length, values.length);
+    int floatDataOffset = vectorOffset + 4;
+    expect(floatDataOffset % 8, 0);
+
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float64ListReader().read(buf, 0);
-
+    expect(items is Float64List, Endian.host == Endian.little);
     expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
@@ -560,10 +571,21 @@ class BuilderTest {
       builder.finish(offset);
       byteList = builder.buffer;
     }
+
+    // verify alignment
+    ByteData byteData = ByteData.view(Uint8List.fromList(byteList).buffer);
+    int vectorOffset = byteData.getUint32(0, Endian.little);
+    expect(vectorOffset, 4);
+    int length = byteData.getUint32(vectorOffset, Endian.little);
+    expect(length, values.length);
+    int floatDataOffset = vectorOffset + 4;
+    expect(floatDataOffset % 4, 0);
+
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float32ListReader().read(buf, 0);
-    expect(items, hasLength(5));
+    expect(items is Float32List, Endian.host == Endian.little);
+    expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
     }
@@ -655,6 +677,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint32ListReader().read(buf, 0);
+    expect(items is Uint32List, Endian.host == Endian.little);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
   }
@@ -670,6 +693,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint16ListReader().read(buf, 0);
+    expect(items is Uint16List, Endian.host == Endian.little);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 60000]));
   }
@@ -687,15 +711,42 @@ class BuilderTest {
     const buffOffset = 8; // 32-bit offset to the list, + 32-bit length
     for (final lazy in [true, false]) {
       List<int> items = Uint8ListReader(lazy: lazy).read(buf, 0);
+      expect(items is Uint8List, true);
       expect(items, hasLength(6));
-      expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A, 0xFA]));
+      expect(items, orderedEquals(<int>[1, 2, 3, 4, 154, 250]));
 
       // overwrite the buffer to verify the laziness
       buf.buffer.setUint8(buffOffset + 1, 99);
-      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, 0x9A, 0xFA]));
+      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, 154, 250]));
 
       // restore the previous value for the next loop
       buf.buffer.setUint8(buffOffset + 1, 2);
+    }
+  }
+
+  void test_writeList_ofInt8() {
+    List<int> byteList;
+    {
+      Builder builder = Builder(initialSize: 0);
+      int offset = builder.writeListInt8(<int>[1, 2, 3, 4, 0x9A, 0xFA]);
+      builder.finish(offset);
+      byteList = builder.buffer;
+    }
+    // read and verify
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    const buffOffset = 8; // 32-bit offset to the list, + 32-bit length
+    for (final lazy in [true, false]) {
+      List<int> items = Int8ListReader(lazy: lazy).read(buf, 0);
+      expect(items is Int8List, true);
+      expect(items, hasLength(6));
+      expect(items, orderedEquals(<int>[1, 2, 3, 4, -102, -6]));
+
+      // overwrite the buffer to verify the laziness
+      buf.buffer.setInt8(buffOffset + 1, 99);
+      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, -102, -6]));
+
+      // restore the previous value for the next loop
+      buf.buffer.setInt8(buffOffset + 1, 2);
     }
   }
 
@@ -817,9 +868,9 @@ class ObjectAPITest {
     final offset = monster.pack(fbBuilder);
     expect(offset, isNonZero);
     fbBuilder.finish(offset);
-    final data = fbBuilder.buffer;
 
     // TODO currently broken because of struct builder issue, see #6688
+    // final data = fbBuilder.buffer;
     // final monster2 = example.Monster(data); // Monster (reader)
     // expect(
     //     // map Monster => MonsterT, Vec3 => Vec3T, ...
