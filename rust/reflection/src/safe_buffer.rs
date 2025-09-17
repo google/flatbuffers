@@ -48,7 +48,7 @@ impl<'a> SafeBuffer<'a> {
         opts: &VerifierOptions,
     ) -> FlatbufferResult<Self> {
         let mut buf_loc_to_obj_idx = HashMap::new();
-        verify_with_options(&buf, schema, opts, &mut buf_loc_to_obj_idx)?;
+        verify_with_options(buf, schema, opts, &mut buf_loc_to_obj_idx)?;
         Ok(SafeBuffer {
             buf,
             schema,
@@ -57,7 +57,7 @@ impl<'a> SafeBuffer<'a> {
     }
 
     /// Gets the root table in the buffer.
-    pub fn get_root(&self) -> SafeTable {
+    pub fn get_root(&self) -> SafeTable<'_> {
         // SAFETY: the buffer was verified during construction.
         let table = unsafe { get_any_root(self.buf) };
 
@@ -71,7 +71,7 @@ impl<'a> SafeBuffer<'a> {
         &self,
         buf_loc: usize,
         field_name: &str,
-    ) -> FlatbufferResult<Option<Field>> {
+    ) -> FlatbufferResult<Option<Field<'_>>> {
         Ok(self
             .get_all_fields(buf_loc)?
             .lookup_by_key(field_name, |field: &Field<'_>, key| {
@@ -79,7 +79,10 @@ impl<'a> SafeBuffer<'a> {
             }))
     }
 
-    fn get_all_fields(&self, buf_loc: usize) -> FlatbufferResult<Vector<ForwardsUOffset<Field>>> {
+    fn get_all_fields(
+        &self,
+        buf_loc: usize,
+    ) -> FlatbufferResult<Vector<'_, ForwardsUOffset<Field<'_>>>> {
         if let Some(&obj_idx) = self.buf_loc_to_obj_idx.get(&buf_loc) {
             let obj = if obj_idx == -1 {
                 self.schema.root_table().unwrap()
@@ -110,7 +113,7 @@ impl<'a> SafeTable<'a> {
     ) -> FlatbufferResult<Option<T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_integer::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_integer::<T>(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -126,7 +129,7 @@ impl<'a> SafeTable<'a> {
     ) -> FlatbufferResult<Option<T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_float::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_float::<T>(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -139,7 +142,7 @@ impl<'a> SafeTable<'a> {
     pub fn get_field_string(&self, field_name: &str) -> FlatbufferResult<Option<&str>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_string(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_string(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -153,7 +156,7 @@ impl<'a> SafeTable<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let optional_st =
-                unsafe { get_field_struct(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
+                unsafe { get_field_struct(&Table::new(self.safe_buf.buf, self.loc), &field)? };
             Ok(optional_st.map(|st| SafeStruct {
                 safe_buf: self.safe_buf,
                 loc: st.loc(),
@@ -173,7 +176,7 @@ impl<'a> SafeTable<'a> {
     ) -> FlatbufferResult<Option<Vector<'a, T>>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_vector(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_vector(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -187,7 +190,7 @@ impl<'a> SafeTable<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let optional_table =
-                unsafe { get_field_table(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
+                unsafe { get_field_table(&Table::new(self.safe_buf.buf, self.loc), &field)? };
             Ok(optional_table.map(|t| SafeTable {
                 safe_buf: self.safe_buf,
                 loc: t.loc(),
@@ -205,7 +208,7 @@ impl<'a> SafeTable<'a> {
     pub fn get_any_field_integer(&self, field_name: &str) -> FlatbufferResult<i64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_any_field_integer(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_any_field_integer(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -218,7 +221,7 @@ impl<'a> SafeTable<'a> {
     pub fn get_any_field_float(&self, field_name: &str) -> FlatbufferResult<f64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_any_field_float(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_any_field_float(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -232,7 +235,7 @@ impl<'a> SafeTable<'a> {
             // SAFETY: the buffer was verified during construction.
             unsafe {
                 Ok(get_any_field_string(
-                    &Table::new(&self.safe_buf.buf, self.loc),
+                    &Table::new(self.safe_buf.buf, self.loc),
                     &field,
                     self.safe_buf.schema,
                 ))
@@ -258,7 +261,7 @@ impl<'a> SafeStruct<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let st = unsafe {
-                get_field_struct_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)?
+                get_field_struct_in_struct(&Struct::new(self.safe_buf.buf, self.loc), &field)?
             };
             Ok(SafeStruct {
                 safe_buf: self.safe_buf,
@@ -277,7 +280,7 @@ impl<'a> SafeStruct<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             unsafe {
-                get_any_field_integer_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)
+                get_any_field_integer_in_struct(&Struct::new(self.safe_buf.buf, self.loc), &field)
             }
         } else {
             Err(FlatbufferError::FieldNotFound)
@@ -292,7 +295,7 @@ impl<'a> SafeStruct<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             unsafe {
-                get_any_field_float_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)
+                get_any_field_float_in_struct(&Struct::new(self.safe_buf.buf, self.loc), &field)
             }
         } else {
             Err(FlatbufferError::FieldNotFound)
@@ -307,7 +310,7 @@ impl<'a> SafeStruct<'a> {
             // SAFETY: the buffer was verified during construction.
             unsafe {
                 Ok(get_any_field_string_in_struct(
-                    &Struct::new(&self.safe_buf.buf, self.loc),
+                    &Struct::new(self.safe_buf.buf, self.loc),
                     &field,
                     self.safe_buf.schema,
                 ))

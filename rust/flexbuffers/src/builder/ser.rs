@@ -101,9 +101,9 @@ impl ser::Error for Error {
 impl ser::SerializeSeq for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         value.serialize(&mut **self)
     }
@@ -116,15 +116,15 @@ impl ser::SerializeSeq for &mut FlexbufferSerializer {
 impl ser::SerializeMap for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
-    fn serialize_key<T: ?Sized>(&mut self, key: &T) -> Result<(), Self::Error>
+    fn serialize_key<T>(&mut self, key: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         key.serialize(MapKeySerializer(self))
     }
-    fn serialize_value<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_value<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         value.serialize(&mut **self)
     }
@@ -135,9 +135,9 @@ impl ser::SerializeMap for &mut FlexbufferSerializer {
 impl ser::SerializeTuple for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
-    fn serialize_element<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         value.serialize(&mut **self)
     }
@@ -148,9 +148,9 @@ impl ser::SerializeTuple for &mut FlexbufferSerializer {
 impl ser::SerializeTupleStruct for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         value.serialize(&mut **self)
     }
@@ -161,13 +161,9 @@ impl ser::SerializeTupleStruct for &mut FlexbufferSerializer {
 impl ser::SerializeStruct for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
-    fn serialize_field<T: ?Sized>(
-        &mut self,
-        key: &'static str,
-        value: &T,
-    ) -> Result<(), Self::Error>
+    fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         self.builder.push_key(key);
         value.serialize(&mut **self)
@@ -179,9 +175,9 @@ impl ser::SerializeStruct for &mut FlexbufferSerializer {
 impl ser::SerializeTupleVariant for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
-    fn serialize_field<T: ?Sized>(&mut self, value: &T) -> Result<(), Self::Error>
+    fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         value.serialize(&mut **self)
     }
@@ -193,13 +189,9 @@ impl ser::SerializeTupleVariant for &mut FlexbufferSerializer {
 impl ser::SerializeStructVariant for &mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
-    fn serialize_field<T: ?Sized>(
-        &mut self,
-        key: &'static str,
-        value: &T,
-    ) -> Result<(), Self::Error>
+    fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         self.builder.push_key(key);
         value.serialize(&mut **self)
@@ -222,7 +214,7 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn is_human_readable(&self) -> bool {
-        cfg!(serialize_human_readable)
+        cfg!(feature = "serialize_human_readable")
     }
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.builder.push(v);
@@ -284,9 +276,9 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
         self.builder.push(());
         self.finish_if_not_nested()
     }
-    fn serialize_some<T: ?Sized>(self, t: &T) -> Result<Self::Ok, Self::Error>
+    fn serialize_some<T>(self, t: &T) -> Result<Self::Ok, Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         t.serialize(self)
     }
@@ -307,17 +299,17 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
         self.builder.push(variant);
         self.finish_if_not_nested()
     }
-    fn serialize_newtype_struct<T: ?Sized>(
+    fn serialize_newtype_struct<T>(
         self,
         _name: &'static str,
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         value.serialize(self)
     }
-    fn serialize_newtype_variant<T: ?Sized>(
+    fn serialize_newtype_variant<T>(
         self,
         _name: &'static str,
         _variant_index: u32,
@@ -325,7 +317,7 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         self.start_map();
         self.builder.push_key(variant);
@@ -409,13 +401,9 @@ impl<'a> Serializer for MapKeySerializer<'a> {
         Ok(())
     }
     #[inline]
-    fn serialize_newtype_struct<T: ?Sized>(
-        self,
-        _name: &'static str,
-        value: &T,
-    ) -> Result<(), Error>
+    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         value.serialize(self)
     }
@@ -472,7 +460,7 @@ impl<'a> Serializer for MapKeySerializer<'a> {
     fn serialize_unit_struct(self, _name: &'static str) -> Result<(), Error> {
         key_must_be_a_string()
     }
-    fn serialize_newtype_variant<T: ?Sized>(
+    fn serialize_newtype_variant<T>(
         self,
         _name: &'static str,
         _variant_index: u32,
@@ -480,16 +468,16 @@ impl<'a> Serializer for MapKeySerializer<'a> {
         _value: &T,
     ) -> Result<(), Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         key_must_be_a_string()
     }
     fn serialize_none(self) -> Result<(), Error> {
         key_must_be_a_string()
     }
-    fn serialize_some<T: ?Sized>(self, _value: &T) -> Result<(), Error>
+    fn serialize_some<T>(self, _value: &T) -> Result<(), Error>
     where
-        T: Serialize,
+        T: Serialize + ?Sized,
     {
         key_must_be_a_string()
     }

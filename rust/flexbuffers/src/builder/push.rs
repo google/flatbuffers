@@ -31,8 +31,8 @@ impl Sealed for () {}
 /// with both a length and null terminator.
 ///
 /// * For convenience and speed push typed vectors using rust arrays and slices.
-/// Doing so will immediately serialize the data, skipping the `Builder`'s
-/// internal cache.
+///   Doing so will immediately serialize the data, skipping the `Builder`'s
+///   internal cache.
 ///
 /// * Pushable cannot not be implemented by any downstream crates.
 pub trait Pushable: Sealed + Sized {

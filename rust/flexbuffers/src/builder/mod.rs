@@ -111,11 +111,11 @@ struct CachedKey(usize);
 /// with  one of the following functions.
 /// * `build_singleton` will push 1 value to the buffer and serialize it as the root.
 /// * `start_vector` returns a `VectorBuilder`, into which many (potentially
-/// heterogenous) values can be pushed. The vector itself is the root and is serialized
-/// when the `VectorBuilder` is dropped (or `end` is called).
+///   heterogenous) values can be pushed. The vector itself is the root and is serialized
+///   when the `VectorBuilder` is dropped (or `end` is called).
 /// * `start_map` returns a `MapBuilder`, which is similar to a `VectorBuilder` except
-/// every value must be pushed with an associated key. The map is serialized when the
-/// `MapBuilder` is dropped (or `end` is called).
+///   every value must be pushed with an associated key. The map is serialized when the
+///   `MapBuilder` is dropped (or `end` is called).
 ///
 /// These functions reset and overwrite the Builder which means, while there are no
 /// active `MapBuilder` or `VectorBuilder`, the internal buffer is empty or contains a

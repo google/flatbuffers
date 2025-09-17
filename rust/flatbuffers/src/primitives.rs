@@ -108,7 +108,7 @@ impl<T> Deref for WIPOffset<T> {
         &self.0
     }
 }
-impl<'a, T: 'a> WIPOffset<T> {
+impl<T> WIPOffset<T> {
     /// Create a new WIPOffset.
     #[inline]
     pub fn new(o: UOffsetT) -> WIPOffset<T> {

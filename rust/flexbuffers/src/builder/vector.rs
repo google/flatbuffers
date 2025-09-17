@@ -36,7 +36,7 @@ impl<'a> VectorBuilder<'a> {
     }
     /// Starts a nested vector that will be pushed onto this vector when it is dropped.
     #[inline]
-    pub fn start_vector(&mut self) -> VectorBuilder {
+    pub fn start_vector(&mut self) -> VectorBuilder<'_> {
         let start = Some(self.builder.values.len());
         VectorBuilder {
             builder: self.builder,
@@ -45,7 +45,7 @@ impl<'a> VectorBuilder<'a> {
     }
     /// Starts a nested map that will be pushed onto this vector when it is dropped.
     #[inline]
-    pub fn start_map(&mut self) -> MapBuilder {
+    pub fn start_map(&mut self) -> MapBuilder<'_> {
         let start = Some(self.builder.values.len());
         MapBuilder {
             builder: self.builder,

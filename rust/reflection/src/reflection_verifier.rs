@@ -340,16 +340,14 @@ fn verify_vector<'a, 'b, 'c>(
             }
             Ok(table_verifier)
         }
-        _ => {
-            return Err(FlatbufferError::TypeNotSupported(
-                field
-                    .type_()
-                    .base_type()
-                    .variant_name()
-                    .unwrap_or_default()
-                    .to_string(),
-            ))
-        }
+        _ => Err(FlatbufferError::TypeNotSupported(
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
+        )),
     }
 }
 

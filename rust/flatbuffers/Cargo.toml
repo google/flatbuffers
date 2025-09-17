@@ -9,7 +9,7 @@ homepage = "https://google.github.io/flatbuffers/"
 repository = "https://github.com/google/flatbuffers"
 keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
-rust = "1.51"
+rust-version = "1.51"
 
 [features]
 default = ["std"]
@@ -17,8 +17,11 @@ std = []
 serialize = ["serde"]
 
 [dependencies]
-bitflags = "2.8.0"
+bitflags = "2.9.0"
 serde = { version = "1.0", optional = true }
 
 [build-dependencies]
 rustc_version = "0.4.0"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(nightly)'] }

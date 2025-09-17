@@ -26,7 +26,7 @@ mod serialize;
 mod vector;
 pub use de::DeserializationError;
 pub use iter::ReaderIterator;
-pub use map::{MapReader, MapReaderIndexer};
+pub use map::MapReader;
 pub use vector::VectorReader;
 
 /// All the possible errors when reading a flexbuffer.
@@ -139,11 +139,11 @@ macro_rules! as_default {
 /// by calling `get_root` on your flexbuffer `&[u8]`.
 ///
 /// - The `get_T` methods return a `Result<T, Error>`. They return an OK value if and only if the
-/// flexbuffer type matches `T`. This is analogous to the behavior of Rust's json library, though
-/// with Result instead of Option.
+///   flexbuffer type matches `T`. This is analogous to the behavior of Rust's json library, though
+///   with Result instead of Option.
 /// - The `as_T` methods will try their best to return to a value of type `T`
-/// (by casting or even parsing a string if necessary) but ultimately returns `T::default` if it
-/// fails. This behavior is analogous to that of flexbuffers C++.
+///   (by casting or even parsing a string if necessary) but ultimately returns `T::default` if it
+///   fails. This behavior is analogous to that of flexbuffers C++.
 pub struct Reader<B> {
     fxb_type: FlexBufferType,
     width: BitWidth,
@@ -429,7 +429,7 @@ impl<B: Buffer> Reader<B> {
             .buffer
             .get(self.address..self.address + self.width.n_bytes());
         match self.width {
-            BitWidth::W8 => cursor.map(|s| s[0] as u8).map(Into::into),
+            BitWidth::W8 => cursor.map(|s| s[0]).map(Into::into),
             BitWidth::W16 => cursor
                 .and_then(|s| s.try_into().ok())
                 .map(<u16>::from_le_bytes)
@@ -492,7 +492,7 @@ impl<B: Buffer> Reader<B> {
             Bool => self.get_bool().unwrap_or_default(),
             UInt => self.as_u64() != 0,
             Int => self.as_i64() != 0,
-            Float => self.as_f64().abs() > std::f64::EPSILON,
+            Float => self.as_f64().abs() > f64::EPSILON,
             String | Key => !self.as_str().is_empty(),
             Null => false,
             Blob => self.length() != 0,

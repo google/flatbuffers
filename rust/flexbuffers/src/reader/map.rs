@@ -155,8 +155,7 @@ impl<B: Buffer> MapReader<B> {
     /// Iterate over the keys of the map.
     pub fn iter_keys(
         &self,
-    ) -> impl Iterator<Item = B::BufferString> + DoubleEndedIterator + ExactSizeIterator + FusedIterator
-    {
+    ) -> impl DoubleEndedIterator<Item = B::BufferString> + ExactSizeIterator + FusedIterator {
         self.keys_vector().iter().map(|k| k.as_str())
     }
 

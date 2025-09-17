@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
+#![allow(unused_imports)]
+#![allow(clippy::missing_safety_doc)]
+#![allow(clippy::extra_unused_lifetimes)]
+#![allow(mismatched_lifetime_syntaxes)]
 mod reflection_generated;
+
 mod reflection_verifier;
 mod safe_buffer;
 mod r#struct;
@@ -68,7 +73,7 @@ pub type FlatbufferResult<T, E = FlatbufferError> = core::result::Result<T, E>;
 ///
 /// Flatbuffers accessors do not perform validation checks before accessing. Users
 /// must trust [data] contains a valid flatbuffer. Reading unchecked buffers may cause panics or even UB.
-pub unsafe fn get_any_root(data: &[u8]) -> Table {
+pub unsafe fn get_any_root(data: &[u8]) -> Table<'_> {
     <ForwardsUOffset<Table>>::follow(data, 0)
 }
 
@@ -454,7 +459,10 @@ pub unsafe fn set_field<T: EndianScalar>(
     }
 
     // SAFETY: the buffer range was verified above.
-    unsafe { Ok(emplace_scalar::<T>(&mut buf[field_loc..], v)) }
+    unsafe {
+        emplace_scalar::<T>(&mut buf[field_loc..], v);
+    }
+    Ok(())
 }
 
 /// Sets a string field to a new value. Returns error if the field is not originally set or is not of string type in which cases the [buf] stays intact. Returns error if the [buf] fails to be updated.
@@ -618,7 +626,7 @@ unsafe fn get_any_value_integer(
 ) -> FlatbufferResult<i64> {
     match base_type {
         BaseType::UType | BaseType::UByte => i64::from_u8(u8::follow(buf, loc)),
-        BaseType::Bool => bool::follow(buf, loc).try_into().ok(),
+        BaseType::Bool => Some(bool::follow(buf, loc).into()),
         BaseType::Byte => i64::from_i8(i8::follow(buf, loc)),
         BaseType::Short => i64::from_i16(i16::follow(buf, loc)),
         BaseType::UShort => i64::from_u16(u16::follow(buf, loc)),
@@ -651,7 +659,7 @@ unsafe fn get_any_value_float(
 ) -> FlatbufferResult<f64> {
     match base_type {
         BaseType::UType | BaseType::UByte => f64::from_u8(u8::follow(buf, loc)),
-        BaseType::Bool => bool::follow(buf, loc).try_into().ok(),
+        BaseType::Bool => Some(bool::follow(buf, loc).into()),
         BaseType::Byte => f64::from_i8(i8::follow(buf, loc)),
         BaseType::Short => f64::from_i16(i16::follow(buf, loc)),
         BaseType::UShort => f64::from_u16(u16::follow(buf, loc)),
@@ -759,7 +767,10 @@ fn set_any_value_integer(
         ($ty:ty, $value:expr) => {
             if let Ok(v) = TryInto::<$ty>::try_into($value) {
                 // SAFETY: buffer size is verified at the beginning of this function.
-                unsafe { Ok(emplace_scalar::<$ty>(buf, v)) }
+                unsafe {
+                    emplace_scalar::<$ty>(buf, v);
+                }
+                Ok(())
             } else {
                 Err(FlatbufferError::FieldTypeMismatch(
                     String::from("i64"),
@@ -775,7 +786,10 @@ fn set_any_value_integer(
         }
         BaseType::Bool => {
             // SAFETY: buffer size is verified at the beginning of this function.
-            unsafe { Ok(emplace_scalar::<bool>(buf, v != 0)) }
+            unsafe {
+                emplace_scalar::<bool>(buf, v != 0);
+            }
+            Ok(())
         }
         BaseType::Byte => {
             try_emplace!(i8, v)
@@ -794,7 +808,10 @@ fn set_any_value_integer(
         }
         BaseType::Long => {
             // SAFETY: buffer size is verified at the beginning of this function.
-            unsafe { Ok(emplace_scalar::<i64>(buf, v)) }
+            unsafe {
+                emplace_scalar::<i64>(buf, v);
+            }
+            Ok(())
         }
         BaseType::ULong => {
             try_emplace!(u64, v)
@@ -802,7 +819,10 @@ fn set_any_value_integer(
         BaseType::Float => {
             if let Some(value) = f32::from_i64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
-                unsafe { Ok(emplace_scalar::<f32>(buf, value)) }
+                unsafe {
+                    emplace_scalar::<f32>(buf, value);
+                }
+                Ok(())
             } else {
                 Err(FlatbufferError::FieldTypeMismatch(
                     String::from("i64"),
@@ -813,7 +833,10 @@ fn set_any_value_integer(
         BaseType::Double => {
             if let Some(value) = f64::from_i64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
-                unsafe { Ok(emplace_scalar::<f64>(buf, value)) }
+                unsafe {
+                    emplace_scalar::<f64>(buf, value);
+                }
+                Ok(())
             } else {
                 Err(FlatbufferError::FieldTypeMismatch(
                     String::from("i64"),
@@ -851,70 +874,79 @@ fn set_any_value_float(
             if let Some(value) = u8::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<u8>(buf, value));
+                    emplace_scalar::<u8>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::Bool => {
             // SAFETY: buffer size is verified at the beginning of this function.
             unsafe {
-                return Ok(emplace_scalar::<bool>(buf, v != 0f64));
+                emplace_scalar::<bool>(buf, v != 0f64);
             }
+            return Ok(());
         }
         BaseType::Byte => {
             if let Some(value) = i8::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<i8>(buf, value));
+                    emplace_scalar::<i8>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::Short => {
             if let Some(value) = i16::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<i16>(buf, value));
+                    emplace_scalar::<i16>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::UShort => {
             if let Some(value) = u16::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<u16>(buf, value));
+                    emplace_scalar::<u16>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::Int => {
             if let Some(value) = i32::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<i32>(buf, value));
+                    emplace_scalar::<i32>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::UInt => {
             if let Some(value) = u32::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<u32>(buf, value));
+                    emplace_scalar::<u32>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::Long => {
             if let Some(value) = i64::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<i64>(buf, value));
+                    emplace_scalar::<i64>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::ULong => {
             if let Some(value) = u64::from_f64(v) {
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe {
-                    return Ok(emplace_scalar::<u64>(buf, value));
+                    emplace_scalar::<u64>(buf, value);
                 }
+                return Ok(());
             }
         }
         BaseType::Float => {
@@ -923,27 +955,30 @@ fn set_any_value_float(
                 if value != f32::INFINITY {
                     // SAFETY: buffer size is verified at the beginning of this function.
                     unsafe {
-                        return Ok(emplace_scalar::<f32>(buf, value));
+                        emplace_scalar::<f32>(buf, value);
                     }
+                    return Ok(());
                 }
             }
         }
         BaseType::Double => {
             // SAFETY: buffer size is verified at the beginning of this function.
             unsafe {
-                return Ok(emplace_scalar::<f64>(buf, v));
+                emplace_scalar::<f64>(buf, v);
             }
+            return Ok(());
         }
         _ => return Err(FlatbufferError::SetValueNotSupported),
     }
-    return Err(FlatbufferError::FieldTypeMismatch(
+
+    Err(FlatbufferError::FieldTypeMismatch(
         String::from("f64"),
         type_name,
-    ));
+    ))
 }
 
 fn is_scalar(base_type: BaseType) -> bool {
-    return base_type <= BaseType::Double;
+    base_type <= BaseType::Double
 }
 
 /// Iterates through the buffer and updates all the relative offsets affected by the insertion.
