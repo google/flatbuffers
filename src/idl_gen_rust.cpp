@@ -2899,7 +2899,7 @@ class RustGenerator : public BaseGenerator {
       ForAllStructFields(struct_def, [&](const FieldDef &field) {
         const Type &type = field.value.type;
         if (IsArray(type)) {
-          code_ += "      {{FIELD}}: [Default::default(); " + NumToString(type.fixed_length) + "],";
+          code_ += "      {{FIELD}}: core::array::from_fn(|_| Default::default()),";
         } else {
           code_ += "      {{FIELD}}: Default::default(),";
         }

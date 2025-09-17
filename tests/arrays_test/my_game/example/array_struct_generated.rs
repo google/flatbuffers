@@ -253,11 +253,11 @@ impl std::default::Default for ArrayStructT {
     fn default() -> Self {
       Self {
         a: Default::default(),
-        b: [Default::default(); 15],
+        b: core::array::from_fn(|_| Default::default()),
         c: Default::default(),
-        d: [Default::default(); 2],
+        d: core::array::from_fn(|_| Default::default()),
         e: Default::default(),
-        f: [Default::default(); 2],
+        f: core::array::from_fn(|_| Default::default()),
     }
   }
 }

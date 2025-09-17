@@ -184,10 +184,10 @@ pub struct NestedStructT {
 impl std::default::Default for NestedStructT {
     fn default() -> Self {
       Self {
-        a: [Default::default(); 2],
+        a: core::array::from_fn(|_| Default::default()),
         b: Default::default(),
-        c: [Default::default(); 2],
-        d: [Default::default(); 2],
+        c: core::array::from_fn(|_| Default::default()),
+        d: core::array::from_fn(|_| Default::default()),
     }
   }
 }
