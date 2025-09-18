@@ -153,9 +153,6 @@ class JsonSchemaGenerator : public BaseGenerator {
                       const std::string &file_name)
       : BaseGenerator(parser, path, file_name, "", "", "json") {}
 
-  explicit JsonSchemaGenerator(const BaseGenerator &base_generator)
-      : BaseGenerator(base_generator) {}
-
   std::string GeneratedFileName(const std::string &path,
                                 const std::string &file_name,
                                 const IDLOptions &options /* unused */) const {
