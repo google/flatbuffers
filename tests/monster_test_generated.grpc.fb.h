@@ -201,7 +201,7 @@ class MonsterStorage final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status GetMaxHitPoint(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< flatbuffers::grpc::Message<Monster>>* /*reader*/, flatbuffers::grpc::Message<Stat>* response) final override {
+    ::grpc::Status GetMaxHitPoint(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< flatbuffers::grpc::Message<Monster>>* /*reader*/, flatbuffers::grpc::Message<Stat>* /*response*/) final override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }

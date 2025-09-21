@@ -1903,12 +1903,13 @@ class TsGenerator : public BaseGenerator {
           code += "    return false;\n";
           code += "  }\n\n";
 
-          // special case for bools, which are treated as uint8
           code +=
               "  " + GenBBAccess() + write_method + "(this.bb_pos + offset, ";
-          if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
         }
 
+        // special case for bools, which are treated as uint8
+        if (field.value.type.base_type == BASE_TYPE_BOOL) { code += "+"; }
+        
         code += "value);\n";
         code += "  return true;\n";
         code += "}\n\n";
@@ -1944,11 +1945,15 @@ class TsGenerator : public BaseGenerator {
 
     // Emit the fully qualified name
     if (parser_.opts.generate_name_strings) {
+      const std::string fullyQualifiedName = struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
+
       GenDocComment(code_ptr);
-      code += "static getFullyQualifiedName():string {\n";
+      code += "static getFullyQualifiedName(): \"";
+      code += fullyQualifiedName;
+      code += "\" {\n";
       code +=
           "  return '" +
-          struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name) +
+          fullyQualifiedName +
           "';\n";
       code += "}\n\n";
     }

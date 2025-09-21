@@ -2,6 +2,10 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if canImport(Common)
+import Common
+#endif
+
 import FlatBuffers
 
 public enum optional_scalars_OptionalByte: Int8, Enum, Verifiable {

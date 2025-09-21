@@ -23,7 +23,7 @@ impl<'a> flatbuffers::Follow<'a> for Monster<'a> {
   type Inner = Monster<'a>;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table::new(buf, loc) }
+    Self { _tab: unsafe { flatbuffers::Table::new(buf, loc) } }
   }
 }
 
@@ -2206,14 +2206,14 @@ pub fn size_prefixed_root_as_monster_with_opts<'b, 'o>(
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `Monster`.
 pub unsafe fn root_as_monster_unchecked(buf: &[u8]) -> Monster {
-  flatbuffers::root_unchecked::<Monster>(buf)
+  unsafe { flatbuffers::root_unchecked::<Monster>(buf) }
 }
 #[inline]
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed Monster and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `Monster`.
 pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster {
-  flatbuffers::size_prefixed_root_unchecked::<Monster>(buf)
+  unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster>(buf) }
 }
 pub const MONSTER_IDENTIFIER: &str = "MONS";
 

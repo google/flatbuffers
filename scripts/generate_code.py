@@ -154,11 +154,24 @@ flatc(
     include="include_test",
 )
 
+"""NOTE: The C++ gRPC golden is generated with the callback API enabled so that
+the repository goldens exercise the callback client & server code paths.
+If you need the legacy (non-callback) variant for comparison, invoke flatc
+manually without --grpc-callback-api; we intentionally do not keep both to
+minimize golden churn."""
 flatc(
-    NO_INCL_OPTS + CPP_OPTS + ["--grpc"],
+    NO_INCL_OPTS + CPP_OPTS + ["--grpc", "--grpc-callback-api"],
     schema="monster_test.fbs",
     include="include_test",
     data="monsterdata_test.json",
+)
+
+# Also generate a suffix variant exercising the callback API to keep prior
+# *_generated naming convention in sync with new callback additions.
+flatc(
+    NO_INCL_OPTS + CPP_OPTS + ["--grpc", "--grpc-callback-api", "--filename-suffix", "_generated"],
+    schema="monster_test.fbs",
+    include="include_test",
 )
 
 flatc(
@@ -331,6 +344,16 @@ if not args.skip_monster_extra:
 flatc(
     CPP_OPTS + CS_OPTS + NO_INCL_OPTS + JAVA_OPTS + ["--jsonschema", "--scoped-enums"],
     schema="arrays_test.fbs",
+)
+
+flatc(
+    ["--cpp", "--gen-mutable", "--gen-object-api", "--reflect-names"],
+    schema="native_type_test.fbs",
+)
+
+flatc(
+    ["--cpp", "--gen-mutable", "--gen-compare", "--gen-object-api", "--reflect-names"],
+    schema="native_inline_table_test.fbs",
 )
 
 flatc(
