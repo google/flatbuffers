@@ -1,10 +1,7 @@
-rootProject.name = "flatbuffers-kotlin"
-
 pluginManagement {
   repositories {
-    gradlePluginPortal()
-    google()
     mavenCentral()
+    gradlePluginPortal()
   }
 }
 
@@ -13,8 +10,10 @@ dependencyResolutionManagement {
   repositories {
     mavenCentral()
   }
-}
 
-includeBuild("convention-plugins")
-include("flatbuffers-kotlin")
-include("benchmark")
+  versionCatalogs {
+    create("libs") {
+      from(files("../gradle/libs.versions.toml"))
+    }
+  }
+}
