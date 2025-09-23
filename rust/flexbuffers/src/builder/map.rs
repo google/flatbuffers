@@ -43,7 +43,7 @@ impl<'a> MapBuilder<'a> {
     ///
     /// This will panic (in debug mode) if `key` contains internal nulls.
     #[inline]
-    pub fn start_vector(&mut self, key: &str) -> VectorBuilder {
+    pub fn start_vector(&mut self, key: &str) -> VectorBuilder<'_> {
         // Push the key that refers to this nested vector.
         self.builder.push_key(key);
         // Nested vector.
@@ -58,7 +58,7 @@ impl<'a> MapBuilder<'a> {
     ///
     /// This will panic (in debug mode) if `key` contains internal nulls.
     #[inline]
-    pub fn start_map(&mut self, key: &str) -> MapBuilder {
+    pub fn start_map(&mut self, key: &str) -> MapBuilder<'_> {
         // Push the key that refers to this nested vector.
         self.builder.push_key(key);
         // Nested map.

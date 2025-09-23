@@ -100,7 +100,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         debug_assert!(sz > 0);
         // Safety:
         // Valid vector at time of construction, verified that idx < element count
-        unsafe { T::follow(self.0, self.1 as usize + SIZE_UOFFSET + sz * idx) }
+        unsafe { T::follow(self.0, self.1 + SIZE_UOFFSET + sz * idx) }
     }
 
     #[inline(always)]
@@ -123,11 +123,11 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
                 Ordering::Equal => return Some(value),
                 Ordering::Less => left = mid + 1,
                 Ordering::Greater => {
-                  if mid == 0 {
-                    return None;
-                  }
-                  right = mid - 1;
-                },
+                    if mid == 0 {
+                        return None;
+                    }
+                    right = mid - 1;
+                }
             }
         }
 
@@ -313,7 +313,7 @@ impl<'a, T: Follow<'a> + 'a> IntoIterator for Vector<'a, T> {
     }
 }
 
-impl<'a, 'b, T: Follow<'a> + 'a> IntoIterator for &'b Vector<'a, T> {
+impl<'a, T: Follow<'a> + 'a> IntoIterator for &Vector<'a, T> {
     type Item = T::Inner;
     type IntoIter = VectorIter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {

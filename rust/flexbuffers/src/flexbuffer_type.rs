@@ -24,21 +24,23 @@
 ///
 /// ### Notes:
 /// * In the binary format, Each element of a `Map` or (heterogenous) `Vector`
-/// is stored with a byte describing its FlexBufferType and BitWidth.
+///   is stored with a byte describing its FlexBufferType and BitWidth.
 ///
 /// * Typed vectors do not store this extra type information and fixed length
-/// typed vectors do not store length. Whether a vector is stored as a typed
-/// vector or fixed length typed vector is determined dymaically from the
-/// given data.
+///   typed vectors do not store length. Whether a vector is stored as a typed
+///   vector or fixed length typed vector is determined dymaically from the
+///   given data.
 ///
 /// * Indirect numbers are stored as an offset instead of inline. Using
-/// indirect numbers instead of their inline counterparts in maps and typed
-/// vectors can reduce the minimum element width and therefore bytes used.
-
+///   indirect numbers instead of their inline counterparts in maps and typed
+///   vectors can reduce the minimum element width and therefore bytes used.
 #[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, num_enum::TryFromPrimitive)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default, num_enum::TryFromPrimitive,
+)]
 pub enum FlexBufferType {
     /// Nulls are represented with `()` in Rust.
+    #[default]
     Null = 0,
     /// Variable width signed integer: `i8, i16, i32, i64`
     Int = 1,
@@ -103,12 +105,6 @@ pub enum FlexBufferType {
     Blob = 25,
 }
 use FlexBufferType::*;
-
-impl Default for FlexBufferType {
-    fn default() -> Self {
-        Null
-    }
-}
 
 macro_rules! is_ty {
     ($is_T: ident, $FTy: ident) => {

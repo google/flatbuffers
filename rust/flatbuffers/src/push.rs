@@ -39,7 +39,7 @@ pub trait Push: Sized {
     }
 }
 
-impl<'a, T: Push> Push for &'a T {
+impl<T: Push> Push for &T {
     type Output = T::Output;
 
     unsafe fn push(&self, dst: &mut [u8], written_len: usize) {

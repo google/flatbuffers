@@ -81,7 +81,7 @@ impl<'a> VTableWriter<'a> {
     pub fn clear(&mut self) {
         // This is the closest thing to memset in Rust right now.
         let len = self.buf.len();
-        let p = self.buf.as_mut_ptr() as *mut u8;
+        let p = self.buf.as_mut_ptr();
 
         // Safety:
         // p is byte aligned and of length `len`

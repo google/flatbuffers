@@ -42,6 +42,7 @@ use crate::vtable_writer::VTableWriter;
 ///
 /// The implementation of the allocator must match the defined behavior as described by the
 /// comments.
+#[allow(clippy::len_without_is_empty)]
 pub unsafe trait Allocator: DerefMut<Target = [u8]> {
     /// A type describing allocation failures
     type Error: Display + Debug;
@@ -738,7 +739,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     #[inline]
     fn align(&mut self, len: usize, alignment: PushAlignment) {
         self.track_min_align(alignment.value());
-        let s = self.used_space() as usize;
+        let s = self.used_space();
         self.make_space(padding_bytes(s + len, alignment.value()));
     }
 
@@ -875,6 +876,7 @@ impl ReverseIndex {
     }
 }
 
+#[allow(clippy::suspicious_arithmetic_impl)]
 impl Sub<usize> for ReverseIndex {
     type Output = Self;
 
@@ -883,12 +885,14 @@ impl Sub<usize> for ReverseIndex {
     }
 }
 
+#[allow(clippy::suspicious_arithmetic_impl)]
 impl SubAssign<usize> for ReverseIndex {
     fn sub_assign(&mut self, rhs: usize) {
         *self = *self - rhs;
     }
 }
 
+#[allow(clippy::suspicious_arithmetic_impl)]
 impl Add<usize> for ReverseIndex {
     type Output = Self;
 

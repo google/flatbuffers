@@ -164,13 +164,13 @@ impl core::fmt::Display for InvalidFlatbuffer {
                     position, soffset, error_trace
                 )?;
             }
-            InvalidFlatbuffer::TooManyTables {} => {
+            InvalidFlatbuffer::TooManyTables => {
                 writeln!(f, "Too many tables.")?;
             }
-            InvalidFlatbuffer::ApparentSizeTooLarge {} => {
+            InvalidFlatbuffer::ApparentSizeTooLarge => {
                 writeln!(f, "Apparent size too large.")?;
             }
-            InvalidFlatbuffer::DepthLimitReached {} => {
+            InvalidFlatbuffer::DepthLimitReached => {
                 writeln!(f, "Nested table depth limit reached.")?;
             }
         }
@@ -560,7 +560,10 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
                 )?;
                 Ok(self)
             }
-            _ => InvalidFlatbuffer::new_inconsistent_union(key_field_name.into(), val_field_name.into()),
+            _ => InvalidFlatbuffer::new_inconsistent_union(
+                key_field_name.into(),
+                val_field_name.into(),
+            ),
         }
     }
     pub fn finish(self) -> &'ver mut Verifier<'opts, 'buf> {
@@ -652,7 +655,7 @@ impl<T: Verifiable> Verifiable for Vector<'_, ForwardsUOffset<T>> {
     }
 }
 
-impl<'a> Verifiable for &'a str {
+impl Verifiable for &str {
     #[inline]
     fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         let range = verify_vector_range::<u8>(v, pos)?;
