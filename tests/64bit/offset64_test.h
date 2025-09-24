@@ -17,4 +17,4 @@ void Offset64ForceAlign();
 }  // namespace tests
 }  // namespace flatbuffers
 
-#endif // TESTS_64BIT_OFFSET64_TEST_H
+#endif  // TESTS_64BIT_OFFSET64_TEST_H

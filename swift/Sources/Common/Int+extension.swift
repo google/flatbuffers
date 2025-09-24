@@ -28,9 +28,9 @@ extension Int {
     var n = UInt32(self)
 
     #if arch(arm) || arch(i386)
-    let max = UInt32(Int.max)
+      let max = UInt32(Int.max)
     #else
-    let max = UInt32.max
+      let max = UInt32.max
     #endif
 
     n -= 1

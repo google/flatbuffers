@@ -24,35 +24,31 @@ import java.nio.ByteBuffer;
 /// @addtogroup flatbuffers_java_api
 /// @{
 
-/**
- * Class that collects utility functions around `ByteBuffer`.
- */
+/** Class that collects utility functions around `ByteBuffer`. */
 public class ByteBufferUtil {
 
-	/**
-     * Extract the size prefix from a `ByteBuffer`.
-     * 
-     * @param bb a size-prefixed buffer
-     * @return the size prefix
-     */
-    public static int getSizePrefix(ByteBuffer bb) {
-        return bb.getInt(bb.position());
-    }
+  /**
+   * Extract the size prefix from a `ByteBuffer`.
+   *
+   * @param bb a size-prefixed buffer
+   * @return the size prefix
+   */
+  public static int getSizePrefix(ByteBuffer bb) {
+    return bb.getInt(bb.position());
+  }
 
-	/**
-     * Create a duplicate of a size-prefixed `ByteBuffer` that has its position
-     * advanced just past the size prefix.
-     * 
-     * @param bb a size-prefixed buffer
-     * @return a new buffer on the same underlying data that has skipped the
-     *         size prefix
-     */
-    public static ByteBuffer removeSizePrefix(ByteBuffer bb) {
-        ByteBuffer s = bb.duplicate();
-        s.position(s.position() + SIZE_PREFIX_LENGTH);
-        return s;
-    }
-
+  /**
+   * Create a duplicate of a size-prefixed `ByteBuffer` that has its position advanced just past the
+   * size prefix.
+   *
+   * @param bb a size-prefixed buffer
+   * @return a new buffer on the same underlying data that has skipped the size prefix
+   */
+  public static ByteBuffer removeSizePrefix(ByteBuffer bb) {
+    ByteBuffer s = bb.duplicate();
+    s.position(s.position() + SIZE_PREFIX_LENGTH);
+    return s;
+  }
 }
 
 /// @}

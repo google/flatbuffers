@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#if canImport(Common)
-import Common
-#endif
-
 import Foundation
+
+#if canImport(Common)
+  import Common
+#endif
 
 /// Struct is a representation of a mutable `Flatbuffers` struct
 /// since native structs are value types and cant be mutated

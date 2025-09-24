@@ -9,17 +9,19 @@ import (
 )
 
 type TableInFirstNST struct {
-	FooTable *NamespaceA__NamespaceB.TableInNestedNST
-	FooEnum NamespaceA__NamespaceB.EnumInNestedNS
-	FooUnion *NamespaceA__NamespaceB.UnionInNestedNST
+	FooTable  *NamespaceA__NamespaceB.TableInNestedNST
+	FooEnum   NamespaceA__NamespaceB.EnumInNestedNS
+	FooUnion  *NamespaceA__NamespaceB.UnionInNestedNST
 	FooStruct *NamespaceA__NamespaceB.StructInNestedNST
 }
 
 func (t *TableInFirstNST) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	fooTableOffset := t.FooTable.Pack(builder)
 	fooUnionOffset := t.FooUnion.Pack(builder)
-	
+
 	TableInFirstNSStart(builder)
 	TableInFirstNSAddFooTable(builder, fooTableOffset)
 	TableInFirstNSAddFooEnum(builder, t.FooEnum)
@@ -43,7 +45,9 @@ func (rcv *TableInFirstNS) UnPackTo(t *TableInFirstNST) {
 }
 
 func (rcv *TableInFirstNS) UnPack() *TableInFirstNST {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TableInFirstNST{}
 	rcv.UnPackTo(t)
 	return t

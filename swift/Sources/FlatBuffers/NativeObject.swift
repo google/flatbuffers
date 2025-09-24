@@ -27,8 +27,7 @@ extension NativeObject {
   /// - Parameter type: Type of the Flatbuffer object
   /// - Returns: returns the encoded sized ByteBuffer
   public func serialize<T: ObjectAPIPacker>(type: T.Type) -> ByteBuffer
-    where T.T == Self
-  {
+  where T.T == Self {
     var builder = FlatBufferBuilder(initialSize: 1024)
     return serialize(builder: &builder, type: type.self)
   }
@@ -43,8 +42,8 @@ extension NativeObject {
   ///  It can be considered less expensive in terms of memory allocation
   public func serialize<T: ObjectAPIPacker>(
     builder: inout FlatBufferBuilder,
-    type: T.Type) -> ByteBuffer where T.T == Self
-  {
+    type: T.Type
+  ) -> ByteBuffer where T.T == Self {
     var s = self
     let root = type.pack(&builder, obj: &s)
     builder.finish(offset: root)

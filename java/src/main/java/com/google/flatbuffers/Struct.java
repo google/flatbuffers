@@ -20,22 +20,21 @@ import java.nio.ByteBuffer;
 
 /// @cond FLATBUFFERS_INTERNAL
 
-/**
- * All structs in the generated code derive from this class, and add their own accessors.
- */
+/** All structs in the generated code derive from this class, and add their own accessors. */
 public class Struct {
   /** Used to hold the position of the `bb` buffer. */
   protected int bb_pos;
+
   /** The underlying ByteBuffer to hold the data of the Struct. */
   protected ByteBuffer bb;
 
   /**
    * Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
    *
-   * This method exists primarily to allow recycling Table instances without risking memory leaks
+   * <p>This method exists primarily to allow recycling Table instances without risking memory leaks
    * due to {@code ByteBuffer} references.
    */
-  protected void __reset(int _i, ByteBuffer _bb) { 
+  protected void __reset(int _i, ByteBuffer _bb) {
     bb = _bb;
     if (bb != null) {
       bb_pos = _i;
@@ -47,8 +46,8 @@ public class Struct {
   /**
    * Resets internal state with a null {@code ByteBuffer} and a zero position.
    *
-   * This method exists primarily to allow recycling Struct instances without risking memory leaks
-   * due to {@code ByteBuffer} references. The instance will be unusable until it is assigned
+   * <p>This method exists primarily to allow recycling Struct instances without risking memory
+   * leaks due to {@code ByteBuffer} references. The instance will be unusable until it is assigned
    * again to a {@code ByteBuffer}.
    *
    * @param struct the instance to reset to initial state

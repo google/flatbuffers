@@ -153,10 +153,7 @@ impl<'de> VariantAccess<'de> for Reader<&'de [u8]> {
         V: Visitor<'de>,
     {
         let m = self.get_map()?;
-        visitor.visit_map(MapAccessor {
-            keys: m.keys_vector().iter(),
-            vals: m.iter_values(),
-        })
+        visitor.visit_map(MapAccessor { keys: m.keys_vector().iter(), vals: m.iter_values() })
     }
 }
 
@@ -190,10 +187,8 @@ impl<'de> Deserializer<'de> for Reader<&'de [u8]> {
             (Blob, _) => visitor.visit_borrowed_bytes(self.get_blob()?.0),
             (Map, _) => {
                 let m = self.get_map()?;
-                visitor.visit_map(MapAccessor {
-                    keys: m.keys_vector().iter(),
-                    vals: m.iter_values(),
-                })
+                visitor
+                    .visit_map(MapAccessor { keys: m.keys_vector().iter(), vals: m.iter_values() })
             }
             (ty, _) if ty.is_vector() => visitor.visit_seq(self.as_vector().iter()),
             (ty, bw) => unreachable!("TODO deserialize_any {:?} {:?}.", ty, bw),
