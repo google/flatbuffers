@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#if canImport(Common)
-import Common
-#endif
 import Foundation
+
+#if canImport(Common)
+  import Common
+#endif
 
 /// Type aliases
 public typealias Byte = UInt8
@@ -25,7 +26,8 @@ public typealias UOffset = UInt32
 public typealias SOffset = Int32
 public typealias VOffset = UInt16
 /// Maximum size for a buffer
-public let FlatBufferMaxSize = UInt32
+public let FlatBufferMaxSize =
+  UInt32
   .max << ((MemoryLayout<SOffset>.size * 8 - 1) - 1)
 
 /// Protocol that All Scalars should conform to

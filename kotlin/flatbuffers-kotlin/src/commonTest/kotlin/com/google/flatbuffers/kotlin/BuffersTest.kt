@@ -16,10 +16,10 @@ class BuffersTest {
 
     assertEquals(bytes.size, fullRead.limit)
     assertEquals(text, fullRead.getString(0, fullRead.limit))
-    assertEquals("Hello" , helloRead.getString(0, helloRead.limit))
-    assertEquals("world!" , worldRead.getString())
-    assertEquals(fullRead.getString(0, 5) , helloRead.getString(0, helloRead.limit))
-    assertEquals(fullRead.getString(6, 6) , worldRead.getString(0, worldRead.limit))
+    assertEquals("Hello", helloRead.getString(0, helloRead.limit))
+    assertEquals("world!", worldRead.getString())
+    assertEquals(fullRead.getString(0, 5), helloRead.getString(0, helloRead.limit))
+    assertEquals(fullRead.getString(6, 6), worldRead.getString(0, worldRead.limit))
 
     for (i in 0 until helloRead.limit) {
       assertEquals(fullRead[i], helloRead[i])
