@@ -107,8 +107,11 @@ class Builder {
     final newOffset = _newOffset(length + 1);
     _pushBuffer(utf8String);
     _offset = newOffset;
-    final stackValue =
-        _StackValue.withOffset(stringOffset, ValueType.String, bitWidth);
+    final stackValue = _StackValue.withOffset(
+      stringOffset,
+      ValueType.String,
+      bitWidth,
+    );
     _stack.add(stackValue);
     _stringCache[value] = stackValue;
   }
@@ -128,8 +131,11 @@ class Builder {
     final newOffset = _newOffset(length + 1);
     _pushBuffer(utf8String);
     _offset = newOffset;
-    final stackValue =
-        _StackValue.withOffset(keyOffset, ValueType.Key, BitWidth.width8);
+    final stackValue = _StackValue.withOffset(
+      keyOffset,
+      ValueType.Key,
+      BitWidth.width8,
+    );
     _stack.add(stackValue);
     _keyCache[value] = stackValue;
   }
@@ -147,8 +153,11 @@ class Builder {
     final newOffset = _newOffset(length);
     _pushBuffer(value.asUint8List());
     _offset = newOffset;
-    final stackValue =
-        _StackValue.withOffset(blobOffset, ValueType.Blob, bitWidth);
+    final stackValue = _StackValue.withOffset(
+      blobOffset,
+      ValueType.Blob,
+      bitWidth,
+    );
     _stack.add(stackValue);
   }
 
@@ -170,7 +179,10 @@ class Builder {
     final valueOffset = _offset;
     _pushBuffer(stackValue.asU8List(stackValue.width));
     final stackOffset = _StackValue.withOffset(
-        valueOffset, ValueType.IndirectInt, stackValue.width);
+      valueOffset,
+      ValueType.IndirectInt,
+      stackValue.width,
+    );
     _stack.add(stackOffset);
     _offset = newOffset;
     if (cache) {
@@ -195,7 +207,10 @@ class Builder {
     final valueOffset = _offset;
     _pushBuffer(stackValue.asU8List(stackValue.width));
     final stackOffset = _StackValue.withOffset(
-        valueOffset, ValueType.IndirectFloat, stackValue.width);
+      valueOffset,
+      ValueType.IndirectFloat,
+      stackValue.width,
+    );
     _stack.add(stackOffset);
     _offset = newOffset;
     if (cache) {
@@ -252,9 +267,10 @@ class Builder {
     tmp._offset = _offset;
     tmp._stack = List.from(_stack);
     tmp._stackPointers = List.from(_stackPointers);
-    tmp._buffer.buffer
-        .asUint8List()
-        .setAll(0, _buffer.buffer.asUint8List(0, _offset));
+    tmp._buffer.buffer.asUint8List().setAll(
+      0,
+      _buffer.buffer.asUint8List(0, _offset),
+    );
     for (var i = 0; i < tmp._stackPointers.length; i++) {
       tmp.end();
     }
@@ -271,7 +287,8 @@ class Builder {
     if (_stackPointers.isNotEmpty && _stackPointers.last.isVector == false) {
       if (_stack.last.type != ValueType.Key) {
         throw StateError(
-            'Adding value to a map before adding a key is prohibited');
+          'Adding value to a map before adding a key is prohibited',
+        );
       }
     }
   }
@@ -288,7 +305,8 @@ class Builder {
   void _finish() {
     if (_stack.length != 1) {
       throw StateError(
-          'Stack has to be exactly 1, but is ${_stack.length}. You have to end all started vectors and maps, before calling [finish]');
+        'Stack has to be exactly 1, but is ${_stack.length}. You have to end all started vectors and maps, before calling [finish]',
+      );
     }
     final value = _stack[0];
     final byteWidth = _align(value.elementWidth(_offset, 0));
@@ -298,8 +316,12 @@ class Builder {
     _finished = true;
   }
 
-  _StackValue _createVector(int start, int vecLength, int step,
-      [_StackValue? keys]) {
+  _StackValue _createVector(
+    int start,
+    int vecLength,
+    int step, [
+    _StackValue? keys,
+  ]) {
     var bitWidth = BitWidthUtil.uwidth(vecLength);
     var prefixElements = 1;
     if (keys != null) {
@@ -326,7 +348,8 @@ class Builder {
       }
     }
     final byteWidth = _align(bitWidth);
-    final fix = typed & ValueTypeUtils.isNumber(vectorType) &&
+    final fix =
+        typed & ValueTypeUtils.isNumber(vectorType) &&
         vecLength >= 2 &&
         vecLength <= 4;
     if (keys != null) {
@@ -349,8 +372,10 @@ class Builder {
       return _StackValue.withOffset(vecOffset, ValueType.Map, bitWidth);
     }
     if (typed) {
-      final vType =
-          ValueTypeUtils.toTypedVector(vectorType, fix ? vecLength : 0);
+      final vType = ValueTypeUtils.toTypedVector(
+        vectorType,
+        fix ? vecLength : 0,
+      );
       return _StackValue.withOffset(vecOffset, vType, bitWidth);
     }
     return _StackValue.withOffset(vecOffset, ValueType.Vector, bitWidth);
@@ -366,7 +391,8 @@ class Builder {
   void _sortKeysAndEndMap(_StackPointer pointer) {
     if (((_stack.length - pointer.stackPosition) & 1) == 1) {
       throw StateError(
-          'The stack needs to hold key value pairs (even number of elements). Check if you combined [addKey] with add... method calls properly.');
+        'The stack needs to hold key value pairs (even number of elements). Check if you combined [addKey] with add... method calls properly.',
+      );
     }
 
     var sorted = true;
@@ -412,8 +438,12 @@ class Builder {
       keysStackValue = _createVector(pointer.stackPosition, vecLength, 2);
       _keyVectorCache[keysHash] = keysStackValue;
     }
-    final vec =
-        _createVector(pointer.stackPosition + 1, vecLength, 2, keysStackValue);
+    final vec = _createVector(
+      pointer.stackPosition + 1,
+      vecLength,
+      2,
+      keysStackValue,
+    );
     _stack.removeRange(pointer.stackPosition, _stack.length);
     _stack.add(vec);
   }
@@ -421,7 +451,8 @@ class Builder {
   bool _shouldFlip(_StackValue v1, _StackValue v2) {
     if (v1.type != ValueType.Key || v2.type != ValueType.Key) {
       throw StateError(
-          'Stack values are not keys $v1 | $v2. Check if you combined [addKey] with add... method calls properly.');
+        'Stack values are not keys $v1 | $v2. Check if you combined [addKey] with add... method calls properly.',
+      );
     }
 
     late int c1, c2;
@@ -450,7 +481,8 @@ class Builder {
         _writeUInt(relativeOffset, byteWidth);
       } else {
         throw StateError(
-            'Unexpected size $byteWidth. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
+          'Unexpected size $byteWidth. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new',
+        );
       }
     } else {
       _pushBuffer(value.asU8List(BitWidthUtil.fromByteWidth(byteWidth)));
@@ -523,29 +555,27 @@ class _StackValue {
   final ValueType _type;
   final BitWidth _width;
 
-  _StackValue.withNull()
-      : _type = ValueType.Null,
-        _width = BitWidth.width8;
+  _StackValue.withNull() : _type = ValueType.Null, _width = BitWidth.width8;
 
   _StackValue.withInt(int value)
-      : _type = ValueType.Int,
-        _width = BitWidthUtil.width(value),
-        _value = value;
+    : _type = ValueType.Int,
+      _width = BitWidthUtil.width(value),
+      _value = value;
 
   _StackValue.withBool(bool value)
-      : _type = ValueType.Bool,
-        _width = BitWidth.width8,
-        _value = value;
+    : _type = ValueType.Bool,
+      _width = BitWidth.width8,
+      _value = value;
 
   _StackValue.withDouble(double value)
-      : _type = ValueType.Float,
-        _width = BitWidthUtil.width(value),
-        _value = value;
+    : _type = ValueType.Float,
+      _width = BitWidthUtil.width(value),
+      _value = value;
 
   _StackValue.withOffset(int value, ValueType type, BitWidth width)
-      : _offset = value,
-        _type = type,
-        _width = width;
+    : _offset = value,
+      _type = type,
+      _width = width;
 
   BitWidth storedWidth({BitWidth width = BitWidth.width8}) {
     return ValueTypeUtils.isInline(_type)
@@ -562,16 +592,16 @@ class _StackValue {
     final offset = _offset!;
     for (var i = 0; i < 4; i++) {
       final width = 1 << i;
-      final bitWidth = BitWidthUtil.uwidth(size +
-          BitWidthUtil.paddingSize(size, width) +
-          index * width -
-          offset);
+      final bitWidth = BitWidthUtil.uwidth(
+        size + BitWidthUtil.paddingSize(size, width) + index * width - offset,
+      );
       if (1 << bitWidth.index == width) {
         return bitWidth;
       }
     }
     throw StateError(
-        'Element is of unknown. Size: $size at index: $index. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
+      'Element is of unknown. Size: $size at index: $index. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new',
+    );
   }
 
   List<int> asU8List(BitWidth width) {
@@ -619,7 +649,8 @@ class _StackValue {
     }
 
     throw StateError(
-        'Unexpected type: $_type. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new');
+      'Unexpected type: $_type. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new',
+    );
   }
 
   ValueType get type {

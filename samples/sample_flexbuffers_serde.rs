@@ -49,14 +49,8 @@ fn main() {
         velocity: [1.0, 0.0, 0.0],
         weapons: vec![
             Weapon::Fist,
-            Weapon::Equipment {
-                name: "great axe".to_string(),
-                damage: 15,
-            },
-            Weapon::Equipment {
-                name: "hammer".to_string(),
-                damage: 5,
-            },
+            Weapon::Equipment { name: "great axe".to_string(), damage: 15 },
+            Weapon::Equipment { name: "hammer".to_string(), damage: 5 },
         ],
         coins: vec![5, 10, 25, 25, 25, 100],
     };

@@ -28,7 +28,8 @@ public protocol FlatBufferGRPCMessage {
   @inline(__always)
   func withUnsafeReadableBytes<T>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T) rethrows -> T
+      -> T
+  ) rethrows -> T
 }
 
 /// Message is a wrapper around Buffers to to able to send Flatbuffers `Buffers` through the
@@ -40,8 +41,7 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   public var object: T {
     T.init(
       buffer,
-      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) &+
-        Int32(buffer.reader))
+      o: Int32(buffer.read(def: UOffset.self, position: buffer.reader)) &+ Int32(buffer.reader))
   }
 
   public var size: Int { Int(buffer.size) }
@@ -66,8 +66,8 @@ public struct Message<T: FlatBufferObject>: FlatBufferGRPCMessage {
   @inline(__always)
   public func withUnsafeReadableBytes<Data>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> Data) rethrows -> Data
-  {
+      -> Data
+  ) rethrows -> Data {
     return try buffer.readWithUnsafeRawPointer(position: buffer.reader) {
       try body(UnsafeRawBufferPointer(start: $0, count: size))
     }

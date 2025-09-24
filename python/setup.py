@@ -21,9 +21,11 @@ setup(
     author='Derek Bailey',
     author_email='derekbailey@google.com',
     url='https://google.github.io/flatbuffers/',
-    long_description=('Python runtime library for use with the '
-                      '`Flatbuffers <https://google.github.io/flatbuffers/>`_ '
-                      'serialization format.'),
+    long_description=(
+        'Python runtime library for use with the '
+        '`Flatbuffers <https://google.github.io/flatbuffers/>`_ '
+        'serialization format.'
+    ),
     packages=['flatbuffers'],
     include_package_data=True,
     requires=[],

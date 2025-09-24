@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
 import platform
 import subprocess
 import sys
-from pathlib import Path
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -26,38 +26,42 @@ script_path = Path(__file__).parent.resolve()
 # Get the root path as an absolute path, so all derived paths are absolute.
 root_path = script_path.parent.absolute()
 
-result = subprocess.run(["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path)
+result = subprocess.run(
+    ["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path
+)
 
 if result.returncode != 0:
-    print(
-        "\n"
-        "ERROR: *********************************************************\n"
-        "ERROR: * The following differences were found after building.  *\n"
-        "ERROR: * Perhaps there is a difference in the flags for the.   *\n"
-        "ERROR: * CMakeLists.txt vs the script/generate_code.py script? *\n"
-        "ERROR: *********************************************************\n"
-    )
-    subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
-    sys.exit(result.returncode)
+  print(
+      "\n"
+      "ERROR: *********************************************************\n"
+      "ERROR: * The following differences were found after building.  *\n"
+      "ERROR: * Perhaps there is a difference in the flags for the.   *\n"
+      "ERROR: * CMakeLists.txt vs the script/generate_code.py script? *\n"
+      "ERROR: *********************************************************\n"
+  )
+  subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
+  sys.exit(result.returncode)
 
 # Rung the generate_code.py script, forwarding arguments
 gen_cmd = ["scripts/generate_code.py"] + sys.argv[1:]
 if platform.system() == "Windows":
-    gen_cmd = ["py"] + gen_cmd
+  gen_cmd = ["py"] + gen_cmd
 subprocess.run(gen_cmd, cwd=root_path)
 
-result = subprocess.run(["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path)
+result = subprocess.run(
+    ["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path
+)
 
 if result.returncode != 0:
-    print(
-        "\n"
-        "ERROR: ********************************************************\n"
-        "ERROR: * The following differences were found after running   *\n"
-        "ERROR: * the script/generate_code.py script. Maybe you forgot *\n"
-        "ERROR: * to run it after making changes in a generator?       *\n"
-        "ERROR: ********************************************************\n"
-    )
-    subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
-    sys.exit(result.returncode)
+  print(
+      "\n"
+      "ERROR: ********************************************************\n"
+      "ERROR: * The following differences were found after running   *\n"
+      "ERROR: * the script/generate_code.py script. Maybe you forgot *\n"
+      "ERROR: * to run it after making changes in a generator?       *\n"
+      "ERROR: ********************************************************\n"
+  )
+  subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
+  sys.exit(result.returncode)
 
 sys.exit(0)

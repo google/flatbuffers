@@ -15,11 +15,11 @@
 use alloc::vec::Vec;
 
 use flexbuffers::*;
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 use quickcheck::QuickCheck;
 
 #[test]
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 fn qc_reader_no_crash() {
     fn no_crash(xs: Vec<u8>) -> bool {
         let r = Reader::get_root(xs.as_ref());
@@ -165,12 +165,7 @@ fn get_root_deref_oob() {
 }
 #[test]
 fn get_root_deref_u64() {
-    let s = &[
-        0,
-        0,
-        (FlexBufferType::IndirectUInt as u8) << 2 | BitWidth::W64 as u8,
-        1,
-    ];
+    let s = &[0, 0, (FlexBufferType::IndirectUInt as u8) << 2 | BitWidth::W64 as u8, 1];
     // The risk of crashing is reading 8 bytes from index 0.
     assert_eq!(Reader::get_root(s.as_ref()).unwrap().as_u64(), 0);
 }

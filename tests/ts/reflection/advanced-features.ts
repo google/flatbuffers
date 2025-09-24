@@ -9,5 +9,5 @@ export enum AdvancedFeatures {
   AdvancedArrayFeatures = '1',
   AdvancedUnionFeatures = '2',
   OptionalScalars = '4',
-  DefaultVectorsAndStrings = '8'
+  DefaultVectorsAndStrings = '8',
 }

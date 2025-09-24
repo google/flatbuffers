@@ -7,46 +7,48 @@ import (
 )
 
 type ScalarStuffT struct {
-	JustI8 int8 `json:"just_i8"`
-	MaybeI8 *int8 `json:"maybe_i8"`
-	DefaultI8 int8 `json:"default_i8"`
-	JustU8 byte `json:"just_u8"`
-	MaybeU8 *byte `json:"maybe_u8"`
-	DefaultU8 byte `json:"default_u8"`
-	JustI16 int16 `json:"just_i16"`
-	MaybeI16 *int16 `json:"maybe_i16"`
-	DefaultI16 int16 `json:"default_i16"`
-	JustU16 uint16 `json:"just_u16"`
-	MaybeU16 *uint16 `json:"maybe_u16"`
-	DefaultU16 uint16 `json:"default_u16"`
-	JustI32 int32 `json:"just_i32"`
-	MaybeI32 *int32 `json:"maybe_i32"`
-	DefaultI32 int32 `json:"default_i32"`
-	JustU32 uint32 `json:"just_u32"`
-	MaybeU32 *uint32 `json:"maybe_u32"`
-	DefaultU32 uint32 `json:"default_u32"`
-	JustI64 int64 `json:"just_i64"`
-	MaybeI64 *int64 `json:"maybe_i64"`
-	DefaultI64 int64 `json:"default_i64"`
-	JustU64 uint64 `json:"just_u64"`
-	MaybeU64 *uint64 `json:"maybe_u64"`
-	DefaultU64 uint64 `json:"default_u64"`
-	JustF32 float32 `json:"just_f32"`
-	MaybeF32 *float32 `json:"maybe_f32"`
-	DefaultF32 float32 `json:"default_f32"`
-	JustF64 float64 `json:"just_f64"`
-	MaybeF64 *float64 `json:"maybe_f64"`
-	DefaultF64 float64 `json:"default_f64"`
-	JustBool bool `json:"just_bool"`
-	MaybeBool *bool `json:"maybe_bool"`
-	DefaultBool bool `json:"default_bool"`
-	JustEnum OptionalByte `json:"just_enum"`
-	MaybeEnum *OptionalByte `json:"maybe_enum"`
-	DefaultEnum OptionalByte `json:"default_enum"`
+	JustI8      int8          `json:"just_i8"`
+	MaybeI8     *int8         `json:"maybe_i8"`
+	DefaultI8   int8          `json:"default_i8"`
+	JustU8      byte          `json:"just_u8"`
+	MaybeU8     *byte         `json:"maybe_u8"`
+	DefaultU8   byte          `json:"default_u8"`
+	JustI16     int16         `json:"just_i16"`
+	MaybeI16    *int16        `json:"maybe_i16"`
+	DefaultI16  int16         `json:"default_i16"`
+	JustU16     uint16        `json:"just_u16"`
+	MaybeU16    *uint16       `json:"maybe_u16"`
+	DefaultU16  uint16        `json:"default_u16"`
+	JustI32     int32         `json:"just_i32"`
+	MaybeI32    *int32        `json:"maybe_i32"`
+	DefaultI32  int32         `json:"default_i32"`
+	JustU32     uint32        `json:"just_u32"`
+	MaybeU32    *uint32       `json:"maybe_u32"`
+	DefaultU32  uint32        `json:"default_u32"`
+	JustI64     int64         `json:"just_i64"`
+	MaybeI64    *int64        `json:"maybe_i64"`
+	DefaultI64  int64         `json:"default_i64"`
+	JustU64     uint64        `json:"just_u64"`
+	MaybeU64    *uint64       `json:"maybe_u64"`
+	DefaultU64  uint64        `json:"default_u64"`
+	JustF32     float32       `json:"just_f32"`
+	MaybeF32    *float32      `json:"maybe_f32"`
+	DefaultF32  float32       `json:"default_f32"`
+	JustF64     float64       `json:"just_f64"`
+	MaybeF64    *float64      `json:"maybe_f64"`
+	DefaultF64  float64       `json:"default_f64"`
+	JustBool    bool          `json:"just_bool"`
+	MaybeBool   *bool         `json:"maybe_bool"`
+	DefaultBool bool          `json:"default_bool"`
+	JustEnum    OptionalByte  `json:"just_enum"`
+	MaybeEnum   *OptionalByte `json:"maybe_enum"`
+	DefaultEnum OptionalByte  `json:"default_enum"`
 }
 
 func (t *ScalarStuffT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	ScalarStuffStart(builder)
 	ScalarStuffAddJustI8(builder, t.JustI8)
 	if t.MaybeI8 != nil {
@@ -151,7 +153,9 @@ func (rcv *ScalarStuff) UnPackTo(t *ScalarStuffT) {
 }
 
 func (rcv *ScalarStuff) UnPack() *ScalarStuffT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ScalarStuffT{}
 	rcv.UnPackTo(t)
 	return t

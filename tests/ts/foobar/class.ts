@@ -3,5 +3,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
 export enum class_ {
-  arguments_ = 0
+  arguments_ = 0,
 }

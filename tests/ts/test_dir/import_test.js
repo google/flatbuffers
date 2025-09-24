@@ -12,7 +12,7 @@ function main() {
 
   // Validate building a table.
   var fbb = new flatbuffers.Builder(1);
-  var name = fbb.createString("Foo Bar");
+  var name = fbb.createString('Foo Bar');
 
   foobar.Tab.startTab(fbb);
   foobar.Tab.addAbc(fbb, foobar.Abc.a);

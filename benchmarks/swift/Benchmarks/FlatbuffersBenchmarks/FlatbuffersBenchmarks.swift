@@ -88,8 +88,8 @@ let benchmarks = {
 
   Benchmark(
     "Allocating ByteBuffer 1GB",
-    configuration: singleConfiguration)
-  { benchmark in
+    configuration: singleConfiguration
+  ) { benchmark in
     let memory = UnsafeMutableRawPointer.allocate(
       byteCount: 1_024_000_000,
       alignment: 1)
@@ -108,7 +108,7 @@ let benchmarks = {
   }
 
   Benchmark("Strings 10") { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1 << 20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
       blackHole(fb.create(string: str10))
@@ -116,7 +116,7 @@ let benchmarks = {
   }
 
   Benchmark("Strings 100") { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1 << 20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
       blackHole(fb.create(string: str100))
@@ -124,7 +124,7 @@ let benchmarks = {
   }
 
   Benchmark("Vector 1 Bytes") { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1 << 20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
       blackHole(fb.createVector(bytes: bytes))
@@ -132,7 +132,7 @@ let benchmarks = {
   }
 
   Benchmark("Vector 1 Ints") { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1 << 20)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
       blackHole(fb.createVector(ints))
@@ -140,7 +140,7 @@ let benchmarks = {
   }
 
   Benchmark("Vector 100 Ints") { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1 << 20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
       blackHole(fb.createVector(ints))
@@ -148,7 +148,7 @@ let benchmarks = {
   }
 
   Benchmark("Vector 100 Bytes") { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1 << 20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
       blackHole(fb.createVector(bytes))
@@ -156,7 +156,7 @@ let benchmarks = {
   }
 
   Benchmark("Vector 100 ContiguousBytes") { benchmark in
-    var fb = FlatBufferBuilder(initialSize: 1<<20)
+    var fb = FlatBufferBuilder(initialSize: 1 << 20)
     benchmark.startMeasurement()
     for i in benchmark.scaledIterations {
       blackHole(fb.createVector(bytes: bytes))
@@ -165,8 +165,8 @@ let benchmarks = {
 
   Benchmark(
     "FlatBufferBuilder Add",
-    configuration: kiloConfiguration)
-  { benchmark in
+    configuration: kiloConfiguration
+  ) { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
@@ -182,8 +182,8 @@ let benchmarks = {
 
   Benchmark(
     "FlatBufferBuilder Start table",
-    configuration: kiloConfiguration)
-  { benchmark in
+    configuration: kiloConfiguration
+  ) { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {

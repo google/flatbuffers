@@ -23,7 +23,7 @@ import Foundation
 @inline(__always)
 public func padding(
   bufSize: UInt,
-  elementSize: UInt) -> UInt
-{
+  elementSize: UInt
+) -> UInt {
   ((~bufSize) &+ 1) & (elementSize &- 1)
 }

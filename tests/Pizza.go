@@ -11,7 +11,9 @@ type PizzaT struct {
 }
 
 func (t *PizzaT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	PizzaStart(builder)
 	PizzaAddSize(builder, t.Size)
 	return PizzaEnd(builder)
@@ -22,7 +24,9 @@ func (rcv *Pizza) UnPackTo(t *PizzaT) {
 }
 
 func (rcv *Pizza) UnPack() *PizzaT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &PizzaT{}
 	rcv.UnPackTo(t)
 	return t

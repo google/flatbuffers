@@ -25,8 +25,8 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
 
 /**
- * This class implements the Utf8 API using the Java Utf8 encoder. Use
- * Utf8.setDefault(new Utf8Old()); to use it.
+ * This class implements the Utf8 API using the Java Utf8 encoder. Use Utf8.setDefault(new
+ * Utf8Old()); to use it.
  */
 public class Utf8Old extends Utf8 {
 
@@ -64,8 +64,7 @@ public class Utf8Old extends Utf8 {
     }
     cache.lastOutput.clear();
     cache.lastInput = in;
-    CharBuffer wrap = (in instanceof CharBuffer) ?
-                          (CharBuffer) in : CharBuffer.wrap(in);
+    CharBuffer wrap = (in instanceof CharBuffer) ? (CharBuffer) in : CharBuffer.wrap(in);
     CoderResult result = cache.encoder.encode(wrap, cache.lastOutput, true);
     if (result.isError()) {
       try {

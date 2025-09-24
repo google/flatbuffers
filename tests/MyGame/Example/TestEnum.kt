@@ -4,11 +4,12 @@ package MyGame.Example
 
 @Suppress("unused")
 class TestEnum private constructor() {
-    companion object {
-        const val A: Byte = 0
-        const val B: Byte = 1
-        const val C: Byte = 2
-        val names : Array<String> = arrayOf("A", "B", "C")
-        fun name(e: Int) : String = names[e]
-    }
+  companion object {
+    const val A: Byte = 0
+    const val B: Byte = 1
+    const val C: Byte = 2
+    val names: Array<String> = arrayOf("A", "B", "C")
+
+    fun name(e: Int): String = names[e]
+  }
 }

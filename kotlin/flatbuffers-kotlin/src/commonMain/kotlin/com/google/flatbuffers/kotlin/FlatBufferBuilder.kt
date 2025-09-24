@@ -17,14 +17,15 @@ package com.google.flatbuffers.kotlin
 
 import kotlin.jvm.JvmOverloads
 
-
 /**
- * Class that helps you build a FlatBuffer.  See the section
- * "Use in Kotlin" in the main FlatBuffers documentation.
+ * Class that helps you build a FlatBuffer. See the section "Use in Kotlin" in the main FlatBuffers
+ * documentation.
  */
-public class FlatBufferBuilder @JvmOverloads constructor(
+public class FlatBufferBuilder
+@JvmOverloads
+constructor(
   private val initialSize: Int = 1024,
-  private var buffer: ReadWriteBuffer = ArrayReadWriteBuffer(initialSize)
+  private var buffer: ReadWriteBuffer = ArrayReadWriteBuffer(initialSize),
 ) {
   // Remaining space in the ByteBuffer.
   private var space: Int = buffer.capacity
@@ -62,9 +63,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   // map used to cache shared strings.
   private var stringPool: MutableMap<CharSequence, Offset<String>>? = null
 
-  /**
-   * Reset the FlatBufferBuilder by purging all data that it holds.
-   */
+  /** Reset the FlatBufferBuilder by purging all data that it holds. */
   public fun clear() {
     space = buffer.capacity
     buffer.clear()
@@ -96,11 +95,10 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Prepare to write an element of `size` after `additional_bytes`
-   * have been written, e.g. if you write a string, you need to align such
-   * the int length field is aligned to [com.google.flatbuffers.Int.SIZE_BYTES], and
-   * the string data follows it directly.  If all you need to do is alignment, `additional_bytes`
-   * will be 0.
+   * Prepare to write an element of `size` after `additional_bytes` have been written, e.g. if you
+   * write a string, you need to align such the int length field is aligned to
+   * [com.google.flatbuffers.Int.SIZE_BYTES], and the string data follows it directly. If all you
+   * need to do is alignment, `additional_bytes` will be 0.
    *
    * @param size This is the of the new element to write.
    * @param additionalBytes The padding size.
@@ -124,8 +122,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a `boolean` to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a `boolean` to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A `boolean` to put into the buffer.
    */
@@ -135,16 +133,16 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [UByte] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [UByte] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [UByte] to put into the buffer.
    */
   public fun put(x: UByte): Unit = put(x.toByte())
 
   /**
-   * Add a [Byte] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [Byte] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [Byte] to put into the buffer.
    */
@@ -154,16 +152,16 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [UShort] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [UShort] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [UShort] to put into the buffer.
    */
   public fun put(x: UShort): Unit = put(x.toShort())
 
   /**
-   * Add a [Short] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [Short] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [Short] to put into the buffer.
    */
@@ -173,35 +171,35 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add an [UInt] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add an [UInt] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x An [UInt] to put into the buffer.
    */
   public fun put(x: UInt): Unit = put(x.toInt())
 
   /**
-   * Add an [Int] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add an [Int] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x An [Int] to put into the buffer.
    */
-  public fun put(x: Int){
+  public fun put(x: Int) {
     space -= Int.SIZE_BYTES
     buffer.set(space, x)
   }
 
   /**
-   * Add a [ULong] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [ULong] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [ULong] to put into the buffer.
    */
   public fun put(x: ULong): Unit = put(x.toLong())
 
   /**
-   * Add a [Long] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [Long] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [Long] to put into the buffer.
    */
@@ -211,8 +209,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [Float] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [Float] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [Float] to put into the buffer.
    */
@@ -222,8 +220,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [Double] to the buffer, backwards from the current location. Doesn't align nor
-   * check for space.
+   * Add a [Double] to the buffer, backwards from the current location. Doesn't align nor check for
+   * space.
    *
    * @param x A [Double] to put into the buffer.
    */
@@ -336,26 +334,23 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param off The offset to add.
    */
   public fun add(off: Offset<*>): Unit = addOffset(off.value)
+
   public fun add(off: VectorOffset<*>): Unit = addOffset(off.value)
+
   private fun addOffset(off: Int) {
     prep(Int.SIZE_BYTES, 0) // Ensure alignment is already done.
     put(buffer.capacity - space - off + Int.SIZE_BYTES)
   }
 
   /**
-   * Start a new array/vector of objects.  Users usually will not call
-   * this directly.  The `FlatBuffers` compiler will create a start/end
-   * method for vector types in generated code.
-   *
+   * Start a new array/vector of objects. Users usually will not call this directly. The
+   * `FlatBuffers` compiler will create a start/end method for vector types in generated code.
    *
    * The expected sequence of calls is:
-   *
-   *  1. Start the array using this method.
-   *  1. Call [.addOffset] `num_elems` number of times to set
-   * the offset of each element in the array.
-   *  1. Call [.endVector] to retrieve the offset of the array.
-   *
-   *
+   * 1. Start the array using this method.
+   * 1. Call [.addOffset] `num_elems` number of times to set the offset of each element in the
+   *    array.
+   * 1. Call [.endVector] to retrieve the offset of the array.
    *
    * For example, to create an array of strings, do:
    * <pre>`// Need 10 strings
@@ -379,7 +374,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * // Finish off the vector
    * int offsetOfTheVector = fbb.endVector();
-   `</pre> *
+   * `</pre> *
    *
    * @param elemSize The size of each element in the array.
    * @param numElems The number of elements in the array.
@@ -392,11 +387,12 @@ public class FlatBufferBuilder @JvmOverloads constructor(
     prep(alignment, elemSize * numElems) // Just in case alignment > int.
     nested = true
   }
+
   public fun startString(numElems: Int): Unit = startVector(1, numElems, 1)
 
   /**
-   * Finish off the creation of an array and all its elements.  The array
-   * must be created with [.startVector].
+   * Finish off the creation of an array and all its elements. The array must be created with
+   * [.startVector].
    *
    * @return The offset at which the newly created array starts.
    * @see .startVector
@@ -423,16 +419,19 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Create a new array/vector and return a ByteBuffer to be filled later.
-   * Call [endVector] after this method to get an offset to the beginning
-   * of vector.
+   * Create a new array/vector and return a ByteBuffer to be filled later. Call [endVector] after
+   * this method to get an offset to the beginning of vector.
    *
    * @param elemSize the size of each element in bytes.
    * @param numElems number of elements in the vector.
    * @param alignment byte alignment.
    * @return ByteBuffer with position and limit set to the space allocated for the array.
    */
-  public fun createUnintializedVector(elemSize: Int, numElems: Int, alignment: Int): ReadWriteBuffer {
+  public fun createUnintializedVector(
+    elemSize: Int,
+    numElems: Int,
+    alignment: Int,
+  ): ReadWriteBuffer {
     val length = elemSize * numElems
     startVector(elemSize, numElems, alignment)
     space -= length
@@ -460,19 +459,21 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param offsets Offsets of the tables.
    * @return Returns offset of the sorted vector.
    */
-  public fun <T : Table> createSortedVectorOfTables(obj: T, offsets: Array<Offset<T>>): VectorOffset<T> {
+  public fun <T : Table> createSortedVectorOfTables(
+    obj: T,
+    offsets: Array<Offset<T>>,
+  ): VectorOffset<T> {
     obj.sortTables(offsets, buffer)
     return createVectorOfTables(offsets)
   }
 
   /**
-   * Encode the String `s` in the buffer using UTF-8. If a String with
-   * this exact contents has already been serialized using this method,
-   * instead simply returns the offset of the existing String.
+   * Encode the String `s` in the buffer using UTF-8. If a String with this exact contents has
+   * already been serialized using this method, instead simply returns the offset of the existing
+   * String.
    *
-   * Usage of the method will incur into additional allocations,
-   * so it is advisable to use it only when it is known upfront that
-   * your message will have several repeated strings.
+   * Usage of the method will incur into additional allocations, so it is advisable to use it only
+   * when it is known upfront that your message will have several repeated strings.
    *
    * @param s The String to encode.
    * @return The offset in the buffer where the encoded String starts.
@@ -494,6 +495,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
 
   /**
    * Encode the [CharSequence] `s` in the buffer using UTF-8.
+   *
    * @param s The [CharSequence] to encode.
    * @return The offset in the buffer where the encoded string starts.
    */
@@ -513,7 +515,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param s An already encoded UTF-8 string as a `ByteBuffer`.
    * @return The offset in the buffer where the encoded string starts.
    */
- public fun createString(s: ReadBuffer): Offset<String> {
+  public fun createString(s: ReadBuffer): Offset<String> {
     val length: Int = s.limit
     add(0.toByte())
     startVector(1, length, 1)
@@ -557,13 +559,16 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   /**
    * Create a byte array in the buffer.
    *
-   * The source [ReadBuffer] position is advanced until [ReadBuffer.limit]
-   * after this call.
+   * The source [ReadBuffer] position is advanced until [ReadBuffer.limit] after this call.
    *
    * @param data A source [ReadBuffer] with data.
    * @return The offset in the buffer where the encoded array starts.
    */
- public fun createByteVector(data: ReadBuffer, from: Int = 0, until: Int = data.limit): VectorOffset<Byte> {
+  public fun createByteVector(
+    data: ReadBuffer,
+    from: Int = 0,
+    until: Int = data.limit,
+  ): VectorOffset<Byte> {
     val length: Int = until - from
     startVector(1, length, 1)
     space -= length
@@ -572,28 +577,25 @@ public class FlatBufferBuilder @JvmOverloads constructor(
     return VectorOffset(endVector())
   }
 
-  /**
-   * Should not be accessing the final buffer before it is finished.
-   */
+  /** Should not be accessing the final buffer before it is finished. */
   public fun finished() {
-    if (!finished) throw AssertionError(
-      "FlatBuffers: you can only access the serialized buffer after it has been" +
-        " finished by FlatBufferBuilder.finish()."
-    )
+    if (!finished)
+      throw AssertionError(
+        "FlatBuffers: you can only access the serialized buffer after it has been" +
+          " finished by FlatBufferBuilder.finish()."
+      )
   }
 
   /**
-   * Should not be creating any other object, string or vector
-   * while an object is being constructed.
+   * Should not be creating any other object, string or vector while an object is being constructed.
    */
   public fun notNested() {
     if (nested) throw AssertionError("FlatBuffers: object serialization must not be nested.")
   }
 
   /**
-   * Structures are always stored inline, they need to be created right
-   * where they're used.  You'll get this assertion failure if you
-   * created it elsewhere.
+   * Structures are always stored inline, they need to be created right where they're used. You'll
+   * get this assertion failure if you created it elsewhere.
    *
    * @param obj The offset of the created object.
    */
@@ -602,14 +604,11 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Start encoding a new object in the buffer.  Users will not usually need to
-   * call this directly. The `FlatBuffers` compiler will generate helper methods
-   * that call this method internally.
+   * Start encoding a new object in the buffer. Users will not usually need to call this directly.
+   * The `FlatBuffers` compiler will generate helper methods that call this method internally.
    *
-   *
-   * For example, using the "Monster" code found on the "landing page". An
-   * object of type `Monster` can be created using the following code:
-   *
+   * For example, using the "Monster" code found on the "landing page". An object of type `Monster`
+   * can be created using the following code:
    * <pre>`int testArrayOfString = Monster.createTestarrayofstringVector(fbb, new int[] {
    * fbb.createString("test1"),
    * fbb.createString("test2")
@@ -626,19 +625,15 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * Monster.addTest4(fbb, test4);
    * Monster.addTestarrayofstring(fbb, testArrayOfString);
    * int mon = Monster.endMonster(fbb);
-   `</pre> *
-   *
+   * `</pre> *
    *
    * Here:
+   * * The call to `Monster#startMonster(FlatBufferBuilder)` will call this method with the right
+   *   number of fields set.
+   * * `Monster#endMonster(FlatBufferBuilder)` will ensure [.endObject] is called.
    *
-   *  * The call to `Monster#startMonster(FlatBufferBuilder)` will call this
-   * method with the right number of fields set.
-   *  * `Monster#endMonster(FlatBufferBuilder)` will ensure [.endObject] is called.
-   *
-   *
-   *
-   * It's not recommended to call this method directly.  If it's called manually, you must ensure
-   * to audit all calls to it whenever fields are added or removed from your schema.  This is
+   * It's not recommended to call this method directly. If it's called manually, you must ensure to
+   * audit all calls to it whenever fields are added or removed from your schema. This is
    * automatically done by the code generated by the `FlatBuffers` compiler.
    *
    * @param numFields The number of fields found in this object.
@@ -649,15 +644,14 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       vtable = IntArray(numFields)
     }
     vtableInUse = numFields
-    for (i in 0 until vtableInUse)
-      vtable[i] = 0
+    for (i in 0 until vtableInUse) vtable[i] = 0
     nested = true
     objectStart = offset()
   }
 
   /**
-   * Add a [Boolean] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Boolean] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: Boolean, d: Boolean?) {
@@ -666,6 +660,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   // unboxed specialization
   public fun add(o: Int, x: Boolean, d: Boolean) {
     if (forceDefaults || x != d) {
@@ -675,17 +670,18 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [UByte] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [UByte] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: UByte, d: UByte?): Unit = add(o, x.toByte(), d?.toByte())
+
   // unboxed specialization
   public fun add(o: Int, x: UByte, d: UByte): Unit = add(o, x.toByte(), d.toByte())
 
   /**
-   * Add a [Byte] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Byte] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: Byte, d: Byte?) {
@@ -694,6 +690,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   // unboxed specialization
   public fun add(o: Int, x: Byte, d: Byte) {
     if (forceDefaults || x != d) {
@@ -701,19 +698,20 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   /**
-   * Add a [UShort] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [UShort] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: UShort, d: UShort?): Unit = add(o, x.toShort(), d?.toShort())
+
   // unboxed specialization
   public fun add(o: Int, x: UShort, d: UShort): Unit = add(o, x.toShort(), d.toShort())
 
-
   /**
-   * Add a [Short] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Short] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: Short, d: Short?) {
@@ -722,6 +720,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   // unboxed specialization
   public fun add(o: Int, x: Short, d: Short) {
     if (forceDefaults || x != d) {
@@ -731,17 +730,18 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [UInt] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [UInt] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: UInt, d: UInt?): Unit = add(o, x.toInt(), d?.toInt())
+
   // unboxed specialization
   public fun add(o: Int, x: UInt, d: UInt): Unit = add(o, x.toInt(), d.toInt())
 
   /**
-   * Add a [Int] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Int] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: Int, d: Int?) {
@@ -750,6 +750,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   // unboxed specialization
   public fun add(o: Int, x: Int, d: Int) {
     if (forceDefaults || x != d) {
@@ -757,17 +758,20 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   /**
-   * Add a [ULong] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [ULong] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: ULong, d: ULong?): Unit = add(o, x.toLong(), d?.toLong())
+
   // unboxed specialization
   public fun add(o: Int, x: ULong, d: ULong): Unit = add(o, x.toLong(), d.toLong())
+
   /**
-   * Add a [Long] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Long] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: Long, d: Long?) {
@@ -776,6 +780,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   // unboxed specialization
   public fun add(o: Int, x: Long, d: Long) {
     if (forceDefaults || x != d) {
@@ -785,8 +790,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [Float] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Float] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: Float, d: Float?) {
@@ -795,6 +800,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   // unboxed specialization
   public fun add(o: Int, x: Float, d: Float) {
     if (forceDefaults || x != d) {
@@ -804,8 +810,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Add a [Double] to a table at `o` into its vtable, with value `x` and default `d`.
-   * If `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   * Add a [Double] to a table at `o` into its vtable, with value `x` and default `d`. If
+   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
    * default value, it can be skipped.
    */
   public fun add(o: Int, x: Double, d: Double?) {
@@ -814,6 +820,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   // unboxed specialization
   public fun add(o: Int, x: Double, d: Double) {
     if (forceDefaults || x != d) {
@@ -827,8 +834,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param o The index into the vtable.
    * @param x An `offset` to put into the buffer, depending on how defaults are handled. If
-   * `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
-   * default value, it can be skipped.
+   *   `force_defaults` is `false`, compare `x` against the default value `d`. If `x` contains the
+   *   default value, it can be skipped.
    * @param d An `offset` default value to compare against when `force_defaults` is `false`.
    */
   public fun add(o: Int, x: Offset<*>, d: Int) {
@@ -837,6 +844,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
       slot(o)
     }
   }
+
   public fun add(o: Int, x: VectorOffset<*>, d: Int) {
     if (forceDefaults || x.value != d) {
       add(x)
@@ -851,15 +859,20 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    * @param x The offset of the created struct.
    * @param d The default value is always `0`.
    */
-  public fun addStruct(vOffset: Int, x: Offset<*>, d: Offset<*>?): Unit = addStruct(vOffset, x.value, d?.value)
+  public fun addStruct(vOffset: Int, x: Offset<*>, d: Offset<*>?): Unit =
+    addStruct(vOffset, x.value, d?.value)
+
   // unboxed specialization
-  public fun addStruct(vOffset: Int, x: Offset<*>, d: Offset<*>): Unit = addStruct(vOffset, x.value, d.value)
+  public fun addStruct(vOffset: Int, x: Offset<*>, d: Offset<*>): Unit =
+    addStruct(vOffset, x.value, d.value)
+
   public fun addStruct(vOffset: Int, x: Int, d: Int?) {
     if (x != d) {
       nested(x)
       slot(vOffset)
     }
   }
+
   // unboxed specialization
   public fun addStruct(vOffset: Int, x: Int, d: Int) {
     if (x != d) {
@@ -871,8 +884,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   /**
    * Set the current vtable at `voffset` to the current location in the buffer.
    *
-   * @param vOffset The index into the vtable to store the offset relative to the end of the
-   * buffer.
+   * @param vOffset The index into the vtable to store the offset relative to the end of the buffer.
    */
   public fun slot(vOffset: Int) {
     vtable[vOffset] = offset()
@@ -947,8 +959,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Checks that a required field has been set in a given table that has
-   * just been constructed.
+   * Checks that a required field has been set in a given table that has just been constructed.
    *
    * @param table The offset to the start of the table from the `ByteBuffer` capacity.
    * @param field The offset to the field in the vtable.
@@ -1000,16 +1011,14 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param rootTable An offset to be added to the buffer.
    * @param fileIdentifier A FlatBuffer file identifier to be added to the buffer before
-   * `root_table`.
+   *   `root_table`.
    * @param sizePrefix Whether to prefix the size to the buffer.
    */
   protected fun finish(rootTable: Offset<*>, fileIdentifier: String, sizePrefix: Boolean) {
     val identifierSize = 4
     prep(minalign, Int.SIZE_BYTES + identifierSize + if (sizePrefix) Int.SIZE_BYTES else 0)
-    if (fileIdentifier.length != identifierSize) throw AssertionError(
-      "FlatBuffers: file identifier must be length " +
-        identifierSize
-    )
+    if (fileIdentifier.length != identifierSize)
+      throw AssertionError("FlatBuffers: file identifier must be length " + identifierSize)
     for (i in identifierSize - 1 downTo 0) {
       add(fileIdentifier[i].code.toByte())
     }
@@ -1021,7 +1030,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param rootTable An offset to be added to the buffer.
    * @param fileIdentifier A FlatBuffer file identifier to be added to the buffer before
-   * `root_table`.
+   *   `root_table`.
    */
   public fun finish(rootTable: Offset<*>, fileIdentifier: String) {
     finish(rootTable, fileIdentifier, false)
@@ -1032,16 +1041,15 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param rootTable An offset to be added to the buffer.
    * @param fileIdentifier A FlatBuffer file identifier to be added to the buffer before
-   * `root_table`.
+   *   `root_table`.
    */
   public fun finishSizePrefixed(rootTable: Offset<*>, fileIdentifier: String) {
     finish(rootTable, fileIdentifier, true)
   }
 
   /**
-   * In order to save space, fields that are set to their default value
-   * don't get serialized into the buffer. Forcing defaults provides a
-   * way to manually disable this optimization.
+   * In order to save space, fields that are set to their default value don't get serialized into
+   * the buffer. Forcing defaults provides a way to manually disable this optimization.
    *
    * @param forceDefaults When set to `true`, always serializes default values.
    * @return Returns `this`.
@@ -1052,9 +1060,8 @@ public class FlatBufferBuilder @JvmOverloads constructor(
   }
 
   /**
-   * Get the ByteBuffer representing the FlatBuffer. Only call this after you've
-   * called `finish()`. The actual data starts at the ByteBuffer's current position,
-   * not necessarily at `0`.
+   * Get the ByteBuffer representing the FlatBuffer. Only call this after you've called `finish()`.
+   * The actual data starts at the ByteBuffer's current position, not necessarily at `0`.
    *
    * @return The [ReadBuffer] representing the FlatBuffer
    */
@@ -1068,7 +1075,7 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @return A full copy of the [data buffer][.dataBuffer].
    */
- public fun sizedByteArray(start: Int = space, length: Int = buffer.capacity - space): ByteArray {
+  public fun sizedByteArray(start: Int = space, length: Int = buffer.capacity - space): ByteArray {
     finished()
     val array = ByteArray(length)
     buffer.getBytes(array, start)
@@ -1080,26 +1087,29 @@ public class FlatBufferBuilder @JvmOverloads constructor(
    *
    * @param offset virtual table offset
    * @return true if the filed is present
-  */
+   */
   public fun Table.isFieldPresent(offset: Int): Boolean = this.offset(offset) != 0
 }
 
-public fun Double.sign(): Double = when {
-  this.isNaN() -> Double.NaN
-  this > 0 -> 1.0
-  this < 0 -> -1.0
-  else -> this
-}
+public fun Double.sign(): Double =
+  when {
+    this.isNaN() -> Double.NaN
+    this > 0 -> 1.0
+    this < 0 -> -1.0
+    else -> this
+  }
 
-public fun Float.sign(): Float = when {
-  this.isNaN() -> Float.NaN
-  this > 0 -> 1.0f
-  this < 0 -> -1.0f
-  else -> this
-}
+public fun Float.sign(): Float =
+  when {
+    this.isNaN() -> Float.NaN
+    this > 0 -> 1.0f
+    this < 0 -> -1.0f
+    else -> this
+  }
 
-public fun Int.sign(): Int = when {
-  this > 0 -> 1
-  this < 0 -> -1
-  else -> this
-}
+public fun Int.sign(): Int =
+  when {
+    this > 0 -> 1
+    this < 0 -> -1
+    else -> this
+  }

@@ -34,10 +34,7 @@ pub struct MapReader<B> {
 
 impl<B: Buffer> Clone for MapReader<B> {
     fn clone(&self) -> Self {
-        MapReader {
-            buffer: self.buffer.shallow_copy(),
-            ..*self
-        }
+        MapReader { buffer: self.buffer.shallow_copy(), ..*self }
     }
 }
 
@@ -125,13 +122,7 @@ impl<B: Buffer> MapReader<B> {
             .get(type_address)
             .ok_or(Error::FlexbufferOutOfBounds)
             .and_then(|&b| unpack_type(b))?;
-        Reader::new(
-            self.buffer.shallow_copy(),
-            data_address,
-            fxb_type,
-            width,
-            self.values_width,
-        )
+        Reader::new(self.buffer.shallow_copy(), data_address, fxb_type, width, self.values_width)
     }
 
     fn key_index(&self, k: &str) -> Result<Reader<B>, Error> {

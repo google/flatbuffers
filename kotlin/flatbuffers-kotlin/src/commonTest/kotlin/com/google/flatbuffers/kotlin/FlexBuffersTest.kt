@@ -24,12 +24,13 @@ class FlexBuffersTest {
 
   @Test
   fun testWriteInt() {
-    val values = listOf(
-      Byte.MAX_VALUE.toLong() to 3,
-      Short.MAX_VALUE.toLong() to 4,
-      Int.MAX_VALUE.toLong() to 6,
-      Long.MAX_VALUE to 10
-    )
+    val values =
+      listOf(
+        Byte.MAX_VALUE.toLong() to 3,
+        Short.MAX_VALUE.toLong() to 4,
+        Int.MAX_VALUE.toLong() to 6,
+        Long.MAX_VALUE to 10,
+      )
     val builder = FlexBuffersBuilder()
     values.forEach {
       builder.clear()
@@ -44,12 +45,13 @@ class FlexBuffersTest {
 
   @Test
   fun testWriteUInt() {
-    val values = listOf(
-      UByte.MAX_VALUE.toULong() to 3,
-      UShort.MAX_VALUE.toULong() to 4,
-      UInt.MAX_VALUE.toULong() to 6,
-      ULong.MAX_VALUE to 10
-    )
+    val values =
+      listOf(
+        UByte.MAX_VALUE.toULong() to 3,
+        UShort.MAX_VALUE.toULong() to 4,
+        UInt.MAX_VALUE.toULong() to 6,
+        ULong.MAX_VALUE to 10,
+      )
     val builder = FlexBuffersBuilder()
     values.forEach {
       builder.clear()
@@ -126,7 +128,8 @@ class FlexBuffersTest {
 
   @Test
   fun testLongArray() {
-    val ary: LongArray = longArrayOf(0, Short.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong(), Long.MAX_VALUE)
+    val ary: LongArray =
+      longArrayOf(0, Short.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong(), Long.MAX_VALUE)
     val builder = FlexBuffersBuilder()
     builder.put(ary)
     val data = builder.finish()
@@ -139,9 +142,7 @@ class FlexBuffersTest {
   fun testStringArray() {
     val ary = Array(5) { "Hello world number: $it" }
     val builder = FlexBuffersBuilder(ArrayReadWriteBuffer(20), SHARE_NONE)
-    builder.putVector {
-      ary.forEach { put(it) }
-    }
+    builder.putVector { ary.forEach { put(it) } }
     val data = builder.finish()
     val vec = getRoot(data).toVector()
     // although we put a long, it is shrink to a byte
@@ -237,9 +238,7 @@ class FlexBuffersTest {
       this["int"] = 10
       this["float"] = 12.3
       this["intarray"] = intArrayOf(1, 2, 3, 4, 5)
-      this.putMap("myMap") {
-        this["cool"] = "beans"
-      }
+      this.putMap("myMap") { this["cool"] = "beans" }
     }
 
     val ref = getRoot(builder.finish())
@@ -257,7 +256,9 @@ class FlexBuffersTest {
     assertEquals(true, ref["invalid_key"].isNull)
 
     val keys = map.keys.toTypedArray()
-    arrayOf("hello", "int", "float", "intarray", "myMap").sortedArray().forEachIndexed { i: Int, it: String ->
+    arrayOf("hello", "int", "float", "intarray", "myMap").sortedArray().forEachIndexed {
+      i: Int,
+      it: String ->
       assertEquals(it, keys[i].toString())
     }
   }

@@ -2,5 +2,5 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { OptionalByte } from './optional-scalars/optional-byte';
-export { ScalarStuff } from './optional-scalars/scalar-stuff';
+export {OptionalByte} from './optional-scalars/optional-byte';
+export {ScalarStuff} from './optional-scalars/scalar-stuff';

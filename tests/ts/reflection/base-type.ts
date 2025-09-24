@@ -22,5 +22,5 @@ export enum BaseType {
   Union = 16,
   Array = 17,
   Vector64 = 18,
-  MaxBaseType = 19
+  MaxBaseType = 19,
 }

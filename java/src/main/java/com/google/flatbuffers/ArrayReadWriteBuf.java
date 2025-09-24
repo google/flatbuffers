@@ -3,12 +3,10 @@ package com.google.flatbuffers;
 import java.util.Arrays;
 
 /**
- * Implements {@code ReadBuf} using an array of bytes
- * as a backing storage. Using array of bytes are
+ * Implements {@code ReadBuf} using an array of bytes as a backing storage. Using array of bytes are
  * usually faster than {@code ByteBuffer}.
  *
- * This class is not thread-safe, meaning that
- * it must operate on a single thread. Operating from
+ * <p>This class is not thread-safe, meaning that it must operate on a single thread. Operating from
  * multiple thread leads into a undefined behavior
  */
 public class ArrayReadWriteBuf implements ReadWriteBuf {
@@ -51,27 +49,27 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
 
   @Override
   public short getShort(int index) {
-    return (short) ((buffer[index+ 1] << 8) | (buffer[index] & 0xff));
+    return (short) ((buffer[index + 1] << 8) | (buffer[index] & 0xff));
   }
 
   @Override
   public int getInt(int index) {
-    return (((buffer[index + 3]) << 24) |
-      ((buffer[index + 2] & 0xff) << 16) |
-      ((buffer[index + 1] & 0xff) << 8) |
-      ((buffer[index] & 0xff)));
+    return (((buffer[index + 3]) << 24)
+        | ((buffer[index + 2] & 0xff) << 16)
+        | ((buffer[index + 1] & 0xff) << 8)
+        | ((buffer[index] & 0xff)));
   }
 
   @Override
   public long getLong(int index) {
-    return ((((long) buffer[index++] & 0xff)) |
-      (((long) buffer[index++] & 0xff) << 8) |
-      (((long) buffer[index++] & 0xff) << 16) |
-      (((long) buffer[index++] & 0xff) << 24) |
-      (((long) buffer[index++] & 0xff) << 32) |
-      (((long) buffer[index++] & 0xff) << 40) |
-      (((long) buffer[index++] & 0xff) << 48) |
-      (((long) buffer[index]) << 56));
+    return ((((long) buffer[index++] & 0xff))
+        | (((long) buffer[index++] & 0xff) << 8)
+        | (((long) buffer[index++] & 0xff) << 16)
+        | (((long) buffer[index++] & 0xff) << 24)
+        | (((long) buffer[index++] & 0xff) << 32)
+        | (((long) buffer[index++] & 0xff) << 40)
+        | (((long) buffer[index++] & 0xff) << 48)
+        | (((long) buffer[index]) << 56));
   }
 
   @Override
@@ -94,17 +92,16 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
     return buffer;
   }
 
-
   @Override
   public void putBoolean(boolean value) {
-      setBoolean(writePos, value);
-      writePos++;
+    setBoolean(writePos, value);
+    writePos++;
   }
 
   @Override
   public void put(byte[] value, int start, int length) {
     set(writePos, value, start, length);
-    writePos+=length;
+    writePos += length;
   }
 
   @Override
@@ -116,36 +113,36 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
   @Override
   public void putShort(short value) {
     setShort(writePos, value);
-    writePos +=2;
+    writePos += 2;
   }
 
   @Override
   public void putInt(int value) {
     setInt(writePos, value);
-    writePos +=4;
+    writePos += 4;
   }
 
   @Override
   public void putLong(long value) {
     setLong(writePos, value);
-    writePos +=8;
+    writePos += 8;
   }
 
   @Override
   public void putFloat(float value) {
     setFloat(writePos, value);
-    writePos +=4;
+    writePos += 4;
   }
 
   @Override
   public void putDouble(double value) {
     setDouble(writePos, value);
-    writePos +=8;
+    writePos += 8;
   }
 
   @Override
   public void setBoolean(int index, boolean value) {
-    set(index, value ? (byte)1 : (byte)0);
+    set(index, value ? (byte) 1 : (byte) 0);
   }
 
   @Override
@@ -165,7 +162,7 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
     requestCapacity(index + 2);
 
     buffer[index++] = (byte) ((value) & 0xff);
-    buffer[index  ] = (byte) ((value >> 8) & 0xff);
+    buffer[index] = (byte) ((value >> 8) & 0xff);
   }
 
   @Override
@@ -173,9 +170,9 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
     requestCapacity(index + 4);
 
     buffer[index++] = (byte) ((value) & 0xff);
-    buffer[index++] = (byte) ((value >>  8) & 0xff);
+    buffer[index++] = (byte) ((value >> 8) & 0xff);
     buffer[index++] = (byte) ((value >> 16) & 0xff);
-    buffer[index  ] = (byte) ((value >> 24) & 0xff);
+    buffer[index] = (byte) ((value >> 24) & 0xff);
   }
 
   @Override
@@ -184,14 +181,14 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
 
     int i = (int) value;
     buffer[index++] = (byte) ((i) & 0xff);
-    buffer[index++] = (byte) ((i >>  8) & 0xff);
+    buffer[index++] = (byte) ((i >> 8) & 0xff);
     buffer[index++] = (byte) ((i >> 16) & 0xff);
     buffer[index++] = (byte) ((i >> 24) & 0xff);
     i = (int) (value >> 32);
     buffer[index++] = (byte) ((i) & 0xff);
-    buffer[index++] = (byte) ((i >>  8) & 0xff);
+    buffer[index++] = (byte) ((i >> 8) & 0xff);
     buffer[index++] = (byte) ((i >> 16) & 0xff);
-    buffer[index  ] = (byte) ((i >> 24) & 0xff);
+    buffer[index] = (byte) ((i >> 24) & 0xff);
   }
 
   @Override
@@ -200,9 +197,9 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
 
     int iValue = Float.floatToRawIntBits(value);
     buffer[index++] = (byte) ((iValue) & 0xff);
-    buffer[index++] = (byte) ((iValue >>  8) & 0xff);
+    buffer[index++] = (byte) ((iValue >> 8) & 0xff);
     buffer[index++] = (byte) ((iValue >> 16) & 0xff);
-    buffer[index  ] = (byte) ((iValue >> 24) & 0xff);
+    buffer[index] = (byte) ((iValue >> 24) & 0xff);
   }
 
   @Override
@@ -212,14 +209,14 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
     long lValue = Double.doubleToRawLongBits(value);
     int i = (int) lValue;
     buffer[index++] = (byte) ((i) & 0xff);
-    buffer[index++] = (byte) ((i >>  8) & 0xff);
+    buffer[index++] = (byte) ((i >> 8) & 0xff);
     buffer[index++] = (byte) ((i >> 16) & 0xff);
     buffer[index++] = (byte) ((i >> 24) & 0xff);
     i = (int) (lValue >> 32);
     buffer[index++] = (byte) ((i) & 0xff);
-    buffer[index++] = (byte) ((i >>  8) & 0xff);
+    buffer[index++] = (byte) ((i >> 8) & 0xff);
     buffer[index++] = (byte) ((i >> 16) & 0xff);
-    buffer[index  ] = (byte) ((i >> 24) & 0xff);
+    buffer[index] = (byte) ((i >> 24) & 0xff);
   }
 
   @Override
@@ -235,7 +232,8 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
   @Override
   public boolean requestCapacity(int capacity) {
     if (capacity < 0) {
-      throw new IllegalArgumentException("Capacity may not be negative (likely a previous int overflow)");
+      throw new IllegalArgumentException(
+          "Capacity may not be negative (likely a previous int overflow)");
     }
     if (buffer.length >= capacity) {
       return true;
@@ -243,7 +241,7 @@ public class ArrayReadWriteBuf implements ReadWriteBuf {
     // implemented in the same growing fashion as ArrayList
     int oldCapacity = buffer.length;
     int newCapacity = oldCapacity + (oldCapacity >> 1);
-    if (newCapacity < capacity) {  // Note: this also catches newCapacity int overflow
+    if (newCapacity < capacity) { // Note: this also catches newCapacity int overflow
       newCapacity = capacity;
     }
     buffer = Arrays.copyOf(buffer, newCapacity);

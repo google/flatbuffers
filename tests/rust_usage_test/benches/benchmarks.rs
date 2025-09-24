@@ -27,7 +27,4 @@ mod flexbuffers_benchmarks;
 mod monster_test_generated;
 pub use monster_test_generated::my_game;
 
-benchmark_main!(
-    flatbuffers_benchmarks::benches,
-    flexbuffers_benchmarks::benches
-);
+benchmark_main!(flatbuffers_benchmarks::benches, flexbuffers_benchmarks::benches);

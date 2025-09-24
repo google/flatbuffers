@@ -15,23 +15,21 @@
  */
 package com.google.flatbuffers.kotlin
 
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 class Utf8Test {
 
   @Test
   fun testUtf8EncodingDecoding() {
     val classLoader = this.javaClass.classLoader
-    val utf8Lines = String(classLoader.getResourceAsStream("utf8_sample.txt")!!.readBytes())
-      .split("\n")
-      .filter { it.trim().isNotEmpty() }
+    val utf8Lines =
+      String(classLoader.getResourceAsStream("utf8_sample.txt")!!.readBytes()).split("\n").filter {
+        it.trim().isNotEmpty()
+      }
 
-    val utf8Bytes = utf8Lines.map {
-        s -> ByteArray(Utf8.encodedLength(s)).also {
-          Utf8.encodeUtf8Array(s, it)
-        }
-    }
+    val utf8Bytes =
+      utf8Lines.map { s -> ByteArray(Utf8.encodedLength(s)).also { Utf8.encodeUtf8Array(s, it) } }
     utf8Bytes.indices.forEach {
       assertArrayEquals(utf8Lines[it].encodeToByteArray(), utf8Bytes[it])
       assertEquals(utf8Lines[it], Utf8.decodeUtf8Array(utf8Bytes[it]))

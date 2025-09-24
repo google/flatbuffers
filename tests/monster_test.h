@@ -9,16 +9,16 @@
 namespace flatbuffers {
 namespace tests {
 
-flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer);
+flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string& buffer);
 
-void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length,
-                          bool pooled = true); 
+void AccessFlatBufferTest(const uint8_t* flatbuf, size_t length,
+                          bool pooled = true);
 
-void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length);
+void MutateFlatBuffersTest(uint8_t* flatbuf, std::size_t length);
 
-void ObjectFlatBuffersTest(uint8_t *flatbuf);
+void ObjectFlatBuffersTest(uint8_t* flatbuf);
 
-void CheckMonsterObject(MyGame::Example::MonsterT *monster2);
+void CheckMonsterObject(MyGame::Example::MonsterT* monster2);
 
 void SizePrefixedTest();
 
@@ -30,7 +30,7 @@ void TypeAliasesTest();
 
 void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary);
 
-void UnPackTo(const uint8_t *flatbuf);
+void UnPackTo(const uint8_t* flatbuf);
 
 }  // namespace tests
 }  // namespace flatbuffers

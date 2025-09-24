@@ -17,13 +17,10 @@
 package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 
-/**
- * Helper type for accessing vector of float values.
- */
+import java.nio.ByteBuffer;
+
+/** Helper type for accessing vector of float values. */
 public final class FloatVector extends BaseVector {
   /**
    * Assigns vector access object to vector data.
@@ -31,10 +28,11 @@ public final class FloatVector extends BaseVector {
    * @param _vector Start data of a vector.
    * @param _bb Table's ByteBuffer.
    * @return Returns current vector access object assigned to vector data whose offset is stored at
-   *         `vector`.
+   *     `vector`.
    */
   public FloatVector __assign(int _vector, ByteBuffer _bb) {
-    __reset(_vector, Constants.SIZEOF_FLOAT, _bb); return this;
+    __reset(_vector, Constants.SIZEOF_FLOAT, _bb);
+    return this;
   }
 
   /**
@@ -43,7 +41,7 @@ public final class FloatVector extends BaseVector {
    * @param j The index from which the float value will be read.
    * @return the float value at the given index.
    */
-  public float get(int j) { 
+  public float get(int j) {
     return bb.getFloat(__element(j));
   }
 }

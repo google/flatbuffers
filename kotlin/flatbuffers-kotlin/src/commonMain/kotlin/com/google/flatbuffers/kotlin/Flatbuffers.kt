@@ -20,29 +20,33 @@ import kotlin.math.min
 
 // For now a typealias to guarantee type safety.
 public typealias UnionOffset = Offset<Any>
+
 public typealias UnionOffsetArray = OffsetArray<Any>
+
 public typealias StringOffsetArray = OffsetArray<String>
 
-public inline fun UnionOffsetArray(size: Int, crossinline call: (Int) -> Offset<Any>): UnionOffsetArray =
-  UnionOffsetArray(IntArray(size) { call(it).value })
-public inline fun StringOffsetArray(size: Int, crossinline call: (Int) -> Offset<String>): StringOffsetArray =
-  StringOffsetArray(IntArray(size) { call(it).value })
-/**
- * Represents a "pointer" to a pointer types (table, string, struct) within the buffer
- */
+public inline fun UnionOffsetArray(
+  size: Int,
+  crossinline call: (Int) -> Offset<Any>,
+): UnionOffsetArray = UnionOffsetArray(IntArray(size) { call(it).value })
+
+public inline fun StringOffsetArray(
+  size: Int,
+  crossinline call: (Int) -> Offset<String>,
+): StringOffsetArray = StringOffsetArray(IntArray(size) { call(it).value })
+
+/** Represents a "pointer" to a pointer types (table, string, struct) within the buffer */
 @JvmInline
 public value class Offset<T>(public val value: Int) {
   public fun toUnion(): UnionOffset = UnionOffset(value)
 }
 
-/**
- * Represents an array of offsets. Used to avoid boxing
- * offset types.
- */
+/** Represents an array of offsets. Used to avoid boxing offset types. */
 @JvmInline
 public value class OffsetArray<T>(public val value: IntArray) {
   public inline val size: Int
     get() = value.size
+
   public inline operator fun get(index: Int): Offset<T> = Offset(value[index])
 }
 
@@ -50,12 +54,8 @@ public inline fun <T> OffsetArray(size: Int, crossinline call: (Int) -> Offset<T
   return OffsetArray(IntArray(size) { call(it).value })
 }
 
-
-/**
- * Represents a "pointer" to a vector type with elements T
- */
-@JvmInline
-public value class VectorOffset<T>(public val value: Int)
+/** Represents a "pointer" to a vector type with elements T */
+@JvmInline public value class VectorOffset<T>(public val value: Int)
 
 public fun <T> Int.toOffset(): Offset<T> = Offset(this)
 
@@ -64,28 +64,30 @@ public operator fun <T> Offset<T>.minus(other: Int): Offset<T> = Offset(this.val
 public operator fun <T> Int.minus(other: Offset<T>): Int {
   return this - other.value
 }
-/**
- * All tables in the generated code derive from this class, and add their own accessors.
- */
+
+/** All tables in the generated code derive from this class, and add their own accessors. */
 public open class Table {
 
-  /** Used to hold the position of the `bb` buffer.  */
+  /** Used to hold the position of the `bb` buffer. */
   public var bufferPos: Int = 0
 
-  /** The underlying ReadWriteBuffer to hold the data of the Table.  */
+  /** The underlying ReadWriteBuffer to hold the data of the Table. */
   public var bb: ReadWriteBuffer = emptyBuffer
 
-  /** Used to hold the vtable position.  */
+  /** Used to hold the vtable position. */
   public var vtableStart: Int = 0
 
-  /** Used to hold the vtable size.  */
+  /** Used to hold the vtable size. */
   public var vtableSize: Int = 0
 
-  protected inline fun <reified T> Int.invalid(default: T, crossinline valid: (Int) -> T) : T =
+  protected inline fun <reified T> Int.invalid(default: T, crossinline valid: (Int) -> T): T =
     if (this != 0) valid(this) else default
 
-  protected inline fun <reified T> lookupField(i: Int, default: T, crossinline found: (Int) -> T) : T =
-    offset(i).invalid(default) { found(it) }
+  protected inline fun <reified T> lookupField(
+    i: Int,
+    default: T,
+    crossinline found: (Int) -> T,
+  ): T = offset(i).invalid(default) { found(it) }
 
   /**
    * Look up a field in the vtable.
@@ -107,10 +109,10 @@ public open class Table {
   /**
    * Create a Java `String` from UTF-8 data stored inside the FlatBuffer.
    *
-   * This allocates a new string and converts to wide chars upon each access,
-   * which is not very efficient. Instead, each FlatBuffer string also comes with an
-   * accessor based on __vector_as_ReadWriteBuffer below, which is much more efficient,
-   * assuming your Java program can handle UTF-8 data directly.
+   * This allocates a new string and converts to wide chars upon each access, which is not very
+   * efficient. Instead, each FlatBuffer string also comes with an accessor based on
+   * __vector_as_ReadWriteBuffer below, which is much more efficient, assuming your Java program can
+   * handle UTF-8 data directly.
    *
    * @param offset An `int` index into the Table's ReadWriteBuffer.
    * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
@@ -141,23 +143,24 @@ public open class Table {
     newOffset += bufferPos
     return newOffset + bb.getInt(newOffset) + Int.SIZE_BYTES // data starts after the length
   }
-    /**
-     * Initialize vector as a ReadWriteBuffer.
-     *
-     * This is more efficient than using duplicate, since it doesn't copy the data
-     * nor allocates a new [ReadBuffer], creating no garbage to be collected.
-     *
-     * @param buffer The [ReadBuffer] for the array
-     * @param vectorOffset The position of the vector in the byte buffer
-     * @param elemSize The size of each element in the array
-     * @return The [ReadBuffer] for the array
-     */
-    public fun vectorAsBuffer(buffer: ReadWriteBuffer, vectorOffset: Int, elemSize: Int): ReadBuffer {
-        val o = offset(vectorOffset)
-        if (o == 0) return emptyBuffer
-        val vectorStart = vector(o)
-        return buffer.slice(vectorStart, vectorLength(o) * elemSize)
-    }
+
+  /**
+   * Initialize vector as a ReadWriteBuffer.
+   *
+   * This is more efficient than using duplicate, since it doesn't copy the data nor allocates a new
+   * [ReadBuffer], creating no garbage to be collected.
+   *
+   * @param buffer The [ReadBuffer] for the array
+   * @param vectorOffset The position of the vector in the byte buffer
+   * @param elemSize The size of each element in the array
+   * @return The [ReadBuffer] for the array
+   */
+  public fun vectorAsBuffer(buffer: ReadWriteBuffer, vectorOffset: Int, elemSize: Int): ReadBuffer {
+    val o = offset(vectorOffset)
+    if (o == 0) return emptyBuffer
+    val vectorStart = vector(o)
+    return buffer.slice(vectorStart, vectorLength(o) * elemSize)
+  }
 
   /**
    * Initialize any Table-derived type to point to the union at the given `offset`.
@@ -194,7 +197,7 @@ public open class Table {
    * This method exists primarily to allow recycling Table instances without risking memory leaks
    * due to `ReadWriteBuffer` references.
    */
-  public inline fun <reified T: Table> reset(i: Int, reuseBuffer: ReadWriteBuffer): T {
+  public inline fun <reified T : Table> reset(i: Int, reuseBuffer: ReadWriteBuffer): T {
     bb = reuseBuffer
     if (bb != emptyBuffer) {
       bufferPos = i
@@ -212,10 +215,10 @@ public open class Table {
    * Resets the internal state with a null `ReadWriteBuffer` and a zero position.
    *
    * This method exists primarily to allow recycling Table instances without risking memory leaks
-   * due to `ReadWriteBuffer` references. The instance will be unusable until it is assigned
-   * again to a `ReadWriteBuffer`.
+   * due to `ReadWriteBuffer` references. The instance will be unusable until it is assigned again
+   * to a `ReadWriteBuffer`.
    */
-  public inline fun <reified T: Table> reset(): T = reset(0, emptyBuffer)
+  public inline fun <reified T : Table> reset(): T = reset(0, emptyBuffer)
 
   public companion object {
 
@@ -238,10 +241,10 @@ public open class Table {
     /**
      * Create a Java `String` from UTF-8 data stored inside the FlatBuffer.
      *
-     * This allocates a new string and converts to wide chars upon each access,
-     * which is not very efficient. Instead, each FlatBuffer string also comes with an
-     * accessor based on __vector_as_ReadWriteBuffer below, which is much more efficient,
-     * assuming your Java program can handle UTF-8 data directly.
+     * This allocates a new string and converts to wide chars upon each access, which is not very
+     * efficient. Instead, each FlatBuffer string also comes with an accessor based on
+     * __vector_as_ReadWriteBuffer below, which is much more efficient, assuming your Java program
+     * can handle UTF-8 data directly.
      *
      * @param offset An `int` index into the Table's ReadWriteBuffer.
      * @param bb Table ReadWriteBuffer used to read a string at given offset.
@@ -268,8 +271,7 @@ public open class Table {
     /**
      * Check if a [ReadWriteBuffer] contains a file identifier.
      *
-     * @param bb A `ReadWriteBuffer` to check if it contains the identifier
-     * `ident`.
+     * @param bb A `ReadWriteBuffer` to check if it contains the identifier `ident`.
      * @param ident A `String` identifier of the FlatBuffer file.
      * @return True if the buffer contains the file identifier
      */
@@ -330,14 +332,12 @@ public open class Table {
   }
 }
 
-/**
- * All structs in the generated code derive from this class, and add their own accessors.
- */
+/** All structs in the generated code derive from this class, and add their own accessors. */
 public open class Struct {
-  /** Used to hold the position of the `bb` buffer.  */
+  /** Used to hold the position of the `bb` buffer. */
   protected var bufferPos: Int = 0
 
-  /** The underlying ByteBuffer to hold the data of the Struct.  */
+  /** The underlying ByteBuffer to hold the data of the Struct. */
   protected var bb: ReadWriteBuffer = emptyBuffer
 
   /**
@@ -346,7 +346,7 @@ public open class Struct {
    * This method exists primarily to allow recycling Table instances without risking memory leaks
    * due to `ByteBuffer` references.
    */
-  protected inline fun <reified T: Struct> reset(i: Int, reuseBuffer: ReadWriteBuffer): T {
+  protected inline fun <reified T : Struct> reset(i: Int, reuseBuffer: ReadWriteBuffer): T {
     bb = reuseBuffer
     bufferPos = if (bb != emptyBuffer) i else 0
     return this as T
@@ -356,12 +356,13 @@ public open class Struct {
    * Resets internal state with a null `ByteBuffer` and a zero position.
    *
    * This method exists primarily to allow recycling Struct instances without risking memory leaks
-   * due to `ByteBuffer` references. The instance will be unusable until it is assigned
-   * again to a `ByteBuffer`.
+   * due to `ByteBuffer` references. The instance will be unusable until it is assigned again to a
+   * `ByteBuffer`.
    */
-  private inline fun <reified T: Struct> reset(): T = reset(0, emptyBuffer)
+  private inline fun <reified T : Struct> reset(): T = reset(0, emptyBuffer)
 }
 
-public inline val <T> T.value: T get() = this
+public inline val <T> T.value: T
+  get() = this
 
 public const val VERSION_2_0_8: Int = 1

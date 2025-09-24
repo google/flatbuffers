@@ -86,7 +86,8 @@ enum ValueType {
   VectorFloat,
   VectorKey,
   @Deprecated(
-      'VectorString is deprecated due to a flaw in the binary format (https://github.com/google/flatbuffers/issues/5627)')
+    'VectorString is deprecated due to a flaw in the binary format (https://github.com/google/flatbuffers/issues/5627)',
+  )
   VectorString,
   VectorInt2,
   VectorUInt2,
@@ -99,7 +100,7 @@ enum ValueType {
   VectorFloat4,
   Blob,
   Bool,
-  VectorBool
+  VectorBool,
 }
 
 class ValueTypeUtils {
@@ -153,31 +154,37 @@ class ValueTypeUtils {
   static ValueType toTypedVector(ValueType self, int length) {
     if (length == 0) {
       return ValueTypeUtils.fromInt(
-          toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt));
+        toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt),
+      );
     }
     if (length == 2) {
       return ValueTypeUtils.fromInt(
-          toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt2));
+        toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt2),
+      );
     }
     if (length == 3) {
       return ValueTypeUtils.fromInt(
-          toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt3));
+        toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt3),
+      );
     }
     if (length == 4) {
       return ValueTypeUtils.fromInt(
-          toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt4));
+        toInt(self) - toInt(ValueType.Int) + toInt(ValueType.VectorInt4),
+      );
     }
     throw Exception('unexpected length ' + length.toString());
   }
 
   static ValueType typedVectorElementType(ValueType self) {
     return ValueTypeUtils.fromInt(
-        toInt(self) - toInt(ValueType.VectorInt) + toInt(ValueType.Int));
+      toInt(self) - toInt(ValueType.VectorInt) + toInt(ValueType.Int),
+    );
   }
 
   static ValueType fixedTypedVectorElementType(ValueType self) {
     return ValueTypeUtils.fromInt(
-        (toInt(self) - toInt(ValueType.VectorInt2)) % 3 + toInt(ValueType.Int));
+      (toInt(self) - toInt(ValueType.VectorInt2)) % 3 + toInt(ValueType.Int),
+    );
   }
 
   static int fixedTypedVectorElementSize(ValueType self) {

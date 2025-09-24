@@ -4,62 +4,54 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-
-
 export class Unused implements flatbuffers.IUnpackableObject<UnusedT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Unused {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
+  __init(i: number, bb: flatbuffers.ByteBuffer): Unused {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
 
-a():number {
-  return this.bb!.readInt32(this.bb_pos);
-}
+  a(): number {
+    return this.bb!.readInt32(this.bb_pos);
+  }
 
-mutate_a(value:number):boolean {
-  this.bb!.writeInt32(this.bb_pos + 0, value);
-  return true;
-}
+  mutate_a(value: number): boolean {
+    this.bb!.writeInt32(this.bb_pos + 0, value);
+    return true;
+  }
 
-static getFullyQualifiedName():string {
-  return 'MyGame.OtherNameSpace.Unused';
-}
+  static getFullyQualifiedName(): string {
+    return 'MyGame.OtherNameSpace.Unused';
+  }
 
-static sizeOf():number {
-  return 4;
-}
+  static sizeOf(): number {
+    return 4;
+  }
 
-static createUnused(builder:flatbuffers.Builder, a: number):flatbuffers.Offset {
-  builder.prep(4, 4);
-  builder.writeInt32(a);
-  return builder.offset();
-}
+  static createUnused(
+    builder: flatbuffers.Builder,
+    a: number,
+  ): flatbuffers.Offset {
+    builder.prep(4, 4);
+    builder.writeInt32(a);
+    return builder.offset();
+  }
 
+  unpack(): UnusedT {
+    return new UnusedT(this.a());
+  }
 
-unpack(): UnusedT {
-  return new UnusedT(
-    this.a()
-  );
-}
-
-
-unpackTo(_o: UnusedT): void {
-  _o.a = this.a();
-}
+  unpackTo(_o: UnusedT): void {
+    _o.a = this.a();
+  }
 }
 
 export class UnusedT implements flatbuffers.IGeneratedObject {
-constructor(
-  public a: number = 0
-){}
+  constructor(public a: number = 0) {}
 
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Unused.createUnused(builder,
-    this.a
-  );
-}
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return Unused.createUnused(builder, this.a);
+  }
 }

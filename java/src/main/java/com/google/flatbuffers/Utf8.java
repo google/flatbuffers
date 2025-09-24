@@ -16,22 +16,22 @@
 
 package com.google.flatbuffers;
 
-import java.nio.ByteBuffer;
-
 import static java.lang.Character.MAX_SURROGATE;
-import static java.lang.Character.MIN_SURROGATE;
 import static java.lang.Character.MIN_HIGH_SURROGATE;
 import static java.lang.Character.MIN_LOW_SURROGATE;
 import static java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT;
+import static java.lang.Character.MIN_SURROGATE;
 import static java.lang.Character.isSurrogatePair;
 import static java.lang.Character.toCodePoint;
+
+import java.nio.ByteBuffer;
 
 public abstract class Utf8 {
 
   /**
-   * Returns the number of bytes in the UTF-8-encoded form of {@code sequence}. For a string,
-   * this method is equivalent to {@code string.getBytes(UTF_8).length}, but is more efficient in
-   * both time and space.
+   * Returns the number of bytes in the UTF-8-encoded form of {@code sequence}. For a string, this
+   * method is equivalent to {@code string.getBytes(UTF_8).length}, but is more efficient in both
+   * time and space.
    *
    * @throws IllegalArgumentException if {@code sequence} contains ill-formed UTF-16 (unpaired
    *     surrogates)
@@ -60,6 +60,7 @@ public abstract class Utf8 {
 
   /**
    * Get the default UTF-8 processor.
+   *
    * @return the default processor
    */
   public static Utf8 getDefault() {
@@ -71,6 +72,7 @@ public abstract class Utf8 {
 
   /**
    * Set the default instance of the UTF-8 processor.
+   *
    * @param instance the new instance to use
    */
   public static void setDefault(Utf8 instance) {
@@ -79,6 +81,7 @@ public abstract class Utf8 {
 
   /**
    * Encode a Java's CharSequence UTF8 codepoint into a byte array.
+   *
    * @param in CharSequence to be encoded
    * @param start start position of the first char in the codepoint
    * @param out byte array of 4 bytes to be filled
@@ -94,11 +97,11 @@ public abstract class Utf8 {
     }
 
     char c = in.charAt(start);
-     if (c < 0x80) {
-       // One byte (0xxx xxxx)
-       out[0] = (byte) c;
-       return 1;
-     } else if (c < 0x800) {
+    if (c < 0x80) {
+      // One byte (0xxx xxxx)
+      out[0] = (byte) c;
+      return 1;
+    } else if (c < 0x800) {
       // Two bytes (110x xxxx 10xx xxxx)
       out[0] = (byte) (0xC0 | (c >>> 6));
       out[1] = (byte) (0x80 | (0x3F & c));
@@ -107,7 +110,7 @@ public abstract class Utf8 {
       // Three bytes (1110 xxxx 10xx xxxx 10xx xxxx)
       // Maximum single-char code point is 0xFFFF, 16 bits.
       out[0] = (byte) (0xE0 | (c >>> 12));
-      out[1] =(byte) (0x80 | (0x3F & (c >>> 6)));
+      out[1] = (byte) (0x80 | (0x3F & (c >>> 6)));
       out[2] = (byte) (0x80 | (0x3F & c));
       return 3;
     } else {
@@ -115,7 +118,7 @@ public abstract class Utf8 {
       // Minimum code point represented by a surrogate pair is 0x10000, 17 bits, four UTF-8
       // bytes
       final char low;
-      if (start + 1 == inLength || !isSurrogatePair(c, (low = in.charAt(start+1)))) {
+      if (start + 1 == inLength || !isSurrogatePair(c, (low = in.charAt(start + 1)))) {
         throw new UnpairedSurrogateException(start, inLength);
       }
       int codePoint = toCodePoint(c, low);
@@ -134,23 +137,17 @@ public abstract class Utf8 {
    */
   static class DecodeUtil {
 
-    /**
-     * Returns whether this is a single-byte codepoint (i.e., ASCII) with the form '0XXXXXXX'.
-     */
+    /** Returns whether this is a single-byte codepoint (i.e., ASCII) with the form '0XXXXXXX'. */
     static boolean isOneByte(byte b) {
       return b >= 0;
     }
 
-    /**
-     * Returns whether this is a two-byte codepoint with the form '10XXXXXX'.
-     */
+    /** Returns whether this is a two-byte codepoint with the form '10XXXXXX'. */
     static boolean isTwoBytes(byte b) {
       return b < (byte) 0xE0;
     }
 
-    /**
-     * Returns whether this is a three-byte codepoint with the form '110XXXXX'.
-     */
+    /** Returns whether this is a three-byte codepoint with the form '110XXXXX'. */
     static boolean isThreeBytes(byte b) {
       return b < (byte) 0xF0;
     }
@@ -159,8 +156,7 @@ public abstract class Utf8 {
       resultArr[resultPos] = (char) byte1;
     }
 
-    static void handleTwoBytes(
-        byte byte1, byte byte2, char[] resultArr, int resultPos)
+    static void handleTwoBytes(byte byte1, byte byte2, char[] resultArr, int resultPos)
         throws IllegalArgumentException {
       // Simultaneously checks for illegal trailing-byte in leading position (<= '11000000') and
       // overlong 2-byte, '11000001'.
@@ -177,58 +173,56 @@ public abstract class Utf8 {
         byte byte1, byte byte2, byte byte3, char[] resultArr, int resultPos)
         throws IllegalArgumentException {
       if (isNotTrailingByte(byte2)
-              // overlong? 5 most significant bits must not all be zero
-              || (byte1 == (byte) 0xE0 && byte2 < (byte) 0xA0)
-              // check for illegal surrogate codepoints
-              || (byte1 == (byte) 0xED && byte2 >= (byte) 0xA0)
-              || isNotTrailingByte(byte3)) {
+          // overlong? 5 most significant bits must not all be zero
+          || (byte1 == (byte) 0xE0 && byte2 < (byte) 0xA0)
+          // check for illegal surrogate codepoints
+          || (byte1 == (byte) 0xED && byte2 >= (byte) 0xA0)
+          || isNotTrailingByte(byte3)) {
         throw new IllegalArgumentException("Invalid UTF-8");
       }
-      resultArr[resultPos] = (char)
-                                 (((byte1 & 0x0F) << 12) | (trailingByteValue(byte2) << 6) | trailingByteValue(byte3));
+      resultArr[resultPos] =
+          (char)
+              (((byte1 & 0x0F) << 12) | (trailingByteValue(byte2) << 6) | trailingByteValue(byte3));
     }
 
     static void handleFourBytes(
         byte byte1, byte byte2, byte byte3, byte byte4, char[] resultArr, int resultPos)
-        throws IllegalArgumentException{
+        throws IllegalArgumentException {
       if (isNotTrailingByte(byte2)
-              // Check that 1 <= plane <= 16.  Tricky optimized form of:
-              //   valid 4-byte leading byte?
-              // if (byte1 > (byte) 0xF4 ||
-              //   overlong? 4 most significant bits must not all be zero
-              //     byte1 == (byte) 0xF0 && byte2 < (byte) 0x90 ||
-              //   codepoint larger than the highest code point (U+10FFFF)?
-              //     byte1 == (byte) 0xF4 && byte2 > (byte) 0x8F)
-              || (((byte1 << 28) + (byte2 - (byte) 0x90)) >> 30) != 0
-              || isNotTrailingByte(byte3)
-              || isNotTrailingByte(byte4)) {
+          // Check that 1 <= plane <= 16.  Tricky optimized form of:
+          //   valid 4-byte leading byte?
+          // if (byte1 > (byte) 0xF4 ||
+          //   overlong? 4 most significant bits must not all be zero
+          //     byte1 == (byte) 0xF0 && byte2 < (byte) 0x90 ||
+          //   codepoint larger than the highest code point (U+10FFFF)?
+          //     byte1 == (byte) 0xF4 && byte2 > (byte) 0x8F)
+          || (((byte1 << 28) + (byte2 - (byte) 0x90)) >> 30) != 0
+          || isNotTrailingByte(byte3)
+          || isNotTrailingByte(byte4)) {
         throw new IllegalArgumentException("Invalid UTF-8");
       }
-      int codepoint = ((byte1 & 0x07) << 18)
-                          | (trailingByteValue(byte2) << 12)
-                          | (trailingByteValue(byte3) << 6)
-                          | trailingByteValue(byte4);
+      int codepoint =
+          ((byte1 & 0x07) << 18)
+              | (trailingByteValue(byte2) << 12)
+              | (trailingByteValue(byte3) << 6)
+              | trailingByteValue(byte4);
       resultArr[resultPos] = DecodeUtil.highSurrogate(codepoint);
       resultArr[resultPos + 1] = DecodeUtil.lowSurrogate(codepoint);
     }
 
-    /**
-     * Returns whether the byte is not a valid continuation of the form '10XXXXXX'.
-     */
+    /** Returns whether the byte is not a valid continuation of the form '10XXXXXX'. */
     private static boolean isNotTrailingByte(byte b) {
       return b > (byte) 0xBF;
     }
 
-    /**
-     * Returns the actual value of the trailing byte (removes the prefix '10') for composition.
-     */
+    /** Returns the actual value of the trailing byte (removes the prefix '10') for composition. */
     private static int trailingByteValue(byte b) {
       return b & 0x3F;
     }
 
     private static char highSurrogate(int codePoint) {
-      return (char) ((MIN_HIGH_SURROGATE - (MIN_SUPPLEMENTARY_CODE_POINT >>> 10))
-                         + (codePoint >>> 10));
+      return (char)
+          ((MIN_HIGH_SURROGATE - (MIN_SUPPLEMENTARY_CODE_POINT >>> 10)) + (codePoint >>> 10));
     }
 
     private static char lowSurrogate(int codePoint) {
@@ -236,7 +230,8 @@ public abstract class Utf8 {
     }
   }
 
-  // These UTF-8 handling methods are copied from Guava's Utf8Unsafe class with a modification to throw
+  // These UTF-8 handling methods are copied from Guava's Utf8Unsafe class with a modification to
+  // throw
   // a protocol buffer local exception. This exception is then caught in CodedOutputStream so it can
   // fallback to more lenient behavior.
   static class UnpairedSurrogateException extends IllegalArgumentException {

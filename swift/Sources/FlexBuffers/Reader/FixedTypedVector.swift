@@ -31,8 +31,8 @@ public struct FixedTypedVector: FlexBufferVector {
     offset: Int,
     byteWidth: UInt8,
     type: FlexBufferType,
-    count: Int)
-  {
+    count: Int
+  ) {
     self.byteBuffer = byteBuffer
     self.offset = offset
     self.byteWidth = byteWidth

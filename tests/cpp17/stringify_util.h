@@ -32,57 +32,60 @@
 namespace cpp17 {
 
 // User calls this; need to forward declare it since it is called recursively.
-template<typename T>
+template <typename T>
 std::optional<std::string> StringifyFlatbufferValue(
-    T &&val, const std::string &indent = "");
+    T&& val, const std::string& indent = "");
 
 namespace detail {
 
 /*******************************************************************************
 ** Metaprogramming helpers for detecting Flatbuffers Tables, Structs, & Vectors.
 *******************************************************************************/
-template<typename FBS, typename = void>
+template <typename FBS, typename = void>
 struct is_flatbuffers_table_or_struct : std::false_type {};
 
 // We know it's a table or struct when it has a Traits subclass.
-template<typename FBS>
+template <typename FBS>
 struct is_flatbuffers_table_or_struct<FBS, std::void_t<typename FBS::Traits>>
     : std::true_type {};
 
-template<typename FBS>
+template <typename FBS>
 inline constexpr bool is_flatbuffers_table_or_struct_v =
     is_flatbuffers_table_or_struct<FBS>::value;
 
-template<typename T> struct is_flatbuffers_vector : std::false_type {};
+template <typename T>
+struct is_flatbuffers_vector : std::false_type {};
 
-template<typename T>
+template <typename T>
 struct is_flatbuffers_vector<flatbuffers::Vector<T>> : std::true_type {};
 
-template<typename T>
+template <typename T>
 inline constexpr bool is_flatbuffers_vector_v = is_flatbuffers_vector<T>::value;
 
 /*******************************************************************************
 ** Compile-time Iteration & Recursive Stringification over Flatbuffers types.
 *******************************************************************************/
-template<size_t Index, typename FBS>
-std::string AddStringifiedField(const FBS &fbs, const std::string &indent) {
+template <size_t Index, typename FBS>
+std::string AddStringifiedField(const FBS& fbs, const std::string& indent) {
   auto value_string =
       StringifyFlatbufferValue(fbs.template get_field<Index>(), indent);
-  if (!value_string) { return ""; }
+  if (!value_string) {
+    return "";
+  }
   return indent + FBS::Traits::field_names[Index] + " = " + *value_string +
          "\n";
 }
 
-template<typename FBS, size_t... Indexes>
-std::string StringifyTableOrStructImpl(const FBS &fbs,
-                                       const std::string &indent,
+template <typename FBS, size_t... Indexes>
+std::string StringifyTableOrStructImpl(const FBS& fbs,
+                                       const std::string& indent,
                                        std::index_sequence<Indexes...>) {
   // This line is where the compile-time iteration happens!
   return (AddStringifiedField<Indexes>(fbs, indent) + ...);
 }
 
-template<typename FBS>
-std::string StringifyTableOrStruct(const FBS &fbs, const std::string &indent) {
+template <typename FBS>
+std::string StringifyTableOrStruct(const FBS& fbs, const std::string& indent) {
   (void)fbs;
   (void)indent;
   static constexpr size_t field_count = FBS::Traits::fields_number;
@@ -96,9 +99,9 @@ std::string StringifyTableOrStruct(const FBS &fbs, const std::string &indent) {
   return out;
 }
 
-template<typename T>
-std::string StringifyVector(const flatbuffers::Vector<T> &vec,
-                            const std::string &indent) {
+template <typename T>
+std::string StringifyVector(const flatbuffers::Vector<T>& vec,
+                            const std::string& indent) {
   const auto prologue = indent + std::string("  ");
   const auto epilogue = std::string(",\n");
   std::string text;
@@ -115,7 +118,8 @@ std::string StringifyVector(const flatbuffers::Vector<T> &vec,
   return text;
 }
 
-template<typename T> std::string StringifyArithmeticType(T val) {
+template <typename T>
+std::string StringifyArithmeticType(T val) {
   return flatbuffers::NumToString(val);
 }
 
@@ -124,9 +128,9 @@ template<typename T> std::string StringifyArithmeticType(T val) {
 /*******************************************************************************
 ** Take any flatbuffer type (table, struct, Vector, int...) and stringify it.
 *******************************************************************************/
-template<typename T>
-std::optional<std::string> StringifyFlatbufferValue(T &&val,
-                                                    const std::string &indent) {
+template <typename T>
+std::optional<std::string> StringifyFlatbufferValue(T&& val,
+                                                    const std::string& indent) {
   (void)indent;
   constexpr bool is_pointer = std::is_pointer_v<std::remove_reference_t<T>>;
   if constexpr (is_pointer) {

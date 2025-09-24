@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#if canImport(Common)
-import Common
-#endif
-
 import Foundation
+
+#if canImport(Common)
+  import Common
+#endif
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
 /// it allows users to write and read data directly from memory thus the use of its
@@ -124,7 +124,7 @@ struct _InternalByteBuffer {
   @usableFromInline
   mutating func ensureSpace(size: Int) {
     guard size &+ writerIndex > capacity else { return }
-    
+
     while capacity <= writerIndex &+ size {
       capacity = capacity << 1
     }
@@ -141,9 +141,12 @@ struct _InternalByteBuffer {
 
   @inline(__always)
   mutating func addPadding(bytes: Int) {
-    writerIndex = writerIndex &+ numericCast(padding(
-      bufSize: numericCast(writerIndex),
-      elementSize: numericCast(bytes)))
+    writerIndex =
+      writerIndex
+      &+ numericCast(
+        padding(
+          bufSize: numericCast(writerIndex),
+          elementSize: numericCast(bytes)))
     ensureSpace(size: writerIndex)
   }
 
@@ -171,30 +174,32 @@ struct _InternalByteBuffer {
   @inline(__always)
   func withUnsafeBytes<T>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T) rethrows -> T
-  {
-    try body(UnsafeRawBufferPointer(
-      start: _storage.memory,
-      count: capacity))
+      -> T
+  ) rethrows -> T {
+    try body(
+      UnsafeRawBufferPointer(
+        start: _storage.memory,
+        count: capacity))
   }
 
   @discardableResult
   @inline(__always)
   func withUnsafeSlicedBytes<T>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T) rethrows -> T
-  {
-    try body(UnsafeRawBufferPointer(
-      start: _storage.memory,
-      count: writerIndex))
+      -> T
+  ) rethrows -> T {
+    try body(
+      UnsafeRawBufferPointer(
+        start: _storage.memory,
+        count: writerIndex))
   }
 
   @discardableResult
   @inline(__always)
   func withUnsafeRawPointer<T>(
     _ body: (UnsafeMutableRawPointer) throws
-      -> T) rethrows -> T
-  {
+      -> T
+  ) rethrows -> T {
     try body(_storage.memory)
   }
 
@@ -202,8 +207,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func readWithUnsafeRawPointer<T>(
     position: Int,
-    _ body: (UnsafeRawPointer) throws -> T) rethrows -> T
-  {
+    _ body: (UnsafeRawPointer) throws -> T
+  ) rethrows -> T {
     try body(_storage.memory.advanced(by: position))
   }
 }

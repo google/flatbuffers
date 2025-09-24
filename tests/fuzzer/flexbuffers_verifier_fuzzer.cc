@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #include <stddef.h>
 #include <stdint.h>
+
 #include <string>
 
 #include "flatbuffers/flexbuffers.h"
@@ -14,6 +15,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   // FIXME: we can't really verify this path, because the fuzzer will
   // construct buffers that time out.
   // Add a simple #define to bound the number of steps just for the fuzzer?
-  //flexbuffers::VerifyBuffer(data, size, nullptr);
+  // flexbuffers::VerifyBuffer(data, size, nullptr);
   return 0;
 }

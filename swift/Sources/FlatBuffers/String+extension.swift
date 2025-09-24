@@ -28,8 +28,8 @@ extension String: Verifiable {
   public static func verify<T>(
     _ verifier: inout Verifier,
     at position: Int,
-    of type: T.Type) throws where T: Verifiable
-  {
+    of type: T.Type
+  ) throws where T: Verifiable {
 
     let range = try String.verifyRange(&verifier, at: position, of: UInt8.self)
     /// Safe &+ since we already check for overflow in verify range
@@ -41,9 +41,10 @@ extension String: Verifiable {
         end: verifier.capacity)
     }
 
-    let isNullTerminated = verifier._buffer.read(
-      def: UInt8.self,
-      position: stringLen) == 0
+    let isNullTerminated =
+      verifier._buffer.read(
+        def: UInt8.self,
+        position: stringLen) == 0
 
     if !verifier._options._ignoreMissingNullTerminators && !isNullTerminated {
       let str = verifier._buffer.readString(at: range.start, count: range.count)
@@ -63,9 +64,10 @@ extension String: FlatbuffersInitializable {
   public init(_ bb: ByteBuffer, o: Int32) {
     let v = Int(o)
     let count = bb.read(def: Int32.self, position: v)
-    self = bb.readString(
-      at: MemoryLayout<Int32>.size &+ v,
-      count: Int(count)) ?? ""
+    self =
+      bb.readString(
+        at: MemoryLayout<Int32>.size &+ v,
+        count: Int(count)) ?? ""
   }
 }
 
@@ -73,16 +75,16 @@ extension String: ObjectAPIPacker {
 
   public static func pack(
     _ builder: inout FlatBufferBuilder,
-    obj: inout String?) -> Offset
-  {
+    obj: inout String?
+  ) -> Offset {
     guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
   public static func pack(
     _ builder: inout FlatBufferBuilder,
-    obj: inout String) -> Offset
-  {
+    obj: inout String
+  ) -> Offset {
     builder.create(string: obj)
   }
 
@@ -95,15 +97,14 @@ extension String: ObjectAPIPacker {
 extension String: NativeObject {
 
   public func serialize<T: ObjectAPIPacker>(type: T.Type) -> ByteBuffer
-    where T.T == Self
-  {
+  where T.T == Self {
     fatalError("serialize should never be called from string directly")
   }
 
   public func serialize<T: ObjectAPIPacker>(
     builder: inout FlatBufferBuilder,
-    type: T.Type) -> ByteBuffer where T.T == Self
-  {
+    type: T.Type
+  ) -> ByteBuffer where T.T == Self {
     fatalError("serialize should never be called from string directly")
   }
 }

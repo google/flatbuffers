@@ -1,3 +1,3 @@
 export declare enum FromInclude {
-    IncludeVal = "0"
+  IncludeVal = '0',
 }

@@ -32,7 +32,7 @@ GOLD_FLEXBUFFER_OBJ = {
     'bools': [True, False, True, False],
     'foo': 100.0,
     'mymap': {'foo': 'Fred'},
-    'vec': [-100, 'Fred', 4.0, b'M', False, 4.0]
+    'vec': [-100, 'Fred', 4.0, b'M', False, 4.0],
 }
 
 GOLD_FLEXBUFFER_FILE = 'gold_flexbuffer_example.bin'
@@ -74,11 +74,15 @@ def int_sizes(value):
 
 
 def int_bytes(value, byte_width):
-  return struct.pack('<%s' % {1: 'b', 2: 'h', 4: 'i', 8: 'q'}[byte_width], value)
+  return struct.pack(
+      '<%s' % {1: 'b', 2: 'h', 4: 'i', 8: 'q'}[byte_width], value
+  )
 
 
 def uint_bytes(value, byte_width):
-  return struct.pack('<%s' % {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}[byte_width], value)
+  return struct.pack(
+      '<%s' % {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}[byte_width], value
+  )
 
 
 def float_bytes(value, byte_width):
@@ -126,13 +130,24 @@ def encode_type(type_, value, byte_width=None):
   return fbb.Finish()
 
 
-INT_MIN_MAX_VALUES = (min_value(Type.INT, 1), max_value(Type.INT, 1),
-                      min_value(Type.INT, 2), max_value(Type.INT, 2),
-                      min_value(Type.INT, 4), max_value(Type.INT, 4),
-                      min_value(Type.INT, 8), max_value(Type.INT, 8))
+INT_MIN_MAX_VALUES = (
+    min_value(Type.INT, 1),
+    max_value(Type.INT, 1),
+    min_value(Type.INT, 2),
+    max_value(Type.INT, 2),
+    min_value(Type.INT, 4),
+    max_value(Type.INT, 4),
+    min_value(Type.INT, 8),
+    max_value(Type.INT, 8),
+)
 
-UINT_MIN_MAX_VALUES = (0, max_value(Type.UINT, 1), max_value(Type.UINT, 2),
-                       max_value(Type.UINT, 4), max_value(Type.UINT, 8))
+UINT_MIN_MAX_VALUES = (
+    0,
+    max_value(Type.UINT, 1),
+    max_value(Type.UINT, 2),
+    max_value(Type.UINT, 4),
+    max_value(Type.UINT, 8),
+)
 
 
 class UtilTest(unittest.TestCase):
@@ -149,17 +164,26 @@ class UtilTest(unittest.TestCase):
 
   def test_inline_types(self):
     self._test_type_predicate(
-        Type.IsInline, (Type.NULL, Type.INT, Type.UINT, Type.FLOAT, Type.BOOL))
+        Type.IsInline, (Type.NULL, Type.INT, Type.UINT, Type.FLOAT, Type.BOOL)
+    )
 
   def test_typed_vector(self):
     self._test_type_predicate(
         Type.IsTypedVector,
-        (Type.VECTOR_INT, Type.VECTOR_UINT, Type.VECTOR_FLOAT, Type.VECTOR_KEY,
-         Type.VECTOR_STRING_DEPRECATED, Type.VECTOR_BOOL))
+        (
+            Type.VECTOR_INT,
+            Type.VECTOR_UINT,
+            Type.VECTOR_FLOAT,
+            Type.VECTOR_KEY,
+            Type.VECTOR_STRING_DEPRECATED,
+            Type.VECTOR_BOOL,
+        ),
+    )
 
     self._test_type_predicate(
         Type.IsTypedVectorElementType,
-        (Type.INT, Type.UINT, Type.FLOAT, Type.KEY, Type.STRING, Type.BOOL))
+        (Type.INT, Type.UINT, Type.FLOAT, Type.KEY, Type.STRING, Type.BOOL),
+    )
 
     with self.assertRaises(ValueError):
       Type.ToTypedVectorElementType(Type.VECTOR)
@@ -169,7 +193,8 @@ class UtilTest(unittest.TestCase):
     self.assertIs(Type.ToTypedVectorElementType(Type.VECTOR_KEY), Type.KEY)
     self.assertIs(
         Type.ToTypedVectorElementType(Type.VECTOR_STRING_DEPRECATED),
-        Type.STRING)
+        Type.STRING,
+    )
     self.assertIs(Type.ToTypedVectorElementType(Type.VECTOR_BOOL), Type.BOOL)
 
     with self.assertRaises(ValueError):
@@ -179,37 +204,57 @@ class UtilTest(unittest.TestCase):
     self.assertIs(Type.ToTypedVector(Type.FLOAT), Type.VECTOR_FLOAT)
     self.assertIs(Type.ToTypedVector(Type.KEY), Type.VECTOR_KEY)
     self.assertIs(
-        Type.ToTypedVector(Type.STRING), Type.VECTOR_STRING_DEPRECATED)
+        Type.ToTypedVector(Type.STRING), Type.VECTOR_STRING_DEPRECATED
+    )
     self.assertIs(Type.ToTypedVector(Type.BOOL), Type.VECTOR_BOOL)
 
   def test_fixed_typed_vector(self):
     self._test_type_predicate(
         Type.IsFixedTypedVector,
-        (Type.VECTOR_INT2, Type.VECTOR_UINT2, Type.VECTOR_FLOAT2,
-         Type.VECTOR_INT3, Type.VECTOR_UINT3, Type.VECTOR_FLOAT3,
-         Type.VECTOR_INT4, Type.VECTOR_UINT4, Type.VECTOR_FLOAT4))
+        (
+            Type.VECTOR_INT2,
+            Type.VECTOR_UINT2,
+            Type.VECTOR_FLOAT2,
+            Type.VECTOR_INT3,
+            Type.VECTOR_UINT3,
+            Type.VECTOR_FLOAT3,
+            Type.VECTOR_INT4,
+            Type.VECTOR_UINT4,
+            Type.VECTOR_FLOAT4,
+        ),
+    )
 
-    self._test_type_predicate(Type.IsFixedTypedVectorElementType,
-                              (Type.INT, Type.UINT, Type.FLOAT))
+    self._test_type_predicate(
+        Type.IsFixedTypedVectorElementType, (Type.INT, Type.UINT, Type.FLOAT)
+    )
 
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_INT2), (Type.INT, 2))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_INT2), (Type.INT, 2)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_UINT2), (Type.UINT, 2))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_UINT2), (Type.UINT, 2)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_FLOAT2), (Type.FLOAT, 2))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_FLOAT2), (Type.FLOAT, 2)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_INT3), (Type.INT, 3))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_INT3), (Type.INT, 3)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_UINT3), (Type.UINT, 3))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_UINT3), (Type.UINT, 3)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_FLOAT3), (Type.FLOAT, 3))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_FLOAT3), (Type.FLOAT, 3)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_INT4), (Type.INT, 4))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_INT4), (Type.INT, 4)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_UINT4), (Type.UINT, 4))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_UINT4), (Type.UINT, 4)
+    )
     self.assertEqual(
-        Type.ToFixedTypedVectorElementType(Type.VECTOR_FLOAT4), (Type.FLOAT, 4))
+        Type.ToFixedTypedVectorElementType(Type.VECTOR_FLOAT4), (Type.FLOAT, 4)
+    )
 
     # Invalid size
     for type_ in Type.INT, Type.UINT, Type.FLOAT:
@@ -283,9 +328,15 @@ class DecoderTest(unittest.TestCase):
           self.assertEqual(root.AsInt, 0)
           self.assertEqual(root.AsFloat, 0.0)
 
-          for prop in (type(root).AsKey, type(root).AsString, type(root).AsBlob,
-                       type(root).AsVector, type(root).AsTypedVector,
-                       type(root).AsFixedTypedVector, type(root).AsMap):
+          for prop in (
+              type(root).AsKey,
+              type(root).AsString,
+              type(root).AsBlob,
+              type(root).AsVector,
+              type(root).AsTypedVector,
+              type(root).AsFixedTypedVector,
+              type(root).AsMap,
+          ):
             with self.assertRaises(TypeError):
               prop.fget(root)
 
@@ -310,10 +361,15 @@ class DecoderTest(unittest.TestCase):
             self.assertEqual(root.AsInt, int(value))
             self.assertEqual(root.AsFloat, float(value))
 
-            for prop in (type(root).AsKey, type(root).AsString,
-                         type(root).AsBlob,
-                         type(root).AsVector, type(root).AsTypedVector,
-                         type(root).AsFixedTypedVector, type(root).AsMap):
+            for prop in (
+                type(root).AsKey,
+                type(root).AsString,
+                type(root).AsBlob,
+                type(root).AsVector,
+                type(root).AsTypedVector,
+                type(root).AsFixedTypedVector,
+                type(root).AsMap,
+            ):
               with self.assertRaises(TypeError):
                 prop.fget(root)
 
@@ -341,9 +397,15 @@ class DecoderTest(unittest.TestCase):
     self.assertEqual(root.AsBool, bool(value))
     self.assertEqual(root.AsFloat, float(value))
 
-    for prop in (type(root).AsKey, type(root).AsString, type(root).AsBlob,
-                 type(root).AsVector, type(root).AsTypedVector,
-                 type(root).AsFixedTypedVector, type(root).AsMap):
+    for prop in (
+        type(root).AsKey,
+        type(root).AsString,
+        type(root).AsBlob,
+        type(root).AsVector,
+        type(root).AsTypedVector,
+        type(root).AsFixedTypedVector,
+        type(root).AsMap,
+    ):
       with self.assertRaises(TypeError):
         prop.fget(root)
 
@@ -460,9 +522,15 @@ class DecoderTest(unittest.TestCase):
     self.assertTrue(root.IsFloat)
     self.assertAlmostEqual(root.AsFloat, value)
 
-    for prop in (type(root).AsKey, type(root).AsString, type(root).AsBlob,
-                 type(root).AsVector, type(root).AsTypedVector,
-                 type(root).AsFixedTypedVector, type(root).AsMap):
+    for prop in (
+        type(root).AsKey,
+        type(root).AsString,
+        type(root).AsBlob,
+        type(root).AsVector,
+        type(root).AsTypedVector,
+        type(root).AsFixedTypedVector,
+        type(root).AsMap,
+    ):
       with self.assertRaises(TypeError):
         prop.fget(root)
 
@@ -640,9 +708,11 @@ class DecoderTest(unittest.TestCase):
     self.assertEqual(root.AsInt, len(vector))
 
   def test_fixed_typed_vector_float(self):
-    for type_, vector in ((Type.VECTOR_FLOAT2, [-75.0, 34.89]),
-                          (Type.VECTOR_FLOAT3, [-75.0, 34.89, 12.0]),
-                          (Type.VECTOR_FLOAT4, [-75.0, 34.89, -1.0, 1.0])):
+    for type_, vector in (
+        (Type.VECTOR_FLOAT2, [-75.0, 34.89]),
+        (Type.VECTOR_FLOAT3, [-75.0, 34.89, 12.0]),
+        (Type.VECTOR_FLOAT4, [-75.0, 34.89, -1.0, 1.0]),
+    ):
       for bw in 1, 2, 4, 8:
         for ebw in 4, 8:
           with self.subTest(type=type_, vector=vector, bw=bw, ebw=ebw):
@@ -659,9 +729,11 @@ class DecoderTest(unittest.TestCase):
               self.assertAlmostEqual(a, b, places=2)
 
   def test_fixed_typed_vector_int(self):
-    for type_, vector in ((Type.VECTOR_INT2, [0, -13]), (Type.VECTOR_INT3,
-                                                         [127, 0, -13]),
-                          (Type.VECTOR_INT4, [127, 0, -13, 0])):
+    for type_, vector in (
+        (Type.VECTOR_INT2, [0, -13]),
+        (Type.VECTOR_INT3, [127, 0, -13]),
+        (Type.VECTOR_INT4, [127, 0, -13, 0]),
+    ):
       for bw in 1, 2, 4, 8:
         for ebw in 1, 2, 4, 8:
           with self.subTest(type=type_, vector=vector, bw=bw, ebw=ebw):
@@ -677,9 +749,11 @@ class DecoderTest(unittest.TestCase):
             self._check_fixed_typed_vector(data, vector, Type.INT)
 
   def test_fixed_typed_vector_uint(self):
-    for type_, vector in ((Type.VECTOR_UINT2, [0, 13]),
-                          (Type.VECTOR_UINT3, [127, 0, 13]), (Type.VECTOR_UINT4,
-                                                              [127, 0, 13, 0])):
+    for type_, vector in (
+        (Type.VECTOR_UINT2, [0, 13]),
+        (Type.VECTOR_UINT3, [127, 0, 13]),
+        (Type.VECTOR_UINT4, [127, 0, 13, 0]),
+    ):
       for bw in 1, 2, 4, 8:
         for ebw in 1, 2, 4, 8:
           with self.subTest(type=type_, vector=vector, bw=bw, ebw=ebw):
@@ -709,9 +783,14 @@ class DecoderTest(unittest.TestCase):
     self.assertEqual(root.AsInt, len(vector))
 
   def test_empty_typed_vector(self):
-    for type_ in (Type.VECTOR_BOOL, Type.VECTOR_INT, Type.VECTOR_UINT,
-                  Type.VECTOR_FLOAT, Type.VECTOR_KEY,
-                  Type.VECTOR_STRING_DEPRECATED):
+    for type_ in (
+        Type.VECTOR_BOOL,
+        Type.VECTOR_INT,
+        Type.VECTOR_UINT,
+        Type.VECTOR_FLOAT,
+        Type.VECTOR_KEY,
+        Type.VECTOR_STRING_DEPRECATED,
+    ):
       for bw in 1, 2, 4, 8:
         for ebw in 1, 2, 4, 8:
           with self.subTest(type=type_, bw=bw, ebw=ebw):
@@ -721,7 +800,7 @@ class DecoderTest(unittest.TestCase):
                 # Root
                 *uint_bytes(0, bw),
                 packed_type(type_, ebw),
-                bw
+                bw,
             ])
 
             element_type = Type.ToTypedVectorElementType(type_)
@@ -1018,8 +1097,9 @@ class DecoderTest(unittest.TestCase):
                 packed_type(Type.INT, vbw),
                 packed_type(Type.INT, vbw),
                 # Root
-                *uint_bytes(vbw * len(value) + len(value),
-                            bw),  # offset to values
+                *uint_bytes(
+                    vbw * len(value) + len(value), bw
+                ),  # offset to values
                 packed_type(Type.MAP, vbw),
                 bw,
             ])
@@ -1196,7 +1276,8 @@ class EncoderTest(unittest.TestCase):
     data = fbb.Finish()
 
     self.assertEqual(
-        flexbuffers.Loads(data), ['begin', 42, [0, 1, 2, 3, 4], 'end'])
+        flexbuffers.Loads(data), ['begin', 42, [0, 1, 2, 3, 4], 'end']
+    )
 
   def test_big_vector(self):
     n = 10 * 1000
@@ -1282,8 +1363,14 @@ class EncoderTest(unittest.TestCase):
       fbb.FixedTypedVectorFromElements(elements, element_type)
       return fbb.Finish()
 
-    for elements in ((-2, 2), (1, 2, 3), (100, -100, 200, -200), (4.0, 7.0),
-                     (0.0, 1.0, 8.0), (9.0, 7.0, 1.0, 5.5)):
+    for elements in (
+        (-2, 2),
+        (1, 2, 3),
+        (100, -100, 200, -200),
+        (4.0, 7.0),
+        (0.0, 1.0, 8.0),
+        (9.0, 7.0, 1.0, 5.5),
+    ):
       with self.subTest(elements=elements):
         data = encode_fixed_typed_vector(elements)
         self.assertSequenceEqual(flexbuffers.Loads(data), elements)
@@ -1340,11 +1427,8 @@ class EncoderTest(unittest.TestCase):
     data = fbb.Finish()
 
     self.assertEqual(
-        flexbuffers.Loads(data), {
-            'v': [45],
-            'tv': [-7],
-            'ftv': [-2.0, 1.0]
-        })
+        flexbuffers.Loads(data), {'v': [45], 'tv': [-7], 'ftv': [-2.0, 1.0]}
+    )
 
     keys = get_keys(data)
     self.assertEqual(sorted(keys), keys)
@@ -1368,7 +1452,8 @@ class EncoderTest(unittest.TestCase):
     data = fbb.Finish()
 
     self.assertEqual(
-        flexbuffers.Loads(data), {
+        flexbuffers.Loads(data),
+        {
             'n': None,
             'b': False,
             'i': -27,
@@ -1381,8 +1466,9 @@ class EncoderTest(unittest.TestCase):
             'if': 0.0,
             'v': [2, 1, 0.0],
             'tv': [2, 1, 0],
-            'ftv': [2.0, -6.0]
-        })
+            'ftv': [2.0, -6.0],
+        },
+    )
 
     keys = get_keys(data)
     self.assertEqual(sorted(keys), keys)
@@ -1390,19 +1476,9 @@ class EncoderTest(unittest.TestCase):
   def test_map_python(self):
     maps = [
         {},
-        {
-            'key': 'value'
-        },
-        {
-            'x': None,
-            'y': 3400,
-            'z': -7040
-        },
-        {
-            'zzz': 100,
-            'aaa': 5.0,
-            'ccc': ['Test', 32, False, None, True]
-        },
+        {'key': 'value'},
+        {'x': None, 'y': 3400, 'z': -7040},
+        {'zzz': 100, 'aaa': 5.0, 'ccc': ['Test', 32, False, None, True]},
         {
             'name': ['John', 'Smith'],
             'valid': True,

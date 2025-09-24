@@ -17,13 +17,10 @@
 package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 
-/**
- * Helper type for accessing vector of signed or unsigned 8-bit values.
- */
+import java.nio.ByteBuffer;
+
+/** Helper type for accessing vector of signed or unsigned 8-bit values. */
 public final class ByteVector extends BaseVector {
   /**
    * Assigns vector access object to vector data.
@@ -31,10 +28,11 @@ public final class ByteVector extends BaseVector {
    * @param vector Start data of a vector.
    * @param bb Table's ByteBuffer.
    * @return Returns current vector access object assigned to vector data whose offset is stored at
-   *         `vector`.
+   *     `vector`.
    */
-  public ByteVector __assign(int vector, ByteBuffer bb) { 
-    __reset(vector, Constants.SIZEOF_BYTE, bb); return this;
+  public ByteVector __assign(int vector, ByteBuffer bb) {
+    __reset(vector, Constants.SIZEOF_BYTE, bb);
+    return this;
   }
 
   /**
@@ -44,12 +42,12 @@ public final class ByteVector extends BaseVector {
    * @return the 8-bit value at the given index.
    */
   public byte get(int j) {
-     return bb.get(__element(j));
+    return bb.get(__element(j));
   }
 
   /**
-   * Reads the byte at the given index, zero-extends it to type int, and returns the result,
-   * which is therefore in the range 0 through 255.
+   * Reads the byte at the given index, zero-extends it to type int, and returns the result, which
+   * is therefore in the range 0 through 255.
    *
    * @param j The index from which the byte will be read.
    * @return the unsigned 8-bit at the given index.

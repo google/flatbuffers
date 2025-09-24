@@ -21,9 +21,7 @@ import MyGame.Sample.Equipment;
 import MyGame.Sample.Monster;
 import MyGame.Sample.Vec3;
 import MyGame.Sample.Weapon;
-
 import com.google.flatbuffers.FlatBufferBuilder;
-
 import java.nio.ByteBuffer;
 
 class SampleBinary {
@@ -53,7 +51,7 @@ class SampleBinary {
     Monster.addPos(builder, pos);
     Monster.addName(builder, name);
     Monster.addColor(builder, Color.Red);
-    Monster.addHp(builder, (short)300);
+    Monster.addHp(builder, (short) 300);
     Monster.addInventory(builder, inv);
     Monster.addWeapons(builder, weapons);
     Monster.addEquippedType(builder, Equipment.Weapon);
@@ -74,8 +72,8 @@ class SampleBinary {
     Monster monster = Monster.getRootAsMonster(buf);
 
     // Note: We did not set the `mana` field explicitly, so we get back the default value.
-    assert monster.mana() == (short)150;
-    assert monster.hp() == (short)300;
+    assert monster.mana() == (short) 150;
+    assert monster.hp() == (short) 300;
     assert monster.name().equals("Orc");
     assert monster.color() == Color.Red;
     assert monster.pos().x() == 1.0f;
@@ -84,7 +82,7 @@ class SampleBinary {
 
     // Get and test the `inventory` FlatBuffer `vector`.
     for (int i = 0; i < monster.inventoryLength(); i++) {
-      assert monster.inventory(i) == (byte)i;
+      assert monster.inventory(i) == (byte) i;
     }
 
     // Get and test the `weapons` FlatBuffer `vector` of `table`s.
@@ -103,7 +101,7 @@ class SampleBinary {
 
     // Get and test the `equipped` FlatBuffer `union`.
     assert monster.equippedType() == Equipment.Weapon;
-    Weapon equipped = (Weapon)monster.equipped(new Weapon());
+    Weapon equipped = (Weapon) monster.equipped(new Weapon());
     assert equipped.name().equals("Axe");
     assert equipped.damage() == 5;
 

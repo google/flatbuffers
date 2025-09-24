@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
 import platform
 import subprocess
-from pathlib import Path
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -33,7 +33,7 @@ flatc_exe = Path(
 
 # Find and assert flatc compiler is present.
 if root_path in flatc_exe.parents:
-    flatc_exe = flatc_exe.relative_to(root_path)
+  flatc_exe = flatc_exe.relative_to(root_path)
 flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
@@ -42,8 +42,8 @@ tests_path = Path(script_path, "tests")
 
 
 def flatc_annotate(schema, file, cwd=script_path):
-    cmd = [str(flatc_path), "--annotate", schema, file]
-    result = subprocess.run(cmd, cwd=str(cwd), check=True)
+  cmd = [str(flatc_path), "--annotate", schema, file]
+  result = subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
 test_files = [
@@ -73,4 +73,4 @@ test_files = [
 ]
 
 for test_file in test_files:
-    flatc_annotate("annotated_binary.fbs", test_file)
+  flatc_annotate("annotated_binary.fbs", test_file)

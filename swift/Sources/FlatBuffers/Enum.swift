@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#if canImport(Common)
-import Common
-#endif
-
 import Foundation
+
+#if canImport(Common)
+  import Common
+#endif
 
 /// Enum is a protocol that all flatbuffers enums should conform to
 /// Since it allows us to get the actual `ByteSize` and `Value` from
@@ -44,8 +44,8 @@ extension Enum where Self: Verifiable {
   public static func verify<T>(
     _ verifier: inout Verifier,
     at position: Int,
-    of type: T.Type) throws where T: Verifiable
-  {
+    of type: T.Type
+  ) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: type.self)
   }
 

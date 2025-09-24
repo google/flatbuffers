@@ -9,7 +9,6 @@ void StructKeyInStructTest();
 void NestedStructKeyInStructTest();
 void FixedSizedStructArrayKeyInStructTest();
 
-
 }  // namespace tests
 }  // namespace flatbuffers
 
