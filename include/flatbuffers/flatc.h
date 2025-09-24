@@ -30,8 +30,8 @@
 
 namespace flatbuffers {
 
-extern void LogCompilerWarn(const std::string &warn);
-extern void LogCompilerError(const std::string &err);
+extern void LogCompilerWarn(const std::string& warn);
+extern void LogCompilerError(const std::string& err);
 
 struct FlatCOptions {
   IDLOptions opts;
@@ -43,8 +43,8 @@ struct FlatCOptions {
   std::vector<std::string> filenames;
 
   std::list<std::string> include_directories_storage;
-  std::vector<const char *> include_directories;
-  std::vector<const char *> conform_include_directories;
+  std::vector<const char*> include_directories;
+  std::vector<const char*> conform_include_directories;
   std::vector<bool> generator_enabled;
   size_t binary_files_from = std::numeric_limits<size_t>::max();
   std::string conform_to_schema;
@@ -70,10 +70,10 @@ struct FlatCOption {
 
 class FlatCompiler {
  public:
-  typedef void (*WarnFn)(const FlatCompiler *flatc, const std::string &warn,
+  typedef void (*WarnFn)(const FlatCompiler* flatc, const std::string& warn,
                          bool show_exe_name);
 
-  typedef void (*ErrorFn)(const FlatCompiler *flatc, const std::string &err,
+  typedef void (*ErrorFn)(const FlatCompiler* flatc, const std::string& err,
                           bool usage, bool show_exe_name);
 
   // Parameters required to initialize the FlatCompiler.
@@ -84,42 +84,42 @@ class FlatCompiler {
     ErrorFn error_fn;
   };
 
-  explicit FlatCompiler(const InitParams &params) : params_(params) {}
+  explicit FlatCompiler(const InitParams& params) : params_(params) {}
 
-  bool RegisterCodeGenerator(const FlatCOption &option,
+  bool RegisterCodeGenerator(const FlatCOption& option,
                              std::shared_ptr<CodeGenerator> code_generator);
 
-  int Compile(const FlatCOptions &options);
+  int Compile(const FlatCOptions& options);
 
-  std::string GetShortUsageString(const std::string &program_name) const;
-  std::string GetUsageString(const std::string &program_name) const;
+  std::string GetShortUsageString(const std::string& program_name) const;
+  std::string GetUsageString(const std::string& program_name) const;
 
   // Parse the FlatC options from command line arguments.
-  FlatCOptions ParseFromCommandLineArguments(int argc, const char **argv);
+  FlatCOptions ParseFromCommandLineArguments(int argc, const char** argv);
 
  private:
-  void ParseFile(flatbuffers::Parser &parser, const std::string &filename,
-                 const std::string &contents,
-                 const std::vector<const char *> &include_directories) const;
+  void ParseFile(flatbuffers::Parser& parser, const std::string& filename,
+                 const std::string& contents,
+                 const std::vector<const char*>& include_directories) const;
 
-  void LoadBinarySchema(Parser &parser, const std::string &filename,
-                        const std::string &contents);
+  void LoadBinarySchema(Parser& parser, const std::string& filename,
+                        const std::string& contents);
 
-  void Warn(const std::string &warn, bool show_exe_name = true) const;
+  void Warn(const std::string& warn, bool show_exe_name = true) const;
 
-  void Error(const std::string &err, bool usage = true,
+  void Error(const std::string& err, bool usage = true,
              bool show_exe_name = true) const;
 
-  void AnnotateBinaries(const uint8_t *binary_schema,
+  void AnnotateBinaries(const uint8_t* binary_schema,
                         uint64_t binary_schema_size,
-                        const FlatCOptions &options);
+                        const FlatCOptions& options);
 
-  void ValidateOptions(const FlatCOptions &options);
+  void ValidateOptions(const FlatCOptions& options);
 
-  Parser GetConformParser(const FlatCOptions &options);
+  Parser GetConformParser(const FlatCOptions& options);
 
-  std::unique_ptr<Parser> GenerateCode(const FlatCOptions &options,
-                                       Parser &conform_parser);
+  std::unique_ptr<Parser> GenerateCode(const FlatCOptions& options,
+                                       Parser& conform_parser);
 
   std::map<std::string, std::shared_ptr<CodeGenerator>> code_generators_;
 
