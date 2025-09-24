@@ -16,9 +16,9 @@ static const auto infinity_f = std::numeric_limits<float>::infinity();
 static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 // Test that parser errors are actually generated.
-static void TestError_(const char *src, const char *error_substr,
-                       bool strict_json, const char *file, int line,
-                       const char *func) {
+static void TestError_(const char* src, const char* error_substr,
+                       bool strict_json, const char* file, int line,
+                       const char* func) {
   flatbuffers::IDLOptions opts;
   opts.strict_json = strict_json;
   flatbuffers::Parser parser(opts);
@@ -33,17 +33,17 @@ static void TestError_(const char *src, const char *error_substr,
   }
 }
 
-static void TestError_(const char *src, const char *error_substr,
-                       const char *file, int line, const char *func) {
+static void TestError_(const char* src, const char* error_substr,
+                       const char* file, int line, const char* func) {
   TestError_(src, error_substr, false, file, line, func);
 }
 
 #ifdef _WIN32
-#  define TestError(src, ...) \
-    TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __FUNCTION__)
+#define TestError(src, ...) \
+  TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __FUNCTION__)
 #else
-#  define TestError(src, ...) \
-    TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define TestError(src, ...) \
+  TestError_(src, __VA_ARGS__, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #endif
 
 static bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
@@ -462,13 +462,15 @@ void InvalidUTF8Test() {
   TestError(locale_ident.c_str(), "");
 }
 
-template<typename T>
-T TestValue(const char *json, const char *type_name,
-            const char *decls = nullptr) {
+template <typename T>
+T TestValue(const char* json, const char* type_name,
+            const char* decls = nullptr) {
   flatbuffers::Parser parser;
   parser.builder_.ForceDefaults(true);  // return defaults
   auto check_default = json ? false : true;
-  if (check_default) { parser.opts.output_default_scalars_in_json = true; }
+  if (check_default) {
+    parser.opts.output_default_scalars_in_json = true;
+  }
   // Simple schema.
   std::string schema = std::string(decls ? decls : "") + "\n" +
                        "table X { y:" + std::string(type_name) +
@@ -486,7 +488,9 @@ T TestValue(const char *json, const char *type_name,
   parser.opts.indent_step = -1;
   TEST_NULL(GenText(parser, parser.builder_.GetBufferPointer(), &print_back));
   // restore value from its default
-  if (check_default) { TEST_EQ(parser.Parse(print_back.c_str()), true); }
+  if (check_default) {
+    TEST_EQ(parser.Parse(print_back.c_str()), true);
+  }
 
   auto root = flatbuffers::GetRoot<flatbuffers::Table>(
       parser.builder_.GetBufferPointer());
@@ -796,7 +800,7 @@ void UnicodeSurrogatesTest() {
           true);
   auto root = flatbuffers::GetRoot<flatbuffers::Table>(
       parser.builder_.GetBufferPointer());
-  auto string = root->GetPointer<flatbuffers::String *>(
+  auto string = root->GetPointer<flatbuffers::String*>(
       flatbuffers::FieldIndexToOffset(0));
   TEST_EQ_STR(string->c_str(), "\xF0\x9F\x92\xA9");
 }
@@ -843,11 +847,14 @@ void ParseUnionTest() {
           true);
 
   // Test union underlying type
-  const char *source = "table A {} table B {} union U : int {A, B} table C {test_union: U; test_vector_of_union: [U];}";
+  const char* source =
+      "table A {} table B {} union U : int {A, B} table C {test_union: U; "
+      "test_vector_of_union: [U];}";
   flatbuffers::Parser parser3;
-  parser3.opts.lang_to_generate = flatbuffers::IDLOptions::kCpp | flatbuffers::IDLOptions::kTs;
+  parser3.opts.lang_to_generate =
+      flatbuffers::IDLOptions::kCpp | flatbuffers::IDLOptions::kTs;
   TEST_EQ(parser3.Parse(source), true);
-  
+
   parser3.opts.lang_to_generate &= flatbuffers::IDLOptions::kJava;
   TEST_EQ(parser3.Parse(source), false);
 }
@@ -898,7 +905,7 @@ void StringVectorDefaultsTest() {
   for (auto s = schemas.begin(); s < schemas.end(); s++) {
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(s->c_str()));
-    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    const auto* mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
     TEST_EQ(mana->IsDefault(), true);
   }
 }

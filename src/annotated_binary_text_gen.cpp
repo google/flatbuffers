@@ -30,18 +30,30 @@ struct OutputConfig {
 
 static std::string ToString(const BinarySectionType type) {
   switch (type) {
-    case BinarySectionType::Header: return "header";
-    case BinarySectionType::Table: return "table";
-    case BinarySectionType::RootTable: return "root_table";
-    case BinarySectionType::VTable: return "vtable";
-    case BinarySectionType::Struct: return "struct";
-    case BinarySectionType::String: return "string";
-    case BinarySectionType::Vector: return "vector";
-    case BinarySectionType::Vector64: return "vector64";
-    case BinarySectionType::Unknown: return "unknown";
-    case BinarySectionType::Union: return "union";
-    case BinarySectionType::Padding: return "padding";
-    default: return "todo";
+    case BinarySectionType::Header:
+      return "header";
+    case BinarySectionType::Table:
+      return "table";
+    case BinarySectionType::RootTable:
+      return "root_table";
+    case BinarySectionType::VTable:
+      return "vtable";
+    case BinarySectionType::Struct:
+      return "struct";
+    case BinarySectionType::String:
+      return "string";
+    case BinarySectionType::Vector:
+      return "vector";
+    case BinarySectionType::Vector64:
+      return "vector64";
+    case BinarySectionType::Unknown:
+      return "unknown";
+    case BinarySectionType::Union:
+      return "union";
+    case BinarySectionType::Padding:
+      return "padding";
+    default:
+      return "todo";
   }
 }
 
@@ -51,7 +63,8 @@ static bool IsOffset(const BinaryRegionType type) {
          type == BinaryRegionType::UOffset64;
 }
 
-template<typename T> std::string ToString(T value) {
+template <typename T>
+std::string ToString(T value) {
   if (std::is_floating_point<T>::value) {
     std::stringstream ss;
     ss << value;
@@ -61,8 +74,8 @@ template<typename T> std::string ToString(T value) {
   }
 }
 
-template<typename T>
-std::string ToValueString(const BinaryRegion &region, const uint8_t *binary) {
+template <typename T>
+std::string ToValueString(const BinaryRegion& region, const uint8_t* binary) {
   std::string s;
   s += "0x";
   const T val = ReadScalar<T>(binary + region.offset);
@@ -76,16 +89,16 @@ std::string ToValueString(const BinaryRegion &region, const uint8_t *binary) {
   return s;
 }
 
-template<>
-std::string ToValueString<std::string>(const BinaryRegion &region,
-                                       const uint8_t *binary) {
-  return std::string(reinterpret_cast<const char *>(binary + region.offset),
+template <>
+std::string ToValueString<std::string>(const BinaryRegion& region,
+                                       const uint8_t* binary) {
+  return std::string(reinterpret_cast<const char*>(binary + region.offset),
                      static_cast<size_t>(region.array_length));
 }
 
-static std::string ToValueString(const BinaryRegion &region,
-                                 const uint8_t *binary,
-                                 const OutputConfig &output_config) {
+static std::string ToValueString(const BinaryRegion& region,
+                                 const uint8_t* binary,
+                                 const OutputConfig& output_config) {
   std::string s;
 
   if (region.array_length) {
@@ -106,21 +119,31 @@ static std::string ToValueString(const BinaryRegion &region,
   switch (region.type) {
     case BinaryRegionType::Uint32:
       return ToValueString<uint32_t>(region, binary);
-    case BinaryRegionType::Int32: return ToValueString<int32_t>(region, binary);
+    case BinaryRegionType::Int32:
+      return ToValueString<int32_t>(region, binary);
     case BinaryRegionType::Uint16:
       return ToValueString<uint16_t>(region, binary);
-    case BinaryRegionType::Int16: return ToValueString<int16_t>(region, binary);
-    case BinaryRegionType::Bool: return ToValueString<bool>(region, binary);
-    case BinaryRegionType::Uint8: return ToValueString<uint8_t>(region, binary);
-    case BinaryRegionType::Char: return ToValueString<char>(region, binary);
+    case BinaryRegionType::Int16:
+      return ToValueString<int16_t>(region, binary);
+    case BinaryRegionType::Bool:
+      return ToValueString<bool>(region, binary);
+    case BinaryRegionType::Uint8:
+      return ToValueString<uint8_t>(region, binary);
+    case BinaryRegionType::Char:
+      return ToValueString<char>(region, binary);
     case BinaryRegionType::Byte:
-    case BinaryRegionType::Int8: return ToValueString<int8_t>(region, binary);
-    case BinaryRegionType::Int64: return ToValueString<int64_t>(region, binary);
+    case BinaryRegionType::Int8:
+      return ToValueString<int8_t>(region, binary);
+    case BinaryRegionType::Int64:
+      return ToValueString<int64_t>(region, binary);
     case BinaryRegionType::Uint64:
       return ToValueString<uint64_t>(region, binary);
-    case BinaryRegionType::Double: return ToValueString<double>(region, binary);
-    case BinaryRegionType::Float: return ToValueString<float>(region, binary);
-    case BinaryRegionType::UType: return ToValueString<uint8_t>(region, binary);
+    case BinaryRegionType::Double:
+      return ToValueString<double>(region, binary);
+    case BinaryRegionType::Float:
+      return ToValueString<float>(region, binary);
+    case BinaryRegionType::UType:
+      return ToValueString<uint8_t>(region, binary);
 
     // Handle Offsets separately, incase they add additional details.
     case BinaryRegionType::UOffset64:
@@ -136,7 +159,8 @@ static std::string ToValueString(const BinaryRegion &region,
       s += ToValueString<uint16_t>(region, binary);
       break;
 
-    default: break;
+    default:
+      break;
   }
   // If this is an offset type, include the calculated offset location in the
   // value.
@@ -156,26 +180,36 @@ struct DocContinuation {
   std::string value;
 };
 
-static std::string GenerateTypeString(const BinaryRegion &region) {
+static std::string GenerateTypeString(const BinaryRegion& region) {
   return ToString(region.type) +
          ((region.array_length)
               ? "[" + std::to_string(region.array_length) + "]"
               : "");
 }
 
-static std::string GenerateComment(const BinaryRegionComment &comment,
-                                   const BinarySection &) {
+static std::string GenerateComment(const BinaryRegionComment& comment,
+                                   const BinarySection&) {
   std::string s;
   switch (comment.type) {
-    case BinaryRegionCommentType::Unknown: s = "unknown"; break;
-    case BinaryRegionCommentType::SizePrefix: s = "size prefix"; break;
+    case BinaryRegionCommentType::Unknown:
+      s = "unknown";
+      break;
+    case BinaryRegionCommentType::SizePrefix:
+      s = "size prefix";
+      break;
     case BinaryRegionCommentType::RootTableOffset:
       s = "offset to root table `" + comment.name + "`";
       break;
     // TODO(dbaileychess): make this lowercase to follow the convention.
-    case BinaryRegionCommentType::FileIdentifier: s = "File Identifier"; break;
-    case BinaryRegionCommentType::Padding: s = "padding"; break;
-    case BinaryRegionCommentType::VTableSize: s = "size of this vtable"; break;
+    case BinaryRegionCommentType::FileIdentifier:
+      s = "File Identifier";
+      break;
+    case BinaryRegionCommentType::Padding:
+      s = "padding";
+      break;
+    case BinaryRegionCommentType::VTableSize:
+      s = "size of this vtable";
+      break;
     case BinaryRegionCommentType::VTableRefferingTableLength:
       s = "size of referring table";
       break;
@@ -192,7 +226,9 @@ static std::string GenerateComment(const BinaryRegionComment &comment,
     case BinaryRegionCommentType::TableField:
       s = "table field `" + comment.name;
       break;
-    case BinaryRegionCommentType::TableUnknownField: s = "unknown field"; break;
+    case BinaryRegionCommentType::TableUnknownField:
+      s = "unknown field";
+      break;
     case BinaryRegionCommentType::TableOffsetField:
       s = "offset to field `" + comment.name + "`";
       break;
@@ -203,8 +239,12 @@ static std::string GenerateComment(const BinaryRegionComment &comment,
       s = "array field `" + comment.name + "`[" +
           std::to_string(comment.index) + "]";
       break;
-    case BinaryRegionCommentType::StringLength: s = "length of string"; break;
-    case BinaryRegionCommentType::StringValue: s = "string literal"; break;
+    case BinaryRegionCommentType::StringLength:
+      s = "length of string";
+      break;
+    case BinaryRegionCommentType::StringValue:
+      s = "string literal";
+      break;
     case BinaryRegionCommentType::StringTerminator:
       s = "string terminator";
       break;
@@ -224,13 +264,19 @@ static std::string GenerateComment(const BinaryRegionComment &comment,
       s = "offset to union[" + std::to_string(comment.index) + "]";
       break;
 
-    default: break;
+    default:
+      break;
   }
-  if (!comment.default_value.empty()) { s += " " + comment.default_value; }
+  if (!comment.default_value.empty()) {
+    s += " " + comment.default_value;
+  }
 
   switch (comment.status) {
-    case BinaryRegionStatus::OK: break;  // no-op
-    case BinaryRegionStatus::WARN: s = "WARN: " + s; break;
+    case BinaryRegionStatus::OK:
+      break;  // no-op
+    case BinaryRegionStatus::WARN:
+      s = "WARN: " + s;
+      break;
     case BinaryRegionStatus::WARN_NO_REFERENCES:
       s = "WARN: nothing refers to this section.";
       break;
@@ -240,7 +286,9 @@ static std::string GenerateComment(const BinaryRegionComment &comment,
     case BinaryRegionStatus::WARN_PADDING_LENGTH:
       s = "WARN: padding is longer than expected.";
       break;
-    case BinaryRegionStatus::ERROR: s = "ERROR: " + s; break;
+    case BinaryRegionStatus::ERROR:
+      s = "ERROR: " + s;
+      break;
     case BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY:
       s = "ERROR: " + s + ". Invalid offset, points outside the binary.";
       break;
@@ -268,11 +316,11 @@ static std::string GenerateComment(const BinaryRegionComment &comment,
   return s;
 }
 
-static void GenerateDocumentation(std::ostream &os, const BinaryRegion &region,
-                                  const BinarySection &section,
-                                  const uint8_t *binary,
-                                  DocContinuation &continuation,
-                                  const OutputConfig &output_config) {
+static void GenerateDocumentation(std::ostream& os, const BinaryRegion& region,
+                                  const BinarySection& section,
+                                  const uint8_t* binary,
+                                  DocContinuation& continuation,
+                                  const OutputConfig& output_config) {
   // Check if there is a doc continuation that should be prioritized.
   if (continuation.value_start_column) {
     os << std::string(continuation.value_start_column - 2, ' ');
@@ -321,9 +369,9 @@ static void GenerateDocumentation(std::ostream &os, const BinaryRegion &region,
   os << GenerateComment(region.comment, section);
 }
 
-static void GenerateRegion(std::ostream &os, const BinaryRegion &region,
-                           const BinarySection &section, const uint8_t *binary,
-                           const OutputConfig &output_config) {
+static void GenerateRegion(std::ostream& os, const BinaryRegion& region,
+                           const BinarySection& section, const uint8_t* binary,
+                           const OutputConfig& output_config) {
   bool doc_generated = false;
   DocContinuation doc_continuation;
   for (uint64_t i = 0; i < region.length; ++i) {
@@ -364,12 +412,14 @@ static void GenerateRegion(std::ostream &os, const BinaryRegion &region,
   }
 }
 
-static void GenerateSection(std::ostream &os, const BinarySection &section,
-                            const uint8_t *binary,
-                            const OutputConfig &output_config) {
+static void GenerateSection(std::ostream& os, const BinarySection& section,
+                            const uint8_t* binary,
+                            const OutputConfig& output_config) {
   os << std::endl;
   os << ToString(section.type);
-  if (!section.name.empty()) { os << " (" + section.name + ")"; }
+  if (!section.name.empty()) {
+    os << " (" + section.name + ")";
+  }
   os << ":";
 
   // As a space saving measure, skip generating every vector element, just put
@@ -394,7 +444,7 @@ static void GenerateSection(std::ostream &os, const BinarySection &section,
     return;
   }
 
-  for (const BinaryRegion &region : section.regions) {
+  for (const BinaryRegion& region : section.regions) {
     GenerateRegion(os, region, section, binary, output_config);
   }
   os << std::endl;
@@ -402,8 +452,8 @@ static void GenerateSection(std::ostream &os, const BinarySection &section,
 }  // namespace
 
 bool AnnotatedBinaryTextGenerator::Generate(
-    const std::string &filename, const std::string &schema_filename,
-    const std::string &output_filename) {
+    const std::string& filename, const std::string& schema_filename,
+    const std::string& output_filename) {
   OutputConfig output_config;
   output_config.max_bytes_per_line = options_.max_bytes_per_line;
   output_config.include_vector_contents = options_.include_vector_contents;
@@ -419,8 +469,8 @@ bool AnnotatedBinaryTextGenerator::Generate(
   // Find the largest type string of all the regions in this file, so we can
   // align the output nicely.
   output_config.largest_type_string = 0;
-  for (const auto &section : annotations_) {
-    for (const auto &region : section.second.regions) {
+  for (const auto& section : annotations_) {
+    for (const auto& region : section.second.regions) {
       std::string s = GenerateTypeString(region);
       if (s.size() > output_config.largest_type_string) {
         output_config.largest_type_string = s.size();
@@ -456,7 +506,7 @@ bool AnnotatedBinaryTextGenerator::Generate(
   ofs << "// Binary file: " << filename << std::endl;
 
   // Generate each of the binary sections
-  for (const auto &section : annotations_) {
+  for (const auto& section : annotations_) {
     GenerateSection(ofs, section.second, binary_, output_config);
   }
 

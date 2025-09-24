@@ -24,11 +24,11 @@
 #include "flatbuffers/stl_emulation.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
-#  include <iomanip>
-#  include <sstream>
+#include <iomanip>
+#include <sstream>
 #else  // FLATBUFFERS_PREFER_PRINTF
-#  include <float.h>
-#  include <stdio.h>
+#include <float.h>
+#include <stdio.h>
 #endif  // FLATBUFFERS_PREFER_PRINTF
 
 #include <cmath>
@@ -90,7 +90,8 @@ inline char CharToLower(char c) {
 // @end-locale-independent functions for ASCII character set
 
 #ifdef FLATBUFFERS_PREFER_PRINTF
-template<typename T> size_t IntToDigitCount(T t) {
+template <typename T>
+size_t IntToDigitCount(T t) {
   size_t digit_count = 0;
   // Count the sign for negative numbers
   if (t < 0) digit_count++;
@@ -105,19 +106,20 @@ template<typename T> size_t IntToDigitCount(T t) {
   return digit_count;
 }
 
-template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
+template <typename T>
+size_t NumToStringWidth(T t, int precision = 0) {
   size_t string_width = IntToDigitCount(t);
   // Count the dot for floating point numbers
   if (precision) string_width += (precision + 1);
   return string_width;
 }
 
-template<typename T>
-std::string NumToStringImplWrapper(T t, const char *fmt, int precision = 0) {
+template <typename T>
+std::string NumToStringImplWrapper(T t, const char* fmt, int precision = 0) {
   size_t string_width = NumToStringWidth(t, precision);
   std::string s(string_width, 0x00);
   // Allow snprintf to use std::string trailing null to detect buffer overflow
-  snprintf(const_cast<char *>(s.data()), (s.size() + 1), fmt, string_width, t);
+  snprintf(const_cast<char*>(s.data()), (s.size() + 1), fmt, string_width, t);
   return s;
 }
 #endif  // FLATBUFFERS_PREFER_PRINTF
@@ -125,7 +127,8 @@ std::string NumToStringImplWrapper(T t, const char *fmt, int precision = 0) {
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
 // converted to a string of digits, and we don't use scientific notation.
-template<typename T> std::string NumToString(T t) {
+template <typename T>
+std::string NumToString(T t) {
   // clang-format off
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
@@ -139,18 +142,22 @@ template<typename T> std::string NumToString(T t) {
   // clang-format on
 }
 // Avoid char types used as character data.
-template<> inline std::string NumToString<signed char>(signed char t) {
+template <>
+inline std::string NumToString<signed char>(signed char t) {
   return NumToString(static_cast<int>(t));
 }
-template<> inline std::string NumToString<unsigned char>(unsigned char t) {
+template <>
+inline std::string NumToString<unsigned char>(unsigned char t) {
   return NumToString(static_cast<int>(t));
 }
-template<> inline std::string NumToString<char>(char t) {
+template <>
+inline std::string NumToString<char>(char t) {
   return NumToString(static_cast<int>(t));
 }
 
 // Special versions for floats/doubles.
-template<typename T> std::string FloatToString(T t, int precision) {
+template <typename T>
+std::string FloatToString(T t, int precision) {
   // clang-format off
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
@@ -177,10 +184,12 @@ template<typename T> std::string FloatToString(T t, int precision) {
   return s;
 }
 
-template<> inline std::string NumToString<double>(double t) {
+template <>
+inline std::string NumToString<double>(double t) {
   return FloatToString(t, 12);
 }
-template<> inline std::string NumToString<float>(float t) {
+template <>
+inline std::string NumToString<float>(float t) {
   return FloatToString(t, 6);
 }
 
@@ -279,8 +288,8 @@ inline void strtoval_impl(float *val, const char *str, char **endptr) {
 // - If full string conversion can't be performed, 0 is returned.
 // - If the converted value falls out of range of corresponding return type, a
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
-template<typename T>
-inline bool StringToIntegerImpl(T *val, const char *const str,
+template <typename T>
+inline bool StringToIntegerImpl(T* val, const char* const str,
                                 const int base = 0,
                                 const bool check_errno = true) {
   // T is int64_t or uint64_T
@@ -295,7 +304,7 @@ inline bool StringToIntegerImpl(T *val, const char *const str,
   } else {
     if (check_errno) errno = 0;  // clear thread-local errno
     auto endptr = str;
-    strtoval_impl(val, str, const_cast<char **>(&endptr), base);
+    strtoval_impl(val, str, const_cast<char**>(&endptr), base);
     if ((*endptr != '\0') || (endptr == str)) {
       *val = 0;      // erase partial result
       return false;  // invalid string
@@ -306,15 +315,17 @@ inline bool StringToIntegerImpl(T *val, const char *const str,
   }
 }
 
-template<typename T>
-inline bool StringToFloatImpl(T *val, const char *const str) {
+template <typename T>
+inline bool StringToFloatImpl(T* val, const char* const str) {
   // Type T must be either float or double.
   FLATBUFFERS_ASSERT(str && val);
   auto end = str;
-  strtoval_impl(val, str, const_cast<char **>(&end));
+  strtoval_impl(val, str, const_cast<char**>(&end));
   auto done = (end != str) && (*end == '\0');
   if (!done) *val = 0;  // erase partial result
-  if (done && std::isnan(*val)) { *val = std::numeric_limits<T>::quiet_NaN(); }
+  if (done && std::isnan(*val)) {
+    *val = std::numeric_limits<T>::quiet_NaN();
+  }
   return done;
 }
 
@@ -324,7 +335,8 @@ inline bool StringToFloatImpl(T *val, const char *const str) {
 // - If full string conversion can't be performed, 0 is returned.
 // - If the converted value falls out of range of corresponding return type, a
 // range error occurs. In this case value MAX(T)/MIN(T) is returned.
-template<typename T> inline bool StringToNumber(const char *s, T *val) {
+template <typename T>
+inline bool StringToNumber(const char* s, T* val) {
   // Assert on `unsigned long` and `signed long` on LP64.
   // If it is necessary, it could be solved with flatbuffers::enable_if<B,T>.
   static_assert(sizeof(T) < sizeof(int64_t), "unexpected type T");
@@ -351,12 +363,13 @@ template<typename T> inline bool StringToNumber(const char *s, T *val) {
   return false;
 }
 
-template<> inline bool StringToNumber<int64_t>(const char *str, int64_t *val) {
+template <>
+inline bool StringToNumber<int64_t>(const char* str, int64_t* val) {
   return StringToIntegerImpl(val, str);
 }
 
-template<>
-inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
+template <>
+inline bool StringToNumber<uint64_t>(const char* str, uint64_t* val) {
   if (!StringToIntegerImpl(val, str)) return false;
   // The strtoull accepts negative numbers:
   // If the minus sign was part of the input sequence, the numeric value
@@ -377,39 +390,41 @@ inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
   return true;
 }
 
-template<> inline bool StringToNumber(const char *s, float *val) {
+template <>
+inline bool StringToNumber(const char* s, float* val) {
   return StringToFloatImpl(val, s);
 }
 
-template<> inline bool StringToNumber(const char *s, double *val) {
+template <>
+inline bool StringToNumber(const char* s, double* val) {
   return StringToFloatImpl(val, s);
 }
 
-inline int64_t StringToInt(const char *s, int base = 10) {
+inline int64_t StringToInt(const char* s, int base = 10) {
   int64_t val;
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
-inline uint64_t StringToUInt(const char *s, int base = 10) {
+inline uint64_t StringToUInt(const char* s, int base = 10) {
   uint64_t val;
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
-inline bool StringIsFlatbufferNan(const std::string &s) {
+inline bool StringIsFlatbufferNan(const std::string& s) {
   return s == "nan" || s == "+nan" || s == "-nan";
 }
 
-inline bool StringIsFlatbufferPositiveInfinity(const std::string &s) {
+inline bool StringIsFlatbufferPositiveInfinity(const std::string& s) {
   return s == "inf" || s == "+inf" || s == "infinity" || s == "+infinity";
 }
 
-inline bool StringIsFlatbufferNegativeInfinity(const std::string &s) {
+inline bool StringIsFlatbufferNegativeInfinity(const std::string& s) {
   return s == "-inf" || s == "-infinity";
 }
 
-typedef bool (*LoadFileFunction)(const char *filename, bool binary,
-                                 std::string *dest);
-typedef bool (*FileExistsFunction)(const char *filename);
+typedef bool (*LoadFileFunction)(const char* filename, bool binary,
+                                 std::string* dest);
+typedef bool (*FileExistsFunction)(const char* filename);
 
 LoadFileFunction SetLoadFileFunction(LoadFileFunction load_file_function);
 
@@ -417,29 +432,29 @@ FileExistsFunction SetFileExistsFunction(
     FileExistsFunction file_exists_function);
 
 // Check if file "name" exists.
-bool FileExists(const char *name);
+bool FileExists(const char* name);
 
 // Check if "name" exists and it is also a directory.
-bool DirExists(const char *name);
+bool DirExists(const char* name);
 
 // Load file "name" into "buf" returning true if successful
 // false otherwise.  If "binary" is false data is read
 // using ifstream's text mode, otherwise data is read with
 // no transcoding.
-bool LoadFile(const char *name, bool binary, std::string *buf);
+bool LoadFile(const char* name, bool binary, std::string* buf);
 
 // Save data "buf" of length "len" bytes into a file
 // "name" returning true if successful, false otherwise.
 // If "binary" is false data is written using ifstream's
 // text mode, otherwise data is written with no
 // transcoding.
-bool SaveFile(const char *name, const char *buf, size_t len, bool binary);
+bool SaveFile(const char* name, const char* buf, size_t len, bool binary);
 
 // Save data "buf" into file "name" returning true if
 // successful, false otherwise.  If "binary" is false
 // data is written using ifstream's text mode, otherwise
 // data is written with no transcoding.
-inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
+inline bool SaveFile(const char* name, const std::string& buf, bool binary) {
   return SaveFile(name, buf.c_str(), buf.size(), binary);
 }
 
@@ -452,51 +467,50 @@ inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
 FLATBUFFERS_CONSTEXPR char kPathSeparator = '/';
 
 // Returns the path with the extension, if any, removed.
-std::string StripExtension(const std::string &filepath);
+std::string StripExtension(const std::string& filepath);
 
 // Returns the extension, if any.
-std::string GetExtension(const std::string &filepath);
+std::string GetExtension(const std::string& filepath);
 
 // Return the last component of the path, after the last separator.
-std::string StripPath(const std::string &filepath);
+std::string StripPath(const std::string& filepath);
 
 // Strip the last component of the path + separator.
-std::string StripFileName(const std::string &filepath);
+std::string StripFileName(const std::string& filepath);
 
-std::string StripPrefix(const std::string &filepath,
-                        const std::string &prefix_to_remove);
+std::string StripPrefix(const std::string& filepath,
+                        const std::string& prefix_to_remove);
 
 // Concatenates a path with a filename, regardless of whether the path
 // ends in a separator or not.
-std::string ConCatPathFileName(const std::string &path,
-                               const std::string &filename);
+std::string ConCatPathFileName(const std::string& path,
+                               const std::string& filename);
 
 // Replaces any '\\' separators with '/'
-std::string PosixPath(const char *path);
-std::string PosixPath(const std::string &path);
+std::string PosixPath(const char* path);
+std::string PosixPath(const std::string& path);
 
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.
-void EnsureDirExists(const std::string &filepath);
+void EnsureDirExists(const std::string& filepath);
 
 // Obtains the relative or absolute path.
-std::string FilePath(const std::string &project,
-                     const std::string &filePath,
+std::string FilePath(const std::string& project, const std::string& filePath,
                      bool absolute);
 
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
-std::string AbsolutePath(const std::string &filepath);
+std::string AbsolutePath(const std::string& filepath);
 
 // Returns files relative to the --project_root path, prefixed with `//`.
-std::string RelativeToRootPath(const std::string &project,
-                               const std::string &filepath);
+std::string RelativeToRootPath(const std::string& project,
+                               const std::string& filepath);
 
 // To and from UTF-8 unicode conversion functions
 
 // Convert a unicode code point into a UTF-8 representation by appending it
 // to a string. Returns the number of bytes generated.
-inline int ToUTF8(uint32_t ucc, std::string *out) {
+inline int ToUTF8(uint32_t ucc, std::string* out) {
   FLATBUFFERS_ASSERT(!(ucc & 0x80000000));  // Top bit can't be set.
   // 6 possible encodings: http://en.wikipedia.org/wiki/UTF-8
   for (int i = 0; i < 6; i++) {
@@ -524,7 +538,7 @@ inline int ToUTF8(uint32_t ucc, std::string *out) {
 // advanced past all bytes parsed.
 // returns -1 upon corrupt UTF-8 encoding (ignore the incoming pointer in
 // this case).
-inline int FromUTF8(const char **in) {
+inline int FromUTF8(const char** in) {
   int len = 0;
   // Count leading 1 bits.
   for (int mask = 0x80; mask >= 0x04; mask >>= 1) {
@@ -538,7 +552,9 @@ inline int FromUTF8(const char **in) {
     return -1;  // Bit after leading 1's must be 0.
   if (!len) return *(*in)++;
   // UTF-8 encoded values with a length are between 2 and 4 bytes.
-  if (len < 2 || len > 4) { return -1; }
+  if (len < 2 || len > 4) {
+    return -1;
+  }
   // Grab initial bits of the code.
   int ucc = *(*in)++ & ((1 << (7 - len)) - 1);
   for (int i = 0; i < len - 1; i++) {
@@ -548,20 +564,28 @@ inline int FromUTF8(const char **in) {
   }
   // UTF-8 cannot encode values between 0xD800 and 0xDFFF (reserved for
   // UTF-16 surrogate pairs).
-  if (ucc >= 0xD800 && ucc <= 0xDFFF) { return -1; }
+  if (ucc >= 0xD800 && ucc <= 0xDFFF) {
+    return -1;
+  }
   // UTF-8 must represent code points in their shortest possible encoding.
   switch (len) {
     case 2:
       // Two bytes of UTF-8 can represent code points from U+0080 to U+07FF.
-      if (ucc < 0x0080 || ucc > 0x07FF) { return -1; }
+      if (ucc < 0x0080 || ucc > 0x07FF) {
+        return -1;
+      }
       break;
     case 3:
       // Three bytes of UTF-8 can represent code points from U+0800 to U+FFFF.
-      if (ucc < 0x0800 || ucc > 0xFFFF) { return -1; }
+      if (ucc < 0x0800 || ucc > 0xFFFF) {
+        return -1;
+      }
       break;
     case 4:
       // Four bytes of UTF-8 can represent code points from U+10000 to U+10FFFF.
-      if (ucc < 0x10000 || ucc > 0x10FFFF) { return -1; }
+      if (ucc < 0x10000 || ucc > 0x10FFFF) {
+        return -1;
+      }
       break;
   }
   return ucc;
@@ -596,26 +620,40 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 }
 #endif  // !FLATBUFFERS_PREFER_PRINTF
 
-inline bool EscapeString(const char *s, size_t length, std::string *_text,
+inline bool EscapeString(const char* s, size_t length, std::string* _text,
                          bool allow_non_utf8, bool natural_utf8) {
-  std::string &text = *_text;
+  std::string& text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < length; i++) {
     char c = s[i];
     switch (c) {
-      case '\n': text += "\\n"; break;
-      case '\t': text += "\\t"; break;
-      case '\r': text += "\\r"; break;
-      case '\b': text += "\\b"; break;
-      case '\f': text += "\\f"; break;
-      case '\"': text += "\\\""; break;
-      case '\\': text += "\\\\"; break;
+      case '\n':
+        text += "\\n";
+        break;
+      case '\t':
+        text += "\\t";
+        break;
+      case '\r':
+        text += "\\r";
+        break;
+      case '\b':
+        text += "\\b";
+        break;
+      case '\f':
+        text += "\\f";
+        break;
+      case '\"':
+        text += "\\\"";
+        break;
+      case '\\':
+        text += "\\\\";
+        break;
       default:
         if (c >= ' ' && c <= '~') {
           text += c;
         } else {
           // Not printable ASCII data. Let's see if it's valid UTF-8 first:
-          const char *utf8 = s + i;
+          const char* utf8 = s + i;
           int ucc = FromUTF8(&utf8);
           if (ucc < 0) {
             if (allow_non_utf8) {
@@ -666,19 +704,21 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   return true;
 }
 
-inline std::string BufferToHexText(const void *buffer, size_t buffer_size,
+inline std::string BufferToHexText(const void* buffer, size_t buffer_size,
                                    size_t max_length,
-                                   const std::string &wrapped_line_prefix,
-                                   const std::string &wrapped_line_suffix) {
+                                   const std::string& wrapped_line_prefix,
+                                   const std::string& wrapped_line_suffix) {
   std::string text = wrapped_line_prefix;
   size_t start_offset = 0;
-  const char *s = reinterpret_cast<const char *>(buffer);
+  const char* s = reinterpret_cast<const char*>(buffer);
   for (size_t i = 0; s && i < buffer_size; i++) {
     // Last iteration or do we have more?
     bool have_more = i + 1 < buffer_size;
     text += "0x";
     text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
-    if (have_more) { text += ','; }
+    if (have_more) {
+      text += ',';
+    }
     // If we have more to process and we reached max_length
     if (have_more &&
         text.size() + wrapped_line_suffix.size() >= start_offset + max_length) {
@@ -693,17 +733,17 @@ inline std::string BufferToHexText(const void *buffer, size_t buffer_size,
 }
 
 // Remove paired quotes in a string: "text"|'text' -> text.
-std::string RemoveStringQuotes(const std::string &s);
+std::string RemoveStringQuotes(const std::string& s);
 
 // Change th global C-locale to locale with name <locale_name>.
 // Returns an actual locale name in <_value>, useful if locale_name is "" or
 // null.
-bool SetGlobalTestLocale(const char *locale_name,
-                         std::string *_value = nullptr);
+bool SetGlobalTestLocale(const char* locale_name,
+                         std::string* _value = nullptr);
 
 // Read (or test) a value of environment variable.
-bool ReadEnvironmentVariable(const char *var_name,
-                             std::string *_value = nullptr);
+bool ReadEnvironmentVariable(const char* var_name,
+                             std::string* _value = nullptr);
 
 enum class Case {
   kUnknown = 0,
@@ -729,7 +769,7 @@ enum class Case {
 
 // Convert the `input` string of case `input_case` to the specified
 // `output_case`.
-std::string ConvertCase(const std::string &input, Case output_case,
+std::string ConvertCase(const std::string& input, Case output_case,
                         Case input_case = Case::kSnake);
 
 }  // namespace flatbuffers

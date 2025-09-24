@@ -51,11 +51,11 @@ class CodeWriter {
   // Associates a key with a value.  All subsequent calls to operator+=, where
   // the specified key is contained in {{ and }} delimiters will be replaced by
   // the given value.
-  void SetValue(const std::string &key, const std::string &value) {
+  void SetValue(const std::string& key, const std::string& value) {
     value_map_[key] = value;
   }
 
-  std::string GetValue(const std::string &key) const {
+  std::string GetValue(const std::string& key) const {
     const auto it = value_map_.find(key);
     return it == value_map_.end() ? "" : it->second;
   }
@@ -76,7 +76,7 @@ class CodeWriter {
     if (cur_ident_lvl_) cur_ident_lvl_--;
   }
 
-  void SetPadding(const std::string &padding) { pad_ = padding; }
+  void SetPadding(const std::string& padding) { pad_ = padding; }
 
  private:
   std::map<std::string, std::string> value_map_;
@@ -86,24 +86,24 @@ class CodeWriter {
   bool ignore_ident_;
 
   // Add ident padding (tab or space) based on ident level
-  void AppendIdent(std::stringstream &stream);
+  void AppendIdent(std::stringstream& stream);
 };
 
 class BaseGenerator {
  public:
   virtual bool generate() = 0;
 
-  static std::string NamespaceDir(const Parser &parser, const std::string &path,
-                                  const Namespace &ns,
+  static std::string NamespaceDir(const Parser& parser, const std::string& path,
+                                  const Namespace& ns,
                                   const bool dasherize = false);
 
-  std::string GeneratedFileName(const std::string &path,
-                                const std::string &file_name,
-                                const IDLOptions &options) const;
+  std::string GeneratedFileName(const std::string& path,
+                                const std::string& file_name,
+                                const IDLOptions& options) const;
 
  protected:
-  BaseGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name, std::string qualifying_start,
+  BaseGenerator(const Parser& parser, const std::string& path,
+                const std::string& file_name, std::string qualifying_start,
                 std::string qualifying_separator, std::string default_extension)
       : parser_(parser),
         path_(path),
@@ -114,84 +114,84 @@ class BaseGenerator {
   virtual ~BaseGenerator() {}
 
   // No copy/assign.
-  BaseGenerator &operator=(const BaseGenerator &);
-  BaseGenerator(const BaseGenerator &);
+  BaseGenerator& operator=(const BaseGenerator&);
+  BaseGenerator(const BaseGenerator&);
 
-  std::string NamespaceDir(const Namespace &ns,
+  std::string NamespaceDir(const Namespace& ns,
                            const bool dasherize = false) const;
 
-  static const char *FlatBuffersGeneratedWarning();
+  static const char* FlatBuffersGeneratedWarning();
 
-  static std::string FullNamespace(const char *separator, const Namespace &ns);
+  static std::string FullNamespace(const char* separator, const Namespace& ns);
 
-  static std::string LastNamespacePart(const Namespace &ns);
+  static std::string LastNamespacePart(const Namespace& ns);
 
   // tracks the current namespace for early exit in WrapInNameSpace
   // c++, java and csharp returns a different namespace from
   // the following default (no early exit, always fully qualify),
   // which works for js and php
-  virtual const Namespace *CurrentNameSpace() const { return nullptr; }
+  virtual const Namespace* CurrentNameSpace() const { return nullptr; }
 
   // Ensure that a type is prefixed with its namespace even within
   // its own namespace to avoid conflict between generated method
   // names and similarly named classes or structs
-  std::string WrapInNameSpace(const Namespace *ns,
-                              const std::string &name) const;
+  std::string WrapInNameSpace(const Namespace* ns,
+                              const std::string& name) const;
 
-  std::string WrapInNameSpace(const Definition &def,
-                              const std::string &suffix = "") const;
+  std::string WrapInNameSpace(const Definition& def,
+                              const std::string& suffix = "") const;
 
-  std::string GetNameSpace(const Definition &def) const;
+  std::string GetNameSpace(const Definition& def) const;
 
-  const Parser &parser_;
-  const std::string &path_;
-  const std::string &file_name_;
+  const Parser& parser_;
+  const std::string& path_;
+  const std::string& file_name_;
   const std::string qualifying_start_;
   const std::string qualifying_separator_;
   const std::string default_extension_;
 };
 
 struct CommentConfig {
-  const char *first_line;
-  const char *content_line_prefix;
-  const char *last_line;
+  const char* first_line;
+  const char* content_line_prefix;
+  const char* last_line;
 };
 
-extern void GenComment(const std::vector<std::string> &dc,
-                       std::string *code_ptr, const CommentConfig *config,
-                       const char *prefix = "");
+extern void GenComment(const std::vector<std::string>& dc,
+                       std::string* code_ptr, const CommentConfig* config,
+                       const char* prefix = "");
 
 class FloatConstantGenerator {
  public:
   virtual ~FloatConstantGenerator() {}
-  std::string GenFloatConstant(const FieldDef &field) const;
+  std::string GenFloatConstant(const FieldDef& field) const;
 
  private:
-  virtual std::string Value(double v, const std::string &src) const = 0;
+  virtual std::string Value(double v, const std::string& src) const = 0;
   virtual std::string Inf(double v) const = 0;
   virtual std::string NaN(double v) const = 0;
 
-  virtual std::string Value(float v, const std::string &src) const = 0;
+  virtual std::string Value(float v, const std::string& src) const = 0;
   virtual std::string Inf(float v) const = 0;
   virtual std::string NaN(float v) const = 0;
 
-  template<typename T>
-  std::string GenFloatConstantImpl(const FieldDef &field) const;
+  template <typename T>
+  std::string GenFloatConstantImpl(const FieldDef& field) const;
 };
 
 class SimpleFloatConstantGenerator : public FloatConstantGenerator {
  public:
-  SimpleFloatConstantGenerator(const char *nan_number,
-                               const char *pos_inf_number,
-                               const char *neg_inf_number);
+  SimpleFloatConstantGenerator(const char* nan_number,
+                               const char* pos_inf_number,
+                               const char* neg_inf_number);
 
  private:
   std::string Value(double v,
-                    const std::string &src) const FLATBUFFERS_OVERRIDE;
+                    const std::string& src) const FLATBUFFERS_OVERRIDE;
   std::string Inf(double v) const FLATBUFFERS_OVERRIDE;
   std::string NaN(double v) const FLATBUFFERS_OVERRIDE;
 
-  std::string Value(float v, const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Value(float v, const std::string& src) const FLATBUFFERS_OVERRIDE;
   std::string Inf(float v) const FLATBUFFERS_OVERRIDE;
   std::string NaN(float v) const FLATBUFFERS_OVERRIDE;
 
@@ -203,24 +203,24 @@ class SimpleFloatConstantGenerator : public FloatConstantGenerator {
 // C++, C#, Java like generator.
 class TypedFloatConstantGenerator : public FloatConstantGenerator {
  public:
-  TypedFloatConstantGenerator(const char *double_prefix,
-                              const char *single_prefix, const char *nan_number,
-                              const char *pos_inf_number,
-                              const char *neg_inf_number = "");
+  TypedFloatConstantGenerator(const char* double_prefix,
+                              const char* single_prefix, const char* nan_number,
+                              const char* pos_inf_number,
+                              const char* neg_inf_number = "");
 
  private:
   std::string Value(double v,
-                    const std::string &src) const FLATBUFFERS_OVERRIDE;
+                    const std::string& src) const FLATBUFFERS_OVERRIDE;
   std::string Inf(double v) const FLATBUFFERS_OVERRIDE;
 
   std::string NaN(double v) const FLATBUFFERS_OVERRIDE;
 
-  std::string Value(float v, const std::string &src) const FLATBUFFERS_OVERRIDE;
+  std::string Value(float v, const std::string& src) const FLATBUFFERS_OVERRIDE;
   std::string Inf(float v) const FLATBUFFERS_OVERRIDE;
   std::string NaN(float v) const FLATBUFFERS_OVERRIDE;
 
-  std::string MakeNaN(const std::string &prefix) const;
-  std::string MakeInf(bool neg, const std::string &prefix) const;
+  std::string MakeNaN(const std::string& prefix) const;
+  std::string MakeInf(bool neg, const std::string& prefix) const;
 
   const std::string double_prefix_;
   const std::string single_prefix_;
@@ -229,9 +229,9 @@ class TypedFloatConstantGenerator : public FloatConstantGenerator {
   const std::string neg_inf_number_;
 };
 
-std::string JavaCSharpMakeRule(const bool java, const Parser &parser,
-                               const std::string &path,
-                               const std::string &file_name);
+std::string JavaCSharpMakeRule(const bool java, const Parser& parser,
+                               const std::string& path,
+                               const std::string& file_name);
 
 }  // namespace flatbuffers
 

@@ -20,7 +20,7 @@ using namespace MyGame::Sample;
 
 // Example how to use FlatBuffers to create and read binary buffers.
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int /*argc*/, const char* /*argv*/[]) {
   // Build up a serialized buffer algorithmically:
   flatbuffers::FlatBufferBuilder builder;
 
@@ -46,7 +46,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   auto name = builder.CreateString("MyMonster");
 
-  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  unsigned char inv_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   auto inventory = builder.CreateVector(inv_data, 10);
 
   // Shortcut for creating monster with all fields set:
@@ -83,8 +83,8 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   (void)inv;
 
   // Get and test the `weapons` FlatBuffers's `vector`.
-  std::string expected_weapon_names[] = { "Sword", "Axe" };
-  short expected_weapon_damages[] = { 3, 5 };
+  std::string expected_weapon_names[] = {"Sword", "Axe"};
+  short expected_weapon_damages[] = {3, 5};
   auto weps = monster->weapons();
   for (unsigned int i = 0; i < weps->size(); i++) {
     assert(weps->Get(i)->name()->str() == expected_weapon_names[i]);
@@ -95,7 +95,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
 
   // Get and test the `Equipment` union (`equipped` field).
   assert(monster->equipped_type() == Equipment_Weapon);
-  auto equipped = static_cast<const Weapon *>(monster->equipped());
+  auto equipped = static_cast<const Weapon*>(monster->equipped());
   assert(equipped->name()->str() == "Axe");
   assert(equipped->damage() == 5);
   (void)equipped;

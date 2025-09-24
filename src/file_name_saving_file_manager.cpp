@@ -27,8 +27,8 @@ class FileNameSavingFileManager : public FileManager {
   FileNameSavingFileManager(std::set<std::string> file_names)
       : file_names_(file_names) {}
 
-  bool SaveFile(const std::string &absolute_file_name,
-                const std::string &content) override {
+  bool SaveFile(const std::string& absolute_file_name,
+                const std::string& content) override {
     (void)content;
     auto pair = file_names_.insert(absolute_file_name);
     // pair.second indicates whether the insertion is
@@ -36,7 +36,7 @@ class FileNameSavingFileManager : public FileManager {
     return pair.second;
   }
 
-  bool Loadfile(const std::string &absolute_file_name, std::string *content) {
+  bool Loadfile(const std::string& absolute_file_name, std::string* content) {
     (void)absolute_file_name;
     (void)content;
     return false;

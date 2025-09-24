@@ -7,9 +7,9 @@ using MyGame::Example::Any_NONE;
 using MyGame::Example::CreateStat;
 using MyGame::Example::Vec3;
 
-bool verify(flatbuffers::grpc::Message<Monster> &msg,
-            const std::string &expected_name, Color expected_color) {
-  const Monster *monster = msg.GetRoot();
+bool verify(flatbuffers::grpc::Message<Monster>& msg,
+            const std::string& expected_name, Color expected_color) {
+  const Monster* monster = msg.GetRoot();
   const auto name = monster->name()->str();
   const auto color = monster->color();
   TEST_EQ(name, expected_name);
@@ -17,8 +17,8 @@ bool verify(flatbuffers::grpc::Message<Monster> &msg,
   return (name == expected_name) && (color == expected_color);
 }
 
-bool release_n_verify(flatbuffers::grpc::MessageBuilder &mbb,
-                      const std::string &expected_name, Color expected_color) {
+bool release_n_verify(flatbuffers::grpc::MessageBuilder& mbb,
+                      const std::string& expected_name, Color expected_color) {
   flatbuffers::grpc::Message<Monster> msg = mbb.ReleaseMessage<Monster>();
   return verify(msg, expected_name, expected_color);
 }
@@ -41,11 +41,13 @@ void builder_move_assign_after_releaseraw_test(
   TEST_EQ(src.GetSize(), 0);
 }
 
-template<class SrcBuilder>
+template <class SrcBuilder>
 struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
   static void builder_reusable_after_release_message_test(
       TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE_MESSAGE)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE_MESSAGE)) {
+      return;
+    }
 
     flatbuffers::grpc::MessageBuilder mb;
     std::vector<flatbuffers::grpc::Message<Monster>> buffers;
@@ -58,7 +60,9 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
   }
 
   static void builder_reusable_after_release_test(TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE)) {
+      return;
+    }
 
     // FIXME: Populate-Release loop fails assert(GRPC_SLICE_IS_EMPTY(slice_)) in
     // SliceAllocator::allocate in the second iteration.
@@ -74,7 +78,9 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
   }
 
   static void builder_reusable_after_releaseraw_test(TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW)) {
+      return;
+    }
 
     flatbuffers::grpc::MessageBuilder mb;
     for (int i = 0; i < 5; ++i) {
@@ -82,14 +88,16 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       mb.Finish(root_offset1);
       size_t size, offset;
       ::grpc::Slice slice;
-      const uint8_t *buf = mb.ReleaseRaw(size, offset, slice);
+      const uint8_t* buf = mb.ReleaseRaw(size, offset, slice);
       TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
     }
   }
 
   static void builder_reusable_after_release_and_move_assign_test(
       TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN)) {
+      return;
+    }
 
     // FIXME: Release-move_assign loop fails assert(p ==
     // GRPC_SLICE_START_PTR(slice_)) in DetachedBuffer destructor after all the
@@ -137,7 +145,9 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
 
   static void builder_reusable_after_releaseraw_and_move_assign_test(
       TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN)) {
+      return;
+    }
 
     flatbuffers::grpc::MessageBuilder dst;
     for (int i = 0; i < 5; ++i) {
@@ -145,7 +155,7 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       dst.Finish(root_offset1);
       size_t size, offset;
       ::grpc::Slice slice;
-      const uint8_t *buf = dst.ReleaseRaw(size, offset, slice);
+      const uint8_t* buf = dst.ReleaseRaw(size, offset, slice);
       TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
 
       SrcBuilder src;
@@ -170,7 +180,7 @@ void slice_allocator_tests() {
   {
     size_t size = 2048;
     flatbuffers::grpc::SliceAllocator sa1;
-    uint8_t *buf = sa1.allocate(size);
+    uint8_t* buf = sa1.allocate(size);
     TEST_ASSERT_FUNC(buf != 0);
     buf[0] = 100;
     buf[size - 1] = 200;
@@ -184,7 +194,7 @@ void slice_allocator_tests() {
   // move-assign test
   {
     flatbuffers::grpc::SliceAllocator sa1, sa2;
-    uint8_t *buf = sa1.allocate(2048);
+    uint8_t* buf = sa1.allocate(2048);
     sa1 = std::move(sa2);
     // sa1 deletes previously allocated memory in move-assign.
     // So buf is no longer usable here.
@@ -194,7 +204,7 @@ void slice_allocator_tests() {
 
 /// This function does not populate exactly the first half of the table. But it
 /// could.
-void populate_first_half(MyGame::Example::MonsterBuilder &wrapper,
+void populate_first_half(MyGame::Example::MonsterBuilder& wrapper,
                          flatbuffers::Offset<flatbuffers::String> name_offset) {
   wrapper.add_name(name_offset);
   wrapper.add_color(m1_color());
@@ -202,7 +212,7 @@ void populate_first_half(MyGame::Example::MonsterBuilder &wrapper,
 
 /// This function does not populate exactly the second half of the table. But it
 /// could.
-void populate_second_half(MyGame::Example::MonsterBuilder &wrapper) {
+void populate_second_half(MyGame::Example::MonsterBuilder& wrapper) {
   wrapper.add_hp(77);
   wrapper.add_mana(88);
   Vec3 vec3;
@@ -216,9 +226,9 @@ void populate_second_half(MyGame::Example::MonsterBuilder &wrapper) {
 /// between FlatBufferBuilders. If MonsterBuilder had a fbb_ pointer, this hack
 /// would be unnecessary. That involves a code-generator change though.
 void test_only_hack_update_fbb_reference(
-    MyGame::Example::MonsterBuilder &monsterBuilder,
-    flatbuffers::grpc::MessageBuilder &mb) {
-  *reinterpret_cast<flatbuffers::FlatBufferBuilder **>(&monsterBuilder) = &mb;
+    MyGame::Example::MonsterBuilder& monsterBuilder,
+    flatbuffers::grpc::MessageBuilder& mb) {
+  *reinterpret_cast<flatbuffers::FlatBufferBuilder**>(&monsterBuilder) = &mb;
 }
 
 /// This test validates correctness of move conversion of FlatBufferBuilder to a
@@ -351,15 +361,14 @@ void message_builder_tests() {
   BuilderTests<MessageBuilder, FlatBufferBuilder>::all_tests();
 
   BuilderReuseTestSelector tests[6] = {
-    // REUSABLE_AFTER_RELEASE,                 // Assertion failed:
-    // (GRPC_SLICE_IS_EMPTY(slice_))
-    // REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN, // Assertion failed: (p ==
-    // GRPC_SLICE_START_PTR(slice_)
+      // REUSABLE_AFTER_RELEASE,                 // Assertion failed:
+      // (GRPC_SLICE_IS_EMPTY(slice_))
+      // REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN, // Assertion failed: (p ==
+      // GRPC_SLICE_START_PTR(slice_)
 
-    REUSABLE_AFTER_RELEASE_RAW, REUSABLE_AFTER_RELEASE_MESSAGE,
-    REUSABLE_AFTER_RELEASE_MESSAGE_AND_MOVE_ASSIGN,
-    REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN
-  };
+      REUSABLE_AFTER_RELEASE_RAW, REUSABLE_AFTER_RELEASE_MESSAGE,
+      REUSABLE_AFTER_RELEASE_MESSAGE_AND_MOVE_ASSIGN,
+      REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN};
 
   BuilderReuseTests<MessageBuilder, MessageBuilder>::run_tests(
       TestSelector(tests, tests + 6));

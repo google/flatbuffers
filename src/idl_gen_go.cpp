@@ -31,12 +31,12 @@
 #include "idl_namer.h"
 
 #ifdef _WIN32
-#  include <direct.h>
-#  define PATH_SEPARATOR "\\"
-#  define mkdir(n, m) _mkdir(n)
+#include <direct.h>
+#define PATH_SEPARATOR "\\"
+#define mkdir(n, m) _mkdir(n)
 #else
-#  include <sys/stat.h>
-#  define PATH_SEPARATOR "/"
+#include <sys/stat.h>
+#define PATH_SEPARATOR "/"
 #endif
 
 namespace flatbuffers {
@@ -48,11 +48,11 @@ namespace {
 // see https://golang.org/ref/spec#Keywords
 static std::set<std::string> GoKeywords() {
   return {
-    "break",    "default",     "func",   "interface", "select",
-    "case",     "defer",       "go",     "map",       "struct",
-    "chan",     "else",        "goto",   "package",   "switch",
-    "const",    "fallthrough", "if",     "range",     "type",
-    "continue", "for",         "import", "return",    "var",
+      "break",    "default",     "func",   "interface", "select",
+      "case",     "defer",       "go",     "map",       "struct",
+      "chan",     "else",        "goto",   "package",   "switch",
+      "const",    "fallthrough", "if",     "range",     "type",
+      "continue", "for",         "import", "return",    "var",
   };
 }
 
@@ -60,34 +60,34 @@ static Namer::Config GoDefaultConfig() {
   // Note that the functions with user defined types in the name use
   // upper camel case for all but the user defined type itself, which is keep
   // cased. Despite being a function, we interpret it as a Type.
-  return { /*types=*/Case::kKeep,
-           /*constants=*/Case::kUnknown,
-           /*methods=*/Case::kUpperCamel,
-           /*functions=*/Case::kUpperCamel,
-           /*fields=*/Case::kUpperCamel,
-           /*variables=*/Case::kLowerCamel,
-           /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/"",  // I.e. Concatenate.
-           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
-           /*namespaces=*/Case::kKeep,
-           /*namespace_seperator=*/"__",
-           /*object_prefix=*/"",
-           /*object_suffix=*/"T",
-           /*keyword_prefix=*/"",
-           /*keyword_suffix=*/"_",
-           /*filenames=*/Case::kKeep,
-           /*directories=*/Case::kKeep,
-           /*output_path=*/"",
-           /*filename_suffix=*/"",
-           /*filename_extension=*/".go" };
+  return {/*types=*/Case::kKeep,
+          /*constants=*/Case::kUnknown,
+          /*methods=*/Case::kUpperCamel,
+          /*functions=*/Case::kUpperCamel,
+          /*fields=*/Case::kUpperCamel,
+          /*variables=*/Case::kLowerCamel,
+          /*variants=*/Case::kKeep,
+          /*enum_variant_seperator=*/"",  // I.e. Concatenate.
+          /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
+          /*namespaces=*/Case::kKeep,
+          /*namespace_seperator=*/"__",
+          /*object_prefix=*/"",
+          /*object_suffix=*/"T",
+          /*keyword_prefix=*/"",
+          /*keyword_suffix=*/"_",
+          /*filenames=*/Case::kKeep,
+          /*directories=*/Case::kKeep,
+          /*output_path=*/"",
+          /*filename_suffix=*/"",
+          /*filename_extension=*/".go"};
 }
 
 }  // namespace
 
 class GoGenerator : public BaseGenerator {
  public:
-  GoGenerator(const Parser &parser, const std::string &path,
-              const std::string &file_name, const std::string &go_namespace)
+  GoGenerator(const Parser& parser, const std::string& path,
+              const std::string& file_name, const std::string& go_namespace)
       : BaseGenerator(parser, path, file_name, "" /* not used*/,
                       "" /* not used */, "go"),
         cur_name_space_(nullptr),
@@ -120,7 +120,7 @@ class GoGenerator : public BaseGenerator {
   }
 
  private:
-  bool generateEnums(std::string *one_file_code) {
+  bool generateEnums(std::string* one_file_code) {
     bool needs_imports = false;
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
@@ -128,7 +128,7 @@ class GoGenerator : public BaseGenerator {
         needs_imports = false;
         ResetImports();
       }
-      auto &enum_def = **it;
+      auto& enum_def = **it;
       std::string enumcode;
       GenEnum(enum_def, &enumcode);
       if (enum_def.is_union && parser_.opts.generate_object_based_api) {
@@ -144,7 +144,7 @@ class GoGenerator : public BaseGenerator {
     return true;
   }
 
-  void GenNativeUnionCreator(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenNativeUnionCreator(const EnumDef& enum_def, std::string* code_ptr) {
     if (enum_def.generated) return;
 
     GenNativeUnion(enum_def, code_ptr);
@@ -152,12 +152,14 @@ class GoGenerator : public BaseGenerator {
     GenNativeUnionUnPack(enum_def, code_ptr);
   }
 
-  bool generateStructs(std::string *one_file_code) {
+  bool generateStructs(std::string* one_file_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      if (!parser_.opts.one_file) { ResetImports(); }
+      if (!parser_.opts.one_file) {
+        ResetImports();
+      }
       std::string declcode;
-      auto &struct_def = **it;
+      auto& struct_def = **it;
       GenStruct(struct_def, &declcode);
       if (parser_.opts.one_file) {
         *one_file_code += declcode;
@@ -169,28 +171,28 @@ class GoGenerator : public BaseGenerator {
   }
 
   Namespace go_namespace_;
-  Namespace *cur_name_space_;
+  Namespace* cur_name_space_;
   const IdlNamer namer_;
 
   struct NamespacePtrLess {
-    bool operator()(const Definition *a, const Definition *b) const {
+    bool operator()(const Definition* a, const Definition* b) const {
       return *a->defined_namespace < *b->defined_namespace;
     }
   };
-  std::set<const Definition *, NamespacePtrLess> tracked_imported_namespaces_;
+  std::set<const Definition*, NamespacePtrLess> tracked_imported_namespaces_;
   bool needs_math_import_ = false;
   bool needs_bytes_import_ = false;
 
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
-  std::string OffsetPrefix(const FieldDef &field) {
+  std::string OffsetPrefix(const FieldDef& field) {
     return "{\n\to := flatbuffers.UOffsetT(rcv._tab.Offset(" +
            NumToString(field.value.offset) + "))\n\tif o != 0 {\n";
   }
 
   // Begin a class declaration.
-  void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BeginClass(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     code += "type " + namer_.Type(struct_def) + " struct {\n\t";
 
@@ -202,27 +204,27 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Construct the name of the type for this enum.
-  std::string GetEnumTypeName(const EnumDef &enum_def) {
+  std::string GetEnumTypeName(const EnumDef& enum_def) {
     return WrapInNameSpaceAndTrack(&enum_def, namer_.Type(enum_def));
   }
 
   // Create a type for the enum values.
-  void GenEnumType(const EnumDef &enum_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenEnumType(const EnumDef& enum_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "type " + GetEnumTypeName(enum_def) + " ";
     code += GenTypeBasic(enum_def.underlying_type) + "\n\n";
   }
 
   // Begin enum code with a class declaration.
-  void BeginEnum(std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BeginEnum(std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "const (\n";
   }
 
   // A single enum member.
-  void EnumMember(const EnumDef &enum_def, const EnumVal &ev,
-                  size_t max_name_length, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EnumMember(const EnumDef& enum_def, const EnumVal& ev,
+                  size_t max_name_length, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "\t";
     code += namer_.EnumVariant(enum_def, ev);
     code += " ";
@@ -233,23 +235,23 @@ class GoGenerator : public BaseGenerator {
   }
 
   // End enum code.
-  void EndEnum(std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EndEnum(std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += ")\n\n";
   }
 
   // Begin enum name map.
-  void BeginEnumNames(const EnumDef &enum_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BeginEnumNames(const EnumDef& enum_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "var EnumNames";
     code += enum_def.name;
     code += " = map[" + GetEnumTypeName(enum_def) + "]string{\n";
   }
 
   // A single enum name member.
-  void EnumNameMember(const EnumDef &enum_def, const EnumVal &ev,
-                      size_t max_name_length, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EnumNameMember(const EnumDef& enum_def, const EnumVal& ev,
+                      size_t max_name_length, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "\t";
     code += namer_.EnumVariant(enum_def, ev);
     code += ": ";
@@ -260,14 +262,14 @@ class GoGenerator : public BaseGenerator {
   }
 
   // End enum name map.
-  void EndEnumNames(std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EndEnumNames(std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "}\n\n";
   }
 
   // Generate String() method on enum type.
-  void EnumStringer(const EnumDef &enum_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EnumStringer(const EnumDef& enum_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     const std::string enum_type = namer_.Type(enum_def);
     code += "func (v " + enum_type + ") String() string {\n";
     code += "\tif s, ok := EnumNames" + enum_type + "[v]; ok {\n";
@@ -279,17 +281,17 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Begin enum value map.
-  void BeginEnumValues(const EnumDef &enum_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BeginEnumValues(const EnumDef& enum_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "var EnumValues";
     code += namer_.Type(enum_def);
     code += " = map[string]" + GetEnumTypeName(enum_def) + "{\n";
   }
 
   // A single enum value member.
-  void EnumValueMember(const EnumDef &enum_def, const EnumVal &ev,
-                       size_t max_name_length, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EnumValueMember(const EnumDef& enum_def, const EnumVal& ev,
+                       size_t max_name_length, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "\t\"";
     code += ev.name;
     code += "\": ";
@@ -299,16 +301,16 @@ class GoGenerator : public BaseGenerator {
   }
 
   // End enum value map.
-  void EndEnumValues(std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EndEnumValues(std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "}\n\n";
   }
 
   // Initialize a new struct or table from existing data.
-  void NewRootTypeFromBuffer(const StructDef &struct_def,
-                             std::string *code_ptr) {
-    std::string &code = *code_ptr;
-    const std::string size_prefix[] = { "", "SizePrefixed" };
+  void NewRootTypeFromBuffer(const StructDef& struct_def,
+                             std::string* code_ptr) {
+    std::string& code = *code_ptr;
+    const std::string size_prefix[] = {"", "SizePrefixed"};
     const std::string struct_type = namer_.Type(struct_def);
 
     bool has_file_identifier = (parser_.root_struct_def_ == &struct_def) &&
@@ -363,8 +365,8 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
-  void InitializeExisting(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void InitializeExisting(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
     code += " Init(buf []byte, i flatbuffers.UOffsetT) ";
@@ -375,8 +377,8 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Implement the table accessor
-  void GenTableAccessor(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenTableAccessor(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
     code += " Table() flatbuffers.Table ";
@@ -391,9 +393,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the length of a vector.
-  void GetVectorLen(const StructDef &struct_def, const FieldDef &field,
-                    std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetVectorLen(const StructDef& struct_def, const FieldDef& field,
+                    std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field) + "Length(";
@@ -403,9 +405,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get a [ubyte] vector as a byte slice.
-  void GetUByteSlice(const StructDef &struct_def, const FieldDef &field,
-                     std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetUByteSlice(const StructDef& struct_def, const FieldDef& field,
+                     std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field) + "Bytes(";
@@ -415,9 +417,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the value of a struct's scalar.
-  void GetScalarFieldOfStruct(const StructDef &struct_def,
-                              const FieldDef &field, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetScalarFieldOfStruct(const StructDef& struct_def,
+                              const FieldDef& field, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field);
@@ -430,9 +432,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the value of a table's scalar.
-  void GetScalarFieldOfTable(const StructDef &struct_def, const FieldDef &field,
-                             std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetScalarFieldOfTable(const StructDef& struct_def, const FieldDef& field,
+                             std::string* code_ptr) {
+    std::string& code = *code_ptr;
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field);
@@ -444,7 +446,9 @@ class GoGenerator : public BaseGenerator {
       code += "\t\treturn ";
     }
     code += CastToEnum(field.value.type, getter + "(o + rcv._tab.Pos)");
-    if (field.IsScalarOptional()) { code += "\n\t\treturn &v"; }
+    if (field.IsScalarOptional()) {
+      code += "\n\t\treturn &v";
+    }
     code += "\n\t}\n";
     code += "\treturn " + GenConstant(field) + "\n";
     code += "}\n\n";
@@ -452,9 +456,9 @@ class GoGenerator : public BaseGenerator {
 
   // Get a struct by initializing an existing struct.
   // Specific to Struct.
-  void GetStructFieldOfStruct(const StructDef &struct_def,
-                              const FieldDef &field, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetStructFieldOfStruct(const StructDef& struct_def,
+                              const FieldDef& field, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field);
     code += "(obj *" + TypeName(field);
@@ -471,9 +475,9 @@ class GoGenerator : public BaseGenerator {
 
   // Get a struct by initializing an existing struct.
   // Specific to Table.
-  void GetStructFieldOfTable(const StructDef &struct_def, const FieldDef &field,
-                             std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetStructFieldOfTable(const StructDef& struct_def, const FieldDef& field,
+                             std::string* code_ptr) {
+    std::string& code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field);
     code += "(obj *";
@@ -493,9 +497,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the value of a string.
-  void GetStringField(const StructDef &struct_def, const FieldDef &field,
-                      std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetStringField(const StructDef& struct_def, const FieldDef& field,
+                      std::string* code_ptr) {
+    std::string& code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field);
     code += "() " + TypeName(field) + " ";
@@ -505,9 +509,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the value of a union from an object.
-  void GetUnionField(const StructDef &struct_def, const FieldDef &field,
-                     std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetUnionField(const StructDef& struct_def, const FieldDef& field,
+                     std::string* code_ptr) {
+    std::string& code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field) + "(";
     code += "obj " + GenTypePointer(field.value.type) + ") bool ";
@@ -519,9 +523,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the value of a vector's struct member.
-  void GetMemberOfVectorOfStruct(const StructDef &struct_def,
-                                 const FieldDef &field, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetMemberOfVectorOfStruct(const StructDef& struct_def,
+                                 const FieldDef& field, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
@@ -540,21 +544,21 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GetMemberOfVectorOfStructByKey(const StructDef &struct_def,
-                                      const FieldDef &field,
-                                      std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetMemberOfVectorOfStructByKey(const StructDef& struct_def,
+                                      const FieldDef& field,
+                                      std::string* code_ptr) {
+    std::string& code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
     FLATBUFFERS_ASSERT(vectortype.struct_def->has_key);
 
-    auto &vector_struct_fields = vectortype.struct_def->fields.vec;
+    auto& vector_struct_fields = vectortype.struct_def->fields.vec;
     auto kit =
         std::find_if(vector_struct_fields.begin(), vector_struct_fields.end(),
-                     [&](FieldDef *vector_struct_field) {
+                     [&](FieldDef* vector_struct_field) {
                        return vector_struct_field->key;
                      });
 
-    auto &key_field = **kit;
+    auto& key_field = **kit;
     FLATBUFFERS_ASSERT(key_field.key);
 
     GenReceiver(struct_def, code_ptr);
@@ -571,10 +575,10 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the value of a vector's non-struct member.
-  void GetMemberOfVectorOfNonStruct(const StructDef &struct_def,
-                                    const FieldDef &field,
-                                    std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetMemberOfVectorOfNonStruct(const StructDef& struct_def,
+                                    const FieldDef& field,
+                                    std::string* code_ptr) {
+    std::string& code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
 
     GenReceiver(struct_def, code_ptr);
@@ -599,8 +603,8 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Begin the creator function signature.
-  void BeginBuilderArgs(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BeginBuilderArgs(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     if (code.substr(code.length() - 2) != "\n\n") {
       // a previous mutate has not put an extra new line
@@ -612,11 +616,11 @@ class GoGenerator : public BaseGenerator {
 
   // Recursively generate arguments for a constructor, to deal with nested
   // structs.
-  void StructBuilderArgs(const StructDef &struct_def, const char *nameprefix,
-                         std::string *code_ptr) {
+  void StructBuilderArgs(const StructDef& struct_def, const char* nameprefix,
+                         std::string* code_ptr) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (IsStruct(field.value.type)) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
@@ -624,7 +628,7 @@ class GoGenerator : public BaseGenerator {
         StructBuilderArgs(*field.value.type.struct_def,
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
       } else {
-        std::string &code = *code_ptr;
+        std::string& code = *code_ptr;
         code += std::string(", ") + nameprefix;
         code += namer_.Variable(field);
         code += " " + TypeName(field);
@@ -633,21 +637,21 @@ class GoGenerator : public BaseGenerator {
   }
 
   // End the creator function signature.
-  void EndBuilderArgs(std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EndBuilderArgs(std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += ") flatbuffers.UOffsetT {\n";
   }
 
   // Recursively generate struct construction statements and instert manual
   // padding.
-  void StructBuilderBody(const StructDef &struct_def, const char *nameprefix,
-                         std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void StructBuilderBody(const StructDef& struct_def, const char* nameprefix,
+                         std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "\tbuilder.Prep(" + NumToString(struct_def.minalign) + ", ";
     code += NumToString(struct_def.bytesize) + ")\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.padding)
         code += "\tbuilder.Pad(" + NumToString(field.padding) + ")\n";
       if (IsStruct(field.value.type)) {
@@ -662,15 +666,15 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
-  void EndBuilderBody(std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void EndBuilderBody(std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "\treturn builder.Offset()\n";
     code += "}\n";
   }
 
   // Get the value of a table's starting offset.
-  void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetStartOfTable(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "func " + namer_.Type(struct_def) + "Start";
     code += "(builder *flatbuffers.Builder) {\n";
     code += "\tbuilder.StartObject(";
@@ -679,9 +683,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Set the value of a table's field.
-  void BuildFieldOfTable(const StructDef &struct_def, const FieldDef &field,
-                         const size_t offset, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BuildFieldOfTable(const StructDef& struct_def, const FieldDef& field,
+                         const size_t offset, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     const std::string field_var = namer_.Variable(field);
     code += "func " + namer_.Type(struct_def) + "Add" + namer_.Function(field);
     code += "(builder *flatbuffers.Builder, ";
@@ -716,9 +720,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Set the value of one of the members of a table's vector.
-  void BuildVectorOfTable(const StructDef &struct_def, const FieldDef &field,
-                          std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BuildVectorOfTable(const StructDef& struct_def, const FieldDef& field,
+                          std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "func " + namer_.Type(struct_def) + "Start";
     code += namer_.Function(field);
     code += "Vector(builder *flatbuffers.Builder, numElems int) ";
@@ -732,22 +736,22 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Get the offset of the end of a table.
-  void GetEndOffsetOnTable(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GetEndOffsetOnTable(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "func " + namer_.Type(struct_def) + "End";
     code += "(builder *flatbuffers.Builder) flatbuffers.UOffsetT ";
     code += "{\n\treturn builder.EndObject()\n}\n";
   }
 
   // Generate the receiver for function signatures.
-  void GenReceiver(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenReceiver(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "func (rcv *" + namer_.Type(struct_def) + ")";
   }
 
   // Generate a struct field getter, conditioned on its child type(s).
-  void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
-                         std::string *code_ptr) {
+  void GenStructAccessor(const StructDef& struct_def, const FieldDef& field,
+                         std::string* code_ptr) {
     GenComment(field.doc_comment, code_ptr, nullptr, "");
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
@@ -782,8 +786,11 @@ class GoGenerator : public BaseGenerator {
           }
           break;
         }
-        case BASE_TYPE_UNION: GetUnionField(struct_def, field, code_ptr); break;
-        default: FLATBUFFERS_ASSERT(0);
+        case BASE_TYPE_UNION:
+          GetUnionField(struct_def, field, code_ptr);
+          break;
+        default:
+          FLATBUFFERS_ASSERT(0);
       }
     }
     if (IsVector(field.value.type)) {
@@ -795,9 +802,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Mutate the value of a struct's scalar.
-  void MutateScalarFieldOfStruct(const StructDef &struct_def,
-                                 const FieldDef &field, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void MutateScalarFieldOfStruct(const StructDef& struct_def,
+                                 const FieldDef& field, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     std::string setter =
         "rcv._tab.Mutate" + namer_.Method(GenTypeBasic(field.value.type));
     GenReceiver(struct_def, code_ptr);
@@ -810,9 +817,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Mutate the value of a table's scalar.
-  void MutateScalarFieldOfTable(const StructDef &struct_def,
-                                const FieldDef &field, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void MutateScalarFieldOfTable(const StructDef& struct_def,
+                                const FieldDef& field, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     std::string setter = "rcv._tab.Mutate" +
                          namer_.Method(GenTypeBasic(field.value.type)) + "Slot";
     GenReceiver(struct_def, code_ptr);
@@ -824,10 +831,10 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Mutate an element of a vector of scalars.
-  void MutateElementOfVectorOfNonStruct(const StructDef &struct_def,
-                                        const FieldDef &field,
-                                        std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void MutateElementOfVectorOfNonStruct(const StructDef& struct_def,
+                                        const FieldDef& field,
+                                        std::string* code_ptr) {
+    std::string& code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
     std::string setter =
         "rcv._tab.Mutate" + namer_.Method(GenTypeBasic(vectortype));
@@ -846,8 +853,8 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Generate a struct field setter, conditioned on its child type(s).
-  void GenStructMutator(const StructDef &struct_def, const FieldDef &field,
-                        std::string *code_ptr) {
+  void GenStructMutator(const StructDef& struct_def, const FieldDef& field,
+                        std::string* code_ptr) {
     GenComment(field.doc_comment, code_ptr, nullptr, "");
     if (IsScalar(field.value.type.base_type)) {
       if (struct_def.fixed) {
@@ -863,12 +870,12 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Generate table constructors, conditioned on its members' types.
-  void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
+  void GenTableBuilders(const StructDef& struct_def, std::string* code_ptr) {
     GetStartOfTable(struct_def, code_ptr);
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.deprecated) continue;
 
       auto offset = it - struct_def.fields.vec.begin();
@@ -882,7 +889,7 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Generate struct or table methods.
-  void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStruct(const StructDef& struct_def, std::string* code_ptr) {
     if (struct_def.generated) return;
 
     cur_name_space_ = struct_def.defined_namespace;
@@ -906,7 +913,7 @@ class GoGenerator : public BaseGenerator {
     // Generate struct fields accessors
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.deprecated) continue;
 
       GenStructAccessor(struct_def, field, code_ptr);
@@ -929,11 +936,11 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
-  void GenKeyCompare(const StructDef &struct_def, const FieldDef &field,
-                     std::string *code_ptr) {
+  void GenKeyCompare(const StructDef& struct_def, const FieldDef& field,
+                     std::string* code_ptr) {
     FLATBUFFERS_ASSERT(struct_def.has_key);
     FLATBUFFERS_ASSERT(field.key);
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
 
     code += "func " + namer_.Type(struct_def) + "KeyCompare(";
     code += "o1, o2 flatbuffers.UOffsetT, buf []byte) bool {\n";
@@ -951,11 +958,11 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenLookupByKey(const StructDef &struct_def, const FieldDef &field,
-                      std::string *code_ptr) {
+  void GenLookupByKey(const StructDef& struct_def, const FieldDef& field,
+                      std::string* code_ptr) {
     FLATBUFFERS_ASSERT(struct_def.has_key);
     FLATBUFFERS_ASSERT(field.key);
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
 
     GenReceiver(struct_def, code_ptr);
     code += " LookupByKey(";
@@ -964,7 +971,9 @@ class GoGenerator : public BaseGenerator {
     code += "buf []byte) bool {\n";
     code += "\tspan := flatbuffers.GetUOffsetT(buf[vectorLocation-4:])\n";
     code += "\tstart := flatbuffers.UOffsetT(0)\n";
-    if (IsString(field.value.type)) { code += "\tbKey := []byte(key)\n"; }
+    if (IsString(field.value.type)) {
+      code += "\tbKey := []byte(key)\n";
+    }
     code += "\tfor span != 0 {\n";
     code += "\t\tmiddle := span / 2\n";
     code += "\t\ttableOffset := flatbuffers.GetIndirectOffset(buf, ";
@@ -1002,20 +1011,22 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenNativeStruct(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenNativeStruct(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     code += "type " + NativeName(struct_def) + " struct {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
+      const FieldDef& field = **it;
       if (field.deprecated) continue;
       if (IsScalar(field.value.type.base_type) &&
           field.value.type.enum_def != nullptr &&
           field.value.type.enum_def->is_union)
         continue;
       code += "\t" + namer_.Field(field) + " ";
-      if (field.IsScalarOptional()) { code += "*"; }
+      if (field.IsScalarOptional()) {
+        code += "*";
+      }
       code += NativeType(field.value.type) + " `json:\"" + field.name + "\"`" +
               "\n";
     }
@@ -1030,20 +1041,20 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
-  void GenNativeUnion(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenNativeUnion(const EnumDef& enum_def, std::string* code_ptr) {
     if (enum_def.generated) return;
 
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
     code += "type " + NativeName(enum_def) + " struct {\n";
     code += "\tType " + namer_.Type(enum_def) + "\n";
     code += "\tValue interface{}\n";
     code += "}\n\n";
   }
 
-  void GenNativeUnionPack(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenNativeUnionPack(const EnumDef& enum_def, std::string* code_ptr) {
     if (enum_def.generated) return;
 
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
     code += "func (t *" + NativeName(enum_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
     code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
@@ -1051,7 +1062,7 @@ class GoGenerator : public BaseGenerator {
     code += "\tswitch t.Type {\n";
     for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
          ++it2) {
-      const EnumVal &ev = **it2;
+      const EnumVal& ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\treturn t.Value.(" + NativeType(ev.union_type) +
@@ -1062,10 +1073,10 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenNativeUnionUnPack(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenNativeUnionUnPack(const EnumDef& enum_def, std::string* code_ptr) {
     if (enum_def.generated) return;
 
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
 
     code += "func (rcv " + namer_.Type(enum_def) +
             ") UnPack(table flatbuffers.Table) *" + NativeName(enum_def) +
@@ -1074,7 +1085,7 @@ class GoGenerator : public BaseGenerator {
 
     for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
          ++it2) {
-      const EnumVal &ev = **it2;
+      const EnumVal& ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\tvar x " +
@@ -1093,8 +1104,8 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenNativeTablePack(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenNativeTablePack(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     const std::string struct_type = namer_.Type(struct_def);
 
     code += "func (t *" + NativeName(struct_def) +
@@ -1102,7 +1113,7 @@ class GoGenerator : public BaseGenerator {
     code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
+      const FieldDef& field = **it;
       if (field.deprecated) continue;
       if (IsScalar(field.value.type.base_type)) continue;
 
@@ -1177,7 +1188,7 @@ class GoGenerator : public BaseGenerator {
     code += "\t" + struct_type + "Start(builder)\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
+      const FieldDef& field = **it;
       if (field.deprecated) continue;
       const std::string field_field = namer_.Field(field);
       const std::string field_fn = namer_.Function(field);
@@ -1194,7 +1205,9 @@ class GoGenerator : public BaseGenerator {
           code += "\t" + struct_type + "Add" + field_fn + "(builder, " +
                   prefix + "t." + field_field + ")\n";
         }
-        if (field.IsScalarOptional()) { code += "\t}\n"; }
+        if (field.IsScalarOptional()) {
+          code += "\t}\n";
+        }
       } else {
         if (field.value.type.base_type == BASE_TYPE_STRUCT &&
             field.value.type.struct_def->fixed) {
@@ -1215,16 +1228,16 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenNativeTableUnPack(const StructDef &struct_def,
-                            std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenNativeTableUnPack(const StructDef& struct_def,
+                            std::string* code_ptr) {
+    std::string& code = *code_ptr;
     const std::string struct_type = namer_.Type(struct_def);
 
     code += "func (rcv *" + struct_type + ") UnPackTo(t *" +
             NativeName(struct_def) + ") {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
+      const FieldDef& field = **it;
       if (field.deprecated) continue;
       const std::string field_field = namer_.Field(field);
       const std::string field_var = namer_.Variable(field);
@@ -1292,8 +1305,8 @@ class GoGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenNativeStructPack(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenNativeStructPack(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
@@ -1304,12 +1317,12 @@ class GoGenerator : public BaseGenerator {
     code += "}\n";
   }
 
-  void StructPackArgs(const StructDef &struct_def, const char *nameprefix,
-                      std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void StructPackArgs(const StructDef& struct_def, const char* nameprefix,
+                      std::string* code_ptr) {
+    std::string& code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
+      const FieldDef& field = **it;
       if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         StructPackArgs(*field.value.type.struct_def,
                        (nameprefix + namer_.Field(field) + ".").c_str(),
@@ -1320,15 +1333,15 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
-  void GenNativeStructUnPack(const StructDef &struct_def,
-                             std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenNativeStructUnPack(const StructDef& struct_def,
+                             std::string* code_ptr) {
+    std::string& code = *code_ptr;
 
     code += "func (rcv *" + namer_.Type(struct_def) + ") UnPackTo(t *" +
             NativeName(struct_def) + ") {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
+      const FieldDef& field = **it;
       if (field.value.type.base_type == BASE_TYPE_STRUCT) {
         code += "\tt." + namer_.Field(field) + " = rcv." +
                 namer_.Method(field) + "(nil).UnPack()\n";
@@ -1349,7 +1362,7 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Generate enum declarations.
-  void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenEnum(const EnumDef& enum_def, std::string* code_ptr) {
     if (enum_def.generated) return;
 
     auto max_name_length = MaxNameLength(enum_def);
@@ -1359,7 +1372,7 @@ class GoGenerator : public BaseGenerator {
     GenEnumType(enum_def, code_ptr);
     BeginEnum(code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      const EnumVal &ev = **it;
+      const EnumVal& ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "\t");
       EnumMember(enum_def, ev, max_name_length, code_ptr);
     }
@@ -1367,14 +1380,14 @@ class GoGenerator : public BaseGenerator {
 
     BeginEnumNames(enum_def, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      const EnumVal &ev = **it;
+      const EnumVal& ev = **it;
       EnumNameMember(enum_def, ev, max_name_length, code_ptr);
     }
     EndEnumNames(code_ptr);
 
     BeginEnumValues(enum_def, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       EnumValueMember(enum_def, ev, max_name_length, code_ptr);
     }
     EndEnumValues(code_ptr);
@@ -1383,23 +1396,27 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Returns the function name that is able to read a value of the given type.
-  std::string GenGetter(const Type &type) {
+  std::string GenGetter(const Type& type) {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "rcv._tab.ByteVector";
-      case BASE_TYPE_UNION: return "rcv._tab.Union";
-      case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
-      default: return "rcv._tab.Get" + namer_.Function(GenTypeBasic(type));
+      case BASE_TYPE_STRING:
+        return "rcv._tab.ByteVector";
+      case BASE_TYPE_UNION:
+        return "rcv._tab.Union";
+      case BASE_TYPE_VECTOR:
+        return GenGetter(type.VectorType());
+      default:
+        return "rcv._tab.Get" + namer_.Function(GenTypeBasic(type));
     }
   }
 
   // Returns the method name for use with add/put calls.
-  std::string GenMethod(const FieldDef &field) {
+  std::string GenMethod(const FieldDef& field) {
     return IsScalar(field.value.type.base_type)
                ? namer_.Method(GenTypeBasic(field.value.type))
                : (IsStruct(field.value.type) ? "Struct" : "UOffsetT");
   }
 
-  std::string GenTypeBasic(const Type &type) {
+  std::string GenTypeBasic(const Type& type) {
     // clang-format off
     static const char *ctypename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, ...) \
@@ -1411,32 +1428,39 @@ class GoGenerator : public BaseGenerator {
     return ctypename[type.base_type];
   }
 
-  std::string GenTypePointer(const Type &type) {
+  std::string GenTypePointer(const Type& type) {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "[]byte";
-      case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
+      case BASE_TYPE_STRING:
+        return "[]byte";
+      case BASE_TYPE_VECTOR:
+        return GenTypeGet(type.VectorType());
       case BASE_TYPE_STRUCT:
         return WrapInNameSpaceAndTrack(type.struct_def, type.struct_def->name);
       case BASE_TYPE_UNION:
         // fall through
-      default: return "*flatbuffers.Table";
+      default:
+        return "*flatbuffers.Table";
     }
   }
 
-  std::string GenTypeGet(const Type &type) {
-    if (type.enum_def != nullptr) { return GetEnumTypeName(*type.enum_def); }
+  std::string GenTypeGet(const Type& type) {
+    if (type.enum_def != nullptr) {
+      return GetEnumTypeName(*type.enum_def);
+    }
     return IsScalar(type.base_type) ? GenTypeBasic(type) : GenTypePointer(type);
   }
 
-  std::string TypeName(const FieldDef &field) {
+  std::string TypeName(const FieldDef& field) {
     std::string prefix;
-    if (field.IsScalarOptional()) { prefix = "*"; }
+    if (field.IsScalarOptional()) {
+      prefix = "*";
+    }
     return prefix + GenTypeGet(field.value.type);
   }
 
   // If type is an enum, returns value with a cast to the enum type, otherwise
   // returns value as-is.
-  std::string CastToEnum(const Type &type, std::string value) {
+  std::string CastToEnum(const Type& type, std::string value) {
     if (type.enum_def == nullptr) {
       return value;
     } else {
@@ -1446,7 +1470,7 @@ class GoGenerator : public BaseGenerator {
 
   // If type is an enum, returns value with a cast to the enum base type,
   // otherwise returns value as-is.
-  std::string CastToBaseType(const Type &type, std::string value) {
+  std::string CastToBaseType(const Type& type, std::string value) {
     if (type.enum_def == nullptr) {
       return value;
     } else {
@@ -1454,8 +1478,10 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenConstant(const FieldDef &field) {
-    if (field.IsScalarOptional()) { return "nil"; }
+  std::string GenConstant(const FieldDef& field) {
+    if (field.IsScalarOptional()) {
+      return "nil";
+    }
     switch (field.value.type.base_type) {
       case BASE_TYPE_BOOL:
         return field.value.constant == "0" ? "false" : "true";
@@ -1476,19 +1502,20 @@ class GoGenerator : public BaseGenerator {
         }
         return field.value.constant;
       }
-      default: return field.value.constant;
+      default:
+        return field.value.constant;
     }
   }
 
-  std::string NativeName(const StructDef &struct_def) const {
+  std::string NativeName(const StructDef& struct_def) const {
     return namer_.ObjectType(struct_def);
   }
 
-  std::string NativeName(const EnumDef &enum_def) const {
+  std::string NativeName(const EnumDef& enum_def) const {
     return namer_.ObjectType(enum_def);
   }
 
-  std::string NativeType(const Type &type) {
+  std::string NativeType(const Type& type) {
     if (IsScalar(type.base_type)) {
       if (type.enum_def == nullptr) {
         return GenTypeBasic(type);
@@ -1511,7 +1538,7 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Create a struct with a builder and the struct's arguments.
-  void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStructBuilder(const StructDef& struct_def, std::string* code_ptr) {
     BeginBuilderArgs(struct_def, code_ptr);
     StructBuilderArgs(struct_def, "", code_ptr);
     EndBuilderArgs(code_ptr);
@@ -1521,9 +1548,9 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Begin by declaring namespace and imports.
-  void BeginFile(const std::string &name_space_name, const bool needs_imports,
-                 const bool is_enum, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void BeginFile(const std::string& name_space_name, const bool needs_imports,
+                 const bool is_enum, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code = code +
            "// Code generated by the FlatBuffers compiler. DO NOT EDIT.\n\n";
     code += "package " + name_space_name + "\n\n";
@@ -1537,8 +1564,12 @@ class GoGenerator : public BaseGenerator {
         code += "\tflatbuffers \"github.com/google/flatbuffers/go\"\n";
       }
       // math is needed to support non-finite scalar default values.
-      if (needs_math_import_) { code += "\t\"math\"\n"; }
-      if (is_enum) { code += "\t\"strconv\"\n"; }
+      if (needs_math_import_) {
+        code += "\t\"math\"\n";
+      }
+      if (is_enum) {
+        code += "\t\"strconv\"\n";
+      }
 
       if (tracked_imported_namespaces_.size() > 0) {
         code += "\n";
@@ -1555,7 +1586,9 @@ class GoGenerator : public BaseGenerator {
       }
       code += ")\n\n";
     } else {
-      if (is_enum) { code += "import \"strconv\"\n\n"; }
+      if (is_enum) {
+        code += "import \"strconv\"\n\n";
+      }
       if (needs_math_import_) {
         // math is needed to support non-finite scalar default values.
         code += "import \"math\"\n\n";
@@ -1571,11 +1604,11 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Save out the generated code for a Go Table type.
-  bool SaveType(const Definition &def, const std::string &classcode,
+  bool SaveType(const Definition& def, const std::string& classcode,
                 const bool needs_imports, const bool is_enum) {
     if (!classcode.length()) return true;
 
-    Namespace &ns = go_namespace_.components.empty() ? *def.defined_namespace
+    Namespace& ns = go_namespace_.components.empty() ? *def.defined_namespace
                                                      : go_namespace_;
     std::string code = "";
     BeginFile(ns.components.empty() ? def.name : LastNamespacePart(ns),
@@ -1593,12 +1626,12 @@ class GoGenerator : public BaseGenerator {
   }
 
   // Create the full name of the imported namespace (format: A__B__C).
-  std::string NamespaceImportName(const Namespace *ns) const {
+  std::string NamespaceImportName(const Namespace* ns) const {
     return namer_.Namespace(*ns);
   }
 
   // Create the full path for the imported namespace (format: A/B/C).
-  std::string NamespaceImportPath(const Namespace *ns) const {
+  std::string NamespaceImportPath(const Namespace* ns) const {
     std::string path =
         namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
     if (!parser_.opts.go_module_name.empty()) {
@@ -1609,8 +1642,8 @@ class GoGenerator : public BaseGenerator {
 
   // Ensure that a type is prefixed with its go package import name if it is
   // used outside of its namespace.
-  std::string WrapInNameSpaceAndTrack(const Definition *def,
-                                      const std::string &name) {
+  std::string WrapInNameSpaceAndTrack(const Definition* def,
+                                      const std::string& name) {
     if (CurrentNameSpace() == def->defined_namespace) return name;
     tracked_imported_namespaces_.insert(def);
     if (def->defined_namespace->components.empty())
@@ -1619,9 +1652,9 @@ class GoGenerator : public BaseGenerator {
       return NamespaceImportName(def->defined_namespace) + "." + name;
   }
 
-  const Namespace *CurrentNameSpace() const { return cur_name_space_; }
+  const Namespace* CurrentNameSpace() const { return cur_name_space_; }
 
-  static size_t MaxNameLength(const EnumDef &enum_def) {
+  static size_t MaxNameLength(const EnumDef& enum_def) {
     size_t max = 0;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       max = std::max((*it)->name.length(), max);
@@ -1631,8 +1664,8 @@ class GoGenerator : public BaseGenerator {
 };
 }  // namespace go
 
-static bool GenerateGo(const Parser &parser, const std::string &path,
-                       const std::string &file_name) {
+static bool GenerateGo(const Parser& parser, const std::string& path,
+                       const std::string& file_name) {
   go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace);
   return generator.generate();
 }
@@ -1641,20 +1674,21 @@ namespace {
 
 class GoCodeGenerator : public CodeGenerator {
  public:
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
-    if (!GenerateGo(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateCode(const Parser& parser, const std::string& path,
+                      const std::string& filename) override {
+    if (!GenerateGo(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *, int64_t,
-                      const CodeGenOptions &) override {
+  Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                          const std::string &filename,
-                          std::string &output) override {
+  Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                          const std::string& filename,
+                          std::string& output) override {
     (void)parser;
     (void)path;
     (void)filename;
@@ -1662,14 +1696,16 @@ class GoCodeGenerator : public CodeGenerator {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                          const std::string &filename) override {
-    if (!GenerateGoGRPC(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                          const std::string& filename) override {
+    if (!GenerateGoGRPC(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateRootFile(const Parser &parser,
-                          const std::string &path) override {
+  Status GenerateRootFile(const Parser& parser,
+                          const std::string& path) override {
     (void)parser;
     (void)path;
     return Status::NOT_IMPLEMENTED;

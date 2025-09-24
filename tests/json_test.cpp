@@ -13,7 +13,7 @@ namespace tests {
 using namespace MyGame::Example;
 
 // Check stringify of an default enum value to json
-void JsonDefaultTest(const std::string &tests_data_path) {
+void JsonDefaultTest(const std::string& tests_data_path) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
@@ -23,8 +23,8 @@ void JsonDefaultTest(const std::string &tests_data_path) {
   flatbuffers::Parser parser;
   auto include_test_path =
       flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
-  const char *include_directories[] = { tests_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
+  const char* include_directories[] = {tests_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
 
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   // create incomplete monster and store to json
@@ -44,7 +44,7 @@ void JsonDefaultTest(const std::string &tests_data_path) {
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
 }
 
-void JsonEnumsTest(const std::string &tests_data_path) {
+void JsonEnumsTest(const std::string& tests_data_path) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
@@ -54,8 +54,8 @@ void JsonEnumsTest(const std::string &tests_data_path) {
   flatbuffers::Parser parser;
   auto include_test_path =
       flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
-  const char *include_directories[] = { tests_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
+  const char* include_directories[] = {tests_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
   parser.opts.output_enum_identifiers = true;
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   flatbuffers::FlatBufferBuilder builder;
@@ -83,7 +83,7 @@ void JsonEnumsTest(const std::string &tests_data_path) {
   TEST_EQ(std::string::npos != future_json.find("color: 13"), true);
 }
 
-void JsonOptionalTest(const std::string &tests_data_path,
+void JsonOptionalTest(const std::string& tests_data_path,
                       bool default_scalars) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
@@ -100,8 +100,8 @@ void JsonOptionalTest(const std::string &tests_data_path,
 
   auto include_test_path =
       flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
-  const char *include_directories[] = { tests_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
+  const char* include_directories[] = {tests_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
@@ -124,17 +124,17 @@ void JsonOptionalTest(const std::string &tests_data_path,
   TEST_EQ_STR(jsongen.c_str(), jsonfile.c_str());
 }
 
-void ParseIncorrectMonsterJsonTest(const std::string &tests_data_path) {
+void ParseIncorrectMonsterJsonTest(const std::string& tests_data_path) {
   std::string schemafile;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
                                 true, &schemafile),
           true);
   flatbuffers::Parser parser;
   flatbuffers::Verifier verifier(
-      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
+      reinterpret_cast<const uint8_t*>(schemafile.c_str()), schemafile.size());
   TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
   TEST_EQ(
-      parser.Deserialize(reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+      parser.Deserialize(reinterpret_cast<const uint8_t*>(schemafile.c_str()),
                          schemafile.size()),
       true);
   TEST_EQ(parser.ParseJson("{name:\"monster\"}"), true);

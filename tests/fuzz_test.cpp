@@ -20,8 +20,8 @@ uint32_t lcg_rand() {
 }
 void lcg_reset() { lcg_seed = 48271; }
 
-template<typename T>
-static void CompareTableFieldValue(flatbuffers::Table *table,
+template <typename T>
+static void CompareTableFieldValue(flatbuffers::Table* table,
                                    flatbuffers::voffset_t voffset, T val) {
   T read = table->GetField(voffset, static_cast<T>(0));
   TEST_EQ(read, val);
@@ -64,17 +64,39 @@ void FuzzTest1() {
       int choice = lcg_rand() % test_values_max;
       auto off = flatbuffers::FieldIndexToOffset(f);
       switch (choice) {
-        case 0: builder.AddElement<uint8_t>(off, bool_val, 0); break;
-        case 1: builder.AddElement<int8_t>(off, char_val, 0); break;
-        case 2: builder.AddElement<uint8_t>(off, uchar_val, 0); break;
-        case 3: builder.AddElement<int16_t>(off, short_val, 0); break;
-        case 4: builder.AddElement<uint16_t>(off, ushort_val, 0); break;
-        case 5: builder.AddElement<int32_t>(off, int_val, 0); break;
-        case 6: builder.AddElement<uint32_t>(off, uint_val, 0); break;
-        case 7: builder.AddElement<int64_t>(off, long_val, 0); break;
-        case 8: builder.AddElement<uint64_t>(off, ulong_val, 0); break;
-        case 9: builder.AddElement<float>(off, float_val, 0); break;
-        case 10: builder.AddElement<double>(off, double_val, 0); break;
+        case 0:
+          builder.AddElement<uint8_t>(off, bool_val, 0);
+          break;
+        case 1:
+          builder.AddElement<int8_t>(off, char_val, 0);
+          break;
+        case 2:
+          builder.AddElement<uint8_t>(off, uchar_val, 0);
+          break;
+        case 3:
+          builder.AddElement<int16_t>(off, short_val, 0);
+          break;
+        case 4:
+          builder.AddElement<uint16_t>(off, ushort_val, 0);
+          break;
+        case 5:
+          builder.AddElement<int32_t>(off, int_val, 0);
+          break;
+        case 6:
+          builder.AddElement<uint32_t>(off, uint_val, 0);
+          break;
+        case 7:
+          builder.AddElement<int64_t>(off, long_val, 0);
+          break;
+        case 8:
+          builder.AddElement<uint64_t>(off, ulong_val, 0);
+          break;
+        case 9:
+          builder.AddElement<float>(off, float_val, 0);
+          break;
+        case 10:
+          builder.AddElement<double>(off, double_val, 0);
+          break;
       }
     }
     objects[i] = builder.EndTable(start);
@@ -83,28 +105,50 @@ void FuzzTest1() {
 
   lcg_reset();  // Reset.
 
-  uint8_t *eob = builder.GetCurrentBufferPointer() + builder.GetSize();
+  uint8_t* eob = builder.GetCurrentBufferPointer() + builder.GetSize();
 
   // Test that all objects we generated are readable and return the
   // expected values. We generate random objects in the same order
   // so this is deterministic.
   for (int i = 0; i < num_fuzz_objects; i++) {
-    auto table = reinterpret_cast<flatbuffers::Table *>(eob - objects[i]);
+    auto table = reinterpret_cast<flatbuffers::Table*>(eob - objects[i]);
     for (flatbuffers::voffset_t f = 0; f < fields_per_object; f++) {
       int choice = lcg_rand() % test_values_max;
       flatbuffers::voffset_t off = flatbuffers::FieldIndexToOffset(f);
       switch (choice) {
-        case 0: CompareTableFieldValue(table, off, bool_val); break;
-        case 1: CompareTableFieldValue(table, off, char_val); break;
-        case 2: CompareTableFieldValue(table, off, uchar_val); break;
-        case 3: CompareTableFieldValue(table, off, short_val); break;
-        case 4: CompareTableFieldValue(table, off, ushort_val); break;
-        case 5: CompareTableFieldValue(table, off, int_val); break;
-        case 6: CompareTableFieldValue(table, off, uint_val); break;
-        case 7: CompareTableFieldValue(table, off, long_val); break;
-        case 8: CompareTableFieldValue(table, off, ulong_val); break;
-        case 9: CompareTableFieldValue(table, off, float_val); break;
-        case 10: CompareTableFieldValue(table, off, double_val); break;
+        case 0:
+          CompareTableFieldValue(table, off, bool_val);
+          break;
+        case 1:
+          CompareTableFieldValue(table, off, char_val);
+          break;
+        case 2:
+          CompareTableFieldValue(table, off, uchar_val);
+          break;
+        case 3:
+          CompareTableFieldValue(table, off, short_val);
+          break;
+        case 4:
+          CompareTableFieldValue(table, off, ushort_val);
+          break;
+        case 5:
+          CompareTableFieldValue(table, off, int_val);
+          break;
+        case 6:
+          CompareTableFieldValue(table, off, uint_val);
+          break;
+        case 7:
+          CompareTableFieldValue(table, off, long_val);
+          break;
+        case 8:
+          CompareTableFieldValue(table, off, ulong_val);
+          break;
+        case 9:
+          CompareTableFieldValue(table, off, float_val);
+          break;
+        case 10:
+          CompareTableFieldValue(table, off, double_val);
+          break;
       }
     }
   }
@@ -131,8 +175,8 @@ void FuzzTest2() {
     // Since we're generating schema and corresponding data in tandem,
     // this convenience function adds strings to both at once.
     static void Add(RndDef (&definitions_l)[num_definitions],
-                    std::string &schema_l, const int instances_per_definition_l,
-                    const char *schema_add, const char *instance_add,
+                    std::string& schema_l, const int instances_per_definition_l,
+                    const char* schema_add, const char* instance_add,
                     int definition) {
       schema_l += schema_add;
       for (int i = 0; i < instances_per_definition_l; i++)
@@ -266,7 +310,7 @@ void FuzzTest2() {
   // from the binary and compare against the original.
   TEST_EQ(parser.Parse(schema.c_str()), true);
 
-  const std::string &json =
+  const std::string& json =
       definitions[num_definitions - 1].instances[0] + "\n";
 
   TEST_EQ(parser.Parse(json.c_str()), true);

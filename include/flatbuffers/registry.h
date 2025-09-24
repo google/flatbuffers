@@ -30,7 +30,7 @@ class Registry {
  public:
   // Call this for all schemas that may be in use. The identifier has
   // a function in the generated code, e.g. MonsterIdentifier().
-  void Register(const char *file_identifier, const char *schema_path) {
+  void Register(const char* file_identifier, const char* schema_path) {
     Schema schema;
     schema.path_ = schema_path;
     schemas_[file_identifier] = schema;
@@ -38,7 +38,7 @@ class Registry {
 
   // Generate text from an arbitrary FlatBuffer by looking up its
   // file_identifier in the registry.
-  bool FlatBufferToText(const uint8_t *flatbuf, size_t len, std::string *dest) {
+  bool FlatBufferToText(const uint8_t* flatbuf, size_t len, std::string* dest) {
     // Get the identifier out of the buffer.
     // If the buffer is truncated, exit.
     if (len < sizeof(uoffset_t) + kFileIdentifierLength) {
@@ -46,7 +46,7 @@ class Registry {
       return false;
     }
     std::string ident(
-        reinterpret_cast<const char *>(flatbuf) + sizeof(uoffset_t),
+        reinterpret_cast<const char*>(flatbuf) + sizeof(uoffset_t),
         kFileIdentifierLength);
     // Load and parse the schema.
     Parser parser;
@@ -64,8 +64,8 @@ class Registry {
   // Converts a binary buffer to text using one of the schemas in the registry,
   // use the file_identifier to indicate which.
   // If DetachedBuffer::data() is null then parsing failed.
-  DetachedBuffer TextToFlatBuffer(const char *text,
-                                  const char *file_identifier) {
+  DetachedBuffer TextToFlatBuffer(const char* text,
+                                  const char* file_identifier) {
     // Load and parse the schema.
     Parser parser;
     if (!LoadSchema(file_identifier, &parser)) return DetachedBuffer();
@@ -79,17 +79,17 @@ class Registry {
   }
 
   // Modify any parsing / output options used by the other functions.
-  void SetOptions(const IDLOptions &opts) { opts_ = opts; }
+  void SetOptions(const IDLOptions& opts) { opts_ = opts; }
 
   // If schemas used contain include statements, call this function for every
   // directory the parser should search them for.
-  void AddIncludeDirectory(const char *path) { include_paths_.push_back(path); }
+  void AddIncludeDirectory(const char* path) { include_paths_.push_back(path); }
 
   // Returns a human readable error if any of the above functions fail.
-  const std::string &GetLastError() { return lasterror_; }
+  const std::string& GetLastError() { return lasterror_; }
 
  private:
-  bool LoadSchema(const std::string &ident, Parser *parser) {
+  bool LoadSchema(const std::string& ident, Parser* parser) {
     // Find the schema, if not, exit.
     auto it = schemas_.find(ident);
     if (it == schemas_.end()) {
@@ -97,7 +97,7 @@ class Registry {
       lasterror_ = "identifier for this buffer not in the registry";
       return false;
     }
-    auto &schema = it->second;
+    auto& schema = it->second;
     // Load the schema from disk. If not, exit.
     std::string schematext;
     if (!LoadFile(schema.path_.c_str(), false, &schematext)) {
@@ -121,7 +121,7 @@ class Registry {
 
   std::string lasterror_;
   IDLOptions opts_;
-  std::vector<const char *> include_paths_;
+  std::vector<const char*> include_paths_;
   std::map<std::string, Schema> schemas_;
 };
 
