@@ -60,4 +60,4 @@ extension UInt32: Verifiable {}
 
 extension UInt64: Verifiable {}
 
-public func FlatBuffersVersion_25_2_10() {}
+public func FlatBuffersVersion_25_9_23() {}
