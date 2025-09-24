@@ -8,26 +8,37 @@ public class UnionInNestedNSUnion {
   private byte type;
   private Object value;
 
-  public byte getType() { return type; }
+  public byte getType() {
+    return type;
+  }
 
-  public void setType(byte type) { this.type = type; }
+  public void setType(byte type) {
+    this.type = type;
+  }
 
-  public Object getValue() { return value; }
+  public Object getValue() {
+    return value;
+  }
 
-  public void setValue(Object value) { this.value = value; }
+  public void setValue(Object value) {
+    this.value = value;
+  }
 
   public UnionInNestedNSUnion() {
     this.type = UnionInNestedNS.NONE;
     this.value = null;
   }
 
-  public NamespaceA.NamespaceB.TableInNestedNST asTableInNestedNS() { return (NamespaceA.NamespaceB.TableInNestedNST) value; }
+  public NamespaceA.NamespaceB.TableInNestedNST asTableInNestedNS() {
+    return (NamespaceA.NamespaceB.TableInNestedNST) value;
+  }
 
   public static int pack(FlatBufferBuilder builder, UnionInNestedNSUnion _o) {
     switch (_o.type) {
-      case UnionInNestedNS.TableInNestedNS: return NamespaceA.NamespaceB.TableInNestedNS.pack(builder, _o.asTableInNestedNS());
-      default: return 0;
+      case UnionInNestedNS.TableInNestedNS:
+        return NamespaceA.NamespaceB.TableInNestedNS.pack(builder, _o.asTableInNestedNS());
+      default:
+        return 0;
     }
   }
 }
-

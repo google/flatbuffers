@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #include <stddef.h>
 #include <stdint.h>
+
 #include <string>
 
 #include "cpp17/generated_cpp17/monster_test_generated.h"

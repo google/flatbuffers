@@ -17,23 +17,26 @@
 package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /// @cond FLATBUFFERS_INTERNAL
 
-/**
- * All tables in the generated code derive from this class, and add their own accessors.
- */
+/** All tables in the generated code derive from this class, and add their own accessors. */
 public class Table {
   /** Used to hold the position of the `bb` buffer. */
   protected int bb_pos;
+
   /** The underlying ByteBuffer to hold the data of the Table. */
   protected ByteBuffer bb;
+
   /** Used to hold the vtable position. */
   private int vtable_start;
+
   /** Used to hold the vtable size. */
   private int vtable_size;
+
   Utf8 utf8 = Utf8.getDefault();
 
   /**
@@ -41,7 +44,9 @@ public class Table {
    *
    * @return Returns the Table's ByteBuffer.
    */
-  public ByteBuffer getByteBuffer() { return bb; }
+  public ByteBuffer getByteBuffer() {
+    return bb;
+  }
 
   /**
    * Look up a field in the vtable.
@@ -82,10 +87,10 @@ public class Table {
   /**
    * Create a Java `String` from UTF-8 data stored inside the FlatBuffer.
    *
-   * This allocates a new string and converts to wide chars upon each access,
-   * which is not very efficient. Instead, each FlatBuffer string also comes with an
-   * accessor based on __vector_as_bytebuffer below, which is much more efficient,
-   * assuming your Java program can handle UTF-8 data directly.
+   * <p>This allocates a new string and converts to wide chars upon each access, which is not very
+   * efficient. Instead, each FlatBuffer string also comes with an accessor based on
+   * __vector_as_bytebuffer below, which is much more efficient, assuming your Java program can
+   * handle UTF-8 data directly.
    *
    * @param offset An `int` index into the Table's ByteBuffer.
    * @return Returns a `String` from the data stored inside the FlatBuffer at `offset`.
@@ -97,10 +102,10 @@ public class Table {
   /**
    * Create a Java `String` from UTF-8 data stored inside the FlatBuffer.
    *
-   * This allocates a new string and converts to wide chars upon each access,
-   * which is not very efficient. Instead, each FlatBuffer string also comes with an
-   * accessor based on __vector_as_bytebuffer below, which is much more efficient,
-   * assuming your Java program can handle UTF-8 data directly.
+   * <p>This allocates a new string and converts to wide chars upon each access, which is not very
+   * efficient. Instead, each FlatBuffer string also comes with an accessor based on
+   * __vector_as_bytebuffer below, which is much more efficient, assuming your Java program can
+   * handle UTF-8 data directly.
    *
    * @param offset An `int` index into the Table's ByteBuffer.
    * @param bb Table ByteBuffer used to read a string at given offset.
@@ -133,15 +138,15 @@ public class Table {
    */
   protected int __vector(int offset) {
     offset += bb_pos;
-    return offset + bb.getInt(offset) + SIZEOF_INT;  // data starts after the length
+    return offset + bb.getInt(offset) + SIZEOF_INT; // data starts after the length
   }
 
   /**
    * Get a whole vector as a ByteBuffer.
    *
-   * This is efficient, since it only allocates a new {@link ByteBuffer} object,
-   * but does not actually copy the data, it still refers to the same bytes
-   * as the original ByteBuffer. Also useful with nested FlatBuffers, etc.
+   * <p>This is efficient, since it only allocates a new {@link ByteBuffer} object, but does not
+   * actually copy the data, it still refers to the same bytes as the original ByteBuffer. Also
+   * useful with nested FlatBuffers, etc.
    *
    * @param vector_offset The position of the vector in the byte buffer
    * @param elem_size The size of each element in the array
@@ -160,8 +165,8 @@ public class Table {
   /**
    * Initialize vector as a ByteBuffer.
    *
-   * This is more efficient than using duplicate, since it doesn't copy the data
-   * nor allocattes a new {@link ByteBuffer}, creating no garbage to be collected.
+   * <p>This is more efficient than using duplicate, since it doesn't copy the data nor allocattes a
+   * new {@link ByteBuffer}, creating no garbage to be collected.
    *
    * @param bb The {@link ByteBuffer} for the array
    * @param vector_offset The position of the vector in the byte buffer
@@ -205,17 +210,16 @@ public class Table {
   /**
    * Check if a {@link ByteBuffer} contains a file identifier.
    *
-   * @param bb A {@code ByteBuffer} to check if it contains the identifier
-   * `ident`.
+   * @param bb A {@code ByteBuffer} to check if it contains the identifier `ident`.
    * @param ident A `String` identifier of the FlatBuffer file.
    * @return True if the buffer contains the file identifier
    */
   protected static boolean __has_identifier(ByteBuffer bb, String ident) {
     if (ident.length() != FILE_IDENTIFIER_LENGTH)
-        throw new AssertionError("FlatBuffers: file identifier must be length " +
-                                 FILE_IDENTIFIER_LENGTH);
+      throw new AssertionError(
+          "FlatBuffers: file identifier must be length " + FILE_IDENTIFIER_LENGTH);
     for (int i = 0; i < FILE_IDENTIFIER_LENGTH; i++) {
-      if (ident.charAt(i) != (char)bb.get(bb.position() + SIZEOF_INT + i)) return false;
+      if (ident.charAt(i) != (char) bb.get(bb.position() + SIZEOF_INT + i)) return false;
     }
     return true;
   }
@@ -229,11 +233,13 @@ public class Table {
   protected void sortTables(int[] offsets, final ByteBuffer bb) {
     Integer[] off = new Integer[offsets.length];
     for (int i = 0; i < offsets.length; i++) off[i] = offsets[i];
-    java.util.Arrays.sort(off, new java.util.Comparator<Integer>() {
-      public int compare(Integer o1, Integer o2) {
-        return keysCompare(o1, o2, bb);
-      }
-    });
+    java.util.Arrays.sort(
+        off,
+        new java.util.Comparator<Integer>() {
+          public int compare(Integer o1, Integer o2) {
+            return keysCompare(o1, o2, bb);
+          }
+        });
     for (int i = 0; i < offsets.length; i++) offsets[i] = off[i];
   }
 
@@ -244,7 +250,9 @@ public class Table {
    * @param o2 An 'Integer' index of the second key into the bb.
    * @param bb A {@code ByteBuffer} to get the keys.
    */
-  protected int keysCompare(Integer o1, Integer o2, ByteBuffer bb) { return 0; }
+  protected int keysCompare(Integer o1, Integer o2, ByteBuffer bb) {
+    return 0;
+  }
 
   /**
    * Compare two strings in the buffer.
@@ -261,7 +269,7 @@ public class Table {
     int startPos_1 = offset_1 + SIZEOF_INT;
     int startPos_2 = offset_2 + SIZEOF_INT;
     int len = Math.min(len_1, len_2);
-    for(int i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
       if (bb.get(i + startPos_1) != bb.get(i + startPos_2))
         return bb.get(i + startPos_1) - bb.get(i + startPos_2);
     }
@@ -282,8 +290,7 @@ public class Table {
     int startPos_1 = offset_1 + Constants.SIZEOF_INT;
     int len = Math.min(len_1, len_2);
     for (int i = 0; i < len; i++) {
-      if (bb.get(i + startPos_1) != key[i])
-        return bb.get(i + startPos_1) - key[i];
+      if (bb.get(i + startPos_1) != key[i]) return bb.get(i + startPos_1) - key[i];
     }
     return len_1 - len_2;
   }
@@ -291,10 +298,10 @@ public class Table {
   /**
    * Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
    *
-   * This method exists primarily to allow recycling Table instances without risking memory leaks
+   * <p>This method exists primarily to allow recycling Table instances without risking memory leaks
    * due to {@code ByteBuffer} references.
    */
-  protected void __reset(int _i, ByteBuffer _bb) { 
+  protected void __reset(int _i, ByteBuffer _bb) {
     bb = _bb;
     if (bb != null) {
       bb_pos = _i;
@@ -310,9 +317,9 @@ public class Table {
   /**
    * Resets the internal state with a null {@code ByteBuffer} and a zero position.
    *
-   * This method exists primarily to allow recycling Table instances without risking memory leaks
-   * due to {@code ByteBuffer} references. The instance will be unusable until it is assigned
-   * again to a {@code ByteBuffer}.
+   * <p>This method exists primarily to allow recycling Table instances without risking memory leaks
+   * due to {@code ByteBuffer} references. The instance will be unusable until it is assigned again
+   * to a {@code ByteBuffer}.
    */
   public void __reset() {
     __reset(0, null);

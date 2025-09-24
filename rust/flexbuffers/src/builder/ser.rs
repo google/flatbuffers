@@ -49,19 +49,13 @@ impl FlexbufferSerializer {
         Ok(())
     }
     fn start_vector(&mut self) {
-        let previous_end = if self.nesting.is_empty() {
-            None
-        } else {
-            Some(self.builder.values.len())
-        };
+        let previous_end =
+            if self.nesting.is_empty() { None } else { Some(self.builder.values.len()) };
         self.nesting.push(previous_end);
     }
     fn start_map(&mut self) {
-        let previous_end = if self.nesting.is_empty() {
-            None
-        } else {
-            Some(self.builder.values.len())
-        };
+        let previous_end =
+            if self.nesting.is_empty() { None } else { Some(self.builder.values.len()) };
         self.nesting.push(previous_end);
     }
     fn end_vector(&mut self) -> Result<(), Error> {

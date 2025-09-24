@@ -15,6 +15,7 @@
  */
 
 import XCTest
+
 @testable import FlatBuffers
 
 final class FlatBuffersVectors: XCTestCase {
@@ -39,7 +40,14 @@ final class FlatBuffersVectors: XCTestCase {
     let vectorOffset = b.createVector(ofOffsets: vector)
     b.finish(offset: vectorOffset)
     // swiftformat:disable all
-    XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 2, 0, 0, 0, 48, 0, 0, 0, 16, 0, 0, 0, 0, 0, 10, 0, 18, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 40, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 24, 0, 0, 0, 188, 2, 0, 0, 120, 3, 0, 0, 7, 0, 0, 0, 68, 101, 110, 109, 97, 114, 107, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0])
+    XCTAssertEqual(
+      b.sizedByteArray,
+      [
+        4, 0, 0, 0, 2, 0, 0, 0, 48, 0, 0, 0, 16, 0, 0, 0, 0, 0, 10, 0, 18, 0, 4, 0, 8, 0, 12, 0, 10,
+        0, 0, 0, 40, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10,
+        0, 0, 0, 24, 0, 0, 0, 188, 2, 0, 0, 120, 3, 0, 0, 7, 0, 0, 0, 68, 101, 110, 109, 97, 114,
+        107, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0,
+      ])
     // swiftformat:enable all
   }
 
@@ -49,7 +57,9 @@ final class FlatBuffersVectors: XCTestCase {
     let o = b.createVector(numbers, size: numbers.count)
     b.finish(offset: o)
     // swiftformat:disable all
-    XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0])
+    XCTAssertEqual(
+      b.sizedByteArray,
+      [4, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0])
     // swiftformat:enable all
   }
 
@@ -66,7 +76,12 @@ final class FlatBuffersVectors: XCTestCase {
     let o = b.createVector(ofStructs: vector)
     b.finish(offset: o)
     // swiftformat:disable all
-    XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 128, 64, 0, 0, 160, 64, 0, 0, 192, 64, 0, 0, 224, 64, 0, 0, 0, 65, 0, 0, 16, 65])
+    XCTAssertEqual(
+      b.sizedByteArray,
+      [
+        4, 0, 0, 0, 3, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 64, 0, 0, 64, 64, 0, 0, 128, 64, 0, 0, 160,
+        64, 0, 0, 192, 64, 0, 0, 224, 64, 0, 0, 0, 65, 0, 0, 16, 65,
+      ])
     // swiftformat:enable all
   }
 
@@ -84,7 +99,12 @@ final class FlatBuffersVectors: XCTestCase {
     let o = b.createVector(ofStrings: strs)
     b.finish(offset: o)
     // swiftformat:disable all
-    XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 2, 0, 0, 0, 20, 0, 0, 0, 4, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0, 7, 0, 0, 0, 68, 101, 110, 109, 97, 114, 107, 0])
+    XCTAssertEqual(
+      b.sizedByteArray,
+      [
+        4, 0, 0, 0, 2, 0, 0, 0, 20, 0, 0, 0, 4, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0,
+        0, 7, 0, 0, 0, 68, 101, 110, 109, 97, 114, 107, 0,
+      ])
     // swiftformat:enable all
   }
   func testCreateSharedStringVector() {
@@ -99,7 +119,12 @@ final class FlatBuffersVectors: XCTestCase {
     let end = b.createVector(ofOffsets: v)
     b.finish(offset: end)
     // swiftformat:disable all
-    XCTAssertEqual(b.sizedByteArray, [4, 0, 0, 0, 4, 0, 0, 0, 28, 0, 0, 0, 12, 0, 0, 0, 20, 0, 0, 0, 4, 0, 0, 0, 7, 0, 0, 0, 68, 101, 110, 109, 97, 114, 107, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0])
+    XCTAssertEqual(
+      b.sizedByteArray,
+      [
+        4, 0, 0, 0, 4, 0, 0, 0, 28, 0, 0, 0, 12, 0, 0, 0, 20, 0, 0, 0, 4, 0, 0, 0, 7, 0, 0, 0, 68,
+        101, 110, 109, 97, 114, 107, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0,
+      ])
     // swiftformat:enable all
   }
 
@@ -144,7 +169,6 @@ final class FlatBuffersVectors: XCTestCase {
     XCTAssertEqual(msg.arrayCount, 3)
     XCTAssertEqual(msg.array, [1, 2, 3])
 
-
     let array = msg.withUnsafePointerToArray { ptr in
       let ptr: UnsafeBufferPointer<UInt64> = UnsafeBufferPointer(
         start: ptr.baseAddress?.bindMemory(
@@ -168,9 +192,10 @@ struct Numbers {
 
   @inlinable
   static func getRootAsNumbers(_ bb: ByteBuffer) -> Numbers {
-    Numbers(Table(
-      bb: bb,
-      position: Int32(bb.read(def: UOffset.self, position: 0))))
+    Numbers(
+      Table(
+        bb: bb,
+        position: Int32(bb.read(def: UOffset.self, position: 0))))
   }
 
   var vArrayInt: [Int]? { __t.getVector(at: 4) }
@@ -180,29 +205,29 @@ struct Numbers {
 
   static func createNumbersVector(
     b: inout FlatBufferBuilder,
-    array: [Int]) -> Offset
-  {
+    array: [Int]
+  ) -> Offset {
     b.createVector(array, size: array.count)
   }
 
   static func createNumbersVector(
     b: inout FlatBufferBuilder,
-    array: [Int32]) -> Offset
-  {
+    array: [Int32]
+  ) -> Offset {
     b.createVector(array, size: array.count)
   }
 
   static func createNumbersVector(
     b: inout FlatBufferBuilder,
-    array: [Double]) -> Offset
-  {
+    array: [Double]
+  ) -> Offset {
     b.createVector(array, size: array.count)
   }
 
   static func createNumbersVector(
     b: inout FlatBufferBuilder,
-    array: [Float32]) -> Offset
-  {
+    array: [Float32]
+  ) -> Offset {
     b.createVector(array, size: array.count)
   }
 

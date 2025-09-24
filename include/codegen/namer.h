@@ -110,49 +110,49 @@ class Namer {
 
   virtual ~Namer() {}
 
-  template<typename T> std::string Method(const T &s) const {
+  template <typename T>
+  std::string Method(const T& s) const {
     return Method(s.name);
   }
 
-  virtual std::string Method(const std::string &pre,
-                             const std::string &mid,
-                             const std::string &suf) const {
-    return Format(pre + "_" +  mid + "_" + suf, config_.methods);
+  virtual std::string Method(const std::string& pre, const std::string& mid,
+                             const std::string& suf) const {
+    return Format(pre + "_" + mid + "_" + suf, config_.methods);
   }
-  virtual std::string Method(const std::string &pre,
-                             const std::string &suf) const {
+  virtual std::string Method(const std::string& pre,
+                             const std::string& suf) const {
     return Format(pre + "_" + suf, config_.methods);
   }
-  virtual std::string Method(const std::string &s) const {
+  virtual std::string Method(const std::string& s) const {
     return Format(s, config_.methods);
   }
 
-  virtual std::string Constant(const std::string &s) const {
+  virtual std::string Constant(const std::string& s) const {
     return Format(s, config_.constants);
   }
 
-  virtual std::string Function(const std::string &s) const {
+  virtual std::string Function(const std::string& s) const {
     return Format(s, config_.functions);
   }
 
-  virtual std::string Variable(const std::string &s) const {
+  virtual std::string Variable(const std::string& s) const {
     return Format(s, config_.variables);
   }
 
-  template<typename T>
-  std::string Variable(const std::string &p, const T &s) const {
+  template <typename T>
+  std::string Variable(const std::string& p, const T& s) const {
     return Format(p + "_" + s.name, config_.variables);
   }
-  virtual std::string Variable(const std::string &p,
-                               const std::string &s) const {
+  virtual std::string Variable(const std::string& p,
+                               const std::string& s) const {
     return Format(p + "_" + s, config_.variables);
   }
 
-  virtual std::string Namespace(const std::string &s) const {
+  virtual std::string Namespace(const std::string& s) const {
     return Format(s, config_.namespaces);
   }
 
-  virtual std::string Namespace(const std::vector<std::string> &ns) const {
+  virtual std::string Namespace(const std::vector<std::string>& ns) const {
     std::string result;
     for (auto it = ns.begin(); it != ns.end(); it++) {
       if (it != ns.begin()) result += config_.namespace_seperator;
@@ -161,14 +161,14 @@ class Namer {
     return result;
   }
 
-  virtual std::string NamespacedType(const std::vector<std::string> &ns,
-                                     const std::string &s) const {
+  virtual std::string NamespacedType(const std::vector<std::string>& ns,
+                                     const std::string& s) const {
     return (ns.empty() ? "" : (Namespace(ns) + config_.namespace_seperator)) +
            Type(s);
   }
 
   // Returns `filename` with the right casing, suffix, and extension.
-  virtual std::string File(const std::string &filename,
+  virtual std::string File(const std::string& filename,
                            SkipFile skips = SkipFile::None) const {
     const bool skip_suffix = (skips & SkipFile::Suffix) != SkipFile::None;
     const bool skip_ext = (skips & SkipFile::Extension) != SkipFile::None;
@@ -176,8 +176,8 @@ class Namer {
            (skip_suffix ? "" : config_.filename_suffix) +
            (skip_ext ? "" : config_.filename_extension);
   }
-  template<typename T>
-  std::string File(const T &f, SkipFile skips = SkipFile::None) const {
+  template <typename T>
+  std::string File(const T& f, SkipFile skips = SkipFile::None) const {
     return File(f.name, skips);
   }
 
@@ -188,7 +188,7 @@ class Namer {
   // input_case is used to tell how to modify namespace. e.g. kUpperCamel will
   // add a underscode between case changes, so MyGame turns into My_Game
   // (depending also on the output_case).
-  virtual std::string Directories(const std::vector<std::string> &directories,
+  virtual std::string Directories(const std::vector<std::string>& directories,
                                   SkipDir skips = SkipDir::None,
                                   Case input_case = Case::kUpperCamel) const {
     const bool skip_output_path =
@@ -204,7 +204,7 @@ class Namer {
     return result;
   }
 
-  virtual std::string EscapeKeyword(const std::string &name) const {
+  virtual std::string EscapeKeyword(const std::string& name) const {
     if (keywords_.find(name) == keywords_.end()) {
       return name;
     } else {
@@ -212,26 +212,26 @@ class Namer {
     }
   }
 
-  virtual std::string Type(const std::string &s) const {
+  virtual std::string Type(const std::string& s) const {
     return Format(s, config_.types);
   }
-  virtual std::string Type(const std::string &t, const std::string &s) const {
+  virtual std::string Type(const std::string& t, const std::string& s) const {
     return Format(t + "_" + s, config_.types);
   }
 
-  virtual std::string ObjectType(const std::string &s) const {
+  virtual std::string ObjectType(const std::string& s) const {
     return config_.object_prefix + Type(s) + config_.object_suffix;
   }
 
-  virtual std::string Field(const std::string &s) const {
+  virtual std::string Field(const std::string& s) const {
     return Format(s, config_.fields);
   }
 
-  virtual std::string Variant(const std::string &s) const {
+  virtual std::string Variant(const std::string& s) const {
     return Format(s, config_.variants);
   }
 
-  virtual std::string Format(const std::string &s, Case casing) const {
+  virtual std::string Format(const std::string& s, Case casing) const {
     if (config_.escape_keywords == Config::Escape::BeforeConvertingCase) {
       return ConvertCase(EscapeKeyword(s), casing, Case::kLowerCamel);
     } else {
@@ -242,8 +242,8 @@ class Namer {
   // Denamespaces a string (e.g. The.Quick.Brown.Fox) by returning the last part
   // after the `delimiter` (Fox) and placing the rest in `namespace_prefix`
   // (The.Quick.Brown).
-  virtual std::string Denamespace(const std::string &s,
-                                  std::string &namespace_prefix,
+  virtual std::string Denamespace(const std::string& s,
+                                  std::string& namespace_prefix,
                                   const char delimiter = '.') const {
     const size_t pos = s.find_last_of(delimiter);
     if (pos == std::string::npos) {
@@ -255,7 +255,7 @@ class Namer {
   }
 
   // Same as above, but disregards the prefix.
-  virtual std::string Denamespace(const std::string &s,
+  virtual std::string Denamespace(const std::string& s,
                                   const char delimiter = '.') const {
     std::string prefix;
     return Denamespace(s, prefix, delimiter);

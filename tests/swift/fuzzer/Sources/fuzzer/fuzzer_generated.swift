@@ -57,7 +57,8 @@ public struct Test: NativeStruct, Verifiable, FlatbuffersInitializable {
   public var a: Int16 { _a }
   public var b: Int8 { _b }
 
-  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws
+  where T: Verifiable {
     try verifier.inBuffer(position: position, of: Test.self)
   }
 }
@@ -140,7 +141,8 @@ public struct Vec3: NativeStruct, Verifiable, FlatbuffersInitializable {
   public var test2: Color { Color(rawValue: _test2)! }
   public var test3: Test { _test3 }
 
-  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws
+  where T: Verifiable {
     try verifier.inBuffer(position: position, of: Vec3.self)
   }
 }
@@ -188,7 +190,9 @@ public struct Vec3_Mutable: FlatBufferObject {
   public var y: Float32 { return _accessor.readBuffer(of: Float32.self, at: 4) }
   public var z: Float32 { return _accessor.readBuffer(of: Float32.self, at: 8) }
   public var test1: Double { return _accessor.readBuffer(of: Double.self, at: 16) }
-  public var test2: Color { return Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? .red }
+  public var test2: Color {
+    return Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? .red
+  }
   public var test3: Test_Mutable { return Test_Mutable(_accessor.bb, o: _accessor.position + 26) }
 }
 
@@ -214,31 +218,96 @@ public struct Monster: FlatBufferObject, Verifiable {
     var p: VOffset { self.rawValue }
   }
 
-  public var pos: Vec3? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : _accessor.readBuffer(of: Vec3.self, at: o) }
-  public var mutablePos: Vec3_Mutable? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : Vec3_Mutable(_accessor.bb, o: o + _accessor.position) }
-  public var mana: Int16 { let o = _accessor.offset(VTOFFSET.mana.v); return o == 0 ? 150 : _accessor.readBuffer(of: Int16.self, at: o) }
-  public var hp: Int16 { let o = _accessor.offset(VTOFFSET.hp.v); return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o) }
-  public var name: String! { let o = _accessor.offset(VTOFFSET.name.v); return _accessor.string(at: o) }
+  public var pos: Vec3? {
+    let o = _accessor.offset(VTOFFSET.pos.v)
+    return o == 0 ? nil : _accessor.readBuffer(of: Vec3.self, at: o)
+  }
+  public var mutablePos: Vec3_Mutable? {
+    let o = _accessor.offset(VTOFFSET.pos.v)
+    return o == 0 ? nil : Vec3_Mutable(_accessor.bb, o: o + _accessor.position)
+  }
+  public var mana: Int16 {
+    let o = _accessor.offset(VTOFFSET.mana.v)
+    return o == 0 ? 150 : _accessor.readBuffer(of: Int16.self, at: o)
+  }
+  public var hp: Int16 {
+    let o = _accessor.offset(VTOFFSET.hp.v)
+    return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o)
+  }
+  public var name: String! {
+    let o = _accessor.offset(VTOFFSET.name.v)
+    return _accessor.string(at: o)
+  }
   public var nameSegmentArray: [UInt8]! { return _accessor.getVector(at: VTOFFSET.name.v) }
-  public var hasTestarrayoftables: Bool { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? false : true }
-  public var testarrayoftablesCount: Int32 { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func testarrayoftables(at index: Int32) -> Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : Monster(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
-  public func testarrayoftablesBy(key: String) -> Monster? { let o = _accessor.offset(VTOFFSET.testarrayoftables.v); return o == 0 ? nil : Monster.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
-  public var hasInventory: Bool { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? false : true }
-  public var inventoryCount: Int32 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func inventory(at index: Int32) -> UInt8 { let o = _accessor.offset(VTOFFSET.inventory.v); return o == 0 ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1) }
+  public var hasTestarrayoftables: Bool {
+    let o = _accessor.offset(VTOFFSET.testarrayoftables.v)
+    return o == 0 ? false : true
+  }
+  public var testarrayoftablesCount: Int32 {
+    let o = _accessor.offset(VTOFFSET.testarrayoftables.v)
+    return o == 0 ? 0 : _accessor.vector(count: o)
+  }
+  public func testarrayoftables(at index: Int32) -> Monster? {
+    let o = _accessor.offset(VTOFFSET.testarrayoftables.v)
+    return o == 0
+      ? nil : Monster(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4))
+  }
+  public func testarrayoftablesBy(key: String) -> Monster? {
+    let o = _accessor.offset(VTOFFSET.testarrayoftables.v)
+    return o == 0
+      ? nil : Monster.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb)
+  }
+  public var hasInventory: Bool {
+    let o = _accessor.offset(VTOFFSET.inventory.v)
+    return o == 0 ? false : true
+  }
+  public var inventoryCount: Int32 {
+    let o = _accessor.offset(VTOFFSET.inventory.v)
+    return o == 0 ? 0 : _accessor.vector(count: o)
+  }
+  public func inventory(at index: Int32) -> UInt8 {
+    let o = _accessor.offset(VTOFFSET.inventory.v)
+    return o == 0
+      ? 0 : _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)
+  }
   public var inventory: [UInt8] { return _accessor.getVector(at: VTOFFSET.inventory.v) ?? [] }
-  public func withUnsafePointerToInventory<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.inventory.v, body: body) }
-  public var color: Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .blue }
-  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 7) }
-  public static func add(pos: Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
-  public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
-  public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
-  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
-  public static func addVectorOf(testarrayoftables: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testarrayoftables, at: VTOFFSET.testarrayoftables.p) }
-  public static func addVectorOf(inventory: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: inventory, at: VTOFFSET.inventory.p) }
-  public static func add(color: Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 8, at: VTOFFSET.color.p) }
-  public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [10]); return end }
+  public func withUnsafePointerToInventory<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows
+    -> T?
+  { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.inventory.v, body: body) }
+  public var color: Color {
+    let o = _accessor.offset(VTOFFSET.color.v)
+    return o == 0 ? .blue : Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .blue
+  }
+  public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset {
+    fbb.startTable(with: 7)
+  }
+  public static func add(pos: Vec3?, _ fbb: inout FlatBufferBuilder) {
+    guard let pos = pos else { return }
+    fbb.create(struct: pos, position: VTOFFSET.pos.p)
+  }
+  public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) {
+    fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p)
+  }
+  public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) {
+    fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p)
+  }
+  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) {
+    fbb.add(offset: name, at: VTOFFSET.name.p)
+  }
+  public static func addVectorOf(testarrayoftables: Offset, _ fbb: inout FlatBufferBuilder) {
+    fbb.add(offset: testarrayoftables, at: VTOFFSET.testarrayoftables.p)
+  }
+  public static func addVectorOf(inventory: Offset, _ fbb: inout FlatBufferBuilder) {
+    fbb.add(offset: inventory, at: VTOFFSET.inventory.p)
+  }
+  public static func add(color: Color, _ fbb: inout FlatBufferBuilder) {
+    fbb.add(element: color.rawValue, def: 8, at: VTOFFSET.color.p)
+  }
+  public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset {
+    let end = Offset(offset: fbb.endTable(at: start))
+    fbb.require(table: end, fields: [10])
+    return end
+  }
   public static func createMonster(
     _ fbb: inout FlatBufferBuilder,
     pos: Vec3? = nil,
@@ -259,9 +328,15 @@ public struct Monster: FlatBufferObject, Verifiable {
     Monster.add(color: color, &fbb)
     return Monster.endMonster(&fbb, start: __start)
   }
-  public static func sortVectorOfMonster(offsets:[Offset], _ fbb: inout FlatBufferBuilder) -> Offset {
+  public static func sortVectorOfMonster(offsets: [Offset], _ fbb: inout FlatBufferBuilder)
+    -> Offset
+  {
     var off = offsets
-    off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 10, fbb: &fbb), Table.offset(Int32($0.o), vOffset: 10, fbb: &fbb), fbb: &fbb) < 0 } 
+    off.sort {
+      Table.compare(
+        Table.offset(Int32($1.o), vOffset: 10, fbb: &fbb),
+        Table.offset(Int32($0.o), vOffset: 10, fbb: &fbb), fbb: &fbb) < 0
+    }
     return fbb.createVector(ofOffsets: off)
   }
   fileprivate static func lookupByKey(vector: Int32, key: String, fbb: ByteBuffer) -> Monster? {
@@ -271,7 +346,8 @@ public struct Monster: FlatBufferObject, Verifiable {
     while span != 0 {
       var middle = span / 2
       let tableOffset = Table.indirect(vector + 4 * (start + middle), fbb)
-      let comp = Table.compare(Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 10, fbb: fbb), key, fbb: fbb)
+      let comp = Table.compare(
+        Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 10, fbb: fbb), key, fbb: fbb)
       if comp > 0 {
         span = middle
       } else if comp < 0 {
@@ -285,14 +361,20 @@ public struct Monster: FlatBufferObject, Verifiable {
     return nil
   }
 
-  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws
+  where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
     try _v.visit(field: VTOFFSET.pos.p, fieldName: "pos", required: false, type: Vec3.self)
     try _v.visit(field: VTOFFSET.mana.p, fieldName: "mana", required: false, type: Int16.self)
     try _v.visit(field: VTOFFSET.hp.p, fieldName: "hp", required: false, type: Int16.self)
-    try _v.visit(field: VTOFFSET.name.p, fieldName: "name", required: true, type: ForwardOffset<String>.self)
-    try _v.visit(field: VTOFFSET.testarrayoftables.p, fieldName: "testarrayoftables", required: false, type: ForwardOffset<Vector<ForwardOffset<Monster>, Monster>>.self)
-    try _v.visit(field: VTOFFSET.inventory.p, fieldName: "inventory", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
+    try _v.visit(
+      field: VTOFFSET.name.p, fieldName: "name", required: true, type: ForwardOffset<String>.self)
+    try _v.visit(
+      field: VTOFFSET.testarrayoftables.p, fieldName: "testarrayoftables", required: false,
+      type: ForwardOffset<Vector<ForwardOffset<Monster>, Monster>>.self)
+    try _v.visit(
+      field: VTOFFSET.inventory.p, fieldName: "inventory", required: false,
+      type: ForwardOffset<Vector<UInt8, UInt8>>.self)
     try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: Color.self)
     _v.finish()
   }
@@ -334,4 +416,3 @@ extension Monster: Encodable {
     }
   }
 }
-
