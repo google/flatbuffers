@@ -1893,7 +1893,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "static func validateVersion() { FlatBuffersVersion_25_2_10() }";
+    return "static func validateVersion() { FlatBuffersVersion_25_9_23() }";
   }
 
   std::string GenType(const Type& type,

@@ -8,8 +8,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-                  FLATBUFFERS_VERSION_MINOR == 2 &&
-                  FLATBUFFERS_VERSION_REVISION == 10,
+                  FLATBUFFERS_VERSION_MINOR == 9 &&
+                  FLATBUFFERS_VERSION_REVISION == 23,
               "Non-compatible flatbuffers version included");
 
 enum Color : int32_t { Color_Red = 1, Color_Blue = 2, Color_Orange = 3 };
