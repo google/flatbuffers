@@ -13,7 +13,7 @@ public struct MonsterExtra : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_9_23(); }
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb) { return GetRootAsMonsterExtra(_bb, new MonsterExtra()); }
   public static MonsterExtra GetRootAsMonsterExtra(ByteBuffer _bb, MonsterExtra obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterExtraBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONE"); }

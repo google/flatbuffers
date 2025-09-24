@@ -38,7 +38,7 @@ class TableInNestedNS : Table() {
   }
 
   companion object {
-    fun validateVersion() = Constants.FLATBUFFERS_25_2_10()
+    fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
 
     fun getRootAsTableInNestedNS(_bb: ByteBuffer): TableInNestedNS =
       getRootAsTableInNestedNS(_bb, TableInNestedNS())

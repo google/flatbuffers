@@ -44,7 +44,7 @@ class LongFloatEntry : Table() {
         return (val_1 - val_2).sign
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_25_2_10()
+        fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsLongFloatEntry(_bb: ByteBuffer): LongFloatEntry = getRootAsLongFloatEntry(_bb, LongFloatEntry())
         fun getRootAsLongFloatEntry(_bb: ByteBuffer, obj: LongFloatEntry): LongFloatEntry {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

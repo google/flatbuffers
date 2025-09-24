@@ -9,7 +9,7 @@ import java.util.*;
 @SuppressWarnings("unused")
 public final class TableInNestedNS extends Table {
   public static void ValidateVersion() {
-    Constants.FLATBUFFERS_25_2_10();
+    Constants.FLATBUFFERS_25_9_23();
   }
 
   public static TableInNestedNS getRootAsTableInNestedNS(ByteBuffer _bb) {
