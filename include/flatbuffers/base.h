@@ -270,7 +270,8 @@ namespace flatbuffers {
   // strtoull_l}.
   #if (defined(_MSC_VER) && _MSC_VER >= 1800) || \
       (defined(__ANDROID_API__) && __ANDROID_API__>= 21) || \
-      (defined(_XOPEN_VERSION) && (_XOPEN_VERSION >= 700)) && \
+      (defined(_XOPEN_VERSION) && (_XOPEN_VERSION >= 700) && \
+        defined(__GLIBC__) && !defined(__UCLIBC__)) && \
         (!defined(__Fuchsia__) && !defined(__ANDROID_API__))
     #define FLATBUFFERS_LOCALE_INDEPENDENT 1
   #else
