@@ -124,7 +124,7 @@ public struct GadgetUnion {
 }
 public struct Rapunzel: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
   private var _hairLength: Int32
 
@@ -167,7 +167,7 @@ extension Rapunzel: Encodable {
 
 public struct Rapunzel_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -192,7 +192,7 @@ public struct Rapunzel_Mutable: FlatBufferObject {
 
 public struct BookReader: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
   private var _booksRead: Int32
 
@@ -235,7 +235,7 @@ extension BookReader: Encodable {
 
 public struct BookReader_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -260,7 +260,7 @@ public struct BookReader_Mutable: FlatBufferObject {
 
 public struct FallingTub: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
   private var _weight: Int32
 
@@ -303,7 +303,7 @@ extension FallingTub: Encodable {
 
 public struct FallingTub_Mutable: FlatBufferObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -328,7 +328,7 @@ public struct FallingTub_Mutable: FlatBufferObject {
 
 public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -409,7 +409,7 @@ public class AttackerT: NativeObject {
 }
 public struct HandFan: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -490,7 +490,7 @@ public class HandFanT: NativeObject {
 }
 public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

@@ -29,8 +29,8 @@ import Foundation
 public func getPrefixedSizeCheckedRoot<T: FlatBufferObject & Verifiable>(
   byteBuffer: inout ByteBuffer,
   fileId: String? = nil,
-  options: VerifierOptions = .init()) throws -> T
-{
+  options: VerifierOptions = .init()
+) throws -> T {
   byteBuffer.skipPrefix()
   return try getCheckedRoot(
     byteBuffer: &byteBuffer,
@@ -51,8 +51,8 @@ public func getPrefixedSizeCheckedRoot<T: FlatBufferObject & Verifiable>(
 public func getCheckedPrefixedSizeRoot<T: FlatBufferObject & Verifiable>(
   byteBuffer: inout ByteBuffer,
   fileId: String? = nil,
-  options: VerifierOptions = .init()) throws -> T
-{
+  options: VerifierOptions = .init()
+) throws -> T {
   let prefix = byteBuffer.skipPrefix()
   if prefix != byteBuffer.size {
     throw FlatbuffersErrors.prefixedSizeNotEqualToBufferSize
@@ -71,7 +71,8 @@ public func getCheckedPrefixedSizeRoot<T: FlatBufferObject & Verifiable>(
 /// ``getPrefixedSizeCheckedRoot(byteBuffer:options:)`` would skip the first Bytes in
 /// the ``ByteBuffer`` and then calls ``getRoot(byteBuffer:)``
 public func getPrefixedSizeRoot<T: FlatBufferObject>(
-  byteBuffer: inout ByteBuffer)
+  byteBuffer: inout ByteBuffer
+)
   -> T
 {
   byteBuffer.skipPrefix()
@@ -92,8 +93,8 @@ public func getPrefixedSizeRoot<T: FlatBufferObject>(
 public func getCheckedRoot<T: FlatBufferObject & Verifiable>(
   byteBuffer: inout ByteBuffer,
   fileId: String? = nil,
-  options: VerifierOptions = .init()) throws -> T
-{
+  options: VerifierOptions = .init()
+) throws -> T {
   var verifier = try Verifier(buffer: &byteBuffer, options: options)
   if let fileId = fileId {
     try verifier.verify(id: fileId)
@@ -101,8 +102,8 @@ public func getCheckedRoot<T: FlatBufferObject & Verifiable>(
   try ForwardOffset<T>.verify(&verifier, at: 0, of: T.self)
   return T.init(
     byteBuffer,
-    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader)) &+
-      Int32(byteBuffer.reader))
+    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader))
+      &+ Int32(byteBuffer.reader))
 }
 
 /// Returns a `NON-Checked` flatbuffers object
@@ -111,6 +112,6 @@ public func getCheckedRoot<T: FlatBufferObject & Verifiable>(
 public func getRoot<T: FlatBufferObject>(byteBuffer: inout ByteBuffer) -> T {
   T.init(
     byteBuffer,
-    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader)) &+
-      Int32(byteBuffer.reader))
+    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader))
+      &+ Int32(byteBuffer.reader))
 }

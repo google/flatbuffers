@@ -1,7 +1,6 @@
 #![allow(clippy::derivable_impls, clippy::all)]
 extern crate flatbuffers;
 
-
 #[allow(dead_code, unused_imports)]
 #[path = "../../include_test1/mod.rs"]
 pub mod include_test1_generated;

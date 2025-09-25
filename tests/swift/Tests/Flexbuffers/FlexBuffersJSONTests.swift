@@ -32,9 +32,10 @@ final class FlexBuffersJSONTests: XCTestCase {
     // swiftformat:enable all
 
     let data = json.data(using: .utf8)!
-    let decodedData = try JSONSerialization.jsonObject(
-      with: data,
-      options: []) as! [String: Any]
+    let decodedData =
+      try JSONSerialization.jsonObject(
+        with: data,
+        options: []) as! [String: Any]
 
     XCTAssertEqual(decodedData["bar"] as! [Int], [1, 2, 3])
     XCTAssertEqual(decodedData["bar3"] as! [Int], [1, 2, 3])

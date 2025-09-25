@@ -28,12 +28,12 @@ func ReadResponse(r *http.Response) {
 
 	res := net.GetRootAsResponse(body, 0)
 	player := res.Player(nil)
-	
+
 	fmt.Printf("Got response (name: %v, hp: %v)\n", string(player.Name()), player.Hp())
 }
 
 func main() {
-	body := RequestBody()	
+	body := RequestBody()
 	req, err := http.NewRequest("POST", "http://localhost:8080/echo", body)
 	if err != nil {
 		fmt.Println(err)

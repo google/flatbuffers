@@ -63,13 +63,13 @@ public enum FlatbuffersErrors: Error, Equatable {
 
 #if !os(WASI)
 
-extension FlatbuffersErrors {
-  public static func == (
-    lhs: FlatbuffersErrors,
-    rhs: FlatbuffersErrors) -> Bool
-  {
-    lhs.localizedDescription == rhs.localizedDescription
+  extension FlatbuffersErrors {
+    public static func == (
+      lhs: FlatbuffersErrors,
+      rhs: FlatbuffersErrors
+    ) -> Bool {
+      lhs.localizedDescription == rhs.localizedDescription
+    }
   }
-}
 
 #endif
