@@ -261,7 +261,7 @@ a [option](flatc.md#additional-options) to do just that:
 
 ```sh
 --conform FILE
-``` 
+```
 
 Where `FILE` is the base schema the rest of the input schemas must evolve from.
 It returns `0` if they are properly evolved, otherwise returns a non-zero value

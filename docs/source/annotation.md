@@ -55,8 +55,8 @@ The columns are as follows:
     The prefix `+` is added to make searching for the offset (compared to some
     random value) a bit easier.
 
-2. The raw binary data, expressed in hexadecimal format. 
-   
+2. The raw binary data, expressed in hexadecimal format.
+
     This is in the little endian format the buffer uses internally and what you
     would see with a normal binary text viewer.
 
@@ -108,7 +108,7 @@ regions in the flatbuffer itself.
 
 ### Binary Regions
 
-Binary regions are contiguous bytes regions that are grouped together to form 
+Binary regions are contiguous bytes regions that are grouped together to form
 some sort of value, e.g. a `scalar` or an array of scalars. A binary region may
 be split up over multiple text lines, if the size of the region is large.
 
@@ -122,7 +122,7 @@ vtable (AnnotatedBinary.Bar):
 ```
 
 The first column (`+0x00A0`) is the offset to this region from the beginning of
-the buffer. 
+the buffer.
 
 The second column are the raw bytes (hexadecimal) that make up this region.
 These are expressed in the little-endian format that flatbuffers uses for the
@@ -135,7 +135,7 @@ The fourth column shows the raw bytes as a compacted, big-endian value. The raw
 bytes are duplicated in this fashion since it is more intuitive to read the data
 in the big-endian format (e.g., `0x0008`). This value is followed by the decimal
 representation of the value (e.g., `(8)`). For strings, the raw string value is
-shown instead. 
+shown instead.
 
 The fifth column is a textual comment on what the value is. As much metadata as
 known is provided.

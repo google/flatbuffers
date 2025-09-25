@@ -1,13 +1,13 @@
 # FlatBuffers Compiler (`flatc`)
 
 The main compiler for FlatBuffers is called `flatc` and is used to convert
-schema definitions into generated code files for a variety of languages. 
+schema definitions into generated code files for a variety of languages.
 
 After [building](building.md) `flatc`, it is used as follows:
 
 ```sh
-flatc [ GENERATOR_OPTIONS ] [ -o PATH ] [- I PATH ] 
-  FILES... 
+flatc [ GENERATOR_OPTIONS ] [ -o PATH ] [- I PATH ]
+  FILES...
   [ -- BINARY_FILES... ]
 ```
 
@@ -65,17 +65,17 @@ list of `FILES...`.
 === "To Binary"
 
     To serialize the JSON data in `mydata.json` using the schema `myschema.fbs`:
-   
+
     ```sh
     flatc --binary myschema.fbs mydata.json
     ```
 
-    This will generate a `mydata_wire.bin` file containing the serialized 
+    This will generate a `mydata_wire.bin` file containing the serialized
     flatbuffer data.
 
 === "To JSON"
 
-    To convert the serialized binary flatbuffer `mydata.bin` using the schema 
+    To convert the serialized binary flatbuffer `mydata.bin` using the schema
     `myschema.fbs` to JSON:
 
     ```sh

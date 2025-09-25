@@ -50,7 +50,7 @@ file into a `string`, which you pass to the `GetRootAsMonster` function:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.lua}
     -- require the library
     local flatbuffers = require("flatbuffers")
-    
+
     -- require the generated code
     local monster = require("MyGame.Sample.Monster")
 

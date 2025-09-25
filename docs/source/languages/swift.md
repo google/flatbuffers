@@ -81,7 +81,7 @@ In some cases it's necessary to modify values in an existing FlatBuffer in place
       fatalError("couldn't mutate")
     }
     // mutate a struct field using flatbuffers struct
-    // DONT use monster.pos to mutate since swift copy on write 
+    // DONT use monster.pos to mutate since swift copy on write
     // will not mutate the value in the buffer
     let vec = monster.mutablePos.mutate(z: 4)
 

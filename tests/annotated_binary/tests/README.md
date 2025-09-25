@@ -50,7 +50,7 @@ binary.
 
 ### `invalid_vtable_ref_table_size_short.bin`
 
-Changed two bytes at 0x000C from `6800` to `0100` which size is smaller than 
+Changed two bytes at 0x000C from `6800` to `0100` which size is smaller than
 the minimum size of 4 bytes.
 
 ### `invalid_vtable_field_offset.bin`
@@ -70,7 +70,7 @@ than the binary.
 
 ### `invalid_string_length_cut_short.bin`
 
-Truncated the file to 0xAD bytes, as that cuts string length Uint32t value in 
+Truncated the file to 0xAD bytes, as that cuts string length Uint32t value in
 half.
 
 ### `invalid_string_length.bin`
@@ -80,7 +80,7 @@ larger than the binary.
 
 ### `invalid_vector_length_cut_short.bin`
 
-Truncated the file to 0x0136 bytes, as that cuts vector length Uint32t value in 
+Truncated the file to 0x0136 bytes, as that cuts vector length Uint32t value in
 half.
 
 ### `invalid_struct_field_cut_short.bin`
@@ -106,12 +106,12 @@ offsets.
 
 ### `invalid_vector_scalars_cut_short.bin`
 
-Truncated the file to 0x01C1 bytes, as that cuts into a vector of scalars 
+Truncated the file to 0x01C1 bytes, as that cuts into a vector of scalars
 values.
 
 ### `invalid_vector_unions_cut_short.bin`
 
-Truncated the file to 0x01DE bytes, as that cuts into a vector of union offset 
+Truncated the file to 0x01DE bytes, as that cuts into a vector of union offset
 values.
 
 ### `invalid_union_type_value.bin`
@@ -121,5 +121,5 @@ larger than the enum.
 
 ### `invalid_vector_union_type_value.bin`
 
-Changed one byte at 0x0131 from `02` to `FF` which is a vector union type value 
+Changed one byte at 0x0131 from `02` to `FF` which is a vector union type value
 that is larger than the enum.
