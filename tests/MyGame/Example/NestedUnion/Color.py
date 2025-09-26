@@ -2,6 +2,8 @@
 
 # namespace: NestedUnion
 
+from typing import Any
+
 # Composite components of Monster color.
 class Color(object):
     Red = 1
