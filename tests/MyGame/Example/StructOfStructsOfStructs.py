@@ -2,8 +2,10 @@
 
 # namespace: Example
 
+from MyGame.Example.StructOfStructs import StructOfStructsT
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Optional
 np = import_numpy()
 
 class StructOfStructsOfStructs(object):
@@ -38,11 +40,6 @@ def CreateStructOfStructsOfStructs(builder, a_a_id, a_a_distance, a_b_a, a_b_b, 
     builder.PrependUint32(a_a_id)
     return builder.Offset()
 
-import MyGame.Example.StructOfStructs
-try:
-    from typing import Optional
-except:
-    pass
 
 class StructOfStructsOfStructsT(object):
 
@@ -51,7 +48,7 @@ class StructOfStructsOfStructsT(object):
         self,
         a = None,
     ):
-        self.a = a  # type: Optional[MyGame.Example.StructOfStructs.StructOfStructsT]
+        self.a = a  # type: Optional[StructOfStructsT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -74,8 +71,9 @@ class StructOfStructsOfStructsT(object):
     def _UnPack(self, structOfStructsOfStructs):
         if structOfStructsOfStructs is None:
             return
-        if structOfStructsOfStructs.A(MyGame.Example.StructOfStructs.StructOfStructs()) is not None:
-            self.a = MyGame.Example.StructOfStructs.StructOfStructsT.InitFromObj(structOfStructsOfStructs.A(MyGame.Example.StructOfStructs.StructOfStructs()))
+        from MyGame.Example.StructOfStructs import StructOfStructs
+        if structOfStructsOfStructs.A(StructOfStructs()) is not None:
+            self.a = StructOfStructsT.InitFromObj(structOfStructsOfStructs.A(StructOfStructs()))
 
     # StructOfStructsOfStructsT
     def Pack(self, builder):

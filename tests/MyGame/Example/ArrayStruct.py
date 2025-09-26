@@ -2,10 +2,10 @@
 
 # namespace: Example
 
+from MyGame.Example.NestedStruct import NestedStruct, NestedStructT
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from typing import Any
-from MyGame.Example.NestedStruct import NestedStruct
+from typing import Any, List
 np = import_numpy()
 
 class ArrayStruct(object):
@@ -105,11 +105,6 @@ def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c, d_d, e, f):
     builder.PrependFloat32(a)
     return builder.Offset()
 
-import MyGame.Example.NestedStruct
-try:
-    from typing import List
-except:
-    pass
 
 class ArrayStructT(object):
 
@@ -126,7 +121,7 @@ class ArrayStructT(object):
         self.a = a  # type: float
         self.b = b  # type: Optional[List[int]]
         self.c = c  # type: int
-        self.d = d  # type: Optional[List[MyGame.Example.NestedStruct.NestedStructT]]
+        self.d = d  # type: Optional[List[NestedStructT]]
         self.e = e  # type: int
         self.f = f  # type: Optional[List[int]]
 
@@ -166,7 +161,8 @@ class ArrayStructT(object):
                 if arrayStruct.D(i) is None:
                     self.d.append(None)
                 else:
-                    nestedStruct_ = MyGame.Example.NestedStruct.NestedStructT.InitFromObj(arrayStruct.D(i))
+                    from MyGame.Example.NestedStruct import NestedStructT
+                    nestedStruct_ = NestedStructT.InitFromObj(arrayStruct.D(i))
                     self.d.append(nestedStruct_)
         self.e = arrayStruct.E()
         if not arrayStruct.FIsNone():

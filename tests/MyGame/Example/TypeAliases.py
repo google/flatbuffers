@@ -4,6 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import List
 np = import_numpy()
 
 class TypeAliases(object):
@@ -248,10 +249,6 @@ def TypeAliasesEnd(builder):
 def End(builder):
     return TypeAliasesEnd(builder)
 
-try:
-    from typing import List
-except:
-    pass
 
 class TypeAliasesT(object):
 
