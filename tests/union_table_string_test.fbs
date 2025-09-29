@@ -1,0 +1,18 @@
+// A test schema for unions of table and string.
+
+namespace MyGame.Example;
+
+table TestTable {
+  value:string;
+}
+
+union TestUnion {
+  test_table: TestTable,
+  test_string: string,
+}
+
+table RootTable {
+  test_union: TestUnion;
+}
+
+root_type RootTable;
