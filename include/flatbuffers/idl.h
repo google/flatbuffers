@@ -753,6 +753,7 @@ struct IDLOptions {
     kNim = 1 << 17,
     kProto = 1 << 18,
     kKotlinKmp = 1 << 19,
+    kRuby = 1 << 20,
     kMAX
   };
 

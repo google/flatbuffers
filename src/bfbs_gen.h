@@ -26,7 +26,7 @@ namespace flatbuffers {
 
 namespace {
 
-static void ForAllEnums(
+static inline void ForAllEnums(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>>* enums,
     std::function<void(const reflection::Enum*)> func) {
   for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
@@ -34,7 +34,7 @@ static void ForAllEnums(
   }
 }
 
-static void ForAllObjects(
+static inline void ForAllObjects(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>>* objects,
     std::function<void(const reflection::Object*)> func) {
   for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
@@ -42,7 +42,7 @@ static void ForAllObjects(
   }
 }
 
-static void ForAllEnumValues(
+static inline void ForAllEnumValues(
     const reflection::Enum* enum_def,
     std::function<void(const reflection::EnumVal*)> func) {
   for (auto it = enum_def->values()->cbegin(); it != enum_def->values()->cend();
@@ -51,7 +51,7 @@ static void ForAllEnumValues(
   }
 }
 
-static void ForAllDocumentation(
+static inline void ForAllDocumentation(
     const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*
         documentation,
     std::function<void(const flatbuffers::String*)> func) {
@@ -65,7 +65,7 @@ static void ForAllDocumentation(
 
 // Maps the field index into object->fields() to the field's ID (the ith element
 // in the return vector).
-static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
+static inline std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
   std::vector<uint32_t> field_index_by_id;
   field_index_by_id.resize(object->fields()->size());
 
@@ -78,23 +78,23 @@ static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
   return field_index_by_id;
 }
 
-static bool IsStructOrTable(const reflection::BaseType base_type) {
+static inline bool IsStructOrTable(const reflection::BaseType base_type) {
   return base_type == reflection::Obj;
 }
 
-static bool IsFloatingPoint(const reflection::BaseType base_type) {
+static inline bool IsFloatingPoint(const reflection::BaseType base_type) {
   return base_type == reflection::Float || base_type == reflection::Double;
 }
 
-static bool IsBool(const reflection::BaseType base_type) {
+static inline bool IsBool(const reflection::BaseType base_type) {
   return base_type == reflection::Bool;
 }
 
-static bool IsSingleByte(const reflection::BaseType base_type) {
+static inline bool IsSingleByte(const reflection::BaseType base_type) {
   return base_type >= reflection::UType && base_type <= reflection::UByte;
 }
 
-static bool IsVector(const reflection::BaseType base_type) {
+static inline bool IsVector(const reflection::BaseType base_type) {
   return base_type == reflection::Vector;
 }
 
