@@ -120,18 +120,17 @@ class TestTableBuilder {
 }
 
 class TestTableObjectBuilder extends fb.ObjectBuilder {
-  final String? _value;
+  final String? value;
 
   TestTableObjectBuilder({
-    String? value,
-  })
-      : _value = value;
+    this.value,
+  });
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? valueOffset = _value == null ? null
-        : fbBuilder.writeString(_value!);
+    final int? valueOffset = value == null ? null
+        : fbBuilder.writeString(value!);
     fbBuilder.startTable(1);
     fbBuilder.addOffset(0, valueOffset);
     return fbBuilder.endTable();
@@ -158,7 +157,7 @@ class RootTable {
   final int _bcOffset;
 
   TestUnionTypeId? get testUnionType => TestUnionTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 4));
-  dynamic get testUnion {
+  Object? get testUnion {
     switch (testUnionType?.value) {
       case 1: return TestTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
       case 2: return const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 6);
@@ -183,7 +182,7 @@ class RootTable {
 
 class RootTableT implements fb.Packable {
   TestUnionTypeId? testUnionType;
-  dynamic testUnion;
+  Object? testUnion;
 
   RootTableT({
       this.testUnionType,
@@ -192,16 +191,20 @@ class RootTableT implements fb.Packable {
   @override
   int pack(fb.Builder fbBuilder) {
     int? testUnionOffset;
-    if (testUnion != null) {
-      final unionValue = testUnion!;
-      if (unionValue is String) {
-        testUnionOffset = fbBuilder.writeString(unionValue);
-      } else {
-        testUnionOffset = (unionValue as fb.Packable).pack(fbBuilder);
-      }
+    switch (testUnionType) {
+      case TestUnionTypeId.NONE:
+      case null:
+        testUnionOffset = 0;
+        break;
+      case TestUnionTypeId.test_table:
+        testUnionOffset = (testUnion as TestTableObjectBuilder?)?.finish(fbBuilder);
+        break;
+      case TestUnionTypeId.test_string:
+        testUnionOffset = fbBuilder.writeString(testUnion as String);
+        break;
     }
     fbBuilder.startTable(2);
-    fbBuilder.addUint8(0, testUnionType?.value);
+    fbBuilder.addUint8(0, testUnionType?.value ?? 0);
     fbBuilder.addOffset(1, testUnionOffset);
     return fbBuilder.endTable();
   }
@@ -244,30 +247,32 @@ class RootTableBuilder {
 }
 
 class RootTableObjectBuilder extends fb.ObjectBuilder {
-  final TestUnionTypeId? _testUnionType;
-  final Object? _testUnion;
+  final TestUnionTypeId? testUnionType;
+  final Object? testUnion;
 
   RootTableObjectBuilder({
-    TestUnionTypeId? testUnionType,
-    Object? testUnion,
-  })
-      : _testUnionType = testUnionType,
-        _testUnion = testUnion;
+    this.testUnionType,
+    this.testUnion,
+  }) : assert((testUnion == null) == (testUnionType == null || testUnionType == TestUnionTypeId.NONE), 'Union testUnion requires matching type and value');
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
     int? testUnionOffset;
-    if (_testUnion != null) {
-      final unionValue = _testUnion!;
-      if (unionValue is String) {
-        testUnionOffset = fbBuilder.writeString(unionValue);
-      } else {
-        testUnionOffset = (unionValue as fb.Packable).getOrCreateOffset(fbBuilder);
-      }
+    switch (testUnionType) {
+      case TestUnionTypeId.NONE:
+      case null:
+        testUnionOffset = 0;
+        break;
+      case TestUnionTypeId.test_table:
+        testUnionOffset = (testUnion as TestTableObjectBuilder?)?.finish(fbBuilder);
+        break;
+      case TestUnionTypeId.test_string:
+        testUnionOffset = fbBuilder.writeString(testUnion as String);
+        break;
     }
     fbBuilder.startTable(2);
-    fbBuilder.addUint8(0, _testUnionType?.value);
+    fbBuilder.addUint8(0, testUnionType?.value ?? 0);
     fbBuilder.addOffset(1, testUnionOffset);
     return fbBuilder.endTable();
   }
