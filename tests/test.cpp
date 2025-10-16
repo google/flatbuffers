@@ -1254,6 +1254,35 @@ void NestedVerifierTest() {
   }
 }
 
+void SizeVerifierTest() {
+  // Create a monster.
+  flatbuffers::FlatBufferBuilder builder;
+  FinishMonsterBuffer(builder,
+                      CreateMonster(builder, nullptr, 0, 0,
+                                    builder.CreateString("NestedMonster")));
+  size_t length = builder.GetSize();
+  const uint8_t* data = builder.GetBufferPointer();
+
+  // Verify the monster, using SizeVerifier.
+  // We verify in several ways, using several different API functions/methods,
+  // to ensure that all of these APIs are tested.
+  flatbuffers::SizeVerifier size_verifier(data,
+                                          FLATBUFFERS_MAX_BUFFER_SIZE - 1);
+  {
+    TEST_EQ(true, VerifyMonsterBuffer(size_verifier));
+  }
+  {
+    TEST_EQ(true, size_verifier.VerifyBuffer<Monster>());
+  }
+  {
+    const MyGame::Example::Monster* my_buffer = GetMonster(data);
+    TEST_EQ(true, my_buffer->Verify(size_verifier));
+  }
+
+  // Verify that the size verifier computed the correct size.
+  TEST_EQ(length, size_verifier.GetComputedSize());
+}
+
 template <class T, class Container>
 void TestIterators(const std::vector<T>& expected, const Container& tested) {
   TEST_ASSERT(tested.rbegin().base() == tested.end());
@@ -1725,6 +1754,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersIteratorsTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
+  SizeVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
   VectorSpanTest();

@@ -138,8 +138,10 @@ inline bool operator!=(const UnionInNestedNSUnion &lhs, const UnionInNestedNSUni
     return !(lhs == rhs);
 }
 
-bool VerifyUnionInNestedNS(::flatbuffers::Verifier &verifier, const void *obj, UnionInNestedNS type);
-bool VerifyUnionInNestedNSVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+template <bool TrackBufferSize = false>
+bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, UnionInNestedNS type);
+template <bool TrackBufferSize = false>
+bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
 
 enum EnumInNestedNS : int8_t {
   EnumInNestedNS_A = 0,
@@ -246,7 +248,8 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_foo(int32_t _foo = 0) {
     return SetField<int32_t>(VT_FOO, _foo, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool TrackBufferSize = false>
+  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FOO, 4) &&
            verifier.EndTable();
@@ -321,7 +324,8 @@ inline ::flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(::flatbuffer
       _foo);
 }
 
-inline bool VerifyUnionInNestedNS(::flatbuffers::Verifier &verifier, const void *obj, UnionInNestedNS type) {
+template <bool TrackBufferSize>
+inline bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, UnionInNestedNS type) {
   switch (type) {
     case UnionInNestedNS_NONE: {
       return true;
@@ -334,7 +338,8 @@ inline bool VerifyUnionInNestedNS(::flatbuffers::Verifier &verifier, const void 
   }
 }
 
-inline bool VerifyUnionInNestedNSVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+template <bool TrackBufferSize>
+inline bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

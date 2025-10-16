@@ -161,7 +161,8 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   Geometry::Vector3D *mutable_position_inline() {
     return GetStruct<Geometry::Vector3D *>(VT_POSITION_INLINE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool TrackBufferSize = false>
+  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_VECTORS) &&
            verifier.VerifyVector(vectors()) &&
@@ -360,14 +361,16 @@ inline Geometry::ApplicationData *GetMutableSizePrefixedApplicationData(void *bu
   return ::flatbuffers::GetMutableSizePrefixedRoot<Geometry::ApplicationData>(buf);
 }
 
+template <bool TrackBufferSize = false>
 inline bool VerifyApplicationDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Geometry::ApplicationData>(nullptr);
+    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+  return verifier.template VerifyBuffer<Geometry::ApplicationData>(nullptr);
 }
 
+template <bool TrackBufferSize = false>
 inline bool VerifySizePrefixedApplicationDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
+    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
 }
 
 inline void FinishApplicationDataBuffer(

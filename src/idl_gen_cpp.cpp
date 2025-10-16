@@ -677,17 +677,22 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("ID", "nullptr");
       }
 
+      code_ += "template <bool TrackBufferSize = false>";
       code_ += "inline bool Verify{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::Verifier &verifier) {";
-      code_ += "  return verifier.VerifyBuffer<{{CPP_NAME}}>({{ID}});";
+      code_ +=
+          "    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {";
+      code_ += "  return verifier.template VerifyBuffer<{{CPP_NAME}}>({{ID}});";
       code_ += "}";
       code_ += "";
 
+      code_ += "template <bool TrackBufferSize = false>";
       code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::Verifier &verifier) {";
+      code_ +=
+          "    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {";
       code_ +=
           "  return "
-          "verifier.VerifySizePrefixedBuffer<{{CPP_NAME}}{{SIZE_T}}>({{ID}});";
+          "verifier.template "
+          "VerifySizePrefixedBuffer<{{CPP_NAME}}{{SIZE_T}}>({{ID}});";
       code_ += "}";
       code_ += "";
 
@@ -1087,19 +1092,34 @@ class CppGenerator : public BaseGenerator {
     }
   }
 
-  std::string UnionVerifySignature(const EnumDef& enum_def) {
-    return "bool Verify" + Name(enum_def) +
-           "(::flatbuffers::Verifier &verifier, const void *obj, " +
-           Name(enum_def) + " type)";
+  // For the initial declaration, we specify the template parameters,
+  // including template default arguments.
+  std::string UnionVerifyTemplateDecl() {
+    return "template <bool TrackBufferSize = false>";
   }
 
+  // For the subsequent definition, we must not redeclare the template default arguments.
+  std::string UnionVerifyTemplateDef() {
+    return "template <bool TrackBufferSize>";
+  }
+
+  // Should be used in conjunction with
+  // UnionVerifyTemplateDecl()/UnionVerifyTemplateDef().
+  std::string UnionVerifySignature(const EnumDef& enum_def) {
+    return "bool Verify" + Name(enum_def) +
+           "(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, " +
+           "const void *obj, " + Name(enum_def) + " type)";
+  }
+
+  // Should be used in conjunction with
+  // UnionVerifyTemplateDecl()/UnionVerifyTemplateDef().
   std::string UnionVectorVerifySignature(const EnumDef& enum_def) {
     const std::string name = Name(enum_def);
     const std::string& type =
         opts_.scoped_enums ? name
                            : GenTypeBasic(enum_def.underlying_type, false);
     return "bool Verify" + name + "Vector" +
-           "(::flatbuffers::Verifier &verifier, " +
+           "(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, " +
            "const ::flatbuffers::Vector<::flatbuffers::Offset<void>> "
            "*values, " +
            "const ::flatbuffers::Vector<" + type + "> *types)";
@@ -1394,7 +1414,9 @@ class CppGenerator : public BaseGenerator {
     GenEnumObjectBasedAPI(enum_def);
 
     if (enum_def.is_union) {
+      code_ += UnionVerifyTemplateDecl();
       code_ += UnionVerifySignature(enum_def) + ";";
+      code_ += UnionVerifyTemplateDecl();
       code_ += UnionVectorVerifySignature(enum_def) + ";";
       code_ += "";
     }
@@ -1623,6 +1645,7 @@ class CppGenerator : public BaseGenerator {
     // on the wrong type.
     code_.SetValue("ENUM_NAME", Name(enum_def));
 
+    code_ += UnionVerifyTemplateDef();
     code_ += "inline " + UnionVerifySignature(enum_def) + " {";
     code_ += "  switch (type) {";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
@@ -1639,7 +1662,7 @@ class CppGenerator : public BaseGenerator {
             code_.SetValue("ALIGN",
                            NumToString(ev.union_type.struct_def->minalign));
             code_ +=
-                "      return verifier.VerifyField<{{TYPE}}>("
+                "      return verifier.template VerifyField<{{TYPE}}>("
                 "static_cast<const uint8_t *>(obj), 0, {{ALIGN}});";
           } else {
             code_ += getptr;
@@ -1663,6 +1686,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
+    code_ += UnionVerifyTemplateDef();
     code_ += "inline " + UnionVectorVerifySignature(enum_def) + " {";
     code_ += "  if (!values || !types) return !values && !types;";
     code_ += "  if (values->size() != types->size()) return false;";
@@ -2391,7 +2415,7 @@ class CppGenerator : public BaseGenerator {
           code_.SetValue("CPP_NAME", nfn);
           // FIXME: file_identifier.
           code_ +=
-              "{{PRE}}verifier.VerifyNestedFlatBuffer<{{CPP_NAME}}>"
+              "{{PRE}}verifier.template VerifyNestedFlatBuffer<{{CPP_NAME}}>"
               "({{NAME}}(), nullptr)\\";
         } else if (field.flexbuffer) {
           code_ +=
@@ -2976,7 +3000,10 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a verifier function that can check a buffer from an untrusted
     // source will never cause reads outside the buffer.
-    code_ += "  bool Verify(::flatbuffers::Verifier &verifier) const {";
+    code_ += "  template <bool TrackBufferSize = false>";
+    code_ +=
+        "  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> "
+        "&verifier) const {";
     code_ += "    return VerifyTableStart(verifier)\\";
     for (const auto& field : struct_def.fields.vec) {
       if (field->deprecated) {
