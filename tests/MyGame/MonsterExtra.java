@@ -106,8 +106,8 @@ public final class MonsterExtra extends Table {
   public static void finishMonsterExtraBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MONE"); }
   public static void finishSizePrefixedMonsterExtraBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset, "MONE"); }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public MonsterExtra get(int j) { return get(new MonsterExtra(), j); }
     public MonsterExtra get(MonsterExtra obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

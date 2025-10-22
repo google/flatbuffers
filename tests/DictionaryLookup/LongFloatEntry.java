@@ -75,8 +75,8 @@ public final class LongFloatEntry extends Table {
     return null;
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public LongFloatEntry get(int j) { return get(new LongFloatEntry(), j); }
     public LongFloatEntry get(LongFloatEntry obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
