@@ -250,25 +250,23 @@ namespace Google.FlatBuffers
         public T[] ToArray<T>(int pos, int len)
             where T : struct
         {
-            AssertOffsetAndLength(pos, len);
-            if (len % SizeOf<T>() != 0)
-            {
-                throw new ArgumentException("len must be a multiple of SizeOf<T>()");
-            }
-            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(pos, len)).ToArray();
+            var sizeOfT = SizeOf<T>();
+            var posInBytes = pos * sizeOfT;
+            var lenInBytes = len * sizeOfT;
+            AssertOffsetAndLength(posInBytes, lenInBytes);
+            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan).Slice(pos, len).ToArray();
         }
 #else
         public T[] ToArray<T>(int pos, int len)
             where T : struct
         {
-            AssertOffsetAndLength(pos, len);
-            if (len % SizeOf<T>() != 0)
-            {
-                throw new ArgumentException("len must be a multiple of SizeOf<T>()");
-            }
-            var array = new T[len / SizeOf<T>()];
-            Buffer.BlockCopy(_buffer.Buffer, pos, array, 0, len);
-            return array;
+            var sizeOfT = SizeOf<T>();
+            var posInBytes = pos * sizeOfT;
+            var lenInBytes = len * sizeOfT;
+            AssertOffsetAndLength(posInBytes, lenInBytes);
+            var arrayOfTs = new T[len];
+            Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, 0, lenInBytes);
+            return arrayOfTs;
         }
 #endif
 
@@ -276,29 +274,25 @@ namespace Google.FlatBuffers
         public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
             where T : struct
         {
-            AssertOffsetAndLength(pos, len);
-            var bytes = padLeft + len + padRight;
-            if (bytes % SizeOf<T>() != 0)
-            {
-                throw new ArgumentException("bytes must be a multiple of SizeOf<T>()");
-            }
-            var array = new T[bytes / SizeOf<T>()];
-            _buffer.ReadOnlySpan.Slice(pos, len).CopyTo(MemoryMarshal.AsBytes(array.AsSpan()).Slice(padLeft));
-            return array;
+            var sizeOfT = SizeOf<T>();
+            var posInBytes = pos * sizeOfT;
+            var lenInBytes = len * sizeOfT;
+            AssertOffsetAndLength(posInBytes, lenInBytes);
+            var arrayOfTs = new T[padLeft + len + padRight];
+            MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan).Slice(pos, len).CopyTo(arrayOfTs.AsSpan().Slice(padLeft));
+            return arrayOfTs;
         }
 #else
         public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
             where T : struct
         {
-            AssertOffsetAndLength(pos, len);
-            var bytes = padLeft + len + padRight;
-            if (bytes % SizeOf<T>() != 0)
-            {
-                throw new ArgumentException("bytes must be a multiple of SizeOf<T>()");
-            }
-            var array = new T[bytes / SizeOf<T>()];
-            Buffer.BlockCopy(_buffer.Buffer, pos, array, padLeft, len);
-            return array;
+            var sizeOfT = SizeOf<T>();
+            var posInBytes = pos * sizeOfT;
+            var lenInBytes = len * sizeOfT;
+            AssertOffsetAndLength(posInBytes, lenInBytes);
+            var arrayOfTs = new T[padLeft + len + padRight];
+            Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, padLeft * sizeOfT, lenInBytes);
+            return arrayOfTs;
         }
 #endif
 
