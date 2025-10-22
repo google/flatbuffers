@@ -251,15 +251,23 @@ namespace Google.FlatBuffers
             where T : struct
         {
             AssertOffsetAndLength(pos, len);
-            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(pos)).Slice(0, len).ToArray();
+            if (len % SizeOf<T>() != 0)
+            {
+                throw new ArgumentException("len must be a multiple of SizeOf<T>()");
+            }
+            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(pos, len)).ToArray();
         }
 #else
         public T[] ToArray<T>(int pos, int len)
             where T : struct
         {
             AssertOffsetAndLength(pos, len);
-            T[] arr = new T[len];
-            Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, ArraySize(arr));
+            if (len % SizeOf<T>() != 0)
+            {
+                throw new ArgumentException("len must be a multiple of SizeOf<T>()");
+            }
+            var arr = new T[len / SizeOf<T>()];
+            Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, len);
             return arr;
         }
 #endif
