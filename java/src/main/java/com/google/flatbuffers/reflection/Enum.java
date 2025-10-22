@@ -35,8 +35,8 @@ public final class Enum extends Table {
   public int valuesLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.EnumVal valuesByKey(long key) { int o = __offset(6); return o != 0 ? com.google.flatbuffers.reflection.EnumVal.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.EnumVal valuesByKey(com.google.flatbuffers.reflection.EnumVal obj, long key) { int o = __offset(6); return o != 0 ? com.google.flatbuffers.reflection.EnumVal.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.EnumVal.Vector valuesVector() { return valuesVector(new com.google.flatbuffers.reflection.EnumVal.Vector()); }
-  public com.google.flatbuffers.reflection.EnumVal.Vector valuesVector(com.google.flatbuffers.reflection.EnumVal.Vector obj) { int o = __offset(6); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.EnumVal._Vector valuesVector() { return valuesVector(new com.google.flatbuffers.reflection.EnumVal._Vector()); }
+  public com.google.flatbuffers.reflection.EnumVal._Vector valuesVector(com.google.flatbuffers.reflection.EnumVal._Vector obj) { int o = __offset(6); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public boolean isUnion() { int o = __offset(8); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
   public com.google.flatbuffers.reflection.Type underlyingType() { return underlyingType(new com.google.flatbuffers.reflection.Type()); }
   public com.google.flatbuffers.reflection.Type underlyingType(com.google.flatbuffers.reflection.Type obj) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
@@ -45,8 +45,8 @@ public final class Enum extends Table {
   public int attributesLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.KeyValue attributesByKey(String key) { int o = __offset(12); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.KeyValue attributesByKey(com.google.flatbuffers.reflection.KeyValue obj, String key) { int o = __offset(12); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector() { return attributesVector(new com.google.flatbuffers.reflection.KeyValue.Vector()); }
-  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector(com.google.flatbuffers.reflection.KeyValue.Vector obj) { int o = __offset(12); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.KeyValue._Vector attributesVector() { return attributesVector(new com.google.flatbuffers.reflection.KeyValue._Vector()); }
+  public com.google.flatbuffers.reflection.KeyValue._Vector attributesVector(com.google.flatbuffers.reflection.KeyValue._Vector obj) { int o = __offset(12); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public String documentation(int j) { int o = __offset(14); return o != 0 ? __string(__vector(o) + j * 4) : null; }
   public int documentationLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
   public StringVector documentationVector() { return documentationVector(new StringVector()); }
@@ -123,8 +123,8 @@ public final class Enum extends Table {
     return null;
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public Enum get(int j) { return get(new Enum(), j); }
     public Enum get(Enum obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

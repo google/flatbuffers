@@ -46,8 +46,8 @@ public final class StructOfStructs extends Struct {
     return builder.offset();
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public StructOfStructs get(int j) { return get(new StructOfStructs(), j); }
     public StructOfStructs get(StructOfStructs obj, int j) {  return obj.__assign(__element(j), bb); }

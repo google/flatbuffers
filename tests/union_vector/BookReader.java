@@ -31,8 +31,8 @@ public final class BookReader extends Struct {
     return builder.offset();
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public BookReader get(int j) { return get(new BookReader(), j); }
     public BookReader get(BookReader obj, int j) {  return obj.__assign(__element(j), bb); }
