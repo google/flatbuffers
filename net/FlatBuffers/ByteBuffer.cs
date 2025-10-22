@@ -266,22 +266,41 @@ namespace Google.FlatBuffers
             {
                 throw new ArgumentException("len must be a multiple of SizeOf<T>()");
             }
-            var arr = new T[len / SizeOf<T>()];
-            Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, len);
-            return arr;
+            var array = new T[len / SizeOf<T>()];
+            Buffer.BlockCopy(_buffer.Buffer, pos, array, 0, len);
+            return array;
         }
 #endif
 
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
         public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
             where T : struct
         {
             AssertOffsetAndLength(pos, len);
-            int totalBytes = padLeft + len + padRight;
-            byte[] raw = _buffer.Buffer;
-            T[] arr = new T[totalBytes];
-            Buffer.BlockCopy(raw, pos, arr, padLeft, len);
-            return arr;
+            var bytes = padLeft + len + padRight;
+            if (bytes % SizeOf<T>() != 0)
+            {
+                throw new ArgumentException("bytes must be a multiple of SizeOf<T>()");
+            }
+            var array = new T[bytes / SizeOf<T>()];
+            _buffer.ReadOnlySpan.Slice(pos, len).CopyTo(MemoryMarshal.AsBytes(array.AsSpan()).Slice(padLeft));
+            return array;
         }
+#else
+        public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
+            where T : struct
+        {
+            AssertOffsetAndLength(pos, len);
+            var bytes = padLeft + len + padRight;
+            if (bytes % SizeOf<T>() != 0)
+            {
+                throw new ArgumentException("bytes must be a multiple of SizeOf<T>()");
+            }
+            var array = new T[bytes / SizeOf<T>()];
+            Buffer.BlockCopy(_buffer.Buffer, pos, array, padLeft, len);
+            return array;
+        }
+#endif
 
         public byte[] ToSizedArrayPadded(int padLeft, int padRight)
         {
