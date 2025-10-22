@@ -246,55 +246,37 @@ namespace Google.FlatBuffers
 
         // Get a portion of the buffer casted into an array of type T, given
         // the buffer position and length.
+        public T[] ToArray<T>(int pos, int len)
+            where T : struct
+        {
+            var sizeOfT = SizeOf<T>();
+            var posInBytes = pos * sizeOfT;
+            var lenInBytes = len * sizeOfT;
+            AssertOffsetAndLength(posInBytes, lenInBytes);
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
-        public T[] ToArray<T>(int pos, int len)
-            where T : struct
-        {
-            var sizeOfT = SizeOf<T>();
-            var posInBytes = pos * sizeOfT;
-            var lenInBytes = len * sizeOfT;
-            AssertOffsetAndLength(posInBytes, lenInBytes);
             return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan).Slice(pos, len).ToArray();
-        }
 #else
-        public T[] ToArray<T>(int pos, int len)
-            where T : struct
-        {
-            var sizeOfT = SizeOf<T>();
-            var posInBytes = pos * sizeOfT;
-            var lenInBytes = len * sizeOfT;
-            AssertOffsetAndLength(posInBytes, lenInBytes);
             var arrayOfTs = new T[len];
             Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, 0, lenInBytes);
             return arrayOfTs;
-        }
 #endif
+        }
 
+        public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
+            where T : struct
+        {
+            var sizeOfT = SizeOf<T>();
+            var posInBytes = pos * sizeOfT;
+            var lenInBytes = len * sizeOfT;
+            AssertOffsetAndLength(posInBytes, lenInBytes);
+            var arrayOfTs = new T[padLeft + len + padRight];
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
-        public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
-            where T : struct
-        {
-            var sizeOfT = SizeOf<T>();
-            var posInBytes = pos * sizeOfT;
-            var lenInBytes = len * sizeOfT;
-            AssertOffsetAndLength(posInBytes, lenInBytes);
-            var arrayOfTs = new T[padLeft + len + padRight];
             MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan).Slice(pos, len).CopyTo(arrayOfTs.AsSpan().Slice(padLeft));
-            return arrayOfTs;
-        }
 #else
-        public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
-            where T : struct
-        {
-            var sizeOfT = SizeOf<T>();
-            var posInBytes = pos * sizeOfT;
-            var lenInBytes = len * sizeOfT;
-            AssertOffsetAndLength(posInBytes, lenInBytes);
-            var arrayOfTs = new T[padLeft + len + padRight];
             Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, padLeft * sizeOfT, lenInBytes);
+#endif
             return arrayOfTs;
         }
-#endif
 
         public byte[] ToSizedArrayPadded(int padLeft, int padRight)
         {
