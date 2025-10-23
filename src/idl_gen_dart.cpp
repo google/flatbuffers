@@ -1026,7 +1026,7 @@ class DartGenerator : public BaseGenerator {
         code += "    int? " + offset_name + ";\n";
         code += "    if (" + field_name + " != null) {\n";
         code +=
-            "      for (var e in " + field_name + "!) { e.pack(fbBuilder); }\n";
+            "      for (var e in " + field_name + "!.reversed) { e.pack(fbBuilder); }\n";
         code += "      " + namer_.Variable(field) +
                 "Offset = fbBuilder.endStructVector(" + field_name +
                 "!.length);\n";
