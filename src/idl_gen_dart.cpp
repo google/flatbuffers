@@ -606,7 +606,7 @@ class DartGenerator : public BaseGenerator {
       std::string defaultValue = getDefaultValue(field.value);
       bool isNullable = defaultValue.empty() && !struct_def.fixed;
       std::string nullableValueAccessOperator = isNullable ? "?" : "";
-      if (type.base_type == BASE_TYPE_STRUCT) {
+      if (type.base_type == BASE_TYPE_STRUCT || type.base_type == BASE_TYPE_UNION) {
         constructor_args +=
             field_name + nullableValueAccessOperator + ".unpack()";
       } else if (type.base_type == BASE_TYPE_VECTOR) {
