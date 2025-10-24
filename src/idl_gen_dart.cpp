@@ -1001,7 +1001,7 @@ class DartGenerator : public BaseGenerator {
     code += "    fbBuilder.finish(finish(fbBuilder), fileIdentifier);\n";
     code += "    return fbBuilder.buffer;\n";
     code += "  }\n";
-    code += "}\n";
+    code += "}\n\n";
   }
 
   std::string GenObjectBuilderImplementation(
