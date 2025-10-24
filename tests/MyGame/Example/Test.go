@@ -32,30 +32,26 @@ func (rcv *Test) UnPack() *TestT {
 }
 
 type Test struct {
-	_tab flatbuffers.Struct
+	flatbuffers.Struct
 }
 
 func (rcv *Test) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *Test) Table() flatbuffers.Table {
-	return rcv._tab.Table
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func (rcv *Test) A() int16 {
-	return rcv._tab.GetInt16(rcv._tab.Pos + flatbuffers.UOffsetT(0))
+	return rcv.GetInt16(rcv.Pos + flatbuffers.UOffsetT(0))
 }
 func (rcv *Test) MutateA(n int16) bool {
-	return rcv._tab.MutateInt16(rcv._tab.Pos+flatbuffers.UOffsetT(0), n)
+	return rcv.MutateInt16(rcv.Pos+flatbuffers.UOffsetT(0), n)
 }
 
 func (rcv *Test) B() int8 {
-	return rcv._tab.GetInt8(rcv._tab.Pos + flatbuffers.UOffsetT(2))
+	return rcv.GetInt8(rcv.Pos + flatbuffers.UOffsetT(2))
 }
 func (rcv *Test) MutateB(n int8) bool {
-	return rcv._tab.MutateInt8(rcv._tab.Pos+flatbuffers.UOffsetT(2), n)
+	return rcv.MutateInt8(rcv.Pos+flatbuffers.UOffsetT(2), n)
 }
 
 func CreateTest(builder *flatbuffers.Builder, a int16, b int8) flatbuffers.UOffsetT {

@@ -30,13 +30,12 @@ func (rcv *InParentNamespace) UnPack() *InParentNamespaceT {
 }
 
 type InParentNamespace struct {
-	_tab flatbuffers.Table
+	flatbuffers.Table
 }
 
-func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
+func GetRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (x InParentNamespace) {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &InParentNamespace{}
-	x.Init(buf, n+offset)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset}
 	return x
 }
 
@@ -44,10 +43,9 @@ func FinishInParentNamespaceBuffer(builder *flatbuffers.Builder, offset flatbuff
 	builder.Finish(offset)
 }
 
-func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) *InParentNamespace {
+func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffsetT) (x InParentNamespace) {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &InParentNamespace{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset+flatbuffers.SizeUint32}
 	return x
 }
 
@@ -56,12 +54,8 @@ func FinishSizePrefixedInParentNamespaceBuffer(builder *flatbuffers.Builder, off
 }
 
 func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *InParentNamespace) Table() flatbuffers.Table {
-	return rcv._tab
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func InParentNamespaceStart(builder *flatbuffers.Builder) {

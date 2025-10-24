@@ -7,13 +7,12 @@ import (
 )
 
 type HelloReply struct {
-	_tab flatbuffers.Table
+	flatbuffers.Table
 }
 
-func GetRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *HelloReply {
+func GetRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) (x HelloReply) {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &HelloReply{}
-	x.Init(buf, n+offset)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset}
 	return x
 }
 
@@ -21,10 +20,9 @@ func FinishHelloReplyBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOf
 	builder.Finish(offset)
 }
 
-func GetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) *HelloReply {
+func GetSizePrefixedRootAsHelloReply(buf []byte, offset flatbuffers.UOffsetT) (x HelloReply) {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &HelloReply{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset+flatbuffers.SizeUint32}
 	return x
 }
 
@@ -33,18 +31,14 @@ func FinishSizePrefixedHelloReplyBuffer(builder *flatbuffers.Builder, offset fla
 }
 
 func (rcv *HelloReply) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *HelloReply) Table() flatbuffers.Table {
-	return rcv._tab
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func (rcv *HelloReply) Message() []byte {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
+	o := flatbuffers.UOffsetT(rcv.Offset(4))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv.ByteVector(o + rcv.Pos)
 	}
 	return nil
 }

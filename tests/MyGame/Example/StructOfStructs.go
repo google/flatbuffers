@@ -34,37 +34,33 @@ func (rcv *StructOfStructs) UnPack() *StructOfStructsT {
 }
 
 type StructOfStructs struct {
-	_tab flatbuffers.Struct
+	flatbuffers.Struct
 }
 
 func (rcv *StructOfStructs) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *StructOfStructs) Table() flatbuffers.Table {
-	return rcv._tab.Table
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func (rcv *StructOfStructs) A(obj *Ability) *Ability {
 	if obj == nil {
 		obj = new(Ability)
 	}
-	obj.Init(rcv._tab.Bytes, rcv._tab.Pos+0)
+	obj.Init(rcv.Bytes, rcv.Pos+0)
 	return obj
 }
 func (rcv *StructOfStructs) B(obj *Test) *Test {
 	if obj == nil {
 		obj = new(Test)
 	}
-	obj.Init(rcv._tab.Bytes, rcv._tab.Pos+8)
+	obj.Init(rcv.Bytes, rcv.Pos+8)
 	return obj
 }
 func (rcv *StructOfStructs) C(obj *Ability) *Ability {
 	if obj == nil {
 		obj = new(Ability)
 	}
-	obj.Init(rcv._tab.Bytes, rcv._tab.Pos+12)
+	obj.Init(rcv.Bytes, rcv.Pos+12)
 	return obj
 }
 
