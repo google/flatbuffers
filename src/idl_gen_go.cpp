@@ -186,7 +186,7 @@ class GoGenerator : public BaseGenerator {
   // Most field accessors need to retrieve and test the field offset first,
   // this is the prefix code for that.
   std::string OffsetPrefix(const FieldDef& field) {
-    return "{\n\to := flatbuffers.UOffsetT(rcv._tab.Offset(" +
+    return "{\n\to := flatbuffers.UOffsetT(rcv.Offset(" +
            NumToString(field.value.offset) + "))\n\tif o != 0 {\n";
   }
 
@@ -198,7 +198,6 @@ class GoGenerator : public BaseGenerator {
 
     // _ is reserved in flatbuffers field names, so no chance of name
     // conflict:
-    code += "_tab ";
     code += struct_def.fixed ? "flatbuffers.Struct" : "flatbuffers.Table";
     code += "\n}\n\n";
   }
@@ -323,9 +322,9 @@ class GoGenerator : public BaseGenerator {
 
     for (int i = 0; i < 2; i++) {
       code += "func Get" + size_prefix[i] + "RootAs" + struct_type;
-      code += "(buf []byte, offset flatbuffers.UOffsetT) ";
-      code += "*" + struct_type + "";
-      code += " {\n";
+      code += "(buf []byte, offset flatbuffers.UOffsetT) (x ";
+      code += struct_type + "";
+      code += ") {\n";
       if (i == 0) {
         code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
       } else {
@@ -333,11 +332,10 @@ class GoGenerator : public BaseGenerator {
             "\tn := "
             "flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
       }
-      code += "\tx := &" + struct_type + "{}\n";
       if (i == 0) {
-        code += "\tx.Init(buf, n+offset)\n";
+        code += "\tx.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset}\n";
       } else {
-        code += "\tx.Init(buf, n+offset+flatbuffers.SizeUint32)\n";
+        code += "\tx.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset+flatbuffers.SizeUint32}\n";
       }
       code += "\treturn x\n";
       code += "}\n\n";
@@ -371,24 +369,8 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " Init(buf []byte, i flatbuffers.UOffsetT) ";
     code += "{\n";
-    code += "\trcv._tab.Bytes = buf\n";
-    code += "\trcv._tab.Pos = i\n";
-    code += "}\n\n";
-  }
-
-  // Implement the table accessor
-  void GenTableAccessor(const StructDef& struct_def, std::string* code_ptr) {
-    std::string& code = *code_ptr;
-
-    GenReceiver(struct_def, code_ptr);
-    code += " Table() flatbuffers.Table ";
-    code += "{\n";
-
-    if (struct_def.fixed) {
-      code += "\treturn rcv._tab.Table\n";
-    } else {
-      code += "\treturn rcv._tab\n";
-    }
+    code += "\trcv.Bytes = buf\n";
+    code += "\trcv.Pos = i\n";
     code += "}\n\n";
   }
 
@@ -400,7 +382,7 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field) + "Length(";
     code += ") int " + OffsetPrefix(field);
-    code += "\t\treturn rcv._tab.VectorLen(o)\n\t}\n";
+    code += "\t\treturn rcv.VectorLen(o)\n\t}\n";
     code += "\treturn 0\n}\n\n";
   }
 
@@ -412,7 +394,7 @@ class GoGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field) + "Bytes(";
     code += ") []byte " + OffsetPrefix(field);
-    code += "\t\treturn rcv._tab.ByteVector(o + rcv._tab.Pos)\n\t}\n";
+    code += "\t\treturn rcv.ByteVector(o + rcv.Pos)\n\t}\n";
     code += "\treturn nil\n}\n\n";
   }
 
@@ -426,7 +408,7 @@ class GoGenerator : public BaseGenerator {
     code += "() " + TypeName(field) + " {\n";
     code += "\treturn " +
             CastToEnum(field.value.type,
-                       getter + "(rcv._tab.Pos + flatbuffers.UOffsetT(" +
+                       getter + "(rcv.Pos + flatbuffers.UOffsetT(" +
                            NumToString(field.value.offset) + "))");
     code += "\n}\n";
   }
@@ -445,7 +427,7 @@ class GoGenerator : public BaseGenerator {
     } else {
       code += "\t\treturn ";
     }
-    code += CastToEnum(field.value.type, getter + "(o + rcv._tab.Pos)");
+    code += CastToEnum(field.value.type, getter + "(o + rcv.Pos)");
     if (field.IsScalarOptional()) {
       code += "\n\t\treturn &v";
     }
@@ -467,7 +449,7 @@ class GoGenerator : public BaseGenerator {
     code += "\tif obj == nil {\n";
     code += "\t\tobj = new(" + TypeName(field) + ")\n";
     code += "\t}\n";
-    code += "\tobj.Init(rcv._tab.Bytes, rcv._tab.Pos+";
+    code += "\tobj.Init(rcv.Bytes, rcv.Pos+";
     code += NumToString(field.value.offset) + ")";
     code += "\n\treturn obj\n";
     code += "}\n";
@@ -480,19 +462,14 @@ class GoGenerator : public BaseGenerator {
     std::string& code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field);
-    code += "(obj *";
-    code += TypeName(field);
-    code += ") *" + TypeName(field) + " " + OffsetPrefix(field);
+    code += "() (obj " + TypeName(field) + ", ok bool) " + OffsetPrefix(field);
     if (field.value.type.struct_def->fixed) {
-      code += "\t\tx := o + rcv._tab.Pos\n";
+      code += "\t\tx := o + rcv.Pos\n";
     } else {
-      code += "\t\tx := rcv._tab.Indirect(o + rcv._tab.Pos)\n";
+      code += "\t\tx := rcv.Indirect(o + rcv.Pos)\n";
     }
-    code += "\t\tif obj == nil {\n";
-    code += "\t\t\tobj = new(" + TypeName(field) + ")\n";
-    code += "\t\t}\n";
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
-    code += "\t\treturn obj\n\t}\n\treturn nil\n";
+    code += "\t\tobj.Init(rcv.Bytes, x)\n\t\tok = true\n";
+    code += "\t}\n\treturn\n";
     code += "}\n\n";
   }
 
@@ -504,7 +481,7 @@ class GoGenerator : public BaseGenerator {
     code += " " + namer_.Function(field);
     code += "() " + TypeName(field) + " ";
     code += OffsetPrefix(field) + "\t\treturn " + GenGetter(field.value.type);
-    code += "(o + rcv._tab.Pos)\n\t}\n\treturn nil\n";
+    code += "(o + rcv.Pos)\n\t}\n\treturn nil\n";
     code += "}\n\n";
   }
 
@@ -532,13 +509,13 @@ class GoGenerator : public BaseGenerator {
     code += " " + namer_.Function(field);
     code += "(obj *" + TypeName(field);
     code += ", j int) bool " + OffsetPrefix(field);
-    code += "\t\tx := rcv._tab.Vector(o)\n";
+    code += "\t\tx := rcv.Vector(o)\n";
     code += "\t\tx += flatbuffers.UOffsetT(j) * ";
     code += NumToString(InlineSize(vectortype)) + "\n";
     if (!(vectortype.struct_def->fixed)) {
-      code += "\t\tx = rcv._tab.Indirect(x)\n";
+      code += "\t\tx = rcv.Indirect(x)\n";
     }
-    code += "\t\tobj.Init(rcv._tab.Bytes, x)\n";
+    code += "\t\tobj.Init(rcv.Bytes, x)\n";
     code += "\t\treturn true\n\t}\n";
     code += "\treturn false\n";
     code += "}\n\n";
@@ -566,9 +543,9 @@ class GoGenerator : public BaseGenerator {
     code += "(obj *" + TypeName(field);
     code += ", key " + NativeType(key_field.value.type) + ") bool " +
             OffsetPrefix(field);
-    code += "\t\tx := rcv._tab.Vector(o)\n";
+    code += "\t\tx := rcv.Vector(o)\n";
     code += "\t\treturn ";
-    code += "obj.LookupByKey(key, x, rcv._tab.Bytes)\n";
+    code += "obj.LookupByKey(key, x, rcv.Bytes)\n";
     code += "\t}\n";
     code += "\treturn false\n";
     code += "}\n\n";
@@ -585,7 +562,7 @@ class GoGenerator : public BaseGenerator {
     code += " " + namer_.Function(field);
     code += "(j int) " + TypeName(field) + " ";
     code += OffsetPrefix(field);
-    code += "\t\ta := rcv._tab.Vector(o)\n";
+    code += "\t\ta := rcv.Vector(o)\n";
     code += "\t\treturn " +
             CastToEnum(field.value.type,
                        GenGetter(field.value.type) +
@@ -806,12 +783,12 @@ class GoGenerator : public BaseGenerator {
                                  const FieldDef& field, std::string* code_ptr) {
     std::string& code = *code_ptr;
     std::string setter =
-        "rcv._tab.Mutate" + namer_.Method(GenTypeBasic(field.value.type));
+        "rcv.Mutate" + namer_.Method(GenTypeBasic(field.value.type));
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + namer_.Function(field);
     code +=
         "(n " + GenTypeGet(field.value.type) + ") bool {\n\treturn " + setter;
-    code += "(rcv._tab.Pos+flatbuffers.UOffsetT(";
+    code += "(rcv.Pos+flatbuffers.UOffsetT(";
     code += NumToString(field.value.offset) + "), ";
     code += CastToBaseType(field.value.type, "n") + ")\n}\n\n";
   }
@@ -820,7 +797,7 @@ class GoGenerator : public BaseGenerator {
   void MutateScalarFieldOfTable(const StructDef& struct_def,
                                 const FieldDef& field, std::string* code_ptr) {
     std::string& code = *code_ptr;
-    std::string setter = "rcv._tab.Mutate" +
+    std::string setter = "rcv.Mutate" +
                          namer_.Method(GenTypeBasic(field.value.type)) + "Slot";
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + namer_.Function(field);
@@ -837,12 +814,12 @@ class GoGenerator : public BaseGenerator {
     std::string& code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
     std::string setter =
-        "rcv._tab.Mutate" + namer_.Method(GenTypeBasic(vectortype));
+        "rcv.Mutate" + namer_.Method(GenTypeBasic(vectortype));
     GenReceiver(struct_def, code_ptr);
     code += " Mutate" + namer_.Function(field);
     code += "(j int, n " + TypeName(field) + ") bool ";
     code += OffsetPrefix(field);
-    code += "\t\ta := rcv._tab.Vector(o)\n";
+    code += "\t\ta := rcv.Vector(o)\n";
     code += "\t\treturn " + setter + "(";
     code += "a+flatbuffers.UOffsetT(j*";
     code += NumToString(InlineSize(vectortype)) + "), ";
@@ -907,8 +884,6 @@ class GoGenerator : public BaseGenerator {
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
     InitializeExisting(struct_def, code_ptr);
-    // Generate _tab accessor
-    GenTableAccessor(struct_def, code_ptr);
 
     // Generate struct fields accessors
     for (auto it = struct_def.fields.vec.begin();
@@ -1282,13 +1257,13 @@ class GoGenerator : public BaseGenerator {
         code +=
             "\tt." + field_field + " = rcv." + field_field + "(nil).UnPack()\n";
       } else if (field.value.type.base_type == BASE_TYPE_UNION) {
-        const std::string field_table = field_var + "Table";
-        code += "\t" + field_table + " := flatbuffers.Table{}\n";
+        const std::string fielde = field_var + "Table";
+        code += "\t" + fielde + " := flatbuffers.Table{}\n";
         code +=
-            "\tif rcv." + namer_.Method(field) + "(&" + field_table + ") {\n";
+            "\tif rcv." + namer_.Method(field) + "(&" + fielde + ") {\n";
         code += "\t\tt." + field_field + " = rcv." +
                 namer_.Method(field.name + UnionTypeFieldSuffix()) +
-                "().UnPack(" + field_table + ")\n";
+                "().UnPack(" + fielde + ")\n";
         code += "\t}\n";
       } else {
         FLATBUFFERS_ASSERT(0);
@@ -1399,13 +1374,13 @@ class GoGenerator : public BaseGenerator {
   std::string GenGetter(const Type& type) {
     switch (type.base_type) {
       case BASE_TYPE_STRING:
-        return "rcv._tab.ByteVector";
+        return "rcv.ByteVector";
       case BASE_TYPE_UNION:
-        return "rcv._tab.Union";
+        return "rcv.Union";
       case BASE_TYPE_VECTOR:
         return GenGetter(type.VectorType());
       default:
-        return "rcv._tab.Get" + namer_.Function(GenTypeBasic(type));
+        return "rcv.Get" + namer_.Function(GenTypeBasic(type));
     }
   }
 
