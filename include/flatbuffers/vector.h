@@ -172,7 +172,8 @@ class Vector {
       scalar_tag;
 
   static FLATBUFFERS_CONSTEXPR bool is_span_observable =
-      scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1);
+      scalar_tag::value && !std::is_pointer_v<T> &&
+      (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1);
 
   SizeT size() const { return EndianScalar(length_); }
 
