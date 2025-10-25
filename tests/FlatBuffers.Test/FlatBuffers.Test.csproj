@@ -9,12 +9,12 @@
     <Compile Remove="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(UnsafeByteBuffer)' == 'true'">
+  <PropertyGroup Condition="'$(UNSAFE_BYTEBUFFER)' == 'true'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);UNSAFE_BYTEBUFFER</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(EnableSpanT)' == 'true'">
+  <PropertyGroup Condition="'$(ENABLE_SPAN_T)' == 'true'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);ENABLE_SPAN_T</DefineConstants>
   </PropertyGroup>
