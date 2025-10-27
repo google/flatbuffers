@@ -77,3 +77,4 @@ class InParentNamespaceObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+

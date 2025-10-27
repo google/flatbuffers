@@ -129,6 +129,7 @@ class UnusedObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class TableB {
   TableB._(this._bc, this._bcOffset);
   factory TableB(List<int> bytes) {
@@ -229,3 +230,4 @@ class TableBObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+

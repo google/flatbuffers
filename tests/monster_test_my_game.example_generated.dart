@@ -337,6 +337,7 @@ class TestObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class TestSimpleTableWithEnum {
   TestSimpleTableWithEnum._(this._bc, this._bcOffset);
   factory TestSimpleTableWithEnum(List<int> bytes) {
@@ -435,6 +436,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class Vec3 {
   Vec3._(this._bc, this._bcOffset);
 
@@ -582,6 +584,7 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class Ability {
   Ability._(this._bc, this._bcOffset);
 
@@ -680,6 +683,7 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class StructOfStructs {
   StructOfStructs._(this._bc, this._bcOffset);
 
@@ -788,6 +792,7 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class StructOfStructsOfStructs {
   StructOfStructsOfStructs._(this._bc, this._bcOffset);
 
@@ -876,6 +881,7 @@ class StructOfStructsOfStructsObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class Stat {
   Stat._(this._bc, this._bcOffset);
   factory Stat(List<int> bytes) {
@@ -1004,6 +1010,7 @@ class StatObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class Referrable {
   Referrable._(this._bc, this._bcOffset);
   factory Referrable(List<int> bytes) {
@@ -1102,6 +1109,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 ///  an example documentation comment: "monster object"
 class Monster {
   Monster._(this._bc, this._bcOffset);
@@ -1213,7 +1221,7 @@ class Monster {
       inventory: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 14),
       color: color,
       testType: testType,
-      test: test,
+      test: test?.unpack(),
       test4: test4?.map((e) => e.unpack()).toList(),
       testarrayofstring: const fb.ListReader<String>(fb.StringReader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 24),
       testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
@@ -1249,9 +1257,9 @@ class Monster {
       nonOwningReference: nonOwningReference,
       vectorOfNonOwningReferences: const fb.ListReader<int>(fb.Uint64Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 88),
       anyUniqueType: anyUniqueType,
-      anyUnique: anyUnique,
+      anyUnique: anyUnique?.unpack(),
       anyAmbiguousType: anyAmbiguousType,
-      anyAmbiguous: anyAmbiguous,
+      anyAmbiguous: anyAmbiguous?.unpack(),
       vectorOfEnums: const fb.ListReader<Color>(Color.reader, lazy: false).vTableGetNullable(_bc, _bcOffset, 98),
       signedEnum: signedEnum,
       testrequirednestedflatbuffer: const fb.Uint8ListReader(lazy: false).vTableGetNullable(_bc, _bcOffset, 102),
@@ -1412,7 +1420,7 @@ class MonsterT implements fb.Packable {
     final int? testOffset = test?.pack(fbBuilder);
     int? test4Offset;
     if (test4 != null) {
-      for (var e in test4!) { e.pack(fbBuilder); }
+      for (var e in test4!.reversed) { e.pack(fbBuilder); }
       test4Offset = fbBuilder.endStructVector(test4!.length);
     }
     final int? testarrayofstringOffset = testarrayofstring == null ? null
@@ -1429,14 +1437,14 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeList(testarrayofstring2!.map(fbBuilder.writeString).toList());
     int? testarrayofsortedstructOffset;
     if (testarrayofsortedstruct != null) {
-      for (var e in testarrayofsortedstruct!) { e.pack(fbBuilder); }
+      for (var e in testarrayofsortedstruct!.reversed) { e.pack(fbBuilder); }
       testarrayofsortedstructOffset = fbBuilder.endStructVector(testarrayofsortedstruct!.length);
     }
     final int? flexOffset = flex == null ? null
         : fbBuilder.writeListUint8(flex!);
     int? test5Offset;
     if (test5 != null) {
-      for (var e in test5!) { e.pack(fbBuilder); }
+      for (var e in test5!.reversed) { e.pack(fbBuilder); }
       test5Offset = fbBuilder.endStructVector(test5!.length);
     }
     final int? vectorOfLongsOffset = vectorOfLongs == null ? null
@@ -2120,6 +2128,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class TypeAliases {
   TypeAliases._(this._bc, this._bcOffset);
   factory TypeAliases(List<int> bytes) {
@@ -2369,3 +2378,4 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+

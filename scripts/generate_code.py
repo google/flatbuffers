@@ -443,6 +443,26 @@ flatc(BASE_OPTS + DART_OPTS, prefix="../dart/test/", schema="keyword_test.fbs")
 dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
+# Dart tests
+flatc(
+    NO_INCL_OPTS + DART_OPTS + ["-o", "../dart/test"],
+    schema="monster_test.fbs",
+    include="include_test",
+    data="monsterdata_test.json",
+)
+
+flatc(
+    NO_INCL_OPTS + DART_OPTS + ["-o", "../dart/test"],
+    schema="include_test/include_test1.fbs",
+    include="include_test/sub",
+)
+
+flatc(
+    NO_INCL_OPTS + DART_OPTS + ["-o", "../dart/test"],
+    schema="include_test/sub/include_test2.fbs",
+    include="include_test",
+)
+
 # Swift Tests
 swift_prefix = "swift/Tests/Flatbuffers"
 flatc(

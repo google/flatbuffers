@@ -77,3 +77,4 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+

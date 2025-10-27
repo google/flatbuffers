@@ -230,3 +230,4 @@ class MonsterExtraObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+

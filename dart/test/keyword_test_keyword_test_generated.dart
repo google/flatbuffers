@@ -248,6 +248,7 @@ class KeywordsInTableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class Table2 {
   Table2._(this._bc, this._bcOffset);
   factory Table2(List<int> bytes) {
@@ -276,7 +277,7 @@ class Table2 {
 
   Table2T unpack() => Table2T(
       typeType: typeType,
-      type: type);
+      type: type?.unpack());
 
   static int pack(fb.Builder fbBuilder, Table2T? object) {
     if (object == null) return 0;
@@ -367,3 +368,4 @@ class Table2ObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+

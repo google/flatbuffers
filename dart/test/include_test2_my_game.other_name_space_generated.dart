@@ -4,8 +4,8 @@
 library my_game.other_name_space;
 
 import 'dart:typed_data' show Uint8List;
-
 import 'package:flat_buffers/flat_buffers.dart' as fb;
+
 
 import './include_test1_generated.dart';
 
@@ -17,10 +17,8 @@ enum FromInclude {
 
   factory FromInclude.fromValue(int value) {
     switch (value) {
-      case 0:
-        return FromInclude.IncludeVal;
-      default:
-        throw StateError('Invalid value $value for bit flag enum');
+      case 0: return FromInclude.IncludeVal;
+      default: throw StateError('Invalid value $value for bit flag enum');
     }
   }
 
@@ -58,7 +56,8 @@ class Unused {
     return 'Unused{a: ${a}}';
   }
 
-  UnusedT unpack() => UnusedT(a: a);
+  UnusedT unpack() => UnusedT(
+      a: a);
 
   static int pack(fb.Builder fbBuilder, UnusedT? object) {
     if (object == null) return 0;
@@ -69,7 +68,8 @@ class Unused {
 class UnusedT implements fb.Packable {
   int a;
 
-  UnusedT({required this.a});
+  UnusedT({
+      required this.a});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -90,7 +90,8 @@ class _UnusedReader extends fb.StructReader<Unused> {
   int get size => 4;
 
   @override
-  Unused createObject(fb.BufferContext bc, int offset) => Unused._(bc, offset);
+  Unused createObject(fb.BufferContext bc, int offset) => 
+    Unused._(bc, offset);
 }
 
 class UnusedBuilder {
@@ -102,12 +103,16 @@ class UnusedBuilder {
     fbBuilder.putInt32(a);
     return fbBuilder.offset;
   }
+
 }
 
 class UnusedObjectBuilder extends fb.ObjectBuilder {
   final int _a;
 
-  UnusedObjectBuilder({required int a}) : _a = a;
+  UnusedObjectBuilder({
+    required int a,
+  })
+      : _a = a;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -144,7 +149,8 @@ class TableB {
     return 'TableB{a: ${a}}';
   }
 
-  TableBT unpack() => TableBT(a: a?.unpack());
+  TableBT unpack() => TableBT(
+      a: a?.unpack());
 
   static int pack(fb.Builder fbBuilder, TableBT? object) {
     if (object == null) return 0;
@@ -155,7 +161,8 @@ class TableB {
 class TableBT implements fb.Packable {
   TableAT? a;
 
-  TableBT({this.a});
+  TableBT({
+      this.a});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -175,7 +182,8 @@ class _TableBReader extends fb.TableReader<TableB> {
   const _TableBReader();
 
   @override
-  TableB createObject(fb.BufferContext bc, int offset) => TableB._(bc, offset);
+  TableB createObject(fb.BufferContext bc, int offset) => 
+    TableB._(bc, offset);
 }
 
 class TableBBuilder {
@@ -200,7 +208,10 @@ class TableBBuilder {
 class TableBObjectBuilder extends fb.ObjectBuilder {
   final TableAObjectBuilder? _a;
 
-  TableBObjectBuilder({TableAObjectBuilder? a}) : _a = a;
+  TableBObjectBuilder({
+    TableAObjectBuilder? a,
+  })
+      : _a = a;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -219,3 +230,4 @@ class TableBObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+

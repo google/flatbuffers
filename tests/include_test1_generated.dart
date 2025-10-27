@@ -107,3 +107,4 @@ class TableAObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
