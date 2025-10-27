@@ -1098,7 +1098,8 @@ class CppGenerator : public BaseGenerator {
     return "template <bool TrackBufferSize = false>";
   }
 
-  // For the subsequent definition, we must not redeclare the template default arguments.
+  // For the subsequent definition, we must not redeclare the template default
+  // arguments.
   std::string UnionVerifyTemplateDef() {
     return "template <bool TrackBufferSize>";
   }
