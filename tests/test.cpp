@@ -775,8 +775,9 @@ void FixedLengthArrayTest() {
 #endif
   MyGame::Example::ArrayStruct* ap =
       new (non_zero_memory) MyGame::Example::ArrayStruct;
-#if defined(_MSC_VER) && defined(_DEBUG)
-#define new DEBUG_NEW
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
+    defined(_MSC_VER) && defined(_DEBUG)
+  #define new DEBUG_NEW
 #endif
   (void)ap;
   for (size_t i = 0; i < arr_size; ++i) {
