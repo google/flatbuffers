@@ -770,7 +770,8 @@ void FixedLengthArrayTest() {
   // set memory chunk of size ArrayStruct to 1's
   std::memset(static_cast<void*>(non_zero_memory), 1, arr_size);
   // after placement-new it should be all 0's
-#if defined(_MSC_VER) && defined(_DEBUG)
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
+    defined(_MSC_VER) && defined(_DEBUG)
 #undef new
 #endif
   MyGame::Example::ArrayStruct* ap =
