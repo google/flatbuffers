@@ -18,6 +18,7 @@
 #include "idl_gen_dart.h"
 
 #include <cassert>
+#include <cctype>
 #include <cmath>
 
 #include "flatbuffers/code_generators.h"
@@ -89,6 +90,46 @@ class DartGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", ".", "dart"),
         namer_(WithFlagOptions(DartDefaultConfig(), parser.opts, path),
                DartKeywords()) {}
+
+  std::string SnakeToCamel(const std::string& value, bool upper_first) const {
+    if (value.find('_') == std::string::npos) {
+      return value;
+    }
+    std::string result;
+    result.reserve(value.size());
+    bool capitalize = upper_first;
+    for (char ch : value) {
+      if (ch == '_') {
+        capitalize = true;
+        continue;
+      }
+      unsigned char uch = static_cast<unsigned char>(ch);
+      if (capitalize) {
+        result.push_back(static_cast<char>(std::toupper(uch)));
+        capitalize = false;
+      } else {
+        result.push_back(static_cast<char>(std::tolower(uch)));
+      }
+    }
+    if (!upper_first && !result.empty()) {
+      result[0] = static_cast<char>(
+          std::tolower(static_cast<unsigned char>(result[0])));
+    }
+    return result;
+  }
+
+  std::string CompatFieldLower(const FieldDef& field) const {
+    return SnakeToCamel(field.name, false);
+  }
+
+  std::string CompatStructName(const StructDef& struct_def) const {
+    return SnakeToCamel(struct_def.name, true);
+  }
+
+  bool NeedsCompat(const std::string& original,
+                   const std::string& compat) const {
+    return original != compat;
+  }
 
   template <typename T>
   void import_generator(const std::vector<T*>& definitions,
@@ -469,6 +510,10 @@ class DartGenerator : public BaseGenerator {
         namespace_code[namer_.Namespace(*struct_def.defined_namespace)];
 
     const auto& struct_type = namer_.Type(struct_def);
+    const std::string compat_struct = CompatStructName(struct_def);
+    const std::string compat_object = compat_struct + "T";
+    const std::string compat_builder = compat_struct + "Builder";
+    const std::string compat_object_builder = compat_struct + "ObjectBuilder";
 
     // Emit constructor
 
@@ -533,6 +578,23 @@ class DartGenerator : public BaseGenerator {
 
     code += reader_code;
     code += builder_code;
+
+    if (NeedsCompat(struct_type, compat_struct)) {
+      code += "typedef " + compat_struct + " = " + struct_type + ";\n\n";
+    }
+    if (parser_.opts.generate_object_based_api) {
+      const std::string object_type = namer_.ObjectType(struct_def);
+      if (NeedsCompat(object_type, compat_object)) {
+        code += "typedef " + compat_object + " = " + object_type + ";\n\n";
+      }
+      if (NeedsCompat(object_builder_name, compat_object_builder)) {
+        code += "typedef " + compat_object_builder + " = " +
+                object_builder_name + ";\n\n";
+      }
+    }
+    if (NeedsCompat(builder_name, compat_builder)) {
+      code += "typedef " + compat_builder + " = " + builder_name + ";\n\n";
+    }
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -551,6 +613,7 @@ class DartGenerator : public BaseGenerator {
       const FieldDef& field = *it->second;
 
       const std::string field_name = namer_.Field(field);
+      const std::string compat_name = CompatFieldLower(field);
       const std::string defaultValue = getDefaultValue(field.value);
       const std::string type_name =
           GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
@@ -558,6 +621,28 @@ class DartGenerator : public BaseGenerator {
 
       GenDocComment(field.doc_comment, "  ", code);
       code += "  " + type_name + " " + field_name + ";\n";
+
+      if (NeedsCompat(field_name, compat_name)) {
+        code += "  " + type_name + " get " + compat_name + " => " + field_name +
+                ";\n";
+        code += "  set " + compat_name + "(" + type_name + " value) => " +
+                field_name + " = value;\n";
+      }
+      const std::string type_suffix = "_type";
+      if (field_name.size() > type_suffix.size() &&
+          field_name.compare(field_name.size() - type_suffix.size(),
+                             type_suffix.size(), type_suffix) == 0) {
+        const std::string hybrid_alias =
+            field_name.substr(0, field_name.size() - type_suffix.size()) +
+            "Type";
+        if (NeedsCompat(field_name, hybrid_alias) &&
+            hybrid_alias != compat_name) {
+          code += "  " + type_name + " get " + hybrid_alias + " => " +
+                  field_name + ";\n";
+          code += "  set " + hybrid_alias + "(" + type_name + " value) => " +
+                  field_name + " = value;\n";
+        }
+      }
 
       if (!constructor_args.empty()) constructor_args += ",\n";
       constructor_args += "      ";
@@ -691,6 +776,7 @@ class DartGenerator : public BaseGenerator {
       const FieldDef& field = *it->second;
 
       const std::string field_name = namer_.Field(field);
+      const std::string compat_name = CompatFieldLower(field);
       const std::string defaultValue = getDefaultValue(field.value);
       const bool isNullable = defaultValue.empty() && !struct_def.fixed;
       const std::string type_name =
@@ -745,6 +831,24 @@ class DartGenerator : public BaseGenerator {
         }
         code += ";\n";
       }
+
+      if (NeedsCompat(field_name, compat_name)) {
+        code += "  " + type_name + " get " + compat_name + " => " + field_name +
+                ";\n";
+      }
+      const std::string type_suffix = "_type";
+      if (field_name.size() > type_suffix.size() &&
+          field_name.compare(field_name.size() - type_suffix.size(),
+                             type_suffix.size(), type_suffix) == 0) {
+        const std::string hybrid_alias =
+            field_name.substr(0, field_name.size() - type_suffix.size()) +
+            "Type";
+        if (NeedsCompat(field_name, hybrid_alias) &&
+            hybrid_alias != compat_name) {
+          code += "  " + type_name + " get " + hybrid_alias + " => " +
+                  field_name + ";\n";
+        }
+      }
     }
 
     code += "\n";
@@ -760,15 +864,19 @@ class DartGenerator : public BaseGenerator {
     code += "    return '" + object_name + "{";
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const std::string field = namer_.Field(*it->second);
+      const FieldDef& field_def = *it->second;
+      const std::string field = namer_.Field(field_def);
+      const std::string compat = CompatFieldLower(field_def);
+      const std::string display = NeedsCompat(field, compat) ? compat : field;
       // We need to escape the fact that some fields have $ in the name which is
       // also used in symbol/string substitution.
       std::string escaped_field;
-      for (size_t i = 0; i < field.size(); i++) {
-        if (field[i] == '$') escaped_field.push_back('\\');
-        escaped_field.push_back(field[i]);
+      for (size_t i = 0; i < display.size(); i++) {
+        if (display[i] == '$') escaped_field.push_back('\\');
+        escaped_field.push_back(display[i]);
       }
-      code += escaped_field + ": ${" + field + "}";
+      const std::string accessor = NeedsCompat(field, compat) ? compat : field;
+      code += escaped_field + ": ${" + accessor + "}";
       if (it != non_deprecated_fields.end() - 1) {
         code += ", ";
       }
@@ -964,11 +1072,21 @@ class DartGenerator : public BaseGenerator {
            it != non_deprecated_fields.end(); ++it) {
         const FieldDef& field = *it->second;
 
+        const std::string variable_name = namer_.Variable(field);
+        const std::string compat_variable = CompatFieldLower(field);
+        const bool needs_alias = NeedsCompat(variable_name, compat_variable);
+        const std::string type_expr =
+            GenDartTypeName(field.value.type, struct_def.defined_namespace,
+                            field, !struct_def.fixed, "ObjectBuilder");
+
         code += "    ";
-        code += (struct_def.fixed ? "required " : "") +
-                GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                                field, !struct_def.fixed, "ObjectBuilder") +
-                " " + namer_.Variable(field) + ",\n";
+        if (struct_def.fixed && !needs_alias) code += "required ";
+        code += type_expr + " " + variable_name + ",\n";
+        if (needs_alias) {
+          std::string alias_type = type_expr;
+          if (alias_type.find('?') == std::string::npos) alias_type += "?";
+          code += "    " + alias_type + " " + compat_variable + ",\n";
+        }
       }
       code += "  })\n";
       code += "      : ";
@@ -976,7 +1094,16 @@ class DartGenerator : public BaseGenerator {
            it != non_deprecated_fields.end(); ++it) {
         const FieldDef& field = *it->second;
 
-        code += "_" + namer_.Variable(field) + " = " + namer_.Variable(field);
+        const std::string variable_name = namer_.Variable(field);
+        const std::string compat_variable = CompatFieldLower(field);
+        const bool needs_alias = NeedsCompat(variable_name, compat_variable);
+
+        code += "_" + variable_name + " = ";
+        if (needs_alias) {
+          code += compat_variable + " ?? " + variable_name;
+        } else {
+          code += variable_name;
+        }
         if (it == non_deprecated_fields.end() - 1) {
           code += ";\n\n";
         } else {

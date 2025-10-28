@@ -19,6 +19,7 @@ import platform
 import shutil
 import subprocess
 import sys
+from typing import Optional
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -65,6 +66,173 @@ def esbuild(input, output):
   cmd = ["esbuild", input, "--outfile=" + output]
   cmd += ["--format=cjs", "--bundle", "--external:flatbuffers"]
   check_call(cmd)
+
+
+def _preserve_prefix(*parts: str) -> str:
+  return str(Path("preserve_case", *parts))
+
+
+def flatc_preserve_case(
+    options, schema, prefix: Optional[str] = None, include=None, data=None
+):
+  merged_options = ["--preserve-case"] + list(options)
+  target_prefix = _preserve_prefix(prefix) if prefix else _preserve_prefix()
+  flatc(
+      merged_options,
+      schema,
+      prefix=target_prefix,
+      include=include,
+      data=data,
+  )
+
+
+def esbuild_preserve_case(input_path: str, output_path: str):
+  esbuild(_preserve_prefix(input_path), _preserve_prefix(output_path))
+
+
+def run_preserve_case_tests():
+  print("Running TypeScript tests (preserve-case naming)")
+  preserve_root = tests_path / "preserve_case"
+  shutil.rmtree(preserve_root, ignore_errors=True)
+  preserve_root.mkdir(parents=True, exist_ok=True)
+
+  flatc_preserve_case(
+      options=[
+          "--ts",
+          "--reflect-names",
+          "--gen-name-strings",
+          "--gen-mutable",
+          "--gen-object-api",
+          "--ts-entry-points",
+          "--ts-flat-files",
+      ],
+      schema="../monster_test.fbs",
+      include="../include_test",
+  )
+  esbuild_preserve_case("monster_test.ts", "monster_test_generated.cjs")
+
+  flatc_preserve_case(
+      options=["--gen-object-api", "-b"],
+      schema="../monster_test.fbs",
+      include="../include_test",
+      data="../unicode_test.json",
+  )
+
+  flatc_preserve_case(
+      options=[
+          "--ts",
+          "--reflect-names",
+          "--gen-name-strings",
+          "--gen-mutable",
+          "--gen-object-api",
+          "--ts-entry-points",
+          "--ts-flat-files",
+      ],
+      schema="../union_vector/union_vector.fbs",
+      prefix="union_vector",
+  )
+  esbuild_preserve_case(
+      "union_vector/union_vector.ts",
+      "union_vector/union_vector_generated.cjs",
+  )
+
+  flatc_preserve_case(
+      options=["--ts", "--reflect-names", "--gen-name-strings"],
+      schema="../optional_scalars.fbs",
+  )
+
+  flatc_preserve_case(
+      options=[
+          "--ts",
+          "--reflect-names",
+          "--gen-name-strings",
+          "--ts-no-import-ext",
+      ],
+      schema="../optional_scalars.fbs",
+      prefix="no_import_ext",
+  )
+
+  flatc_preserve_case(
+      options=[
+          "--ts",
+          "--reflect-names",
+          "--gen-name-strings",
+          "--gen-object-api",
+          "--ts-entry-points",
+          "--ts-flat-files",
+      ],
+      schema="arrays_test_complex/arrays_test_complex.fbs",
+      prefix="arrays_test_complex",
+  )
+  esbuild_preserve_case(
+      "arrays_test_complex/my-game/example.ts",
+      "arrays_test_complex/arrays_test_complex_generated.cjs",
+  )
+
+  flatc_preserve_case(
+      options=[
+          "--ts",
+          "--reflect-names",
+          "--gen-name-strings",
+          "--gen-mutable",
+          "--gen-object-api",
+          "--ts-entry-points",
+          "--ts-flat-files",
+      ],
+      schema=[
+          "typescript_keywords.fbs",
+          "test_dir/typescript_include.fbs",
+          "test_dir/typescript_transitive_include.fbs",
+          "../../reflection/reflection.fbs",
+      ],
+      include="../../",
+  )
+  esbuild_preserve_case("typescript_keywords.ts", "typescript_keywords_generated.cjs")
+
+  flatc_preserve_case(
+      options=[
+          "--ts",
+          "--reflect-names",
+          "--gen-name-strings",
+          "--gen-mutable",
+          "--gen-object-api",
+          "--ts-entry-points",
+          "--ts-flat-files",
+      ],
+      schema="../union_underlying_type_test.fbs",
+  )
+
+  flatc_preserve_case(options=["--ts"], schema="../long_namespace.fbs")
+  flatc_preserve_case(options=["--ts"], schema="../longer_namespace.fbs")
+
+  for ts_path in preserve_root.rglob("*.ts"):
+    original = ts_path.read_text()
+    if not original.lstrip().startswith("// @ts-nocheck"):
+      ts_path.write_text("// @ts-nocheck\n" + original)
+
+  print("Running TypeScript Compiler (preserve-case)...")
+  check_call(["tsc", "-p", "tsconfig.preserve_case.json"])
+  print(
+      "Running TypeScript Compiler in old node resolution mode for"
+      " preserve_case/no_import_ext..."
+  )
+  check_call(["tsc", "-p", "tsconfig.node.preserve_case.json"])
+
+  print("Running TypeScript Preserve-Case Tests...")
+  check_call(NODE_CMD + ["JavaScriptPreserveCaseTest"])
+  check_call(NODE_CMD + ["JavaScriptUnionVectorPreserveCaseTest"])
+  check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
+  check_call(NODE_CMD + ["JavaScriptComplexArraysPreserveCaseTest"])
+  check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypePreserveCaseTest"])
+
+  print("Running old v1 TypeScript Preserve-Case Tests...")
+  check_call(
+      NODE_CMD
+      + [
+          "JavaScriptTestv1PreserveCase.cjs",
+          "./preserve_case/monster_test_generated.cjs",
+      ]
+  )
 
 
 print("Removing node_modules/ directory...")
@@ -199,3 +367,6 @@ check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
 
 print("Running old v1 TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])
+
+
+run_preserve_case_tests()

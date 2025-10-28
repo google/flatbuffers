@@ -75,6 +75,8 @@ tests/monsterdata_javascript_wire.mon
 tests/monsterdata_lobster_wire.mon
 tests/monsterdata_rust_wire.mon
 tests/php/
+tests/ts/preserve_case/
+tests/java_preserve_case_*/
 CMakeLists.txt.user
 CMakeScripts/**
 CTestTestfile.cmake
@@ -156,4 +158,3 @@ kotlin/**/generated
 MODULE.bazel.lock
 
 # Ignore the generated docs
-docs/site
