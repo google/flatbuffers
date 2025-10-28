@@ -20,9 +20,7 @@ python3 ts/TypeScriptTest.py
 
 echo "************************ C++:"
 
-cd ..
-./flattests
-cd tests
+./CppTest.sh
 
 echo "************************ C#:"
 

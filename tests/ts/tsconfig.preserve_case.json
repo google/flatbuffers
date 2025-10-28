@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["preserve_case/**/*.ts"],
+  "exclude": ["preserve_case/no_import_ext/**/*.ts"]
+}

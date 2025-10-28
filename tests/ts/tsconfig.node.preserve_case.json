@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.node.json",
+  "include": ["preserve_case/no_import_ext/**/*.ts"]
+}
