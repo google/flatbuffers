@@ -8,7 +8,7 @@ import (
 
 type WarriorT struct {
 	Name string `json:"name"`
-	Hp uint32 `json:"hp"`
+	Hp   uint32 `json:"hp"`
 }
 
 func (t *WarriorT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {

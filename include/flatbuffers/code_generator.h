@@ -45,13 +45,13 @@ class CodeGenerator {
   // Generate code from the provided `parser`.
   //
   // DEPRECATED: prefer using the other overload of GenerateCode for bfbs.
-  virtual Status GenerateCode(const Parser &parser, const std::string &path,
-                              const std::string &filename) = 0;
+  virtual Status GenerateCode(const Parser& parser, const std::string& path,
+                              const std::string& filename) = 0;
 
   // Generate code from the provided `parser` and place it in the output.
-  virtual Status GenerateCodeString(const Parser &parser,
-                                    const std::string &filename,
-                                    std::string &output) {
+  virtual Status GenerateCodeString(const Parser& parser,
+                                    const std::string& filename,
+                                    std::string& output) {
     (void)parser;
     (void)filename;
     (void)output;
@@ -60,18 +60,18 @@ class CodeGenerator {
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  virtual Status GenerateCode(const uint8_t *buffer, int64_t length,
-                              const CodeGenOptions &options) = 0;
+  virtual Status GenerateCode(const uint8_t* buffer, int64_t length,
+                              const CodeGenOptions& options) = 0;
 
-  virtual Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                                  const std::string &filename,
-                                  std::string &output) = 0;
+  virtual Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                                  const std::string& filename,
+                                  std::string& output) = 0;
 
-  virtual Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                                  const std::string &filename) = 0;
+  virtual Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                                  const std::string& filename) = 0;
 
-  virtual Status GenerateRootFile(const Parser &parser,
-                                  const std::string &path) = 0;
+  virtual Status GenerateRootFile(const Parser& parser,
+                                  const std::string& path) = 0;
 
   virtual bool IsSchemaOnly() const = 0;
 
@@ -88,8 +88,8 @@ class CodeGenerator {
 
  private:
   // Copying is not supported.
-  CodeGenerator(const CodeGenerator &) = delete;
-  CodeGenerator &operator=(const CodeGenerator &) = delete;
+  CodeGenerator(const CodeGenerator&) = delete;
+  CodeGenerator& operator=(const CodeGenerator&) = delete;
 };
 
 }  // namespace flatbuffers

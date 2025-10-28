@@ -21,7 +21,7 @@ import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Field extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_25_2_10(); }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static Field getRootAsField(ByteBuffer _bb) { return getRootAsField(_bb, new Field()); }
   public static Field getRootAsField(ByteBuffer _bb, Field obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }

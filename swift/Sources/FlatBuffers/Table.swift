@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#if canImport(Common)
-import Common
-#endif
-
 import Foundation
+
+#if canImport(Common)
+  import Common
+#endif
 
 /// `Table` is a Flatbuffers object that can read,
 /// mutate scalar fields within a valid flatbuffers buffer
@@ -51,10 +51,13 @@ public struct Table {
   /// - Returns: offset of field within buffer
   public func offset(_ o: Int32) -> Int32 {
     let vtable = position &- bb.read(def: Int32.self, position: Int(position))
-    return o < bb
-      .read(def: VOffset.self, position: Int(vtable)) ? Int32(bb.read(
-        def: Int16.self,
-        position: Int(vtable &+ o))) : 0
+    return o
+      < bb
+      .read(def: VOffset.self, position: Int(vtable))
+      ? Int32(
+        bb.read(
+          def: Int16.self,
+          position: Int(vtable &+ o))) : 0
   }
 
   /// Gets the indirect offset of the current stored object
@@ -141,8 +144,8 @@ public struct Table {
   @inline(__always)
   public func withUnsafePointerToSlice<T>(
     at off: Int32,
-    body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T?
-  {
+    body: (UnsafeRawBufferPointer) throws -> T
+  ) rethrows -> T? {
     let o = offset(off)
     guard o != 0 else { return nil }
     return try bb.withUnsafePointerToSlice(
@@ -189,14 +192,18 @@ public struct Table {
   static public func offset(
     _ o: Int32,
     vOffset: Int32,
-    fbb: inout FlatBufferBuilder) -> Int32
-  {
+    fbb: inout FlatBufferBuilder
+  ) -> Int32 {
     let vTable = Int32(fbb.capacity) &- o
-    return vTable &+ Int32(fbb.read(
-      def: Int16.self,
-      position: Int(vTable &+ vOffset &- fbb.read(
-        def: Int32.self,
-        position: Int(vTable)))))
+    return vTable
+      &+ Int32(
+        fbb.read(
+          def: Int16.self,
+          position: Int(
+            vTable &+ vOffset
+              &- fbb.read(
+                def: Int32.self,
+                position: Int(vTable)))))
   }
 
   /// Compares two objects at offset A and offset B within a ByteBuffer
@@ -209,8 +216,8 @@ public struct Table {
   static public func compare(
     _ off1: Int32,
     _ off2: Int32,
-    fbb: inout FlatBufferBuilder) -> Int32
-  {
+    fbb: inout FlatBufferBuilder
+  ) -> Int32 {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
     let _off2 = off2 &+ fbb.read(def: Int32.self, position: Int(off2))
@@ -239,8 +246,8 @@ public struct Table {
   static public func compare(
     _ off1: Int32,
     _ key: [Byte],
-    fbb: inout FlatBufferBuilder) -> Int32
-  {
+    fbb: inout FlatBufferBuilder
+  ) -> Int32 {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
     let len1 = fbb.read(def: Int32.self, position: Int(_off1))
@@ -267,14 +274,18 @@ public struct Table {
   static public func offset(
     _ o: Int32,
     vOffset: Int32,
-    fbb: ByteBuffer) -> Int32
-  {
+    fbb: ByteBuffer
+  ) -> Int32 {
     let vTable = Int32(fbb.capacity) &- o
-    return vTable &+ Int32(fbb.read(
-      def: Int16.self,
-      position: Int(vTable &+ vOffset &- fbb.read(
-        def: Int32.self,
-        position: Int(vTable)))))
+    return vTable
+      &+ Int32(
+        fbb.read(
+          def: Int16.self,
+          position: Int(
+            vTable &+ vOffset
+              &- fbb.read(
+                def: Int32.self,
+                position: Int(vTable)))))
   }
 
   /// Compares two objects at offset A and offset B within a ByteBuffer
@@ -287,8 +298,8 @@ public struct Table {
   static public func compare(
     _ off1: Int32,
     _ off2: Int32,
-    fbb: ByteBuffer) -> Int32
-  {
+    fbb: ByteBuffer
+  ) -> Int32 {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
     let _off2 = off2 &+ fbb.read(def: Int32.self, position: Int(off2))
@@ -317,8 +328,8 @@ public struct Table {
   static public func compare(
     _ off1: Int32,
     _ key: [Byte],
-    fbb: ByteBuffer) -> Int32
-  {
+    fbb: ByteBuffer
+  ) -> Int32 {
     let memorySize = Int32(MemoryLayout<Int32>.size)
     let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
     let len1 = fbb.read(def: Int32.self, position: Int(_off1))

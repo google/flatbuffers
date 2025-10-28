@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#if canImport(Common)
-import Common
-#endif
-
 import Foundation
+
+#if canImport(Common)
+  import Common
+#endif
 
 @inline(__always)
 internal func isInline(_ t: FlexBufferType) -> Bool {
@@ -73,17 +73,26 @@ func getScalarType<T>(type: T.Type) -> FlexBufferType where T: Scalar {
 
 @inline(__always)
 func toTypedVector(type: FlexBufferType, length: UInt64) -> FlexBufferType {
-  let type: UInt64 = switch length {
-  case 0: type.rawValue &- FlexBufferType.int.rawValue &+ FlexBufferType
-    .vectorInt.rawValue
-  case 2: type.rawValue &- FlexBufferType.int.rawValue &+ FlexBufferType
-    .vectorInt2.rawValue
-  case 3: type.rawValue &- FlexBufferType.int.rawValue &+ FlexBufferType
-    .vectorInt3.rawValue
-  case 4: type.rawValue &- FlexBufferType.int.rawValue &+ FlexBufferType
-    .vectorInt4.rawValue
-  default: 0
-  }
+  let type: UInt64 =
+    switch length {
+    case 0:
+      type.rawValue &- FlexBufferType.int.rawValue
+        &+ FlexBufferType
+        .vectorInt.rawValue
+    case 2:
+      type.rawValue &- FlexBufferType.int.rawValue
+        &+ FlexBufferType
+        .vectorInt2.rawValue
+    case 3:
+      type.rawValue &- FlexBufferType.int.rawValue
+        &+ FlexBufferType
+        .vectorInt3.rawValue
+    case 4:
+      type.rawValue &- FlexBufferType.int.rawValue
+        &+ FlexBufferType
+        .vectorInt4.rawValue
+    default: 0
+    }
   return FlexBufferType(rawValue: type) ?? .null
 }
 
@@ -100,7 +109,8 @@ func isTypedVectorType(type: FlexBufferType) -> Bool {
 @inline(__always)
 func toTypedVectorElementType(type: FlexBufferType) -> FlexBufferType? {
   return FlexBufferType(
-    rawValue: type.rawValue &- FlexBufferType.vectorInt
+    rawValue: type.rawValue
+      &- FlexBufferType.vectorInt
       .rawValue &+ FlexBufferType.int.rawValue)
 }
 
@@ -115,12 +125,16 @@ func toFixedTypedVectorElementType(type: FlexBufferType)
 {
   assert(isFixedTypedVectorType(type: type))
   let fixedType: UInt64 = numericCast(
-    type.rawValue &- FlexBufferType.vectorInt2
+    type.rawValue
+      &- FlexBufferType.vectorInt2
       .rawValue)
   let len: Int = numericCast(fixedType.dividedReportingOverflow(by: 3).partialValue &+ 2)
   return (
-    FlexBufferType(rawValue: (fixedType.quotientAndRemainder(dividingBy: 3).remainder) &+ FlexBufferType.int.rawValue),
-    len)
+    FlexBufferType(
+      rawValue: (fixedType.quotientAndRemainder(dividingBy: 3).remainder)
+        &+ FlexBufferType.int.rawValue),
+    len
+  )
 }
 
 // MARK: - Reader functions
@@ -128,8 +142,8 @@ func toFixedTypedVectorElementType(type: FlexBufferType)
 @inline(__always)
 func binarySearch(
   vector: TypedVector,
-  target: String) -> Int?
-{
+  target: String
+) -> Int? {
   var left = 0
   var right = vector.count
 
@@ -149,14 +163,17 @@ func binarySearch(
 
 @inline(__always)
 func readIndirect(buffer: ByteBuffer, offset: Int, _ byteWidth: UInt8) -> Int {
-  return offset &- numericCast(buffer.readUInt64(
-    offset: offset,
-    byteWidth: byteWidth))
+  return offset
+    &- numericCast(
+      buffer.readUInt64(
+        offset: offset,
+        byteWidth: byteWidth))
 }
 
 @inline(__always)
 func getCount(buffer: ByteBuffer, offset: Int, byteWidth: UInt8) -> Int {
-  Int(buffer.readUInt64(
-    offset: offset &- numericCast(byteWidth),
-    byteWidth: byteWidth))
+  Int(
+    buffer.readUInt64(
+      offset: offset &- numericCast(byteWidth),
+      byteWidth: byteWidth))
 }

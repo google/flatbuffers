@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
 import subprocess
 import sys
 import generate_grpc_examples
-from pathlib import Path
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -29,17 +29,19 @@ root_path = script_path.parent.absolute()
 print("Generating GRPC code...")
 generate_grpc_examples.GenerateGRPCExamples()
 
-result = subprocess.run(["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path)
+result = subprocess.run(
+    ["git", "diff", "--quiet", "--ignore-cr-at-eol"], cwd=root_path
+)
 
 if result.returncode != 0:
-    print(
-        "\n"
-        "ERROR: ********************************************************\n"
-        "ERROR: * The following differences were found after running   *\n"
-        "ERROR: * the script/generate_grpc_examples.py script. Maybe   *\n"
-        "ERROR: * you forgot to run it after making changes in a       *\n"
-        "ERROR: * generator or schema?                                 *\n"
-        "ERROR: ********************************************************\n"
-    )
-    subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
-    sys.exit(result.returncode)
+  print(
+      "\n"
+      "ERROR: ********************************************************\n"
+      "ERROR: * The following differences were found after running   *\n"
+      "ERROR: * the script/generate_grpc_examples.py script. Maybe   *\n"
+      "ERROR: * you forgot to run it after making changes in a       *\n"
+      "ERROR: * generator or schema?                                 *\n"
+      "ERROR: ********************************************************\n"
+  )
+  subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
+  sys.exit(result.returncode)

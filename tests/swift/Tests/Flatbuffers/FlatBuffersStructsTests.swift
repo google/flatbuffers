@@ -15,6 +15,7 @@
  */
 
 import XCTest
+
 @testable import FlatBuffers
 
 final class FlatBuffersStructsTests: XCTestCase {

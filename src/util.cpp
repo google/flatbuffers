@@ -58,12 +58,12 @@ namespace flatbuffers {
 
 namespace {
 
-static bool FileExistsRaw(const char *name) {
+static bool FileExistsRaw(const char* name) {
   std::ifstream ifs(name);
   return ifs.good();
 }
 
-static bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
+static bool LoadFileRaw(const char* name, bool binary, std::string* buf) {
   if (DirExists(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
@@ -86,7 +86,7 @@ static bool LoadFileRaw(const char *name, bool binary, std::string *buf) {
 LoadFileFunction g_load_file_function = LoadFileRaw;
 FileExistsFunction g_file_exists_function = FileExistsRaw;
 
-static std::string ToCamelCase(const std::string &input, bool is_upper) {
+static std::string ToCamelCase(const std::string& input, bool is_upper) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (!i && input[i] == '_') {
@@ -105,7 +105,7 @@ static std::string ToCamelCase(const std::string &input, bool is_upper) {
   return s;
 }
 
-static std::string ToSnakeCase(const std::string &input, bool screaming) {
+static std::string ToSnakeCase(const std::string& input, bool screaming) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (i == 0) {
@@ -127,14 +127,16 @@ static std::string ToSnakeCase(const std::string &input, bool screaming) {
   return s;
 }
 
-std::string ToAll(const std::string &input,
+std::string ToAll(const std::string& input,
                   std::function<char(const char)> transform) {
   std::string s;
-  for (size_t i = 0; i < input.length(); i++) { s += transform(input[i]); }
+  for (size_t i = 0; i < input.length(); i++) {
+    s += transform(input[i]);
+  }
   return s;
 }
 
-std::string CamelToSnake(const std::string &input) {
+std::string CamelToSnake(const std::string& input) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (i == 0) {
@@ -156,7 +158,7 @@ std::string CamelToSnake(const std::string &input) {
   return s;
 }
 
-std::string DasherToSnake(const std::string &input) {
+std::string DasherToSnake(const std::string& input) {
   std::string s;
   for (size_t i = 0; i < input.length(); i++) {
     if (input[i] == '-') {
@@ -168,11 +170,11 @@ std::string DasherToSnake(const std::string &input) {
   return s;
 }
 
-std::string ToDasher(const std::string &input) {
+std::string ToDasher(const std::string& input) {
   std::string s;
   char p = 0;
   for (size_t i = 0; i < input.length(); i++) {
-    char const &c = input[i];
+    char const& c = input[i];
     if (c == '_') {
       if (i > 0 && p != kPathSeparator &&
           // The following is a special case to ignore digits after a _. This is
@@ -190,7 +192,7 @@ std::string ToDasher(const std::string &input) {
 }
 
 // Converts foo_bar_123baz_456 to foo_bar123_baz456
-std::string SnakeToSnake2(const std::string &s) {
+std::string SnakeToSnake2(const std::string& s) {
   if (s.length() <= 1) return s;
   std::string result;
   result.reserve(s.size());
@@ -212,17 +214,17 @@ std::string SnakeToSnake2(const std::string &s) {
 
 }  // namespace
 
-bool LoadFile(const char *name, bool binary, std::string *buf) {
+bool LoadFile(const char* name, bool binary, std::string* buf) {
   FLATBUFFERS_ASSERT(g_load_file_function);
   return g_load_file_function(name, binary, buf);
 }
 
-bool FileExists(const char *name) {
+bool FileExists(const char* name) {
   FLATBUFFERS_ASSERT(g_file_exists_function);
   return g_file_exists_function(name);
 }
 
-bool DirExists(const char *name) {
+bool DirExists(const char* name) {
   // clang-format off
 
   #ifdef _WIN32
@@ -252,7 +254,7 @@ FileExistsFunction SetFileExistsFunction(
   return previous_function;
 }
 
-bool SaveFile(const char *name, const char *buf, size_t len, bool binary) {
+bool SaveFile(const char* name, const char* buf, size_t len, bool binary) {
   std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
   if (!ofs.is_open()) return false;
   ofs.write(buf, len);
@@ -264,30 +266,30 @@ bool SaveFile(const char *name, const char *buf, size_t len, bool binary) {
 // on Windows when paths are string-compared.
 
 static const char kPathSeparatorWindows = '\\';
-static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
+static const char* PathSeparatorSet = "\\/";  // Intentionally no ':'
 
-std::string StripExtension(const std::string &filepath) {
+std::string StripExtension(const std::string& filepath) {
   size_t i = filepath.find_last_of('.');
   return i != std::string::npos ? filepath.substr(0, i) : filepath;
 }
 
-std::string GetExtension(const std::string &filepath) {
+std::string GetExtension(const std::string& filepath) {
   size_t i = filepath.find_last_of('.');
   return i != std::string::npos ? filepath.substr(i + 1) : "";
 }
 
-std::string StripPath(const std::string &filepath) {
+std::string StripPath(const std::string& filepath) {
   size_t i = filepath.find_last_of(PathSeparatorSet);
   return i != std::string::npos ? filepath.substr(i + 1) : filepath;
 }
 
-std::string StripFileName(const std::string &filepath) {
+std::string StripFileName(const std::string& filepath) {
   size_t i = filepath.find_last_of(PathSeparatorSet);
   return i != std::string::npos ? filepath.substr(0, i) : "";
 }
 
-std::string StripPrefix(const std::string &filepath,
-                        const std::string &prefix_to_remove) {
+std::string StripPrefix(const std::string& filepath,
+                        const std::string& prefix_to_remove) {
   if (!strncmp(filepath.c_str(), prefix_to_remove.c_str(),
                prefix_to_remove.size())) {
     return filepath.substr(prefix_to_remove.size());
@@ -295,11 +297,11 @@ std::string StripPrefix(const std::string &filepath,
   return filepath;
 }
 
-std::string ConCatPathFileName(const std::string &path,
-                               const std::string &filename) {
+std::string ConCatPathFileName(const std::string& path,
+                               const std::string& filename) {
   std::string filepath = path;
   if (filepath.length()) {
-    char &filepath_last_character = filepath.back();
+    char& filepath_last_character = filepath.back();
     if (filepath_last_character == kPathSeparatorWindows) {
       filepath_last_character = kPathSeparator;
     } else if (filepath_last_character != kPathSeparator) {
@@ -314,19 +316,19 @@ std::string ConCatPathFileName(const std::string &path,
   return filepath;
 }
 
-std::string PosixPath(const char *path) {
+std::string PosixPath(const char* path) {
   std::string p = path;
   std::replace(p.begin(), p.end(), '\\', '/');
   return p;
 }
-std::string PosixPath(const std::string &path) {
+std::string PosixPath(const std::string& path) {
   return PosixPath(path.c_str());
 }
 
-void EnsureDirExists(const std::string &filepath) {
+void EnsureDirExists(const std::string& filepath) {
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
-    // clang-format off
+  // clang-format off
 
   #ifdef _WIN32
     (void)_mkdir(filepath.c_str());
@@ -336,11 +338,13 @@ void EnsureDirExists(const std::string &filepath) {
   // clang-format on
 }
 
-std::string FilePath(const std::string& project, const std::string& filePath, bool absolute) {
-    return (absolute) ? AbsolutePath(filePath) : RelativeToRootPath(project, filePath);
+std::string FilePath(const std::string& project, const std::string& filePath,
+                     bool absolute) {
+  return (absolute) ? AbsolutePath(filePath)
+                    : RelativeToRootPath(project, filePath);
 }
 
-std::string AbsolutePath(const std::string &filepath) {
+std::string AbsolutePath(const std::string& filepath) {
   // clang-format off
 
   #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
@@ -365,16 +369,16 @@ std::string AbsolutePath(const std::string &filepath) {
   // clang-format on
 }
 
-std::string RelativeToRootPath(const std::string &project,
-                               const std::string &filepath) {
+std::string RelativeToRootPath(const std::string& project,
+                               const std::string& filepath) {
   std::string absolute_project = PosixPath(AbsolutePath(project));
   if (absolute_project.back() != '/') absolute_project += "/";
   std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
 
   // Find the first character where they disagree.
   // The previous directory is the lowest common ancestor;
-  const char *a = absolute_project.c_str();
-  const char *b = absolute_filepath.c_str();
+  const char* a = absolute_project.c_str();
+  const char* b = absolute_filepath.c_str();
   size_t common_prefix_len = 0;
   while (*a != '\0' && *b != '\0' && *a == *b) {
     if (*a == '/') common_prefix_len = a - absolute_project.c_str();
@@ -383,7 +387,7 @@ std::string RelativeToRootPath(const std::string &project,
   }
   // the number of ../ to prepend to b depends on the number of remaining
   // directories in A.
-  const char *suffix = absolute_project.c_str() + common_prefix_len;
+  const char* suffix = absolute_project.c_str() + common_prefix_len;
   size_t num_up = 0;
   while (*suffix != '\0')
     if (*suffix++ == '/') num_up++;
@@ -416,21 +420,21 @@ ClassicLocale ClassicLocale::instance_;
 
 #endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
 
-std::string RemoveStringQuotes(const std::string &s) {
+std::string RemoveStringQuotes(const std::string& s) {
   auto ch = *s.c_str();
   return ((s.size() >= 2) && (ch == '\"' || ch == '\'') && (ch == s.back()))
              ? s.substr(1, s.length() - 2)
              : s;
 }
 
-bool SetGlobalTestLocale(const char *locale_name, std::string *_value) {
+bool SetGlobalTestLocale(const char* locale_name, std::string* _value) {
   const auto the_locale = setlocale(LC_ALL, locale_name);
   if (!the_locale) return false;
   if (_value) *_value = std::string(the_locale);
   return true;
 }
 
-bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
+bool ReadEnvironmentVariable(const char* var_name, std::string* _value) {
 #ifdef _MSC_VER
   __pragma(warning(disable : 4996));  // _CRT_SECURE_NO_WARNINGS
 #endif
@@ -440,7 +444,7 @@ bool ReadEnvironmentVariable(const char *var_name, std::string *_value) {
   return true;
 }
 
-std::string ConvertCase(const std::string &input, Case output_case,
+std::string ConvertCase(const std::string& input, Case output_case,
                         Case input_case) {
   if (output_case == Case::kKeep) return input;
   // The output cases expect snake_case inputs, so if we don't have that input
@@ -449,26 +453,39 @@ std::string ConvertCase(const std::string &input, Case output_case,
     case Case::kLowerCamel:
     case Case::kUpperCamel:
       return ConvertCase(CamelToSnake(input), output_case);
-    case Case::kDasher: return ConvertCase(DasherToSnake(input), output_case);
-    case Case::kKeep: printf("WARNING: Converting from kKeep case.\n"); break;
+    case Case::kDasher:
+      return ConvertCase(DasherToSnake(input), output_case);
+    case Case::kKeep:
+      printf("WARNING: Converting from kKeep case.\n");
+      break;
     default:
     case Case::kSnake:
     case Case::kScreamingSnake:
     case Case::kAllLower:
-    case Case::kAllUpper: break;
+    case Case::kAllUpper:
+      break;
   }
 
   switch (output_case) {
-    case Case::kUpperCamel: return ToCamelCase(input, true);
-    case Case::kLowerCamel: return ToCamelCase(input, false);
-    case Case::kSnake: return input;
-    case Case::kScreamingSnake: return ToSnakeCase(input, true);
-    case Case::kAllUpper: return ToAll(input, CharToUpper);
-    case Case::kAllLower: return ToAll(input, CharToLower);
-    case Case::kDasher: return ToDasher(input);
-    case Case::kSnake2: return SnakeToSnake2(input);
+    case Case::kUpperCamel:
+      return ToCamelCase(input, true);
+    case Case::kLowerCamel:
+      return ToCamelCase(input, false);
+    case Case::kSnake:
+      return input;
+    case Case::kScreamingSnake:
+      return ToSnakeCase(input, true);
+    case Case::kAllUpper:
+      return ToAll(input, CharToUpper);
+    case Case::kAllLower:
+      return ToAll(input, CharToLower);
+    case Case::kDasher:
+      return ToDasher(input);
+    case Case::kSnake2:
+      return SnakeToSnake2(input);
     default:
-    case Case::kUnknown: return input;
+    case Case::kUnknown:
+      return input;
   }
 }
 

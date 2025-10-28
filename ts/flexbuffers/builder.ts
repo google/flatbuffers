@@ -1,19 +1,30 @@
-import { BitWidth } from './bit-width.js'
-import { paddingSize, iwidth, uwidth, fwidth, toByteWidth, fromByteWidth } from './bit-width-util.js'
-import { toUTF8Array } from './flexbuffers-util.js'
-import { ValueType } from './value-type.js'
-import { isNumber, isTypedVectorElement, toTypedVector } from './value-type-util.js'
-import { StackValue } from './stack-value.js'
+import {
+  fromByteWidth,
+  fwidth,
+  iwidth,
+  paddingSize,
+  toByteWidth,
+  uwidth,
+} from './bit-width-util.js';
+import {BitWidth} from './bit-width.js';
+import {toUTF8Array} from './flexbuffers-util.js';
+import {StackValue} from './stack-value.js';
+import {
+  isNumber,
+  isTypedVectorElement,
+  toTypedVector,
+} from './value-type-util.js';
+import {ValueType} from './value-type.js';
 
 interface StackPointer {
-  stackPosition: number,
-  isVector: boolean
-  presorted?: boolean
+  stackPosition: number;
+  isVector: boolean;
+  presorted?: boolean;
 }
 
 export class Builder {
-  buffer: ArrayBuffer
-  view: DataView
+  buffer: ArrayBuffer;
+  view: DataView;
 
   readonly stack: Array<StackValue> = [];
   readonly stackPointers: Array<StackPointer> = [];
@@ -26,7 +37,12 @@ export class Builder {
   readonly indirectUIntLookup: Record<number, StackValue> = {};
   readonly indirectFloatLookup: Record<number, StackValue> = {};
 
-  constructor(size = 2048, private dedupStrings = true, private dedupKeys = true, private dedupKeyVectors = true) {
+  constructor(
+    size = 2048,
+    private dedupStrings = true,
+    private dedupKeys = true,
+    private dedupKeyVectors = true,
+  ) {
     this.buffer = new ArrayBuffer(size > 0 ? size : 2048);
     this.view = new DataView(this.buffer);
   }
@@ -101,12 +117,17 @@ export class Builder {
     const blobOffset = this.offset;
     const newOffset = this.computeOffset(length);
     new Uint8Array(this.buffer).set(new Uint8Array(arrayBuffer), blobOffset);
-    this.stack.push(this.offsetStackValue(blobOffset, ValueType.BLOB, bitWidth));
+    this.stack.push(
+      this.offsetStackValue(blobOffset, ValueType.BLOB, bitWidth),
+    );
     this.offset = newOffset;
   }
 
   private writeString(str: string): void {
-    if (this.dedupStrings && Object.prototype.hasOwnProperty.call(this.stringLookup, str)) {
+    if (
+      this.dedupStrings &&
+      Object.prototype.hasOwnProperty.call(this.stringLookup, str)
+    ) {
       this.stack.push(this.stringLookup[str]);
       return;
     }
@@ -118,7 +139,11 @@ export class Builder {
     const stringOffset = this.offset;
     const newOffset = this.computeOffset(length + 1);
     new Uint8Array(this.buffer).set(utf8, stringOffset);
-    const stackValue = this.offsetStackValue(stringOffset, ValueType.STRING, bitWidth);
+    const stackValue = this.offsetStackValue(
+      stringOffset,
+      ValueType.STRING,
+      bitWidth,
+    );
     this.stack.push(stackValue);
     if (this.dedupStrings) {
       this.stringLookup[str] = stackValue;
@@ -127,7 +152,10 @@ export class Builder {
   }
 
   private writeKey(str: string): void {
-    if (this.dedupKeys && Object.prototype.hasOwnProperty.call(this.keyLookup, str)) {
+    if (
+      this.dedupKeys &&
+      Object.prototype.hasOwnProperty.call(this.keyLookup, str)
+    ) {
       this.stack.push(this.keyLookup[str]);
       return;
     }
@@ -135,7 +163,11 @@ export class Builder {
     const length = utf8.length;
     const newOffset = this.computeOffset(length + 1);
     new Uint8Array(this.buffer).set(utf8, this.offset);
-    const stackValue = this.offsetStackValue(this.offset, ValueType.KEY, BitWidth.WIDTH8);
+    const stackValue = this.offsetStackValue(
+      this.offset,
+      ValueType.KEY,
+      BitWidth.WIDTH8,
+    );
     this.stack.push(stackValue);
     if (this.dedupKeys) {
       this.keyLookup[str] = stackValue;
@@ -147,10 +179,13 @@ export class Builder {
     const newOffset = this.computeOffset(byteWidth);
     if (value.isOffset()) {
       const relativeOffset = this.offset - value.offset;
-      if (byteWidth === 8 || BigInt(relativeOffset) < (BigInt(1) << BigInt(byteWidth * 8))) {
+      if (
+        byteWidth === 8 ||
+        BigInt(relativeOffset) < BigInt(1) << BigInt(byteWidth * 8)
+      ) {
         this.writeUInt(relativeOffset, byteWidth);
       } else {
-        throw `Unexpected size ${byteWidth}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
+        throw `Unexpected size ${byteWidth}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
       }
     } else {
       value.writeToBuffer(byteWidth);
@@ -160,30 +195,40 @@ export class Builder {
 
   private integrityCheckOnValueAddition() {
     if (this.finished) {
-      throw "Adding values after finish is prohibited";
+      throw 'Adding values after finish is prohibited';
     }
-    if (this.stackPointers.length !== 0 && this.stackPointers[this.stackPointers.length - 1].isVector === false) {
+    if (
+      this.stackPointers.length !== 0 &&
+      this.stackPointers[this.stackPointers.length - 1].isVector === false
+    ) {
       if (this.stack[this.stack.length - 1].type !== ValueType.KEY) {
-        throw "Adding value to a map before adding a key is prohibited";
+        throw 'Adding value to a map before adding a key is prohibited';
       }
     }
   }
 
   private integrityCheckOnKeyAddition() {
     if (this.finished) {
-      throw "Adding values after finish is prohibited";
+      throw 'Adding values after finish is prohibited';
     }
-    if (this.stackPointers.length === 0 || this.stackPointers[this.stackPointers.length - 1].isVector) {
-      throw "Adding key before starting a map is prohibited";
+    if (
+      this.stackPointers.length === 0 ||
+      this.stackPointers[this.stackPointers.length - 1].isVector
+    ) {
+      throw 'Adding key before starting a map is prohibited';
     }
   }
 
   startVector(): void {
-    this.stackPointers.push({ stackPosition: this.stack.length, isVector: true });
+    this.stackPointers.push({stackPosition: this.stack.length, isVector: true});
   }
 
   startMap(presorted = false): void {
-    this.stackPointers.push({ stackPosition: this.stack.length, isVector: false, presorted: presorted });
+    this.stackPointers.push({
+      stackPosition: this.stack.length,
+      isVector: false,
+      presorted: presorted,
+    });
   }
 
   private endVector(stackPointer: StackPointer) {
@@ -197,28 +242,42 @@ export class Builder {
     if (!stackPointer.presorted) {
       this.sort(stackPointer);
     }
-    let keyVectorHash = "";
+    let keyVectorHash = '';
     for (let i = stackPointer.stackPosition; i < this.stack.length; i += 2) {
       keyVectorHash += `,${this.stack[i].offset}`;
     }
     const vecLength = (this.stack.length - stackPointer.stackPosition) >> 1;
 
-    if (this.dedupKeyVectors && !Object.prototype.hasOwnProperty.call(this.keyVectorLookup, keyVectorHash)) {
-      this.keyVectorLookup[keyVectorHash] = this.createVector(stackPointer.stackPosition, vecLength, 2);
+    if (
+      this.dedupKeyVectors &&
+      !Object.prototype.hasOwnProperty.call(this.keyVectorLookup, keyVectorHash)
+    ) {
+      this.keyVectorLookup[keyVectorHash] = this.createVector(
+        stackPointer.stackPosition,
+        vecLength,
+        2,
+      );
     }
-    const keysStackValue = this.dedupKeyVectors ? this.keyVectorLookup[keyVectorHash] : this.createVector(stackPointer.stackPosition, vecLength, 2);
-    const valuesStackValue = this.createVector(stackPointer.stackPosition + 1, vecLength, 2, keysStackValue);
+    const keysStackValue = this.dedupKeyVectors
+      ? this.keyVectorLookup[keyVectorHash]
+      : this.createVector(stackPointer.stackPosition, vecLength, 2);
+    const valuesStackValue = this.createVector(
+      stackPointer.stackPosition + 1,
+      vecLength,
+      2,
+      keysStackValue,
+    );
     this.stack.splice(stackPointer.stackPosition, vecLength << 1);
     this.stack.push(valuesStackValue);
   }
 
   private sort(stackPointer: StackPointer) {
-    const view = this.view
-    const stack = this.stack
+    const view = this.view;
+    const stack = this.stack;
 
     function shouldFlip(v1: StackValue, v2: StackValue) {
       if (v1.type !== ValueType.KEY || v2.type !== ValueType.KEY) {
-        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
+        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`;
       }
       let c1, c2;
       let index = 0;
@@ -258,7 +317,7 @@ export class Builder {
 
     function smaller(v1: StackValue, v2: StackValue) {
       if (v1.type !== ValueType.KEY || v2.type !== ValueType.KEY) {
-        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`
+        throw `Stack values are not keys ${v1} | ${v2}. Check if you combined [addKey] with add... method calls properly.`;
       }
       if (v1.offset === v2.offset) {
         return false;
@@ -276,9 +335,8 @@ export class Builder {
     }
 
     function quickSort(left: number, right: number) {
-
       if (left < right) {
-        const mid = left + (((right - left) >> 2)) * 2;
+        const mid = left + ((right - left) >> 2) * 2;
         const pivot = stack[mid];
         let left_new = left;
         let right_new = right;
@@ -299,12 +357,15 @@ export class Builder {
 
         quickSort(left, right_new);
         quickSort(left_new, right);
-
       }
     }
 
     let sorted = true;
-    for (let i = stackPointer.stackPosition; i < this.stack.length - 2; i += 2) {
+    for (
+      let i = stackPointer.stackPosition;
+      i < this.stack.length - 2;
+      i += 2
+    ) {
       if (shouldFlip(this.stack[i], this.stack[i + 2])) {
         sorted = false;
         break;
@@ -330,7 +391,12 @@ export class Builder {
     }
   }
 
-  private createVector(start: number, vecLength: number, step: number, keys: StackValue | null = null) {
+  private createVector(
+    start: number,
+    vecLength: number,
+    step: number,
+    keys: StackValue | null = null,
+  ) {
     let bitWidth = uwidth(vecLength);
     let prefixElements = 1;
     if (keys !== null) {
@@ -343,7 +409,10 @@ export class Builder {
     let vectorType = ValueType.KEY;
     let typed = keys === null;
     for (let i = start; i < this.stack.length; i += step) {
-      const elementWidth = this.stack[i].elementWidth(this.offset, i + prefixElements);
+      const elementWidth = this.stack[i].elementWidth(
+        this.offset,
+        i + prefixElements,
+      );
       if (elementWidth > bitWidth) {
         bitWidth = elementWidth;
       }
@@ -357,7 +426,8 @@ export class Builder {
       }
     }
     const byteWidth = this.align(bitWidth);
-    const fix = typed && isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
+    const fix =
+      typed && isNumber(vectorType) && vecLength >= 2 && vecLength <= 4;
     if (keys !== null) {
       this.writeStackValue(keys, byteWidth);
       this.writeUInt(1 << keys.width, byteWidth);
@@ -404,7 +474,11 @@ export class Builder {
     return new StackValue(this, ValueType.FLOAT, fwidth(value), value);
   }
 
-  private offsetStackValue(offset: number, valueType: ValueType, bitWidth: BitWidth): StackValue {
+  private offsetStackValue(
+    offset: number,
+    valueType: ValueType,
+    bitWidth: BitWidth,
+  ): StackValue {
     return new StackValue(this, valueType, bitWidth, null, offset);
   }
 
@@ -420,16 +494,28 @@ export class Builder {
     this.finished = true;
   }
 
-  add(value: undefined | null | boolean | bigint | number | DataView | string | Array<unknown> | Record<string, unknown> | unknown): void {
+  add(
+    value:
+      | undefined
+      | null
+      | boolean
+      | bigint
+      | number
+      | DataView
+      | string
+      | Array<unknown>
+      | Record<string, unknown>
+      | unknown,
+  ): void {
     this.integrityCheckOnValueAddition();
     if (typeof value === 'undefined') {
-      throw "You need to provide a value";
+      throw 'You need to provide a value';
     }
     if (value === null) {
       this.stack.push(this.nullStackValue());
-    } else if (typeof value === "boolean") {
+    } else if (typeof value === 'boolean') {
       this.stack.push(this.boolStackValue(value));
-    } else if (typeof value === "bigint") {
+    } else if (typeof value === 'bigint') {
       this.stack.push(this.intStackValue(value));
     } else if (typeof value == 'number') {
       if (Number.isInteger(value)) {
@@ -484,7 +570,10 @@ export class Builder {
       this.stack.push(this.intStackValue(value));
       return;
     }
-    if (deduplicate && Object.prototype.hasOwnProperty.call(this.indirectIntLookup, value)) {
+    if (
+      deduplicate &&
+      Object.prototype.hasOwnProperty.call(this.indirectIntLookup, value)
+    ) {
       this.stack.push(this.indirectIntLookup[value]);
       return;
     }
@@ -493,7 +582,11 @@ export class Builder {
     const newOffset = this.computeOffset(byteWidth);
     const valueOffset = this.offset;
     stackValue.writeToBuffer(byteWidth);
-    const stackOffset = this.offsetStackValue(valueOffset, ValueType.INDIRECT_INT, stackValue.width);
+    const stackOffset = this.offsetStackValue(
+      valueOffset,
+      ValueType.INDIRECT_INT,
+      stackValue.width,
+    );
     this.stack.push(stackOffset);
     this.offset = newOffset;
     if (deduplicate) {
@@ -507,7 +600,10 @@ export class Builder {
       this.stack.push(this.uintStackValue(value));
       return;
     }
-    if (deduplicate && Object.prototype.hasOwnProperty.call(this.indirectUIntLookup, value)) {
+    if (
+      deduplicate &&
+      Object.prototype.hasOwnProperty.call(this.indirectUIntLookup, value)
+    ) {
       this.stack.push(this.indirectUIntLookup[value]);
       return;
     }
@@ -516,7 +612,11 @@ export class Builder {
     const newOffset = this.computeOffset(byteWidth);
     const valueOffset = this.offset;
     stackValue.writeToBuffer(byteWidth);
-    const stackOffset = this.offsetStackValue(valueOffset, ValueType.INDIRECT_UINT, stackValue.width);
+    const stackOffset = this.offsetStackValue(
+      valueOffset,
+      ValueType.INDIRECT_UINT,
+      stackValue.width,
+    );
     this.stack.push(stackOffset);
     this.offset = newOffset;
     if (deduplicate) {
@@ -530,7 +630,10 @@ export class Builder {
       this.stack.push(this.floatStackValue(value));
       return;
     }
-    if (deduplicate && Object.prototype.hasOwnProperty.call(this.indirectFloatLookup, value)) {
+    if (
+      deduplicate &&
+      Object.prototype.hasOwnProperty.call(this.indirectFloatLookup, value)
+    ) {
       this.stack.push(this.indirectFloatLookup[value]);
       return;
     }
@@ -539,7 +642,11 @@ export class Builder {
     const newOffset = this.computeOffset(byteWidth);
     const valueOffset = this.offset;
     stackValue.writeToBuffer(byteWidth);
-    const stackOffset = this.offsetStackValue(valueOffset, ValueType.INDIRECT_FLOAT, stackValue.width);
+    const stackOffset = this.offsetStackValue(
+      valueOffset,
+      ValueType.INDIRECT_FLOAT,
+      stackValue.width,
+    );
     this.stack.push(stackOffset);
     this.offset = newOffset;
     if (deduplicate) {

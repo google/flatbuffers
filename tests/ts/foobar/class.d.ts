@@ -1,3 +1,3 @@
 export declare enum class_ {
-    arguments_ = 0
+  arguments_ = 0,
 }

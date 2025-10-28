@@ -93,7 +93,7 @@ significant changes have been made.
    goal of this implementation.  Support for 16 bit integers was also added.
 5. The code generation in this offers an "ObjectBuilder", which generates code
    very similar to the SDK classes that consume FlatBuffers, as well as Builder
-   classes, which produces code which more closely resembles the builders in 
+   classes, which produces code which more closely resembles the builders in
    other languages. The ObjectBuilder classes are easier to use, at the cost of
    additional references allocated.
 

@@ -38,7 +38,7 @@ static constexpr uint8_t flags_quotes_kind = 0x10;  // quote " or '
 // Find all 'subj' sub-strings and replace first character of sub-string.
 // BreakSequence("testest","tes", 'X') -> "XesXest".
 // BreakSequence("xxx","xx", 'Y') -> "YYx".
-static void BreakSequence(std::string &s, const char *subj, char repl) {
+static void BreakSequence(std::string& s, const char* subj, char repl) {
   size_t pos = 0;
   while (pos = s.find(subj, pos), pos != std::string::npos) {
     s.at(pos) = repl;
@@ -48,8 +48,8 @@ static void BreakSequence(std::string &s, const char *subj, char repl) {
 
 // Remove all leading and trailing symbols matched with pattern set.
 // StripString("xy{xy}y", "xy") -> "{xy}"
-static std::string StripString(const std::string &s, const char *pattern,
-                               size_t *pos = nullptr) {
+static std::string StripString(const std::string& s, const char* pattern,
+                               size_t* pos = nullptr) {
   if (pos) *pos = 0;
   // leading
   auto first = s.find_first_not_of(pattern);
@@ -64,19 +64,19 @@ static std::string StripString(const std::string &s, const char *pattern,
 
 class RegexMatcher {
  protected:
-  virtual bool MatchNumber(const std::string &input) const = 0;
+  virtual bool MatchNumber(const std::string& input) const = 0;
 
  public:
   virtual ~RegexMatcher() = default;
 
   struct MatchResult {
-    size_t pos{ 0 };
-    size_t len{ 0 };
-    bool res{ false };
-    bool quoted{ false };
+    size_t pos{0};
+    size_t len{0};
+    bool res{false};
+    bool quoted{false};
   };
 
-  MatchResult Match(const std::string &input) const {
+  MatchResult Match(const std::string& input) const {
     MatchResult r;
     // strip leading and trailing "spaces" accepted by flatbuffer
     auto test = StripString(input, "\t\r\n ", &r.pos);
@@ -103,11 +103,11 @@ class RegexMatcher {
     return r;
   }
 
-  bool MatchRegexList(const std::string &input,
-                      const std::vector<std::regex> &re_list) const {
+  bool MatchRegexList(const std::string& input,
+                      const std::vector<std::regex>& re_list) const {
     auto str = StripString(input, " ");
     if (str.empty()) return false;
-    for (auto &re : re_list) {
+    for (auto& re : re_list) {
       std::smatch match;
       if (std::regex_match(str, match, re)) return true;
     }
@@ -117,13 +117,12 @@ class RegexMatcher {
 
 class IntegerRegex : public RegexMatcher {
  protected:
-  bool MatchNumber(const std::string &input) const override {
+  bool MatchNumber(const std::string& input) const override {
     static const std::vector<std::regex> re_list = {
-      std::regex{ R"(^[-+]?[0-9]+$)", std::regex_constants::optimize },
+        std::regex{R"(^[-+]?[0-9]+$)", std::regex_constants::optimize},
 
-      std::regex{ R"(^[-+]?0[xX][0-9a-fA-F]+$)",
-                  std::regex_constants::optimize }
-    };
+        std::regex{R"(^[-+]?0[xX][0-9a-fA-F]+$)",
+                   std::regex_constants::optimize}};
     return MatchRegexList(input, re_list);
   }
 
@@ -134,14 +133,13 @@ class IntegerRegex : public RegexMatcher {
 
 class UIntegerRegex : public RegexMatcher {
  protected:
-  bool MatchNumber(const std::string &input) const override {
+  bool MatchNumber(const std::string& input) const override {
     static const std::vector<std::regex> re_list = {
-      std::regex{ R"(^[+]?[0-9]+$)", std::regex_constants::optimize },
-      std::regex{ R"(^[+]?0[xX][0-9a-fA-F]+$)",
-                  std::regex_constants::optimize },
-      // accept -0 number
-      std::regex{ R"(^[-](?:0[xX])?0+$)", std::regex_constants::optimize }
-    };
+        std::regex{R"(^[+]?[0-9]+$)", std::regex_constants::optimize},
+        std::regex{R"(^[+]?0[xX][0-9a-fA-F]+$)",
+                   std::regex_constants::optimize},
+        // accept -0 number
+        std::regex{R"(^[-](?:0[xX])?0+$)", std::regex_constants::optimize}};
     return MatchRegexList(input, re_list);
   }
 
@@ -152,7 +150,7 @@ class UIntegerRegex : public RegexMatcher {
 
 class BooleanRegex : public IntegerRegex {
  protected:
-  bool MatchNumber(const std::string &input) const override {
+  bool MatchNumber(const std::string& input) const override {
     if (input == "true" || input == "false") return true;
     return IntegerRegex::MatchNumber(input);
   }
@@ -164,20 +162,20 @@ class BooleanRegex : public IntegerRegex {
 
 class FloatRegex : public RegexMatcher {
  protected:
-  bool MatchNumber(const std::string &input) const override {
+  bool MatchNumber(const std::string& input) const override {
     static const std::vector<std::regex> re_list = {
-      // hex-float
-      std::regex{
-          R"(^[-+]?0[xX](?:(?:[.][0-9a-fA-F]+)|(?:[0-9a-fA-F]+[.][0-9a-fA-F]*)|(?:[0-9a-fA-F]+))[pP][-+]?[0-9]+$)",
-          std::regex_constants::optimize },
-      // dec-float
-      std::regex{
-          R"(^[-+]?(?:(?:[.][0-9]+)|(?:[0-9]+[.][0-9]*)|(?:[0-9]+))(?:[eE][-+]?[0-9]+)?$)",
-          std::regex_constants::optimize },
+        // hex-float
+        std::regex{
+            R"(^[-+]?0[xX](?:(?:[.][0-9a-fA-F]+)|(?:[0-9a-fA-F]+[.][0-9a-fA-F]*)|(?:[0-9a-fA-F]+))[pP][-+]?[0-9]+$)",
+            std::regex_constants::optimize},
+        // dec-float
+        std::regex{
+            R"(^[-+]?(?:(?:[.][0-9]+)|(?:[0-9]+[.][0-9]*)|(?:[0-9]+))(?:[eE][-+]?[0-9]+)?$)",
+            std::regex_constants::optimize},
 
-      std::regex{ R"(^[-+]?(?:nan|inf|infinity)$)",
-                  std::regex_constants::optimize | std::regex_constants::icase }
-    };
+        std::regex{
+            R"(^[-+]?(?:nan|inf|infinity)$)",
+            std::regex_constants::optimize | std::regex_constants::icase}};
     return MatchRegexList(input, re_list);
   }
 
@@ -188,34 +186,46 @@ class FloatRegex : public RegexMatcher {
 
 class ScalarReferenceResult {
  private:
-  ScalarReferenceResult(const char *_type, RegexMatcher::MatchResult _matched)
+  ScalarReferenceResult(const char* _type, RegexMatcher::MatchResult _matched)
       : type(_type), matched(_matched) {}
 
  public:
   // Decode scalar type and check if the input string satisfies the scalar type.
-  static ScalarReferenceResult Check(uint8_t code, const std::string &input) {
+  static ScalarReferenceResult Check(uint8_t code, const std::string& input) {
     switch (code) {
-      case 0x0: return { "double", FloatRegex().Match(input) };
-      case 0x1: return { "float", FloatRegex().Match(input) };
-      case 0x2: return { "int8", IntegerRegex().Match(input) };
-      case 0x3: return { "int16", IntegerRegex().Match(input) };
-      case 0x4: return { "int32", IntegerRegex().Match(input) };
-      case 0x5: return { "int64", IntegerRegex().Match(input) };
-      case 0x6: return { "uint8", UIntegerRegex().Match(input) };
-      case 0x7: return { "uint16", UIntegerRegex().Match(input) };
-      case 0x8: return { "uint32", UIntegerRegex().Match(input) };
-      case 0x9: return { "uint64", UIntegerRegex().Match(input) };
-      case 0xA: return { "bool", BooleanRegex().Match(input) };
-      default: return { "float", FloatRegex().Match(input) };
+      case 0x0:
+        return {"double", FloatRegex().Match(input)};
+      case 0x1:
+        return {"float", FloatRegex().Match(input)};
+      case 0x2:
+        return {"int8", IntegerRegex().Match(input)};
+      case 0x3:
+        return {"int16", IntegerRegex().Match(input)};
+      case 0x4:
+        return {"int32", IntegerRegex().Match(input)};
+      case 0x5:
+        return {"int64", IntegerRegex().Match(input)};
+      case 0x6:
+        return {"uint8", UIntegerRegex().Match(input)};
+      case 0x7:
+        return {"uint16", UIntegerRegex().Match(input)};
+      case 0x8:
+        return {"uint32", UIntegerRegex().Match(input)};
+      case 0x9:
+        return {"uint64", UIntegerRegex().Match(input)};
+      case 0xA:
+        return {"bool", BooleanRegex().Match(input)};
+      default:
+        return {"float", FloatRegex().Match(input)};
     };
   }
 
-  const char *type;
+  const char* type;
   const RegexMatcher::MatchResult matched;
 };
 
-bool Parse(flatbuffers::Parser &parser, const std::string &json,
-           std::string *_text) {
+bool Parse(flatbuffers::Parser& parser, const std::string& json,
+           std::string* _text) {
   auto done = parser.ParseJson(json.c_str());
   if (done) {
     TEST_NULL(GenText(parser, parser.builder_.GetBufferPointer(), _text));
@@ -230,7 +240,7 @@ OneTimeTestInit OneTimeTestInit::one_time_init_;
 
 // llvm std::regex have problem with stack overflow, limit maximum length.
 // ./scalar_fuzzer -max_len=3000
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   // Reserve one byte for Parser flags and one byte for repetition counter.
   if (size < 3) return 0;
   const uint8_t flags = data[0];
@@ -241,7 +251,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   size -= 2;  // bypass
 
   // Guarantee 0-termination.
-  const std::string original(reinterpret_cast<const char *>(data), size);
+  const std::string original(reinterpret_cast<const char*>(data), size);
   auto input = std::string(original.c_str());  // until '\0'
   if (input.size() < kMinInputLength || input.size() > kMaxInputLength)
     return 0;
@@ -257,7 +267,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // This key:value ignored by the parser. Numbers can not have $.
   BreakSequence(input, "$schema", '@');  // "$schema" -> "@schema"
   // Break all known scalar functions (todo: add them to regex?):
-  for (auto f : { "deg", "rad", "sin", "cos", "tan", "asin", "acos", "atan" }) {
+  for (auto f : {"deg", "rad", "sin", "cos", "tan", "asin", "acos", "atan"}) {
     BreakSequence(input, f, '_');  // ident -> ident
   }
 
@@ -265,7 +275,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   // the scalar type.
   const auto ref_res =
       ScalarReferenceResult::Check(flags & flags_scalar_type, input);
-  auto &recheck = ref_res.matched;
+  auto& recheck = ref_res.matched;
 
   // Create parser
   flatbuffers::IDLOptions opts;
@@ -338,7 +348,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                          orig_done);
         TEST_EQ_STR(fix_back.c_str(), orig_back.c_str());
       }
-      if (orig_done) { TEST_EQ_STR(fix_back.c_str(), orig_back.c_str()); }
+      if (orig_done) {
+        TEST_EQ_STR(fix_back.c_str(), orig_back.c_str());
+      }
       TEST_EQ_FUNC(fix_done, orig_done);
     }
 
@@ -357,8 +369,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       }
       // Compare with print.
       std::string ref_string, def_string;
-      FLATBUFFERS_ASSERT(!GenText(
-          parser, parser.builder_.GetBufferPointer(), &ref_string));
+      FLATBUFFERS_ASSERT(
+          !GenText(parser, parser.builder_.GetBufferPointer(), &ref_string));
       FLATBUFFERS_ASSERT(!GenText(
           def_parser, def_parser.builder_.GetBufferPointer(), &def_string));
       if (ref_string != def_string) {
@@ -369,7 +381,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     }
 
     // Restore locale.
-    if (use_locale) { FLATBUFFERS_ASSERT(setlocale(LC_ALL, "C")); }
+    if (use_locale) {
+      FLATBUFFERS_ASSERT(setlocale(LC_ALL, "C"));
+    }
   }
   return 0;
 }

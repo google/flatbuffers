@@ -2,7 +2,6 @@
 
 import flatbuffers
 import grpc
-
 from service_test_generated import HelloRequest, HelloResponse
 
 
@@ -15,38 +14,42 @@ def _serialize_to_bytes(table):
 
 
 class HelloServiceStub(object):
-  '''Interface exported by the server.'''
+  """Interface exported by the server."""
 
   def __init__(self, channel):
-    '''Constructor.
+    """Constructor.
 
     Args:
       channel: A grpc.Channel.
-    '''
+    """
 
     self.Hello = channel.unary_unary(
-      method='/example.HelloService/Hello',
-      request_serializer=_serialize_to_bytes,
-      response_deserializer=HelloResponse.GetRootAs)
+        method='/example.HelloService/Hello',
+        request_serializer=_serialize_to_bytes,
+        response_deserializer=HelloResponse.GetRootAs,
+    )
 
     self.StreamClient = channel.stream_unary(
-      method='/example.HelloService/StreamClient',
-      request_serializer=_serialize_to_bytes,
-      response_deserializer=HelloResponse.GetRootAs)
+        method='/example.HelloService/StreamClient',
+        request_serializer=_serialize_to_bytes,
+        response_deserializer=HelloResponse.GetRootAs,
+    )
 
     self.StreamServer = channel.unary_stream(
-      method='/example.HelloService/StreamServer',
-      request_serializer=_serialize_to_bytes,
-      response_deserializer=HelloResponse.GetRootAs)
+        method='/example.HelloService/StreamServer',
+        request_serializer=_serialize_to_bytes,
+        response_deserializer=HelloResponse.GetRootAs,
+    )
 
     self.Stream = channel.stream_stream(
-      method='/example.HelloService/Stream',
-      request_serializer=_serialize_to_bytes,
-      response_deserializer=HelloResponse.GetRootAs)
+        method='/example.HelloService/Stream',
+        request_serializer=_serialize_to_bytes,
+        response_deserializer=HelloResponse.GetRootAs,
+    )
 
 
 class HelloServiceServicer(object):
-  '''Interface exported by the server.'''
+  """Interface exported by the server."""
 
   def Hello(self, request, context):
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -71,27 +74,30 @@ class HelloServiceServicer(object):
 
 def add_HelloServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
-    'Hello': grpc.unary_unary_rpc_method_handler(
-      servicer.Hello,
-      request_deserializer=HelloRequest.GetRootAs,
-      response_serializer=_serialize_to_bytes),
-    'StreamClient': grpc.stream_unary_rpc_method_handler(
-      servicer.StreamClient,
-      request_deserializer=HelloRequest.GetRootAs,
-      response_serializer=_serialize_to_bytes),
-    'StreamServer': grpc.unary_stream_rpc_method_handler(
-      servicer.StreamServer,
-      request_deserializer=HelloRequest.GetRootAs,
-      response_serializer=_serialize_to_bytes),
-    'Stream': grpc.stream_stream_rpc_method_handler(
-      servicer.Stream,
-      request_deserializer=HelloRequest.GetRootAs,
-      response_serializer=_serialize_to_bytes),
+      'Hello': grpc.unary_unary_rpc_method_handler(
+          servicer.Hello,
+          request_deserializer=HelloRequest.GetRootAs,
+          response_serializer=_serialize_to_bytes,
+      ),
+      'StreamClient': grpc.stream_unary_rpc_method_handler(
+          servicer.StreamClient,
+          request_deserializer=HelloRequest.GetRootAs,
+          response_serializer=_serialize_to_bytes,
+      ),
+      'StreamServer': grpc.unary_stream_rpc_method_handler(
+          servicer.StreamServer,
+          request_deserializer=HelloRequest.GetRootAs,
+          response_serializer=_serialize_to_bytes,
+      ),
+      'Stream': grpc.stream_stream_rpc_method_handler(
+          servicer.Stream,
+          request_deserializer=HelloRequest.GetRootAs,
+          response_serializer=_serialize_to_bytes,
+      ),
   }
 
   generic_handler = grpc.method_handlers_generic_handler(
-    'example.HelloService', rpc_method_handlers)
+      'example.HelloService', rpc_method_handlers
+  )
 
   server.add_generic_rpc_handlers((generic_handler,))
-
-

@@ -30,8 +30,8 @@ public struct TypedVector: FlexBufferVector {
     byteBuffer: ByteBuffer,
     offset: Int,
     byteWidth: UInt8,
-    type: FlexBufferType)
-  {
+    type: FlexBufferType
+  ) {
     self.byteBuffer = byteBuffer
     self.offset = offset
     self.byteWidth = byteWidth
@@ -54,8 +54,8 @@ public struct TypedVector: FlexBufferVector {
   static func mapKeys(
     byteBuffer: ByteBuffer,
     offset: Int,
-    byteWidth: UInt8) -> TypedVector
-  {
+    byteWidth: UInt8
+  ) -> TypedVector {
     let prefixedFields = 3
     let keysOffset = offset &- (numericCast(byteWidth) &* prefixedFields)
 
@@ -88,12 +88,11 @@ extension TypedVector {
       byteWidth)
 
     return byteBuffer.readWithUnsafeRawPointer(
-      position: indirectoffset)
-    { bufPointer in
+      position: indirectoffset
+    ) { bufPointer in
       target.withCString { strPointer in
         Int(strcmp(bufPointer, strPointer))
       }
     }
   }
 }
-

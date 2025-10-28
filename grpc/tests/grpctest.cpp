@@ -33,9 +33,9 @@ void message_builder_tests();
 // code. It implements all rpcs specified in the FlatBuffers schema.
 class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
   virtual ::grpc::Status Store(
-      ::grpc::ServerContext *context,
-      const flatbuffers::grpc::Message<Monster> *request,
-      flatbuffers::grpc::Message<Stat> *response) override {
+      ::grpc::ServerContext* context,
+      const flatbuffers::grpc::Message<Monster>* request,
+      flatbuffers::grpc::Message<Stat>* response) override {
     // Create a response from the incoming request name.
     fbb_.Clear();
     auto stat_offset = CreateStat(
@@ -46,9 +46,9 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
     return grpc::Status::OK;
   }
   virtual ::grpc::Status Retrieve(
-      ::grpc::ServerContext *context,
-      const flatbuffers::grpc::Message<Stat> *request,
-      ::grpc::ServerWriter<flatbuffers::grpc::Message<Monster>> *writer)
+      ::grpc::ServerContext* context,
+      const flatbuffers::grpc::Message<Stat>* request,
+      ::grpc::ServerWriter<flatbuffers::grpc::Message<Monster>>* writer)
       override {
     for (int i = 0; i < 5; i++) {
       fbb_.Clear();
@@ -73,7 +73,7 @@ class ServiceImpl final : public MyGame::Example::MonsterStorage::Service {
 };
 
 // Track the server instance, so we can terminate it later.
-grpc::Server *server_instance = nullptr;
+grpc::Server* server_instance = nullptr;
 // Mutex to protec this variable.
 std::mutex wait_for_server;
 std::condition_variable server_instance_cv;
@@ -98,7 +98,8 @@ void RunServer() {
   server_instance->Wait();
 }
 
-template<class Builder> void StoreRPC(MonsterStorage::Stub *stub) {
+template <class Builder>
+void StoreRPC(MonsterStorage::Stub* stub) {
   Builder fbb;
   grpc::ClientContext context;
   // Build a request with the name set.
@@ -119,7 +120,8 @@ template<class Builder> void StoreRPC(MonsterStorage::Stub *stub) {
   }
 }
 
-template<class Builder> void RetrieveRPC(MonsterStorage::Stub *stub) {
+template <class Builder>
+void RetrieveRPC(MonsterStorage::Stub* stub) {
   Builder fbb;
   grpc::ClientContext context;
   fbb.Clear();
@@ -179,7 +181,7 @@ int grpc_server_test() {
   return 0;
 }
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int /*argc*/, const char* /*argv*/[]) {
   message_builder_tests();
   grpc_server_test();
 

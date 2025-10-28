@@ -35,8 +35,7 @@ fun arrayFailMessage(expected: ShortArray, actual: ShortArray): String =
 fun arrayFailMessage(expected: LongArray, actual: LongArray): String =
   failMessage(expected.contentToString(), actual.contentToString())
 
-fun failMessage(expected: String, actual: String): String =
-  "Expected: $expected\nActual: $actual"
+fun failMessage(expected: String, actual: String): String = "Expected: $expected\nActual: $actual"
 
 fun arrayFailMessage(expected: FloatArray, actual: FloatArray): String {
   return "Expected: ${expected.contentToString()}\nActual: ${actual.contentToString()}"

@@ -31,41 +31,41 @@ namespace {
 
 static Namer::Config JavaDefaultConfig() {
   return {
-    /*types=*/Case::kKeep,
-    /*constants=*/Case::kScreamingSnake,
-    /*methods=*/Case::kLowerCamel,
-    /*functions=*/Case::kLowerCamel,
-    /*fields=*/Case::kLowerCamel,
-    /*variables=*/Case::kLowerCamel,
-    /*variants=*/Case::kKeep,
-    /*enum_variant_seperator=*/".",
-    /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
-    /*namespaces=*/Case::kKeep,
-    /*namespace_seperator=*/".",
-    /*object_prefix=*/"",
-    /*object_suffix=*/"T",
-    /*keyword_prefix=*/"",
-    /*keyword_suffix=*/"_",
-    /*filenames=*/Case::kKeep,
-    /*directories=*/Case::kKeep,
-    /*output_path=*/"",
-    /*filename_suffix=*/"_generated",
-    /*filename_extension=*/".java",
+      /*types=*/Case::kKeep,
+      /*constants=*/Case::kScreamingSnake,
+      /*methods=*/Case::kLowerCamel,
+      /*functions=*/Case::kLowerCamel,
+      /*fields=*/Case::kLowerCamel,
+      /*variables=*/Case::kLowerCamel,
+      /*variants=*/Case::kKeep,
+      /*enum_variant_seperator=*/".",
+      /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
+      /*namespaces=*/Case::kKeep,
+      /*namespace_seperator=*/".",
+      /*object_prefix=*/"",
+      /*object_suffix=*/"T",
+      /*keyword_prefix=*/"",
+      /*keyword_suffix=*/"_",
+      /*filenames=*/Case::kKeep,
+      /*directories=*/Case::kKeep,
+      /*output_path=*/"",
+      /*filename_suffix=*/"_generated",
+      /*filename_extension=*/".java",
   };
 }
 
 static std::set<std::string> JavaKeywords() {
   return {
-    "abstract", "continue", "for",        "new",       "switch",
-    "assert",   "default",  "goto",       "package",   "synchronized",
-    "boolean",  "do",       "if",         "private",   "this",
-    "break",    "double",   "implements", "protected", "throw",
-    "byte",     "else",     "import",     "public",    "throws",
-    "case",     "enum",     "instanceof", "return",    "transient",
-    "catch",    "extends",  "int",        "short",     "try",
-    "char",     "final",    "interface",  "static",    "void",
-    "class",    "finally",  "long",       "strictfp",  "volatile",
-    "const",    "float",    "native",     "super",     "while",
+      "abstract", "continue", "for",        "new",       "switch",
+      "assert",   "default",  "goto",       "package",   "synchronized",
+      "boolean",  "do",       "if",         "private",   "this",
+      "break",    "double",   "implements", "protected", "throw",
+      "byte",     "else",     "import",     "public",    "throws",
+      "case",     "enum",     "instanceof", "return",    "transient",
+      "catch",    "extends",  "int",        "short",     "try",
+      "char",     "final",    "interface",  "static",    "void",
+      "class",    "finally",  "long",       "strictfp",  "volatile",
+      "const",    "float",    "native",     "super",     "while",
   };
 }
 
@@ -75,9 +75,9 @@ static const TypedFloatConstantGenerator JavaFloatGen("Double.", "Float.",
                                                       "NEGATIVE_INFINITY");
 
 static const CommentConfig comment_config = {
-  "/**",
-  " *",
-  " */",
+    "/**",
+    " *",
+    " */",
 };
 
 }  // namespace
@@ -89,8 +89,8 @@ class JavaGenerator : public BaseGenerator {
   };
 
  public:
-  JavaGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name, const std::string &package_prefix)
+  JavaGenerator(const Parser& parser, const std::string& path,
+                const std::string& file_name, const std::string& package_prefix)
       : BaseGenerator(parser, path, file_name, "", ".", "java"),
         cur_name_space_(nullptr),
         namer_(WithFlagOptions(JavaDefaultConfig(), parser.opts, path),
@@ -105,7 +105,7 @@ class JavaGenerator : public BaseGenerator {
     }
   }
 
-  JavaGenerator &operator=(const JavaGenerator &);
+  JavaGenerator& operator=(const JavaGenerator&);
   bool generate() {
     std::string one_file_code;
     cur_name_space_ = parser_.current_namespace_;
@@ -113,7 +113,7 @@ class JavaGenerator : public BaseGenerator {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       std::string enumcode;
-      auto &enum_def = **it;
+      auto& enum_def = **it;
       if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
       GenEnum(enum_def, enumcode);
       if (parser_.opts.one_file) {
@@ -141,7 +141,7 @@ class JavaGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       std::string declcode;
-      auto &struct_def = **it;
+      auto& struct_def = **it;
       if (!parser_.opts.one_file)
         cur_name_space_ = struct_def.defined_namespace;
       GenStruct(struct_def, declcode, parser_.opts);
@@ -176,8 +176,8 @@ class JavaGenerator : public BaseGenerator {
 
   // Save out the generated code for a single class while adding
   // declaration boilerplate.
-  bool SaveType(const std::string &defname, const Namespace &ns,
-                const std::string &classcode, bool needs_includes) const {
+  bool SaveType(const std::string& defname, const Namespace& ns,
+                const std::string& classcode, bool needs_includes) const {
     if (!classcode.length()) return true;
 
     std::string code;
@@ -228,9 +228,9 @@ class JavaGenerator : public BaseGenerator {
     return SaveFile(filename.c_str(), code, false);
   }
 
-  const Namespace *CurrentNameSpace() const { return cur_name_space_; }
+  const Namespace* CurrentNameSpace() const { return cur_name_space_; }
 
-  std::string GenNullableAnnotation(const Type &t) const {
+  std::string GenNullableAnnotation(const Type& t) const {
     return parser_.opts.gen_nullable &&
                    !IsScalar(DestinationType(t, true).base_type) &&
                    t.base_type != BASE_TYPE_VECTOR
@@ -238,14 +238,14 @@ class JavaGenerator : public BaseGenerator {
                : "";
   }
 
-  std::string GenPureAnnotation(const Type &t) const {
+  std::string GenPureAnnotation(const Type& t) const {
     return parser_.opts.java_checkerframework &&
                    !IsScalar(DestinationType(t, true).base_type)
                ? " @Pure "
                : "";
   }
 
-  std::string GenTypeBasic(const Type &type) const {
+  std::string GenTypeBasic(const Type& type) const {
     // clang-format off
     static const char * const java_typename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, ...) \
@@ -257,18 +257,22 @@ class JavaGenerator : public BaseGenerator {
     return java_typename[type.base_type];
   }
 
-  std::string GenTypePointer(const Type &type) const {
+  std::string GenTypePointer(const Type& type) const {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "String";
-      case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
+      case BASE_TYPE_STRING:
+        return "String";
+      case BASE_TYPE_VECTOR:
+        return GenTypeGet(type.VectorType());
       case BASE_TYPE_STRUCT:
         return Prefixed(namer_.NamespacedType(*type.struct_def));
-      case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();  // else fall thru
-      default: return "Table";
+      case BASE_TYPE_UNION:
+        FLATBUFFERS_FALLTHROUGH();  // else fall thru
+      default:
+        return "Table";
     }
   }
 
-  std::string GenTypeGet(const Type &type) const {
+  std::string GenTypeGet(const Type& type) const {
     return IsScalar(type.base_type)
                ? GenTypeBasic(type)
                : (IsArray(type) ? GenTypeGet(type.VectorType())
@@ -277,49 +281,57 @@ class JavaGenerator : public BaseGenerator {
 
   // Find the destination type the user wants to receive the value in (e.g.
   // one size higher signed types for unsigned serialized values in Java).
-  Type DestinationType(const Type &type, bool vectorelem) const {
+  Type DestinationType(const Type& type, bool vectorelem) const {
     switch (type.base_type) {
       // We use int for both uchar/ushort, since that generally means less
       // casting than using short for uchar.
-      case BASE_TYPE_UCHAR: return Type(BASE_TYPE_INT);
-      case BASE_TYPE_USHORT: return Type(BASE_TYPE_INT);
-      case BASE_TYPE_UINT: return Type(BASE_TYPE_LONG);
+      case BASE_TYPE_UCHAR:
+        return Type(BASE_TYPE_INT);
+      case BASE_TYPE_USHORT:
+        return Type(BASE_TYPE_INT);
+      case BASE_TYPE_UINT:
+        return Type(BASE_TYPE_LONG);
       case BASE_TYPE_ARRAY:
       case BASE_TYPE_VECTOR:
         if (vectorelem) return DestinationType(type.VectorType(), vectorelem);
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
-      default: return type;
+      default:
+        return type;
     }
   }
 
   std::string GenOffsetType() const { return "int"; }
 
-  std::string GenOffsetConstruct(const std::string &variable_name) const {
+  std::string GenOffsetConstruct(const std::string& variable_name) const {
     return variable_name;
   }
 
   std::string GenVectorOffsetType() const { return "int"; }
 
   // Generate destination type name
-  std::string GenTypeNameDest(const Type &type) const {
+  std::string GenTypeNameDest(const Type& type) const {
     return GenTypeGet(DestinationType(type, true));
   }
 
   // Mask to turn serialized value into destination type value.
-  std::string DestinationMask(const Type &type, bool vectorelem) const {
+  std::string DestinationMask(const Type& type, bool vectorelem) const {
     switch (type.base_type) {
-      case BASE_TYPE_UCHAR: return " & 0xFF";
-      case BASE_TYPE_USHORT: return " & 0xFFFF";
-      case BASE_TYPE_UINT: return " & 0xFFFFFFFFL";
+      case BASE_TYPE_UCHAR:
+        return " & 0xFF";
+      case BASE_TYPE_USHORT:
+        return " & 0xFFFF";
+      case BASE_TYPE_UINT:
+        return " & 0xFFFFFFFFL";
       case BASE_TYPE_VECTOR:
         if (vectorelem) return DestinationMask(type.VectorType(), vectorelem);
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
-      default: return "";
+      default:
+        return "";
     }
   }
 
   // Casts necessary to correctly read serialized data
-  std::string DestinationCast(const Type &type) const {
+  std::string DestinationCast(const Type& type) const {
     if (IsSeries(type)) {
       return DestinationCast(type.VectorType());
     } else {
@@ -333,7 +345,7 @@ class JavaGenerator : public BaseGenerator {
   // In Java, parameters representing unsigned numbers need to be cast down to
   // their respective type. For example, a long holding an unsigned int value
   // would be cast down to int before being put onto the buffer.
-  std::string SourceCast(const Type &type, bool castFromDest) const {
+  std::string SourceCast(const Type& type, bool castFromDest) const {
     if (IsSeries(type)) {
       return SourceCast(type.VectorType(), castFromDest);
     } else {
@@ -349,41 +361,43 @@ class JavaGenerator : public BaseGenerator {
     return "";
   }
 
-  std::string SourceCast(const Type &type) const {
+  std::string SourceCast(const Type& type) const {
     return SourceCast(type, true);
   }
 
-  std::string SourceCastBasic(const Type &type, bool castFromDest) const {
+  std::string SourceCastBasic(const Type& type, bool castFromDest) const {
     return IsScalar(type.base_type) ? SourceCast(type, castFromDest) : "";
   }
 
-  std::string SourceCastBasic(const Type &type) const {
+  std::string SourceCastBasic(const Type& type) const {
     return SourceCastBasic(type, true);
   }
 
-  std::string GenEnumDefaultValue(const FieldDef &field) const {
-    auto &value = field.value;
+  std::string GenEnumDefaultValue(const FieldDef& field) const {
+    auto& value = field.value;
     FLATBUFFERS_ASSERT(value.type.enum_def);
-    auto &enum_def = *value.type.enum_def;
+    auto& enum_def = *value.type.enum_def;
     auto enum_val = enum_def.FindByValue(value.constant);
     return enum_val
                ? Prefixed(namer_.NamespacedEnumVariant(enum_def, *enum_val))
                : value.constant;
   }
 
-  std::string GenDefaultValue(const FieldDef &field) const {
-    auto &value = field.value;
+  std::string GenDefaultValue(const FieldDef& field) const {
+    auto& value = field.value;
     auto constant = field.IsScalarOptional() ? "0" : value.constant;
     auto longSuffix = "L";
     switch (value.type.base_type) {
-      case BASE_TYPE_BOOL: return constant == "0" ? "false" : "true";
+      case BASE_TYPE_BOOL:
+        return constant == "0" ? "false" : "true";
       case BASE_TYPE_ULONG: {
         // Converts the ulong into its bits signed equivalent
         uint64_t defaultValue = StringToUInt(constant.c_str());
         return NumToString(static_cast<int64_t>(defaultValue)) + longSuffix;
       }
       case BASE_TYPE_UINT:
-      case BASE_TYPE_LONG: return constant + longSuffix;
+      case BASE_TYPE_LONG:
+        return constant + longSuffix;
       default:
         if (IsFloat(value.type.base_type)) {
           if (field.IsScalarOptional()) {
@@ -396,13 +410,15 @@ class JavaGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenDefaultValueBasic(const FieldDef &field) const {
-    auto &value = field.value;
-    if (!IsScalar(value.type.base_type)) { return "0"; }
+  std::string GenDefaultValueBasic(const FieldDef& field) const {
+    auto& value = field.value;
+    if (!IsScalar(value.type.base_type)) {
+      return "0";
+    }
     return GenDefaultValue(field);
   }
 
-  void GenEnum(EnumDef &enum_def, std::string &code) const {
+  void GenEnum(EnumDef& enum_def, std::string& code) const {
     if (enum_def.generated) return;
 
     // Generate enum definitions of the form:
@@ -422,7 +438,7 @@ class JavaGenerator : public BaseGenerator {
     code += " {\n";
     code += "  private " + namer_.Type(enum_def) + "() { }\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       GenComment(ev.doc_comment, &code, &comment_config, "  ");
       code += "  public static final ";
       code += GenTypeBasic(DestinationType(enum_def.underlying_type, false));
@@ -449,10 +465,10 @@ class JavaGenerator : public BaseGenerator {
             "long") {
       code += "\n  public static final String";
       code += "[] names = { ";
-      const EnumVal *prev = enum_def.Vals().front();
+      const EnumVal* prev = enum_def.Vals().front();
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
-        const EnumVal &ev = **it;
+        const EnumVal& ev = **it;
         for (auto k = enum_def.Distance(prev, &ev); k > 1; --k)
           code += "\"\", ";
         prev = &ev;
@@ -473,13 +489,18 @@ class JavaGenerator : public BaseGenerator {
   }
 
   // Returns the function name that is able to read a value of the given type.
-  std::string GenGetter(const Type &type) const {
+  std::string GenGetter(const Type& type) const {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "__string";
-      case BASE_TYPE_STRUCT: return "__struct";
-      case BASE_TYPE_UNION: return "__union";
-      case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
-      case BASE_TYPE_ARRAY: return GenGetter(type.VectorType());
+      case BASE_TYPE_STRING:
+        return "__string";
+      case BASE_TYPE_STRUCT:
+        return "__struct";
+      case BASE_TYPE_UNION:
+        return "__union";
+      case BASE_TYPE_VECTOR:
+        return GenGetter(type.VectorType());
+      case BASE_TYPE_ARRAY:
+        return GenGetter(type.VectorType());
       default: {
         std::string getter = "bb.get";
         if (type.base_type == BASE_TYPE_BOOL) {
@@ -493,9 +514,9 @@ class JavaGenerator : public BaseGenerator {
   }
 
   // Returns the function name that is able to read a value of the given type.
-  std::string GenGetterForLookupByKey(flatbuffers::FieldDef *key_field,
-                                      const std::string &data_buffer,
-                                      const char *num = nullptr) const {
+  std::string GenGetterForLookupByKey(flatbuffers::FieldDef* key_field,
+                                      const std::string& data_buffer,
+                                      const char* num = nullptr) const {
     auto type = key_field->value.type;
     auto dest_mask = DestinationMask(type, true);
     auto dest_cast = DestinationCast(type);
@@ -510,7 +531,7 @@ class JavaGenerator : public BaseGenerator {
 
   // Direct mutation is only allowed for scalar fields.
   // Hence a setter method will only be generated for such fields.
-  std::string GenSetter(const Type &type) const {
+  std::string GenSetter(const Type& type) const {
     if (IsScalar(type.base_type)) {
       std::string setter = "bb.put";
       if (GenTypeBasic(type) != "byte" && type.base_type != BASE_TYPE_BOOL) {
@@ -523,7 +544,7 @@ class JavaGenerator : public BaseGenerator {
   }
 
   // Returns the method name for use with add/put calls.
-  std::string GenMethod(const Type &type) const {
+  std::string GenMethod(const Type& type) const {
     return IsScalar(type.base_type)
                ? ConvertCase(GenTypeBasic(type), Case::kUpperCamel)
                : (IsStruct(type) ? "Struct" : "Offset");
@@ -531,14 +552,14 @@ class JavaGenerator : public BaseGenerator {
 
   // Recursively generate arguments for a constructor, to deal with nested
   // structs.
-  void GenStructArgs(const StructDef &struct_def, std::string &code,
-                     const char *nameprefix, size_t array_count = 0) const {
+  void GenStructArgs(const StructDef& struct_def, std::string& code,
+                     const char* nameprefix, size_t array_count = 0) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      const auto &field_type = field.value.type;
+      auto& field = **it;
+      const auto& field_type = field.value.type;
       const auto array_field = IsArray(field_type);
-      const auto &type = array_field ? field_type.VectorType()
+      const auto& type = array_field ? field_type.VectorType()
                                      : DestinationType(field_type, false);
       const auto array_cnt = array_field ? (array_count + 1) : array_count;
       if (IsStruct(type)) {
@@ -561,8 +582,8 @@ class JavaGenerator : public BaseGenerator {
   // Recusively generate struct construction statements of the form:
   // builder.putType(name);
   // and insert manual padding.
-  void GenStructBody(const StructDef &struct_def, std::string &code,
-                     const char *nameprefix, size_t index = 0,
+  void GenStructBody(const StructDef& struct_def, std::string& code,
+                     const char* nameprefix, size_t index = 0,
                      bool in_array = false) const {
     std::string indent((index + 1) * 2, ' ');
     code += indent + "  builder.prep(";
@@ -570,8 +591,8 @@ class JavaGenerator : public BaseGenerator {
     code += NumToString(struct_def.bytesize) + ");\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
-      auto &field = **it;
-      const auto &field_type = field.value.type;
+      auto& field = **it;
+      const auto& field_type = field.value.type;
       if (field.padding) {
         code += indent + "  builder.pad(";
         code += NumToString(field.padding) + ");\n";
@@ -581,7 +602,7 @@ class JavaGenerator : public BaseGenerator {
                       (nameprefix + (field.name + "_")).c_str(), index,
                       in_array);
       } else {
-        const auto &type =
+        const auto& type =
             IsArray(field_type) ? field_type.VectorType() : field_type;
         const auto index_var = "_idx" + NumToString(index);
         if (IsArray(field_type)) {
@@ -607,13 +628,15 @@ class JavaGenerator : public BaseGenerator {
           }
           code += ");\n";
         }
-        if (IsArray(field_type)) { code += indent + "  }\n"; }
+        if (IsArray(field_type)) {
+          code += indent + "  }\n";
+        }
       }
     }
   }
 
-  std::string GenOffsetGetter(flatbuffers::FieldDef *key_field,
-                              const char *num = nullptr) const {
+  std::string GenOffsetGetter(flatbuffers::FieldDef* key_field,
+                              const char* num = nullptr) const {
     std::string key_offset = "";
     key_offset += "__offset(" + NumToString(key_field->value.offset) + ", ";
     if (num) {
@@ -626,7 +649,7 @@ class JavaGenerator : public BaseGenerator {
     return key_offset;
   }
 
-  std::string GenLookupKeyGetter(flatbuffers::FieldDef *key_field) const {
+  std::string GenLookupKeyGetter(flatbuffers::FieldDef* key_field) const {
     std::string key_getter = "      ";
     key_getter += "int tableOffset = ";
     key_getter += "__indirect(vectorLocation + 4 * (start + middle)";
@@ -645,7 +668,7 @@ class JavaGenerator : public BaseGenerator {
     return key_getter;
   }
 
-  std::string GenKeyGetter(flatbuffers::FieldDef *key_field) const {
+  std::string GenKeyGetter(flatbuffers::FieldDef* key_field) const {
     std::string key_getter = "";
     auto data_buffer = "_bb";
     if (IsString(key_field->value.type)) {
@@ -669,8 +692,8 @@ class JavaGenerator : public BaseGenerator {
     return key_getter;
   }
 
-  void GenStruct(StructDef &struct_def, std::string &code,
-                 const IDLOptions &opts) const {
+  void GenStruct(StructDef& struct_def, std::string& code,
+                 const IDLOptions& opts) const {
     if (struct_def.generated) return;
 
     // Generate a struct accessor class, with methods of the form:
@@ -701,7 +724,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_25_2_10(); ";
+      code += "FLATBUFFERS_25_9_23(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -749,7 +772,7 @@ class JavaGenerator : public BaseGenerator {
     code += "{ __init(_i, _bb); return this; }\n\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.deprecated) continue;
       GenComment(field.doc_comment, &code, &comment_config, "  ");
       const std::string type_name = GenTypeGet(field.value.type);
@@ -787,7 +810,9 @@ class JavaGenerator : public BaseGenerator {
         code += "(new " + type_name + "(), j); }\n";
       }
 
-      if (field.IsScalarOptional()) { code += GenOptionalScalarCheck(field); }
+      if (field.IsScalarOptional()) {
+        code += GenOptionalScalarCheck(field);
+      }
       std::string getter = dest_cast + GenGetter(field.value.type);
       code += method_start;
       std::string member_suffix = "; ";
@@ -828,7 +853,8 @@ class JavaGenerator : public BaseGenerator {
             code += offset_prefix + getter + "(o + ";
             code += "bb_pos) : null";
             break;
-          case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_ARRAY:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
             code += "(";
@@ -874,7 +900,8 @@ class JavaGenerator : public BaseGenerator {
             code += "(" + type_name + " obj)" + offset_prefix + getter;
             code += "(obj, o + bb_pos) : null";
             break;
-          default: FLATBUFFERS_ASSERT(0);
+          default:
+            FLATBUFFERS_ASSERT(0);
         }
       }
       code += member_suffix;
@@ -890,10 +917,10 @@ class JavaGenerator : public BaseGenerator {
         // See if we should generate a by-key accessor.
         if (field.value.type.element == BASE_TYPE_STRUCT &&
             !field.value.type.struct_def->fixed) {
-          auto &sd = *field.value.type.struct_def;
-          auto &fields = sd.fields.vec;
+          auto& sd = *field.value.type.struct_def;
+          auto& fields = sd.fields.vec;
           for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
-            auto &key_field = **kit;
+            auto& key_field = **kit;
             if (key_field.key) {
               auto qualified_name = Prefixed(namer_.NamespacedType(sd));
               code += "  public " + qualified_name + " ";
@@ -922,7 +949,7 @@ class JavaGenerator : public BaseGenerator {
       // Generate the accessors for vector of structs with vector access object
       if (IsVector(field.value.type)) {
         std::string vector_type_name;
-        const auto &element_base_type = field.value.type.VectorType().base_type;
+        const auto& element_base_type = field.value.type.VectorType().base_type;
         if (IsScalar(element_base_type)) {
           vector_type_name =
               ConvertCase(type_name, Case::kUpperCamel) + "Vector";
@@ -995,7 +1022,7 @@ class JavaGenerator : public BaseGenerator {
       // Generate mutators for scalar fields or vectors of scalars.
       if (parser_.opts.mutable_buffer) {
         auto is_series = (IsSeries(field.value.type));
-        const auto &underlying_type =
+        const auto& underlying_type =
             is_series ? field.value.type.VectorType() : field.value.type;
         // Boolean parameters have to be explicitly converted to byte
         // representation.
@@ -1045,8 +1072,8 @@ class JavaGenerator : public BaseGenerator {
     }
     code += "\n";
     auto struct_has_create = false;
-    std::set<flatbuffers::FieldDef *> field_has_create_set;
-    flatbuffers::FieldDef *key_field = nullptr;
+    std::set<flatbuffers::FieldDef*> field_has_create_set;
+    flatbuffers::FieldDef* key_field = nullptr;
     if (struct_def.fixed) {
       struct_has_create = true;
       // create a struct constructor function
@@ -1067,7 +1094,7 @@ class JavaGenerator : public BaseGenerator {
       int num_fields = 0;
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        auto& field = **it;
         if (field.deprecated) continue;
         if (IsStruct(field.value.type)) {
           has_no_struct_fields = false;
@@ -1086,7 +1113,7 @@ class JavaGenerator : public BaseGenerator {
         code += "(FlatBufferBuilder builder";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
-          auto &field = **it;
+          auto& field = **it;
           auto field_name = namer_.Field(field);
           if (field.deprecated) continue;
           code += ",\n      ";
@@ -1102,7 +1129,7 @@ class JavaGenerator : public BaseGenerator {
              size; size /= 2) {
           for (auto it = struct_def.fields.vec.rbegin();
                it != struct_def.fields.vec.rend(); ++it) {
-            auto &field = **it;
+            auto& field = **it;
             auto field_name = namer_.Field(field);
             if (!field.deprecated &&
                 (!struct_def.sortbysize ||
@@ -1130,7 +1157,7 @@ class JavaGenerator : public BaseGenerator {
       code += NumToString(struct_def.fields.vec.size()) + "); }\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        auto& field = **it;
         if (field.deprecated) continue;
 
         code += "  public static void " + namer_.Method("add", field);
@@ -1216,7 +1243,7 @@ class JavaGenerator : public BaseGenerator {
       code += "endTable();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        auto& field = **it;
         if (!field.deprecated && field.IsRequired()) {
           code += "    builder.required(o, ";
           code += NumToString(field.value.offset);
@@ -1225,7 +1252,7 @@ class JavaGenerator : public BaseGenerator {
       }
       code += "    return " + GenOffsetConstruct("o") + ";\n  }\n";
       if (parser_.root_struct_def_ == &struct_def) {
-        std::string size_prefix[] = { "", "SizePrefixed" };
+        std::string size_prefix[] = {"", "SizePrefixed"};
         for (int i = 0; i < 2; ++i) {
           code += "  public static void ";
           code += namer_.LegacyJavaMethod2("finish" + size_prefix[i],
@@ -1287,14 +1314,14 @@ class JavaGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  std::string GenOptionalScalarCheck(FieldDef &field) const {
+  std::string GenOptionalScalarCheck(FieldDef& field) const {
     if (!field.IsScalarOptional()) return "";
     return "  public boolean " + namer_.Method("has", field) +
            "() { return 0 != __offset(" + NumToString(field.value.offset) +
            "); }\n";
   }
 
-  void GenVectorAccessObject(StructDef &struct_def, std::string &code) const {
+  void GenVectorAccessObject(StructDef& struct_def, std::string& code) const {
     // Generate a vector of structs accessor class.
     code += "\n";
     code += "  ";
@@ -1323,9 +1350,9 @@ class JavaGenerator : public BaseGenerator {
     code += ", bb); }\n";
     // See if we should generate a by-key accessor.
     if (!struct_def.fixed) {
-      auto &fields = struct_def.fields.vec;
+      auto& fields = struct_def.fields.vec;
       for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
-        auto &key_field = **kit;
+        auto& key_field = **kit;
         if (key_field.key) {
           auto nullable_annotation =
               parser_.opts.gen_nullable ? "@Nullable " : "";
@@ -1353,11 +1380,13 @@ class JavaGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenEnum_ObjectAPI(EnumDef &enum_def, std::string &code) const {
+  void GenEnum_ObjectAPI(EnumDef& enum_def, std::string& code) const {
     if (enum_def.generated) return;
     code += "import com.google.flatbuffers.FlatBufferBuilder;\n\n";
 
-    if (!enum_def.attributes.Lookup("private")) { code += "public "; }
+    if (!enum_def.attributes.Lookup("private")) {
+      code += "public ";
+    }
     auto union_name = namer_.Type(enum_def) + "Union";
     auto union_type =
         GenTypeBasic(DestinationType(enum_def.underlying_type, false));
@@ -1382,7 +1411,7 @@ class JavaGenerator : public BaseGenerator {
     code += "  }\n\n";
     // As
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
       auto type_name = GenTypeGet_ObjectAPI(ev.union_type, false, true);
       if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
@@ -1400,7 +1429,7 @@ class JavaGenerator : public BaseGenerator {
             union_name + " _o) {\n";
     code += "    switch (_o.type) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         continue;
       } else {
@@ -1419,9 +1448,9 @@ class JavaGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  void GenUnionUnPack_ObjectAPI(const EnumDef &enum_def, std::string &code,
-                                const std::string &type_name,
-                                const std::string &field_name,
+  void GenUnionUnPack_ObjectAPI(const EnumDef& enum_def, std::string& code,
+                                const std::string& type_name,
+                                const std::string& field_name,
                                 bool is_vector) const {
     const std::string variable_type =
         is_vector ? type_name.substr(0, type_name.length() - 2) : type_name;
@@ -1442,7 +1471,7 @@ class JavaGenerator : public BaseGenerator {
     code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
-      auto &ev = **eit;
+      auto& ev = **eit;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         continue;
       } else {
@@ -1473,9 +1502,9 @@ class JavaGenerator : public BaseGenerator {
   }
 
   void GenPackUnPack_ObjectAPI(
-      StructDef &struct_def, std::string &code, const IDLOptions &opts,
+      StructDef& struct_def, std::string& code, const IDLOptions& opts,
       bool struct_has_create,
-      const std::set<FieldDef *> &field_has_create) const {
+      const std::set<FieldDef*>& field_has_create) const {
     auto struct_name = namer_.ObjectType(struct_def);
     // unpack()
     code += "  public " + struct_name + " unpack() {\n";
@@ -1487,7 +1516,7 @@ class JavaGenerator : public BaseGenerator {
     code += "  public void unpackTo(" + struct_name + " _o) {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
+      const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
@@ -1560,7 +1589,8 @@ class JavaGenerator : public BaseGenerator {
             code += ";}\n";
           }
           break;
-        case BASE_TYPE_UTYPE: break;
+        case BASE_TYPE_UTYPE:
+          break;
         case BASE_TYPE_UNION: {
           GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code, type_name,
                                    accessor, false);
@@ -1587,7 +1617,7 @@ class JavaGenerator : public BaseGenerator {
     code += "    if (_o == null) return 0;\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.deprecated) continue;
       const auto field_name = namer_.Field(field);
       const auto variable = "_" + namer_.Variable("o", field);
@@ -1603,8 +1633,8 @@ class JavaGenerator : public BaseGenerator {
           } else if (struct_def.fixed && struct_has_create) {
             std::vector<FieldArrayLength> array_lengths;
             FieldArrayLength tmp_array_length = {
-              field.name,
-              field.value.type.fixed_length,
+                field.name,
+                field.value.type.fixed_length,
             };
             array_lengths.push_back(tmp_array_length);
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def,
@@ -1719,8 +1749,8 @@ class JavaGenerator : public BaseGenerator {
           if (field.value.type.struct_def != nullptr) {
             std::vector<FieldArrayLength> array_lengths;
             FieldArrayLength tmp_array_length = {
-              field.name,
-              field.value.type.fixed_length,
+                field.name,
+                field.value.type.fixed_length,
             };
             array_lengths.push_back(tmp_array_length);
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def,
@@ -1746,7 +1776,8 @@ class JavaGenerator : public BaseGenerator {
                   "Union.pack(builder, _o." + get_field + "());\n";
           break;
         }
-        default: break;
+        default:
+          break;
       }
     }
     if (struct_has_create) {
@@ -1756,7 +1787,7 @@ class JavaGenerator : public BaseGenerator {
       code += "      builder";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        auto& field = **it;
         if (field.deprecated) continue;
         const auto field_name = namer_.Field(field);
         const auto get_field = namer_.Method("get", field);
@@ -1790,9 +1821,12 @@ class JavaGenerator : public BaseGenerator {
             }
             break;
           }
-          case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();   // fall thru
-          case BASE_TYPE_UTYPE: FLATBUFFERS_FALLTHROUGH();   // fall thru
-          case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_UNION:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_UTYPE:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_STRING:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             code += ",\n";
             code += "      _" + field_name;
@@ -1811,7 +1845,7 @@ class JavaGenerator : public BaseGenerator {
               "(builder);\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
-        auto &field = **it;
+        auto& field = **it;
         if (field.deprecated) continue;
         const auto arg = "_" + namer_.Variable(field);
         const auto get_field = namer_.Method("get", field);
@@ -1828,13 +1862,16 @@ class JavaGenerator : public BaseGenerator {
             }
             break;
           }
-          case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
-          case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();   // fall thru
+          case BASE_TYPE_STRING:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_ARRAY:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             code += "    " + add_field + "(builder, " + arg + ");\n";
             break;
           }
-          case BASE_TYPE_UTYPE: break;
+          case BASE_TYPE_UTYPE:
+            break;
           case BASE_TYPE_UNION: {
             code += "    " + add_field + "Type(builder, " + arg + "Type);\n";
             code += "    " + add_field + "(builder, " + arg + ");\n";
@@ -1859,18 +1896,18 @@ class JavaGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  void GenStructPackDecl_ObjectAPI(const StructDef &struct_def,
-                                   std::vector<FieldArrayLength> &array_lengths,
-                                   std::string &code) const {
+  void GenStructPackDecl_ObjectAPI(const StructDef& struct_def,
+                                   std::vector<FieldArrayLength>& array_lengths,
+                                   std::string& code) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const FieldDef &field = **it;
+      const FieldDef& field = **it;
       const bool is_array = IsArray(field.value.type);
-      const Type &field_type =
+      const Type& field_type =
           is_array ? field.value.type.VectorType() : field.value.type;
       FieldArrayLength tmp_array_length = {
-        field.name,
-        field_type.fixed_length,
+          field.name,
+          field_type.fixed_length,
       };
       array_lengths.push_back(tmp_array_length);
       if (field_type.struct_def != nullptr) {
@@ -1895,7 +1932,9 @@ class JavaGenerator : public BaseGenerator {
           code += " " + name + " = ";
           code += "new " + GenTypeBasic(field_type) + "[";
           for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-            if (i != 0) { code += "]["; }
+            if (i != 0) {
+              code += "][";
+            }
             code += NumToString(array_only_lengths[i].length);
           }
           code += "];\n";
@@ -1940,13 +1979,13 @@ class JavaGenerator : public BaseGenerator {
     }
   }
 
-  void GenStructPackCall_ObjectAPI(const StructDef &struct_def,
-                                   std::string &code,
+  void GenStructPackCall_ObjectAPI(const StructDef& struct_def,
+                                   std::string& code,
                                    std::string prefix) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
-      const auto &field_type = field.value.type;
+      auto& field = **it;
+      const auto& field_type = field.value.type;
       if (field_type.struct_def != nullptr) {
         GenStructPackCall_ObjectAPI(*field_type.struct_def, code,
                                     prefix + namer_.Field(field) + "_");
@@ -1958,7 +1997,7 @@ class JavaGenerator : public BaseGenerator {
   }
 
   std::string ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(
-      const std::string &type_name) const {
+      const std::string& type_name) const {
     if (type_name == "boolean")
       return "Boolean";
     else if (type_name == "byte")
@@ -1978,14 +2017,16 @@ class JavaGenerator : public BaseGenerator {
     return type_name;
   }
 
-  std::string GenTypeGet_ObjectAPI(const flatbuffers::Type &type,
+  std::string GenTypeGet_ObjectAPI(const flatbuffers::Type& type,
                                    bool vectorelem,
                                    bool wrap_in_namespace) const {
     auto type_name = GenTypeNameDest(type);
     // Replace to ObjectBaseAPI Type Name
     switch (type.base_type) {
-      case BASE_TYPE_STRUCT: FLATBUFFERS_FALLTHROUGH();  // fall thru
-      case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();   // fall thru
+      case BASE_TYPE_STRUCT:
+        FLATBUFFERS_FALLTHROUGH();  // fall thru
+      case BASE_TYPE_ARRAY:
+        FLATBUFFERS_FALLTHROUGH();  // fall thru
       case BASE_TYPE_VECTOR: {
         if (type.struct_def != nullptr) {
           auto type_name_length = type.struct_def->name.length();
@@ -2011,27 +2052,34 @@ class JavaGenerator : public BaseGenerator {
         }
         break;
       }
-      default: break;
+      default:
+        break;
     }
-    if (vectorelem) { return type_name; }
+    if (vectorelem) {
+      return type_name;
+    }
     switch (type.base_type) {
-      case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+      case BASE_TYPE_ARRAY:
+        FLATBUFFERS_FALLTHROUGH();  // fall thru
       case BASE_TYPE_VECTOR: {
         type_name = type_name + "[]";
         break;
       }
-      default: break;
+      default:
+        break;
     }
     return type_name;
   }
 
   std::string GenConcreteTypeGet_ObjectAPI(
-      const flatbuffers::Type &type) const {
+      const flatbuffers::Type& type) const {
     auto type_name = GenTypeNameDest(type);
     // Replace to ObjectBaseAPI Type Name
     switch (type.base_type) {
-      case BASE_TYPE_STRUCT: FLATBUFFERS_FALLTHROUGH();  // fall thru
-      case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();   // fall thru
+      case BASE_TYPE_STRUCT:
+        FLATBUFFERS_FALLTHROUGH();  // fall thru
+      case BASE_TYPE_ARRAY:
+        FLATBUFFERS_FALLTHROUGH();  // fall thru
       case BASE_TYPE_VECTOR: {
         if (type.struct_def != nullptr) {
           auto type_name_length = type.struct_def->name.length();
@@ -2048,22 +2096,25 @@ class JavaGenerator : public BaseGenerator {
         type_name = Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
         break;
       }
-      default: break;
+      default:
+        break;
     }
 
     switch (type.base_type) {
-      case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+      case BASE_TYPE_ARRAY:
+        FLATBUFFERS_FALLTHROUGH();  // fall thru
       case BASE_TYPE_VECTOR: {
         type_name = type_name + "[]";
         break;
       }
-      default: break;
+      default:
+        break;
     }
     return type_name;
   }
 
-  void GenStruct_ObjectAPI(const StructDef &struct_def,
-                           std::string &code) const {
+  void GenStruct_ObjectAPI(const StructDef& struct_def,
+                           std::string& code) const {
     if (struct_def.generated) return;
     if (struct_def.attributes.Lookup("private")) {
       // For Java, we leave the enum unmarked to indicate package-private
@@ -2077,7 +2128,7 @@ class JavaGenerator : public BaseGenerator {
     // Generate Properties
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
+      const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
@@ -2091,7 +2142,7 @@ class JavaGenerator : public BaseGenerator {
     code += "\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
+      const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
@@ -2118,7 +2169,7 @@ class JavaGenerator : public BaseGenerator {
     code += "  public " + class_name + "() {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
+      const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
@@ -2177,11 +2228,11 @@ class JavaGenerator : public BaseGenerator {
 
   // This tracks the current namespace used to determine if a type need to be
   // prefixed by its namespace
-  const Namespace *cur_name_space_;
+  const Namespace* cur_name_space_;
   const IdlNamer namer_;
 
  private:
-  std::string Prefixed(const std::string &str) const {
+  std::string Prefixed(const std::string& str) const {
     return package_prefix_ + str;
   }
 
@@ -2190,8 +2241,8 @@ class JavaGenerator : public BaseGenerator {
 };
 }  // namespace java
 
-static bool GenerateJava(const Parser &parser, const std::string &path,
-                         const std::string &file_name) {
+static bool GenerateJava(const Parser& parser, const std::string& path,
+                         const std::string& file_name) {
   java::JavaGenerator generator(parser, path, file_name,
                                 parser.opts.java_package_prefix);
   return generator.generate();
@@ -2201,32 +2252,35 @@ namespace {
 
 class JavaCodeGenerator : public CodeGenerator {
  public:
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
-    if (!GenerateJava(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateCode(const Parser& parser, const std::string& path,
+                      const std::string& filename) override {
+    if (!GenerateJava(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *, int64_t,
-                      const CodeGenOptions &) override {
+  Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                          const std::string &filename,
-                          std::string &output) override {
+  Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                          const std::string& filename,
+                          std::string& output) override {
     output = JavaCSharpMakeRule(true, parser, path, filename);
     return Status::OK;
   }
 
-  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                          const std::string &filename) override {
-    if (!GenerateJavaGRPC(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                          const std::string& filename) override {
+    if (!GenerateJavaGRPC(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateRootFile(const Parser &parser,
-                          const std::string &path) override {
+  Status GenerateRootFile(const Parser& parser,
+                          const std::string& path) override {
     (void)parser;
     (void)path;
     return Status::NOT_IMPLEMENTED;

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .builder import Builder
-from .table import Table
-from .compat import range_func as compat_range
-from ._version import __version__
 from . import util
+from ._version import __version__
+from .builder import Builder
+from .compat import range_func as compat_range
+from .table import Table

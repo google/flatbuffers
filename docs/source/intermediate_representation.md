@@ -6,7 +6,7 @@ errors and stores the resulting data in this IR, outputting `.bfbs` files.
 Since this IR is a Flatbuffer, you can load and use it at runtime for runtime
 reflection purposes.
 
-There are some quirks: 
+There are some quirks:
 - Tables and Structs are serialized as `Object`s.
 - Unions and Enums are serialized as `Enum`s.
 - It is the responsibility of the code generator to check the `advanced_features`
@@ -18,7 +18,7 @@ There are some quirks:
   inferred to be the directory containing the first provided schema file.
 
 
-## Invocation 
+## Invocation
 You can invoke it like so
 ```{.sh}
 flatc -b --schema ${your_fbs_files}

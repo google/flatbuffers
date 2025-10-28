@@ -24,7 +24,7 @@ static const auto infinity_d = std::numeric_limits<double>::infinity();
 using namespace MyGame::Example;
 
 // example of how to build up a serialized buffer algorithmically:
-flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
+flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string& buffer) {
   flatbuffers::FlatBufferBuilder builder;
 
   auto vec = Vec3(1, 2, 3, 0, Color_Red, Test(10, 20));
@@ -33,7 +33,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   // Use the initializer_list specialization of CreateVector.
   auto inventory =
-      builder.CreateVector<uint8_t>({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+      builder.CreateVector<uint8_t>({0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 
   // Alternatively, create the vector first, and fill in data later:
   // unsigned char *inv_buf = nullptr;
@@ -41,12 +41,12 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   //                                                              10, &inv_buf);
   // memcpy(inv_buf, inv_data, 10);
 
-  Test tests[] = { Test(10, 20), Test(30, 40) };
+  Test tests[] = {Test(10, 20), Test(30, 40)};
   auto testv = builder.CreateVectorOfStructs(tests, 2);
 
   // Create a vector of structures from a lambda.
   auto testv2 = builder.CreateVectorOfStructs<Test>(
-      2, [&](size_t i, Test *s) -> void { *s = tests[i]; });
+      2, [&](size_t i, Test* s) -> void { *s = tests[i]; });
 
   // create monster with very few fields set:
   // (same functionality as CreateMonster below, but sets fields manually)
@@ -69,9 +69,9 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   auto vecofstrings =
       builder.CreateVector<flatbuffers::Offset<flatbuffers::String>>(
           4,
-          [](size_t i, flatbuffers::FlatBufferBuilder *b)
+          [](size_t i, flatbuffers::FlatBufferBuilder* b)
               -> flatbuffers::Offset<flatbuffers::String> {
-            static const char *names[] = { "bob", "fred", "bob", "fred" };
+            static const char* names[] = {"bob", "fred", "bob", "fred"};
             return b->CreateSharedString(names[i]);
           },
           &builder);
@@ -83,7 +83,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   auto vecofstrings2 = builder.CreateVectorOfStrings(names2);
 
   // Creating vectors from types that are different from std::string
-  std::vector<const char *> names3;
+  std::vector<const char*> names3;
   names3.push_back("foo");
   names3.push_back("bar");
   builder.CreateVectorOfStrings(names3);  // Also an accepted type
@@ -96,11 +96,13 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 #endif
 
   // Make sure the template deduces an initializer as std::vector<std::string>
-  builder.CreateVectorOfStrings({ "hello", "world" });
+  builder.CreateVectorOfStrings({"hello", "world"});
 
   // Create many vectors of strings
   std::vector<std::string> manyNames;
-  for (auto i = 0; i < 100; i++) { manyNames.push_back("john_doe"); }
+  for (auto i = 0; i < 100; i++) {
+    manyNames.push_back("john_doe");
+  }
   auto manyNamesVec = builder.CreateVectorOfStrings(manyNames);
   TEST_EQ(false, manyNamesVec.IsNull());
   auto manyNamesVec2 =
@@ -155,7 +157,7 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
   flexbuild.Finish();
   auto flex = builder.CreateVector(flexbuild.GetBuffer());
   // Test vector of enums.
-  Color colors[] = { Color_Blue, Color_Green };
+  Color colors[] = {Color_Blue, Color_Green};
   // We use this special creation function because we have an array of
   // pre-C++11 (enum class) enums whose size likely is int, yet its declared
   // type in the schema is byte.
@@ -184,14 +186,14 @@ flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string &buffer) {
 
   // return the buffer for the caller to use.
   auto bufferpointer =
-      reinterpret_cast<const char *>(builder.GetBufferPointer());
+      reinterpret_cast<const char*>(builder.GetBufferPointer());
   buffer.assign(bufferpointer, bufferpointer + builder.GetSize());
 
   return builder.Release();
 }
 
 //  example of accessing a buffer loaded in memory:
-void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
+void AccessFlatBufferTest(const uint8_t* flatbuf, size_t length, bool pooled) {
   // First, verify the buffers integrity (optional)
   flatbuffers::Verifier verifier(flatbuf, length);
   std::vector<uint8_t> flex_reuse_tracker;
@@ -238,7 +240,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   auto inventory = monster->inventory();
   TEST_EQ(VectorLength(inventory), 10UL);  // Works even if inventory is null.
   TEST_NOTNULL(inventory);
-  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  unsigned char inv_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   // Check compatibilty of iterators with STL.
   std::vector<unsigned char> inv_vec(inventory->begin(), inventory->end());
   size_t n = 0;
@@ -277,7 +279,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
 
   // Example of accessing a union:
   TEST_EQ(monster->test_type(), Any_Monster);  // First make sure which it is.
-  auto monster2 = reinterpret_cast<const Monster *>(monster->test());
+  auto monster2 = reinterpret_cast<const Monster*>(monster->test());
   TEST_NOTNULL(monster2);
   TEST_EQ_STR(monster2->name()->c_str(), "Fred");
 
@@ -350,8 +352,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
     }
     TEST_NOTNULL(vecofstructs->LookupByKey(0));  // test default value
     TEST_NOTNULL(vecofstructs->LookupByKey(3));
-    TEST_EQ(static_cast<const Ability *>(nullptr),
-            vecofstructs->LookupByKey(5));
+    TEST_EQ(static_cast<const Ability*>(nullptr), vecofstructs->LookupByKey(5));
   }
 
   if (auto vec_of_stat = monster->scalar_key_sorted_tables()) {
@@ -394,9 +395,9 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
   TEST_EQ(flatbuffers::AlignOf<Test>(), 2UL);
   TEST_EQ(sizeof(Test), 4UL);
 
-  const flatbuffers::Vector<const Test *> *tests_array[] = {
-    monster->test4(),
-    monster->test5(),
+  const flatbuffers::Vector<const Test*>* tests_array[] = {
+      monster->test4(),
+      monster->test5(),
   };
   for (size_t i = 0; i < sizeof(tests_array) / sizeof(tests_array[0]); ++i) {
     auto tests = tests_array[i];
@@ -421,7 +422,7 @@ void AccessFlatBufferTest(const uint8_t *flatbuf, size_t length, bool pooled) {
 }
 
 // Change a FlatBuffer in-place, after it has been constructed.
-void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
+void MutateFlatBuffersTest(uint8_t* flatbuf, std::size_t length) {
   // Get non-const pointer to root.
   auto monster = GetMutableMonster(flatbuf);
 
@@ -451,7 +452,7 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 
   // Mutate structs.
   auto pos = monster->mutable_pos();
-  auto &test3 = pos->mutable_test3();  // Struct inside a struct.
+  auto& test3 = pos->mutable_test3();  // Struct inside a struct.
   test3.mutate_a(50);                  // Struct fields never fail.
   TEST_EQ(test3.a(), 50);
   test3.mutate_a(10);
@@ -480,7 +481,7 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 
   // Mutate via LookupByKey
   TEST_NOTNULL(tables->MutableLookupByKey("Barney"));
-  TEST_EQ(static_cast<Monster *>(nullptr),
+  TEST_EQ(static_cast<Monster*>(nullptr),
           tables->MutableLookupByKey("DoesntExist"));
   TEST_EQ(tables->MutableLookupByKey("Barney")->hp(), 1000);
   TEST_EQ(tables->MutableLookupByKey("Barney")->mutate_hp(0), true);
@@ -493,18 +494,18 @@ void MutateFlatBuffersTest(uint8_t *flatbuf, std::size_t length) {
 }
 
 // Unpack a FlatBuffer into objects.
-void ObjectFlatBuffersTest(uint8_t *flatbuf) {
+void ObjectFlatBuffersTest(uint8_t* flatbuf) {
   // Optional: we can specify resolver and rehasher functions to turn hashed
   // strings into object pointers and back, to implement remote references
   // and such.
   auto resolver = flatbuffers::resolver_function_t(
-      [](void **pointer_adr, flatbuffers::hash_value_t hash) {
+      [](void** pointer_adr, flatbuffers::hash_value_t hash) {
         (void)pointer_adr;
         (void)hash;
         // Don't actually do anything, leave variable null.
       });
   auto rehasher = flatbuffers::rehasher_function_t(
-      [](void *pointer) -> flatbuffers::hash_value_t {
+      [](void* pointer) -> flatbuffers::hash_value_t {
         (void)pointer;
         return 0;
       });
@@ -549,20 +550,20 @@ void ObjectFlatBuffersTest(uint8_t *flatbuf) {
 }
 
 // Utility function to check a Monster object.
-void CheckMonsterObject(MonsterT *monster2) {
+void CheckMonsterObject(MonsterT* monster2) {
   TEST_EQ(monster2->hp, 80);
   TEST_EQ(monster2->mana, 150);  // default
   TEST_EQ_STR(monster2->name.c_str(), "MyMonster");
 
-  auto &pos = monster2->pos;
+  auto& pos = monster2->pos;
   TEST_NOTNULL(pos);
   TEST_EQ(pos->z(), 3);
   TEST_EQ(pos->test3().a(), 10);
   TEST_EQ(pos->test3().b(), 20);
 
-  auto &inventory = monster2->inventory;
+  auto& inventory = monster2->inventory;
   TEST_EQ(inventory.size(), 10UL);
-  unsigned char inv_data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  unsigned char inv_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   for (auto it = inventory.begin(); it != inventory.end(); ++it)
     TEST_EQ(*it, inv_data[it - inventory.begin()]);
 
@@ -572,24 +573,24 @@ void CheckMonsterObject(MonsterT *monster2) {
   TEST_NOTNULL(monster3);
   TEST_EQ_STR(monster3->name.c_str(), "Fred");
 
-  auto &vecofstrings = monster2->testarrayofstring;
+  auto& vecofstrings = monster2->testarrayofstring;
   TEST_EQ(vecofstrings.size(), 4U);
   TEST_EQ_STR(vecofstrings[0].c_str(), "bob");
   TEST_EQ_STR(vecofstrings[1].c_str(), "fred");
 
-  auto &vecofstrings2 = monster2->testarrayofstring2;
+  auto& vecofstrings2 = monster2->testarrayofstring2;
   TEST_EQ(vecofstrings2.size(), 2U);
   TEST_EQ_STR(vecofstrings2[0].c_str(), "jane");
   TEST_EQ_STR(vecofstrings2[1].c_str(), "mary");
 
-  auto &vecoftables = monster2->testarrayoftables;
+  auto& vecoftables = monster2->testarrayoftables;
   TEST_EQ(vecoftables.size(), 3U);
   TEST_EQ_STR(vecoftables[0]->name.c_str(), "Barney");
   TEST_EQ(vecoftables[0]->hp, 1000);
   TEST_EQ_STR(vecoftables[1]->name.c_str(), "Fred");
   TEST_EQ_STR(vecoftables[2]->name.c_str(), "Wilma");
 
-  auto &tests = monster2->test4;
+  auto& tests = monster2->test4;
   TEST_EQ(tests[0].a(), 10);
   TEST_EQ(tests[0].b(), 20);
   TEST_EQ(tests[1].a(), 30);
@@ -634,7 +635,7 @@ void SizePrefixedTest() {
   }
 }
 
-void TestMonsterExtraFloats(const std::string &tests_data_path) {
+void TestMonsterExtraFloats(const std::string& tests_data_path) {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   TEST_EQ(is_quiet_nan(1.0), false);
   TEST_EQ(is_quiet_nan(infinity_d), false);
@@ -652,8 +653,8 @@ void TestMonsterExtraFloats(const std::string &tests_data_path) {
   // Parse schema first, so we can use it to parse the data after.
   Parser parser;
   auto include_test_path = ConCatPathFileName(tests_data_path, "include_test");
-  const char *include_directories[] = { tests_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
+  const char* include_directories[] = {tests_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
   TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   // Create empty extra and store to json.
   parser.opts.output_default_scalars_in_json = true;
@@ -774,7 +775,7 @@ void TypeAliasesTest() {
 
 // example of parsing text straight into a buffer, and generating
 // text back from it:
-void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
+void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary) {
   // load FlatBuffer schema (.fbs) and JSON from disk
   std::string schemafile;
   std::string jsonfile;
@@ -790,21 +791,21 @@ void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
 
   auto include_test_path =
       flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
-  const char *include_directories[] = { tests_data_path.c_str(),
-                                        include_test_path.c_str(), nullptr };
+  const char* include_directories[] = {tests_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
 
   // parse schema first, so we can use it to parse the data after
   flatbuffers::Parser parser;
   if (binary) {
     flatbuffers::Verifier verifier(
-        reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+        reinterpret_cast<const uint8_t*>(schemafile.c_str()),
         schemafile.size());
     TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
     // auto schema = reflection::GetSchema(schemafile.c_str());
-    TEST_EQ(parser.Deserialize(
-                reinterpret_cast<const uint8_t *>(schemafile.c_str()),
-                schemafile.size()),
-            true);
+    TEST_EQ(
+        parser.Deserialize(reinterpret_cast<const uint8_t*>(schemafile.c_str()),
+                           schemafile.size()),
+        true);
   } else {
     TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   }
@@ -866,14 +867,14 @@ void ParseAndGenerateTextTest(const std::string &tests_data_path, bool binary) {
   TEST_EQ_STR(jsongen_utf8.c_str(), jsonfile_utf8.c_str());
 }
 
-void UnPackTo(const uint8_t *flatbuf) {
+void UnPackTo(const uint8_t* flatbuf) {
   // Get a monster that has a name and no enemy
   auto orig_monster = GetMonster(flatbuf);
   TEST_EQ_STR(orig_monster->name()->c_str(), "MyMonster");
   TEST_ASSERT(orig_monster->enemy() == nullptr);
 
   // Create an enemy
-  MonsterT *enemy = new MonsterT();
+  MonsterT* enemy = new MonsterT();
   enemy->name = "Enemy";
 
   // And create another monster owning the enemy,

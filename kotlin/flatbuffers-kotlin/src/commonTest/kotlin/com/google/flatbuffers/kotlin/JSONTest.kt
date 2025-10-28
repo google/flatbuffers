@@ -23,9 +23,11 @@ class JSONTest {
 
   @Test
   fun parse2Test() {
-    val dataStr = """
-      { "myKey" : [1, "yay"] }
-    """.trimIndent()
+    val dataStr =
+      """
+        { "myKey" : [1, "yay"] }
+      """
+        .trimIndent()
     val data = dataStr.encodeToByteArray()
     val buffer = ArrayReadWriteBuffer(data, writePosition = data.size)
     val parser = JSONParser()
@@ -35,7 +37,8 @@ class JSONTest {
 
   @Test
   fun parseSample() {
-    val dataStr = """
+    val dataStr =
+      """
       {
         "ary" : [1, 2, 3],
         "boolean_false": false,
@@ -69,26 +72,29 @@ class JSONTest {
     val obj = map["object"]
     assertEquals(true, obj.isMap)
     assertEquals("{\"field1\":\"hello\"}", obj.toJson())
-    // TODO: Kotlin Double.toString() produce different strings dependending on the platform, so on JVM
+    // TODO: Kotlin Double.toString() produce different strings dependending on the platform, so on
+    // JVM
     // is 1.2E33, while on js is 1.2e+33. For now we are disabling this test.
     //
-    // val minified = data.filterNot { it == ' '.toByte() || it == '\n'.toByte() }.toByteArray().decodeToString()
+    // val minified = data.filterNot { it == ' '.toByte() || it == '\n'.toByte()
+    // }.toByteArray().decodeToString()
     // assertEquals(minified, root.toJson())
   }
 
   @Test
   fun testDoubles() {
-    val values = arrayOf(
-      "-0.0",
-      "1.0",
-      "1.7976931348613157",
-      "0.0",
-      "-0.5",
-      "3.141592653589793",
-      "2.718281828459045E-3",
-      "2.2250738585072014E-308",
-      "4.9E-15",
-    )
+    val values =
+      arrayOf(
+        "-0.0",
+        "1.0",
+        "1.7976931348613157",
+        "0.0",
+        "-0.5",
+        "3.141592653589793",
+        "2.718281828459045E-3",
+        "2.2250738585072014E-308",
+        "4.9E-15",
+      )
     val parser = JSONParser()
     assertEquals(-0.0, parser.parse(values[0]).toDouble())
     assertEquals(1.0, parser.parse(values[1]).toDouble())
@@ -103,15 +109,16 @@ class JSONTest {
 
   @Test
   fun testInts() {
-    val values = arrayOf(
-      "-0",
-      "0",
-      "-1",
-      "${Int.MAX_VALUE}",
-      "${Int.MIN_VALUE}",
-      "${Long.MAX_VALUE}",
-      "${Long.MIN_VALUE}",
-    )
+    val values =
+      arrayOf(
+        "-0",
+        "0",
+        "-1",
+        "${Int.MAX_VALUE}",
+        "${Int.MIN_VALUE}",
+        "${Long.MAX_VALUE}",
+        "${Long.MIN_VALUE}",
+      )
     val parser = JSONParser()
 
     assertEquals(parser.parse(values[0]).toInt(), 0)
@@ -125,11 +132,7 @@ class JSONTest {
 
   @Test
   fun testBooleansAndNull() {
-    val values = arrayOf(
-      "true",
-      "false",
-      "null"
-    )
+    val values = arrayOf("true", "false", "null")
     val parser = JSONParser()
 
     assertEquals(true, parser.parse(values[0]).toBoolean())
@@ -139,16 +142,17 @@ class JSONTest {
 
   @Test
   fun testStrings() {
-    val values = arrayOf(
-      "\"\"",
-      "\"a\"",
-      "\"hello world\"",
-      "\"\\\"\\\\\\/\\b\\f\\n\\r\\t cool\"",
-      "\"\\u0000\"",
-      "\"\\u0021\"",
-      "\"hell\\u24AC\\n\\ro wor \\u0021 ld\"",
-      "\"\\/_\\\\_\\\"_\\uCAFE\\uBABE\\uAB98\\uFCDE\\ubcda\\uef4A\\b\\n\\r\\t`1~!@#\$%^&*()_+-=[]{}|;:',./<>?\"",
-    )
+    val values =
+      arrayOf(
+        "\"\"",
+        "\"a\"",
+        "\"hello world\"",
+        "\"\\\"\\\\\\/\\b\\f\\n\\r\\t cool\"",
+        "\"\\u0000\"",
+        "\"\\u0021\"",
+        "\"hell\\u24AC\\n\\ro wor \\u0021 ld\"",
+        "\"\\/_\\\\_\\\"_\\uCAFE\\uBABE\\uAB98\\uFCDE\\ubcda\\uef4A\\b\\n\\r\\t`1~!@#\$%^&*()_+-=[]{}|;:',./<>?\"",
+      )
     val parser = JSONParser()
 
     // empty
@@ -189,39 +193,41 @@ class JSONTest {
   @Test
   fun testUnicode() {
     // took from test/unicode_test.json
-    val data = """
-      {
-        "name": "unicode_test",
-        "testarrayofstring": [
-          "Цлїςσδε",
-          "ﾌﾑｱﾑｶﾓｹﾓ",
-          "フムヤムカモケモ",
-          "㊀㊁㊂㊃㊄",
-          "☳☶☲",
-          "𡇙𝌆"
-        ],
-        "testarrayoftables": [
-          {
-            "name": "Цлїςσδε"
-          },
-          {
-            "name": "☳☶☲"
-          },
-          {
-            "name": "フムヤムカモケモ"
-          },
-          {
-            "name": "㊀㊁㊂㊃㊄"
-          },
-          {
-            "name": "ﾌﾑｱﾑｶﾓｹﾓ"
-          },
-          {
-            "name": "𡇙𝌆"
-          }
-        ]
-      }
-    """.trimIndent()
+    val data =
+      """
+        {
+          "name": "unicode_test",
+          "testarrayofstring": [
+            "Цлїςσδε",
+            "ﾌﾑｱﾑｶﾓｹﾓ",
+            "フムヤムカモケモ",
+            "㊀㊁㊂㊃㊄",
+            "☳☶☲",
+            "𡇙𝌆"
+          ],
+          "testarrayoftables": [
+            {
+              "name": "Цлїςσδε"
+            },
+            {
+              "name": "☳☶☲"
+            },
+            {
+              "name": "フムヤムカモケモ"
+            },
+            {
+              "name": "㊀㊁㊂㊃㊄"
+            },
+            {
+              "name": "ﾌﾑｱﾑｶﾓｹﾓ"
+            },
+            {
+              "name": "𡇙𝌆"
+            }
+          ]
+        }
+      """
+        .trimIndent()
     val parser = JSONParser()
     val ref = parser.parse(data)
 
@@ -248,15 +254,16 @@ class JSONTest {
 
   @Test
   fun testArrays() {
-    val values = arrayOf(
-      "[]",
-      "[1]",
-      "[0,1, 2,3  , 4 ]",
-      "[1.0, 2.2250738585072014E-308,  4.9E-320]",
-      "[1.0, 2,  \"hello world\"]   ",
-      "[ 1.1, 2, [ \"hello\" ] ]",
-      "[[[1]]]"
-    )
+    val values =
+      arrayOf(
+        "[]",
+        "[1]",
+        "[0,1, 2,3  , 4 ]",
+        "[1.0, 2.2250738585072014E-308,  4.9E-320]",
+        "[1.0, 2,  \"hello world\"]   ",
+        "[ 1.1, 2, [ \"hello\" ] ]",
+        "[[[1]]]",
+      )
     val parser = JSONParser()
 
     // empty
@@ -300,47 +307,47 @@ class JSONTest {
   }
 
   /**
-   * Several test cases provided by json.org
-   * For more details, see: http://json.org/JSON_checker/, with only
-   * one exception. Single strings are considered accepted, whereas on
-   * the test suit is should fail.
+   * Several test cases provided by json.org For more details, see: http://json.org/JSON_checker/,
+   * with only one exception. Single strings are considered accepted, whereas on the test suit is
+   * should fail.
    */
   @Test
   fun testParseMustFail() {
-    val failList = listOf(
-      "[\"Unclosed array\"",
-      "{unquoted_key: \"keys must be quoted\"}",
-      "[\"extra comma\",]",
-      "[\"double extra comma\",,]",
-      "[   , \"<-- missing value\"]",
-      "[\"Comma after the close\"],",
-      "[\"Extra close\"]]",
-      "{\"Extra comma\": true,}",
-      "{\"Extra value after close\": true} \"misplaced quoted value\"",
-      "{\"Illegal expression\": 1 + 2}",
-      "{\"Illegal invocation\": alert()}",
-      "{\"Numbers cannot have leading zeroes\": 013}",
-      "{\"Numbers cannot be hex\": 0x14}",
-      "[\"Illegal backslash escape: \\x15\"]",
-      "[\\naked]",
-      "[\"Illegal backslash escape: \\017\"]",
-      "[[[[[[[[[[[[[[[[[[[[[[[\"Too deep\"]]]]]]]]]]]]]]]]]]]]]]]",
-      "{\"Missing colon\" null}",
-      "{\"Double colon\":: null}",
-      "{\"Comma instead of colon\", null}",
-      "[\"Colon instead of comma\": false]",
-      "[\"Bad value\", truth]",
-      "['single quote']",
-      "[\"\ttab\tcharacter\tin\tstring\t\"]",
-      "[\"tab\\   character\\   in\\  string\\  \"]",
-      "[\"line\nbreak\"]",
-      "[\"line\\\nbreak\"]",
-      "[0e]",
-      "[0e+]",
-      "[0e+-1]",
-      "{\"Comma instead if closing brace\": true,",
-      "[\"mismatch\"}"
-    )
+    val failList =
+      listOf(
+        "[\"Unclosed array\"",
+        "{unquoted_key: \"keys must be quoted\"}",
+        "[\"extra comma\",]",
+        "[\"double extra comma\",,]",
+        "[   , \"<-- missing value\"]",
+        "[\"Comma after the close\"],",
+        "[\"Extra close\"]]",
+        "{\"Extra comma\": true,}",
+        "{\"Extra value after close\": true} \"misplaced quoted value\"",
+        "{\"Illegal expression\": 1 + 2}",
+        "{\"Illegal invocation\": alert()}",
+        "{\"Numbers cannot have leading zeroes\": 013}",
+        "{\"Numbers cannot be hex\": 0x14}",
+        "[\"Illegal backslash escape: \\x15\"]",
+        "[\\naked]",
+        "[\"Illegal backslash escape: \\017\"]",
+        "[[[[[[[[[[[[[[[[[[[[[[[\"Too deep\"]]]]]]]]]]]]]]]]]]]]]]]",
+        "{\"Missing colon\" null}",
+        "{\"Double colon\":: null}",
+        "{\"Comma instead of colon\", null}",
+        "[\"Colon instead of comma\": false]",
+        "[\"Bad value\", truth]",
+        "['single quote']",
+        "[\"\ttab\tcharacter\tin\tstring\t\"]",
+        "[\"tab\\   character\\   in\\  string\\  \"]",
+        "[\"line\nbreak\"]",
+        "[\"line\\\nbreak\"]",
+        "[0e]",
+        "[0e+]",
+        "[0e+-1]",
+        "{\"Comma instead if closing brace\": true,",
+        "[\"mismatch\"}",
+      )
     for (data in failList) {
       try {
         JSONParser().parse(ArrayReadBuffer(data.encodeToByteArray()))
@@ -353,73 +360,74 @@ class JSONTest {
 
   @Test
   fun testParseMustPass() {
-    val passList = listOf(
-      "[\n" +
-        "    \"JSON Test Pattern pass1\",\n" +
-        "    {\"object with 1 member\":[\"array with 1 element\"]},\n" +
-        "    {},\n" +
-        "    [],\n" +
-        "    -42,\n" +
-        "    true,\n" +
-        "    false,\n" +
-        "    null,\n" +
-        "    {\n" +
-        "        \"integer\": 1234567890,\n" +
-        "        \"real\": -9876.543210,\n" +
-        "        \"e\": 0.123456789e-12,\n" +
-        "        \"E\": 1.234567890E+34,\n" +
-        "        \"\":  23456789012E66,\n" +
-        "        \"zero\": 0,\n" +
-        "        \"one\": 1,\n" +
-        "        \"space\": \" \",\n" +
-        "        \"quote\": \"\\\"\",\n" +
-        "        \"backslash\": \"\\\\\",\n" +
-        "        \"controls\": \"\\b\\f\\n\\r\\t\",\n" +
-        "        \"slash\": \"/ & \\/\",\n" +
-        "        \"alpha\": \"abcdefghijklmnopqrstuvwyz\",\n" +
-        "        \"ALPHA\": \"ABCDEFGHIJKLMNOPQRSTUVWYZ\",\n" +
-        "        \"digit\": \"0123456789\",\n" +
-        "        \"0123456789\": \"digit\",\n" +
-        "        \"special\": \"`1~!@#\$%^&*()_+-={':[,]}|;.</>?\",\n" +
-        "        \"hex\": \"\\u0123\\u4567\\u89AB\\uCDEF\\uabcd\\uef4A\",\n" +
-        "        \"true\": true,\n" +
-        "        \"false\": false,\n" +
-        "        \"null\": null,\n" +
-        "        \"array\":[  ],\n" +
-        "        \"object\":{  },\n" +
-        "        \"address\": \"50 St. James Street\",\n" +
-        "        \"url\": \"http://www.JSON.org/\",\n" +
-        "        \"comment\": \"// /* <!-- --\",\n" +
-        "        \"# -- --> */\": \" \",\n" +
-        "        \" s p a c e d \" :[1,2 , 3\n" +
-        "\n" +
-        ",\n" +
-        "\n" +
-        "4 , 5        ,          6           ,7        ],\"compact\":[1,2,3,4,5,6,7],\n" +
-        "        \"jsontext\": \"{\\\"object with 1 member\\\":[\\\"array with 1 element\\\"]}\",\n" +
-        "        \"quotes\": \"&#34; \\u0022 %22 0x22 034 &#x22;\",\n" +
-        "        \"\\/\\\\\\\"\\uCAFE\\uBABE\\uAB98\\uFCDE\\ubcda\\uef4A\\b\\f\\n\\r\\t`1~!@#\$%^&*()_+-=[]{}|;:',./<>?\"\n" +
-        ": \"A key can be any string\"\n" +
-        "    },\n" +
-        "    0.5 ,98.6\n" +
-        ",\n" +
-        "99.44\n" +
-        ",\n" +
-        "\n" +
-        "1066,\n" +
-        "1e1,\n" +
-        "0.1e1,\n" +
-        "1e-1,\n" +
-        "1e00,2e+00,2e-00\n" +
-        ",\"rosebud\"]",
-      "{\n" +
-        "    \"JSON Test Pattern pass3\": {\n" +
-        "        \"The outermost value\": \"must be an object or array.\",\n" +
-        "        \"In this test\": \"It is an object.\"\n" +
-        "    }\n" +
-        "}",
-      "[[[[[[[[[[[[[[[[[[[\"Not too deep\"]]]]]]]]]]]]]]]]]]]",
-    )
+    val passList =
+      listOf(
+        "[\n" +
+          "    \"JSON Test Pattern pass1\",\n" +
+          "    {\"object with 1 member\":[\"array with 1 element\"]},\n" +
+          "    {},\n" +
+          "    [],\n" +
+          "    -42,\n" +
+          "    true,\n" +
+          "    false,\n" +
+          "    null,\n" +
+          "    {\n" +
+          "        \"integer\": 1234567890,\n" +
+          "        \"real\": -9876.543210,\n" +
+          "        \"e\": 0.123456789e-12,\n" +
+          "        \"E\": 1.234567890E+34,\n" +
+          "        \"\":  23456789012E66,\n" +
+          "        \"zero\": 0,\n" +
+          "        \"one\": 1,\n" +
+          "        \"space\": \" \",\n" +
+          "        \"quote\": \"\\\"\",\n" +
+          "        \"backslash\": \"\\\\\",\n" +
+          "        \"controls\": \"\\b\\f\\n\\r\\t\",\n" +
+          "        \"slash\": \"/ & \\/\",\n" +
+          "        \"alpha\": \"abcdefghijklmnopqrstuvwyz\",\n" +
+          "        \"ALPHA\": \"ABCDEFGHIJKLMNOPQRSTUVWYZ\",\n" +
+          "        \"digit\": \"0123456789\",\n" +
+          "        \"0123456789\": \"digit\",\n" +
+          "        \"special\": \"`1~!@#\$%^&*()_+-={':[,]}|;.</>?\",\n" +
+          "        \"hex\": \"\\u0123\\u4567\\u89AB\\uCDEF\\uabcd\\uef4A\",\n" +
+          "        \"true\": true,\n" +
+          "        \"false\": false,\n" +
+          "        \"null\": null,\n" +
+          "        \"array\":[  ],\n" +
+          "        \"object\":{  },\n" +
+          "        \"address\": \"50 St. James Street\",\n" +
+          "        \"url\": \"http://www.JSON.org/\",\n" +
+          "        \"comment\": \"// /* <!-- --\",\n" +
+          "        \"# -- --> */\": \" \",\n" +
+          "        \" s p a c e d \" :[1,2 , 3\n" +
+          "\n" +
+          ",\n" +
+          "\n" +
+          "4 , 5        ,          6           ,7        ],\"compact\":[1,2,3,4,5,6,7],\n" +
+          "        \"jsontext\": \"{\\\"object with 1 member\\\":[\\\"array with 1 element\\\"]}\",\n" +
+          "        \"quotes\": \"&#34; \\u0022 %22 0x22 034 &#x22;\",\n" +
+          "        \"\\/\\\\\\\"\\uCAFE\\uBABE\\uAB98\\uFCDE\\ubcda\\uef4A\\b\\f\\n\\r\\t`1~!@#\$%^&*()_+-=[]{}|;:',./<>?\"\n" +
+          ": \"A key can be any string\"\n" +
+          "    },\n" +
+          "    0.5 ,98.6\n" +
+          ",\n" +
+          "99.44\n" +
+          ",\n" +
+          "\n" +
+          "1066,\n" +
+          "1e1,\n" +
+          "0.1e1,\n" +
+          "1e-1,\n" +
+          "1e00,2e+00,2e-00\n" +
+          ",\"rosebud\"]",
+        "{\n" +
+          "    \"JSON Test Pattern pass3\": {\n" +
+          "        \"The outermost value\": \"must be an object or array.\",\n" +
+          "        \"In this test\": \"It is an object.\"\n" +
+          "    }\n" +
+          "}",
+        "[[[[[[[[[[[[[[[[[[[\"Not too deep\"]]]]]]]]]]]]]]]]]]]",
+      )
     for (data in passList) {
       JSONParser().parse(ArrayReadBuffer(data.encodeToByteArray()))
     }

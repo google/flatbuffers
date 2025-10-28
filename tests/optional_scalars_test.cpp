@@ -43,7 +43,7 @@ void OptionalScalarsTest() {
     const bool has_null = schema->find("null") != std::string::npos;
     flatbuffers::Parser parser;
     TEST_ASSERT(parser.Parse(schema->c_str()));
-    const auto *mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
+    const auto* mana = parser.structs_.Lookup("Monster")->fields.Lookup("mana");
     TEST_EQ(mana->IsOptional(), has_null);
   }
 

@@ -1,9 +1,9 @@
 package com.flatbuffers.app
 
 import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.fbs.app.Animal
 import com.google.flatbuffers.FlatBufferBuilder
 import java.nio.ByteBuffer
@@ -27,14 +27,15 @@ class MainActivity : AppCompatActivity() {
   private external fun createAnimalFromJNI(): ByteArray
 
   // Create a "Cow" Animal flatbuffers from Kotlin
-  private fun createAnimalFromKotlin():Animal {
+  private fun createAnimalFromKotlin(): Animal {
     val fb = FlatBufferBuilder(100)
-    val cowOffset = Animal.createAnimal(
-      builder = fb,
-      nameOffset = fb.createString("Cow"),
-      soundOffset = fb.createString("Moo"),
-      weight = 720u
-    )
+    val cowOffset =
+      Animal.createAnimal(
+        builder = fb,
+        nameOffset = fb.createString("Cow"),
+        soundOffset = fb.createString("Moo"),
+        weight = 720u,
+      )
     fb.finish(cowOffset)
     return Animal.getRootAsAnimal(fb.dataBuffer())
   }

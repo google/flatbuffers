@@ -45,8 +45,8 @@ public struct TableVerifier {
     position: Int,
     vtable: Int,
     vtableLength: Int,
-    verifier: inout Verifier)
-  {
+    verifier: inout Verifier
+  ) {
     _position = position
     _vtable = vtable
     _vtableLength = vtableLength
@@ -84,8 +84,8 @@ public struct TableVerifier {
     field: VOffset,
     fieldName: String,
     required: Bool,
-    type: T.Type) throws where T: Verifiable
-  {
+    type: T.Type
+  ) throws where T: Verifiable {
     let derefValue = try dereference(field)
 
     if let value = derefValue {
@@ -115,9 +115,9 @@ public struct TableVerifier {
     unionKeyName: String,
     fieldName: String,
     required: Bool,
-    completion: @escaping (inout Verifier, T, Int) throws -> Void) throws
-    where T: UnionEnum
-  {
+    completion: @escaping (inout Verifier, T, Int) throws -> Void
+  ) throws
+  where T: UnionEnum {
     let keyPos = try dereference(key)
     let valPos = try dereference(field)
 
@@ -131,14 +131,16 @@ public struct TableVerifier {
     }
 
     if let _key = keyPos,
-       let _val = valPos
+      let _val = valPos
     {
       /// verifiying that the key is within the buffer
       try T.T.verify(&_verifier, at: _key, of: T.T.self)
-      guard let _enum = try T.init(value: _verifier._buffer.read(
-        def: T.T.self,
-        position: _key)) else
-      {
+      guard
+        let _enum = try T.init(
+          value: _verifier._buffer.read(
+            def: T.T.self,
+            position: _key))
+      else {
         throw FlatbuffersErrors.unknownUnionCase
       }
       /// we are assuming that Unions will always be of type Uint8
@@ -170,14 +172,14 @@ public struct TableVerifier {
     unionKeyName: String,
     fieldName: String,
     required: Bool,
-    completion: @escaping (inout Verifier, T, Int) throws -> Void) throws
-    where T: UnionEnum
-  {
+    completion: @escaping (inout Verifier, T, Int) throws -> Void
+  ) throws
+  where T: UnionEnum {
     let keyVectorPosition = try dereference(key)
     let offsetVectorPosition = try dereference(field)
 
     if let keyPos = keyVectorPosition,
-       let valPos = offsetVectorPosition
+      let valPos = offsetVectorPosition
     {
       try UnionVector<T>.verify(
         &_verifier,

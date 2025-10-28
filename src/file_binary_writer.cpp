@@ -24,15 +24,15 @@ namespace flatbuffers {
 
 class FileBinaryWriter : public FileManager {
  public:
-  bool SaveFile(const std::string &absolute_file_name,
-                const std::string &content) override {
+  bool SaveFile(const std::string& absolute_file_name,
+                const std::string& content) override {
     std::ofstream ofs(absolute_file_name, std::ofstream::binary);
     if (!ofs.is_open()) return false;
     ofs.write(content.c_str(), content.size());
     return !ofs.bad();
   }
 
-  bool Loadfile(const std::string &absolute_file_name, std::string *output) {
+  bool Loadfile(const std::string& absolute_file_name, std::string* output) {
     if (DirExists(absolute_file_name.c_str())) return false;
     std::ifstream ifs(absolute_file_name, std::ifstream::binary);
     if (!ifs.is_open()) return false;

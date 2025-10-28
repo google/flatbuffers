@@ -64,7 +64,7 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
 
   @Override
   public void putBoolean(boolean value) {
-    buffer.put(value ? (byte)1 : (byte)0);
+    buffer.put(value ? (byte) 1 : (byte) 0);
   }
 
   @Override
@@ -104,7 +104,7 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
 
   @Override
   public void setBoolean(int index, boolean value) {
-    set(index, value ? (byte)1 : (byte)0);
+    set(index, value ? (byte) 1 : (byte) 0);
   }
 
   @Override
@@ -166,5 +166,4 @@ public class ByteBufferReadWriteBuf implements ReadWriteBuf {
   public boolean requestCapacity(int capacity) {
     return capacity <= buffer.limit();
   }
-
 }

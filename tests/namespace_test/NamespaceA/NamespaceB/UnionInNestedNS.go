@@ -11,7 +11,7 @@ import (
 )
 
 type UnionInNestedNST struct {
-	Type UnionInNestedNS
+	Type  UnionInNestedNS
 	Value interface{}
 }
 
@@ -30,7 +30,7 @@ func (rcv UnionInNestedNS) UnPack(table flatbuffers.Table) *UnionInNestedNST {
 	switch rcv {
 	case UnionInNestedNSTableInNestedNS:
 		x := TableInNestedNS{_tab: table}
-		return &NamespaceA__NamespaceB.UnionInNestedNST{ Type: UnionInNestedNSTableInNestedNS, Value: x.UnPack() }
+		return &NamespaceA__NamespaceB.UnionInNestedNST{Type: UnionInNestedNSTableInNestedNS, Value: x.UnPack()}
 	}
 	return nil
 }

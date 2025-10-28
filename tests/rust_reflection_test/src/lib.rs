@@ -109,10 +109,7 @@ fn test_schema_correct_file() {
 #[test]
 fn test_schema_correct_table_field() {
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
-    let root_table = root_as_schema(schema_buffer.as_slice())
-        .unwrap()
-        .root_table()
-        .unwrap();
+    let root_table = root_as_schema(schema_buffer.as_slice()).unwrap().root_table().unwrap();
 
     let fields = root_table.fields();
 
@@ -132,18 +129,14 @@ fn test_schema_correct_table_field() {
         .unwrap()
         .attributes()
         .unwrap()
-        .lookup_by_key("priority", |key_value, key| key_value
-            .key_compare_with_value(key))
+        .lookup_by_key("priority", |key_value, key| key_value.key_compare_with_value(key))
         .is_some());
 }
 
 #[test]
 fn test_schema_correct_table_field_nullability() {
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
-    let root_table = root_as_schema(schema_buffer.as_slice())
-        .unwrap()
-        .root_table()
-        .unwrap();
+    let root_table = root_as_schema(schema_buffer.as_slice()).unwrap().root_table().unwrap();
 
     let fields = root_table.fields();
 
@@ -375,9 +368,7 @@ fn test_buffer_table_same_type_succeeds() {
         .get(table_field.type_().index() as usize)
         .fields();
     let nested_table_field = nested_table_fields
-        .lookup_by_key("id", |field: &Field<'_>, key| {
-            field.key_compare_with_value(key)
-        })
+        .lookup_by_key("id", |field: &Field<'_>, key| field.key_compare_with_value(key))
         .unwrap();
     let nested_table_id = unsafe { get_field_string(&nested_table, &nested_table_field) };
     assert!(nested_table_id.is_ok());
@@ -406,11 +397,7 @@ fn test_buffer_nested_struct_same_type_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -434,11 +421,7 @@ fn test_buffer_nested_struct_diff_type_fails() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -591,11 +574,7 @@ fn test_buffer_i16_as_string_succeeds() {
     let i16_field = get_schema_field(&schema, "hp");
 
     let value = unsafe {
-        get_any_field_string(
-            &root_table,
-            &i16_field,
-            &root_as_schema(schema.as_slice()).unwrap(),
-        )
+        get_any_field_string(&root_table, &i16_field, &root_as_schema(schema.as_slice()).unwrap())
     };
 
     assert_eq!(value, String::from("32767"));
@@ -609,11 +588,7 @@ fn test_buffer_f32_as_string_succeeds() {
     let f32_field = get_schema_field(&schema, "testf");
 
     let mut value = unsafe {
-        get_any_field_string(
-            &root_table,
-            &f32_field,
-            &root_as_schema(schema.as_slice()).unwrap(),
-        )
+        get_any_field_string(&root_table, &f32_field, &root_as_schema(schema.as_slice()).unwrap())
     };
 
     value.truncate(4);
@@ -644,11 +619,7 @@ fn test_buffer_i16_in_struct_as_integer_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -680,11 +651,7 @@ fn test_buffer_f32_in_struct_as_integer_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -706,11 +673,7 @@ fn test_buffer_enum_in_struct_as_integer_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -732,11 +695,7 @@ fn test_buffer_struct_in_struct_as_integer_fails() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -761,11 +720,7 @@ fn test_buffer_i16_in_struct_as_float_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -797,11 +752,7 @@ fn test_buffer_f32_in_struct_as_float_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -823,11 +774,7 @@ fn test_buffer_enum_in_struct_as_float_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -849,11 +796,7 @@ fn test_buffer_struct_in_struct_as_float_fails() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -878,11 +821,7 @@ fn test_buffer_i16_in_struct_as_string_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -919,11 +858,7 @@ fn test_buffer_f32_in_struct_as_string_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -950,11 +885,7 @@ fn test_buffer_enum_in_struct_as_string_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -981,11 +912,7 @@ fn test_buffer_struct_in_struct_as_string_succeeds() {
     let root_table = unsafe { get_any_root(&buffer) };
     let schema = load_file_as_buffer("../monster_test.bfbs");
     let struct_field = get_schema_field(&schema, "pos");
-    let struct_value = unsafe {
-        get_field_struct(&root_table, &struct_field)
-            .unwrap()
-            .unwrap()
-    };
+    let struct_value = unsafe { get_field_struct(&root_table, &struct_field).unwrap().unwrap() };
     let struct_schema = root_as_schema(schema.as_slice())
         .unwrap()
         .objects()
@@ -1371,10 +1298,7 @@ fn test_buffer_set_string_bigger_size_succeeds() {
     let updated_table = unsafe { get_any_root(&buffer) };
     let updated_value = unsafe { get_field_string(&updated_table, &string_field) };
     assert!(updated_value.is_ok());
-    assert_eq!(
-        updated_value.unwrap(),
-        Some("AStringWithSlightlyBiggerSize")
-    );
+    assert_eq!(updated_value.unwrap(), Some("AStringWithSlightlyBiggerSize"));
 }
 
 #[test]
@@ -1441,10 +1365,7 @@ fn test_create_safe_buffer_limit_max_depth_fails() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
-    let verify_options = VerifierOptions {
-        max_depth: 1,
-        ..Default::default()
-    };
+    let verify_options = VerifierOptions { max_depth: 1, ..Default::default() };
 
     let safe_buffer = SafeBuffer::new_with_options(&buffer, &schema, &verify_options);
 
@@ -1457,10 +1378,7 @@ fn test_create_safe_buffer_limit_max_table_fails() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
-    let verify_options = VerifierOptions {
-        max_tables: 1,
-        ..Default::default()
-    };
+    let verify_options = VerifierOptions { max_tables: 1, ..Default::default() };
 
     let safe_buffer = SafeBuffer::new_with_options(&buffer, &schema, &verify_options);
 
@@ -1473,10 +1391,7 @@ fn test_create_safe_buffer_limit_max_size_fails() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
-    let verify_options = VerifierOptions {
-        max_apparent_size: 1 << 6,
-        ..Default::default()
-    };
+    let verify_options = VerifierOptions { max_apparent_size: 1 << 6, ..Default::default() };
 
     let safe_buffer = SafeBuffer::new_with_options(&buffer, &schema, &verify_options);
 
@@ -2073,9 +1988,7 @@ fn get_schema_field<'a>(schema_buffer: &'a Vec<u8>, field_name: &'a str) -> Fiel
     let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
     let root_table = schema.root_table().unwrap();
     let fields = root_table.fields();
-    fields
-        .lookup_by_key(field_name, |field, key| field.key_compare_with_value(key))
-        .unwrap()
+    fields.lookup_by_key(field_name, |field, key| field.key_compare_with_value(key)).unwrap()
 }
 
 fn create_test_buffer() -> Vec<u8> {
@@ -2105,18 +2018,12 @@ fn create_test_buffer() -> Vec<u8> {
             test_type: my_game::example::Any::Monster,
             testempty: Some(my_game::example::Stat::create(
                 &mut builder,
-                &my_game::example::StatArgs {
-                    id: Some(fred_name),
-                    ..Default::default()
-                },
+                &my_game::example::StatArgs { id: Some(fred_name), ..Default::default() },
             )),
             test: Some(
                 my_game::example::Monster::create(
                     &mut builder,
-                    &my_game::example::MonsterArgs {
-                        name: Some(fred_name),
-                        ..Default::default()
-                    },
+                    &my_game::example::MonsterArgs { name: Some(fred_name), ..Default::default() },
                 )
                 .as_union_value(),
             ),

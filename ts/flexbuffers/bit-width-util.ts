@@ -1,4 +1,4 @@
-import { BitWidth } from './bit-width.js'
+import {BitWidth} from './bit-width.js';
 
 export function toByteWidth(bitWidth: BitWidth): number {
   return 1 << bitWidth;

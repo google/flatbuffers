@@ -18,7 +18,10 @@ import Foundation
 
 @usableFromInline
 enum BitWidth: UInt64, CaseIterable {
-  case w8 = 0, w16 = 1, w32 = 2, w64 = 3
+  case w8 = 0
+  case w16 = 1
+  case w32 = 2
+  case w64 = 3
 }
 
 extension BitWidth: Comparable {

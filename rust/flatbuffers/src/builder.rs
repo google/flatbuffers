@@ -223,9 +223,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// new object.
     pub fn reset(&mut self) {
         // memset only the part of the buffer that could be dirty:
-        self.allocator[self.head.range_to_end()]
-            .iter_mut()
-            .for_each(|x| *x = 0);
+        self.allocator[self.head.range_to_end()].iter_mut().for_each(|x| *x = 0);
 
         self.head = ReverseIndex::end();
         self.written_vtable_revpos.clear();
@@ -627,15 +625,13 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             }
         }
         let new_vt_bytes = &self.allocator[vt_start_pos.range_to(vt_end_pos)];
-        let found = self
-            .written_vtable_revpos
-            .binary_search_by(|old_vtable_revpos: &UOffsetT| {
-                let old_vtable_pos = self.allocator.len() - *old_vtable_revpos as usize;
-                // Safety:
-                // Already written vtables are valid by construction
-                let old_vtable = unsafe { VTable::init(&self.allocator, old_vtable_pos) };
-                new_vt_bytes.cmp(old_vtable.as_bytes())
-            });
+        let found = self.written_vtable_revpos.binary_search_by(|old_vtable_revpos: &UOffsetT| {
+            let old_vtable_pos = self.allocator.len() - *old_vtable_revpos as usize;
+            // Safety:
+            // Already written vtables are valid by construction
+            let old_vtable = unsafe { VTable::init(&self.allocator, old_vtable_pos) };
+            new_vt_bytes.cmp(old_vtable.as_bytes())
+        });
         let final_vtable_revpos = match found {
             Ok(i) => {
                 // The new vtable is a duplicate so clear it.
@@ -680,9 +676,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     #[inline]
     fn grow_allocator(&mut self) {
         let starting_active_size = self.used_space();
-        self.allocator
-            .grow_downwards()
-            .expect("Flatbuffer allocation failure");
+        self.allocator.grow_downwards().expect("Flatbuffer allocation failure");
 
         let ending_active_size = self.used_space();
         debug_assert_eq!(starting_active_size, ending_active_size);
@@ -708,11 +702,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             // for the size prefix:
             let b = if size_prefixed { SIZE_UOFFSET } else { 0 };
             // for the file identifier (a string that is not zero-terminated):
-            let c = if file_identifier.is_some() {
-                FILE_IDENTIFIER_LENGTH
-            } else {
-                0
-            };
+            let c = if file_identifier.is_some() { FILE_IDENTIFIER_LENGTH } else { 0 };
             a + b + c
         };
 
@@ -767,10 +757,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         if self.unused_ready_space() >= want {
             return want;
         }
-        assert!(
-            want <= FLATBUFFERS_MAX_BUFFER_SIZE,
-            "cannot grow buffer beyond 2 gigabytes"
-        );
+        assert!(want <= FLATBUFFERS_MAX_BUFFER_SIZE, "cannot grow buffer beyond 2 gigabytes");
 
         while self.unused_ready_space() < want {
             self.grow_allocator();

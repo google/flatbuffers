@@ -12,32 +12,62 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from flatc_test import *
 import json
+from flatc_test import *
 
 
 class SchemaTests:
-    def EnumValAttributes(self):
-        # Generate .bfbs schema first
-        flatc(["--schema", "--binary", "--bfbs-builtins", "enum_val_attributes.fbs"])
-        assert_file_exists("enum_val_attributes.bfbs")
 
-        # Then turn it into JSON
-        flatc(["--json", "--strict-json", str(reflection_fbs_path()), "--", "enum_val_attributes.bfbs"])
+  def EnumValAttributes(self):
+    # Generate .bfbs schema first
+    flatc(
+        ["--schema", "--binary", "--bfbs-builtins", "enum_val_attributes.fbs"]
+    )
+    assert_file_exists("enum_val_attributes.bfbs")
 
-        # The attributes should be present in JSON
-        schema_json = json.loads(get_file_contents("enum_val_attributes.json"))
+    # Then turn it into JSON
+    flatc([
+        "--json",
+        "--strict-json",
+        str(reflection_fbs_path()),
+        "--",
+        "enum_val_attributes.bfbs",
+    ])
 
-        assert schema_json["enums"][0]["name"] == "ValAttributes"
-        assert schema_json["enums"][0]["values"][0]["name"] == "Val1"
-        assert schema_json["enums"][0]["values"][0]["attributes"][0]["key"] == "display_name"
-        assert schema_json["enums"][0]["values"][0]["attributes"][0]["value"] == "Value 1"
+    # The attributes should be present in JSON
+    schema_json = json.loads(get_file_contents("enum_val_attributes.json"))
 
-        assert schema_json["enums"][0]["values"][1]["name"] == "Val2"
-        assert schema_json["enums"][0]["values"][1]["attributes"][0]["key"] == "display_name"
-        assert schema_json["enums"][0]["values"][1]["attributes"][0]["value"] == "Value 2"
+    assert schema_json["enums"][0]["name"] == "ValAttributes"
+    assert schema_json["enums"][0]["values"][0]["name"] == "Val1"
+    assert (
+        schema_json["enums"][0]["values"][0]["attributes"][0]["key"]
+        == "display_name"
+    )
+    assert (
+        schema_json["enums"][0]["values"][0]["attributes"][0]["value"]
+        == "Value 1"
+    )
 
-        assert schema_json["enums"][0]["values"][2]["name"] == "Val3"
-        assert schema_json["enums"][0]["values"][2]["attributes"][0]["key"] == "deprecated"
-        assert schema_json["enums"][0]["values"][2]["attributes"][1]["key"] == "display_name"
-        assert schema_json["enums"][0]["values"][2]["attributes"][1]["value"] == "Value 3 (deprecated)"
+    assert schema_json["enums"][0]["values"][1]["name"] == "Val2"
+    assert (
+        schema_json["enums"][0]["values"][1]["attributes"][0]["key"]
+        == "display_name"
+    )
+    assert (
+        schema_json["enums"][0]["values"][1]["attributes"][0]["value"]
+        == "Value 2"
+    )
+
+    assert schema_json["enums"][0]["values"][2]["name"] == "Val3"
+    assert (
+        schema_json["enums"][0]["values"][2]["attributes"][0]["key"]
+        == "deprecated"
+    )
+    assert (
+        schema_json["enums"][0]["values"][2]["attributes"][1]["key"]
+        == "display_name"
+    )
+    assert (
+        schema_json["enums"][0]["values"][2]["attributes"][1]["value"]
+        == "Value 3 (deprecated)"
+    )

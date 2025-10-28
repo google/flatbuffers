@@ -268,10 +268,10 @@ namespace Google.FlatBuffers.Test
             }
 
             var longArrayBytes = monster.GetVectorOfLongsBytes();
-            Assert.IsTrue(monster.VectorOfLongsLength * 8 == longArrayBytes.Length);
+            Assert.IsTrue(monster.VectorOfLongsLength == longArrayBytes.Length);
 
             var doubleArrayBytes = monster.GetVectorOfDoublesBytes();
-            Assert.IsTrue(monster.VectorOfDoublesLength * 8 == doubleArrayBytes.Length);
+            Assert.IsTrue(monster.VectorOfDoublesLength == doubleArrayBytes.Length);
             #else
             var nameBytes = monster.GetNameBytes().Value;
             Assert.AreEqual("MyMonster", Encoding.UTF8.GetString(nameBytes.Array, nameBytes.Offset, nameBytes.Count));

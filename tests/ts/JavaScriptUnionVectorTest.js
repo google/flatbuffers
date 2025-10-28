@@ -1,17 +1,13 @@
 import assert from 'assert'
 import * as flatbuffers from 'flatbuffers'
 
-import { Character } from './union_vector/character.js'
-import { BookReader, BookReaderT } from './union_vector/book-reader.js'
-import { Attacker, AttackerT } from './union_vector/attacker.js'
-import { Movie, MovieT } from './union_vector/movie.js'
+import {Attacker, AttackerT} from './union_vector/attacker.js'
+import {BookReader, BookReaderT} from './union_vector/book-reader.js'
+import {Character} from './union_vector/character.js'
+import {Movie, MovieT} from './union_vector/movie.js'
 
-var charTypes = [
-  Character.Belle,
-  Character.MuLan,
-  Character.BookFan,
-  Character.Other
-];
+var charTypes =
+    [Character.Belle, Character.MuLan, Character.BookFan, Character.Other];
 
 function testMovieBuf(movie) {
   assert.strictEqual(movie.charactersTypeLength(), charTypes.length);
@@ -31,7 +27,7 @@ function testMovieBuf(movie) {
   assert.strictEqual(bookReader2.booksRead(), 2);
 
   var other = movie.characters(3, '');
-  assert.strictEqual(other, "I am other");
+  assert.strictEqual(other, 'I am other');
 }
 
 function testMovieUnpack(movie) {
@@ -55,7 +51,7 @@ function testMovieUnpack(movie) {
   assert.strictEqual(bookReader2.booksRead, 2);
 
   var other = movie.characters[3];
-  assert.strictEqual(other, "I am other");
+  assert.strictEqual(other, 'I am other');
 }
 
 function createMovie(fbb) {
@@ -66,17 +62,12 @@ function createMovie(fbb) {
   var charTypesOffset = Movie.createCharactersTypeVector(fbb, charTypes);
   var charsOffset = 0;
 
-  let otherOffset = fbb.createString("I am other");
+  let otherOffset = fbb.createString('I am other');
 
-  charsOffset = Movie.createCharactersVector(
-    fbb,
-    [
-      BookReader.createBookReader(fbb, 7),
-      attackerOffset,
-      BookReader.createBookReader(fbb, 2),
-      otherOffset
-    ]
-  );
+  charsOffset = Movie.createCharactersVector(fbb, [
+    BookReader.createBookReader(fbb, 7), attackerOffset,
+    BookReader.createBookReader(fbb, 2), otherOffset
+  ]);
 
   Movie.startMovie(fbb);
   Movie.addCharactersType(fbb, charTypesOffset);
@@ -104,7 +95,7 @@ function main() {
   Movie.finishMovieBuffer(fbb, movie_to.pack(fbb));
   var unpackBuf = new flatbuffers.ByteBuffer(fbb.asUint8Array());
   testMovieBuf(Movie.getRootAsMovie(unpackBuf));
-  
+
   console.log('FlatBuffers union vector test: completed successfully');
 }
 

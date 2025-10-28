@@ -16,6 +16,7 @@
 
 import Foundation
 import XCTest
+
 @testable import FlatBuffers
 
 class FlatBuffersMoreDefaults: XCTestCase {

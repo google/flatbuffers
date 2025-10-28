@@ -33,43 +33,45 @@ namespace dart {
 namespace {
 
 static Namer::Config DartDefaultConfig() {
-  return { /*types=*/Case::kUpperCamel,
-           /*constants=*/Case::kScreamingSnake,
-           /*methods=*/Case::kLowerCamel,
-           /*functions=*/Case::kUnknown,  // unused.
-           /*fields=*/Case::kLowerCamel,
-           /*variables=*/Case::kLowerCamel,
-           /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/".",
-           /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
-           /*namespaces=*/Case::kSnake2,
-           /*namespace_seperator=*/".",
-           /*object_prefix=*/"",
-           /*object_suffix=*/"T",
-           /*keyword_prefix=*/"$",
-           /*keyword_suffix=*/"",
-           /*filenames=*/Case::kKeep,
-           /*directories=*/Case::kKeep,
-           /*output_path=*/"",
-           /*filename_suffix=*/"_generated",
-           /*filename_extension=*/".dart" };
+  return {/*types=*/Case::kUpperCamel,
+          /*constants=*/Case::kScreamingSnake,
+          /*methods=*/Case::kLowerCamel,
+          /*functions=*/Case::kUnknown,  // unused.
+          /*fields=*/Case::kLowerCamel,
+          /*variables=*/Case::kLowerCamel,
+          /*variants=*/Case::kKeep,
+          /*enum_variant_seperator=*/".",
+          /*escape_keywords=*/Namer::Config::Escape::AfterConvertingCase,
+          /*namespaces=*/Case::kSnake2,
+          /*namespace_seperator=*/".",
+          /*object_prefix=*/"",
+          /*object_suffix=*/"T",
+          /*keyword_prefix=*/"$",
+          /*keyword_suffix=*/"",
+          /*filenames=*/Case::kKeep,
+          /*directories=*/Case::kKeep,
+          /*output_path=*/"",
+          /*filename_suffix=*/"_generated",
+          /*filename_extension=*/".dart"};
 }
 
 static std::set<std::string> DartKeywords() {
   // see https://www.dartlang.org/guides/language/language-tour#keywords
   // yield*, async*, and sync* shouldn't be proble
   return {
-    "abstract", "else",       "import",    "show",     "as",        "enum",
-    "in",       "static",     "assert",    "export",   "interface", "super",
-    "async",    "extends",    "is",        "switch",   "await",     "extension",
-    "late",     "sync",       "break",     "external", "library",   "this",
-    "case",     "factory",    "mixin",     "throw",    "catch",     "false",
-    "new",      "true",       "class",     "final",    "null",      "try",
-    "const",    "finally",    "on",        "typedef",  "continue",  "for",
-    "operator", "var",        "covariant", "Function", "part",      "void",
-    "default",  "get",        "required",  "while",    "deferred",  "hide",
-    "rethrow",  "with",       "do",        "if",       "return",    "yield",
-    "dynamic",  "implements", "set",
+      "abstract",  "else",       "import",    "show",    "as",
+      "enum",      "in",         "static",    "assert",  "export",
+      "interface", "super",      "async",     "extends", "is",
+      "switch",    "await",      "extension", "late",    "sync",
+      "break",     "external",   "library",   "this",    "case",
+      "factory",   "mixin",      "throw",     "catch",   "false",
+      "new",       "true",       "class",     "final",   "null",
+      "try",       "const",      "finally",   "on",      "typedef",
+      "continue",  "for",        "operator",  "var",     "covariant",
+      "Function",  "part",       "void",      "default", "get",
+      "required",  "while",      "deferred",  "hide",    "rethrow",
+      "with",      "do",         "if",        "return",  "yield",
+      "dynamic",   "implements", "set",
   };
 }
 }  // namespace
@@ -82,17 +84,17 @@ class DartGenerator : public BaseGenerator {
  public:
   typedef std::map<std::string, std::string> namespace_code_map;
 
-  DartGenerator(const Parser &parser, const std::string &path,
-                const std::string &file_name)
+  DartGenerator(const Parser& parser, const std::string& path,
+                const std::string& file_name)
       : BaseGenerator(parser, path, file_name, "", ".", "dart"),
         namer_(WithFlagOptions(DartDefaultConfig(), parser.opts, path),
                DartKeywords()) {}
 
-  template<typename T>
-  void import_generator(const std::vector<T *> &definitions,
-                        const std::string &included,
-                        std::set<std::string> &imports) {
-    for (const auto &item : definitions) {
+  template <typename T>
+  void import_generator(const std::vector<T*>& definitions,
+                        const std::string& included,
+                        std::set<std::string>& imports) {
+    for (const auto& item : definitions) {
       if (item->file == included) {
         std::string component = namer_.Namespace(*item->defined_namespace);
         std::string filebase =
@@ -118,7 +120,7 @@ class DartGenerator : public BaseGenerator {
 
     std::set<std::string> imports;
 
-    for (const auto &included_file : parser_.GetIncludedFiles()) {
+    for (const auto& included_file : parser_.GetIncludedFiles()) {
       if (included_file.filename == parser_.file_being_parsed_) continue;
 
       import_generator(parser_.structs_.vec, included_file.filename, imports);
@@ -126,7 +128,9 @@ class DartGenerator : public BaseGenerator {
     }
 
     std::string import_code = "";
-    for (const auto &file : imports) { import_code += file; }
+    for (const auto& file : imports) {
+      import_code += file;
+    }
 
     import_code += import_code.empty() ? "" : "\n";
 
@@ -137,7 +141,9 @@ class DartGenerator : public BaseGenerator {
              "// ignore_for_file: unused_import, unused_field, unused_element, "
              "unused_local_variable, constant_identifier_names\n\n";
 
-      if (!kv->first.empty()) { code += "library " + kv->first + ";\n\n"; }
+      if (!kv->first.empty()) {
+        code += "library " + kv->first + ";\n\n";
+      }
 
       code += "import 'dart:typed_data' show Uint8List;\n";
       code += "import 'package:flat_buffers/flat_buffers.dart' as " + _kFb +
@@ -156,18 +162,20 @@ class DartGenerator : public BaseGenerator {
 
       code += kv->second;
 
-      if (!SaveFile(Filename(kv->first).c_str(), code, false)) { return false; }
+      if (!SaveFile(Filename(kv->first).c_str(), code, false)) {
+        return false;
+      }
     }
     return true;
   }
 
-  std::string Filename(const std::string &suffix, bool path = true) const {
+  std::string Filename(const std::string& suffix, bool path = true) const {
     return (path ? path_ : "") +
            namer_.File(file_name_ + (suffix.empty() ? "" : "_" + suffix));
   }
 
  private:
-  static std::string ImportAliasName(const std::string &ns) {
+  static std::string ImportAliasName(const std::string& ns) {
     std::string ret;
     ret.assign(ns);
     size_t pos = ret.find('.');
@@ -179,25 +187,25 @@ class DartGenerator : public BaseGenerator {
     return ret;
   }
 
-  void GenerateEnums(namespace_code_map &namespace_code) {
+  void GenerateEnums(namespace_code_map& namespace_code) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
-      auto &enum_def = **it;
+      auto& enum_def = **it;
       GenEnum(enum_def, namespace_code);
     }
   }
 
-  void GenerateStructs(namespace_code_map &namespace_code) {
+  void GenerateStructs(namespace_code_map& namespace_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
+      auto& struct_def = **it;
       GenStruct(struct_def, namespace_code);
     }
   }
 
   // Generate a documentation comment, if available.
-  static void GenDocComment(const std::vector<std::string> &dc,
-                            const char *indent, std::string &code) {
+  static void GenDocComment(const std::vector<std::string>& dc,
+                            const char* indent, std::string& code) {
     for (auto it = dc.begin(); it != dc.end(); ++it) {
       if (indent) code += indent;
       code += "/// " + *it + "\n";
@@ -205,9 +213,9 @@ class DartGenerator : public BaseGenerator {
   }
 
   // Generate an enum declaration and an enum string lookup table.
-  void GenEnum(EnumDef &enum_def, namespace_code_map &namespace_code) {
+  void GenEnum(EnumDef& enum_def, namespace_code_map& namespace_code) {
     if (enum_def.generated) return;
-    std::string &code =
+    std::string& code =
         namespace_code[namer_.Namespace(*enum_def.defined_namespace)];
     GenDocComment(enum_def.doc_comment, "", code);
 
@@ -222,12 +230,14 @@ class DartGenerator : public BaseGenerator {
 
     code += "enum " + enum_type + " {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       const auto enum_var = namer_.Variant(ev);
       if (it != enum_def.Vals().begin()) code += ",\n";
       code += "  " + enum_var + "(" + enum_def.ToString(ev) + ")";
     }
-    if (auto_default) { code += ",\n  _default(0)"; }
+    if (auto_default) {
+      code += ",\n  _default(0)";
+    }
     code += ";\n\n";
 
     code += "  final int value;\n";
@@ -235,7 +245,7 @@ class DartGenerator : public BaseGenerator {
     code += "  factory " + enum_type + ".fromValue(int value) {\n";
     code += "    switch (value) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       const auto enum_var = namer_.Variant(ev);
       code += "      case " + enum_def.ToString(ev) + ":";
       code += " return " + enum_type + "." + enum_var + ";\n";
@@ -268,8 +278,8 @@ class DartGenerator : public BaseGenerator {
     GenEnumReader(enum_def, enum_type, code);
   }
 
-  void GenEnumReader(EnumDef &enum_def, const std::string &enum_type,
-                     std::string &code) {
+  void GenEnumReader(EnumDef& enum_def, const std::string& enum_type,
+                     std::string& code) {
     code += "class _" + enum_type + "Reader extends " + _kFb + ".Reader<" +
             enum_type + "> {\n";
     code += "  const _" + enum_type + "Reader();\n\n";
@@ -283,48 +293,69 @@ class DartGenerator : public BaseGenerator {
     code += "}\n\n";
   }
 
-  std::string GenType(const Type &type) {
+  std::string GenType(const Type& type) {
     switch (type.base_type) {
-      case BASE_TYPE_BOOL: return "Bool";
-      case BASE_TYPE_CHAR: return "Int8";
+      case BASE_TYPE_BOOL:
+        return "Bool";
+      case BASE_TYPE_CHAR:
+        return "Int8";
       case BASE_TYPE_UTYPE:
-      case BASE_TYPE_UCHAR: return "Uint8";
-      case BASE_TYPE_SHORT: return "Int16";
-      case BASE_TYPE_USHORT: return "Uint16";
-      case BASE_TYPE_INT: return "Int32";
-      case BASE_TYPE_UINT: return "Uint32";
-      case BASE_TYPE_LONG: return "Int64";
-      case BASE_TYPE_ULONG: return "Uint64";
-      case BASE_TYPE_FLOAT: return "Float32";
-      case BASE_TYPE_DOUBLE: return "Float64";
-      case BASE_TYPE_STRING: return "String";
-      case BASE_TYPE_VECTOR: return GenType(type.VectorType());
-      case BASE_TYPE_STRUCT: return namer_.Type(*type.struct_def);
-      case BASE_TYPE_UNION: return namer_.Type(*type.enum_def) + "TypeId";
-      default: return "Table";
+      case BASE_TYPE_UCHAR:
+        return "Uint8";
+      case BASE_TYPE_SHORT:
+        return "Int16";
+      case BASE_TYPE_USHORT:
+        return "Uint16";
+      case BASE_TYPE_INT:
+        return "Int32";
+      case BASE_TYPE_UINT:
+        return "Uint32";
+      case BASE_TYPE_LONG:
+        return "Int64";
+      case BASE_TYPE_ULONG:
+        return "Uint64";
+      case BASE_TYPE_FLOAT:
+        return "Float32";
+      case BASE_TYPE_DOUBLE:
+        return "Float64";
+      case BASE_TYPE_STRING:
+        return "String";
+      case BASE_TYPE_VECTOR:
+        return GenType(type.VectorType());
+      case BASE_TYPE_STRUCT:
+        return namer_.Type(*type.struct_def);
+      case BASE_TYPE_UNION:
+        return namer_.Type(*type.enum_def) + "TypeId";
+      default:
+        return "Table";
     }
   }
 
-  static std::string EnumSize(const Type &type) {
+  static std::string EnumSize(const Type& type) {
     switch (type.base_type) {
       case BASE_TYPE_BOOL:
       case BASE_TYPE_CHAR:
       case BASE_TYPE_UTYPE:
-      case BASE_TYPE_UCHAR: return "1";
+      case BASE_TYPE_UCHAR:
+        return "1";
       case BASE_TYPE_SHORT:
-      case BASE_TYPE_USHORT: return "2";
+      case BASE_TYPE_USHORT:
+        return "2";
       case BASE_TYPE_INT:
       case BASE_TYPE_UINT:
-      case BASE_TYPE_FLOAT: return "4";
+      case BASE_TYPE_FLOAT:
+        return "4";
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG:
-      case BASE_TYPE_DOUBLE: return "8";
-      default: return "1";
+      case BASE_TYPE_DOUBLE:
+        return "8";
+      default:
+        return "1";
     }
   }
 
-  std::string GenReaderTypeName(const Type &type, Namespace *current_namespace,
-                                const FieldDef &def,
+  std::string GenReaderTypeName(const Type& type, Namespace* current_namespace,
+                                const FieldDef& def,
                                 bool parent_is_vector = false, bool lazy = true,
                                 bool constConstruct = true) {
     std::string prefix = (constConstruct ? "const " : "") + _kFb;
@@ -357,8 +388,8 @@ class DartGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenDartTypeName(const Type &type, Namespace *current_namespace,
-                              const FieldDef &def,
+  std::string GenDartTypeName(const Type& type, Namespace* current_namespace,
+                              const FieldDef& def,
                               std::string struct_type_suffix = "") {
     if (type.enum_def) {
       if (type.enum_def->is_union && type.base_type != BASE_TYPE_UNION) {
@@ -371,7 +402,8 @@ class DartGenerator : public BaseGenerator {
     }
 
     switch (type.base_type) {
-      case BASE_TYPE_BOOL: return "bool";
+      case BASE_TYPE_BOOL:
+        return "bool";
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG:
       case BASE_TYPE_INT:
@@ -379,10 +411,13 @@ class DartGenerator : public BaseGenerator {
       case BASE_TYPE_SHORT:
       case BASE_TYPE_USHORT:
       case BASE_TYPE_CHAR:
-      case BASE_TYPE_UCHAR: return "int";
+      case BASE_TYPE_UCHAR:
+        return "int";
       case BASE_TYPE_FLOAT:
-      case BASE_TYPE_DOUBLE: return "double";
-      case BASE_TYPE_STRING: return "String";
+      case BASE_TYPE_DOUBLE:
+        return "double";
+      case BASE_TYPE_STRING:
+        return "String";
       case BASE_TYPE_STRUCT:
         return MaybeWrapNamespace(
             namer_.Type(*type.struct_def) + struct_type_suffix,
@@ -392,12 +427,14 @@ class DartGenerator : public BaseGenerator {
                GenDartTypeName(type.VectorType(), current_namespace, def,
                                struct_type_suffix) +
                ">";
-      default: assert(0); return "dynamic";
+      default:
+        assert(0);
+        return "dynamic";
     }
   }
 
-  std::string GenDartTypeName(const Type &type, Namespace *current_namespace,
-                              const FieldDef &def, bool nullable,
+  std::string GenDartTypeName(const Type& type, Namespace* current_namespace,
+                              const FieldDef& def, bool nullable,
                               std::string struct_type_suffix) {
     std::string typeName =
         GenDartTypeName(type, current_namespace, def, struct_type_suffix);
@@ -405,9 +442,9 @@ class DartGenerator : public BaseGenerator {
     return typeName;
   }
 
-  std::string MaybeWrapNamespace(const std::string &type_name,
-                                 Namespace *current_ns,
-                                 const FieldDef &field) const {
+  std::string MaybeWrapNamespace(const std::string& type_name,
+                                 Namespace* current_ns,
+                                 const FieldDef& field) const {
     const std::string current_namespace = namer_.Namespace(*current_ns);
     const std::string field_namespace =
         field.value.type.struct_def
@@ -424,14 +461,14 @@ class DartGenerator : public BaseGenerator {
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
-  void GenStruct(const StructDef &struct_def,
-                 namespace_code_map &namespace_code) {
+  void GenStruct(const StructDef& struct_def,
+                 namespace_code_map& namespace_code) {
     if (struct_def.generated) return;
 
-    std::string &code =
+    std::string& code =
         namespace_code[namer_.Namespace(*struct_def.defined_namespace)];
 
-    const auto &struct_type = namer_.Type(struct_def);
+    const auto& struct_type = namer_.Type(struct_def);
 
     // Emit constructor
 
@@ -461,10 +498,10 @@ class DartGenerator : public BaseGenerator {
     code += "  final " + _kFb + ".BufferContext _bc;\n";
     code += "  final int _bcOffset;\n\n";
 
-    std::vector<std::pair<int, FieldDef *>> non_deprecated_fields;
+    std::vector<std::pair<int, FieldDef*>> non_deprecated_fields;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      FieldDef &field = **it;
+      FieldDef& field = **it;
       if (field.deprecated) continue;
       auto offset = static_cast<int>(it - struct_def.fields.vec.begin());
       non_deprecated_fields.push_back(std::make_pair(offset, &field));
@@ -500,8 +537,8 @@ class DartGenerator : public BaseGenerator {
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
   std::string GenStructObjectAPI(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields) {
     std::string code;
     GenDocComment(struct_def.doc_comment, "", code);
 
@@ -511,7 +548,7 @@ class DartGenerator : public BaseGenerator {
     std::string constructor_args;
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
 
       const std::string field_name = namer_.Field(field);
       const std::string defaultValue = getDefaultValue(field.value);
@@ -528,7 +565,7 @@ class DartGenerator : public BaseGenerator {
       constructor_args += "this." + field_name;
       if (!struct_def.fixed && !defaultValue.empty()) {
         if (IsEnum(field.value.type)) {
-          auto &enum_def = *field.value.type.enum_def;
+          auto& enum_def = *field.value.type.enum_def;
           if (auto val = enum_def.FindByValue(defaultValue)) {
             constructor_args += " = " + namer_.EnumVariant(enum_def, *val);
           } else {
@@ -554,18 +591,18 @@ class DartGenerator : public BaseGenerator {
 
   // Generate function `StructNameT unpack()`
   std::string GenStructObjectAPIUnpack(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields) {
     std::string constructor_args;
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
 
       const std::string field_name = namer_.Field(field);
       if (!constructor_args.empty()) constructor_args += ",\n";
       constructor_args += "      " + field_name + ": ";
 
-      const Type &type = field.value.type;
+      const Type& type = field.value.type;
       std::string defaultValue = getDefaultValue(field.value);
       bool isNullable = defaultValue.empty() && !struct_def.fixed;
       std::string nullableValueAccessOperator = isNullable ? "?" : "";
@@ -601,8 +638,8 @@ class DartGenerator : public BaseGenerator {
 
   // Generate function `StructNameT pack()`
   std::string GenStructObjectAPIPack(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields) {
     std::string code;
 
     code += "  @override\n";
@@ -613,8 +650,8 @@ class DartGenerator : public BaseGenerator {
     return code;
   }
 
-  std::string NamespaceAliasFromUnionType(Namespace *root_namespace,
-                                          const Type &type) {
+  std::string NamespaceAliasFromUnionType(Namespace* root_namespace,
+                                          const Type& type) {
     const std::vector<std::string> qualified_name_parts =
         type.struct_def->defined_namespace->components;
     if (std::equal(root_namespace->components.begin(),
@@ -627,7 +664,7 @@ class DartGenerator : public BaseGenerator {
 
     for (auto it = qualified_name_parts.begin();
          it != qualified_name_parts.end(); ++it) {
-      auto &part = *it;
+      auto& part = *it;
 
       for (size_t i = 0; i < part.length(); i++) {
         if (i && !isdigit(part[i]) && part[i] == CharToUpper(part[i])) {
@@ -637,19 +674,21 @@ class DartGenerator : public BaseGenerator {
           ns += CharToLower(part[i]);
         }
       }
-      if (it != qualified_name_parts.end() - 1) { ns += "_"; }
+      if (it != qualified_name_parts.end() - 1) {
+        ns += "_";
+      }
     }
 
     return ns + "." + namer_.Type(*type.struct_def);
   }
 
   void GenImplementationGetters(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      std::string &code) {
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
+      std::string& code) {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
 
       const std::string field_name = namer_.Field(field);
       const std::string defaultValue = getDefaultValue(field.value);
@@ -664,10 +703,10 @@ class DartGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         code += " {\n";
         code += "    switch (" + field_name + "Type?.value) {\n";
-        const auto &enum_def = *field.value.type.enum_def;
+        const auto& enum_def = *field.value.type.enum_def;
         for (auto en_it = enum_def.Vals().begin() + 1;
              en_it != enum_def.Vals().end(); ++en_it) {
-          const auto &ev = **en_it;
+          const auto& ev = **en_it;
           const auto enum_name = NamespaceAliasFromUnionType(
               enum_def.defined_namespace, ev.union_type);
           code += "      case " + enum_def.ToString(ev) + ": return " +
@@ -713,8 +752,8 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string GenToString(
-      const std::string &object_name,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields) {
+      const std::string& object_name,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields) {
     std::string code;
     code += "  @override\n";
     code += "  String toString() {\n";
@@ -730,16 +769,20 @@ class DartGenerator : public BaseGenerator {
         escaped_field.push_back(field[i]);
       }
       code += escaped_field + ": ${" + field + "}";
-      if (it != non_deprecated_fields.end() - 1) { code += ", "; }
+      if (it != non_deprecated_fields.end() - 1) {
+        code += ", ";
+      }
     }
     code += "}';\n";
     code += "  }\n";
     return code;
   }
 
-  std::string getDefaultValue(const Value &value) const {
+  std::string getDefaultValue(const Value& value) const {
     if (!value.constant.empty() && value.constant != "0") {
-      if (IsBool(value.type.base_type)) { return "true"; }
+      if (IsBool(value.type.base_type)) {
+        return "true";
+      }
       if (IsScalar(value.type.base_type)) {
         if (StringIsFlatbufferNan(value.constant)) {
           return "double.nan";
@@ -759,8 +802,8 @@ class DartGenerator : public BaseGenerator {
     }
   }
 
-  void GenReader(const StructDef &struct_def, const std::string &reader_name,
-                 std::string &code) {
+  void GenReader(const StructDef& struct_def, const std::string& reader_name,
+                 std::string& code) {
     const auto struct_type = namer_.Type(struct_def);
 
     code += "class " + reader_name + " extends " + _kFb;
@@ -784,10 +827,12 @@ class DartGenerator : public BaseGenerator {
   }
 
   void GenBuilder(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      const std::string &builder_name, std::string &code) {
-    if (non_deprecated_fields.size() == 0) { return; }
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
+      const std::string& builder_name, std::string& code) {
+    if (non_deprecated_fields.size() == 0) {
+      return;
+    }
 
     code += "class " + builder_name + " {\n";
     code += "  " + builder_name + "(this.fbBuilder);\n\n";
@@ -803,13 +848,13 @@ class DartGenerator : public BaseGenerator {
   }
 
   void StructBuilderBody(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      std::string &code) {
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
+      std::string& code) {
     code += "  int finish(";
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
       const std::string field_name = namer_.Field(field);
 
       if (IsStruct(field.value.type)) {
@@ -819,13 +864,15 @@ class DartGenerator : public BaseGenerator {
                                 field);
       }
       code += " " + field_name;
-      if (it != non_deprecated_fields.end() - 1) { code += ", "; }
+      if (it != non_deprecated_fields.end() - 1) {
+        code += ", ";
+      }
     }
     code += ") {\n";
 
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
       const std::string field_name = namer_.Field(field);
 
       if (field.padding) {
@@ -837,7 +884,9 @@ class DartGenerator : public BaseGenerator {
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
         code += field_name;
-        if (field.value.type.enum_def) { code += ".value"; }
+        if (field.value.type.enum_def) {
+          code += ".value";
+        }
         code += ");\n";
       }
     }
@@ -846,9 +895,9 @@ class DartGenerator : public BaseGenerator {
   }
 
   void TableBuilderBody(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      std::string &code) {
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
+      std::string& code) {
     code += "  void begin() {\n";
     code += "    fbBuilder.startTable(" +
             NumToString(struct_def.fields.vec.size()) + ");\n";
@@ -856,7 +905,7 @@ class DartGenerator : public BaseGenerator {
 
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const auto &field = *it->second;
+      const auto& field = *it->second;
       const auto offset = it->first;
       const std::string add_field = namer_.Method("add", field);
       const std::string field_var = namer_.Variable(field);
@@ -869,7 +918,9 @@ class DartGenerator : public BaseGenerator {
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
                 NumToString(offset) + ", ";
         code += field_var;
-        if (field.value.type.enum_def) { code += "?.value"; }
+        if (field.value.type.enum_def) {
+          code += "?.value";
+        }
         code += ");\n";
       } else if (IsStruct(field.value.type)) {
         code += "  int " + add_field + "(int offset) {\n";
@@ -891,13 +942,13 @@ class DartGenerator : public BaseGenerator {
   }
 
   void GenObjectBuilder(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
-      const std::string &builder_name, std::string &code) {
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
+      const std::string& builder_name, std::string& code) {
     code += "class " + builder_name + " extends " + _kFb + ".ObjectBuilder {\n";
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
 
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
@@ -911,7 +962,7 @@ class DartGenerator : public BaseGenerator {
       code += "{\n";
       for (auto it = non_deprecated_fields.begin();
            it != non_deprecated_fields.end(); ++it) {
-        const FieldDef &field = *it->second;
+        const FieldDef& field = *it->second;
 
         code += "    ";
         code += (struct_def.fixed ? "required " : "") +
@@ -923,7 +974,7 @@ class DartGenerator : public BaseGenerator {
       code += "      : ";
       for (auto it = non_deprecated_fields.begin();
            it != non_deprecated_fields.end(); ++it) {
-        const FieldDef &field = *it->second;
+        const FieldDef& field = *it->second;
 
         code += "_" + namer_.Variable(field) + " = " + namer_.Variable(field);
         if (it == non_deprecated_fields.end() - 1) {
@@ -954,13 +1005,13 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string GenObjectBuilderImplementation(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
     std::string code;
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
 
       if (IsScalar(field.value.type.base_type) || IsStruct(field.value.type))
         continue;
@@ -1029,13 +1080,13 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string StructObjectBuilderBody(
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
     std::string code;
 
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
       const std::string field_name = namer_.Field(field);
 
       if (field.padding) {
@@ -1044,13 +1095,19 @@ class DartGenerator : public BaseGenerator {
 
       if (IsStruct(field.value.type)) {
         code += "    ";
-        if (prependUnderscore) { code += "_"; }
+        if (prependUnderscore) {
+          code += "_";
+        }
         code += field_name + (pack ? ".pack" : ".finish") + "(fbBuilder);\n";
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
-        if (prependUnderscore) { code += "_"; }
+        if (prependUnderscore) {
+          code += "_";
+        }
         code += field_name;
-        if (field.value.type.enum_def) { code += ".value"; }
+        if (field.value.type.enum_def) {
+          code += ".value";
+        }
         code += ");\n";
       }
     }
@@ -1060,8 +1117,8 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string TableObjectBuilderBody(
-      const StructDef &struct_def,
-      const std::vector<std::pair<int, FieldDef *>> &non_deprecated_fields,
+      const StructDef& struct_def,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
     std::string code;
     code += "    fbBuilder.startTable(" +
@@ -1069,7 +1126,7 @@ class DartGenerator : public BaseGenerator {
 
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
-      const FieldDef &field = *it->second;
+      const FieldDef& field = *it->second;
       auto offset = it->first;
 
       std::string field_var =
@@ -1101,14 +1158,14 @@ class DartGenerator : public BaseGenerator {
 };
 }  // namespace dart
 
-static bool GenerateDart(const Parser &parser, const std::string &path,
-                         const std::string &file_name) {
+static bool GenerateDart(const Parser& parser, const std::string& path,
+                         const std::string& file_name) {
   dart::DartGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-static std::string DartMakeRule(const Parser &parser, const std::string &path,
-                                const std::string &file_name) {
+static std::string DartMakeRule(const Parser& parser, const std::string& path,
+                                const std::string& file_name) {
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);
@@ -1125,34 +1182,35 @@ namespace {
 
 class DartCodeGenerator : public CodeGenerator {
  public:
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
-    if (!GenerateDart(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateCode(const Parser& parser, const std::string& path,
+                      const std::string& filename) override {
+    if (!GenerateDart(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *, int64_t,
-                      const CodeGenOptions &) override {
+  Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                          const std::string &filename,
-                          std::string &output) override {
+  Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                          const std::string& filename,
+                          std::string& output) override {
     output = DartMakeRule(parser, path, filename);
     return Status::OK;
   }
 
-  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                          const std::string &filename) override {
+  Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                          const std::string& filename) override {
     (void)parser;
     (void)path;
     (void)filename;
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateRootFile(const Parser &parser,
-                          const std::string &path) override {
+  Status GenerateRootFile(const Parser& parser,
+                          const std::string& path) override {
     (void)parser;
     (void)path;
     return Status::NOT_IMPLEMENTED;

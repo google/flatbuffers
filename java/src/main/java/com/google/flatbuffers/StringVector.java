@@ -17,13 +17,10 @@
 package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 
-/**
- * Helper type for accessing vector of String.
- */
+import java.nio.ByteBuffer;
+
+/** Helper type for accessing vector of String. */
 public final class StringVector extends BaseVector {
   private Utf8 utf8 = Utf8.getDefault();
 
@@ -34,10 +31,11 @@ public final class StringVector extends BaseVector {
    * @param _element_size Size of a vector element.
    * @param _bb Table's ByteBuffer.
    * @return Returns current vector access object assigned to vector data whose offset is stored at
-   *         `vector`.
+   *     `vector`.
    */
   public StringVector __assign(int _vector, int _element_size, ByteBuffer _bb) {
-    __reset(_vector, _element_size, _bb); return this;
+    __reset(_vector, _element_size, _bb);
+    return this;
   }
 
   /**

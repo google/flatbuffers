@@ -46,7 +46,8 @@ public enum FlexBufferType: UInt64 {
   @available(
     *,
     deprecated,
-    message: "use FBT_VECTOR or FBT_VECTOR_KEY instead.")
+    message: "use FBT_VECTOR or FBT_VECTOR_KEY instead."
+  )
   case vectorString = 15
 
   /// Typed tuples (no type table, no size field).

@@ -4,70 +4,90 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+
 np = import_numpy()
 
+
 class TableInNestedNS(object):
-    __slots__ = ['_tab']
+  __slots__ = ['_tab']
 
-    @classmethod
-    def GetRootAs(cls, buf, offset=0):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = TableInNestedNS()
-        x.Init(buf, n + offset)
-        return x
+  @classmethod
+  def GetRootAs(cls, buf, offset=0):
+    n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+    x = TableInNestedNS()
+    x.Init(buf, n + offset)
+    return x
 
-    @classmethod
-    def GetRootAsTableInNestedNS(cls, buf, offset=0):
-        """This method is deprecated. Please switch to GetRootAs."""
-        return cls.GetRootAs(buf, offset)
-    # TableInNestedNS
-    def Init(self, buf, pos):
-        self._tab = flatbuffers.table.Table(buf, pos)
+  @classmethod
+  def GetRootAsTableInNestedNS(cls, buf, offset=0):
+    """This method is deprecated. Please switch to GetRootAs."""
+    return cls.GetRootAs(buf, offset)
 
-    # TableInNestedNS
-    def Foo(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
-        return 0
+  # TableInNestedNS
+  def Init(self, buf, pos):
+    self._tab = flatbuffers.table.Table(buf, pos)
 
-def TableInNestedNSStart(builder): builder.StartObject(1)
+  # TableInNestedNS
+  def Foo(self):
+    o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+    if o != 0:
+      return self._tab.Get(
+          flatbuffers.number_types.Int32Flags, o + self._tab.Pos
+      )
+    return 0
+
+
+def TableInNestedNSStart(builder):
+  builder.StartObject(1)
+
+
 def Start(builder):
-    return TableInNestedNSStart(builder)
-def TableInNestedNSAddFoo(builder, foo): builder.PrependInt32Slot(0, foo, 0)
+  return TableInNestedNSStart(builder)
+
+
+def TableInNestedNSAddFoo(builder, foo):
+  builder.PrependInt32Slot(0, foo, 0)
+
+
 def AddFoo(builder, foo):
-    return TableInNestedNSAddFoo(builder, foo)
-def TableInNestedNSEnd(builder): return builder.EndObject()
+  return TableInNestedNSAddFoo(builder, foo)
+
+
+def TableInNestedNSEnd(builder):
+  return builder.EndObject()
+
+
 def End(builder):
-    return TableInNestedNSEnd(builder)
+  return TableInNestedNSEnd(builder)
+
 
 class TableInNestedNST(object):
 
-    # TableInNestedNST
-    def __init__(self):
-        self.foo = 0  # type: int
+  # TableInNestedNST
+  def __init__(self):
+    self.foo = 0  # type: int
 
-    @classmethod
-    def InitFromBuf(cls, buf, pos):
-        tableInNestedNS = TableInNestedNS()
-        tableInNestedNS.Init(buf, pos)
-        return cls.InitFromObj(tableInNestedNS)
+  @classmethod
+  def InitFromBuf(cls, buf, pos):
+    tableInNestedNS = TableInNestedNS()
+    tableInNestedNS.Init(buf, pos)
+    return cls.InitFromObj(tableInNestedNS)
 
-    @classmethod
-    def InitFromObj(cls, tableInNestedNS):
-        x = TableInNestedNST()
-        x._UnPack(tableInNestedNS)
-        return x
+  @classmethod
+  def InitFromObj(cls, tableInNestedNS):
+    x = TableInNestedNST()
+    x._UnPack(tableInNestedNS)
+    return x
 
-    # TableInNestedNST
-    def _UnPack(self, tableInNestedNS):
-        if tableInNestedNS is None:
-            return
-        self.foo = tableInNestedNS.Foo()
+  # TableInNestedNST
+  def _UnPack(self, tableInNestedNS):
+    if tableInNestedNS is None:
+      return
+    self.foo = tableInNestedNS.Foo()
 
-    # TableInNestedNST
-    def Pack(self, builder):
-        TableInNestedNSStart(builder)
-        TableInNestedNSAddFoo(builder, self.foo)
-        tableInNestedNS = TableInNestedNSEnd(builder)
-        return tableInNestedNS
+  # TableInNestedNST
+  def Pack(self, builder):
+    TableInNestedNSStart(builder)
+    TableInNestedNSAddFoo(builder, self.foo)
+    tableInNestedNS = TableInNestedNSEnd(builder)
+    return tableInNestedNS

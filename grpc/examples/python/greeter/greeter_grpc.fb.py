@@ -2,30 +2,29 @@
 
 import flatbuffers
 import grpc
-
 from models.HelloReply import HelloReply
 from models.HelloRequest import HelloRequest
 
 
 class GreeterStub(object):
-  '''Interface exported by the server.'''
+  """Interface exported by the server."""
 
   def __init__(self, channel):
-    '''Constructor.
+    """Constructor.
 
     Args:
       channel: A grpc.Channel.
-    '''
+    """
 
-    self.SayHello = channel.unary_unary(
-      method='/models.Greeter/SayHello')
+    self.SayHello = channel.unary_unary(method='/models.Greeter/SayHello')
 
     self.SayManyHellos = channel.unary_stream(
-      method='/models.Greeter/SayManyHellos')
+        method='/models.Greeter/SayManyHellos'
+    )
 
 
 class GreeterServicer(object):
-  '''Interface exported by the server.'''
+  """Interface exported by the server."""
 
   def SayHello(self, request, context):
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -40,15 +39,14 @@ class GreeterServicer(object):
 
 def add_GreeterServicer_to_server(servicer, server):
   rpc_method_handlers = {
-    'SayHello': grpc.unary_unary_rpc_method_handler(
-      servicer.SayHello),
-    'SayManyHellos': grpc.unary_stream_rpc_method_handler(
-      servicer.SayManyHellos),
+      'SayHello': grpc.unary_unary_rpc_method_handler(servicer.SayHello),
+      'SayManyHellos': grpc.unary_stream_rpc_method_handler(
+          servicer.SayManyHellos
+      ),
   }
 
   generic_handler = grpc.method_handlers_generic_handler(
-    'models.Greeter', rpc_method_handlers)
+      'models.Greeter', rpc_method_handlers
+  )
 
   server.add_generic_rpc_handlers((generic_handler,))
-
-

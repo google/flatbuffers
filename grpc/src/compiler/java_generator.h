@@ -18,6 +18,7 @@
 #define NET_GRPC_COMPILER_JAVA_GENERATOR_H_
 
 #include <stdlib.h>  // for abort()
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -39,8 +40,8 @@ class LogHelper {
   LogHelper(std::ostream* os) : os_(os) {}
 #if defined(_MSC_VER)
 #pragma warning(push)
-#pragma warning( \
-    disable : 4722)  // the flow of control terminates in a destructor
+#pragma warning(disable \
+                : 4722)  // the flow of control terminates in a destructor
   // (needed to compile ~LogHelper where destructor emits abort intentionally -
   // inherited from grpc/java code generator).
 #endif

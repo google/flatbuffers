@@ -19,9 +19,7 @@ class MessageBuilder;
 
 inline std::string m1_name() { return "Cyberdemon"; }
 inline std::string m2_name() { return "Imp"; }
-inline MyGame::Example::Color m1_color() {
-  return MyGame::Example::Color_Red;
-}
+inline MyGame::Example::Color m1_color() { return MyGame::Example::Color_Red; }
 inline MyGame::Example::Color m2_color() {
   return MyGame::Example::Color_Green;
 }
@@ -31,38 +29,37 @@ inline void m1_color_check() {
   CheckTestGeneratedIsValid(m1_color());
 }
 
-flatbuffers::Offset<Monster> populate1(flatbuffers::FlatBufferBuilder &builder);
-flatbuffers::Offset<Monster> populate2(flatbuffers::FlatBufferBuilder &builder);
+flatbuffers::Offset<Monster> populate1(flatbuffers::FlatBufferBuilder& builder);
+flatbuffers::Offset<Monster> populate2(flatbuffers::FlatBufferBuilder& builder);
 
-uint8_t *release_raw_base(flatbuffers::FlatBufferBuilder &fbb, size_t &size,
-                          size_t &offset);
+uint8_t* release_raw_base(flatbuffers::FlatBufferBuilder& fbb, size_t& size,
+                          size_t& offset);
 
-void free_raw(flatbuffers::grpc::MessageBuilder &mbb, uint8_t *buf);
-void free_raw(flatbuffers::FlatBufferBuilder &fbb, uint8_t *buf);
+void free_raw(flatbuffers::grpc::MessageBuilder& mbb, uint8_t* buf);
+void free_raw(flatbuffers::FlatBufferBuilder& fbb, uint8_t* buf);
 
-bool verify(const flatbuffers::DetachedBuffer &buf,
-            const std::string &expected_name, Color color);
-bool verify(const uint8_t *buf, size_t offset, const std::string &expected_name,
+bool verify(const flatbuffers::DetachedBuffer& buf,
+            const std::string& expected_name, Color color);
+bool verify(const uint8_t* buf, size_t offset, const std::string& expected_name,
             Color color);
 
-bool release_n_verify(flatbuffers::FlatBufferBuilder &fbb,
-                      const std::string &expected_name, Color color);
-bool release_n_verify(flatbuffers::grpc::MessageBuilder &mbb,
-                      const std::string &expected_name, Color color);
+bool release_n_verify(flatbuffers::FlatBufferBuilder& fbb,
+                      const std::string& expected_name, Color color);
+bool release_n_verify(flatbuffers::grpc::MessageBuilder& mbb,
+                      const std::string& expected_name, Color color);
 
 // Invokes this function when testing the following Builder types
 // FlatBufferBuilder, TestHeapBuilder, and GrpcLikeMessageBuilder
-template<class Builder>
+template <class Builder>
 void builder_move_assign_after_releaseraw_test(Builder b1) {
   auto root_offset1 = populate1(b1);
   b1.Finish(root_offset1);
   size_t size, offset;
 
-  uint8_t *rr = b1.ReleaseRaw(size, offset);
-  std::shared_ptr<uint8_t> raw(
-      rr, [size](uint8_t *ptr) {
-        flatbuffers::DefaultAllocator::dealloc(ptr, size);
-      });
+  uint8_t* rr = b1.ReleaseRaw(size, offset);
+  std::shared_ptr<uint8_t> raw(rr, [size](uint8_t* ptr) {
+    flatbuffers::DefaultAllocator::dealloc(ptr, size);
+  });
   Builder src;
   auto root_offset2 = populate2(src);
   src.Finish(root_offset2);
@@ -77,7 +74,7 @@ void builder_move_assign_after_releaseraw_test(Builder b1) {
 void builder_move_assign_after_releaseraw_test(
     flatbuffers::grpc::MessageBuilder b1);
 
-template<class DestBuilder, class SrcBuilder = DestBuilder>
+template <class DestBuilder, class SrcBuilder = DestBuilder>
 struct BuilderTests {
   static void empty_builder_movector_test() {
     SrcBuilder src;
@@ -226,9 +223,12 @@ enum BuilderReuseTestSelector {
 
 typedef std::set<BuilderReuseTestSelector> TestSelector;
 
-template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
+template <class DestBuilder, class SrcBuilder>
+struct BuilderReuseTests {
   static void builder_reusable_after_release_test(TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE)) {
+      return;
+    }
 
     DestBuilder fbb;
     std::vector<flatbuffers::DetachedBuffer> buffers;
@@ -241,14 +241,16 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
   }
 
   static void builder_reusable_after_releaseraw_test(TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW)) {
+      return;
+    }
 
     DestBuilder fbb;
     for (int i = 0; i < 5; ++i) {
       auto root_offset1 = populate1(fbb);
       fbb.Finish(root_offset1);
       size_t size, offset;
-      uint8_t *buf = release_raw_base(fbb, size, offset);
+      uint8_t* buf = release_raw_base(fbb, size, offset);
       TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
       free_raw(fbb, buf);
     }
@@ -256,7 +258,9 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
 
   static void builder_reusable_after_release_and_move_assign_test(
       TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN)) {
+      return;
+    }
 
     DestBuilder dst;
     std::vector<flatbuffers::DetachedBuffer> buffers;
@@ -273,14 +277,16 @@ template<class DestBuilder, class SrcBuilder> struct BuilderReuseTests {
 
   static void builder_reusable_after_releaseraw_and_move_assign_test(
       TestSelector selector) {
-    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN)) { return; }
+    if (!selector.count(REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN)) {
+      return;
+    }
 
     DestBuilder dst;
     for (int i = 0; i < 5; ++i) {
       auto root_offset1 = populate1(dst);
       dst.Finish(root_offset1);
       size_t size, offset;
-      uint8_t *buf = release_raw_base(dst, size, offset);
+      uint8_t* buf = release_raw_base(dst, size, offset);
       TEST_ASSERT_FUNC(verify(buf, offset, m1_name(), m1_color()));
       free_raw(dst, buf);
       SrcBuilder src;

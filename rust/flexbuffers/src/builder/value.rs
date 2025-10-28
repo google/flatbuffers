@@ -47,26 +47,10 @@ macro_rules! new_typed_vector {
             let address = 0;
             let child_width = W8;
             match n {
-                2 => Value::Reference {
-                    address,
-                    child_width,
-                    fxb_type: $v2,
-                },
-                3 => Value::Reference {
-                    address,
-                    child_width,
-                    fxb_type: $v3,
-                },
-                4 => Value::Reference {
-                    address,
-                    child_width,
-                    fxb_type: $v4,
-                },
-                _ => Value::Reference {
-                    address,
-                    child_width,
-                    fxb_type: $vn,
-                },
+                2 => Value::Reference { address, child_width, fxb_type: $v2 },
+                3 => Value::Reference { address, child_width, fxb_type: $v3 },
+                4 => Value::Reference { address, child_width, fxb_type: $v4 },
+                _ => Value::Reference { address, child_width, fxb_type: $vn },
             }
         }
     };
@@ -74,40 +58,14 @@ macro_rules! new_typed_vector {
 
 impl Value {
     pub fn new_vector() -> Self {
-        Value::Reference {
-            address: 0,
-            child_width: W8,
-            fxb_type: Vector,
-        }
+        Value::Reference { address: 0, child_width: W8, fxb_type: Vector }
     }
     pub fn new_map() -> Self {
-        Value::Reference {
-            address: 0,
-            child_width: W8,
-            fxb_type: Map,
-        }
+        Value::Reference { address: 0, child_width: W8, fxb_type: Map }
     }
-    new_typed_vector!(
-        new_int_vector,
-        VectorInt2,
-        VectorInt3,
-        VectorInt4,
-        VectorInt
-    );
-    new_typed_vector!(
-        new_uint_vector,
-        VectorUInt2,
-        VectorUInt3,
-        VectorUInt4,
-        VectorUInt
-    );
-    new_typed_vector!(
-        new_float_vector,
-        VectorFloat2,
-        VectorFloat3,
-        VectorFloat4,
-        VectorFloat
-    );
+    new_typed_vector!(new_int_vector, VectorInt2, VectorInt3, VectorInt4, VectorInt);
+    new_typed_vector!(new_uint_vector, VectorUInt2, VectorUInt3, VectorUInt4, VectorUInt);
+    new_typed_vector!(new_float_vector, VectorFloat2, VectorFloat3, VectorFloat4, VectorFloat);
     pub fn fxb_type(&self) -> FlexBufferType {
         match *self {
             Value::Null => Null,
@@ -264,11 +222,7 @@ where
         // Note that VectorString is deprecated for writing
         _ => return Value::new_vector(),
     };
-    Value::Reference {
-        address: 0,
-        child_width: W8,
-        fxb_type: vector_type,
-    }
+    Value::Reference { address: 0, child_width: W8, fxb_type: vector_type }
 }
 
 #[inline]
@@ -299,9 +253,6 @@ pub fn store_value(buffer: &mut Vec<u8>, mut value: Value, width: BitWidth) {
         _ => unreachable!("Variant not considered: {:?}", value),
     };
     write_result.unwrap_or_else(|err| {
-        panic!(
-            "Error writing value {:?} with width {:?}: {:?}",
-            value, width, err
-        )
+        panic!("Error writing value {:?} with width {:?}: {:?}", value, width, err)
     });
 }

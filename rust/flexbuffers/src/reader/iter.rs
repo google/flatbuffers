@@ -27,11 +27,7 @@ pub struct ReaderIterator<B> {
 impl<B: Buffer> ReaderIterator<B> {
     pub(super) fn new(reader: VectorReader<B>) -> Self {
         let end = reader.len();
-        ReaderIterator {
-            reader,
-            front: 0,
-            end,
-        }
+        ReaderIterator { reader, front: 0, end }
     }
 }
 

@@ -4,6 +4,7 @@
 library namespace_c;
 
 import 'dart:typed_data' show Uint8List;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import './namespace_test2_namespace_a_generated.dart' as namespace_a;
@@ -20,17 +21,18 @@ class TableInC {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  namespace_a.TableInFirstNS? get referToA1 => namespace_a.TableInFirstNS.reader.vTableGetNullable(_bc, _bcOffset, 4);
-  namespace_a.SecondTableInA? get referToA2 => namespace_a.SecondTableInA.reader.vTableGetNullable(_bc, _bcOffset, 6);
+  namespace_a.TableInFirstNS? get referToA1 =>
+      namespace_a.TableInFirstNS.reader.vTableGetNullable(_bc, _bcOffset, 4);
+  namespace_a.SecondTableInA? get referToA2 =>
+      namespace_a.SecondTableInA.reader.vTableGetNullable(_bc, _bcOffset, 6);
 
   @override
   String toString() {
     return 'TableInC{referToA1: $referToA1, referToA2: $referToA2}';
   }
 
-  TableInCT unpack() => TableInCT(
-      referToA1: referToA1?.unpack(),
-      referToA2: referToA2?.unpack());
+  TableInCT unpack() =>
+      TableInCT(referToA1: referToA1?.unpack(), referToA2: referToA2?.unpack());
 
   static int pack(fb.Builder fbBuilder, TableInCT? object) {
     if (object == null) return 0;
@@ -42,9 +44,7 @@ class TableInCT implements fb.Packable {
   namespace_a.TableInFirstNST? referToA1;
   namespace_a.SecondTableInAT? referToA2;
 
-  TableInCT({
-      this.referToA1,
-      this.referToA2});
+  TableInCT({this.referToA1, this.referToA2});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -66,8 +66,8 @@ class _TableInCReader extends fb.TableReader<TableInC> {
   const _TableInCReader();
 
   @override
-  TableInC createObject(fb.BufferContext bc, int offset) => 
-    TableInC._(bc, offset);
+  TableInC createObject(fb.BufferContext bc, int offset) =>
+      TableInC._(bc, offset);
 }
 
 class TableInCBuilder {
@@ -83,6 +83,7 @@ class TableInCBuilder {
     fbBuilder.addOffset(0, offset);
     return fbBuilder.offset;
   }
+
   int addReferToA2Offset(int? offset) {
     fbBuilder.addOffset(1, offset);
     return fbBuilder.offset;
@@ -100,9 +101,8 @@ class TableInCObjectBuilder extends fb.ObjectBuilder {
   TableInCObjectBuilder({
     namespace_a.TableInFirstNSObjectBuilder? referToA1,
     namespace_a.SecondTableInAObjectBuilder? referToA2,
-  })
-      : _referToA1 = referToA1,
-        _referToA2 = referToA2;
+  }) : _referToA1 = referToA1,
+       _referToA2 = referToA2;
 
   /// Finish building, and store into the [fbBuilder].
   @override

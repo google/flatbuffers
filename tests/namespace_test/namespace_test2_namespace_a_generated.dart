@@ -4,6 +4,7 @@
 library namespace_a;
 
 import 'dart:typed_data' show Uint8List;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import './namespace_test2_namespace_c_generated.dart' as namespace_c;
@@ -20,16 +21,34 @@ class TableInFirstNS {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  namespace_a_namespace_b.TableInNestedNS? get fooTable => namespace_a_namespace_b.TableInNestedNS.reader.vTableGetNullable(_bc, _bcOffset, 4);
-  EnumInNestedNS get fooEnum => EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0));
-  UnionInNestedNSTypeId? get fooUnionType => UnionInNestedNSTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 8));
+  namespace_a_namespace_b.TableInNestedNS? get fooTable =>
+      namespace_a_namespace_b.TableInNestedNS.reader.vTableGetNullable(
+        _bc,
+        _bcOffset,
+        4,
+      );
+  EnumInNestedNS get fooEnum => EnumInNestedNS.fromValue(
+    const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0),
+  );
+  UnionInNestedNSTypeId? get fooUnionType =>
+      UnionInNestedNSTypeId._createOrNull(
+        const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 8),
+      );
   dynamic get fooUnion {
     switch (fooUnionType?.value) {
-      case 1: return TableInNestedNS.reader.vTableGetNullable(_bc, _bcOffset, 10);
-      default: return null;
+      case 1:
+        return TableInNestedNS.reader.vTableGetNullable(_bc, _bcOffset, 10);
+      default:
+        return null;
     }
   }
-  namespace_a_namespace_b.StructInNestedNS? get fooStruct => namespace_a_namespace_b.StructInNestedNS.reader.vTableGetNullable(_bc, _bcOffset, 12);
+
+  namespace_a_namespace_b.StructInNestedNS? get fooStruct =>
+      namespace_a_namespace_b.StructInNestedNS.reader.vTableGetNullable(
+        _bc,
+        _bcOffset,
+        12,
+      );
 
   @override
   String toString() {
@@ -37,11 +56,12 @@ class TableInFirstNS {
   }
 
   TableInFirstNST unpack() => TableInFirstNST(
-      fooTable: fooTable?.unpack(),
-      fooEnum: fooEnum,
-      fooUnionType: fooUnionType,
-      fooUnion: fooUnion,
-      fooStruct: fooStruct?.unpack());
+    fooTable: fooTable?.unpack(),
+    fooEnum: fooEnum,
+    fooUnionType: fooUnionType,
+    fooUnion: fooUnion,
+    fooStruct: fooStruct?.unpack(),
+  );
 
   static int pack(fb.Builder fbBuilder, TableInFirstNST? object) {
     if (object == null) return 0;
@@ -57,11 +77,12 @@ class TableInFirstNST implements fb.Packable {
   namespace_a_namespace_b.StructInNestedNST? fooStruct;
 
   TableInFirstNST({
-      this.fooTable,
-      this.fooEnum = EnumInNestedNS.A,
-      this.fooUnionType,
-      this.fooUnion,
-      this.fooStruct});
+    this.fooTable,
+    this.fooEnum = EnumInNestedNS.A,
+    this.fooUnionType,
+    this.fooUnion,
+    this.fooStruct,
+  });
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -88,8 +109,8 @@ class _TableInFirstNSReader extends fb.TableReader<TableInFirstNS> {
   const _TableInFirstNSReader();
 
   @override
-  TableInFirstNS createObject(fb.BufferContext bc, int offset) => 
-    TableInFirstNS._(bc, offset);
+  TableInFirstNS createObject(fb.BufferContext bc, int offset) =>
+      TableInFirstNS._(bc, offset);
 }
 
 class TableInFirstNSBuilder {
@@ -105,18 +126,22 @@ class TableInFirstNSBuilder {
     fbBuilder.addOffset(0, offset);
     return fbBuilder.offset;
   }
+
   int addFooEnum(EnumInNestedNS? fooEnum) {
     fbBuilder.addInt8(1, fooEnum?.value);
     return fbBuilder.offset;
   }
+
   int addFooUnionType(UnionInNestedNSTypeId? fooUnionType) {
     fbBuilder.addUint8(2, fooUnionType?.value);
     return fbBuilder.offset;
   }
+
   int addFooUnionOffset(int? offset) {
     fbBuilder.addOffset(3, offset);
     return fbBuilder.offset;
   }
+
   int addFooStruct(int offset) {
     fbBuilder.addStruct(4, offset);
     return fbBuilder.offset;
@@ -140,12 +165,11 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
     UnionInNestedNSTypeId? fooUnionType,
     dynamic fooUnion,
     namespace_a_namespace_b.StructInNestedNSObjectBuilder? fooStruct,
-  })
-      : _fooTable = fooTable,
-        _fooEnum = fooEnum,
-        _fooUnionType = fooUnionType,
-        _fooUnion = fooUnion,
-        _fooStruct = fooStruct;
+  }) : _fooTable = fooTable,
+       _fooEnum = fooEnum,
+       _fooUnionType = fooUnionType,
+       _fooUnion = fooUnion,
+       _fooStruct = fooStruct;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -171,6 +195,7 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
+
 class SecondTableInA {
   SecondTableInA._(this._bc, this._bcOffset);
   factory SecondTableInA(List<int> bytes) {
@@ -183,15 +208,15 @@ class SecondTableInA {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  namespace_c.TableInC? get referToC => namespace_c.TableInC.reader.vTableGetNullable(_bc, _bcOffset, 4);
+  namespace_c.TableInC? get referToC =>
+      namespace_c.TableInC.reader.vTableGetNullable(_bc, _bcOffset, 4);
 
   @override
   String toString() {
     return 'SecondTableInA{referToC: $referToC}';
   }
 
-  SecondTableInAT unpack() => SecondTableInAT(
-      referToC: referToC?.unpack());
+  SecondTableInAT unpack() => SecondTableInAT(referToC: referToC?.unpack());
 
   static int pack(fb.Builder fbBuilder, SecondTableInAT? object) {
     if (object == null) return 0;
@@ -202,8 +227,7 @@ class SecondTableInA {
 class SecondTableInAT implements fb.Packable {
   namespace_c.TableInCT? referToC;
 
-  SecondTableInAT({
-      this.referToC});
+  SecondTableInAT({this.referToC});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -223,8 +247,8 @@ class _SecondTableInAReader extends fb.TableReader<SecondTableInA> {
   const _SecondTableInAReader();
 
   @override
-  SecondTableInA createObject(fb.BufferContext bc, int offset) => 
-    SecondTableInA._(bc, offset);
+  SecondTableInA createObject(fb.BufferContext bc, int offset) =>
+      SecondTableInA._(bc, offset);
 }
 
 class SecondTableInABuilder {
@@ -249,10 +273,8 @@ class SecondTableInABuilder {
 class SecondTableInAObjectBuilder extends fb.ObjectBuilder {
   final namespace_c.TableInCObjectBuilder? _referToC;
 
-  SecondTableInAObjectBuilder({
-    namespace_c.TableInCObjectBuilder? referToC,
-  })
-      : _referToC = referToC;
+  SecondTableInAObjectBuilder({namespace_c.TableInCObjectBuilder? referToC})
+    : _referToC = referToC;
 
   /// Finish building, and store into the [fbBuilder].
   @override

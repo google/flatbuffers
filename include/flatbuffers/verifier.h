@@ -41,14 +41,14 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     bool assert = false;
   };
 
-  explicit VerifierTemplate(const uint8_t *const buf, const size_t buf_len,
-                            const Options &opts)
+  explicit VerifierTemplate(const uint8_t* const buf, const size_t buf_len,
+                            const Options& opts)
       : buf_(buf), size_(buf_len), opts_(opts) {
     FLATBUFFERS_ASSERT(size_ < opts.max_size);
   }
 
   // Deprecated API, please construct with VerifierTemplate::Options.
-  VerifierTemplate(const uint8_t *const buf, const size_t buf_len,
+  VerifierTemplate(const uint8_t* const buf, const size_t buf_len,
                    const uoffset_t max_depth = 64,
                    const uoffset_t max_tables = 1000000,
                    const bool check_alignment = true)
@@ -80,7 +80,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     if (TrackVerifierBufferSize) {
       auto upper_bound = elem + elem_len;
       if (upper_bound_ < upper_bound) {
-        upper_bound_ =  upper_bound;
+        upper_bound_ = upper_bound;
       }
     }
     return Check(elem_len < size_ && elem <= size_ - elem_len);
@@ -91,59 +91,61 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify a range indicated by sizeof(T).
-  template<typename T> bool Verify(const size_t elem) const {
+  template <typename T>
+  bool Verify(const size_t elem) const {
     return VerifyAlignment(elem, sizeof(T)) && Verify(elem, sizeof(T));
   }
 
-  bool VerifyFromPointer(const uint8_t *const p, const size_t len) {
+  bool VerifyFromPointer(const uint8_t* const p, const size_t len) {
     return Verify(static_cast<size_t>(p - buf_), len);
   }
 
   // Verify relative to a known-good base pointer.
-  bool VerifyFieldStruct(const uint8_t *const base, const voffset_t elem_off,
+  bool VerifyFieldStruct(const uint8_t* const base, const voffset_t elem_off,
                          const size_t elem_len, const size_t align) const {
     const auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, elem_len);
   }
 
-  template<typename T>
-  bool VerifyField(const uint8_t *const base, const voffset_t elem_off,
+  template <typename T>
+  bool VerifyField(const uint8_t* const base, const voffset_t elem_off,
                    const size_t align) const {
     const auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a table type.
-  template<typename T> bool VerifyTable(const T *const table) {
+  template <typename T>
+  bool VerifyTable(const T* const table) {
     return !table || table->Verify(*this);
   }
 
   // Verify a pointer (may be NULL) of any vector type.
-  template<int &..., typename T, typename LenT>
-  bool VerifyVector(const Vector<T, LenT> *const vec) const {
+  template <int&..., typename T, typename LenT>
+  bool VerifyVector(const Vector<T, LenT>* const vec) const {
     return !vec || VerifyVectorOrString<LenT>(
-                       reinterpret_cast<const uint8_t *>(vec), sizeof(T));
+                       reinterpret_cast<const uint8_t*>(vec), sizeof(T));
   }
 
   // Verify a pointer (may be NULL) of a vector to struct.
-  template<int &..., typename T, typename LenT>
-  bool VerifyVector(const Vector<const T *, LenT> *const vec) const {
-    return VerifyVector(reinterpret_cast<const Vector<T, LenT> *>(vec));
+  template <int&..., typename T, typename LenT>
+  bool VerifyVector(const Vector<const T*, LenT>* const vec) const {
+    return VerifyVector(reinterpret_cast<const Vector<T, LenT>*>(vec));
   }
 
   // Verify a pointer (may be NULL) to string.
-  bool VerifyString(const String *const str) const {
+  bool VerifyString(const String* const str) const {
     size_t end;
     return !str || (VerifyVectorOrString<uoffset_t>(
-                        reinterpret_cast<const uint8_t *>(str), 1, &end) &&
+                        reinterpret_cast<const uint8_t*>(str), 1, &end) &&
                     Verify(end, 1) &&           // Must have terminator
                     Check(buf_[end] == '\0'));  // Terminating byte must be 0.
   }
 
   // Common code between vectors and strings.
-  template<typename LenT = uoffset_t>
-  bool VerifyVectorOrString(const uint8_t *const vec, const size_t elem_size,
-                            size_t *const end = nullptr) const {
+  template <typename LenT = uoffset_t>
+  bool VerifyVectorOrString(const uint8_t* const vec, const size_t elem_size,
+                            size_t* const end = nullptr) const {
     const auto vec_offset = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<LenT>(vec_offset)) return false;
@@ -159,7 +161,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   // Special case for string contents, after the above has been called.
-  bool VerifyVectorOfStrings(const Vector<Offset<String>> *const vec) const {
+  bool VerifyVectorOfStrings(const Vector<Offset<String>>* const vec) const {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
         if (!VerifyString(vec->Get(i))) return false;
@@ -169,8 +171,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   // Special case for table contents, after the above has been called.
-  template<typename T>
-  bool VerifyVectorOfTables(const Vector<Offset<T>> *const vec) {
+  template <typename T>
+  bool VerifyVectorOfTables(const Vector<Offset<T>>* const vec) {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
         if (!vec->Get(i)->Verify(*this)) return false;
@@ -180,7 +182,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow")
-  bool VerifyTableStart(const uint8_t *const table) {
+  bool VerifyTableStart(const uint8_t* const table) {
     // Check the vtable offset.
     const auto tableo = static_cast<size_t>(table - buf_);
     if (!Verify<soffset_t>(tableo)) return false;
@@ -197,8 +199,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return Check((vsize & 1) == 0) && Verify(vtableo, vsize);
   }
 
-  template<typename T>
-  bool VerifyBufferFromStart(const char *const identifier, const size_t start) {
+  template <typename T>
+  bool VerifyBufferFromStart(const char* const identifier, const size_t start) {
     // Buffers have to be of some size to be valid. The reason it is a runtime
     // check instead of static_assert, is that nested flatbuffers go through
     // this call and their size is determined at runtime.
@@ -213,7 +215,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     // Call T::Verify, which must be in the generated code for this type.
     const auto o = VerifyOffset<uoffset_t>(start);
     if (!Check(o != 0)) return false;
-    if (!(reinterpret_cast<const T *>(buf_ + start + o)->Verify(*this))) {
+    if (!(reinterpret_cast<const T*>(buf_ + start + o)->Verify(*this))) {
       return false;
     }
     if (TrackVerifierBufferSize) {
@@ -222,9 +224,9 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return true;
   }
 
-  template<typename T, int &..., typename SizeT>
-  bool VerifyNestedFlatBuffer(const Vector<uint8_t, SizeT> *const buf,
-                              const char *const identifier) {
+  template <typename T, int&..., typename SizeT>
+  bool VerifyNestedFlatBuffer(const Vector<uint8_t, SizeT>* const buf,
+                              const char* const identifier) {
     // Caller opted out of this.
     if (!opts_.check_nested_flatbuffers) return true;
 
@@ -240,14 +242,18 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   // Verify this whole buffer, starting with root type T.
-  template<typename T> bool VerifyBuffer() { return VerifyBuffer<T>(nullptr); }
+  template <typename T>
+  bool VerifyBuffer() {
+    return VerifyBuffer<T>(nullptr);
+  }
 
-  template<typename T> bool VerifyBuffer(const char *const identifier) {
+  template <typename T>
+  bool VerifyBuffer(const char* const identifier) {
     return VerifyBufferFromStart<T>(identifier, 0);
   }
 
-  template<typename T, typename SizeT = uoffset_t>
-  bool VerifySizePrefixedBuffer(const char *const identifier) {
+  template <typename T, typename SizeT = uoffset_t>
+  bool VerifySizePrefixedBuffer(const char* const identifier) {
     return Verify<SizeT>(0U) &&
            // Ensure the prefixed size is within the bounds of the provided
            // length.
@@ -255,7 +261,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
            VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 
-  template<typename OffsetT = uoffset_t, typename SOffsetT = soffset_t>
+  template <typename OffsetT = uoffset_t, typename SOffsetT = soffset_t>
   size_t VerifyOffset(const size_t start) const {
     if (!Verify<OffsetT>(start)) return 0;
     const auto o = ReadScalar<OffsetT>(buf_ + start);
@@ -269,8 +275,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return o;
   }
 
-  template<typename OffsetT = uoffset_t>
-  size_t VerifyOffset(const uint8_t *const base, const voffset_t start) const {
+  template <typename OffsetT = uoffset_t>
+  size_t VerifyOffset(const uint8_t* const base, const voffset_t start) const {
     return VerifyOffset<OffsetT>(static_cast<size_t>(base - buf_) + start);
   }
 
@@ -303,7 +309,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
       uintptr_t size = upper_bound_;
       // Align the size to uoffset_t
       size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
-      return (size > size_) ?  0 : size;
+      return (size > size_) ? 0 : size;
     }
     // Must use SizeVerifier, or (deprecated) turn on
     // FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE, for this to work.
@@ -312,14 +318,14 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return 0;
   }
 
-  std::vector<uint8_t> *GetFlexReuseTracker() { return flex_reuse_tracker_; }
+  std::vector<uint8_t>* GetFlexReuseTracker() { return flex_reuse_tracker_; }
 
-  void SetFlexReuseTracker(std::vector<uint8_t> *const rt) {
+  void SetFlexReuseTracker(std::vector<uint8_t>* const rt) {
     flex_reuse_tracker_ = rt;
   }
 
  private:
-  const uint8_t *buf_;
+  const uint8_t* buf_;
   const size_t size_;
   const Options opts_;
 
@@ -327,18 +333,18 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   uoffset_t depth_ = 0;
   uoffset_t num_tables_ = 0;
-  std::vector<uint8_t> *flex_reuse_tracker_ = nullptr;
+  std::vector<uint8_t>* flex_reuse_tracker_ = nullptr;
 };
 
 // Specialization for 64-bit offsets.
-template<>
-template<>
+template <>
+template <>
 inline size_t VerifierTemplate<false>::VerifyOffset<uoffset64_t>(
     const size_t start) const {
   return VerifyOffset<uoffset64_t, soffset64_t>(start);
 }
-template<>
-template<>
+template <>
+template <>
 inline size_t VerifierTemplate<true>::VerifyOffset<uoffset64_t>(
     const size_t start) const {
   return VerifyOffset<uoffset64_t, soffset64_t>(start);

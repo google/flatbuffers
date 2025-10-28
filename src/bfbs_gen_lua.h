@@ -26,7 +26,7 @@ namespace flatbuffers {
 
 // Constructs a new Lua Code generator.
 std::unique_ptr<CodeGenerator> NewLuaBfbsGenerator(
-    const std::string &flatc_version);
+    const std::string& flatc_version);
 
 }  // namespace flatbuffers
 

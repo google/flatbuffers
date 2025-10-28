@@ -35,12 +35,8 @@ macro_rules! push_slice {
             S: AsRef<[T]>,
         {
             let mut value = Value::$new_vec(xs.as_ref().len());
-            let mut width = xs
-                .as_ref()
-                .iter()
-                .map(|x| BitWidth::from((*x).into()))
-                .max()
-                .unwrap_or_default();
+            let mut width =
+                xs.as_ref().iter().map(|x| BitWidth::from((*x).into())).max().unwrap_or_default();
             if !value.is_fixed_length_vector() {
                 let length = Value::UInt(xs.as_ref().len() as u64);
                 width = std::cmp::max(width, length.width_or_child_width());
@@ -135,16 +131,8 @@ impl Default for Builder {
 
 impl<'a> Builder {
     pub fn new(opts: BuilderOptions) -> Self {
-        let key_pool = if opts.contains(BuilderOptions::SHARE_KEYS) {
-            Some(vec![])
-        } else {
-            None
-        };
-        Builder {
-            key_pool,
-            values: Vec::new(),
-            buffer: Vec::new(),
-        }
+        let key_pool = if opts.contains(BuilderOptions::SHARE_KEYS) { Some(vec![]) } else { None };
+        Builder { key_pool, values: Vec::new(), buffer: Vec::new() }
     }
     /// Shows the internal flexbuffer. It will either be empty or populated with the most
     /// recently built flexbuffer.
@@ -167,10 +155,7 @@ impl<'a> Builder {
         }
     }
     fn push_key(&mut self, key: &str) {
-        debug_assert!(
-            key.bytes().all(|b| b != b'\0'),
-            "Keys must not have internal nulls."
-        );
+        debug_assert!(key.bytes().all(|b| b != b'\0'), "Keys must not have internal nulls.");
         // Search key pool if there is one.
         let found = self.key_pool.as_ref().map(|pool| {
             pool.binary_search_by(|&CachedKey(addr)| {
@@ -217,11 +202,7 @@ impl<'a> Builder {
         store_value(&mut self.buffer, length, width);
         let address = self.buffer.len();
         self.buffer.extend_from_slice(xs);
-        Value::Reference {
-            fxb_type: FlexBufferType::Blob,
-            address,
-            child_width: width,
-        }
+        Value::Reference { fxb_type: FlexBufferType::Blob, address, child_width: width }
     }
     fn push_str(&mut self, x: &str) {
         let mut string = self.store_blob(x.as_bytes());
@@ -261,18 +242,12 @@ impl<'a> Builder {
     /// The exact Flexbuffer vector type is dynamically inferred.
     pub fn start_vector(&'a mut self) -> VectorBuilder<'a> {
         self.reset();
-        VectorBuilder {
-            builder: self,
-            start: None,
-        }
+        VectorBuilder { builder: self, start: None }
     }
     /// Resets the builder and builds a new flexbuffer with a map at the root.
     pub fn start_map(&'a mut self) -> MapBuilder<'a> {
         self.reset();
-        MapBuilder {
-            builder: self,
-            start: None,
-        }
+        MapBuilder { builder: self, start: None }
     }
     /// Resets the builder and builds a new flexbuffer with the pushed value at the root.
     pub fn build_singleton<P: Pushable>(&mut self, p: P) {

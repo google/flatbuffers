@@ -24,9 +24,9 @@ struct Parameters {
 };
 
 // Return the source of the generated service file.
-grpc::string GenerateServiceSource(grpc_generator::File *file,
-                                   const grpc_generator::Service *service,
-                                   grpc_go_generator::Parameters *parameters);
+grpc::string GenerateServiceSource(grpc_generator::File* file,
+                                   const grpc_generator::Service* service,
+                                   grpc_go_generator::Parameters* parameters);
 
 }  // namespace grpc_go_generator
 

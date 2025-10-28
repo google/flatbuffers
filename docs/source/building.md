@@ -152,11 +152,11 @@ add_subdirectory(${FLATBUFFERS_SRC_DIR}
 # The flatbuffers target carry header search path automatically if CMake > 2.8.11.
 target_link_libraries(own_project_target PRIVATE flatbuffers)
 ```
-When build your project the `flatbuffers` library will be compiled and linked 
+When build your project the `flatbuffers` library will be compiled and linked
 to a target as part of your project.
 
 #### Override default depth limit of nested objects
-To override [the depth limit of recursion](languages/cpp.md), 
+To override [the depth limit of recursion](languages/cpp.md),
 add this directive:
 ```cmake
 set(FLATBUFFERS_MAX_PARSING_DEPTH 16)

@@ -47,7 +47,7 @@ class Universe : Table() {
             val o = __offset(6); return if (o != 0) __vector_len(o) else 0
         }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_25_2_10()
+        fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsUniverse(_bb: ByteBuffer): Universe = getRootAsUniverse(_bb, Universe())
         fun getRootAsUniverse(_bb: ByteBuffer, obj: Universe): Universe {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

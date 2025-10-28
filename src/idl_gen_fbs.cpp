@@ -30,12 +30,13 @@
 namespace flatbuffers {
 namespace {
 
-static std::string GenType(const Type &type, bool underlying = false) {
+static std::string GenType(const Type& type, bool underlying = false) {
   switch (type.base_type) {
     case BASE_TYPE_STRUCT:
       return type.struct_def->defined_namespace->GetFullyQualifiedName(
           type.struct_def->name);
-    case BASE_TYPE_VECTOR: return "[" + GenType(type.VectorType()) + "]";
+    case BASE_TYPE_VECTOR:
+      return "[" + GenType(type.VectorType()) + "]";
     default:
       if (type.enum_def && !underlying) {
         return type.enum_def->defined_namespace->GetFullyQualifiedName(
@@ -46,11 +47,11 @@ static std::string GenType(const Type &type, bool underlying = false) {
   }
 }
 
-static bool HasFieldWithId(const std::vector<FieldDef *> &fields) {
+static bool HasFieldWithId(const std::vector<FieldDef*>& fields) {
   static const std::string ID = "id";
 
-  for (const auto *field : fields) {
-    const auto *id_attribute = field->attributes.Lookup(ID);
+  for (const auto* field : fields) {
+    const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       return true;
     }
@@ -58,81 +59,93 @@ static bool HasFieldWithId(const std::vector<FieldDef *> &fields) {
   return false;
 }
 
-static bool HasNonPositiveFieldId(const std::vector<FieldDef *> &fields) {
+static bool HasNonPositiveFieldId(const std::vector<FieldDef*>& fields) {
   static const std::string ID = "id";
 
-  for (const auto *field : fields) {
-    const auto *id_attribute = field->attributes.Lookup(ID);
+  for (const auto* field : fields) {
+    const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       voffset_t proto_id = 0;
       bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
-      if (!done) { return true; }
+      if (!done) {
+        return true;
+      }
     }
   }
   return false;
 }
 
 static bool HasFieldIdFromReservedIds(
-    const std::vector<FieldDef *> &fields,
-    const std::vector<voffset_t> &reserved_ids) {
+    const std::vector<FieldDef*>& fields,
+    const std::vector<voffset_t>& reserved_ids) {
   static const std::string ID = "id";
 
-  for (const auto *field : fields) {
-    const auto *id_attribute = field->attributes.Lookup(ID);
+  for (const auto* field : fields) {
+    const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       voffset_t proto_id = 0;
       bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
-      if (!done) { return true; }
+      if (!done) {
+        return true;
+      }
       auto id_it =
           std::find(std::begin(reserved_ids), std::end(reserved_ids), proto_id);
-      if (id_it != reserved_ids.end()) { return true; }
+      if (id_it != reserved_ids.end()) {
+        return true;
+      }
     }
   }
   return false;
 }
 
 static std::vector<voffset_t> ExtractProtobufIds(
-    const std::vector<FieldDef *> &fields) {
+    const std::vector<FieldDef*>& fields) {
   static const std::string ID = "id";
   std::vector<voffset_t> used_proto_ids;
-  for (const auto *field : fields) {
-    const auto *id_attribute = field->attributes.Lookup(ID);
+  for (const auto* field : fields) {
+    const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       voffset_t proto_id = 0;
       bool done = StringToNumber(id_attribute->constant.c_str(), &proto_id);
-      if (done) { used_proto_ids.push_back(proto_id); }
+      if (done) {
+        used_proto_ids.push_back(proto_id);
+      }
     }
   }
 
   return used_proto_ids;
 }
 
-static bool HasTwiceUsedId(const std::vector<FieldDef *> &fields) {
+static bool HasTwiceUsedId(const std::vector<FieldDef*>& fields) {
   std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
-    if (*it == *std::prev(it)) { return true; }
+    if (*it == *std::prev(it)) {
+      return true;
+    }
   }
 
   return false;
 }
 
-static bool HasGapInProtoId(const std::vector<FieldDef *> &fields) {
+static bool HasGapInProtoId(const std::vector<FieldDef*>& fields) {
   std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
-    if (*it != *std::prev(it) + 1) { return true; }
+    if (*it != *std::prev(it) + 1) {
+      return true;
+    }
   }
 
   return false;
 }
 
-static bool ProtobufIdSanityCheck(const StructDef &struct_def,
+static bool ProtobufIdSanityCheck(const StructDef& struct_def,
                                   IDLOptions::ProtoIdGapAction gap_action,
                                   bool no_log = false) {
-  const auto &fields = struct_def.fields.vec;
+  const auto& fields = struct_def.fields.vec;
   if (HasNonPositiveFieldId(fields)) {
     // TODO: Use LogCompilerWarn
     if (!no_log) {
@@ -167,7 +180,9 @@ static bool ProtobufIdSanityCheck(const StructDef &struct_def,
         fprintf(stderr, "Fields in struct %s have gap between ids\n",
                 struct_def.name.c_str());
       }
-      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) { return false; }
+      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) {
+        return false;
+      }
     }
   }
 
@@ -184,9 +199,9 @@ struct ProtobufToFbsIdMap {
 };
 
 static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
-    const StructDef &struct_def, IDLOptions::ProtoIdGapAction gap_action,
+    const StructDef& struct_def, IDLOptions::ProtoIdGapAction gap_action,
     bool no_log) {
-  const auto &fields = struct_def.fields.vec;
+  const auto& fields = struct_def.fields.vec;
 
   if (!HasFieldWithId(fields)) {
     ProtobufToFbsIdMap result;
@@ -194,14 +209,16 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
     return result;
   }
 
-  if (!ProtobufIdSanityCheck(struct_def, gap_action, no_log)) { return {}; }
+  if (!ProtobufIdSanityCheck(struct_def, gap_action, no_log)) {
+    return {};
+  }
 
   static constexpr int UNION_ID = -1;
   using ProtoIdFieldNamePair = std::pair<int, std::string>;
   std::vector<ProtoIdFieldNamePair> proto_ids;
 
-  for (const auto *field : fields) {
-    const auto *id_attribute = field->attributes.Lookup("id");
+  for (const auto* field : fields) {
+    const auto* id_attribute = field->attributes.Lookup("id");
     if (id_attribute != nullptr) {
       // When we have union but do not use union flag to keep them
       if (id_attribute->constant.empty() &&
@@ -224,25 +241,27 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
 
   std::sort(
       std::begin(proto_ids), std::end(proto_ids),
-      [](const ProtoIdFieldNamePair &rhs, const ProtoIdFieldNamePair &lhs) {
+      [](const ProtoIdFieldNamePair& rhs, const ProtoIdFieldNamePair& lhs) {
         return rhs.first < lhs.first;
       });
   struct ProtobufToFbsIdMap proto_to_fbs;
 
   voffset_t id = 0;
-  for (const auto &element : proto_ids) {
-    if (element.first == UNION_ID) { id++; }
+  for (const auto& element : proto_ids) {
+    if (element.first == UNION_ID) {
+      id++;
+    }
     proto_to_fbs.field_to_id.emplace(element.second, id++);
   }
   proto_to_fbs.successful = true;
   return proto_to_fbs;
 }
 
-static void GenNameSpace(const Namespace &name_space, std::string *_schema,
-                         const Namespace **last_namespace) {
+static void GenNameSpace(const Namespace& name_space, std::string* _schema,
+                         const Namespace** last_namespace) {
   if (*last_namespace == &name_space) return;
   *last_namespace = &name_space;
-  auto &schema = *_schema;
+  auto& schema = *_schema;
   schema += "namespace ";
   for (auto it = name_space.components.begin();
        it != name_space.components.end(); ++it) {
@@ -253,14 +272,14 @@ static void GenNameSpace(const Namespace &name_space, std::string *_schema,
 }
 
 // Generate a flatbuffer schema from the Parser's internal representation.
-static std::string GenerateFBS(const Parser &parser,
-                               const std::string &file_name,
+static std::string GenerateFBS(const Parser& parser,
+                               const std::string& file_name,
                                bool no_log = false) {
   // Proto namespaces may clash with table names, escape the ones that were
   // generated from a table:
   for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
        ++it) {
-    auto &ns = **it;
+    auto& ns = **it;
     for (size_t i = 0; i < ns.from_table; i++) {
       ns.components[ns.components.size() - 1 - i] += "_";
     }
@@ -298,10 +317,10 @@ static std::string GenerateFBS(const Parser &parser,
   }
 
   // Generate code for all the enum declarations.
-  const Namespace *last_namespace = nullptr;
+  const Namespace* last_namespace = nullptr;
   for (auto enum_def_it = parser.enums_.vec.begin();
        enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
-    EnumDef &enum_def = **enum_def_it;
+    EnumDef& enum_def = **enum_def_it;
     if (parser.opts.include_dependence_headers && enum_def.generated) {
       continue;
     }
@@ -316,7 +335,7 @@ static std::string GenerateFBS(const Parser &parser,
     schema += GenType(enum_def.underlying_type, true) + " {\n";
 
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
       if (enum_def.is_union) {
         schema += "  " + GenType(ev.union_type) + ",\n";
@@ -329,10 +348,12 @@ static std::string GenerateFBS(const Parser &parser,
   // Generate code for all structs/tables.
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
-    StructDef &struct_def = **it;
+    StructDef& struct_def = **it;
     const auto proto_fbs_ids = MapProtoIdsToFieldsId(
         struct_def, parser.opts.proto_id_gap_action, no_log);
-    if (!proto_fbs_ids.successful) { return {}; }
+    if (!proto_fbs_ids.successful) {
+      return {};
+    }
 
     if (parser.opts.include_dependence_headers && struct_def.generated) {
       continue;
@@ -343,7 +364,7 @@ static std::string GenerateFBS(const Parser &parser,
     schema += "table " + struct_def.name + " {\n";
     for (auto field_it = struct_def.fields.vec.begin();
          field_it != struct_def.fields.vec.end(); ++field_it) {
-      auto &field = **field_it;
+      auto& field = **field_it;
       if (field.value.type.base_type != BASE_TYPE_UTYPE) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");
         schema += "  " + field.name + ":" + GenType(field.value.type);
@@ -361,7 +382,7 @@ static std::string GenerateFBS(const Parser &parser,
 
         if (!attributes.empty()) {
           schema += " (";
-          for (const auto &attribute : attributes) {
+          for (const auto& attribute : attributes) {
             schema += attribute + ",";
           }
           schema.pop_back();
@@ -376,10 +397,12 @@ static std::string GenerateFBS(const Parser &parser,
   return schema;
 }
 
-static bool GenerateFBS(const Parser &parser, const std::string &path,
-                        const std::string &file_name, bool no_log = false) {
+static bool GenerateFBS(const Parser& parser, const std::string& path,
+                        const std::string& file_name, bool no_log = false) {
   const std::string fbs = GenerateFBS(parser, file_name, no_log);
-  if (fbs.empty()) { return false; }
+  if (fbs.empty()) {
+    return false;
+  }
   // TODO: Use LogCompilerWarn
   if (!no_log) {
     fprintf(stderr,
@@ -393,28 +416,29 @@ class FBSCodeGenerator : public CodeGenerator {
  public:
   explicit FBSCodeGenerator(const bool no_log) : no_log_(no_log) {}
 
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
-    if (!GenerateFBS(parser, path, filename, no_log_)) { return Status::ERROR; }
+  Status GenerateCode(const Parser& parser, const std::string& path,
+                      const std::string& filename) override {
+    if (!GenerateFBS(parser, path, filename, no_log_)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateCodeString(const Parser &parser, const std::string &filename,
-                            std::string &output) override {
+  Status GenerateCodeString(const Parser& parser, const std::string& filename,
+                            std::string& output) override {
     output = GenerateFBS(parser, filename, no_log_);
     return Status::OK;
   }
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  Status GenerateCode(const uint8_t *, int64_t,
-                      const CodeGenOptions &) override {
+  Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                          const std::string &filename,
-                          std::string &output) override {
+  Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                          const std::string& filename,
+                          std::string& output) override {
     (void)parser;
     (void)path;
     (void)filename;
@@ -422,16 +446,16 @@ class FBSCodeGenerator : public CodeGenerator {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                          const std::string &filename) override {
+  Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                          const std::string& filename) override {
     (void)parser;
     (void)path;
     (void)filename;
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateRootFile(const Parser &parser,
-                          const std::string &path) override {
+  Status GenerateRootFile(const Parser& parser,
+                          const std::string& path) override {
     (void)parser;
     (void)path;
     return Status::NOT_IMPLEMENTED;

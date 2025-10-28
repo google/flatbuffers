@@ -4,12 +4,16 @@ package NamespaceA.NamespaceB;
 
 @SuppressWarnings("unused")
 public final class UnionInNestedNS {
-  private UnionInNestedNS() { }
+  private UnionInNestedNS() {}
+
   public static final byte NONE = 0;
   public static final byte TableInNestedNS = 1;
 
-  public static final String[] names = { "NONE", "TableInNestedNS", };
+  public static final String[] names = {
+    "NONE", "TableInNestedNS",
+  };
 
-  public static String name(int e) { return names[e]; }
+  public static String name(int e) {
+    return names[e];
+  }
 }
-

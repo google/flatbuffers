@@ -1,1 +1,1 @@
-export { Person } from './c/person.js';
+export {Person} from './c/person.js';

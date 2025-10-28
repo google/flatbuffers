@@ -2,8 +2,8 @@
 
 package com.google.flatbuffers.kotlin.benchmark
 
-
 import com.google.flatbuffers.kotlin.FlatBufferBuilder
+import java.util.concurrent.TimeUnit
 import jmonster.JAllMonsters
 import jmonster.JColor
 import jmonster.JMonster
@@ -17,7 +17,6 @@ import monster.MonsterOffsetArray
 import monster.Vec3
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
-import java.util.concurrent.TimeUnit
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
@@ -32,48 +31,55 @@ open class FlatbufferBenchmark {
   val fbDeserializationJava = com.google.flatbuffers.FlatBufferBuilder(1024 * repetition)
 
   init {
-      populateMosterKotlin(fbDeserializationKotlin)
-      populateMosterJava(fbDeserializationJava)
+    populateMosterKotlin(fbDeserializationKotlin)
+    populateMosterJava(fbDeserializationJava)
   }
+
   @OptIn(ExperimentalUnsignedTypes::class)
   private fun populateMosterKotlin(fb: FlatBufferBuilder) {
     fb.clear()
-    val monsterName = fb.createString("MonsterName");
+    val monsterName = fb.createString("MonsterName")
     val items = ubyteArrayOf(0u, 1u, 2u, 3u, 4u)
     val inv = createInventoryVector(fb, items)
-    val monsterOffsets: MonsterOffsetArray = MonsterOffsetArray(repetition) {
-      Monster.startMonster(fb)
-      Monster.addName(fb, monsterName)
-      Monster.addPos(fb, Vec3.createVec3(fb, 1.0f, 2.0f, 3.0f))
-      Monster.addHp(fb, 80)
-      Monster.addMana(fb, 150)
-      Monster.addInventory(fb, inv)
-      Monster.addColor(fb, monster.Color.Red)
-      Monster.endMonster(fb)
-    }
+    val monsterOffsets: MonsterOffsetArray =
+      MonsterOffsetArray(repetition) {
+        Monster.startMonster(fb)
+        Monster.addName(fb, monsterName)
+        Monster.addPos(fb, Vec3.createVec3(fb, 1.0f, 2.0f, 3.0f))
+        Monster.addHp(fb, 80)
+        Monster.addMana(fb, 150)
+        Monster.addInventory(fb, inv)
+        Monster.addColor(fb, monster.Color.Red)
+        Monster.endMonster(fb)
+      }
     val monsters = createMonstersVector(fb, monsterOffsets)
     val allMonsters = createAllMonsters(fb, monsters)
     fb.finish(allMonsters)
   }
 
   @OptIn(ExperimentalUnsignedTypes::class)
-  private fun populateMosterJava(fb: com.google.flatbuffers.FlatBufferBuilder){
+  private fun populateMosterJava(fb: com.google.flatbuffers.FlatBufferBuilder) {
     fb.clear()
-    val monsterName = fb.createString("MonsterName");
+    val monsterName = fb.createString("MonsterName")
     val inv = JMonster.createInventoryVector(fb, ubyteArrayOf(0u, 1u, 2u, 3u, 4u))
-    val monsters = JAllMonsters.createMonstersVector(fb, IntArray(repetition) {
-      JMonster.startJMonster(fb)
-      JMonster.addName(fb, monsterName)
-      JMonster.addPos(fb, JVec3.createJVec3(fb, 1.0f, 2.0f, 3.0f))
-      JMonster.addHp(fb, 80)
-      JMonster.addMana(fb, 150)
-      JMonster.addInventory(fb, inv)
-      JMonster.addColor(fb, JColor.Red)
-      JMonster.endJMonster(fb)
-    })
+    val monsters =
+      JAllMonsters.createMonstersVector(
+        fb,
+        IntArray(repetition) {
+          JMonster.startJMonster(fb)
+          JMonster.addName(fb, monsterName)
+          JMonster.addPos(fb, JVec3.createJVec3(fb, 1.0f, 2.0f, 3.0f))
+          JMonster.addHp(fb, 80)
+          JMonster.addMana(fb, 150)
+          JMonster.addInventory(fb, inv)
+          JMonster.addColor(fb, JColor.Red)
+          JMonster.endJMonster(fb)
+        },
+      )
     val allMonsters = JAllMonsters.createJAllMonsters(fb, monsters)
     fb.finish(allMonsters)
   }
+
   @Benchmark
   fun monstersSerializationKotlin() {
     populateMosterKotlin(fbKotlin)
@@ -100,6 +106,7 @@ open class FlatbufferBenchmark {
       hole.consume(monster.inventory(3))
     }
   }
+
   @Benchmark
   fun monstersSerializationJava() {
     populateMosterJava(fbJava)
@@ -125,5 +132,4 @@ open class FlatbufferBenchmark {
       hole.consume(monster.inventory(3))
     }
   }
-
 }

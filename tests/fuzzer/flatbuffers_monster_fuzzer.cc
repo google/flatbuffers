@@ -48,14 +48,14 @@ bool TestFileExists(fs::path file_path) {
   if (file_path.has_filename() && fs::exists(file_path)) return true;
 
   TEST_OUTPUT_LINE("@DEBUG: file '%s' not found", file_path.string().c_str());
-  for (const auto &entry : fs::directory_iterator(file_path.parent_path())) {
+  for (const auto& entry : fs::directory_iterator(file_path.parent_path())) {
     TEST_OUTPUT_LINE("@DEBUG: parent path entry: '%s'",
                      entry.path().string().c_str());
   }
   return false;
 }
 
-std::string LoadBinarySchema(const char *file_name) {
+std::string LoadBinarySchema(const char* file_name) {
   const auto file_path = exe_path_.parent_path() / file_name;
   TEST_EQ(true, TestFileExists(file_path));
   std::string schemafile;
@@ -63,12 +63,12 @@ std::string LoadBinarySchema(const char *file_name) {
           flatbuffers::LoadFile(file_path.string().c_str(), true, &schemafile));
 
   flatbuffers::Verifier verifier(
-      reinterpret_cast<const uint8_t *>(schemafile.c_str()), schemafile.size());
+      reinterpret_cast<const uint8_t*>(schemafile.c_str()), schemafile.size());
   TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
   return schemafile;
 }
 
-std::string do_test(const flatbuffers::IDLOptions &opts,
+std::string do_test(const flatbuffers::IDLOptions& opts,
                     const std::string input_json, const bool check_parser) {
   // (re)define parser options
   parser_.opts = opts;
@@ -78,8 +78,7 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
     flatbuffers::Verifier verifier(parser_.builder_.GetBufferPointer(),
                                    parser_.builder_.GetSize());
     TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
-    TEST_NULL(
-        GenText(parser_, parser_.builder_.GetBufferPointer(), &jsongen));
+    TEST_NULL(GenText(parser_, parser_.builder_.GetBufferPointer(), &jsongen));
   } else if (check_parser) {
     TEST_OUTPUT_LINE("parser failed with JSON:\n%s", input_json.c_str());
     TEST_EQ_STR("", parser_.error_.c_str());
@@ -95,18 +94,18 @@ std::string do_test(const flatbuffers::IDLOptions &opts,
 // your fuzz target. If you need to load data files, please use argv[0] to get
 // the directory where your fuzz target executable is located.
 // You must not modify argv[0].
-extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv) {
+extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv) {
   (void)argc;
   exe_path_ = (*argv)[0];
 
   static const std::string schemafile = LoadBinarySchema("monster_test.bfbs");
   // parse schema first, so we can use it to parse the data after
-  parser_.Deserialize(reinterpret_cast<const uint8_t *>(schemafile.c_str()),
+  parser_.Deserialize(reinterpret_cast<const uint8_t*>(schemafile.c_str()),
                       schemafile.size());
   return 0;
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   // Reserve one byte for Parser flags and one byte for repetition counter.
   if (size < 3) return 0;
   const uint8_t flags = data[0];
@@ -114,7 +113,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   data += 2;
   size -= 2;  // bypass
 
-  const std::string original(reinterpret_cast<const char *>(data), size);
+  const std::string original(reinterpret_cast<const char*>(data), size);
   auto input = std::string(original.c_str());  // until '\0'
   if (input.size() < kMinInputLength || input.size() > kMaxInputLength)
     return 0;

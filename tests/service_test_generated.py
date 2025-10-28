@@ -2,57 +2,61 @@
 
 # namespace: example
 
-import flatbuffers
 from typing import Any
+import flatbuffers
+
+
 class HelloRequest(object):
-    __slots__ = ['_tab']
+  __slots__ = ['_tab']
 
-    @classmethod
-    def GetRootAs(cls, buf, offset: int = 0):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = HelloRequest()
-        x.Init(buf, n + offset)
-        return x
+  @classmethod
+  def GetRootAs(cls, buf, offset: int = 0):
+    n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+    x = HelloRequest()
+    x.Init(buf, n + offset)
+    return x
 
-    @classmethod
-    def GetRootAsHelloRequest(cls, buf, offset=0):
-        """This method is deprecated. Please switch to GetRootAs."""
-        return cls.GetRootAs(buf, offset)
-    # HelloRequest
-    def Init(self, buf: bytes, pos: int):
-        self._tab = flatbuffers.table.Table(buf, pos)
+  @classmethod
+  def GetRootAsHelloRequest(cls, buf, offset=0):
+    """This method is deprecated. Please switch to GetRootAs."""
+    return cls.GetRootAs(buf, offset)
+
+  # HelloRequest
+  def Init(self, buf: bytes, pos: int):
+    self._tab = flatbuffers.table.Table(buf, pos)
+
 
 def HelloRequestStart(builder: flatbuffers.Builder):
-    builder.StartObject(0)
+  builder.StartObject(0)
+
 
 def HelloRequestEnd(builder: flatbuffers.Builder) -> int:
-    return builder.EndObject()
-
+  return builder.EndObject()
 
 
 class HelloResponse(object):
-    __slots__ = ['_tab']
+  __slots__ = ['_tab']
 
-    @classmethod
-    def GetRootAs(cls, buf, offset: int = 0):
-        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
-        x = HelloResponse()
-        x.Init(buf, n + offset)
-        return x
+  @classmethod
+  def GetRootAs(cls, buf, offset: int = 0):
+    n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+    x = HelloResponse()
+    x.Init(buf, n + offset)
+    return x
 
-    @classmethod
-    def GetRootAsHelloResponse(cls, buf, offset=0):
-        """This method is deprecated. Please switch to GetRootAs."""
-        return cls.GetRootAs(buf, offset)
-    # HelloResponse
-    def Init(self, buf: bytes, pos: int):
-        self._tab = flatbuffers.table.Table(buf, pos)
+  @classmethod
+  def GetRootAsHelloResponse(cls, buf, offset=0):
+    """This method is deprecated. Please switch to GetRootAs."""
+    return cls.GetRootAs(buf, offset)
+
+  # HelloResponse
+  def Init(self, buf: bytes, pos: int):
+    self._tab = flatbuffers.table.Table(buf, pos)
+
 
 def HelloResponseStart(builder: flatbuffers.Builder):
-    builder.StartObject(0)
+  builder.StartObject(0)
+
 
 def HelloResponseEnd(builder: flatbuffers.Builder) -> int:
-    return builder.EndObject()
-
-
-
+  return builder.EndObject()

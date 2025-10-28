@@ -31,16 +31,16 @@ class FileManager {
   FileManager() = default;
   virtual ~FileManager() = default;
 
-  virtual bool SaveFile(const std::string &absolute_file_name,
-                        const std::string &content) = 0;
+  virtual bool SaveFile(const std::string& absolute_file_name,
+                        const std::string& content) = 0;
 
-  virtual bool LoadFile(const std::string &absolute_file_name,
-                        std::string *buf) = 0;
+  virtual bool LoadFile(const std::string& absolute_file_name,
+                        std::string* buf) = 0;
 
  private:
   // Copying is not supported.
-  FileManager(const FileManager &) = delete;
-  FileManager &operator=(const FileManager &) = delete;
+  FileManager(const FileManager&) = delete;
+  FileManager& operator=(const FileManager&) = delete;
 };
 
 }  // namespace flatbuffers

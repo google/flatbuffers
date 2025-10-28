@@ -63,25 +63,15 @@ fn create_serialized_example_with_generated_code(
     let t2_name = builder.create_string("Wilma");
     let t0 = my_game::example::Monster::create(
         builder,
-        &my_game::example::MonsterArgs {
-            hp: 1000,
-            name: Some(t0_name),
-            ..Default::default()
-        },
+        &my_game::example::MonsterArgs { hp: 1000, name: Some(t0_name), ..Default::default() },
     );
     let t1 = my_game::example::Monster::create(
         builder,
-        &my_game::example::MonsterArgs {
-            name: Some(t1_name),
-            ..Default::default()
-        },
+        &my_game::example::MonsterArgs { name: Some(t1_name), ..Default::default() },
     );
     let t2 = my_game::example::Monster::create(
         builder,
-        &my_game::example::MonsterArgs {
-            name: Some(t2_name),
-            ..Default::default()
-        },
+        &my_game::example::MonsterArgs { name: Some(t2_name), ..Default::default() },
     );
     let mon = {
         let name = builder.create_string("MyMonster");
@@ -108,10 +98,7 @@ fn create_serialized_example_with_generated_code(
             test: Some(
                 my_game::example::Monster::create(
                     builder,
-                    &my_game::example::MonsterArgs {
-                        name: Some(fred_name),
-                        ..Default::default()
-                    },
+                    &my_game::example::MonsterArgs { name: Some(fred_name), ..Default::default() },
                 )
                 .as_union_value(),
             ),

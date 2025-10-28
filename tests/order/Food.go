@@ -9,12 +9,14 @@ import (
 )
 
 type FoodT struct {
-	Pizza *Pizza.PizzaT `json:"pizza"`
+	Pizza     *Pizza.PizzaT `json:"pizza"`
 	PizzaTest *Pizza.PizzaT `json:"pizza_test"`
 }
 
 func (t *FoodT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	pizzaOffset := t.Pizza.Pack(builder)
 	pizzaTestOffset := t.PizzaTest.Pack(builder)
 	FoodStart(builder)
@@ -29,7 +31,9 @@ func (rcv *Food) UnPackTo(t *FoodT) {
 }
 
 func (rcv *Food) UnPack() *FoodT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &FoodT{}
 	rcv.UnPackTo(t)
 	return t
