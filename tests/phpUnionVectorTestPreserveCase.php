@@ -66,11 +66,11 @@ function main()
     ];
 
     Attacker::startAttacker($fbb);
-    Attacker::addSwordAttackDamage($fbb, 5);
+    Attacker::addsword_attack_damage($fbb, 5);
     $attackerOffset = Attacker::endAttacker($fbb);
 
-    $charTypesOffset = Movie::createCharactersTypeVector($fbb, $charTypes);
-    $charsOffset = Movie::createCharactersVector(
+    $charTypesOffset = Movie::createcharacters_typeVector($fbb, $charTypes);
+    $charsOffset = Movie::createcharactersVector(
         $fbb,
         [
             BookReader::createBookReader($fbb, 7),
@@ -80,29 +80,29 @@ function main()
     );
 
     Movie::startMovie($fbb);
-    Movie::addCharactersType($fbb, $charTypesOffset);
-    Movie::addCharacters($fbb, $charsOffset);
+    Movie::addcharacters_type($fbb, $charTypesOffset);
+    Movie::addcharacters($fbb, $charsOffset);
     Movie::finishMovieBuffer($fbb, Movie::endMovie($fbb));
 
     $buf = Google\FlatBuffers\ByteBuffer::wrap($fbb->dataBuffer()->data());
 
     $movie = Movie::getRootAsMovie($buf);
 
-    $assert->strictEqual($movie->getCharactersTypeLength(), count($charTypes));
-    $assert->strictEqual($movie->getCharactersLength(), $movie->getCharactersTypeLength());
+    $assert->strictEqual($movie->getcharacters_typeLength(), count($charTypes));
+    $assert->strictEqual($movie->getcharactersLength(), $movie->getcharacters_typeLength());
 
     for ($i = 0; $i < count($charTypes); ++$i) {
-        $assert->strictEqual($movie->getCharactersType($i), $charTypes[$i]);
+        $assert->strictEqual($movie->getcharacters_type($i), $charTypes[$i]);
     }
 
-    $bookReader7 = $movie->getCharacters(0, new BookReader());
-    $assert->strictEqual($bookReader7->getBooksRead(), 7);
+    $bookReader7 = $movie->getcharacters(0, new BookReader());
+    $assert->strictEqual($bookReader7->Getbooks_read(), 7);
 
-    $attacker = $movie->getCharacters(1, new Attacker());
-    $assert->strictEqual($attacker->getSwordAttackDamage(), 5);
+    $attacker = $movie->getcharacters(1, new Attacker());
+    $assert->strictEqual($attacker->getsword_attack_damage(), 5);
 
-    $bookReader2 = $movie->getCharacters(2, new BookReader());
-    $assert->strictEqual($bookReader2->getBooksRead(), 2);
+    $bookReader2 = $movie->getcharacters(2, new BookReader());
+    $assert->strictEqual($bookReader2->Getbooks_read(), 2);
 }
 
 try {

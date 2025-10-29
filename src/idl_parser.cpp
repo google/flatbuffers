@@ -24,6 +24,7 @@
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/idl.h"
+#include "flatbuffers/idlnames.h"
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/util.h"
 
@@ -899,6 +900,7 @@ CheckedError Parser::AddField(StructDef& struct_def, const std::string& name,
       FieldIndexToOffset(static_cast<voffset_t>(struct_def.fields.vec.size()));
   field.name = name;
   field.file = struct_def.file;
+  RecordIdlName(&field.name);
   field.value.type = type;
   if (struct_def.fixed) {  // statically compute the field offset
     auto size = InlineSize(type);
@@ -2432,6 +2434,9 @@ struct EnumValBuilder {
     auto first = enum_def.vals.vec.empty();
     user_value = first;
     temp = new EnumVal(ev_name, first ? 0 : enum_def.vals.vec.back()->value);
+
+    RecordIdlName(&temp->name);
+
     return temp;
   }
 
@@ -2439,6 +2444,9 @@ struct EnumValBuilder {
     FLATBUFFERS_ASSERT(!temp);
     user_value = true;
     temp = new EnumVal(ev_name, val);
+
+    RecordIdlName(&temp->name);
+
     return temp;
   }
 
@@ -2688,6 +2696,7 @@ CheckedError Parser::StartStruct(const std::string& name, StructDef** dest) {
   struct_def.predecl = false;
   struct_def.name = name;
   struct_def.file = file_being_parsed_;
+  RecordIdlName(&struct_def.name);
   // Move this struct to the back of the vector just in case it was predeclared,
   // to preserve declaration order.
   *std::remove(structs_.vec.begin(), structs_.vec.end(), &struct_def) =
@@ -3052,6 +3061,7 @@ CheckedError Parser::StartEnum(const std::string& name, bool is_union,
                                EnumDef** dest) {
   auto& enum_def = *new EnumDef();
   enum_def.name = name;
+  RecordIdlName(&enum_def.name);
   enum_def.file = file_being_parsed_;
   enum_def.doc_comment = doc_comment_;
   enum_def.is_union = is_union;
@@ -4236,8 +4246,14 @@ bool EnumDef::Deserialize(Parser& parser, const reflection::Enum* _enum) {
   name = parser.UnqualifiedName(_enum->name()->str());
   for (uoffset_t i = 0; i < _enum->values()->size(); ++i) {
     auto val = new EnumVal();
-    if (!val->Deserialize(parser, _enum->values()->Get(i)) ||
-        vals.Add(val->name, val)) {
+    if (!val->Deserialize(parser, _enum->values()->Get(i))) {
+      delete val;
+      return false;
+    }
+
+    RecordIdlName(&val->name);
+
+    if (vals.Add(val->name, val)) {
       delete val;
       return false;
     }
