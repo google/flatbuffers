@@ -507,8 +507,7 @@ class GoGenerator : public BaseGenerator {
 
     GenReceiver(struct_def, code_ptr);
     code += " " + namer_.Function(field);
-    code += "(obj *" + TypeName(field);
-    code += ", j int) bool " + OffsetPrefix(field);
+    code += "(j int) (obj " + TypeName(field) + ", ok bool) " + OffsetPrefix(field);
     code += "\t\tx := rcv.Vector(o)\n";
     code += "\t\tx += flatbuffers.UOffsetT(j) * ";
     code += NumToString(InlineSize(vectortype)) + "\n";
@@ -516,8 +515,8 @@ class GoGenerator : public BaseGenerator {
       code += "\t\tx = rcv.Indirect(x)\n";
     }
     code += "\t\tobj.Init(rcv.Bytes, x)\n";
-    code += "\t\treturn true\n\t}\n";
-    code += "\treturn false\n";
+    code += "\t\tok = true\n\t}\n";
+    code += "\treturn\n";
     code += "}\n\n";
   }
 
