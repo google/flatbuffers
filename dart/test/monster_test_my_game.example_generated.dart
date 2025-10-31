@@ -342,7 +342,9 @@ class TestObjectBuilder extends fb.ObjectBuilder {
   final int _a;
   final int _b;
 
-  TestObjectBuilder({required int a, required int b}) : _a = a, _b = b;
+  TestObjectBuilder({required int a, required int b})
+      : _a = a,
+        _b = b;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -481,13 +483,13 @@ class Vec3 {
   }
 
   Vec3T unpack() => Vec3T(
-    x: x,
-    y: y,
-    z: z,
-    test1: test1,
-    test2: test2,
-    test3: test3.unpack(),
-  );
+        x: x,
+        y: y,
+        z: z,
+        test1: test1,
+        test2: test2,
+        test3: test3.unpack(),
+      );
 
   static int pack(fb.Builder fbBuilder, Vec3T? object) {
     if (object == null) return 0;
@@ -583,12 +585,12 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
     required double test1,
     required Color test2,
     required TestObjectBuilder test3,
-  }) : _x = x,
-       _y = y,
-       _z = z,
-       _test1 = test1,
-       _test2 = test2,
-       _test3 = test3;
+  })  : _x = x,
+        _y = y,
+        _z = z,
+        _test1 = test1,
+        _test2 = test2,
+        _test3 = test3;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -685,8 +687,8 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
   final int _distance;
 
   AbilityObjectBuilder({required int id, required int distance})
-    : _id = id,
-      _distance = distance;
+      : _id = id,
+        _distance = distance;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -785,9 +787,9 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
     required AbilityObjectBuilder a,
     required TestObjectBuilder b,
     required AbilityObjectBuilder c,
-  }) : _a = a,
-       _b = b,
-       _c = c;
+  })  : _a = a,
+        _b = b,
+        _c = c;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -990,9 +992,9 @@ class StatObjectBuilder extends fb.ObjectBuilder {
   final int? _count;
 
   StatObjectBuilder({String? id, int? val, int? count})
-    : _id = id,
-      _val = val,
-      _count = count;
+      : _id = id,
+        _val = val,
+        _count = count;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1131,8 +1133,8 @@ class Monster {
   Color get color =>
       Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId? get testType => AnyTypeId._createOrNull(
-    const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 18),
-  );
+        const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 18),
+      );
   dynamic get test {
     switch (testType?.value) {
       case 1:
@@ -1155,17 +1157,17 @@ class Monster {
   }
 
   List<Test>? get test4 => const fb.ListReader<Test>(
-    Test.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 22);
+        Test.reader,
+      ).vTableGetNullable(_bc, _bcOffset, 22);
   List<String>? get testarrayofstring => const fb.ListReader<String>(
-    fb.StringReader(),
-  ).vTableGetNullable(_bc, _bcOffset, 24);
+        fb.StringReader(),
+      ).vTableGetNullable(_bc, _bcOffset, 24);
 
   ///  an example documentation comment: this will end up in the generated code
   ///  multiline too
   List<Monster>? get testarrayoftables => const fb.ListReader<Monster>(
-    Monster.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 26);
+        Monster.reader,
+      ).vTableGetNullable(_bc, _bcOffset, 26);
   Monster? get enemy => Monster.reader.vTableGetNullable(_bc, _bcOffset, 28);
   List<int>? get testnestedflatbuffer =>
       const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 30);
@@ -1189,8 +1191,8 @@ class Monster {
   int get testhashu64Fnv1a =>
       const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 50, 0);
   List<bool>? get testarrayofbools => const fb.ListReader<bool>(
-    fb.BoolReader(),
-  ).vTableGetNullable(_bc, _bcOffset, 52);
+        fb.BoolReader(),
+      ).vTableGetNullable(_bc, _bcOffset, 52);
   double get testf =>
       const fb.Float32Reader().vTableGet(_bc, _bcOffset, 54, 3.14159);
   double get testf2 =>
@@ -1198,32 +1200,32 @@ class Monster {
   double get testf3 =>
       const fb.Float32Reader().vTableGet(_bc, _bcOffset, 58, 0.0);
   List<String>? get testarrayofstring2 => const fb.ListReader<String>(
-    fb.StringReader(),
-  ).vTableGetNullable(_bc, _bcOffset, 60);
+        fb.StringReader(),
+      ).vTableGetNullable(_bc, _bcOffset, 60);
   List<Ability>? get testarrayofsortedstruct => const fb.ListReader<Ability>(
-    Ability.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 62);
+        Ability.reader,
+      ).vTableGetNullable(_bc, _bcOffset, 62);
   List<int>? get flex =>
       const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 64);
   List<Test>? get test5 => const fb.ListReader<Test>(
-    Test.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 66);
+        Test.reader,
+      ).vTableGetNullable(_bc, _bcOffset, 66);
   List<int>? get vectorOfLongs => const fb.ListReader<int>(
-    fb.Int64Reader(),
-  ).vTableGetNullable(_bc, _bcOffset, 68);
+        fb.Int64Reader(),
+      ).vTableGetNullable(_bc, _bcOffset, 68);
   List<double>? get vectorOfDoubles => const fb.ListReader<double>(
-    fb.Float64Reader(),
-  ).vTableGetNullable(_bc, _bcOffset, 70);
+        fb.Float64Reader(),
+      ).vTableGetNullable(_bc, _bcOffset, 70);
   my_game.InParentNamespace? get parentNamespaceTest =>
       my_game.InParentNamespace.reader.vTableGetNullable(_bc, _bcOffset, 72);
   List<Referrable>? get vectorOfReferrables => const fb.ListReader<Referrable>(
-    Referrable.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 74);
+        Referrable.reader,
+      ).vTableGetNullable(_bc, _bcOffset, 74);
   int get singleWeakReference =>
       const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 76, 0);
   List<int>? get vectorOfWeakReferences => const fb.ListReader<int>(
-    fb.Uint64Reader(),
-  ).vTableGetNullable(_bc, _bcOffset, 78);
+        fb.Uint64Reader(),
+      ).vTableGetNullable(_bc, _bcOffset, 78);
   List<Referrable>? get vectorOfStrongReferrables =>
       const fb.ListReader<Referrable>(
         Referrable.reader,
@@ -1231,13 +1233,13 @@ class Monster {
   int get coOwningReference =>
       const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 82, 0);
   List<int>? get vectorOfCoOwningReferences => const fb.ListReader<int>(
-    fb.Uint64Reader(),
-  ).vTableGetNullable(_bc, _bcOffset, 84);
+        fb.Uint64Reader(),
+      ).vTableGetNullable(_bc, _bcOffset, 84);
   int get nonOwningReference =>
       const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 86, 0);
   List<int>? get vectorOfNonOwningReferences => const fb.ListReader<int>(
-    fb.Uint64Reader(),
-  ).vTableGetNullable(_bc, _bcOffset, 88);
+        fb.Uint64Reader(),
+      ).vTableGetNullable(_bc, _bcOffset, 88);
   AnyUniqueAliasesTypeId? get anyUniqueType =>
       AnyUniqueAliasesTypeId._createOrNull(
         const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 90),
@@ -1281,22 +1283,22 @@ class Monster {
   }
 
   List<Color>? get vectorOfEnums => const fb.ListReader<Color>(
-    Color.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 98);
+        Color.reader,
+      ).vTableGetNullable(_bc, _bcOffset, 98);
   Race get signedEnum =>
       Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
   List<int>? get testrequirednestedflatbuffer =>
       const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 102);
   List<Stat>? get scalarKeySortedTables => const fb.ListReader<Stat>(
-    Stat.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 104);
+        Stat.reader,
+      ).vTableGetNullable(_bc, _bcOffset, 104);
   Test? get nativeInline => Test.reader.vTableGetNullable(_bc, _bcOffset, 106);
   LongEnum get longEnumNonEnumDefault => LongEnum.fromValue(
-    const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 108, 0),
-  );
+        const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 108, 0),
+      );
   LongEnum get longEnumNormalDefault => LongEnum.fromValue(
-    const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 110, 2),
-  );
+        const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 110, 2),
+      );
   double get nanDefault =>
       const fb.Float32Reader().vTableGet(_bc, _bcOffset, 112, double.nan);
   double get infDefault =>
@@ -1308,17 +1310,17 @@ class Monster {
   double get positiveInfinityDefault =>
       const fb.Float32Reader().vTableGet(_bc, _bcOffset, 120, double.infinity);
   double get negativeInfDefault => const fb.Float32Reader().vTableGet(
-    _bc,
-    _bcOffset,
-    122,
-    double.negativeInfinity,
-  );
+        _bc,
+        _bcOffset,
+        122,
+        double.negativeInfinity,
+      );
   double get negativeInfinityDefault => const fb.Float32Reader().vTableGet(
-    _bc,
-    _bcOffset,
-    124,
-    double.negativeInfinity,
-  );
+        _bc,
+        _bcOffset,
+        124,
+        double.negativeInfinity,
+      );
   double get doubleInfDefault =>
       const fb.Float64Reader().vTableGet(_bc, _bcOffset, 126, double.infinity);
 
@@ -1328,109 +1330,72 @@ class Monster {
   }
 
   MonsterT unpack() => MonsterT(
-    pos: pos?.unpack(),
-    mana: mana,
-    hp: hp,
-    name: name,
-    inventory: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 14),
-    color: color,
-    testType: testType,
-    test: test?.unpack(),
-    test4: test4?.map((e) => e.unpack()).toList(),
-    testarrayofstring: const fb.ListReader<String>(
-      fb.StringReader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 24),
-    testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
-    enemy: enemy?.unpack(),
-    testnestedflatbuffer: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 30),
-    testempty: testempty?.unpack(),
-    testbool: testbool,
-    testhashs32Fnv1: testhashs32Fnv1,
-    testhashu32Fnv1: testhashu32Fnv1,
-    testhashs64Fnv1: testhashs64Fnv1,
-    testhashu64Fnv1: testhashu64Fnv1,
-    testhashs32Fnv1a: testhashs32Fnv1a,
-    testhashu32Fnv1a: testhashu32Fnv1a,
-    testhashs64Fnv1a: testhashs64Fnv1a,
-    testhashu64Fnv1a: testhashu64Fnv1a,
-    testarrayofbools: const fb.ListReader<bool>(
-      fb.BoolReader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 52),
-    testf: testf,
-    testf2: testf2,
-    testf3: testf3,
-    testarrayofstring2: const fb.ListReader<String>(
-      fb.StringReader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 60),
-    testarrayofsortedstruct: testarrayofsortedstruct
-        ?.map((e) => e.unpack())
-        .toList(),
-    flex: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 64),
-    test5: test5?.map((e) => e.unpack()).toList(),
-    vectorOfLongs: const fb.ListReader<int>(
-      fb.Int64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 68),
-    vectorOfDoubles: const fb.ListReader<double>(
-      fb.Float64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 70),
-    parentNamespaceTest: parentNamespaceTest?.unpack(),
-    vectorOfReferrables: vectorOfReferrables?.map((e) => e.unpack()).toList(),
-    singleWeakReference: singleWeakReference,
-    vectorOfWeakReferences: const fb.ListReader<int>(
-      fb.Uint64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 78),
-    vectorOfStrongReferrables: vectorOfStrongReferrables
-        ?.map((e) => e.unpack())
-        .toList(),
-    coOwningReference: coOwningReference,
-    vectorOfCoOwningReferences: const fb.ListReader<int>(
-      fb.Uint64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 84),
-    nonOwningReference: nonOwningReference,
-    vectorOfNonOwningReferences: const fb.ListReader<int>(
-      fb.Uint64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 88),
-    anyUniqueType: anyUniqueType,
-    anyUnique: anyUnique?.unpack(),
-    anyAmbiguousType: anyAmbiguousType,
-    anyAmbiguous: anyAmbiguous?.unpack(),
-    vectorOfEnums: const fb.ListReader<Color>(
-      Color.reader,
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 98),
-    signedEnum: signedEnum,
-    testrequirednestedflatbuffer: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 102),
-    scalarKeySortedTables: scalarKeySortedTables
-        ?.map((e) => e.unpack())
-        .toList(),
-    nativeInline: nativeInline?.unpack(),
-    longEnumNonEnumDefault: longEnumNonEnumDefault,
-    longEnumNormalDefault: longEnumNormalDefault,
-    nanDefault: nanDefault,
-    infDefault: infDefault,
-    positiveInfDefault: positiveInfDefault,
-    infinityDefault: infinityDefault,
-    positiveInfinityDefault: positiveInfinityDefault,
-    negativeInfDefault: negativeInfDefault,
-    negativeInfinityDefault: negativeInfinityDefault,
-    doubleInfDefault: doubleInfDefault,
-  );
+        pos: pos?.unpack(),
+        mana: mana,
+        hp: hp,
+        name: name,
+        inventory: inventory?.toList(),
+        color: color,
+        testType: testType,
+        test: test?.unpack(),
+        test4: test4?.map((e) => e.unpack()).toList(),
+        testarrayofstring: testarrayofstring?.toList(),
+        testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
+        enemy: enemy?.unpack(),
+        testnestedflatbuffer: testnestedflatbuffer?.toList(),
+        testempty: testempty?.unpack(),
+        testbool: testbool,
+        testhashs32Fnv1: testhashs32Fnv1,
+        testhashu32Fnv1: testhashu32Fnv1,
+        testhashs64Fnv1: testhashs64Fnv1,
+        testhashu64Fnv1: testhashu64Fnv1,
+        testhashs32Fnv1a: testhashs32Fnv1a,
+        testhashu32Fnv1a: testhashu32Fnv1a,
+        testhashs64Fnv1a: testhashs64Fnv1a,
+        testhashu64Fnv1a: testhashu64Fnv1a,
+        testarrayofbools: testarrayofbools?.toList(),
+        testf: testf,
+        testf2: testf2,
+        testf3: testf3,
+        testarrayofstring2: testarrayofstring2?.toList(),
+        testarrayofsortedstruct:
+            testarrayofsortedstruct?.map((e) => e.unpack()).toList(),
+        flex: flex?.toList(),
+        test5: test5?.map((e) => e.unpack()).toList(),
+        vectorOfLongs: vectorOfLongs?.toList(),
+        vectorOfDoubles: vectorOfDoubles?.toList(),
+        parentNamespaceTest: parentNamespaceTest?.unpack(),
+        vectorOfReferrables:
+            vectorOfReferrables?.map((e) => e.unpack()).toList(),
+        singleWeakReference: singleWeakReference,
+        vectorOfWeakReferences: vectorOfWeakReferences?.toList(),
+        vectorOfStrongReferrables:
+            vectorOfStrongReferrables?.map((e) => e.unpack()).toList(),
+        coOwningReference: coOwningReference,
+        vectorOfCoOwningReferences: vectorOfCoOwningReferences?.toList(),
+        nonOwningReference: nonOwningReference,
+        vectorOfNonOwningReferences: vectorOfNonOwningReferences?.toList(),
+        anyUniqueType: anyUniqueType,
+        anyUnique: anyUnique?.unpack(),
+        anyAmbiguousType: anyAmbiguousType,
+        anyAmbiguous: anyAmbiguous?.unpack(),
+        vectorOfEnums: vectorOfEnums?.toList(),
+        signedEnum: signedEnum,
+        testrequirednestedflatbuffer: testrequirednestedflatbuffer?.toList(),
+        scalarKeySortedTables:
+            scalarKeySortedTables?.map((e) => e.unpack()).toList(),
+        nativeInline: nativeInline?.unpack(),
+        longEnumNonEnumDefault: longEnumNonEnumDefault,
+        longEnumNormalDefault: longEnumNormalDefault,
+        nanDefault: nanDefault,
+        infDefault: infDefault,
+        positiveInfDefault: positiveInfDefault,
+        infinityDefault: infinityDefault,
+        positiveInfinityDefault: positiveInfinityDefault,
+        negativeInfDefault: negativeInfDefault,
+        negativeInfinityDefault: negativeInfinityDefault,
+        doubleInfDefault: doubleInfDefault,
+      );
 
   static int pack(fb.Builder fbBuilder, MonsterT? object) {
     if (object == null) return 0;
@@ -1572,9 +1537,8 @@ class MonsterT implements fb.Packable {
   @override
   int pack(fb.Builder fbBuilder) {
     final int? nameOffset = name == null ? null : fbBuilder.writeString(name!);
-    final int? inventoryOffset = inventory == null
-        ? null
-        : fbBuilder.writeListUint8(inventory!);
+    final int? inventoryOffset =
+        inventory == null ? null : fbBuilder.writeListUint8(inventory!);
     final int? testOffset = test?.pack(fbBuilder);
     int? test4Offset;
     if (test4 != null) {
@@ -1615,9 +1579,8 @@ class MonsterT implements fb.Packable {
         testarrayofsortedstruct!.length,
       );
     }
-    final int? flexOffset = flex == null
-        ? null
-        : fbBuilder.writeListUint8(flex!);
+    final int? flexOffset =
+        flex == null ? null : fbBuilder.writeListUint8(flex!);
     int? test5Offset;
     if (test5 != null) {
       for (var e in test5!.reversed) {
@@ -1625,9 +1588,8 @@ class MonsterT implements fb.Packable {
       }
       test5Offset = fbBuilder.endStructVector(test5!.length);
     }
-    final int? vectorOfLongsOffset = vectorOfLongs == null
-        ? null
-        : fbBuilder.writeListInt64(vectorOfLongs!);
+    final int? vectorOfLongsOffset =
+        vectorOfLongs == null ? null : fbBuilder.writeListInt64(vectorOfLongs!);
     final int? vectorOfDoublesOffset = vectorOfDoubles == null
         ? null
         : fbBuilder.writeListFloat64(vectorOfDoubles!);
@@ -1640,20 +1602,20 @@ class MonsterT implements fb.Packable {
     final int? vectorOfWeakReferencesOffset = vectorOfWeakReferences == null
         ? null
         : fbBuilder.writeListUint64(vectorOfWeakReferences!);
-    final int? vectorOfStrongReferrablesOffset =
-        vectorOfStrongReferrables == null
+    final int? vectorOfStrongReferrablesOffset = vectorOfStrongReferrables ==
+            null
         ? null
         : fbBuilder.writeList(
             vectorOfStrongReferrables!.map((b) => b.pack(fbBuilder)).toList(),
           );
     final int? vectorOfCoOwningReferencesOffset =
         vectorOfCoOwningReferences == null
-        ? null
-        : fbBuilder.writeListUint64(vectorOfCoOwningReferences!);
+            ? null
+            : fbBuilder.writeListUint64(vectorOfCoOwningReferences!);
     final int? vectorOfNonOwningReferencesOffset =
         vectorOfNonOwningReferences == null
-        ? null
-        : fbBuilder.writeListUint64(vectorOfNonOwningReferences!);
+            ? null
+            : fbBuilder.writeListUint64(vectorOfNonOwningReferences!);
     final int? anyUniqueOffset = anyUnique?.pack(fbBuilder);
     final int? anyAmbiguousOffset = anyAmbiguous?.pack(fbBuilder);
     final int? vectorOfEnumsOffset = vectorOfEnums == null
@@ -1661,8 +1623,8 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeListUint8(vectorOfEnums!.map((f) => f.value).toList());
     final int? testrequirednestedflatbufferOffset =
         testrequirednestedflatbuffer == null
-        ? null
-        : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
+            ? null
+            : fbBuilder.writeListUint8(testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = scalarKeySortedTables == null
         ? null
         : fbBuilder.writeList(
@@ -2195,81 +2157,78 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     double? negativeInfDefault,
     double? negativeInfinityDefault,
     double? doubleInfDefault,
-  }) : _pos = pos,
-       _mana = mana,
-       _hp = hp,
-       _name = name,
-       _inventory = inventory,
-       _color = color,
-       _testType = testType,
-       _test = test,
-       _test4 = test4,
-       _testarrayofstring = testarrayofstring,
-       _testarrayoftables = testarrayoftables,
-       _enemy = enemy,
-       _testnestedflatbuffer = testnestedflatbuffer,
-       _testempty = testempty,
-       _testbool = testbool,
-       _testhashs32Fnv1 = testhashs32Fnv1,
-       _testhashu32Fnv1 = testhashu32Fnv1,
-       _testhashs64Fnv1 = testhashs64Fnv1,
-       _testhashu64Fnv1 = testhashu64Fnv1,
-       _testhashs32Fnv1a = testhashs32Fnv1a,
-       _testhashu32Fnv1a = testhashu32Fnv1a,
-       _testhashs64Fnv1a = testhashs64Fnv1a,
-       _testhashu64Fnv1a = testhashu64Fnv1a,
-       _testarrayofbools = testarrayofbools,
-       _testf = testf,
-       _testf2 = testf2,
-       _testf3 = testf3,
-       _testarrayofstring2 = testarrayofstring2,
-       _testarrayofsortedstruct = testarrayofsortedstruct,
-       _flex = flex,
-       _test5 = test5,
-       _vectorOfLongs = vectorOfLongs,
-       _vectorOfDoubles = vectorOfDoubles,
-       _parentNamespaceTest = parentNamespaceTest,
-       _vectorOfReferrables = vectorOfReferrables,
-       _singleWeakReference = singleWeakReference,
-       _vectorOfWeakReferences = vectorOfWeakReferences,
-       _vectorOfStrongReferrables = vectorOfStrongReferrables,
-       _coOwningReference = coOwningReference,
-       _vectorOfCoOwningReferences = vectorOfCoOwningReferences,
-       _nonOwningReference = nonOwningReference,
-       _vectorOfNonOwningReferences = vectorOfNonOwningReferences,
-       _anyUniqueType = anyUniqueType,
-       _anyUnique = anyUnique,
-       _anyAmbiguousType = anyAmbiguousType,
-       _anyAmbiguous = anyAmbiguous,
-       _vectorOfEnums = vectorOfEnums,
-       _signedEnum = signedEnum,
-       _testrequirednestedflatbuffer = testrequirednestedflatbuffer,
-       _scalarKeySortedTables = scalarKeySortedTables,
-       _nativeInline = nativeInline,
-       _longEnumNonEnumDefault = longEnumNonEnumDefault,
-       _longEnumNormalDefault = longEnumNormalDefault,
-       _nanDefault = nanDefault,
-       _infDefault = infDefault,
-       _positiveInfDefault = positiveInfDefault,
-       _infinityDefault = infinityDefault,
-       _positiveInfinityDefault = positiveInfinityDefault,
-       _negativeInfDefault = negativeInfDefault,
-       _negativeInfinityDefault = negativeInfinityDefault,
-       _doubleInfDefault = doubleInfDefault;
+  })  : _pos = pos,
+        _mana = mana,
+        _hp = hp,
+        _name = name,
+        _inventory = inventory,
+        _color = color,
+        _testType = testType,
+        _test = test,
+        _test4 = test4,
+        _testarrayofstring = testarrayofstring,
+        _testarrayoftables = testarrayoftables,
+        _enemy = enemy,
+        _testnestedflatbuffer = testnestedflatbuffer,
+        _testempty = testempty,
+        _testbool = testbool,
+        _testhashs32Fnv1 = testhashs32Fnv1,
+        _testhashu32Fnv1 = testhashu32Fnv1,
+        _testhashs64Fnv1 = testhashs64Fnv1,
+        _testhashu64Fnv1 = testhashu64Fnv1,
+        _testhashs32Fnv1a = testhashs32Fnv1a,
+        _testhashu32Fnv1a = testhashu32Fnv1a,
+        _testhashs64Fnv1a = testhashs64Fnv1a,
+        _testhashu64Fnv1a = testhashu64Fnv1a,
+        _testarrayofbools = testarrayofbools,
+        _testf = testf,
+        _testf2 = testf2,
+        _testf3 = testf3,
+        _testarrayofstring2 = testarrayofstring2,
+        _testarrayofsortedstruct = testarrayofsortedstruct,
+        _flex = flex,
+        _test5 = test5,
+        _vectorOfLongs = vectorOfLongs,
+        _vectorOfDoubles = vectorOfDoubles,
+        _parentNamespaceTest = parentNamespaceTest,
+        _vectorOfReferrables = vectorOfReferrables,
+        _singleWeakReference = singleWeakReference,
+        _vectorOfWeakReferences = vectorOfWeakReferences,
+        _vectorOfStrongReferrables = vectorOfStrongReferrables,
+        _coOwningReference = coOwningReference,
+        _vectorOfCoOwningReferences = vectorOfCoOwningReferences,
+        _nonOwningReference = nonOwningReference,
+        _vectorOfNonOwningReferences = vectorOfNonOwningReferences,
+        _anyUniqueType = anyUniqueType,
+        _anyUnique = anyUnique,
+        _anyAmbiguousType = anyAmbiguousType,
+        _anyAmbiguous = anyAmbiguous,
+        _vectorOfEnums = vectorOfEnums,
+        _signedEnum = signedEnum,
+        _testrequirednestedflatbuffer = testrequirednestedflatbuffer,
+        _scalarKeySortedTables = scalarKeySortedTables,
+        _nativeInline = nativeInline,
+        _longEnumNonEnumDefault = longEnumNonEnumDefault,
+        _longEnumNormalDefault = longEnumNormalDefault,
+        _nanDefault = nanDefault,
+        _infDefault = infDefault,
+        _positiveInfDefault = positiveInfDefault,
+        _infinityDefault = infinityDefault,
+        _positiveInfinityDefault = positiveInfinityDefault,
+        _negativeInfDefault = negativeInfDefault,
+        _negativeInfinityDefault = negativeInfinityDefault,
+        _doubleInfDefault = doubleInfDefault;
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? nameOffset = _name == null
-        ? null
-        : fbBuilder.writeString(_name!);
-    final int? inventoryOffset = _inventory == null
-        ? null
-        : fbBuilder.writeListUint8(_inventory!);
+    final int? nameOffset =
+        _name == null ? null : fbBuilder.writeString(_name!);
+    final int? inventoryOffset =
+        _inventory == null ? null : fbBuilder.writeListUint8(_inventory!);
     final int? testOffset = _test?.getOrCreateOffset(fbBuilder);
-    final int? test4Offset = _test4 == null
-        ? null
-        : fbBuilder.writeListOfStructs(_test4!);
+    final int? test4Offset =
+        _test4 == null ? null : fbBuilder.writeListOfStructs(_test4!);
     final int? testarrayofstringOffset = _testarrayofstring == null
         ? null
         : fbBuilder.writeList(
@@ -2298,20 +2257,18 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int? testarrayofsortedstructOffset = _testarrayofsortedstruct == null
         ? null
         : fbBuilder.writeListOfStructs(_testarrayofsortedstruct!);
-    final int? flexOffset = _flex == null
-        ? null
-        : fbBuilder.writeListUint8(_flex!);
-    final int? test5Offset = _test5 == null
-        ? null
-        : fbBuilder.writeListOfStructs(_test5!);
+    final int? flexOffset =
+        _flex == null ? null : fbBuilder.writeListUint8(_flex!);
+    final int? test5Offset =
+        _test5 == null ? null : fbBuilder.writeListOfStructs(_test5!);
     final int? vectorOfLongsOffset = _vectorOfLongs == null
         ? null
         : fbBuilder.writeListInt64(_vectorOfLongs!);
     final int? vectorOfDoublesOffset = _vectorOfDoubles == null
         ? null
         : fbBuilder.writeListFloat64(_vectorOfDoubles!);
-    final int? parentNamespaceTestOffset = _parentNamespaceTest
-        ?.getOrCreateOffset(fbBuilder);
+    final int? parentNamespaceTestOffset =
+        _parentNamespaceTest?.getOrCreateOffset(fbBuilder);
     final int? vectorOfReferrablesOffset = _vectorOfReferrables == null
         ? null
         : fbBuilder.writeList(
@@ -2324,20 +2281,20 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListUint64(_vectorOfWeakReferences!);
     final int? vectorOfStrongReferrablesOffset =
         _vectorOfStrongReferrables == null
-        ? null
-        : fbBuilder.writeList(
-            _vectorOfStrongReferrables!
-                .map((b) => b.getOrCreateOffset(fbBuilder))
-                .toList(),
-          );
+            ? null
+            : fbBuilder.writeList(
+                _vectorOfStrongReferrables!
+                    .map((b) => b.getOrCreateOffset(fbBuilder))
+                    .toList(),
+              );
     final int? vectorOfCoOwningReferencesOffset =
         _vectorOfCoOwningReferences == null
-        ? null
-        : fbBuilder.writeListUint64(_vectorOfCoOwningReferences!);
+            ? null
+            : fbBuilder.writeListUint64(_vectorOfCoOwningReferences!);
     final int? vectorOfNonOwningReferencesOffset =
         _vectorOfNonOwningReferences == null
-        ? null
-        : fbBuilder.writeListUint64(_vectorOfNonOwningReferences!);
+            ? null
+            : fbBuilder.writeListUint64(_vectorOfNonOwningReferences!);
     final int? anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
     final int? anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int? vectorOfEnumsOffset = _vectorOfEnums == null
@@ -2347,8 +2304,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
           );
     final int? testrequirednestedflatbufferOffset =
         _testrequirednestedflatbuffer == null
-        ? null
-        : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
+            ? null
+            : fbBuilder.writeListUint8(_testrequirednestedflatbuffer!);
     final int? scalarKeySortedTablesOffset = _scalarKeySortedTables == null
         ? null
         : fbBuilder.writeList(
@@ -2459,8 +2416,8 @@ class TypeAliases {
   List<int>? get v8 =>
       const fb.Int8ListReader().vTableGetNullable(_bc, _bcOffset, 24);
   List<double>? get vf64 => const fb.ListReader<double>(
-    fb.Float64Reader(),
-  ).vTableGetNullable(_bc, _bcOffset, 26);
+        fb.Float64Reader(),
+      ).vTableGetNullable(_bc, _bcOffset, 26);
 
   @override
   String toString() {
@@ -2468,24 +2425,19 @@ class TypeAliases {
   }
 
   TypeAliasesT unpack() => TypeAliasesT(
-    i8: i8,
-    u8: u8,
-    i16: i16,
-    u16: u16,
-    i32: i32,
-    u32: u32,
-    i64: i64,
-    u64: u64,
-    f32: f32,
-    f64: f64,
-    v8: const fb.Int8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 24),
-    vf64: const fb.ListReader<double>(
-      fb.Float64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 26),
-  );
+        i8: i8,
+        u8: u8,
+        i16: i16,
+        u16: u16,
+        i32: i32,
+        u32: u32,
+        i64: i64,
+        u64: u64,
+        f32: f32,
+        f64: f64,
+        v8: v8?.toList(),
+        vf64: vf64?.toList(),
+      );
 
   static int pack(fb.Builder fbBuilder, TypeAliasesT? object) {
     if (object == null) return 0;
@@ -2525,9 +2477,8 @@ class TypeAliasesT implements fb.Packable {
   @override
   int pack(fb.Builder fbBuilder) {
     final int? v8Offset = v8 == null ? null : fbBuilder.writeListInt8(v8!);
-    final int? vf64Offset = vf64 == null
-        ? null
-        : fbBuilder.writeListFloat64(vf64!);
+    final int? vf64Offset =
+        vf64 == null ? null : fbBuilder.writeListFloat64(vf64!);
     fbBuilder.startTable(12);
     fbBuilder.addInt8(0, i8);
     fbBuilder.addUint8(1, u8);
@@ -2659,26 +2610,25 @@ class TypeAliasesObjectBuilder extends fb.ObjectBuilder {
     double? f64,
     List<int>? v8,
     List<double>? vf64,
-  }) : _i8 = i8,
-       _u8 = u8,
-       _i16 = i16,
-       _u16 = u16,
-       _i32 = i32,
-       _u32 = u32,
-       _i64 = i64,
-       _u64 = u64,
-       _f32 = f32,
-       _f64 = f64,
-       _v8 = v8,
-       _vf64 = vf64;
+  })  : _i8 = i8,
+        _u8 = u8,
+        _i16 = i16,
+        _u16 = u16,
+        _i32 = i32,
+        _u32 = u32,
+        _i64 = i64,
+        _u64 = u64,
+        _f32 = f32,
+        _f64 = f64,
+        _v8 = v8,
+        _vf64 = vf64;
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
     final int? v8Offset = _v8 == null ? null : fbBuilder.writeListInt8(_v8!);
-    final int? vf64Offset = _vf64 == null
-        ? null
-        : fbBuilder.writeListFloat64(_vf64!);
+    final int? vf64Offset =
+        _vf64 == null ? null : fbBuilder.writeListFloat64(_vf64!);
     fbBuilder.startTable(12);
     fbBuilder.addInt8(0, _i8);
     fbBuilder.addUint8(1, _u8);
