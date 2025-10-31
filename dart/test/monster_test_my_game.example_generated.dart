@@ -1337,7 +1337,7 @@ class Monster {
     ).vTableGetNullable(_bc, _bcOffset, 14),
     color: color,
     testType: testType,
-    test: test,
+    test: test?.unpack(),
     test4: test4?.map((e) => e.unpack()).toList(),
     testarrayofstring: const fb.ListReader<String>(
       fb.StringReader(),
@@ -1405,9 +1405,9 @@ class Monster {
       lazy: false,
     ).vTableGetNullable(_bc, _bcOffset, 88),
     anyUniqueType: anyUniqueType,
-    anyUnique: anyUnique,
+    anyUnique: anyUnique?.unpack(),
     anyAmbiguousType: anyAmbiguousType,
-    anyAmbiguous: anyAmbiguous,
+    anyAmbiguous: anyAmbiguous?.unpack(),
     vectorOfEnums: const fb.ListReader<Color>(
       Color.reader,
       lazy: false,
