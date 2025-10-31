@@ -611,20 +611,11 @@ class DartGenerator : public BaseGenerator {
         constructor_args +=
             field_name + nullableValueAccessOperator + ".unpack()";
       } else if (type.base_type == BASE_TYPE_VECTOR) {
+        constructor_args += field_name + nullableValueAccessOperator;
         if (type.VectorType().base_type == BASE_TYPE_STRUCT) {
-          constructor_args += field_name + nullableValueAccessOperator +
-                              ".map((e) => e.unpack()).toList()";
-        } else {
-          constructor_args +=
-              GenReaderTypeName(field.value.type, struct_def.defined_namespace,
-                                field, false, false);
-          constructor_args += ".vTableGet";
-          std::string offset = NumToString(field.value.offset);
-          constructor_args +=
-              isNullable
-                  ? "Nullable(_bc, _bcOffset, " + offset + ")"
-                  : "(_bc, _bcOffset, " + offset + ", " + defaultValue + ")";
+          constructor_args += ".map((e) => e.unpack())";
         }
+        constructor_args += ".toList()";
       } else {
         constructor_args += field_name;
       }
