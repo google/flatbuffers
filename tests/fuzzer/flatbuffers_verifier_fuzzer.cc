@@ -11,5 +11,7 @@
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   flatbuffers::Verifier verifier(data, size);
   MyGame::Example::VerifyMonsterBuffer(verifier);
+  flatbuffers::SizeVerifier size_verifier(data, size);
+  MyGame::Example::VerifyMonsterBuffer(size_verifier);
   return 0;
 }

@@ -126,7 +126,8 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   NamespaceA::NamespaceB::StructInNestedNS *mutable_foo_struct() {
     return GetStruct<NamespaceA::NamespaceB::StructInNestedNS *>(VT_FOO_STRUCT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool TrackBufferSize = false>
+  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_FOO_TABLE) &&
            verifier.VerifyTable(foo_table()) &&
@@ -236,7 +237,8 @@ struct TableInC FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   NamespaceA::SecondTableInA *mutable_refer_to_a2() {
     return GetPointer<NamespaceA::SecondTableInA *>(VT_REFER_TO_A2);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool TrackBufferSize = false>
+  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_REFER_TO_A1) &&
            verifier.VerifyTable(refer_to_a1()) &&
@@ -316,7 +318,8 @@ struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   NamespaceC::TableInC *mutable_refer_to_c() {
     return GetPointer<NamespaceC::TableInC *>(VT_REFER_TO_C);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool TrackBufferSize = false>
+  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_REFER_TO_C) &&
            verifier.VerifyTable(refer_to_c()) &&

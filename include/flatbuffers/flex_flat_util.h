@@ -23,9 +23,10 @@
 namespace flexbuffers {
 
 // Verifies the `nested` flexbuffer within a flatbuffer vector is valid.
+template <bool TrackBufferSize>
 inline bool VerifyNestedFlexBuffer(
     const flatbuffers::Vector<uint8_t>* const nested,
-    flatbuffers::Verifier& verifier) {
+    flatbuffers::VerifierTemplate<TrackBufferSize>& verifier) {
   if (!nested) return true;
   return verifier.Check(flexbuffers::VerifyBuffer(
       nested->data(), nested->size(), verifier.GetFlexReuseTracker()));
