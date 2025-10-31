@@ -1327,74 +1327,67 @@ class Monster {
   }
 
   MonsterT unpack() => MonsterT(
-    pos: pos?.unpack(),
-    mana: mana,
-    hp: hp,
-    name: name,
-    inventory: inventory?.toList(),
-    color: color,
-    testType: testType,
-    test: test is String ? test : test?.unpack(),
-    test4: test4?.map((e) => e.unpack()).toList(),
-    testarrayofstring: testarrayofstring?.toList(),
-    testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
-    enemy: enemy?.unpack(),
-    testnestedflatbuffer: testnestedflatbuffer?.toList(),
-    testempty: testempty?.unpack(),
-    testbool: testbool,
-    testhashs32Fnv1: testhashs32Fnv1,
-    testhashu32Fnv1: testhashu32Fnv1,
-    testhashs64Fnv1: testhashs64Fnv1,
-    testhashu64Fnv1: testhashu64Fnv1,
-    testhashs32Fnv1a: testhashs32Fnv1a,
-    testhashu32Fnv1a: testhashu32Fnv1a,
-    testhashs64Fnv1a: testhashs64Fnv1a,
-    testhashu64Fnv1a: testhashu64Fnv1a,
-    testarrayofbools: testarrayofbools?.toList(),
-    testf: testf,
-    testf2: testf2,
-    testf3: testf3,
-    testarrayofstring2: testarrayofstring2?.toList(),
-    testarrayofsortedstruct: testarrayofsortedstruct
-        ?.map((e) => e.unpack())
-        .toList(),
-    flex: flex?.toList(),
-    test5: test5?.map((e) => e.unpack()).toList(),
-    vectorOfLongs: vectorOfLongs?.toList(),
-    vectorOfDoubles: vectorOfDoubles?.toList(),
-    parentNamespaceTest: parentNamespaceTest?.unpack(),
-    vectorOfReferrables: vectorOfReferrables?.map((e) => e.unpack()).toList(),
-    singleWeakReference: singleWeakReference,
-    vectorOfWeakReferences: vectorOfWeakReferences?.toList(),
-    vectorOfStrongReferrables: vectorOfStrongReferrables
-        ?.map((e) => e.unpack())
-        .toList(),
-    coOwningReference: coOwningReference,
-    vectorOfCoOwningReferences: vectorOfCoOwningReferences?.toList(),
-    nonOwningReference: nonOwningReference,
-    vectorOfNonOwningReferences: vectorOfNonOwningReferences?.toList(),
-    anyUniqueType: anyUniqueType,
-    anyUnique: anyUnique is String ? anyUnique : anyUnique?.unpack(),
-    anyAmbiguousType: anyAmbiguousType,
-    anyAmbiguous: anyAmbiguous is String ? anyAmbiguous : anyAmbiguous?.unpack(),
-    vectorOfEnums: vectorOfEnums?.toList(),
-    signedEnum: signedEnum,
-    testrequirednestedflatbuffer: testrequirednestedflatbuffer?.toList(),
-    scalarKeySortedTables: scalarKeySortedTables
-        ?.map((e) => e.unpack())
-        .toList(),
-    nativeInline: nativeInline?.unpack(),
-    longEnumNonEnumDefault: longEnumNonEnumDefault,
-    longEnumNormalDefault: longEnumNormalDefault,
-    nanDefault: nanDefault,
-    infDefault: infDefault,
-    positiveInfDefault: positiveInfDefault,
-    infinityDefault: infinityDefault,
-    positiveInfinityDefault: positiveInfinityDefault,
-    negativeInfDefault: negativeInfDefault,
-    negativeInfinityDefault: negativeInfinityDefault,
-    doubleInfDefault: doubleInfDefault,
-  );
+      pos: pos?.unpack(),
+      mana: mana,
+      hp: hp,
+      name: name,
+      inventory: inventory?.toList(),
+      color: color,
+      testType: testType,
+      test: test is String ? test : test?.unpack(),
+      test4: test4?.map((e) => e.unpack()).toList(),
+      testarrayofstring: testarrayofstring?.toList(),
+      testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
+      enemy: enemy?.unpack(),
+      testnestedflatbuffer: testnestedflatbuffer?.toList(),
+      testempty: testempty?.unpack(),
+      testbool: testbool,
+      testhashs32Fnv1: testhashs32Fnv1,
+      testhashu32Fnv1: testhashu32Fnv1,
+      testhashs64Fnv1: testhashs64Fnv1,
+      testhashu64Fnv1: testhashu64Fnv1,
+      testhashs32Fnv1a: testhashs32Fnv1a,
+      testhashu32Fnv1a: testhashu32Fnv1a,
+      testhashs64Fnv1a: testhashs64Fnv1a,
+      testhashu64Fnv1a: testhashu64Fnv1a,
+      testarrayofbools: testarrayofbools?.toList(),
+      testf: testf,
+      testf2: testf2,
+      testf3: testf3,
+      testarrayofstring2: testarrayofstring2?.toList(),
+      testarrayofsortedstruct: testarrayofsortedstruct?.map((e) => e.unpack()).toList(),
+      flex: flex?.toList(),
+      test5: test5?.map((e) => e.unpack()).toList(),
+      vectorOfLongs: vectorOfLongs?.toList(),
+      vectorOfDoubles: vectorOfDoubles?.toList(),
+      parentNamespaceTest: parentNamespaceTest?.unpack(),
+      vectorOfReferrables: vectorOfReferrables?.map((e) => e.unpack()).toList(),
+      singleWeakReference: singleWeakReference,
+      vectorOfWeakReferences: vectorOfWeakReferences?.toList(),
+      vectorOfStrongReferrables: vectorOfStrongReferrables?.map((e) => e.unpack()).toList(),
+      coOwningReference: coOwningReference,
+      vectorOfCoOwningReferences: vectorOfCoOwningReferences?.toList(),
+      nonOwningReference: nonOwningReference,
+      vectorOfNonOwningReferences: vectorOfNonOwningReferences?.toList(),
+      anyUniqueType: anyUniqueType,
+      anyUnique: anyUnique is String ? anyUnique : anyUnique?.unpack(),
+      anyAmbiguousType: anyAmbiguousType,
+      anyAmbiguous: anyAmbiguous is String ? anyAmbiguous : anyAmbiguous?.unpack(),
+      vectorOfEnums: vectorOfEnums?.toList(),
+      signedEnum: signedEnum,
+      testrequirednestedflatbuffer: testrequirednestedflatbuffer?.toList(),
+      scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack()).toList(),
+      nativeInline: nativeInline?.unpack(),
+      longEnumNonEnumDefault: longEnumNonEnumDefault,
+      longEnumNormalDefault: longEnumNormalDefault,
+      nanDefault: nanDefault,
+      infDefault: infDefault,
+      positiveInfDefault: positiveInfDefault,
+      infinityDefault: infinityDefault,
+      positiveInfinityDefault: positiveInfinityDefault,
+      negativeInfDefault: negativeInfDefault,
+      negativeInfinityDefault: negativeInfinityDefault,
+      doubleInfDefault: doubleInfDefault);
 
   static int pack(fb.Builder fbBuilder, MonsterT? object) {
     if (object == null) return 0;
@@ -1542,9 +1535,7 @@ class MonsterT implements fb.Packable {
     final int? testOffset = test is String ? fbBuilder.writeString(test) : test?.pack(fbBuilder);
     int? test4Offset;
     if (test4 != null) {
-      for (var e in test4!.reversed) {
-        e.pack(fbBuilder);
-      }
+      for (var e in test4!.reversed) { e.pack(fbBuilder); }
       test4Offset = fbBuilder.endStructVector(test4!.length);
     }
     final int? testarrayofstringOffset = testarrayofstring == null
@@ -1572,21 +1563,15 @@ class MonsterT implements fb.Packable {
           );
     int? testarrayofsortedstructOffset;
     if (testarrayofsortedstruct != null) {
-      for (var e in testarrayofsortedstruct!.reversed) {
-        e.pack(fbBuilder);
-      }
-      testarrayofsortedstructOffset = fbBuilder.endStructVector(
-        testarrayofsortedstruct!.length,
-      );
+      for (var e in testarrayofsortedstruct!.reversed) { e.pack(fbBuilder); }
+      testarrayofsortedstructOffset = fbBuilder.endStructVector(testarrayofsortedstruct!.length);
     }
     final int? flexOffset = flex == null
         ? null
         : fbBuilder.writeListUint8(flex!);
     int? test5Offset;
     if (test5 != null) {
-      for (var e in test5!.reversed) {
-        e.pack(fbBuilder);
-      }
+      for (var e in test5!.reversed) { e.pack(fbBuilder); }
       test5Offset = fbBuilder.endStructVector(test5!.length);
     }
     final int? vectorOfLongsOffset = vectorOfLongs == null
@@ -2431,19 +2416,18 @@ class TypeAliases {
   }
 
   TypeAliasesT unpack() => TypeAliasesT(
-    i8: i8,
-    u8: u8,
-    i16: i16,
-    u16: u16,
-    i32: i32,
-    u32: u32,
-    i64: i64,
-    u64: u64,
-    f32: f32,
-    f64: f64,
-    v8: v8?.toList(),
-    vf64: vf64?.toList(),
-  );
+      i8: i8,
+      u8: u8,
+      i16: i16,
+      u16: u16,
+      i32: i32,
+      u32: u32,
+      i64: i64,
+      u64: u64,
+      f32: f32,
+      f64: f64,
+      v8: v8?.toList(),
+      vf64: vf64?.toList());
 
   static int pack(fb.Builder fbBuilder, TypeAliasesT? object) {
     if (object == null) return 0;
