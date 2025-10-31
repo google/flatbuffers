@@ -25,6 +25,9 @@ struct ApplicationData;
 struct ApplicationDataBuilder;
 struct ApplicationDataT;
 
+bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+
 inline const ::flatbuffers::TypeTable *Vector3DTypeTable();
 
 inline const ::flatbuffers::TypeTable *Vector3DAltTypeTable();
@@ -234,6 +237,20 @@ inline ::flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(
 }
 
 ::flatbuffers::Offset<ApplicationData> CreateApplicationData(::flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
+
+inline bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+  return
+      (lhs.vectors == rhs.vectors) &&
+      (lhs.vectors_alt == rhs.vectors_alt) &&
+      ((lhs.position == rhs.position) || (lhs.position && rhs.position && *lhs.position == *rhs.position)) &&
+      (lhs.position_inline == rhs.position_inline);
+}
+
+inline bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline ApplicationDataT::ApplicationDataT(const ApplicationDataT &o)
       : vectors(o.vectors),
