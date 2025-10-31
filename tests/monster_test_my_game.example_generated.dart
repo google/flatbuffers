@@ -1213,7 +1213,7 @@ class Monster {
       inventory: inventory?.toList(),
       color: color,
       testType: testType,
-      test: test,
+      test: test?.unpack(),
       test4: test4?.map((e) => e.unpack()).toList(),
       testarrayofstring: testarrayofstring?.toList(),
       testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
@@ -1249,9 +1249,9 @@ class Monster {
       nonOwningReference: nonOwningReference,
       vectorOfNonOwningReferences: vectorOfNonOwningReferences?.toList(),
       anyUniqueType: anyUniqueType,
-      anyUnique: anyUnique,
+      anyUnique: anyUnique?.unpack(),
       anyAmbiguousType: anyAmbiguousType,
-      anyAmbiguous: anyAmbiguous,
+      anyAmbiguous: anyAmbiguous?.unpack(),
       vectorOfEnums: vectorOfEnums?.toList(),
       signedEnum: signedEnum,
       testrequirednestedflatbuffer: testrequirednestedflatbuffer?.toList(),
@@ -1412,7 +1412,7 @@ class MonsterT implements fb.Packable {
     final int? testOffset = test?.pack(fbBuilder);
     int? test4Offset;
     if (test4 != null) {
-      for (var e in test4!) { e.pack(fbBuilder); }
+      for (var e in test4!.reversed) { e.pack(fbBuilder); }
       test4Offset = fbBuilder.endStructVector(test4!.length);
     }
     final int? testarrayofstringOffset = testarrayofstring == null ? null
@@ -1429,14 +1429,14 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeList(testarrayofstring2!.map(fbBuilder.writeString).toList());
     int? testarrayofsortedstructOffset;
     if (testarrayofsortedstruct != null) {
-      for (var e in testarrayofsortedstruct!) { e.pack(fbBuilder); }
+      for (var e in testarrayofsortedstruct!.reversed) { e.pack(fbBuilder); }
       testarrayofsortedstructOffset = fbBuilder.endStructVector(testarrayofsortedstruct!.length);
     }
     final int? flexOffset = flex == null ? null
         : fbBuilder.writeListUint8(flex!);
     int? test5Offset;
     if (test5 != null) {
-      for (var e in test5!) { e.pack(fbBuilder); }
+      for (var e in test5!.reversed) { e.pack(fbBuilder); }
       test5Offset = fbBuilder.endStructVector(test5!.length);
     }
     final int? vectorOfLongsOffset = vectorOfLongs == null ? null
