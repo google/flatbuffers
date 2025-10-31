@@ -66,6 +66,7 @@ static std::set<std::string> JavaKeywords() {
       "char",     "final",    "interface",  "static",    "void",
       "class",    "finally",  "long",       "strictfp",  "volatile",
       "const",    "float",    "native",     "super",     "while",
+      "notify",
   };
 }
 
@@ -206,7 +207,6 @@ class JavaGenerator : public BaseGenerator {
           "import com.google.flatbuffers.ShortVector;\n"
           "import com.google.flatbuffers.StringVector;\n"
           "import com.google.flatbuffers.Struct;\n"
-          "import com.google.flatbuffers.Table;\n"
           "import com.google.flatbuffers.UnionVector;\n"
           "import java.nio.ByteBuffer;\n"
           "import java.nio.ByteOrder;\n";
@@ -268,7 +268,7 @@ class JavaGenerator : public BaseGenerator {
       case BASE_TYPE_UNION:
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default:
-        return "Table";
+        return "com.google.flatbuffers.Table";
     }
   }
 
@@ -445,7 +445,8 @@ class JavaGenerator : public BaseGenerator {
       code += " ";
       code += namer_.Variant(ev) + " = ";
       code += enum_def.ToString(ev);
-      if (enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
+      if (enum_def.underlying_type.base_type == BASE_TYPE_UINT ||
+          enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
           enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
         code += "L";
       }
@@ -716,7 +717,7 @@ class JavaGenerator : public BaseGenerator {
     const auto struct_class = namer_.Type(struct_def);
     code += "final class " + struct_class;
     code += " extends ";
-    code += struct_def.fixed ? "Struct" : "Table";
+    code += struct_def.fixed ? "Struct" : "com.google.flatbuffers.Table";
     code += " {\n";
 
     if (!struct_def.fixed) {
@@ -958,7 +959,7 @@ class JavaGenerator : public BaseGenerator {
         } else if (element_base_type == BASE_TYPE_UNION) {
           vector_type_name = "UnionVector";
         } else {
-          vector_type_name = type_name + ".Vector";
+          vector_type_name = type_name + "._Vector";
         }
         auto vector_method_start = GenNullableAnnotation(field.value.type) +
                                    "  public " + vector_type_name + " " +
@@ -1328,13 +1329,13 @@ class JavaGenerator : public BaseGenerator {
     if (!struct_def.attributes.Lookup("private")) code += "public ";
     code += "static ";
     code += "final ";
-    code += "class Vector extends ";
+    code += "class _Vector extends ";
     code += "BaseVector {\n";
 
     // Generate the __assign method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
     std::string method_indent = "    ";
-    code += method_indent + "public Vector ";
+    code += method_indent + "public _Vector ";
     code += "__assign(int _vector, int _element_size, ByteBuffer _bb) { ";
     code += "__reset(_vector, _element_size, _bb); return this; }\n\n";
 
@@ -1467,7 +1468,7 @@ class JavaGenerator : public BaseGenerator {
             " " + variable_name + "Type = " + field_name + "Type(" +
             type_params + ");\n";
     code += indent + variable_name + ".setType(" + variable_name + "Type);\n";
-    code += indent + "Table " + variable_name + "Value;\n";
+    code += indent + "com.google.flatbuffers.Table " + variable_name + "Value;\n";
     code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
