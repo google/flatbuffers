@@ -10,6 +10,7 @@ import './bool_structs_generated.dart' as example4;
 import './monster_test_my_game.example2_generated.dart' as example2;
 import './monster_test_my_game.example_generated.dart' as example;
 import 'enums_generated.dart' as example3;
+import 'union_vector_generated.dart' as example5;
 
 main() {
   defineReflectiveSuite(() {
@@ -18,6 +19,7 @@ main() {
     defineReflectiveTests(CheckOtherLangaugesData);
     defineReflectiveTests(GeneratorTest);
     defineReflectiveTests(ListOfEnumsTest);
+    defineReflectiveTests(UnionVectorTest);
   });
 }
 
@@ -933,6 +935,46 @@ class ObjectAPITest {
     fbb.finish(object3.pack(fbb));
     final object3Read = example.TypeAliases(fbb.buffer).unpack();
     expect(object3.toString(), object3Read.toString());
+  }
+}
+
+@reflectiveTest
+class UnionVectorTest {
+  void test_unionVector() {
+    final movie = example5.MovieT(
+      mainCharacterType: example5.CharacterTypeId.Rapunzel,
+      mainCharacter: example5.RapunzelT(hairLength: 42),
+      charactersType: [
+        example5.CharacterTypeId.MuLan,
+        example5.CharacterTypeId.Rapunzel,
+        example5.CharacterTypeId.Belle,
+        example5.CharacterTypeId.BookFan,
+        example5.CharacterTypeId.Other,
+        example5.CharacterTypeId.Unused,
+      ],
+      characters: [
+        example5.AttackerT(swordAttackDamage: 10),
+        example5.RapunzelT(hairLength: 203),
+        example5.BookReaderT(booksRead: 21),
+        example5.BookReaderT(booksRead: 500),
+        "Hello",
+        "World",
+      ],
+    );
+
+    final fbb = Builder();
+    fbb.finish(movie.pack(fbb));
+    final bytes = fbb.buffer;
+
+    final movie2 = example5.Movie(bytes);
+    expect(
+      movie2.toString().replaceAllMapped(
+          RegExp('([a-zA-Z0-9]+){'), (match) => match.group(1)! + 'T{'),
+      movie.toString(),
+    );
+
+    final movie3 = movie2.unpack();
+    expect(movie3.toString(), movie.toString());
   }
 }
 
