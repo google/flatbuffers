@@ -1332,22 +1332,15 @@ class Monster {
     mana: mana,
     hp: hp,
     name: name,
-    inventory: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 14),
+    inventory: inventory?.toList(),
     color: color,
     testType: testType,
     test: test,
     test4: test4?.map((e) => e.unpack()).toList(),
-    testarrayofstring: const fb.ListReader<String>(
-      fb.StringReader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 24),
+    testarrayofstring: testarrayofstring?.toList(),
     testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
     enemy: enemy?.unpack(),
-    testnestedflatbuffer: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 30),
+    testnestedflatbuffer: testnestedflatbuffer?.toList(),
     testempty: testempty?.unpack(),
     testbool: testbool,
     testhashs32Fnv1: testhashs32Fnv1,
@@ -1358,67 +1351,33 @@ class Monster {
     testhashu32Fnv1a: testhashu32Fnv1a,
     testhashs64Fnv1a: testhashs64Fnv1a,
     testhashu64Fnv1a: testhashu64Fnv1a,
-    testarrayofbools: const fb.ListReader<bool>(
-      fb.BoolReader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 52),
+    testarrayofbools: testarrayofbools?.toList(),
     testf: testf,
     testf2: testf2,
     testf3: testf3,
-    testarrayofstring2: const fb.ListReader<String>(
-      fb.StringReader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 60),
-    testarrayofsortedstruct: testarrayofsortedstruct
-        ?.map((e) => e.unpack())
-        .toList(),
-    flex: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 64),
+    testarrayofstring2: testarrayofstring2?.toList(),
+    testarrayofsortedstruct: testarrayofsortedstruct?.map((e) => e.unpack()).toList(),
+    flex: flex?.toList(),
     test5: test5?.map((e) => e.unpack()).toList(),
-    vectorOfLongs: const fb.ListReader<int>(
-      fb.Int64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 68),
-    vectorOfDoubles: const fb.ListReader<double>(
-      fb.Float64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 70),
+    vectorOfLongs: vectorOfLongs?.toList(),
+    vectorOfDoubles: vectorOfDoubles?.toList(),
     parentNamespaceTest: parentNamespaceTest?.unpack(),
     vectorOfReferrables: vectorOfReferrables?.map((e) => e.unpack()).toList(),
     singleWeakReference: singleWeakReference,
-    vectorOfWeakReferences: const fb.ListReader<int>(
-      fb.Uint64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 78),
-    vectorOfStrongReferrables: vectorOfStrongReferrables
-        ?.map((e) => e.unpack())
-        .toList(),
+    vectorOfWeakReferences: vectorOfWeakReferences?.toList(),
+    vectorOfStrongReferrables: vectorOfStrongReferrables?.map((e) => e.unpack()).toList(),
     coOwningReference: coOwningReference,
-    vectorOfCoOwningReferences: const fb.ListReader<int>(
-      fb.Uint64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 84),
+    vectorOfCoOwningReferences: vectorOfCoOwningReferences?.toList(),
     nonOwningReference: nonOwningReference,
-    vectorOfNonOwningReferences: const fb.ListReader<int>(
-      fb.Uint64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 88),
+    vectorOfNonOwningReferences: vectorOfNonOwningReferences?.toList(),
     anyUniqueType: anyUniqueType,
     anyUnique: anyUnique,
     anyAmbiguousType: anyAmbiguousType,
     anyAmbiguous: anyAmbiguous,
-    vectorOfEnums: const fb.ListReader<Color>(
-      Color.reader,
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 98),
+    vectorOfEnums: vectorOfEnums?.toList(),
     signedEnum: signedEnum,
-    testrequirednestedflatbuffer: const fb.Uint8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 102),
-    scalarKeySortedTables: scalarKeySortedTables
-        ?.map((e) => e.unpack())
-        .toList(),
+    testrequirednestedflatbuffer: testrequirednestedflatbuffer?.toList(),
+    scalarKeySortedTables: scalarKeySortedTables?.map((e) => e.unpack()).toList(),
     nativeInline: nativeInline?.unpack(),
     longEnumNonEnumDefault: longEnumNonEnumDefault,
     longEnumNormalDefault: longEnumNormalDefault,
@@ -2478,13 +2437,8 @@ class TypeAliases {
     u64: u64,
     f32: f32,
     f64: f64,
-    v8: const fb.Int8ListReader(
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 24),
-    vf64: const fb.ListReader<double>(
-      fb.Float64Reader(),
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 26),
+    v8: v8?.toList(),
+    vf64: vf64?.toList(),
   );
 
   static int pack(fb.Builder fbBuilder, TypeAliasesT? object) {

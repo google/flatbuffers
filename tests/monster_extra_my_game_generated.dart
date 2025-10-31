@@ -44,8 +44,8 @@ class MonsterExtra {
       f1: f1,
       f2: f2,
       f3: f3,
-      dvec: const fb.ListReader<double>(fb.Float64Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 20),
-      fvec: const fb.ListReader<double>(fb.Float32Reader(), lazy: false).vTableGetNullable(_bc, _bcOffset, 22));
+      dvec: dvec?.toList(),
+      fvec: fvec?.toList());
 
   static int pack(fb.Builder fbBuilder, MonsterExtraT? object) {
     if (object == null) return 0;
