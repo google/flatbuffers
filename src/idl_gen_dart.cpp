@@ -606,7 +606,8 @@ class DartGenerator : public BaseGenerator {
       std::string defaultValue = getDefaultValue(field.value);
       bool isNullable = defaultValue.empty() && !struct_def.fixed;
       std::string nullableValueAccessOperator = isNullable ? "?" : "";
-      if (type.base_type == BASE_TYPE_STRUCT) {
+      if (type.base_type == BASE_TYPE_STRUCT ||
+          type.base_type == BASE_TYPE_UNION) {
         constructor_args +=
             field_name + nullableValueAccessOperator + ".unpack()";
       } else if (type.base_type == BASE_TYPE_VECTOR) {
@@ -1025,8 +1026,8 @@ class DartGenerator : public BaseGenerator {
           field.value.type.struct_def->fixed) {
         code += "    int? " + offset_name + ";\n";
         code += "    if (" + field_name + " != null) {\n";
-        code +=
-            "      for (var e in " + field_name + "!) { e.pack(fbBuilder); }\n";
+        code += "      for (var e in " + field_name +
+                "!.reversed) { e.pack(fbBuilder); }\n";
         code += "      " + namer_.Variable(field) +
                 "Offset = fbBuilder.endStructVector(" + field_name +
                 "!.length);\n";
