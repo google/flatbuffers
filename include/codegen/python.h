@@ -74,7 +74,7 @@ struct Version {
 std::set<std::string> Keywords(const Version& version);
 
 struct Import {
-  bool IsLocal() const { return module == "."; }
+  bool IsLocal() const;
 
   std::string module;
   std::string name;

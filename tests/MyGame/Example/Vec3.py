@@ -2,8 +2,10 @@
 
 # namespace: Example
 
+from MyGame.Example.Test import TestT
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Optional
 np = import_numpy()
 
 class Vec3(object):
@@ -49,11 +51,6 @@ def CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b):
     builder.PrependFloat32(x)
     return builder.Offset()
 
-import MyGame.Example.Test
-try:
-    from typing import Optional
-except:
-    pass
 
 class Vec3T(object):
 
@@ -72,7 +69,7 @@ class Vec3T(object):
         self.z = z  # type: float
         self.test1 = test1  # type: float
         self.test2 = test2  # type: int
-        self.test3 = test3  # type: Optional[MyGame.Example.Test.TestT]
+        self.test3 = test3  # type: Optional[TestT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -100,8 +97,9 @@ class Vec3T(object):
         self.z = vec3.Z()
         self.test1 = vec3.Test1()
         self.test2 = vec3.Test2()
-        if vec3.Test3(MyGame.Example.Test.Test()) is not None:
-            self.test3 = MyGame.Example.Test.TestT.InitFromObj(vec3.Test3(MyGame.Example.Test.Test()))
+        from MyGame.Example.Test import Test
+        if vec3.Test3(Test()) is not None:
+            self.test3 = TestT.InitFromObj(vec3.Test3(Test()))
 
     # Vec3T
     def Pack(self, builder):
