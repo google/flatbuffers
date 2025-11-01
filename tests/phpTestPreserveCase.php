@@ -51,45 +51,45 @@ function main()
     $str = $fbb->createString("MyMonster");
     $name = $fbb->createString('Fred');
     \MyGame\Example\Monster::startMonster($fbb);
-    \MyGame\Example\Monster::addName($fbb, $name);
+    \MyGame\Example\Monster::addname($fbb, $name);
     $enemy = \MyGame\Example\Monster::endMonster($fbb);
 
-    $inv = \MyGame\Example\Monster::CreateInventoryVector($fbb, array(0, 1, 2, 3, 4));
+    $inv = \MyGame\Example\Monster::createinventoryVector($fbb, array(0, 1, 2, 3, 4));
 
     $fred = $fbb->createString('Fred');
-    \MyGame\Example\Monster::StartMonster($fbb);
-    \MyGame\Example\Monster::AddName($fbb, $fred);
-    $mon2 = \MyGame\Example\Monster::EndMonster($fbb);
+    \MyGame\Example\Monster::startMonster($fbb);
+    \MyGame\Example\Monster::addname($fbb, $fred);
+    $mon2 = \MyGame\Example\Monster::endMonster($fbb);
 
-    \MyGame\Example\Monster::StartTest4Vector($fbb, 2);
-    \MyGame\Example\Test::CreateTest($fbb, 10, 20);
-    \MyGame\Example\Test::CreateTest($fbb, 30, 40);
+    \MyGame\Example\Monster::starttest4Vector($fbb, 2);
+    \MyGame\Example\Test::createTest($fbb, 10, 20);
+    \MyGame\Example\Test::createTest($fbb, 30, 40);
     $test4 = $fbb->endVector();
 
-    $testArrayOfString = \MyGame\Example\Monster::CreateTestarrayofstringVector($fbb, array(
+    $testArrayOfString = \MyGame\Example\Monster::createtestarrayofstringVector($fbb, array(
         $fbb->createString('test1'),
         $fbb->createString('test2')
     ));
 
-    \MyGame\Example\Monster::StartMonster($fbb);
-    \MyGame\Example\Monster::AddPos($fbb, \MyGame\Example\Vec3::CreateVec3($fbb,
+    \MyGame\Example\Monster::startMonster($fbb);
+    \MyGame\Example\Monster::addpos($fbb, \MyGame\Example\Vec3::createVec3($fbb,
         1.0, 2.0, 3.0, //float
         3.0, // double
         \MyGame\Example\Color::Green,
         5, //short
         6));
-    \MyGame\Example\Monster::AddHp($fbb, 80);
-    \MyGame\Example\Monster::AddName($fbb, $str);
-    \MyGame\Example\Monster::AddInventory($fbb, $inv);
-    \MyGame\Example\Monster::AddTestType($fbb, \MyGame\Example\Any::Monster);
-    \MyGame\Example\Monster::AddTest($fbb, $mon2);
-    \MyGame\Example\Monster::AddTest4($fbb, $test4);
-    \MyGame\Example\Monster::AddTestarrayofstring($fbb, $testArrayOfString);
-    \MyGame\Example\Monster::AddEnemy($fbb, $enemy);
-    \MyGame\Example\Monster::AddTestbool($fbb, true);
-    $mon = \MyGame\Example\Monster::EndMonster($fbb);
+    \MyGame\Example\Monster::addhp($fbb, 80);
+    \MyGame\Example\Monster::addname($fbb, $str);
+    \MyGame\Example\Monster::addinventory($fbb, $inv);
+    \MyGame\Example\Monster::addtest_type($fbb, \MyGame\Example\Any::Monster);
+    \MyGame\Example\Monster::addtest($fbb, $mon2);
+    \MyGame\Example\Monster::addtest4($fbb, $test4);
+    \MyGame\Example\Monster::addtestarrayofstring($fbb, $testArrayOfString);
+    \MyGame\Example\Monster::addenemy($fbb, $enemy);
+    \MyGame\Example\Monster::addtestbool($fbb, true);
+    $mon = \MyGame\Example\Monster::endMonster($fbb);
 
-    \MyGame\Example\Monster::FinishMonsterBuffer($fbb, $mon);
+    \MyGame\Example\Monster::finishMonsterBuffer($fbb, $mon);
 
     // Test it:
     test_buffer($assert, $fbb->dataBuffer());
@@ -116,52 +116,52 @@ try {
 function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
 
     $assert->ok(MyGame\Example\Monster::MonsterBufferHasIdentifier($bb));
-    $monster = \MyGame\Example\Monster::GetRootAsMonster($bb);
+    $monster = \MyGame\Example\Monster::getRootAsMonster($bb);
 
-    $assert->strictEqual($monster->GetHp(), 80);
-    $assert->strictEqual($monster->GetMana(), 150); // default
+    $assert->strictEqual($monster->gethp(), 80);
+    $assert->strictEqual($monster->getmana(), 150); // default
 
-    $assert->strictEqual($monster->GetName(), 'MyMonster');
+    $assert->strictEqual($monster->getname(), 'MyMonster');
 
-    $pos = $monster->GetPos();
-    $assert->strictEqual($pos->GetX(), 1.0);
-    $assert->strictEqual($pos->GetY(), 2.0);
-    $assert->strictEqual($pos->GetZ(), 3.0);
+    $pos = $monster->getpos();
+    $assert->strictEqual($pos->Getx(), 1.0);
+    $assert->strictEqual($pos->Gety(), 2.0);
+    $assert->strictEqual($pos->Getz(), 3.0);
 
-    $assert->Equal($pos->GetTest1(), 3.0);
-    $assert->strictEqual($pos->GetTest2(), \MyGame\Example\Color::Green);
+    $assert->Equal($pos->Gettest1(), 3.0);
+    $assert->strictEqual($pos->Gettest2(), \MyGame\Example\Color::Green);
 
-    $t = $pos->GetTest3();
-    $assert->strictEqual($t->GetA(), 5);
-    $assert->strictEqual($t->GetB(), 6);
-    $assert->strictEqual($monster->GetTestType(), \MyGame\Example\Any::Monster);
+    $t = $pos->gettest3();
+    $assert->strictEqual($t->Geta(), 5);
+    $assert->strictEqual($t->Getb(), 6);
+    $assert->strictEqual($monster->gettest_type(), \MyGame\Example\Any::Monster);
 
     $monster2 = new \MyGame\Example\Monster();
-    $assert->strictEqual($monster->GetTest($monster2) != null, true);
-    $assert->strictEqual($monster2->GetName(), 'Fred');
+    $assert->strictEqual($monster->gettest($monster2) != null, true);
+    $assert->strictEqual($monster2->getname(), 'Fred');
 
-    $assert->strictEqual($monster->GetInventoryLength(), 5);
+    $assert->strictEqual($monster->getinventoryLength(), 5);
     $invsum = 0;
-    for ($i = 0; $i < $monster->GetInventoryLength(); $i++) {
-        $invsum += $monster->GetInventory($i);
+    for ($i = 0; $i < $monster->getinventoryLength(); $i++) {
+        $invsum += $monster->getinventory($i);
     }
     $assert->strictEqual($invsum, 10);
 
-    $assert->strictEqual(bin2hex($monster->GetInventoryBytes()), "0001020304");
+    $assert->strictEqual(bin2hex($monster->getinventoryBytes()), "0001020304");
 
-    $test_0 = $monster->GetTest4(0);
-    $test_1 = $monster->GetTest4(1);
-    $assert->strictEqual($monster->GetTest4Length(), 2);
-    $assert->strictEqual($test_0->GetA() + $test_0->GetB() + $test_1->GetA() + $test_1->GetB(), 100);
+    $test_0 = $monster->gettest4(0);
+    $test_1 = $monster->gettest4(1);
+    $assert->strictEqual($monster->gettest4Length(), 2);
+    $assert->strictEqual($test_0->Geta() + $test_0->Getb() + $test_1->Geta() + $test_1->Getb(), 100);
 
-    $assert->strictEqual($monster->GetTestarrayofstringLength(), 2);
-    $assert->strictEqual($monster->GetTestarrayofstring(0), 'test1');
-    $assert->strictEqual($monster->GetTestarrayofstring(1), 'test2');
+    $assert->strictEqual($monster->gettestarrayofstringLength(), 2);
+    $assert->strictEqual($monster->gettestarrayofstring(0), 'test1');
+    $assert->strictEqual($monster->gettestarrayofstring(1), 'test2');
 
-    $fred = $monster->getEnemy();
-    $assert->Equal('Fred', $fred->getName());
+    $fred = $monster->getenemy();
+    $assert->Equal('Fred', $fred->getname());
 
-    $assert->strictEqual($monster->GetTestbool(), true);
+    $assert->strictEqual($monster->gettestbool(), true);
 }
 
 //function testUnicode(Assert $assert) {
@@ -171,19 +171,19 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
 //
 //    // Test reading
 //    $bb = flatbuffers\ByteBuffer::Wrap($correct);
-//    $monster = \MyGame\Example\Monster::GetRootAsMonster($bb);
-//    $assert->strictEqual($monster->GetName(), $json["name"]);
+//    $monster = \MyGame\Example\Monster::getRootAsMonster($bb);
+//    $assert->strictEqual($monster->getname(), $json["name"]);
 //
 //    //$assert->deepEqual(new Buffer(monster.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(json.name));
 //    //assert.strictEqual(monster.testarrayoftablesLength(), json.testarrayoftables.length);
 //    foreach ($json["testarrayoftables"]as $i => $table) {
 //        $value = $monster->GetTestArrayOfTables($i);
-//        $assert->strictEqual($value->GetName(), $table["name"]);
+//        $assert->strictEqual($value->getname(), $table["name"]);
 //        //assert.deepEqual(new Buffer(value.name(flatbuffers.Encoding.UTF8_BYTES)), new Buffer(table.name));
 //    }
-//    $assert->strictEqual($monster->GetTestarrayofstringLength(), $json["testarrayofstring"]["length"]);
+//    $assert->strictEqual($monster->gettestarrayofstringLength(), $json["testarrayofstring"]["length"]);
 //    foreach ($json["testarrayofstring"] as $i => $string) {
-//        $assert->strictEqual($monster->GetTestarrayofstring($i), $string);
+//        $assert->strictEqual($monster->gettestarrayofstring($i), $string);
 //        //assert.deepEqual(new Buffer(monster.testarrayofstring(i, flatbuffers.Encoding.UTF8_BYTES)), new Buffer(string));
 //    }
 //
@@ -192,19 +192,19 @@ function test_buffer(Assert $assert, Google\FlatBuffers\ByteBuffer $bb) {
 //    $name = $fbb->CreateString($json["name"]);
 //    $testarrayoftablesOffsets = array_map(function($table) use($fbb) {
 //        $name = $fbb->CreateString($table["name"]);
-//        \MyGame\Example\Monster::StartMonster($fbb);
-//        \MyGame\Example\Monster::AddName($fbb, $name);
-//        return \MyGame\Example\Monster::EndMonster($fbb);
+//        \MyGame\Example\Monster::startMonster($fbb);
+//        \MyGame\Example\Monster::addname($fbb, $name);
+//        return \MyGame\Example\Monster::endMonster($fbb);
 //    }, $json["testarrayoftables"]);
-//    $testarrayoftablesOffset = \MyGame\Example\Monster::CreateTestarrayoftablesVector($fbb,
+//    $testarrayoftablesOffset = \MyGame\Example\Monster::createtestarrayoftablesVector($fbb,
 //            $testarrayoftablesOffsets);
-////    $testarrayofstringOffset = \MyGame\Example\Monster::CreateTestarrayofstringVector($fbb,
+////    $testarrayofstringOffset = \MyGame\Example\Monster::createtestarrayofstringVector($fbb,
 ////            $json["testarrayofstring"].map(function(string) { return fbb.createString(string); }));
 //
 //    \MyGame\Example\Monster::startMonster($fbb);
 //    \MyGame\Example\Monster::addTestarrayofstring($fbb, $testarrayoftablesOffset);
 //    \MyGame\Example\Monster::addTestarrayoftables($fbb, $testarrayoftablesOffset);
-//    \MyGame\Example\Monster::addName($fbb, $name);
+//    \MyGame\Example\Monster::addname($fbb, $name);
 //    \MyGame\Example\Monster::finishMonsterBuffer($fbb, \MyGame\Example\Monster::endMonster($fbb));
 //    //;assert.deepEqual(new Buffer(fbb.asUint8Array()), correct);
 //}

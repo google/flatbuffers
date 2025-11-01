@@ -53,6 +53,8 @@
 #include <functional>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/idlnames.h"
+#include "flatbuffers/options.h"
 
 namespace flatbuffers {
 
@@ -446,6 +448,13 @@ bool ReadEnvironmentVariable(const char* var_name, std::string* _value) {
 
 std::string ConvertCase(const std::string& input, Case output_case,
                         Case input_case) {
+  // If preserve-case is on, or the string is from the IDL names registry,
+  // return as-is.
+
+  if (global_options.preserve_case && IsIdlName(input)) {
+    return input;
+  }
+
   if (output_case == Case::kKeep) return input;
   // The output cases expect snake_case inputs, so if we don't have that input
   // format, try to convert to snake_case.

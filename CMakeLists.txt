@@ -112,7 +112,6 @@ endif()
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
 if(NOT WIN32)
-  include(CheckSymbolExists)
   check_symbol_exists(realpath "stdlib.h" HAVE_REALPATH)
   if(NOT HAVE_REALPATH)
     add_definitions(-DFLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION)
@@ -136,6 +135,7 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/hash.h
   include/flatbuffers/idl.h
   include/flatbuffers/minireflect.h
+  include/flatbuffers/options.h
   include/flatbuffers/reflection.h
   include/flatbuffers/reflection_generated.h
   include/flatbuffers/registry.h
@@ -151,6 +151,7 @@ set(FlatBuffers_Library_SRCS
   src/idl_gen_text.cpp
   src/reflection.cpp
   src/util.cpp
+  src/options.cpp
 )
 
 set(FlatBuffers_Compiler_SRCS
@@ -449,26 +450,35 @@ if(FLATBUFFERS_BUILD_FLATLIB)
   endif()
 endif()
 
+option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols for flatc" OFF)
+
 if(FLATBUFFERS_BUILD_FLATC)
   add_executable(flatc ${FlatBuffers_Compiler_SRCS})
+
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatc include/flatbuffers/pch/flatc_pch.h)
   endif()
 
   target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
+
   target_compile_options(flatc
     PRIVATE
       $<$<AND:$<BOOL:${MSVC_LIKE}>,$<CONFIG:Release>>:
         /MT
+      >
+      $<$<BOOL:${ENABLE_DEBUG_SYMBOLS}>:
+        -g -O0
       >
   )
 
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
     add_fsanitize_to_target(flatc ${FLATBUFFERS_CODE_SANITIZE})
   endif()
+
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
   endif()
+
   if(FLATBUFFERS_STATIC_FLATC AND NOT MSVC)
     target_link_libraries(flatc PRIVATE -static)
   endif()

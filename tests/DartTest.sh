@@ -1,41 +1,45 @@
-#!/bin/sh
-set -euo pipefail
-#
-# Copyright 2016 Google Inc. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#!/bin/bash
+set -eu
 
-pushd "$(dirname $0)" >/dev/null
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_dir="$(cd "${script_dir}/.." && pwd)"
+dart_dir="${repo_dir}/dart"
+test_dir="${dart_dir}/test"
+preserve_dir="${dart_dir}/test_preserve_case"
 
 command -v dart >/dev/null 2>&1 || {
-    echo >&2 "Dart tests require dart to be in path but it's not installed.  Aborting."
-    exit 1
+  echo >&2 "Dart tests require dart to be in path but it's not installed. Aborting."
+  exit 1
 }
-# output required files to the dart folder so that pub will be able to
-# distribute them and more people can more easily run the dart tests
-../flatc --dart --gen-object-api -I include_test -o ../dart/test monster_test.fbs
-../flatc --dart --gen-object-api -I include_test/sub -o ../dart/test include_test/include_test1.fbs
-../flatc --dart --gen-object-api -I include_test -o ../dart/test include_test/sub/include_test2.fbs
 
-cp monsterdata_test.mon ../dart/test
-cp monster_test.fbs ../dart/test
+pushd "${script_dir}" >/dev/null
 
-cd ../dart
+generate_preserve_case() {
+  local flatc="${repo_dir}/flatc"
+  local opts=(--dart --gen-object-api --preserve-case)
+  "${flatc}" "${opts[@]}" -I "${script_dir}/include_test" -o "${preserve_dir}" "${script_dir}/monster_test.fbs"
+  "${flatc}" "${opts[@]}" -I "${script_dir}/include_test/sub" -o "${preserve_dir}" "${script_dir}/include_test/include_test1.fbs"
+  "${flatc}" "${opts[@]}" -I "${script_dir}/include_test" -o "${preserve_dir}" "${script_dir}/include_test/sub/include_test2.fbs"
+  "${flatc}" "${opts[@]}" -o "${preserve_dir}" "${test_dir}/enums.fbs"
+  "${flatc}" "${opts[@]}" -o "${preserve_dir}" "${test_dir}/bool_structs.fbs"
+}
 
-../flatc --dart --gen-object-api -o ./test ./test/enums.fbs
-../flatc --dart --gen-object-api -o ./test ./test/bool_structs.fbs
+run_default_tests() {
+  echo "Running Dart tests (default naming)"
+  ( cd "${dart_dir}" && dart pub get && dart test "test/" )
+}
 
-# update packages
-dart pub get
-# Execute the sample.
-dart test
+run_preserve_case_tests() {
+  echo "Running Dart tests (preserve-case naming)"
+  if [[ ! -d "${preserve_dir}" ]]; then
+    echo >&2 "Missing ${preserve_dir}; create preserve-case test copies first."
+    exit 1
+  fi
+  generate_preserve_case
+  ( cd "${dart_dir}" && dart test "test_preserve_case/" )
+}
+
+run_default_tests
+run_preserve_case_tests
+
+popd >/dev/null

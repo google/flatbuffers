@@ -53,26 +53,6 @@ class Assert {
     }
 }
 
-/**
- * @template T
- * @param class-string<T>|object $target
- * @param array<int, string> $candidates
- * @param mixed ...$args
- * @return mixed
- */
-function callMethodWithFallback($target, array $candidates, ...$args) {
-    foreach ($candidates as $method) {
-        if (method_exists($target, $method)) {
-            if (is_string($target)) {
-                return $target::$method(...$args);
-            }
-            return $target->$method(...$args);
-        }
-    }
-    $type = is_string($target) ? $target : get_class($target);
-    throw new Exception("None of the expected methods exist on {$type}: " . implode(', ', $candidates));
-}
-
 function main()
 {
     $assert = new Assert();
@@ -86,13 +66,11 @@ function main()
     ];
 
     Attacker::startAttacker($fbb);
-    callMethodWithFallback('Attacker', ['addSwordAttackDamage', 'addsword_attack_damage'], $fbb, 5);
+    Attacker::addsword_attack_damage($fbb, 5);
     $attackerOffset = Attacker::endAttacker($fbb);
 
-    $charTypesOffset = callMethodWithFallback('Movie', ['createCharactersTypeVector', 'createcharacters_typeVector'], $fbb, $charTypes);
-    $charsOffset = callMethodWithFallback(
-        'Movie',
-        ['createCharactersVector', 'createcharactersVector'],
+    $charTypesOffset = Movie::createcharacters_typeVector($fbb, $charTypes);
+    $charsOffset = Movie::createcharactersVector(
         $fbb,
         [
             BookReader::createBookReader($fbb, 7),
@@ -102,31 +80,29 @@ function main()
     );
 
     Movie::startMovie($fbb);
-    callMethodWithFallback('Movie', ['addCharactersType', 'addcharacters_type'], $fbb, $charTypesOffset);
-    callMethodWithFallback('Movie', ['addCharacters', 'addcharacters'], $fbb, $charsOffset);
+    Movie::addcharacters_type($fbb, $charTypesOffset);
+    Movie::addcharacters($fbb, $charsOffset);
     Movie::finishMovieBuffer($fbb, Movie::endMovie($fbb));
 
     $buf = Google\FlatBuffers\ByteBuffer::wrap($fbb->dataBuffer()->data());
 
     $movie = Movie::getRootAsMovie($buf);
 
-    $charactersTypeLength = callMethodWithFallback($movie, ['getCharactersTypeLength', 'getcharacters_typeLength']);
-    $charactersLength = callMethodWithFallback($movie, ['getCharactersLength', 'getcharactersLength']);
-    $assert->strictEqual($charactersTypeLength, count($charTypes));
-    $assert->strictEqual($charactersLength, $charactersTypeLength);
+    $assert->strictEqual($movie->getcharacters_typeLength(), count($charTypes));
+    $assert->strictEqual($movie->getcharactersLength(), $movie->getcharacters_typeLength());
 
     for ($i = 0; $i < count($charTypes); ++$i) {
-        $assert->strictEqual(callMethodWithFallback($movie, ['getCharactersType', 'getcharacters_type'], $i), $charTypes[$i]);
+        $assert->strictEqual($movie->getcharacters_type($i), $charTypes[$i]);
     }
 
-    $bookReader7 = callMethodWithFallback($movie, ['getCharacters', 'getcharacters'], 0, new BookReader());
-    $assert->strictEqual(callMethodWithFallback($bookReader7, ['getBooksRead', 'Getbooks_read']), 7);
+    $bookReader7 = $movie->getcharacters(0, new BookReader());
+    $assert->strictEqual($bookReader7->Getbooks_read(), 7);
 
-    $attacker = callMethodWithFallback($movie, ['getCharacters', 'getcharacters'], 1, new Attacker());
-    $assert->strictEqual(callMethodWithFallback($attacker, ['getSwordAttackDamage', 'getsword_attack_damage']), 5);
+    $attacker = $movie->getcharacters(1, new Attacker());
+    $assert->strictEqual($attacker->getsword_attack_damage(), 5);
 
-    $bookReader2 = callMethodWithFallback($movie, ['getCharacters', 'getcharacters'], 2, new BookReader());
-    $assert->strictEqual(callMethodWithFallback($bookReader2, ['getBooksRead', 'Getbooks_read']), 2);
+    $bookReader2 = $movie->getcharacters(2, new BookReader());
+    $assert->strictEqual($bookReader2->Getbooks_read(), 2);
 }
 
 try {

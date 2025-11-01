@@ -1,0 +1,149 @@
+/* global BigInt */
+
+import assert from 'assert';
+import * as flatbuffers from 'flatbuffers';
+import {readFileSync, writeFileSync} from 'fs';
+
+import {ArrayStructT} from './preserve_case/arrays_test_complex/my-game/example/ArrayStruct.js'
+import {ArrayTable, ArrayTableT} from './preserve_case/arrays_test_complex/my-game/example/ArrayTable.js'
+import {InnerStructT} from './preserve_case/arrays_test_complex/my-game/example/InnerStruct.js'
+import {NestedStructT} from './preserve_case/arrays_test_complex/my-game/example/NestedStruct.js'
+import {OuterStructT} from './preserve_case/arrays_test_complex/my-game/example/OuterStruct.js'
+import {TestEnum} from './preserve_case/arrays_test_complex/my-game/example/TestEnum.js'
+import {applyPrototypeAliases} from './preserve_case_aliases.js'
+
+applyPrototypeAliases([
+  ArrayTable,
+  ArrayTableT,
+  ArrayStructT,
+  InnerStructT,
+  NestedStructT,
+  OuterStructT,
+]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+BigInt.prototype.toJSON = function() {
+  return this.toString();
+};
+function fbObjToObj(fbObj) {
+  const ret = {};
+  for (const propName of Object.keys(fbObj)) {
+    const key = propName;
+    const prop = fbObj[key];
+    if (prop.valueOf) {
+      ret[key] = prop.valueOf();
+    } else if (typeof prop === 'object') {
+      ret[key] = fbObjToObj(prop);
+    }
+  }
+  return ret;
+}
+function testBuild(monFile, jsFile) {
+  const arrayTable = new ArrayTableT(
+    'Complex Array Test',
+    new ArrayStructT(
+      221.139008,
+      [-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700],
+      13,
+      [
+        new NestedStructT(
+          [233, -123],
+          TestEnum.B,
+          [TestEnum.A, TestEnum.C],
+          [
+            new OuterStructT(
+              false,
+              123.456,
+              new InnerStructT(
+                123456792.0,
+                [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+                91,
+                BigInt('9007199254740999')
+              ),
+              [
+                new InnerStructT(
+                  -987654321.9876,
+                  [255, 254, 253, 252, 251, 250, 249, 248, 247, 246, 245, 244, 243],
+                  123,
+                  BigInt('9007199254741000')
+                ),
+                new InnerStructT(
+                  123000987.9876,
+                  [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113],
+                  -123,
+                  BigInt('9007199254741000')
+                ),
+              ],
+              new InnerStructT(
+                987654321.9876,
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                19,
+                BigInt('9007199254741000')
+              ),
+              [111000111.222, 222000222.111, 333000333.333, 444000444.444]
+            ),
+          ]
+        ),
+      ],
+      -123456789
+    )
+  );
+  const builder = new flatbuffers.Builder();
+  builder.finish(arrayTable.pack(builder));
+  if (jsFile) {
+    const obj = fbObjToObj(arrayTable);
+    writeFileSync(jsFile, `export default ${JSON.stringify(obj, null, 2)}`);
+  }
+  if (monFile) {
+    writeFileSync(monFile, builder.asUint8Array());
+  }
+  return builder.asUint8Array();
+}
+function testParse(monFile, jsFile, buffer) {
+  if (!buffer) {
+    if (!monFile) {
+      console.log(`Please specify mon file read the buffer from.`);
+      process.exit(1);
+    }
+    buffer = readFileSync(monFile);
+  }
+  const byteBuffer = new flatbuffers.ByteBuffer(new Uint8Array(buffer));
+  const arrayTable = ArrayTable.getRootAsArrayTable(byteBuffer).unpack();
+  const json = JSON.stringify(arrayTable, null, 2);
+  if (jsFile) {
+    writeFileSync(jsFile, `export default ${json}`);
+  }
+  return arrayTable;
+}
+if (process.argv[2] === 'build') {
+  testBuild(process.argv[3], process.argv[4]);
+} else if (process.argv[2] === 'parse') {
+  testParse(process.argv[3], process.argv[4], null);
+} else {
+  const arr = testBuild(null, null);
+  const parsed = testParse(null, null, Buffer.from(arr));
+  assert.strictEqual(parsed.a, 'Complex Array Test', 'String Test');
+  assert.strictEqual(
+      parsed?.c_underscore?.a_underscore, 221.13900756835938, 'Float Test');
+  assert.deepEqual(
+      parsed?.c_underscore?.b_underscore,
+      [
+        -700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500,
+        600, 700
+      ],
+      'Array of signed integers');
+  assert.strictEqual(
+      parsed?.c_underscore.d?.[0].d_outer[0].d[1].a, 123000987.9876,
+      'Float in deep');
+  assert.deepEqual(
+      parsed?.c_underscore?.d[0].d_outer?.[0]?.e, {
+        a: 987654321.9876,
+        b: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+        c: 19,
+        d_underscore: '9007199254741000',
+      },
+      'Object in deep');
+  assert.deepEqual(parsed?.c_underscore.g, ['0', '0'], 'Last object');
+
+  console.log('Arrays test: completed successfully');
+}

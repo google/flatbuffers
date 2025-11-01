@@ -42,6 +42,7 @@ cc_library(
         "idl_gen_text.cpp",
         "idl_gen_text.h",
         "idl_parser.cpp",
+        "options.cpp",
         "reflection.cpp",
         "util.cpp",
     ],
