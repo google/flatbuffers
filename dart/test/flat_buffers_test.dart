@@ -964,9 +964,8 @@ class UnionVectorTest {
 
     final fbb = Builder();
     fbb.finish(movie.pack(fbb));
-    final bytes = fbb.buffer;
 
-    final movie2 = example5.Movie(bytes);
+    final movie2 = example5.Movie(fbb.buffer);
     expect(
       movie2.toString().replaceAllMapped(
           RegExp('([a-zA-Z0-9]+){'), (match) => match.group(1)! + 'T{'),
@@ -975,6 +974,42 @@ class UnionVectorTest {
 
     final movie3 = movie2.unpack();
     expect(movie3.toString(), movie.toString());
+
+    final movie4 = example5.MovieT(
+      mainCharacter: "String",
+      mainCharacterType: example5.CharacterTypeId.Other,
+    );
+
+    fbb.reset();
+    fbb.finish(movie4.pack(fbb));
+
+    final movie5 = example5.Movie(fbb.buffer);
+    expect(
+      movie5.toString().replaceAllMapped(
+          RegExp('([a-zA-Z0-9]+){'), (match) => match.group(1)! + 'T{'),
+      movie4.toString(),
+    );
+
+    final movie6 = movie5.unpack();
+    expect(movie6.toString(), movie4.toString());
+
+    final movie7 = example5.MovieT(
+      mainCharacter: example5.AttackerT(swordAttackDamage: 43),
+      mainCharacterType: example5.CharacterTypeId.MuLan,
+    );
+
+    fbb.reset();
+    fbb.finish(movie7.pack(fbb));
+
+    final movie8 = example5.Movie(fbb.buffer);
+    expect(
+      movie8.toString().replaceAllMapped(
+          RegExp('([a-zA-Z0-9]+){'), (match) => match.group(1)! + 'T{'),
+      movie7.toString(),
+    );
+
+    final movie9 = movie8.unpack();
+    expect(movie9.toString(), movie7.toString());
   }
 }
 

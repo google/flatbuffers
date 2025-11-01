@@ -1179,7 +1179,7 @@ class Monster {
   String? get name =>
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 10);
   List<int>? get inventory =>
-      const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 14);
+      const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 14);
   Color get color =>
       Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId? get testType => AnyTypeId._createOrNull(
@@ -1200,7 +1200,7 @@ class Monster {
   ).vTableGetNullable(_bc, _bcOffset, 26);
   Monster? get enemy => Monster.reader.vTableGetNullable(_bc, _bcOffset, 28);
   List<int>? get testnestedflatbuffer =>
-      const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 30);
+      const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 30);
   Stat? get testempty => Stat.reader.vTableGetNullable(_bc, _bcOffset, 32);
   bool get testbool =>
       const fb.BoolReader().vTableGet(_bc, _bcOffset, 34, false);
@@ -1236,7 +1236,7 @@ class Monster {
     Ability.reader,
   ).vTableGetNullable(_bc, _bcOffset, 62);
   List<int>? get flex =>
-      const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 64);
+      const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 64);
   List<Test>? get test5 => const fb.ListReader<Test>(
     Test.reader,
   ).vTableGetNullable(_bc, _bcOffset, 66);
