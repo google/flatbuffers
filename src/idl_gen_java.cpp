@@ -206,7 +206,6 @@ class JavaGenerator : public BaseGenerator {
           "import com.google.flatbuffers.ShortVector;\n"
           "import com.google.flatbuffers.StringVector;\n"
           "import com.google.flatbuffers.Struct;\n"
-          "import com.google.flatbuffers.Table;\n"
           "import com.google.flatbuffers.UnionVector;\n"
           "import java.nio.ByteBuffer;\n"
           "import java.nio.ByteOrder;\n";
@@ -268,7 +267,7 @@ class JavaGenerator : public BaseGenerator {
       case BASE_TYPE_UNION:
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default:
-        return "Table";
+        return "com.google.flatbuffers.Table";
     }
   }
 
@@ -716,7 +715,7 @@ class JavaGenerator : public BaseGenerator {
     const auto struct_class = namer_.Type(struct_def);
     code += "final class " + struct_class;
     code += " extends ";
-    code += struct_def.fixed ? "Struct" : "Table";
+    code += struct_def.fixed ? "Struct" : "com.google.flatbuffers.Table";
     code += " {\n";
 
     if (!struct_def.fixed) {
@@ -1467,7 +1466,7 @@ class JavaGenerator : public BaseGenerator {
             " " + variable_name + "Type = " + field_name + "Type(" +
             type_params + ");\n";
     code += indent + variable_name + ".setType(" + variable_name + "Type);\n";
-    code += indent + "Table " + variable_name + "Value;\n";
+    code += indent + "com.google.flatbuffers.Table " + variable_name + "Value;\n";
     code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
