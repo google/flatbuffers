@@ -420,11 +420,11 @@ inline void WrapperTable::UnPackTo(WrapperTableT *_o, const ::flatbuffers::resol
   { auto _e = vector(); if (_e) { _o->vector.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->vector.begin()); } }
 }
 
-inline ::flatbuffers::Offset<WrapperTable> WrapperTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const WrapperTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateWrapperTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<WrapperTable> CreateWrapperTable(::flatbuffers::FlatBufferBuilder64 &_fbb, const WrapperTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return WrapperTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<WrapperTable> CreateWrapperTable(::flatbuffers::FlatBufferBuilder64 &_fbb, const WrapperTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<WrapperTable> WrapperTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const WrapperTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder64 *__fbb; const WrapperTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -503,11 +503,11 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = forced_aligned_vector(); if (_e) { _o->forced_aligned_vector.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->forced_aligned_vector.begin()); } }
 }
 
-inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateRootTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return RootTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder64 &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder64 *__fbb; const RootTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;

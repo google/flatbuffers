@@ -613,11 +613,11 @@ inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_functi
   { auto _e = path(); if (_e) { _o->path.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->path[_i] = *_e->Get(_i); } } else { _o->path.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMonster(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Monster::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MonsterT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -670,11 +670,11 @@ inline void Weapon::UnPackTo(WeaponT *_o, const ::flatbuffers::resolver_function
   { auto _e = damage(); _o->damage = _e; }
 }
 
-inline ::flatbuffers::Offset<Weapon> Weapon::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const WeaponT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateWeapon(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Weapon> CreateWeapon(::flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Weapon::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Weapon> CreateWeapon(::flatbuffers::FlatBufferBuilder &_fbb, const WeaponT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Weapon> Weapon::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const WeaponT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const WeaponT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
