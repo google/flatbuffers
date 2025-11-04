@@ -245,12 +245,10 @@ public struct MyGame_Example_Test: NativeStruct, FlatbuffersVectorInitializable,
 
   private var _a: Int16
   private var _b: Int8
-  private let padding0__: UInt8 = 0
+  private var padding0__: UInt8 = 0
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _a = _accessor.readBuffer(of: Int16.self, at: 0)
-    _b = _accessor.readBuffer(of: Int8.self, at: 2)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(a: Int16, b: Int8) {
@@ -263,7 +261,7 @@ public struct MyGame_Example_Test: NativeStruct, FlatbuffersVectorInitializable,
     _b = 0
   }
 
-  public init(_ _t: inout MyGame_Example_Test_Mutable) {
+  public init(_ _t: borrowing MyGame_Example_Test_Mutable) {
     _a = _t.a
     _b = _t.b
   }
@@ -305,10 +303,9 @@ public struct MyGame_Example_Test_Mutable: FlatBufferStruct, FlatbuffersVectorIn
   @discardableResult public func mutate(a: Int16) -> Bool { return _accessor.mutate(a, index: 0) }
   public var b: Int8 { return _accessor.readBuffer(of: Int8.self, at: 2) }
   @discardableResult public func mutate(b: Int8) -> Bool { return _accessor.mutate(b, index: 2) }
-  
 
-  public mutating func unpack() -> MyGame_Example_Test {
-    return MyGame_Example_Test(&self)
+  public func unpack() -> MyGame_Example_Test {
+    return MyGame_Example_Test(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_Test?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -327,21 +324,15 @@ public struct MyGame_Example_Vec3: NativeStruct, FlatbuffersVectorInitializable,
   private var _x: Float32
   private var _y: Float32
   private var _z: Float32
-  private let padding0__: UInt32 = 0
+  private var padding0__: UInt32 = 0
   private var _test1: Double
   private var _test2: UInt8
-  private let padding1__: UInt8 = 0
+  private var padding1__: UInt8 = 0
   private var _test3: MyGame_Example_Test
-  private let padding2__: UInt16 = 0
+  private var padding2__: UInt16 = 0
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _x = _accessor.readBuffer(of: Float32.self, at: 0)
-    _y = _accessor.readBuffer(of: Float32.self, at: 4)
-    _z = _accessor.readBuffer(of: Float32.self, at: 8)
-    _test1 = _accessor.readBuffer(of: Double.self, at: 16)
-    _test2 = _accessor.readBuffer(of: UInt8.self, at: 24)
-    _test3 = MyGame_Example_Test(_accessor.bb, o: _accessor.position + 26)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(x: Float32, y: Float32, z: Float32, test1: Double, test2: MyGame_Example_Color, test3: MyGame_Example_Test) {
@@ -362,13 +353,13 @@ public struct MyGame_Example_Vec3: NativeStruct, FlatbuffersVectorInitializable,
     _test3 = MyGame_Example_Test()
   }
 
-  public init(_ _t: inout MyGame_Example_Vec3_Mutable) {
+  public init(_ _t: borrowing MyGame_Example_Vec3_Mutable) {
     _x = _t.x
     _y = _t.y
     _z = _t.z
     _test1 = _t.test1
     _test2 = _t.test2.value
-    var _vtest3 = _t.test3
+    let _vtest3 = _t.test3
     _test3 = _vtest3.unpack()
   }
 
@@ -434,10 +425,9 @@ public struct MyGame_Example_Vec3_Mutable: FlatBufferStruct, FlatbuffersVectorIn
   public var test2: MyGame_Example_Color { return MyGame_Example_Color(rawValue: _accessor.readBuffer(of: UInt8.self, at: 24)) ?? .red }
   @discardableResult public func mutate(test2: MyGame_Example_Color) -> Bool { return _accessor.mutate(test2.rawValue, index: 24) }
   public var test3: MyGame_Example_Test_Mutable { return MyGame_Example_Test_Mutable(_accessor.bb, o: _accessor.position + 26) }
-  
 
-  public mutating func unpack() -> MyGame_Example_Vec3 {
-    return MyGame_Example_Vec3(&self)
+  public func unpack() -> MyGame_Example_Vec3 {
+    return MyGame_Example_Vec3(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_Vec3?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -457,9 +447,7 @@ public struct MyGame_Example_Ability: NativeStruct, FlatbuffersVectorInitializab
   private var _distance: UInt32
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _id = _accessor.readBuffer(of: UInt32.self, at: 0)
-    _distance = _accessor.readBuffer(of: UInt32.self, at: 4)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(id: UInt32, distance: UInt32) {
@@ -472,7 +460,7 @@ public struct MyGame_Example_Ability: NativeStruct, FlatbuffersVectorInitializab
     _distance = 0
   }
 
-  public init(_ _t: inout MyGame_Example_Ability_Mutable) {
+  public init(_ _t: borrowing MyGame_Example_Ability_Mutable) {
     _id = _t.id
     _distance = _t.distance
   }
@@ -514,10 +502,9 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferStruct, FlatbuffersVecto
   @discardableResult public func mutate(id: UInt32) -> Bool { return _accessor.mutate(id, index: 0) }
   public var distance: UInt32 { return _accessor.readBuffer(of: UInt32.self, at: 4) }
   @discardableResult public func mutate(distance: UInt32) -> Bool { return _accessor.mutate(distance, index: 4) }
-  
 
-  public mutating func unpack() -> MyGame_Example_Ability {
-    return MyGame_Example_Ability(&self)
+  public func unpack() -> MyGame_Example_Ability {
+    return MyGame_Example_Ability(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_Ability?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -538,10 +525,7 @@ public struct MyGame_Example_StructOfStructs: NativeStruct, FlatbuffersVectorIni
   private var _c: MyGame_Example_Ability
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _a = MyGame_Example_Ability(_accessor.bb, o: _accessor.position + 0)
-    _b = MyGame_Example_Test(_accessor.bb, o: _accessor.position + 8)
-    _c = MyGame_Example_Ability(_accessor.bb, o: _accessor.position + 12)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(a: MyGame_Example_Ability, b: MyGame_Example_Test, c: MyGame_Example_Ability) {
@@ -556,12 +540,12 @@ public struct MyGame_Example_StructOfStructs: NativeStruct, FlatbuffersVectorIni
     _c = MyGame_Example_Ability()
   }
 
-  public init(_ _t: inout MyGame_Example_StructOfStructs_Mutable) {
-    var _va = _t.a
+  public init(_ _t: borrowing MyGame_Example_StructOfStructs_Mutable) {
+    let _va = _t.a
     _a = _va.unpack()
-    var _vb = _t.b
+    let _vb = _t.b
     _b = _vb.unpack()
-    var _vc = _t.c
+    let _vc = _t.c
     _c = _vc.unpack()
   }
 
@@ -600,10 +584,9 @@ public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferStruct, Flatbuff
   public var a: MyGame_Example_Ability_Mutable { return MyGame_Example_Ability_Mutable(_accessor.bb, o: _accessor.position + 0) }
   public var b: MyGame_Example_Test_Mutable { return MyGame_Example_Test_Mutable(_accessor.bb, o: _accessor.position + 8) }
   public var c: MyGame_Example_Ability_Mutable { return MyGame_Example_Ability_Mutable(_accessor.bb, o: _accessor.position + 12) }
-  
 
-  public mutating func unpack() -> MyGame_Example_StructOfStructs {
-    return MyGame_Example_StructOfStructs(&self)
+  public func unpack() -> MyGame_Example_StructOfStructs {
+    return MyGame_Example_StructOfStructs(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StructOfStructs?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -622,8 +605,7 @@ public struct MyGame_Example_StructOfStructsOfStructs: NativeStruct, Flatbuffers
   private var _a: MyGame_Example_StructOfStructs
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _a = MyGame_Example_StructOfStructs(_accessor.bb, o: _accessor.position + 0)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(a: MyGame_Example_StructOfStructs) {
@@ -634,8 +616,8 @@ public struct MyGame_Example_StructOfStructsOfStructs: NativeStruct, Flatbuffers
     _a = MyGame_Example_StructOfStructs()
   }
 
-  public init(_ _t: inout MyGame_Example_StructOfStructsOfStructs_Mutable) {
-    var _va = _t.a
+  public init(_ _t: borrowing MyGame_Example_StructOfStructsOfStructs_Mutable) {
+    let _va = _t.a
     _a = _va.unpack()
   }
 
@@ -666,10 +648,9 @@ public struct MyGame_Example_StructOfStructsOfStructs_Mutable: FlatBufferStruct,
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
 
   public var a: MyGame_Example_StructOfStructs_Mutable { return MyGame_Example_StructOfStructs_Mutable(_accessor.bb, o: _accessor.position + 0) }
-  
 
-  public mutating func unpack() -> MyGame_Example_StructOfStructsOfStructs {
-    return MyGame_Example_StructOfStructsOfStructs(&self)
+  public func unpack() -> MyGame_Example_StructOfStructsOfStructs {
+    return MyGame_Example_StructOfStructsOfStructs(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StructOfStructsOfStructs?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -694,10 +675,9 @@ public struct MyGame_InParentNamespace: FlatBufferTable, FlatbuffersVectorInitia
 
   public static func startInParentNamespace(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 0) }
   public static func endInParentNamespace(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
-  
 
-  public mutating func unpack() -> MyGame_InParentNamespaceT {
-    return MyGame_InParentNamespaceT(&self)
+  public func unpack() -> MyGame_InParentNamespaceT {
+    return MyGame_InParentNamespaceT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_InParentNamespaceT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -724,7 +704,7 @@ extension MyGame_InParentNamespace: Encodable {
 public class MyGame_InParentNamespaceT: NativeObject {
 
 
-  public init(_ _t: inout MyGame_InParentNamespace) {
+  public init(_ _t: borrowing MyGame_InParentNamespace) {
   }
 
   public init() {
@@ -746,10 +726,9 @@ public struct MyGame_Example2_Monster: FlatBufferTable, FlatbuffersVectorInitial
 
   public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 0) }
   public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
-  
 
-  public mutating func unpack() -> MyGame_Example2_MonsterT {
-    return MyGame_Example2_MonsterT(&self)
+  public func unpack() -> MyGame_Example2_MonsterT {
+    return MyGame_Example2_MonsterT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example2_MonsterT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -776,7 +755,7 @@ extension MyGame_Example2_Monster: Encodable {
 public class MyGame_Example2_MonsterT: NativeObject {
 
 
-  public init(_ _t: inout MyGame_Example2_Monster) {
+  public init(_ _t: borrowing MyGame_Example2_Monster) {
   }
 
   public init() {
@@ -815,10 +794,9 @@ internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferTable, Flatbuf
     MyGame_Example_TestSimpleTableWithEnum.add(color: color, &fbb)
     return MyGame_Example_TestSimpleTableWithEnum.endTestSimpleTableWithEnum(&fbb, start: __start)
   }
-  
 
-  internal mutating func unpack() -> MyGame_Example_TestSimpleTableWithEnumT {
-    return MyGame_Example_TestSimpleTableWithEnumT(&self)
+  internal func unpack() -> MyGame_Example_TestSimpleTableWithEnumT {
+    return MyGame_Example_TestSimpleTableWithEnumT(self)
   }
   internal static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TestSimpleTableWithEnumT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -855,7 +833,7 @@ internal class MyGame_Example_TestSimpleTableWithEnumT: NativeObject {
 
   internal var color: MyGame_Example_Color
 
-  internal init(_ _t: inout MyGame_Example_TestSimpleTableWithEnum) {
+  internal init(_ _t: borrowing MyGame_Example_TestSimpleTableWithEnum) {
     color = _t.color
   }
 
@@ -932,10 +910,9 @@ public struct MyGame_Example_Stat: FlatBufferTable, FlatbuffersVectorInitializab
     }
     return nil
   }
-  
 
-  public mutating func unpack() -> MyGame_Example_StatT {
-    return MyGame_Example_StatT(&self)
+  public func unpack() -> MyGame_Example_StatT {
+    return MyGame_Example_StatT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_StatT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -991,7 +968,7 @@ public class MyGame_Example_StatT: NativeObject {
   public var val: Int64
   public var count: UInt16
 
-  public init(_ _t: inout MyGame_Example_Stat) {
+  public init(_ _t: borrowing MyGame_Example_Stat) {
     id = _t.id
     val = _t.val
     count = _t.count
@@ -1059,10 +1036,9 @@ public struct MyGame_Example_Referrable: FlatBufferTable, FlatbuffersVectorIniti
     }
     return nil
   }
-  
 
-  public mutating func unpack() -> MyGame_Example_ReferrableT {
-    return MyGame_Example_ReferrableT(&self)
+  public func unpack() -> MyGame_Example_ReferrableT {
+    return MyGame_Example_ReferrableT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_ReferrableT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -1099,7 +1075,7 @@ public class MyGame_Example_ReferrableT: NativeObject {
 
   public var id: UInt64
 
-  public init(_ _t: inout MyGame_Example_Referrable) {
+  public init(_ _t: borrowing MyGame_Example_Referrable) {
     id = _t.id
   }
 
@@ -1539,10 +1515,9 @@ public struct MyGame_Example_Monster: FlatBufferTable, FlatbuffersVectorInitiali
     }
     return nil
   }
-  
 
-  public mutating func unpack() -> MyGame_Example_MonsterT {
-    return MyGame_Example_MonsterT(&self)
+  public func unpack() -> MyGame_Example_MonsterT {
+    return MyGame_Example_MonsterT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_MonsterT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -2065,7 +2040,7 @@ public class MyGame_Example_MonsterT: NativeObject {
   public var negativeInfinityDefault: Float32
   public var doubleInfDefault: Double
 
-  public init(_ _t: inout MyGame_Example_Monster) {
+  public init(_ _t: borrowing MyGame_Example_Monster) {
     pos = _t.pos
     mana = _t.mana
     hp = _t.hp
@@ -2075,13 +2050,13 @@ public class MyGame_Example_MonsterT: NativeObject {
     color = _t.color
     switch _t.testType {
     case .monster:
-      var _v = _t.test(type: MyGame_Example_Monster.self)
+      let _v = _t.test(type: MyGame_Example_Monster.self)
       test = MyGame_Example_Any_Union(_v?.unpack(), type: .monster)
     case .testsimpletablewithenum:
-      var _v = _t.test(type: MyGame_Example_TestSimpleTableWithEnum.self)
+      let _v = _t.test(type: MyGame_Example_TestSimpleTableWithEnum.self)
       test = MyGame_Example_Any_Union(_v?.unpack(), type: .testsimpletablewithenum)
     case .mygameExample2Monster:
-      var _v = _t.test(type: MyGame_Example2_Monster.self)
+      let _v = _t.test(type: MyGame_Example2_Monster.self)
       test = MyGame_Example_Any_Union(_v?.unpack(), type: .mygameExample2Monster)
     default: break
     }
@@ -2090,15 +2065,13 @@ public class MyGame_Example_MonsterT: NativeObject {
     testarrayofstring = []
     testarrayofstring.append(contentsOf: _t.testarrayofstring)
     testarrayoftables = []
-    for var val in _t.testarrayoftables{
+    for val in _t.testarrayoftables{
         testarrayoftables.append(val.unpack())
     }
-    var __enemy = _t.enemy
-    enemy = __enemy?.unpack()
+    enemy = _t.enemy?.unpack()
     testnestedflatbuffer = []
     testnestedflatbuffer.append(contentsOf: _t.testnestedflatbuffer)
-    var __testempty = _t.testempty
-    testempty = __testempty?.unpack()
+    testempty = _t.testempty?.unpack()
     testbool = _t.testbool
     testhashs32Fnv1 = _t.testhashs32Fnv1
     testhashu32Fnv1 = _t.testhashu32Fnv1
@@ -2125,17 +2098,16 @@ public class MyGame_Example_MonsterT: NativeObject {
     vectorOfLongs.append(contentsOf: _t.vectorOfLongs)
     vectorOfDoubles = []
     vectorOfDoubles.append(contentsOf: _t.vectorOfDoubles)
-    var __parentNamespaceTest = _t.parentNamespaceTest
-    parentNamespaceTest = __parentNamespaceTest?.unpack()
+    parentNamespaceTest = _t.parentNamespaceTest?.unpack()
     vectorOfReferrables = []
-    for var val in _t.vectorOfReferrables{
+    for val in _t.vectorOfReferrables{
         vectorOfReferrables.append(val.unpack())
     }
     singleWeakReference = _t.singleWeakReference
     vectorOfWeakReferences = []
     vectorOfWeakReferences.append(contentsOf: _t.vectorOfWeakReferences)
     vectorOfStrongReferrables = []
-    for var val in _t.vectorOfStrongReferrables{
+    for val in _t.vectorOfStrongReferrables{
         vectorOfStrongReferrables.append(val.unpack())
     }
     coOwningReference = _t.coOwningReference
@@ -2146,25 +2118,25 @@ public class MyGame_Example_MonsterT: NativeObject {
     vectorOfNonOwningReferences.append(contentsOf: _t.vectorOfNonOwningReferences)
     switch _t.anyUniqueType {
     case .m:
-      var _v = _t.anyUnique(type: MyGame_Example_Monster.self)
+      let _v = _t.anyUnique(type: MyGame_Example_Monster.self)
       anyUnique = MyGame_Example_AnyUniqueAliasesUnion(_v?.unpack(), type: .m)
     case .ts:
-      var _v = _t.anyUnique(type: MyGame_Example_TestSimpleTableWithEnum.self)
+      let _v = _t.anyUnique(type: MyGame_Example_TestSimpleTableWithEnum.self)
       anyUnique = MyGame_Example_AnyUniqueAliasesUnion(_v?.unpack(), type: .ts)
     case .m2:
-      var _v = _t.anyUnique(type: MyGame_Example2_Monster.self)
+      let _v = _t.anyUnique(type: MyGame_Example2_Monster.self)
       anyUnique = MyGame_Example_AnyUniqueAliasesUnion(_v?.unpack(), type: .m2)
     default: break
     }
     switch _t.anyAmbiguousType {
     case .m1:
-      var _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
+      let _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
       anyAmbiguous = MyGame_Example_AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m1)
     case .m2:
-      var _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
+      let _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
       anyAmbiguous = MyGame_Example_AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m2)
     case .m3:
-      var _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
+      let _v = _t.anyAmbiguous(type: MyGame_Example_Monster.self)
       anyAmbiguous = MyGame_Example_AnyAmbiguousAliasesUnion(_v?.unpack(), type: .m3)
     default: break
     }
@@ -2174,7 +2146,7 @@ public class MyGame_Example_MonsterT: NativeObject {
     testrequirednestedflatbuffer = []
     testrequirednestedflatbuffer.append(contentsOf: _t.testrequirednestedflatbuffer)
     scalarKeySortedTables = []
-    for var val in _t.scalarKeySortedTables{
+    for val in _t.scalarKeySortedTables{
         scalarKeySortedTables.append(val.unpack())
     }
     nativeInline = _t.nativeInline
@@ -2349,10 +2321,9 @@ public struct MyGame_Example_TypeAliases: FlatBufferTable, FlatbuffersVectorInit
     MyGame_Example_TypeAliases.addVectorOf(vf64: vf64, &fbb)
     return MyGame_Example_TypeAliases.endTypeAliases(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> MyGame_Example_TypeAliasesT {
-    return MyGame_Example_TypeAliasesT(&self)
+  public func unpack() -> MyGame_Example_TypeAliasesT {
+    return MyGame_Example_TypeAliasesT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_TypeAliasesT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -2464,7 +2435,7 @@ public class MyGame_Example_TypeAliasesT: NativeObject {
   public var v8: [Int8]
   public var vf64: [Double]
 
-  public init(_ _t: inout MyGame_Example_TypeAliases) {
+  public init(_ _t: borrowing MyGame_Example_TypeAliases) {
     i8 = _t.i8
     u8 = _t.u8
     i16 = _t.i16
