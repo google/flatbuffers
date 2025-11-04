@@ -3820,16 +3820,16 @@ class CppGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
-      // Generate the X::Pack member function that simply calls the global
-      // CreateX function.
-      code_ += "inline " + TablePackSignature(struct_def, false, opts_) + " {";
-      code_ += "  return Create{{STRUCT_NAME}}(_fbb, _o, _rehasher);";
+      // Generate the global CreateX function that simply calls the
+      // X::Pack member function.
+      code_ +=
+          "inline " + TableCreateSignature(struct_def, false, opts_) + " {";
+      code_ += "  return {{STRUCT_NAME}}::Pack(_fbb, _o, _rehasher);";
       code_ += "}";
       code_ += "";
 
       // Generate a CreateX method that works with an unpacked C++ object.
-      code_ +=
-          "inline " + TableCreateSignature(struct_def, false, opts_) + " {";
+      code_ += "inline " + TablePackSignature(struct_def, false, opts_) + " {";
       code_ += "  (void)_rehasher;";
       code_ += "  (void)_o;";
 
