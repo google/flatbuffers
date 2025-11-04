@@ -2,7 +2,7 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
-public struct BytesCount: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
+public struct BytesCount: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
@@ -45,7 +45,7 @@ extension BytesCount: Encodable {
   }
 }
 
-public struct BytesCount_Mutable: FlatBufferObject {
+public struct BytesCount_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -70,7 +70,7 @@ public struct BytesCount_Mutable: FlatBufferObject {
   }
 }
 
-public struct InternalMessage: FlatBufferObject, Verifiable, ObjectAPIPacker {
+public struct InternalMessage: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -153,7 +153,7 @@ public class InternalMessageT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: InternalMessage.self) }
 
 }
-public struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
+public struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }

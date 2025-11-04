@@ -119,8 +119,9 @@ final class FlatBuffersUnionTests: XCTestCase {
     let monster = ColorsNameSpace.Monster
       .getRootAsMonster(bb: builder.sizedBuffer)
     XCTAssertEqual(monster.colorsCount, 2)
-    XCTAssertEqual(monster.colors(at: 0), .blue)
-    XCTAssertEqual(monster.colors(at: 1), .green)
+    let colors = monster.colors
+    XCTAssertEqual(colors[0], .blue)
+    XCTAssertEqual(colors[1], .green)
   }
 
   func testUnionVector() {
@@ -148,11 +149,12 @@ final class FlatBuffersUnionTests: XCTestCase {
 
     var buffer = fb.sizedBuffer
     var movie: Movie = getRoot(byteBuffer: &buffer)
-    XCTAssertEqual(movie.charactersTypeCount, Int32(characterType.count))
-    XCTAssertEqual(movie.charactersCount, Int32(characters.count))
+    XCTAssertEqual(movie.charactersType.count, characterType.count)
+    XCTAssertEqual(movie.characters.count, characters.count)
 
-    for i in 0..<movie.charactersTypeCount {
-      XCTAssertEqual(movie.charactersType(at: i), characterType[Int(i)])
+    let bufferCharactersType = movie.charactersType
+    for (index, element) in bufferCharactersType.enumerated() {
+      XCTAssertEqual(element, characterType[index])
     }
 
     XCTAssertEqual(
@@ -167,8 +169,7 @@ final class FlatBuffersUnionTests: XCTestCase {
 
     var objc: MovieT? = movie.unpack()
     XCTAssertEqual(
-      movie.charactersTypeCount,
-      Int32(objc?.characters.count ?? 0))
+      movie.charactersType.count, objc?.characters.count ?? 0)
     XCTAssertEqual(
       movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,
       (objc?.characters[0]?.value as? BookReader)?.booksRead)
@@ -268,27 +269,33 @@ final class FlatBuffersUnionTests: XCTestCase {
       let reader: Movie = try getCheckedRoot(byteBuffer: &sizedBuffer)
       let encoder = JSONEncoder()
       encoder.keyEncodingStrategy = .convertToSnakeCase
-      _ = try encoder.encode(reader)
+      encoder.outputFormatting = [.sortedKeys]
+      let data = try encoder.encode(reader)
+      XCTAssertEqual(String(data: data, encoding: .utf8), jsonData)
     } catch {
       XCTFail(error.localizedDescription)
     }
   }
 
   var jsonData: String {
-    "{\"characters_type\":[\"Belle\",\"MuLan\",\"BookFan\",\"Other\"],\"characters\":[{\"books_read\":7},{\"sword_attack_damage\":8},{\"books_read\":2},\"Awesome \\\\\\\\t\\t\\nstring!\"]}"
+    """
+    {"characters":[{"books_read":7},{"sword_attack_damage":8},{"books_read":2},"Awesome \\\\\\\\t\\t\\nstring!"],"characters_type":["Belle","MuLan","BookFan","Other"]}
+    """
   }
 }
 
 public enum ColorsNameSpace {
 
-  enum RGB: Int32, Enum {
+  enum RGB: Int32, Enum, FlatbuffersVectorInitializable {
+    static var min: ColorsNameSpace.RGB { .red }
+
     typealias T = Int32
     static var byteSize: Int { MemoryLayout<Int32>.size }
     var value: Int32 { rawValue }
     case red = 0, green = 1, blue = 2
   }
 
-  struct Monster: FlatBufferObject {
+  struct Monster: FlatBufferTable {
     var __buffer: ByteBuffer! { _accessor.bb }
 
     private var _accessor: Table
@@ -296,7 +303,8 @@ public enum ColorsNameSpace {
       Monster(
         Table(
           bb: bb,
-          position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader)))
+          position: Int32(bb.read(def: UOffset.self, position: bb.reader)) +
+            Int32(bb.reader)))
     }
 
     init(_ t: Table) { _accessor = t }
@@ -307,20 +315,13 @@ public enum ColorsNameSpace {
       return o == 0
         ? 0
         : _accessor
-          .vector(count: o)
+        .vector(count: o)
     }
-    public func colors(at index: Int32) -> ColorsNameSpace
-      .RGB?
-    {
-      let o = _accessor.offset(4)
-      return o == 0
-        ? ColorsNameSpace
-          .RGB(rawValue: 0)!
-        : ColorsNameSpace.RGB(
-          rawValue: _accessor.directRead(
-            of: Int32.self,
-            offset: _accessor.vector(at: o) + index * 4))
+
+    public var colors: FlatbufferVector<RGB> {
+      _accessor.vector(at: 4, byteSize: 4)
     }
+
     static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset {
       fbb
         .startTable(with: 1)
@@ -332,8 +333,7 @@ public enum ColorsNameSpace {
     }
     static func endMonster(
       _ fbb: inout FlatBufferBuilder,
-      start: UOffset
-    )
+      start: UOffset)
       -> Offset
     {
       let end = Offset(offset: fbb.endTable(at: start))
@@ -362,8 +362,8 @@ struct FinalMonster {
     weapons: Offset,
     equipment: Equipment = .none,
     equippedOffset: Offset,
-    path: Offset
-  ) -> Offset {
+    path: Offset) -> Offset
+  {
     let start = builder.startTable(with: 11)
     builder.create(struct: position, position: 4)
     builder.add(element: hp, def: 100, at: 8)
@@ -391,7 +391,7 @@ struct LocalMonster {
   func weapon(at index: Int32) -> Weapon? {
     let o =
       __t
-      .offset(4)
+        .offset(4)
     return o == 0
       ? nil
       : Weapon.assign(
@@ -399,7 +399,7 @@ struct LocalMonster {
         __t.bb)
   }
 
-  func equiped<T: FlatBufferObject>() -> T? {
+  func equiped<T: FlatBufferTable>() -> T? {
     let o = __t.offset(8)
     return o == 0 ? nil : __t.union(o)
   }
@@ -416,8 +416,8 @@ struct LocalMonster {
     builder: inout FlatBufferBuilder,
     offset: Offset,
     equipment: Equipment = .none,
-    equippedOffset: UOffset
-  ) -> Offset {
+    equippedOffset: UOffset) -> Offset
+  {
     let start = builder.startTable(with: 3)
     builder.add(element: equippedOffset, def: 0, at: 8)
     builder.add(offset: offset, at: 4)
@@ -429,7 +429,7 @@ struct LocalMonster {
   }
 }
 
-struct Weapon: FlatBufferObject {
+struct Weapon: FlatBufferTable {
 
   var __buffer: ByteBuffer! { __t.bb }
 
@@ -464,8 +464,8 @@ struct Weapon: FlatBufferObject {
   static func createWeapon(
     builder: inout FlatBufferBuilder,
     offset: Offset,
-    dmg: Int16
-  ) -> Offset {
+    dmg: Int16) -> Offset
+  {
     let _start = builder.startTable(with: 2)
     Weapon.add(builder: &builder, name: offset)
     Weapon.add(builder: &builder, dmg: dmg)
@@ -475,8 +475,8 @@ struct Weapon: FlatBufferObject {
   @inlinable
   static func end(
     builder: inout FlatBufferBuilder,
-    startOffset: UOffset
-  ) -> Offset {
+    startOffset: UOffset) -> Offset
+  {
     Offset(offset: builder.endTable(at: startOffset))
   }
 

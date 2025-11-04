@@ -28,8 +28,8 @@ extension String: Verifiable {
   public static func verify<T>(
     _ verifier: inout Verifier,
     at position: Int,
-    of type: T.Type
-  ) throws where T: Verifiable {
+    of type: T.Type) throws where T: Verifiable
+  {
 
     let range = try String.verifyRange(&verifier, at: position, of: UInt8.self)
     /// Safe &+ since we already check for overflow in verify range
@@ -75,16 +75,16 @@ extension String: ObjectAPIPacker {
 
   public static func pack(
     _ builder: inout FlatBufferBuilder,
-    obj: inout String?
-  ) -> Offset {
+    obj: inout String?) -> Offset
+  {
     guard var obj = obj else { return Offset() }
     return pack(&builder, obj: &obj)
   }
 
   public static func pack(
     _ builder: inout FlatBufferBuilder,
-    obj: inout String
-  ) -> Offset {
+    obj: inout String) -> Offset
+  {
     builder.create(string: obj)
   }
 
@@ -97,14 +97,15 @@ extension String: ObjectAPIPacker {
 extension String: NativeObject {
 
   public func serialize<T: ObjectAPIPacker>(type: T.Type) -> ByteBuffer
-  where T.T == Self {
+    where T.T == Self
+  {
     fatalError("serialize should never be called from string directly")
   }
 
   public func serialize<T: ObjectAPIPacker>(
     builder: inout FlatBufferBuilder,
-    type: T.Type
-  ) -> ByteBuffer where T.T == Self {
+    type: T.Type) -> ByteBuffer where T.T == Self
+  {
     fatalError("serialize should never be called from string directly")
   }
 }

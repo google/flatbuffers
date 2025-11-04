@@ -192,8 +192,8 @@ class Country {
     builder: inout FlatBufferBuilder,
     name: String,
     log: Int32,
-    lan: Int32
-  ) -> Offset {
+    lan: Int32) -> Offset
+  {
     createCountry(
       builder: &builder,
       offset: builder.create(string: name),
@@ -206,8 +206,8 @@ class Country {
     builder: inout FlatBufferBuilder,
     offset: Offset,
     log: Int32,
-    lan: Int32
-  ) -> Offset {
+    lan: Int32) -> Offset
+  {
     let _start = builder.startTable(with: 3)
     Country.add(builder: &builder, lng: log)
     Country.add(builder: &builder, lan: lan)
@@ -218,8 +218,8 @@ class Country {
   @inlinable
   static func end(
     builder: inout FlatBufferBuilder,
-    startOffset: UOffset
-  ) -> Offset {
+    startOffset: UOffset) -> Offset
+  {
     Offset(offset: builder.endTable(at: startOffset))
   }
 

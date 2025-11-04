@@ -50,14 +50,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
   func testReadFromOtherLanguages() {
     let path = {
       #if os(macOS)
-        // Gets the current path of this test file then
-        // strips out the nested directories.
-        let filePath = URL(filePath: #file)
-          .deletingLastPathComponent()
-        return filePath.absoluteString
+      // Gets the current path of this test file then
+      // strips out the nested directories.
+      let filePath = URL(filePath: #file)
+        .deletingLastPathComponent()
+      return filePath.absoluteString
       #else
-        return FileManager.default.currentDirectoryPath
-          .appending("/tests/swift/Tests/Flatbuffers")
+      return FileManager.default.currentDirectoryPath
+        .appending("/tests/swift/Tests/Flatbuffers")
       #endif
     }()
 
@@ -230,15 +230,15 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     // swiftformat:enable all
     let unpacked =
       array
-      .withUnsafeMutableBytes { memory -> MyGame_Example_MonsterT in
-        var bytes = ByteBuffer(
-          assumingMemoryBound: memory.baseAddress!,
-          capacity: memory.count)
-        var monster: Monster = getRoot(byteBuffer: &bytes)
-        readFlatbufferMonster(monster: &monster)
-        let unpacked = monster.unpack()
-        return unpacked
-      }
+        .withUnsafeMutableBytes { memory -> MyGame_Example_MonsterT in
+          var bytes = ByteBuffer(
+            assumingMemoryBound: memory.baseAddress!,
+            capacity: memory.count)
+          var monster: Monster = getRoot(byteBuffer: &bytes)
+          readFlatbufferMonster(monster: &monster)
+          let unpacked = monster.unpack()
+          return unpacked
+        }
     readObjectApi(monster: unpacked)
   }
 
@@ -257,10 +257,10 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     let monster: Monster = getRoot(byteBuffer: &buffer)
     let values = monster.testarrayofbools
 
-    XCTAssertEqual(boolArray, values)
+    XCTAssertEqual(boolArray.count, values.count)
 
-    for i in 0..<monster.testarrayofboolsCount {
-      XCTAssertEqual(boolArray[Int(i)], monster.testarrayofbools(at: i))
+    for (index, bool) in monster.testarrayofbools.enumerated() {
+      XCTAssertEqual(bool, boolArray[index])
     }
   }
 
@@ -453,9 +453,9 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
     let monster: Monster = getRoot(byteBuffer: &fb)
     XCTAssertFalse(monster.mutate(mana: 10))
-    XCTAssertEqual(monster.testarrayoftables(at: 0)?.name, "Barney")
-    XCTAssertEqual(monster.testarrayoftables(at: 1)?.name, "Frodo")
-    XCTAssertEqual(monster.testarrayoftables(at: 2)?.name, "Wilma")
+    XCTAssertEqual(monster.testarrayoftables[0].name, "Barney")
+    XCTAssertEqual(monster.testarrayoftables[1].name, "Frodo")
+    XCTAssertEqual(monster.testarrayoftables[2].name, "Wilma")
 
     // Example of searching for a table by the key
     XCTAssertNotNil(monster.testarrayoftablesBy(key: "Frodo"))
@@ -470,8 +470,8 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(monster.mutate(inventory: 4, at: 3), true)
     XCTAssertEqual(monster.mutate(inventory: 5, at: 4), true)
 
-    for i in 0..<monster.inventoryCount {
-      XCTAssertEqual(monster.inventory(at: i), Byte(i + 1))
+    for i in 0..<monster.inventory.count {
+      XCTAssertEqual(monster.inventory[i], Byte(i + 1))
     }
 
     XCTAssertEqual(monster.mutate(inventory: 0, at: 0), true)
@@ -489,6 +489,13 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertTrue(vec?.mutate(x: 1) ?? false)
     XCTAssertEqual(vec?.x, 1)
     XCTAssertTrue(vec?.mutate(test1: 3) ?? false)
+
+    let mutableTest4 = monster.mutableTest4
+    let orignalValues = mutableTest4[0].a
+    XCTAssertEqual(mutableTest4[0].mutate(a: 100), true)
+    XCTAssertNotEqual(monster.test4[0].a, orignalValues)
+    XCTAssertEqual(monster.test4[0].a, 100)
+    XCTAssertEqual(mutableTest4[0].mutate(a: orignalValues), true)
   }
 
   func readFlatbufferMonster(monster: inout MyGame_Example_Monster) {
@@ -511,14 +518,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     XCTAssertEqual(monster.mutate(mana: 10), false)
 
     XCTAssertEqual(monster.mana, 150)
-    XCTAssertEqual(monster.inventoryCount, 5)
+    XCTAssertEqual(monster.inventory.count, 5)
     var sum: Byte = 0
-    for i in 0...monster.inventoryCount {
-      sum += monster.inventory(at: i)
+    for inventory in monster.inventory {
+      sum += inventory
     }
     XCTAssertEqual(sum, 10)
 
-    monster.withUnsafePointerToInventory { ptr in
+    monster.withUnsafePointerToInventory { ptr, count in
       var sum: UInt8 = 0
       for pointee in ptr.startIndex..<ptr.endIndex {
         sum += ptr[pointee]
@@ -526,57 +533,49 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       XCTAssertEqual(sum, 10)
     }
 
-    XCTAssertEqual(monster.test4Count, 2)
+    XCTAssertEqual(monster.test4.count, 2)
 
-    let test0 = monster.test4(at: 0)
-    let test1 = monster.test4(at: 1)
+    let test4 = monster.test4
     var sum0 = 0
-    var sum1 = 0
-    if let a = test0?.a, let b = test0?.b {
-      sum0 = Int(a) + Int(b)
+    for test0 in test4 {
+      sum0 += Int(test0.a) + Int(test0.b)
     }
-    if let a = test1?.a, let b = test1?.b {
-      sum1 = Int(a) + Int(b)
-    }
-    XCTAssertEqual(sum0 + sum1, 100)
+    XCTAssertEqual(sum0, 100)
 
-    monster.withUnsafePointerToTest4 { ptr in
+    monster.withUnsafePointerToTest4 { ptr, count in
       guard let ptr = ptr.baseAddress else { return }
 
       let bindedMemory: UnsafeBufferPointer<MyGame_Example_Test> =
         UnsafeBufferPointer(
           start: ptr.bindMemory(
             to: MyGame_Example_Test.self,
-            capacity: Int(monster.test4Count)),
-          count: Int(monster.test4Count))
+            capacity: count),
+          count: count)
       var pointerSum = 0
       for pointee in bindedMemory.startIndex..<bindedMemory.endIndex {
-        pointerSum += Int(bindedMemory[pointee].a) + Int(bindedMemory[pointee].b)
+        pointerSum += Int(bindedMemory[pointee].a) +
+          Int(bindedMemory[pointee].b)
       }
       XCTAssertEqual(pointerSum, 100)
     }
 
-    let mutableTest0 = monster.mutableTest4(at: 0)
-    let mutableTest1 = monster.mutableTest4(at: 1)
+    let mutableTest4 = monster.mutableTest4
     var sum2 = 0
-    var sum3 = 0
-    if let a = mutableTest0?.a, let b = mutableTest0?.b {
-      sum2 = Int(a) + Int(b)
+    for test0 in mutableTest4 {
+      sum2 += Int(test0.a) + Int(test0.b)
     }
-    if let a = mutableTest1?.a, let b = mutableTest1?.b {
-      sum3 = Int(a) + Int(b)
-    }
-    XCTAssertEqual(sum2 + sum3, 100)
+    XCTAssertEqual(sum2, 100)
 
-    XCTAssertEqual(monster.testarrayofstringCount, 2)
-    XCTAssertEqual(monster.testarrayofstring(at: 0), "test1")
-    XCTAssertEqual(monster.testarrayofstring(at: 1), "test2")
+    let stringArray = monster.testarrayofstring
+    XCTAssertEqual(stringArray.count, 2)
+    XCTAssertEqual(stringArray[0], "test1")
+    XCTAssertEqual(stringArray[1], "test2")
     XCTAssertEqual(monster.testbool, true)
 
     let array = monster.nameSegmentArray
     XCTAssertEqual(String(bytes: array ?? [], encoding: .utf8), "MyMonster")
 
-    if 0 == monster.testarrayofboolsCount {
+    if 0 == monster.testarrayofbools.count {
       XCTAssertEqual(monster.testarrayofbools.isEmpty, true)
     } else {
       XCTAssertEqual(monster.testarrayofbools.isEmpty, false)
@@ -611,17 +610,11 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
     XCTAssertEqual(sum, 10)
     XCTAssertEqual(monster.test4.count, 2)
-    let test0 = monster.test4[0]
-    let test1 = monster.test4[1]
     var sum0 = 0
-    var sum1 = 0
-    if let a = test0?.a, let b = test0?.b {
-      sum0 = Int(a) + Int(b)
+    for test in monster.test4 {
+      sum0 += Int(test.a) + Int(test.b)
     }
-    if let a = test1?.a, let b = test1?.b {
-      sum1 = Int(a) + Int(b)
-    }
-    XCTAssertEqual(sum0 + sum1, 100)
+    XCTAssertEqual(sum0, 100)
     XCTAssertEqual(monster.testbool, true)
   }
 
@@ -674,8 +667,11 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     let monster: Monster = getRoot(byteBuffer: &buffer)
     let values = monster.inventory
 
-    monster.withUnsafePointerToInventory {
-      XCTAssertEqual(Array($0), values)
+    monster.withUnsafePointerToInventory { ptr, count in
+      let array = Array(ptr)
+      for (index, value) in values.enumerated() {
+        XCTAssertEqual(array[index], value)
+      }
     }
   }
 }
