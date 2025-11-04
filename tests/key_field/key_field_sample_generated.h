@@ -786,11 +786,11 @@ inline void FooTable::UnPackTo(FooTableT *_o, const ::flatbuffers::resolver_func
   { auto _e = h(); if (_e) { _o->h.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->h[_i] = *_e->Get(_i); } } else { _o->h.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<FooTable> FooTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFooTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FooTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FooTable> FooTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FooTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
