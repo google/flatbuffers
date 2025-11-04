@@ -2685,11 +2685,11 @@ inline void InParentNamespace::UnPackTo(InParentNamespaceT *_o, const ::flatbuff
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<InParentNamespace> InParentNamespace::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateInParentNamespace(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(::flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return InParentNamespace::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(::flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<InParentNamespace> InParentNamespace::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const InParentNamespaceT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const InParentNamespaceT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -2720,11 +2720,11 @@ inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_functi
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMonster(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Monster::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MonsterT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -2759,11 +2759,11 @@ inline void TestSimpleTableWithEnum::UnPackTo(TestSimpleTableWithEnumT *_o, cons
   { auto _e = color(); _o->color = _e; }
 }
 
-inline ::flatbuffers::Offset<TestSimpleTableWithEnum> TestSimpleTableWithEnum::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateTestSimpleTableWithEnum(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(::flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return TestSimpleTableWithEnum::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnum(::flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<TestSimpleTableWithEnum> TestSimpleTableWithEnum::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TestSimpleTableWithEnumT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TestSimpleTableWithEnumT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -2800,11 +2800,11 @@ inline void Stat::UnPackTo(StatT *_o, const ::flatbuffers::resolver_function_t *
   { auto _e = count(); _o->count = _e; }
 }
 
-inline ::flatbuffers::Offset<Stat> Stat::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const StatT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateStat(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Stat> CreateStat(::flatbuffers::FlatBufferBuilder &_fbb, const StatT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Stat::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Stat> CreateStat(::flatbuffers::FlatBufferBuilder &_fbb, const StatT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Stat> Stat::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const StatT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const StatT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -2841,11 +2841,11 @@ inline void Referrable::UnPackTo(ReferrableT *_o, const ::flatbuffers::resolver_
   { auto _e = id(); _o->id = _e; }
 }
 
-inline ::flatbuffers::Offset<Referrable> Referrable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateReferrable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Referrable> CreateReferrable(::flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Referrable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Referrable> CreateReferrable(::flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Referrable> Referrable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ReferrableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const ReferrableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3123,11 +3123,11 @@ inline void Monster::UnPackTo(MonsterT *_o, const ::flatbuffers::resolver_functi
   { auto _e = double_inf_default(); _o->double_inf_default = _e; }
 }
 
-inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMonster(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Monster::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Monster> CreateMonster(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MonsterT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3302,11 +3302,11 @@ inline void TypeAliases::UnPackTo(TypeAliasesT *_o, const ::flatbuffers::resolve
   { auto _e = vf64(); if (_e) { _o->vf64.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vf64[_i] = _e->Get(_i); } } else { _o->vf64.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<TypeAliases> TypeAliases::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateTypeAliases(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<TypeAliases> CreateTypeAliases(::flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return TypeAliases::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<TypeAliases> CreateTypeAliases(::flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<TypeAliases> TypeAliases::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TypeAliasesT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TypeAliasesT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
