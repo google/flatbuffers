@@ -48,10 +48,24 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
   }
 
   func testReadFromOtherLanguages() {
-    let url = URL(fileURLWithPath: path, isDirectory: true)
+    let path = {
+      #if os(macOS)
+        // Gets the current path of this test file then
+        // strips out the nested directories.
+        let filePath = URL(filePath: #file)
+          .deletingLastPathComponent()
+        return filePath.absoluteString
+      #else
+        return FileManager.default.currentDirectoryPath
+          .appending("/tests/swift/Tests/Flatbuffers")
+      #endif
+    }()
+
+    let url = URL(string: path)!
       .appendingPathComponent("monsterdata_test")
       .appendingPathExtension("mon")
-    let data = try! Data(contentsOf: url)
+
+    let data = FileManager.default.contents(atPath: url.path)!
     let _data = ByteBuffer(data: data)
 
     readVerifiedMonster(fb: _data)
@@ -644,19 +658,6 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     """
     {\"hp\":80,\"inventory\":[0,1,2,3,4],\"test\":{\"name\":\"Fred\"},\"testarrayofstring\":[\"test1\",\"test2\"],\"testarrayoftables\":[{\"name\":\"Barney\"},{\"name\":\"Frodo\"},{\"name\":\"Wilma\"}],\"test4\":[{\"a\":30,\"b\":40},{\"a\":10,\"b\":20}],\"testbool\":true,\"test_type\":\"Monster\",\"pos\":{\"y\":2,\"test3\":{\"a\":5,\"b\":6},\"z\":3,\"x\":1,\"test1\":3,\"test2\":\"Green\"},\"name\":\"MyMonster\"}
     """
-  }
-
-  private var path: String {
-    #if os(macOS)
-      // Gets the current path of this test file then
-      // strips out the nested directories.
-      let filePath = URL(filePath: #file)
-        .deletingLastPathComponent()
-      return filePath.absoluteString
-    #else
-      return FileManager.default.currentDirectoryPath
-        .appending("/tests/swift/Tests/Flatbuffers")
-    #endif
   }
 
   func testContiguousBytes() {
