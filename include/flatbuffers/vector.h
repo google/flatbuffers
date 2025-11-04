@@ -172,7 +172,7 @@ class Vector {
       scalar_tag;
 
   static FLATBUFFERS_CONSTEXPR bool is_span_observable =
-      scalar_tag::value && !std::is_pointer_v<T> &&
+      scalar_tag::value && !std::is_pointer<T>::value &&
       (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1);
 
   SizeT size() const { return EndianScalar(length_); }
@@ -360,6 +360,22 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
   return span<const uint8_t>(vec.Data(), vec.size() * sizeof(U));
 }
 
+#if FLATBUFFERS_LITTLEENDIAN
+
+template <class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_structs_span(
+    Vector<const U*>& vec) FLATBUFFERS_NOEXCEPT {
+  return span<U>(reinterpret_cast<U*>(vec.data()), vec.size());
+}
+
+template <class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_structs_span(
+    const Vector<const U*>& vec) FLATBUFFERS_NOEXCEPT {
+  return span<const U>(reinterpret_cast<const U*>(vec.data()), vec.size());
+}
+
+#endif
+
 // Convenient helper functions to get a span of any vector, regardless
 // of whether it is null or not (the field is not set).
 template <class U>
@@ -377,6 +393,23 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
                 "wrong type U, only LE-scalar, or byte types are allowed");
   return ptr ? make_span(*ptr) : span<const U>();
 }
+
+#if FLATBUFFERS_LITTLEENDIAN
+
+template <class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_structs_span(
+    Vector<const U*>* ptr) FLATBUFFERS_NOEXCEPT {
+  return ptr ? make_span(*ptr) : span<U>();
+}
+
+template <class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_structs_span(
+    const Vector<const U*>* ptr) FLATBUFFERS_NOEXCEPT {
+  return ptr ? make_span(*ptr) : span<const U>();
+}
+
+#endif
+
 
 // Represent a vector much like the template above, but in this case we
 // don't know what the element types are (used with reflection.h).
