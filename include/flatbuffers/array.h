@@ -42,8 +42,8 @@ class Array {
   // If T is a non-pointer and a LE-scalar or a struct (!scalar_tag::value).
   static FLATBUFFERS_CONSTEXPR bool is_span_observable =
       !std::is_pointer<T>::value &&
-          (scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1)) ||
-      !scalar_tag::value;
+          ((scalar_tag::value && (FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1)) ||
+      !scalar_tag::value);
 
   FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
 
