@@ -652,10 +652,6 @@ inline bool VerifySizePrefixedRootTableBuffer(
   return verifier.VerifySizePrefixedBuffer<RootTable,::flatbuffers::uoffset64_t>(nullptr);
 }
 
-inline const char *RootTableExtension() {
-  return "bfbs";
-}
-
 inline void FinishRootTableBuffer(
     ::flatbuffers::FlatBufferBuilder64 &fbb,
     ::flatbuffers::Offset<RootTable> root) {
