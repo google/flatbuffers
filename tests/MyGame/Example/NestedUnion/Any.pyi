@@ -15,5 +15,5 @@ class Any(object):
   NONE = cast(int, ...)
   Vec3 = cast(int, ...)
   TestSimpleTableWithEnum = cast(int, ...)
-def AnyCreator(union_type: typing.Literal[Any.NONE, Any.Vec3, Any.TestSimpleTableWithEnum], table: table.Table) -> typing.Union[None, Vec3, TestSimpleTableWithEnum]: ...
+def AnyCreator(union_type: Any, table: table.Table) -> typing.Union[None, Vec3, TestSimpleTableWithEnum]: ...
 

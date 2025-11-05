@@ -210,13 +210,7 @@ class PythonStubGenerator {
     imports->Import("typing");
     const Import& import =
         imports->Import(ModuleFor(&enum_def), namer_.Type(enum_def));
-
-    std::string result = "";
-    for (const EnumVal* val : enum_def.Vals()) {
-      if (!result.empty()) result += ", ";
-      result += import.name + "." + namer_.Variant(*val);
-    }
-    return "typing.Literal[" + result + "]";
+    return import.name;
   }
 
   std::string TypeOf(const Type& type, Imports* imports) const {
