@@ -1,6 +1,8 @@
 #ifndef NATIVE_TYPE_TEST_IMPL_H
 #define NATIVE_TYPE_TEST_IMPL_H
 
+#include <vector>
+
 namespace Native {
 struct Vector3D {
   float x;
@@ -20,6 +22,25 @@ struct Vector3D {
 
   bool operator==(const Vector3D &other) const {
     return (x == other.x) && (y == other.y) && (z == other.z);
+  }
+};
+
+struct Matrix {
+  int rows;
+  int columns;
+  std::vector<float> values;
+
+  Matrix() : Matrix(0, 0) {}
+
+  Matrix(int _rows, int _columns) {
+    this->rows = _rows;
+    this->columns = _columns;
+    values.resize(_rows * _columns);
+  }
+
+  bool operator==(const Matrix &other) const {
+    return (rows == other.rows) && (columns == other.columns) &&
+           (values == other.values);
   }
 };
 }  // namespace Native

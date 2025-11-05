@@ -14,8 +14,7 @@ struct Vector3DAlt (native_type:"Native::Vector3D", native_type_pack_name:"Vecto
   c:float;
 }
 
-// table Matrix (native_type:"Native::Matrix") {
-table Matrix {
+table Matrix (native_type:"Native::Matrix") {
   rows:int32;
   columns:int32;
   values:[float];

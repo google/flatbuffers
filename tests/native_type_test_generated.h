@@ -23,14 +23,11 @@ struct Vector3DAlt;
 
 struct Matrix;
 struct MatrixBuilder;
-struct MatrixT;
 
 struct ApplicationData;
 struct ApplicationDataBuilder;
 struct ApplicationDataT;
 
-bool operator==(const MatrixT &lhs, const MatrixT &rhs);
-bool operator!=(const MatrixT &lhs, const MatrixT &rhs);
 bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
 bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
 
@@ -124,15 +121,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3DAlt FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vector3DAlt, 12);
 
-struct MatrixT : public ::flatbuffers::NativeTable {
-  typedef Matrix TableType;
-  int32_t rows = 0;
-  int32_t columns = 0;
-  std::vector<float> values{};
-};
-
 struct Matrix FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef MatrixT NativeTableType;
+  typedef Native::Matrix NativeTableType;
   typedef MatrixBuilder Builder;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MatrixTypeTable();
@@ -168,9 +158,9 @@ struct Matrix FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyVector(values()) &&
            verifier.EndTable();
   }
-  MatrixT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(MatrixT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<Matrix> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MatrixT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  Native::Matrix *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(Native::Matrix *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<Matrix> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const Native::Matrix* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
 struct MatrixBuilder {
@@ -222,7 +212,7 @@ inline ::flatbuffers::Offset<Matrix> CreateMatrixDirect(
       values__);
 }
 
-::flatbuffers::Offset<Matrix> CreateMatrix(::flatbuffers::FlatBufferBuilder &_fbb, const MatrixT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<Matrix> CreateMatrix(::flatbuffers::FlatBufferBuilder &_fbb, const Native::Matrix *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct ApplicationDataT : public ::flatbuffers::NativeTable {
   typedef ApplicationData TableType;
@@ -230,8 +220,8 @@ struct ApplicationDataT : public ::flatbuffers::NativeTable {
   std::vector<Native::Vector3D> vectors_alt{};
   std::unique_ptr<Native::Vector3D> position{};
   Native::Vector3D position_inline{};
-  std::unique_ptr<Geometry::MatrixT> matrix{};
-  std::vector<std::unique_ptr<Geometry::MatrixT>> matrices{};
+  std::unique_ptr<Native::Matrix> matrix{};
+  std::vector<std::unique_ptr<Native::Matrix>> matrices{};
   ApplicationDataT() = default;
   ApplicationDataT(const ApplicationDataT &o);
   ApplicationDataT(ApplicationDataT&&) FLATBUFFERS_NOEXCEPT = default;
@@ -382,49 +372,14 @@ inline ::flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(
 
 ::flatbuffers::Offset<ApplicationData> CreateApplicationData(::flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-
-inline bool operator==(const MatrixT &lhs, const MatrixT &rhs) {
-  return
-      (lhs.rows == rhs.rows) &&
-      (lhs.columns == rhs.columns) &&
-      (lhs.values == rhs.values);
-}
-
-inline bool operator!=(const MatrixT &lhs, const MatrixT &rhs) {
-    return !(lhs == rhs);
-}
-
-
-inline MatrixT *Matrix::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::unique_ptr<MatrixT>(new MatrixT());
+inline Native::Matrix *Matrix::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::unique_ptr<Native::Matrix>(new Native::Matrix());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
 
-inline void Matrix::UnPackTo(MatrixT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = rows(); _o->rows = _e; }
-  { auto _e = columns(); _o->columns = _e; }
-  { auto _e = values(); if (_e) { _o->values.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->values[_i] = _e->Get(_i); } } else { _o->values.resize(0); } }
-}
-
-inline ::flatbuffers::Offset<Matrix> CreateMatrix(::flatbuffers::FlatBufferBuilder &_fbb, const MatrixT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Matrix> CreateMatrix(::flatbuffers::FlatBufferBuilder &_fbb, const Native::Matrix *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   return Matrix::Pack(_fbb, _o, _rehasher);
-}
-
-inline ::flatbuffers::Offset<Matrix> Matrix::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MatrixT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MatrixT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _rows = _o->rows;
-  auto _columns = _o->columns;
-  auto _values = _o->values.size() ? _fbb.CreateVector(_o->values) : 0;
-  return Geometry::CreateMatrix(
-      _fbb,
-      _rows,
-      _columns,
-      _values);
 }
 
 
@@ -435,7 +390,7 @@ inline bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs)
       ((lhs.position == rhs.position) || (lhs.position && rhs.position && *lhs.position == *rhs.position)) &&
       (lhs.position_inline == rhs.position_inline) &&
       ((lhs.matrix == rhs.matrix) || (lhs.matrix && rhs.matrix && *lhs.matrix == *rhs.matrix)) &&
-      (lhs.matrices.size() == rhs.matrices.size() && std::equal(lhs.matrices.cbegin(), lhs.matrices.cend(), rhs.matrices.cbegin(), [](std::unique_ptr<Geometry::MatrixT> const &a, std::unique_ptr<Geometry::MatrixT> const &b) { return (a == b) || (a && b && *a == *b); }));
+      (lhs.matrices.size() == rhs.matrices.size() && std::equal(lhs.matrices.cbegin(), lhs.matrices.cend(), rhs.matrices.cbegin(), [](std::unique_ptr<Native::Matrix> const &a, std::unique_ptr<Native::Matrix> const &b) { return (a == b) || (a && b && *a == *b); }));
 }
 
 inline bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
@@ -448,9 +403,9 @@ inline ApplicationDataT::ApplicationDataT(const ApplicationDataT &o)
         vectors_alt(o.vectors_alt),
         position((o.position) ? new Native::Vector3D(*o.position) : nullptr),
         position_inline(o.position_inline),
-        matrix((o.matrix) ? new Geometry::MatrixT(*o.matrix) : nullptr) {
+        matrix((o.matrix) ? new Native::Matrix(*o.matrix) : nullptr) {
   matrices.reserve(o.matrices.size());
-  for (const auto &matrices_ : o.matrices) { matrices.emplace_back((matrices_) ? new Geometry::MatrixT(*matrices_) : nullptr); }
+  for (const auto &matrices_ : o.matrices) { matrices.emplace_back((matrices_) ? new Native::Matrix(*matrices_) : nullptr); }
 }
 
 inline ApplicationDataT &ApplicationDataT::operator=(ApplicationDataT o) FLATBUFFERS_NOEXCEPT {
@@ -476,8 +431,8 @@ inline void ApplicationData::UnPackTo(ApplicationDataT *_o, const ::flatbuffers:
   { auto _e = vectors_alt(); if (_e) { _o->vectors_alt.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->vectors_alt[_i] = ::flatbuffers::UnPackVector3DAlt(*_e->Get(_i)); } } else { _o->vectors_alt.resize(0); } }
   { auto _e = position(); if (_e) _o->position = std::unique_ptr<Native::Vector3D>(new Native::Vector3D(::flatbuffers::UnPack(*_e))); }
   { auto _e = position_inline(); if (_e) _o->position_inline = ::flatbuffers::UnPack(*_e); }
-  { auto _e = matrix(); if (_e) { if(_o->matrix) { _e->UnPackTo(_o->matrix.get(), _resolver); } else { _o->matrix = std::unique_ptr<Geometry::MatrixT>(_e->UnPack(_resolver)); } } else if (_o->matrix) { _o->matrix.reset(); } }
-  { auto _e = matrices(); if (_e) { _o->matrices.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->matrices[_i]) { _e->Get(_i)->UnPackTo(_o->matrices[_i].get(), _resolver); } else { _o->matrices[_i] = std::unique_ptr<Geometry::MatrixT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->matrices.resize(0); } }
+  { auto _e = matrix(); if (_e) { if(_o->matrix) { _e->UnPackTo(_o->matrix.get(), _resolver); } else { _o->matrix = std::unique_ptr<Native::Matrix>(_e->UnPack(_resolver)); } } else if (_o->matrix) { _o->matrix.reset(); } }
+  { auto _e = matrices(); if (_e) { _o->matrices.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->matrices[_i]) { _e->Get(_i)->UnPackTo(_o->matrices[_i].get(), _resolver); } else { _o->matrices[_i] = std::unique_ptr<Native::Matrix>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->matrices.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<ApplicationData> CreateApplicationData(::flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
