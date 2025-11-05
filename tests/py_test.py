@@ -55,6 +55,10 @@ import MyGame.Example.NestedUnion.Color  # refers to generated code
 import monster_test_generated  # the one-file version
 import optional_scalars
 import optional_scalars.ScalarStuff
+import union_vector
+import union_vector.Attacker
+import union_vector.Character
+import union_vector.Movie
 
 
 def create_namespace_shortcut(is_onefile):
@@ -302,6 +306,51 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertEqual(monster2.VectorOfEnumsAsNumpy(), 0)
     self.assertEqual(monster2.VectorOfEnumsLength(), 0)
     self.assertTrue(monster2.VectorOfEnumsIsNone())
+
+  def test_union_vectors_with_pack_and_unpack(self):
+    b = flatbuffers.Builder(0)
+
+    union_vector.Attacker.Start(b)
+    union_vector.Attacker.AddSwordAttackDamage(b, 1)
+    attacker_offset = union_vector.Attacker.End(b)
+
+    union_vector.Attacker.Start(b)
+    union_vector.Attacker.AddSwordAttackDamage(b, 2)
+    attacker_offset2 = union_vector.Attacker.End(b)
+
+    characters = [attacker_offset, attacker_offset2]
+    character_types = [union_vector.Character.Character.MuLan, union_vector.Character.Character.MuLan]
+
+    union_vector.Movie.StartCharactersTypeVector(b, len(character_types))
+    for character_type in reversed(character_types):
+      b.PrependByte(character_type)
+    character_types_offset = b.EndVector()
+
+    union_vector.Movie.StartCharactersVector(b, len(characters))
+    for character in reversed(characters):
+      b.PrependUOffsetTRelative(character)
+    characters_offset = b.EndVector()
+
+    union_vector.Movie.Start(b)
+    union_vector.Movie.AddMainCharacterType(b, 0)
+    union_vector.Movie.AddMainCharacter(b, 0)
+    union_vector.Movie.AddCharactersType(b, character_types_offset)
+    union_vector.Movie.AddCharacters(b, characters_offset)
+    movie_offset = union_vector.Movie.End(b)
+    b.Finish(movie_offset)
+
+    buf = b.Output()
+    movie = union_vector.Movie.Movie.GetRootAsMovie(buf, 0)
+
+    self.assertEqual(movie.CharactersTypeLength(), len(character_types))
+    self.assertEqual(movie.CharactersLength(), len(characters))
+    self.assertEqual(movie.CharactersType(0), character_types[0])
+
+    character = union_vector.Attacker.Attacker()
+    character.Init(movie.Characters(0).Bytes, movie.Characters(0).Pos)
+    self.assertEqual(character.SwordAttackDamage(), 1)
+    character.Init(movie.Characters(1).Bytes, movie.Characters(1).Pos)
+    self.assertEqual(character.SwordAttackDamage(), 2)
 
   def test_optional_scalars_with_pack_and_unpack(self):
     """Serializes and deserializes between a buffer with optional values (no
