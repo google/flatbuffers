@@ -246,8 +246,10 @@ class Builder(object):
       vtKey.append(elem)
 
     vtKey = tuple(vtKey)
-    vt2Offset = self.vtables.get(vtKey)
-    if vt2Offset is None:
+    # calculate the size of the object
+    objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
+    vt2Offset, vt2Size = self.vtables.get(vtKey) or (None, None)
+    if vt2Offset is None or vt2Size != objectSize:
       # Did not find a vtable, so write this one to the buffer.
 
       # Write out the current vtable in reverse , because
@@ -275,7 +277,6 @@ class Builder(object):
       # The two metadata fields are written last.
 
       # First, store the object bytesize:
-      objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
       self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
 
       # Second, store the vtable bytesize:
@@ -295,7 +296,7 @@ class Builder(object):
 
       # Finally, store this vtable in memory for future
       # deduplication:
-      self.vtables[vtKey] = self.Offset()
+      self.vtables[vtKey] = (self.Offset(), objectSize)
     else:
       # Found a duplicate vtable.
       objectStart = SOffsetTFlags.py_type(len(self.Bytes) - objectOffset)
