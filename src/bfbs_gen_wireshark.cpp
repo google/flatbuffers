@@ -493,7 +493,8 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
                 ", buffer(offset), buffer(offset):raw(), file_name)\n\n";
 
         code +=
-            "  offset = Parse_Root_Offset(buffer, offset, subtree).value\n\n";
+            "  offset = offset + Parse_Root_Offset(buffer, offset, "
+            "subtree).value\n\n";
 
         // parse file_ident if present in the schema
         if (const std::string ident = schema_->file_ident()->str();
@@ -519,12 +520,11 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
       if (object->is_struct()) {
         code += "  return Parse_Struct(buffer, offset, subtree, " +
                 member_lookup_table + "[1], " +
-                NumToString(object->bytesize()) + ", " + member_names_table +
-                ", " + member_list_table + ")\n";
+                NumToString(object->bytesize()) + ", " + member_list_table +
+                ")\n";
       } else {
         code += "  return Parse_Table(buffer, offset, subtree, " +
-                member_lookup_table + "[1], " + member_names_table + ", " +
-                member_list_table + ")\n";
+                member_lookup_table + "[1], " + member_list_table + ")\n";
       }
       code += "end\n\n";
     });
