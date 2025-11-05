@@ -29,6 +29,11 @@ struct ApplicationData;
 struct ApplicationDataBuilder;
 struct ApplicationDataT;
 
+bool operator==(const MatrixT &lhs, const MatrixT &rhs);
+bool operator!=(const MatrixT &lhs, const MatrixT &rhs);
+bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs);
+
 inline const ::flatbuffers::TypeTable *Vector3DTypeTable();
 
 inline const ::flatbuffers::TypeTable *Vector3DAltTypeTable();
@@ -377,6 +382,19 @@ inline ::flatbuffers::Offset<ApplicationData> CreateApplicationDataDirect(
 
 ::flatbuffers::Offset<ApplicationData> CreateApplicationData(::flatbuffers::FlatBufferBuilder &_fbb, const ApplicationDataT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+
+inline bool operator==(const MatrixT &lhs, const MatrixT &rhs) {
+  return
+      (lhs.rows == rhs.rows) &&
+      (lhs.columns == rhs.columns) &&
+      (lhs.values == rhs.values);
+}
+
+inline bool operator!=(const MatrixT &lhs, const MatrixT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline MatrixT *Matrix::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
   auto _o = std::unique_ptr<MatrixT>(new MatrixT());
   UnPackTo(_o.get(), _resolver);
@@ -408,6 +426,22 @@ inline ::flatbuffers::Offset<Matrix> Matrix::Pack(::flatbuffers::FlatBufferBuild
       _columns,
       _values);
 }
+
+
+inline bool operator==(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+  return
+      (lhs.vectors == rhs.vectors) &&
+      (lhs.vectors_alt == rhs.vectors_alt) &&
+      ((lhs.position == rhs.position) || (lhs.position && rhs.position && *lhs.position == *rhs.position)) &&
+      (lhs.position_inline == rhs.position_inline) &&
+      ((lhs.matrix == rhs.matrix) || (lhs.matrix && rhs.matrix && *lhs.matrix == *rhs.matrix)) &&
+      (lhs.matrices.size() == rhs.matrices.size() && std::equal(lhs.matrices.cbegin(), lhs.matrices.cend(), rhs.matrices.cbegin(), [](std::unique_ptr<Geometry::MatrixT> const &a, std::unique_ptr<Geometry::MatrixT> const &b) { return (a == b) || (a && b && *a == *b); }));
+}
+
+inline bool operator!=(const ApplicationDataT &lhs, const ApplicationDataT &rhs) {
+    return !(lhs == rhs);
+}
+
 
 inline ApplicationDataT::ApplicationDataT(const ApplicationDataT &o)
       : vectors(o.vectors),
