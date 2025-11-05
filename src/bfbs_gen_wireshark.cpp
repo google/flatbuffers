@@ -26,7 +26,9 @@
 // Future work:
 // * nested_flatbuffer - call Parse<name> if I can get the data out of the
 // reflection
-// * bitfields - well known attributes are not passed down to us
+// * bitfields - need to create fields in the dissector for each bit
+//   * also need to schema about multi-bit fields - how to know if MSB or LSB
+//   named?
 // * flexbuffers
 
 #include "bfbs_gen_wireshark.h"
