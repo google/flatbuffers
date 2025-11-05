@@ -19,6 +19,9 @@
 // * squash commits
 // * fix vector of unions
 // * handle windows paths
+// * test optional scalars (should work?)
+// * print default vectors (this is just empty vs null) and strings (which have
+// non null defaults)
 
 // Future work:
 // * nested_flatbuffer - call Parse<name> if I can get the data out of the
@@ -746,6 +749,9 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
 
             if (!sub_object->is_struct()) { is_indirect = true; }
           } break;
+          case r::Union: {
+            break;
+          }
           default:
             // scalar types
             object_type = GetScalarParserProtoField(element_base_type);
@@ -863,7 +869,7 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
       // set the value of the union field in the local lookup table, so that we
       // can reference it when we come accross the union itself
       code += "  " + full_object_name_underscore + "_union_type_enum_values[" +
-              NumToString(field->id() + 1) + "] = parsed_data.value\n";
+              NumToString(field->id()) + "] = parsed_data.value\n";
     }
 
     return code;
