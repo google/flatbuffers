@@ -1,6 +1,11 @@
 -- can be enabled when calling the root node parse function
 FB_VERBOSE = false
 
+function Register_Proto(protocol)
+    DissectorTable.get("tcp.port"):add_for_decode_as(protocol)
+    DissectorTable.get("udp.port"):add_for_decode_as(protocol)
+end
+
 local function Parse_Offset(buffer, offset, tree, field_name, field_type, indirect_offset)
     -- assume voffset is the only 2 byte wide variant
     local field_size = (field_type == fb_voffset_t) and 2 or 4
@@ -11,7 +16,7 @@ local function Parse_Offset(buffer, offset, tree, field_name, field_type, indire
     local subtree = tree
     if FB_VERBOSE then
         subtree = tree:add(field_type, offset_buffer, offset_value)
-        subtree:prepend_text(field_name .. ": ")
+        subtree:prepend_text(field_type.name .. ": ")
         subtree:append_text(" [0x" .. NumberToHex(buffer:offset() + offset + offset_value, field_size) .. "]")
     end
 
