@@ -46,6 +46,8 @@
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 
+using namespace std::string_view_literals;
+
 namespace flatbuffers {
 namespace {
 // To reduce typing
@@ -589,6 +591,32 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
       }
     }
 
+    // check if the field has a display_format attribute
+    std::string_view scalar_format = "base.DEC"sv;
+    if (const auto display_format =
+            field->attributes()->LookupByKey("display_format");
+        display_format) {
+      // known values are hex, binary, octal, decimal
+      const std::string format_str = display_format->value()->str();
+
+      static constexpr std::array formats = {
+          std::make_pair("hex_dec"sv, "base.HEX_DEC"sv),
+          std::make_pair("dec_hex"sv, "base.DEC_HEX"sv),
+          std::make_pair("hex"sv, "base.HEX"sv),
+          std::make_pair("octal"sv, "base.OCT"sv),
+          std::make_pair("decimal"sv, "base.DEC"sv),
+      };
+
+      for (const auto& format : formats) {
+        if (format_str == format.first) {
+          scalar_format = format.second;
+          break;
+        }
+      }
+
+      // should we warn if an unknown format is specified?
+    }
+
     // generate the key for the table and the prefix of the value
     code += "  [" + object_full_name + "_member_names[" +
             NumToString(field->id()) + "]] = ";
@@ -603,40 +631,47 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
       case r::UType:
       case r::Byte:
       case r::UByte:
-        code += "uint8(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC, " + enum_lookup_table + ", nil, \"" + field_name;
+        code += "uint8(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                scalar_format.data() + ", " + enum_lookup_table + ", nil, \"" +
+                field_name;
         break;
       case r::Short:
-        code += "int16(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC, " + enum_lookup_table + ", nil, \"" + field_name;
+        code += "int16(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                scalar_format.data() + ", " + enum_lookup_table + ", nil, \"" +
+                field_name;
         break;
       case r::UShort:
-        code += "uint16(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC, " + enum_lookup_table + ", nil, \"" + field_name;
+        code += "uint16(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                scalar_format.data() + ", " + enum_lookup_table + ", nil, \"" +
+                field_name;
         break;
       case r::Int:
-        code += "int32(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC, " + enum_lookup_table + ", nil, \"" + field_name;
+        code += "int32(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                scalar_format.data() + ", " + enum_lookup_table + ", nil, \"" +
+                field_name;
         break;
       case r::UInt:
-        code += "uint32(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC, " + enum_lookup_table + ", nil, \"" + field_name;
+        code += "uint32(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                scalar_format.data() + ", " + enum_lookup_table + ", nil, \"" +
+                field_name;
         break;
       case r::Long:
-        code += "int64(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC, " + enum_lookup_table + ", nil, \"" + field_name;
+        code += "int64(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                scalar_format.data() + ", " + enum_lookup_table + ", nil, \"" +
+                field_name;
         break;
       case r::ULong:
-        code += "uint64(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC, " + enum_lookup_table + ", nil, \"" + field_name;
+        code += "uint64(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                scalar_format.data() + ", " + enum_lookup_table + ", nil, \"" +
+                field_name;
         break;
       case r::Double:
-        code += "double(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC,  \"" + field_name;
+        code += "double(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                field_name;
         break;
       case r::Float:
-        code += "float(\"" + field_name_full + "\", \"" + field_name +
-                "\", base.DEC,  \"" + field_name;
+        code += "float(\"" + field_name_full + "\", \"" + field_name + "\", " +
+                field_name;
         break;
       case r::String:
         code += "string(\"" + field_name_full + "\", \"" + field_name +
