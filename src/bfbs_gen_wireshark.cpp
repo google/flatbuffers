@@ -595,22 +595,23 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
     std::string_view scalar_format = "base.DEC"sv;
     const auto attributes = field->attributes();
     if (attributes) {
+      const auto format_str = attributes->LookupByKey("display_format");
       // known values are hex, binary, octal, decimal
-      const std::string format_str =
-          attributes->LookupByKey("display_format")->value()->str();
 
-      static constexpr std::array formats = {
-          std::make_pair("hex_dec"sv, "base.HEX_DEC"sv),
-          std::make_pair("dec_hex"sv, "base.DEC_HEX"sv),
-          std::make_pair("hex"sv, "base.HEX"sv),
-          std::make_pair("octal"sv, "base.OCT"sv),
-          std::make_pair("decimal"sv, "base.DEC"sv),
-      };
+      if (format_str) {
+        static constexpr std::array formats = {
+            std::make_pair("hex_dec"sv, "base.HEX_DEC"sv),
+            std::make_pair("dec_hex"sv, "base.DEC_HEX"sv),
+            std::make_pair("hex"sv, "base.HEX"sv),
+            std::make_pair("octal"sv, "base.OCT"sv),
+            std::make_pair("decimal"sv, "base.DEC"sv),
+        };
 
-      for (const auto& format : formats) {
-        if (format_str == format.first) {
-          scalar_format = format.second;
-          break;
+        for (const auto& format : formats) {
+          if (format_str->value()->str() == format.first) {
+            scalar_format = format.second;
+            break;
+          }
         }
       }
 
