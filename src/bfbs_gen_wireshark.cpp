@@ -667,12 +667,12 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
                 field_name;
         break;
       case r::Double:
-        code += "double(\"" + field_name_full + "\", \"" + field_name + "\", " +
-                field_name;
+        code += "double(\"" + field_name_full + "\", \"" + field_name +
+                "\", \"" + field_name;
         break;
       case r::Float:
-        code += "float(\"" + field_name_full + "\", \"" + field_name + "\", " +
-                field_name;
+        code += "float(\"" + field_name_full + "\", \"" + field_name +
+                "\", \"" + field_name;
         break;
       case r::String:
         code += "string(\"" + field_name_full + "\", \"" + field_name +
