@@ -6,7 +6,7 @@ function Register_Proto(protocol)
     DissectorTable.get("udp.port"):add_for_decode_as(protocol)
 end
 
-local function Parse_Offset(buffer, offset, tree, field_name, field_type, indirect_offset)
+local function Parse_Offset(buffer, offset, tree, field_name, field_type)
     -- assume voffset is the only 2 byte wide variant
     local field_size = (field_type == fb_voffset_t) and 2 or 4
 
@@ -16,7 +16,7 @@ local function Parse_Offset(buffer, offset, tree, field_name, field_type, indire
     local subtree = tree
     if FB_VERBOSE then
         subtree = tree:add(field_type, offset_buffer, offset_value)
-        subtree:prepend_text(field_type.name .. ": ")
+        subtree:prepend_text(field_name .. ": ")
         subtree:append_text(" [0x" .. NumberToHex(buffer:offset() + offset + offset_value, field_size) .. "]")
     end
 
@@ -27,11 +27,11 @@ local function Parse_Offset(buffer, offset, tree, field_name, field_type, indire
 end
 
 local function Parse_UOffset(buffer, offset, tree, field_type)
-    return Parse_Offset(buffer, offset, tree, field_type.name, fb_uoffset_t, 0)
+    return Parse_Offset(buffer, offset, tree, field_type.name, fb_uoffset_t)
 end
 
-local function Parse_VOffset(buffer, offset, tree, field_name, indirect_offset)
-    return Parse_Offset(buffer, offset, tree, field_name, fb_voffset_t, indirect_offset)
+local function Parse_VOffset(buffer, offset, tree, field_name)
+    return Parse_Offset(buffer, offset, tree, field_name, fb_voffset_t)
 end
 
 function Parse_Root_Offset(buffer, offset, tree)
@@ -161,7 +161,7 @@ function Parse_Struct(buffer, offset, tree, field_type, struct_size, member_list
     for i = 1, #member_list do
         local data_item_offset = member_list[i][1]
         -- call this members' parser
-        member_list[i][3](buffer, offset + data_item_offset, subtree, member_list[i][1])
+        member_list[i][3](buffer, offset + data_item_offset, subtree)
     end
 
     return {
@@ -271,7 +271,7 @@ local function Parse_TableInfo(buffer, offset, tree, field_type, member_list)
         if (#vtable_data.entries ~= 0) then
             for i = 1, #vtable_data.entries do
                 local entry_offset = entry_start + ((i - 1) * 2)
-                Parse_VOffset(buffer, entry_offset, vtable_subtree, member_list[i][1], buffer:offset() + offset)
+                Parse_VOffset(buffer, entry_offset, vtable_subtree, member_list[i][1])
             end
         end
     end
