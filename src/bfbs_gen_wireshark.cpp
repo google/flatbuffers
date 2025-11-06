@@ -593,11 +593,11 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
 
     // check if the field has a display_format attribute
     std::string_view scalar_format = "base.DEC"sv;
-    if (const auto display_format =
-            field->attributes()->LookupByKey("display_format");
-        display_format) {
+    const auto attributes = field->attributes();
+    if (attributes) {
       // known values are hex, binary, octal, decimal
-      const std::string format_str = display_format->value()->str();
+      const std::string format_str =
+          attributes->LookupByKey("display_format")->value()->str();
 
       static constexpr std::array formats = {
           std::make_pair("hex_dec"sv, "base.HEX_DEC"sv),
