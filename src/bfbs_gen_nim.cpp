@@ -714,10 +714,12 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       std::replace(path.begin(), path.end(), '.', '/');
     }
 
-    // TODO(derekbailey): figure out a save file without depending on util.h
-    EnsureDirExists(path);
-    const std::string file_name =
-        options_.output_path + path + "/" + namer_.File(name);
+    // Create the full directory under the configured output path. Use
+    // ConCatPathFileName to safely join path components (it will add the
+    // trailing separator if needed and strip a leading './').
+    const std::string full_dir = ConCatPathFileName(options_.output_path, path);
+    EnsureDirExists(full_dir);
+    const std::string file_name = ConCatPathFileName(full_dir, namer_.File(name));
     SaveFile(file_name.c_str(), code, false);
   }
 
