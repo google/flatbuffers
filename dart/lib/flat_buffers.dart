@@ -1022,6 +1022,42 @@ class ListReader<E> extends Reader<List<E>> {
   }
 }
 
+/// The reader of lists of objects. Lazy by default - see [lazy].
+class UnionListReader<E> extends Reader<List<E?>> {
+  final Reader<E>? Function(int index) _getElementReader;
+
+  /// Enables lazy reading of the list
+  ///
+  /// If true, the returned unmodifiable list lazily reads objects on access.
+  /// Therefore, the underlying buffer must not change while accessing the list.
+  ///
+  /// If false, reads the whole list immediately on access.
+  final bool lazy;
+
+  const UnionListReader(this._getElementReader, {this.lazy = true});
+
+  @override
+  @pragma('vm:prefer-inline')
+  int get size => _sizeofUint32;
+
+  @override
+  List<E?> read(BufferContext bc, int offset) {
+    final listOffset = bc.derefObject(offset);
+    return lazy
+        ? _FbUnionList<E>(_getElementReader, bc, listOffset)
+        : List<E?>.generate(
+            bc.buffer.getUint32(listOffset, Endian.little),
+            (int index) {
+              final reader = _getElementReader(index);
+              if (reader == null) return null;
+              int offset = listOffset + size + _sizeofUint32 * index;
+              return reader.read(bc, offset);
+            },
+            growable: true,
+          );
+  }
+}
+
 /// Object that can read a value at a [BufferContext].
 abstract class Reader<T> {
   const Reader();
@@ -1118,6 +1154,25 @@ abstract class TableReader<T> extends Reader<T> {
   T read(BufferContext bc, int offset) {
     final objectOffset = bc.derefObject(offset);
     return createObject(bc, objectOffset);
+  }
+}
+
+/// A reader that wraps another reader if the type is a union.
+///
+/// This is useful for reading unions that can be stucts and need an extra
+/// derefObject call.
+class UnionReader<T> extends Reader<T?> {
+  final Reader<T>? reader;
+
+  const UnionReader(this.reader);
+
+  @override
+  int get size => 4;
+
+  @override
+  T? read(BufferContext bc, int offset) {
+    if (reader is StructReader) offset = bc.derefObject(offset);
+    return reader?.read(bc, offset);
   }
 }
 
@@ -1305,6 +1360,29 @@ class _FbGenericList<E> extends _FbList<E> {
     var item = _items![i];
     if (item == null) {
       item = elementReader.read(bc, offset + 4 + elementReader.size * i);
+      _items![i] = item;
+    }
+    return item!;
+  }
+}
+
+/// Lazy list of union objects
+class _FbUnionList<E> extends _FbList<E?> {
+  final Reader<E>? Function(int index) getElementReader;
+
+  List<E?>? _items;
+
+  _FbUnionList(this.getElementReader, BufferContext bp, int offset)
+      : super(bp, offset);
+
+  @override
+  @pragma('vm:prefer-inline')
+  E? operator [](int i) {
+    _items ??= List<E?>.filled(length, null);
+    var item = _items![i];
+    final reader = getElementReader(i);
+    if (item == null && reader != null) {
+      item = reader.read(bc, offset + 4 + 4 * i);
       _items![i] = item;
     }
     return item!;

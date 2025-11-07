@@ -111,6 +111,18 @@ class _KeywordsInUnionTypeIdReader extends fb.Reader<KeywordsInUnionTypeId> {
       KeywordsInUnionTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
+class _KeywordsInUnionReader extends fb.UnionReader {
+  _KeywordsInUnionReader(KeywordsInUnionTypeId? type) : super(_get(type));
+
+  static fb.Reader? _get(KeywordsInUnionTypeId? type) {
+    switch (type?.value) {
+      case 1: return KeywordsInTable.reader;
+      case 2: return KeywordsInTable.reader;
+      default: return null;
+    }
+  }
+}
+
 class KeywordsInTable {
   KeywordsInTable._(this._bc, this._bcOffset);
   factory KeywordsInTable(List<int> bytes) {
@@ -261,13 +273,7 @@ class Table2 {
   final int _bcOffset;
 
   KeywordsInUnionTypeId? get typeType => KeywordsInUnionTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 4));
-  dynamic get type {
-    switch (typeType?.value) {
-      case 1: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
-      case 2: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
-      default: return null;
-    }
-  }
+  dynamic get type => _KeywordsInUnionReader(typeType).vTableGetNullable(_bc, _bcOffset, 6);
 
   @override
   String toString() {
@@ -276,7 +282,7 @@ class Table2 {
 
   Table2T unpack() => Table2T(
       typeType: typeType,
-      type: type?.unpack());
+      type: type is String ? type : type?.unpack());
 
   static int pack(fb.Builder fbBuilder, Table2T? object) {
     if (object == null) return 0;
@@ -294,7 +300,7 @@ class Table2T implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
-    final int? typeOffset = type?.pack(fbBuilder);
+    final int? typeOffset = type is String ? fbBuilder.writeString(type) : type?.pack(fbBuilder);
     fbBuilder.startTable(2);
     fbBuilder.addUint8(0, typeType?.value);
     fbBuilder.addOffset(1, typeOffset);
@@ -352,7 +358,7 @@ class Table2ObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? typeOffset = _type?.getOrCreateOffset(fbBuilder);
+    final int? typeOffset = _type is String ? fbBuilder.writeString(_type) : _type?.getOrCreateOffset(fbBuilder);
     fbBuilder.startTable(2);
     fbBuilder.addUint8(0, _typeType?.value);
     fbBuilder.addOffset(1, typeOffset);

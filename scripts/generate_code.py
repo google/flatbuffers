@@ -240,7 +240,7 @@ flatc(
 )
 
 flatc(
-    BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
+    BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS + DART_OPTS,
     prefix="union_vector",
     schema="union_vector/union_vector.fbs",
 )
@@ -442,6 +442,11 @@ flatc(BASE_OPTS + DART_OPTS, prefix="../dart/test/", schema="keyword_test.fbs")
 # Field key lookup with default value test
 dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
+
+flatc(
+    NO_INCL_OPTS + DART_OPTS + ["-o", "../dart/test"],
+    schema="union_vector/union_vector.fbs",
+)
 
 # Swift Tests
 swift_prefix = "swift/Tests/Flatbuffers"
