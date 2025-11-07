@@ -17,7 +17,7 @@
 import Foundation
 
 #if canImport(Common)
-  import Common
+import Common
 #endif
 
 private let twentyFourBytes: Int = 24
@@ -74,21 +74,21 @@ public struct FlexBuffersWriter {
   }
 
   #if !os(WASI)
-    /// Data representation of the buffer
-    ///
-    /// Should only be used after ``finish(offset:addPrefix:)`` is called
-    public var data: Data {
-      assert(finished, "Data shouldn't be called before finish()")
-      return _bb.withUnsafeSlicedBytes { ptr in
-        var data = Data()
-        data.append(
-          ptr.baseAddress!.bindMemory(
-            to: UInt8.self,
-            capacity: ptr.count),
-          count: ptr.count)
-        return data
-      }
+  /// Data representation of the buffer
+  ///
+  /// Should only be used after ``finish(offset:addPrefix:)`` is called
+  public var data: Data {
+    assert(finished, "Data shouldn't be called before finish()")
+    return _bb.withUnsafeSlicedBytes { ptr in
+      var data = Data()
+      data.append(
+        ptr.baseAddress!.bindMemory(
+          to: UInt8.self,
+          capacity: ptr.count),
+        count: ptr.count)
+      return data
     }
+  }
   #endif
 
   /// Resets the internal state. Automatically called before building a new flexbuffer.
@@ -139,8 +139,8 @@ public struct FlexBuffersWriter {
   public mutating func endVector(
     start: Int,
     typed: Bool = false,
-    fixed: Bool = false
-  ) -> UInt64 {
+    fixed: Bool = false) -> UInt64
+  {
     let vec = createVector(
       start: start,
       count: stack.count &- start,
@@ -162,7 +162,8 @@ public struct FlexBuffersWriter {
   @discardableResult
   @inline(__always)
   public mutating func create<T>(vector: [T], key: borrowing String) -> Int
-  where T: Scalar {
+    where T: Scalar
+  {
     add(key: key)
     return create(vector: vector, fixed: false)
   }
@@ -178,8 +179,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func createFixed<T>(
     vector: [T],
-    key: borrowing String
-  ) -> Int where T: Scalar {
+    key: borrowing String) -> Int where T: Scalar
+  {
     assert(vector.count >= 2 && vector.count <= 4)
     add(key: key)
     return create(vector: vector, fixed: true)
@@ -301,8 +302,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func add(
     uint64 value: borrowing UInt64,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     add(uint64: value)
   }
@@ -315,8 +316,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func indirect(
     uint64 val: borrowing UInt64,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     indirect(uint64: val)
   }
@@ -324,8 +325,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func indirect(
     uint val: borrowing UInt,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     indirect(uint64: numericCast(val))
   }
@@ -384,8 +385,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func add(
     int64 value: borrowing Int64,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     add(int64: value)
   }
@@ -398,8 +399,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func indirect(
     int64 val: borrowing Int64,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     indirect(int64: val)
   }
@@ -407,8 +408,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func indirect(
     int val: borrowing Int,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     indirect(int64: numericCast(val))
   }
@@ -423,8 +424,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func add(
     float32 value: borrowing Float32,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     add(float32: value)
   }
@@ -437,8 +438,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func indirect(
     float32 val: borrowing Float32,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     indirect(float32: val)
   }
@@ -451,8 +452,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func add(
     double value: borrowing Double,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     add(double: value)
   }
@@ -465,8 +466,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func indirect(
     double val: borrowing Double,
-    key: borrowing String
-  ) {
+    key: borrowing String)
+  {
     add(key: key)
     indirect(double: val)
   }
@@ -488,8 +489,8 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func add<T>(
     blob: borrowing T,
-    length l: Int
-  ) -> UInt where T: ContiguousBytes {
+    length l: Int) -> UInt where T: ContiguousBytes
+  {
     storeBlob(blob, len: l, type: .blob)
   }
 
@@ -498,8 +499,8 @@ public struct FlexBuffersWriter {
   public mutating func add<T>(
     blob: borrowing T,
     key: borrowing String,
-    length l: Int
-  ) -> UInt where T: ContiguousBytes {
+    length l: Int) -> UInt where T: ContiguousBytes
+  {
     add(key: key)
     return storeBlob(blob, len: l, type: .blob)
   }
@@ -540,8 +541,8 @@ public struct FlexBuffersWriter {
   mutating func pushIndirect<T>(
     value: T,
     type: FlexBufferType,
-    bitWidth: BitWidth
-  ) {
+    bitWidth: BitWidth)
+  {
     let byteWidth = align(width: bitWidth)
     let iloc = writerIndex
     _bb.ensureSpace(size: byteWidth)
@@ -618,8 +619,8 @@ public struct FlexBuffersWriter {
   mutating func storeBlob<T>(
     _ bytes: T,
     len: Int,
-    type: FlexBufferType
-  ) -> UInt where T: ContiguousBytes {
+    type: FlexBufferType) -> UInt where T: ContiguousBytes
+  {
     return bytes.withUnsafeBytes {
       storeBlob(pointer: $0.baseAddress!, len: len, type: type)
     }
@@ -631,8 +632,8 @@ public struct FlexBuffersWriter {
     pointer: borrowing UnsafeRawPointer,
     len: Int,
     trailing: Int = 0,
-    type: FlexBufferType
-  ) -> UInt {
+    type: FlexBufferType) -> UInt
+  {
     _bb.ensureSpace(size: len &+ trailing)
     let bitWidth = widthU(numericCast(len))
 
@@ -655,7 +656,8 @@ public struct FlexBuffersWriter {
   @discardableResult
   @usableFromInline
   mutating func create<T>(vector: [T], fixed: Bool) -> Int
-  where T: Scalar {
+    where T: Scalar
+  {
     let length: UInt64 = numericCast(vector.count)
     let vectorType = getScalarType(type: T.self)
     let byteWidth = MemoryLayout<T>.size
@@ -691,8 +693,8 @@ public struct FlexBuffersWriter {
     step: Int,
     typed: Bool,
     fixed: Bool,
-    keys: Value? = nil
-  ) -> Value {
+    keys: Value? = nil) -> Value
+  {
     assert(
       !fixed || typed,
       "Typed false and fixed true is a combination not supported currently")
@@ -857,8 +859,8 @@ extension FlexBuffersWriter {
   @discardableResult
   public mutating func vector(
     key: String,
-    _ closure: FlexBuffersWriterBuilder
-  ) -> UInt64 {
+    _ closure: FlexBuffersWriterBuilder) -> UInt64
+  {
     let start = startVector(key: key)
     closure(&self)
     return endVector(start: start)
@@ -879,8 +881,8 @@ extension FlexBuffersWriter {
   @discardableResult
   public mutating func map(
     key: String,
-    _ closure: FlexBuffersWriterBuilder
-  ) -> UInt64 {
+    _ closure: FlexBuffersWriterBuilder) -> UInt64
+  {
     let start = startMap(key: key)
     closure(&self)
     return endMap(start: start)

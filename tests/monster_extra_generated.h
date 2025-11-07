@@ -280,11 +280,11 @@ inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const ::flatbuffers::resol
   { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } else { _o->fvec.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMonsterExtra(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return MonsterExtra::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MonsterExtraT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;

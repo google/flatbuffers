@@ -723,11 +723,11 @@ inline void Attacker::UnPackTo(AttackerT *_o, const ::flatbuffers::resolver_func
   { auto _e = sword_attack_damage(); _o->sword_attack_damage = _e; }
 }
 
-inline ::flatbuffers::Offset<Attacker> Attacker::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateAttacker(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Attacker> CreateAttacker(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Attacker::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Attacker> CreateAttacker(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Attacker> Attacker::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const AttackerT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -749,11 +749,11 @@ inline void HandFan::UnPackTo(HandFanT *_o, const ::flatbuffers::resolver_functi
   { auto _e = length(); _o->length = _e; }
 }
 
-inline ::flatbuffers::Offset<HandFan> HandFan::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateHandFan(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<HandFan> CreateHandFan(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return HandFan::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<HandFan> CreateHandFan(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<HandFan> HandFan::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const HandFanT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -778,11 +778,11 @@ inline void Movie::UnPackTo(MovieT *_o, const ::flatbuffers::resolver_function_t
   { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } else { _o->characters.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<Movie> Movie::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMovie(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Movie::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Movie> Movie::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MovieT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;

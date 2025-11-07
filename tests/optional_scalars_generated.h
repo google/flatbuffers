@@ -699,11 +699,11 @@ inline void ScalarStuff::UnPackTo(ScalarStuffT *_o, const ::flatbuffers::resolve
   { auto _e = default_enum(); _o->default_enum = _e; }
 }
 
-inline ::flatbuffers::Offset<ScalarStuff> ScalarStuff::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateScalarStuff(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<ScalarStuff> CreateScalarStuff(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return ScalarStuff::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<ScalarStuff> CreateScalarStuff(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<ScalarStuff> ScalarStuff::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const ScalarStuffT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
