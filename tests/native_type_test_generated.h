@@ -150,7 +150,8 @@ struct Matrix FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<float> *mutable_values() {
     return GetPointer<::flatbuffers::Vector<float> *>(VT_VALUES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_ROWS, 4) &&
            VerifyField<int32_t>(verifier, VT_COLUMNS, 4) &&
