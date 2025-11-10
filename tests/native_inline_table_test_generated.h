@@ -180,11 +180,11 @@ inline void NativeInlineTable::UnPackTo(NativeInlineTableT *_o, const ::flatbuff
   { auto _e = a(); _o->a = _e; }
 }
 
-inline ::flatbuffers::Offset<NativeInlineTable> NativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateNativeInlineTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<NativeInlineTable> CreateNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return NativeInlineTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<NativeInlineTable> CreateNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<NativeInlineTable> NativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const NativeInlineTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -217,11 +217,11 @@ inline void TestNativeInlineTable::UnPackTo(TestNativeInlineTableT *_o, const ::
   { auto _e = t(); if (_e) { _o->t.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->t[_i] = *std::unique_ptr<NativeInlineTableT>(_e->Get(_i)->UnPack(_resolver)); } } else { _o->t.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<TestNativeInlineTable> TestNativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateTestNativeInlineTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<TestNativeInlineTable> CreateTestNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return TestNativeInlineTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<TestNativeInlineTable> CreateTestNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<TestNativeInlineTable> TestNativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TestNativeInlineTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;

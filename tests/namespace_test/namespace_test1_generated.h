@@ -307,11 +307,11 @@ inline void TableInNestedNS::UnPackTo(TableInNestedNST *_o, const ::flatbuffers:
   { auto _e = foo(); _o->foo = _e; }
 }
 
-inline ::flatbuffers::Offset<TableInNestedNS> TableInNestedNS::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateTableInNestedNS(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return TableInNestedNS::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<TableInNestedNS> TableInNestedNS::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TableInNestedNST* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;

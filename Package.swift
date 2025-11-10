@@ -57,10 +57,10 @@ let package = Package(
 extension Array where Element == Package.Dependency {
   static var dependencies: [Package.Dependency] {
     #if os(Windows)
-      []
+    []
     #else
-      // Test only Dependency
-      [.package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1")]
+    // Test only Dependency
+    [.package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1")]
     #endif
   }
 }
@@ -68,13 +68,13 @@ extension Array where Element == Package.Dependency {
 extension Array where Element == PackageDescription.Target.Dependency {
   static var dependencies: [PackageDescription.Target.Dependency] {
     #if os(Windows)
-      ["FlatBuffers"]
+    ["FlatBuffers"]
     #else
-      // Test only Dependency
-      [
-        .product(name: "GRPC", package: "grpc-swift"),
-        "FlatBuffers",
-      ]
+    // Test only Dependency
+    [
+      .product(name: "GRPC", package: "grpc-swift"),
+      "FlatBuffers",
+    ]
     #endif
   }
 }
