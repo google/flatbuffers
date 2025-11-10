@@ -547,14 +547,13 @@ if(FLATBUFFERS_BUILD_TESTS)
   add_definitions(-DFLATBUFFERS_TEST_PATH_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/)
 
   # The flattest target needs some generated files
-  SET(FLATC_OPT --cpp --gen-mutable --gen-object-api --reflect-names)
-  SET(FLATC_OPT_COMP ${FLATC_OPT};--gen-compare)
+  SET(FLATC_OPT_COMP --cpp --gen-compare --gen-mutable --gen-object-api --reflect-names)
   SET(FLATC_OPT_SCOPED_ENUMS ${FLATC_OPT_COMP};--scoped-enums)
 
   compile_schema_for_test(tests/alignment_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/arrays_test.fbs "${FLATC_OPT_SCOPED_ENUMS}")
   compile_schema_for_test(tests/native_inline_table_test.fbs "${FLATC_OPT_COMP}")
-  compile_schema_for_test(tests/native_type_test.fbs "${FLATC_OPT}")
+  compile_schema_for_test(tests/native_type_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/key_field/key_field_sample.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/64bit/test_64bit.fbs "${FLATC_OPT_COMP};--bfbs-gen-embed")
   compile_schema_for_test(tests/64bit/evolution/v1.fbs "${FLATC_OPT_COMP}")
