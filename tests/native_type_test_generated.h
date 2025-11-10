@@ -278,8 +278,8 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<Geometry::Matrix>> *mutable_matrices() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<Geometry::Matrix>> *>(VT_MATRICES);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_VECTORS) &&
            verifier.VerifyVector(vectors()) &&
@@ -557,15 +557,15 @@ inline Geometry::ApplicationData *GetMutableSizePrefixedApplicationData(void *bu
   return ::flatbuffers::GetMutableSizePrefixedRoot<Geometry::ApplicationData>(buf);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifyApplicationDataBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifyBuffer<Geometry::ApplicationData>(nullptr);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifySizePrefixedApplicationDataBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
 }
 

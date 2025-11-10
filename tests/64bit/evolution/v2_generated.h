@@ -60,8 +60,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector64<uint8_t> *mutable_big_vector() {
     return GetPointer64<::flatbuffers::Vector64<uint8_t> *>(VT_BIG_VECTOR);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_A, 4) &&
            VerifyOffset(verifier, VT_B) &&
@@ -205,15 +205,15 @@ inline v2::RootTable *GetMutableSizePrefixedRootTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<v2::RootTable,::flatbuffers::uoffset64_t>(buf);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifyRootTableBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifyBuffer<v2::RootTable>(nullptr);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifySizePrefixedRootTableBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<v2::RootTable,::flatbuffers::uoffset64_t>(nullptr);
 }
 

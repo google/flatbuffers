@@ -634,8 +634,8 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<const keyfield::sample::Grain *> *mutable_h() {
     return GetPointer<::flatbuffers::Vector<const keyfield::sample::Grain *> *>(VT_H);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            VerifyField<int32_t>(verifier, VT_B, 4) &&
@@ -991,15 +991,15 @@ inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifyFooTableBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifyBuffer<keyfield::sample::FooTable>(nullptr);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifySizePrefixedFooTableBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<keyfield::sample::FooTable>(nullptr);
 }
 

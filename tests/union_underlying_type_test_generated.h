@@ -194,10 +194,10 @@ inline bool operator!=(const ABCUnion &lhs, const ABCUnion &rhs) {
     return !(lhs == rhs);
 }
 
-template <bool TrackBufferSize = false>
-bool VerifyABC(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, ABC type);
-template <bool TrackBufferSize = false>
-bool VerifyABCVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types);
+template <bool B = false>
+bool VerifyABC(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ABC type);
+template <bool B = false>
+bool VerifyABCVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types);
 
 struct AT : public ::flatbuffers::NativeTable {
   typedef A TableType;
@@ -219,8 +219,8 @@ struct A FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_a(int32_t _a = 0) {
     return SetField<int32_t>(VT_A, _a, 0);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            verifier.EndTable();
@@ -278,8 +278,8 @@ struct B FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::String *mutable_b() {
     return GetPointer<::flatbuffers::String *>(VT_B);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_B) &&
            verifier.VerifyString(b()) &&
@@ -347,8 +347,8 @@ struct C FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_c(bool _c = 0) {
     return SetField<uint8_t>(VT_C, static_cast<uint8_t>(_c), 0);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_C, 1) &&
            verifier.EndTable();
@@ -435,8 +435,8 @@ struct D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<void>> *mutable_test_vector_of_union() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<void>> *>(VT_TEST_VECTOR_OF_UNION);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_TEST_UNION_TYPE, 1) &&
            VerifyOffset(verifier, VT_TEST_UNION) &&
@@ -682,8 +682,8 @@ inline ::flatbuffers::Offset<D> D::Pack(::flatbuffers::FlatBufferBuilder &_fbb, 
       _test_vector_of_union);
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyABC(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, ABC type) {
+template <bool B>
+inline bool VerifyABC(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ABC type) {
   switch (type) {
     case ABC::NONE: {
       return true;
@@ -704,8 +704,8 @@ inline bool VerifyABC(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier
   }
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyABCVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types) {
+template <bool B>
+inline bool VerifyABCVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

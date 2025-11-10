@@ -323,10 +323,10 @@ struct AnyUnion {
   }
 };
 
-template <bool TrackBufferSize = false>
-bool VerifyAny(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, Any type);
-template <bool TrackBufferSize = false>
-bool VerifyAnyVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types);
+template <bool B = false>
+bool VerifyAny(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Any type);
+template <bool B = false>
+bool VerifyAnyVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types);
 
 enum class AnyUniqueAliases : uint8_t {
   NONE = 0,
@@ -452,10 +452,10 @@ struct AnyUniqueAliasesUnion {
   }
 };
 
-template <bool TrackBufferSize = false>
-bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, AnyUniqueAliases type);
-template <bool TrackBufferSize = false>
-bool VerifyAnyUniqueAliasesVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types);
+template <bool B = false>
+bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyUniqueAliases type);
+template <bool B = false>
+bool VerifyAnyUniqueAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types);
 
 enum class AnyAmbiguousAliases : uint8_t {
   NONE = 0,
@@ -539,10 +539,10 @@ struct AnyAmbiguousAliasesUnion {
   }
 };
 
-template <bool TrackBufferSize = false>
-bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, AnyAmbiguousAliases type);
-template <bool TrackBufferSize = false>
-bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types);
+template <bool B = false>
+bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyAmbiguousAliases type);
+template <bool B = false>
+bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
  private:
@@ -887,8 +887,8 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -942,8 +942,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -1014,8 +1014,8 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
          if constexpr (Index == 0) return color();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_COLOR, 1) &&
            verifier.EndTable();
@@ -1116,8 +1116,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 2) return count();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ID) &&
            verifier.VerifyString(id()) &&
@@ -1228,8 +1228,8 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
          if constexpr (Index == 0) return id();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint64_t>(verifier, VT_ID, 8) &&
            verifier.EndTable();
@@ -1897,8 +1897,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 60) return double_inf_default();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Example::Vec3>(verifier, VT_POS, 8) &&
            VerifyField<int16_t>(verifier, VT_MANA, 2) &&
@@ -2704,8 +2704,8 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 11) return vf64();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_I8, 1) &&
            VerifyField<uint8_t>(verifier, VT_U8, 1) &&
@@ -3398,8 +3398,8 @@ inline ::flatbuffers::Offset<TypeAliases> TypeAliases::Pack(::flatbuffers::FlatB
       _vf64);
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyAny(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, Any type) {
+template <bool B>
+inline bool VerifyAny(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Any type) {
   switch (type) {
     case Any::NONE: {
       return true;
@@ -3420,8 +3420,8 @@ inline bool VerifyAny(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier
   }
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyAnyVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types) {
+template <bool B>
+inline bool VerifyAnyVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -3513,8 +3513,8 @@ inline void AnyUnion::Reset() {
   type = Any::NONE;
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, AnyUniqueAliases type) {
+template <bool B>
+inline bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyUniqueAliases type) {
   switch (type) {
     case AnyUniqueAliases::NONE: {
       return true;
@@ -3535,8 +3535,8 @@ inline bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<TrackBufferSi
   }
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyAnyUniqueAliasesVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types) {
+template <bool B>
+inline bool VerifyAnyUniqueAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -3628,8 +3628,8 @@ inline void AnyUniqueAliasesUnion::Reset() {
   type = AnyUniqueAliases::NONE;
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, AnyAmbiguousAliases type) {
+template <bool B>
+inline bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyAmbiguousAliases type) {
   switch (type) {
     case AnyAmbiguousAliases::NONE: {
       return true;
@@ -3650,8 +3650,8 @@ inline bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<TrackBuffe
   }
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types) {
+template <bool B>
+inline bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -4260,15 +4260,15 @@ inline bool SizePrefixedMonsterBufferHasIdentifier(const void *buf) {
       buf, MonsterIdentifier(), true);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifyMonsterBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier());
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifySizePrefixedMonsterBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier());
 }
 

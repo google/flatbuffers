@@ -116,8 +116,8 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<float> *mutable_fvec() {
     return GetPointer<::flatbuffers::Vector<float> *>(VT_FVEC);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_D0, 8) &&
            VerifyField<double>(verifier, VT_D1, 8) &&
@@ -375,15 +375,15 @@ inline bool SizePrefixedMonsterExtraBufferHasIdentifier(const void *buf) {
       buf, MonsterExtraIdentifier(), true);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifyMonsterExtraBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifyBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifySizePrefixedMonsterExtraBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 

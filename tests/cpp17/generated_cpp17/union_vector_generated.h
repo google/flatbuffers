@@ -158,10 +158,10 @@ struct CharacterUnion {
   }
 };
 
-template <bool TrackBufferSize = false>
-bool VerifyCharacter(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, Character type);
-template <bool TrackBufferSize = false>
-bool VerifyCharacterVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types);
+template <bool B = false>
+bool VerifyCharacter(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Character type);
+template <bool B = false>
+bool VerifyCharacterVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types);
 
 enum class Gadget : uint8_t {
   NONE = 0,
@@ -268,10 +268,10 @@ struct GadgetUnion {
   }
 };
 
-template <bool TrackBufferSize = false>
-bool VerifyGadget(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, Gadget type);
-template <bool TrackBufferSize = false>
-bool VerifyGadgetVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types);
+template <bool B = false>
+bool VerifyGadget(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Gadget type);
+template <bool B = false>
+bool VerifyGadgetVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
  private:
@@ -422,8 +422,8 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
          if constexpr (Index == 0) return sword_attack_damage();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SWORD_ATTACK_DAMAGE, 4) &&
            verifier.EndTable();
@@ -500,8 +500,8 @@ struct HandFan FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
          if constexpr (Index == 0) return length();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_LENGTH, 4) &&
            verifier.EndTable();
@@ -618,8 +618,8 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 3) return characters();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE, 1) &&
            VerifyOffset(verifier, VT_MAIN_CHARACTER) &&
@@ -798,8 +798,8 @@ inline ::flatbuffers::Offset<Movie> Movie::Pack(::flatbuffers::FlatBufferBuilder
       _characters);
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyCharacter(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, Character type) {
+template <bool B>
+inline bool VerifyCharacter(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Character type) {
   switch (type) {
     case Character::NONE: {
       return true;
@@ -829,8 +829,8 @@ inline bool VerifyCharacter(::flatbuffers::VerifierTemplate<TrackBufferSize> &ve
   }
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyCharacterVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types) {
+template <bool B>
+inline bool VerifyCharacterVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -973,8 +973,8 @@ inline void CharacterUnion::Reset() {
   type = Character::NONE;
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyGadget(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const void *obj, Gadget type) {
+template <bool B>
+inline bool VerifyGadget(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Gadget type) {
   switch (type) {
     case Gadget::NONE: {
       return true;
@@ -990,8 +990,8 @@ inline bool VerifyGadget(::flatbuffers::VerifierTemplate<TrackBufferSize> &verif
   }
 }
 
-template <bool TrackBufferSize>
-inline bool VerifyGadgetVector(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types) {
+template <bool B>
+inline bool VerifyGadgetVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -1237,15 +1237,15 @@ inline bool SizePrefixedMovieBufferHasIdentifier(const void *buf) {
       buf, MovieIdentifier(), true);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifyMovieBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifyBuffer<Movie>(MovieIdentifier());
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifySizePrefixedMovieBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<Movie>(MovieIdentifier());
 }
 

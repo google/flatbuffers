@@ -30,8 +30,8 @@ struct Galaxy FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int64_t num_stars() const {
     return GetField<int64_t>(VT_NUM_STARS, 0);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int64_t>(verifier, VT_NUM_STARS, 8) &&
            verifier.EndTable();
@@ -76,8 +76,8 @@ struct Universe FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::goldens::Galaxy>> *galaxies() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::goldens::Galaxy>> *>(VT_GALAXIES);
   }
-  template <bool TrackBufferSize = false>
-  bool Verify(::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_AGE, 8) &&
            VerifyOffset(verifier, VT_GALAXIES) &&
@@ -137,15 +137,15 @@ inline const flatbuffers::goldens::Universe *GetSizePrefixedUniverse(const void 
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::goldens::Universe>(buf);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifyUniverseBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifyBuffer<flatbuffers::goldens::Universe>(nullptr);
 }
 
-template <bool TrackBufferSize = false>
+template <bool B = false>
 inline bool VerifySizePrefixedUniverseBuffer(
-    ::flatbuffers::VerifierTemplate<TrackBufferSize> &verifier) {
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<flatbuffers::goldens::Universe>(nullptr);
 }
 
