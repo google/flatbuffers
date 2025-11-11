@@ -805,6 +805,13 @@ void FlatCompiler::ValidateOptions(const FlatCOptions& options) {
         "--cs-gen-json-serializer requires --gen-object-api to be set as "
         "well.");
   }
+
+  // wireshark generator requires `--bfbs-builtins` to get access to well-known
+  // attributes.
+  if (opts.lang_to_generate & IDLOptions::Language::kWireshark &&
+      !opts.binary_schema_builtins) {
+    Error("--bfbs-builtins must be set to generate Wireshark dissectors.");
+  }
 }
 
 flatbuffers::Parser FlatCompiler::GetConformParser(
