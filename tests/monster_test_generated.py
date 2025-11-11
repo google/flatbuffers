@@ -4,6 +4,8 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from flatbuffers.table import Table
+from typing import List, Optional, Union
 np = import_numpy()
 
 # Composite components of Monster color.
@@ -407,10 +409,6 @@ def CreateVec3(builder, x, y, z, test1, test2, test3_a, test3_b):
     builder.PrependFloat32(x)
     return builder.Offset()
 
-try:
-    from typing import Optional
-except:
-    pass
 
 class Vec3T(object):
 
@@ -569,10 +567,6 @@ def CreateStructOfStructs(builder, a_id, a_distance, b_a, b_b, c_id, c_distance)
     builder.PrependUint32(a_id)
     return builder.Offset()
 
-try:
-    from typing import Optional
-except:
-    pass
 
 class StructOfStructsT(object):
 
@@ -652,10 +646,6 @@ def CreateStructOfStructsOfStructs(builder, a_a_id, a_a_distance, a_b_a, a_b_b, 
     builder.PrependUint32(a_a_id)
     return builder.Offset()
 
-try:
-    from typing import Optional
-except:
-    pass
 
 class StructOfStructsOfStructsT(object):
 
@@ -985,7 +975,6 @@ class Monster(object):
     def Test(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
         if o != 0:
-            from flatbuffers.table import Table
             obj = Table(bytearray(), 0)
             self._tab.Union(obj, o)
             return obj
@@ -1089,7 +1078,6 @@ class Monster(object):
     def TestnestedflatbufferNestedRoot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(30))
         if o != 0:
-            from MyGame.Example.Monster import Monster
             return Monster.GetRootAs(self._tab.Bytes, self._tab.Vector(o))
         return 0
 
@@ -1544,7 +1532,6 @@ class Monster(object):
     def AnyUnique(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(92))
         if o != 0:
-            from flatbuffers.table import Table
             obj = Table(bytearray(), 0)
             self._tab.Union(obj, o)
             return obj
@@ -1561,7 +1548,6 @@ class Monster(object):
     def AnyAmbiguous(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(96))
         if o != 0:
-            from flatbuffers.table import Table
             obj = Table(bytearray(), 0)
             self._tab.Union(obj, o)
             return obj
@@ -1620,7 +1606,6 @@ class Monster(object):
     def TestrequirednestedflatbufferNestedRoot(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(102))
         if o != 0:
-            from MyGame.Example.Monster import Monster
             return Monster.GetRootAs(self._tab.Bytes, self._tab.Vector(o))
         return 0
 
@@ -2000,10 +1985,6 @@ def MonsterEnd(builder):
     return builder.EndObject()
 
 
-try:
-    from typing import List, Optional, Union
-except:
-    pass
 
 class MonsterT(object):
 
@@ -2079,7 +2060,7 @@ class MonsterT(object):
         self.inventory = inventory  # type: Optional[List[int]]
         self.color = color  # type: int
         self.testType = testType  # type: int
-        self.test = test  # type: Union[None, 'MonsterT', 'TestSimpleTableWithEnumT', 'MonsterT']
+        self.test = test  # type: Union[None, MonsterT, TestSimpleTableWithEnumT, MonsterT]
         self.test4 = test4  # type: Optional[List[TestT]]
         self.testarrayofstring = testarrayofstring  # type: Optional[List[Optional[str]]]
         self.testarrayoftables = testarrayoftables  # type: Optional[List[MonsterT]]
@@ -2115,9 +2096,9 @@ class MonsterT(object):
         self.nonOwningReference = nonOwningReference  # type: int
         self.vectorOfNonOwningReferences = vectorOfNonOwningReferences  # type: Optional[List[int]]
         self.anyUniqueType = anyUniqueType  # type: int
-        self.anyUnique = anyUnique  # type: Union[None, 'MonsterT', 'TestSimpleTableWithEnumT', 'MonsterT']
+        self.anyUnique = anyUnique  # type: Union[None, MonsterT, TestSimpleTableWithEnumT, MonsterT]
         self.anyAmbiguousType = anyAmbiguousType  # type: int
-        self.anyAmbiguous = anyAmbiguous  # type: Union[None, 'MonsterT', 'MonsterT', 'MonsterT']
+        self.anyAmbiguous = anyAmbiguous  # type: Union[None, MonsterT, MonsterT, MonsterT]
         self.vectorOfEnums = vectorOfEnums  # type: Optional[List[int]]
         self.signedEnum = signedEnum  # type: int
         self.testrequirednestedflatbuffer = testrequirednestedflatbuffer  # type: Optional[List[int]]
@@ -2802,10 +2783,6 @@ def TypeAliasesEnd(builder):
     return builder.EndObject()
 
 
-try:
-    from typing import List
-except:
-    pass
 
 class TypeAliasesT(object):
 

@@ -2,11 +2,10 @@
 
 # namespace: NestedUnion
 
+from MyGame.Example.NestedUnion.Test import Test, TestT
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from typing import Any
-from MyGame.Example.NestedUnion.Test import Test
-from typing import Optional
+from typing import Any, Optional
 np = import_numpy()
 
 class Vec3(object):
@@ -120,11 +119,6 @@ def Vec3End(builder: flatbuffers.Builder) -> int:
 def End(builder: flatbuffers.Builder) -> int:
     return Vec3End(builder)
 
-import MyGame.Example.NestedUnion.Test
-try:
-    from typing import Optional
-except:
-    pass
 
 class Vec3T(object):
 
@@ -143,7 +137,7 @@ class Vec3T(object):
         self.z = z  # type: float
         self.test1 = test1  # type: float
         self.test2 = test2  # type: int
-        self.test3 = test3  # type: Optional[MyGame.Example.NestedUnion.Test.TestT]
+        self.test3 = test3  # type: Optional[TestT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -172,7 +166,7 @@ class Vec3T(object):
         self.test1 = vec3.Test1()
         self.test2 = vec3.Test2()
         if vec3.Test3() is not None:
-            self.test3 = MyGame.Example.NestedUnion.Test.TestT.InitFromObj(vec3.Test3())
+            self.test3 = TestT.InitFromObj(vec3.Test3())
 
     # Vec3T
     def Pack(self, builder):
