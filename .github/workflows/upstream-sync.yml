@@ -1,0 +1,41 @@
+name: Sync Upstream Master
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.UPSTREAM_SYNC_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "upstream-sync-bot"
+          git config user.email "actions@github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/google/flatbuffers.git
+          git fetch upstream master
+
+      - name: Merge upstream/master into master
+        run: |
+          git checkout master
+          if git merge --no-edit upstream/master; then
+            echo "Merge successful."
+          else
+            echo "Merge conflict detected; aborting sync."
+            git merge --abort || true
+            exit 1
+          fi
+
+      - name: Push updated master
+        run: |
+          git push origin master

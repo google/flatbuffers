@@ -222,48 +222,6 @@ jobs:
         cd tests\FlatBuffers.Test\bin\Release\net8.0
         .\FlatBuffers.Test.exe
 
-  build-mac-intel:
-    permissions:
-      contents: write
-    outputs:
-      digests: ${{ steps.hash.outputs.hashes }}
-    name: Build Mac (for Intel)
-    runs-on: macos-latest-large
-    steps:
-    - uses: actions/checkout@v3
-    - name: cmake
-      run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
-    - name: build
-      run: xcodebuild -toolchain clang -configuration Release -target flattests
-    - name: check that the binary is x86_64
-      run: |
-        info=$(file Release/flatc)
-        echo $info
-        echo $info | grep "Mach-O 64-bit executable x86_64"
-    - name: test
-      run: Release/flattests
-    - name: make flatc executable
-      run: |
-        chmod +x Release/flatc
-        Release/flatc --version
-    - name: upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: Mac flatc binary Intel
-        path: Release/flatc
-    # Below if only for release.
-    - name: Zip file
-      if: startsWith(github.ref, 'refs/tags/')
-      run: mv Release/flatc . && zip MacIntel.flatc.binary.zip flatc
-    - name: Release binary
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: MacIntel.flatc.binary.zip
-    - name: Generate SLSA subjects
-      if: startsWith(github.ref, 'refs/tags/')
-      id: hash
-      run: echo "hashes=$(shasum -a 256 MacIntel.flatc.binary.zip | base64)" >> $GITHUB_OUTPUT
 
   build-mac-universal:
     permissions:
@@ -611,7 +569,7 @@ jobs:
 
   release-digests:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
+    needs: [build-linux, build-windows, build-mac-universal]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
     runs-on: ubuntu-24.04
@@ -622,7 +580,6 @@ jobs:
           LINUXGCC_DIGESTS: "${{ needs.build-linux.outputs.digests-gcc }}"
           LINUXCLANG_DIGESTS: "${{ needs.build-linux.outputs.digests-clang }}"
           MAC_DIGESTS: "${{ needs.build-mac-universal.outputs.digests }}"
-          MACINTEL_DIGESTS: "${{ needs.build-mac-intel.outputs.digests }}"
           WINDOWS_DIGESTS: "${{ needs.build-windows.outputs.digests }}"
         run: |
           set -euo pipefail

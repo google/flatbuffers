@@ -636,7 +636,31 @@ inline bool operator<(const IncludedFile& a, const IncludedFile& b) {
 struct IDLOptions {
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
+#if defined(_WIN32)
+#  ifdef ERROR
+#    pragma push_macro("ERROR")
+#    define FLATBUFFERS_PUSHED_ERROR_MACRO
+#    undef ERROR
+#  endif
+#  ifdef WARNING
+#    pragma push_macro("WARNING")
+#    define FLATBUFFERS_PUSHED_WARNING_MACRO
+#    undef WARNING
+#  endif
+#endif
+  // Avoid clashes with Windows ERROR/WARNING macros when this header is
+  // included after <windows.h>.
   enum class ProtoIdGapAction { NO_OP, WARNING, ERROR };
+#if defined(_WIN32)
+#  ifdef FLATBUFFERS_PUSHED_WARNING_MACRO
+#    pragma pop_macro("WARNING")
+#    undef FLATBUFFERS_PUSHED_WARNING_MACRO
+#  endif
+#  ifdef FLATBUFFERS_PUSHED_ERROR_MACRO
+#    pragma pop_macro("ERROR")
+#    undef FLATBUFFERS_PUSHED_ERROR_MACRO
+#  endif
+#endif
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;

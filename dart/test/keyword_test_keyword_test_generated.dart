@@ -124,13 +124,15 @@ class KeywordsInTable {
   final int _bcOffset;
 
   Abc get $is => Abc.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0));
+  Abc get is => $is;
   Public get private => Public.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 6, 0));
   int get type => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 8, 0);
   bool get $default => const fb.BoolReader().vTableGet(_bc, _bcOffset, 10, false);
+  bool get default => $default;
 
   @override
   String toString() {
-    return 'KeywordsInTable{\$is: ${$is}, private: ${private}, type: ${type}, \$default: ${$default}}';
+    return 'KeywordsInTable{is: ${is}, private: ${private}, type: ${type}, default: ${default}}';
   }
 
   KeywordsInTableT unpack() => KeywordsInTableT(
@@ -147,9 +149,13 @@ class KeywordsInTable {
 
 class KeywordsInTableT implements fb.Packable {
   Abc $is;
+  Abc get is => $is;
+  set is(Abc value) => $is = value;
   Public private;
   int type;
   bool $default;
+  bool get default => $default;
+  set default(bool value) => $default = value;
 
   KeywordsInTableT({
       this.$is = Abc.$void,
@@ -169,7 +175,7 @@ class KeywordsInTableT implements fb.Packable {
 
   @override
   String toString() {
-    return 'KeywordsInTableT{\$is: ${$is}, private: ${private}, type: ${type}, \$default: ${$default}}';
+    return 'KeywordsInTableT{is: ${is}, private: ${private}, type: ${type}, default: ${default}}';
   }
 }
 
@@ -220,14 +226,16 @@ class KeywordsInTableObjectBuilder extends fb.ObjectBuilder {
 
   KeywordsInTableObjectBuilder({
     Abc? $is,
+    Abc? is,
     Public? private,
     int? type,
     bool? $default,
+    bool? default,
   })
-      : _$is = $is,
+      : _$is = is ?? $is,
         _private = private,
         _type = type,
-        _$default = $default;
+        _$default = default ?? $default;
 
   /// Finish building, and store into the [fbBuilder].
   @override

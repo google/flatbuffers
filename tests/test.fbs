@@ -12,7 +12,7 @@ enum ProtoEnum : int {
   BAR = 5,
 }
 
-namespace proto.test.ProtoMessage_.OtherMessage_;
+namespace proto.test.ProtoMessage__.OtherMessage__;
 
 enum ProtoEnum : int {
   NUL = 0,
@@ -43,26 +43,26 @@ table ProtoMessage {
   /// lines
   l:string (required);
   m:[ubyte];
-  n:proto.test.ProtoMessage_.OtherMessage;
+  n:proto.test.ProtoMessage__.OtherMessage;
   o:[string];
   z:proto.test.ImportedMessage;
   /// doc comment for r.
-  r:proto.test.ProtoMessage_.Anonymous0;
+  r:proto.test.ProtoMessage__.Anonymous0;
   outer_enum:proto.test.ProtoEnum;
   u:float = +inf;
   v:float = +inf;
   w:float = -inf;
-  grades:[proto.test.ProtoMessage_.GradesEntry];
-  other_message_map:[proto.test.ProtoMessage_.OtherMessageMapEntry];
+  grades:[proto.test.ProtoMessage__.GradesEntry];
+  other_message_map:[proto.test.ProtoMessage__.OtherMessageMapEntry];
 }
 
-namespace proto.test.ProtoMessage_;
+namespace proto.test.ProtoMessage__;
 
 table OtherMessage {
   a:double;
   /// doc comment for b.
   b:float = 3.14149;
-  foo_bar_baz:proto.test.ProtoMessage_.OtherMessage_.ProtoEnum;
+  foo_bar_baz:proto.test.ProtoMessage__.OtherMessage__.ProtoEnum;
 }
 
 table Anonymous0 {
@@ -70,7 +70,7 @@ table Anonymous0 {
   s:proto.test.ImportedMessage;
   /// doc comment for t on 2
   /// lines.
-  t:proto.test.ProtoMessage_.OtherMessage;
+  t:proto.test.ProtoMessage__.OtherMessage;
 }
 
 table GradesEntry {
@@ -80,6 +80,6 @@ table GradesEntry {
 
 table OtherMessageMapEntry {
   key:string (key);
-  value:proto.test.ProtoMessage_.OtherMessage;
+  value:proto.test.ProtoMessage__.OtherMessage;
 }
 
