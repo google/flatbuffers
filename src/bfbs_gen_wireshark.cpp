@@ -316,8 +316,6 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
     ForAllObjects(schema_->objects(), [&](const r::Object *object) {
       // get all strings up front
       const names object_names(*object);
-      const std::string member_name_table =
-          object_names.full_name_underscore + "_member_names";
       const std::string memeber_field_table =
           object_names.full_name_underscore + "_member_fields";
 
@@ -339,17 +337,6 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
       }
 
       code += "-- Object: " + object_names.full_name + "\n";
-
-      // create a table of field names for each object
-      code += member_name_table + " = {\n";
-
-      // add each field to the table
-      ForAllFields(object, /*reverse=*/false, [&](const r::Field *field) {
-        code += "  [" + NumToString(field->id()) + "] = \"" +
-                namer_.Variable(field->name()->str()) + "\",\n";
-      });
-
-      code += "}\n\n";
 
       // create a lookup table of ProtoFields
       code += memeber_field_table + " = {\n";
@@ -395,8 +382,6 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
           object_names.full_name_underscore + "_union_type_enum_values";
       const std::string member_lookup_table =
           object_names.full_name_underscore + "_member_fields";
-      const std::string member_names_table =
-          object_names.full_name_underscore + "_member_names";
       const std::string member_list_table =
           object_names.full_name_underscore + "_member_list";
       const std::string proto_name =
@@ -432,8 +417,8 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
 
         code += "local function " + field_function_name +
                 "(buffer, offset, tree)\n";
-        code += "  local field_name = " + member_names_table + "[" +
-                NumToString(field->id()) + "]\n";
+        code += "  local field_name = \"" +
+                namer_.Variable(field->name()->str()) + "\"\n";
         code += CreateParserDefinition(field, object, member_lookup_table);
         code += "end\n\n";
       });
@@ -446,12 +431,12 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
             "Parse_" + namer_.Variable(field->name()->str());
 
         if (object->is_struct()) {
-          code += "  { " + NumToString(field->offset()) + ", " +
-                  member_names_table + "[" + NumToString(field->id()) + "], " +
+          code += "  { " + NumToString(field->offset()) + ", \"" +
+                  namer_.Variable(field->name()->str()) + "\", " +
                   field_function_name + " },\n";
         } else {
-          code += "  { " + member_names_table + "[" + NumToString(field->id()) +
-                  "], " + field_function_name + " },\n";
+          code += "  { \"" + namer_.Variable(field->name()->str()) + "\", " +
+                  field_function_name + " },\n";
         }
       });
 
@@ -619,8 +604,7 @@ class WiresharkBfbsGenerator : public BaseBfbsGenerator {
     }
 
     // generate the key for the table and the prefix of the value
-    code += "  [" + object_full_name + "_member_names[" +
-            NumToString(field->id()) + "]] = ";
+    code += "  [\"" + namer_.Variable(field->name()->str()) + "\"] = ";
     code += "ProtoField.";
 
     // create the ProtoField type for this field
