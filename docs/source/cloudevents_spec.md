@@ -2,7 +2,7 @@
 
 ## Abstract
 
-The FlatBuffers Format for CloudEvents defines how events are expressed in the FlatBuffers Schema Language.
+The FlatBuffers Format for [CloudEvents](https://cloudevents.io) defines how events are expressed in the FlatBuffers Schema Language.
 
 ## Table of Contents
 
