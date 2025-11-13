@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//:flatbuffers_test.bzl", "flatbuffers_test")
 
 licenses(["notice"])
 
@@ -124,4 +125,8 @@ cc_library(
     hdrs = ["//:public_headers"],
     linkstatic = 1,
     strip_include_prefix = "/include",
+)
+
+flatbuffers_test(
+    name = "flatbuffers_test",
 )
