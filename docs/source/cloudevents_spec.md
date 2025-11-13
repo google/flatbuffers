@@ -51,10 +51,10 @@ Extension specifications MAY define secondary mapping rules for the values of at
 
 The following attributes are REQUIRED to be present in all CloudEvents:
 
-- **id**: string (required)
-- **source**: string (required) 
-- **specversion**: string (required)
-- **type**: string (required)
+- **id**: string
+- **source**: string 
+- **specversion**: string
+- **type**: string
 
 ### 2.3 OPTIONAL Attributes
 
