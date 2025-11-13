@@ -24,12 +24,12 @@ let package = Package(
     .macOS(.v10_14),
   ],
   dependencies: [
-    .package(path: "../../..")
+    .package(path: "../../.."),
   ],
   targets: [
     .executableTarget(
       name: "fuzzer",
       dependencies: [
-        .product(name: "FlatBuffers", package: "flatbuffers")
-      ])
+        .product(name: "FlatBuffers", package: "flatbuffers"),
+      ]),
   ])

@@ -17,7 +17,7 @@
 import Foundation
 
 #if canImport(Common)
-  import Common
+import Common
 #endif
 
 @inline(__always)
@@ -128,13 +128,14 @@ func toFixedTypedVectorElementType(type: FlexBufferType)
     type.rawValue
       &- FlexBufferType.vectorInt2
       .rawValue)
-  let len: Int = numericCast(fixedType.dividedReportingOverflow(by: 3).partialValue &+ 2)
+  let len: Int = numericCast(
+    fixedType.dividedReportingOverflow(by: 3)
+      .partialValue &+ 2)
   return (
     FlexBufferType(
       rawValue: (fixedType.quotientAndRemainder(dividingBy: 3).remainder)
         &+ FlexBufferType.int.rawValue),
-    len
-  )
+    len)
 }
 
 // MARK: - Reader functions
@@ -142,8 +143,8 @@ func toFixedTypedVectorElementType(type: FlexBufferType)
 @inline(__always)
 func binarySearch(
   vector: TypedVector,
-  target: String
-) -> Int? {
+  target: String) -> Int?
+{
   var left = 0
   var right = vector.count
 

@@ -770,13 +770,15 @@ void FixedLengthArrayTest() {
   // set memory chunk of size ArrayStruct to 1's
   std::memset(static_cast<void*>(non_zero_memory), 1, arr_size);
   // after placement-new it should be all 0's
-#if defined(_MSC_VER) && defined(_DEBUG)
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
+    defined(_MSC_VER) && defined(_DEBUG)
 #undef new
 #endif
   MyGame::Example::ArrayStruct* ap =
       new (non_zero_memory) MyGame::Example::ArrayStruct;
-#if defined(_MSC_VER) && defined(_DEBUG)
-#define new DEBUG_NEW
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
+    defined(_MSC_VER) && defined(_DEBUG)
+  #define new DEBUG_NEW
 #endif
   (void)ap;
   for (size_t i = 0; i < arr_size; ++i) {
@@ -918,6 +920,15 @@ void NativeTypeTest() {
         Native::Vector3D(20 * i + 0.1f, 20 * i + 0.2f, 20 * i + 0.3f));
   }
 
+  src_data.matrix = std::make_unique<Native::Matrix>(1, 2);
+  src_data.matrix->values = {3, 4};
+
+  for (int i = 0; i < N; ++i) {
+    src_data.matrices.push_back(std::make_unique<Native::Matrix>(1, i));
+    std::fill(src_data.matrices[i]->values.begin(),
+              src_data.matrices[i]->values.end(), i + 0.5f);
+  }
+
   flatbuffers::FlatBufferBuilder fbb;
   fbb.Finish(Geometry::ApplicationData::Pack(fbb, &src_data));
 
@@ -940,6 +951,20 @@ void NativeTypeTest() {
     TEST_EQ(v2.x, 20 * i + 0.1f);
     TEST_EQ(v2.y, 20 * i + 0.2f);
     TEST_EQ(v2.z, 20 * i + 0.3f);
+  }
+
+  TEST_EQ(dstDataT->matrix->rows, 1);
+  TEST_EQ(dstDataT->matrix->columns, 2);
+  TEST_EQ(dstDataT->matrix->values[0], 3);
+  TEST_EQ(dstDataT->matrix->values[1], 4);
+
+  for (int i = 0; i < N; ++i) {
+    const Native::Matrix &m = *dstDataT->matrices[i];
+    TEST_EQ(m.rows, 1);
+    TEST_EQ(m.columns, i);
+    for (int j = 0; j < i; ++j) {
+      TEST_EQ(m.values[j], i + 0.5f);
+    }
   }
 }
 

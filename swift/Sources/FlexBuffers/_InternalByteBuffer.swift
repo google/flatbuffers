@@ -17,7 +17,7 @@
 import Foundation
 
 #if canImport(Common)
-  import Common
+import Common
 #endif
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
@@ -55,8 +55,8 @@ struct _InternalByteBuffer {
     func reallocate(
       capacity: Int,
       writerSize: Int,
-      alignment: Int
-    ) {
+      alignment: Int)
+    {
       let newData = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,
         alignment: alignment)
@@ -135,18 +135,17 @@ struct _InternalByteBuffer {
     _storage.reallocate(
       capacity: capacity,
       writerSize: writerIndex,
-      alignment: alignment
-    )
+      alignment: alignment)
   }
 
   @inline(__always)
   mutating func addPadding(bytes: Int) {
     writerIndex =
       writerIndex
-      &+ numericCast(
-        padding(
-          bufSize: numericCast(writerIndex),
-          elementSize: numericCast(bytes)))
+        &+ numericCast(
+          padding(
+            bufSize: numericCast(writerIndex),
+            elementSize: numericCast(bytes)))
     ensureSpace(size: writerIndex)
   }
 
@@ -174,8 +173,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func withUnsafeBytes<T>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try body(
       UnsafeRawBufferPointer(
         start: _storage.memory,
@@ -186,8 +185,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func withUnsafeSlicedBytes<T>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try body(
       UnsafeRawBufferPointer(
         start: _storage.memory,
@@ -198,8 +197,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func withUnsafeRawPointer<T>(
     _ body: (UnsafeMutableRawPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try body(_storage.memory)
   }
 
@@ -207,8 +206,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func readWithUnsafeRawPointer<T>(
     position: Int,
-    _ body: (UnsafeRawPointer) throws -> T
-  ) rethrows -> T {
+    _ body: (UnsafeRawPointer) throws -> T) rethrows -> T
+  {
     try body(_storage.memory.advanced(by: position))
   }
 }

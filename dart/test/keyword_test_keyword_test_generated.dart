@@ -276,7 +276,7 @@ class Table2 {
 
   Table2T unpack() => Table2T(
       typeType: typeType,
-      type: type);
+      type: type?.unpack());
 
   static int pack(fb.Builder fbBuilder, Table2T? object) {
     if (object == null) return 0;

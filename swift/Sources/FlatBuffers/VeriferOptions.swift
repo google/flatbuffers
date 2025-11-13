@@ -41,8 +41,8 @@ public struct VerifierOptions {
     maxDepth: UOffset = 64,
     maxTableCount: UOffset = 1_000_000,
     maxApparentSize: UOffset = 1 << 31,
-    ignoreMissingNullTerminators: Bool = false
-  ) {
+    ignoreMissingNullTerminators: Bool = false)
+  {
     _maxDepth = maxDepth
     _maxTableCount = maxTableCount
     _maxApparentSize = maxApparentSize

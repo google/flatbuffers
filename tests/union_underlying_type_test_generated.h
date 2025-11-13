@@ -541,11 +541,11 @@ inline void A::UnPackTo(AT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = a(); _o->a = _e; }
 }
 
-inline ::flatbuffers::Offset<A> A::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateA(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<A> CreateA(::flatbuffers::FlatBufferBuilder &_fbb, const AT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return A::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<A> CreateA(::flatbuffers::FlatBufferBuilder &_fbb, const AT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<A> A::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const AT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -578,11 +578,11 @@ inline void B::UnPackTo(BT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = b(); if (_e) _o->b = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<B> B::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const BT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateB(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<B> CreateB(::flatbuffers::FlatBufferBuilder &_fbb, const BT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return B::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<B> CreateB(::flatbuffers::FlatBufferBuilder &_fbb, const BT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<B> B::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const BT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const BT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -615,11 +615,11 @@ inline void C::UnPackTo(CT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = c(); _o->c = _e; }
 }
 
-inline ::flatbuffers::Offset<C> C::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateC(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<C> CreateC(::flatbuffers::FlatBufferBuilder &_fbb, const CT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return C::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<C> CreateC(::flatbuffers::FlatBufferBuilder &_fbb, const CT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<C> C::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -656,11 +656,11 @@ inline void D::UnPackTo(DT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = test_vector_of_union(); if (_e) { _o->test_vector_of_union.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test_vector_of_union[_i].value = UnionUnderlyingType::ABCUnion::UnPack(_e->Get(_i), test_vector_of_union_type()->GetEnum<ABC>(_i), _resolver); } } else { _o->test_vector_of_union.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<D> D::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateD(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<D> CreateD(::flatbuffers::FlatBufferBuilder &_fbb, const DT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return D::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<D> CreateD(::flatbuffers::FlatBufferBuilder &_fbb, const DT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<D> D::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;

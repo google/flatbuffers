@@ -29,8 +29,8 @@ public struct ByteBuffer {
     @usableFromInline
     enum Blob {
       #if !os(WASI)
-        case data(Data)
-        case bytes(ContiguousBytes)
+      case data(Data)
+      case bytes(ContiguousBytes)
       #endif
 
       case byteBuffer(_InternalByteBuffer)
@@ -96,16 +96,16 @@ public struct ByteBuffer {
     @inline(__always)
     func withUnsafeBytes<T>(
       _ body: (UnsafeRawBufferPointer) throws
-        -> T
-    ) rethrows -> T {
+        -> T) rethrows -> T
+    {
       switch retainedBlob {
       case .byteBuffer(let byteBuffer):
         return try byteBuffer.withUnsafeBytes(body)
       #if !os(WASI)
-        case .data(let data):
-          return try data.withUnsafeBytes(body)
-        case .bytes(let contiguousBytes):
-          return try contiguousBytes.withUnsafeBytes(body)
+      case .data(let data):
+        return try data.withUnsafeBytes(body)
+      case .bytes(let contiguousBytes):
+        return try contiguousBytes.withUnsafeBytes(body)
       #endif
       case .array(let array):
         return try array.withUnsafeBytes(body)
@@ -118,21 +118,21 @@ public struct ByteBuffer {
     @inline(__always)
     func withUnsafeRawPointer<T>(
       _ body: (UnsafeMutableRawPointer) throws
-        -> T
-    ) rethrows -> T {
+        -> T) rethrows -> T
+    {
       switch retainedBlob {
       case .byteBuffer(let byteBuffer):
         return try byteBuffer.withUnsafeRawPointer(body)
       #if !os(WASI)
-        case .data(let data):
-          return
-            try data
+      case .data(let data):
+        return
+          try data
             .withUnsafeBytes {
               try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
             }
-        case .bytes(let contiguousBytes):
-          return
-            try contiguousBytes
+      case .bytes(let contiguousBytes):
+        return
+          try contiguousBytes
             .withUnsafeBytes {
               try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
             }
@@ -140,9 +140,9 @@ public struct ByteBuffer {
       case .array(let array):
         return
           try array
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       case .pointer(let ptr):
         return try body(ptr)
       }
@@ -152,20 +152,20 @@ public struct ByteBuffer {
     @inline(__always)
     func readWithUnsafeRawPointer<T>(
       position: Int,
-      _ body: (UnsafeRawPointer) throws -> T
-    ) rethrows -> T {
+      _ body: (UnsafeRawPointer) throws -> T) rethrows -> T
+    {
       switch retainedBlob {
       case .byteBuffer(let byteBuffer):
         return try byteBuffer.readWithUnsafeRawPointer(position: position, body)
       #if !os(WASI)
-        case .data(let data):
-          return try data.withUnsafeBytes {
-            try body($0.baseAddress!.advanced(by: position))
-          }
-        case .bytes(let contiguousBytes):
-          return try contiguousBytes.withUnsafeBytes {
-            try body($0.baseAddress!.advanced(by: position))
-          }
+      case .data(let data):
+        return try data.withUnsafeBytes {
+          try body($0.baseAddress!.advanced(by: position))
+        }
+      case .bytes(let contiguousBytes):
+        return try contiguousBytes.withUnsafeBytes {
+          try body($0.baseAddress!.advanced(by: position))
+        }
       #endif
       case .array(let array):
         return try array.withUnsafeBytes {
@@ -207,8 +207,8 @@ public struct ByteBuffer {
   @inline(__always)
   public init(
     copyingMemoryBound memory: UnsafeRawPointer,
-    capacity: Int
-  ) {
+    capacity: Int)
+  {
     _storage = Storage(count: capacity)
     _storage.copy(from: memory, count: capacity)
     _readerIndex = capacity
@@ -226,29 +226,29 @@ public struct ByteBuffer {
   }
 
   #if !os(WASI)
-    /// Constructor that creates a Flatbuffer from the Swift Data type object
-    /// - Parameter
-    ///   - data: Swift data Object
-    @inline(__always)
-    public init(data: Data) {
-      _storage = Storage(blob: .data(data), capacity: data.count)
-      _readerIndex = data.count
-      capacity = data.count
-    }
+  /// Constructor that creates a Flatbuffer from the Swift Data type object
+  /// - Parameter
+  ///   - data: Swift data Object
+  @inline(__always)
+  public init(data: Data) {
+    _storage = Storage(blob: .data(data), capacity: data.count)
+    _readerIndex = data.count
+    capacity = data.count
+  }
 
-    /// Constructor that creates a Flatbuffer object from a ContiguousBytes
-    /// - Parameters:
-    ///   - contiguousBytes: Binary stripe to use as the buffer
-    ///   - count: amount of readable bytes
-    @inline(__always)
-    public init<Bytes: ContiguousBytes>(
-      contiguousBytes: Bytes,
-      count: Int
-    ) {
-      _storage = Storage(blob: .bytes(contiguousBytes), capacity: count)
-      _readerIndex = count
-      capacity = count
-    }
+  /// Constructor that creates a Flatbuffer object from a ContiguousBytes
+  /// - Parameters:
+  ///   - contiguousBytes: Binary stripe to use as the buffer
+  ///   - count: amount of readable bytes
+  @inline(__always)
+  public init<Bytes: ContiguousBytes>(
+    contiguousBytes: Bytes,
+    count: Int)
+  {
+    _storage = Storage(blob: .bytes(contiguousBytes), capacity: count)
+    _readerIndex = count
+    capacity = count
+  }
   #endif
 
   /// Constructor that creates a Flatbuffer from unsafe memory region without copying
@@ -260,8 +260,8 @@ public struct ByteBuffer {
   @inline(__always)
   public init(
     assumingMemoryBound memory: UnsafeMutableRawPointer,
-    capacity: Int
-  ) {
+    capacity: Int)
+  {
     _storage = Storage(
       blob: .pointer(memory),
       capacity: capacity)
@@ -278,8 +278,8 @@ public struct ByteBuffer {
   init(
     blob: Storage.Blob,
     count: Int,
-    removing removeBytes: Int
-  ) {
+    removing removeBytes: Int)
+  {
     _storage = Storage(blob: blob, capacity: count)
     _readerIndex = removeBytes
     capacity = count
@@ -371,8 +371,8 @@ public struct ByteBuffer {
     t3: T3.Type,
     t4: T4.Type,
     position: Int,
-    byteWidth: UInt8
-  ) -> T {
+    byteWidth: UInt8) -> T
+  {
     switch byteWidth {
     case 1:
       numericCast(read(def: T1.self, position: position))
@@ -392,8 +392,8 @@ public struct ByteBuffer {
   @inline(__always)
   public func readSlice<T>(
     index: Int,
-    count: Int
-  ) -> [T] {
+    count: Int) -> [T]
+  {
     assert(
       index + count <= capacity,
       "Reading out of bounds is illegal")
@@ -410,8 +410,8 @@ public struct ByteBuffer {
   public func readString(
     at index: Int,
     count: Int,
-    type: String.Encoding
-  ) -> String? {
+    type: String.Encoding) -> String?
+  {
     assert(
       index + count <= capacity,
       "Reading out of bounds is illegal")
@@ -432,8 +432,8 @@ public struct ByteBuffer {
   @inline(__always)
   public func readString(
     at index: Int,
-    count: Int
-  ) -> String? {
+    count: Int) -> String?
+  {
     assert(
       index + count <= capacity,
       "Reading out of bounds is illegal")
@@ -451,8 +451,8 @@ public struct ByteBuffer {
   public func withUnsafePointerToSlice<T>(
     index: Int,
     count: Int,
-    body: (UnsafeRawBufferPointer) throws -> T
-  ) rethrows -> T {
+    body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T
+  {
     assert(
       index + count <= capacity,
       "Reading out of bounds is illegal")
@@ -465,8 +465,8 @@ public struct ByteBuffer {
   @inline(__always)
   public func withUnsafeBytes<T>(
     body: (UnsafeRawBufferPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try _storage.withUnsafeBytes(body)
   }
 
@@ -474,8 +474,8 @@ public struct ByteBuffer {
   @inline(__always)
   func withUnsafeMutableRawPointer<T>(
     body: (UnsafeMutableRawPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try _storage.withUnsafeRawPointer(body)
   }
 
@@ -483,8 +483,8 @@ public struct ByteBuffer {
   @inline(__always)
   func readWithUnsafeRawPointer<T>(
     position: Int,
-    _ body: (UnsafeRawPointer) throws -> T
-  ) rethrows -> T {
+    _ body: (UnsafeRawPointer) throws -> T) rethrows -> T
+  {
     try _storage.readWithUnsafeRawPointer(position: position, body)
   }
 }

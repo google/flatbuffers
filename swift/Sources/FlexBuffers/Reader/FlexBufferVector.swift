@@ -39,14 +39,13 @@ public protocol FlexBufferContiguousBytes {
   var count: Int { get }
 
   func withUnsafeRawBufferPointer<Result>(
-    _ body: (UnsafeRawBufferPointer) throws -> Result
-  ) rethrows -> Result
+    _ body: (UnsafeRawBufferPointer) throws -> Result) rethrows -> Result
 }
 
 extension FlexBufferContiguousBytes {
   public func withUnsafeRawBufferPointer<Result>(
-    _ body: (UnsafeRawBufferPointer) throws -> Result
-  ) rethrows -> Result {
+    _ body: (UnsafeRawBufferPointer) throws -> Result) rethrows -> Result
+  {
     try byteBuffer.withUnsafePointerToSlice(
       index: offset,
       count: count,
