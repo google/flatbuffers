@@ -99,7 +99,7 @@ table CloudEvent {
   time: string;
   
   // Extension attributes
-  extensions: [ExtensionAttribute];
+  extensions: [ExtensionAttributes];
   
   // Event data payload
   data: [ubyte];
