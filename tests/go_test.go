@@ -131,6 +131,10 @@ func TestAll(t *testing.T) {
 	CheckByteStringIsNestedError(t.Fatalf)
 	CheckStructIsNotInlineError(t.Fatalf)
 	CheckFinishedBytesError(t.Fatalf)
+
+	// Verify bounds checking
+	CheckByteVectorBoundsChecking(t.Fatalf)
+
 	CheckSharedStrings(t.Fatalf)
 	CheckEmptiedBuilder(t.Fatalf)
 
@@ -2571,5 +2575,51 @@ func BenchmarkBuildGold(b *testing.B) {
 		mon := example.MonsterEnd(bldr)
 
 		bldr.Finish(mon)
+	}
+}
+
+// CheckByteVectorBoundsChecking ensures ByteVector handles malformed input safely.
+func CheckByteVectorBoundsChecking(fail func(string, ...interface{})) {
+	// Test case 1: Offset beyond buffer size
+	table := &flatbuffers.Table{
+		Bytes: []byte{0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00}, // Small buffer
+		Pos:   0,
+	}
+	result := table.ByteVector(100) // Offset way beyond buffer
+	if result != nil {
+		fail("ByteVector should return nil for offset beyond buffer")
+	}
+
+	// Test case 2: Malicious length field
+	// Construct: [relative offset: 4] [vector length: 0xFFFFFFFF] [data...]
+	maliciousBytes := make([]byte, 20)
+	// At position 0, set relative offset to point to position 4
+	maliciousBytes[0] = 4
+	maliciousBytes[1] = 0
+	maliciousBytes[2] = 0
+	maliciousBytes[3] = 0
+	// At position 4, set malicious vector length
+	maliciousBytes[4] = 0xFF
+	maliciousBytes[5] = 0xFF
+	maliciousBytes[6] = 0xFF
+	maliciousBytes[7] = 0xFF
+
+	table = &flatbuffers.Table{Bytes: maliciousBytes, Pos: 0}
+	result = table.ByteVector(0)
+	if result != nil {
+		fail("ByteVector should return nil for malicious length field")
+	}
+
+	// Test case 3: Valid case should still work
+	// Construct: [relative offset: 4] [vector length: 3] [data: 'a', 'b', 'c']
+	validBytes := []byte{
+		4, 0, 0, 0, // relative offset to vector data (at position 4)
+		3, 0, 0, 0, // vector length (3 bytes)
+		'a', 'b', 'c', // actual vector data
+	}
+	table = &flatbuffers.Table{Bytes: validBytes, Pos: 0}
+	result = table.ByteVector(0)
+	if result == nil || !bytes.Equal(result, []byte("abc")) {
+		fail("ByteVector should work correctly for valid data")
 	}
 }
