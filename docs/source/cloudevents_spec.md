@@ -79,7 +79,7 @@ Users of FlatBuffers MUST use a schema compatible with the CloudEvent FlatBuffer
 namespace io.cloudevents;
 
 // Key-value pair for extension attributes
-table ExtensionAttribute {
+table ExtensionAttributes {
   key: string (required);
   value: string (required);
 }
