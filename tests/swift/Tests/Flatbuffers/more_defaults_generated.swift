@@ -88,10 +88,9 @@ public struct MoreDefaults: FlatBufferTable, FlatbuffersVectorInitializable, Ver
     MoreDefaults.addVectorOf(bools: bools, &fbb)
     return MoreDefaults.endMoreDefaults(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> MoreDefaultsT {
-    return MoreDefaultsT(&self)
+  public func unpack() -> MoreDefaultsT {
+    return MoreDefaultsT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MoreDefaultsT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -169,7 +168,7 @@ public class MoreDefaultsT: NativeObject {
   public var abcs: [ABC]
   public var bools: [Bool]
 
-  public init(_ _t: inout MoreDefaults) {
+  public init(_ _t: borrowing MoreDefaults) {
     ints = []
     ints.append(contentsOf: _t.ints)
     floats = []

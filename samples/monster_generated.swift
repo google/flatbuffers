@@ -82,10 +82,7 @@ public struct MyGame_Sample_Vec3: NativeStruct, FlatbuffersVectorInitializable, 
   private var _z: Float32
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _x = _accessor.readBuffer(of: Float32.self, at: 0)
-    _y = _accessor.readBuffer(of: Float32.self, at: 4)
-    _z = _accessor.readBuffer(of: Float32.self, at: 8)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(x: Float32, y: Float32, z: Float32) {
@@ -100,7 +97,7 @@ public struct MyGame_Sample_Vec3: NativeStruct, FlatbuffersVectorInitializable, 
     _z = 0.0
   }
 
-  public init(_ _t: inout MyGame_Sample_Vec3_Mutable) {
+  public init(_ _t: borrowing MyGame_Sample_Vec3_Mutable) {
     _x = _t.x
     _y = _t.y
     _z = _t.z
@@ -150,10 +147,9 @@ public struct MyGame_Sample_Vec3_Mutable: FlatBufferStruct, FlatbuffersVectorIni
   @discardableResult public func mutate(y: Float32) -> Bool { return _accessor.mutate(y, index: 4) }
   public var z: Float32 { return _accessor.readBuffer(of: Float32.self, at: 8) }
   @discardableResult public func mutate(z: Float32) -> Bool { return _accessor.mutate(z, index: 8) }
-  
 
-  public mutating func unpack() -> MyGame_Sample_Vec3 {
-    return MyGame_Sample_Vec3(&self)
+  public func unpack() -> MyGame_Sample_Vec3 {
+    return MyGame_Sample_Vec3(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_Vec3?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -249,10 +245,9 @@ public struct MyGame_Sample_Monster: FlatBufferTable, FlatbuffersVectorInitializ
     MyGame_Sample_Monster.addVectorOf(path: path, &fbb)
     return MyGame_Sample_Monster.endMonster(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> MyGame_Sample_MonsterT {
-    return MyGame_Sample_MonsterT(&self)
+  public func unpack() -> MyGame_Sample_MonsterT {
+    return MyGame_Sample_MonsterT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_MonsterT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -372,7 +367,7 @@ public class MyGame_Sample_MonsterT: NativeObject {
   public var equipped: MyGame_Sample_EquipmentUnion?
   public var path: [MyGame_Sample_Vec3]
 
-  public init(_ _t: inout MyGame_Sample_Monster) {
+  public init(_ _t: borrowing MyGame_Sample_Monster) {
     pos = _t.pos
     mana = _t.mana
     hp = _t.hp
@@ -381,12 +376,12 @@ public class MyGame_Sample_MonsterT: NativeObject {
     inventory.append(contentsOf: _t.inventory)
     color = _t.color
     weapons = []
-    for var val in _t.weapons{
+    for val in _t.weapons{
         weapons.append(val.unpack())
     }
     switch _t.equippedType {
     case .weapon:
-      var _v = _t.equipped(type: MyGame_Sample_Weapon.self)
+      let _v = _t.equipped(type: MyGame_Sample_Weapon.self)
       equipped = MyGame_Sample_EquipmentUnion(_v?.unpack(), type: .weapon)
     default: break
     }
@@ -441,10 +436,9 @@ public struct MyGame_Sample_Weapon: FlatBufferTable, FlatbuffersVectorInitializa
     MyGame_Sample_Weapon.add(damage: damage, &fbb)
     return MyGame_Sample_Weapon.endWeapon(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> MyGame_Sample_WeaponT {
-    return MyGame_Sample_WeaponT(&self)
+  public func unpack() -> MyGame_Sample_WeaponT {
+    return MyGame_Sample_WeaponT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Sample_WeaponT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -493,7 +487,7 @@ public class MyGame_Sample_WeaponT: NativeObject {
   public var name: String?
   public var damage: Int16
 
-  public init(_ _t: inout MyGame_Sample_Weapon) {
+  public init(_ _t: borrowing MyGame_Sample_Weapon) {
     name = _t.name
     damage = _t.damage
   }

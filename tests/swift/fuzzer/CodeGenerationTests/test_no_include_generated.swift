@@ -9,8 +9,7 @@ public struct BytesCount: NativeStruct, FlatbuffersVectorInitializable, Verifiab
   private var _x: Int64
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _x = _accessor.readBuffer(of: Int64.self, at: 0)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(x: Int64) {
@@ -21,7 +20,7 @@ public struct BytesCount: NativeStruct, FlatbuffersVectorInitializable, Verifiab
     _x = 0
   }
 
-  public init(_ _t: inout BytesCount_Mutable) {
+  public init(_ _t: borrowing BytesCount_Mutable) {
     _x = _t.x
   }
 
@@ -55,10 +54,9 @@ public struct BytesCount_Mutable: FlatBufferStruct, FlatbuffersVectorInitializab
 
   public var x: Int64 { return _accessor.readBuffer(of: Int64.self, at: 0) }
   @discardableResult public func mutate(x: Int64) -> Bool { return _accessor.mutate(x, index: 0) }
-  
 
-  public mutating func unpack() -> BytesCount {
-    return BytesCount(&self)
+  public func unpack() -> BytesCount {
+    return BytesCount(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BytesCount?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -98,10 +96,9 @@ public struct InternalMessage: FlatBufferTable, FlatbuffersVectorInitializable, 
     InternalMessage.add(str: str, &fbb)
     return InternalMessage.endInternalMessage(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> InternalMessageT {
-    return InternalMessageT(&self)
+  public func unpack() -> InternalMessageT {
+    return InternalMessageT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout InternalMessageT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -143,7 +140,7 @@ public class InternalMessageT: NativeObject {
 
   public var str: String?
 
-  public init(_ _t: inout InternalMessage) {
+  public init(_ _t: borrowing InternalMessage) {
     str = _t.str
   }
 
@@ -192,10 +189,9 @@ public struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiab
     Message.add(pointer: pointer, &fbb)
     return Message.endMessage(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> MessageT {
-    return MessageT(&self)
+  public func unpack() -> MessageT {
+    return MessageT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MessageT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -243,11 +239,10 @@ public class MessageT: NativeObject {
   public var position: BytesCount
   public var pointer: InternalMessageT
 
-  public init(_ _t: inout Message) {
+  public init(_ _t: borrowing Message) {
     id = _t.id
     position = _t.position
-    var __pointer = _t.pointer
-    pointer = __pointer!.unpack()
+    pointer = _t.pointer!.unpack()
   }
 
   public init() {
