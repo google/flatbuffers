@@ -1,0 +1,2186 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://flatbuffers.dev/internals/">
+      
+      
+        <link rel="prev" href="../white_paper/">
+      
+      
+        <link rel="next" href="../intermediate_representation/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>FlatBuffers Internals - FlatBuffers Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#flatbuffers_internals" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FlatBuffers Docs" class="md-header__button md-logo" aria-label="FlatBuffers Docs" data-md-component="logo">
+      
+  <img src="../assets/flatbuffers_logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FlatBuffers Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FlatBuffers Internals
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/google/flatbuffers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    google/FlatBuffers
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FlatBuffers Docs" class="md-nav__button md-logo" aria-label="FlatBuffers Docs" data-md-component="logo">
+      
+  <img src="../assets/flatbuffers_logo.svg" alt="logo">
+
+    </a>
+    FlatBuffers Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/google/flatbuffers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    google/FlatBuffers
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quick_start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compiler (flatc)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Compiler (flatc)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flatc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema (.fbs)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Schema (.fbs)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Language Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Language Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/cpp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C++
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/c_sharp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C#
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/dart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/go/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Go
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/javascript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JavaScript
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/kotlin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/lobster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lobster
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/lua/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/php/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PHP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/rust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rust
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/swift/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Swift
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../languages/typescript/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TypeScript
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supported Configurations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../white_paper/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    White Paper
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlatBuffers Internals
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlatBuffers Internals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#format-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Format components
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#format-identification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Format identification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#offsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Offsets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strings-and-vectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strings and Vectors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#construction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Construction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#encoding-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Encoding example.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional reading.
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intermediate_representation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intermediate Representation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../annotation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Annotating Buffers (.afb)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flexbuffers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FlexBuffers (Schema-less version)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#format-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Format components
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#format-identification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Format identification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#offsets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Offsets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strings-and-vectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strings and Vectors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#construction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Construction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#encoding-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Encoding example.
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional reading.
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/google/flatbuffers/edit/master/docs/source/internals.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="flatbuffers_internals">FlatBuffer Internals</h1>
+<p>This section is entirely optional for the use of FlatBuffers. In normal
+usage, you should never need the information contained herein. If you're
+interested however, it should give you more of an appreciation of why
+FlatBuffers is both efficient and convenient.</p>
+<h3 id="format-components">Format components</h3>
+<p>A FlatBuffer is a binary file and in-memory format consisting mostly of
+scalars of various sizes, all aligned to their own size. Each scalar is
+also always represented in little-endian format, as this corresponds to
+all commonly used CPUs today. FlatBuffers will also work on big-endian
+machines, but will be slightly slower because of additional
+byte-swap intrinsics.</p>
+<p>It is assumed that the following conditions are met, to ensure
+cross-platform interoperability:
+- The binary <code>IEEE-754</code> format is used for floating-point numbers.
+- The <code>two's complemented</code> representation is used for signed integers.
+- The endianness is the same for floating-point numbers as for integers.</p>
+<p>On purpose, the format leaves a lot of details about where exactly
+things live in memory undefined, e.g. fields in a table can have any
+order, and objects to some extent can be stored in many orders. This is
+because the format doesn't need this information to be efficient, and it
+leaves room for optimization and extension (for example, fields can be
+packed in a way that is most compact). Instead, the format is defined in
+terms of offsets and adjacency only. This may mean two different
+implementations may produce different binaries given the same input
+values, and this is perfectly valid.</p>
+<h3 id="format-identification">Format identification</h3>
+<p>The format also doesn't contain information for format identification
+and versioning, which is also by design. FlatBuffers is a statically typed
+system, meaning the user of a buffer needs to know what kind of buffer
+it is. FlatBuffers can of course be wrapped inside other containers
+where needed, or you can use its union feature to dynamically identify
+multiple possible sub-objects stored. Additionally, it can be used
+together with the schema parser if full reflective capabilities are
+desired.</p>
+<p>Versioning is something that is intrinsically part of the format (the
+optionality / extensibility of fields), so the format itself does not
+need a version number (it's a meta-format, in a sense). We're hoping
+that this format can accommodate all data needed. If format breaking
+changes are ever necessary, it would become a new kind of format rather
+than just a variation.</p>
+<h3 id="offsets">Offsets</h3>
+<p>The most important and generic offset type (see <code>flatbuffers.h</code>) is
+<code>uoffset_t</code>, which is currently always a <code>uint32_t</code>, and is used to
+refer to all tables/unions/strings/vectors (these are never stored
+in-line). 32bit is
+intentional, since we want to keep the format binary compatible between
+32 and 64bit systems, and a 64bit offset would bloat the size for almost
+all uses. A version of this format with 64bit (or 16bit) offsets is easy to set
+when needed. Unsigned means they can only point in one direction, which
+typically is forward (towards a higher memory location). Any backwards
+offsets will be explicitly marked as such.</p>
+<p>The format starts with an <code>uoffset_t</code> to the root table in the buffer.</p>
+<p>We have two kinds of objects, structs and tables.</p>
+<h3 id="structs">Structs</h3>
+<p>These are the simplest, and as mentioned, intended for simple data that
+benefits from being extra efficient and doesn't need versioning /
+extensibility. They are always stored inline in their parent (a struct,
+table, or vector) for maximum compactness. Structs define a consistent
+memory layout where all components are aligned to their size, and
+structs aligned to their largest scalar member. This is done independent
+of the alignment rules of the underlying compiler to guarantee a cross
+platform compatible layout. This layout is then enforced in the generated
+code.</p>
+<h3 id="tables">Tables</h3>
+<p>Unlike structs, these are not stored in inline in their parent, but are
+referred to by offset.</p>
+<p>They start with an <code>soffset_t</code> to a vtable. This is a signed version of
+<code>uoffset_t</code>, since vtables may be stored anywhere relative to the object.
+This offset is subtracted (not added) from the object start to arrive at
+the vtable start. This offset is followed by all the
+fields as aligned scalars (or offsets). Unlike structs, not all fields
+need to be present. There is no set order and layout. A table may contain
+field offsets that point to the same value if the user explicitly
+serializes the same offset twice.</p>
+<p>To be able to access fields regardless of these uncertainties, we go
+through a vtable of offsets. Vtables are shared between any objects that
+happen to have the same vtable values.</p>
+<p>The elements of a vtable are all of type <code>voffset_t</code>, which is
+a <code>uint16_t</code>. The first element is the size of the vtable in bytes,
+including the size element. The second one is the size of the object, in bytes
+(including the vtable offset). This size could be used for streaming, to know
+how many bytes to read to be able to access all <em>inline</em> fields of the object.
+The remaining elements are the N offsets, where N is the amount of fields
+declared in the schema when the code that constructed this buffer was
+compiled (thus, the size of the table is N + 2).</p>
+<p>All accessor functions in the generated code for tables contain the
+offset into this table as a constant. This offset is checked against the
+first field (the number of elements), to protect against newer code
+reading older data. If this offset is out of range, or the vtable entry
+is 0, that means the field is not present in this object, and the
+default value is return. Otherwise, the entry is used as offset to the
+field to be read.</p>
+<h3 id="unions">Unions</h3>
+<p>Unions are encoded as the combination of two fields: an enum representing the
+union choice and the offset to the actual element. FlatBuffers reserves the
+enumeration constant <code>NONE</code> (encoded as 0) to mean that the union field is not
+set.</p>
+<h3 id="strings-and-vectors">Strings and Vectors</h3>
+<p>Strings are simply a vector of bytes, and are always
+null-terminated. Vectors are stored as contiguous aligned scalar
+elements prefixed by a 32bit element count (not including any
+null termination). Neither is stored inline in their parent, but are referred to
+by offset. A vector may consist of more than one offset pointing to the same
+value if the user explicitly serializes the same offset twice.</p>
+<h3 id="construction">Construction</h3>
+<p>The current implementation constructs these buffers backwards (starting
+at the highest memory address of the buffer), since
+that significantly reduces the amount of bookkeeping and simplifies the
+construction API.</p>
+<h3 id="code-example">Code example</h3>
+<p>Here's an example of the code that gets generated for the <code>samples/monster.fbs</code>.
+What follows is the entire file, broken up by comments:</p>
+<div class="highlight"><pre><span></span><code>// automatically generated, do not modify
+
+#include &quot;flatbuffers/flatbuffers.h&quot;
+
+namespace MyGame {
+namespace Sample {
+</code></pre></div>
+<p>Nested namespace support.</p>
+<div class="highlight"><pre><span></span><code>enum {
+  Color_Red = 0,
+  Color_Green = 1,
+  Color_Blue = 2,
+};
+
+inline const char **EnumNamesColor() {
+  static const char *names[] = { &quot;Red&quot;, &quot;Green&quot;, &quot;Blue&quot;, nullptr };
+  return names;
+}
+
+inline const char *EnumNameColor(int e) { return EnumNamesColor()[e]; }
+</code></pre></div>
+<p>Enums and convenient reverse lookup.</p>
+<div class="highlight"><pre><span></span><code>enum {
+  Any_NONE = 0,
+  Any_Monster = 1,
+};
+
+inline const char **EnumNamesAny() {
+  static const char *names[] = { &quot;NONE&quot;, &quot;Monster&quot;, nullptr };
+  return names;
+}
+
+inline const char *EnumNameAny(int e) { return EnumNamesAny()[e]; }
+</code></pre></div>
+<p>Unions share a lot with enums.</p>
+<div class="highlight"><pre><span></span><code>struct Vec3;
+struct Monster;
+</code></pre></div>
+<p>Predeclare all data types since circular references between types are allowed
+(circular references between object are not, though).</p>
+<div class="highlight"><pre><span></span><code>FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 {
+ private:
+  float x_;
+  float y_;
+  float z_;
+
+ public:
+  Vec3(float x, float y, float z)
+    : x_(flatbuffers::EndianScalar(x)), y_(flatbuffers::EndianScalar(y)), z_(flatbuffers::EndianScalar(z)) {}
+
+  float x() const { return flatbuffers::EndianScalar(x_); }
+  float y() const { return flatbuffers::EndianScalar(y_); }
+  float z() const { return flatbuffers::EndianScalar(z_); }
+};
+FLATBUFFERS_STRUCT_END(Vec3, 12);
+</code></pre></div>
+<p>These ugly macros do a couple of things: they turn off any padding the compiler
+might normally do, since we add padding manually (though none in this example),
+and they enforce alignment chosen by FlatBuffers. This ensures the layout of
+this struct will look the same regardless of compiler and platform. Note that
+the fields are private: this is because these store little endian scalars
+regardless of platform (since this is part of the serialized data).
+<code>EndianScalar</code> then converts back and forth, which is a no-op on all current
+mobile and desktop platforms, and a single machine instruction on the few
+remaining big endian platforms.</p>
+<div class="highlight"><pre><span></span><code>struct Monster : private flatbuffers::Table {
+  const Vec3 *pos() const { return GetStruct&lt;const Vec3 *&gt;(4); }
+  int16_t mana() const { return GetField&lt;int16_t&gt;(6, 150); }
+  int16_t hp() const { return GetField&lt;int16_t&gt;(8, 100); }
+  const flatbuffers::String *name() const { return GetPointer&lt;const flatbuffers::String *&gt;(10); }
+  const flatbuffers::Vector&lt;uint8_t&gt; *inventory() const { return GetPointer&lt;const flatbuffers::Vector&lt;uint8_t&gt; *&gt;(14); }
+  int8_t color() const { return GetField&lt;int8_t&gt;(16, 2); }
+};
+</code></pre></div>
+<p>Tables are a bit more complicated. A table accessor struct is used to point at
+the serialized data for a table, which always starts with an offset to its
+vtable. It derives from <code>Table</code>, which contains the <code>GetField</code> helper functions.
+GetField takes a vtable offset, and a default value. It will look in the vtable
+at that offset. If the offset is out of bounds (data from an older version) or
+the vtable entry is 0, the field is not present and the default is returned.
+Otherwise, it uses the entry as an offset into the table to locate the field.</p>
+<div class="highlight"><pre><span></span><code>struct MonsterBuilder {
+  flatbuffers::FlatBufferBuilder &amp;fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_pos(const Vec3 *pos) { fbb_.AddStruct(4, pos); }
+  void add_mana(int16_t mana) { fbb_.AddElement&lt;int16_t&gt;(6, mana, 150); }
+  void add_hp(int16_t hp) { fbb_.AddElement&lt;int16_t&gt;(8, hp, 100); }
+  void add_name(flatbuffers::Offset&lt;flatbuffers::String&gt; name) { fbb_.AddOffset(10, name); }
+  void add_inventory(flatbuffers::Offset&lt;flatbuffers::Vector&lt;uint8_t&gt;&gt; inventory) { fbb_.AddOffset(14, inventory); }
+  void add_color(int8_t color) { fbb_.AddElement&lt;int8_t&gt;(16, color, 2); }
+  MonsterBuilder(flatbuffers::FlatBufferBuilder &amp;_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  flatbuffers::Offset&lt;Monster&gt; Finish() { return flatbuffers::Offset&lt;Monster&gt;(fbb_.EndTable(start_, 7)); }
+};
+</code></pre></div>
+<p><code>MonsterBuilder</code> is the base helper struct to construct a table using a
+<code>FlatBufferBuilder</code>. You can add the fields in any order, and the <code>Finish</code>
+call will ensure the correct vtable gets generated.</p>
+<div class="highlight"><pre><span></span><code>inline flatbuffers::Offset&lt;Monster&gt; CreateMonster(flatbuffers::FlatBufferBuilder &amp;_fbb,
+                                                  const Vec3 *pos, int16_t mana,
+                                                  int16_t hp,
+                                                  flatbuffers::Offset&lt;flatbuffers::String&gt; name,
+                                                  flatbuffers::Offset&lt;flatbuffers::Vector&lt;uint8_t&gt;&gt; inventory,
+                                                  int8_t color) {
+  MonsterBuilder builder_(_fbb);
+  builder_.add_inventory(inventory);
+  builder_.add_name(name);
+  builder_.add_pos(pos);
+  builder_.add_hp(hp);
+  builder_.add_mana(mana);
+  builder_.add_color(color);
+  return builder_.Finish();
+}
+</code></pre></div>
+<p><code>CreateMonster</code> is a convenience function that calls all functions in
+<code>MonsterBuilder</code> above for you. Note that if you pass values which are
+defaults as arguments, it will not actually construct that field, so
+you can probably use this function instead of the builder class in
+almost all cases.</p>
+<div class="highlight"><pre><span></span><code>inline const Monster *GetMonster(const void *buf) { return flatbuffers::GetRoot&lt;Monster&gt;(buf); }
+</code></pre></div>
+<p>This function is only generated for the root table type, to be able to
+start traversing a FlatBuffer from a raw buffer pointer.</p>
+<div class="highlight"><pre><span></span><code>}; // namespace MyGame
+}; // namespace Sample
+</code></pre></div>
+<h3 id="encoding-example">Encoding example.</h3>
+<p>Below is a sample encoding for the following JSON corresponding to the above
+schema:</p>
+<div class="highlight"><pre><span></span><code>{ pos: { x: 1, y: 2, z: 3 }, name: &quot;fred&quot;, hp: 50 }
+</code></pre></div>
+<p>Resulting in this binary buffer:</p>
+<div class="highlight"><pre><span></span><code>// Start of the buffer:
+uint32_t 20  // Offset to the root table.
+
+// Start of the vtable. Not shared in this example, but could be:
+uint16_t 16 // Size of table, starting from here.
+uint16_t 22 // Size of object inline data.
+uint16_t 4, 0, 20, 16, 0, 0  // Offsets to fields from start of (root) table, 0 for not present.
+
+// Start of the root table:
+int32_t 16     // Offset to vtable used (default negative direction)
+float 1, 2, 3  // the Vec3 struct, inline.
+uint32_t 8     // Offset to the name string.
+int16_t 50     // hp field.
+int16_t 0      // Padding for alignment.
+
+// Start of name string:
+uint32_t 4  // Length of string.
+int8_t &#39;f&#39;, &#39;r&#39;, &#39;e&#39;, &#39;d&#39;, 0, 0, 0, 0  // Text + 0 termination + padding.
+</code></pre></div>
+<p>Note that this not the only possible encoding, since the writer has some
+flexibility in which of the children of root object to write first (though in
+this case there's only one string), and what order to write the fields in.
+Different orders may also cause different alignments to happen.</p>
+<h3 id="additional-reading">Additional reading.</h3>
+<p>The author of the C language implementation has made a similar
+<a href="https://github.com/dvidelabs/flatcc/blob/master/doc/binary-format.md#flatbuffers-binary-format">document</a>
+that may further help clarify the format.</p>
+<h1 id="flexbuffers">FlexBuffers</h1>
+<p>The <a href="../flexbuffers/">schema-less</a> version of FlatBuffers have their
+own encoding, detailed here.</p>
+<p>It shares many properties mentioned above, in that all data is accessed
+over offsets, all scalars are aligned to their own size, and
+all data is always stored in little endian format.</p>
+<p>One difference is that FlexBuffers are built front to back, so children are
+stored before parents, and the root of the data starts at the last byte.</p>
+<p>Another difference is that scalar data is stored with a variable number of bits
+(8/16/32/64). The current width is always determined by the <em>parent</em>, i.e. if
+the scalar sits in a vector, the vector determines the bit width for all
+elements at once. Selecting the minimum bit width for a particular vector is
+something the encoder does automatically and thus is typically of no concern
+to the user, though being aware of this feature (and not sticking a double in
+the same vector as a bunch of byte sized elements) is helpful for efficiency.</p>
+<p>Unlike FlatBuffers there is only one kind of offset, and that is an unsigned
+integer indicating the number of bytes in a negative direction from the address
+of itself (where the offset is stored).</p>
+<h3 id="vectors">Vectors</h3>
+<p>The representation of the vector is at the core of how FlexBuffers works (since
+maps are really just a combination of 2 vectors), so it is worth starting there.</p>
+<p>As mentioned, a vector is governed by a single bit width (supplied by its
+parent). This includes the size field. For example, a vector that stores the
+integer values <code>1, 2, 3</code> is encoded as follows:</p>
+<div class="highlight"><pre><span></span><code>uint8_t 3, 1, 2, 3, 4, 4, 4
+</code></pre></div>
+<p>The first <code>3</code> is the size field, and is placed before the vector (an offset
+from the parent to this vector points to the first element, not the size
+field, so the size field is effectively at index -1).
+Since this is an untyped vector <code>SL_VECTOR</code>, it is followed by 3 type
+bytes (one per element of the vector), which are always following the vector,
+and are always a uint8_t even if the vector is made up of bigger scalars.</p>
+<p>A vector may include more than one offset pointing to the same value if the
+user explicitly serializes the same offset twice.</p>
+<h3 id="types">Types</h3>
+<p>A type byte is made up of 2 components (see flexbuffers.h for exact values):</p>
+<ul>
+<li>2 lower bits representing the bit-width of the child (8, 16, 32, 64).
+  This is only used if the child is accessed over an offset, such as a child
+  vector. It is ignored for inline types.</li>
+<li>6 bits representing the actual type (see flexbuffers.h).</li>
+</ul>
+<p>Thus, in this example <code>4</code> means 8 bit child (value 0, unused, since the value is
+in-line), type <code>SL_INT</code> (value 1).</p>
+<h3 id="typed-vectors">Typed Vectors</h3>
+<p>These are like the Vectors above, but omit the type bytes. The type is instead
+determined by the vector type supplied by the parent. Typed vectors are only
+available for a subset of types for which these savings can be significant,
+namely inline signed/unsigned integers (<code>TYPE_VECTOR_INT</code> / <code>TYPE_VECTOR_UINT</code>),
+floats (<code>TYPE_VECTOR_FLOAT</code>), and keys (<code>TYPE_VECTOR_KEY</code>, see below).</p>
+<p>Additionally, for scalars, there are fixed length vectors of sizes 2 / 3 / 4
+that don't store the size (<code>TYPE_VECTOR_INT2</code> etc.), for an additional savings
+in space when storing common vector or color data.</p>
+<h3 id="scalars">Scalars</h3>
+<p>FlexBuffers supports integers (<code>TYPE_INT</code> and <code>TYPE_UINT</code>) and floats
+(<code>TYPE_FLOAT</code>), available in the bit-widths mentioned above. They can be stored
+both inline and over an offset (<code>TYPE_INDIRECT_*</code>).</p>
+<p>The offset version is useful to encode costly 64bit (or even 32bit) quantities
+into vectors / maps of smaller sizes, and to share / repeat a value multiple
+times.</p>
+<h3 id="booleans-and-nulls">Booleans and Nulls</h3>
+<p>Booleans (<code>TYPE_BOOL</code>) and nulls (<code>TYPE_NULL</code>) are encoded as inlined unsigned integers.</p>
+<h3 id="blobs-strings-and-keys">Blobs, Strings and Keys.</h3>
+<p>A blob (<code>TYPE_BLOB</code>) is encoded similar to a vector, with one difference: the
+elements are always <code>uint8_t</code>. The parent bit width only determines the width of
+the size field, allowing blobs to be large without the elements being large.</p>
+<p>Strings (<code>TYPE_STRING</code>) are similar to blobs, except they have an additional 0
+termination byte for convenience, and they MUST be UTF-8 encoded (since an
+accessor in a language that does not support pointers to UTF-8 data may have to
+convert them to a native string type).</p>
+<p>A "Key" (<code>TYPE_KEY</code>) is similar to a string, but doesn't store the size
+field. They're so named because they are used with maps, which don't care
+for the size, and can thus be even more compact. Unlike strings, keys cannot
+contain bytes of value 0 as part of their data (size can only be determined by
+<code>strlen</code>), so while you can use them outside the context of maps if you so
+desire, you're usually better off with strings.</p>
+<h3 id="maps">Maps</h3>
+<p>A map (<code>TYPE_MAP</code>) is like an (untyped) vector, but with 2 prefixes before the
+size field:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">index</th>
+<th style="text-align: left;">field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">-3</td>
+<td style="text-align: left;">An offset to the keys vector (may be shared between tables).</td>
+</tr>
+<tr>
+<td style="text-align: right;">-2</td>
+<td style="text-align: left;">Byte width of the keys vector.</td>
+</tr>
+<tr>
+<td style="text-align: right;">-1</td>
+<td style="text-align: left;">Size (from here on it is compatible with <code>TYPE_VECTOR</code>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Elements.</td>
+</tr>
+<tr>
+<td style="text-align: right;">Size</td>
+<td style="text-align: left;">Types.</td>
+</tr>
+</tbody>
+</table>
+<p>Since a map is otherwise the same as a vector, it can be iterated like
+a vector (which is probably faster than lookup by key).</p>
+<p>The keys vector is a typed vector of keys. Both the keys and corresponding
+values <em>have</em> to be stored in sorted order (as determined by <code>strcmp</code>), such
+that lookups can be made using binary search.</p>
+<p>The reason the key vector is a separate structure from the value vector is
+such that it can be shared between multiple value vectors, and also to
+allow it to be treated as its own individual vector in code.</p>
+<p>An example map { foo: 13, bar: 14 } would be encoded as:</p>
+<div class="highlight"><pre><span></span><code>0 : uint8_t &#39;b&#39;, &#39;a&#39;, &#39;r&#39;, 0
+4 : uint8_t &#39;f&#39;, &#39;o&#39;, &#39;o&#39;, 0
+8 : uint8_t 2      // key vector of size 2
+// key vector offset points here
+9 : uint8_t 9, 6   // offsets to bar_key and foo_key
+11: uint8_t 2, 1   // offset to key vector, and its byte width
+13: uint8_t 2      // value vector of size
+// value vector offset points here
+14: uint8_t 14, 13 // values
+16: uint8_t 4, 4   // types
+</code></pre></div>
+<h3 id="the-root">The root</h3>
+<p>As mentioned, the root starts at the end of the buffer.
+The last uint8_t is the width in bytes of the root (normally the parent
+determines the width, but the root has no parent). The uint8_t before this is
+the type of the root, and the bytes before that are the root value (of the
+number of bytes specified by the last byte).</p>
+<p>So for example, the integer value <code>13</code> as root would be:</p>
+<div class="highlight"><pre><span></span><code>uint8_t 13, 4, 1    // Value, type, root byte width.
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../white_paper/" class="md-footer__link md-footer__link--prev" aria-label="Previous: White Paper">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                White Paper
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../intermediate_representation/" class="md-footer__link md-footer__link--next" aria-label="Next: Intermediate Representation">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Intermediate Representation
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Google
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/google/flatbuffers" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https:///discord.gg/6qgKs3R" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/dbaileychess" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M357.2 48h70.6L273.6 224.2 455 464H313L201.7 318.6 74.5 464H3.8l164.9-188.5L-5.2 48h145.6l100.5 132.9zm-24.8 373.8h39.1L119.1 88h-42z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.annotate", "content.tabs.link", "navigation.expand", "navigation.footer", "header.autohide", "content.action.edit"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
