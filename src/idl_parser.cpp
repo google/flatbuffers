@@ -2767,7 +2767,8 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs |
+            IDLOptions::kSwift)) == 0;
 }
 
 bool Parser::Supports64BitOffsets() const {
