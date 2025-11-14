@@ -143,7 +143,7 @@ struct _InternalByteBuffer {
 
   /// Adds a `ContiguousBytes` to buffer memory
   /// - Parameter value: bytes to copy
-  #if swift(>=5.0) && !os(WASI)
+  #if !os(WASI)
   @inline(__always)
   @usableFromInline
   mutating func push(bytes: ContiguousBytes) {

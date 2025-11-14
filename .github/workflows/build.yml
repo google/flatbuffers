@@ -461,7 +461,7 @@ jobs:
     name: Test Swift
     strategy:
       matrix:
-        swift: ["5.9", "5.10", "6.1"]
+        swift: ["5.10", "6.1", "6.2"]
     # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
     runs-on: ubuntu-22.04
     steps:
