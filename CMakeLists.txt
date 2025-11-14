@@ -1,6 +1,6 @@
 # This is the legacy minimum version flatbuffers supported for a while.
-cmake_minimum_required(VERSION 3.8...3.25.2)
-cmake_policy(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10...3.25.2)
+cmake_policy(VERSION 3.10)
 
 # Attempt to read the current version of flatbuffers by looking at the latest tag.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
