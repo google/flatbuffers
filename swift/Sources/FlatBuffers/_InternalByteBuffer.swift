@@ -192,41 +192,17 @@ struct _InternalByteBuffer {
     }
   }
 
-  /// Adds a string to the buffer using swift.utf8 object
-  /// - Parameter str: String that will be added to the buffer
-  /// - Parameter len: length of the string
+  /// Adds a RawPointer into the buffer
+  /// - Parameter pointer: pointer to be copied into the buffer
+  /// - Parameter len: length of the data
   @inline(__always)
-  @usableFromInline
-  mutating func push(string str: String, len: Int) {
+  mutating func writeBytes(_ ptr: UnsafeRawPointer, len: Int) {
     ensureSpace(size: len)
-    if str.utf8
-      .withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) !=
-      nil
-    {
-    } else {
-      let utf8View = str.utf8
-      for c in utf8View.reversed() {
-        push(value: c, len: 1)
-      }
-    }
-  }
-
-  /// Writes a string to Bytebuffer using UTF8View
-  /// - Parameters:
-  ///   - bytes: Pointer to the view
-  ///   - len: Size of string
-  @usableFromInline
-  @inline(__always)
-  mutating func push(
-    bytes: UnsafeBufferPointer<String.UTF8View.Element>,
-    len: Int) -> Bool
-  {
     memcpy(
       _storage.memory.advanced(by: writerIndex &- len),
-      bytes.baseAddress!,
+      ptr,
       len)
     _writerSize = _writerSize &+ len
-    return true
   }
 
   /// Write stores an object into the buffer directly or indirectly.
