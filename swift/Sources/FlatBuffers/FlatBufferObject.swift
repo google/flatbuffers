@@ -69,5 +69,5 @@ public protocol ObjectAPIPacker {
   static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset
 
   /// ``unpack()`` unpacks a ``FlatBuffers`` object into a Native swift object.
-  mutating func unpack() -> T
+  func unpack() -> T
 }
