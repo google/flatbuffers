@@ -5,6 +5,7 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
+from typing import Iterable
 np = import_numpy()
 
 class MonsterExtra(object):
@@ -205,6 +206,16 @@ def MonsterExtraStartDvecVector(builder, numElems: int) -> int:
 def StartDvecVector(builder, numElems: int) -> int:
     return MonsterExtraStartDvecVector(builder, numElems)
 
+def MonsterExtraCreateDvecVector(builder: flatbuffers.Builder, data: Iterable[Any]) -> int:
+    data = list(data)
+    builder.StartVector(8, len(data), 8)
+    for item in reversed(data):
+        builder.PrependFloat64(item)
+    return builder.EndVector()
+
+def CreateDvecVector(builder: flatbuffers.Builder, data: Iterable[Any]) -> int:
+    MonsterExtraCreateDvecVector(builder, data)
+
 def MonsterExtraAddFvec(builder: flatbuffers.Builder, fvec: int):
     builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fvec), 0)
 
@@ -216,6 +227,16 @@ def MonsterExtraStartFvecVector(builder, numElems: int) -> int:
 
 def StartFvecVector(builder, numElems: int) -> int:
     return MonsterExtraStartFvecVector(builder, numElems)
+
+def MonsterExtraCreateFvecVector(builder: flatbuffers.Builder, data: Iterable[Any]) -> int:
+    data = list(data)
+    builder.StartVector(4, len(data), 4)
+    for item in reversed(data):
+        builder.PrependFloat32(item)
+    return builder.EndVector()
+
+def CreateFvecVector(builder: flatbuffers.Builder, data: Iterable[Any]) -> int:
+    MonsterExtraCreateFvecVector(builder, data)
 
 def MonsterExtraEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
