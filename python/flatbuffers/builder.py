@@ -245,7 +245,10 @@ class Builder(object):
 
       vtKey.append(elem)
 
+    objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
+    vtKey.append(objectSize)
     vtKey = tuple(vtKey)
+    # calculate the size of the object
     vt2Offset = self.vtables.get(vtKey)
     if vt2Offset is None:
       # Did not find a vtable, so write this one to the buffer.
@@ -275,7 +278,6 @@ class Builder(object):
       # The two metadata fields are written last.
 
       # First, store the object bytesize:
-      objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
       self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
 
       # Second, store the vtable bytesize:
