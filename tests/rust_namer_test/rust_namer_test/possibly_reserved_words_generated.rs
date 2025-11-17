@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct PossiblyReservedWords, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct PossiblyReservedWords(pub [u8; 16]);
 impl Default for PossiblyReservedWords { 
   fn default() -> Self { 
@@ -26,6 +26,19 @@ impl core::fmt::Debug for PossiblyReservedWords {
       .field("size", &self.size())
       .field("alignment", &self.alignment())
       .finish()
+  }
+}
+impl core::cmp::Ord for PossiblyReservedWords {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.follow_().total_cmp(&other.follow_())
+      .then(self.push_().total_cmp(&other.push_()))
+      .then(self.size().total_cmp(&other.size()))
+      .then(self.alignment().total_cmp(&other.alignment()))
+  }
+}
+impl core::cmp::PartialOrd for PossiblyReservedWords {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 

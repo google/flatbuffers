@@ -11,7 +11,7 @@ use self::flatbuffers::{EndianScalar, Follow};
 use super::*;
 // struct StructOfStructsOfStructs, aligned to 4
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct StructOfStructsOfStructs(pub [u8; 20]);
 impl Default for StructOfStructsOfStructs { 
   fn default() -> Self { 
@@ -23,6 +23,16 @@ impl core::fmt::Debug for StructOfStructsOfStructs {
     f.debug_struct("StructOfStructsOfStructs")
       .field("a", &self.a())
       .finish()
+  }
+}
+impl core::cmp::Ord for StructOfStructsOfStructs {
+  fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    self.a().cmp(&other.a())
+  }
+}
+impl core::cmp::PartialOrd for StructOfStructsOfStructs {
+  fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    Some(self.cmp(other))
   }
 }
 
