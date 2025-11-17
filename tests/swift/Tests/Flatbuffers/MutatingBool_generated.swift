@@ -15,8 +15,7 @@ public struct Property: NativeStruct, FlatbuffersVectorInitializable, Verifiable
   private var _property: Bool
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _property = _accessor.readBuffer(of: Bool.self, at: 0)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(property: Bool) {
@@ -27,7 +26,7 @@ public struct Property: NativeStruct, FlatbuffersVectorInitializable, Verifiable
     _property = false
   }
 
-  public init(_ _t: inout Property_Mutable) {
+  public init(_ _t: borrowing Property_Mutable) {
     _property = _t.property
   }
 
@@ -61,10 +60,9 @@ public struct Property_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable
 
   public var property: Bool { return _accessor.readBuffer(of: Bool.self, at: 0) }
   @discardableResult public func mutate(property: Bool) -> Bool { return _accessor.mutate(property, index: 0) }
-  
 
-  public mutating func unpack() -> Property {
-    return Property(&self)
+  public func unpack() -> Property {
+    return Property(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Property?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -104,10 +102,9 @@ public struct TestMutatingBool: FlatBufferTable, FlatbuffersVectorInitializable,
     TestMutatingBool.add(b: b, &fbb)
     return TestMutatingBool.endTestMutatingBool(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> TestMutatingBoolT {
-    return TestMutatingBoolT(&self)
+  public func unpack() -> TestMutatingBoolT {
+    return TestMutatingBoolT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestMutatingBoolT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -142,7 +139,7 @@ public class TestMutatingBoolT: NativeObject {
 
   public var b: Property?
 
-  public init(_ _t: inout TestMutatingBool) {
+  public init(_ _t: borrowing TestMutatingBool) {
     b = _t.b
   }
 
