@@ -24,14 +24,14 @@ Codegen for all basic features | Yes    | Yes   | Yes      | Yes   | Yes    | Ye
 JSON parsing                   | Yes    | No    | No       | No    | No     | No    | No  | Yes    | No  | No      | Yes     | No     | No
 Simple mutation                | Yes    | Yes   | Yes      | Yes   | No     | No    | No  | No     | No  | No      | No      | No     | Yes
 Reflection                     | Yes    | No    | No       | No    | No     | No    | No  | Basic  | No  | No      | No      | No     | No
-Buffer verifier                | Yes    | No    | No       | No    | No     | No    | No  | Yes    | No  | No      | No      | No     | No
-Native Object API              | Yes    | No    | Yes      | Yes   | Yes    | Yes   | Yes | No     | No  | Yes     | No      | No     | No
+Buffer verifier                | Yes    | No    | No       | No    | No     | No    | No  | Yes    | No  | No      | No      | No     | Yes
+Native Object API              | Yes    | No    | Yes      | Yes   | Yes    | Yes   | Yes | No     | No  | Yes     | No      | No     | Yes
 Optional Scalars               | Yes    | Yes   | Yes      | No    | No     | Yes   | Yes | Yes    | No  | No      | Yes     | Yes    | Yes
-Flexbuffers                    | Yes    | Yes   | ?        | ?     | ?      | ?     | ?   | ?      | ?   | ?       | ?       | Yes    | ?
+Flexbuffers                    | Yes    | Yes   | ?        | ?     | ?      | ?     | ?   | ?      | ?   | ?       | ?       | Yes    | Yes
 Testing: basic                 | Yes    | Yes   | Yes      | Yes   | Yes    | Yes   | Yes | Yes    | ?   | Yes     | Yes     | Yes    | Yes
 Testing: fuzz                  | Yes    | No    | No       | Yes   | Yes    | No    | No  | No     | ?   | No      | No      | Yes    | No
 Performance:                   | Superb | Great | Great    | Great | Ok     | ?     | ?   | Superb | ?   | ?       | Great   | Superb | Great
-Platform: Windows              | VS2010 | Yes   | Yes      | ?     | ?      | ?     | Yes | VS2010 | ?   | Yes     | Yes     | Yes    | No
+Platform: Windows              | VS2010 | Yes   | Yes      | ?     | ?      | ?     | Yes | VS2010 | ?   | Yes     | Yes     | Yes    | Yes
 Platform: Linux                | GCC282 | Yes   | ?        | Yes   | Yes    | ?     | Yes | Yes    | ?   | Yes     | Yes     | Yes    | Yes
 Platform: OS X                 | Xcode4 | ?     | ?        | ?     | Yes    | ?     | Yes | Yes    | ?   | Yes     | Yes     | Yes    | Yes
 Platform: Android              | NDK10d | Yes   | ?        | ?     | ?      | ?     | ?   | ?      | ?   | Flutter | Yes     | ?      | No
