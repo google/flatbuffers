@@ -33,11 +33,11 @@ result = subprocess.run(
 if result.returncode != 0:
   print(
       "\n"
-      "ERROR: *********************************************************\n"
-      "ERROR: * The following differences were found after building.  *\n"
-      "ERROR: * Perhaps there is a difference in the flags for the.   *\n"
-      "ERROR: * CMakeLists.txt vs the script/generate_code.py script? *\n"
-      "ERROR: *********************************************************\n"
+      "ERROR: **********************************************************\n"
+      "ERROR: * The following differences were found after building.   *\n"
+      "ERROR: * Perhaps there is a difference in the flags for the.    *\n"
+      "ERROR: * CMakeLists.txt vs the scripts/generate_code.py script? *\n"
+      "ERROR: **********************************************************\n"
   )
   subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
   sys.exit(result.returncode)
@@ -55,11 +55,11 @@ result = subprocess.run(
 if result.returncode != 0:
   print(
       "\n"
-      "ERROR: ********************************************************\n"
-      "ERROR: * The following differences were found after running   *\n"
-      "ERROR: * the script/generate_code.py script. Maybe you forgot *\n"
-      "ERROR: * to run it after making changes in a generator?       *\n"
-      "ERROR: ********************************************************\n"
+      "ERROR: *********************************************************\n"
+      "ERROR: * The following differences were found after running    *\n"
+      "ERROR: * the scripts/generate_code.py script. Maybe you forgot *\n"
+      "ERROR: * to run it after making changes in a generator?        *\n"
+      "ERROR: *********************************************************\n"
   )
   subprocess.run(["git", "diff", "--binary", "--exit-code"], cwd=root_path)
   sys.exit(result.returncode)
