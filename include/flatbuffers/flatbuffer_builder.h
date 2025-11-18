@@ -834,6 +834,16 @@ class FlatBufferBuilderImpl {
     return Offset<Vector<uint8_t>>(EndVector(v.size()));
   }
 
+  Offset64<Vector64<uint8_t>> CreateVector64(const std::vector<bool>& v) {
+    StartVector<uint8_t, Offset64, Vector64<uint8_t>::size_type>(v.size());
+    for (auto i = v.size(); i > 0;) {
+      PushElement(static_cast<uint8_t>(v[--i]));
+    }
+    return Offset64<Vector64<uint8_t>>(
+        EndVector<Vector64<uint8_t>::size_type,
+                  Offset64<Vector64<uint8_t>>::offset_type>(v.size()));
+  }
+
   /// @brief Serialize values returned by a function into a FlatBuffer `vector`.
   /// This is a convenience function that takes care of iteration for you.
   /// @tparam T The data type of the `std::vector` elements.
