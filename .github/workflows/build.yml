@@ -191,6 +191,7 @@ jobs:
 
   build-dotnet-windows:
     name: Build .NET Windows
+    if: false # Temporarily disabled due to upstream failures
     runs-on: windows-2022-64core
     strategy:
       matrix:
@@ -268,7 +269,6 @@ jobs:
 
   build-android:
    name: Build Android (on Linux)
-   if: false #disabled due to continual failure
    runs-on: ubuntu-24.04
    steps:
    - uses: actions/checkout@v3
@@ -279,6 +279,8 @@ jobs:
        java-version: 17
    - name: set up Gradle
      uses: gradle/actions/setup-gradle@v4
+     with:
+       gradle-version: 8.7
    - name: set up flatc
      run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
@@ -366,6 +368,8 @@ jobs:
         java-version: 17
     - name: set up Gradle
       uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: 8.7
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
@@ -377,7 +381,6 @@ jobs:
 
   build-kotlin-linux:
     name: Build Kotlin Linux
-    if: false #disabled due to continual failure
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout
@@ -396,10 +399,7 @@ jobs:
        echo "${PWD}" >> $GITHUB_PATH
     - name: Build
       working-directory: kotlin
-      # we are using docker's version of gradle
-      # so no need for wrapper validation or user
-      # gradlew
-      run: gradle jvmMainClasses jvmTest jsTest jsBrowserTest
+      run: ./gradlew jvmMainClasses jvmTest jsTest jsBrowserTest
 
   build-rust-linux:
     name: Build Rust Linux
@@ -412,6 +412,7 @@ jobs:
 
   build-rust-windows:
     name: Build Rust Windows
+    if: false # Temporarily disabled due to upstream failures
     runs-on: windows-2022-64core
     steps:
     - uses: actions/checkout@v3

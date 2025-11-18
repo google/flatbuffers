@@ -2,12 +2,14 @@ name: Sync Upstream Master
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 0,12 * * *"
   workflow_dispatch:
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout fork
         uses: actions/checkout@v4
