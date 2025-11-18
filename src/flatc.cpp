@@ -958,6 +958,9 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         }
       } else {
         flatbuffers::EnsureDirExists(options.output_path);
+        if (!flatbuffers::EnsureDirIsWritable(options.output_path)) {
+          Error("Output path: '" + options.output_path + "' is not writable");
+        }
 
         // Prefer bfbs generators if present.
         if (code_generator->SupportsBfbsGeneration()) {
