@@ -262,6 +262,8 @@ const static FlatCOption flatc_options[] = {
     {"", "python-no-type-prefix-suffix", "",
      "Skip emission of Python functions that are prefixed with typenames"},
     {"", "python-typing", "", "Generate Python type annotations"},
+    {"", "python-enum", "",
+     "Generate enum types as IntEnum (requires python-version >= 3"},
     {"", "python-version", "", "Generate code for the given Python version."},
     {"", "python-decode-obj-api-strings", "",
      "Decode bytes to strings for the Python Object API"},
@@ -694,6 +696,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.python_no_type_prefix_suffix = true;
       } else if (arg == "--python-typing") {
         opts.python_typing = true;
+      } else if (arg == "--python-enum") {
+        opts.python_enum = true;
       } else if (arg.rfind("--python-version=", 0) == 0) {
         opts.python_version =
             arg.substr(std::string("--python-version=").size());

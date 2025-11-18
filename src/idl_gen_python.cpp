@@ -721,7 +721,17 @@ class PythonGenerator : public BaseGenerator {
   // Begin enum code with a class declaration.
   void BeginEnum(const EnumDef& enum_def, std::string* code_ptr) const {
     auto& code = *code_ptr;
-    code += "class " + namer_.Type(enum_def) + "(object):\n";
+
+    code += "class " + namer_.Type(enum_def);
+
+    python::Version version{parser_.opts.python_version};
+    if (version.major >= 3) {
+      code += "(IntEnum)";
+    } else {
+      code += "(object)";
+    }
+
+    code += ":\n";
   }
 
   // Starts a new line and then indents.
@@ -1685,6 +1695,12 @@ class PythonGenerator : public BaseGenerator {
       auto& field = **it;
       if (field.deprecated) continue;
 
+      // include import for enum type if used in this struct
+      if (IsEnum(field.value.type)) {
+        imports.insert(ImportMapEntry{GenPackageReference(field.value.type),
+                                      namer_.Type(*field.value.type.enum_def)});
+      }
+
       GenStructAccessor(struct_def, field, code_ptr, imports);
     }
 
@@ -1739,6 +1755,11 @@ class PythonGenerator : public BaseGenerator {
     } else if (IsFloat(base_type)) {
       return float_const_gen_.GenFloatConstant(field);
     } else if (IsInteger(base_type)) {
+      // wrap the default value in the enum constructor to aid type hinting
+      if (parser_.opts.python_enum && IsEnum(field.value.type)) {
+        auto enum_type = namer_.Type(*field.value.type.enum_def);
+        return enum_type + "(" + field.value.constant + ")";
+      }
       return field.value.constant;
     } else {
       // For string, struct, and table.
@@ -1865,7 +1886,7 @@ class PythonGenerator : public BaseGenerator {
           break;
         }
         default:
-          // Scalar or sting fields.
+          // Scalar or string fields.
           field_type = GetBasePythonTypeForScalarAndString(base_type);
           if (field.IsScalarOptional()) {
             import_typing_list.insert("Optional");
@@ -2647,6 +2668,11 @@ class PythonGenerator : public BaseGenerator {
 
   std::string GenFieldTy(const FieldDef& field) const {
     if (IsScalar(field.value.type.base_type) || IsArray(field.value.type)) {
+      if (parser_.opts.python_enum) {
+        if (IsEnum(field.value.type)) {
+          return namer_.Type(*field.value.type.enum_def);
+        }
+      }
       const std::string ty = GenTypeBasic(field.value.type);
       if (ty.find("int") != std::string::npos) {
         return "int";
@@ -2761,6 +2787,11 @@ class PythonGenerator : public BaseGenerator {
   bool generate() {
     std::string one_file_code;
     ImportMap one_file_imports;
+
+    if (parser_.opts.python_enum) {
+      one_file_imports.insert({"enum", "IntEnum"});
+    }
+
     if (!generateEnums(&one_file_code)) return false;
     if (!generateStructs(&one_file_code, one_file_imports)) return false;
 
@@ -2790,6 +2821,11 @@ class PythonGenerator : public BaseGenerator {
         *one_file_code += enumcode + "\n\n";
       } else {
         ImportMap imports;
+
+        if (parser_.opts.python_enum) {
+          imports.insert({"enum", "IntEnum"});
+        }
+
         const std::string mod =
             namer_.File(enum_def, SkipFile::SuffixAndExtension);
 
@@ -2835,49 +2871,52 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Begin by declaring namespace and imports.
-  void BeginFile(const std::string& name_space_name, const bool needs_imports,
-                 std::string* code_ptr, const std::string& mod,
-                 const ImportMap& imports) const {
+  void BeginFile(const std::string& name_space_name,
+                 const bool needs_default_imports, std::string* code_ptr,
+                 const std::string& mod, const ImportMap& imports) const {
     auto& code = *code_ptr;
     code = code + "# " + FlatBuffersGeneratedWarning() + "\n\n";
     code += "# namespace: " + name_space_name + "\n\n";
 
-    if (needs_imports) {
-      const std::string local_import = "." + mod;
-
+    if (needs_default_imports) {
       code += "import flatbuffers\n";
       if (parser_.opts.python_gen_numpy) {
         code += "from flatbuffers.compat import import_numpy\n";
       }
       if (parser_.opts.python_typing) {
         code += "from typing import Any\n";
+      }
+    }
+    for (auto import_entry : imports) {
+      const std::string local_import = "." + mod;
 
-        for (auto import_entry : imports) {
-          // If we have a file called, say, "MyType.py" and in it we have a
-          // class "MyType", we can generate imports -- usually when we
-          // have a type that contains arrays of itself -- of the type
-          // "from .MyType import MyType", which Python can't resolve. So
-          // if we are trying to import ourself, we skip.
-          if (import_entry.first != local_import) {
-            code += "from " + import_entry.first + " import " +
-                    import_entry.second + "\n";
-          }
-        }
+      // If we have a file called, say, "MyType.py" and in it we have a
+      // class "MyType", we can generate imports -- usually when we
+      // have a type that contains arrays of itself -- of the type
+      // "from .MyType import MyType", which Python can't resolve. So
+      // if we are trying to import ourself, we skip.
+      if (import_entry.first != local_import) {
+        code += "from " + import_entry.first + " import " +
+                import_entry.second + "\n";
       }
-      if (parser_.opts.python_gen_numpy) {
-        code += "np = import_numpy()\n\n";
-      }
+    }
+
+    code += "\n";
+
+    if (needs_default_imports && parser_.opts.python_gen_numpy) {
+      code += "np = import_numpy()\n\n";
     }
   }
 
   // Save out the generated code for a Python Table type.
   bool SaveType(const std::string& defname, const Namespace& ns,
                 const std::string& classcode, const ImportMap& imports,
-                const std::string& mod, bool needs_imports) const {
+                const std::string& mod, bool needs_default_imports) const {
     if (classcode.empty()) return true;
 
     std::string code = "";
-    BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
+    BeginFile(LastNamespacePart(ns), needs_default_imports, &code, mod,
+              imports);
     code += classcode;
 
     const std::string directories =
@@ -2906,6 +2945,12 @@ static bool GeneratePython(const Parser& parser, const std::string& path,
                            const std::string& file_name) {
   python::Version version{parser.opts.python_version};
   if (!version.IsValid()) return false;
+
+  if (parser.opts.python_enum && version.major < 3) {
+    // TODO: there doesn't seem to be a way to send an error message up
+    // we can't call parser.Error here because this is a const Parser&
+    return false;
+  }
 
   python::PythonGenerator generator(parser, path, file_name, version);
   if (!generator.generate()) return false;
