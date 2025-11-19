@@ -1,0 +1,24 @@
+namespace Example;
+
+enum Status:byte { Active, Inactive, Pending }
+
+struct Point {
+  x:int;
+  y:int;
+}
+
+table User {
+  id:uint;
+  name:string;
+  points:[Point];
+  status:Status = Active;
+  metadata:[string];
+}
+
+table Group {
+  name:string;
+  users:[User];
+  leader:User;
+}
+
+root_type Group;

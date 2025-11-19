@@ -1,0 +1,11 @@
+attribute "csharp_namespace";
+
+namespace Test;
+
+table Data (csharp_partial) {
+  value:int;
+}
+
+root_type Data;
+
+file_identifier "TEST";

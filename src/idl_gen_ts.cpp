@@ -47,7 +47,7 @@ struct NsDefinition {
   std::string path;
   std::string filepath;
   std::string symbolic_name;
-  const Namespace* ns;
+  const Namespace* ns = nullptr;
   std::map<std::string, const Definition*> definitions;
 };
 
@@ -258,7 +258,7 @@ class TsGenerator : public BaseGenerator {
       nsDef.path = root;
       nsDef.symbolic_name = file_name_;
       nsDef.filepath = path_ + file_name_ + ".ts";
-      nsDef.ns = new Namespace();
+      nsDef.ns = parser_.empty_namespace_;
       ns_defs_[nsDef.path] = nsDef;
     }
 

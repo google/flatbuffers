@@ -45,13 +45,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   auto parse_input = input.c_str();
 
   // Check Parser.
-  parser.Parse(parse_input);
-  // TODO:
-  // Need to add additional checks for inputs passed Parse(parse_input)
-  // successfully:
-  // 1. Serialization to bfbs.
-  // 2. Generation of a default object.
-  // 3. Verification of the object using reflection.
-  // 3. Printing to json.
+  auto result = parser.Parse(parse_input);
+  if (result) {
+    parser.Serialize();
+    flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+                                   parser.builder_.GetSize());
+    reflection::VerifySchemaBuffer(verifier);
+
+    if (parser.root_struct_def_) {
+      std::string json_output;
+      flatbuffers::GenText(parser, parser.builder_.GetBufferPointer(),
+                           &json_output);
+    }
+  }
   return 0;
 }
