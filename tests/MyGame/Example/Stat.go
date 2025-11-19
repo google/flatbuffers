@@ -43,13 +43,12 @@ func (rcv *Stat) UnPack() *StatT {
 }
 
 type Stat struct {
-	_tab flatbuffers.Table
+	flatbuffers.Table
 }
 
-func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
+func GetRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (x Stat) {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &Stat{}
-	x.Init(buf, n+offset)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset}
 	return x
 }
 
@@ -57,10 +56,9 @@ func FinishStatBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT)
 	builder.Finish(offset)
 }
 
-func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
+func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) (x Stat) {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &Stat{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset+flatbuffers.SizeUint32}
 	return x
 }
 
@@ -69,44 +67,40 @@ func FinishSizePrefixedStatBuffer(builder *flatbuffers.Builder, offset flatbuffe
 }
 
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *Stat) Table() flatbuffers.Table {
-	return rcv._tab
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func (rcv *Stat) Id() []byte {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
+	o := flatbuffers.UOffsetT(rcv.Offset(4))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv.ByteVector(o + rcv.Pos)
 	}
 	return nil
 }
 
 func (rcv *Stat) Val() int64 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	o := flatbuffers.UOffsetT(rcv.Offset(6))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv.GetInt64(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *Stat) MutateVal(n int64) bool {
-	return rcv._tab.MutateInt64Slot(6, n)
+	return rcv.MutateInt64Slot(6, n)
 }
 
 func (rcv *Stat) Count() uint16 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
+	o := flatbuffers.UOffsetT(rcv.Offset(8))
 	if o != 0 {
-		return rcv._tab.GetUint16(o + rcv._tab.Pos)
+		return rcv.GetUint16(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *Stat) MutateCount(n uint16) bool {
-	return rcv._tab.MutateUint16Slot(8, n)
+	return rcv.MutateUint16Slot(8, n)
 }
 
 func StatKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
