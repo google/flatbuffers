@@ -228,7 +228,7 @@ jobs:
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
-    runs-on: macos-latest-large
+    runs-on: macos-15-intel
     steps:
     - uses: actions/checkout@v3
     - name: cmake
