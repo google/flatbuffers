@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '11.0'
   s.osx.deployment_target = '10.14'
 
-  s.swift_version = '5.0'
+  s.swift_version = '5.10'
   s.source_files = 'swift/Sources/Flatbuffers/*.swift'
   s.pod_target_xcconfig = {
     'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'YES'

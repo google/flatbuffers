@@ -451,6 +451,13 @@ flatc(
     include="include_test",
     prefix=swift_prefix,
 )
+
+flatc(
+    SWIFT_OPTS + BASE_OPTS,
+    schema="arrays_test.fbs",
+    prefix=swift_prefix,
+)
+
 flatc(
     SWIFT_OPTS + BASE_OPTS,
     schema="union_vector/union_vector.fbs",

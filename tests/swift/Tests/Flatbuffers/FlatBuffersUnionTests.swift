@@ -148,7 +148,7 @@ final class FlatBuffersUnionTests: XCTestCase {
     Movie.finish(&fb, end: end)
 
     var buffer = fb.sizedBuffer
-    var movie: Movie = getRoot(byteBuffer: &buffer)
+    let movie: Movie = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(movie.charactersType.count, characterType.count)
     XCTAssertEqual(movie.characters.count, characters.count)
 
@@ -213,7 +213,7 @@ final class FlatBuffersUnionTests: XCTestCase {
     Movie.finish(&fb, end: end)
 
     var buffer = fb.sizedBuffer
-    var movie: Movie = getRoot(byteBuffer: &buffer)
+    let movie: Movie = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(movie.mainCharacter(type: String.self), string)
     XCTAssertEqual(
       movie.characters(at: 0, type: BookReader_Mutable.self)?.booksRead,

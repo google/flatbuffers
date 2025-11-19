@@ -207,7 +207,9 @@ public struct FlatBufferBuilder {
       len: size &+ (prefix ? size : 0) &+ FileIdLength,
       alignment: _minAlignment)
     assert(fileId.count == FileIdLength, "Flatbuffers requires file id to be 4")
-    _bb.push(string: fileId, len: 4)
+    fileId.withCString { ptr in
+      _bb.writeBytes(ptr, len: 4)
+    }
     finish(offset: offset, addPrefix: prefix)
   }
 
@@ -478,7 +480,7 @@ public struct FlatBufferBuilder {
     return endVector(len: size)
   }
 
-  #if swift(>=5.0) && !os(WASI)
+  #if !os(WASI)
   @inline(__always)
   /// Creates a vector of bytes in the buffer.
   ///
@@ -706,8 +708,9 @@ public struct FlatBufferBuilder {
     let len = str.utf8.count
     notNested()
     preAlign(len: len &+ 1, type: UOffset.self)
-    _bb.fill(padding: 1)
-    _bb.push(string: str, len: len)
+    str.withCString { ptr in
+      _bb.writeBytes(ptr, len: len &+ 1)
+    }
     push(element: UOffset(len))
     return Offset(offset: _bb.size)
   }

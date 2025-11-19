@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:5.10
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *

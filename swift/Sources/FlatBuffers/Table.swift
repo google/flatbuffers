@@ -137,7 +137,6 @@ public struct Table {
     if offset == 0 {
       return 0
     }
-
     return vector(count: offset)
   }
 

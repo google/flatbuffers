@@ -920,11 +920,11 @@ void NativeTypeTest() {
         Native::Vector3D(20 * i + 0.1f, 20 * i + 0.2f, 20 * i + 0.3f));
   }
 
-  src_data.matrix = std::make_unique<Native::Matrix>(1, 2);
+  src_data.matrix = std::unique_ptr<Native::Matrix>(new Native::Matrix(1, 2));
   src_data.matrix->values = {3, 4};
 
   for (int i = 0; i < N; ++i) {
-    src_data.matrices.push_back(std::make_unique<Native::Matrix>(1, i));
+    src_data.matrices.push_back(std::unique_ptr<Native::Matrix>(new Native::Matrix(1, i)));
     std::fill(src_data.matrices[i]->values.begin(),
               src_data.matrices[i]->values.end(), i + 0.5f);
   }

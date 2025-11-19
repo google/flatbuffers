@@ -88,7 +88,7 @@ extension String: ObjectAPIPacker {
     builder.create(string: obj)
   }
 
-  public mutating func unpack() -> String {
+  public func unpack() -> String {
     self
   }
 
