@@ -226,9 +226,12 @@ struct Type {
 struct Value {
   Value()
       : constant("0"),
+        has_non_scalar_constant(false),
         offset(static_cast<voffset_t>(~(static_cast<voffset_t>(0U)))) {}
   Type type;
   std::string constant;
+  // not the most elegant solution, but much better than a full refactor.
+  bool has_non_scalar_constant;
   voffset_t offset;
 };
 

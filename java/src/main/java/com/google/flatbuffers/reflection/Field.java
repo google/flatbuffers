@@ -59,6 +59,9 @@ public final class Field extends Table {
    * If the field uses 64-bit offsets.
    */
   public boolean offset64() { int o = __offset(30); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public String defaultNonScalar() { int o = __offset(32); return o != 0 ? __string(o + bb_pos) : null; }
+  public ByteBuffer defaultNonScalarAsByteBuffer() { return __vector_as_bytebuffer(32, 1); }
+  public ByteBuffer defaultNonScalarInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 32, 1); }
 
   public static int createField(FlatBufferBuilder builder,
       int nameOffset,
@@ -74,10 +77,12 @@ public final class Field extends Table {
       int documentationOffset,
       boolean optional,
       int padding,
-      boolean offset64) {
-    builder.startTable(14);
+      boolean offset64,
+      int defaultNonScalarOffset) {
+    builder.startTable(15);
     Field.addDefaultReal(builder, defaultReal);
     Field.addDefaultInteger(builder, defaultInteger);
+    Field.addDefaultNonScalar(builder, defaultNonScalarOffset);
     Field.addDocumentation(builder, documentationOffset);
     Field.addAttributes(builder, attributesOffset);
     Field.addType(builder, typeOffset);
@@ -93,7 +98,7 @@ public final class Field extends Table {
     return Field.endField(builder);
   }
 
-  public static void startField(FlatBufferBuilder builder) { builder.startTable(14); }
+  public static void startField(FlatBufferBuilder builder) { builder.startTable(15); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(nameOffset); builder.slot(0); }
   public static void addType(FlatBufferBuilder builder, int typeOffset) { builder.addOffset(1, typeOffset, 0); }
   public static void addId(FlatBufferBuilder builder, int id) { builder.addShort(2, (short) id, (short) 0); }
@@ -112,6 +117,7 @@ public final class Field extends Table {
   public static void addOptional(FlatBufferBuilder builder, boolean optional) { builder.addBoolean(11, optional, false); }
   public static void addPadding(FlatBufferBuilder builder, int padding) { builder.addShort(12, (short) padding, (short) 0); }
   public static void addOffset64(FlatBufferBuilder builder, boolean offset64) { builder.addBoolean(13, offset64, false); }
+  public static void addDefaultNonScalar(FlatBufferBuilder builder, int defaultNonScalarOffset) { builder.addOffset(14, defaultNonScalarOffset, 0); }
   public static int endField(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 4);  // name
