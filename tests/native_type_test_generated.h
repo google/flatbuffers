@@ -150,7 +150,8 @@ struct Matrix FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<float> *mutable_values() {
     return GetPointer<::flatbuffers::Vector<float> *>(VT_VALUES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_ROWS, 4) &&
            VerifyField<int32_t>(verifier, VT_COLUMNS, 4) &&
@@ -278,7 +279,8 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<Geometry::Matrix>> *mutable_matrices() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<Geometry::Matrix>> *>(VT_MATRICES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_VECTORS) &&
            verifier.VerifyVector(vectors()) &&
@@ -556,14 +558,16 @@ inline Geometry::ApplicationData *GetMutableSizePrefixedApplicationData(void *bu
   return ::flatbuffers::GetMutableSizePrefixedRoot<Geometry::ApplicationData>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyApplicationDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Geometry::ApplicationData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<Geometry::ApplicationData>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedApplicationDataBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
 }
 
 inline void FinishApplicationDataBuffer(
