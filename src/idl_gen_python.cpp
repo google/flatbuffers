@@ -1239,7 +1239,7 @@ class PythonGenerator : public BaseGenerator {
     auto& code = *code_ptr;
 
     code += "\n";
-    code += "def Create" + namer_.Type(struct_def);
+    code += "def Create" + namer_.Function(struct_def);
     code += "(builder";
   }
 
