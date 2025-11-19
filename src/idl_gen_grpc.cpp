@@ -331,7 +331,8 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
           grpc_go_generator::GenerateServiceSource(&file, service.get(), &p);
       std::string filename =
           NamespaceDir(*def->defined_namespace) + def->name + "_grpc.go";
-      if (!flatbuffers::SaveFile(filename.c_str(), output, false)) return false;
+      if (!parser_.opts.file_saver->SaveFile(filename.c_str(), output, false))
+        return false;
     }
     return true;
   }
@@ -393,11 +394,11 @@ bool GenerateCppGRPC(const Parser& parser, const std::string& path,
       grpc_cpp_generator::GetSourceServices(&fbfile, generator_parameters) +
       grpc_cpp_generator::GetSourceEpilogue(&fbfile, generator_parameters);
 
-  return flatbuffers::SaveFile(
+  return parser.opts.file_saver->SaveFile(
              (path + file_name + ".grpc" + opts.grpc_filename_suffix + ".h")
                  .c_str(),
              header_code, false) &&
-         flatbuffers::SaveFile(
+         parser.opts.file_saver->SaveFile(
              (path + file_name + ".grpc" + opts.grpc_filename_suffix + ".cc")
                  .c_str(),
              source_code, false);
@@ -421,7 +422,8 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
           grpc_java_generator::GenerateServiceSource(&file, service.get(), &p);
       std::string filename =
           NamespaceDir(*def->defined_namespace) + def->name + "Grpc.java";
-      if (!flatbuffers::SaveFile(filename.c_str(), output, false)) return false;
+      if (!parser_.opts.file_saver->SaveFile(filename.c_str(), output, false))
+        return false;
     }
     return true;
   }
@@ -479,7 +481,8 @@ class SwiftGRPCGenerator : public flatbuffers::BaseGenerator {
     }
     const auto final_code = code_.ToString();
     const auto filename = GeneratedFileName(path_, file_name_);
-    return SaveFile(filename.c_str(), final_code, false);
+    return parser_.opts.file_saver->SaveFile(filename.c_str(), final_code,
+                                             false);
   }
 
   static std::string GeneratedFileName(const std::string& path,
@@ -516,13 +519,16 @@ class TSGRPCGenerator : public flatbuffers::BaseGenerator {
       auto service = file.service(i);
       code_ += grpc_ts_generator::Generate(&file, service.get(), file_name_);
       const auto ts_name = GeneratedFileName(path_, file_name_);
-      if (!SaveFile(ts_name.c_str(), code_.ToString(), false)) return false;
+      if (!parser_.opts.file_saver->SaveFile(ts_name.c_str(), code_.ToString(),
+                                             false))
+        return false;
 
       code_.Clear();
       code_ += grpc_ts_generator::GenerateInterface(&file, service.get(),
                                                     file_name_);
       const auto ts_interface_name = GeneratedFileName(path_, file_name_, true);
-      if (!SaveFile(ts_interface_name.c_str(), code_.ToString(), false))
+      if (!parser_.opts.file_saver->SaveFile(ts_interface_name.c_str(),
+                                             code_.ToString(), false))
         return false;
     }
     return true;

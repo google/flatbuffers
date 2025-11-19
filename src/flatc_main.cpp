@@ -185,5 +185,10 @@ int main(int argc, const char* argv[]) {
       flatc.ParseFromCommandLineArguments(argc, argv);
 
   // Compile with the extracted FlatC options.
-  return flatc.Compile(options);
+  int success = flatc.Compile(options);
+
+  // print file names if file-names-only option is set
+  options.opts.file_saver->Finish();
+
+  return success;
 }

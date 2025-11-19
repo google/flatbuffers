@@ -24,6 +24,7 @@
 #include <string>
 
 #include "flatbuffers/code_generator.h"
+#include "flatbuffers/file_saver.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
@@ -56,7 +57,6 @@ struct FlatCOptions {
   bool schema_binary = false;
   bool grpc_enabled = false;
   bool requires_bfbs = false;
-  bool file_names_only = false;
 
   std::vector<std::shared_ptr<CodeGenerator>> generators;
 };
