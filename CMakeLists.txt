@@ -147,6 +147,8 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/vector.h
   include/flatbuffers/vector_downward.h
   include/flatbuffers/verifier.h
+  src/file_saver.cpp
+  src/file_name_saver.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   src/reflection.cpp
@@ -173,8 +175,6 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
   src/idl_gen_swift.cpp
-  src/file_saver.cpp
-  src/file_name_saver.cpp
   src/idl_namer.h
   src/namer.h
   src/flatc.cpp
