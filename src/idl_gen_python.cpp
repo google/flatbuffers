@@ -48,12 +48,22 @@ typedef std::set<ImportMapEntry> ImportMap;
 static const CommentConfig def_comment = {nullptr, "#", nullptr};
 static const std::string Indent = "    ";
 
+inline Namer::Config PythonNamerConfig(const Namer::Config& input,
+                                       const IDLOptions& opts,
+                                       const std::string& path) {
+  auto cfg = WithFlagOptions(input, opts, path);
+  if (opts.python_fields_snake_case) {
+    cfg.fields = Case::kSnake;
+  }
+  return cfg;
+}
+
 class PythonStubGenerator {
  public:
   PythonStubGenerator(const Parser& parser, const std::string& path,
                       const Version& version)
       : parser_{parser},
-        namer_{WithFlagOptions(kStubConfig, parser.opts, path),
+        namer_{PythonNamerConfig(kStubConfig, parser.opts, path),
                Keywords(version)},
         version_(version) {}
 
@@ -698,7 +708,7 @@ class PythonGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "" /* not used */,
                       "" /* not used */, "py"),
         float_const_gen_("float('nan')", "float('inf')", "float('-inf')"),
-        namer_(WithFlagOptions(kConfig, parser.opts, path), Keywords(version)) {
+        namer_(PythonNamerConfig(kConfig, parser.opts, path), Keywords(version)) {
   }
 
   // Most field accessors need to retrieve and test the field offset first,
@@ -1321,7 +1331,7 @@ class PythonGenerator : public BaseGenerator {
         } else {
           code += IsArray(field_type) ? "    " : "";
           code += indent + "    builder.Prepend" + GenMethod(field) + "(";
-          code += nameprefix + namer_.Variable(field);
+          code += nameprefix + namer_.Field(field);
           size_t array_cnt = index + (IsArray(field_type) ? 1 : 0);
           for (size_t i = 0; in_array && i < array_cnt; i++) {
             code += "[_idx" + NumToString(i) + "-1]";
