@@ -163,7 +163,7 @@ class Builder(object):
     ## @endcond
     self.finished = False
 
-  def Clear(self) -> None:
+  def Clear(self):
     ## @cond FLATBUFFERS_INTERNAL
     self.current_vtable = None
     self.head = UOffsetTFlags.py_type(len(self.Bytes))
