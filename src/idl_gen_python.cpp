@@ -613,8 +613,14 @@ class PythonStubGenerator {
     imports->Import("typing", "cast");
 
     if (version_.major == 3) {
+      // TODO: only include what necessary
       imports->Import("enum", "IntEnum");
-      stub << "(IntEnum)";
+      imports->Import("enum", "IntFlag");
+      if (enum_def->attributes.Lookup("big_flags")) {
+        stub << "(IntFlag)";
+      } else {
+        stub << "(IntEnum)";
+      }
     } else {
       stub << "(object)";
     }
@@ -726,7 +732,11 @@ class PythonGenerator : public BaseGenerator {
 
     python::Version version{parser_.opts.python_version};
     if (version.major >= 3) {
-      code += "(IntEnum)";
+      if (enum_def.attributes.Lookup("bit_flags")) {
+        code += "(IntFlag)";
+      } else {
+        code += "(IntEnum)";
+      }
     } else {
       code += "(object)";
     }
@@ -2789,7 +2799,10 @@ class PythonGenerator : public BaseGenerator {
     ImportMap one_file_imports;
 
     if (parser_.opts.python_enum) {
+      // TODO: only include this if python-typing and if the appropriate enum
+      // include is necessary
       one_file_imports.insert({"enum", "IntEnum"});
+      one_file_imports.insert({"enum", "IntFlag"});
     }
 
     if (!generateEnums(&one_file_code)) return false;
@@ -2823,7 +2836,9 @@ class PythonGenerator : public BaseGenerator {
         ImportMap imports;
 
         if (parser_.opts.python_enum) {
+          // TODO: only include the one necessary
           imports.insert({"enum", "IntEnum"});
+          imports.insert({"enum", "IntFlag"});
         }
 
         const std::string mod =
