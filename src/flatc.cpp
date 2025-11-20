@@ -263,7 +263,8 @@ const static FlatCOption flatc_options[] = {
      "Skip emission of Python functions that are prefixed with typenames"},
     {"", "python-typing", "", "Generate Python type annotations"},
     {"", "python-enum", "",
-     "Generate enum types as IntEnum (requires python-version >= 3"},
+     "Generate enum types as IntEnum and IntFlag (assumes python-version >= "
+     "3"},
     {"", "python-version", "", "Generate code for the given Python version."},
     {"", "python-decode-obj-api-strings", "",
      "Decode bytes to strings for the Python Object API"},
@@ -802,6 +803,11 @@ void FlatCompiler::ValidateOptions(const FlatCOptions& options) {
   } else if (!options.any_generator && options.conform_to_schema.empty() &&
              options.annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
+  }
+
+  if (opts.python_enum &&
+      (opts.python_version.empty() || opts.python_version[0] != '3')) {
+    Error("--python-enum requires --python-version >= 3");
   }
 
   if (opts.cs_gen_json_serializer && !opts.generate_object_based_api) {

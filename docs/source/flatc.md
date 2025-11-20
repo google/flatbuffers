@@ -259,7 +259,7 @@ list of `FILES...`.
 
 -   `--python-typing` : Generate Python type annotations
 
--   `--python-enum` : Generated enumerations inherit from `IntEnum` instead of `object`
+-   `--python-enum` : Generated enumerations inherit from `IntEnum` or `IntFlag` instead of `object`
 
 -   `--python-decode-obj-api-strings` : Decode bytes automaticaly with utf-8
 

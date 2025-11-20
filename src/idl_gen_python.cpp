@@ -612,7 +612,7 @@ class PythonStubGenerator {
 
     imports->Import("typing", "cast");
 
-    if (version_.major == 3) {
+    if (parser_.opts.python_enum) {
       if (enum_def->attributes.Lookup("big_flags")) {
         imports->Import("enum", "IntFlag");
         stub << "(IntFlag)";
@@ -729,7 +729,6 @@ class PythonGenerator : public BaseGenerator {
 
     code += "class " + namer_.Type(enum_def);
 
-    python::Version version{parser_.opts.python_version};
     if (parser_.opts.python_enum) {
       if (enum_def.attributes.Lookup("bit_flags")) {
         code += "(IntFlag)";
