@@ -94,6 +94,11 @@ sed -i \
   -e "s/\(version='\).*/\1$version',/" \
   python/setup.py
 
+echo "Updating ruby/flatbuffers/version.rb..."
+sed -i \
+  "s/^  VERSION = \".*\"$/  VERSION = \"$version\"/g" \
+  ruby/flatbuffers/version.rb
+
 echo "Updating rust/flatbuffers/Cargo.toml..."
 sed -i \
   "s/^version = \".*\"$/version = \"$version\"/g" \
