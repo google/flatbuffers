@@ -613,12 +613,11 @@ class PythonStubGenerator {
     imports->Import("typing", "cast");
 
     if (version_.major == 3) {
-      // TODO: only include what necessary
-      imports->Import("enum", "IntEnum");
-      imports->Import("enum", "IntFlag");
       if (enum_def->attributes.Lookup("big_flags")) {
+        imports->Import("enum", "IntFlag");
         stub << "(IntFlag)";
       } else {
+        imports->Import("enum", "IntEnum");
         stub << "(IntEnum)";
       }
     } else {
@@ -731,7 +730,7 @@ class PythonGenerator : public BaseGenerator {
     code += "class " + namer_.Type(enum_def);
 
     python::Version version{parser_.opts.python_version};
-    if (version.major >= 3) {
+    if (parser_.opts.python_enum) {
       if (enum_def.attributes.Lookup("bit_flags")) {
         code += "(IntFlag)";
       } else {
@@ -2798,14 +2797,7 @@ class PythonGenerator : public BaseGenerator {
     std::string one_file_code;
     ImportMap one_file_imports;
 
-    if (parser_.opts.python_enum) {
-      // TODO: only include this if python-typing and if the appropriate enum
-      // include is necessary
-      one_file_imports.insert({"enum", "IntEnum"});
-      one_file_imports.insert({"enum", "IntFlag"});
-    }
-
-    if (!generateEnums(&one_file_code)) return false;
+    if (!generateEnums(&one_file_code, one_file_imports)) return false;
     if (!generateStructs(&one_file_code, one_file_imports)) return false;
 
     if (parser_.opts.one_file) {
@@ -2820,7 +2812,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
  private:
-  bool generateEnums(std::string* one_file_code) const {
+  bool generateEnums(std::string* one_file_code,
+                     ImportMap& one_file_imports) const {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto& enum_def = **it;
@@ -2831,14 +2824,24 @@ class PythonGenerator : public BaseGenerator {
       }
 
       if (parser_.opts.one_file && !enumcode.empty()) {
+        if (parser_.opts.python_enum) {
+          if (enum_def.attributes.Lookup("bit_flags")) {
+            one_file_imports.insert({"enum", "IntFlag"});
+          } else {
+            one_file_imports.insert({"enum", "IntEnum"});
+          }
+        }
+
         *one_file_code += enumcode + "\n\n";
       } else {
         ImportMap imports;
 
         if (parser_.opts.python_enum) {
-          // TODO: only include the one necessary
-          imports.insert({"enum", "IntEnum"});
-          imports.insert({"enum", "IntFlag"});
+          if (enum_def.attributes.Lookup("bit_flags")) {
+            imports.insert({"enum", "IntFlag"});
+          } else {
+            imports.insert({"enum", "IntEnum"});
+          }
         }
 
         const std::string mod =
@@ -2960,12 +2963,6 @@ static bool GeneratePython(const Parser& parser, const std::string& path,
                            const std::string& file_name) {
   python::Version version{parser.opts.python_version};
   if (!version.IsValid()) return false;
-
-  if (parser.opts.python_enum && version.major < 3) {
-    // TODO: there doesn't seem to be a way to send an error message up
-    // we can't call parser.Error here because this is a const Parser&
-    return false;
-  }
 
   python::PythonGenerator generator(parser, path, file_name, version);
   if (!generator.generate()) return false;
