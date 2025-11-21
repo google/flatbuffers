@@ -71,26 +71,26 @@ static inline std::string ToHex(uint8_t i) {
 }
 
 enum class BinaryRegionStatus {
-  OK = 0,
-  WARN = 100,
-  WARN_NO_REFERENCES,
-  WARN_CORRUPTED_PADDING,
-  WARN_PADDING_LENGTH,
-  ERROR = 200,
+  Ok = 0,
+  Warn = 100,
+  WarnNoReferences,
+  WarnCorruptedPadding,
+  WarnPaddingLength,
+  Error = 200,
   // An offset is pointing outside the binary bounds.
-  ERROR_OFFSET_OUT_OF_BINARY,
+  ErrorOffsetOutOfBinary,
   // Expecting to read N bytes but not enough remain in the binary.
-  ERROR_INCOMPLETE_BINARY,
+  ErrorIncompleteBinary,
   // When a length of a vtable/vector is longer than possible.
-  ERROR_LENGTH_TOO_LONG,
+  ErrorLengthTooLong,
   // When a length of a vtable/vector is shorter than possible.
-  ERROR_LENGTH_TOO_SHORT,
+  ErrorLengthTooShort,
   // A field mark required is not present in the vtable.
-  ERROR_REQUIRED_FIELD_NOT_PRESENT,
+  ErrorRequiredFieldNotPresent,
   // A realized union type is not within the enum bounds.
-  ERROR_INVALID_UNION_TYPE,
+  ErrorInvalidUnionType,
   // Occurs when there is a cycle in offsets.
-  ERROR_CYCLE_DETECTED,
+  ErrorCycleDetected,
 };
 
 enum class BinaryRegionCommentType {
@@ -139,7 +139,7 @@ enum class BinaryRegionCommentType {
 };
 
 struct BinaryRegionComment {
-  BinaryRegionStatus status = BinaryRegionStatus::OK;
+  BinaryRegionStatus status = BinaryRegionStatus::Ok;
 
   // If status is non OK, this may be filled in with additional details.
   std::string status_message;

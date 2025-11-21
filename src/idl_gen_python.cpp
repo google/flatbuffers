@@ -2924,13 +2924,13 @@ class PythonCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GeneratePython(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::Error;
     }
-    return Status::OK;
+    return Status::Ok;
   }
 
   Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateMakeRule(const Parser& parser, const std::string& path,
@@ -2940,22 +2940,22 @@ class PythonCodeGenerator : public CodeGenerator {
     (void)path;
     (void)filename;
     (void)output;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
                           const std::string& filename) override {
     if (!GeneratePythonGRPC(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::Error;
     }
-    return Status::OK;
+    return Status::Ok;
   }
 
   Status GenerateRootFile(const Parser& parser,
                           const std::string& path) override {
     (void)parser;
     (void)path;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   bool IsSchemaOnly() const override { return true; }

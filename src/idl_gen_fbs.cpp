@@ -173,14 +173,14 @@ static bool ProtobufIdSanityCheck(const StructDef& struct_def,
     return false;
   }
 
-  if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
+  if (gap_action != IDLOptions::ProtoIdGapAction::NoOp) {
     if (HasGapInProtoId(fields)) {
       // TODO: Use LogCompilerWarn
       if (!no_log) {
         fprintf(stderr, "Fields in struct %s have gap between ids\n",
                 struct_def.name.c_str());
       }
-      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) {
+      if (gap_action == IDLOptions::ProtoIdGapAction::Error) {
         return false;
       }
     }
@@ -419,21 +419,21 @@ class FBSCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GenerateFBS(parser, path, filename, no_log_)) {
-      return Status::ERROR;
+      return Status::Error;
     }
-    return Status::OK;
+    return Status::Ok;
   }
 
   Status GenerateCodeString(const Parser& parser, const std::string& filename,
                             std::string& output) override {
     output = GenerateFBS(parser, filename, no_log_);
-    return Status::OK;
+    return Status::Ok;
   }
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
   Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateMakeRule(const Parser& parser, const std::string& path,
@@ -443,7 +443,7 @@ class FBSCodeGenerator : public CodeGenerator {
     (void)path;
     (void)filename;
     (void)output;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
@@ -451,14 +451,14 @@ class FBSCodeGenerator : public CodeGenerator {
     (void)parser;
     (void)path;
     (void)filename;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateRootFile(const Parser& parser,
                           const std::string& path) override {
     (void)parser;
     (void)path;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   bool IsSchemaOnly() const override { return false; }

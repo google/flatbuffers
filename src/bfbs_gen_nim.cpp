@@ -106,7 +106,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       StartCodeBlock(object);
       GenerateObject(object);
     });
-    return OK;
+    return Ok;
   }
 
   using BaseBfbsGenerator::GenerateCode;
@@ -116,7 +116,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     (void)parser;
     (void)path;
     (void)filename;
-    return NOT_IMPLEMENTED;
+    return NotImplemented;
   }
 
   Status GenerateMakeRule(const Parser& parser, const std::string& path,
@@ -126,7 +126,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     (void)path;
     (void)filename;
     (void)output;
-    return NOT_IMPLEMENTED;
+    return NotImplemented;
   }
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
@@ -134,14 +134,14 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     (void)parser;
     (void)path;
     (void)filename;
-    return NOT_IMPLEMENTED;
+    return NotImplemented;
   }
 
   Status GenerateRootFile(const Parser& parser,
                           const std::string& path) override {
     (void)parser;
     (void)path;
-    return NOT_IMPLEMENTED;
+    return NotImplemented;
   }
 
   bool IsSchemaOnly() const override { return true; }

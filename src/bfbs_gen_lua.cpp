@@ -84,19 +84,19 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       FLATBUFFERS_OVERRIDE {
     options_ = options;
     if (!GenerateEnums(schema->enums())) {
-      return ERROR;
+      return Error;
     }
     if (!GenerateObjects(schema->objects(), schema->root_table())) {
-      return ERROR;
+      return Error;
     }
-    return OK;
+    return Ok;
   }
 
   using BaseBfbsGenerator::GenerateCode;
 
   Status GenerateCode(const Parser&, const std::string&,
                       const std::string&) override {
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateMakeRule(const Parser& parser, const std::string& path,
@@ -106,7 +106,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     (void)path;
     (void)filename;
     (void)output;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
@@ -114,14 +114,14 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     (void)parser;
     (void)path;
     (void)filename;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateRootFile(const Parser& parser,
                           const std::string& path) override {
     (void)parser;
     (void)path;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   bool IsSchemaOnly() const override { return true; }

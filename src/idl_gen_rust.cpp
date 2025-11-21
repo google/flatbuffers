@@ -3064,20 +3064,20 @@ class RustCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GenerateRust(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::Error;
     }
-    return Status::OK;
+    return Status::Ok;
   }
 
   Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateMakeRule(const Parser& parser, const std::string& path,
                           const std::string& filename,
                           std::string& output) override {
     output = RustMakeRule(parser, path, filename);
-    return Status::OK;
+    return Status::Ok;
   }
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
@@ -3085,15 +3085,15 @@ class RustCodeGenerator : public CodeGenerator {
     (void)parser;
     (void)path;
     (void)filename;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateRootFile(const Parser& parser,
                           const std::string& path) override {
     if (!GenerateRustModuleRootFile(parser, path)) {
-      return Status::ERROR;
+      return Status::Error;
     }
-    return Status::OK;
+    return Status::Ok;
   }
 
   bool IsSchemaOnly() const override { return true; }

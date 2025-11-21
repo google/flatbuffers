@@ -4373,37 +4373,37 @@ class CppCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GenerateCPP(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::Error;
     }
-    return Status::OK;
+    return Status::Ok;
   }
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
   Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   Status GenerateMakeRule(const Parser& parser, const std::string& path,
                           const std::string& filename,
                           std::string& output) override {
     output = CPPMakeRule(parser, path, filename);
-    return Status::OK;
+    return Status::Ok;
   }
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
                           const std::string& filename) override {
     if (!GenerateCppGRPC(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::Error;
     }
-    return Status::OK;
+    return Status::Ok;
   }
 
   Status GenerateRootFile(const Parser& parser,
                           const std::string& path) override {
     (void)parser;
     (void)path;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   bool IsSchemaOnly() const override { return true; }
