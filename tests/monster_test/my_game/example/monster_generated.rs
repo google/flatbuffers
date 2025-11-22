@@ -1935,7 +1935,7 @@ impl MonsterT {
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_monster_unchecked`.
-pub fn root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
+pub fn root_as_monster(buf: &[u8]) -> Result<Monster<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::root::<Monster>(buf)
 }
 #[inline]
@@ -1945,7 +1945,7 @@ pub fn root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbu
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `size_prefixed_root_as_monster_unchecked`.
-pub fn size_prefixed_root_as_monster(buf: &[u8]) -> Result<Monster, flatbuffers::InvalidFlatbuffer> {
+pub fn size_prefixed_root_as_monster(buf: &[u8]) -> Result<Monster<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::size_prefixed_root::<Monster>(buf)
 }
 #[inline]
@@ -1978,14 +1978,14 @@ pub fn size_prefixed_root_as_monster_with_opts<'b, 'o>(
 /// Assumes, without verification, that a buffer of bytes contains a Monster and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `Monster`.
-pub unsafe fn root_as_monster_unchecked(buf: &[u8]) -> Monster {
+pub unsafe fn root_as_monster_unchecked(buf: &[u8]) -> Monster<'_> {
   unsafe { flatbuffers::root_unchecked::<Monster>(buf) }
 }
 #[inline]
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed Monster and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `Monster`.
-pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster {
+pub unsafe fn size_prefixed_root_as_monster_unchecked(buf: &[u8]) -> Monster<'_> {
   unsafe { flatbuffers::size_prefixed_root_unchecked::<Monster>(buf) }
 }
 pub const MONSTER_IDENTIFIER: &str = "MONS";
