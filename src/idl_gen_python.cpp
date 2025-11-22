@@ -1895,10 +1895,14 @@ class PythonGenerator : public BaseGenerator {
         }
         default:
           // Scalar or string fields.
-          field_type = GetBasePythonTypeForScalarAndString(base_type);
-          if (field.IsScalarOptional()) {
-            import_typing_list.insert("Optional");
-            field_type = "Optional[" + field_type + "]";
+          if (parser_.opts.python_enum && IsEnum(field.value.type)) {
+            field_type = namer_.Type(*field.value.type.enum_def);
+          } else {
+            field_type = GetBasePythonTypeForScalarAndString(base_type);
+            if (field.IsScalarOptional()) {
+              import_typing_list.insert("Optional");
+              field_type = "Optional[" + field_type + "]";
+            }
           }
           break;
       }
