@@ -1,0 +1,43 @@
+---
+matrix:
+  bazel:
+    - 7.x
+    - 8.x
+tasks:
+  verify_ubuntu2004:
+    name: Test Ubuntu 20.04
+    platform: ubuntu2004
+    bazel: ${{ bazel }}
+    environment:
+      CC: clang
+      SWIFT_VERSION: "5.8"
+      SWIFT_HOME: "$HOME/swift-$SWIFT_VERSION"
+      PATH: "$PATH:$SWIFT_HOME/usr/bin"
+    shell_commands:
+      - "echo --- Downloading and extracting Swift $SWIFT_VERSION to $SWIFT_HOME"
+      - "mkdir $SWIFT_HOME"
+      - "curl -fL https://download.swift.org/swift-${SWIFT_VERSION}-release/ubuntu2004/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu20.04.tar.gz | tar xvz --strip-components=1 -C $SWIFT_HOME"
+    build_targets:
+    - "@flatbuffers//:*"
+  verify_ubuntu2204:
+    name: Test Ubuntu 22.04
+    platform: ubuntu2204
+    bazel: ${{ bazel }}
+    environment:
+      CC: clang
+      SWIFT_VERSION: "5.8"
+      SWIFT_HOME: "$HOME/swift-$SWIFT_VERSION"
+      PATH: "$PATH:$SWIFT_HOME/usr/bin"
+    shell_commands:
+      - "echo --- Downloading and extracting Swift $SWIFT_VERSION to $SWIFT_HOME"
+      - "mkdir $SWIFT_HOME"
+      - "curl -fL https://download.swift.org/swift-${SWIFT_VERSION}-release/ubuntu2204/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu22.04.tar.gz | tar xvz --strip-components=1 -C $SWIFT_HOME"
+    build_targets:
+    - "@flatbuffers//:*"
+  verify_macos:
+    name: Test macOS
+    platform: macos
+    bazel: ${{ bazel }}
+    xcode_version: "15.2"
+    build_targets:
+    - "@flatbuffers//:*"
