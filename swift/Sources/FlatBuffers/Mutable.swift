@@ -17,7 +17,7 @@
 import Foundation
 
 #if canImport(Common)
-  import Common
+import Common
 #endif
 
 /// Mutable is a protocol that allows us to mutate Scalar values within a ``ByteBuffer``
