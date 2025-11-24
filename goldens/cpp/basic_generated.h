@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 2 &&
-              FLATBUFFERS_VERSION_REVISION == 10,
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace flatbuffers {
@@ -30,7 +30,8 @@ struct Galaxy FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int64_t num_stars() const {
     return GetField<int64_t>(VT_NUM_STARS, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int64_t>(verifier, VT_NUM_STARS, 8) &&
            verifier.EndTable();
@@ -75,7 +76,8 @@ struct Universe FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::goldens::Galaxy>> *galaxies() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::goldens::Galaxy>> *>(VT_GALAXIES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_AGE, 8) &&
            VerifyOffset(verifier, VT_GALAXIES) &&
@@ -135,14 +137,16 @@ inline const flatbuffers::goldens::Universe *GetSizePrefixedUniverse(const void 
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::goldens::Universe>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyUniverseBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::goldens::Universe>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<flatbuffers::goldens::Universe>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedUniverseBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<flatbuffers::goldens::Universe>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<flatbuffers::goldens::Universe>(nullptr);
 }
 
 inline void FinishUniverseBuffer(
