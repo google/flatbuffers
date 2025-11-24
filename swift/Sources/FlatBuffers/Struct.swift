@@ -48,4 +48,16 @@ public struct Struct {
     let r = bb.read(def: T.self, position: Int(o &+ position))
     return r
   }
+
+  public func vector<T>(
+    at off: Int32,
+    count: Int,
+    size: Int) -> FlatbufferVector<T>
+  {
+    FlatbufferVector(
+      bb: bb,
+      startPosition: position &+ off,
+      count: count,
+      byteSize: size)
+  }
 }
