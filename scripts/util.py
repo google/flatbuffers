@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import argparse
+from pathlib import Path
 import platform
 import subprocess
-from pathlib import Path
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -53,18 +53,21 @@ flatc_exe = Path(
 
 # Find and assert flatc compiler is present.
 if root_path in flatc_exe.parents:
-    flatc_exe = flatc_exe.relative_to(root_path)
+  flatc_exe = flatc_exe.relative_to(root_path)
 flatc_path = Path(root_path, flatc_exe)
 assert flatc_path.exists(), "Cannot find the flatc compiler " + str(flatc_path)
 
+
 # Execute the flatc compiler with the specified parameters
-def flatc(options, schema, prefix=None, include=None, data=None, cwd=tests_path):
-    cmd = [str(flatc_path)] + options
-    if prefix:
-        cmd += ["-o"] + [prefix]
-    if include:
-        cmd += ["-I"] + [include]
-    cmd += [schema] if isinstance(schema, str) else schema
-    if data:
-        cmd += [data] if isinstance(data, str) else data
-    result = subprocess.run(cmd, cwd=str(cwd), check=True)
+def flatc(
+    options, schema, prefix=None, include=None, data=None, cwd=tests_path
+):
+  cmd = [str(flatc_path)] + options
+  if prefix:
+    cmd += ["-o"] + [prefix]
+  if include:
+    cmd += ["-I"] + [include]
+  cmd += [schema] if isinstance(schema, str) else schema
+  if data:
+    cmd += [data] if isinstance(data, str) else data
+  result = subprocess.run(cmd, cwd=str(cwd), check=True)

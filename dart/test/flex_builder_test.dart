@@ -62,8 +62,23 @@ void main() {
     {
       var flx = Builder();
       flx.addString('hello 😱');
-      expect(flx.finish(),
-          [10, 104, 101, 108, 108, 111, 32, 240, 159, 152, 177, 0, 11, 20, 1]);
+      expect(flx.finish(), [
+        10,
+        104,
+        101,
+        108,
+        108,
+        111,
+        32,
+        240,
+        159,
+        152,
+        177,
+        0,
+        11,
+        20,
+        1,
+      ]);
     }
   });
 
@@ -117,7 +132,7 @@ void main() {
         192,
         16,
         75,
-        1
+        1,
       ]);
     }
     {
@@ -177,7 +192,7 @@ void main() {
         7,
         3,
         60,
-        1
+        1,
       ]);
     }
     {
@@ -215,7 +230,7 @@ void main() {
         10,
         6,
         60,
-        1
+        1,
       ]);
     }
     {
@@ -300,7 +315,7 @@ void main() {
         104,
         45,
         43,
-        1
+        1,
       ]);
     }
   });
@@ -322,8 +337,24 @@ void main() {
         ..addKey('')
         ..addInt(45)
         ..end();
-      expect(
-          flx.finish(), [97, 0, 0, 2, 2, 5, 2, 1, 2, 45, 12, 4, 4, 4, 36, 1]);
+      expect(flx.finish(), [
+        97,
+        0,
+        0,
+        2,
+        2,
+        5,
+        2,
+        1,
+        2,
+        45,
+        12,
+        4,
+        4,
+        4,
+        36,
+        1,
+      ]);
     }
     {
       var flx = Builder()
@@ -367,7 +398,7 @@ void main() {
         36,
         4,
         40,
-        1
+        1,
       ]);
     }
   });
@@ -381,133 +412,152 @@ void main() {
 
   test('build from object', () {
     expect(
-        Builder.buildFromObject(Uint8List.fromList([1, 2, 3]).buffer)
-            .asUint8List(),
-        [3, 1, 2, 3, 3, 100, 1]);
+      Builder.buildFromObject(
+        Uint8List.fromList([1, 2, 3]).buffer,
+      ).asUint8List(),
+      [3, 1, 2, 3, 3, 100, 1],
+    );
     expect(Builder.buildFromObject(null).asUint8List(), [0, 0, 1]);
     expect(Builder.buildFromObject(true).asUint8List(), [1, 104, 1]);
     expect(Builder.buildFromObject(false).asUint8List(), [0, 104, 1]);
     expect(Builder.buildFromObject(25).asUint8List(), [25, 4, 1]);
     expect(Builder.buildFromObject(-250).asUint8List(), [6, 255, 5, 2]);
+    expect(Builder.buildFromObject(-2.50).asUint8List(), [
+      0,
+      0,
+      32,
+      192,
+      14,
+      4,
+    ]);
+    expect(Builder.buildFromObject('Maxim').asUint8List(), [
+      5,
+      77,
+      97,
+      120,
+      105,
+      109,
+      0,
+      6,
+      20,
+      1,
+    ]);
     expect(
-        Builder.buildFromObject(-2.50).asUint8List(), [0, 0, 32, 192, 14, 4]);
-    expect(Builder.buildFromObject('Maxim').asUint8List(),
-        [5, 77, 97, 120, 105, 109, 0, 6, 20, 1]);
+      Builder.buildFromObject([1, 3.3, 'max', true, null, false]).asUint8List(),
+      [
+        3,
+        109,
+        97,
+        120,
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        102,
+        102,
+        102,
+        102,
+        102,
+        102,
+        10,
+        64,
+        31,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        15,
+        20,
+        104,
+        0,
+        104,
+        54,
+        43,
+        1,
+      ],
+    );
     expect(
-        Builder.buildFromObject([1, 3.3, 'max', true, null, false])
-            .asUint8List(),
-        [
-          3,
-          109,
-          97,
-          120,
-          0,
-          0,
-          0,
-          0,
-          6,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          102,
-          102,
-          102,
-          102,
-          102,
-          102,
-          10,
-          64,
-          31,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          4,
-          15,
-          20,
-          104,
-          0,
-          104,
-          54,
-          43,
-          1
-        ]);
-    expect(
-        Builder.buildFromObject([
-          {'something': 12},
-          {'something': 45}
-        ]).asUint8List(),
-        [
-          115,
-          111,
-          109,
-          101,
-          116,
-          104,
-          105,
-          110,
-          103,
-          0,
-          1,
-          11,
-          1,
-          1,
-          1,
-          12,
-          4,
-          6,
-          1,
-          1,
-          45,
-          4,
-          2,
-          8,
-          4,
-          36,
-          36,
-          4,
-          40,
-          1
-        ]);
+      Builder.buildFromObject([
+        {'something': 12},
+        {'something': 45},
+      ]).asUint8List(),
+      [
+        115,
+        111,
+        109,
+        101,
+        116,
+        104,
+        105,
+        110,
+        103,
+        0,
+        1,
+        11,
+        1,
+        1,
+        1,
+        12,
+        4,
+        6,
+        1,
+        1,
+        45,
+        4,
+        2,
+        8,
+        4,
+        36,
+        36,
+        4,
+        40,
+        1,
+      ],
+    );
   });
 
   test('add double indirectly', () {
@@ -543,7 +593,7 @@ void main() {
       35,
       8,
       40,
-      1
+      1,
     ]);
   });
 
@@ -580,7 +630,7 @@ void main() {
       27,
       8,
       40,
-      1
+      1,
     ]);
   });
 

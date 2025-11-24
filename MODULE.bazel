@@ -1,6 +1,6 @@
 module(
     name = "flatbuffers",
-    version = "25.2.10",
+    version = "25.9.23",
     compatibility_level = 1,
     repo_name = "com_github_google_flatbuffers",
 )
@@ -15,11 +15,11 @@ bazel_dep(
 )
 bazel_dep(
     name = "aspect_rules_js",
-    version = "2.1.3",
+    version = "2.3.8",
 )
 bazel_dep(
     name = "aspect_rules_ts",
-    version = "3.4.0",
+    version = "3.6.0",
 )
 bazel_dep(
     name = "grpc",
@@ -72,6 +72,6 @@ use_repo(npm, "flatbuffers_npm")
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 use_repo(node, "nodejs_linux_amd64")
 
-rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext", dev_dependency = True)
 rules_ts_ext.deps()
 use_repo(rules_ts_ext, "npm_typescript")

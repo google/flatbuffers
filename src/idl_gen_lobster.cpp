@@ -29,38 +29,38 @@ namespace lobster {
 
 class LobsterGenerator : public BaseGenerator {
  public:
-  LobsterGenerator(const Parser &parser, const std::string &path,
-                   const std::string &file_name)
+  LobsterGenerator(const Parser& parser, const std::string& path,
+                   const std::string& file_name)
       : BaseGenerator(parser, path, file_name, "" /* not used */, ".",
                       "lobster") {
-    static const char *const keywords[] = {
-      "nil",    "true",    "false",     "return",  "struct",    "class",
-      "import", "int",     "float",     "string",  "any",       "def",
-      "is",     "from",    "program",   "private", "coroutine", "resource",
-      "enum",   "typeof",  "var",       "let",     "pakfile",   "switch",
-      "case",   "default", "namespace", "not",     "and",       "or",
-      "bool",
+    static const char* const keywords[] = {
+        "nil",    "true",    "false",     "return",  "struct",    "class",
+        "import", "int",     "float",     "string",  "any",       "def",
+        "is",     "from",    "program",   "private", "coroutine", "resource",
+        "enum",   "typeof",  "var",       "let",     "pakfile",   "switch",
+        "case",   "default", "namespace", "not",     "and",       "or",
+        "bool",
     };
     keywords_.insert(std::begin(keywords), std::end(keywords));
   }
 
-  std::string EscapeKeyword(const std::string &name) const {
+  std::string EscapeKeyword(const std::string& name) const {
     return keywords_.find(name) == keywords_.end() ? name : name + "_";
   }
 
-  std::string NormalizedName(const Definition &definition) const {
+  std::string NormalizedName(const Definition& definition) const {
     return EscapeKeyword(definition.name);
   }
 
-  std::string NormalizedName(const EnumVal &ev) const {
+  std::string NormalizedName(const EnumVal& ev) const {
     return EscapeKeyword(ev.name);
   }
 
-  std::string NamespacedName(const Definition &def) {
+  std::string NamespacedName(const Definition& def) {
     return WrapInNameSpace(def.defined_namespace, NormalizedName(def));
   }
 
-  std::string GenTypeName(const Type &type) {
+  std::string GenTypeName(const Type& type) {
     auto bits = NumToString(SizeOf(type.base_type) * 8);
     if (IsInteger(type.base_type)) {
       if (IsUnsigned(type.base_type))
@@ -74,7 +74,7 @@ class LobsterGenerator : public BaseGenerator {
     return "none";
   }
 
-  std::string LobsterType(const Type &type) {
+  std::string LobsterType(const Type& type) {
     if (IsFloat(type.base_type)) return "float";
     if (IsBool(type.base_type)) return "bool";
     if (IsScalar(type.base_type) && type.enum_def)
@@ -85,14 +85,14 @@ class LobsterGenerator : public BaseGenerator {
   }
 
   // Returns the method name for use with add/put calls.
-  std::string GenMethod(const Type &type) {
+  std::string GenMethod(const Type& type) {
     return IsScalar(type.base_type)
                ? ConvertCase(GenTypeBasic(type), Case::kUpperCamel)
                : (IsStruct(type) ? "Struct" : "UOffsetTRelative");
   }
 
   // This uses Python names for now..
-  std::string GenTypeBasic(const Type &type) {
+  std::string GenTypeBasic(const Type& type) {
     // clang-format off
     static const char *ctypename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
@@ -106,10 +106,10 @@ class LobsterGenerator : public BaseGenerator {
   }
 
   // Generate a struct field, conditioned on its child type(s).
-  void GenStructAccessor(const StructDef &struct_def, const FieldDef &field,
-                         std::string *code_ptr) {
+  void GenStructAccessor(const StructDef& struct_def, const FieldDef& field,
+                         std::string* code_ptr) {
     GenComment(field.doc_comment, code_ptr, nullptr, "    ");
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
     auto offsets = NumToString(field.value.offset);
     auto def = "    def " + NormalizedName(field);
     if (IsScalar(field.value.type.base_type)) {
@@ -195,7 +195,7 @@ class LobsterGenerator : public BaseGenerator {
       case BASE_TYPE_UNION: {
         for (auto it = field.value.type.enum_def->Vals().begin();
              it != field.value.type.enum_def->Vals().end(); ++it) {
-          auto &ev = **it;
+          auto& ev = **it;
           if (ev.IsNonZero()) {
             code += def + "_as_" + ev.name + "():\n        return " +
                     NamespacedName(*ev.union_type.struct_def) +
@@ -205,7 +205,8 @@ class LobsterGenerator : public BaseGenerator {
         }
         break;
       }
-      default: FLATBUFFERS_ASSERT(0);
+      default:
+        FLATBUFFERS_ASSERT(0);
     }
     if (IsVector(field.value.type)) {
       code += def +
@@ -216,8 +217,8 @@ class LobsterGenerator : public BaseGenerator {
   }
 
   // Generate table constructors, conditioned on its members' types.
-  void GenTableBuilders(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenTableBuilders(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "struct " + NormalizedName(struct_def) +
             "Builder:\n    b_:flatbuffers.builder\n";
     code += "    def start():\n        b_.StartObject(" +
@@ -225,7 +226,7 @@ class LobsterGenerator : public BaseGenerator {
             ")\n        return this\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.deprecated) continue;
       auto offset = it - struct_def.fields.vec.begin();
       code += "    def add_" + NormalizedName(field) + "(" +
@@ -239,7 +240,7 @@ class LobsterGenerator : public BaseGenerator {
     code += "    def end():\n        return b_.EndObject()\n\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.deprecated) continue;
       if (IsVector(field.value.type)) {
         code += "def " + NormalizedName(struct_def) + "Start" +
@@ -266,23 +267,23 @@ class LobsterGenerator : public BaseGenerator {
     }
   }
 
-  void GenStructPreDecl(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStructPreDecl(const StructDef& struct_def, std::string* code_ptr) {
     if (struct_def.generated) return;
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
     CheckNameSpace(struct_def, &code);
     code += "class " + NormalizedName(struct_def) + "\n\n";
   }
 
   // Generate struct or table methods.
-  void GenStruct(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStruct(const StructDef& struct_def, std::string* code_ptr) {
     if (struct_def.generated) return;
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
     CheckNameSpace(struct_def, &code);
     GenComment(struct_def.doc_comment, code_ptr, nullptr, "");
     code += "class " + NormalizedName(struct_def) + " : flatbuffers.handle\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.deprecated) continue;
       GenStructAccessor(struct_def, field, code_ptr);
     }
@@ -304,14 +305,14 @@ class LobsterGenerator : public BaseGenerator {
   }
 
   // Generate enum declarations.
-  void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenEnum(const EnumDef& enum_def, std::string* code_ptr) {
     if (enum_def.generated) return;
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
     CheckNameSpace(enum_def, &code);
     GenComment(enum_def.doc_comment, code_ptr, nullptr, "");
     code += "enum " + NormalizedName(enum_def) + ":\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto &ev = **it;
+      auto& ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "    ");
       code += "    " + enum_def.name + "_" + NormalizedName(ev) + " = " +
               enum_def.ToString(ev) + "\n";
@@ -321,11 +322,11 @@ class LobsterGenerator : public BaseGenerator {
 
   // Recursively generate arguments for a constructor, to deal with nested
   // structs.
-  void StructBuilderArgs(const StructDef &struct_def, const char *nameprefix,
-                         std::string *code_ptr) {
+  void StructBuilderArgs(const StructDef& struct_def, const char* nameprefix,
+                         std::string* code_ptr) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (IsStruct(field.value.type)) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
@@ -334,7 +335,7 @@ class LobsterGenerator : public BaseGenerator {
                           (nameprefix + (NormalizedName(field) + "_")).c_str(),
                           code_ptr);
       } else {
-        std::string &code = *code_ptr;
+        std::string& code = *code_ptr;
         code += ", " + (nameprefix + NormalizedName(field)) + ":" +
                 LobsterType(field.value.type);
       }
@@ -343,14 +344,14 @@ class LobsterGenerator : public BaseGenerator {
 
   // Recursively generate struct construction statements and instert manual
   // padding.
-  void StructBuilderBody(const StructDef &struct_def, const char *nameprefix,
-                         std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void StructBuilderBody(const StructDef& struct_def, const char* nameprefix,
+                         std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code += "    b_.Prep(" + NumToString(struct_def.minalign) + ", " +
             NumToString(struct_def.bytesize) + ")\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
-      auto &field = **it;
+      auto& field = **it;
       if (field.padding)
         code += "    b_.Pad(" + NumToString(field.padding) + ")\n";
       if (IsStruct(field.value.type)) {
@@ -365,8 +366,8 @@ class LobsterGenerator : public BaseGenerator {
   }
 
   // Create a struct with a builder and the struct's arguments.
-  void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
-    std::string &code = *code_ptr;
+  void GenStructBuilder(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
     code +=
         "def Create" + NormalizedName(struct_def) + "(b_:flatbuffers.builder";
     StructBuilderArgs(struct_def, "", code_ptr);
@@ -375,11 +376,11 @@ class LobsterGenerator : public BaseGenerator {
     code += "    return b_.Offset()\n\n";
   }
 
-  void CheckNameSpace(const Definition &def, std::string *code_ptr) {
+  void CheckNameSpace(const Definition& def, std::string* code_ptr) {
     auto ns = GetNameSpace(def);
     if (ns == current_namespace_) return;
     current_namespace_ = ns;
-    std::string &code = *code_ptr;
+    std::string& code = *code_ptr;
     code += "namespace " + ns + "\n\n";
   }
 
@@ -389,17 +390,17 @@ class LobsterGenerator : public BaseGenerator {
             "\nimport flatbuffers\n\n";
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
-      auto &enum_def = **it;
+      auto& enum_def = **it;
       GenEnum(enum_def, &code);
     }
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
+      auto& struct_def = **it;
       GenStructPreDecl(struct_def, &code);
     }
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
-      auto &struct_def = **it;
+      auto& struct_def = **it;
       GenStruct(struct_def, &code);
     }
     return SaveFile(GeneratedFileName(path_, file_name_, parser_.opts).c_str(),
@@ -413,8 +414,8 @@ class LobsterGenerator : public BaseGenerator {
 
 }  // namespace lobster
 
-static bool GenerateLobster(const Parser &parser, const std::string &path,
-                            const std::string &file_name) {
+static bool GenerateLobster(const Parser& parser, const std::string& path,
+                            const std::string& file_name) {
   lobster::LobsterGenerator generator(parser, path, file_name);
   return generator.generate();
 }
@@ -423,20 +424,21 @@ namespace {
 
 class LobsterCodeGenerator : public CodeGenerator {
  public:
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
-    if (!GenerateLobster(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateCode(const Parser& parser, const std::string& path,
+                      const std::string& filename) override {
+    if (!GenerateLobster(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
-  Status GenerateCode(const uint8_t *, int64_t,
-                      const CodeGenOptions &) override {
+  Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                          const std::string &filename,
-                          std::string &output) override {
+  Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                          const std::string& filename,
+                          std::string& output) override {
     (void)parser;
     (void)path;
     (void)filename;
@@ -444,16 +446,16 @@ class LobsterCodeGenerator : public CodeGenerator {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                          const std::string &filename) override {
+  Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                          const std::string& filename) override {
     (void)parser;
     (void)path;
     (void)filename;
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateRootFile(const Parser &parser,
-                          const std::string &path) override {
+  Status GenerateRootFile(const Parser& parser,
+                          const std::string& path) override {
     (void)parser;
     (void)path;
     return Status::NOT_IMPLEMENTED;

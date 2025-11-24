@@ -30,7 +30,7 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
     code:
 
     ```sh
-    ./flatc --cpp --rust mosnter.fbs
+    ./flatc --cpp --rust monster.fbs
     ```
 
     Which generates `monster_generated.h` and `monster_generated.rs` files.
@@ -44,11 +44,11 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
     #include "flatbuffers.h"
     #include "monster_generated.h"
 
-    int main() { 
+    int main() {
       // Used to build the flatbuffer
       FlatBufferBuilder builder;
 
-      // Auto-generated function emitted from `flatc` and the input 
+      // Auto-generated function emitted from `flatc` and the input
       // `monster.fbs` schema.
       auto monster = CreateMonsterDirect(builder, "Abominable Snowman", 100);
 
@@ -60,7 +60,7 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
     See complete [C++ Example](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.cpp#L24-L56).
 
 5.  **Transmit/Store the serialized FlatBuffer**
-  
+
     Use your serialized buffer however you want. Send it to someone, save if for
     later, etc...
 
@@ -73,10 +73,10 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
 
     Use the generated accessors to read the data from the serialized buffer.
 
-    It doesn't need to be the same language, or even schema version (see 
+    It doesn't need to be the same language, or even schema version (see
     [Evolving](evolution.md)), FlatBuffers ensures the data is readable across
-    languages and schema versions. 
-    
+    languages and schema versions.
+
     ```c++ title="my_monster_factory.cc" linenums="15"
     // Get a view of the root monster from the flatbuffer.
     const Monster snowman = GetMonster(flatbuffer);
@@ -84,7 +84,7 @@ See the [Tutorial](tutorial.md) for a more in depth guide.
     // Access the monster's fields directly.
     ASSERT_EQ(snowman->name(), "Abominable Snowman");
     ASSERT_EQ(snowman->health(), 100);
-    ```    
-    
+    ```
+
     See [`Rust` examples](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.rs#L92-L106)
     for reading the data written by `C++`.

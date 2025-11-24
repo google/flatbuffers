@@ -62,7 +62,7 @@ static const Namer::Config kStubConfig = {
 //
 // https://docs.python.org/3/faq/general.html#how-does-the-python-version-numbering-scheme-work
 struct Version {
-  explicit Version(const std::string &version);
+  explicit Version(const std::string& version);
 
   bool IsValid() const;
 
@@ -71,7 +71,7 @@ struct Version {
   int16_t micro = 0;
 };
 
-std::set<std::string> Keywords(const Version &version);
+std::set<std::string> Keywords(const Version& version);
 
 struct Import {
   bool IsLocal() const { return module == "."; }
@@ -81,11 +81,16 @@ struct Import {
 };
 
 struct Imports {
-  const python::Import &Import(const std::string &module);
-  const python::Import &Import(const std::string &module,
-                               const std::string &name);
+  const python::Import& Import(const std::string& module);
+  const python::Import& Import(const std::string& module,
+                               const std::string& name);
+
+  const python::Import& Export(const std::string& module);
+  const python::Import& Export(const std::string& module,
+                               const std::string& name);
 
   std::vector<python::Import> imports;
+  std::vector<python::Import> exports;
 };
 }  // namespace python
 }  // namespace flatbuffers

@@ -2,11 +2,15 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if canImport(Common)
+import Common
+#endif
+
 import FlatBuffers
 
-public struct models_HelloReply: FlatBufferObject, Verifiable {
+public struct models_HelloReply: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -51,9 +55,9 @@ extension models_HelloReply: Encodable {
   }
 }
 
-public struct models_HelloRequest: FlatBufferObject, Verifiable {
+public struct models_HelloRequest: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

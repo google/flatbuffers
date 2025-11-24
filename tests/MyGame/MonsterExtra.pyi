@@ -3,9 +3,7 @@ from __future__ import annotations
 import flatbuffers
 import numpy as np
 
-import flatbuffers
 import typing
-from MyGame.MonsterExtra import MonsterExtra
 
 uoffset: typing.TypeAlias = flatbuffers.number_types.UOffsetTFlags.py_type
 
@@ -44,6 +42,19 @@ class MonsterExtraT(object):
   f3: float
   dvec: typing.List[float]
   fvec: typing.List[float]
+  def __init__(
+    self,
+    d0: float = ...,
+    d1: float = ...,
+    d2: float = ...,
+    d3: float = ...,
+    f0: float = ...,
+    f1: float = ...,
+    f2: float = ...,
+    f3: float = ...,
+    dvec: typing.List[float] | None = ...,
+    fvec: typing.List[float] | None = ...,
+  ) -> None: ...
   @classmethod
   def InitFromBuf(cls, buf: bytes, pos: int) -> MonsterExtraT: ...
   @classmethod

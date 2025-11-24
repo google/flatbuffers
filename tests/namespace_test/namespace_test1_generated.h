@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 2 &&
-              FLATBUFFERS_VERSION_REVISION == 10,
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace NamespaceA {
@@ -138,8 +138,10 @@ inline bool operator!=(const UnionInNestedNSUnion &lhs, const UnionInNestedNSUni
     return !(lhs == rhs);
 }
 
-bool VerifyUnionInNestedNS(::flatbuffers::Verifier &verifier, const void *obj, UnionInNestedNS type);
-bool VerifyUnionInNestedNSVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+template <bool B = false>
+bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, UnionInNestedNS type);
+template <bool B = false>
+bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
 
 enum EnumInNestedNS : int8_t {
   EnumInNestedNS_A = 0,
@@ -246,7 +248,8 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_foo(int32_t _foo = 0) {
     return SetField<int32_t>(VT_FOO, _foo, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FOO, 4) &&
            verifier.EndTable();
@@ -307,11 +310,11 @@ inline void TableInNestedNS::UnPackTo(TableInNestedNST *_o, const ::flatbuffers:
   { auto _e = foo(); _o->foo = _e; }
 }
 
-inline ::flatbuffers::Offset<TableInNestedNS> TableInNestedNS::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateTableInNestedNS(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return TableInNestedNS::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<TableInNestedNS> TableInNestedNS::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TableInNestedNST* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TableInNestedNST* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -321,7 +324,8 @@ inline ::flatbuffers::Offset<TableInNestedNS> CreateTableInNestedNS(::flatbuffer
       _foo);
 }
 
-inline bool VerifyUnionInNestedNS(::flatbuffers::Verifier &verifier, const void *obj, UnionInNestedNS type) {
+template <bool B>
+inline bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, UnionInNestedNS type) {
   switch (type) {
     case UnionInNestedNS_NONE: {
       return true;
@@ -334,7 +338,8 @@ inline bool VerifyUnionInNestedNS(::flatbuffers::Verifier &verifier, const void 
   }
 }
 
-inline bool VerifyUnionInNestedNSVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+template <bool B>
+inline bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
