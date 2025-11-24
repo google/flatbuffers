@@ -1,5 +1,11 @@
 # Changelog
 
+## 25.9.23
+
+- use enhanced enums (#8313)
+- fix incorrect write in Float64 write method (#8290)
+- code format improvements (#8707)
+
 ## 23.5.26
 
 - omit type annotationes for local variables (#7067, #7069, #7070)
