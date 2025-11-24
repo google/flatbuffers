@@ -10,13 +10,14 @@ namespace tests {
 // set to 1. A quiet NaN bit string should be encoded with the first bit d[1]
 // of the trailing significand field T being 1 (d[0] is implicit bit).
 // It is assumed that endianness of floating-point is same as integer.
-template<typename T, typename U, U qnan_base> bool is_quiet_nan_impl(T v) {
+template <typename T, typename U, U qnan_base>
+bool is_quiet_nan_impl(T v) {
   static_assert(sizeof(T) == sizeof(U), "unexpected");
   U b = 0;
   std::memcpy(&b, &v, sizeof(T));
   return ((b & qnan_base) == qnan_base);
 }
-#  if defined(__mips__) || defined(__hppa__)
+#if defined(__mips__) || defined(__hppa__)
 inline bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v) ||
          is_quiet_nan_impl<float, uint32_t, 0x7FBFFFFFu>(v);
@@ -25,14 +26,14 @@ inline bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v) ||
          is_quiet_nan_impl<double, uint64_t, 0x7FF7FFFFFFFFFFFFu>(v);
 }
-#  else
+#else
 inline bool is_quiet_nan(float v) {
   return is_quiet_nan_impl<float, uint32_t, 0x7FC00000u>(v);
 }
 inline bool is_quiet_nan(double v) {
   return is_quiet_nan_impl<double, uint64_t, 0x7FF8000000000000ul>(v);
 }
-#  endif
+#endif
 #endif
 
 }  // namespace tests

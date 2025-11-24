@@ -1,41 +1,39 @@
 package com.google.flatbuffers;
 
-import java.nio.ByteBuffer;
 import static java.lang.Character.MAX_SURROGATE;
 import static java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT;
 import static java.lang.Character.MIN_SURROGATE;
 import static java.lang.Character.isSurrogatePair;
 import static java.lang.Character.toCodePoint;
 
+import java.nio.ByteBuffer;
+
 /**
- * A set of low-level, high-performance static utility methods related
- * to the UTF-8 character encoding.  This class has no dependencies
- * outside of the core JDK libraries.
+ * A set of low-level, high-performance static utility methods related to the UTF-8 character
+ * encoding. This class has no dependencies outside of the core JDK libraries.
  *
- * <p>There are several variants of UTF-8.  The one implemented by
- * this class is the restricted definition of UTF-8 introduced in
- * Unicode 3.1, which mandates the rejection of "overlong" byte
- * sequences as well as rejection of 3-byte surrogate codepoint byte
- * sequences.  Note that the UTF-8 decoder included in Oracle's JDK
- * has been modified to also reject "overlong" byte sequences, but (as
- * of 2011) still accepts 3-byte surrogate codepoint byte sequences.
+ * <p>There are several variants of UTF-8. The one implemented by this class is the restricted
+ * definition of UTF-8 introduced in Unicode 3.1, which mandates the rejection of "overlong" byte
+ * sequences as well as rejection of 3-byte surrogate codepoint byte sequences. Note that the UTF-8
+ * decoder included in Oracle's JDK has been modified to also reject "overlong" byte sequences, but
+ * (as of 2011) still accepts 3-byte surrogate codepoint byte sequences.
  *
- * <p>The byte sequences considered valid by this class are exactly
- * those that can be roundtrip converted to Strings and back to bytes
- * using the UTF-8 charset, without loss: <pre> {@code
+ * <p>The byte sequences considered valid by this class are exactly those that can be roundtrip
+ * converted to Strings and back to bytes using the UTF-8 charset, without loss:
+ *
+ * <pre>{@code
  * Arrays.equals(bytes, new String(bytes, Internal.UTF_8).getBytes(Internal.UTF_8))
  * }</pre>
  *
- * <p>See the Unicode Standard,</br>
- * Table 3-6. <em>UTF-8 Bit Distribution</em>,</br>
- * Table 3-7. <em>Well Formed UTF-8 Byte Sequences</em>.
+ * <p>See the Unicode Standard,</br> Table 3-6. <em>UTF-8 Bit Distribution</em>,</br> Table 3-7.
+ * <em>Well Formed UTF-8 Byte Sequences</em>.
  */
-final public class Utf8Safe extends Utf8 {
+public final class Utf8Safe extends Utf8 {
 
   /**
-   * Returns the number of bytes in the UTF-8-encoded form of {@code sequence}. For a string,
-   * this method is equivalent to {@code string.getBytes(UTF_8).length}, but is more efficient in
-   * both time and space.
+   * Returns the number of bytes in the UTF-8-encoded form of {@code sequence}. For a string, this
+   * method is equivalent to {@code string.getBytes(UTF_8).length}, but is more efficient in both
+   * time and space.
    *
    * @throws IllegalArgumentException if {@code sequence} contains ill-formed UTF-16 (unpaired
    *     surrogates)
@@ -55,7 +53,7 @@ final public class Utf8Safe extends Utf8 {
     for (; i < utf16Length; i++) {
       char c = sequence.charAt(i);
       if (c < 0x800) {
-        utf8Length += ((0x7f - c) >>> 31);  // branch free!
+        utf8Length += ((0x7f - c) >>> 31); // branch free!
       } else {
         utf8Length += encodedLengthGeneral(sequence, i);
         break;
@@ -64,8 +62,8 @@ final public class Utf8Safe extends Utf8 {
 
     if (utf8Length < utf16Length) {
       // Necessary and sufficient condition for overflow because of maximum 3x expansion
-      throw new IllegalArgumentException("UTF-8 length does not fit in int: "
-                                             + (utf8Length + (1L << 32)));
+      throw new IllegalArgumentException(
+          "UTF-8 length does not fit in int: " + (utf8Length + (1L << 32)));
     }
     return utf8Length;
   }
@@ -167,13 +165,11 @@ final public class Utf8Safe extends Utf8 {
     return new String(resultArr, 0, resultPos);
   }
 
-  public static String decodeUtf8Buffer(ByteBuffer buffer, int offset,
-                                         int length) {
+  public static String decodeUtf8Buffer(ByteBuffer buffer, int offset, int length) {
     // Bitwise OR combines the sign bits so any negative value fails the check.
     if ((offset | length | buffer.limit() - offset - length) < 0) {
       throw new ArrayIndexOutOfBoundsException(
-          String.format("buffer limit=%d, index=%d, limit=%d", buffer.limit(),
-              offset, length));
+          String.format("buffer limit=%d, index=%d, limit=%d", buffer.limit(), offset, length));
     }
 
     final int limit = offset + length;
@@ -212,8 +208,7 @@ final public class Utf8Safe extends Utf8 {
         if (offset >= limit) {
           throw new IllegalArgumentException("Invalid UTF-8");
         }
-        DecodeUtil.handleTwoBytes(
-            byte1, /* byte2 */ buffer.get(offset++), resultArr, resultPos++);
+        DecodeUtil.handleTwoBytes(byte1, /* byte2 */ buffer.get(offset++), resultArr, resultPos++);
       } else if (DecodeUtil.isThreeBytes(byte1)) {
         if (offset >= limit - 1) {
           throw new IllegalArgumentException("Invalid UTF-8");
@@ -262,7 +257,6 @@ final public class Utf8Safe extends Utf8 {
       return decodeUtf8Buffer(buffer, offset, length);
     }
   }
-
 
   private static void encodeUtf8Buffer(CharSequence in, ByteBuffer out) {
     final int inLength = in.length();
@@ -335,8 +329,7 @@ final public class Utf8Safe extends Utf8 {
     }
   }
 
-  private static int encodeUtf8Array(CharSequence in, byte[] out,
-                                     int offset, int length) {
+  private static int encodeUtf8Array(CharSequence in, byte[] out, int offset, int length) {
     int utf16Length = in.length();
     int j = offset;
     int i = 0;
@@ -366,8 +359,7 @@ final public class Utf8Safe extends Utf8 {
         // Minimum code point represented by a surrogate pair is 0x10000, 17 bits,
         // four UTF-8 bytes
         final char low;
-        if (i + 1 == in.length()
-                || !Character.isSurrogatePair(c, (low = in.charAt(++i)))) {
+        if (i + 1 == in.length() || !Character.isSurrogatePair(c, (low = in.charAt(++i)))) {
           throw new UnpairedSurrogateException((i - 1), utf16Length);
         }
         int codePoint = Character.toCodePoint(c, low);
@@ -379,8 +371,7 @@ final public class Utf8Safe extends Utf8 {
         // If we are surrogates and we're not a surrogate pair, always throw an
         // UnpairedSurrogateException instead of an ArrayOutOfBoundsException.
         if ((Character.MIN_SURROGATE <= c && c <= Character.MAX_SURROGATE)
-                && (i + 1 == in.length()
-                        || !Character.isSurrogatePair(c, in.charAt(i + 1)))) {
+            && (i + 1 == in.length() || !Character.isSurrogatePair(c, in.charAt(i + 1)))) {
           throw new UnpairedSurrogateException(i, utf16Length);
         }
         throw new ArrayIndexOutOfBoundsException("Failed writing " + c + " at index " + j);
@@ -402,8 +393,7 @@ final public class Utf8Safe extends Utf8 {
   public void encodeUtf8(CharSequence in, ByteBuffer out) {
     if (out.hasArray()) {
       int start = out.arrayOffset();
-      int end = encodeUtf8Array(in, out.array(), start + out.position(),
-          out.remaining());
+      int end = encodeUtf8Array(in, out.array(), start + out.position(), out.remaining());
       out.position(end - start);
     } else {
       encodeUtf8Buffer(in, out);

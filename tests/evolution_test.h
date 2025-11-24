@@ -6,9 +6,9 @@
 namespace flatbuffers {
 namespace tests {
 
-void EvolutionTest(const std::string &tests_data_path);
+void EvolutionTest(const std::string& tests_data_path);
 void ConformTest();
-void UnionDeprecationTest(const std::string &tests_data_path);
+void UnionDeprecationTest(const std::string& tests_data_path);
 
 }  // namespace tests
 }  // namespace flatbuffers

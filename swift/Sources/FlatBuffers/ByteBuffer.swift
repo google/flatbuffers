@@ -125,21 +125,24 @@ public struct ByteBuffer {
         return try byteBuffer.withUnsafeRawPointer(body)
       #if !os(WASI)
       case .data(let data):
-        return try data
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try data
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       case .bytes(let contiguousBytes):
-        return try contiguousBytes
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try contiguousBytes
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       #endif
       case .array(let array):
-        return try array
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try array
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       case .pointer(let ptr):
         return try body(ptr)
       }
@@ -194,7 +197,7 @@ public struct ByteBuffer {
       blob: .byteBuffer(byteBuffer),
       capacity: byteBuffer.capacity)
     _readerIndex = Int(byteBuffer.size)
-    self.capacity = byteBuffer.capacity
+    capacity = byteBuffer.capacity
   }
 
   /// Constructor that creates a Flatbuffer from unsafe memory region by copying
@@ -246,7 +249,7 @@ public struct ByteBuffer {
   {
     _storage = Storage(blob: .bytes(contiguousBytes), capacity: count)
     _readerIndex = count
-    self.capacity = count
+    capacity = count
   }
   #endif
 

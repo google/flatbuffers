@@ -22,17 +22,17 @@ import kotlin.experimental.and
 import kotlin.jvm.JvmInline
 import kotlin.math.pow
 
-/**
- * Returns a minified version of this FlexBuffer as a JSON.
- */
-public fun Reference.toJson(): String = ArrayReadWriteBuffer(1024).let {
-  toJson(it)
-  val data = it.data() // it.getString(0, it.writePosition)
-  return data.decodeToString(0, it.writePosition)
-}
+/** Returns a minified version of this FlexBuffer as a JSON. */
+public fun Reference.toJson(): String =
+  ArrayReadWriteBuffer(1024).let {
+    toJson(it)
+    val data = it.data() // it.getString(0, it.writePosition)
+    return data.decodeToString(0, it.writePosition)
+  }
 
 /**
  * Returns a minified version of this FlexBuffer as a JSON.
+ *
  * @param out [ReadWriteBuffer] the JSON will be written.
  */
 public fun Reference.toJson(out: ReadWriteBuffer) {
@@ -57,19 +57,27 @@ public fun Reference.toJson(out: ReadWriteBuffer) {
     T_NULL -> out.put("null")
     T_BOOL -> out.put(toBoolean().toString())
     T_MAP -> toMap().toJson(out)
-    T_VECTOR, T_VECTOR_BOOL, T_VECTOR_FLOAT, T_VECTOR_INT,
-    T_VECTOR_UINT, T_VECTOR_KEY, T_VECTOR_STRING_DEPRECATED -> toVector().toJson(out)
+    T_VECTOR,
+    T_VECTOR_BOOL,
+    T_VECTOR_FLOAT,
+    T_VECTOR_INT,
+    T_VECTOR_UINT,
+    T_VECTOR_KEY,
+    T_VECTOR_STRING_DEPRECATED -> toVector().toJson(out)
     else -> error("Unable to convert type ${type.typeToString()} to JSON")
   }
 }
 
-/**
- * Returns a minified version of this FlexBuffer as a JSON.
- */
-public fun Map.toJson(): String = ArrayReadWriteBuffer(1024).let { toJson(it); it.toString() }
+/** Returns a minified version of this FlexBuffer as a JSON. */
+public fun Map.toJson(): String =
+  ArrayReadWriteBuffer(1024).let {
+    toJson(it)
+    it.toString()
+  }
 
 /**
  * Returns a minified version of this FlexBuffer as a JSON.
+ *
  * @param out [ReadWriteBuffer] the JSON will be written.
  */
 public fun Map.toJson(out: ReadWriteBuffer) {
@@ -88,13 +96,16 @@ public fun Map.toJson(out: ReadWriteBuffer) {
   out.put('}'.code.toByte())
 }
 
-/**
- * Returns a minified version of this FlexBuffer as a JSON.
- */
-public fun Vector.toJson(): String = ArrayReadWriteBuffer(1024).let { toJson(it); it.toString() }
+/** Returns a minified version of this FlexBuffer as a JSON. */
+public fun Vector.toJson(): String =
+  ArrayReadWriteBuffer(1024).let {
+    toJson(it)
+    it.toString()
+  }
 
 /**
  * Returns a minified version of this FlexBuffer as a JSON.
+ *
  * @param out that the JSON is being concatenated.
  */
 public fun Vector.toJson(out: ReadWriteBuffer) {
@@ -109,27 +120,23 @@ public fun Vector.toJson(out: ReadWriteBuffer) {
 }
 
 /**
- * JSONParser class is used to parse a JSON as FlexBuffers. Calling [JSONParser.parse] fiils [output]
- * and returns a [Reference] ready to be used.
+ * JSONParser class is used to parse a JSON as FlexBuffers. Calling [JSONParser.parse] fiils
+ * [output] and returns a [Reference] ready to be used.
  */
 @ExperimentalUnsignedTypes
-public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuilder(1024, SHARE_KEYS_AND_STRINGS)) {
+public class JSONParser(
+  public var output: FlexBuffersBuilder = FlexBuffersBuilder(1024, SHARE_KEYS_AND_STRINGS)
+) {
   private var readPos = 0
   private var scopes = ScopeStack()
 
-  /**
-   * Parse a json as [String] and returns a [Reference] to a FlexBuffer.
-   */
+  /** Parse a json as [String] and returns a [Reference] to a FlexBuffer. */
   public fun parse(data: String): Reference = parse(ArrayReadBuffer(data.encodeToByteArray()))
 
-  /**
-   * Parse a json as [ByteArray] and returns a [Reference] to a FlexBuffer.
-   */
+  /** Parse a json as [ByteArray] and returns a [Reference] to a FlexBuffer. */
   public fun parse(data: ByteArray): Reference = parse(ArrayReadBuffer(data))
 
-  /**
-   * Parse a json as [ReadBuffer] and returns a [Reference] to a FlexBuffer.
-   */
+  /** Parse a json as [ReadBuffer] and returns a [Reference] to a FlexBuffer. */
   public fun parse(data: ReadBuffer): Reference {
     reset()
     parseValue(data, nextToken(data), null)
@@ -165,7 +172,8 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
       when (val tok = nextToken(data)) {
         TOK_END_OBJECT -> {
           this.scopes.pop()
-          output.endMap(fPos, key); return T_MAP
+          output.endMap(fPos, key)
+          return T_MAP
         }
         TOK_BEGIN_QUOTE -> {
           val childKey = readString(data)
@@ -347,7 +355,11 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
     return readString(data, limit) { data[it] }
   }
 
-  private inline fun readString(data: ReadBuffer, limit: Int, crossinline fetch: (Int) -> Byte): String {
+  private inline fun readString(
+    data: ReadBuffer,
+    limit: Int,
+    crossinline fetch: (Int) -> Byte,
+  ): String {
     var cursorPos = readPos
     var foundEscape = false
     var currentChar: Byte = 0
@@ -420,7 +432,8 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
           endOfString = pos + 1
         }
         else -> {
-          endOfString = pos; break
+          endOfString = pos
+          break
         }
       }
     }
@@ -478,7 +491,8 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
           else -> makeError(data, "Unfinished Array", c)
         }
       }
-      SCOPE_OBJ_EMPTY, SCOPE_OBJ_FILLED -> {
+      SCOPE_OBJ_EMPTY,
+      SCOPE_OBJ_FILLED -> {
         this.scopes.last = SCOPE_OBJ_KEY
         // Look for a comma before the next element.
         if (scope == SCOPE_OBJ_FILLED) {
@@ -490,11 +504,12 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
         }
         return when (val c = skipWhitespace(data)) {
           CHAR_DOUBLE_QUOTE -> TOK_BEGIN_QUOTE
-          CHAR_CLOSE_OBJECT -> if (scope != SCOPE_OBJ_FILLED) {
-            TOK_END_OBJECT
-          } else {
-            makeError(data, "Expected Key", c)
-          }
+          CHAR_CLOSE_OBJECT ->
+            if (scope != SCOPE_OBJ_FILLED) {
+              TOK_END_OBJECT
+            } else {
+              makeError(data, "Expected Key", c)
+            }
           else -> {
             makeError(data, "Expected Key/Value", c)
           }
@@ -510,8 +525,7 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
       SCOPE_DOC_EMPTY -> this.scopes.last = SCOPE_DOC_FILLED
       SCOPE_DOC_FILLED -> {
         val c = skipWhitespace(data)
-        if (c != CHAR_EOF)
-          makeError(data, "Root object already finished", c)
+        if (c != CHAR_EOF) makeError(data, "Root object already finished", c)
         return TOK_EOF
       }
     }
@@ -550,10 +564,20 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
         readPos += 4
         return TOK_FALSE
       }
-      CHAR_0, CHAR_1, CHAR_2, CHAR_3, CHAR_4, CHAR_5,
-      CHAR_6, CHAR_7, CHAR_8, CHAR_9, CHAR_MINUS -> return TOK_NUMBER.also {
-        readPos-- // rewind one position so we don't lose first digit
-      }
+      CHAR_0,
+      CHAR_1,
+      CHAR_2,
+      CHAR_3,
+      CHAR_4,
+      CHAR_5,
+      CHAR_6,
+      CHAR_7,
+      CHAR_8,
+      CHAR_9,
+      CHAR_MINUS ->
+        return TOK_NUMBER.also {
+          readPos-- // rewind one position so we don't lose first digit
+        }
     }
     makeError(data, "Expecting element", c)
   }
@@ -593,12 +617,13 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
         while (i < end) {
           val part: Byte = data[i]
           result = (result.code shl 4).toChar()
-          result += when (part) {
-            in CHAR_0..CHAR_9 -> part - CHAR_0
-            in CHAR_a..CHAR_f -> part - CHAR_a + 10
-            in CHAR_A..CHAR_F -> part - CHAR_A + 10
-            else -> makeError(data, "Invalid utf8 escaped character", -1)
-          }
+          result +=
+            when (part) {
+              in CHAR_0..CHAR_9 -> part - CHAR_0
+              in CHAR_a..CHAR_f -> part - CHAR_a + 10
+              in CHAR_A..CHAR_F -> part - CHAR_A + 10
+              else -> makeError(data, "Invalid utf8 escaped character", -1)
+            }
           i++
         }
         result
@@ -608,16 +633,19 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
       CHAR_r -> '\r'
       CHAR_n -> '\n'
       CHAR_f -> 12.toChar() // '\f'
-      CHAR_DOUBLE_QUOTE, CHAR_BACKSLASH, CHAR_FORWARDSLASH -> byte1.toInt().toChar()
+      CHAR_DOUBLE_QUOTE,
+      CHAR_BACKSLASH,
+      CHAR_FORWARDSLASH -> byte1.toInt().toChar()
       else -> makeError(data, "Invalid escape sequence.", byte1)
     }
   }
 
-  private fun Byte.print(): String = when (this) {
-    in 0x21..0x7E -> "'${this.toInt().toChar()}'" // visible ascii chars
-    CHAR_EOF -> "EOF"
-    else -> "'0x${this.toString(16)}'"
-  }
+  private fun Byte.print(): String =
+    when (this) {
+      in 0x21..0x7E -> "'${this.toInt().toChar()}'" // visible ascii chars
+      CHAR_EOF -> "EOF"
+      else -> "'0x${this.toString(16)}'"
+    }
 
   private inline fun makeError(data: ReadBuffer, msg: String, tok: Byte? = null): Nothing {
     val (line, column) = calculateErrorPosition(data, readPos)
@@ -634,8 +662,7 @@ public class JSONParser(public var output: FlexBuffersBuilder = FlexBuffersBuild
   }
 
   private inline fun checkEOF(data: ReadBuffer, pos: Int) {
-    if (pos >= data.limit)
-      makeError(data, "Unexpected end of file", -1)
+    if (pos >= data.limit) makeError(data, "Unexpected end of file", -1)
   }
 
   private fun calculateErrorPosition(data: ReadBuffer, endPos: Int): Pair<Int, Int> {
@@ -686,22 +713,23 @@ private inline fun ReadWriteBuffer.jsonEscape(data: ReadBuffer, start: Int, size
 }
 
 // Following escape strategy defined in RFC7159.
-private val JSON_ESCAPE_CHARS: Array<ByteArray?> = arrayOfNulls<ByteArray>(128).apply {
-  this['\n'.code] = "\\n".encodeToByteArray()
-  this['\t'.code] = "\\t".encodeToByteArray()
-  this['\r'.code] = "\\r".encodeToByteArray()
-  this['\b'.code] = "\\b".encodeToByteArray()
-  this[0x0c] = "\\f".encodeToByteArray()
-  this['"'.code] = "\\\"".encodeToByteArray()
-  this['\\'.code] = "\\\\".encodeToByteArray()
-  for (i in 0..0x1f) {
-    this[i] = "\\u${i.toPaddedHex()}".encodeToByteArray()
+private val JSON_ESCAPE_CHARS: Array<ByteArray?> =
+  arrayOfNulls<ByteArray>(128).apply {
+    this['\n'.code] = "\\n".encodeToByteArray()
+    this['\t'.code] = "\\t".encodeToByteArray()
+    this['\r'.code] = "\\r".encodeToByteArray()
+    this['\b'.code] = "\\b".encodeToByteArray()
+    this[0x0c] = "\\f".encodeToByteArray()
+    this['"'.code] = "\\\"".encodeToByteArray()
+    this['\\'.code] = "\\\\".encodeToByteArray()
+    for (i in 0..0x1f) {
+      this[i] = "\\u${i.toPaddedHex()}".encodeToByteArray()
+    }
   }
-}
 
 // Scope is used to the define current space that the scanner is operating.
-@JvmInline
-private value class Scope(val id: Int)
+@JvmInline private value class Scope(val id: Int)
+
 private val SCOPE_DOC_EMPTY = Scope(0)
 private val SCOPE_DOC_FILLED = Scope(1)
 private val SCOPE_OBJ_EMPTY = Scope(2)
@@ -714,7 +742,7 @@ private val SCOPE_ARRAY_FILLED = Scope(6)
 // max stack size of 22, as per tests cases defined in http://json.org/JSON_checker/
 private class ScopeStack(
   private val ary: IntArray = IntArray(22) { SCOPE_DOC_EMPTY.id },
-  var lastPos: Int = 0
+  var lastPos: Int = 0,
 ) {
   var last: Scope
     get() = Scope(ary[lastPos])
@@ -743,20 +771,21 @@ private class ScopeStack(
 
 @JvmInline
 private value class Token(val id: Int) {
-  fun print(): String = when (this) {
-    TOK_EOF -> "TOK_EOF"
-    TOK_NONE -> "TOK_NONE"
-    TOK_BEGIN_OBJECT -> "TOK_BEGIN_OBJECT"
-    TOK_END_OBJECT -> "TOK_END_OBJECT"
-    TOK_BEGIN_ARRAY -> "TOK_BEGIN_ARRAY"
-    TOK_END_ARRAY -> "TOK_END_ARRAY"
-    TOK_NUMBER -> "TOK_NUMBER"
-    TOK_TRUE -> "TOK_TRUE"
-    TOK_FALSE -> "TOK_FALSE"
-    TOK_NULL -> "TOK_NULL"
-    TOK_BEGIN_QUOTE -> "TOK_BEGIN_QUOTE"
-    else -> this.toString()
-  }
+  fun print(): String =
+    when (this) {
+      TOK_EOF -> "TOK_EOF"
+      TOK_NONE -> "TOK_NONE"
+      TOK_BEGIN_OBJECT -> "TOK_BEGIN_OBJECT"
+      TOK_END_OBJECT -> "TOK_END_OBJECT"
+      TOK_BEGIN_ARRAY -> "TOK_BEGIN_ARRAY"
+      TOK_END_ARRAY -> "TOK_END_ARRAY"
+      TOK_NUMBER -> "TOK_NUMBER"
+      TOK_TRUE -> "TOK_TRUE"
+      TOK_FALSE -> "TOK_FALSE"
+      TOK_NULL -> "TOK_NULL"
+      TOK_BEGIN_QUOTE -> "TOK_BEGIN_QUOTE"
+      else -> this.toString()
+    }
 }
 
 private val TOK_EOF = Token(-1)
@@ -813,20 +842,265 @@ private const val CHAR_DOT = '.'.code.toByte()
 // bit 0 (1) - set if: plain ASCII string character
 // bit 1 (2) - set if: whitespace
 // bit 4 (0x10) - set if: 0-9 e E .
-private val parseFlags = byteArrayOf(
-// 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 0, 0, // 0
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 1
-  3, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0x11, 1, // 2
-  0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 1, 1, 1, 1, 1, 1, // 3
-  1, 1, 1, 1, 1, 0x11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 4
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, // 5
-  1, 1, 1, 1, 1, 0x11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 6
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 7
+private val parseFlags =
+  byteArrayOf(
+    // 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    0,
+    0,
+    2,
+    0,
+    0, // 0
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0, // 1
+    3,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0x11,
+    1, // 2
+    0x11,
+    0x11,
+    0x11,
+    0x11,
+    0x11,
+    0x11,
+    0x11,
+    0x11,
+    0x11,
+    0x11,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1, // 3
+    1,
+    1,
+    1,
+    1,
+    1,
+    0x11,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1, // 4
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1, // 5
+    1,
+    1,
+    1,
+    1,
+    1,
+    0x11,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1, // 6
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1, // 7
 
-  // 128-255
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-)
+    // 128-255
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+  )
