@@ -50,7 +50,8 @@ struct NativeInlineTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   bool mutate_a(int32_t _a = 0) {
     return SetField<int32_t>(VT_A, _a, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            verifier.EndTable();
@@ -108,7 +109,8 @@ struct TestNativeInlineTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   ::flatbuffers::Vector<::flatbuffers::Offset<NativeInlineTable>> *mutable_t() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<NativeInlineTable>> *>(VT_T);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_T) &&
            verifier.VerifyVector(t()) &&
