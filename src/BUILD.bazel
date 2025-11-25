@@ -105,7 +105,6 @@ cc_library(
         "bfbs_namer.h",
         "file_saver.cpp",
         "file_name_saver.cpp",
-        "file_writer.cpp",
         "flatc_main.cpp",
         "idl_gen_binary.cpp",
         "idl_gen_binary.h",

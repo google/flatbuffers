@@ -110,6 +110,8 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/include/flatbuffers/vector.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/vector_downward.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/verifier.h
+    ${FLATBUFFERS_DIR}/src/file_saver.cpp
+    ${FLATBUFFERS_DIR}/src/file_name_saver.cpp
     ${FLATBUFFERS_DIR}/src/idl_parser.cpp
     ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
     ${FLATBUFFERS_DIR}/src/reflection.cpp
@@ -197,7 +199,7 @@ if(BUILD_DEBUGGER)
       >
       -fno-limit-debug-info
   )
-  
+
   target_link_libraries(
     flatbuffers_nonfuzz
     PUBLIC
@@ -230,5 +232,5 @@ if(BUILD_DEBUGGER)
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_SOURCE_DIR}/../monster_test.bfbs
     ${CMAKE_CURRENT_BINARY_DIR}/monster_test.bfbs)
-  
+
 endif(BUILD_DEBUGGER)
