@@ -640,6 +640,7 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
                              const uint8_t* newbuf, size_t newlen) {
   // Align to sizeof(uoffset_t) past sizeof(largest_scalar_t) since we're
   // going to chop off the root offset.
+  FLATBUFFERS_ASSERT(newlen >= sizeof(uoffset_t));
   while ((flatbuf.size() & (sizeof(uoffset_t) - 1)) ||
          !(flatbuf.size() & (sizeof(largest_scalar_t) - 1))) {
     flatbuf.push_back(0);
