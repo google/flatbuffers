@@ -125,15 +125,15 @@ final class FlexBuffersReaderTests: XCTestCase {
 
   private var path: String {
     #if os(macOS)
-      // Gets the current path of this test file then
-      // strips out the nested directories.
-      let filePath = URL(filePath: #file)
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-      return filePath.absoluteString
+    // Gets the current path of this test file then
+    // strips out the nested directories.
+    let filePath = URL(filePath: #file)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+    return filePath.absoluteString
     #else
-      return FileManager.default.currentDirectoryPath
+    return FileManager.default.currentDirectoryPath
     #endif
   }
 
