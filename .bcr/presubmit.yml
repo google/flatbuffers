@@ -3,6 +3,7 @@ matrix:
   bazel:
     - 7.x
     - 8.x
+    - 9.*
 tasks:
   verify_ubuntu2004:
     name: Test Ubuntu 20.04
