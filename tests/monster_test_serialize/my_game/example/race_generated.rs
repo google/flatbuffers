@@ -71,6 +71,25 @@ impl Serialize for Race {
   }
 }
 
+impl<'de> serde::Deserialize<'de> for Race {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        for exp in Race::ENUM_VALUES {
+            if let Some(exp_name) = exp.variant_name()
+                && exp_name == s
+            {
+                return Ok(exp.clone());
+            }
+        }
+        Err(serde::de::Error::custom(format!(
+            "Unknown Race variant: {s}"
+        )))
+    }
+}
+
 impl<'a> flatbuffers::Follow<'a> for Race {
   type Inner = Self;
   #[inline]
