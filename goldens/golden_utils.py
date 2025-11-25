@@ -1,5 +1,5 @@
-import sys
 from pathlib import Path
+import sys
 
 # Get the path where this script is located so we can invoke the script from
 # any directory and have the paths work correctly.
@@ -18,13 +18,13 @@ from scripts.util import flatc
 
 
 def flatc_golden(options, schema, prefix):
-    # wrap the generic flatc call with specifis for these goldens.
-    flatc(
-        options=options,
-        # where the files are generated, typically the language (e.g. "cpp").
-        prefix=prefix,
-        # The schema are relative to the schema directory.
-        schema=str(Path(schema_path, schema)),
-        # Run flatc from this location.
-        cwd=script_path,
-    )
+  # wrap the generic flatc call with specifis for these goldens.
+  flatc(
+      options=options,
+      # where the files are generated, typically the language (e.g. "cpp").
+      prefix=prefix,
+      # The schema are relative to the schema directory.
+      schema=str(Path(schema_path, schema)),
+      # Run flatc from this location.
+      cwd=script_path,
+  )

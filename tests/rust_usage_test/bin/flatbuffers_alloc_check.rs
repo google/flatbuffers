@@ -3,7 +3,6 @@
 // global variable).
 use std::alloc::{GlobalAlloc, Layout, System};
 
-
 static mut N_ALLOCS: usize = 0;
 
 struct TrackingAllocator;
@@ -55,7 +54,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
             builder.create_string("check"),
             builder.create_string("the"),
             builder.create_string("create_vector_of_strings"),
-            builder.create_string("function")
+            builder.create_string("function"),
         ];
         let _ = builder.create_vector(&strings);
 
@@ -83,12 +82,9 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
             test: Some(
                 my_game::example::Monster::create(
                     builder,
-                    &my_game::example::MonsterArgs {
-                        name: Some(fred_name),
-                        ..Default::default()
-                    },
+                    &my_game::example::MonsterArgs { name: Some(fred_name), ..Default::default() },
                 )
-                    .as_union_value(),
+                .as_union_value(),
             ),
             inventory: Some(builder.create_vector(&[0u8, 1, 2, 3, 4])),
             test4: Some(builder.create_vector(&[
@@ -103,7 +99,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
     my_game::example::finish_monster_buffer(builder, mon);
 }
 
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 fn main() {
     // test the allocation tracking:
     {

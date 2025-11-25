@@ -25,69 +25,69 @@ class IdlNamer : public Namer {
   using Namer::Variable;
   using Namer::Variant;
 
-  std::string Constant(const FieldDef &d) const { return Constant(d.name); }
+  std::string Constant(const FieldDef& d) const { return Constant(d.name); }
 
   // Types are always structs or enums so we can only expose these two
   // overloads.
-  std::string Type(const StructDef &d) const { return Type(d.name); }
-  std::string Type(const EnumDef &d) const { return Type(d.name); }
+  std::string Type(const StructDef& d) const { return Type(d.name); }
+  std::string Type(const EnumDef& d) const { return Type(d.name); }
 
-  std::string Function(const Definition &s) const { return Function(s.name); }
-  std::string Function(const std::string& prefix, const Definition &s) const {
+  std::string Function(const Definition& s) const { return Function(s.name); }
+  std::string Function(const std::string& prefix, const Definition& s) const {
     return Function(prefix + s.name);
   }
 
-  std::string Field(const FieldDef &s) const { return Field(s.name); }
-  std::string Field(const FieldDef &d, const std::string &s) const {
+  std::string Field(const FieldDef& s) const { return Field(s.name); }
+  std::string Field(const FieldDef& d, const std::string& s) const {
     return Field(d.name + "_" + s);
   }
 
-  std::string Variable(const FieldDef &s) const { return Variable(s.name); }
+  std::string Variable(const FieldDef& s) const { return Variable(s.name); }
 
-  std::string Variable(const StructDef &s) const { return Variable(s.name); }
+  std::string Variable(const StructDef& s) const { return Variable(s.name); }
 
-  std::string Variant(const EnumVal &s) const { return Variant(s.name); }
+  std::string Variant(const EnumVal& s) const { return Variant(s.name); }
 
-  std::string EnumVariant(const EnumDef &e, const EnumVal &v) const {
+  std::string EnumVariant(const EnumDef& e, const EnumVal& v) const {
     return Type(e) + config_.enum_variant_seperator + Variant(v);
   }
 
-  std::string ObjectType(const StructDef &d) const {
+  std::string ObjectType(const StructDef& d) const {
     return ObjectType(d.name);
   }
-  std::string ObjectType(const EnumDef &d) const { return ObjectType(d.name); }
+  std::string ObjectType(const EnumDef& d) const { return ObjectType(d.name); }
 
-  std::string Method(const FieldDef &d, const std::string &suffix) const {
+  std::string Method(const FieldDef& d, const std::string& suffix) const {
     return Method(d.name, suffix);
   }
-  std::string Method(const std::string &prefix, const StructDef &d) const {
+  std::string Method(const std::string& prefix, const StructDef& d) const {
     return Method(prefix, d.name);
   }
-  std::string Method(const std::string &prefix, const FieldDef &d) const {
+  std::string Method(const std::string& prefix, const FieldDef& d) const {
     return Method(prefix, d.name);
   }
-  std::string Method(const std::string &prefix, const FieldDef &d,
-                     const std::string &suffix) const {
+  std::string Method(const std::string& prefix, const FieldDef& d,
+                     const std::string& suffix) const {
     return Method(prefix, d.name, suffix);
   }
 
-  std::string Namespace(const struct Namespace &ns) const {
+  std::string Namespace(const struct Namespace& ns) const {
     return Namespace(ns.components);
   }
 
-  std::string NamespacedEnumVariant(const EnumDef &e, const EnumVal &v) const {
+  std::string NamespacedEnumVariant(const EnumDef& e, const EnumVal& v) const {
     return NamespacedString(e.defined_namespace, EnumVariant(e, v));
   }
 
-  std::string NamespacedType(const Definition &def) const {
+  std::string NamespacedType(const Definition& def) const {
     return NamespacedString(def.defined_namespace, Type(def.name));
   }
 
-  std::string NamespacedObjectType(const Definition &def) const {
+  std::string NamespacedObjectType(const Definition& def) const {
     return NamespacedString(def.defined_namespace, ObjectType(def.name));
   }
 
-  std::string Directories(const struct Namespace &ns,
+  std::string Directories(const struct Namespace& ns,
                           SkipDir skips = SkipDir::None,
                           Case input_case = Case::kUpperCamel) const {
     return Directories(ns.components, skips, input_case);
@@ -96,19 +96,19 @@ class IdlNamer : public Namer {
   // Legacy fields do not really follow the usual config and should be
   // considered for deprecation.
 
-  std::string LegacyRustNativeVariant(const EnumVal &v) const {
+  std::string LegacyRustNativeVariant(const EnumVal& v) const {
     return ConvertCase(EscapeKeyword(v.name), Case::kUpperCamel);
   }
 
-  std::string LegacyRustFieldOffsetName(const FieldDef &field) const {
+  std::string LegacyRustFieldOffsetName(const FieldDef& field) const {
     return "VT_" + ConvertCase(EscapeKeyword(field.name), Case::kAllUpper);
   }
-    std::string LegacyRustUnionTypeOffsetName(const FieldDef &field) const {
-    return "VT_" + ConvertCase(EscapeKeyword(field.name + "_type"), Case::kAllUpper);
+  std::string LegacyRustUnionTypeOffsetName(const FieldDef& field) const {
+    return "VT_" +
+           ConvertCase(EscapeKeyword(field.name + "_type"), Case::kAllUpper);
   }
 
-
-  std::string LegacySwiftVariant(const EnumVal &ev) const {
+  std::string LegacySwiftVariant(const EnumVal& ev) const {
     auto name = ev.name;
     if (isupper(name.front())) {
       std::transform(name.begin(), name.end(), name.begin(), CharToLower);
@@ -117,24 +117,24 @@ class IdlNamer : public Namer {
   }
 
   // Also used by Kotlin, lol.
-  std::string LegacyJavaMethod2(const std::string &prefix, const StructDef &sd,
-                                const std::string &suffix) const {
+  std::string LegacyJavaMethod2(const std::string& prefix, const StructDef& sd,
+                                const std::string& suffix) const {
     return prefix + sd.name + suffix;
   }
 
-  std::string LegacyKotlinVariant(EnumVal &ev) const {
+  std::string LegacyKotlinVariant(EnumVal& ev) const {
     // Namer assumes the input case is snake case which is wrong...
     return ConvertCase(EscapeKeyword(ev.name), Case::kLowerCamel);
   }
   // Kotlin methods escapes keywords after case conversion but before
   // prefixing and suffixing.
-  std::string LegacyKotlinMethod(const std::string &prefix, const FieldDef &d,
-                                 const std::string &suffix) const {
+  std::string LegacyKotlinMethod(const std::string& prefix, const FieldDef& d,
+                                 const std::string& suffix) const {
     return prefix + ConvertCase(EscapeKeyword(d.name), Case::kUpperCamel) +
            suffix;
   }
-  std::string LegacyKotlinMethod(const std::string &prefix, const StructDef &d,
-                                 const std::string &suffix) const {
+  std::string LegacyKotlinMethod(const std::string& prefix, const StructDef& d,
+                                 const std::string& suffix) const {
     return prefix + ConvertCase(EscapeKeyword(d.name), Case::kUpperCamel) +
            suffix;
   }
@@ -145,17 +145,19 @@ class IdlNamer : public Namer {
     return "mutate_" + d.name;
   }
 
-  std::string LegacyRustUnionTypeMethod(const FieldDef &d) {
+  std::string LegacyRustUnionTypeMethod(const FieldDef& d) {
     // assert d is a union
     // d should convert case but not escape keywords due to historical reasons
     return ConvertCase(d.name, config_.fields, Case::kLowerCamel) + "_type";
   }
 
  private:
-  std::string NamespacedString(const struct Namespace *ns,
-                               const std::string &str) const {
+  std::string NamespacedString(const struct Namespace* ns,
+                               const std::string& str) const {
     std::string ret;
-    if (ns != nullptr) { ret += Namespace(ns->components); }
+    if (ns != nullptr) {
+      ret += Namespace(ns->components);
+    }
     if (!ret.empty()) ret += config_.namespace_seperator;
     return ret + str;
   }
@@ -163,9 +165,9 @@ class IdlNamer : public Namer {
 
 // This is a temporary helper function for code generators to call until all
 // flag-overriding logic into flatc.cpp
-inline Namer::Config WithFlagOptions(const Namer::Config &input,
-                                     const IDLOptions &opts,
-                                     const std::string &path) {
+inline Namer::Config WithFlagOptions(const Namer::Config& input,
+                                     const IDLOptions& opts,
+                                     const std::string& path) {
   Namer::Config result = input;
   result.object_prefix = opts.object_prefix;
   result.object_suffix = opts.object_suffix;

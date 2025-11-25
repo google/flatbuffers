@@ -33,17 +33,17 @@
 namespace flatbuffers {
 namespace {
 
-static std::string BinaryFileName(const Parser &parser, const std::string &path,
-                                  const std::string &file_name) {
+static std::string BinaryFileName(const Parser& parser, const std::string& path,
+                                  const std::string& file_name) {
   auto ext = parser.file_extension_.length() ? parser.file_extension_ : "bin";
   return path + file_name + "." + ext;
 }
 
-static bool GenerateBinary(const Parser &parser, const std::string &path,
-                           const std::string &file_name) {
+static bool GenerateBinary(const Parser& parser, const std::string& path,
+                           const std::string& file_name) {
   if (parser.opts.use_flexbuffers) {
     auto data_vec = parser.flex_builder_.GetBuffer();
-    auto data_ptr = reinterpret_cast<char *>(data(data_vec));
+    auto data_ptr = reinterpret_cast<char*>(data(data_vec));
     return !parser.flex_builder_.GetSize() ||
            flatbuffers::SaveFile(
                BinaryFileName(parser, path, file_name).c_str(), data_ptr,
@@ -52,12 +52,12 @@ static bool GenerateBinary(const Parser &parser, const std::string &path,
   return !parser.builder_.GetSize() ||
          flatbuffers::SaveFile(
              BinaryFileName(parser, path, file_name).c_str(),
-             reinterpret_cast<char *>(parser.builder_.GetBufferPointer()),
+             reinterpret_cast<char*>(parser.builder_.GetBufferPointer()),
              parser.builder_.GetSize(), true);
 }
 
-static std::string BinaryMakeRule(const Parser &parser, const std::string &path,
-                                  const std::string &file_name) {
+static std::string BinaryMakeRule(const Parser& parser, const std::string& path,
+                                  const std::string& file_name) {
   if (!parser.builder_.GetSize()) return "";
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
@@ -73,36 +73,37 @@ static std::string BinaryMakeRule(const Parser &parser, const std::string &path,
 
 class BinaryCodeGenerator : public CodeGenerator {
  public:
-  Status GenerateCode(const Parser &parser, const std::string &path,
-                      const std::string &filename) override {
-    if (!GenerateBinary(parser, path, filename)) { return Status::ERROR; }
+  Status GenerateCode(const Parser& parser, const std::string& path,
+                      const std::string& filename) override {
+    if (!GenerateBinary(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a
   // serialized reflection.fbs.
-  Status GenerateCode(const uint8_t *, int64_t,
-                      const CodeGenOptions &) override {
+  Status GenerateCode(const uint8_t*, int64_t, const CodeGenOptions&) override {
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateMakeRule(const Parser &parser, const std::string &path,
-                          const std::string &filename,
-                          std::string &output) override {
+  Status GenerateMakeRule(const Parser& parser, const std::string& path,
+                          const std::string& filename,
+                          std::string& output) override {
     output = BinaryMakeRule(parser, path, filename);
     return Status::OK;
   }
 
-  Status GenerateGrpcCode(const Parser &parser, const std::string &path,
-                          const std::string &filename) override {
+  Status GenerateGrpcCode(const Parser& parser, const std::string& path,
+                          const std::string& filename) override {
     (void)parser;
     (void)path;
     (void)filename;
     return Status::NOT_IMPLEMENTED;
   }
 
-  Status GenerateRootFile(const Parser &parser,
-                          const std::string &path) override {
+  Status GenerateRootFile(const Parser& parser,
+                          const std::string& path) override {
     (void)parser;
     (void)path;
     return Status::NOT_IMPLEMENTED;

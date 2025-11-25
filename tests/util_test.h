@@ -8,7 +8,6 @@ void NumericUtilsTest();
 void IsAsciiUtilsTest();
 void UtilConvertCase();
 
-
 }  // namespace tests
 }  // namespace flatbuffers
 

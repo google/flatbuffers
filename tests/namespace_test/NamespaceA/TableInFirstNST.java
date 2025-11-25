@@ -2,10 +2,9 @@
 
 package NamespaceA;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.nio.*;
+import java.util.*;
 
 public class TableInFirstNST {
   private NamespaceA.NamespaceB.TableInNestedNST fooTable;
@@ -13,22 +12,37 @@ public class TableInFirstNST {
   private NamespaceA.NamespaceB.UnionInNestedNSUnion fooUnion;
   private NamespaceA.NamespaceB.StructInNestedNST fooStruct;
 
-  public NamespaceA.NamespaceB.TableInNestedNST getFooTable() { return fooTable; }
+  public NamespaceA.NamespaceB.TableInNestedNST getFooTable() {
+    return fooTable;
+  }
 
-  public void setFooTable(NamespaceA.NamespaceB.TableInNestedNST fooTable) { this.fooTable = fooTable; }
+  public void setFooTable(NamespaceA.NamespaceB.TableInNestedNST fooTable) {
+    this.fooTable = fooTable;
+  }
 
-  public byte getFooEnum() { return fooEnum; }
+  public byte getFooEnum() {
+    return fooEnum;
+  }
 
-  public void setFooEnum(byte fooEnum) { this.fooEnum = fooEnum; }
+  public void setFooEnum(byte fooEnum) {
+    this.fooEnum = fooEnum;
+  }
 
-  public NamespaceA.NamespaceB.UnionInNestedNSUnion getFooUnion() { return fooUnion; }
+  public NamespaceA.NamespaceB.UnionInNestedNSUnion getFooUnion() {
+    return fooUnion;
+  }
 
-  public void setFooUnion(NamespaceA.NamespaceB.UnionInNestedNSUnion fooUnion) { this.fooUnion = fooUnion; }
+  public void setFooUnion(NamespaceA.NamespaceB.UnionInNestedNSUnion fooUnion) {
+    this.fooUnion = fooUnion;
+  }
 
-  public NamespaceA.NamespaceB.StructInNestedNST getFooStruct() { return fooStruct; }
+  public NamespaceA.NamespaceB.StructInNestedNST getFooStruct() {
+    return fooStruct;
+  }
 
-  public void setFooStruct(NamespaceA.NamespaceB.StructInNestedNST fooStruct) { this.fooStruct = fooStruct; }
-
+  public void setFooStruct(NamespaceA.NamespaceB.StructInNestedNST fooStruct) {
+    this.fooStruct = fooStruct;
+  }
 
   public TableInFirstNST() {
     this.fooTable = null;
@@ -37,4 +51,3 @@ public class TableInFirstNST {
     this.fooStruct = new NamespaceA.NamespaceB.StructInNestedNST();
   }
 }
-

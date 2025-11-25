@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from util import flatc, root_path
 from pathlib import Path
+from util import flatc, root_path
 
 grpc_examples_path = Path(root_path, "grpc/examples")
 
@@ -27,44 +27,46 @@ COMMON_ARGS = [
     str(grpc_examples_path),
 ]
 
+
 def GenerateGRPCExamples():
 
-    flatc(
-        COMMON_ARGS
-        + [
-            "--go",
-        ],
-        schema=greeter_schema,
-        cwd=Path(grpc_examples_path, "go/greeter"),
-    )
+  flatc(
+      COMMON_ARGS
+      + [
+          "--go",
+      ],
+      schema=greeter_schema,
+      cwd=Path(grpc_examples_path, "go/greeter"),
+  )
 
-    flatc(
-        COMMON_ARGS
-        + [
-            "--python",
-        ],
-        schema=greeter_schema,
-        cwd=Path(grpc_examples_path, "python/greeter"),
-    )
+  flatc(
+      COMMON_ARGS
+      + [
+          "--python",
+      ],
+      schema=greeter_schema,
+      cwd=Path(grpc_examples_path, "python/greeter"),
+  )
 
-    flatc(
-        COMMON_ARGS
-        + [
-            "--swift",
-            "--gen-json-emit",
-        ],
-        schema=greeter_schema,
-        cwd=Path(grpc_examples_path, "swift/Greeter/Sources/Model"),
-    )
+  flatc(
+      COMMON_ARGS
+      + [
+          "--swift",
+          "--gen-json-emit",
+      ],
+      schema=greeter_schema,
+      cwd=Path(grpc_examples_path, "swift/Greeter/Sources/Model"),
+  )
 
-    flatc(
-        COMMON_ARGS
-        + [
-            "--ts",
-        ],
-        schema=greeter_schema,
-        cwd=Path(grpc_examples_path, "ts/greeter/src"),
-    )
+  flatc(
+      COMMON_ARGS
+      + [
+          "--ts",
+      ],
+      schema=greeter_schema,
+      cwd=Path(grpc_examples_path, "ts/greeter/src"),
+  )
+
 
 if __name__ == "__main__":
-    GenerateGRPCExamples()
+  GenerateGRPCExamples()

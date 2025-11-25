@@ -1,16 +1,18 @@
 /* global BigInt */
 
 import assert from 'assert';
-import { readFileSync, writeFileSync } from 'fs';
 import * as flatbuffers from 'flatbuffers';
-import { ArrayStructT } from './arrays_test_complex/my-game/example/array-struct.js'
-import { ArrayTable, ArrayTableT } from './arrays_test_complex/my-game/example/array-table.js'
-import { InnerStructT } from './arrays_test_complex/my-game/example/inner-struct.js'
-import { NestedStructT } from './arrays_test_complex/my-game/example/nested-struct.js'
-import { OuterStructT } from './arrays_test_complex/my-game/example/outer-struct.js'
-import { TestEnum } from './arrays_test_complex/my-game/example/test-enum.js'
+import {readFileSync, writeFileSync} from 'fs';
+
+import {ArrayStructT} from './arrays_test_complex/my-game/example/array-struct.js'
+import {ArrayTable, ArrayTableT} from './arrays_test_complex/my-game/example/array-table.js'
+import {InnerStructT} from './arrays_test_complex/my-game/example/inner-struct.js'
+import {NestedStructT} from './arrays_test_complex/my-game/example/nested-struct.js'
+import {OuterStructT} from './arrays_test_complex/my-game/example/outer-struct.js'
+import {TestEnum} from './arrays_test_complex/my-game/example/test-enum.js'
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-BigInt.prototype.toJSON = function () {
+BigInt.prototype.toJSON = function() {
   return this.toString();
 };
 function fbObjToObj(fbObj) {
@@ -111,15 +113,26 @@ if (process.argv[2] === 'build') {
   const arr = testBuild(null, null);
   const parsed = testParse(null, null, Buffer.from(arr));
   assert.strictEqual(parsed.a, 'Complex Array Test', 'String Test');
-  assert.strictEqual(parsed?.cUnderscore?.aUnderscore, 221.13900756835938, 'Float Test');
-  assert.deepEqual(parsed?.cUnderscore?.bUnderscore, [-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700], 'Array of signed integers');
-  assert.strictEqual(parsed?.cUnderscore.d?.[0].dOuter[0].d[1].a, 123000987.9876, 'Float in deep');
-  assert.deepEqual(parsed?.cUnderscore?.d[0].dOuter?.[0]?.e, {
-    a: 987654321.9876,
-    b: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-    c: 19,
-    dUnderscore: '9007199254741000',
-  }, 'Object in deep');
+  assert.strictEqual(
+      parsed?.cUnderscore?.aUnderscore, 221.13900756835938, 'Float Test');
+  assert.deepEqual(
+      parsed?.cUnderscore?.bUnderscore,
+      [
+        -700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500,
+        600, 700
+      ],
+      'Array of signed integers');
+  assert.strictEqual(
+      parsed?.cUnderscore.d?.[0].dOuter[0].d[1].a, 123000987.9876,
+      'Float in deep');
+  assert.deepEqual(
+      parsed?.cUnderscore?.d[0].dOuter?.[0]?.e, {
+        a: 987654321.9876,
+        b: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+        c: 19,
+        dUnderscore: '9007199254741000',
+      },
+      'Object in deep');
   assert.deepEqual(parsed?.cUnderscore.g, ['0', '0'], 'Last object');
 
   console.log('Arrays test: completed successfully');
