@@ -8,7 +8,7 @@
 
 @_implementationOnly import FlatBuffers
 
-internal struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
+internal struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_9_23() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
@@ -36,10 +36,9 @@ internal struct Message: FlatBufferObject, Verifiable, ObjectAPIPacker {
     Message.add(internalMessage: internalMessage, &fbb)
     return Message.endMessage(&fbb, start: __start)
   }
-  
 
-  internal mutating func unpack() -> MessageT {
-    return MessageT(&self)
+  internal func unpack() -> MessageT {
+    return MessageT(self)
   }
   internal static func pack(_ builder: inout FlatBufferBuilder, obj: inout MessageT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -81,7 +80,7 @@ internal class MessageT: NativeObject {
 
   internal var internalMessage: String?
 
-  internal init(_ _t: inout Message) {
+  internal init(_ _t: borrowing Message) {
     internalMessage = _t.internalMessage
   }
 

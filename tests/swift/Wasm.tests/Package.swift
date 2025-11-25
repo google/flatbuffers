@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:5.10
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -20,7 +20,7 @@ import PackageDescription
 let package = Package(
   name: "FlatBuffers.Test.Swift.Wasm",
   platforms: [
-    .macOS(.v10_14)
+    .macOS(.v10_14),
   ],
   dependencies: [
     .package(path: "../../.."),
@@ -31,6 +31,6 @@ let package = Package(
     .testTarget(
       name: "FlatBuffers.Test.Swift.WasmTests",
       dependencies: [
-        .product(name: "FlatBuffers", package: "flatbuffers")
+        .product(name: "FlatBuffers", package: "flatbuffers"),
       ]),
   ])

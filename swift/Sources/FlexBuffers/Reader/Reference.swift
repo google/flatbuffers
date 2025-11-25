@@ -58,8 +58,8 @@ public struct Reference {
     byteBuffer: ByteBuffer,
     offset: Int,
     parentWidth: UInt8,
-    packedType: UInt8
-  ) {
+    packedType: UInt8)
+  {
     guard let type = FlexBufferType(rawValue: UInt64(packedType >> 2)) else {
       return nil
     }
@@ -76,8 +76,8 @@ public struct Reference {
     offset: Int,
     parentWidth: UInt8,
     byteWidth: UInt8,
-    type: FlexBufferType
-  ) {
+    type: FlexBufferType)
+  {
     self.byteBuffer = byteBuffer
     self.offset = offset
     self.parentWidth = parentWidth
@@ -241,8 +241,7 @@ public struct Reference {
   @inline(__always)
   public func withUnsafeRawPointer<Result>(
     _ completion: (UnsafeRawPointer) throws
-      -> Result
-  )
+      -> Result)
     rethrows -> Result?
   {
     return try byteBuffer.readWithUnsafeRawPointer(

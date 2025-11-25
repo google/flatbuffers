@@ -39,7 +39,7 @@ func greet(name: String, client greeter: models_GreeterServiceClient) {
   // Make the RPC call to the server.
   let sayHello =
     greeter
-    .SayHello(Message<models_HelloRequest>(builder: &builder))
+      .SayHello(Message<models_HelloRequest>(builder: &builder))
 
   // wait() on the response to stop the program from exiting before the response is received.
   do {

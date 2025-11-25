@@ -33,6 +33,9 @@ void Offset64Test() {
     far_data[0] = 4;
     far_data[far_vector_size - 1] = 2;
 
+    std::vector<bool> big_bool_data = {true,  false, true, true,
+                                       false, false, true};
+
     std::vector<uint8_t> big_data;
     big_data.resize(big_vector_size);
     big_data[0] = 8;
@@ -49,15 +52,18 @@ void Offset64Test() {
     const Offset64<Vector64<uint8_t>> big_vector_offset =
         builder.CreateVector64(big_data);
 
+    const Offset64<Vector64<uint8_t>> big_bool_vector_offset =
+        builder.CreateVector64(big_bool_data);
+
     // Now that we are done with the 64-bit fields, we can create and add the
     // normal fields.
     const Offset<String> near_string_offset =
         builder.CreateString("some near string");
 
     // Finish by building the root table by passing in all the offsets.
-    const Offset<RootTable> root_table_offset =
-        CreateRootTable(builder, far_vector_offset, 0, far_string_offset,
-                        big_vector_offset, near_string_offset);
+    const Offset<RootTable> root_table_offset = CreateRootTable(
+        builder, far_vector_offset, 0, far_string_offset,
+        big_bool_vector_offset, big_vector_offset, near_string_offset);
 
     // Finish the buffer.
     builder.Finish(root_table_offset);
@@ -118,7 +124,7 @@ void Offset64NestedFlatBuffer() {
 
   // Finish by building the root table by passing in all the offsets.
   const Offset<RootTable> root_table_offset =
-      CreateRootTable(fbb, 0, 0, 0, 0, near_string_offset, 0);
+      CreateRootTable(fbb, 0, 0, 0, 0, 0, near_string_offset, 0);
 
   // Finish the buffer.
   fbb.Finish(root_table_offset);
@@ -145,7 +151,7 @@ void Offset64NestedFlatBuffer() {
 
     // Finish by building the root table by passing in all the offsets.
     const Offset<RootTable> root_table_offset = CreateRootTable(
-        fbb, 0, 0, 0, 0, near_string_offset, nested_flatbuffer_offset);
+        fbb, 0, 0, 0, 0, 0, near_string_offset, nested_flatbuffer_offset);
 
     // Finish the buffer.
     fbb.Finish(root_table_offset);
@@ -184,7 +190,7 @@ void Offset64CreateDirect() {
   // Call the "Direct" creation method to ensure that things are added to the
   // buffer in the correct order, Offset64 first followed by any Offsets.
   const Offset<RootTable> root_table_offset = CreateRootTableDirect(
-      fbb, &data, 0, "some far string", &data, "some near string");
+      fbb, &data, 0, "some far string", nullptr, &data, "some near string");
 
   // Finish the buffer.
   fbb.Finish(root_table_offset);
@@ -306,7 +312,7 @@ void Offset64VectorOfStructs() {
   // Add the two vectors of leaf structs.
   const Offset<RootTable> root_table_offset =
       CreateRootTableDirect(builder, nullptr, 0, nullptr, nullptr, nullptr,
-                            nullptr, &far_leaves, &big_leaves);
+                            nullptr, nullptr, &far_leaves, &big_leaves);
 
   // Finish the buffer.
   builder.Finish(root_table_offset);
@@ -346,7 +352,7 @@ void Offset64SizePrefix() {
 
   // Finish by building the root table by passing in all the offsets.
   const Offset<RootTable> root_table_offset =
-      CreateRootTable(builder, 0, 0, 0, 0, near_string_offset, 0);
+      CreateRootTable(builder, 0, 0, 0, 0, 0, near_string_offset, 0);
 
   // Finish the buffer.
   FinishSizePrefixedRootTableBuffer(builder, root_table_offset);
@@ -448,7 +454,7 @@ void Offset64ForceAlign() {
   // Use the CreateDirect which calls the ForceVectorAlign
   const auto root_table_offset =
       CreateRootTableDirect(builder, nullptr, 0, nullptr, nullptr, nullptr,
-                            nullptr, nullptr, nullptr, nullptr, &data);
+                            nullptr, nullptr, nullptr, nullptr, nullptr, &data);
 
   // Finish the buffer.
   FinishRootTableBuffer(builder, root_table_offset);

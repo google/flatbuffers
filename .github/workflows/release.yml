@@ -37,11 +37,11 @@ jobs:
       - name: Install Dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install setuptools wheel twine
+          python3 -m pip install build twine
 
       - name: Build
         run: |
-          python3 setup.py sdist bdist_wheel
+          python3 -m build .
 
       - name: Upload to PyPi
         run: |

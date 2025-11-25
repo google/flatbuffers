@@ -32,8 +32,7 @@ class Greeter: models_GreeterProvider {
 
   func SayHello(
     request: Message<models_HelloRequest>,
-    context: StatusOnlyCallContext
-  )
+    context: StatusOnlyCallContext)
     -> EventLoopFuture<Message<models_HelloReply>>
   {
     let recipient = request.object.name ?? "Stranger"
@@ -48,15 +47,14 @@ class Greeter: models_GreeterProvider {
 
   func SayManyHellos(
     request: Message<models_HelloRequest>,
-    context: StreamingResponseCallContext<Message<models_HelloReply>>
-  )
+    context: StreamingResponseCallContext<Message<models_HelloReply>>)
     -> EventLoopFuture<GRPCStatus>
   {
     for name in greetings {
       var builder = FlatBufferBuilder()
       let off =
         builder
-        .create(string: "\(name) \(request.object.name ?? "Unknown")")
+          .create(string: "\(name) \(request.object.name ?? "Unknown")")
       let root = models_HelloReply.createHelloReply(
         &builder,
         messageOffset: off)

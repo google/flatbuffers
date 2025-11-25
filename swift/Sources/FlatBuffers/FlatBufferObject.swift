@@ -28,8 +28,17 @@ public protocol FlatbuffersInitializable {
   init(_ bb: ByteBuffer, o: Int32)
 }
 
-/// FlatbufferObject structures all the Flatbuffers objects
-public protocol FlatBufferObject: FlatbuffersInitializable {
+/// FlatbufferTabke structures all the Flatbuffers tables
+public protocol FlatBufferTable: FlatbuffersInitializable,
+  FlatbuffersVectorInitializable
+{
+  var __buffer: ByteBuffer! { get }
+}
+
+/// FlatbufferStruct structures all the Flatbuffers structs
+public protocol FlatBufferStruct: FlatbuffersInitializable,
+  FlatbuffersVectorInitializable
+{
   var __buffer: ByteBuffer! { get }
 }
 
@@ -60,5 +69,5 @@ public protocol ObjectAPIPacker {
   static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset
 
   /// ``unpack()`` unpacks a ``FlatBuffers`` object into a Native swift object.
-  mutating func unpack() -> T
+  func unpack() -> T
 }

@@ -17,7 +17,7 @@
 import Foundation
 
 #if canImport(Common)
-  import Common
+import Common
 #endif
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
@@ -55,8 +55,8 @@ struct _InternalByteBuffer {
       capacity: Int,
       writerSize: Int,
       currentWritingIndex: Int,
-      alignment: Int
-    ) {
+      alignment: Int)
+    {
       let newData = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,
         alignment: alignment)
@@ -143,19 +143,19 @@ struct _InternalByteBuffer {
 
   /// Adds a `ContiguousBytes` to buffer memory
   /// - Parameter value: bytes to copy
-  #if swift(>=5.0) && !os(WASI)
-    @inline(__always)
-    @usableFromInline
-    mutating func push(bytes: ContiguousBytes) {
-      bytes.withUnsafeBytes { ptr in
-        ensureSpace(size: ptr.count)
-        memcpy(
-          _storage.memory.advanced(by: writerIndex &- ptr.count),
-          ptr.baseAddress!,
-          ptr.count)
-        _writerSize = _writerSize &+ ptr.count
-      }
+  #if !os(WASI)
+  @inline(__always)
+  @usableFromInline
+  mutating func push(bytes: ContiguousBytes) {
+    bytes.withUnsafeBytes { ptr in
+      ensureSpace(size: ptr.count)
+      memcpy(
+        _storage.memory.advanced(by: writerIndex &- ptr.count),
+        ptr.baseAddress!,
+        ptr.count)
+      _writerSize = _writerSize &+ ptr.count
     }
+  }
   #endif
 
   /// Adds an object of type NativeStruct into the buffer
@@ -192,40 +192,17 @@ struct _InternalByteBuffer {
     }
   }
 
-  /// Adds a string to the buffer using swift.utf8 object
-  /// - Parameter str: String that will be added to the buffer
-  /// - Parameter len: length of the string
+  /// Adds a RawPointer into the buffer
+  /// - Parameter pointer: pointer to be copied into the buffer
+  /// - Parameter len: length of the data
   @inline(__always)
-  @usableFromInline
-  mutating func push(string str: String, len: Int) {
+  mutating func writeBytes(_ ptr: UnsafeRawPointer, len: Int) {
     ensureSpace(size: len)
-    if str.utf8
-      .withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) != nil
-    {
-    } else {
-      let utf8View = str.utf8
-      for c in utf8View.reversed() {
-        push(value: c, len: 1)
-      }
-    }
-  }
-
-  /// Writes a string to Bytebuffer using UTF8View
-  /// - Parameters:
-  ///   - bytes: Pointer to the view
-  ///   - len: Size of string
-  @usableFromInline
-  @inline(__always)
-  mutating func push(
-    bytes: UnsafeBufferPointer<String.UTF8View.Element>,
-    len: Int
-  ) -> Bool {
     memcpy(
       _storage.memory.advanced(by: writerIndex &- len),
-      bytes.baseAddress!,
+      ptr,
       len)
     _writerSize = _writerSize &+ len
-    return true
   }
 
   /// Write stores an object into the buffer directly or indirectly.
@@ -325,8 +302,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func withUnsafeBytes<T>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try body(
       UnsafeRawBufferPointer(
         start: _storage.memory,
@@ -337,8 +314,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func withUnsafeSlicedBytes<T>(
     _ body: (UnsafeRawBufferPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try body(
       UnsafeRawBufferPointer(
         start: _storage.memory.advanced(by: writerIndex),
@@ -349,8 +326,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func withUnsafeRawPointer<T>(
     _ body: (UnsafeMutableRawPointer) throws
-      -> T
-  ) rethrows -> T {
+      -> T) rethrows -> T
+  {
     try body(_storage.memory)
   }
 
@@ -358,8 +335,8 @@ struct _InternalByteBuffer {
   @inline(__always)
   func readWithUnsafeRawPointer<T>(
     position: Int,
-    _ body: (UnsafeRawPointer) throws -> T
-  ) rethrows -> T {
+    _ body: (UnsafeRawPointer) throws -> T) rethrows -> T
+  {
     try body(_storage.memory.advanced(by: position))
   }
 }
