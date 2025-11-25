@@ -17,7 +17,7 @@
 import Foundation
 
 #if canImport(Common)
-  import Common
+import Common
 #endif
 
 public struct Value: Equatable {

@@ -88,8 +88,8 @@ let benchmarks = {
 
   Benchmark(
     "Allocating ByteBuffer 1GB",
-    configuration: singleConfiguration
-  ) { benchmark in
+    configuration: singleConfiguration)
+  { benchmark in
     let memory = UnsafeMutableRawPointer.allocate(
       byteCount: 1_024_000_000,
       alignment: 1)
@@ -165,8 +165,8 @@ let benchmarks = {
 
   Benchmark(
     "FlatBufferBuilder Add",
-    configuration: kiloConfiguration
-  ) { benchmark in
+    configuration: kiloConfiguration)
+  { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
@@ -182,8 +182,8 @@ let benchmarks = {
 
   Benchmark(
     "FlatBufferBuilder Start table",
-    configuration: kiloConfiguration
-  ) { benchmark in
+    configuration: kiloConfiguration)
+  { benchmark in
     var fb = FlatBufferBuilder(initialSize: 1024 * 1024 * 32)
     benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
