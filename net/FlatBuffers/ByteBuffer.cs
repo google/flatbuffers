@@ -38,13 +38,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
 using System.Buffers.Binary;
+#else
+using System.IO;
 #endif
 
 #if ENABLE_SPAN_T && !UNSAFE_BYTEBUFFER
@@ -245,34 +245,36 @@ namespace Google.FlatBuffers
 #endif
 
         // Get a portion of the buffer casted into an array of type T, given
-        // the buffer position and length.
+        // the buffer position (in bytes) and length (in bytes).
+        public T[] ToArray<T>(int posInBytes, int lenInBytes)
+            where T : struct
+        {
+            AssertOffsetAndLength(posInBytes, lenInBytes);
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
-        public T[] ToArray<T>(int pos, int len)
-            where T : struct
-        {
-            AssertOffsetAndLength(pos, len);
-            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(pos)).Slice(0, len).ToArray();
-        }
+            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(posInBytes, lenInBytes)).ToArray();
 #else
-        public T[] ToArray<T>(int pos, int len)
-            where T : struct
-        {
-            AssertOffsetAndLength(pos, len);
-            T[] arr = new T[len];
-            Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, ArraySize(arr));
-            return arr;
-        }
+            var lenInTs = ConvertBytesToTs<T>(lenInBytes);
+            var arrayOfTs = new T[lenInTs];
+            Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, 0, lenInBytes);
+            return arrayOfTs;
 #endif
+        }
 
-        public T[] ToArrayPadded<T>(int pos, int len, int padLeft, int padRight)
+   			public T[] ToArrayPadded<T>(int posInBytes, int lenInBytes, int padLeftInBytes, int padRightInBytes)
             where T : struct
         {
-            AssertOffsetAndLength(pos, len);
-            int totalBytes = padLeft + len + padRight;
-            byte[] raw = _buffer.Buffer;
-            T[] arr = new T[totalBytes];
-            Buffer.BlockCopy(raw, pos, arr, padLeft, len);
-            return arr;
+            AssertOffsetAndLength(posInBytes, lenInBytes);
+            var padLeftInTs = ConvertBytesToTs<T>(padLeftInBytes);
+            var lenInTs = ConvertBytesToTs<T>(lenInBytes);
+            var padRightInTs = ConvertBytesToTs<T>(padRightInBytes);
+            var sizeInTs = padLeftInTs + lenInTs + padRightInTs;
+            var arrayOfTs = new T[sizeInTs];
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+            MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(posInBytes, lenInBytes)).CopyTo(arrayOfTs.AsSpan().Slice(padLeftInTs));
+#else
+            Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, padLeftInBytes, lenInBytes);
+#endif
+            return arrayOfTs;
         }
 
         public byte[] ToSizedArrayPadded(int padLeft, int padRight)
@@ -455,9 +457,31 @@ namespace Google.FlatBuffers
 #endif
         }
 
+        public static int ConvertTsToBytes<T>(int valueInTs)
+            where T : struct
+        {
+            var sizeOfT = SizeOf<T>();
+            var valueInBytes = valueInTs * sizeOfT;
+            return valueInBytes;
+        }
+
+        public static int ConvertBytesToTs<T>(int valueInBytes)
+            where T : struct
+        {
+            var sizeOfT = SizeOf<T>();
+            var valueInTs = valueInBytes / sizeOfT;
+#if !BYTEBUFFER_NO_BOUNDS_CHECK
+            if (valueInTs * sizeOfT != valueInBytes)
+            {
+                throw new ArgumentException($"{valueInBytes} must be a multiple of SizeOf<{typeof(T).Name}>()={sizeOfT}");
+            }
+#endif
+            return valueInTs;
+        }
+
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
 
-        public void PutSbyte(int offset, sbyte value)
+    public void PutSbyte(int offset, sbyte value)
         {
             AssertOffsetAndLength(offset, sizeof(sbyte));
             _buffer.Span[offset] = (byte)value;

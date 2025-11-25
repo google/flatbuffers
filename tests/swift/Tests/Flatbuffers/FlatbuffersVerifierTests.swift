@@ -99,13 +99,17 @@ final class FlatbuffersVerifierTests: XCTestCase {
 
   func testVeriferInitPassing() {
     let memory = UnsafeMutableRawPointer.allocate(byteCount: 8, alignment: 1)
-    var buffer = ByteBuffer(assumingMemoryBound: memory, capacity: Int(FlatBufferMaxSize) - 1)
+    var buffer = ByteBuffer(
+      assumingMemoryBound: memory,
+      capacity: Int(FlatBufferMaxSize) - 1)
     XCTAssertNoThrow(try Verifier(buffer: &buffer))
   }
 
   func testVeriferInitFailing() {
     let memory = UnsafeMutableRawPointer.allocate(byteCount: 8, alignment: 1)
-    var buffer = ByteBuffer(assumingMemoryBound: memory, capacity: Int(FlatBufferMaxSize) + 1)
+    var buffer = ByteBuffer(
+      assumingMemoryBound: memory,
+      capacity: Int(FlatBufferMaxSize) + 1)
     XCTAssertThrowsError(try Verifier(buffer: &buffer))
   }
 
@@ -403,8 +407,8 @@ final class FlatbuffersVerifierTests: XCTestCase {
 
   private func getOffset(
     at value: Int,
-    within verifier: Verifier
-  ) throws -> Int {
+    within verifier: Verifier) throws -> Int
+  {
     let offset: UOffset = try verifier.getValue(at: value)
     return Int(clamping: (Int(offset) &+ 0).magnitude)
   }

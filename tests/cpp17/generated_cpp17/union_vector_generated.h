@@ -158,8 +158,10 @@ struct CharacterUnion {
   }
 };
 
-bool VerifyCharacter(::flatbuffers::Verifier &verifier, const void *obj, Character type);
-bool VerifyCharacterVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types);
+template <bool B = false>
+bool VerifyCharacter(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Character type);
+template <bool B = false>
+bool VerifyCharacterVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types);
 
 enum class Gadget : uint8_t {
   NONE = 0,
@@ -266,8 +268,10 @@ struct GadgetUnion {
   }
 };
 
-bool VerifyGadget(::flatbuffers::Verifier &verifier, const void *obj, Gadget type);
-bool VerifyGadgetVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types);
+template <bool B = false>
+bool VerifyGadget(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Gadget type);
+template <bool B = false>
+bool VerifyGadgetVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Rapunzel FLATBUFFERS_FINAL_CLASS {
  private:
@@ -418,7 +422,8 @@ struct Attacker FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
          if constexpr (Index == 0) return sword_attack_damage();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SWORD_ATTACK_DAMAGE, 4) &&
            verifier.EndTable();
@@ -495,7 +500,8 @@ struct HandFan FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
          if constexpr (Index == 0) return length();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_LENGTH, 4) &&
            verifier.EndTable();
@@ -612,7 +618,8 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 3) return characters();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MAIN_CHARACTER_TYPE, 1) &&
            VerifyOffset(verifier, VT_MAIN_CHARACTER) &&
@@ -716,11 +723,11 @@ inline void Attacker::UnPackTo(AttackerT *_o, const ::flatbuffers::resolver_func
   { auto _e = sword_attack_damage(); _o->sword_attack_damage = _e; }
 }
 
-inline ::flatbuffers::Offset<Attacker> Attacker::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateAttacker(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Attacker> CreateAttacker(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Attacker::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Attacker> CreateAttacker(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Attacker> Attacker::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AttackerT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const AttackerT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -742,11 +749,11 @@ inline void HandFan::UnPackTo(HandFanT *_o, const ::flatbuffers::resolver_functi
   { auto _e = length(); _o->length = _e; }
 }
 
-inline ::flatbuffers::Offset<HandFan> HandFan::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateHandFan(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<HandFan> CreateHandFan(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return HandFan::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<HandFan> CreateHandFan(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<HandFan> HandFan::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const HandFanT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const HandFanT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -771,11 +778,11 @@ inline void Movie::UnPackTo(MovieT *_o, const ::flatbuffers::resolver_function_t
   { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } else { _o->characters.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<Movie> Movie::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMovie(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return Movie::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<Movie> Movie::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MovieT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -791,7 +798,8 @@ inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder
       _characters);
 }
 
-inline bool VerifyCharacter(::flatbuffers::Verifier &verifier, const void *obj, Character type) {
+template <bool B>
+inline bool VerifyCharacter(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Character type) {
   switch (type) {
     case Character::NONE: {
       return true;
@@ -801,13 +809,13 @@ inline bool VerifyCharacter(::flatbuffers::Verifier &verifier, const void *obj, 
       return verifier.VerifyTable(ptr);
     }
     case Character::Rapunzel: {
-      return verifier.VerifyField<Rapunzel>(static_cast<const uint8_t *>(obj), 0, 4);
+      return verifier.template VerifyField<Rapunzel>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Character::Belle: {
-      return verifier.VerifyField<BookReader>(static_cast<const uint8_t *>(obj), 0, 4);
+      return verifier.template VerifyField<BookReader>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Character::BookFan: {
-      return verifier.VerifyField<BookReader>(static_cast<const uint8_t *>(obj), 0, 4);
+      return verifier.template VerifyField<BookReader>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Character::Other: {
       auto ptr = reinterpret_cast<const ::flatbuffers::String *>(obj);
@@ -821,7 +829,8 @@ inline bool VerifyCharacter(::flatbuffers::Verifier &verifier, const void *obj, 
   }
 }
 
-inline bool VerifyCharacterVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types) {
+template <bool B>
+inline bool VerifyCharacterVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Character> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -964,13 +973,14 @@ inline void CharacterUnion::Reset() {
   type = Character::NONE;
 }
 
-inline bool VerifyGadget(::flatbuffers::Verifier &verifier, const void *obj, Gadget type) {
+template <bool B>
+inline bool VerifyGadget(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Gadget type) {
   switch (type) {
     case Gadget::NONE: {
       return true;
     }
     case Gadget::FallingTub: {
-      return verifier.VerifyField<FallingTub>(static_cast<const uint8_t *>(obj), 0, 4);
+      return verifier.template VerifyField<FallingTub>(static_cast<const uint8_t *>(obj), 0, 4);
     }
     case Gadget::HandFan: {
       auto ptr = reinterpret_cast<const HandFan *>(obj);
@@ -980,7 +990,8 @@ inline bool VerifyGadget(::flatbuffers::Verifier &verifier, const void *obj, Gad
   }
 }
 
-inline bool VerifyGadgetVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types) {
+template <bool B>
+inline bool VerifyGadgetVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Gadget> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -1226,14 +1237,16 @@ inline bool SizePrefixedMovieBufferHasIdentifier(const void *buf) {
       buf, MovieIdentifier(), true);
 }
 
+template <bool B = false>
 inline bool VerifyMovieBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Movie>(MovieIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<Movie>(MovieIdentifier());
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedMovieBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Movie>(MovieIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<Movie>(MovieIdentifier());
 }
 
 inline void FinishMovieBuffer(
