@@ -194,8 +194,10 @@ inline bool operator!=(const ABCUnion &lhs, const ABCUnion &rhs) {
     return !(lhs == rhs);
 }
 
-bool VerifyABC(::flatbuffers::Verifier &verifier, const void *obj, ABC type);
-bool VerifyABCVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types);
+template <bool B = false>
+bool VerifyABC(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ABC type);
+template <bool B = false>
+bool VerifyABCVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types);
 
 struct AT : public ::flatbuffers::NativeTable {
   typedef A TableType;
@@ -217,7 +219,8 @@ struct A FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_a(int32_t _a = 0) {
     return SetField<int32_t>(VT_A, _a, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            verifier.EndTable();
@@ -275,7 +278,8 @@ struct B FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::String *mutable_b() {
     return GetPointer<::flatbuffers::String *>(VT_B);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_B) &&
            verifier.VerifyString(b()) &&
@@ -343,7 +347,8 @@ struct C FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_c(bool _c = 0) {
     return SetField<uint8_t>(VT_C, static_cast<uint8_t>(_c), 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_C, 1) &&
            verifier.EndTable();
@@ -430,7 +435,8 @@ struct D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<void>> *mutable_test_vector_of_union() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<void>> *>(VT_TEST_VECTOR_OF_UNION);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_TEST_UNION_TYPE, 1) &&
            VerifyOffset(verifier, VT_TEST_UNION) &&
@@ -541,11 +547,11 @@ inline void A::UnPackTo(AT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = a(); _o->a = _e; }
 }
 
-inline ::flatbuffers::Offset<A> A::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateA(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<A> CreateA(::flatbuffers::FlatBufferBuilder &_fbb, const AT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return A::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<A> CreateA(::flatbuffers::FlatBufferBuilder &_fbb, const AT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<A> A::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const AT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const AT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -578,11 +584,11 @@ inline void B::UnPackTo(BT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = b(); if (_e) _o->b = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<B> B::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const BT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateB(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<B> CreateB(::flatbuffers::FlatBufferBuilder &_fbb, const BT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return B::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<B> CreateB(::flatbuffers::FlatBufferBuilder &_fbb, const BT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<B> B::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const BT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const BT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -615,11 +621,11 @@ inline void C::UnPackTo(CT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = c(); _o->c = _e; }
 }
 
-inline ::flatbuffers::Offset<C> C::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateC(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<C> CreateC(::flatbuffers::FlatBufferBuilder &_fbb, const CT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return C::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<C> CreateC(::flatbuffers::FlatBufferBuilder &_fbb, const CT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<C> C::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -656,11 +662,11 @@ inline void D::UnPackTo(DT *_o, const ::flatbuffers::resolver_function_t *_resol
   { auto _e = test_vector_of_union(); if (_e) { _o->test_vector_of_union.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->test_vector_of_union[_i].value = UnionUnderlyingType::ABCUnion::UnPack(_e->Get(_i), test_vector_of_union_type()->GetEnum<ABC>(_i), _resolver); } } else { _o->test_vector_of_union.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<D> D::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateD(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<D> CreateD(::flatbuffers::FlatBufferBuilder &_fbb, const DT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return D::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<D> CreateD(::flatbuffers::FlatBufferBuilder &_fbb, const DT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<D> D::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -676,7 +682,8 @@ inline ::flatbuffers::Offset<D> CreateD(::flatbuffers::FlatBufferBuilder &_fbb, 
       _test_vector_of_union);
 }
 
-inline bool VerifyABC(::flatbuffers::Verifier &verifier, const void *obj, ABC type) {
+template <bool B>
+inline bool VerifyABC(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, ABC type) {
   switch (type) {
     case ABC::NONE: {
       return true;
@@ -697,7 +704,8 @@ inline bool VerifyABC(::flatbuffers::Verifier &verifier, const void *obj, ABC ty
   }
 }
 
-inline bool VerifyABCVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types) {
+template <bool B>
+inline bool VerifyABCVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<ABC> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
