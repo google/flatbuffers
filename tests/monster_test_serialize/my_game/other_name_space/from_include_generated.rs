@@ -66,10 +66,10 @@ impl<'de> serde::Deserialize<'de> for FromInclude {
     {
         let s = String::deserialize(deserializer)?;
         for item in FromInclude::ENUM_VALUES {
-            if let Some(item_name) = item.variant_name()
-                && item_name == s
-            {
-                return Ok(item.clone());
+            if let Some(item_name) = item.variant_name() {
+                if item_name == s {
+                    return Ok(item.clone());
+                }
             }
         }
         Err(serde::de::Error::custom(format!(

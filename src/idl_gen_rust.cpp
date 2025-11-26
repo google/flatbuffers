@@ -851,10 +851,10 @@ class RustGenerator : public BaseGenerator {
         code_ += "    {";
         code_ += "        let s = String::deserialize(deserializer)?;";
         code_ += "        for item in {{ENUM_TY}}::ENUM_VALUES {";
-        code_ += "            if let Some(item_name) = item.variant_name()";
-        code_ += "                && item_name == s";
-        code_ += "            {";
-        code_ += "                return Ok(item.clone());";
+        code_ += "            if let Some(item_name) = item.variant_name() {";
+        code_ += "                if item_name == s {";
+        code_ += "                    return Ok(item.clone());";
+        code_ += "                }";
         code_ += "            }";
         code_ += "        }";
         code_ += "        Err(serde::de::Error::custom(format!(";
