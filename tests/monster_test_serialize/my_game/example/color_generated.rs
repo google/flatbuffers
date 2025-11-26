@@ -37,25 +37,6 @@ impl Serialize for Color {
   }
 }
 
-impl<'de> serde::Deserialize<'de> for Color {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        for exp in Color::ENUM_VALUES {
-            if let Some(exp_name) = exp.variant_name()
-                && exp_name == s
-            {
-                return Ok(exp.clone());
-            }
-        }
-        Err(serde::de::Error::custom(format!(
-            "Unknown Color variant: {s}"
-        )))
-    }
-}
-
 impl<'a> flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]

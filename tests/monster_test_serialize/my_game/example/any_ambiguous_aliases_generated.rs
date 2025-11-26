@@ -77,11 +77,11 @@ impl<'de> serde::Deserialize<'de> for AnyAmbiguousAliases {
         D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        for exp in AnyAmbiguousAliases::ENUM_VALUES {
-            if let Some(exp_name) = exp.variant_name()
-                && exp_name == s
+        for item in AnyAmbiguousAliases::ENUM_VALUES {
+            if let Some(item_name) = item.variant_name()
+                && item_name == s
             {
-                return Ok(exp.clone());
+                return Ok(item.clone());
             }
         }
         Err(serde::de::Error::custom(format!(
