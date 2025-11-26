@@ -48,14 +48,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   auto result = parser.Parse(parse_input);
   if (result) {
     parser.Serialize();
-    flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
-                                   parser.builder_.GetSize());
-    reflection::VerifySchemaBuffer(verifier);
+    const uint8_t* buf = parser.builder_.GetBufferPointer();
+    flatbuffers::Verifier verifier(buf, parser.builder_.GetSize());
+    TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
 
-    if (parser.root_struct_def_) {
-      std::string json_output;
-      flatbuffers::GenText(parser, parser.builder_.GetBufferPointer(),
-                           &json_output);
+    auto root = flatbuffers::GetRoot<flatbuffers::Table>(buf);
+    if (verifier.VerifyTableStart(buf) && root->VerifyTableStart(verifier)) {
+      if (parser.root_struct_def_) {
+        std::string json_output;
+        flatbuffers::GenText(parser, buf, &json_output);
+      }
     }
   }
   return 0;
