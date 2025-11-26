@@ -1,3 +1,12 @@
+# DigitalArsenal FlatBuffers
+![Build status](https://github.com/digitalarsenal/flatbuffers/actions/workflows/build.yml/badge.svg?branch=master)
+
+
+**This is a fork of the Google Flatbuffers Library with the following features added:**
+
+- A `--preserve-case` flag to prevent IDL name mangling
+
+
 ![logo](https://flatbuffers.dev/assets/flatbuffers_logo.svg) FlatBuffers
 ===========
 
