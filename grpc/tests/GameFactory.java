@@ -1,10 +1,11 @@
-import java.nio.ByteBuffer;
 import MyGame.Example.Monster;
 import MyGame.Example.Stat;
 import com.google.flatbuffers.FlatBufferBuilder;
+import java.nio.ByteBuffer;
 
 class GameFactory {
-  public static Monster createMonster(String monsterName, short nestedMonsterHp, short nestedMonsterMana) {
+  public static Monster createMonster(
+      String monsterName, short nestedMonsterHp, short nestedMonsterMana) {
     FlatBufferBuilder builder = new FlatBufferBuilder();
 
     int name_offset = builder.createString(monsterName);
@@ -31,12 +32,11 @@ class GameFactory {
     return monster;
   }
 
-  public static Stat createStat(String greeting, long val, int count) { 
+  public static Stat createStat(String greeting, long val, int count) {
     FlatBufferBuilder builder = new FlatBufferBuilder();
     int statOffset = Stat.createStat(builder, builder.createString(greeting), val, count);
     builder.finish(statOffset);
     Stat stat = Stat.getRootAsStat(builder.dataBuffer());
     return stat;
   }
-
 }

@@ -20,8 +20,8 @@
 #include "src/compiler/schema_interface.h"
 
 #ifndef GRPC_CUSTOM_STRING
-#  include <string>
-#  define GRPC_CUSTOM_STRING std::string
+#include <string>
+#define GRPC_CUSTOM_STRING std::string
 #endif
 
 namespace grpc {
@@ -31,7 +31,7 @@ typedef GRPC_CUSTOM_STRING string;
 }  // namespace grpc
 
 namespace grpc_swift_generator {
-grpc::string Generate(grpc_generator::File *file,
-                      const grpc_generator::Service *service);
+grpc::string Generate(grpc_generator::File* file,
+                      const grpc_generator::Service* service);
 grpc::string GenerateHeader();
 }  // namespace grpc_swift_generator

@@ -16,6 +16,6 @@ mod binary_format;
 #[cfg(not(feature = "no_std"))] // uses file I/O
 mod interop;
 mod other_api;
-#[cfg(not(miri))]  // slow.
+#[cfg(not(miri))] // slow.
 mod qc_serious;
 mod rwyw;

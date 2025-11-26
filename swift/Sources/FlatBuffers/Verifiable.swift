@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import Foundation
+
 #if canImport(Common)
 import Common
 #endif
-
-import Foundation
 
 /// Verifiable is a protocol all swift flatbuffers object should conform to,
 /// since swift is similar to `cpp` and `rust` where the data is read directly
@@ -202,10 +202,12 @@ public enum UnionVector<S> where S: UnionEnum {
 
       /// index of readable enum value in array
       let keysIndex = MemoryLayout<S.T>.size &* count
-      guard let _enum = try S.init(value: verifier._buffer.read(
-        def: S.T.self,
-        position: keysRange.start &+ keysIndex)) else
-      {
+      guard
+        let _enum = try S.init(
+          value: verifier._buffer.read(
+            def: S.T.self,
+            position: keysRange.start &+ keysIndex))
+      else {
         throw FlatbuffersErrors.unknownUnionCase
       }
       /// index of readable offset value in array

@@ -44,7 +44,6 @@ public struct Verifier {
     storage.tableCount
   }
 
-
   /// Initializer for the verifier
   /// - Parameters:
   ///   - buffer: Bytebuffer that is required to be verified
@@ -186,16 +185,20 @@ public struct Verifier {
 
     let reportedOverflow: (partialValue: UInt32, overflow: Bool)
     if offset > 0 {
-      reportedOverflow = _int32Position
-        .subtractingReportingOverflow(offset.magnitude)
+      reportedOverflow =
+        _int32Position
+          .subtractingReportingOverflow(offset.magnitude)
     } else {
-      reportedOverflow = _int32Position
-        .addingReportingOverflow(offset.magnitude)
+      reportedOverflow =
+        _int32Position
+          .addingReportingOverflow(offset.magnitude)
     }
 
     /// since `subtractingReportingOverflow` & `addingReportingOverflow` returns true,
     /// if there is overflow we return failure
-    if reportedOverflow.overflow || reportedOverflow.partialValue > _buffer
+    if reportedOverflow.overflow
+      || reportedOverflow.partialValue
+      > _buffer
       .capacity
     {
       throw FlatbuffersErrors.signedOffsetOutOfBounds(

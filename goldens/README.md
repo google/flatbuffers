@@ -18,7 +18,7 @@ view of things across languages. These are kept in the `schema/` directory.
 Some languages may not support every generation feature, so each language is
 required to specify the `flatc` arguments individually.
 
-* Try to avoid includes and nested directories, preferring it as flat as 
+* Try to avoid includes and nested directories, preferring it as flat as
 possible.
 
 ## Updating

@@ -47,7 +47,10 @@ final class FlexBuffersWriterTests: XCTestCase {
       // swiftformat:disable all
       XCTAssertEqual(
         Array($0),
-        [10, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 20, 0, 0, 0, 1, 41, 46, 2, 40, 1])
+        [
+          10, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0, 7, 0,
+          0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 20, 0, 0, 0, 1, 41, 46, 2, 40, 1,
+        ])
       // swiftformat:enable all
     }
   }
@@ -65,7 +68,12 @@ final class FlexBuffersWriterTests: XCTestCase {
       // swiftformat:disable all
       XCTAssertEqual(
         Array($0),
-        [10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 1, 81, 51, 2, 40, 1])
+        [
+          10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
+          0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0,
+          0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 1,
+          81, 51, 2, 40, 1,
+        ])
       // swiftformat:enable all
     }
   }
@@ -100,7 +108,10 @@ final class FlexBuffersWriterTests: XCTestCase {
       // swiftformat:disable all
       XCTAssertEqual(
         Array($0),
-        [98, 111, 111, 108, 50, 0, 98, 111, 111, 108, 49, 0, 2, 7, 14, 2, 1, 2, 1, 0, 104, 104, 4, 36, 1]
+        [
+          98, 111, 111, 108, 50, 0, 98, 111, 111, 108, 49, 0, 2, 7, 14, 2, 1, 2, 1, 0, 104, 104, 4,
+          36, 1,
+        ]
       )
       // swiftformat:enable all
     }
@@ -119,7 +130,10 @@ final class FlexBuffersWriterTests: XCTestCase {
       // swiftformat:disable all
       XCTAssertEqual(
         Array($0),
-        [119, 101, 108, 99, 111, 109, 101, 0, 7, 119, 101, 108, 99, 111, 109, 101, 0, 3, 18, 19, 20, 3, 1, 3, 15, 16, 17, 20, 20, 20, 6, 36, 1]
+        [
+          119, 101, 108, 99, 111, 109, 101, 0, 7, 119, 101, 108, 99, 111, 109, 101, 0, 3, 18, 19,
+          20, 3, 1, 3, 15, 16, 17, 20, 20, 20, 6, 36, 1,
+        ]
       )
       // swiftformat:enable all
     }
@@ -190,7 +204,6 @@ final class FlexBuffersWriterTests: XCTestCase {
     fbx.endMap(start: innerMap)
 
     fbx.endMap(start: outerMap)
-
 
     fbx.finish()
     let buf: ByteBuffer = fbx.sizedByteBuffer

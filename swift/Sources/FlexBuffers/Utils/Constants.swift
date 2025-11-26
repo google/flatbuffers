@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+import Foundation
+
 #if canImport(Common)
 import Common
 #endif
-import Foundation
 
 extension UInt64 {
   static let one: UInt64 = 1
@@ -55,4 +56,3 @@ extension Optional {
     }
   }
 }
-
