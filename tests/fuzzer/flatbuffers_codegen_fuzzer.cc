@@ -97,15 +97,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   // Parse the input schema
   if (parser.Parse(parse_input)) {
     parser.Serialize();
-
-    flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+    const uint8_t* buf = parser.builder_.GetBufferPointer();
+    flatbuffers::Verifier verifier(buf,
                                    parser.builder_.GetSize());
-    reflection::VerifySchemaBuffer(verifier);
+    TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
 
-    if (parser.root_struct_def_) {
-      std::string json_output;
-      flatbuffers::GenText(parser, parser.builder_.GetBufferPointer(),
-                           &json_output);
+    auto root = flatbuffers::GetRoot<flatbuffers::Table>(buf);
+    if (verifier.VerifyTableStart(buf) && root->VerifyTableStart(verifier)) {
+      if (parser.root_struct_def_) {
+        std::string json_output;
+        flatbuffers::GenText(parser, parser.builder_.GetBufferPointer(),
+                             &json_output);
+      }
     }
 
     std::string temp_filename = "fuzzer_generated";
