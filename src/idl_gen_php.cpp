@@ -29,27 +29,27 @@
 namespace flatbuffers {
 
 static Namer::Config PhpDefaultConfig() {
-  return { /*types=*/Case::kKeep,
-           /*constants=*/Case::kKeep,
-           /*methods=*/Case::kLowerCamel,
-           /*functions=*/Case::kUpperCamel,
-           /*fields=*/Case::kKeep,
-           /*variables=*/Case::kLowerCamel,
-           /*variants=*/Case::kKeep,
-           /*enum_variant_seperator=*/"::",
-           /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
-           /*namespaces=*/Case::kUnknown,
-           /*namespace_seperator=*/"_",
-           /*object_prefix=*/"",
-           /*object_suffix=*/"T",
-           /*keyword_prefix=*/"",
-           /*keyword_suffix=*/"_",
-           /*keywords_casing=*/Namer::Config::KeywordsCasing::CASE_INSENSITIVE,
-           /*filenames=*/Case::kKeep,
-           /*directories=*/Case::kKeep,
-           /*output_path=*/"",
-           /*filename_suffix=*/"_generated",
-           /*filename_extension=*/".php" };
+  return {/*types=*/Case::kKeep,
+          /*constants=*/Case::kKeep,
+          /*methods=*/Case::kLowerCamel,
+          /*functions=*/Case::kUpperCamel,
+          /*fields=*/Case::kKeep,
+          /*variables=*/Case::kLowerCamel,
+          /*variants=*/Case::kKeep,
+          /*enum_variant_seperator=*/"::",
+          /*escape_keywords=*/Namer::Config::Escape::BeforeConvertingCase,
+          /*namespaces=*/Case::kUnknown,
+          /*namespace_seperator=*/"_",
+          /*object_prefix=*/"",
+          /*object_suffix=*/"T",
+          /*keyword_prefix=*/"",
+          /*keyword_suffix=*/"_",
+          /*keywords_casing=*/Namer::Config::KeywordsCasing::CASE_INSENSITIVE,
+          /*filenames=*/Case::kKeep,
+          /*directories=*/Case::kKeep,
+          /*output_path=*/"",
+          /*filename_suffix=*/"_generated",
+          /*filename_extension=*/".php"};
 }
 
 static std::set<std::string> PhpKeywords() {
@@ -58,86 +58,86 @@ static std::set<std::string> PhpKeywords() {
   //
   // List of reserved words retrieved from here:
   // https://www.php.net/manual/en/reserved.other-reserved-words.php
-  return { "__halt_compiler",
-           "abstract",
-           "and",
-           "array",
-           "as",
-           "break",
-           "callable",
-           "case",
-           "catch",
-           "class",
-           "clone",
-           "const",
-           "continue",
-           "declare",
-           "default",
-           "die",
-           "do",
-           "echo",
-           "else",
-           "elseif",
-           "empty",
-           "enddeclare",
-           "endfor",
-           "endforeach",
-           "endif",
-           "endswitch",
-           "endwhile",
-           "eval",
-           "exit",
-           "extends",
-           "final",
-           "for",
-           "foreach",
-           "function",
-           "global",
-           "goto",
-           "if",
-           "implements",
-           "include",
-           "include_once",
-           "instanceof",
-           "insteadof",
-           "interface",
-           "isset",
-           "list",
-           "namespace",
-           "new",
-           "or",
-           "print",
-           "private",
-           "protected",
-           "public",
-           "require",
-           "require_once",
-           "return",
-           "static",
-           "switch",
-           "throw",
-           "trait",
-           "try",
-           "unset",
-           "use",
-           "var",
-           "while",
-           "xor",
-           "int",
-           "float",
-           "bool",
-           "string",
-           "true",
-           "false",
-           "null",
-           "void",
-           "iterable",
-           "object",
-           "mixed",
-           "never",
-           "enum",
-           "resource",
-           "numeric" };
+  return {"__halt_compiler",
+          "abstract",
+          "and",
+          "array",
+          "as",
+          "break",
+          "callable",
+          "case",
+          "catch",
+          "class",
+          "clone",
+          "const",
+          "continue",
+          "declare",
+          "default",
+          "die",
+          "do",
+          "echo",
+          "else",
+          "elseif",
+          "empty",
+          "enddeclare",
+          "endfor",
+          "endforeach",
+          "endif",
+          "endswitch",
+          "endwhile",
+          "eval",
+          "exit",
+          "extends",
+          "final",
+          "for",
+          "foreach",
+          "function",
+          "global",
+          "goto",
+          "if",
+          "implements",
+          "include",
+          "include_once",
+          "instanceof",
+          "insteadof",
+          "interface",
+          "isset",
+          "list",
+          "namespace",
+          "new",
+          "or",
+          "print",
+          "private",
+          "protected",
+          "public",
+          "require",
+          "require_once",
+          "return",
+          "static",
+          "switch",
+          "throw",
+          "trait",
+          "try",
+          "unset",
+          "use",
+          "var",
+          "while",
+          "xor",
+          "int",
+          "float",
+          "bool",
+          "string",
+          "true",
+          "false",
+          "null",
+          "void",
+          "iterable",
+          "object",
+          "mixed",
+          "never",
+          "enum",
+          "resource",
+          "numeric"};
 }
 
 namespace php {
@@ -215,7 +215,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Begin a class declaration.
-  void BeginClass(const StructDef &struct_def, std::string *code_ptr) {
+  void BeginClass(const StructDef& struct_def, std::string* code_ptr) {
     std::string& code = *code_ptr;
     if (struct_def.fixed) {
       code += "class " + namer_.Type(struct_def) + " extends Struct\n";
@@ -225,20 +225,20 @@ class PhpGenerator : public BaseGenerator {
     code += "{\n";
   }
 
-  void EndClass(std::string *code_ptr) {
+  void EndClass(std::string* code_ptr) {
     std::string& code = *code_ptr;
     code += "}\n";
   }
 
   // Begin enum code with a class declaration.
-  void BeginEnum(const std::string &class_name, std::string *code_ptr) {
+  void BeginEnum(const std::string& class_name, std::string* code_ptr) {
     std::string& code = *code_ptr;
     code += "class " + namer_.Type(class_name) + "\n{\n";
   }
 
   // A single enum member.
-  void EnumMember(const EnumDef &enum_def, const EnumVal &ev,
-                         std::string* code_ptr) {
+  void EnumMember(const EnumDef& enum_def, const EnumVal& ev,
+                  std::string* code_ptr) {
     std::string& code = *code_ptr;
     code += Indent + "const ";
     code += namer_.Variant(ev);
@@ -247,14 +247,14 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // End enum code.
-  void EndEnum(std::string *code_ptr) {
+  void EndEnum(std::string* code_ptr) {
     std::string& code = *code_ptr;
     code += "}\n";
   }
 
   // Initialize a new struct or table from existing data.
-  void NewRootTypeFromBuffer(const StructDef &struct_def,
-                                    std::string* code_ptr) {
+  void NewRootTypeFromBuffer(const StructDef& struct_def,
+                             std::string* code_ptr) {
     std::string& code = *code_ptr;
     const std::string struct_type = namer_.Type(struct_def);
 
@@ -275,7 +275,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Initialize an existing object with other data, to avoid an allocation.
-  void InitializeExisting(const StructDef &struct_def, std::string *code_ptr) {
+  void InitializeExisting(const StructDef& struct_def, std::string* code_ptr) {
     std::string& code = *code_ptr;
 
     code += Indent + "/**\n";
@@ -292,7 +292,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Get the length of a vector.
-  void GetVectorLen(const FieldDef &field, std::string *code_ptr) {
+  void GetVectorLen(const FieldDef& field, std::string* code_ptr) {
     std::string& code = *code_ptr;
 
     code += Indent + "/**\n";
@@ -309,7 +309,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Get a [ubyte] vector as a byte array.
-  void GetUByte(const FieldDef &field, std::string *code_ptr) {
+  void GetUByte(const FieldDef& field, std::string* code_ptr) {
     std::string& code = *code_ptr;
 
     code += Indent + "/**\n";
@@ -324,7 +324,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Get the value of a struct's scalar.
-  void GetScalarFieldOfStruct(const FieldDef &field, std::string *code_ptr) {
+  void GetScalarFieldOfStruct(const FieldDef& field, std::string* code_ptr) {
     std::string& code = *code_ptr;
 
     code += Indent + "/**\n";
@@ -547,8 +547,8 @@ class PhpGenerator : public BaseGenerator {
 
   // Recursively generate arguments for a constructor, to deal with nested
   // structs.
-  void StructBuilderArgs(const StructDef &struct_def, const char *nameprefix,
-                         std::string *code_ptr) {
+  void StructBuilderArgs(const StructDef& struct_def, const char* nameprefix,
+                         std::string* code_ptr) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto& field = **it;
@@ -569,8 +569,8 @@ class PhpGenerator : public BaseGenerator {
 
   // Recursively generate struct construction statements and instert manual
   // padding.
-  void StructBuilderBody(const StructDef &struct_def, const char *nameprefix,
-                         std::string *code_ptr) {
+  void StructBuilderBody(const StructDef& struct_def, const char* nameprefix,
+                         std::string* code_ptr) {
     std::string& code = *code_ptr;
 
     code += Indent + Indent + "$builder->prep(";
@@ -594,7 +594,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Get the value of a table's starting offset.
-  void GetStartOfTable(const StructDef &struct_def, std::string *code_ptr) {
+  void GetStartOfTable(const StructDef& struct_def, std::string* code_ptr) {
     std::string& code = *code_ptr;
 
     code += Indent + "/**\n";
@@ -658,8 +658,8 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Set the value of a table's field.
-  void BuildFieldOfTable(const FieldDef &field, const size_t offset,
-                                std::string* code_ptr) {
+  void BuildFieldOfTable(const FieldDef& field, const size_t offset,
+                         std::string* code_ptr) {
     std::string& code = *code_ptr;
 
     code += Indent + "/**\n";
@@ -687,7 +687,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Set the value of one of the members of a table's vector.
-  void BuildVectorOfTable(const FieldDef &field, std::string *code_ptr) {
+  void BuildVectorOfTable(const FieldDef& field, std::string* code_ptr) {
     std::string& code = *code_ptr;
     auto vector_type = field.value.type.VectorType();
     auto alignment = InlineAlignment(vector_type);
@@ -925,7 +925,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Generate enum declarations.
-  void GenEnum(const EnumDef &enum_def, std::string *code_ptr) {
+  void GenEnum(const EnumDef& enum_def, std::string* code_ptr) {
     if (enum_def.generated) return;
 
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
@@ -957,7 +957,7 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Returns the function name that is able to read a value of the given type.
-  std::string GenGetter(const Type &type) {
+  std::string GenGetter(const Type& type) {
     switch (type.base_type) {
       case BASE_TYPE_STRING:
         return "__string";
@@ -973,13 +973,13 @@ class PhpGenerator : public BaseGenerator {
   }
 
   // Returns the method name for use with add/put calls.
-  std::string GenMethod(const FieldDef &field) {
+  std::string GenMethod(const FieldDef& field) {
     return IsScalar(field.value.type.base_type)
                ? ConvertCase(GenTypeBasic(field.value.type), Case::kUpperCamel)
                : (IsStruct(field.value.type) ? "Struct" : "Offset");
   }
 
-  std::string GenTypeBasic(const Type &type) {
+  std::string GenTypeBasic(const Type& type) {
     // clang-format off
     static const char *ctypename[] = {
       #define FLATBUFFERS_TD(ENUM, IDLTYPE, \
@@ -1019,7 +1019,7 @@ class PhpGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenTypePointer(const Type &type) {
+  std::string GenTypePointer(const Type& type) {
     switch (type.base_type) {
       case BASE_TYPE_STRING:
         return "string";
@@ -1034,12 +1034,12 @@ class PhpGenerator : public BaseGenerator {
     }
   }
 
-  std::string GenTypeGet(const Type &type) {
+  std::string GenTypeGet(const Type& type) {
     return IsScalar(type.base_type) ? GenTypeBasic(type) : GenTypePointer(type);
   }
 
   // Create a struct with a builder and the struct's arguments.
-  void GenStructBuilder(const StructDef &struct_def, std::string *code_ptr) {
+  void GenStructBuilder(const StructDef& struct_def, std::string* code_ptr) {
     std::string& code = *code_ptr;
     code += "\n";
     code += Indent + "/**\n";
@@ -1058,7 +1058,7 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "}\n";
   }
 
-  std::string ScalarType(const FieldDef &field) {
+  std::string ScalarType(const FieldDef& field) {
     return ConvertCase(GenTypeGet(field.value.type), Case::kUpperCamel);
   }
 
