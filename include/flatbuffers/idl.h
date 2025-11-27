@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "flatbuffers/base.h"
-#include "flatbuffers/file_saver.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/hash.h"

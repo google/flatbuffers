@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "flatbuffers/file_saver.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/idl.h"
 
 namespace flatbuffers {

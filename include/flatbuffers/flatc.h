@@ -24,7 +24,7 @@
 #include <string>
 
 #include "flatbuffers/code_generator.h"
-#include "flatbuffers/file_saver.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
