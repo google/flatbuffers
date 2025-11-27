@@ -184,16 +184,16 @@ int main(int argc, const char* argv[]) {
   flatbuffers::FlatCOptions options =
       flatc.ParseFromCommandLineArguments(argc, argv);
 
-  auto file_saver =
-      options.file_names_only
-          ? std::unique_ptr<flatbuffers::FileSaver>{std::make_unique<
-                flatbuffers::FileNameSaver>()}
-          : std::unique_ptr<flatbuffers::FileSaver>{
-                std::make_unique<flatbuffers::RealFileSaver>()};
+  // this exists here to ensure file_saver outlives the compilation process
+  std::unique_ptr<flatbuffers::FileSaver> file_saver;
+  if (options.file_names_only) {
+    file_saver.reset(new flatbuffers::FileNameSaver{});
+  } else {
+    file_saver.reset(new flatbuffers::RealFileSaver{});
+  }
 
   options.opts.file_saver = file_saver.get();
-
-  FLATBUFFERS_ASSERT(options.opts.file_saver != nullptr);
+  FLATBUFFERS_ASSERT(options.opts.file_saver);
 
   // Compile with the extracted FlatC options.
   int success = flatc.Compile(options);
