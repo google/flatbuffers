@@ -1703,8 +1703,10 @@ class PythonGenerator : public BaseGenerator {
       auto& field = **it;
       if (field.deprecated) continue;
 
-      // include import for enum type if used in this struct
-      if (IsEnum(field.value.type)) {
+      // include import for enum type if used in this struct, we want type
+      // information, and we want modern enums.
+      if (IsEnum(field.value.type) && parser_.opts.python_typing &&
+          parser_.opts.python_enum) {
         imports.insert(ImportMapEntry{GenPackageReference(field.value.type),
                                       namer_.Type(*field.value.type.enum_def)});
       }
@@ -2921,8 +2923,6 @@ class PythonGenerator : public BaseGenerator {
                 import_entry.second + "\n";
       }
     }
-
-    code += "\n";
 
     if (needs_default_imports && parser_.opts.python_gen_numpy) {
       code += "np = import_numpy()\n\n";
