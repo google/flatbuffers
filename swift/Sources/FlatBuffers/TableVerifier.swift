@@ -135,10 +135,12 @@ public struct TableVerifier {
     {
       /// verifiying that the key is within the buffer
       try T.T.verify(&_verifier, at: _key, of: T.T.self)
-      guard let _enum = try T.init(value: _verifier._buffer.read(
-        def: T.T.self,
-        position: _key)) else
-      {
+      guard
+        let _enum = try T.init(
+          value: _verifier._buffer.read(
+            def: T.T.self,
+            position: _key))
+      else {
         throw FlatbuffersErrors.unknownUnionCase
       }
       /// we are assuming that Unions will always be of type Uint8

@@ -26,7 +26,7 @@ namespace flatbuffers {
 
 // Constructs a new Nim Code generator.
 std::unique_ptr<CodeGenerator> NewNimBfbsGenerator(
-    const std::string &flatc_version);
+    const std::string& flatc_version);
 
 }  // namespace flatbuffers
 

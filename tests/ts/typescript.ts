@@ -2,5 +2,5 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { Object_ } from './typescript/object.js';
-export { class_ } from './typescript/class.js';
+export {class_} from './typescript/class.js';
+export {Object_} from './typescript/object.js';

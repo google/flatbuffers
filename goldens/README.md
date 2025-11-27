@@ -3,8 +3,8 @@
 This directory is a repository for the generated files of `flatc`.
 
 We check in the generated code so we can see, during a PR review, how the
-changes affect the generated output. Its also useful as a reference to point too
-as how things work across various languages.
+changes affect the generated output. It's also useful as a reference to show
+how things work across various languages.
 
 These files are **NOT** intended to be depended on by any code, such as tests or
 or compiled examples.
@@ -18,7 +18,7 @@ view of things across languages. These are kept in the `schema/` directory.
 Some languages may not support every generation feature, so each language is
 required to specify the `flatc` arguments individually.
 
-* Try to avoid includes and nested directories, preferring it as flat as 
+* Try to avoid includes and nested directories, preferring it as flat as
 possible.
 
 ## Updating

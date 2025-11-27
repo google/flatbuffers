@@ -31,15 +31,15 @@
 
 namespace flatbuffers {
 
-static const char *FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
+static const char* FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
-    flatbuffers::Parser &parser, const std::string &filename,
-    const std::string &contents,
-    const std::vector<const char *> &include_directories) const {
+    flatbuffers::Parser& parser, const std::string& filename,
+    const std::string& contents,
+    const std::vector<const char*>& include_directories) const {
   auto local_include_directory = flatbuffers::StripFileName(filename);
 
-  std::vector<const char *> inc_directories;
+  std::vector<const char*> inc_directories;
   inc_directories.insert(inc_directories.end(), include_directories.begin(),
                          include_directories.end());
   inc_directories.push_back(local_include_directory.c_str());
@@ -48,234 +48,246 @@ void FlatCompiler::ParseFile(
   if (!parser.Parse(contents.c_str(), &inc_directories[0], filename.c_str())) {
     Error(parser.error_, false, false);
   }
-  if (!parser.error_.empty()) { Warn(parser.error_, false); }
+  if (!parser.error_.empty()) {
+    Warn(parser.error_, false);
+  }
 }
 
-void FlatCompiler::LoadBinarySchema(flatbuffers::Parser &parser,
-                                    const std::string &filename,
-                                    const std::string &contents) {
-  if (!parser.Deserialize(reinterpret_cast<const uint8_t *>(contents.c_str()),
+void FlatCompiler::LoadBinarySchema(flatbuffers::Parser& parser,
+                                    const std::string& filename,
+                                    const std::string& contents) {
+  if (!parser.Deserialize(reinterpret_cast<const uint8_t*>(contents.c_str()),
                           contents.size())) {
     Error("failed to load binary schema: " + filename, false, false);
   }
 }
 
-void FlatCompiler::Warn(const std::string &warn, bool show_exe_name) const {
+void FlatCompiler::Warn(const std::string& warn, bool show_exe_name) const {
   params_.warn_fn(this, warn, show_exe_name);
 }
 
-void FlatCompiler::Error(const std::string &err, bool usage,
+void FlatCompiler::Error(const std::string& err, bool usage,
                          bool show_exe_name) const {
   params_.error_fn(this, err, usage, show_exe_name);
 }
 
 const static FlatCOption flatc_options[] = {
-  { "o", "", "PATH", "Prefix PATH to all generated files." },
-  { "I", "", "PATH", "Search for includes in the specified path." },
-  { "M", "", "", "Print make rules for generated files." },
-  { "", "version", "", "Print the version number of flatc and exit." },
-  { "h", "help", "", "Prints this help text and exit." },
-  { "", "strict-json", "",
-    "Strict JSON: field names must be / will be quoted, no trailing commas in "
-    "tables/vectors." },
-  { "", "allow-non-utf8", "",
-    "Pass non-UTF-8 input through parser and emit nonstandard \\x escapes in "
-    "JSON. (Default is to raise parse error on non-UTF-8 input.)" },
-  { "", "natural-utf8", "",
-    "Output strings with UTF-8 as human-readable strings. By default, UTF-8 "
-    "characters are printed as \\uXXXX escapes." },
-  { "", "defaults-json", "",
-    "Output fields whose value is the default when writing JSON" },
-  { "", "unknown-json", "",
-    "Allow fields in JSON that are not defined in the schema. These fields "
-    "will be discarded when generating binaries." },
-  { "", "no-prefix", "",
-    "Don't prefix enum values with the enum type in C++." },
-  { "", "scoped-enums", "",
-    "Use C++11 style scoped and strongly typed enums. Also implies "
-    "--no-prefix." },
-  { "", "no-emit-min-max-enum-values", "",
-    "Disable generation of MIN and MAX enumerated values for scoped enums "
-    "and prefixed enums." },
-  { "", "swift-implementation-only", "",
-    "Adds a @_implementationOnly to swift imports" },
-  { "", "gen-includes", "",
-    "(deprecated), this is the default behavior. If the original behavior is "
-    "required (no include statements) use --no-includes." },
-  { "", "no-includes", "",
-    "Don't generate include statements for included schemas the generated "
-    "file depends on (C++, Python, Proto-to-Fbs)." },
-  { "", "gen-mutable", "",
-    "Generate accessors that can mutate buffers in-place." },
-  { "", "gen-onefile", "",
-    "Generate a single output file for C#, Go, Java, Kotlin and Python. "
-    "Implies --no-include." },
-  { "", "gen-name-strings", "",
-    "Generate type name functions for C++ and Rust." },
-  { "", "gen-object-api", "", "Generate an additional object-based API." },
-  { "", "gen-compare", "", "Generate operator== for object-based API types." },
-  { "", "gen-nullable", "",
-    "Add Clang _Nullable for C++ pointer. or @Nullable for Java" },
-  { "", "java-package-prefix", "",
-    "Add a prefix to the generated package name for Java." },
-  { "", "java-checkerframework", "", "Add @Pure for Java." },
-  { "", "gen-generated", "", "Add @Generated annotation for Java." },
-  { "", "gen-jvmstatic", "",
-    "Add @JvmStatic annotation for Kotlin methods in companion object for "
-    "interop from Java to Kotlin." },
-  { "", "gen-all", "",
-    "Generate not just code for the current schema files, but for all files it "
-    "includes as well. If the language uses a single file for output (by "
-    "default the case for C++ and JS), all code will end up in this one "
-    "file." },
-  { "", "gen-json-emit", "",
-    "Generates encoding code which emits Flatbuffers into JSON" },
-  { "", "cpp-include", "", "Adds an #include in generated file." },
-  { "", "cpp-ptr-type", "T",
-    "Set object API pointer type (default std::unique_ptr)." },
-  { "", "cpp-str-type", "T",
-    "Set object API string type (default std::string). T::c_str(), T::length() "
-    "and T::empty() must be supported. The custom type also needs to be "
-    "constructible from std::string (see the --cpp-str-flex-ctor option to "
-    "change this behavior)" },
-  { "", "cpp-str-flex-ctor", "",
-    "Don't construct custom string types by passing std::string from "
-    "Flatbuffers, but (char* + length)." },
-  { "", "cpp-field-case-style", "STYLE",
-    "Generate C++ fields using selected case style. Supported STYLE values: * "
-    "'unchanged' - leave unchanged (default) * 'upper' - schema snake_case "
-    "emits UpperCamel; * 'lower' - schema snake_case emits lowerCamel." },
-  { "", "cpp-std", "CPP_STD",
-    "Generate a C++ code using features of selected C++ standard. Supported "
-    "CPP_STD values: * 'c++0x' - generate code compatible with old compilers; "
-    "'c++11' - use C++11 code generator (default); * 'c++17' - use C++17 "
-    "features in generated code (experimental)." },
-  { "", "cpp-static-reflection", "",
-    "When using C++17, generate extra code to provide compile-time (static) "
-    "reflection of Flatbuffers types. Requires --cpp-std to be \"c++17\" or "
-    "higher." },
-  { "", "object-prefix", "PREFIX",
-    "Customize class prefix for C++ object-based API." },
-  { "", "object-suffix", "SUFFIX",
-    "Customize class suffix for C++ object-based API. Default Value is "
-    "\"T\"." },
-  { "", "go-namespace", "", "Generate the overriding namespace in Golang." },
-  { "", "go-import", "IMPORT",
-    "Generate the overriding import for flatbuffers in Golang (default is "
-    "\"github.com/google/flatbuffers/go\")." },
-  { "", "go-module-name", "",
-    "Prefix local import paths of generated go code with the module name" },
-  { "", "raw-binary", "",
-    "Allow binaries without file_identifier to be read. This may crash flatc "
-    "given a mismatched schema." },
-  { "", "size-prefixed", "", "Input binaries are size prefixed buffers." },
-  { "", "proto-namespace-suffix", "SUFFIX",
-    "Add this namespace to any flatbuffers generated from protobufs." },
-  { "", "oneof-union", "", "Translate .proto oneofs to flatbuffer unions." },
-  { "", "keep-proto-id", "", "Keep protobuf field ids in generated fbs file." },
-  { "", "proto-id-gap", "",
-    "Action that should be taken when a gap between protobuf ids found. "
-    "Supported values: * "
-    "'nop' - do not care about gap * 'warn' - A warning message will be shown "
-    "about the gap in protobuf ids"
-    "(default) "
-    "* 'error' - An error message will be shown and the fbs generation will be "
-    "interrupted." },
-  { "", "grpc", "", "Generate GRPC interfaces for the specified languages." },
-  { "", "schema", "", "Serialize schemas instead of JSON (use with -b)." },
-  { "", "bfbs-filenames", "PATH",
-    "Sets the root path where reflection filenames in reflection.fbs are "
-    "relative to. The 'root' is denoted with  `//`. E.g. if PATH=/a/b/c "
-    "then /a/d/e.fbs will be serialized as //../d/e.fbs. (PATH defaults to the "
-    "directory of the first provided schema file." },
-  { "", "bfbs-absolute-paths", "", "Uses absolute paths instead of relative paths in the BFBS output." },
-  { "", "bfbs-comments", "", "Add doc comments to the binary schema files." },
-  { "", "bfbs-builtins", "",
-    "Add builtin attributes to the binary schema files." },
-  { "", "bfbs-gen-embed", "",
-    "Generate code to embed the bfbs schema to the source." },
-  { "", "conform", "FILE",
-    "Specify a schema the following schemas should be an evolution of. Gives "
-    "errors if not." },
-  { "", "conform-includes", "PATH",
-    "Include path for the schema given with --conform PATH" },
-  { "", "filename-suffix", "SUFFIX",
-    "The suffix appended to the generated file names (Default is "
-    "'_generated')." },
-  { "", "filename-ext", "EXT",
-    "The extension appended to the generated file names. Default is "
-    "language-specific (e.g., '.h' for C++)" },
-  { "", "include-prefix", "PATH",
-    "Prefix this PATH to any generated include statements." },
-  { "", "keep-prefix", "",
-    "Keep original prefix of schema include statement." },
-  { "", "reflect-types", "",
-    "Add minimal type reflection to code generation." },
-  { "", "reflect-names", "", "Add minimal type/name reflection." },
-  { "", "rust-serialize", "",
-    "Implement serde::Serialize on generated Rust types." },
-  { "", "rust-module-root-file", "",
-    "Generate rust code in individual files with a module root file." },
-  { "", "root-type", "T", "Select or override the default root_type." },
-  { "", "require-explicit-ids", "",
-    "When parsing schemas, require explicit ids (id: x)." },
-  { "", "force-defaults", "",
-    "Emit default values in binary output from JSON" },
-  { "", "force-empty", "",
-    "When serializing from object API representation, force strings and "
-    "vectors to empty rather than null." },
-  { "", "force-empty-vectors", "",
-    "When serializing from object API representation, force vectors to empty "
-    "rather than null." },
-  { "", "flexbuffers", "",
-    "Used with \"binary\" and \"json\" options, it generates data using "
-    "schema-less FlexBuffers." },
-  { "", "no-warnings", "", "Inhibit all warnings messages." },
-  { "", "warnings-as-errors", "", "Treat all warnings as errors." },
-  { "", "cs-global-alias", "",
-    "Prepend \"global::\" to all user generated csharp classes and "
-    "structs." },
-  { "", "cs-gen-json-serializer", "",
-    "Allows (de)serialization of JSON text in the Object API. (requires "
-    "--gen-object-api)." },
-  { "", "json-nested-bytes", "",
-    "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
-    "in JSON, which is unsafe unless checked by a verifier afterwards." },
-  { "", "ts-flat-files", "",
-    "Generate a single typescript file per .fbs file. Implies "
-    "ts_entry_points." },
-  { "", "ts-entry-points", "",
-    "Generate entry point typescript per namespace. Implies gen-all." },
-  { "", "annotate-sparse-vectors", "", "Don't annotate every vector element." },
-  { "", "annotate", "SCHEMA",
-    "Annotate the provided BINARY_FILE with the specified SCHEMA file." },
-  { "", "no-leak-private-annotation", "",
-    "Prevents multiple type of annotations within a Fbs SCHEMA file. "
-    "Currently this is required to generate private types in Rust" },
-  { "", "python-no-type-prefix-suffix", "",
-    "Skip emission of Python functions that are prefixed with typenames" },
-  { "", "python-typing", "", "Generate Python type annotations" },
-  { "", "python-version", "", "Generate code for the given Python version." },
-  { "", "python-gen-numpy", "", "Whether to generate numpy helpers." },
-  { "", "ts-omit-entrypoint", "",
-    "Omit emission of namespace entrypoint file" },
-  { "", "file-names-only", "",
-    "Print out generated file names without writing to the files" },
-  { "", "grpc-filename-suffix", "SUFFIX",
-    "The suffix for the generated file names (Default is '.fb')." },
-  { "", "grpc-additional-header", "",
-    "Additional headers to prepend to the generated files." },
-  { "", "grpc-use-system-headers", "",
-    "Use <> for headers included from the generated code." },
-  { "", "grpc-search-path", "PATH", "Prefix to any gRPC includes." },
-  { "", "grpc-python-typed-handlers", "",
-    "The handlers will use the generated classes rather than raw bytes." },
+    {"o", "", "PATH", "Prefix PATH to all generated files."},
+    {"I", "", "PATH", "Search for includes in the specified path."},
+    {"M", "", "", "Print make rules for generated files."},
+    {"", "version", "", "Print the version number of flatc and exit."},
+    {"h", "help", "", "Prints this help text and exit."},
+    {"", "strict-json", "",
+     "Strict JSON: field names must be / will be quoted, no trailing commas in "
+     "tables/vectors."},
+    {"", "allow-non-utf8", "",
+     "Pass non-UTF-8 input through parser and emit nonstandard \\x escapes in "
+     "JSON. (Default is to raise parse error on non-UTF-8 input.)"},
+    {"", "natural-utf8", "",
+     "Output strings with UTF-8 as human-readable strings. By default, UTF-8 "
+     "characters are printed as \\uXXXX escapes."},
+    {"", "defaults-json", "",
+     "Output fields whose value is the default when writing JSON"},
+    {"", "unknown-json", "",
+     "Allow fields in JSON that are not defined in the schema. These fields "
+     "will be discarded when generating binaries."},
+    {"", "no-prefix", "",
+     "Don't prefix enum values with the enum type in C++."},
+    {"", "scoped-enums", "",
+     "Use C++11 style scoped and strongly typed enums. Also implies "
+     "--no-prefix."},
+    {"", "no-emit-min-max-enum-values", "",
+     "Disable generation of MIN and MAX enumerated values for scoped enums "
+     "and prefixed enums."},
+    {"", "swift-implementation-only", "",
+     "Adds a @_implementationOnly to swift imports"},
+    {"", "gen-includes", "",
+     "(deprecated), this is the default behavior. If the original behavior is "
+     "required (no include statements) use --no-includes."},
+    {"", "no-includes", "",
+     "Don't generate include statements for included schemas the generated "
+     "file depends on (C++, Python, Proto-to-Fbs)."},
+    {"", "gen-mutable", "",
+     "Generate accessors that can mutate buffers in-place."},
+    {"", "gen-onefile", "",
+     "Generate a single output file for C#, Go, Java, Kotlin and Python. "
+     "Implies --no-include."},
+    {"", "gen-name-strings", "",
+     "Generate type name functions for C++ and Rust."},
+    {"", "gen-object-api", "", "Generate an additional object-based API."},
+    {"", "gen-compare", "", "Generate operator== for object-based API types."},
+    {"", "gen-nullable", "",
+     "Add Clang _Nullable for C++ pointer. or @Nullable for Java"},
+    {"", "java-package-prefix", "",
+     "Add a prefix to the generated package name for Java."},
+    {"", "java-checkerframework", "", "Add @Pure for Java."},
+    {"", "gen-generated", "", "Add @Generated annotation for Java."},
+    {"", "gen-jvmstatic", "",
+     "Add @JvmStatic annotation for Kotlin methods in companion object for "
+     "interop from Java to Kotlin."},
+    {"", "gen-all", "",
+     "Generate not just code for the current schema files, but for all files "
+     "it "
+     "includes as well. If the language uses a single file for output (by "
+     "default the case for C++ and JS), all code will end up in this one "
+     "file."},
+    {"", "gen-json-emit", "",
+     "Generates encoding code which emits Flatbuffers into JSON"},
+    {"", "cpp-include", "", "Adds an #include in generated file."},
+    {"", "cpp-ptr-type", "T",
+     "Set object API pointer type (default std::unique_ptr)."},
+    {"", "cpp-str-type", "T",
+     "Set object API string type (default std::string). T::c_str(), "
+     "T::length() "
+     "and T::empty() must be supported. The custom type also needs to be "
+     "constructible from std::string (see the --cpp-str-flex-ctor option to "
+     "change this behavior)"},
+    {"", "cpp-str-flex-ctor", "",
+     "Don't construct custom string types by passing std::string from "
+     "Flatbuffers, but (char* + length)."},
+    {"", "cpp-field-case-style", "STYLE",
+     "Generate C++ fields using selected case style. Supported STYLE values: * "
+     "'unchanged' - leave unchanged (default) * 'upper' - schema snake_case "
+     "emits UpperCamel; * 'lower' - schema snake_case emits lowerCamel."},
+    {"", "cpp-std", "CPP_STD",
+     "Generate a C++ code using features of selected C++ standard. Supported "
+     "CPP_STD values: * 'c++0x' - generate code compatible with old compilers; "
+     "'c++11' - use C++11 code generator (default); * 'c++17' - use C++17 "
+     "features in generated code (experimental)."},
+    {"", "cpp-static-reflection", "",
+     "When using C++17, generate extra code to provide compile-time (static) "
+     "reflection of Flatbuffers types. Requires --cpp-std to be \"c++17\" or "
+     "higher."},
+    {"", "object-prefix", "PREFIX",
+     "Customize class prefix for C++ object-based API."},
+    {"", "object-suffix", "SUFFIX",
+     "Customize class suffix for C++ object-based API. Default Value is "
+     "\"T\"."},
+    {"", "go-namespace", "", "Generate the overriding namespace in Golang."},
+    {"", "go-import", "IMPORT",
+     "Generate the overriding import for flatbuffers in Golang (default is "
+     "\"github.com/google/flatbuffers/go\")."},
+    {"", "go-module-name", "",
+     "Prefix local import paths of generated go code with the module name"},
+    {"", "raw-binary", "",
+     "Allow binaries without file_identifier to be read. This may crash flatc "
+     "given a mismatched schema."},
+    {"", "size-prefixed", "", "Input binaries are size prefixed buffers."},
+    {"", "proto-namespace-suffix", "SUFFIX",
+     "Add this namespace to any flatbuffers generated from protobufs."},
+    {"", "oneof-union", "", "Translate .proto oneofs to flatbuffer unions."},
+    {"", "keep-proto-id", "", "Keep protobuf field ids in generated fbs file."},
+    {"", "proto-id-gap", "",
+     "Action that should be taken when a gap between protobuf ids found. "
+     "Supported values: * "
+     "'nop' - do not care about gap * 'warn' - A warning message will be shown "
+     "about the gap in protobuf ids"
+     "(default) "
+     "* 'error' - An error message will be shown and the fbs generation will "
+     "be "
+     "interrupted."},
+    {"", "grpc", "", "Generate GRPC interfaces for the specified languages."},
+    {"", "schema", "", "Serialize schemas instead of JSON (use with -b)."},
+    {"", "bfbs-filenames", "PATH",
+     "Sets the root path where reflection filenames in reflection.fbs are "
+     "relative to. The 'root' is denoted with  `//`. E.g. if PATH=/a/b/c "
+     "then /a/d/e.fbs will be serialized as //../d/e.fbs. (PATH defaults to "
+     "the "
+     "directory of the first provided schema file."},
+    {"", "bfbs-absolute-paths", "",
+     "Uses absolute paths instead of relative paths in the BFBS output."},
+    {"", "bfbs-comments", "", "Add doc comments to the binary schema files."},
+    {"", "bfbs-builtins", "",
+     "Add builtin attributes to the binary schema files."},
+    {"", "bfbs-gen-embed", "",
+     "Generate code to embed the bfbs schema to the source."},
+    {"", "conform", "FILE",
+     "Specify a schema the following schemas should be an evolution of. Gives "
+     "errors if not."},
+    {"", "conform-includes", "PATH",
+     "Include path for the schema given with --conform PATH"},
+    {"", "filename-suffix", "SUFFIX",
+     "The suffix appended to the generated file names (Default is "
+     "'_generated')."},
+    {"", "filename-ext", "EXT",
+     "The extension appended to the generated file names. Default is "
+     "language-specific (e.g., '.h' for C++)"},
+    {"", "include-prefix", "PATH",
+     "Prefix this PATH to any generated include statements."},
+    {"", "keep-prefix", "",
+     "Keep original prefix of schema include statement."},
+    {"", "reflect-types", "",
+     "Add minimal type reflection to code generation."},
+    {"", "reflect-names", "", "Add minimal type/name reflection."},
+    {"", "rust-serialize", "",
+     "Implement serde::Serialize on generated Rust types."},
+    {"", "rust-module-root-file", "",
+     "Generate rust code in individual files with a module root file."},
+    {"", "root-type", "T", "Select or override the default root_type."},
+    {"", "require-explicit-ids", "",
+     "When parsing schemas, require explicit ids (id: x)."},
+    {"", "force-defaults", "",
+     "Emit default values in binary output from JSON"},
+    {"", "force-empty", "",
+     "When serializing from object API representation, force strings and "
+     "vectors to empty rather than null."},
+    {"", "force-empty-vectors", "",
+     "When serializing from object API representation, force vectors to empty "
+     "rather than null."},
+    {"", "flexbuffers", "",
+     "Used with \"binary\" and \"json\" options, it generates data using "
+     "schema-less FlexBuffers."},
+    {"", "no-warnings", "", "Inhibit all warnings messages."},
+    {"", "warnings-as-errors", "", "Treat all warnings as errors."},
+    {"", "cs-global-alias", "",
+     "Prepend \"global::\" to all user generated csharp classes and "
+     "structs."},
+    {"", "cs-gen-json-serializer", "",
+     "Allows (de)serialization of JSON text in the Object API. (requires "
+     "--gen-object-api)."},
+    {"", "json-nested-bytes", "",
+     "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
+     "in JSON, which is unsafe unless checked by a verifier afterwards."},
+    {"", "ts-flat-files", "",
+     "Generate a single typescript file per .fbs file. Implies "
+     "ts_entry_points."},
+    {"", "ts-entry-points", "",
+     "Generate entry point typescript per namespace. Implies gen-all."},
+    {"", "annotate-sparse-vectors", "", "Don't annotate every vector element."},
+    {"", "annotate", "SCHEMA",
+     "Annotate the provided BINARY_FILE with the specified SCHEMA file."},
+    {"", "no-leak-private-annotation", "",
+     "Prevents multiple type of annotations within a Fbs SCHEMA file. "
+     "Currently this is required to generate private types in Rust"},
+    {"", "python-no-type-prefix-suffix", "",
+     "Skip emission of Python functions that are prefixed with typenames"},
+    {"", "python-typing", "", "Generate Python type annotations"},
+    {"", "python-version", "", "Generate code for the given Python version."},
+    {"", "python-decode-obj-api-strings", "",
+     "Decode bytes to strings for the Python Object API"},
+    {"", "python-gen-numpy", "", "Whether to generate numpy helpers."},
+    {"", "ts-omit-entrypoint", "",
+     "Omit emission of namespace entrypoint file"},
+    {"", "file-names-only", "",
+     "Print out generated file names without writing to the files"},
+    {"", "grpc-filename-suffix", "SUFFIX",
+     "The suffix for the generated file names (Default is '.fb')."},
+    {"", "grpc-additional-header", "",
+     "Additional headers to prepend to the generated files."},
+    {"", "grpc-use-system-headers", "",
+     "Use <> for headers included from the generated code."},
+    {"", "grpc-search-path", "PATH", "Prefix to any gRPC includes."},
+    {"", "grpc-python-typed-handlers", "",
+     "The handlers will use the generated classes rather than raw bytes."},
+    {"", "grpc-callback-api", "",
+     "Generate gRPC code using the callback (reactor) API instead of legacy "
+     "sync/async."},
 };
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
 static std::set<FlatCOption, decltype(cmp)> language_options(cmp);
 
-static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
+static void AppendTextWrappedString(std::stringstream& ss, std::string& text,
                                     size_t max_col, size_t start_col) {
   size_t max_line_length = max_col - start_col;
 
@@ -294,7 +306,7 @@ static void AppendTextWrappedString(std::stringstream &ss, std::string &text,
   }
 }
 
-static void AppendOption(std::stringstream &ss, const FlatCOption &option,
+static void AppendOption(std::stringstream& ss, const FlatCOption& option,
                          size_t max_col, size_t min_col_for_description) {
   size_t chars = 2;
   ss << "  ";
@@ -333,26 +345,30 @@ static void AppendOption(std::stringstream &ss, const FlatCOption &option,
   ss << "\n";
 }
 
-static void AppendShortOption(std::stringstream &ss,
-                              const FlatCOption &option) {
+static void AppendShortOption(std::stringstream& ss,
+                              const FlatCOption& option) {
   if (!option.short_opt.empty()) {
     ss << "-" << option.short_opt;
-    if (!option.long_opt.empty()) { ss << "|"; }
+    if (!option.long_opt.empty()) {
+      ss << "|";
+    }
   }
-  if (!option.long_opt.empty()) { ss << "--" << option.long_opt; }
+  if (!option.long_opt.empty()) {
+    ss << "--" << option.long_opt;
+  }
 }
 
 std::string FlatCompiler::GetShortUsageString(
-    const std::string &program_name) const {
+    const std::string& program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name << " [";
 
-  for (const FlatCOption &option : language_options) {
+  for (const FlatCOption& option : language_options) {
     AppendShortOption(ss, option);
     ss << ", ";
   }
 
-  for (const FlatCOption &option : flatc_options) {
+  for (const FlatCOption& option : flatc_options) {
     AppendShortOption(ss, option);
     ss << ", ";
   }
@@ -366,17 +382,17 @@ std::string FlatCompiler::GetShortUsageString(
 }
 
 std::string FlatCompiler::GetUsageString(
-    const std::string &program_name) const {
+    const std::string& program_name) const {
   std::stringstream ss;
   ss << "Usage: " << program_name
      << " [OPTION]... FILE... [-- BINARY_FILE...]\n";
 
-  for (const FlatCOption &option : language_options) {
+  for (const FlatCOption& option : language_options) {
     AppendOption(ss, option, 80, 25);
   }
   ss << "\n";
 
-  for (const FlatCOption &option : flatc_options) {
+  for (const FlatCOption& option : flatc_options) {
     AppendOption(ss, option, 80, 25);
   }
   ss << "\n";
@@ -393,20 +409,20 @@ std::string FlatCompiler::GetUsageString(
   return ss.str();
 }
 
-void FlatCompiler::AnnotateBinaries(const uint8_t *binary_schema,
+void FlatCompiler::AnnotateBinaries(const uint8_t* binary_schema,
                                     const uint64_t binary_schema_size,
-                                    const FlatCOptions &options) {
-  const std::string &schema_filename = options.annotate_schema;
+                                    const FlatCOptions& options) {
+  const std::string& schema_filename = options.annotate_schema;
 
-  for (const std::string &filename : options.filenames) {
+  for (const std::string& filename : options.filenames) {
     std::string binary_contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &binary_contents)) {
       Warn("unable to load binary file: " + filename);
       continue;
     }
 
-    const uint8_t *binary =
-        reinterpret_cast<const uint8_t *>(binary_contents.c_str());
+    const uint8_t* binary =
+        reinterpret_cast<const uint8_t*>(binary_contents.c_str());
     const size_t binary_size = binary_contents.size();
     const bool is_size_prefixed = options.opts.size_prefixed;
 
@@ -432,14 +448,16 @@ void FlatCompiler::AnnotateBinaries(const uint8_t *binary_schema,
 }
 
 FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
-                                                         const char **argv) {
-  if (argc <= 1) { Error("Need to provide at least one argument."); }
+                                                         const char** argv) {
+  if (argc <= 1) {
+    Error("Need to provide at least one argument.");
+  }
 
   FlatCOptions options;
 
   options.program_name = std::string(argv[0]);
 
-  IDLOptions &opts = options.opts;
+  IDLOptions& opts = options.opts;
 
   for (int argi = 1; argi < argc; argi++) {
     std::string arg = argv[argi];
@@ -682,6 +700,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--python-version") {
         if (++argi >= argc) Error("missing value following: " + arg, true);
         opts.python_version = argv[argi];
+      } else if (arg == "--python-decode-obj-api-strings") {
+        opts.python_decode_obj_api_strings = true;
       } else if (arg == "--python-gen-numpy" ||
                  arg == "--python-gen-numpy=true") {
         opts.python_gen_numpy = true;
@@ -728,8 +748,16 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-grpc-python-typed-handlers" ||
                  arg == "--grpc-python-typed-handlers=false") {
         opts.grpc_python_typed_handlers = false;
+      } else if (arg == "--grpc-callback-api" ||
+                 arg == "--grpc-callback-api=true") {
+        opts.grpc_callback_api = true;
+      } else if (arg == "--no-grpc-callback-api" ||
+                 arg == "--grpc-callback-api=false") {
+        opts.grpc_callback_api = false;
       } else {
-        if (arg == "--proto") { opts.proto_mode = true; }
+        if (arg == "--proto") {
+          opts.proto_mode = true;
+        }
 
         auto code_generator_it = code_generators_.find(arg);
         if (code_generator_it == code_generators_.end()) {
@@ -755,17 +783,18 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
     }
   }
 
+  ValidateOptions(options);
+
   return options;
 }
 
-void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
-  const IDLOptions &opts = options.opts;
+void FlatCompiler::ValidateOptions(const FlatCOptions& options) {
+  const IDLOptions& opts = options.opts;
 
   if (!options.filenames.size()) Error("missing input files", false, true);
 
-  if (opts.proto_mode) {
-    if (options.any_generator)
-      Error("cannot generate code directly from .proto files", true);
+  if (opts.proto_mode && options.any_generator) {
+    Warn("cannot generate code directly from .proto files", true);
   } else if (!options.any_generator && options.conform_to_schema.empty() &&
              options.annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
@@ -779,7 +808,7 @@ void FlatCompiler::ValidateOptions(const FlatCOptions &options) {
 }
 
 flatbuffers::Parser FlatCompiler::GetConformParser(
-    const FlatCOptions &options) {
+    const FlatCOptions& options) {
   flatbuffers::Parser conform_parser;
 
   // conform parser should check advanced options,
@@ -804,8 +833,8 @@ flatbuffers::Parser FlatCompiler::GetConformParser(
   return conform_parser;
 }
 
-std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
-                                                   Parser &conform_parser) {
+std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
+                                                   Parser& conform_parser) {
   std::unique_ptr<Parser> parser =
       std::unique_ptr<Parser>(new Parser(options.opts));
 
@@ -813,7 +842,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
        file_it != options.filenames.end(); ++file_it) {
     IDLOptions opts = options.opts;
 
-    auto &filename = *file_it;
+    auto& filename = *file_it;
     std::string contents;
     if (!flatbuffers::LoadFile(filename.c_str(), true, &contents))
       Error("unable to load file: " + filename);
@@ -829,7 +858,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
     if (is_binary) {
       parser->builder_.Clear();
       parser->builder_.PushFlatBuffer(
-          reinterpret_cast<const uint8_t *>(contents.c_str()),
+          reinterpret_cast<const uint8_t*>(contents.c_str()),
           contents.length());
       if (!options.raw_binary) {
         // Generally reading binaries that do not correspond to the schema
@@ -869,7 +898,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
         LoadBinarySchema(*parser, filename, contents);
       } else if (opts.use_flexbuffers) {
         if (opts.lang_to_generate == IDLOptions::kJson) {
-          auto data = reinterpret_cast<const uint8_t *>(contents.c_str());
+          auto data = reinterpret_cast<const uint8_t*>(contents.c_str());
           auto size = contents.size();
           std::vector<uint8_t> reuse_tracker;
           if (!flexbuffers::VerifyBuffer(data, size, &reuse_tracker))
@@ -906,7 +935,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
 
     // If one of the generators uses bfbs, serialize the parser and get
     // the serialized buffer and length.
-    const uint8_t *bfbs_buffer = nullptr;
+    const uint8_t* bfbs_buffer = nullptr;
     int64_t bfbs_length = 0;
     if (options.requires_bfbs) {
       parser->Serialize();
@@ -914,7 +943,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
       bfbs_length = parser->builder_.GetSize();
     }
 
-    for (const std::shared_ptr<CodeGenerator> &code_generator :
+    for (const std::shared_ptr<CodeGenerator>& code_generator :
          options.generators) {
       if (options.print_make_rules) {
         std::string make_rule;
@@ -983,7 +1012,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions &options,
   return parser;
 }
 
-int FlatCompiler::Compile(const FlatCOptions &options) {
+int FlatCompiler::Compile(const FlatCOptions& options) {
   // TODO(derekbailey): change to std::optional<Parser>
   Parser conform_parser = GetConformParser(options);
 
@@ -1003,7 +1032,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
       Error("unable to load schema: " + options.annotate_schema);
     }
 
-    const uint8_t *binary_schema = nullptr;
+    const uint8_t* binary_schema = nullptr;
     uint64_t binary_schema_size = 0;
 
     IDLOptions binary_opts;
@@ -1011,8 +1040,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
     Parser parser(binary_opts);
 
     if (is_binary_schema) {
-      binary_schema =
-          reinterpret_cast<const uint8_t *>(schema_contents.c_str());
+      binary_schema = reinterpret_cast<const uint8_t*>(schema_contents.c_str());
       binary_schema_size = schema_contents.size();
     } else {
       // If we need to generate the .bfbs file from the provided schema file
@@ -1044,7 +1072,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
 
-  for (const auto &code_generator : options.generators) {
+  for (const auto& code_generator : options.generators) {
     if (code_generator->SupportsRootFileGeneration()) {
       code_generator->GenerateRootFile(*parser, options.output_path);
     }
@@ -1054,7 +1082,7 @@ int FlatCompiler::Compile(const FlatCOptions &options) {
 }
 
 bool FlatCompiler::RegisterCodeGenerator(
-    const FlatCOption &option, std::shared_ptr<CodeGenerator> code_generator) {
+    const FlatCOption& option, std::shared_ptr<CodeGenerator> code_generator) {
   if (!option.short_opt.empty() &&
       code_generators_.find("-" + option.short_opt) != code_generators_.end()) {
     Error("multiple generators registered under: -" + option.short_opt, false,

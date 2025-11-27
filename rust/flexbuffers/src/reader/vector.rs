@@ -29,19 +29,13 @@ pub struct VectorReader<B> {
 
 impl<B: Buffer> Clone for VectorReader<B> {
     fn clone(&self) -> Self {
-        VectorReader {
-            reader: self.reader.clone(),
-            ..*self
-        }
+        VectorReader { reader: self.reader.clone(), ..*self }
     }
 }
 
 impl<B: Buffer> Default for VectorReader<B> {
     fn default() -> Self {
-        VectorReader {
-            reader: Reader::default(),
-            length: usize::default(),
-        }
+        VectorReader { reader: Reader::default(), length: usize::default() }
     }
 }
 
