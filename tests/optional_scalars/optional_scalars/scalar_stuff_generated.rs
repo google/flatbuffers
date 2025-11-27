@@ -951,7 +951,7 @@ impl ScalarStuffT {
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_scalar_stuff_unchecked`.
-pub fn root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff, flatbuffers::InvalidFlatbuffer> {
+pub fn root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::root::<ScalarStuff>(buf)
 }
 #[inline]
@@ -961,7 +961,7 @@ pub fn root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff, flatbuffers::Inva
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `size_prefixed_root_as_scalar_stuff_unchecked`.
-pub fn size_prefixed_root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff, flatbuffers::InvalidFlatbuffer> {
+pub fn size_prefixed_root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::size_prefixed_root::<ScalarStuff>(buf)
 }
 #[inline]
@@ -994,14 +994,14 @@ pub fn size_prefixed_root_as_scalar_stuff_with_opts<'b, 'o>(
 /// Assumes, without verification, that a buffer of bytes contains a ScalarStuff and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `ScalarStuff`.
-pub unsafe fn root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff {
+pub unsafe fn root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff<'_> {
   unsafe { flatbuffers::root_unchecked::<ScalarStuff>(buf) }
 }
 #[inline]
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed ScalarStuff and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `ScalarStuff`.
-pub unsafe fn size_prefixed_root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff {
+pub unsafe fn size_prefixed_root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff<'_> {
   unsafe { flatbuffers::size_prefixed_root_unchecked::<ScalarStuff>(buf) }
 }
 pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
