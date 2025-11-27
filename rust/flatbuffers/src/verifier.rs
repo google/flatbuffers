@@ -1,19 +1,10 @@
 use crate::follow::Follow;
 use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
-#[cfg(not(feature = "std"))]
+use alloc::borrow::Cow;
 use alloc::vec::Vec;
+use core::error::Error;
 use core::ops::Range;
 use core::option::Option;
-
-#[cfg(not(feature = "std"))]
-use alloc::borrow::Cow;
-#[cfg(feature = "std")]
-use std::borrow::Cow;
-
-#[cfg(all(nightly, not(feature = "std")))]
-use core::error::Error;
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Traces the location of data errors. Not populated for Dos detecting errors.
 /// Useful for MissingRequiredField and Utf8Error in particular, though
@@ -77,7 +68,6 @@ pub enum InvalidFlatbuffer {
     DepthLimitReached,
 }
 
-#[cfg(any(nightly, feature = "std"))]
 impl Error for InvalidFlatbuffer {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         if let InvalidFlatbuffer::Utf8Error { error: source, .. } = self {
