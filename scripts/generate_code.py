@@ -240,7 +240,7 @@ flatc(
 )
 
 flatc(
-    BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
+    BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS + PYTHON_OPTS,
     prefix="union_vector",
     schema="union_vector/union_vector.fbs",
 )
