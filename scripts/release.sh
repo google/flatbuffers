@@ -74,6 +74,11 @@ sed -i \
   -e "s/\(\"version\": \).*/\1\"$version\",/" \
   package.json
 
+echo "Updating library.json..."
+sed -i \
+  -e "s/\(\"version\": \).*/\1\"$version\",/" \
+  library.json
+
 echo "Updating net/FlatBuffers/Google.FlatBuffers.csproj..."
 sed -i \
   -e "s/\(<PackageVersion>\).*\(<\/PackageVersion>\)/\1$version\2/" \
