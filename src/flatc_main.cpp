@@ -181,8 +181,19 @@ int main(int argc, const char* argv[]) {
       flatbuffers::NewTsCodeGenerator());
 
   // Create the FlatC options by parsing the command line arguments.
-  const flatbuffers::FlatCOptions& options =
+  flatbuffers::FlatCOptions options =
       flatc.ParseFromCommandLineArguments(argc, argv);
+
+  auto file_saver =
+      options.file_names_only
+          ? std::unique_ptr<flatbuffers::FileSaver>{std::make_unique<
+                flatbuffers::FileNameSaver>()}
+          : std::unique_ptr<flatbuffers::FileSaver>{
+                std::make_unique<flatbuffers::RealFileSaver>()};
+
+  options.opts.file_saver = file_saver.get();
+
+  FLATBUFFERS_ASSERT(options.opts.file_saver != nullptr);
 
   // Compile with the extracted FlatC options.
   int success = flatc.Compile(options);

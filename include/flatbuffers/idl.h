@@ -637,7 +637,7 @@ inline bool operator<(const IncludedFile& a, const IncludedFile& b) {
 struct IDLOptions {
   // file saver
   // shared pointer since this object gets copied and modified.
-  std::shared_ptr<FileSaver> file_saver = std::make_shared<RealFileSaver>();
+  FileSaver* file_saver = nullptr;
 
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };

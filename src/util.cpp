@@ -254,6 +254,13 @@ FileExistsFunction SetFileExistsFunction(
   return previous_function;
 }
 
+bool SaveFile(const char* name, const char* buf, size_t len, bool binary) {
+  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
+  if (!ofs.is_open()) return false;
+  ofs.write(buf, len);
+  return !ofs.bad();
+}
+
 // We internally store paths in posix format ('/'). Paths supplied
 // by the user should go through PosixPath to ensure correct behavior
 // on Windows when paths are string-compared.

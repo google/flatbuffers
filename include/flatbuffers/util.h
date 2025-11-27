@@ -443,6 +443,25 @@ bool DirExists(const char* name);
 // no transcoding.
 bool LoadFile(const char* name, bool binary, std::string* buf);
 
+// Save data "buf" of length "len" bytes into a file
+// "name" returning true if successful, false otherwise.
+// If "binary" is false data is written using ifstream's
+// text mode, otherwise data is written with no
+// transcoding.
+// NOTE: this function is deprecated in favor of FileSaver class,
+// but left here for compatibility.
+bool SaveFile(const char* name, const char* buf, size_t len, bool binary);
+
+// Save data "buf" into file "name" returning true if
+// successful, false otherwise.  If "binary" is false
+// data is written using ifstream's text mode, otherwise
+// data is written with no transcoding.
+// NOTE: this function is deprecated in favor of FileSaver class,
+// but left here for compatibility.
+inline bool SaveFile(const char* name, const std::string& buf, bool binary) {
+  return SaveFile(name, buf.c_str(), buf.size(), binary);
+}
+
 // Functionality for minimalistic portable path handling.
 
 // The functions below behave correctly regardless of whether posix ('/') or
