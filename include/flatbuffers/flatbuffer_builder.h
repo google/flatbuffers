@@ -469,8 +469,8 @@ class FlatBufferBuilderImpl {
     if (dedup_vtables_) {
       for (auto it = buf_.scratch_data(); it < buf_.scratch_end();
            it += sizeof(uoffset_t)) {
-        auto vt_offset_ptr = reinterpret_cast<uoffset_t*>(it);
-        auto vt2 = reinterpret_cast<voffset_t*>(buf_.data_at(*vt_offset_ptr));
+        auto vt_offset_ptr = reinterpret_cast<uoffset_t *>(it);
+        auto vt2 = reinterpret_cast<voffset_t *>(buf_.data_at(*vt_offset_ptr + length_of_64_bit_region_));
         auto vt2_size = ReadScalar<voffset_t>(vt2);
         if (vt1_size != vt2_size || 0 != memcmp(vt2, vt1, vt1_size)) continue;
         vt_use = *vt_offset_ptr;
