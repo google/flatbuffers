@@ -20,7 +20,6 @@ from . import number_types as N
 from . import packer
 from .compat import memoryview_type
 from .compat import NumpyRequiredForThisFeature, import_numpy
-from .compat import range_func
 from .number_types import (SOffsetTFlags, UOffsetTFlags, VOffsetTFlags)
 
 np = import_numpy()
@@ -640,8 +639,31 @@ class Builder(object):
 
   ## @cond FLATBUFFERS_INTERNAL
   def Prepend(self, flags, off):
-    self.Prep(flags.bytewidth, 0)
-    self.Place(off, flags)
+    size = flags.bytewidth
+    if size > self.minalign:
+      self.minalign = size
+
+    head = self.head
+    buf_len = len(self.Bytes)
+    alignSize = (~(buf_len - head)) + 1
+    alignSize &= size - 1
+
+    needed = alignSize + size
+    while head < needed:
+      oldBufSize = buf_len
+      self.GrowByteBuffer()
+      buf_len = len(self.Bytes)
+      head += buf_len - oldBufSize
+
+    if alignSize:
+      new_head = head - alignSize
+      self.Bytes[new_head:head] = b"\x00" * alignSize
+      head = new_head
+
+    N.enforce_number(off, flags)
+    head -= size
+    self.head = head
+    encode.Write(flags.packer_type, self.Bytes, head, off)
 
   def PrependSlot(self, flags, o, x, d):
     if x is not None:
