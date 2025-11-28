@@ -602,11 +602,11 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--proto-id-gap") {
         if (++argi >= argc) Error("missing case style following: " + arg, true);
         if (!strcmp(argv[argi], "nop"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
         else if (!strcmp(argv[argi], "warn"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::WARNING;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::Warning;
         else if (!strcmp(argv[argi], "error"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::Error;
         else
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--schema") {
@@ -949,7 +949,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         std::string make_rule;
         const CodeGenerator::Status status = code_generator->GenerateMakeRule(
             *parser, options.output_path, filename, make_rule);
-        if (status == CodeGenerator::Status::OK && !make_rule.empty()) {
+        if (status == CodeGenerator::Status::Ok && !make_rule.empty()) {
           printf("%s\n",
                  flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
         } else {
@@ -966,7 +966,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
 
           const CodeGenerator::Status status = code_generator->GenerateCode(
               bfbs_buffer, bfbs_length, code_gen_options);
-          if (status != CodeGenerator::Status::OK) {
+          if (status != CodeGenerator::Status::Ok) {
             Error("Unable to generate " + code_generator->LanguageName() +
                   " for " + filebase + code_generator->status_detail +
                   " using bfbs generator.");
@@ -976,7 +976,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
                (is_schema || is_binary_schema)) &&
               code_generator->GenerateCode(*parser, options.output_path,
                                            filebase) !=
-                  CodeGenerator::Status::OK) {
+                  CodeGenerator::Status::Ok) {
             Error("Unable to generate " + code_generator->LanguageName() +
                   " for " + filebase + code_generator->status_detail);
           }
@@ -987,10 +987,10 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         const CodeGenerator::Status status = code_generator->GenerateGrpcCode(
             *parser, options.output_path, filebase);
 
-        if (status == CodeGenerator::Status::NOT_IMPLEMENTED) {
+        if (status == CodeGenerator::Status::NotImplemented) {
           Warn("GRPC interface generator not implemented for " +
                code_generator->LanguageName());
-        } else if (status == CodeGenerator::Status::ERROR) {
+        } else if (status == CodeGenerator::Status::Error) {
           Error("Unable to generate GRPC interface for " +
                 code_generator->LanguageName());
         }

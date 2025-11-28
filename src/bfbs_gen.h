@@ -118,7 +118,7 @@ class BaseBfbsGenerator : public CodeGenerator {
                       const CodeGenOptions& options) FLATBUFFERS_OVERRIDE {
     flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
-      return FAILED_VERIFICATION;
+      return FailedVerification;
     }
 
     // Store the root schema since there are cases where leaf nodes refer to
@@ -127,7 +127,7 @@ class BaseBfbsGenerator : public CodeGenerator {
 
     const uint64_t advance_features = schema_->advanced_features();
     if (advance_features > SupportedAdvancedFeatures()) {
-      return FAILED_VERIFICATION;
+      return FailedVerification;
     }
 
     Status status = GenerateFromSchema(schema_, options);

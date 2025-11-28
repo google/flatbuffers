@@ -20,7 +20,7 @@ void RunTest(const flatbuffers::IDLOptions& opts, const std::string& proto_path,
   std::unique_ptr<CodeGenerator> fbs_generator = NewFBSCodeGenerator(true);
   std::string fbs;
   TEST_EQ(fbs_generator->GenerateCodeString(parser, "test", fbs),
-          CodeGenerator::Status::OK);
+          CodeGenerator::Status::Ok);
 
   // Ensure generated file is parsable.
   flatbuffers::Parser parser2;
@@ -33,7 +33,7 @@ void RunTest(const flatbuffers::IDLOptions& opts, const std::string& proto_path,
     std::string import_fbs;
     TEST_EQ(
         fbs_generator->GenerateCodeString(import_parser, "test", import_fbs),
-        CodeGenerator::Status::OK);
+        CodeGenerator::Status::Ok);
     // auto import_fbs = flatbuffers::GenerateFBS(import_parser, "test", true);
     // Since `imported.fbs` isn't in the filesystem AbsolutePath can't figure it
     // out by itself. We manually construct it so Parser works.
@@ -52,7 +52,7 @@ void proto_test(const std::string& proto_path, const std::string& proto_file) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   // load the .proto and the golden file from disk
   std::string golden_file;
@@ -69,7 +69,7 @@ void proto_test_id(const std::string& proto_path,
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   // load the .proto and the golden file from disk
   std::string golden_file;
@@ -87,7 +87,7 @@ void proto_test_union(const std::string& proto_path,
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile((proto_path + "test_union.golden.fbs").c_str(),
@@ -104,7 +104,7 @@ void proto_test_union_id(const std::string& proto_path,
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(
@@ -121,7 +121,7 @@ void proto_test_union_suffix(const std::string& proto_path,
   opts.proto_mode = true;
   opts.proto_namespace_suffix = "test_namespace_suffix";
   opts.proto_oneof_union = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -139,7 +139,7 @@ void proto_test_union_suffix_id(const std::string& proto_path,
   opts.proto_namespace_suffix = "test_namespace_suffix";
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -155,7 +155,7 @@ void proto_test_include(const std::string& proto_path,
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(
@@ -173,7 +173,7 @@ void proto_test_include_id(const std::string& proto_path,
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(
@@ -191,7 +191,7 @@ void proto_test_include_union(const std::string& proto_path,
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -210,7 +210,7 @@ void proto_test_include_union_id(const std::string& proto_path,
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NoOp;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -242,7 +242,7 @@ void ParseCorruptedProto(const std::string& proto_path) {
         true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
     TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
-            CodeGenerator::Status::OK);
+            CodeGenerator::Status::Ok);
   }
 
   // Parse proto with twice id.
@@ -253,7 +253,7 @@ void ParseCorruptedProto(const std::string& proto_path) {
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
     TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
-            CodeGenerator::Status::OK);
+            CodeGenerator::Status::Ok);
   }
 
   // Parse proto with using reserved id.
@@ -264,12 +264,12 @@ void ParseCorruptedProto(const std::string& proto_path) {
             true);
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
     TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
-            CodeGenerator::Status::OK);
+            CodeGenerator::Status::Ok);
   }
 
   // Parse proto with error on gap.
   {
-    opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+    opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::Error;
     flatbuffers::Parser parser(opts);
     TEST_EQ(flatbuffers::LoadFile((proto_path + "test.proto").c_str(), false,
                                   &proto_file),
@@ -277,7 +277,7 @@ void ParseCorruptedProto(const std::string& proto_path) {
     TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
 
     TEST_NE(fbs_generator->GenerateCode(parser, "temp.fbs", "test"),
-            CodeGenerator::Status::OK);
+            CodeGenerator::Status::Ok);
   }
 }
 

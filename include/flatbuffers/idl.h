@@ -636,7 +636,7 @@ inline bool operator<(const IncludedFile& a, const IncludedFile& b) {
 struct IDLOptions {
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
-  enum class ProtoIdGapAction { NO_OP, WARNING, ERROR };
+  enum class ProtoIdGapAction { NoOp, Warning, Error };
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
@@ -857,7 +857,7 @@ struct IDLOptions {
         python_typing(false),
         python_gen_numpy(true),
         ts_omit_entrypoint(false),
-        proto_id_gap_action(ProtoIdGapAction::WARNING),
+        proto_id_gap_action(ProtoIdGapAction::Warning),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         rust_serialize(false),

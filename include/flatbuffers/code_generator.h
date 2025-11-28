@@ -34,10 +34,10 @@ class CodeGenerator {
   virtual ~CodeGenerator() = default;
 
   enum Status {
-    OK = 0,
-    ERROR = 1,
-    FAILED_VERIFICATION = 2,
-    NOT_IMPLEMENTED = 3
+    Ok = 0,
+    Error = 1,
+    FailedVerification = 2,
+    NotImplemented = 3,
   };
 
   std::string status_detail;
@@ -55,7 +55,7 @@ class CodeGenerator {
     (void)parser;
     (void)filename;
     (void)output;
-    return Status::NOT_IMPLEMENTED;
+    return Status::NotImplemented;
   }
 
   // Generate code from the provided `buffer` of given `length`. The buffer is a

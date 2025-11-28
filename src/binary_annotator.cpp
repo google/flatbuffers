@@ -94,9 +94,9 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
     BinaryRegionComment comment;
     comment.type = BinaryRegionCommentType::Unknown;
     if (length >= 8) {
-      SetError(comment, BinaryRegionStatus::WARN_NO_REFERENCES);
+      SetError(comment, BinaryRegionStatus::WarnNoReferences);
     } else {
-      SetError(comment, BinaryRegionStatus::WARN_CORRUPTED_PADDING);
+      SetError(comment, BinaryRegionStatus::WarnCorruptedPadding);
     }
 
     regions.push_back(MakeBinaryRegion(offset, length * sizeof(uint8_t),
@@ -110,7 +110,7 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
   BinaryRegionComment comment;
   comment.type = BinaryRegionCommentType::Padding;
   if (length >= 8) {
-    SetError(comment, BinaryRegionStatus::WARN_PADDING_LENGTH);
+    SetError(comment, BinaryRegionStatus::WarnPaddingLength);
   }
 
   // This region is most likely padding.
@@ -193,7 +193,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
     }
 
     if (!has_prefix_value) {
-      SetError(prefix_length_comment, BinaryRegionStatus::ERROR);
+      SetError(prefix_length_comment, BinaryRegionStatus::Error);
     }
   }
 
@@ -212,8 +212,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
   root_offset_comment.name = RootTable()->name()->str();
 
   if (!IsValidOffset(root_table_loc)) {
-    SetError(root_offset_comment,
-             BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
+    SetError(root_offset_comment, BinaryRegionStatus::ErrorOffsetOutOfBinary);
   }
 
   regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
@@ -268,7 +267,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
   if (!vtable_length.has_value()) {
     const uint64_t remaining = RemainingBytes(vtable_offset);
 
-    SetError(vtable_size_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+    SetError(vtable_size_comment, BinaryRegionStatus::ErrorIncompleteBinary,
              "2");
 
     AddSection(vtable_offset,
@@ -284,7 +283,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
   const uint16_t vtable_size = vtable_length.value();
 
   if (!IsValidOffset(vtable_offset + vtable_size - 1)) {
-    SetError(vtable_size_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);
+    SetError(vtable_size_comment, BinaryRegionStatus::ErrorLengthTooLong);
     // The vtable_size points to off the end of the binary.
     AddSection(vtable_offset,
                MakeSingleRegionBinarySection(
@@ -295,8 +294,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
 
     return nullptr;
   } else if (vtable_size < 2 * sizeof(uint16_t)) {
-    SetError(vtable_size_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_SHORT,
-             "4");
+    SetError(vtable_size_comment, BinaryRegionStatus::ErrorLengthTooShort, "4");
     // The size includes itself and the table size which are both uint16_t.
     AddSection(vtable_offset,
                MakeSingleRegionBinarySection(
@@ -324,7 +322,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
 
   if (!table_length.has_value()) {
     const uint64_t remaining = RemainingBytes(offset);
-    SetError(ref_table_len_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+    SetError(ref_table_len_comment, BinaryRegionStatus::ErrorIncompleteBinary,
              "2");
 
     AddSection(offset, MakeSingleRegionBinarySection(
@@ -339,9 +337,9 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
   const uint16_t table_size = table_length.value();
 
   if (!IsValidOffset(offset_of_referring_table + table_size - 1)) {
-    SetError(ref_table_len_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);
+    SetError(ref_table_len_comment, BinaryRegionStatus::ErrorLengthTooLong);
   } else if (table_size < 4) {
-    SetError(ref_table_len_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_SHORT,
+    SetError(ref_table_len_comment, BinaryRegionStatus::ErrorLengthTooShort,
              "4");
   }
 
@@ -386,7 +384,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
     if (!offset_from_table.has_value()) {
       const uint64_t remaining = RemainingBytes(field_offset);
 
-      SetError(field_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "2");
+      SetError(field_comment, BinaryRegionStatus::ErrorIncompleteBinary, "2");
       regions.push_back(MakeBinaryRegion(field_offset, remaining,
                                          BinaryRegionType::Unknown, remaining,
                                          0, field_comment));
@@ -396,7 +394,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
 
     if (!IsValidOffset(offset_of_referring_table + offset_from_table.value() -
                        1)) {
-      SetError(field_comment, BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
+      SetError(field_comment, BinaryRegionStatus::ErrorOffsetOutOfBinary);
       regions.push_back(MakeBinaryRegion(field_offset, sizeof(uint16_t),
                                          BinaryRegionType::VOffset, 0, 0,
                                          field_comment));
@@ -413,7 +411,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
       // Not present, so could be default or be optional.
       if (field->required()) {
         SetError(field_comment,
-                 BinaryRegionStatus::ERROR_REQUIRED_FIELD_NOT_PRESENT);
+                 BinaryRegionStatus::ErrorRequiredFieldNotPresent);
         // If this is a required field, make it known this is an error.
         regions.push_back(MakeBinaryRegion(field_offset, sizeof(uint16_t),
                                            BinaryRegionType::VOffset, 0, 0,
@@ -466,7 +464,7 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
 
     if (!offset_from_table.has_value()) {
       const uint64_t remaining = RemainingBytes(field_offset);
-      SetError(field_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "2");
+      SetError(field_comment, BinaryRegionStatus::ErrorIncompleteBinary, "2");
       regions.push_back(MakeBinaryRegion(field_offset, remaining,
                                          BinaryRegionType::Unknown, remaining,
                                          0, field_comment));
@@ -519,7 +517,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
   if (!vtable_soffset.has_value()) {
     const uint64_t remaining = RemainingBytes(table_offset);
-    SetError(vtable_offset_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+    SetError(vtable_offset_comment, BinaryRegionStatus::ErrorIncompleteBinary,
              "4");
 
     AddSection(
@@ -538,8 +536,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
   const uint64_t vtable_offset = table_offset - vtable_soffset.value();
 
   if (!IsValidOffset(vtable_offset)) {
-    SetError(vtable_offset_comment,
-             BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
+    SetError(vtable_offset_comment, BinaryRegionStatus::ErrorOffsetOutOfBinary);
 
     AddSection(table_offset,
                MakeSingleRegionBinarySection(
@@ -645,7 +642,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         const uint64_t remaining = RemainingBytes(field_offset);
 
         SetError(unknown_field_comment,
-                 BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+                 BinaryRegionStatus::ErrorIncompleteBinary,
                  std::to_string(unknown_field_length));
 
         regions.push_back(MakeBinaryRegion(field_offset, remaining,
@@ -677,7 +674,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
       if (!IsValidRead(field_offset, type_size)) {
         const uint64_t remaining = RemainingBytes(field_offset);
         SetError(scalar_field_comment,
-                 BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+                 BinaryRegionStatus::ErrorIncompleteBinary,
                  std::to_string(type_size));
 
         regions.push_back(MakeBinaryRegion(field_offset, remaining,
@@ -693,7 +690,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         // This should always have a value, due to the IsValidRead check above.
         if (!IsValidUnionValue(field, enum_value.value())) {
           SetError(scalar_field_comment,
-                   BinaryRegionStatus::ERROR_INVALID_UNION_TYPE);
+                   BinaryRegionStatus::ErrorInvalidUnionType);
 
           regions.push_back(MakeBinaryRegion(field_offset, type_size,
                                              region_type, 0, 0,
@@ -733,7 +730,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         const uint64_t remaining = RemainingBytes(field_offset);
 
         SetError(offset_field_comment,
-                 BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "4");
+                 BinaryRegionStatus::ErrorIncompleteBinary, "4");
 
         regions.push_back(MakeBinaryRegion(field_offset, remaining,
                                            BinaryRegionType::Unknown, remaining,
@@ -745,7 +742,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
       if (!IsValidOffset(offset_of_next_item)) {
         SetError(offset_field_comment,
-                 BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
+                 BinaryRegionStatus::ErrorOffsetOutOfBinary);
         regions.push_back(MakeBinaryRegion(field_offset, length, region_type, 0,
                                            offset_of_next_item,
                                            offset_field_comment));
@@ -819,7 +816,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
         if (!realized_type.has_value()) {
           const uint64_t remaining = RemainingBytes(type_offset);
           SetError(offset_field_comment,
-                   BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "1");
+                   BinaryRegionStatus::ErrorIncompleteBinary, "1");
           regions.push_back(MakeBinaryRegion(
               type_offset, remaining, BinaryRegionType::Unknown, remaining, 0,
               offset_field_comment));
@@ -896,7 +893,7 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
 
       if (!IsValidRead(offset, type_size)) {
         const uint64_t remaining = RemainingBytes(offset);
-        SetError(comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+        SetError(comment, BinaryRegionStatus::ErrorIncompleteBinary,
                  std::to_string(type_size));
         regions.push_back(MakeBinaryRegion(offset, remaining,
                                            BinaryRegionType::Unknown, remaining,
@@ -939,7 +936,7 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
           if (!IsValidRead(offset, type_size)) {
             const uint64_t remaining = RemainingBytes(offset);
 
-            SetError(array_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+            SetError(array_comment, BinaryRegionStatus::ErrorIncompleteBinary,
                      std::to_string(type_size));
 
             regions.push_back(MakeBinaryRegion(offset, remaining,
@@ -1005,7 +1002,7 @@ void BinaryAnnotator::BuildString(const uint64_t string_offset,
   if (!string_length.has_value()) {
     const uint64_t remaining = RemainingBytes(string_offset);
 
-    SetError(string_length_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+    SetError(string_length_comment, BinaryRegionStatus::ErrorIncompleteBinary,
              "4");
 
     regions.push_back(MakeBinaryRegion(string_offset, remaining,
@@ -1018,8 +1015,7 @@ void BinaryAnnotator::BuildString(const uint64_t string_offset,
         string_offset + sizeof(uint32_t) + string_size + sizeof(char);
 
     if (!IsValidOffset(string_end - 1)) {
-      SetError(string_length_comment,
-               BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);
+      SetError(string_length_comment, BinaryRegionStatus::ErrorLengthTooLong);
 
       regions.push_back(MakeBinaryRegion(string_offset, sizeof(uint32_t),
                                          BinaryRegionType::Uint32, 0, 0,
@@ -1091,7 +1087,7 @@ void BinaryAnnotator::BuildVector(
 
   if (!vector_length.has_value()) {
     const uint64_t remaining = RemainingBytes(vector_offset);
-    SetError(vector_length_comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+    SetError(vector_length_comment, BinaryRegionStatus::ErrorIncompleteBinary,
              "4");
 
     AddSection(
@@ -1112,7 +1108,7 @@ void BinaryAnnotator::BuildVector(
       vector_length.value() * GetElementSize(field);
 
   if (!IsValidOffset(last_item_offset - 1)) {
-    SetError(vector_length_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);
+    SetError(vector_length_comment, BinaryRegionStatus::ErrorLengthTooLong);
     AddSection(
         vector_offset,
         MakeSingleRegionBinarySection(
@@ -1159,7 +1155,7 @@ void BinaryAnnotator::BuildVector(
           if (!table_relative_offset.has_value()) {
             const uint64_t remaining = RemainingBytes(offset);
             SetError(vector_object_comment,
-                     BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "4");
+                     BinaryRegionStatus::ErrorIncompleteBinary, "4");
 
             regions.push_back(
                 MakeBinaryRegion(offset, remaining, BinaryRegionType::Unknown,
@@ -1172,7 +1168,7 @@ void BinaryAnnotator::BuildVector(
 
           if (!IsValidOffset(table_offset)) {
             SetError(vector_object_comment,
-                     BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
+                     BinaryRegionStatus::ErrorOffsetOutOfBinary);
             regions.push_back(MakeBinaryRegion(
                 offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
                 table_offset, vector_object_comment));
@@ -1183,7 +1179,7 @@ void BinaryAnnotator::BuildVector(
 
           if (table_offset == parent_table_offset) {
             SetError(vector_object_comment,
-                     BinaryRegionStatus::ERROR_CYCLE_DETECTED);
+                     BinaryRegionStatus::ErrorCycleDetected);
             // A cycle detected where a table vector field is pointing to
             // itself. This should only happen in corrupted files.
             regions.push_back(MakeBinaryRegion(
@@ -1217,7 +1213,7 @@ void BinaryAnnotator::BuildVector(
           const uint64_t remaining = RemainingBytes(offset);
 
           SetError(vector_object_comment,
-                   BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "4");
+                   BinaryRegionStatus::ErrorIncompleteBinary, "4");
 
           regions.push_back(
               MakeBinaryRegion(offset, remaining, BinaryRegionType::Unknown,
@@ -1230,7 +1226,7 @@ void BinaryAnnotator::BuildVector(
 
         if (!IsValidOffset(string_offset)) {
           SetError(vector_object_comment,
-                   BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
+                   BinaryRegionStatus::ErrorOffsetOutOfBinary);
           regions.push_back(MakeBinaryRegion(
               offset, sizeof(uint32_t), BinaryRegionType::UOffset, 0,
               string_offset, vector_object_comment));
@@ -1272,7 +1268,7 @@ void BinaryAnnotator::BuildVector(
         BinaryRegionComment vector_union_comment;
         vector_union_comment.type = BinaryRegionCommentType::VectorUnionValue;
         SetError(vector_union_comment,
-                 BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "2");
+                 BinaryRegionStatus::ErrorIncompleteBinary, "2");
 
         regions.push_back(MakeBinaryRegion(offset, remaining,
                                            BinaryRegionType::Unknown, remaining,
@@ -1297,7 +1293,7 @@ void BinaryAnnotator::BuildVector(
         if (!union_relative_offset.has_value()) {
           const uint64_t remaining = RemainingBytes(offset);
 
-          SetError(comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "4");
+          SetError(comment, BinaryRegionStatus::ErrorIncompleteBinary, "4");
 
           regions.push_back(MakeBinaryRegion(offset, remaining,
                                              BinaryRegionType::Unknown,
@@ -1310,7 +1306,7 @@ void BinaryAnnotator::BuildVector(
         const uint64_t union_offset = offset + union_relative_offset.value();
 
         if (!IsValidOffset(union_offset)) {
-          SetError(comment, BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
+          SetError(comment, BinaryRegionStatus::ErrorOffsetOutOfBinary);
 
           regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
                                              BinaryRegionType::UOffset, 0,
@@ -1322,7 +1318,7 @@ void BinaryAnnotator::BuildVector(
             ReadScalar<uint8_t>(union_type_vector_data_offset + i);
 
         if (!realized_type.has_value()) {
-          SetError(comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "1");
+          SetError(comment, BinaryRegionStatus::ErrorIncompleteBinary, "1");
           regions.push_back(MakeBinaryRegion(
               offset, 0, BinaryRegionType::Unknown, 0, 0, comment));
           continue;
@@ -1366,7 +1362,7 @@ void BinaryAnnotator::BuildVector(
             const uint64_t remaining = RemainingBytes(offset);
 
             SetError(vector_scalar_comment,
-                     BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+                     BinaryRegionStatus::ErrorIncompleteBinary,
                      std::to_string(type_size));
 
             regions.push_back(
@@ -1384,7 +1380,7 @@ void BinaryAnnotator::BuildVector(
             if (!IsValidUnionValue(field->type()->index(),
                                    enum_value.value())) {
               SetError(vector_scalar_comment,
-                       BinaryRegionStatus::ERROR_INVALID_UNION_TYPE);
+                       BinaryRegionStatus::ErrorInvalidUnionType);
               regions.push_back(MakeBinaryRegion(offset, type_size,
                                                  binary_region_type, 0, 0,
                                                  vector_scalar_comment));
@@ -1471,7 +1467,7 @@ void BinaryAnnotator::FixMissingRegions() {
         comment.type = BinaryRegionCommentType::Padding;
 
         if (IsNonZeroRegion(offset, padding_bytes, binary_)) {
-          SetError(comment, BinaryRegionStatus::WARN_NO_REFERENCES);
+          SetError(comment, BinaryRegionStatus::WarnNoReferences);
           regions_to_insert.push_back(
               MakeBinaryRegion(offset, padding_bytes, BinaryRegionType::Unknown,
                                padding_bytes, 0, comment));

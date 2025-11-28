@@ -272,43 +272,43 @@ static std::string GenerateComment(const BinaryRegionComment& comment,
   }
 
   switch (comment.status) {
-    case BinaryRegionStatus::OK:
+    case BinaryRegionStatus::Ok:
       break;  // no-op
-    case BinaryRegionStatus::WARN:
+    case BinaryRegionStatus::Warn:
       s = "WARN: " + s;
       break;
-    case BinaryRegionStatus::WARN_NO_REFERENCES:
+    case BinaryRegionStatus::WarnNoReferences:
       s = "WARN: nothing refers to this section.";
       break;
-    case BinaryRegionStatus::WARN_CORRUPTED_PADDING:
+    case BinaryRegionStatus::WarnCorruptedPadding:
       s = "WARN: could be corrupted padding region.";
       break;
-    case BinaryRegionStatus::WARN_PADDING_LENGTH:
+    case BinaryRegionStatus::WarnPaddingLength:
       s = "WARN: padding is longer than expected.";
       break;
-    case BinaryRegionStatus::ERROR:
+    case BinaryRegionStatus::Error:
       s = "ERROR: " + s;
       break;
-    case BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY:
+    case BinaryRegionStatus::ErrorOffsetOutOfBinary:
       s = "ERROR: " + s + ". Invalid offset, points outside the binary.";
       break;
-    case BinaryRegionStatus::ERROR_INCOMPLETE_BINARY:
+    case BinaryRegionStatus::ErrorIncompleteBinary:
       s = "ERROR: " + s + ". Incomplete binary, expected to read " +
           comment.status_message + " bytes.";
       break;
-    case BinaryRegionStatus::ERROR_LENGTH_TOO_LONG:
+    case BinaryRegionStatus::ErrorLengthTooLong:
       s = "ERROR: " + s + ". Longer than the binary.";
       break;
-    case BinaryRegionStatus::ERROR_LENGTH_TOO_SHORT:
+    case BinaryRegionStatus::ErrorLengthTooShort:
       s = "ERROR: " + s + ". Shorter than the minimum length: ";
       break;
-    case BinaryRegionStatus::ERROR_REQUIRED_FIELD_NOT_PRESENT:
+    case BinaryRegionStatus::ErrorRequiredFieldNotPresent:
       s = "ERROR: " + s + ". Required field is not present.";
       break;
-    case BinaryRegionStatus::ERROR_INVALID_UNION_TYPE:
+    case BinaryRegionStatus::ErrorInvalidUnionType:
       s = "ERROR: " + s + ". Invalid union type value.";
       break;
-    case BinaryRegionStatus::ERROR_CYCLE_DETECTED:
+    case BinaryRegionStatus::ErrorCycleDetected:
       s = "ERROR: " + s + ". Invalid offset, cycle detected.";
       break;
   }
