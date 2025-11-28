@@ -716,7 +716,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else if (arg == "--file-names-only") {
-        // TODO (khhn): Provide 2 implementation
         options.file_names_only = true;
       } else if (arg == "--grpc-filename-suffix") {
         if (++argi >= argc) Error("missing gRPC filename suffix: " + arg, true);
@@ -963,6 +962,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         if (code_generator->SupportsBfbsGeneration()) {
           CodeGenOptions code_gen_options;
           code_gen_options.output_path = options.output_path;
+          code_gen_options.file_saver = options.opts.file_saver;
 
           const CodeGenerator::Status status = code_generator->GenerateCode(
               bfbs_buffer, bfbs_length, code_gen_options);

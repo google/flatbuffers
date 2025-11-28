@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/hash.h"
@@ -634,6 +635,10 @@ inline bool operator<(const IncludedFile& a, const IncludedFile& b) {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // file saver
+  // shared pointer since this object gets copied and modified.
+  FileSaver* file_saver = nullptr;
+
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
   enum class ProtoIdGapAction { NO_OP, WARNING, ERROR };

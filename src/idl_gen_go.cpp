@@ -113,7 +113,7 @@ class GoGenerator : public BaseGenerator {
       code += one_file_code;
       const std::string filename =
           GeneratedFileName(path_, file_name_, parser_.opts);
-      return SaveFile(filename.c_str(), code, false);
+      return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
     }
 
     return true;
@@ -1622,7 +1622,7 @@ class GoGenerator : public BaseGenerator {
     std::string file = namer_.File(def, SkipFile::Suffix);
     EnsureDirExists(directory);
     std::string filename = directory + file;
-    return SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
   // Create the full name of the imported namespace (format: A__B__C).
