@@ -43,7 +43,12 @@
 #endif
 // clang-format on
 
-#include "flatbuffers/util.h"
+#if defined(__cplusplus) && __cplusplus >= 201703L
+#include <chrono>
+#include <filesystem>
+#include <string>
+#include <system_error>
+#endif
 
 #include <sys/stat.h>
 
@@ -53,6 +58,7 @@
 #include <functional>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/util.h"
 
 namespace flatbuffers {
 
@@ -328,7 +334,7 @@ std::string PosixPath(const std::string& path) {
 void EnsureDirExists(const std::string& filepath) {
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
-  // clang-format off
+    // clang-format off
 
   #ifdef _WIN32
     (void)_mkdir(filepath.c_str());
@@ -337,6 +343,46 @@ void EnsureDirExists(const std::string& filepath) {
   #endif
   // clang-format on
 }
+
+#if defined(__cplusplus) && __cplusplus >= 201703L
+bool EnsureDirIsWritable(const std::string& filepath) {
+  std::error_code ec;
+  std::filesystem::path p(filepath);
+  std::filesystem::path dir_to_check;
+
+  auto s = std::filesystem::status(p, ec);
+  if (!ec && std::filesystem::is_directory(s)) {
+    dir_to_check = p;
+  } else {
+    dir_to_check = p.parent_path();
+  }
+
+  if (dir_to_check.empty()) {
+    dir_to_check = ".";  // current directory
+  }
+
+  // unique-ish filename
+  auto now_ns =
+      std::chrono::high_resolution_clock::now().time_since_epoch().count();
+  std::string temp_filename = ".flatc_tmp_" + std::to_string(now_ns);
+  std::filesystem::path temp_filepath = dir_to_check / temp_filename;
+
+  std::ofstream test_stream(temp_filepath);
+  if (!test_stream.is_open()) {
+    return false;
+  }
+
+  // Clean up
+  test_stream.close();
+  std::filesystem::remove(temp_filepath, ec);
+
+  return true;
+}
+#else
+// Pre cpp 17 we don't check if the directory is writable
+// this leads just to worse error messages later
+bool EnsureDirIsWritable(const std::string&) { return true; }
+#endif
 
 std::string FilePath(const std::string& project, const std::string& filePath,
                      bool absolute) {

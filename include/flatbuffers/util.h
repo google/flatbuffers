@@ -494,6 +494,10 @@ std::string PosixPath(const std::string& path);
 // creating dirs for any parts of the path that don't exist yet.
 void EnsureDirExists(const std::string& filepath);
 
+// Checks if a directory is actually writable by trying to write a file
+// Does nothing if compiled with a pre cpp17 compiler
+bool EnsureDirIsWritable(const std::string& filepath);
+
 // Obtains the relative or absolute path.
 std::string FilePath(const std::string& project, const std::string& filePath,
                      bool absolute);
