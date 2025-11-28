@@ -134,6 +134,12 @@ def EnumValStartDocumentationVector(builder, numElems):
 def StartDocumentationVector(builder, numElems):
     return EnumValStartDocumentationVector(builder, numElems)
 
+def EnumValCreateDocumentationVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDocumentationVector(builder, data):
+    EnumValCreateDocumentationVector(builder, data)
+
 def EnumValAddAttributes(builder, attributes):
     builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
 
@@ -145,6 +151,12 @@ def EnumValStartAttributesVector(builder, numElems):
 
 def StartAttributesVector(builder, numElems):
     return EnumValStartAttributesVector(builder, numElems)
+
+def EnumValCreateAttributesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateAttributesVector(builder, data):
+    EnumValCreateAttributesVector(builder, data)
 
 def EnumValEnd(builder):
     return builder.EndObject()
