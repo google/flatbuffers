@@ -500,7 +500,7 @@ jobs:
        sh phpUnionVectorTest.sh
 
   build-swift:
-    name: Test Swift
+    name: Test Swift Linux
     strategy:
       matrix:
         swift: ["5.10", "6.1", "6.2"]
@@ -508,15 +508,13 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: vapor/swiftly-action@v0.2
+    - uses: swift-actions/setup-swift@v2
       with:
-        toolchain: ${{ matrix.swift }}
+        swift-version: ${{ matrix.swift }}
     - name: Get swift version
       run: swift --version
     - name: test
-      run: |
-        swift build --build-tests
-        swift test
+      run: swift test
 
   build-swift-windows:
     name: Test swift windows
