@@ -8,3 +8,5 @@ def flatc(options, schema):
 
 def GenerateLua():
   flatc([], "basic.fbs")
+  # Test schema that starts with namespace declaration
+  flatc([], "namespace_first.fbs")
