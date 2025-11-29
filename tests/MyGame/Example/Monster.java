@@ -54,8 +54,8 @@ public final class Monster extends Table {
   public MyGame.Example.Test test4(int j) { return test4(new MyGame.Example.Test(), j); }
   public MyGame.Example.Test test4(MyGame.Example.Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
   public int test4Length() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
-  public MyGame.Example.Test.Vector test4Vector() { return test4Vector(new MyGame.Example.Test.Vector()); }
-  public MyGame.Example.Test.Vector test4Vector(MyGame.Example.Test.Vector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public MyGame.Example.Test._Vector test4Vector() { return test4Vector(new MyGame.Example.Test._Vector()); }
+  public MyGame.Example.Test._Vector test4Vector(MyGame.Example.Test._Vector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public String testarrayofstring(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
   public int testarrayofstringLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
   public StringVector testarrayofstringVector() { return testarrayofstringVector(new StringVector()); }
@@ -69,8 +69,8 @@ public final class Monster extends Table {
   public int testarrayoftablesLength() { int o = __offset(26); return o != 0 ? __vector_len(o) : 0; }
   public MyGame.Example.Monster testarrayoftablesByKey(String key) { int o = __offset(26); return o != 0 ? MyGame.Example.Monster.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public MyGame.Example.Monster testarrayoftablesByKey(MyGame.Example.Monster obj, String key) { int o = __offset(26); return o != 0 ? MyGame.Example.Monster.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public MyGame.Example.Monster.Vector testarrayoftablesVector() { return testarrayoftablesVector(new MyGame.Example.Monster.Vector()); }
-  public MyGame.Example.Monster.Vector testarrayoftablesVector(MyGame.Example.Monster.Vector obj) { int o = __offset(26); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public MyGame.Example.Monster._Vector testarrayoftablesVector() { return testarrayoftablesVector(new MyGame.Example.Monster._Vector()); }
+  public MyGame.Example.Monster._Vector testarrayoftablesVector(MyGame.Example.Monster._Vector obj) { int o = __offset(26); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public MyGame.Example.Monster enemy() { return enemy(new MyGame.Example.Monster()); }
   public MyGame.Example.Monster enemy(MyGame.Example.Monster obj) { int o = __offset(28); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public int testnestedflatbuffer(int j) { int o = __offset(30); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
@@ -122,8 +122,8 @@ public final class Monster extends Table {
   public MyGame.Example.Ability testarrayofsortedstruct(int j) { return testarrayofsortedstruct(new MyGame.Example.Ability(), j); }
   public MyGame.Example.Ability testarrayofsortedstruct(MyGame.Example.Ability obj, int j) { int o = __offset(62); return o != 0 ? obj.__assign(__vector(o) + j * 8, bb) : null; }
   public int testarrayofsortedstructLength() { int o = __offset(62); return o != 0 ? __vector_len(o) : 0; }
-  public MyGame.Example.Ability.Vector testarrayofsortedstructVector() { return testarrayofsortedstructVector(new MyGame.Example.Ability.Vector()); }
-  public MyGame.Example.Ability.Vector testarrayofsortedstructVector(MyGame.Example.Ability.Vector obj) { int o = __offset(62); return o != 0 ? obj.__assign(__vector(o), 8, bb) : null; }
+  public MyGame.Example.Ability._Vector testarrayofsortedstructVector() { return testarrayofsortedstructVector(new MyGame.Example.Ability._Vector()); }
+  public MyGame.Example.Ability._Vector testarrayofsortedstructVector(MyGame.Example.Ability._Vector obj) { int o = __offset(62); return o != 0 ? obj.__assign(__vector(o), 8, bb) : null; }
   public int flex(int j) { int o = __offset(64); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int flexLength() { int o = __offset(64); return o != 0 ? __vector_len(o) : 0; }
   public ByteVector flexVector() { return flexVector(new ByteVector()); }
@@ -134,8 +134,8 @@ public final class Monster extends Table {
   public MyGame.Example.Test test5(int j) { return test5(new MyGame.Example.Test(), j); }
   public MyGame.Example.Test test5(MyGame.Example.Test obj, int j) { int o = __offset(66); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
   public int test5Length() { int o = __offset(66); return o != 0 ? __vector_len(o) : 0; }
-  public MyGame.Example.Test.Vector test5Vector() { return test5Vector(new MyGame.Example.Test.Vector()); }
-  public MyGame.Example.Test.Vector test5Vector(MyGame.Example.Test.Vector obj) { int o = __offset(66); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public MyGame.Example.Test._Vector test5Vector() { return test5Vector(new MyGame.Example.Test._Vector()); }
+  public MyGame.Example.Test._Vector test5Vector(MyGame.Example.Test._Vector obj) { int o = __offset(66); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public long vectorOfLongs(int j) { int o = __offset(68); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
   public int vectorOfLongsLength() { int o = __offset(68); return o != 0 ? __vector_len(o) : 0; }
   public LongVector vectorOfLongsVector() { return vectorOfLongsVector(new LongVector()); }
@@ -157,8 +157,8 @@ public final class Monster extends Table {
   public int vectorOfReferrablesLength() { int o = __offset(74); return o != 0 ? __vector_len(o) : 0; }
   public MyGame.Example.Referrable vectorOfReferrablesByKey(long key) { int o = __offset(74); return o != 0 ? MyGame.Example.Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public MyGame.Example.Referrable vectorOfReferrablesByKey(MyGame.Example.Referrable obj, long key) { int o = __offset(74); return o != 0 ? MyGame.Example.Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public MyGame.Example.Referrable.Vector vectorOfReferrablesVector() { return vectorOfReferrablesVector(new MyGame.Example.Referrable.Vector()); }
-  public MyGame.Example.Referrable.Vector vectorOfReferrablesVector(MyGame.Example.Referrable.Vector obj) { int o = __offset(74); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public MyGame.Example.Referrable._Vector vectorOfReferrablesVector() { return vectorOfReferrablesVector(new MyGame.Example.Referrable._Vector()); }
+  public MyGame.Example.Referrable._Vector vectorOfReferrablesVector(MyGame.Example.Referrable._Vector obj) { int o = __offset(74); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public long singleWeakReference() { int o = __offset(76); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateSingleWeakReference(long single_weak_reference) { int o = __offset(76); if (o != 0) { bb.putLong(o + bb_pos, single_weak_reference); return true; } else { return false; } }
   public long vectorOfWeakReferences(int j) { int o = __offset(78); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
@@ -173,8 +173,8 @@ public final class Monster extends Table {
   public int vectorOfStrongReferrablesLength() { int o = __offset(80); return o != 0 ? __vector_len(o) : 0; }
   public MyGame.Example.Referrable vectorOfStrongReferrablesByKey(long key) { int o = __offset(80); return o != 0 ? MyGame.Example.Referrable.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public MyGame.Example.Referrable vectorOfStrongReferrablesByKey(MyGame.Example.Referrable obj, long key) { int o = __offset(80); return o != 0 ? MyGame.Example.Referrable.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public MyGame.Example.Referrable.Vector vectorOfStrongReferrablesVector() { return vectorOfStrongReferrablesVector(new MyGame.Example.Referrable.Vector()); }
-  public MyGame.Example.Referrable.Vector vectorOfStrongReferrablesVector(MyGame.Example.Referrable.Vector obj) { int o = __offset(80); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public MyGame.Example.Referrable._Vector vectorOfStrongReferrablesVector() { return vectorOfStrongReferrablesVector(new MyGame.Example.Referrable._Vector()); }
+  public MyGame.Example.Referrable._Vector vectorOfStrongReferrablesVector(MyGame.Example.Referrable._Vector obj) { int o = __offset(80); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public long coOwningReference() { int o = __offset(82); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public boolean mutateCoOwningReference(long co_owning_reference) { int o = __offset(82); if (o != 0) { bb.putLong(o + bb_pos, co_owning_reference); return true; } else { return false; } }
   public long vectorOfCoOwningReferences(int j) { int o = __offset(84); return o != 0 ? bb.getLong(__vector(o) + j * 8) : 0; }
@@ -220,8 +220,8 @@ public final class Monster extends Table {
   public int scalarKeySortedTablesLength() { int o = __offset(104); return o != 0 ? __vector_len(o) : 0; }
   public MyGame.Example.Stat scalarKeySortedTablesByKey(int key) { int o = __offset(104); return o != 0 ? MyGame.Example.Stat.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public MyGame.Example.Stat scalarKeySortedTablesByKey(MyGame.Example.Stat obj, int key) { int o = __offset(104); return o != 0 ? MyGame.Example.Stat.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public MyGame.Example.Stat.Vector scalarKeySortedTablesVector() { return scalarKeySortedTablesVector(new MyGame.Example.Stat.Vector()); }
-  public MyGame.Example.Stat.Vector scalarKeySortedTablesVector(MyGame.Example.Stat.Vector obj) { int o = __offset(104); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public MyGame.Example.Stat._Vector scalarKeySortedTablesVector() { return scalarKeySortedTablesVector(new MyGame.Example.Stat._Vector()); }
+  public MyGame.Example.Stat._Vector scalarKeySortedTablesVector(MyGame.Example.Stat._Vector obj) { int o = __offset(104); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public MyGame.Example.Test nativeInline() { return nativeInline(new MyGame.Example.Test()); }
   public MyGame.Example.Test nativeInline(MyGame.Example.Test obj) { int o = __offset(106); return o != 0 ? obj.__assign(o + bb_pos, bb) : null; }
   public long longEnumNonEnumDefault() { int o = __offset(108); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
@@ -381,8 +381,8 @@ public final class Monster extends Table {
     return null;
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public Monster get(int j) { return get(new Monster(), j); }
     public Monster get(Monster obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

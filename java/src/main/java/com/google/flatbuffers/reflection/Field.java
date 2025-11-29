@@ -44,8 +44,8 @@ public final class Field extends Table {
   public int attributesLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.KeyValue attributesByKey(String key) { int o = __offset(22); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.KeyValue attributesByKey(com.google.flatbuffers.reflection.KeyValue obj, String key) { int o = __offset(22); return o != 0 ? com.google.flatbuffers.reflection.KeyValue.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector() { return attributesVector(new com.google.flatbuffers.reflection.KeyValue.Vector()); }
-  public com.google.flatbuffers.reflection.KeyValue.Vector attributesVector(com.google.flatbuffers.reflection.KeyValue.Vector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.KeyValue._Vector attributesVector() { return attributesVector(new com.google.flatbuffers.reflection.KeyValue._Vector()); }
+  public com.google.flatbuffers.reflection.KeyValue._Vector attributesVector(com.google.flatbuffers.reflection.KeyValue._Vector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public String documentation(int j) { int o = __offset(24); return o != 0 ? __string(__vector(o) + j * 4) : null; }
   public int documentationLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
   public StringVector documentationVector() { return documentationVector(new StringVector()); }
@@ -143,8 +143,8 @@ public final class Field extends Table {
     return null;
   }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public Field get(int j) { return get(new Field(), j); }
     public Field get(Field obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

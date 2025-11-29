@@ -68,8 +68,8 @@ public final class Movie extends Table {
   public static void finishMovieBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "MOVI"); }
   public static void finishSizePrefixedMovieBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset, "MOVI"); }
 
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class _Vector extends BaseVector {
+    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public Movie get(int j) { return get(new Movie(), j); }
     public Movie get(Movie obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
