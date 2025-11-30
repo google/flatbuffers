@@ -159,7 +159,7 @@ class Builder(object):
     self.vtables = {}
     self.nested = False
     self.forceDefaults = False
-    self.sharedStrings = {}
+    self.sharedStrings = None
     ## @endcond
     self.finished = False
 
@@ -172,7 +172,7 @@ class Builder(object):
     self.vtables = {}
     self.nested = False
     self.forceDefaults = False
-    self.sharedStrings = {}
+    self.sharedStrings = None
     self.vectorNumElems = None
     ## @endcond
     self.finished = False
@@ -201,7 +201,7 @@ class Builder(object):
     self.assertNotNested()
 
     # use 32-bit offsets so that arithmetic doesn't overflow.
-    self.current_vtable = [0 for _ in range_func(numfields)]
+    self.current_vtable = [0] * numfields
     self.objectEnd = self.Offset()
     self.nested = True
 
@@ -457,7 +457,9 @@ class Builder(object):
     before calling CreateString.
     """
 
-    if s in self.sharedStrings:
+    if not self.sharedStrings:
+      self.sharedStrings = {}
+    elif s in self.sharedStrings:
       return self.sharedStrings[s]
 
     off = self.CreateString(s, encoding, errors)
