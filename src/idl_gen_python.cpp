@@ -2884,7 +2884,8 @@ class PythonGenerator : public BaseGenerator {
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
     EnsureDirExists(directories);
 
-    for (size_t i = path_.size() + 1; i != std::string::npos;
+    for (size_t i = directories.find(kPathSeparator, path_.size());
+         i != std::string::npos;
          i = directories.find(kPathSeparator, i + 1)) {
       const std::string init_py =
           directories.substr(0, i) + kPathSeparator + "__init__.py";
