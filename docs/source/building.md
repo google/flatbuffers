@@ -89,6 +89,17 @@ CC=clang PATH=$PATH:$(pwd)/swift-${SWIFT_VERSION}-RELEASE-debian12/usr/bin bazel
 
 If you are unsure which versions to use, check our CI config at `.bazelci/presubmit.yml`.
 
+## Building with Conan
+
+You can download and install flatbuffers using the [Conan](https://conan.io/) dependency manager:
+
+    conan install --requires="flatbuffers/[*]" --build=missing
+
+The flatbuffers package in Conan Center is maintained by
+[ConanCenterIndex](https://github.com/conan-io/conan-center-index) community.
+If the version is out of date or the package does not work,
+please create an issue or pull request on the [Conan Center Index repository](https://github.com/conan-io/conan-center-index).
+
 ## Building with VCPKG
 
 You can download and install flatbuffers using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
