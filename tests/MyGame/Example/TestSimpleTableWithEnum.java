@@ -14,13 +14,12 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-final class TestSimpleTableWithEnum extends Table {
+final class TestSimpleTableWithEnum extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static TestSimpleTableWithEnum getRootAsTestSimpleTableWithEnum(ByteBuffer _bb) { return getRootAsTestSimpleTableWithEnum(_bb, new TestSimpleTableWithEnum()); }
   public static TestSimpleTableWithEnum getRootAsTestSimpleTableWithEnum(ByteBuffer _bb, TestSimpleTableWithEnum obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
@@ -44,8 +43,8 @@ final class TestSimpleTableWithEnum extends Table {
     return o;
   }
 
-  static final class _Vector extends BaseVector {
-    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public TestSimpleTableWithEnum get(int j) { return get(new TestSimpleTableWithEnum(), j); }
     public TestSimpleTableWithEnum get(TestSimpleTableWithEnum obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

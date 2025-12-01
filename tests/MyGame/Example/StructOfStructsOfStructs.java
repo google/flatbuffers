@@ -14,7 +14,6 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -43,8 +42,8 @@ public final class StructOfStructsOfStructs extends Struct {
     return builder.offset();
   }
 
-  public static final class _Vector extends BaseVector {
-    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public StructOfStructsOfStructs get(int j) { return get(new StructOfStructsOfStructs(), j); }
     public StructOfStructsOfStructs get(StructOfStructsOfStructs obj, int j) {  return obj.__assign(__element(j), bb); }

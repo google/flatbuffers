@@ -14,13 +14,12 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-public final class Schema extends Table {
+public final class Schema extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static Schema getRootAsSchema(ByteBuffer _bb) { return getRootAsSchema(_bb, new Schema()); }
   public static Schema getRootAsSchema(ByteBuffer _bb, Schema obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
@@ -33,15 +32,15 @@ public final class Schema extends Table {
   public int objectsLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.Object objectsByKey(String key) { int o = __offset(4); return o != 0 ? com.google.flatbuffers.reflection.Object.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.Object objectsByKey(com.google.flatbuffers.reflection.Object obj, String key) { int o = __offset(4); return o != 0 ? com.google.flatbuffers.reflection.Object.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.Object._Vector objectsVector() { return objectsVector(new com.google.flatbuffers.reflection.Object._Vector()); }
-  public com.google.flatbuffers.reflection.Object._Vector objectsVector(com.google.flatbuffers.reflection.Object._Vector obj) { int o = __offset(4); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.Object.Vector objectsVector() { return objectsVector(new com.google.flatbuffers.reflection.Object.Vector()); }
+  public com.google.flatbuffers.reflection.Object.Vector objectsVector(com.google.flatbuffers.reflection.Object.Vector obj) { int o = __offset(4); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public com.google.flatbuffers.reflection.Enum enums(int j) { return enums(new com.google.flatbuffers.reflection.Enum(), j); }
   public com.google.flatbuffers.reflection.Enum enums(com.google.flatbuffers.reflection.Enum obj, int j) { int o = __offset(6); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int enumsLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.Enum enumsByKey(String key) { int o = __offset(6); return o != 0 ? com.google.flatbuffers.reflection.Enum.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.Enum enumsByKey(com.google.flatbuffers.reflection.Enum obj, String key) { int o = __offset(6); return o != 0 ? com.google.flatbuffers.reflection.Enum.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.Enum._Vector enumsVector() { return enumsVector(new com.google.flatbuffers.reflection.Enum._Vector()); }
-  public com.google.flatbuffers.reflection.Enum._Vector enumsVector(com.google.flatbuffers.reflection.Enum._Vector obj) { int o = __offset(6); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.Enum.Vector enumsVector() { return enumsVector(new com.google.flatbuffers.reflection.Enum.Vector()); }
+  public com.google.flatbuffers.reflection.Enum.Vector enumsVector(com.google.flatbuffers.reflection.Enum.Vector obj) { int o = __offset(6); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public String fileIdent() { int o = __offset(8); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer fileIdentAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
   public ByteBuffer fileIdentInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
@@ -55,8 +54,8 @@ public final class Schema extends Table {
   public int servicesLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.Service servicesByKey(String key) { int o = __offset(14); return o != 0 ? com.google.flatbuffers.reflection.Service.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.Service servicesByKey(com.google.flatbuffers.reflection.Service obj, String key) { int o = __offset(14); return o != 0 ? com.google.flatbuffers.reflection.Service.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.Service._Vector servicesVector() { return servicesVector(new com.google.flatbuffers.reflection.Service._Vector()); }
-  public com.google.flatbuffers.reflection.Service._Vector servicesVector(com.google.flatbuffers.reflection.Service._Vector obj) { int o = __offset(14); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.Service.Vector servicesVector() { return servicesVector(new com.google.flatbuffers.reflection.Service.Vector()); }
+  public com.google.flatbuffers.reflection.Service.Vector servicesVector(com.google.flatbuffers.reflection.Service.Vector obj) { int o = __offset(14); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
   public long advancedFeatures() { int o = __offset(16); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   /**
    * All the files used in this compilation. Files are relative to where
@@ -67,8 +66,8 @@ public final class Schema extends Table {
   public int fbsFilesLength() { int o = __offset(18); return o != 0 ? __vector_len(o) : 0; }
   public com.google.flatbuffers.reflection.SchemaFile fbsFilesByKey(String key) { int o = __offset(18); return o != 0 ? com.google.flatbuffers.reflection.SchemaFile.__lookup_by_key(null, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.SchemaFile fbsFilesByKey(com.google.flatbuffers.reflection.SchemaFile obj, String key) { int o = __offset(18); return o != 0 ? com.google.flatbuffers.reflection.SchemaFile.__lookup_by_key(obj, __vector(o), key, bb) : null; }
-  public com.google.flatbuffers.reflection.SchemaFile._Vector fbsFilesVector() { return fbsFilesVector(new com.google.flatbuffers.reflection.SchemaFile._Vector()); }
-  public com.google.flatbuffers.reflection.SchemaFile._Vector fbsFilesVector(com.google.flatbuffers.reflection.SchemaFile._Vector obj) { int o = __offset(18); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public com.google.flatbuffers.reflection.SchemaFile.Vector fbsFilesVector() { return fbsFilesVector(new com.google.flatbuffers.reflection.SchemaFile.Vector()); }
+  public com.google.flatbuffers.reflection.SchemaFile.Vector fbsFilesVector(com.google.flatbuffers.reflection.SchemaFile.Vector obj) { int o = __offset(18); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
 
   public static int createSchema(FlatBufferBuilder builder,
       int objectsOffset,
@@ -117,8 +116,8 @@ public final class Schema extends Table {
   public static void finishSchemaBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset, "BFBS"); }
   public static void finishSizePrefixedSchemaBuffer(FlatBufferBuilder builder, int offset) { builder.finishSizePrefixed(offset, "BFBS"); }
 
-  public static final class _Vector extends BaseVector {
-    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public Schema get(int j) { return get(new Schema(), j); }
     public Schema get(Schema obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }

@@ -12,13 +12,12 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-public final class Attacker extends Table {
+public final class Attacker extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static Attacker getRootAsAttacker(ByteBuffer _bb) { return getRootAsAttacker(_bb, new Attacker()); }
   public static Attacker getRootAsAttacker(ByteBuffer _bb, Attacker obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
@@ -42,8 +41,8 @@ public final class Attacker extends Table {
     return o;
   }
 
-  public static final class _Vector extends BaseVector {
-    public _Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
     public Attacker get(int j) { return get(new Attacker(), j); }
     public Attacker get(Attacker obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
