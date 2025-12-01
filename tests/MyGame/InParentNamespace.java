@@ -14,13 +14,12 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-public final class InParentNamespace extends Table {
+public final class InParentNamespace extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static InParentNamespace getRootAsInParentNamespace(ByteBuffer _bb) { return getRootAsInParentNamespace(_bb, new InParentNamespace()); }
   public static InParentNamespace getRootAsInParentNamespace(ByteBuffer _bb, InParentNamespace obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
