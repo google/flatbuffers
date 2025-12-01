@@ -320,7 +320,7 @@ jobs:
        distribution: temurin
        java-version: 17
    - name: set up Gradle
-     uses: gradle/actions/setup-gradle@v4
+     uses: gradle/actions/setup-gradle@v5
    - name: set up flatc
      run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
@@ -407,7 +407,7 @@ jobs:
         distribution: temurin
         java-version: 17
     - name: set up Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
@@ -430,7 +430,7 @@ jobs:
         distribution: temurin
         java-version: 17
     - name: set up Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
