@@ -529,18 +529,14 @@ jobs:
 
   build-swift-wasm:
     name: Test Swift Wasm
-    runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/swiftwasm/carton:0.20.1
+    runs-on: ubuntu-latest
+    container: swift:6.0.3
     steps:
        - uses: actions/checkout@v3
-       - uses: bytecodealliance/actions/wasmtime/setup@v1
-       - uses: swiftwasm/setup-swiftwasm@v1
-         with:
-           swift-version: "wasm-6.0.2-RELEASE"
+       - uses: swiftwasm/setup-swiftwasm@v2
        - name: Test
          working-directory: tests/swift/Wasm.tests
-         run: swift run carton test
+         run: swift test --swift-sdk wasm32-unknown-wasi
 
   build-ts:
     name: Build TS
