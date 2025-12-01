@@ -137,7 +137,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: cmake
       run: >
         cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
@@ -162,7 +162,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: cmake
       run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -351,7 +351,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: cmake
       run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
