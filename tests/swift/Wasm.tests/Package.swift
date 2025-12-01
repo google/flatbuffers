@@ -33,4 +33,9 @@ let package = Package(
       dependencies: [
         .product(name: "FlatBuffers", package: "flatbuffers"),
       ]),
+    .testTarget(
+      name: "FlexBuffers.Test.Swift.WasmTests",
+      dependencies: [
+        .product(name: "FlexBuffers", package: "flatbuffers"),
+      ])
   ])
