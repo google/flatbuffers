@@ -49,11 +49,7 @@ impl<'a> SafeBuffer<'a> {
     ) -> FlatbufferResult<Self> {
         let mut buf_loc_to_obj_idx = HashMap::new();
         verify_with_options(&buf, schema, opts, &mut buf_loc_to_obj_idx)?;
-        Ok(SafeBuffer {
-            buf,
-            schema,
-            buf_loc_to_obj_idx,
-        })
+        Ok(SafeBuffer { buf, schema, buf_loc_to_obj_idx })
     }
 
     /// Gets the root table in the buffer.
@@ -61,10 +57,7 @@ impl<'a> SafeBuffer<'a> {
         // SAFETY: the buffer was verified during construction.
         let table = unsafe { get_any_root(self.buf) };
 
-        SafeTable {
-            safe_buf: self,
-            loc: table.loc(),
-        }
+        SafeTable { safe_buf: self, loc: table.loc() }
     }
 
     fn find_field_by_name(
@@ -74,9 +67,7 @@ impl<'a> SafeBuffer<'a> {
     ) -> FlatbufferResult<Option<Field>> {
         Ok(self
             .get_all_fields(buf_loc)?
-            .lookup_by_key(field_name, |field: &Field<'_>, key| {
-                field.key_compare_with_value(key)
-            }))
+            .lookup_by_key(field_name, |field: &Field<'_>, key| field.key_compare_with_value(key)))
     }
 
     fn get_all_fields(&self, buf_loc: usize) -> FlatbufferResult<Vector<ForwardsUOffset<Field>>> {
@@ -154,10 +145,7 @@ impl<'a> SafeTable<'a> {
             // SAFETY: the buffer was verified during construction.
             let optional_st =
                 unsafe { get_field_struct(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
-            Ok(optional_st.map(|st| SafeStruct {
-                safe_buf: self.safe_buf,
-                loc: st.loc(),
-            }))
+            Ok(optional_st.map(|st| SafeStruct { safe_buf: self.safe_buf, loc: st.loc() }))
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -188,10 +176,7 @@ impl<'a> SafeTable<'a> {
             // SAFETY: the buffer was verified during construction.
             let optional_table =
                 unsafe { get_field_table(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
-            Ok(optional_table.map(|t| SafeTable {
-                safe_buf: self.safe_buf,
-                loc: t.loc(),
-            }))
+            Ok(optional_table.map(|t| SafeTable { safe_buf: self.safe_buf, loc: t.loc() }))
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -260,10 +245,7 @@ impl<'a> SafeStruct<'a> {
             let st = unsafe {
                 get_field_struct_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)?
             };
-            Ok(SafeStruct {
-                safe_buf: self.safe_buf,
-                loc: st.loc(),
-            })
+            Ok(SafeStruct { safe_buf: self.safe_buf, loc: st.loc() })
         } else {
             Err(FlatbufferError::FieldNotFound)
         }

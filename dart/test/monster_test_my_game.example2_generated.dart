@@ -4,12 +4,12 @@
 library my_game.example2;
 
 import 'dart:typed_data' show Uint8List;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import './monster_test_my_game_generated.dart' as my_game;
-import './monster_test_my_game.example_generated.dart' as my_game_example;
-
 import './include_test1_generated.dart';
+import './monster_test_my_game.example_generated.dart' as my_game_example;
+import './monster_test_my_game_generated.dart' as my_game;
 
 class Monster {
   Monster._(this._bc, this._bcOffset);
@@ -22,7 +22,6 @@ class Monster {
 
   final fb.BufferContext _bc;
   final int _bcOffset;
-
 
   @override
   String toString() {
@@ -54,12 +53,11 @@ class _MonsterReader extends fb.TableReader<Monster> {
   const _MonsterReader();
 
   @override
-  Monster createObject(fb.BufferContext bc, int offset) => 
-    Monster._(bc, offset);
+  Monster createObject(fb.BufferContext bc, int offset) =>
+      Monster._(bc, offset);
 }
 
 class MonsterObjectBuilder extends fb.ObjectBuilder {
-
   MonsterObjectBuilder();
 
   /// Finish building, and store into the [fbBuilder].

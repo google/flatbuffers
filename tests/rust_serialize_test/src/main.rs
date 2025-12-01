@@ -29,10 +29,7 @@ fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::Flat
             test: Some(
                 my_game::example::Monster::create(
                     builder,
-                    &my_game::example::MonsterArgs {
-                        name: Some(fred_name),
-                        ..Default::default()
-                    },
+                    &my_game::example::MonsterArgs { name: Some(fred_name), ..Default::default() },
                 )
                 .as_union_value(),
             ),

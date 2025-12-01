@@ -2,21 +2,22 @@
 
 package NamespaceA;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.nio.*;
+import java.util.*;
 
 public class SecondTableInAT {
   private NamespaceC.TableInCT referToC;
 
-  public NamespaceC.TableInCT getReferToC() { return referToC; }
+  public NamespaceC.TableInCT getReferToC() {
+    return referToC;
+  }
 
-  public void setReferToC(NamespaceC.TableInCT referToC) { this.referToC = referToC; }
-
+  public void setReferToC(NamespaceC.TableInCT referToC) {
+    this.referToC = referToC;
+  }
 
   public SecondTableInAT() {
     this.referToC = null;
   }
 }
-

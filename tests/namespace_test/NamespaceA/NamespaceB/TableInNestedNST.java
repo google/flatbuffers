@@ -2,21 +2,22 @@
 
 package NamespaceA.NamespaceB;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
 import com.google.flatbuffers.*;
+import java.nio.*;
+import java.util.*;
 
 public class TableInNestedNST {
   private int foo;
 
-  public int getFoo() { return foo; }
+  public int getFoo() {
+    return foo;
+  }
 
-  public void setFoo(int foo) { this.foo = foo; }
-
+  public void setFoo(int foo) {
+    this.foo = foo;
+  }
 
   public TableInNestedNST() {
     this.foo = 0;
   }
 }
-

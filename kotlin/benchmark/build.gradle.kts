@@ -8,6 +8,7 @@ plugins {
 }
 
 group = "com.google.flatbuffers.jmh"
+
 version = "2.0.0-SNAPSHOT"
 
 // Reads latest version from Java's runtime pom.xml,
@@ -15,10 +16,11 @@ version = "2.0.0-SNAPSHOT"
 // runtime
 fun readJavaFlatBufferVersion(): String {
   val pom = XmlParser().parse(File("../java/pom.xml"))
-  val versionTag = pom.children().find {
-    val node = it as groovy.util.Node
-    node.name().toString().contains("version")
-  } as groovy.util.Node
+  val versionTag =
+    pom.children().find {
+      val node = it as groovy.util.Node
+      node.name().toString().contains("version")
+    } as groovy.util.Node
   return versionTag.value().toString()
 }
 
@@ -39,27 +41,26 @@ benchmark {
       iterationTime = 300
       iterationTimeUnit = "ms"
       // uncomment for benchmarking JSON op only
-       include(".*FlatbufferBenchmark.*")
+      include(".*FlatbufferBenchmark.*")
     }
   }
-  targets {
-    register("jvm")
-  }
+  targets { register("jvm") }
 }
 
 kotlin {
   jvm {
     compilations {
-      val main by getting { }
+      val main by getting {}
       // custom benchmark compilation
-      val benchmarks by compilations.creating {
-        defaultSourceSet {
-          dependencies {
-            // Compile against the main compilation's compile classpath and outputs:
-            implementation(main.compileDependencyFiles + main.output.classesDirs)
+      val benchmarks by
+        compilations.creating {
+          defaultSourceSet {
+            dependencies {
+              // Compile against the main compilation's compile classpath and outputs:
+              implementation(main.compileDependencyFiles + main.output.classesDirs)
+            }
           }
         }
-      }
     }
   }
 
@@ -91,17 +92,13 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMultipleFi
 }
 
 abstract class GenerateFBTestClasses : DefaultTask() {
-  @get:InputFiles
-  abstract val inputFiles: ConfigurableFileCollection
+  @get:InputFiles abstract val inputFiles: ConfigurableFileCollection
 
-  @get:Input
-  abstract val includeFolder: Property<String>
+  @get:Input abstract val includeFolder: Property<String>
 
-  @get:Input
-  abstract val outputFolder: Property<String>
+  @get:Input abstract val outputFolder: Property<String>
 
-  @get:Input
-  abstract val variants: ListProperty<String>
+  @get:Input abstract val variants: ListProperty<String>
 
   @Inject
   protected open fun getExecActionFactory(): org.gradle.process.internal.ExecActionFactory? {
@@ -117,7 +114,7 @@ abstract class GenerateFBTestClasses : DefaultTask() {
     val execAction = getExecActionFactory()!!.newExecAction()
     val sources = inputFiles.asPath.split(":")
     val langs = variants.get().map { "--$it" }
-    val args = mutableListOf("flatc","-o", outputFolder.get(), *langs.toTypedArray())
+    val args = mutableListOf("flatc", "-o", outputFolder.get(), *langs.toTypedArray())
     if (includeFolder.get().isNotEmpty()) {
       args.add("-I")
       args.add(includeFolder.get())

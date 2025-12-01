@@ -1,9 +1,9 @@
 #include "alignment_test.h"
 
-#include "tests/alignment_test_generated.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/util.h"
 #include "test_assert.h"
+#include "tests/alignment_test_generated.h"
 
 namespace flatbuffers {
 namespace tests {
@@ -14,8 +14,8 @@ void AlignmentTest() {
   BadAlignmentLarge large;
   Offset<OuterLarge> outer_large = CreateOuterLarge(builder, &large);
 
-  BadAlignmentSmall *small;
-  Offset<Vector<const BadAlignmentSmall *>> small_offset =
+  BadAlignmentSmall* small;
+  Offset<Vector<const BadAlignmentSmall*>> small_offset =
       builder.CreateUninitializedVectorOfStructs(9, &small);
   (void)small;  // We do not have to write data to trigger the test failure
 
@@ -27,22 +27,19 @@ void AlignmentTest() {
   Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
   TEST_ASSERT(verifier.VerifyBuffer<BadAlignmentRoot>(nullptr));
 
-
   // ============= Test Small Structs Vector misalignment ========
 
   builder.Clear();
 
   // creating 5 structs with 2 bytes each
   // 10 bytes in total for Vector data is needed
-  std::vector<EvenSmallStruct> even_vector = { { 2, 1 }, { 3, 1 }, { 4, 1 } };
-  std::vector<OddSmallStruct> odd_vector = { { 6, 5, 4 },
-                                             { 9, 8, 7 },
-                                             { 1, 2, 3 } };
+  std::vector<EvenSmallStruct> even_vector = {{2, 1}, {3, 1}, {4, 1}};
+  std::vector<OddSmallStruct> odd_vector = {{6, 5, 4}, {9, 8, 7}, {1, 2, 3}};
   // CreateVectorOfStructs is used in the generated CreateSmallStructsDirect()
   // method, but we test it directly
-  Offset<Vector<const EvenSmallStruct *>> even_structs_offset =
+  Offset<Vector<const EvenSmallStruct*>> even_structs_offset =
       builder.CreateVectorOfStructs<EvenSmallStruct>(even_vector);
-  Offset<Vector<const OddSmallStruct *>> odd_structs_offset =
+  Offset<Vector<const OddSmallStruct*>> odd_structs_offset =
       builder.CreateVectorOfStructs<OddSmallStruct>(odd_vector);
   Offset<SmallStructs> small_structs_root =
       CreateSmallStructs(builder, even_structs_offset, odd_structs_offset);

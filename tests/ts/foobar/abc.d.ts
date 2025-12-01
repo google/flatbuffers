@@ -1,3 +1,3 @@
 export declare enum Abc {
-    a = 0
+  a = 0,
 }

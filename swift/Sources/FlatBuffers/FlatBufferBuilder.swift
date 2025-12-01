@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import Foundation
+
 #if canImport(Common)
 import Common
 #endif
-
-import Foundation
 
 /// ``FlatBufferBuilder`` builds a `FlatBuffer` through manipulating its internal state.
 ///
@@ -207,7 +207,9 @@ public struct FlatBufferBuilder {
       len: size &+ (prefix ? size : 0) &+ FileIdLength,
       alignment: _minAlignment)
     assert(fileId.count == FileIdLength, "Flatbuffers requires file id to be 4")
-    _bb.push(string: fileId, len: 4)
+    fileId.withCString { ptr in
+      _bb.writeBytes(ptr, len: 4)
+    }
     finish(offset: offset, addPrefix: prefix)
   }
 
@@ -355,9 +357,11 @@ public struct FlatBufferBuilder {
   @usableFromInline
   mutating internal func preAlign(len: Int, alignment: Int) {
     minAlignment(size: alignment)
-    _bb.fill(padding: numericCast(padding(
-      bufSize: numericCast(_bb.size) &+ numericCast(len),
-      elementSize: numericCast(alignment))))
+    _bb.fill(
+      padding: numericCast(
+        padding(
+          bufSize: numericCast(_bb.size) &+ numericCast(len),
+          elementSize: numericCast(alignment))))
   }
 
   /// Prealigns the buffer before writting a new object into the buffer
@@ -476,7 +480,7 @@ public struct FlatBufferBuilder {
     return endVector(len: size)
   }
 
-  #if swift(>=5.0) && !os(WASI)
+  #if !os(WASI)
   @inline(__always)
   /// Creates a vector of bytes in the buffer.
   ///
@@ -704,8 +708,9 @@ public struct FlatBufferBuilder {
     let len = str.utf8.count
     notNested()
     preAlign(len: len &+ 1, type: UOffset.self)
-    _bb.fill(padding: 1)
-    _bb.push(string: str, len: len)
+    str.withCString { ptr in
+      _bb.writeBytes(ptr, len: len &+ 1)
+    }
     push(element: UOffset(len))
     return Offset(offset: _bb.size)
   }
