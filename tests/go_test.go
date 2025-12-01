@@ -2573,3 +2573,21 @@ func BenchmarkBuildGold(b *testing.B) {
 		bldr.Finish(mon)
 	}
 }
+
+// Benchmark adding 130 bytes, one by one.
+// Unlike BenchmarkBuildGold, we create a new builder every time,
+// to test the performance of growing the buffer.
+func BenchmarkBuildAllocations(b *testing.B) {
+	b.SetBytes(130)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bldr := flatbuffers.NewBuilder(0)
+		for j := 0; j < 130; j++ {
+			bldr.PrependByte(byte(j))
+		}
+		if len(bldr.Bytes) != 256 {
+			b.Fatalf("expected buffer size=256, got %d", len(bldr.Bytes))
+		}
+	}
+}
