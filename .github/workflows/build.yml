@@ -51,7 +51,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: zip Linux.flatc.binary.${{ matrix.cxx }}.zip flatc
     - name: Release zip file
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: Linux.flatc.binary.${{ matrix.cxx }}.zip
@@ -179,7 +179,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: move Release/flatc.exe . && Compress-Archive flatc.exe Windows.flatc.binary.zip
     - name: Release binary
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: Windows.flatc.binary.zip
@@ -256,7 +256,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: mv Release/flatc . && zip MacIntel.flatc.binary.zip flatc
     - name: Release binary
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: MacIntel.flatc.binary.zip
@@ -299,7 +299,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: mv Release/flatc . && zip Mac.flatc.binary.zip flatc
     - name: Release binary
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: Mac.flatc.binary.zip
