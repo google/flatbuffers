@@ -504,8 +504,7 @@ jobs:
     strategy:
       matrix:
         swift: ["5.10", "6.1", "6.2"]
-    # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
     - uses: swift-actions/setup-swift@v2
