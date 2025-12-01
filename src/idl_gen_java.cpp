@@ -56,16 +56,17 @@ static Namer::Config JavaDefaultConfig() {
 
 static std::set<std::string> JavaKeywords() {
   return {
-      "abstract", "continue", "for",        "new",       "switch",
-      "assert",   "default",  "goto",       "package",   "synchronized",
-      "boolean",  "do",       "if",         "private",   "this",
-      "break",    "double",   "implements", "protected", "throw",
-      "byte",     "else",     "import",     "public",    "throws",
-      "case",     "enum",     "instanceof", "return",    "transient",
-      "catch",    "extends",  "int",        "short",     "try",
-      "char",     "final",    "interface",  "static",    "void",
-      "class",    "finally",  "long",       "strictfp",  "volatile",
-      "const",    "float",    "native",     "super",     "while",
+      "abstract", "assert",   "boolean",    "break",     "byte",
+      "case",     "catch",    "char",       "class",     "const",
+      "continue", "default",  "do",         "double",    "else",
+      "enum",     "extends",  "final",      "finally",   "float",
+      "for",      "goto",     "if",         "implements","import",
+      "instanceof","int",     "interface",  "long",      "native",
+      "new",      "notify",   "package",    "private",   "protected",
+      "public",   "return",   "short",      "static",    "strictfp",
+      "super",    "switch",   "synchronized","this",     "throw",
+      "throws",   "transient","try",        "void",      "volatile",
+      "while",
   };
 }
 
@@ -445,7 +446,8 @@ class JavaGenerator : public BaseGenerator {
       code += " ";
       code += namer_.Variant(ev) + " = ";
       code += enum_def.ToString(ev);
-      if (enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
+      if (enum_def.underlying_type.base_type == BASE_TYPE_UINT ||
+          enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
           enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
         code += "L";
       }

@@ -228,7 +228,7 @@ jobs:
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
-    runs-on: macos-latest-large
+    runs-on: macos-15-intel
     steps:
     - uses: actions/checkout@v3
     - name: cmake
@@ -500,23 +500,21 @@ jobs:
        sh phpUnionVectorTest.sh
 
   build-swift:
-    name: Test Swift
+    name: Test Swift Linux
     strategy:
       matrix:
-        swift: ["5.9", "5.10", "6.1"]
+        swift: ["5.10", "6.1", "6.2"]
     # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - uses: vapor/swiftly-action@v0.2
+    - uses: swift-actions/setup-swift@v2
       with:
-        toolchain: ${{ matrix.swift }}
+        swift-version: ${{ matrix.swift }}
     - name: Get swift version
       run: swift --version
     - name: test
-      run: |
-        swift build --build-tests
-        swift test
+      run: swift test
 
   build-swift-windows:
     name: Test swift windows
