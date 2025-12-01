@@ -1,0 +1,26 @@
+{
+    "_comment": "This file is used by PlatformIO to get the information it needs to use FlatBuffers as a dependency for a project.",
+    "name": "flatbuffers",
+    "version": "25.9.23",
+    "description": "FlatBuffers is a cross platform serialization library architected for maximum memory efficiency",
+    "keywords": "FlatBuffers, serialization",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/google/flatbuffers"
+    },
+    "authors": [
+      {
+        "name": "The FlatBuffers project",
+        "maintainer": true
+      }
+    ],
+    "license": "Apache-2.0",
+    "frameworks": "*",
+    "platforms": "*",
+    "build": {
+      "includeDir": "include",
+      "srcFilter": "-<*>"
+    }
+}
+
+
