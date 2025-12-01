@@ -15,17 +15,17 @@ repository.
 Before we can use your contributions, you __must__ sign one of the following license agreements. The agreements are self-served at the following links.
 
 Our code review process will automatically check if you have signed the CLA, so
-don't fret. Though it may be prudent to check before spending a lot of time on 
+don't fret. Though it may be prudent to check before spending a lot of time on
 contribution.
 
-### Individual Contributions 
+### Individual Contributions
 
 For individuals, the [Google Individual
 Contributor License Agreement
 (CLA)](https://cla.developers.google.com/about/google-individual?csw=1) which is
 self served at the link. The CLA is required since you own the copyright to your
 changes, even after your contribution becomes part of our codebase, so we need
-your permission to use and distribute your code. 
+your permission to use and distribute your code.
 
 ### Corporate Contributions
 
@@ -67,7 +67,7 @@ pip install mkdocs-material
 pip install mkdocs-redirects
 ```
 
-Then, in the `root` directory of flatbuffers, run 
+Then, in the `root` directory of flatbuffers, run
 
 ```
 mkdocs serve -f docs/mkdocs.yml

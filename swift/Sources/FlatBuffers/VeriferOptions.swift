@@ -39,7 +39,7 @@ public struct VerifierOptions {
   ///   - ignoreMissingNullTerminators: Ignoring missing null terminals in strings *Currently not supported in swift*
   public init(
     maxDepth: UOffset = 64,
-    maxTableCount: UOffset = 1000000,
+    maxTableCount: UOffset = 1_000_000,
     maxApparentSize: UOffset = 1 << 31,
     ignoreMissingNullTerminators: Bool = false)
   {

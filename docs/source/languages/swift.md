@@ -57,7 +57,7 @@ a data object from the server, which you can pass into the `GetRootAsMonster` fu
     let url = URL(fileURLWithPath: path, isDirectory: true).appendingPathComponent("monsterdata_test").appendingPathExtension("mon")
     guard let data = try? Data(contentsOf: url) else { return }
 
-    let monster = Monster.getRootAsMonster(bb: ByteBuffer(data: data))
+    let monster: Monster = try! getCheckedRoot(byteBuffer: &byteBuffer)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now you can access values like this:
@@ -81,7 +81,7 @@ In some cases it's necessary to modify values in an existing FlatBuffer in place
       fatalError("couldn't mutate")
     }
     // mutate a struct field using flatbuffers struct
-    // DONT use monster.pos to mutate since swift copy on write 
+    // DONT use monster.pos to mutate since swift copy on write
     // will not mutate the value in the buffer
     let vec = monster.mutablePos.mutate(z: 4)
 

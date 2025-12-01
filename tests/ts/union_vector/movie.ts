@@ -44,7 +44,7 @@ mainCharacter<T extends flatbuffers.Table>(obj:any|string):any|string|null {
 
 charactersType(index: number):Character|null {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : null;
 }
 
 charactersTypeLength():number {
@@ -67,7 +67,7 @@ charactersLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "Movie" {
   return 'Movie';
 }
 

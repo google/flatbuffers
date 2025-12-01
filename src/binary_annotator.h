@@ -57,7 +57,7 @@ enum class BinaryRegionType {
   UOffset64 = 18,
 };
 
-template<typename T>
+template <typename T>
 static inline std::string ToHex(T i, size_t width = sizeof(T)) {
   std::stringstream stream;
   stream << std::hex << std::uppercase << std::setfill('0')
@@ -205,52 +205,85 @@ struct BinarySection {
 
 inline static BinaryRegionType GetRegionType(reflection::BaseType base_type) {
   switch (base_type) {
-    case reflection::UType: return BinaryRegionType::UType;
-    case reflection::Bool: return BinaryRegionType::Uint8;
-    case reflection::Byte: return BinaryRegionType::Uint8;
-    case reflection::UByte: return BinaryRegionType::Uint8;
-    case reflection::Short: return BinaryRegionType::Int16;
-    case reflection::UShort: return BinaryRegionType::Uint16;
-    case reflection::Int: return BinaryRegionType::Uint32;
-    case reflection::UInt: return BinaryRegionType::Uint32;
-    case reflection::Long: return BinaryRegionType::Int64;
-    case reflection::ULong: return BinaryRegionType::Uint64;
-    case reflection::Float: return BinaryRegionType::Float;
-    case reflection::Double: return BinaryRegionType::Double;
-    default: return BinaryRegionType::Unknown;
+    case reflection::UType:
+      return BinaryRegionType::UType;
+    case reflection::Bool:
+      return BinaryRegionType::Uint8;
+    case reflection::Byte:
+      return BinaryRegionType::Uint8;
+    case reflection::UByte:
+      return BinaryRegionType::Uint8;
+    case reflection::Short:
+      return BinaryRegionType::Int16;
+    case reflection::UShort:
+      return BinaryRegionType::Uint16;
+    case reflection::Int:
+      return BinaryRegionType::Uint32;
+    case reflection::UInt:
+      return BinaryRegionType::Uint32;
+    case reflection::Long:
+      return BinaryRegionType::Int64;
+    case reflection::ULong:
+      return BinaryRegionType::Uint64;
+    case reflection::Float:
+      return BinaryRegionType::Float;
+    case reflection::Double:
+      return BinaryRegionType::Double;
+    default:
+      return BinaryRegionType::Unknown;
   }
 }
 
 inline static std::string ToString(const BinaryRegionType type) {
   switch (type) {
-    case BinaryRegionType::UOffset: return "UOffset32";
-    case BinaryRegionType::UOffset64: return "UOffset64";
-    case BinaryRegionType::SOffset: return "SOffset32";
-    case BinaryRegionType::VOffset: return "VOffset16";
-    case BinaryRegionType::Bool: return "bool";
-    case BinaryRegionType::Char: return "char";
-    case BinaryRegionType::Byte: return "int8_t";
-    case BinaryRegionType::Uint8: return "uint8_t";
-    case BinaryRegionType::Uint16: return "uint16_t";
-    case BinaryRegionType::Uint32: return "uint32_t";
-    case BinaryRegionType::Uint64: return "uint64_t";
-    case BinaryRegionType::Int8: return "int8_t";
-    case BinaryRegionType::Int16: return "int16_t";
-    case BinaryRegionType::Int32: return "int32_t";
-    case BinaryRegionType::Int64: return "int64_t";
-    case BinaryRegionType::Double: return "double";
-    case BinaryRegionType::Float: return "float";
-    case BinaryRegionType::UType: return "UType8";
-    case BinaryRegionType::Unknown: return "?uint8_t";
-    default: return "todo";
+    case BinaryRegionType::UOffset:
+      return "UOffset32";
+    case BinaryRegionType::UOffset64:
+      return "UOffset64";
+    case BinaryRegionType::SOffset:
+      return "SOffset32";
+    case BinaryRegionType::VOffset:
+      return "VOffset16";
+    case BinaryRegionType::Bool:
+      return "bool";
+    case BinaryRegionType::Char:
+      return "char";
+    case BinaryRegionType::Byte:
+      return "int8_t";
+    case BinaryRegionType::Uint8:
+      return "uint8_t";
+    case BinaryRegionType::Uint16:
+      return "uint16_t";
+    case BinaryRegionType::Uint32:
+      return "uint32_t";
+    case BinaryRegionType::Uint64:
+      return "uint64_t";
+    case BinaryRegionType::Int8:
+      return "int8_t";
+    case BinaryRegionType::Int16:
+      return "int16_t";
+    case BinaryRegionType::Int32:
+      return "int32_t";
+    case BinaryRegionType::Int64:
+      return "int64_t";
+    case BinaryRegionType::Double:
+      return "double";
+    case BinaryRegionType::Float:
+      return "float";
+    case BinaryRegionType::UType:
+      return "UType8";
+    case BinaryRegionType::Unknown:
+      return "?uint8_t";
+    default:
+      return "todo";
   }
 }
 
 class BinaryAnnotator {
  public:
-  explicit BinaryAnnotator(const uint8_t *const bfbs,
+  explicit BinaryAnnotator(const uint8_t* const bfbs,
                            const uint64_t bfbs_length,
-                           const uint8_t *const binary,
+                           const uint8_t* const binary,
                            const uint64_t binary_length,
                            const bool is_size_prefixed)
       : bfbs_(bfbs),
@@ -261,8 +294,8 @@ class BinaryAnnotator {
         binary_length_(binary_length),
         is_size_prefixed_(is_size_prefixed) {}
 
-  BinaryAnnotator(const reflection::Schema *schema,
-                  const std::string &root_table, const uint8_t *binary,
+  BinaryAnnotator(const reflection::Schema* schema,
+                  const std::string& root_table, const uint8_t* binary,
                   uint64_t binary_length, bool is_size_prefixed)
       : bfbs_(nullptr),
         bfbs_length_(0),
@@ -277,11 +310,11 @@ class BinaryAnnotator {
  private:
   struct VTable {
     struct Entry {
-      const reflection::Field *field = nullptr;
+      const reflection::Field* field = nullptr;
       uint16_t offset_from_table = 0;
     };
 
-    const reflection::Object *referring_table = nullptr;
+    const reflection::Object* referring_table = nullptr;
 
     // Field ID -> {field def, offset from table}
     std::map<uint16_t, Entry> fields;
@@ -296,25 +329,25 @@ class BinaryAnnotator {
   // attempts to get an existing vtable given the offset and table type,
   // otherwise it will built the vtable, memorize it, and return the built
   // VTable. Returns nullptr if building the VTable fails.
-  VTable *GetOrBuildVTable(uint64_t offset, const reflection::Object *table,
+  VTable* GetOrBuildVTable(uint64_t offset, const reflection::Object* table,
                            uint64_t offset_of_referring_table);
 
   void BuildTable(uint64_t offset, const BinarySectionType type,
-                  const reflection::Object *table);
+                  const reflection::Object* table);
 
-  uint64_t BuildStruct(uint64_t offset, std::vector<BinaryRegion> &regions,
+  uint64_t BuildStruct(uint64_t offset, std::vector<BinaryRegion>& regions,
                        const std::string referring_field_name,
-                       const reflection::Object *structure);
+                       const reflection::Object* structure);
 
-  void BuildString(uint64_t offset, const reflection::Object *table,
-                   const reflection::Field *field);
+  void BuildString(uint64_t offset, const reflection::Object* table,
+                   const reflection::Field* field);
 
-  void BuildVector(uint64_t offset, const reflection::Object *table,
-                   const reflection::Field *field, uint64_t parent_table_offset,
+  void BuildVector(uint64_t offset, const reflection::Object* table,
+                   const reflection::Field* field, uint64_t parent_table_offset,
                    const std::map<uint16_t, VTable::Entry> vtable_fields);
 
   std::string BuildUnion(uint64_t offset, uint8_t realized_type,
-                         const reflection::Field *field);
+                         const reflection::Field* field);
 
   void FixMissingRegions();
   void FixMissingSections();
@@ -325,7 +358,8 @@ class BinaryAnnotator {
 
   // Determines if performing a GetScalar request for `T` at `offset` would read
   // passed the end of the binary.
-  template<typename T> inline bool IsValidRead(const uint64_t offset) const {
+  template <typename T>
+  inline bool IsValidRead(const uint64_t offset) const {
     return IsValidRead(offset, sizeof(T));
   }
 
@@ -339,9 +373,11 @@ class BinaryAnnotator {
     return IsValidOffset(offset) ? binary_length_ - offset : 0;
   }
 
-  template<typename T>
+  template <typename T>
   flatbuffers::Optional<T> ReadScalar(const uint64_t offset) const {
-    if (!IsValidRead<T>(offset)) { return flatbuffers::nullopt; }
+    if (!IsValidRead<T>(offset)) {
+      return flatbuffers::nullopt;
+    }
 
     return flatbuffers::ReadScalar<T>(binary_ + offset);
   }
@@ -349,11 +385,11 @@ class BinaryAnnotator {
   // Adds the provided `section` keyed by the `offset` it occurs at. If a
   // section is already added at that offset, it doesn't replace the existing
   // one.
-  void AddSection(const uint64_t offset, const BinarySection &section) {
+  void AddSection(const uint64_t offset, const BinarySection& section) {
     sections_.insert(std::make_pair(offset, section));
   }
 
-  bool IsInlineField(const reflection::Field *const field) {
+  bool IsInlineField(const reflection::Field* const field) {
     if (field->type()->base_type() == reflection::BaseType::Obj) {
       return schema_->objects()->Get(field->type()->index())->is_struct();
     }
@@ -365,28 +401,32 @@ class BinaryAnnotator {
             type == reflection::BaseType::Union);
   }
 
-  bool IsUnionType(const reflection::Field *const field) {
+  bool IsUnionType(const reflection::Field* const field) {
     return IsUnionType(field->type()->base_type()) &&
            field->type()->index() >= 0;
   }
 
-  bool IsValidUnionValue(const reflection::Field *const field,
+  bool IsValidUnionValue(const reflection::Field* const field,
                          const uint8_t value) {
     return IsUnionType(field) &&
            IsValidUnionValue(field->type()->index(), value);
   }
 
   bool IsValidUnionValue(const uint32_t enum_id, const uint8_t value) {
-    if (enum_id >= schema_->enums()->size()) { return false; }
+    if (enum_id >= schema_->enums()->size()) {
+      return false;
+    }
 
-    const reflection::Enum *enum_def = schema_->enums()->Get(enum_id);
+    const reflection::Enum* enum_def = schema_->enums()->Get(enum_id);
 
-    if (enum_def == nullptr) { return false; }
+    if (enum_def == nullptr) {
+      return false;
+    }
 
     return value < enum_def->values()->size();
   }
 
-  uint64_t GetElementSize(const reflection::Field *const field) {
+  uint64_t GetElementSize(const reflection::Field* const field) {
     if (IsScalar(field->type()->element())) {
       return GetTypeSize(field->type()->element());
     }
@@ -396,22 +436,23 @@ class BinaryAnnotator {
         auto obj = schema_->objects()->Get(field->type()->index());
         return obj->is_struct() ? obj->bytesize() : sizeof(uint32_t);
       }
-      default: return sizeof(uint32_t);
+      default:
+        return sizeof(uint32_t);
     }
   }
 
   bool ContainsSection(const uint64_t offset);
 
-  const reflection::Object *RootTable() const;
+  const reflection::Object* RootTable() const;
 
   // The schema for the binary file
-  const uint8_t *bfbs_;
+  const uint8_t* bfbs_;
   const uint64_t bfbs_length_;
-  const reflection::Schema *schema_;
+  const reflection::Schema* schema_;
   const std::string root_table_;
 
   // The binary data itself.
-  const uint8_t *binary_;
+  const uint8_t* binary_;
   const uint64_t binary_length_;
   const bool is_size_prefixed_;
 

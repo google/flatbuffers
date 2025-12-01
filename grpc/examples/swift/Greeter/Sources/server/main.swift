@@ -52,8 +52,9 @@ class Greeter: models_GreeterProvider {
   {
     for name in greetings {
       var builder = FlatBufferBuilder()
-      let off = builder
-        .create(string: "\(name) \(request.object.name ?? "Unknown")")
+      let off =
+        builder
+          .create(string: "\(name) \(request.object.name ?? "Unknown")")
       let root = models_HelloReply.createHelloReply(
         &builder,
         messageOffset: off)

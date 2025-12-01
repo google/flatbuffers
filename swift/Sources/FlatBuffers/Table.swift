@@ -16,6 +16,10 @@
 
 import Foundation
 
+#if canImport(Common)
+import Common
+#endif
+
 /// `Table` is a Flatbuffers object that can read,
 /// mutate scalar fields within a valid flatbuffers buffer
 @frozen
@@ -46,11 +50,14 @@ public struct Table {
   /// - Parameter o: current offset
   /// - Returns: offset of field within buffer
   public func offset(_ o: Int32) -> Int32 {
-    let vtable = position - bb.read(def: Int32.self, position: Int(position))
-    return o < bb
-      .read(def: VOffset.self, position: Int(vtable)) ? Int32(bb.read(
-        def: Int16.self,
-        position: Int(vtable + o))) : 0
+    let vtable = position &- bb.read(def: Int32.self, position: Int(position))
+    return o
+      < bb
+      .read(def: VOffset.self, position: Int(vtable))
+      ? Int32(
+        bb.read(
+          def: Int16.self,
+          position: Int(vtable &+ o))) : 0
   }
 
   /// Gets the indirect offset of the current stored object
@@ -58,24 +65,16 @@ public struct Table {
   /// - Parameter o: current offset
   /// - Returns: offset of field within buffer
   public func indirect(_ o: Int32) -> Int32 {
-    o + bb.read(def: Int32.self, position: Int(o))
+    o &+ bb.read(def: Int32.self, position: Int(o))
   }
 
   /// String reads from the buffer with respect to position of the current table.
   /// - Parameter offset: Offset of the string
   public func string(at offset: Int32) -> String? {
-    directString(at: offset + position)
-  }
-
-  /// Direct string reads from the buffer disregarding the position of the table.
-  /// It would be preferable to use string unless the current position of the table
-  /// is not needed
-  /// - Parameter offset: Offset of the string
-  public func directString(at offset: Int32) -> String? {
-    var offset = offset
-    offset += bb.read(def: Int32.self, position: Int(offset))
+    var offset = offset &+ position
+    offset &+= bb.read(def: Int32.self, position: Int(offset))
     let count = bb.read(def: Int32.self, position: Int(offset))
-    let position = Int(offset) + MemoryLayout<Int32>.size
+    let position = Int(offset) &+ MemoryLayout<Int32>.size
     return bb.readString(at: position, count: Int(count))
   }
 
@@ -84,25 +83,7 @@ public struct Table {
   ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
   public func readBuffer<T>(of type: T.Type, at o: Int32) -> T {
-    directRead(of: T.self, offset: o + position)
-  }
-
-  /// Reads from the buffer disregarding the position of the table.
-  /// It would be used when reading from an
-  ///   ```
-  ///   let offset = __t.offset(10)
-  ///   //Only used when the we already know what is the
-  ///   // position in the table since __t.vector(at:)
-  ///   // returns the index with respect to the position
-  ///   __t.directRead(of: Byte.self,
-  ///                  offset: __t.vector(at: offset) + index * 1)
-  ///   ```
-  /// - Parameters:
-  ///   - type: Type of Element that needs to be read from the buffer
-  ///   - o: Offset of the Element
-  public func directRead<T>(of type: T.Type, offset o: Int32) -> T {
-    let r = bb.read(def: T.self, position: Int(o))
-    return r
+    bb.read(def: T.self, position: Int(o &+ position))
   }
 
   /// Returns that current `Union` object at a specific offset
@@ -110,7 +91,7 @@ public struct Table {
   /// - Parameter o: offset
   /// - Returns: A flatbuffers object
   public func union<T: FlatbuffersInitializable>(_ o: Int32) -> T {
-    let o = o + position
+    let o = o &+ position
     return directUnion(o)
   }
 
@@ -118,7 +99,7 @@ public struct Table {
   /// - Parameter o: offset
   /// - Returns: A flatbuffers object
   public func directUnion<T: FlatbuffersInitializable>(_ o: Int32) -> T {
-    T.init(bb, o: o + bb.read(def: Int32.self, position: Int(o)))
+    T.init(bb, o: o &+ bb.read(def: Int32.self, position: Int(o)))
   }
 
   /// Returns a vector of type T at a specific offset
@@ -131,13 +112,59 @@ public struct Table {
     return bb.readSlice(index: Int(vector(at: o)), count: Int(vector(count: o)))
   }
 
+  public func vector<T>(at off: Int32, byteSize: Int) -> FlatbufferVector<T> {
+    let off = offset(off)
+    return FlatbufferVector(
+      bb: bb,
+      startPosition: vector(at: off),
+      count: Int(count(offset: off)),
+      byteSize: byteSize)
+  }
+
+  public func unionVector(
+    at off: Int32,
+    byteSize: Int) -> UnionFlatbufferVector
+  {
+    let off = offset(off)
+    return UnionFlatbufferVector(
+      bb: bb,
+      startPosition: vector(at: off),
+      count: Int(count(offset: off)),
+      byteSize: byteSize)
+  }
+
+  private func count(offset: Int32) -> Int32 {
+    if offset == 0 {
+      return 0
+    }
+    return vector(count: offset)
+  }
+
+  /// Returns the underlying pointer to a vector within the buffer
+  /// This should only be used by `Scalars`
+  /// - Parameter off: Readable offset
+  /// - Returns: Returns a pointer to the underlying data
+  @inline(__always)
+  public func withUnsafePointerToSlice<T>(
+    at off: Int32,
+    body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T?
+  {
+    let o = offset(off)
+    guard o != 0 else { return nil }
+    let count = Int(vector(count: o))
+    return try bb.withUnsafePointerToSlice(
+      index: Int(vector(at: o)),
+      count: count,
+      body: { try body($0, count) })
+  }
+
   /// Vector count gets the count of Elements within the array
   /// - Parameter o: start offset of the vector
   /// - returns: Count of elements
   public func vector(count o: Int32) -> Int32 {
     var o = o
-    o += position
-    o += bb.read(def: Int32.self, position: Int(o))
+    o &+= position
+    o &+= bb.read(def: Int32.self, position: Int(o))
     return bb.read(def: Int32.self, position: Int(o))
   }
 
@@ -146,8 +173,8 @@ public struct Table {
   /// - returns: the start index of the vector
   public func vector(at o: Int32) -> Int32 {
     var o = o
-    o += position
-    return o + bb.read(def: Int32.self, position: Int(o)) + 4
+    o &+= position
+    return o &+ bb.read(def: Int32.self, position: Int(o)) &+ 4
   }
 
   /// Reading an indirect offset of a table.
@@ -156,7 +183,7 @@ public struct Table {
   ///   - fbb: ByteBuffer
   /// - Returns: table offset
   static public func indirect(_ o: Int32, _ fbb: ByteBuffer) -> Int32 {
-    o + fbb.read(def: Int32.self, position: Int(o))
+    o &+ fbb.read(def: Int32.self, position: Int(o))
   }
 
   /// Gets a vtable value according to an table Offset and a field offset
@@ -165,17 +192,22 @@ public struct Table {
   ///   - vOffset: Field offset within a vtable
   ///   - fbb: ByteBuffer
   /// - Returns: an position of a field
+  @inline(__always)
   static public func offset(
     _ o: Int32,
     vOffset: Int32,
-    fbb: ByteBuffer) -> Int32
+    fbb: inout FlatBufferBuilder) -> Int32
   {
-    let vTable = Int32(fbb.capacity) - o
-    return vTable + Int32(fbb.read(
-      def: Int16.self,
-      position: Int(vTable + vOffset - fbb.read(
-        def: Int32.self,
-        position: Int(vTable)))))
+    let vTable = Int32(fbb.capacity) &- o
+    return vTable
+      &+ Int32(
+        fbb.read(
+          def: Int16.self,
+          position: Int(
+            vTable &+ vOffset
+              &- fbb.read(
+                def: Int32.self,
+                position: Int(vTable)))))
   }
 
   /// Compares two objects at offset A and offset B within a ByteBuffer
@@ -184,27 +216,28 @@ public struct Table {
   ///   - off2: second offset to compare
   ///   - fbb: Bytebuffer
   /// - Returns: returns the difference between
+  @inline(__always)
   static public func compare(
     _ off1: Int32,
     _ off2: Int32,
-    fbb: ByteBuffer) -> Int32
+    fbb: inout FlatBufferBuilder) -> Int32
   {
     let memorySize = Int32(MemoryLayout<Int32>.size)
-    let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))
-    let _off2 = off2 + fbb.read(def: Int32.self, position: Int(off2))
+    let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
+    let _off2 = off2 &+ fbb.read(def: Int32.self, position: Int(off2))
     let len1 = fbb.read(def: Int32.self, position: Int(_off1))
     let len2 = fbb.read(def: Int32.self, position: Int(_off2))
-    let startPos1 = _off1 + memorySize
-    let startPos2 = _off2 + memorySize
+    let startPos1 = _off1 &+ memorySize
+    let startPos2 = _off2 &+ memorySize
     let minValue = min(len1, len2)
     for i in 0...minValue {
-      let b1 = fbb.read(def: Int8.self, position: Int(i + startPos1))
-      let b2 = fbb.read(def: Int8.self, position: Int(i + startPos2))
+      let b1 = fbb.read(def: Int8.self, position: Int(i &+ startPos1))
+      let b2 = fbb.read(def: Int8.self, position: Int(i &+ startPos2))
       if b1 != b2 {
-        return Int32(b2 - b1)
+        return Int32(b2 &- b1)
       }
     }
-    return len1 - len2
+    return len1 &- len2
   }
 
   /// Compares two objects at offset A and array of `Bytes` within a ByteBuffer
@@ -213,24 +246,107 @@ public struct Table {
   ///   - key: bytes array to compare to
   ///   - fbb: Bytebuffer
   /// - Returns: returns the difference between
+  @inline(__always)
+  static public func compare(
+    _ off1: Int32,
+    _ key: [Byte],
+    fbb: inout FlatBufferBuilder) -> Int32
+  {
+    let memorySize = Int32(MemoryLayout<Int32>.size)
+    let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
+    let len1 = fbb.read(def: Int32.self, position: Int(_off1))
+    let len2 = Int32(key.count)
+    let startPos1 = _off1 &+ memorySize
+    let minValue = min(len1, len2)
+    for i in 0..<minValue {
+      let b = fbb.read(def: Int8.self, position: Int(i &+ startPos1))
+      let byte = key[Int(i)]
+      if b != byte {
+        return Int32(b &- Int8(byte))
+      }
+    }
+    return len1 &- len2
+  }
+
+  /// Gets a vtable value according to an table Offset and a field offset
+  /// - Parameters:
+  ///   - o: offset relative to entire buffer
+  ///   - vOffset: Field offset within a vtable
+  ///   - fbb: ByteBuffer
+  /// - Returns: an position of a field
+  @inline(__always)
+  static public func offset(
+    _ o: Int32,
+    vOffset: Int32,
+    fbb: ByteBuffer) -> Int32
+  {
+    let vTable = Int32(fbb.capacity) &- o
+    return vTable
+      &+ Int32(
+        fbb.read(
+          def: Int16.self,
+          position: Int(
+            vTable &+ vOffset
+              &- fbb.read(
+                def: Int32.self,
+                position: Int(vTable)))))
+  }
+
+  /// Compares two objects at offset A and offset B within a ByteBuffer
+  /// - Parameters:
+  ///   - off1: first offset to compare
+  ///   - off2: second offset to compare
+  ///   - fbb: Bytebuffer
+  /// - Returns: returns the difference between
+  @inline(__always)
+  static public func compare(
+    _ off1: Int32,
+    _ off2: Int32,
+    fbb: ByteBuffer) -> Int32
+  {
+    let memorySize = Int32(MemoryLayout<Int32>.size)
+    let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
+    let _off2 = off2 &+ fbb.read(def: Int32.self, position: Int(off2))
+    let len1 = fbb.read(def: Int32.self, position: Int(_off1))
+    let len2 = fbb.read(def: Int32.self, position: Int(_off2))
+    let startPos1 = _off1 &+ memorySize
+    let startPos2 = _off2 &+ memorySize
+    let minValue = min(len1, len2)
+    for i in 0...minValue {
+      let b1 = fbb.read(def: Int8.self, position: Int(i &+ startPos1))
+      let b2 = fbb.read(def: Int8.self, position: Int(i &+ startPos2))
+      if b1 != b2 {
+        return Int32(b2 &- b1)
+      }
+    }
+    return len1 &- len2
+  }
+
+  /// Compares two objects at offset A and array of `Bytes` within a ByteBuffer
+  /// - Parameters:
+  ///   - off1: Offset to compare to
+  ///   - key: bytes array to compare to
+  ///   - fbb: Bytebuffer
+  /// - Returns: returns the difference between
+  @inline(__always)
   static public func compare(
     _ off1: Int32,
     _ key: [Byte],
     fbb: ByteBuffer) -> Int32
   {
     let memorySize = Int32(MemoryLayout<Int32>.size)
-    let _off1 = off1 + fbb.read(def: Int32.self, position: Int(off1))
+    let _off1 = off1 &+ fbb.read(def: Int32.self, position: Int(off1))
     let len1 = fbb.read(def: Int32.self, position: Int(_off1))
     let len2 = Int32(key.count)
-    let startPos1 = _off1 + memorySize
+    let startPos1 = _off1 &+ memorySize
     let minValue = min(len1, len2)
     for i in 0..<minValue {
-      let b = fbb.read(def: Int8.self, position: Int(i + startPos1))
+      let b = fbb.read(def: Int8.self, position: Int(i &+ startPos1))
       let byte = key[Int(i)]
       if b != byte {
-        return Int32(b - Int8(byte))
+        return Int32(b &- Int8(byte))
       }
     }
-    return len1 - len2
+    return len1 &- len2
   }
 }

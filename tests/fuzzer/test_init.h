@@ -9,9 +9,9 @@
 struct OneTimeTestInit {
   // Declare trap for the Flatbuffers test engine.
   // This hook terminate program both in Debug and Release.
-  static bool TestFailListener(const char *expval, const char *val,
-                               const char *exp, const char *file, int line,
-                               const char *func = nullptr) {
+  static bool TestFailListener(const char* expval, const char* val,
+                               const char* exp, const char* file, int line,
+                               const char* func = nullptr) {
     (void)expval;
     (void)val;
     (void)exp;
@@ -39,7 +39,7 @@ struct OneTimeTestInit {
     }
   }
 
-  static const char *test_locale() {
+  static const char* test_locale() {
     return one_time_init_.has_locale_ ? nullptr
                                       : one_time_init_.test_locale_.c_str();
   }

@@ -3,15 +3,15 @@
 #include <assert.h>
 
 #ifdef _MSC_VER
-#  include <crtdbg.h>
-#  include <windows.h>
+#include <crtdbg.h>
+#include <windows.h>
 #endif
 
 int testing_fails = 0;
 static TestFailEventListener fail_listener_ = nullptr;
 
-void TestFail(const char *expval, const char *val, const char *exp,
-              const char *file, int line, const char *func) {
+void TestFail(const char* expval, const char* val, const char* exp,
+              const char* file, int line, const char* func) {
   TEST_OUTPUT_LINE("EXPECTED: \"%s\"", expval);
   TEST_OUTPUT_LINE("VALUE: \"%s\"", val);
   TEST_OUTPUT_LINE("TEST FAILED: %s:%d, %s in %s", file, line, exp,
@@ -24,8 +24,8 @@ void TestFail(const char *expval, const char *val, const char *exp,
   assert(0);  // ignored in Release if NDEBUG defined
 }
 
-void TestEqStr(const char *expval, const char *val, const char *exp,
-               const char *file, int line, const char *func) {
+void TestEqStr(const char* expval, const char* val, const char* exp,
+               const char* file, int line, const char* func) {
   if (strcmp(expval, val) != 0) {
     TestFail(expval, val, exp, file, line, func);
   }
@@ -33,7 +33,7 @@ void TestEqStr(const char *expval, const char *val, const char *exp,
 
 #if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_MSC_VER) && \
     defined(_DEBUG)
-#  define FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC
+#define FLATBUFFERS_MEMORY_LEAK_TRACKING_MSVC
 #endif
 
 void InitTestEngine(TestFailEventListener listener) {
