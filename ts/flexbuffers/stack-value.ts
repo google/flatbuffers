@@ -1,13 +1,17 @@
-import { Builder } from './builder.js'
-import { BitWidth } from './bit-width.js'
-import { paddingSize, uwidth, fromByteWidth } from './bit-width-util.js'
-import { ValueType } from './value-type.js'
-import { isInline, packedType } from './value-type-util.js'
+import {fromByteWidth, paddingSize, uwidth} from './bit-width-util.js';
+import {BitWidth} from './bit-width.js';
+import {Builder} from './builder.js';
+import {isInline, packedType} from './value-type-util.js';
+import {ValueType} from './value-type.js';
 
 export class StackValue {
-  constructor(private builder: Builder, public type: ValueType, public width: number, public value: number | boolean | null = null, public offset: number = 0) {
-
-  }
+  constructor(
+    private builder: Builder,
+    public type: ValueType,
+    public width: number,
+    public value: number | boolean | null = null,
+    public offset: number = 0,
+  ) {}
 
   elementWidth(size: number, index: number): BitWidth {
     if (isInline(this.type)) return this.width;
@@ -27,9 +31,17 @@ export class StackValue {
     const newOffset = this.builder.computeOffset(byteWidth);
     if (this.type === ValueType.FLOAT) {
       if (this.width === BitWidth.WIDTH32) {
-        this.builder.view.setFloat32(this.builder.offset, this.value as number, true);
+        this.builder.view.setFloat32(
+          this.builder.offset,
+          this.value as number,
+          true,
+        );
       } else {
-        this.builder.view.setFloat64(this.builder.offset, this.value as number, true);
+        this.builder.view.setFloat64(
+          this.builder.offset,
+          this.value as number,
+          true,
+        );
       }
     } else if (this.type === ValueType.INT) {
       const bitWidth = fromByteWidth(byteWidth);
@@ -42,7 +54,7 @@ export class StackValue {
     } else if (this.type === ValueType.BOOL) {
       this.builder.pushInt(this.value ? 1 : 0, this.width);
     } else {
-      throw `Unexpected type: ${this.type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`
+      throw `Unexpected type: ${this.type}. This might be a bug. Please create an issue https://github.com/google/flatbuffers/issues/new`;
     }
     this.offset = newOffset;
   }
@@ -56,6 +68,6 @@ export class StackValue {
   }
 
   isOffset(): boolean {
-    return !isInline(this.type)
+    return !isInline(this.type);
   }
 }

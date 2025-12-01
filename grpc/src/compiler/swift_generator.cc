@@ -20,34 +20,35 @@
  * please open an issue in the flatbuffers repository. This file should always
  * be maintained according to the Swift-grpc repository
  */
+#include "src/compiler/swift_generator.h"
+
 #include <map>
 #include <sstream>
 
 #include "flatbuffers/util.h"
 #include "src/compiler/schema_interface.h"
-#include "src/compiler/swift_generator.h"
 
 namespace grpc_swift_generator {
 namespace {
 
-static std::string WrapInNameSpace(const std::vector<std::string> &components,
-                            const grpc::string &name) {
+static std::string WrapInNameSpace(const std::vector<std::string>& components,
+                                   const grpc::string& name) {
   std::string qualified_name;
   for (auto it = components.begin(); it != components.end(); ++it)
     qualified_name += *it + "_";
   return qualified_name + name;
 }
 
-static grpc::string GenerateMessage(const std::vector<std::string> &components,
-                             const grpc::string &name) {
+static grpc::string GenerateMessage(const std::vector<std::string>& components,
+                                    const grpc::string& name) {
   return "Message<" + WrapInNameSpace(components, name) + ">";
 }
 
 // MARK: - Client
 
-static void GenerateClientFuncName(const grpc_generator::Method *method,
-                            grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
+static void GenerateClientFuncName(
+    const grpc_generator::Method* method, grpc_generator::Printer* printer,
+    std::map<grpc::string, grpc::string>* dictonary) {
   auto vars = *dictonary;
   if (method->NoStreaming()) {
     printer->Print(vars,
@@ -83,9 +84,9 @@ static void GenerateClientFuncName(const grpc_generator::Method *method,
                  "  ) -> BidirectionalStreamingCall<$Input$, $Output$>");
 }
 
-static void GenerateClientFuncBody(const grpc_generator::Method *method,
-                            grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
+static void GenerateClientFuncBody(
+    const grpc_generator::Method* method, grpc_generator::Printer* printer,
+    std::map<grpc::string, grpc::string>* dictonary) {
   auto vars = *dictonary;
   vars["Interceptor"] =
       "interceptors: self.interceptors?.make$MethodName$Interceptors() ?? []";
@@ -133,9 +134,9 @@ static void GenerateClientFuncBody(const grpc_generator::Method *method,
                  "    )\n");
 }
 
-void GenerateClientProtocol(const grpc_generator::Service *service,
-                            grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
+void GenerateClientProtocol(const grpc_generator::Service* service,
+                            grpc_generator::Printer* printer,
+                            std::map<grpc::string, grpc::string>* dictonary) {
   auto vars = *dictonary;
   printer->Print(
       vars,
@@ -207,8 +208,8 @@ void GenerateClientProtocol(const grpc_generator::Service *service,
   printer->Print("}\n\n");
 }
 
-void GenerateClientClass(grpc_generator::Printer *printer,
-                         std::map<grpc::string, grpc::string> *dictonary) {
+void GenerateClientClass(grpc_generator::Printer* printer,
+                         std::map<grpc::string, grpc::string>* dictonary) {
   auto vars = *dictonary;
   printer->Print(vars,
                  "$ACCESS$ final class $ServiceQualifiedName$ServiceClient: "
@@ -237,7 +238,7 @@ void GenerateClientClass(grpc_generator::Printer *printer,
 
 // MARK: - Server
 
-grpc::string GenerateServerFuncName(const grpc_generator::Method *method) {
+grpc::string GenerateServerFuncName(const grpc_generator::Method* method) {
   if (method->NoStreaming()) {
     return "func $MethodName$(request: $Input$"
            ", context: StatusOnlyCallContext) -> EventLoopFuture<$Output$>";
@@ -258,7 +259,7 @@ grpc::string GenerateServerFuncName(const grpc_generator::Method *method) {
          "-> EventLoopFuture<(StreamEvent<$Input$>) -> Void>";
 }
 
-grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
+grpc::string GenerateServerExtensionBody(const grpc_generator::Method* method) {
   grpc::string start = "    case \"$MethodName$\":\n    ";
   grpc::string interceptors =
       "      interceptors: self.interceptors?.make$MethodName$Interceptors() "
@@ -302,9 +303,9 @@ grpc::string GenerateServerExtensionBody(const grpc_generator::Method *method) {
   return "";
 }
 
-void GenerateServerProtocol(const grpc_generator::Service *service,
-                            grpc_generator::Printer *printer,
-                            std::map<grpc::string, grpc::string> *dictonary) {
+void GenerateServerProtocol(const grpc_generator::Service* service,
+                            grpc_generator::Printer* printer,
+                            std::map<grpc::string, grpc::string>* dictonary) {
   auto vars = *dictonary;
   printer->Print(vars,
                  "$ACCESS$ protocol $ServiceQualifiedName$Provider: "
@@ -373,14 +374,16 @@ void GenerateServerProtocol(const grpc_generator::Service *service,
   }
   printer->Print("}");
 }
-} // namespace
+}  // namespace
 
-grpc::string Generate(grpc_generator::File *file,
-                      const grpc_generator::Service *service) {
+grpc::string Generate(grpc_generator::File* file,
+                      const grpc_generator::Service* service) {
   grpc::string output;
   std::map<grpc::string, grpc::string> vars;
   vars["PATH"] = file->package();
-  if (!file->package().empty()) { vars["PATH"].append("."); }
+  if (!file->package().empty()) {
+    vars["PATH"].append(".");
+  }
   vars["ServiceQualifiedName"] =
       WrapInNameSpace(service->namespace_parts(), service->name());
   vars["ServiceName"] = service->name();
@@ -394,6 +397,8 @@ grpc::string Generate(grpc_generator::File *file,
   GenerateClientClass(&*printer, &vars);
   printer->Print("\n");
   GenerateServerProtocol(service, &*printer, &vars);
+  printer->Print("\n");
+  printer->Print("#endif\n");
   return output;
 }
 
@@ -409,6 +414,7 @@ grpc::string GenerateHeader() {
   code += "// swiftlint:disable all\n";
   code += "// swiftformat:disable all\n";
   code += "\n";
+  code += "#if !os(Windows)\n";
   code += "import Foundation\n";
   code += "import GRPC\n";
   code += "import NIO\n";

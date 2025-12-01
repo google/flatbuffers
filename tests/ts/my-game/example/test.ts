@@ -33,7 +33,7 @@ mutate_b(value:number):boolean {
   return true;
 }
 
-static getFullyQualifiedName():string {
+static getFullyQualifiedName(): "MyGame.Example.Test" {
   return 'MyGame.Example.Test';
 }
 

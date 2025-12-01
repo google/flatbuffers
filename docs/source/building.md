@@ -89,6 +89,17 @@ CC=clang PATH=$PATH:$(pwd)/swift-${SWIFT_VERSION}-RELEASE-debian12/usr/bin bazel
 
 If you are unsure which versions to use, check our CI config at `.bazelci/presubmit.yml`.
 
+## Building with Conan
+
+You can download and install flatbuffers using the [Conan](https://conan.io/) dependency manager:
+
+    conan install --requires="flatbuffers/[*]" --build=missing
+
+The flatbuffers package in Conan Center is maintained by
+[ConanCenterIndex](https://github.com/conan-io/conan-center-index) community.
+If the version is out of date or the package does not work,
+please create an issue or pull request on the [Conan Center Index repository](https://github.com/conan-io/conan-center-index).
+
 ## Building with VCPKG
 
 You can download and install flatbuffers using the [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
@@ -152,11 +163,11 @@ add_subdirectory(${FLATBUFFERS_SRC_DIR}
 # The flatbuffers target carry header search path automatically if CMake > 2.8.11.
 target_link_libraries(own_project_target PRIVATE flatbuffers)
 ```
-When build your project the `flatbuffers` library will be compiled and linked 
+When build your project the `flatbuffers` library will be compiled and linked
 to a target as part of your project.
 
 #### Override default depth limit of nested objects
-To override [the depth limit of recursion](languages/cpp.md), 
+To override [the depth limit of recursion](languages/cpp.md),
 add this directive:
 ```cmake
 set(FLATBUFFERS_MAX_PARSING_DEPTH 16)

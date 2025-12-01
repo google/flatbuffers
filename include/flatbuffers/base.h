@@ -140,8 +140,8 @@
 #endif // !defined(FLATBUFFERS_LITTLEENDIAN)
 
 #define FLATBUFFERS_VERSION_MAJOR 25
-#define FLATBUFFERS_VERSION_MINOR 2
-#define FLATBUFFERS_VERSION_REVISION 10
+#define FLATBUFFERS_VERSION_MINOR 9
+#define FLATBUFFERS_VERSION_REVISION 23
 #define FLATBUFFERS_STRING_EXPAND(X) #X
 #define FLATBUFFERS_STRING(X) FLATBUFFERS_STRING_EXPAND(X)
 namespace flatbuffers {
@@ -267,11 +267,11 @@ namespace flatbuffers {
 
 #ifndef FLATBUFFERS_LOCALE_INDEPENDENT
   // Enable locale independent functions {strtof_l, strtod_l,strtoll_l,
-  // strtoull_l}.
+  // strtoull_l} on platforms that support them.
   #if (defined(_MSC_VER) && _MSC_VER >= 1800) || \
-      (defined(__ANDROID_API__) && __ANDROID_API__>= 21) || \
+      (defined(__ANDROID__) && defined(__ANDROID_API__) && __ANDROID_API__>= 26) || \
       (defined(_XOPEN_VERSION) && (_XOPEN_VERSION >= 700)) && \
-        (!defined(__Fuchsia__) && !defined(__ANDROID_API__))
+      !defined(__Fuchsia__)
     #define FLATBUFFERS_LOCALE_INDEPENDENT 1
   #else
     #define FLATBUFFERS_LOCALE_INDEPENDENT 0

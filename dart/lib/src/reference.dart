@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'types.dart';
 
 /// Main class to read a value out of a FlexBuffer.
@@ -16,10 +17,15 @@ class Reference {
   int? _length;
 
   Reference._(
-      this._buffer, this._offset, this._parentWidth, int packedType, this._path,
-      [int? byteWidth, ValueType? valueType])
-      : _byteWidth = byteWidth ?? 1 << (packedType & 3),
-        _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2);
+    this._buffer,
+    this._offset,
+    this._parentWidth,
+    int packedType,
+    this._path, [
+    int? byteWidth,
+    ValueType? valueType,
+  ]) : _byteWidth = byteWidth ?? 1 << (packedType & 3),
+       _valueType = valueType ?? ValueTypeUtils.fromInt(packedType >> 2);
 
   /// Use this method to access the root value of a FlexBuffer.
   static Reference fromBuffer(ByteBuffer buffer) {
@@ -31,8 +37,13 @@ class Reference {
     final byteWidth = byteData.getUint8(len - 1);
     final packedType = byteData.getUint8(len - 2);
     final offset = len - byteWidth - 2;
-    return Reference._(ByteData.view(buffer), offset,
-        BitWidthUtil.fromByteWidth(byteWidth), packedType, "/");
+    return Reference._(
+      ByteData.view(buffer),
+      offset,
+      BitWidthUtil.fromByteWidth(byteWidth),
+      packedType,
+      "/",
+    );
   }
 
   /// Returns true if the underlying value is null.
@@ -138,7 +149,8 @@ class Reference {
       final index = key;
       if (index >= length || index < 0) {
         throw ArgumentError(
-            'Key: [$key] is not applicable on: $_path of: $_valueType length: $length');
+          'Key: [$key] is not applicable on: $_path of: $_valueType length: $length',
+        );
       }
       final elementOffset = _indirect + index * _byteWidth;
       int packedType = 0;
@@ -154,13 +166,14 @@ class Reference {
         packedType = _buffer.getUint8(_indirect + length * _byteWidth + index);
       }
       return Reference._(
-          _buffer,
-          elementOffset,
-          BitWidthUtil.fromByteWidth(_byteWidth),
-          packedType,
-          "$_path[$index]",
-          byteWidth,
-          valueType);
+        _buffer,
+        elementOffset,
+        BitWidthUtil.fromByteWidth(_byteWidth),
+        packedType,
+        "$_path[$index]",
+        byteWidth,
+        valueType,
+      );
     }
     if (key is String && _valueType == ValueType.Map) {
       final index = _keyIndex(key);
@@ -169,7 +182,8 @@ class Reference {
       }
     }
     throw ArgumentError(
-        'Key: [$key] is not applicable on: $_path of: $_valueType');
+      'Key: [$key] is not applicable on: $_path of: $_valueType',
+    );
   }
 
   /// Get an iterable if the underlying flexBuffer value is a vector.
@@ -213,18 +227,24 @@ class Reference {
           ValueTypeUtils.isAVector(_valueType) ||
           _valueType == ValueType.Map) {
         _length = _readUInt(
-            _indirect - _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+          _indirect - _byteWidth,
+          BitWidthUtil.fromByteWidth(_byteWidth),
+        );
       } else if (_valueType == ValueType.Null) {
         _length = 0;
       } else if (_valueType == ValueType.String) {
         final indirect = _indirect;
         var sizeByteWidth = _byteWidth;
-        var size = _readUInt(indirect - sizeByteWidth,
-            BitWidthUtil.fromByteWidth(sizeByteWidth));
+        var size = _readUInt(
+          indirect - sizeByteWidth,
+          BitWidthUtil.fromByteWidth(sizeByteWidth),
+        );
         while (_buffer.getInt8(indirect + size) != 0) {
           sizeByteWidth <<= 1;
-          size = _readUInt(indirect - sizeByteWidth,
-              BitWidthUtil.fromByteWidth(sizeByteWidth));
+          size = _readUInt(
+            indirect - sizeByteWidth,
+            BitWidthUtil.fromByteWidth(sizeByteWidth),
+          );
         }
         _length = size;
       } else if (_valueType == ValueType.Key) {
@@ -289,7 +309,8 @@ class Reference {
       return result.toString();
     }
     throw UnsupportedError(
-        'Type: $_valueType is not supported for JSON conversion');
+      'Type: $_valueType is not supported for JSON conversion',
+    );
   }
 
   /// Computes the indirect offset of the value.
@@ -354,10 +375,13 @@ class Reference {
   int? _keyIndex(String key) {
     final input = utf8.encode(key);
     final keysVectorOffset = _indirect - _byteWidth * 3;
-    final indirectOffset = keysVectorOffset -
+    final indirectOffset =
+        keysVectorOffset -
         _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
     final byteWidth = _readUInt(
-        keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+      keysVectorOffset + _byteWidth,
+      BitWidthUtil.fromByteWidth(_byteWidth),
+    );
     var low = 0;
     var high = length - 1;
     while (low <= high) {
@@ -390,24 +414,37 @@ class Reference {
     final indirect = _indirect;
     final elementOffset = indirect + index * _byteWidth;
     final packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
-    return Reference._(_buffer, elementOffset,
-        BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/$key");
+    return Reference._(
+      _buffer,
+      elementOffset,
+      BitWidthUtil.fromByteWidth(_byteWidth),
+      packedType,
+      "$_path/$key",
+    );
   }
 
   Reference _valueForIndex(int index) {
     final indirect = _indirect;
     final elementOffset = indirect + index * _byteWidth;
     final packedType = _buffer.getUint8(indirect + length * _byteWidth + index);
-    return Reference._(_buffer, elementOffset,
-        BitWidthUtil.fromByteWidth(_byteWidth), packedType, "$_path/[$index]");
+    return Reference._(
+      _buffer,
+      elementOffset,
+      BitWidthUtil.fromByteWidth(_byteWidth),
+      packedType,
+      "$_path/[$index]",
+    );
   }
 
   String _keyForIndex(int index) {
     final keysVectorOffset = _indirect - _byteWidth * 3;
-    final indirectOffset = keysVectorOffset -
+    final indirectOffset =
+        keysVectorOffset -
         _readUInt(keysVectorOffset, BitWidthUtil.fromByteWidth(_byteWidth));
     final byteWidth = _readUInt(
-        keysVectorOffset + _byteWidth, BitWidthUtil.fromByteWidth(_byteWidth));
+      keysVectorOffset + _byteWidth,
+      BitWidthUtil.fromByteWidth(_byteWidth),
+    );
     final keyOffset = indirectOffset + index * byteWidth;
     final keyIndirectOffset =
         keyOffset - _readUInt(keyOffset, BitWidthUtil.fromByteWidth(byteWidth));

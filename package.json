@@ -1,6 +1,6 @@
 {
   "name": "flatbuffers",
-  "version": "25.2.10",
+  "version": "25.9.23",
   "description": "Memory Efficient Serialization Library",
   "files": [
     "js/**/*.js",
@@ -35,11 +35,19 @@
   },
   "homepage": "https://google.github.io/flatbuffers/",
   "devDependencies": {
-    "@types/node": "^20.10.4",
-    "@typescript-eslint/eslint-plugin": "^6.13.2",
-    "@typescript-eslint/parser": "^6.13.2",
-    "esbuild": "^0.19.8",
-    "eslint": "^8.55.0",
-    "typescript": "5.3.3"
+    "@eslint/js": "^9.29.0",
+    "@types/node": "^24.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "esbuild": "^0.25.5",
+    "eslint": "^9.29.0",
+    "typescript": "5.8.3",
+    "typescript-eslint": "^8.34.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [],
+    "ignoredBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
