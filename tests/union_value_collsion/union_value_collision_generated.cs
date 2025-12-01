@@ -292,7 +292,7 @@ public struct Collide : IFlatbufferObject
   public static VectorOffset CreateSortedVectorOfCollide(FlatBufferBuilder builder, Offset<Collide>[] offsets) {
     Array.Sort(offsets,
       (Offset<Collide> o1, Offset<Collide> o2) =>
-        new Collide().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Collide_.CompareTo(new Collide().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Collide_));
+        string.CompareOrdinal(new Collide().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Collide_, new Collide().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Collide_));
     return builder.CreateVectorOfTables(offsets);
   }
 
@@ -304,7 +304,7 @@ public struct Collide : IFlatbufferObject
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
       obj_.__assign(tableOffset, bb);
-      int comp = obj_.Collide_.CompareTo(key);
+      int comp = string.CompareOrdinal(obj_.Collide_, key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
