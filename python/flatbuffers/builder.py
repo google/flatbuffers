@@ -159,11 +159,11 @@ class Builder(object):
     self.vtables = {}
     self.nested = False
     self.forceDefaults = False
-    self.sharedStrings = {}
+    self.sharedStrings = None
     ## @endcond
     self.finished = False
 
-  def Clear(self) -> None:
+  def Clear(self):
     ## @cond FLATBUFFERS_INTERNAL
     self.current_vtable = None
     self.head = UOffsetTFlags.py_type(len(self.Bytes))
@@ -172,7 +172,7 @@ class Builder(object):
     self.vtables = {}
     self.nested = False
     self.forceDefaults = False
-    self.sharedStrings = {}
+    self.sharedStrings = None
     self.vectorNumElems = None
     ## @endcond
     self.finished = False
@@ -201,7 +201,7 @@ class Builder(object):
     self.assertNotNested()
 
     # use 32-bit offsets so that arithmetic doesn't overflow.
-    self.current_vtable = [0 for _ in range_func(numfields)]
+    self.current_vtable = [0] * numfields
     self.objectEnd = self.Offset()
     self.nested = True
 
@@ -245,7 +245,10 @@ class Builder(object):
 
       vtKey.append(elem)
 
+    objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
+    vtKey.append(objectSize)
     vtKey = tuple(vtKey)
+    # calculate the size of the object
     vt2Offset = self.vtables.get(vtKey)
     if vt2Offset is None:
       # Did not find a vtable, so write this one to the buffer.
@@ -275,7 +278,6 @@ class Builder(object):
       # The two metadata fields are written last.
 
       # First, store the object bytesize:
-      objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
       self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
 
       # Second, store the vtable bytesize:
@@ -455,7 +457,9 @@ class Builder(object):
     before calling CreateString.
     """
 
-    if s in self.sharedStrings:
+    if not self.sharedStrings:
+      self.sharedStrings = {}
+    elif s in self.sharedStrings:
       return self.sharedStrings[s]
 
     off = self.CreateString(s, encoding, errors)
