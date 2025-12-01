@@ -40,11 +40,11 @@ public struct ByteBuffer {
 
     /// This storage doesn't own the memory, therefore, we won't deallocate on deinit.
     private let isOwned: Bool
+    /// Capacity of UInt8 the buffer can hold
+    private let capacity: Int
     /// Retained blob of data that requires the storage to retain a pointer to.
     @usableFromInline
     var retainedBlob: Blob
-    /// Capacity of UInt8 the buffer can hold
-    var capacity: Int
 
     @usableFromInline
     init(count: Int) {
@@ -125,21 +125,24 @@ public struct ByteBuffer {
         return try byteBuffer.withUnsafeRawPointer(body)
       #if !os(WASI)
       case .data(let data):
-        return try data
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try data
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       case .bytes(let contiguousBytes):
-        return try contiguousBytes
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try contiguousBytes
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       #endif
       case .array(let array):
-        return try array
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try array
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       case .pointer(let ptr):
         return try body(ptr)
       }
@@ -179,11 +182,11 @@ public struct ByteBuffer {
   /// The size of the elements written to the buffer + their paddings
   private var _readerIndex: Int = 0
   /// Reader is the position of the current Writer Index (capacity - size)
-  public var reader: Int { _storage.capacity &- _readerIndex }
+  public var reader: Int { capacity &- _readerIndex }
   /// Current size of the buffer
   public var size: UOffset { UOffset(_readerIndex) }
   /// Current capacity for the buffer
-  public var capacity: Int { _storage.capacity }
+  public let capacity: Int
 
   /// Constructor that creates a Flatbuffer object from an InternalByteBuffer
   /// - Parameter
@@ -194,6 +197,7 @@ public struct ByteBuffer {
       blob: .byteBuffer(byteBuffer),
       capacity: byteBuffer.capacity)
     _readerIndex = Int(byteBuffer.size)
+    capacity = byteBuffer.capacity
   }
 
   /// Constructor that creates a Flatbuffer from unsafe memory region by copying
@@ -209,7 +213,8 @@ public struct ByteBuffer {
   {
     _storage = Storage(count: capacity)
     _storage.copy(from: memory, count: capacity)
-    _readerIndex = _storage.capacity
+    _readerIndex = capacity
+    self.capacity = capacity
   }
 
   /// Constructor that creates a Flatbuffer object from a UInt8
@@ -218,7 +223,8 @@ public struct ByteBuffer {
   @inline(__always)
   public init(bytes: [UInt8]) {
     _storage = Storage(blob: .array(bytes), capacity: bytes.count)
-    _readerIndex = _storage.capacity
+    _readerIndex = bytes.count
+    capacity = bytes.count
   }
 
   #if !os(WASI)
@@ -228,7 +234,8 @@ public struct ByteBuffer {
   @inline(__always)
   public init(data: Data) {
     _storage = Storage(blob: .data(data), capacity: data.count)
-    _readerIndex = _storage.capacity
+    _readerIndex = data.count
+    capacity = data.count
   }
 
   /// Constructor that creates a Flatbuffer object from a ContiguousBytes
@@ -241,7 +248,8 @@ public struct ByteBuffer {
     count: Int)
   {
     _storage = Storage(blob: .bytes(contiguousBytes), capacity: count)
-    _readerIndex = _storage.capacity
+    _readerIndex = count
+    capacity = count
   }
   #endif
 
@@ -259,7 +267,8 @@ public struct ByteBuffer {
     _storage = Storage(
       blob: .pointer(memory),
       capacity: capacity)
-    _readerIndex = _storage.capacity
+    _readerIndex = capacity
+    self.capacity = capacity
   }
 
   /// Creates a copy of the existing flatbuffer, by copying it to a different memory.
@@ -275,6 +284,7 @@ public struct ByteBuffer {
   {
     _storage = Storage(blob: blob, capacity: count)
     _readerIndex = removeBytes
+    capacity = count
   }
 
   /// Write stores an object into the buffer directly or indirectly.
@@ -289,11 +299,11 @@ public struct ByteBuffer {
   func write<T>(value: T, index: Int, direct: Bool = false) {
     var index = index
     if !direct {
-      index = _storage.capacity &- index
+      index = capacity &- index
     }
-    assert(index < _storage.capacity, "Write index is out of writing bound")
+    assert(index < capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    withUnsafePointer(to: value) { ptr in
+    _ = withUnsafePointer(to: value) { ptr in
       _storage.withUnsafeRawPointer {
         memcpy(
           $0.advanced(by: index),
@@ -325,7 +335,7 @@ public struct ByteBuffer {
     count: Int) -> [T]
   {
     assert(
-      index + count <= _storage.capacity,
+      index + count <= capacity,
       "Reading out of bounds is illegal")
 
     return _storage.readWithUnsafeRawPointer(position: index) {
@@ -348,7 +358,7 @@ public struct ByteBuffer {
     body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T
   {
     assert(
-      index + count <= _storage.capacity,
+      index + count <= capacity,
       "Reading out of bounds is illegal")
     return try _storage.readWithUnsafeRawPointer(position: index) {
       try body(UnsafeRawBufferPointer(start: $0, count: count))
@@ -368,7 +378,7 @@ public struct ByteBuffer {
     type: String.Encoding = .utf8) -> String?
   {
     assert(
-      index + count <= _storage.capacity,
+      index + count <= capacity,
       "Reading out of bounds is illegal")
     return _storage.readWithUnsafeRawPointer(position: index) {
       let buf = UnsafeBufferPointer(
@@ -390,7 +400,7 @@ public struct ByteBuffer {
     count: Int) -> String?
   {
     assert(
-      index + count <= _storage.capacity,
+      index + count <= capacity,
       "Reading out of bounds is illegal")
     return _storage.readWithUnsafeRawPointer(position: index) {
       String(cString: $0.bindMemory(to: UInt8.self, capacity: count))
@@ -404,11 +414,11 @@ public struct ByteBuffer {
   public func duplicate(removing removeBytes: Int = 0) -> ByteBuffer {
     assert(removeBytes > 0, "Can NOT remove negative bytes")
     assert(
-      removeBytes < _storage.capacity,
+      removeBytes < capacity,
       "Can NOT remove more bytes than the ones allocated")
     return ByteBuffer(
       blob: _storage.retainedBlob,
-      count: _storage.capacity,
+      count: capacity,
       removing: _readerIndex &- removeBytes)
   }
 
@@ -456,7 +466,7 @@ extension ByteBuffer: CustomDebugStringConvertible {
   public var debugDescription: String {
     """
     buffer located at: \(_storage.retainedBlob), 
-    with capacity of \(_storage.capacity),
+    with capacity of \(capacity),
     { writtenSize: \(_readerIndex), readerSize: \(reader), 
     size: \(size) }
     """

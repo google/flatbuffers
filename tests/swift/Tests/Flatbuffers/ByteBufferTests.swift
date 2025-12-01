@@ -15,6 +15,7 @@
  */
 
 import XCTest
+
 @testable import FlatBuffers
 
 final class ByteBufferTests: XCTestCase {
@@ -42,7 +43,7 @@ final class ByteBufferTests: XCTestCase {
     let byteBuffer = ByteBuffer(data: ptr)
     byteBuffer.withUnsafeBytes { memory in
       ptr.withUnsafeBytes { ptr in
-        XCTAssertEqual(memory.baseAddress!, ptr)
+        XCTAssertEqual(memory.baseAddress!, ptr.baseAddress!)
       }
     }
   }

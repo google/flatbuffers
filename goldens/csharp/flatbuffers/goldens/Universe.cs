@@ -13,7 +13,7 @@ public struct Universe : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_9_23(); }
   public static Universe GetRootAsUniverse(ByteBuffer _bb) { return GetRootAsUniverse(_bb, new Universe()); }
   public static Universe GetRootAsUniverse(ByteBuffer _bb, Universe obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool VerifyUniverse(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("", false, UniverseVerify.Verify); }

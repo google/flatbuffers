@@ -16,6 +16,7 @@
 
 import Foundation
 import XCTest
+
 @testable import FlatBuffers
 
 class FlatBuffersMoreDefaults: XCTestCase {
@@ -28,13 +29,13 @@ class FlatBuffersMoreDefaults: XCTestCase {
     let defaults: MoreDefaults = getRoot(byteBuffer: &byteBuffer)
     XCTAssertEqual(defaults.emptyString, "")
     XCTAssertEqual(defaults.someString, "some")
-    XCTAssertEqual(defaults.ints, [])
-    XCTAssertEqual(defaults.floats, [])
-    XCTAssertEqual(defaults.bools, [])
-    XCTAssertEqual(defaults.intsCount, 0)
-    XCTAssertEqual(defaults.floatsCount, 0)
-    XCTAssertEqual(defaults.abcsCount, 0)
-    XCTAssertEqual(defaults.boolsCount, 0)
+    XCTAssertEqual(defaults.ints.isEmpty, true)
+    XCTAssertEqual(defaults.floats.isEmpty, true)
+    XCTAssertEqual(defaults.bools.isEmpty, true)
+    XCTAssertEqual(defaults.ints.count, 0)
+    XCTAssertEqual(defaults.floats.count, 0)
+    XCTAssertEqual(defaults.abcs.count, 0)
+    XCTAssertEqual(defaults.bools.count, 0)
   }
 
   func testFlatbuffersObjectAPI() {
@@ -51,12 +52,12 @@ class FlatBuffersMoreDefaults: XCTestCase {
     let fDefaults: MoreDefaults = getRoot(byteBuffer: &buffer)
     XCTAssertEqual(fDefaults.emptyString, "")
     XCTAssertEqual(fDefaults.someString, "some")
-    XCTAssertEqual(fDefaults.ints, [])
-    XCTAssertEqual(fDefaults.floats, [])
-    XCTAssertEqual(fDefaults.intsCount, 0)
-    XCTAssertEqual(fDefaults.floatsCount, 0)
-    XCTAssertEqual(fDefaults.abcsCount, 0)
-    XCTAssertEqual(fDefaults.boolsCount, 0)
+    XCTAssertEqual(fDefaults.ints.isEmpty, true)
+    XCTAssertEqual(fDefaults.floats.isEmpty, true)
+    XCTAssertEqual(fDefaults.ints.count, 0)
+    XCTAssertEqual(fDefaults.floats.count, 0)
+    XCTAssertEqual(fDefaults.abcs.count, 0)
+    XCTAssertEqual(fDefaults.bools.count, 0)
   }
 
   func testEncoding() {

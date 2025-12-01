@@ -16,6 +16,10 @@
 
 import Foundation
 
+#if canImport(Common)
+import Common
+#endif
+
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
 /// it allows users to Construct their buffers internally without much cost to performance
 @usableFromInline
@@ -25,48 +29,34 @@ struct _InternalByteBuffer {
   /// deallocating the memory that was held by (memory: UnsafeMutableRawPointer)
   @usableFromInline
   final class Storage {
-    // This storage doesn't own the memory, therefore, we won't deallocate on deinit.
-    private let unowned: Bool
     /// pointer to the start of the buffer object in memory
-    var memory: UnsafeMutableRawPointer
-    /// Capacity of UInt8 the buffer can hold
-    var capacity: Int
+    private(set) var memory: UnsafeMutableRawPointer
 
     @usableFromInline
     init(count: Int, alignment: Int) {
       memory = UnsafeMutableRawPointer.allocate(
         byteCount: count,
         alignment: alignment)
-      capacity = count
-      unowned = false
     }
 
     deinit {
-      if !unowned {
-        memory.deallocate()
-      }
+      memory.deallocate()
     }
 
     @usableFromInline
     func initialize(for size: Int) {
-      assert(
-        !unowned,
-        "initalize should NOT be called on a buffer that is built by assumingMemoryBound")
       memset(memory, 0, size)
     }
 
     /// Reallocates the buffer incase the object to be written doesnt fit in the current buffer
     /// - Parameter size: Size of the current object
     @usableFromInline
-    func reallocate(_ size: Int, writerSize: Int, alignment: Int) {
-      let currentWritingIndex = capacity &- writerSize
-      while capacity <= writerSize &+ size {
-        capacity = capacity << 1
-      }
-
-      /// solution take from Apple-NIO
-      capacity = capacity.convertToPowerofTwo
-
+    func reallocate(
+      capacity: Int,
+      writerSize: Int,
+      currentWritingIndex: Int,
+      alignment: Int)
+    {
       let newData = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,
         alignment: alignment)
@@ -82,12 +72,13 @@ struct _InternalByteBuffer {
 
   @usableFromInline var _storage: Storage
 
+  private let initialSize: Int
   /// The size of the elements written to the buffer + their paddings
   private var _writerSize: Int = 0
   /// Alignment of the current  memory being written to the buffer
   var alignment = 1
   /// Current Index which is being used to write to the buffer, it is written from the end to the start of the buffer
-  var writerIndex: Int { _storage.capacity &- _writerSize }
+  var writerIndex: Int { capacity &- _writerSize }
 
   /// Reader is the position of the current Writer Index (capacity - size)
   public var reader: Int { writerIndex }
@@ -97,16 +88,17 @@ struct _InternalByteBuffer {
   @usableFromInline
   var memory: UnsafeMutableRawPointer { _storage.memory }
   /// Current capacity for the buffer
-  public var capacity: Int { _storage.capacity }
+  public private(set) var capacity: Int
 
   /// Constructor that creates a Flatbuffer instance with a size
   /// - Parameter:
   ///   - size: Length of the buffer
   ///   - allowReadingUnalignedBuffers: allow reading from unaligned buffer
   init(initialSize size: Int) {
-    let size = size.convertToPowerofTwo
-    _storage = Storage(count: size, alignment: alignment)
-    _storage.initialize(for: size)
+    initialSize = size.convertToPowerofTwo
+    capacity = initialSize
+    _storage = Storage(count: initialSize, alignment: alignment)
+    _storage.initialize(for: initialSize)
   }
 
   /// Fills the buffer with padding by adding to the writersize
@@ -151,7 +143,7 @@ struct _InternalByteBuffer {
 
   /// Adds a `ContiguousBytes` to buffer memory
   /// - Parameter value: bytes to copy
-  #if swift(>=5.0) && !os(WASI)
+  #if !os(WASI)
   @inline(__always)
   @usableFromInline
   mutating func push(bytes: ContiguousBytes) {
@@ -200,41 +192,17 @@ struct _InternalByteBuffer {
     }
   }
 
-  /// Adds a string to the buffer using swift.utf8 object
-  /// - Parameter str: String that will be added to the buffer
-  /// - Parameter len: length of the string
+  /// Adds a RawPointer into the buffer
+  /// - Parameter pointer: pointer to be copied into the buffer
+  /// - Parameter len: length of the data
   @inline(__always)
-  @usableFromInline
-  mutating func push(string str: String, len: Int) {
+  mutating func writeBytes(_ ptr: UnsafeRawPointer, len: Int) {
     ensureSpace(size: len)
-    if str.utf8
-      .withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) !=
-      nil
-    {
-    } else {
-      let utf8View = str.utf8
-      for c in utf8View.reversed() {
-        push(value: c, len: 1)
-      }
-    }
-  }
-
-  /// Writes a string to Bytebuffer using UTF8View
-  /// - Parameters:
-  ///   - bytes: Pointer to the view
-  ///   - len: Size of string
-  @usableFromInline
-  @inline(__always)
-  mutating func push(
-    bytes: UnsafeBufferPointer<String.UTF8View.Element>,
-    len: Int) -> Bool
-  {
     memcpy(
       _storage.memory.advanced(by: writerIndex &- len),
-      bytes.baseAddress!,
+      ptr,
       len)
     _writerSize = _writerSize &+ len
-    return true
   }
 
   /// Write stores an object into the buffer directly or indirectly.
@@ -249,11 +217,11 @@ struct _InternalByteBuffer {
   func write<T>(value: T, index: Int, direct: Bool = false) {
     var index = index
     if !direct {
-      index = _storage.capacity &- index
+      index = capacity &- index
     }
-    assert(index < _storage.capacity, "Write index is out of writing bound")
+    assert(index < capacity, "Write index is out of writing bound")
     assert(index >= 0, "Writer index should be above zero")
-    withUnsafePointer(to: value) {
+    _ = withUnsafePointer(to: value) {
       memcpy(
         _storage.memory.advanced(by: index),
         $0,
@@ -265,10 +233,23 @@ struct _InternalByteBuffer {
   /// - Parameter size: size of object
   @discardableResult
   @usableFromInline
-  @inline(__always)
   mutating func ensureSpace(size: Int) -> Int {
-    if size &+ _writerSize > _storage.capacity {
-      _storage.reallocate(size, writerSize: _writerSize, alignment: alignment)
+    let expectedWriterIndex = size &+ _writerSize
+    if expectedWriterIndex > capacity {
+
+      let currentWritingIndex = capacity &- _writerSize
+      while capacity <= expectedWriterIndex {
+        capacity = capacity << 1
+      }
+
+      /// solution take from Apple-NIO
+      capacity = capacity.convertToPowerofTwo
+
+      _storage.reallocate(
+        capacity: capacity,
+        writerSize: _writerSize,
+        currentWritingIndex: currentWritingIndex,
+        alignment: alignment)
     }
     assert(size < FlatBufferMaxSize, "Buffer can't grow beyond 2 Gigabytes")
     return size
@@ -294,10 +275,15 @@ struct _InternalByteBuffer {
 
   /// Clears the current instance of the buffer, replacing it with new memory
   @inline(__always)
-  mutating public func clear() {
+  mutating public func clear(keepingCapacity: Bool = false) {
     _writerSize = 0
     alignment = 1
-    _storage.initialize(for: _storage.capacity)
+    if keepingCapacity {
+      _storage.initialize(for: capacity)
+    } else {
+      capacity = initialSize
+      _storage = Storage(count: initialSize, alignment: alignment)
+    }
   }
 
   /// Reads an object from the buffer
@@ -318,9 +304,10 @@ struct _InternalByteBuffer {
     _ body: (UnsafeRawBufferPointer) throws
       -> T) rethrows -> T
   {
-    try body(UnsafeRawBufferPointer(
-      start: _storage.memory,
-      count: capacity))
+    try body(
+      UnsafeRawBufferPointer(
+        start: _storage.memory,
+        count: capacity))
   }
 
   @discardableResult
@@ -329,9 +316,10 @@ struct _InternalByteBuffer {
     _ body: (UnsafeRawBufferPointer) throws
       -> T) rethrows -> T
   {
-    try body(UnsafeRawBufferPointer(
-      start: _storage.memory.advanced(by: writerIndex),
-      count: capacity &- writerIndex))
+    try body(
+      UnsafeRawBufferPointer(
+        start: _storage.memory.advanced(by: writerIndex),
+        count: capacity &- writerIndex))
   }
 
   @discardableResult
@@ -357,7 +345,7 @@ extension _InternalByteBuffer: CustomDebugStringConvertible {
 
   public var debugDescription: String {
     """
-    buffer located at: \(_storage.memory), with capacity of \(_storage.capacity)
+    buffer located at: \(_storage.memory), with capacity of \(capacity)
     { writerSize: \(_writerSize), readerSize: \(reader), writerIndex: \(
       writerIndex) }
     """

@@ -27,20 +27,24 @@ namespace flatbuffers {
 namespace {
 
 static void ForAllEnums(
-    const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>> *enums,
-    std::function<void(const reflection::Enum *)> func) {
-  for (auto it = enums->cbegin(); it != enums->cend(); ++it) { func(*it); }
+    const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>>* enums,
+    std::function<void(const reflection::Enum*)> func) {
+  for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
+    func(*it);
+  }
 }
 
 static void ForAllObjects(
-    const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>> *objects,
-    std::function<void(const reflection::Object *)> func) {
-  for (auto it = objects->cbegin(); it != objects->cend(); ++it) { func(*it); }
+    const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>>* objects,
+    std::function<void(const reflection::Object*)> func) {
+  for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
+    func(*it);
+  }
 }
 
 static void ForAllEnumValues(
-    const reflection::Enum *enum_def,
-    std::function<void(const reflection::EnumVal *)> func) {
+    const reflection::Enum* enum_def,
+    std::function<void(const reflection::EnumVal*)> func) {
   for (auto it = enum_def->values()->cbegin(); it != enum_def->values()->cend();
        ++it) {
     func(*it);
@@ -48,10 +52,12 @@ static void ForAllEnumValues(
 }
 
 static void ForAllDocumentation(
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>
-        *documentation,
-    std::function<void(const flatbuffers::String *)> func) {
-  if (!documentation) { return; }
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>*
+        documentation,
+    std::function<void(const flatbuffers::String*)> func) {
+  if (!documentation) {
+    return;
+  }
   for (auto it = documentation->cbegin(); it != documentation->cend(); ++it) {
     func(*it);
   }
@@ -59,7 +65,7 @@ static void ForAllDocumentation(
 
 // Maps the field index into object->fields() to the field's ID (the ith element
 // in the return vector).
-static std::vector<uint32_t> FieldIdToIndex(const reflection::Object *object) {
+static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
   std::vector<uint32_t> field_index_by_id;
   field_index_by_id.resize(object->fields()->size());
 
@@ -101,15 +107,15 @@ class BaseBfbsGenerator : public CodeGenerator {
   virtual ~BaseBfbsGenerator() {}
   BaseBfbsGenerator() : schema_(nullptr) {}
 
-  virtual Status GenerateFromSchema(const reflection::Schema *schema,
-                                    const CodeGenOptions &options) = 0;
+  virtual Status GenerateFromSchema(const reflection::Schema* schema,
+                                    const CodeGenOptions& options) = 0;
 
   virtual uint64_t SupportedAdvancedFeatures() const = 0;
 
   // Override of the Generator::GenerateCode method that does the initial
   // deserialization and verification steps.
-  Status GenerateCode(const uint8_t *buffer, int64_t length,
-                      const CodeGenOptions &options) FLATBUFFERS_OVERRIDE {
+  Status GenerateCode(const uint8_t* buffer, int64_t length,
+                      const CodeGenOptions& options) FLATBUFFERS_OVERRIDE {
     flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
       return FAILED_VERIFICATION;
@@ -133,7 +139,7 @@ class BaseBfbsGenerator : public CodeGenerator {
   // GetObject returns the underlying object struct of the given type
   // if element_type is true and GetObject is a list of objects then
   // GetObject will correctly return the object struct of the vector's elements
-  const reflection::Object *GetObject(const reflection::Type *type,
+  const reflection::Object* GetObject(const reflection::Type* type,
                                       bool element_type = false) const {
     const reflection::BaseType base_type =
         element_type ? type->element() : type->base_type();
@@ -146,7 +152,7 @@ class BaseBfbsGenerator : public CodeGenerator {
   // GetEnum returns the underlying enum struct of the given type
   // if element_type is true and GetEnum is a list of enums then
   // GetEnum will correctly return the enum struct of the vector's elements
-  const reflection::Enum *GetEnum(const reflection::Type *type,
+  const reflection::Enum* GetEnum(const reflection::Type* type,
                                   bool element_type = false) const {
     const reflection::BaseType base_type =
         element_type ? type->element() : type->base_type();
@@ -160,7 +166,7 @@ class BaseBfbsGenerator : public CodeGenerator {
 
   // Used to get a object that is reference by index. (e.g.
   // reflection::Type::index). Returns nullptr if no object is available.
-  const reflection::Object *GetObjectByIndex(int32_t index) const {
+  const reflection::Object* GetObjectByIndex(int32_t index) const {
     if (!schema_ || index < 0 ||
         index >= static_cast<int32_t>(schema_->objects()->size())) {
       return nullptr;
@@ -170,7 +176,7 @@ class BaseBfbsGenerator : public CodeGenerator {
 
   // Used to get a enum that is reference by index. (e.g.
   // reflection::Type::index). Returns nullptr if no enum is available.
-  const reflection::Enum *GetEnumByIndex(int32_t index) const {
+  const reflection::Enum* GetEnumByIndex(int32_t index) const {
     if (!schema_ || index < 0 ||
         index >= static_cast<int32_t>(schema_->enums()->size())) {
       return nullptr;
@@ -178,8 +184,8 @@ class BaseBfbsGenerator : public CodeGenerator {
     return schema_->enums()->Get(index);
   }
 
-  void ForAllFields(const reflection::Object *object, bool reverse,
-                    std::function<void(const reflection::Field *)> func) const {
+  void ForAllFields(const reflection::Object* object, bool reverse,
+                    std::function<void(const reflection::Field*)> func) const {
     const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
       func(object->fields()->Get(
@@ -187,18 +193,18 @@ class BaseBfbsGenerator : public CodeGenerator {
     }
   }
 
-  bool IsTable(const reflection::Type *type, bool use_element = false) const {
+  bool IsTable(const reflection::Type* type, bool use_element = false) const {
     return !IsStruct(type, use_element);
   }
 
-  bool IsStruct(const reflection::Type *type, bool use_element = false) const {
+  bool IsStruct(const reflection::Type* type, bool use_element = false) const {
     const reflection::BaseType base_type =
         use_element ? type->element() : type->base_type();
     return IsStructOrTable(base_type) &&
            GetObjectByIndex(type->index())->is_struct();
   }
 
-  const reflection::Schema *schema_;
+  const reflection::Schema* schema_;
 };
 
 }  // namespace flatbuffers

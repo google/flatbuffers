@@ -1,4 +1,4 @@
-![logo](http://google.github.io/flatbuffers/fpl_logo_small.png) FlatBuffers
+![logo](https://flatbuffers.dev/assets/flatbuffers_logo.svg) FlatBuffers
 ===========
 
 ![Build status](https://github.com/google/flatbuffers/actions/workflows/build.yml/badge.svg?branch=master)
@@ -34,7 +34,7 @@ maximum memory efficiency. It allows you to directly access serialized data with
     ```
     ./flatc --cpp --rust monster.fbs
     ```
-    
+
     Which generates `monster_generated.h` and `monster_generated.rs` files.
 
 4. Serialize data
@@ -48,7 +48,7 @@ maximum memory efficiency. It allows you to directly access serialized data with
 6. Read the data
 
     Use the generated accessors to read the data from the serialized buffer.
-    
+
     It doesn't need to be the same language/schema version, FlatBuffers ensures the data is readable across languages and schema versions. See the [`Rust` example](https://github.com/google/flatbuffers/blob/master/samples/sample_binary.rs#L92-L106) reading the data written by `C++`.
 
 ## Documentation

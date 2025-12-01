@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 2 &&
-              FLATBUFFERS_VERSION_REVISION == 10,
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace keyfield {
@@ -634,7 +634,8 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<const keyfield::sample::Grain *> *mutable_h() {
     return GetPointer<::flatbuffers::Vector<const keyfield::sample::Grain *> *>(VT_H);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            VerifyField<int32_t>(verifier, VT_B, 4) &&
@@ -786,11 +787,11 @@ inline void FooTable::UnPackTo(FooTableT *_o, const ::flatbuffers::resolver_func
   { auto _e = h(); if (_e) { _o->h.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->h[_i] = *_e->Get(_i); } } else { _o->h.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<FooTable> FooTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFooTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FooTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FooTable> CreateFooTable(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FooTable> FooTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FooTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FooTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -990,14 +991,16 @@ inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyFooTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<keyfield::sample::FooTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<keyfield::sample::FooTable>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedFooTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<keyfield::sample::FooTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<keyfield::sample::FooTable>(nullptr);
 }
 
 inline void FinishFooTableBuffer(

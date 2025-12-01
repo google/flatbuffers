@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#if canImport(Common)
-@_exported import Common
-#endif
 import Foundation
+
+#if canImport(Common)
+import Common
+#endif
 
 /// Type aliases
 public typealias Byte = UInt8
@@ -25,8 +26,9 @@ public typealias UOffset = UInt32
 public typealias SOffset = Int32
 public typealias VOffset = UInt16
 /// Maximum size for a buffer
-public let FlatBufferMaxSize = UInt32
-  .max << ((MemoryLayout<SOffset>.size * 8 - 1) - 1)
+public let FlatBufferMaxSize =
+  UInt32
+    .max << ((MemoryLayout<SOffset>.size * 8 - 1) - 1)
 
 /// Protocol that All Scalars should conform to
 ///
@@ -34,28 +36,28 @@ public let FlatBufferMaxSize = UInt32
 
 extension Scalar where Self: FixedWidthInteger {}
 
-extension Double: Verifiable {}
+extension Double: Verifiable, FlatbuffersVectorInitializable {}
 
-extension Float32: Verifiable {}
+extension Float32: Verifiable, FlatbuffersVectorInitializable {}
 
-extension Bool: Verifiable {}
+extension Bool: Verifiable, FlatbuffersVectorInitializable {}
 
-extension Int: Verifiable {}
+extension Int: Verifiable, FlatbuffersVectorInitializable {}
 
-extension Int8: Verifiable {}
+extension Int8: Verifiable, FlatbuffersVectorInitializable {}
 
-extension Int16: Verifiable {}
+extension Int16: Verifiable, FlatbuffersVectorInitializable {}
 
-extension Int32: Verifiable {}
+extension Int32: Verifiable, FlatbuffersVectorInitializable {}
 
-extension Int64: Verifiable {}
+extension Int64: Verifiable, FlatbuffersVectorInitializable {}
 
-extension UInt8: Verifiable {}
+extension UInt8: Verifiable, FlatbuffersVectorInitializable {}
 
-extension UInt16: Verifiable {}
+extension UInt16: Verifiable, FlatbuffersVectorInitializable {}
 
-extension UInt32: Verifiable {}
+extension UInt32: Verifiable, FlatbuffersVectorInitializable {}
 
-extension UInt64: Verifiable {}
+extension UInt64: Verifiable, FlatbuffersVectorInitializable {}
 
-public func FlatBuffersVersion_25_2_10() {}
+public func FlatBuffersVersion_25_9_23() {}

@@ -16,6 +16,10 @@
 
 import Foundation
 
+#if canImport(Common)
+import Common
+#endif
+
 public struct Value: Equatable {
 
   @usableFromInline
@@ -106,9 +110,11 @@ extension Value {
       return bitWidth
     } else {
       for byteWidth in stride(from: 1, to: MemoryLayout<UInt64>.size, by: 2) {
-        let _offsetLoc: UInt64 = numericCast(numericCast(size) &+ padding(
-          bufSize: numericCast(size),
-          elementSize: numericCast(byteWidth)))
+        let _offsetLoc: UInt64 = numericCast(
+          numericCast(size)
+            &+ padding(
+              bufSize: numericCast(size),
+              elementSize: numericCast(byteWidth)))
         let offsetLoc = _offsetLoc &+ (index &* numericCast(byteWidth))
         let offset = offsetLoc &- u
 

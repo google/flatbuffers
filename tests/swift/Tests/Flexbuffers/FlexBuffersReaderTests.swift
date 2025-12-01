@@ -15,8 +15,9 @@
  */
 
 import Common
-import FlexBuffers
 import XCTest
+
+@testable import FlexBuffers
 
 final class FlexBuffersReaderTests: XCTestCase {
 
@@ -28,6 +29,29 @@ final class FlexBuffersReaderTests: XCTestCase {
   func testReadingSizedBuffer() throws {
     let buf: ByteBuffer = createSizedBuffer()
     try validate(buffer: buf)
+  }
+
+  func testReset() throws {
+    var fbx = FlexBuffersWriter(
+      initialSize: 8,
+      flags: .shareKeysAndStrings)
+    write(fbx: &fbx)
+
+    try validate(buffer: ByteBuffer(data: fbx.data))
+    XCTAssertEqual(fbx.capacity, 512)
+    fbx.reset()
+    XCTAssertEqual(fbx.writerIndex, 0)
+    XCTAssertEqual(fbx.capacity, 8)
+
+    write(fbx: &fbx)
+    try validate(buffer: ByteBuffer(data: fbx.data))
+    fbx.reset(keepingCapacity: true)
+    XCTAssertEqual(fbx.writerIndex, 0)
+    XCTAssertEqual(fbx.capacity, 512)
+
+    write(fbx: &fbx)
+    try validate(buffer: ByteBuffer(data: fbx.data))
+    XCTAssertEqual(fbx.capacity, 512)
   }
 
   private func validate(buffer buf: ByteBuffer) throws {
@@ -55,7 +79,7 @@ final class FlexBuffersReaderTests: XCTestCase {
     XCTAssertEqual(blob?[0], 77)
     XCTAssertEqual(vec[4]?.type, .bool)
     XCTAssertEqual(vec[4]?.bool, false)
-    XCTAssertEqual(vec[5]?.double, 4.0) // Shared with vec[2]
+    XCTAssertEqual(vec[5]?.double, 4.0)  // Shared with vec[2]
 
     let barVec = map["bar"]!.typedVector!
     XCTAssertEqual(barVec.count, 3)

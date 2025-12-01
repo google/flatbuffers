@@ -15,6 +15,7 @@
  */
 
 import XCTest
+
 @testable import Common
 @testable import FlatBuffers
 
@@ -60,7 +61,10 @@ final class FlatBuffersTests: XCTestCase {
       lan: 100)
     b.finish(offset: countryOff)
     // swiftformat:disable all
-    let v: [UInt8] = [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+    let v: [UInt8] = [
+      16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0,
+      200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0,
+    ]
     // swiftformat:enable all
     XCTAssertEqual(b.sizedByteArray, v)
   }
@@ -74,14 +78,20 @@ final class FlatBuffersTests: XCTestCase {
       lan: 100)
     b.finish(offset: countryOff, addPrefix: true)
     // swiftformat:disable all
-    let v: [UInt8] = [44, 0, 0, 0, 16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+    let v: [UInt8] = [
+      44, 0, 0, 0, 16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0,
+      100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0,
+    ]
     // swiftformat:enable all
     XCTAssertEqual(b.sizedByteArray, v)
   }
 
   func testReadCountry() {
     // swiftformat:disable all
-    let v: [UInt8] = [16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0]
+    let v: [UInt8] = [
+      16, 0, 0, 0, 0, 0, 10, 0, 16, 0, 4, 0, 8, 0, 12, 0, 10, 0, 0, 0, 12, 0, 0, 0, 100, 0, 0, 0,
+      200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0,
+    ]
     // swiftformat:enable all
     let buffer = ByteBuffer(bytes: v)
     let c = Country.getRootAsCountry(buffer)
@@ -120,6 +130,22 @@ final class FlatBuffersTests: XCTestCase {
     XCTAssertEqual(scalarTable.justEnum, .one)
     XCTAssertNil(scalarTable.maybeEnum)
   }
+
+  func testAlignmentCrash() {
+    var builder = FlatBufferBuilder(initialSize: 256)
+
+    // Create two identical tables to trigger vtable deduplication
+    let str1 = builder.create(string: "test")
+    let start1 = builder.startTable(with: 1)
+    builder.add(offset: str1, at: 0)
+    _ = builder.endTable(at: start1)
+
+    // Second table triggers vtable comparison where crash occurs
+    let str2 = builder.create(string: "crash")
+    let start2 = builder.startTable(with: 1)
+    builder.add(offset: str2, at: 0)
+    _ = builder.endTable(at: start2)  // ← Crashes here on ARM64
+  }
 }
 
 class Country {
@@ -131,21 +157,34 @@ class Country {
     __t = t
   }
 
-  var lan: Int32 { let o = __t.offset(6); return o == 0 ? 0 : __t.readBuffer(
-    of: Int32.self,
-    at: o) }
-  var log: Int32 { let o = __t.offset(8); return o == 0 ? 0 : __t.readBuffer(
-    of: Int32.self,
-    at: o) }
+  var lan: Int32 {
+    let o = __t.offset(6)
+    return o == 0
+      ? 0
+      : __t.readBuffer(
+        of: Int32.self,
+        at: o)
+  }
+  var log: Int32 {
+    let o = __t.offset(8)
+    return o == 0
+      ? 0
+      : __t.readBuffer(
+        of: Int32.self,
+        at: o)
+  }
   var nameVector: [UInt8]? { __t.getVector(at: 4) }
   var name: String? {
-    let o = __t.offset(4); return o == 0 ? nil : __t.string(at: o) }
+    let o = __t.offset(4)
+    return o == 0 ? nil : __t.string(at: o)
+  }
 
   @inlinable
   static func getRootAsCountry(_ bb: ByteBuffer) -> Country {
-    Country(Table(
-      bb: bb,
-      position: Int32(bb.read(def: UOffset.self, position: 0))))
+    Country(
+      Table(
+        bb: bb,
+        position: Int32(bb.read(def: UOffset.self, position: 0))))
   }
 
   @inlinable

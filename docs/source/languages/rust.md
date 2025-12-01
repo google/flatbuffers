@@ -177,6 +177,34 @@ functions require a mutable (aka exclusive) reference which can only be created
 when no other references to the `FlatBufferBuilder` exist, and may not be copied
 within the same thread, let alone to a second thread.
 
+## Reflection (& Resizing)
+
+There is experimental support for reflection in FlatBuffers, allowing you to
+read and write data even if you don't know the exact format of a buffer, and
+even allows you to change sizes of strings in-place.
+
+The way this works is very elegant; there is actually a FlatBuffer schema that
+describes schemas (\!) which you can find in `reflection/reflection.fbs`.
+The compiler, `flatc`, can write out any schemas it has just parsed as a binary
+FlatBuffer, corresponding to this meta-schema.
+
+Loading in one of these binary schemas at runtime allows you to traverse any
+FlatBuffer data that corresponds to it without knowing the exact format. You
+can query what fields are present, and then read/write them after.
+
+For convenient field manipulation, you can use the crate
+`flatbuffers-reflection` which includes both the generated code from the meta
+schema, as well as a lot of helper functions.
+
+And example of usage, for the time being, can be found in
+`tests/rust_reflection_test/src/lib.rs`. Two sets of APIs are provided:
+
+- [Unsafe getters/setters](https://docs.rs/flatbuffers-reflection/latest/flatbuffers_reflection/#functions),
+ which you can use when you are processing trusted data (either from a source you know, or has been verified)
+
+- Safe getters in [SafeBuffer](https://docs.rs/flatbuffers-reflection/latest/flatbuffers_reflection/struct.SafeBuffer.html),
+ which does verification when constructed so you can use it for any data source
+
 ## Useful tools created by others
 
 * [flatc-rust](https://github.com/frol/flatc-rust) - FlatBuffers compiler

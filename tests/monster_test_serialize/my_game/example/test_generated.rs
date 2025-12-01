@@ -34,21 +34,21 @@ impl<'a> flatbuffers::Follow<'a> for Test {
   type Inner = &'a Test;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Test>::follow(buf, loc)
+    unsafe { <&'a Test>::follow(buf, loc) }
   }
 }
 impl<'a> flatbuffers::Follow<'a> for &'a Test {
   type Inner = &'a Test;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<Test>(buf, loc)
+    unsafe { flatbuffers::follow_cast_ref::<Test>(buf, loc) }
   }
 }
 impl<'b> flatbuffers::Push for Test {
     type Output = Test;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const Test as *const u8, <Self as flatbuffers::Push>::size());
+        let src = unsafe { ::core::slice::from_raw_parts(self as *const Test as *const u8, <Self as flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
     #[inline]

@@ -2,17 +2,20 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if canImport(Common)
+import Common
+#endif
+
 import FlatBuffers
 
-public struct Property: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
+public struct Property: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
   private var _property: Bool
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _property = _accessor.readBuffer(of: Bool.self, at: 0)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(property: Bool) {
@@ -23,7 +26,7 @@ public struct Property: NativeStruct, Verifiable, FlatbuffersInitializable, Nati
     _property = false
   }
 
-  public init(_ _t: inout Property_Mutable) {
+  public init(_ _t: borrowing Property_Mutable) {
     _property = _t.property
   }
 
@@ -47,9 +50,9 @@ extension Property: Encodable {
   }
 }
 
-public struct Property_Mutable: FlatBufferObject {
+public struct Property_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -57,10 +60,9 @@ public struct Property_Mutable: FlatBufferObject {
 
   public var property: Bool { return _accessor.readBuffer(of: Bool.self, at: 0) }
   @discardableResult public func mutate(property: Bool) -> Bool { return _accessor.mutate(property, index: 0) }
-  
 
-  public mutating func unpack() -> Property {
-    return Property(&self)
+  public func unpack() -> Property {
+    return Property(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Property?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -72,9 +74,9 @@ public struct Property_Mutable: FlatBufferObject {
   }
 }
 
-public struct TestMutatingBool: FlatBufferObject, Verifiable, ObjectAPIPacker {
+public struct TestMutatingBool: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -100,10 +102,9 @@ public struct TestMutatingBool: FlatBufferObject, Verifiable, ObjectAPIPacker {
     TestMutatingBool.add(b: b, &fbb)
     return TestMutatingBool.endTestMutatingBool(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> TestMutatingBoolT {
-    return TestMutatingBoolT(&self)
+  public func unpack() -> TestMutatingBoolT {
+    return TestMutatingBoolT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout TestMutatingBoolT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -138,7 +139,7 @@ public class TestMutatingBoolT: NativeObject {
 
   public var b: Property?
 
-  public init(_ _t: inout TestMutatingBool) {
+  public init(_ _t: borrowing TestMutatingBool) {
     b = _t.b
   }
 

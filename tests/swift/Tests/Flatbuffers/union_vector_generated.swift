@@ -2,9 +2,13 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
+#if canImport(Common)
+import Common
+#endif
+
 import FlatBuffers
 
-public enum Character: UInt8, UnionEnum {
+public enum Character: UInt8, FlatbuffersVectorInitializable, UnionEnum {
   public typealias T = UInt8
 
   public init?(value: T) {
@@ -71,7 +75,7 @@ public struct CharacterUnion {
     }
   }
 }
-public enum Gadget: UInt8, UnionEnum {
+public enum Gadget: UInt8, FlatbuffersVectorInitializable, UnionEnum {
   public typealias T = UInt8
 
   public init?(value: T) {
@@ -118,15 +122,14 @@ public struct GadgetUnion {
     }
   }
 }
-public struct Rapunzel: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
+public struct Rapunzel: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
   private var _hairLength: Int32
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _hairLength = _accessor.readBuffer(of: Int32.self, at: 0)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(hairLength: Int32) {
@@ -137,7 +140,7 @@ public struct Rapunzel: NativeStruct, Verifiable, FlatbuffersInitializable, Nati
     _hairLength = 0
   }
 
-  public init(_ _t: inout Rapunzel_Mutable) {
+  public init(_ _t: borrowing Rapunzel_Mutable) {
     _hairLength = _t.hairLength
   }
 
@@ -161,9 +164,9 @@ extension Rapunzel: Encodable {
   }
 }
 
-public struct Rapunzel_Mutable: FlatBufferObject {
+public struct Rapunzel_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -171,10 +174,9 @@ public struct Rapunzel_Mutable: FlatBufferObject {
 
   public var hairLength: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
   @discardableResult public func mutate(hairLength: Int32) -> Bool { return _accessor.mutate(hairLength, index: 0) }
-  
 
-  public mutating func unpack() -> Rapunzel {
-    return Rapunzel(&self)
+  public func unpack() -> Rapunzel {
+    return Rapunzel(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout Rapunzel?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -186,15 +188,14 @@ public struct Rapunzel_Mutable: FlatBufferObject {
   }
 }
 
-public struct BookReader: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
+public struct BookReader: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
   private var _booksRead: Int32
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _booksRead = _accessor.readBuffer(of: Int32.self, at: 0)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(booksRead: Int32) {
@@ -205,7 +206,7 @@ public struct BookReader: NativeStruct, Verifiable, FlatbuffersInitializable, Na
     _booksRead = 0
   }
 
-  public init(_ _t: inout BookReader_Mutable) {
+  public init(_ _t: borrowing BookReader_Mutable) {
     _booksRead = _t.booksRead
   }
 
@@ -229,9 +230,9 @@ extension BookReader: Encodable {
   }
 }
 
-public struct BookReader_Mutable: FlatBufferObject {
+public struct BookReader_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -239,10 +240,9 @@ public struct BookReader_Mutable: FlatBufferObject {
 
   public var booksRead: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
   @discardableResult public func mutate(booksRead: Int32) -> Bool { return _accessor.mutate(booksRead, index: 0) }
-  
 
-  public mutating func unpack() -> BookReader {
-    return BookReader(&self)
+  public func unpack() -> BookReader {
+    return BookReader(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout BookReader?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -254,15 +254,14 @@ public struct BookReader_Mutable: FlatBufferObject {
   }
 }
 
-public struct FallingTub: NativeStruct, Verifiable, FlatbuffersInitializable, NativeObject {
+public struct FallingTub: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
 
   private var _weight: Int32
 
   public init(_ bb: ByteBuffer, o: Int32) {
-    let _accessor = Struct(bb: bb, position: o)
-    _weight = _accessor.readBuffer(of: Int32.self, at: 0)
+    self = bb.read(def: Self.self, position: Int(o))
   }
 
   public init(weight: Int32) {
@@ -273,7 +272,7 @@ public struct FallingTub: NativeStruct, Verifiable, FlatbuffersInitializable, Na
     _weight = 0
   }
 
-  public init(_ _t: inout FallingTub_Mutable) {
+  public init(_ _t: borrowing FallingTub_Mutable) {
     _weight = _t.weight
   }
 
@@ -297,9 +296,9 @@ extension FallingTub: Encodable {
   }
 }
 
-public struct FallingTub_Mutable: FlatBufferObject {
+public struct FallingTub_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -307,10 +306,9 @@ public struct FallingTub_Mutable: FlatBufferObject {
 
   public var weight: Int32 { return _accessor.readBuffer(of: Int32.self, at: 0) }
   @discardableResult public func mutate(weight: Int32) -> Bool { return _accessor.mutate(weight, index: 0) }
-  
 
-  public mutating func unpack() -> FallingTub {
-    return FallingTub(&self)
+  public func unpack() -> FallingTub {
+    return FallingTub(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout FallingTub?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -322,9 +320,9 @@ public struct FallingTub_Mutable: FlatBufferObject {
   }
 }
 
-public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
+public struct Attacker: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -352,10 +350,9 @@ public struct Attacker: FlatBufferObject, Verifiable, ObjectAPIPacker {
     Attacker.add(swordAttackDamage: swordAttackDamage, &fbb)
     return Attacker.endAttacker(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> AttackerT {
-    return AttackerT(&self)
+  public func unpack() -> AttackerT {
+    return AttackerT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout AttackerT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -392,7 +389,7 @@ public class AttackerT: NativeObject {
 
   public var swordAttackDamage: Int32
 
-  public init(_ _t: inout Attacker) {
+  public init(_ _t: borrowing Attacker) {
     swordAttackDamage = _t.swordAttackDamage
   }
 
@@ -403,9 +400,9 @@ public class AttackerT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
 
 }
-public struct HandFan: FlatBufferObject, Verifiable, ObjectAPIPacker {
+public struct HandFan: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -433,10 +430,9 @@ public struct HandFan: FlatBufferObject, Verifiable, ObjectAPIPacker {
     HandFan.add(length: length, &fbb)
     return HandFan.endHandFan(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> HandFanT {
-    return HandFanT(&self)
+  public func unpack() -> HandFanT {
+    return HandFanT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout HandFanT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -473,7 +469,7 @@ public class HandFanT: NativeObject {
 
   public var length: Int32
 
-  public init(_ _t: inout HandFan) {
+  public init(_ _t: borrowing HandFan) {
     length = _t.length
   }
 
@@ -484,9 +480,9 @@ public class HandFanT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: HandFan.self) }
 
 }
-public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
+public struct Movie: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -506,11 +502,8 @@ public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
 
   public var mainCharacterType: Character { let o = _accessor.offset(VTOFFSET.mainCharacterType.v); return o == 0 ? .none_ : Character(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
   public func mainCharacter<T: FlatbuffersInitializable>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.mainCharacter.v); return o == 0 ? nil : _accessor.union(o) }
-  public var hasCharactersType: Bool { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? false : true }
-  public var charactersTypeCount: Int32 { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? 0 : _accessor.vector(count: o) }
-  public func charactersType(at index: Int32) -> Character? { let o = _accessor.offset(VTOFFSET.charactersType.v); return o == 0 ? Character.none_ : Character(rawValue: _accessor.directRead(of: UInt8.self, offset: _accessor.vector(at: o) + index * 1)) }
-  public var hasCharacters: Bool { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? false : true }
-  public var charactersCount: Int32 { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? 0 : _accessor.vector(count: o) }
+  public var charactersType: FlatbufferVector<Character> { return _accessor.vector(at: VTOFFSET.charactersType.v, byteSize: 1) }
+  public var characters: UnionFlatbufferVector { return _accessor.unionVector(at: VTOFFSET.characters.v, byteSize: 4) }
   public func characters<T: FlatbuffersInitializable>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
   public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
   public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: VTOFFSET.mainCharacterType.p) }
@@ -532,10 +525,9 @@ public struct Movie: FlatBufferObject, Verifiable, ObjectAPIPacker {
     Movie.addVectorOf(characters: characters, &fbb)
     return Movie.endMovie(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> MovieT {
-    return MovieT(&self)
+  public func unpack() -> MovieT {
+    return MovieT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MovieT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -638,33 +630,30 @@ extension Movie: Encodable {
       try container.encodeIfPresent(_v, forKey: .mainCharacter)
     default: break;
     }
-    if charactersCount > 0 {
-      var enumsEncoder = container.nestedUnkeyedContainer(forKey: .charactersType)
-      var contentEncoder = container.nestedUnkeyedContainer(forKey: .characters)
-      for index in 0..<charactersCount {
-        guard let type = charactersType(at: index) else { continue }
-        try enumsEncoder.encode(type)
-        switch type {
-        case .mulan:
-          let _v = characters(at: index, type: Attacker.self)
-          try contentEncoder.encode(_v)
-        case .rapunzel:
-          let _v = characters(at: index, type: Rapunzel.self)
-          try contentEncoder.encode(_v)
-        case .belle:
-          let _v = characters(at: index, type: BookReader.self)
-          try contentEncoder.encode(_v)
-        case .bookfan:
-          let _v = characters(at: index, type: BookReader.self)
-          try contentEncoder.encode(_v)
-        case .other:
-          let _v = characters(at: index, type: String.self)
-          try contentEncoder.encode(_v)
-        case .unused:
-          let _v = characters(at: index, type: String.self)
-          try contentEncoder.encode(_v)
-        default: break;
-        }
+    try container.encode(charactersType, forKey: .charactersType)
+    var contentEncoder = container.nestedUnkeyedContainer(forKey: .characters)
+    let _characters = charactersType
+    for index in _characters.startIndex..<_characters.endIndex {
+      switch _characters[index] {
+      case .mulan:
+        let _v = characters(at: Int32(index), type: Attacker.self)
+        try contentEncoder.encode(_v)
+      case .rapunzel:
+        let _v = characters(at: Int32(index), type: Rapunzel.self)
+        try contentEncoder.encode(_v)
+      case .belle:
+        let _v = characters(at: Int32(index), type: BookReader.self)
+        try contentEncoder.encode(_v)
+      case .bookfan:
+        let _v = characters(at: Int32(index), type: BookReader.self)
+        try contentEncoder.encode(_v)
+      case .other:
+        let _v = characters(at: Int32(index), type: String.self)
+        try contentEncoder.encode(_v)
+      case .unused:
+        let _v = characters(at: Int32(index), type: String.self)
+        try contentEncoder.encode(_v)
+      default: break;
       }
     }
   }
@@ -675,48 +664,49 @@ public class MovieT: NativeObject {
   public var mainCharacter: CharacterUnion?
   public var characters: [CharacterUnion?]
 
-  public init(_ _t: inout Movie) {
+  public init(_ _t: borrowing Movie) {
     switch _t.mainCharacterType {
     case .mulan:
-      var _v = _t.mainCharacter(type: Attacker.self)
+      let _v = _t.mainCharacter(type: Attacker.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .mulan)
     case .rapunzel:
-      var _v = _t.mainCharacter(type: Rapunzel_Mutable.self)
+      let _v = _t.mainCharacter(type: Rapunzel_Mutable.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .rapunzel)
     case .belle:
-      var _v = _t.mainCharacter(type: BookReader_Mutable.self)
+      let _v = _t.mainCharacter(type: BookReader_Mutable.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .belle)
     case .bookfan:
-      var _v = _t.mainCharacter(type: BookReader_Mutable.self)
+      let _v = _t.mainCharacter(type: BookReader_Mutable.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .bookfan)
     case .other:
-      var _v = _t.mainCharacter(type: String.self)
+      let _v = _t.mainCharacter(type: String.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .other)
     case .unused:
-      var _v = _t.mainCharacter(type: String.self)
+      let _v = _t.mainCharacter(type: String.self)
       mainCharacter = CharacterUnion(_v?.unpack(), type: .unused)
     default: break
     }
     characters = []
-    for index in 0..<_t.charactersCount {
-        switch _t.charactersType(at: index) {
+    let _charactersType = _t.charactersType
+    for index in _charactersType.startIndex..<_charactersType.endIndex {
+        switch _t.charactersType[index] {
         case .mulan:
-          var _v = _t.characters(at: index, type: Attacker.self)
+          let _v = _t.characters(at: Int32(index), type: Attacker.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .mulan))
         case .rapunzel:
-          var _v = _t.characters(at: index, type: Rapunzel_Mutable.self)
+          let _v = _t.characters(at: Int32(index), type: Rapunzel_Mutable.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .rapunzel))
         case .belle:
-          var _v = _t.characters(at: index, type: BookReader_Mutable.self)
+          let _v = _t.characters(at: Int32(index), type: BookReader_Mutable.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .belle))
         case .bookfan:
-          var _v = _t.characters(at: index, type: BookReader_Mutable.self)
+          let _v = _t.characters(at: Int32(index), type: BookReader_Mutable.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .bookfan))
         case .other:
-          var _v = _t.characters(at: index, type: String.self)
+          let _v = _t.characters(at: Int32(index), type: String.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .other))
         case .unused:
-          var _v = _t.characters(at: index, type: String.self)
+          let _v = _t.characters(at: Int32(index), type: String.self)
           characters.append(CharacterUnion(_v?.unpack(), type: .unused))
         default: break
         }

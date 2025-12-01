@@ -16,6 +16,10 @@
 
 import Foundation
 
+#if canImport(Common)
+import Common
+#endif
+
 /// Struct is a representation of a mutable `Flatbuffers` struct
 /// since native structs are value types and cant be mutated
 @frozen
@@ -41,7 +45,19 @@ public struct Struct {
   ///   - o: Current offset of the data
   /// - Returns: Data of Type T that conforms to type Scalar
   public func readBuffer<T: Scalar>(of type: T.Type, at o: Int32) -> T {
-    let r = bb.read(def: T.self, position: Int(o + position))
+    let r = bb.read(def: T.self, position: Int(o &+ position))
     return r
+  }
+
+  public func vector<T>(
+    at off: Int32,
+    count: Int,
+    size: Int) -> FlatbufferVector<T>
+  {
+    FlatbufferVector(
+      bb: bb,
+      startPosition: position &+ off,
+      count: count,
+      byteSize: size)
   }
 }

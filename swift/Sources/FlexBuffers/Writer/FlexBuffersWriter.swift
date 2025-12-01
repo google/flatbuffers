@@ -16,6 +16,10 @@
 
 import Foundation
 
+#if canImport(Common)
+import Common
+#endif
+
 private let twentyFourBytes: Int = 24
 public typealias FlexBuffersWriterBuilder = (inout FlexBuffersWriter) -> Void
 
@@ -69,18 +73,35 @@ public struct FlexBuffersWriter {
     return ByteBuffer(byteBuffer: _bb)
   }
 
+  #if !os(WASI)
+  /// Data representation of the buffer
+  ///
+  /// Should only be used after ``finish(offset:addPrefix:)`` is called
+  public var data: Data {
+    assert(finished, "Data shouldn't be called before finish()")
+    return _bb.withUnsafeSlicedBytes { ptr in
+      var data = Data()
+      data.append(
+        ptr.baseAddress!.bindMemory(
+          to: UInt8.self,
+          capacity: ptr.count),
+        count: ptr.count)
+      return data
+    }
+  }
+  #endif
+
   /// Resets the internal state. Automatically called before building a new flexbuffer.
-  public mutating func reset() {
-    _bb.clear()
-    stack.removeAll(keepingCapacity: true)
+  public mutating func reset(keepingCapacity: Bool = false) {
+    _bb.clear(keepingCapacity: keepingCapacity)
+    stack.removeAll(keepingCapacity: keepingCapacity)
     finished = false
     minBitWidth = .w8
-    keyPool.removeAll()
-    stringPool.removeAll()
+    keyPool.removeAll(keepingCapacity: keepingCapacity)
+    stringPool.removeAll(keepingCapacity: keepingCapacity)
   }
 
   // MARK: - Storing root
-  @inline(__always)
   public mutating func finish() {
     assert(stack.count == 1)
 
@@ -115,7 +136,6 @@ public struct FlexBuffersWriter {
   }
 
   @discardableResult
-  @inline(__always)
   public mutating func endVector(
     start: Int,
     typed: Bool = false,
@@ -123,7 +143,7 @@ public struct FlexBuffersWriter {
   {
     let vec = createVector(
       start: start,
-      count: stack.count - start,
+      count: stack.count &- start,
       step: 1,
       typed: typed,
       fixed: fixed,
@@ -181,7 +201,6 @@ public struct FlexBuffersWriter {
   }
 
   @discardableResult
-  @inline(__always)
   public mutating func endMap(start: Int) -> UInt64 {
     let len = sortMapByKeys(start: start)
 
@@ -192,7 +211,7 @@ public struct FlexBuffersWriter {
       typed: true,
       fixed: false)
     let vec = createVector(
-      start: start + 1,
+      start: start &+ 1,
       count: len,
       step: 2,
       typed: false,
@@ -507,8 +526,8 @@ public struct FlexBuffersWriter {
 
   // MARK: Writing to buffer
 
-  @inline(__always)
-  private mutating func write(value: Value, byteWidth: Int) {
+  @usableFromInline
+  mutating func write(value: Value, byteWidth: Int) {
     switch value.type {
     case .null, .int: write(value: value.i, byteWidth: byteWidth)
     case .bool, .uint: write(value: value.u, byteWidth: byteWidth)
@@ -518,8 +537,8 @@ public struct FlexBuffersWriter {
     }
   }
 
-  @inline(__always)
-  private mutating func pushIndirect<T>(
+  @usableFromInline
+  mutating func pushIndirect<T>(
     value: T,
     type: FlexBufferType,
     bitWidth: BitWidth)
@@ -542,8 +561,8 @@ public struct FlexBuffersWriter {
   /// - Parameter str: String that will be added to the buffer
   /// - Parameter len: length of the string
   @discardableResult
-  @inline(__always)
-  private mutating func write(str: borrowing String, len: Int) -> UInt {
+  @usableFromInline
+  mutating func write(str: borrowing String, len: Int) -> UInt {
     let resetTo = writerIndex
     var sloc = str.withCString {
       storeBlob(pointer: $0, len: len, trailing: 1, type: .string)
@@ -573,13 +592,13 @@ public struct FlexBuffersWriter {
   }
 
   @discardableResult
-  @inline(__always)
-  private mutating func add(key: borrowing String, len: Int) -> UInt {
+  @usableFromInline
+  mutating func add(key: borrowing String, len: Int) -> UInt {
     _bb.ensureSpace(size: len)
 
     var sloc: UInt = numericCast(writerIndex)
     key.withCString {
-      _bb.writeBytes($0, len: len + 1)
+      _bb.writeBytes($0, len: len &+ 1)
     }
 
     if flags > .shareKeys {
@@ -596,8 +615,8 @@ public struct FlexBuffersWriter {
   }
 
   // MARK: - Storing Blobs
-  @inline(__always)
-  private mutating func storeBlob<T>(
+  @usableFromInline
+  mutating func storeBlob<T>(
     _ bytes: T,
     len: Int,
     type: FlexBufferType) -> UInt where T: ContiguousBytes
@@ -609,7 +628,6 @@ public struct FlexBuffersWriter {
 
   @discardableResult
   @usableFromInline
-  @inline(__always)
   mutating func storeBlob(
     pointer: borrowing UnsafeRawPointer,
     len: Int,
@@ -636,8 +654,8 @@ public struct FlexBuffersWriter {
 
   // MARK: Write Vectors
   @discardableResult
-  @inline(__always)
-  private mutating func create<T>(vector: [T], fixed: Bool) -> Int
+  @usableFromInline
+  mutating func create<T>(vector: [T], fixed: Bool) -> Int
     where T: Scalar
   {
     let length: UInt64 = numericCast(vector.count)
@@ -668,8 +686,8 @@ public struct FlexBuffersWriter {
     return vloc
   }
 
-  @inline(__always)
-  private mutating func createVector(
+  @usableFromInline
+  mutating func createVector(
     start: Int,
     count: Int,
     step: Int,
@@ -687,7 +705,7 @@ public struct FlexBuffersWriter {
       /// If this vector is part of a map, we will pre-fix an offset to the keys
       /// to this vector.
       bitWidth = max(bitWidth, keys!.elementWidth(size: writerIndex, index: 0))
-      prefixElements += 2
+      prefixElements = prefixElements &+ 2
     }
     var vectorType: FlexBufferType = .key
 
@@ -718,16 +736,17 @@ public struct FlexBuffersWriter {
     let byteWidth = align(width: bitWidth)
 
     let currentSize: Int = count &* step &* byteWidth
-    let requiredSize: Int = if !typed {
-      // We ensure that we have enough space
-      // for loop two write operations &
-      // 24 bytes for when its not fixed,
-      // and keys isn't null. As an extra safe
-      // guard
-      (currentSize &* 2) &+ twentyFourBytes
-    } else {
-      currentSize
-    }
+    let requiredSize: Int =
+      if !typed {
+        // We ensure that we have enough space
+        // for loop two write operations &
+        // 24 bytes for when its not fixed,
+        // and keys isn't null. As an extra safe
+        // guard
+        (currentSize &* 2) &+ twentyFourBytes
+      } else {
+        currentSize
+      }
 
     _bb.ensureSpace(
       size: requiredSize)
@@ -800,8 +819,8 @@ public struct FlexBuffersWriter {
     return bytes
   }
 
-  @inline(__always)
-  private mutating func sortMapByKeys(start: Int) -> Int {
+  @usableFromInline
+  mutating func sortMapByKeys(start: Int) -> Int {
     let len = mapElementCount(start: start)
     for index in stride(from: start, to: stack.count, by: 2) {
       assert(stack[index].type == .key)
@@ -838,10 +857,9 @@ public struct FlexBuffersWriter {
 // MARK: - Vectors helper functions
 extension FlexBuffersWriter {
   @discardableResult
-  @inline(__always)
   public mutating func vector(
     key: String,
-    _ closure: @escaping FlexBuffersWriterBuilder) -> UInt64
+    _ closure: FlexBuffersWriterBuilder) -> UInt64
   {
     let start = startVector(key: key)
     closure(&self)
@@ -849,8 +867,7 @@ extension FlexBuffersWriter {
   }
 
   @discardableResult
-  @inline(__always)
-  public mutating func vector(_ closure: @escaping FlexBuffersWriterBuilder)
+  public mutating func vector(_ closure: FlexBuffersWriterBuilder)
     -> UInt64
   {
     let start = startVector()
@@ -862,10 +879,9 @@ extension FlexBuffersWriter {
 // MARK: - Maps helper functions
 extension FlexBuffersWriter {
   @discardableResult
-  @inline(__always)
   public mutating func map(
     key: String,
-    _ closure: @escaping FlexBuffersWriterBuilder) -> UInt64
+    _ closure: FlexBuffersWriterBuilder) -> UInt64
   {
     let start = startMap(key: key)
     closure(&self)
@@ -873,8 +889,7 @@ extension FlexBuffersWriter {
   }
 
   @discardableResult
-  @inline(__always)
-  public mutating func map(_ closure: @escaping FlexBuffersWriterBuilder)
+  public mutating func map(_ closure: FlexBuffersWriterBuilder)
     -> UInt64
   {
     let start = startMap()
