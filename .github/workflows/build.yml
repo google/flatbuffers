@@ -530,17 +530,20 @@ jobs:
   build-swift-wasm:
     name: Test Swift Wasm
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/swiftwasm/carton:0.20.1
     steps:
        - uses: actions/checkout@v3
-       - uses: bytecodealliance/actions/wasmtime/setup@v1
-       - uses: swiftwasm/setup-swiftwasm@v1
+       - uses: swift-actions/setup-swift@v2
          with:
-           swift-version: "wasm-6.0.2-RELEASE"
+           swift-version: 6.2.1
+       - uses: bytecodealliance/actions/wasmtime/setup@v1
+       - name: Install Swift SDK
+         run: swift sdk install https://download.swift.org/swift-6.2.1-release/wasm-sdk/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE_wasm.artifactbundle.tar.gz --checksum 482b9f95462b87bedfafca94a092cf9ec4496671ca13b43745097122d20f18af
        - name: Test
          working-directory: tests/swift/Wasm.tests
-         run: swift run carton test
+         run: |
+           swift sdk list
+           swift build --build-tests --swift-sdk swift-6.2.1-RELEASE_wasm
+           wasmtime --dir . .build/wasm32-unknown-wasip1/debug/FlatBuffers.Test.Swift.WasmPackageTests.xctest
 
   build-ts:
     name: Build TS
