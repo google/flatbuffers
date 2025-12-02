@@ -361,6 +361,7 @@ jobs:
     # file was not regenerated at all by the CMake build job, so this issue was not noticed.
     # Now, running CMake does regenerate the bfbs file, so it sees a diff on this file and fails the job.
     # For now, we explictly revert this file after building to avoid this.
+    # Filed issue #8816 to track this.
     - name: Revert monster.bfbs
       run: git checkout HEAD samples/monster.bfbs
 
