@@ -22,6 +22,7 @@ import (
 	pizza "Pizza"
 	"encoding/json"
 	optional_scalars "optional_scalars" // refers to generated code
+	required_strings "required_strings" // refers to generated code
 	order "order"
 
 	"bytes"
@@ -199,6 +200,10 @@ func TestAll(t *testing.T) {
 
 	// Check that optional scalars works
 	CheckOptionalScalars(t.Fatalf)
+
+	// Check that default required string fields are placed in the buffer
+	// using Object API
+	CheckRequiredStrings(t.Fatalf)
 
 	// Check that getting vector element by key works
 	CheckByKey(t.Fatalf)
@@ -2346,6 +2351,54 @@ func CheckOptionalScalars(fail func(string, ...interface{})) {
 	expectEq("defaultEnum", obj.DefaultEnum, optional_scalars.OptionalByteTwo)
 }
 
+func CheckRequiredStrings(fail func(string, ...interface{})) {
+	equalContent := func(strValue *string, bytesValue []byte) bool {
+		return (strValue == nil && bytesValue == nil) ||
+			(strValue != nil && bytesValue != nil && *strValue == string(bytesValue))
+	}
+
+	expectSucceeds := func(obj *required_strings.FooT, strA, strB *string) {
+		builder := flatbuffers.NewBuilder(0)
+		builder.Finish(obj.Pack(builder))
+
+		// Check fields are correctly set
+		foo := required_strings.GetRootAsFoo(builder.FinishedBytes(), 0)
+		if got := foo.StrA(); !equalContent(strA, got) {
+			fail(FailString("StrA", strA, got))
+		}
+		if got := foo.StrB(); !equalContent(strB, got) {
+			fail(FailString("StrB", strB, got))
+		}
+
+		// Check unpack gives the original object
+		obj2 := foo.UnPack()
+		if !reflect.DeepEqual(obj, obj2) {
+			fail(FailString("Pack/Unpack()", obj, obj2))
+		}
+	}
+
+	valueA := "value a"
+	valueB := "value b"
+	empty := ""
+
+	expectSucceeds(&required_strings.FooT{
+		StrA: valueA,
+	}, &valueA, &empty)
+
+	expectSucceeds(&required_strings.FooT{
+		StrB: valueB,
+	}, &empty, &valueB)
+
+	expectSucceeds(&required_strings.FooT{
+		StrA: valueA,
+		StrB: valueB,
+	}, &valueA, &valueB)
+
+	expectSucceeds(&required_strings.FooT{
+		StrA: empty,
+	}, &empty, &empty)
+}
+
 func CheckByKey(fail func(string, ...interface{})) {
 	expectEq := func(what string, a, b interface{}) {
 		if a != b {
@@ -2571,5 +2624,23 @@ func BenchmarkBuildGold(b *testing.B) {
 		mon := example.MonsterEnd(bldr)
 
 		bldr.Finish(mon)
+	}
+}
+
+// Benchmark adding 130 bytes, one by one.
+// Unlike BenchmarkBuildGold, we create a new builder every time,
+// to test the performance of growing the buffer.
+func BenchmarkBuildAllocations(b *testing.B) {
+	b.SetBytes(130)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bldr := flatbuffers.NewBuilder(0)
+		for j := 0; j < 130; j++ {
+			bldr.PrependByte(byte(j))
+		}
+		if len(bldr.Bytes) != 256 {
+			b.Fatalf("expected buffer size=256, got %d", len(bldr.Bytes))
+		}
 	}
 }

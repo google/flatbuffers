@@ -48,10 +48,7 @@ impl<'a> MapBuilder<'a> {
         self.builder.push_key(key);
         // Nested vector.
         let start = Some(self.builder.values.len());
-        VectorBuilder {
-            builder: self.builder,
-            start,
-        }
+        VectorBuilder { builder: self.builder, start }
     }
     /// Starts a nested map which that will be pushed onto this map
     /// with key `key` when it is dropped.
@@ -63,10 +60,7 @@ impl<'a> MapBuilder<'a> {
         self.builder.push_key(key);
         // Nested map.
         let start = Some(self.builder.values.len());
-        MapBuilder {
-            builder: self.builder,
-            start,
-        }
+        MapBuilder { builder: self.builder, start }
     }
     /// `end_map` sorts the map by key and writes it to the buffer. This happens anyway
     /// when the map builder is dropped.

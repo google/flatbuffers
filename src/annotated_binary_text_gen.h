@@ -47,8 +47,8 @@ class AnnotatedBinaryTextGenerator {
   };
 
   explicit AnnotatedBinaryTextGenerator(
-      const Options &options, std::map<uint64_t, BinarySection> annotations,
-      const uint8_t *const binary, const int64_t binary_length)
+      const Options& options, std::map<uint64_t, BinarySection> annotations,
+      const uint8_t* const binary, const int64_t binary_length)
       : annotations_(std::move(annotations)),
         binary_(binary),
         binary_length_(binary_length),
@@ -56,14 +56,14 @@ class AnnotatedBinaryTextGenerator {
 
   // Generate the annotated binary for the given `filename`. Returns true if the
   // annotated binary was successfully saved.
-  bool Generate(const std::string &filename, const std::string &schema_filename,
-                const std::string &output_filename = "");
+  bool Generate(const std::string& filename, const std::string& schema_filename,
+                const std::string& output_filename = "");
 
  private:
   const std::map<uint64_t, BinarySection> annotations_;
 
   // The binary data itself.
-  const uint8_t *binary_;
+  const uint8_t* binary_;
   const int64_t binary_length_;
 
   // Output configuration

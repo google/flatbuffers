@@ -18,7 +18,7 @@ import Foundation
 
 /// A boolean to see if the system is littleEndian
 public let isLitteEndian: Bool = {
-  let number: UInt32 = 0x12345678
+  let number: UInt32 = 0x1234_5678
   return number == number.littleEndian
 }()
 

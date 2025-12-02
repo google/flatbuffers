@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import Foundation
+
 #if canImport(Common)
 import Common
 #endif
-
-import Foundation
 
 private let twentyFourBytes: Int = 24
 public typealias FlexBuffersWriterBuilder = (inout FlexBuffersWriter) -> Void
@@ -736,16 +736,17 @@ public struct FlexBuffersWriter {
     let byteWidth = align(width: bitWidth)
 
     let currentSize: Int = count &* step &* byteWidth
-    let requiredSize: Int = if !typed {
-      // We ensure that we have enough space
-      // for loop two write operations &
-      // 24 bytes for when its not fixed,
-      // and keys isn't null. As an extra safe
-      // guard
-      (currentSize &* 2) &+ twentyFourBytes
-    } else {
-      currentSize
-    }
+    let requiredSize: Int =
+      if !typed {
+        // We ensure that we have enough space
+        // for loop two write operations &
+        // 24 bytes for when its not fixed,
+        // and keys isn't null. As an extra safe
+        // guard
+        (currentSize &* 2) &+ twentyFourBytes
+      } else {
+        currentSize
+      }
 
     _bb.ensureSpace(
       size: requiredSize)

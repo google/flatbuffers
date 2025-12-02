@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import Foundation
+
 #if canImport(Common)
 import Common
 #endif
-
-import Foundation
 
 /// Enum is a protocol that all flatbuffers enums should conform to
 /// Since it allows us to get the actual `ByteSize` and `Value` from
@@ -28,8 +28,13 @@ public protocol Enum {
   associatedtype T: Scalar & Verifiable
   /// Size of the current associatedtype in the enum
   static var byteSize: Int { get }
+  /// Provides a static min value in case we fail to decode
+  /// in vectors
+  static var min: Self { get }
   /// The current value the enum hosts
   var value: T { get }
+
+  init?(rawValue: T)
 }
 
 extension Enum where Self: Verifiable {

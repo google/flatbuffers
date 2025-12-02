@@ -189,7 +189,7 @@ public struct IntValue : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_9_23(); }
   public static IntValue GetRootAsIntValue(ByteBuffer _bb) { return GetRootAsIntValue(_bb, new IntValue()); }
   public static IntValue GetRootAsIntValue(ByteBuffer _bb, IntValue obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -250,7 +250,7 @@ public struct Collide : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_9_23(); }
   public static Collide GetRootAsCollide(ByteBuffer _bb) { return GetRootAsCollide(_bb, new Collide()); }
   public static Collide GetRootAsCollide(ByteBuffer _bb, Collide obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
@@ -292,7 +292,7 @@ public struct Collide : IFlatbufferObject
   public static VectorOffset CreateSortedVectorOfCollide(FlatBufferBuilder builder, Offset<Collide>[] offsets) {
     Array.Sort(offsets,
       (Offset<Collide> o1, Offset<Collide> o2) =>
-        new Collide().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Collide_.CompareTo(new Collide().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Collide_));
+        string.CompareOrdinal(new Collide().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Collide_, new Collide().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Collide_));
     return builder.CreateVectorOfTables(offsets);
   }
 
@@ -304,7 +304,7 @@ public struct Collide : IFlatbufferObject
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
       obj_.__assign(tableOffset, bb);
-      int comp = obj_.Collide_.CompareTo(key);
+      int comp = string.CompareOrdinal(obj_.Collide_, key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {
@@ -365,7 +365,7 @@ public struct Collision : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_2_10(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_9_23(); }
   public static Collision GetRootAsCollision(ByteBuffer _bb) { return GetRootAsCollision(_bb, new Collision()); }
   public static Collision GetRootAsCollision(ByteBuffer _bb, Collision obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool VerifyCollision(ByteBuffer _bb) {Google.FlatBuffers.Verifier verifier = new Google.FlatBuffers.Verifier(_bb); return verifier.VerifyBuffer("", false, CollisionVerify.Verify); }

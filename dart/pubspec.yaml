@@ -1,5 +1,5 @@
 name: flat_buffers
-version: 25.2.10
+version: 25.9.23
 description: FlatBuffers reading and writing library for Dart. Based on original work by Konstantin Scheglov and Paul Berry of the Dart SDK team.
 homepage: https://github.com/google/flatbuffers
 documentation: https://google.github.io/flatbuffers/index.html

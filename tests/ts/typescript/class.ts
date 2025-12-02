@@ -4,5 +4,5 @@
 
 export enum class_ {
   new_ = 0,
-  instanceof_ = 1
+  instanceof_ = 1,
 }

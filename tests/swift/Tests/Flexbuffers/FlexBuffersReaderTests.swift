@@ -79,7 +79,7 @@ final class FlexBuffersReaderTests: XCTestCase {
     XCTAssertEqual(blob?[0], 77)
     XCTAssertEqual(vec[4]?.type, .bool)
     XCTAssertEqual(vec[4]?.bool, false)
-    XCTAssertEqual(vec[5]?.double, 4.0) // Shared with vec[2]
+    XCTAssertEqual(vec[5]?.double, 4.0)  // Shared with vec[2]
 
     let barVec = map["bar"]!.typedVector!
     XCTAssertEqual(barVec.count, 3)
