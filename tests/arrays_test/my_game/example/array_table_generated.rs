@@ -149,7 +149,7 @@ impl ArrayTableT {
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_array_table_unchecked`.
-pub fn root_as_array_table(buf: &[u8]) -> Result<ArrayTable, flatbuffers::InvalidFlatbuffer> {
+pub fn root_as_array_table(buf: &[u8]) -> Result<ArrayTable<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::root::<ArrayTable>(buf)
 }
 #[inline]
@@ -159,7 +159,7 @@ pub fn root_as_array_table(buf: &[u8]) -> Result<ArrayTable, flatbuffers::Invali
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `size_prefixed_root_as_array_table_unchecked`.
-pub fn size_prefixed_root_as_array_table(buf: &[u8]) -> Result<ArrayTable, flatbuffers::InvalidFlatbuffer> {
+pub fn size_prefixed_root_as_array_table(buf: &[u8]) -> Result<ArrayTable<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::size_prefixed_root::<ArrayTable>(buf)
 }
 #[inline]
@@ -192,14 +192,14 @@ pub fn size_prefixed_root_as_array_table_with_opts<'b, 'o>(
 /// Assumes, without verification, that a buffer of bytes contains a ArrayTable and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `ArrayTable`.
-pub unsafe fn root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable {
+pub unsafe fn root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable<'_> {
   unsafe { flatbuffers::root_unchecked::<ArrayTable>(buf) }
 }
 #[inline]
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed ArrayTable and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `ArrayTable`.
-pub unsafe fn size_prefixed_root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable {
+pub unsafe fn size_prefixed_root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable<'_> {
   unsafe { flatbuffers::size_prefixed_root_unchecked::<ArrayTable>(buf) }
 }
 pub const ARRAY_TABLE_IDENTIFIER: &str = "ARRT";

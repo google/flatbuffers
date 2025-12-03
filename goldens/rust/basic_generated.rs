@@ -244,7 +244,7 @@ impl core::fmt::Debug for Universe<'_> {
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_universe_unchecked`.
-pub fn root_as_universe(buf: &[u8]) -> Result<Universe, flatbuffers::InvalidFlatbuffer> {
+pub fn root_as_universe(buf: &[u8]) -> Result<Universe<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::root::<Universe>(buf)
 }
 #[inline]
@@ -254,7 +254,7 @@ pub fn root_as_universe(buf: &[u8]) -> Result<Universe, flatbuffers::InvalidFlat
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `size_prefixed_root_as_universe_unchecked`.
-pub fn size_prefixed_root_as_universe(buf: &[u8]) -> Result<Universe, flatbuffers::InvalidFlatbuffer> {
+pub fn size_prefixed_root_as_universe(buf: &[u8]) -> Result<Universe<'_>, flatbuffers::InvalidFlatbuffer> {
   flatbuffers::size_prefixed_root::<Universe>(buf)
 }
 #[inline]
@@ -287,14 +287,14 @@ pub fn size_prefixed_root_as_universe_with_opts<'b, 'o>(
 /// Assumes, without verification, that a buffer of bytes contains a Universe and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `Universe`.
-pub unsafe fn root_as_universe_unchecked(buf: &[u8]) -> Universe {
+pub unsafe fn root_as_universe_unchecked(buf: &[u8]) -> Universe<'_> {
   unsafe { flatbuffers::root_unchecked::<Universe>(buf) }
 }
 #[inline]
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed Universe and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `Universe`.
-pub unsafe fn size_prefixed_root_as_universe_unchecked(buf: &[u8]) -> Universe {
+pub unsafe fn size_prefixed_root_as_universe_unchecked(buf: &[u8]) -> Universe<'_> {
   unsafe { flatbuffers::size_prefixed_root_unchecked::<Universe>(buf) }
 }
 #[inline]
