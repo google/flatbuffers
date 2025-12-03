@@ -688,6 +688,8 @@ if(FLATBUFFERS_BUILD_TESTS)
   enable_testing()
 
   add_test(NAME flattests COMMAND flattests)
+  # Add CMake tests defined in the `tests` directory (python/unit tests).
+  add_subdirectory(tests)
   if(FLATBUFFERS_BUILD_CPP17)
     add_test(NAME flattests_cpp17 COMMAND flattests_cpp17)
   endif()

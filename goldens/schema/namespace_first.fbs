@@ -1,0 +1,8 @@
+namespace MyGame.Example;
+
+table NamespaceTest {
+  name:string;
+  value:int;
+}
+
+root_type NamespaceTest;
