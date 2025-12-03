@@ -422,7 +422,6 @@ class Builder(object):
     off2 = self.Offset() - off + N.UOffsetTFlags.bytewidth
     self.PlaceUOffsetT(off2)
 
-  ## @cond FLATBUFFERS_INTERNAL
   def StartVector(self, elemSize, numElems, alignment):
     """StartVector initializes bookkeeping for writing a new vector.
 
@@ -437,8 +436,6 @@ class Builder(object):
     self.Prep(N.Uint32Flags.bytewidth, elemSize * numElems)
     self.Prep(alignment, elemSize * numElems)  # In case alignment > int.
     return self.Offset()
-
-  ## @endcond
 
   def EndVector(self, numElems=None):
     """EndVector writes data necessary to finish vector construction."""
