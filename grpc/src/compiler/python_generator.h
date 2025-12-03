@@ -27,10 +27,10 @@
 namespace flatbuffers {
 namespace python {
 namespace grpc {
-bool Generate(const Parser& parser, const std::string& path,
+const char* Generate(const Parser& parser, const std::string& path,
               const Version& version);
 
-bool GenerateStub(const Parser& parser, const std::string& path,
+const char* GenerateStub(const Parser& parser, const std::string& path,
                   const Version& version);
 }  // namespace grpc
 }  // namespace python
