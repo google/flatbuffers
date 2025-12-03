@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:5.10
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -20,17 +20,22 @@ import PackageDescription
 let package = Package(
   name: "FlatBuffers.Test.Swift.Wasm",
   platforms: [
-    .macOS(.v10_14)
+    .macOS(.v10_14),
   ],
   dependencies: [
     .package(path: "../../.."),
-    .package(url: "https://github.com/swiftwasm/carton", exact: "1.1.2"),
+    .package(url: "https://github.com/swiftwasm/WasmKit", exact: "0.1.6")
   ],
   targets: [
     .target(name: "Wasm"),
     .testTarget(
       name: "FlatBuffers.Test.Swift.WasmTests",
       dependencies: [
-        .product(name: "FlatBuffers", package: "flatbuffers")
+        .product(name: "FlatBuffers", package: "flatbuffers"),
       ]),
+    .testTarget(
+      name: "FlexBuffers.Test.Swift.WasmTests",
+      dependencies: [
+        .product(name: "FlexBuffers", package: "flatbuffers"),
+      ])
   ])

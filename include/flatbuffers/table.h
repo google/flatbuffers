@@ -122,49 +122,58 @@ class Table {
 
   // Verify the vtable of this table.
   // Call this once per table, followed by VerifyField once per field.
-  bool VerifyTableStart(Verifier& verifier) const {
+  template <bool B>
+  bool VerifyTableStart(VerifierTemplate<B>& verifier) const {
     return verifier.VerifyTableStart(data_);
   }
 
   // Verify a particular field.
-  template <typename T>
-  bool VerifyField(const Verifier& verifier, voffset_t field,
+  template <typename T, bool B>
+  bool VerifyField(const VerifierTemplate<B>& verifier, voffset_t field,
                    size_t align) const {
     // Calling GetOptionalFieldOffset should be safe now thanks to
     // VerifyTable().
     auto field_offset = GetOptionalFieldOffset(field);
     // Check the actual field.
-    return !field_offset || verifier.VerifyField<T>(data_, field_offset, align);
+    return !field_offset ||
+           verifier.template VerifyField<T>(data_, field_offset, align);
   }
 
   // VerifyField for required fields.
-  template <typename T>
-  bool VerifyFieldRequired(const Verifier& verifier, voffset_t field,
+  template <typename T, bool B>
+  bool VerifyFieldRequired(const VerifierTemplate<B>& verifier, voffset_t field,
                            size_t align) const {
     auto field_offset = GetOptionalFieldOffset(field);
     return verifier.Check(field_offset != 0) &&
-           verifier.VerifyField<T>(data_, field_offset, align);
+           verifier.template VerifyField<T>(data_, field_offset, align);
   }
 
   // Versions for offsets.
-  template <typename OffsetT = uoffset_t>
-  bool VerifyOffset(const Verifier& verifier, voffset_t field) const {
+  template <typename OffsetT = uoffset_t, bool B = false>
+  bool VerifyOffset(const VerifierTemplate<B>& verifier,
+                    voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
-    return !field_offset || verifier.VerifyOffset<OffsetT>(data_, field_offset);
+    return !field_offset ||
+           verifier.template VerifyOffset<OffsetT>(data_, field_offset);
   }
 
-  template <typename OffsetT = uoffset_t>
-  bool VerifyOffsetRequired(const Verifier& verifier, voffset_t field) const {
+  template <typename OffsetT = uoffset_t, bool B = false>
+  bool VerifyOffsetRequired(const VerifierTemplate<B>& verifier,
+                            voffset_t field) const {
     auto field_offset = GetOptionalFieldOffset(field);
     return verifier.Check(field_offset != 0) &&
-           verifier.VerifyOffset<OffsetT>(data_, field_offset);
+           verifier.template VerifyOffset<OffsetT>(data_, field_offset);
   }
 
-  bool VerifyOffset64(const Verifier& verifier, voffset_t field) const {
+  template <bool B>
+  bool VerifyOffset64(const VerifierTemplate<B>& verifier,
+                      voffset_t field) const {
     return VerifyOffset<uoffset64_t>(verifier, field);
   }
 
-  bool VerifyOffset64Required(const Verifier& verifier, voffset_t field) const {
+  template <bool B>
+  bool VerifyOffset64Required(const VerifierTemplate<B>& verifier,
+                              voffset_t field) const {
     return VerifyOffsetRequired<uoffset64_t>(verifier, field);
   }
 

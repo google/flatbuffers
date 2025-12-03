@@ -395,7 +395,8 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 35) return default_enum();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_JUST_I8, 1) &&
            VerifyField<int8_t>(verifier, VT_MAYBE_I8, 1) &&
@@ -738,11 +739,11 @@ inline void ScalarStuff::UnPackTo(ScalarStuffT *_o, const ::flatbuffers::resolve
   { auto _e = default_enum(); _o->default_enum = _e; }
 }
 
-inline ::flatbuffers::Offset<ScalarStuff> ScalarStuff::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateScalarStuff(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<ScalarStuff> CreateScalarStuff(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return ScalarStuff::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<ScalarStuff> CreateScalarStuff(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<ScalarStuff> ScalarStuff::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ScalarStuffT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const ScalarStuffT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -958,14 +959,16 @@ inline bool SizePrefixedScalarStuffBufferHasIdentifier(const void *buf) {
       buf, ScalarStuffIdentifier(), true);
 }
 
+template <bool B = false>
 inline bool VerifyScalarStuffBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedScalarStuffBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
 }
 
 inline const char *ScalarStuffExtension() {
