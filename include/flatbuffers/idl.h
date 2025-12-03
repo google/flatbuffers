@@ -1302,7 +1302,7 @@ bool GenerateJavaGRPC(const Parser& parser, const std::string& path,
 // Generate GRPC Python interfaces.
 // See idl_gen_grpc.cpp.
 const char* GeneratePythonGRPC(const Parser& parser, const std::string& path,
-                        const std::string& file_name);
+                               const std::string& file_name);
 
 // Generate GRPC Swift interfaces.
 // See idl_gen_grpc.cpp.
