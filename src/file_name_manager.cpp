@@ -33,9 +33,10 @@ bool FileNameSaver::SaveFile(const char* name, const char* buf, size_t len,
   return true;
 }
 
-const char *FileNameSaver::AttemptSave(const char *name, const char *buf, size_t len, bool binary)
-{
-  return SaveFile(name, buf, len, binary) ? nullptr : "Printing filename failed";
+const char* FileNameSaver::AttemptSave(const char* name, const char* buf,
+                                       size_t len, bool binary) {
+  return SaveFile(name, buf, len, binary) ? nullptr
+                                          : "Printing filename failed";
 }
 
 void FileNameSaver::Finish() {
