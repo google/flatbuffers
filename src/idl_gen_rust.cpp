@@ -841,6 +841,29 @@ class RustGenerator : public BaseGenerator {
       code_ += "  }";
       code_ += "}";
       code_ += "";
+
+      if (!IsBitFlagsEnum(enum_def)) {
+        code_ += "impl<'de> serde::Deserialize<'de> for {{ENUM_TY}} {";
+        code_ +=
+            "    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>";
+        code_ += "    where";
+        code_ += "        D: serde::Deserializer<'de>,";
+        code_ += "    {";
+        code_ += "        let s = String::deserialize(deserializer)?;";
+        code_ += "        for item in {{ENUM_TY}}::ENUM_VALUES {";
+        code_ += "            if let Some(item_name) = item.variant_name() {";
+        code_ += "                if item_name == s {";
+        code_ += "                    return Ok(item.clone());";
+        code_ += "                }";
+        code_ += "            }";
+        code_ += "        }";
+        code_ += "        Err(serde::de::Error::custom(format!(";
+        code_ += "            \"Unknown {{ENUM_TY}} variant: {s}\"";
+        code_ += "        )))";
+        code_ += "    }";
+        code_ += "}";
+        code_ += "";
+      }
     }
 
     // Generate Follow and Push so we can serialize and stuff.
