@@ -2961,8 +2961,9 @@ class PythonCodeGenerator : public CodeGenerator {
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
                           const std::string& filename) override {
-    if (!GeneratePythonGRPC(parser, path,
-                            filename)) {  // TODO add status GeneratePythonGRPC
+    auto err = GeneratePythonGRPC(parser, path, filename);
+    if (err) {
+      status_detail = " " + std::string(err);
       return Status::ERROR;
     }
     return Status::OK;
