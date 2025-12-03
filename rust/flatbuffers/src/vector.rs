@@ -17,6 +17,8 @@
 use core::cmp::Ordering;
 use core::fmt::{Debug, Formatter, Result};
 use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
+#[cfg(nightly)]
+use core::iter::TrustedLen;
 use core::marker::PhantomData;
 use core::mem::{align_of, size_of};
 use core::str::from_utf8_unchecked;
@@ -292,6 +294,9 @@ impl<'a, T: 'a + Follow<'a>> ExactSizeIterator for VectorIter<'a, T> {
         self.remaining
     }
 }
+
+#[cfg(nightly)]
+unsafe impl<'a, T: Follow<'a> + 'a> TrustedLen for VectorIter<'a, T> {}
 
 impl<'a, T: 'a + Follow<'a>> FusedIterator for VectorIter<'a, T> {}
 

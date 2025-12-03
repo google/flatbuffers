@@ -842,6 +842,29 @@ class RustGenerator : public BaseGenerator {
       code_ += "  }";
       code_ += "}";
       code_ += "";
+
+      if (!IsBitFlagsEnum(enum_def)) {
+        code_ += "impl<'de> serde::Deserialize<'de> for {{ENUM_TY}} {";
+        code_ +=
+            "    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>";
+        code_ += "    where";
+        code_ += "        D: serde::Deserializer<'de>,";
+        code_ += "    {";
+        code_ += "        let s = String::deserialize(deserializer)?;";
+        code_ += "        for item in {{ENUM_TY}}::ENUM_VALUES {";
+        code_ += "            if let Some(item_name) = item.variant_name() {";
+        code_ += "                if item_name == s {";
+        code_ += "                    return Ok(item.clone());";
+        code_ += "                }";
+        code_ += "            }";
+        code_ += "        }";
+        code_ += "        Err(serde::de::Error::custom(format!(";
+        code_ += "            \"Unknown {{ENUM_TY}} variant: {s}\"";
+        code_ += "        )))";
+        code_ += "    }";
+        code_ += "}";
+        code_ += "";
+      }
     }
 
     // Generate Follow and Push so we can serialize and stuff.
@@ -2438,7 +2461,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "/// `root_as_{{STRUCT_FN}}_unchecked`.";
     code_ +=
         "pub fn root_as_{{STRUCT_FN}}(buf: &[u8]) "
-        "-> Result<{{STRUCT_TY}}, flatbuffers::InvalidFlatbuffer> {";
+        "-> Result<{{STRUCT_TY}}<'_>, flatbuffers::InvalidFlatbuffer> {";
     code_ += "  flatbuffers::root::<{{STRUCT_TY}}>(buf)";
     code_ += "}";
     code_ += "#[inline]";
@@ -2450,7 +2473,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "/// `size_prefixed_root_as_{{STRUCT_FN}}_unchecked`.";
     code_ +=
         "pub fn size_prefixed_root_as_{{STRUCT_FN}}"
-        "(buf: &[u8]) -> Result<{{STRUCT_TY}}, "
+        "(buf: &[u8]) -> Result<{{STRUCT_TY}}<'_>, "
         "flatbuffers::InvalidFlatbuffer> {";
     code_ += "  flatbuffers::size_prefixed_root::<{{STRUCT_TY}}>(buf)";
     code_ += "}";
@@ -2500,7 +2523,7 @@ class RustGenerator : public BaseGenerator {
         " `{{STRUCT_TY}}`.";
     code_ +=
         "pub unsafe fn root_as_{{STRUCT_FN}}_unchecked"
-        "(buf: &[u8]) -> {{STRUCT_TY}} {";
+        "(buf: &[u8]) -> {{STRUCT_TY}}<'_> {";
     code_ += "  unsafe { flatbuffers::root_unchecked::<{{STRUCT_TY}}>(buf) }";
     code_ += "}";
     code_ += "#[inline]";
@@ -2513,7 +2536,7 @@ class RustGenerator : public BaseGenerator {
         " size prefixed `{{STRUCT_TY}}`.";
     code_ +=
         "pub unsafe fn size_prefixed_root_as_{{STRUCT_FN}}"
-        "_unchecked(buf: &[u8]) -> {{STRUCT_TY}} {";
+        "_unchecked(buf: &[u8]) -> {{STRUCT_TY}}<'_> {";
     code_ +=
         "  unsafe { flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}>"
         "(buf) }";
