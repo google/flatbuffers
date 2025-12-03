@@ -142,10 +142,10 @@ fn main() {
             // We know the bits should be exactly equal here but compilers may
             // optimize floats in subtle ways so we're playing it safe and using
             // epsilon comparison
-            assert!((pos.x() - 1.0f32).abs() < std::f32::EPSILON);
-            assert!((pos.y() - 2.0f32).abs() < std::f32::EPSILON);
-            assert!((pos.z() - 3.0f32).abs() < std::f32::EPSILON);
-            assert!((pos.test1() - 3.0f64).abs() < std::f64::EPSILON);
+            assert!((pos.x() - 1.0f32).abs() < f32::EPSILON);
+            assert!((pos.y() - 2.0f32).abs() < f32::EPSILON);
+            assert!((pos.z() - 3.0f32).abs() < f32::EPSILON);
+            assert!((pos.test1() - 3.0f64).abs() < f64::EPSILON);
             assert_eq!(pos.test2(), my_game::example::Color::Green);
             let pos_test3 = pos.test3();
             assert_eq!(pos_test3.a(), 5i16);
