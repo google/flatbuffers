@@ -2899,8 +2899,9 @@ class PythonGenerator : public BaseGenerator {
          i != std::string::npos; i = directories.find(kPathSeparator, i + 1)) {
       const std::string init_py =
           directories.substr(0, i) + kPathSeparator + "__init__.py";
-      parser_.opts.file_saver->AttemptSave(init_py.c_str(), "",
-                                           false);  // todo return on error
+      auto error =
+          parser_.opts.file_saver->AttemptSave(init_py.c_str(), "", false);
+      if (error) return error;
     }
 
     const std::string filename = directories + defname;
