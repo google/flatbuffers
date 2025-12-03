@@ -433,7 +433,8 @@ class CppGenerator : public BaseGenerator {
         GeneratedFileName(path_, file_name_ + "_bfbs", opts_);
     const auto final_code = code_.ToString();
 
-    return SaveFile(file_path.c_str(), final_code, false);
+    return parser_.opts.file_saver->SaveFile(file_path.c_str(), final_code,
+                                             false);
   }
 
   // Iterate through all definitions we haven't generate code for (enums,
@@ -764,8 +765,9 @@ class CppGenerator : public BaseGenerator {
     const auto final_code = code_.ToString();
 
     // Save the file and optionally generate the binary schema code.
-    return SaveFile(file_path.c_str(), final_code, false) &&
-           (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed());
+    return parser_.opts.file_saver->SaveFile(
+        file_path.c_str(), final_code,
+        (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed()));
   }
 
  private:

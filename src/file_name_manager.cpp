@@ -14,36 +14,31 @@
  * limitations under the License.
  */
 
-#include <fstream>
-#include <set>
-#include <string>
+#include <iostream>
+#include <tuple>
 
 #include "flatbuffers/file_manager.h"
 
 namespace flatbuffers {
 
-class FileNameSavingFileManager : public FileManager {
- public:
-  FileNameSavingFileManager(std::set<std::string> file_names)
-      : file_names_(file_names) {}
+bool FileNameSaver::SaveFile(const char* name, const char* buf, size_t len,
+                             bool binary) {
+  (void)buf;
+  (void)len;
+  (void)binary;
 
-  bool SaveFile(const std::string& absolute_file_name,
-                const std::string& content) override {
-    (void)content;
-    auto pair = file_names_.insert(absolute_file_name);
-    // pair.second indicates whether the insertion is
-    // successful or not.
-    return pair.second;
+  std::ignore = file_names_.insert(name);
+
+  // we want to simulate always successful save
+  return true;
+}
+
+void FileNameSaver::Finish() {
+  for (const auto& file_name : file_names_) {
+    // Just print the file names to standard output.
+    // No actual file is created.
+    std::cout << file_name << "\n";
   }
-
-  bool Loadfile(const std::string& absolute_file_name, std::string* content) {
-    (void)absolute_file_name;
-    (void)content;
-    return false;
-  }
-
- private:
-  std::set<std::string> file_names_;
-};
+}
 
 }  // namespace flatbuffers

@@ -703,7 +703,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     EnsureDirExists(path);
     const std::string file_name =
         options_.output_path + path + "/" + namer_.File(name);
-    SaveFile(file_name.c_str(), code, false);
+    options_.file_saver->SaveFile(file_name.c_str(), code, false);
   }
 
   std::unordered_set<std::string> keywords_;
