@@ -141,9 +141,8 @@ set(FlatBuffers_Compiler_SRCS
   ${FLATBUFFERS_DIR}/src/idl_gen_grpc.cpp
   ${FLATBUFFERS_DIR}/src/idl_gen_json_schema.cpp
   ${FLATBUFFERS_DIR}/src/idl_gen_swift.cpp
-  ${FLATBUFFERS_DIR}/src/file_name_saving_file_manager.cpp
-  ${FLATBUFFERS_DIR}/src/file_binary_writer.cpp
-  ${FLATBUFFERS_DIR}/src/file_writer.cpp
+  ${FLATBUFFERS_DIR}/src/file_manager.cpp
+  ${FLATBUFFERS_DIR}/src/file_name_manager.cpp
   ${FLATBUFFERS_DIR}/src/idl_namer.h
   ${FLATBUFFERS_DIR}/src/namer.h
   ${FLATBUFFERS_DIR}/src/flatc.cpp
