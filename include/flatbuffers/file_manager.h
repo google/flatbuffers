@@ -34,13 +34,14 @@ class FileSaver {
                         bool binary) = 0;
 
   virtual const char* AttemptSave(const char* name, const char* buf, size_t len,
-                               bool binary) = 0;
+                                  bool binary) = 0;
 
   bool SaveFile(const char* name, const std::string& buf, bool binary) {
     return SaveFile(name, buf.c_str(), buf.size(), binary);
   }
 
-  const char* AttemptSave(const char* name, const std::string& buf, bool binary) {
+  const char* AttemptSave(const char* name, const std::string& buf,
+                          bool binary) {
     return AttemptSave(name, buf.c_str(), buf.size(), binary);
   }
 
@@ -62,6 +63,7 @@ class RealFileSaver final : public FileSaver {
 
   const char* AttemptSave(const char* name, const char* buf, size_t len,
                           bool binary) final;
+
  private:
   std::string error_msg;
 };

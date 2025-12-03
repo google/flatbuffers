@@ -30,10 +30,10 @@ bool RealFileSaver::SaveFile(const char* name, const char* buf, size_t len,
   return !ofs.bad();
 }
 
-
-const char* RealFileSaver::AttemptSave(const char* name, const char* buf, size_t len,
-                         bool binary) {
+const char* RealFileSaver::AttemptSave(const char* name, const char* buf,
+                                       size_t len, bool binary) {
   if (!SaveFile(name, buf, len, binary)) {
+    static std::string error_msg;
     error_msg = "Could not save file " + std::string(name ? name : "unknown");
     return error_msg.c_str();
   }

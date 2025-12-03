@@ -92,7 +92,7 @@ class PythonStubGenerator {
       std::string filename = namer_.Directories(*def->defined_namespace) +
                              namer_.File(*def, SkipFile::Suffix);
       auto error = SaveFile(filename, imports, stub);
-      if(error) return error;
+      if (error) return error;
     }
 
     for (const StructDef* def : parser_.structs_.vec) {
@@ -107,7 +107,7 @@ class PythonStubGenerator {
       std::string filename = namer_.Directories(*def->defined_namespace) +
                              namer_.File(*def, SkipFile::Suffix);
       auto error = SaveFile(filename, imports, stub);
-      if(error) return error;
+      if (error) return error;
     }
 
     return nullptr;
@@ -115,14 +115,15 @@ class PythonStubGenerator {
 
  private:
   const char* SaveFile(const std::string& filename, const Imports& imports,
-                const std::stringstream& content) {
+                       const std::stringstream& content) {
     std::stringstream ss;
     GenerateImports(ss, imports);
     ss << '\n';
     ss << content.str() << '\n';
 
     EnsureDirExists(StripFileName(filename));
-    return parser_.opts.file_saver->AttemptSave(filename.c_str(), ss.str(), false);
+    return parser_.opts.file_saver->AttemptSave(filename.c_str(), ss.str(),
+                                                false);
   }
 
   static void DeclareUOffset(std::stringstream& stub, Imports* imports) {
@@ -2769,9 +2770,9 @@ class PythonGenerator : public BaseGenerator {
     std::string one_file_code;
     ImportMap one_file_imports;
     auto error = generateEnums(&one_file_code);
-    if(error) return error;
+    if (error) return error;
     error = generateStructs(&one_file_code, one_file_imports);
-    if(error) return error;
+    if (error) return error;
 
     if (parser_.opts.one_file) {
       const std::string mod = file_name_ + parser_.opts.filename_suffix;
@@ -2803,8 +2804,8 @@ class PythonGenerator : public BaseGenerator {
             namer_.File(enum_def, SkipFile::SuffixAndExtension);
 
         auto error = SaveType(namer_.File(enum_def, SkipFile::Suffix),
-                      *enum_def.defined_namespace, enumcode, imports, mod,
-                              false);
+                              *enum_def.defined_namespace, enumcode, imports,
+                              mod, false);
         printf("generateEnums: %s", error);
         if (error) return error;
       }
@@ -2813,7 +2814,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
   const char* generateStructs(std::string* one_file_code,
-                       ImportMap& one_file_imports) const {
+                              ImportMap& one_file_imports) const {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto& struct_def = **it;
@@ -2836,8 +2837,8 @@ class PythonGenerator : public BaseGenerator {
         const std::string mod =
             namer_.File(struct_def, SkipFile::SuffixAndExtension);
         auto error = SaveType(namer_.File(struct_def, SkipFile::Suffix),
-                              *struct_def.defined_namespace, declcode, imports, mod,
-                              true);
+                              *struct_def.defined_namespace, declcode, imports,
+                              mod, true);
         if (error) return error;
       }
     }
@@ -2882,8 +2883,8 @@ class PythonGenerator : public BaseGenerator {
 
   // Save out the generated code for a Python Table type.
   const char* SaveType(const std::string& defname, const Namespace& ns,
-                const std::string& classcode, const ImportMap& imports,
-                const std::string& mod, bool needs_imports) const {
+                       const std::string& classcode, const ImportMap& imports,
+                       const std::string& mod, bool needs_imports) const {
     if (classcode.empty()) return nullptr;
 
     std::string code = "";
@@ -2898,7 +2899,8 @@ class PythonGenerator : public BaseGenerator {
          i != std::string::npos; i = directories.find(kPathSeparator, i + 1)) {
       const std::string init_py =
           directories.substr(0, i) + kPathSeparator + "__init__.py";
-      parser_.opts.file_saver->AttemptSave(init_py.c_str(), "", false); //todo return on error
+      parser_.opts.file_saver->AttemptSave(init_py.c_str(), "",
+                                           false);  // todo return on error
     }
 
     const std::string filename = directories + defname;
