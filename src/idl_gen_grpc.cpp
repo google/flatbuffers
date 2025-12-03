@@ -441,7 +441,7 @@ bool GenerateJavaGRPC(const Parser& parser, const std::string& path,
 }
 
 const char* GeneratePythonGRPC(const Parser& parser, const std::string& path,
-                        const std::string& /*file_name*/) {
+                               const std::string& /*file_name*/) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
