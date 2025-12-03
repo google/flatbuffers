@@ -57,7 +57,7 @@ class PythonStubGenerator {
                Keywords(version)},
         version_(version) {}
 
-  bool Generate() {
+  const char* Generate() {
     if (parser_.opts.one_file) {
       Imports imports;
       std::stringstream stub;
@@ -91,7 +91,8 @@ class PythonStubGenerator {
 
       std::string filename = namer_.Directories(*def->defined_namespace) +
                              namer_.File(*def, SkipFile::Suffix);
-      if (!SaveFile(filename, imports, stub)) return false;
+      auto error = SaveFile(filename, imports, stub);
+      if(error) return error;
     }
 
     for (const StructDef* def : parser_.structs_.vec) {
@@ -105,14 +106,15 @@ class PythonStubGenerator {
 
       std::string filename = namer_.Directories(*def->defined_namespace) +
                              namer_.File(*def, SkipFile::Suffix);
-      if (!SaveFile(filename, imports, stub)) return false;
+      auto error = SaveFile(filename, imports, stub);
+      if(error) return error;
     }
 
-    return true;
+    return nullptr;
   }
 
  private:
-  bool SaveFile(const std::string& filename, const Imports& imports,
+  const char* SaveFile(const std::string& filename, const Imports& imports,
                 const std::stringstream& content) {
     std::stringstream ss;
     GenerateImports(ss, imports);
@@ -120,7 +122,7 @@ class PythonStubGenerator {
     ss << content.str() << '\n';
 
     EnsureDirExists(StripFileName(filename));
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), ss.str(), false);
+    return parser_.opts.file_saver->AttemptSave(filename.c_str(), ss.str(), false);
   }
 
   static void DeclareUOffset(std::stringstream& stub, Imports* imports) {
@@ -2761,11 +2763,15 @@ class PythonGenerator : public BaseGenerator {
     EndBuilderBody(code_ptr);
   }
 
-  bool generate() {
+  bool generate() { return false; }
+
+  const char* Generate() {
     std::string one_file_code;
     ImportMap one_file_imports;
-    if (!generateEnums(&one_file_code)) return false;
-    if (!generateStructs(&one_file_code, one_file_imports)) return false;
+    auto error = generateEnums(&one_file_code);
+    if(error) return error;
+    error = generateStructs(&one_file_code, one_file_imports);
+    if(error) return error;
 
     if (parser_.opts.one_file) {
       const std::string mod = file_name_ + parser_.opts.filename_suffix;
@@ -2775,11 +2781,11 @@ class PythonGenerator : public BaseGenerator {
                       one_file_imports, mod, true);
     }
 
-    return true;
+    return nullptr;
   }
 
  private:
-  bool generateEnums(std::string* one_file_code) const {
+  const char* generateEnums(std::string* one_file_code) const {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto& enum_def = **it;
@@ -2796,16 +2802,17 @@ class PythonGenerator : public BaseGenerator {
         const std::string mod =
             namer_.File(enum_def, SkipFile::SuffixAndExtension);
 
-        if (!SaveType(namer_.File(enum_def, SkipFile::Suffix),
+        auto error = SaveType(namer_.File(enum_def, SkipFile::Suffix),
                       *enum_def.defined_namespace, enumcode, imports, mod,
-                      false))
-          return false;
+                              false);
+        printf("generateEnums: %s", error);
+        if (error) return error;
       }
     }
-    return true;
+    return nullptr;
   }
 
-  bool generateStructs(std::string* one_file_code,
+  const char* generateStructs(std::string* one_file_code,
                        ImportMap& one_file_imports) const {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
@@ -2828,13 +2835,13 @@ class PythonGenerator : public BaseGenerator {
       } else {
         const std::string mod =
             namer_.File(struct_def, SkipFile::SuffixAndExtension);
-        if (!SaveType(namer_.File(struct_def, SkipFile::Suffix),
-                      *struct_def.defined_namespace, declcode, imports, mod,
-                      true))
-          return false;
+        auto error = SaveType(namer_.File(struct_def, SkipFile::Suffix),
+                              *struct_def.defined_namespace, declcode, imports, mod,
+                              true);
+        if (error) return error;
       }
     }
-    return true;
+    return nullptr;
   }
 
   // Begin by declaring namespace and imports.
@@ -2874,10 +2881,10 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Save out the generated code for a Python Table type.
-  bool SaveType(const std::string& defname, const Namespace& ns,
+  const char* SaveType(const std::string& defname, const Namespace& ns,
                 const std::string& classcode, const ImportMap& imports,
                 const std::string& mod, bool needs_imports) const {
-    if (classcode.empty()) return true;
+    if (classcode.empty()) return nullptr;
 
     std::string code = "";
     BeginFile(LastNamespacePart(ns), needs_imports, &code, mod, imports);
@@ -2891,11 +2898,11 @@ class PythonGenerator : public BaseGenerator {
          i != std::string::npos; i = directories.find(kPathSeparator, i + 1)) {
       const std::string init_py =
           directories.substr(0, i) + kPathSeparator + "__init__.py";
-      parser_.opts.file_saver->SaveFile(init_py.c_str(), "", false);
+      parser_.opts.file_saver->AttemptSave(init_py.c_str(), "", false); //todo return on error
     }
 
     const std::string filename = directories + defname;
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver->AttemptSave(filename.c_str(), code, false);
   }
 
  private:
@@ -2911,12 +2918,13 @@ static const char* GeneratePython(const Parser& parser, const std::string& path,
   if (!version.IsValid()) return "The provided Python version is not valid";
 
   python::PythonGenerator generator(parser, path, file_name, version);
-  if (!generator.generate()) return "could not generate Python code";
+  auto error = generator.Generate();
+  if (error) return error;
 
   if (parser.opts.python_typing) {
     python::PythonStubGenerator stub_generator(parser, path, version);
-    if (!stub_generator.Generate())
-      return "could not generate Python type stubs";
+    auto error = stub_generator.Generate();
+    if (error) return error;
   }
   return nullptr;
 }
