@@ -33,8 +33,15 @@ class FileSaver {
   virtual bool SaveFile(const char* name, const char* buf, size_t len,
                         bool binary) = 0;
 
+  virtual const char* AttemptSave(const char* name, const char* buf, size_t len,
+                               bool binary) = 0;
+
   bool SaveFile(const char* name, const std::string& buf, bool binary) {
     return SaveFile(name, buf.c_str(), buf.size(), binary);
+  }
+
+  const char* AttemptSave(const char* name, const std::string& buf, bool binary) {
+    return AttemptSave(name, buf.c_str(), buf.size(), binary);
   }
 
   virtual void Finish() {}
@@ -52,12 +59,20 @@ class RealFileSaver final : public FileSaver {
  public:
   bool SaveFile(const char* name, const char* buf, size_t len,
                 bool binary) final;
+
+  const char* AttemptSave(const char* name, const char* buf, size_t len,
+                          bool binary) final;
+ private:
+  std::string error_msg;
 };
 
 class FileNameSaver final : public FileSaver {
  public:
   bool SaveFile(const char* name, const char* buf, size_t len,
                 bool binary) final;
+
+  const char* AttemptSave(const char* name, const char* buf, size_t len,
+                          bool binary) final;
 
   void Finish() final;
 
