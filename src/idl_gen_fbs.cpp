@@ -409,7 +409,8 @@ static bool GenerateFBS(const Parser& parser, const std::string& path,
             "When you use --proto, that you should check for conformity "
             "yourself, using the existing --conform");
   }
-  return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
+  return parser.opts.file_saver->SaveFile((path + file_name + ".fbs").c_str(),
+                                          fbs, false);
 }
 
 class FBSCodeGenerator : public CodeGenerator {
