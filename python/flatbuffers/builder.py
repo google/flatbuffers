@@ -553,6 +553,21 @@ class Builder(object):
     self.vectorNumElems = x.size
     return self.EndVector()
 
+  def CreateVectorOfTables(self, offsets):
+    """CreateVectorOfTables writes a vector of offsets such as tables or strings.
+
+    Args:
+      offsets: Iterable of offsets returned from previous builder operations.
+               Each element should be an integer compatible with UOffsetT.
+    """
+
+    offsets = list(offsets)
+    self.StartVector(N.UOffsetTFlags.bytewidth, len(offsets),
+                     N.UOffsetTFlags.bytewidth)
+    for off in reversed(offsets):
+      self.PrependUOffsetTRelative(off)
+    return self.EndVector()
+
   ## @cond FLATBUFFERS_INTERNAL
   def assertNested(self):
     """Check that we are in the process of building an object."""
