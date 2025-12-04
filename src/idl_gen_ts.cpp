@@ -362,7 +362,13 @@ class TsGenerator : public BaseGenerator {
     code += "/**\n";
     for (auto it = dc.begin(); it != dc.end(); ++it) {
       if (indent) code += indent;
-      code += " *" + *it + "\n";
+      std::string safe = *it;
+      for (size_t pos = 0;
+           (pos = safe.find("*/", pos)) != std::string::npos;) {
+        safe.replace(pos, 2, "*\\/");
+        pos += 3;
+      }
+      code += " *" + safe + "\n";
     }
     if (indent) code += indent;
     code += " */\n";
