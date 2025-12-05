@@ -1,0 +1,7 @@
+include "module_a.fbs";
+
+namespace bar;
+
+table Bar {
+  value: Foo;
+}
