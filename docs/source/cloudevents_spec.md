@@ -71,9 +71,23 @@ The following OPTIONAL attributes are defined:
 
 CloudEvents allows arbitrary extension attributes. These are represented using a key-value table structure in FlatBuffers.
 
+The `type` field in `ExtensionAttributes` MUST be one of: `Boolean`, `Integer`, `String`, `Binary`, `URI`, `URI-reference`, Timestamp.
+
+| Extension Type  | Serialization                          |
+|-----------------|----------------------------------------|
+| Boolean         | 1 byte (0x00 = false, 0x01 = true)     |
+| Integer         | 4 bytes, little-endian                 |
+| String          | UTF-8 encoded bytes                    |
+| Binary          | Raw bytes                              |
+| URI             | UTF-8 encoded bytes (RFC 3986 §4.3)    |
+| URI-reference   | UTF-8 encoded bytes (RFC 3986 §4.1)    |
+| Timestamp       | UTF-8 encoded bytes (RFC 3339)         |
+
 ### 2.5 Schema Definition
 
-Users of FlatBuffers MUST use a schema compatible with the CloudEvent FlatBuffers Schema:
+Users of FlatBuffers MUST use a schema compatible with the CloudEvent FlatBuffers Schema.
+
+The CloudEvent envelope schema (io.cloudevents.CloudEvent) MUST be known in advance by both producer and consumer. The dataschema attribute applies only to the data payload, not to the envelope itself.
 
 ```fbs
 namespace io.cloudevents;
@@ -81,7 +95,8 @@ namespace io.cloudevents;
 // Key-value pair for extension attributes
 table ExtensionAttributes {
   key: string (required);
-  value: string (required);
+  value: [ubyte] (required);
+  type: string (required);
 }
 
 // Main CloudEvent record
@@ -110,9 +125,9 @@ root_type CloudEvent;
 
 ## 3. Data
 
-Before encoding, the FlatBuffers serializer MUST first determine the runtime data type of the content. This can be determined by examining the data for invalid UTF-8 sequences or by consulting the `datacontenttype` attribute.
+In the FlatBuffers event format, data is always stored as a vector of unsigned bytes (`[ubyte]`). This differs from formats like `JSON` or `protobuf Any` that support inline structured data. Consumers SHOULD consult the datacontenttype attribute to determine how to interpret the byte payload.
 
-The `data` field is represented as a vector of unsigned bytes (`[ubyte]`), which can store:
+The `data` field can store:
 
 - Binary data directly
 - UTF-8 encoded strings
