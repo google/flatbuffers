@@ -22,28 +22,12 @@
 
 namespace flatbuffers {
 
-class FileNameSavingFileManager : public FileManager {
- public:
-  FileNameSavingFileManager(std::set<std::string> file_names)
-      : file_names_(file_names) {}
-
-  bool SaveFile(const std::string &absolute_file_name,
-                const std::string &content) override {
-    (void)content;
-    auto pair = file_names_.insert(absolute_file_name);
-    // pair.second indicates whether the insertion is
-    // successful or not.
-    return pair.second;
-  }
-
-  bool Loadfile(const std::string &absolute_file_name, std::string *content) {
-    (void)absolute_file_name;
-    (void)content;
-    return false;
-  }
-
- private:
-  std::set<std::string> file_names_;
-};
+bool RealFileSaver::SaveFile(const char* name, const char* buf, size_t len,
+                             bool binary) {
+  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
+  if (!ofs.is_open()) return false;
+  ofs.write(buf, len);
+  return !ofs.bad();
+}
 
 }  // namespace flatbuffers

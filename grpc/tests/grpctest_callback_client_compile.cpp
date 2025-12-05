@@ -15,44 +15,43 @@ using namespace MyGame::Example;  // NOLINT
 // Unary async overloads
 static_assert(std::is_member_function_pointer<
                   decltype(static_cast<void (Stub::*)(
-                               ::grpc::ClientContext *,
-                               const flatbuffers::grpc::Message<Monster> &,
-                               flatbuffers::grpc::Message<Stat> *,
+                               ::grpc::ClientContext*,
+                               const flatbuffers::grpc::Message<Monster>&,
+                               flatbuffers::grpc::Message<Stat>*,
                                std::function<void(::grpc::Status)>)>(
                       &Stub::async_Store))>::value,
               "Function-form unary async_Store missing");
-static_assert(std::is_member_function_pointer<
-                  decltype(static_cast<void (Stub::*)(
-                               ::grpc::ClientContext *,
-                               const flatbuffers::grpc::Message<Monster> &,
-                               flatbuffers::grpc::Message<Stat> *,
-                               ::grpc::ClientUnaryReactor *)>(
-                      &Stub::async_Store))>::value,
-              "Reactor-form unary async_Store missing");
+static_assert(
+    std::is_member_function_pointer<
+        decltype(static_cast<void (Stub::*)(
+                     ::grpc::ClientContext*,
+                     const flatbuffers::grpc::Message<Monster>&,
+                     flatbuffers::grpc::Message<Stat>*,
+                     ::grpc::ClientUnaryReactor*)>(&Stub::async_Store))>::value,
+    "Reactor-form unary async_Store missing");
 
 // Streaming reactor entry points
 static_assert(
     std::is_member_function_pointer<
         decltype(static_cast<void (Stub::*)(
-                     ::grpc::ClientContext *,
-                     const flatbuffers::grpc::Message<Stat> &,
+                     ::grpc::ClientContext*,
+                     const flatbuffers::grpc::Message<Stat>&,
                      ::grpc::ClientReadReactor<flatbuffers::grpc::Message<
-                         Monster> > *)>(&Stub::async_Retrieve))>::value,
+                         Monster> >*)>(&Stub::async_Retrieve))>::value,
     "Server streaming reactor async_Retrieve missing");
 static_assert(
     std::is_member_function_pointer<
         decltype(static_cast<void (Stub::*)(
-                     ::grpc::ClientContext *,
-                     flatbuffers::grpc::Message<Stat> *,
+                     ::grpc::ClientContext*, flatbuffers::grpc::Message<Stat>*,
                      ::grpc::ClientWriteReactor<flatbuffers::grpc::Message<
-                         Monster> > *)>(&Stub::async_GetMaxHitPoint))>::value,
+                         Monster> >*)>(&Stub::async_GetMaxHitPoint))>::value,
     "Client streaming reactor async_GetMaxHitPoint missing");
 static_assert(std::is_member_function_pointer<
                   decltype(static_cast<void (Stub::*)(
-                               ::grpc::ClientContext *,
+                               ::grpc::ClientContext*,
                                ::grpc::ClientBidiReactor<
                                    flatbuffers::grpc::Message<Monster>,
-                                   flatbuffers::grpc::Message<Stat> > *)>(
+                                   flatbuffers::grpc::Message<Stat> >*)>(
                       &Stub::async_GetMinMaxHitPoints))>::value,
               "Bidi streaming reactor async_GetMinMaxHitPoints missing");
 #endif  // FLATBUFFERS_GENERATED_GRPC_CALLBACK_API &&

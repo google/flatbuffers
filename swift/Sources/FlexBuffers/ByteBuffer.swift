@@ -125,21 +125,24 @@ public struct ByteBuffer {
         return try byteBuffer.withUnsafeRawPointer(body)
       #if !os(WASI)
       case .data(let data):
-        return try data
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try data
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       case .bytes(let contiguousBytes):
-        return try contiguousBytes
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try contiguousBytes
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       #endif
       case .array(let array):
-        return try array
-          .withUnsafeBytes {
-            try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
-          }
+        return
+          try array
+            .withUnsafeBytes {
+              try body(UnsafeMutableRawPointer(mutating: $0.baseAddress!))
+            }
       case .pointer(let ptr):
         return try body(ptr)
       }

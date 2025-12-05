@@ -8,7 +8,7 @@ import Common
 
 import FlatBuffers
 
-public enum optional_scalars_OptionalByte: Int8, Enum, Verifiable {
+public enum optional_scalars_OptionalByte: Int8, FlatbuffersVectorInitializable, Enum, Verifiable {
   public typealias T = Int8
   public static var byteSize: Int { return MemoryLayout<Int8>.size }
   public var value: Int8 { return self.rawValue }
@@ -31,9 +31,9 @@ extension optional_scalars_OptionalByte: Encodable {
   }
 }
 
-public struct optional_scalars_ScalarStuff: FlatBufferObject, Verifiable {
+public struct optional_scalars_ScalarStuff: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_25_2_10() }
+  static func validateVersion() { FlatBuffersVersion_25_9_23() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 

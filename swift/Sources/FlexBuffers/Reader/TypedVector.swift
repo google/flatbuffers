@@ -96,4 +96,3 @@ extension TypedVector {
     }
   }
 }
-

@@ -1,0 +1,8 @@
+enum Color:byte { Red, Green, Blue }
+
+table Item {
+  name:string;
+  color:Color;
+}
+
+root_type Item;

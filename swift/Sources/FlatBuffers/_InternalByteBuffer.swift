@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import Foundation
+
 #if canImport(Common)
 import Common
 #endif
-
-import Foundation
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
 /// it allows users to Construct their buffers internally without much cost to performance
@@ -55,8 +55,8 @@ struct _InternalByteBuffer {
       capacity: Int,
       writerSize: Int,
       currentWritingIndex: Int,
-      alignment: Int
-    ) {
+      alignment: Int)
+    {
       let newData = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,
         alignment: alignment)
@@ -143,7 +143,7 @@ struct _InternalByteBuffer {
 
   /// Adds a `ContiguousBytes` to buffer memory
   /// - Parameter value: bytes to copy
-  #if swift(>=5.0) && !os(WASI)
+  #if !os(WASI)
   @inline(__always)
   @usableFromInline
   mutating func push(bytes: ContiguousBytes) {
@@ -192,41 +192,17 @@ struct _InternalByteBuffer {
     }
   }
 
-  /// Adds a string to the buffer using swift.utf8 object
-  /// - Parameter str: String that will be added to the buffer
-  /// - Parameter len: length of the string
+  /// Adds a RawPointer into the buffer
+  /// - Parameter pointer: pointer to be copied into the buffer
+  /// - Parameter len: length of the data
   @inline(__always)
-  @usableFromInline
-  mutating func push(string str: String, len: Int) {
+  mutating func writeBytes(_ ptr: UnsafeRawPointer, len: Int) {
     ensureSpace(size: len)
-    if str.utf8
-      .withContiguousStorageIfAvailable({ self.push(bytes: $0, len: len) }) !=
-      nil
-    {
-    } else {
-      let utf8View = str.utf8
-      for c in utf8View.reversed() {
-        push(value: c, len: 1)
-      }
-    }
-  }
-
-  /// Writes a string to Bytebuffer using UTF8View
-  /// - Parameters:
-  ///   - bytes: Pointer to the view
-  ///   - len: Size of string
-  @usableFromInline
-  @inline(__always)
-  mutating func push(
-    bytes: UnsafeBufferPointer<String.UTF8View.Element>,
-    len: Int) -> Bool
-  {
     memcpy(
       _storage.memory.advanced(by: writerIndex &- len),
-      bytes.baseAddress!,
+      ptr,
       len)
     _writerSize = _writerSize &+ len
-    return true
   }
 
   /// Write stores an object into the buffer directly or indirectly.
@@ -260,7 +236,7 @@ struct _InternalByteBuffer {
   mutating func ensureSpace(size: Int) -> Int {
     let expectedWriterIndex = size &+ _writerSize
     if expectedWriterIndex > capacity {
-      
+
       let currentWritingIndex = capacity &- _writerSize
       while capacity <= expectedWriterIndex {
         capacity = capacity << 1
@@ -269,7 +245,6 @@ struct _InternalByteBuffer {
       /// solution take from Apple-NIO
       capacity = capacity.convertToPowerofTwo
 
-      
       _storage.reallocate(
         capacity: capacity,
         writerSize: _writerSize,
@@ -329,9 +304,10 @@ struct _InternalByteBuffer {
     _ body: (UnsafeRawBufferPointer) throws
       -> T) rethrows -> T
   {
-    try body(UnsafeRawBufferPointer(
-      start: _storage.memory,
-      count: capacity))
+    try body(
+      UnsafeRawBufferPointer(
+        start: _storage.memory,
+        count: capacity))
   }
 
   @discardableResult
@@ -340,9 +316,10 @@ struct _InternalByteBuffer {
     _ body: (UnsafeRawBufferPointer) throws
       -> T) rethrows -> T
   {
-    try body(UnsafeRawBufferPointer(
-      start: _storage.memory.advanced(by: writerIndex),
-      count: capacity &- writerIndex))
+    try body(
+      UnsafeRawBufferPointer(
+        start: _storage.memory.advanced(by: writerIndex),
+        count: capacity &- writerIndex))
   }
 
   @discardableResult

@@ -12,14 +12,13 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-public final class Movie extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_25_2_10(); }
+public final class Movie extends com.google.flatbuffers.Table {
+  public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static Movie getRootAsMovie(ByteBuffer _bb) { return getRootAsMovie(_bb, new Movie()); }
   public static Movie getRootAsMovie(ByteBuffer _bb, Movie obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean MovieBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "MOVI"); }
@@ -27,14 +26,14 @@ public final class Movie extends Table {
   public Movie __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public byte mainCharacterType() { int o = __offset(4); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public Table mainCharacter(Table obj) { int o = __offset(6); return o != 0 ? __union(obj, o + bb_pos) : null; }
+  public com.google.flatbuffers.Table mainCharacter(com.google.flatbuffers.Table obj) { int o = __offset(6); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public byte charactersType(int j) { int o = __offset(8); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
   public int charactersTypeLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
   public ByteVector charactersTypeVector() { return charactersTypeVector(new ByteVector()); }
   public ByteVector charactersTypeVector(ByteVector obj) { int o = __offset(8); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
   public ByteBuffer charactersTypeAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
   public ByteBuffer charactersTypeInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
-  public Table characters(Table obj, int j) { int o = __offset(10); return o != 0 ? __union(obj, __vector(o) + j * 4) : null; }
+  public com.google.flatbuffers.Table characters(com.google.flatbuffers.Table obj, int j) { int o = __offset(10); return o != 0 ? __union(obj, __vector(o) + j * 4) : null; }
   public int charactersLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
   public UnionVector charactersVector() { return charactersVector(new UnionVector()); }
   public UnionVector charactersVector(UnionVector obj) { int o = __offset(10); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
@@ -83,7 +82,7 @@ public final class Movie extends Table {
     CharacterUnion _oMainCharacter = new CharacterUnion();
     byte _oMainCharacterType = mainCharacterType();
     _oMainCharacter.setType(_oMainCharacterType);
-    Table _oMainCharacterValue;
+    com.google.flatbuffers.Table _oMainCharacterValue;
     switch (_oMainCharacterType) {
       case Character.MuLan:
         _oMainCharacterValue = mainCharacter(new Attacker());
@@ -97,7 +96,7 @@ public final class Movie extends Table {
       CharacterUnion _oCharactersElement = new CharacterUnion();
       byte _oCharactersElementType = charactersType(_j);
       _oCharactersElement.setType(_oCharactersElementType);
-      Table _oCharactersElementValue;
+      com.google.flatbuffers.Table _oCharactersElementValue;
       switch (_oCharactersElementType) {
         case Character.MuLan:
           _oCharactersElementValue = characters(new Attacker(), _j);
