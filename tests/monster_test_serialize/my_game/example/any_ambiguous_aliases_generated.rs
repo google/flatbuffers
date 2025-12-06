@@ -71,6 +71,25 @@ impl Serialize for AnyAmbiguousAliases {
   }
 }
 
+impl<'de> serde::Deserialize<'de> for AnyAmbiguousAliases {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        for item in AnyAmbiguousAliases::ENUM_VALUES {
+            if let Some(item_name) = item.variant_name() {
+                if item_name == s {
+                    return Ok(item.clone());
+                }
+            }
+        }
+        Err(serde::de::Error::custom(format!(
+            "Unknown AnyAmbiguousAliases variant: {s}"
+        )))
+    }
+}
+
 impl<'a> flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
   #[inline]
