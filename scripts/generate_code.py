@@ -240,7 +240,7 @@ flatc(
 )
 
 flatc(
-    CPP_17_OPTS + ["--cpp-ptr-type", "naked"],
+    BASE_OPTS + CPP_OPTS + ["--cpp-ptr-type", "naked"],
     prefix="vector_table_naked_ptr",
     schema="vector_table_naked_ptr.fbs",
 )

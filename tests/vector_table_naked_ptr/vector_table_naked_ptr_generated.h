@@ -21,6 +21,11 @@ struct A;
 struct ABuilder;
 struct AT;
 
+bool operator==(const BT &lhs, const BT &rhs);
+bool operator!=(const BT &lhs, const BT &rhs);
+bool operator==(const AT &lhs, const AT &rhs);
+bool operator!=(const AT &lhs, const AT &rhs);
+
 inline const ::flatbuffers::TypeTable *BTypeTable();
 
 inline const ::flatbuffers::TypeTable *ATypeTable();
@@ -33,7 +38,6 @@ struct BT : public ::flatbuffers::NativeTable {
 struct B FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef BT NativeTableType;
   typedef BBuilder Builder;
-  struct Traits;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return BTypeTable();
   }
@@ -45,11 +49,6 @@ struct B FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   bool mutate_id(int32_t _id = 0) {
     return SetField<int32_t>(VT_ID, _id, 0);
-  }
-  template<size_t Index>
-  auto get_field() const {
-         if constexpr (Index == 0) return id();
-    else static_assert(Index != -1, "Invalid Field Index");
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -88,19 +87,6 @@ inline ::flatbuffers::Offset<B> CreateB(
   return builder_.Finish();
 }
 
-struct B::Traits {
-  using type = B;
-  static auto constexpr Create = CreateB;
-  static constexpr auto name = "B";
-  static constexpr auto fully_qualified_name = "B";
-  static constexpr size_t fields_number = 1;
-  static constexpr std::array<const char *, fields_number> field_names = {
-    "id"
-  };
-  template<size_t Index>
-  using FieldType = decltype(std::declval<type>().get_field<Index>());
-};
-
 ::flatbuffers::Offset<B> CreateB(::flatbuffers::FlatBufferBuilder &_fbb, const BT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct AT : public ::flatbuffers::NativeTable {
@@ -115,7 +101,6 @@ struct AT : public ::flatbuffers::NativeTable {
 struct A FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef AT NativeTableType;
   typedef ABuilder Builder;
-  struct Traits;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return ATypeTable();
   }
@@ -127,11 +112,6 @@ struct A FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   ::flatbuffers::Vector<::flatbuffers::Offset<B>> *mutable_b() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<B>> *>(VT_B);
-  }
-  template<size_t Index>
-  auto get_field() const {
-         if constexpr (Index == 0) return b();
-    else static_assert(Index != -1, "Invalid Field Index");
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -172,19 +152,6 @@ inline ::flatbuffers::Offset<A> CreateA(
   return builder_.Finish();
 }
 
-struct A::Traits {
-  using type = A;
-  static auto constexpr Create = CreateA;
-  static constexpr auto name = "A";
-  static constexpr auto fully_qualified_name = "A";
-  static constexpr size_t fields_number = 1;
-  static constexpr std::array<const char *, fields_number> field_names = {
-    "b"
-  };
-  template<size_t Index>
-  using FieldType = decltype(std::declval<type>().get_field<Index>());
-};
-
 inline ::flatbuffers::Offset<A> CreateADirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     const std::vector<::flatbuffers::Offset<B>> *b = nullptr) {
@@ -196,8 +163,19 @@ inline ::flatbuffers::Offset<A> CreateADirect(
 
 ::flatbuffers::Offset<A> CreateA(::flatbuffers::FlatBufferBuilder &_fbb, const AT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+
+inline bool operator==(const BT &lhs, const BT &rhs) {
+  return
+      (lhs.id == rhs.id);
+}
+
+inline bool operator!=(const BT &lhs, const BT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline BT *B::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<BT>();
+  auto _o = std::unique_ptr<BT>(new BT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
@@ -222,6 +200,17 @@ inline ::flatbuffers::Offset<B> B::Pack(::flatbuffers::FlatBufferBuilder &_fbb, 
       _id);
 }
 
+
+inline bool operator==(const AT &lhs, const AT &rhs) {
+  return
+      (lhs.b.size() == rhs.b.size() && std::equal(lhs.b.cbegin(), lhs.b.cend(), rhs.b.cbegin(), [](BT * const &a, BT * const &b) { return (a == b) || (a && b && *a == *b); }));
+}
+
+inline bool operator!=(const AT &lhs, const AT &rhs) {
+    return !(lhs == rhs);
+}
+
+
 inline AT::AT(const AT &o) {
   b.reserve(o.b.size());
   for (const auto &b_ : o.b) { b.emplace_back((b_) ? new BT(*b_) : nullptr); }
@@ -233,7 +222,7 @@ inline AT &AT::operator=(AT o) FLATBUFFERS_NOEXCEPT {
 }
 
 inline AT *A::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<AT>();
+  auto _o = std::unique_ptr<AT>(new AT());
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
