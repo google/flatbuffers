@@ -91,7 +91,8 @@ class DartGenerator : public BaseGenerator {
                DartKeywords()) {}
 
   template <typename T>
-  void import_generator(const std::vector<T*>& definitions,
+  void import_generator(const std::string& current_namespace,
+                        const std::vector<T*>& definitions,
                         const std::string& included,
                         std::set<std::string>& imports) {
     for (const auto& item : definitions) {
@@ -102,10 +103,13 @@ class DartGenerator : public BaseGenerator {
         std::string filename =
             namer_.File(filebase + (component.empty() ? "" : "_" + component));
 
-        imports.emplace("import './" + filename + "'" +
-                        (component.empty()
-                             ? ";\n"
-                             : " as " + ImportAliasName(component) + ";\n"));
+        std::string rename_namespace =
+            component == current_namespace ? "" : component;
+        imports.emplace(
+            "import './" + filename + "'" +
+            (rename_namespace.empty()
+                 ? ";\n"
+                 : " as " + ImportAliasName(rename_namespace) + ";\n"));
       }
     }
   }
@@ -117,22 +121,6 @@ class DartGenerator : public BaseGenerator {
     namespace_code_map namespace_code;
     GenerateEnums(namespace_code);
     GenerateStructs(namespace_code);
-
-    std::set<std::string> imports;
-
-    for (const auto& included_file : parser_.GetIncludedFiles()) {
-      if (included_file.filename == parser_.file_being_parsed_) continue;
-
-      import_generator(parser_.structs_.vec, included_file.filename, imports);
-      import_generator(parser_.enums_.vec, included_file.filename, imports);
-    }
-
-    std::string import_code = "";
-    for (const auto& file : imports) {
-      import_code += file;
-    }
-
-    import_code += import_code.empty() ? "" : "\n";
 
     for (auto kv = namespace_code.begin(); kv != namespace_code.end(); ++kv) {
       code.clear();
@@ -158,11 +146,25 @@ class DartGenerator : public BaseGenerator {
       }
 
       code += "\n";
-      code += import_code;
+      std::set<std::string> imports;
+      for (const auto& included_file : parser_.GetIncludedFiles()) {
+        if (included_file.filename == parser_.file_being_parsed_) continue;
 
+        import_generator(kv->first, parser_.structs_.vec,
+                         included_file.filename, imports);
+        import_generator(kv->first, parser_.enums_.vec, included_file.filename,
+                         imports);
+      }
+
+      for (const auto& import_code : imports) {
+        code += import_code;
+      }
+
+      code += "\n";
       code += kv->second;
 
-      if (!SaveFile(Filename(kv->first).c_str(), code, false)) {
+      if (!parser_.opts.file_saver->SaveFile(Filename(kv->first).c_str(), code,
+                                             false)) {
         return false;
       }
     }
@@ -436,12 +438,19 @@ class DartGenerator : public BaseGenerator {
     }
 
     if (type.enum_def) {
-      if (!type.enum_def->is_union) {
-        return namer_.Type(*type.enum_def);
-      } else if (type.base_type != BASE_TYPE_UNION) {
+      if (type.enum_def->is_union && type.base_type != BASE_TYPE_UNION) {
         return namer_.Type(*type.enum_def) + "TypeId";
-      } else {
+      } else if (type.enum_def->is_union) {
         return "dynamic";
+      } else {
+        const std::string cur_namespace = namer_.Namespace(*current_namespace);
+        std::string enum_namespace =
+            namer_.Namespace(*type.enum_def->defined_namespace);
+        std::string typeName = namer_.Type(*type.enum_def);
+        if (enum_namespace != "" && enum_namespace != cur_namespace) {
+          typeName = enum_namespace + "." + typeName;
+        }
+        return typeName;
       }
     }
 

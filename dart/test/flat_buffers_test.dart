@@ -870,15 +870,14 @@ class ObjectAPITest {
       ..name = 'Monstrous'
       ..inventory = [24, 42]
       ..color = example.Color.Green
-      // TODO be smarter for unions and automatically set the `type` field?
       ..testType = example.AnyTypeId.MyGame_Example2_Monster
       ..test = example2.MonsterT()
       ..test4 = [example.TestT(a: 3, b: 4), example.TestT(a: 5, b: 6)]
       ..testarrayofstring = ["foo", "bar"]
-      ..testarrayoftables = [example.MonsterT(name: 'Oof')]
-      ..enemy = example.MonsterT(name: 'Enemy')
+      ..testarrayoftables = [example.MonsterT(name: 'Oof', testf: 2.75)]
+      ..enemy = example.MonsterT(name: 'Enemy', testf: 2.5)
       ..testarrayofbools = [false, true, false]
-      ..testf = 42.24
+      ..testf = 42.25
       ..testarrayofsortedstruct = [
         example.AbilityT(id: 1, distance: 5),
         example.AbilityT(id: 3, distance: 7),
@@ -896,16 +895,15 @@ class ObjectAPITest {
     fbBuilder.finish(offset);
     final data = fbBuilder.buffer;
 
-    // TODO currently broken because of struct builder issue, see #6688
-    // final monster2 = example.Monster(data); // Monster (reader)
-    // expect(
-    //     // map Monster => MonsterT, Vec3 => Vec3T, ...
-    //     monster2.toString().replaceAllMapped(
-    //         RegExp('([a-zA-z0-9]+){'), (match) => match.group(1) + 'T{'),
-    //     monster.toString());
-    //
-    // final monster3 = monster2.unpack(); // MonsterT
-    // expect(monster3.toString(), monster.toString());
+    final monster2 = example.Monster(data); // Monster (reader)
+    expect(
+        // map Monster => MonsterT, Vec3 => Vec3T, ...
+        monster2.toString().replaceAllMapped(
+            RegExp('([a-zA-z0-9]+){'), (match) => match.group(1)! + 'T{'),
+        monster.toString());
+
+    final monster3 = monster2.unpack(); // MonsterT
+    expect(monster3.toString(), monster.toString());
   }
 
   void test_Lists() {

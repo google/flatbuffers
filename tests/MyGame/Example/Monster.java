@@ -14,7 +14,6 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -23,7 +22,7 @@ import java.nio.ByteOrder;
  * an example documentation comment: "monster object"
  */
 @SuppressWarnings("unused")
-public final class Monster extends Table {
+public final class Monster extends com.google.flatbuffers.Table {
   public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
   public static Monster getRootAsMonster(ByteBuffer _bb) { return getRootAsMonster(_bb, new Monster()); }
   public static Monster getRootAsMonster(ByteBuffer _bb, Monster obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
@@ -50,7 +49,7 @@ public final class Monster extends Table {
   public int color() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 8; }
   public boolean mutateColor(int color) { int o = __offset(16); if (o != 0) { bb.put(o + bb_pos, (byte) color); return true; } else { return false; } }
   public byte testType() { int o = __offset(18); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public Table test(Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o + bb_pos) : null; }
+  public com.google.flatbuffers.Table test(com.google.flatbuffers.Table obj) { int o = __offset(20); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public MyGame.Example.Test test4(int j) { return test4(new MyGame.Example.Test(), j); }
   public MyGame.Example.Test test4(MyGame.Example.Test obj, int j) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o) + j * 4, bb) : null; }
   public int test4Length() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
@@ -194,9 +193,9 @@ public final class Monster extends Table {
   public ByteBuffer vectorOfNonOwningReferencesInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 88, 8); }
   public boolean mutateVectorOfNonOwningReferences(int j, long vector_of_non_owning_references) { int o = __offset(88); if (o != 0) { bb.putLong(__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
   public byte anyUniqueType() { int o = __offset(90); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public Table anyUnique(Table obj) { int o = __offset(92); return o != 0 ? __union(obj, o + bb_pos) : null; }
+  public com.google.flatbuffers.Table anyUnique(com.google.flatbuffers.Table obj) { int o = __offset(92); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public byte anyAmbiguousType() { int o = __offset(94); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public Table anyAmbiguous(Table obj) { int o = __offset(96); return o != 0 ? __union(obj, o + bb_pos) : null; }
+  public com.google.flatbuffers.Table anyAmbiguous(com.google.flatbuffers.Table obj) { int o = __offset(96); return o != 0 ? __union(obj, o + bb_pos) : null; }
   public int vectorOfEnums(int j) { int o = __offset(98); return o != 0 ? bb.get(__vector(o) + j * 1) & 0xFF : 0; }
   public int vectorOfEnumsLength() { int o = __offset(98); return o != 0 ? __vector_len(o) : 0; }
   public ByteVector vectorOfEnumsVector() { return vectorOfEnumsVector(new ByteVector()); }
@@ -411,7 +410,7 @@ public final class Monster extends Table {
     MyGame.Example.AnyUnion _oTest = new MyGame.Example.AnyUnion();
     byte _oTestType = testType();
     _oTest.setType(_oTestType);
-    Table _oTestValue;
+    com.google.flatbuffers.Table _oTestValue;
     switch (_oTestType) {
       case MyGame.Example.Any.Monster:
         _oTestValue = test(new MyGame.Example.Monster());
@@ -515,7 +514,7 @@ public final class Monster extends Table {
     MyGame.Example.AnyUniqueAliasesUnion _oAnyUnique = new MyGame.Example.AnyUniqueAliasesUnion();
     byte _oAnyUniqueType = anyUniqueType();
     _oAnyUnique.setType(_oAnyUniqueType);
-    Table _oAnyUniqueValue;
+    com.google.flatbuffers.Table _oAnyUniqueValue;
     switch (_oAnyUniqueType) {
       case MyGame.Example.AnyUniqueAliases.M:
         _oAnyUniqueValue = anyUnique(new MyGame.Example.Monster());
@@ -535,7 +534,7 @@ public final class Monster extends Table {
     MyGame.Example.AnyAmbiguousAliasesUnion _oAnyAmbiguous = new MyGame.Example.AnyAmbiguousAliasesUnion();
     byte _oAnyAmbiguousType = anyAmbiguousType();
     _oAnyAmbiguous.setType(_oAnyAmbiguousType);
-    Table _oAnyAmbiguousValue;
+    com.google.flatbuffers.Table _oAnyAmbiguousValue;
     switch (_oAnyAmbiguousType) {
       case MyGame.Example.AnyAmbiguousAliases.M1:
         _oAnyAmbiguousValue = anyAmbiguous(new MyGame.Example.Monster());

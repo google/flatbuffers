@@ -920,6 +920,15 @@ void NativeTypeTest() {
         Native::Vector3D(20 * i + 0.1f, 20 * i + 0.2f, 20 * i + 0.3f));
   }
 
+  src_data.matrix = std::unique_ptr<Native::Matrix>(new Native::Matrix(1, 2));
+  src_data.matrix->values = {3, 4};
+
+  for (int i = 0; i < N; ++i) {
+    src_data.matrices.push_back(std::unique_ptr<Native::Matrix>(new Native::Matrix(1, i)));
+    std::fill(src_data.matrices[i]->values.begin(),
+              src_data.matrices[i]->values.end(), i + 0.5f);
+  }
+
   flatbuffers::FlatBufferBuilder fbb;
   fbb.Finish(Geometry::ApplicationData::Pack(fbb, &src_data));
 
@@ -942,6 +951,20 @@ void NativeTypeTest() {
     TEST_EQ(v2.x, 20 * i + 0.1f);
     TEST_EQ(v2.y, 20 * i + 0.2f);
     TEST_EQ(v2.z, 20 * i + 0.3f);
+  }
+
+  TEST_EQ(dstDataT->matrix->rows, 1);
+  TEST_EQ(dstDataT->matrix->columns, 2);
+  TEST_EQ(dstDataT->matrix->values[0], 3);
+  TEST_EQ(dstDataT->matrix->values[1], 4);
+
+  for (int i = 0; i < N; ++i) {
+    const Native::Matrix &m = *dstDataT->matrices[i];
+    TEST_EQ(m.rows, 1);
+    TEST_EQ(m.columns, i);
+    for (int j = 0; j < i; ++j) {
+      TEST_EQ(m.values[j], i + 0.5f);
+    }
   }
 }
 
@@ -1254,6 +1277,35 @@ void NestedVerifierTest() {
                                    builder.GetSize());
     TEST_EQ(false, VerifyMonsterBuffer(verifier));
   }
+}
+
+void SizeVerifierTest() {
+  // Create a monster.
+  flatbuffers::FlatBufferBuilder builder;
+  FinishMonsterBuffer(builder,
+                      CreateMonster(builder, nullptr, 0, 0,
+                                    builder.CreateString("NestedMonster")));
+  size_t length = builder.GetSize();
+  const uint8_t* data = builder.GetBufferPointer();
+
+  // Verify the monster, using SizeVerifier.
+  // We verify in several ways, using several different API functions/methods,
+  // to ensure that all of these APIs are tested.
+  flatbuffers::SizeVerifier size_verifier(data,
+                                          FLATBUFFERS_MAX_BUFFER_SIZE - 1);
+  {
+    TEST_EQ(true, VerifyMonsterBuffer(size_verifier));
+  }
+  {
+    TEST_EQ(true, size_verifier.VerifyBuffer<Monster>());
+  }
+  {
+    const MyGame::Example::Monster* my_buffer = GetMonster(data);
+    TEST_EQ(true, my_buffer->Verify(size_verifier));
+  }
+
+  // Verify that the size verifier computed the correct size.
+  TEST_EQ(length, size_verifier.GetComputedSize());
 }
 
 template <class T, class Container>
@@ -1727,6 +1779,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersIteratorsTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
+  SizeVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
   VectorSpanTest();
