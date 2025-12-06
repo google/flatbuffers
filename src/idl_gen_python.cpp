@@ -612,7 +612,7 @@ class PythonStubGenerator {
 
     imports->Import("typing", "cast");
 
-    if (parser_.opts.python_enum) {
+    if (parser_.opts.python_typing && parser_.opts.python_enum) {
       if (enum_def->attributes.Lookup("big_flags")) {
         imports->Import("enum", "IntFlag");
         stub << "(IntFlag)";
