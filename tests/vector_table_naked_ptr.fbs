@@ -1,0 +1,9 @@
+table B {
+  id: int32;
+}
+
+table A {
+  b: [B];
+}
+
+root_type A;
