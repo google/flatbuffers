@@ -278,6 +278,10 @@ class DartGenerator : public BaseGenerator {
     code += "}\n\n";
 
     GenEnumReader(enum_def, enum_type, code);
+
+    if (enum_def.is_union) {
+      GenUnionReader(enum_def, enum_type, code);
+    }
   }
 
   void GenEnumReader(EnumDef& enum_def, const std::string& enum_type,
@@ -292,6 +296,38 @@ class DartGenerator : public BaseGenerator {
             ".BufferContext bc, int offset) =>\n";
     code += "      " + enum_type + ".fromValue(const " + _kFb + "." +
             GenType(enum_def.underlying_type) + "Reader().read(bc, offset));\n";
+    code += "}\n\n";
+  }
+
+  void GenUnionReader(EnumDef& enum_def, const std::string& enum_type,
+                      std::string& code) {
+    code += "class _" + enum_def.name + "Reader extends " + _kFb +
+            ".UnionReader {\n";
+    code += "  _" + enum_def.name + "Reader(" + enum_type +
+            "? type) : super(_get(type));\n\n";
+    code += "  static " + _kFb + ".Reader? _get(" + enum_type + "? type) {\n";
+    code += "    switch (type?.value) {\n";
+    for (auto en_it = enum_def.Vals().begin() + 1;
+         en_it != enum_def.Vals().end(); ++en_it) {
+      const auto& ev = **en_it;
+
+      code += "      case " + enum_def.ToString(ev) + ": return ";
+      if (ev.union_type.base_type == BASE_TYPE_STRING) {
+        code += _kFb + ".StringReader()";
+
+      } else if (ev.union_type.struct_def) {
+        code += NamespaceAliasFromUnionType(enum_def.defined_namespace,
+                                            ev.union_type) +
+                ".reader";
+      } else {
+        assert(0);
+        code += "null";
+      }
+      code += ";\n";
+    }
+    code += "      default: return null;\n";
+    code += "    }\n";
+    code += "  }\n";
     code += "}\n\n";
   }
 
@@ -361,26 +397,27 @@ class DartGenerator : public BaseGenerator {
                                 bool parent_is_vector = false, bool lazy = true,
                                 bool constConstruct = true) {
     std::string prefix = (constConstruct ? "const " : "") + _kFb;
-    if (type.base_type == BASE_TYPE_BOOL) {
-      return prefix + ".BoolReader()";
-    } else if (IsVector(type)) {
-      if (!type.VectorType().enum_def) {
-        if (type.VectorType().base_type == BASE_TYPE_CHAR) {
-          return prefix + ".Int8ListReader(" + (lazy ? ")" : "lazy: false)");
-        }
-        if (type.VectorType().base_type == BASE_TYPE_UCHAR) {
-          return prefix + ".Uint8ListReader(" + (lazy ? ")" : "lazy: false)");
-        }
+    if (IsVector(type)) {
+      std::string code = prefix + ".";
+      if (type.VectorType().base_type == BASE_TYPE_UNION) {
+        code = _kFb + ".UnionListReader";
+      } else {
+        code += "ListReader<" +
+                GenDartTypeName(type.VectorType(), current_namespace, def) +
+                ">";
       }
-      return prefix + ".ListReader<" +
-             GenDartTypeName(type.VectorType(), current_namespace, def) + ">(" +
-             GenReaderTypeName(type.VectorType(), current_namespace, def, true,
-                               true, false) +
-             (lazy ? ")" : ", lazy: false)");
+      code += "(" + GenReaderTypeName(type.VectorType(), current_namespace, def,
+                                      true, true, false);
+      if (!lazy) code += ", lazy: false";
+      return code + ")";
+    } else if (type.base_type == BASE_TYPE_UNION) {
+      return "(index) => _" + type.enum_def->name + "Reader(" + def.name +
+             "Type?[index])";
+    } else if (type.base_type == BASE_TYPE_BOOL) {
+      return prefix + ".BoolReader()";
     } else if (IsString(type)) {
       return prefix + ".StringReader()";
-    }
-    if (IsScalar(type.base_type)) {
+    } else if (IsScalar(type.base_type)) {
       if (type.enum_def && parent_is_vector) {
         return GenDartTypeName(type, current_namespace, def) + ".reader";
       }
@@ -393,12 +430,19 @@ class DartGenerator : public BaseGenerator {
   std::string GenDartTypeName(const Type& type, Namespace* current_namespace,
                               const FieldDef& def,
                               std::string struct_type_suffix = "") {
+    if (IsVector(type)) {
+      return "List<" +
+             GenDartTypeName(type.VectorType(), current_namespace, def,
+                             struct_type_suffix) +
+             ">";
+    }
+
     if (type.enum_def) {
       if (type.enum_def->is_union && type.base_type != BASE_TYPE_UNION) {
         return namer_.Type(*type.enum_def) + "TypeId";
       } else if (type.enum_def->is_union) {
         return "dynamic";
-      } else if (type.base_type != BASE_TYPE_VECTOR) {
+      } else {
         const std::string cur_namespace = namer_.Namespace(*current_namespace);
         std::string enum_namespace =
             namer_.Namespace(*type.enum_def->defined_namespace);
@@ -431,11 +475,6 @@ class DartGenerator : public BaseGenerator {
         return MaybeWrapNamespace(
             namer_.Type(*type.struct_def) + struct_type_suffix,
             current_namespace, def);
-      case BASE_TYPE_VECTOR:
-        return "List<" +
-               GenDartTypeName(type.VectorType(), current_namespace, def,
-                               struct_type_suffix) +
-               ">";
       default:
         assert(0);
         return "dynamic";
@@ -617,12 +656,22 @@ class DartGenerator : public BaseGenerator {
       std::string nullableValueAccessOperator = isNullable ? "?" : "";
       if (type.base_type == BASE_TYPE_STRUCT ||
           type.base_type == BASE_TYPE_UNION) {
+        if (type.base_type == BASE_TYPE_UNION) {
+          constructor_args += field_name + " is String ? " + field_name + " : ";
+        }
         constructor_args +=
             field_name + nullableValueAccessOperator + ".unpack()";
       } else if (type.base_type == BASE_TYPE_VECTOR) {
+        const auto& vector_type = type.VectorType();
+
         constructor_args += field_name + nullableValueAccessOperator;
-        if (type.VectorType().base_type == BASE_TYPE_STRUCT) {
-          constructor_args += ".map((e) => e.unpack())";
+        if (vector_type.base_type == BASE_TYPE_STRUCT ||
+            vector_type.base_type == BASE_TYPE_UNION) {
+          constructor_args += ".map((e) => ";
+          if (vector_type.base_type == BASE_TYPE_UNION) {
+            constructor_args += "e is String ? e : ";
+          }
+          constructor_args += "e.unpack())";
         }
         constructor_args += ".toList()";
       } else {
@@ -700,25 +749,13 @@ class DartGenerator : public BaseGenerator {
 
       GenDocComment(field.doc_comment, "  ", code);
 
-      code += "  " + type_name + " get " + field_name;
+      code += "  " + type_name + " get " + field_name + " => ";
       if (field.value.type.base_type == BASE_TYPE_UNION) {
-        code += " {\n";
-        code += "    switch (" + field_name + "Type?.value) {\n";
         const auto& enum_def = *field.value.type.enum_def;
-        for (auto en_it = enum_def.Vals().begin() + 1;
-             en_it != enum_def.Vals().end(); ++en_it) {
-          const auto& ev = **en_it;
-          const auto enum_name = NamespaceAliasFromUnionType(
-              enum_def.defined_namespace, ev.union_type);
-          code += "      case " + enum_def.ToString(ev) + ": return " +
-                  enum_name + ".reader.vTableGetNullable(_bc, _bcOffset, " +
-                  NumToString(field.value.offset) + ");\n";
-        }
-        code += "      default: return null;\n";
-        code += "    }\n";
-        code += "  }\n";
+        code += "_" + enum_def.name + "Reader(" + field_name +
+                "Type).vTableGetNullable(_bc, _bcOffset, " +
+                NumToString(field.value.offset) + ");\n";
       } else {
-        code += " => ";
         if (field.value.type.enum_def &&
             field.value.type.base_type != BASE_TYPE_VECTOR) {
           code += GenDartTypeName(field.value.type,
@@ -1053,6 +1090,13 @@ class DartGenerator : public BaseGenerator {
                       "(fbBuilder)).toList());\n";
             }
             break;
+          case BASE_TYPE_UNION:
+            code += "(" + field_name +
+                    "!.map<int>((u) => u is String ? fbBuilder.writeString(u) "
+                    ": u." +
+                    (pack ? "pack" : "getOrCreateOffset") +
+                    "(fbBuilder)).toList());\n";
+            break;
           default:
             code +=
                 GenType(field.value.type.VectorType()) + "(" + field_name + "!";
@@ -1065,8 +1109,13 @@ class DartGenerator : public BaseGenerator {
         code += " = " + field_name + " == null ? null\n";
         code += "        : fbBuilder.writeString(" + field_name + "!);\n";
       } else {
-        code += " = " + field_name + "?." +
-                (pack ? "pack" : "getOrCreateOffset") + "(fbBuilder);\n";
+        code += " = ";
+        if (field.value.type.base_type == BASE_TYPE_UNION) {
+          code += field_name + " is String ? fbBuilder.writeString(" +
+                  field_name + ") : ";
+        }
+        code += field_name + "?." + (pack ? "pack" : "getOrCreateOffset") +
+                "(fbBuilder);\n";
       }
     }
 

@@ -2751,7 +2751,8 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
             IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kNim |
-            IDLOptions::kJson | IDLOptions::kKotlinKmp)) == 0;
+            IDLOptions::kJson | IDLOptions::kKotlinKmp | IDLOptions::kDart)) ==
+         0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {
