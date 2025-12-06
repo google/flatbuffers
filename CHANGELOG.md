@@ -9,7 +9,7 @@ necessarily listed.
 * flatc: `--grpc-callback-api` flag generates C++ gRPC Callback API server `CallbackService` skeletons AND client native callback/async stubs (unary + all streaming reactor forms) (opt-in, non-breaking, issue #8596).
 * Swift - Adds new API to reduce memory copying within swift (#8484)
 * Rust - Support Rust edition 2024 (#8638)
-# [:C++] - Use the Google Style for clang-format without exceptions (#8706)
+* [C++] - Use the Google Style for clang-format without exceptions (#8706)
 
 ## [25.2.10] (February 10 2025)(https://github.com/google/flatbuffers/releases/tag/v25.2.10)
 
