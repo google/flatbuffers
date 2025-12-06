@@ -76,6 +76,8 @@ cc_library(
         "bfbs_gen_lua.h",
         "bfbs_gen_nim.cpp",
         "bfbs_gen_nim.h",
+        "bfbs_gen_ruby.cpp",
+        "bfbs_gen_ruby.h",
         "bfbs_namer.h",
         "binary_annotator.cpp",
         "binary_annotator.h",
