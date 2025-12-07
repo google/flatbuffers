@@ -1,0 +1,12 @@
+enum NonZero: ubyte {
+    VAL = 1,
+}
+
+struct NonZeroArrayStruct {
+    data: [NonZero:4];
+}
+
+table NonZeroVectorTable {
+    values: [NonZero];
+    value: NonZero = VAL;
+}
