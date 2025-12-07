@@ -234,6 +234,8 @@ set(FlatBuffers_Tests_SRCS
   tests/test_builder.h
   tests/test_builder.cpp
   tests/util_test.cpp
+  tests/vector_table_naked_ptr_test.h
+  tests/vector_table_naked_ptr_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
   tests/alignment_test.h

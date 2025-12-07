@@ -58,6 +58,7 @@
 #include "native_type_test_generated.h"
 #include "test_assert.h"
 #include "util_test.h"
+#include "vector_table_naked_ptr_test.h"
 
 void FlatBufferBuilderTest();
 
@@ -1723,6 +1724,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedLengthArraySpanTest(tests_data_path);
   DoNotRequireEofTest(tests_data_path);
   JsonUnionStructTest();
+  VectorTableNakedPtrTest();
 #else
   // Guard against -Wunused-parameter.
   (void)tests_data_path;

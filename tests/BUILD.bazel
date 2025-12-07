@@ -73,6 +73,9 @@ cc_test(
         "union_vector/union_vector_generated.h",
         "util_test.cpp",
         "util_test.h",
+        "vector_table_naked_ptr/vector_table_naked_ptr_generated.h",
+        "vector_table_naked_ptr_test.h",
+        "vector_table_naked_ptr_test.cpp",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
