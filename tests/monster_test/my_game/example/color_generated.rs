@@ -19,6 +19,13 @@ mod bitflags_color {
 }
 pub use self::bitflags_color::Color;
 
+impl Color {
+  pub const ENUM_VALUES: &'static [Self] = &[
+      Self::Red,
+      Self::Green,
+      Self::Blue,
+  ];
+}
 impl<'a> ::flatbuffers::Follow<'a> for Color {
   type Inner = Self;
   #[inline]

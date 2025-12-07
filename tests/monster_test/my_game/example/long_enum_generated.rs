@@ -15,6 +15,13 @@ mod bitflags_long_enum {
 }
 pub use self::bitflags_long_enum::LongEnum;
 
+impl LongEnum {
+  pub const ENUM_VALUES: &'static [Self] = &[
+      Self::LongOne,
+      Self::LongTwo,
+      Self::LongBig,
+  ];
+}
 impl<'a> ::flatbuffers::Follow<'a> for LongEnum {
   type Inner = Self;
   #[inline]
