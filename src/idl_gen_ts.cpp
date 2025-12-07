@@ -505,8 +505,12 @@ class TsGenerator : public BaseGenerator {
             std::string enum_name =
                 AddImport(imports, *value.type.enum_def, *value.type.enum_def)
                     .name;
-            std::string enum_value = namer_.Variant(
-                *value.type.enum_def->FindByValue(value.constant));
+            const EnumVal* val =
+                value.type.enum_def->FindByValue(value.constant);
+            if (val == nullptr) {
+              val = value.type.enum_def->MinValue();
+            }
+            std::string enum_value = namer_.Variant(*val);
             ret += enum_name + "." + enum_value +
                    (i < value.type.fixed_length - 1 ? ", " : "");
           }
@@ -521,9 +525,10 @@ class TsGenerator : public BaseGenerator {
           return "BigInt('" + value.constant + "')";
         }
         default: {
-          EnumVal* val = value.type.enum_def->FindByValue(value.constant);
-          if (val == nullptr)
-            val = const_cast<EnumVal*>(value.type.enum_def->MinValue());
+          const EnumVal* val = value.type.enum_def->FindByValue(value.constant);
+          if (val == nullptr) {
+            val = value.type.enum_def->MinValue();
+          }
           return AddImport(imports, *value.type.enum_def, *value.type.enum_def)
                      .name +
                  "." + namer_.Variant(*val);
