@@ -1156,7 +1156,7 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     }
   } else {
     // all struct fields are required
-    field->presence = FieldDef::kRequired;
+    field->presence = FieldDef::kDefault;
 
     // setting required or optional on a struct field is meaningless
     if (field->attributes.Lookup("required") != nullptr ||
