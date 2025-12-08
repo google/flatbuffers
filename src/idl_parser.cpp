@@ -1133,25 +1133,37 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     }
   }
 
-  // For historical convenience reasons, string keys are assumed required.
-  // Scalars are kDefault unless otherwise specified.
-  // Nonscalars are kOptional unless required;
-  field->key = field->attributes.Lookup("key") != nullptr;
-  const bool required = field->attributes.Lookup("required") != nullptr ||
-                        (IsString(type) && field->key);
-  const bool default_str_or_vec =
-      ((IsString(type) || IsVector(type)) && field->value.constant != "0");
-  const bool optional = IsScalar(type.base_type)
-                            ? (field->value.constant == "null")
-                            : !(required || default_str_or_vec);
-  if (required && optional) {
-    return Error("Fields cannot be both optional and required.");
-  }
-  field->presence = FieldDef::MakeFieldPresence(optional, required);
+  if (!struct_def.fixed) {
+    // For historical convenience reasons, string keys are assumed required.
+    // Scalars are kDefault unless otherwise specified.
+    // Nonscalars are kOptional unless required;
+    field->key = field->attributes.Lookup("key") != nullptr;
+    const bool required = field->attributes.Lookup("required") != nullptr ||
+                          (IsString(type) && field->key);
+    const bool default_str_or_vec =
+        ((IsString(type) || IsVector(type)) && field->value.constant != "0");
+    const bool optional = IsScalar(type.base_type)
+                              ? (field->value.constant == "null")
+                              : !(required || default_str_or_vec);
+    if (required && optional) {
+      return Error("Fields cannot be both optional and required.");
+    }
+    field->presence = FieldDef::MakeFieldPresence(optional, required);
 
-  if (required && (struct_def.fixed || IsScalar(type.base_type))) {
-    return Error("only non-scalar fields in tables may be 'required'");
+    if (required && IsScalar(type.base_type)) {
+      return Error("only non-scalar fields in tables may be 'required'");
+    }
+  } else {
+    // all struct fields are required
+    field->presence = FieldDef::kRequired;
+
+    // setting required or optional on a struct field is meaningless
+    if (field->attributes.Lookup("required") != nullptr ||
+        field->attributes.Lookup("optional") != nullptr) {
+      return Error("struct fields are always required");
+    }
   }
+
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
     struct_def.has_key = true;
@@ -1188,6 +1200,23 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     }
   }
 
+  auto check_enum = [this](const FieldDef* field, const Type& type,
+                           const std::string& name,
+                           const std::string& constant) -> CheckedError {
+    // Optional and bitflags enums may have default constants that are not
+    // their specified variants.
+    if (!field->IsOptional() &&
+        type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
+      if (type.enum_def->FindByValue(constant) == nullptr) {
+        return Error("default value of `" + constant + "` for " + "field `" +
+                     name + "` is not part of enum `" + type.enum_def->name +
+                     "`.");
+      }
+    }
+
+    return NoError();
+  };
+
   if (type.enum_def) {
     // Verify the enum's type and default value.
     const std::string& constant = field->value.constant;
@@ -1203,19 +1232,19 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
       if (constant != "0") {
         return Error("Array defaults are not supported yet.");
       }
+      CheckedError err = check_enum(field, type.VectorType(), name, constant);
+      if (err.Check()) {
+        // reset the check state of the error
+        return CheckedError{err};
+      }
     } else {
       if (!IsInteger(type.base_type)) {
         return Error("Enums must have integer base types");
       }
-      // Optional and bitflags enums may have default constants that are not
-      // their specified variants.
-      if (!field->IsOptional() &&
-          type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
-        if (type.enum_def->FindByValue(constant) == nullptr) {
-          return Error("default value of `" + constant + "` for " + "field `" +
-                       name + "` is not part of enum `" + type.enum_def->name +
-                       "`.");
-        }
+      CheckedError err = check_enum(field, type, name, constant);
+      if (err.Check()) {
+        // reset the check state of the error
+        return CheckedError{err};
       }
     }
   }
