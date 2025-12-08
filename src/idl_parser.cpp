@@ -1133,11 +1133,12 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     }
   }
 
+  field->key = field->attributes.Lookup("key") != nullptr;
+
   if (!struct_def.fixed) {
     // For historical convenience reasons, string keys are assumed required.
     // Scalars are kDefault unless otherwise specified.
     // Nonscalars are kOptional unless required;
-    field->key = field->attributes.Lookup("key") != nullptr;
     const bool required = field->attributes.Lookup("required") != nullptr ||
                           (IsString(type) && field->key);
     const bool default_str_or_vec =
