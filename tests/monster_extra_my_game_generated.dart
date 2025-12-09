@@ -168,56 +168,45 @@ class MonsterExtraBuilder {
 }
 
 class MonsterExtraObjectBuilder extends fb.ObjectBuilder {
-  final double? _d0;
-  final double? _d1;
-  final double? _d2;
-  final double? _d3;
-  final double? _f0;
-  final double? _f1;
-  final double? _f2;
-  final double? _f3;
-  final List<double>? _dvec;
-  final List<double>? _fvec;
+  final double? d0;
+  final double? d1;
+  final double? d2;
+  final double? d3;
+  final double? f0;
+  final double? f1;
+  final double? f2;
+  final double? f3;
+  final List<double>? dvec;
+  final List<double>? fvec;
 
   MonsterExtraObjectBuilder({
-    double? d0,
-    double? d1,
-    double? d2,
-    double? d3,
-    double? f0,
-    double? f1,
-    double? f2,
-    double? f3,
-    List<double>? dvec,
-    List<double>? fvec,
-  })
-      : _d0 = d0,
-        _d1 = d1,
-        _d2 = d2,
-        _d3 = d3,
-        _f0 = f0,
-        _f1 = f1,
-        _f2 = f2,
-        _f3 = f3,
-        _dvec = dvec,
-        _fvec = fvec;
-
+     this.d0,
+     this.d1,
+     this.d2,
+     this.d3,
+     this.f0,
+     this.f1,
+     this.f2,
+     this.f3,
+     this.dvec,
+     this.fvec,
+  });
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? dvecOffset = _dvec == null ? null
-        : fbBuilder.writeListFloat64(_dvec!);
-    final int? fvecOffset = _fvec == null ? null
-        : fbBuilder.writeListFloat32(_fvec!);
+    final int? dvecOffset = dvec == null ? null
+        : fbBuilder.writeListFloat64(dvec!);
+    final int? fvecOffset = fvec == null ? null
+        : fbBuilder.writeListFloat32(fvec!);
     fbBuilder.startTable(11);
-    fbBuilder.addFloat64(0, _d0);
-    fbBuilder.addFloat64(1, _d1);
-    fbBuilder.addFloat64(2, _d2);
-    fbBuilder.addFloat64(3, _d3);
-    fbBuilder.addFloat32(4, _f0);
-    fbBuilder.addFloat32(5, _f1);
-    fbBuilder.addFloat32(6, _f2);
-    fbBuilder.addFloat32(7, _f3);
+    fbBuilder.addFloat64(0, d0);
+    fbBuilder.addFloat64(1, d1);
+    fbBuilder.addFloat64(2, d2);
+    fbBuilder.addFloat64(3, d3);
+    fbBuilder.addFloat32(4, f0);
+    fbBuilder.addFloat32(5, f1);
+    fbBuilder.addFloat32(6, f2);
+    fbBuilder.addFloat32(7, f3);
     fbBuilder.addOffset(8, dvecOffset);
     fbBuilder.addOffset(9, fvecOffset);
     return fbBuilder.endTable();

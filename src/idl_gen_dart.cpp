@@ -954,7 +954,7 @@ class DartGenerator : public BaseGenerator {
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
                               field, !struct_def.fixed, "ObjectBuilder") +
-              " _" + namer_.Variable(field) + ";\n";
+              " " + namer_.Variable(field) + ";\n";
     }
     code += "\n";
     code += "  " + builder_name + "(";
@@ -966,24 +966,10 @@ class DartGenerator : public BaseGenerator {
         const FieldDef& field = *it->second;
 
         code += "    ";
-        code += (struct_def.fixed ? "required " : "") +
-                GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                                field, !struct_def.fixed, "ObjectBuilder") +
-                " " + namer_.Variable(field) + ",\n";
+        code += (struct_def.fixed ? "required " : "") + std::string(" this.") +
+                namer_.Variable(field) + ",\n";
       }
-      code += "  })\n";
-      code += "      : ";
-      for (auto it = non_deprecated_fields.begin();
-           it != non_deprecated_fields.end(); ++it) {
-        const FieldDef& field = *it->second;
-
-        code += "_" + namer_.Variable(field) + " = " + namer_.Variable(field);
-        if (it == non_deprecated_fields.end() - 1) {
-          code += ";\n\n";
-        } else {
-          code += ",\n        ";
-        }
-      }
+      code += "  });\n";
     } else {
       code += ");\n\n";
     }
@@ -1018,8 +1004,7 @@ class DartGenerator : public BaseGenerator {
         continue;
 
       std::string offset_name = namer_.Variable(field) + "Offset";
-      std::string field_name =
-          (prependUnderscore ? "_" : "") + namer_.Variable(field);
+      std::string field_name = namer_.Variable(field);
       // custom handling for fixed-sized struct in pack()
       if (pack && IsVector(field.value.type) &&
           field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
@@ -1096,15 +1081,9 @@ class DartGenerator : public BaseGenerator {
 
       if (IsStruct(field.value.type)) {
         code += "    ";
-        if (prependUnderscore) {
-          code += "_";
-        }
         code += field_name + (pack ? ".pack" : ".finish") + "(fbBuilder);\n";
       } else {
         code += "    fbBuilder.put" + GenType(field.value.type) + "(";
-        if (prependUnderscore) {
-          code += "_";
-        }
         code += field_name;
         if (field.value.type.enum_def) {
           code += ".value";
@@ -1130,8 +1109,7 @@ class DartGenerator : public BaseGenerator {
       const FieldDef& field = *it->second;
       auto offset = it->first;
 
-      std::string field_var =
-          (prependUnderscore ? "_" : "") + namer_.Variable(field);
+      std::string field_var = namer_.Variable(field);
 
       if (IsScalar(field.value.type.base_type)) {
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
