@@ -19,6 +19,7 @@
 
 #include "bfbs_gen_lua.h"
 #include "bfbs_gen_nim.h"
+#include "bfbs_gen_ruby.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatc.h"
@@ -159,6 +160,11 @@ int main(int argc, const char* argv[]) {
       flatbuffers::FlatCOption{"", "php", "",
                                "Generate PHP files for tables/structs"},
       flatbuffers::NewPhpCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{"", "ruby", "",
+                               "Generate Ruby files for tables/structs"},
+      flatbuffers::NewRubyBfbsGenerator(flatbuffers_version));
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{"r", "rust", "",
