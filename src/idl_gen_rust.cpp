@@ -742,6 +742,15 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub use self::bitflags_{{ENUM_NAMESPACE}}::{{ENUM_TY}};";
       code_ += "";
 
+      code_ += "impl {{ENUM_TY}} {";
+      code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
+      ForAllEnumValues1(enum_def, [&](const EnumVal& ev) {
+          code_.SetValue("VARIANT", namer_.Variant(ev)); 
+          code_ += "    Self::{{VARIANT}},";
+      });
+      code_ += "  ];";
+      code_ += "}";
+      
       code_.SetValue("INTO_BASE", "self.bits()");
     } else {
       // Normal, c-modelled enums.

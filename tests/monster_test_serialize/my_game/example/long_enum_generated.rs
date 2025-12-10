@@ -17,6 +17,13 @@ mod bitflags_long_enum {
 }
 pub use self::bitflags_long_enum::LongEnum;
 
+impl LongEnum {
+  pub const ENUM_VALUES: &'static [Self] = &[
+      Self::LongOne,
+      Self::LongTwo,
+      Self::LongBig,
+  ];
+}
 impl Serialize for LongEnum {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
