@@ -598,6 +598,24 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   void *mutable_main_character() {
     return GetPointer<void *>(VT_MAIN_CHARACTER);
   }
+  Attacker *mutable_main_character_as_MuLan() {
+    return main_character_type() == Character::MuLan ? static_cast<Attacker *>(mutable_main_character()) : nullptr;
+  }
+  Rapunzel *mutable_main_character_as_Rapunzel() {
+    return main_character_type() == Character::Rapunzel ? static_cast<Rapunzel *>(mutable_main_character()) : nullptr;
+  }
+  BookReader *mutable_main_character_as_Belle() {
+    return main_character_type() == Character::Belle ? static_cast<BookReader *>(mutable_main_character()) : nullptr;
+  }
+  BookReader *mutable_main_character_as_BookFan() {
+    return main_character_type() == Character::BookFan ? static_cast<BookReader *>(mutable_main_character()) : nullptr;
+  }
+  ::flatbuffers::String *mutable_main_character_as_Other() {
+    return main_character_type() == Character::Other ? static_cast<::flatbuffers::String *>(mutable_main_character()) : nullptr;
+  }
+  ::flatbuffers::String *mutable_main_character_as_Unused() {
+    return main_character_type() == Character::Unused ? static_cast<::flatbuffers::String *>(mutable_main_character()) : nullptr;
+  }
   const ::flatbuffers::Vector<Character> *characters_type() const {
     return GetPointer<const ::flatbuffers::Vector<Character> *>(VT_CHARACTERS_TYPE);
   }
