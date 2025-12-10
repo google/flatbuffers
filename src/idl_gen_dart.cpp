@@ -645,8 +645,8 @@ class DartGenerator : public BaseGenerator {
 
     code += "  @override\n";
     code += "  int pack(fb.Builder fbBuilder) {\n";
-    code += GenObjectBuilderImplementation(struct_def, non_deprecated_fields,
-                                           false, true);
+    code +=
+        GenObjectBuilderImplementation(struct_def, non_deprecated_fields, true);
     code += "  }\n";
     return code;
   }
@@ -994,7 +994,7 @@ class DartGenerator : public BaseGenerator {
   std::string GenObjectBuilderImplementation(
       const StructDef& struct_def,
       const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
-      bool prependUnderscore = true, bool pack = false) {
+      bool pack = false) {
     std::string code;
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
@@ -1056,18 +1056,16 @@ class DartGenerator : public BaseGenerator {
     }
 
     if (struct_def.fixed) {
-      code += StructObjectBuilderBody(non_deprecated_fields, prependUnderscore,
-                                      pack);
+      code += StructObjectBuilderBody(non_deprecated_fields, pack);
     } else {
-      code += TableObjectBuilderBody(struct_def, non_deprecated_fields,
-                                     prependUnderscore, pack);
+      code += TableObjectBuilderBody(struct_def, non_deprecated_fields, pack);
     }
     return code;
   }
 
   std::string StructObjectBuilderBody(
       const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
-      bool prependUnderscore = true, bool pack = false) {
+      bool pack = false) {
     std::string code;
 
     for (auto it = non_deprecated_fields.rbegin();
@@ -1099,7 +1097,7 @@ class DartGenerator : public BaseGenerator {
   std::string TableObjectBuilderBody(
       const StructDef& struct_def,
       const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
-      bool prependUnderscore = true, bool pack = false) {
+      bool pack = false) {
     std::string code;
     code += "    fbBuilder.startTable(" +
             NumToString(struct_def.fields.vec.size()) + ");\n";
