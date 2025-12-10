@@ -8,7 +8,7 @@
     <PackageProjectUrl>https://github.com/google/flatbuffers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/google/flatbuffers</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>flatbuffers.png</PackageIcon>
     <PackageTags>Google;FlatBuffers;Serialization;Buffer;Binary;zero copy</PackageTags>
     <Copyright>Copyright 2022 Google LLC</Copyright>
