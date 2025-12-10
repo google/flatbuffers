@@ -38,6 +38,7 @@ union Gadget {
 table Movie {
   main_character: Character;
   characters: [Character];
+  gadget: Gadget;
 }
 
 root_type Movie;

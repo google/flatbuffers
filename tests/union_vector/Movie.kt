@@ -78,6 +78,23 @@ class Movie : Table() {
         get() {
             val o = __offset(10); return if (o != 0) __vector_len(o) else 0
         }
+    val gadgetType : UByte
+        get() {
+            val o = __offset(12)
+            return if(o != 0) bb.get(o + bb_pos).toUByte() else 0u
+        }
+    fun mutateGadgetType(gadgetType: UByte) : Boolean {
+        val o = __offset(12)
+        return if (o != 0) {
+            bb.put(o + bb_pos, gadgetType.toByte())
+            true
+        } else {
+            false
+        }
+    }
+    fun gadget(obj: Table) : Table? {
+        val o = __offset(14); return if (o != 0) __union(obj, o + bb_pos) else null
+    }
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
         fun getRootAsMovie(_bb: ByteBuffer): Movie = getRootAsMovie(_bb, Movie())
@@ -86,15 +103,17 @@ class Movie : Table() {
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
         fun MovieBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "MOVI")
-        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Int, charactersTypeOffset: Int, charactersOffset: Int) : Int {
-            builder.startTable(4)
+        fun createMovie(builder: FlatBufferBuilder, mainCharacterType: UByte, mainCharacterOffset: Int, charactersTypeOffset: Int, charactersOffset: Int, gadgetType: UByte, gadgetOffset: Int) : Int {
+            builder.startTable(6)
+            addGadget(builder, gadgetOffset)
             addCharacters(builder, charactersOffset)
             addCharactersType(builder, charactersTypeOffset)
             addMainCharacter(builder, mainCharacterOffset)
+            addGadgetType(builder, gadgetType)
             addMainCharacterType(builder, mainCharacterType)
             return endMovie(builder)
         }
-        fun startMovie(builder: FlatBufferBuilder) = builder.startTable(4)
+        fun startMovie(builder: FlatBufferBuilder) = builder.startTable(6)
         fun addMainCharacterType(builder: FlatBufferBuilder, mainCharacterType: UByte) = builder.addByte(0, mainCharacterType.toByte(), 0)
         fun addMainCharacter(builder: FlatBufferBuilder, mainCharacter: Int) = builder.addOffset(1, mainCharacter, 0)
         fun addCharactersType(builder: FlatBufferBuilder, charactersType: Int) = builder.addOffset(2, charactersType, 0)
@@ -116,6 +135,8 @@ class Movie : Table() {
             return builder.endVector()
         }
         fun startCharactersVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
+        fun addGadgetType(builder: FlatBufferBuilder, gadgetType: UByte) = builder.addByte(4, gadgetType.toByte(), 0)
+        fun addGadget(builder: FlatBufferBuilder, gadget: Int) = builder.addOffset(5, gadget, 0)
         fun endMovie(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

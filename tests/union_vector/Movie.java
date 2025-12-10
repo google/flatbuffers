@@ -37,21 +37,27 @@ public final class Movie extends com.google.flatbuffers.Table {
   public int charactersLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
   public UnionVector charactersVector() { return charactersVector(new UnionVector()); }
   public UnionVector charactersVector(UnionVector obj) { int o = __offset(10); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public byte gadgetType() { int o = __offset(12); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public com.google.flatbuffers.Table gadget(com.google.flatbuffers.Table obj) { int o = __offset(14); return o != 0 ? __union(obj, o + bb_pos) : null; }
 
   public static int createMovie(FlatBufferBuilder builder,
       byte mainCharacterType,
       int mainCharacterOffset,
       int charactersTypeOffset,
-      int charactersOffset) {
-    builder.startTable(4);
+      int charactersOffset,
+      byte gadgetType,
+      int gadgetOffset) {
+    builder.startTable(6);
+    Movie.addGadget(builder, gadgetOffset);
     Movie.addCharacters(builder, charactersOffset);
     Movie.addCharactersType(builder, charactersTypeOffset);
     Movie.addMainCharacter(builder, mainCharacterOffset);
+    Movie.addGadgetType(builder, gadgetType);
     Movie.addMainCharacterType(builder, mainCharacterType);
     return Movie.endMovie(builder);
   }
 
-  public static void startMovie(FlatBufferBuilder builder) { builder.startTable(4); }
+  public static void startMovie(FlatBufferBuilder builder) { builder.startTable(6); }
   public static void addMainCharacterType(FlatBufferBuilder builder, byte mainCharacterType) { builder.addByte(0, mainCharacterType, 0); }
   public static void addMainCharacter(FlatBufferBuilder builder, int mainCharacterOffset) { builder.addOffset(1, mainCharacterOffset, 0); }
   public static void addCharactersType(FlatBufferBuilder builder, int charactersTypeOffset) { builder.addOffset(2, charactersTypeOffset, 0); }
@@ -60,6 +66,8 @@ public final class Movie extends com.google.flatbuffers.Table {
   public static void addCharacters(FlatBufferBuilder builder, int charactersOffset) { builder.addOffset(3, charactersOffset, 0); }
   public static int createCharactersVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startCharactersVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addGadgetType(FlatBufferBuilder builder, byte gadgetType) { builder.addByte(4, gadgetType, 0); }
+  public static void addGadget(FlatBufferBuilder builder, int gadgetOffset) { builder.addOffset(5, gadgetOffset, 0); }
   public static int endMovie(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;
@@ -107,6 +115,18 @@ public final class Movie extends com.google.flatbuffers.Table {
       _oCharacters[_j] = _oCharactersElement;
     }
     _o.setCharacters(_oCharacters);
+    GadgetUnion _oGadget = new GadgetUnion();
+    byte _oGadgetType = gadgetType();
+    _oGadget.setType(_oGadgetType);
+    com.google.flatbuffers.Table _oGadgetValue;
+    switch (_oGadgetType) {
+      case Gadget.HandFan:
+        _oGadgetValue = gadget(new HandFan());
+        _oGadget.setValue(_oGadgetValue != null ? ((HandFan) _oGadgetValue).unpack() : null);
+        break;
+      default: break;
+    }
+    _o.setGadget(_oGadget);
   }
   public static int pack(FlatBufferBuilder builder, MovieT _o) {
     if (_o == null) return 0;
@@ -126,12 +146,16 @@ public final class Movie extends com.google.flatbuffers.Table {
       for (CharacterUnion _e : _o.getCharacters()) { __characters[_j] = CharacterUnion.pack(builder,  _o.getCharacters()[_j]); _j++;}
       _characters = createCharactersVector(builder, __characters);
     }
+    byte _gadgetType = _o.getGadget() == null ? Gadget.NONE : _o.getGadget().getType();
+    int _gadget = _o.getGadget() == null ? 0 : GadgetUnion.pack(builder, _o.getGadget());
     return createMovie(
       builder,
       _mainCharacterType,
       _mainCharacter,
       _charactersType,
-      _characters);
+      _characters,
+      _gadgetType,
+      _gadget);
   }
 }
 

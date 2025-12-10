@@ -255,10 +255,60 @@ void OptionalScalarsTest() {
   TEST_ASSERT(opts->maybe_i32() == std::optional<int64_t>(-1));
 }
 
+void MutableUnionMembersTest() {
+  flatbuffers::FlatBufferBuilder fbb;
+
+  // Create a Movie with union members
+  auto other_str = fbb.CreateString("other_character");
+  auto attacker = cpp17::CreateAttacker(fbb, 100);
+
+  std::vector<flatbuffers::Offset<void>> characters_vec;
+  std::vector<cpp17::Character> character_types;
+
+  characters_vec.push_back(attacker.Union());
+  character_types.push_back(cpp17::Character::MuLan);
+
+  characters_vec.push_back(other_str.Union());
+  character_types.push_back(cpp17::Character::Other);
+
+  auto characters_vector = fbb.CreateVector(characters_vec);
+  auto character_types_vector = fbb.CreateVector(character_types);
+
+  auto hand_fan = cpp17::CreateHandFan(fbb, 55);
+
+  auto movie = cpp17::CreateMovie(
+      fbb, cpp17::Character::MuLan, attacker.Union(), character_types_vector,
+      characters_vector, cpp17::Gadget::HandFan, hand_fan.Union());
+  fbb.Finish(movie);
+
+  // Test mutable union accessors
+  auto mutable_movie = cpp17::GetMutableMovie(fbb.GetBufferPointer());
+
+  // Test main_character union
+  TEST_EQ(mutable_movie->main_character_type(), cpp17::Character::MuLan);
+  auto main_attacker = mutable_movie->mutable_main_character_as_MuLan();
+  TEST_ASSERT(main_attacker != nullptr);
+  TEST_EQ(main_attacker->sword_attack_damage(), 100);
+  TEST_ASSERT(main_attacker->mutate_sword_attack_damage(150));
+  TEST_EQ(main_attacker->sword_attack_damage(), 150);
+
+  TEST_EQ(mutable_movie->gadget_as<cpp17::HandFan>()->length(), 55);
+  mutable_movie->mutable_gadget_as<cpp17::HandFan>()->mutate_length(75);
+  TEST_EQ(mutable_movie->gadget_as<cpp17::HandFan>()->length(), 75);
+
+  TEST_ASSERT(mutable_movie->mutable_gadget_as<cpp17::FallingTub>() == nullptr);
+
+  // Test characters vector unions
+  TEST_EQ(mutable_movie->characters_type()->size(), 2);
+  TEST_EQ(mutable_movie->characters_type()->Get(0), cpp17::Character::MuLan);
+  TEST_EQ(mutable_movie->characters_type()->Get(1), cpp17::Character::Other);
+}
+
 int FlatBufferCpp17Tests() {
   CreateTableByTypeTest();
   OptionalScalarsTest();
   StringifyAnyFlatbuffersTypeTest();
+  MutableUnionMembersTest();
   return 0;
 }
 }  // namespace

@@ -97,25 +97,45 @@ class Movie extends Table
     }
 
     /**
+     * @return byte
+     */
+    public function getGadgetType()
+    {
+        $o = $this->__offset(12);
+        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \Gadget::NONE;
+    }
+
+    /**
+     * @returnint
+     */
+    public function getGadget($obj)
+    {
+        $o = $this->__offset(14);
+        return $o != 0 ? $this->__union($obj, $o) : null;
+    }
+
+    /**
      * @param FlatBufferBuilder $builder
      * @return void
      */
     public static function startMovie(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(4);
+        $builder->StartObject(6);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return Movie
      */
-    public static function createMovie(FlatBufferBuilder $builder, $main_character_type, $main_character, $characters_type, $characters)
+    public static function createMovie(FlatBufferBuilder $builder, $main_character_type, $main_character, $characters_type, $characters, $gadget_type, $gadget)
     {
-        $builder->startObject(4);
+        $builder->startObject(6);
         self::addMainCharacterType($builder, $main_character_type);
         self::addMainCharacter($builder, $main_character);
         self::addCharactersType($builder, $characters_type);
         self::addCharacters($builder, $characters);
+        self::addGadgetType($builder, $gadget_type);
+        self::addGadget($builder, $gadget);
         $o = $builder->endObject();
         return $o;
     }
@@ -201,6 +221,21 @@ class Movie extends Table
     public static function startCharactersVector(FlatBufferBuilder $builder, $numElems)
     {
         $builder->startVector(4, $numElems, 4);
+    }
+
+    /**
+     * @param FlatBufferBuilder $builder
+     * @param byte
+     * @return void
+     */
+    public static function addGadgetType(FlatBufferBuilder $builder, $gadgetType)
+    {
+        $builder->addByteX(4, $gadgetType, 0);
+    }
+
+    public static function addGadget(FlatBufferBuilder $builder, $offset)
+    {
+        $builder->addOffsetX(5, $offset, 0);
     }
 
     /**

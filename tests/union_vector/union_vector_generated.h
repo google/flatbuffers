@@ -573,6 +573,7 @@ struct MovieT : public ::flatbuffers::NativeTable {
   typedef Movie TableType;
   CharacterUnion main_character{};
   std::vector<CharacterUnion> characters{};
+  GadgetUnion gadget{};
 };
 
 struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -585,7 +586,9 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_MAIN_CHARACTER_TYPE = 4,
     VT_MAIN_CHARACTER = 6,
     VT_CHARACTERS_TYPE = 8,
-    VT_CHARACTERS = 10
+    VT_CHARACTERS = 10,
+    VT_GADGET_TYPE = 12,
+    VT_GADGET = 14
   };
   Character main_character_type() const {
     return static_cast<Character>(GetField<uint8_t>(VT_MAIN_CHARACTER_TYPE, 0));
@@ -644,6 +647,29 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<void>> *mutable_characters() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<void>> *>(VT_CHARACTERS);
   }
+  Gadget gadget_type() const {
+    return static_cast<Gadget>(GetField<uint8_t>(VT_GADGET_TYPE, 0));
+  }
+  const void *gadget() const {
+    return GetPointer<const void *>(VT_GADGET);
+  }
+  template<typename T> const T *gadget_as() const;
+  const FallingTub *gadget_as_FallingTub() const {
+    return gadget_type() == Gadget_FallingTub ? static_cast<const FallingTub *>(gadget()) : nullptr;
+  }
+  const HandFan *gadget_as_HandFan() const {
+    return gadget_type() == Gadget_HandFan ? static_cast<const HandFan *>(gadget()) : nullptr;
+  }
+  void *mutable_gadget() {
+    return GetPointer<void *>(VT_GADGET);
+  }
+  template<typename T> T *mutable_gadget_as();
+  FallingTub *mutable_gadget_as_FallingTub() {
+    return gadget_type() == Gadget_FallingTub ? static_cast<FallingTub *>(mutable_gadget()) : nullptr;
+  }
+  HandFan *mutable_gadget_as_HandFan() {
+    return gadget_type() == Gadget_HandFan ? static_cast<HandFan *>(mutable_gadget()) : nullptr;
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -655,12 +681,31 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_CHARACTERS) &&
            verifier.VerifyVector(characters()) &&
            VerifyCharacterVector(verifier, characters(), characters_type()) &&
+           VerifyField<uint8_t>(verifier, VT_GADGET_TYPE, 1) &&
+           VerifyOffset(verifier, VT_GADGET) &&
+           VerifyGadget(verifier, gadget(), gadget_type()) &&
            verifier.EndTable();
   }
   MovieT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
   void UnPackTo(MovieT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
   static ::flatbuffers::Offset<Movie> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
+
+template<> inline const FallingTub *Movie::gadget_as<FallingTub>() const {
+  return gadget_as_FallingTub();
+}
+
+template<> inline FallingTub *Movie::mutable_gadget_as<FallingTub>() {
+  return mutable_gadget_as_FallingTub();
+}
+
+template<> inline const HandFan *Movie::gadget_as<HandFan>() const {
+  return gadget_as_HandFan();
+}
+
+template<> inline HandFan *Movie::mutable_gadget_as<HandFan>() {
+  return mutable_gadget_as_HandFan();
+}
 
 struct MovieBuilder {
   typedef Movie Table;
@@ -678,6 +723,12 @@ struct MovieBuilder {
   void add_characters(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<void>>> characters) {
     fbb_.AddOffset(Movie::VT_CHARACTERS, characters);
   }
+  void add_gadget_type(Gadget gadget_type) {
+    fbb_.AddElement<uint8_t>(Movie::VT_GADGET_TYPE, static_cast<uint8_t>(gadget_type), 0);
+  }
+  void add_gadget(::flatbuffers::Offset<void> gadget) {
+    fbb_.AddOffset(Movie::VT_GADGET, gadget);
+  }
   explicit MovieBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -694,11 +745,15 @@ inline ::flatbuffers::Offset<Movie> CreateMovie(
     Character main_character_type = Character_NONE,
     ::flatbuffers::Offset<void> main_character = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> characters_type = 0,
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<void>>> characters = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<void>>> characters = 0,
+    Gadget gadget_type = Gadget_NONE,
+    ::flatbuffers::Offset<void> gadget = 0) {
   MovieBuilder builder_(_fbb);
+  builder_.add_gadget(gadget);
   builder_.add_characters(characters);
   builder_.add_characters_type(characters_type);
   builder_.add_main_character(main_character);
+  builder_.add_gadget_type(gadget_type);
   builder_.add_main_character_type(main_character_type);
   return builder_.Finish();
 }
@@ -708,7 +763,9 @@ inline ::flatbuffers::Offset<Movie> CreateMovieDirect(
     Character main_character_type = Character_NONE,
     ::flatbuffers::Offset<void> main_character = 0,
     const std::vector<uint8_t> *characters_type = nullptr,
-    const std::vector<::flatbuffers::Offset<void>> *characters = nullptr) {
+    const std::vector<::flatbuffers::Offset<void>> *characters = nullptr,
+    Gadget gadget_type = Gadget_NONE,
+    ::flatbuffers::Offset<void> gadget = 0) {
   auto characters_type__ = characters_type ? _fbb.CreateVector<uint8_t>(*characters_type) : 0;
   auto characters__ = characters ? _fbb.CreateVector<::flatbuffers::Offset<void>>(*characters) : 0;
   return CreateMovie(
@@ -716,7 +773,9 @@ inline ::flatbuffers::Offset<Movie> CreateMovieDirect(
       main_character_type,
       main_character,
       characters_type__,
-      characters__);
+      characters__,
+      gadget_type,
+      gadget);
 }
 
 ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
@@ -799,7 +858,8 @@ inline ::flatbuffers::Offset<HandFan> HandFan::Pack(::flatbuffers::FlatBufferBui
 inline bool operator==(const MovieT &lhs, const MovieT &rhs) {
   return
       (lhs.main_character == rhs.main_character) &&
-      (lhs.characters == rhs.characters);
+      (lhs.characters == rhs.characters) &&
+      (lhs.gadget == rhs.gadget);
 }
 
 inline bool operator!=(const MovieT &lhs, const MovieT &rhs) {
@@ -820,6 +880,8 @@ inline void Movie::UnPackTo(MovieT *_o, const ::flatbuffers::resolver_function_t
   { auto _e = main_character(); if (_e) _o->main_character.value = CharacterUnion::UnPack(_e, main_character_type(), _resolver); }
   { auto _e = characters_type(); if (_e) { _o->characters.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].type = static_cast<Character>(_e->Get(_i)); } } else { _o->characters.resize(0); } }
   { auto _e = characters(); if (_e) { _o->characters.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->characters[_i].value = CharacterUnion::UnPack(_e->Get(_i), characters_type()->GetEnum<Character>(_i), _resolver); } } else { _o->characters.resize(0); } }
+  { auto _e = gadget_type(); _o->gadget.type = _e; }
+  { auto _e = gadget(); if (_e) _o->gadget.value = GadgetUnion::UnPack(_e, gadget_type(), _resolver); }
 }
 
 inline ::flatbuffers::Offset<Movie> CreateMovie(::flatbuffers::FlatBufferBuilder &_fbb, const MovieT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -834,12 +896,16 @@ inline ::flatbuffers::Offset<Movie> Movie::Pack(::flatbuffers::FlatBufferBuilder
   auto _main_character = _o->main_character.Pack(_fbb);
   auto _characters_type = _o->characters.size() ? _fbb.CreateVector<uint8_t>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return static_cast<uint8_t>(__va->__o->characters[i].type); }, &_va) : 0;
   auto _characters = _o->characters.size() ? _fbb.CreateVector<::flatbuffers::Offset<void>>(_o->characters.size(), [](size_t i, _VectorArgs *__va) { return __va->__o->characters[i].Pack(*__va->__fbb, __va->__rehasher); }, &_va) : 0;
+  auto _gadget_type = _o->gadget.type;
+  auto _gadget = _o->gadget.Pack(_fbb);
   return CreateMovie(
       _fbb,
       _main_character_type,
       _main_character,
       _characters_type,
-      _characters);
+      _characters,
+      _gadget_type,
+      _gadget);
 }
 
 template <bool B>
@@ -1234,19 +1300,24 @@ inline const ::flatbuffers::TypeTable *MovieTypeTable() {
     { ::flatbuffers::ET_UTYPE, 0, 0 },
     { ::flatbuffers::ET_SEQUENCE, 0, 0 },
     { ::flatbuffers::ET_UTYPE, 1, 0 },
-    { ::flatbuffers::ET_SEQUENCE, 1, 0 }
+    { ::flatbuffers::ET_SEQUENCE, 1, 0 },
+    { ::flatbuffers::ET_UTYPE, 0, 1 },
+    { ::flatbuffers::ET_SEQUENCE, 0, 1 }
   };
   static const ::flatbuffers::TypeFunction type_refs[] = {
-    CharacterTypeTable
+    CharacterTypeTable,
+    GadgetTypeTable
   };
   static const char * const names[] = {
     "main_character_type",
     "main_character",
     "characters_type",
-    "characters"
+    "characters",
+    "gadget_type",
+    "gadget"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 6, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
