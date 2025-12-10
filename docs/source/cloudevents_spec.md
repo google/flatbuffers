@@ -92,11 +92,23 @@ The CloudEvent envelope schema (io.cloudevents.CloudEvent) MUST be known in adva
 ```fbs
 namespace io.cloudevents;
 
+
+// Enumerates the type of the extension attribute value
+enum ExtensionType:byte {
+  BOOLEAN = 0,
+  INTEGER = 1,
+  STRING = 2,
+  BINARY = 3,
+  URI = 4,
+  URI_REFERENCE = 5,
+  TIMESTAMP = 6
+}
+
 // Key-value pair for extension attributes
 table ExtensionAttributes {
   key: string (required);
+  type: ExtensionType;
   value: [ubyte] (required);
-  type: string (required);
 }
 
 // Main CloudEvent record
