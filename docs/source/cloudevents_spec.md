@@ -7,7 +7,7 @@ The FlatBuffers Format for [CloudEvents](https://cloudevents.io) defines how eve
 ## Table of Contents
 
 1. [Introduction](#1-introduction)
-2. [Attributes](#2-attributes)
+2. [CloudEvent Attributes](#2-cloudevent-attributes)
 3. [Data](#3-data)
 4. [Transport](#4-transport)
 5. [Schema Evolution](#5-schema-evolution)
@@ -17,7 +17,7 @@ The FlatBuffers Format for [CloudEvents](https://cloudevents.io) defines how eve
 
 CloudEvents is a standardized and protocol-agnostic definition of the structure and metadata description of events. This specification defines how CloudEvents are to be represented using FlatBuffers.
 
-The Attributes section describes the naming conventions and data type mappings for CloudEvents attributes.
+The CloudEvent Attributes section describes the naming conventions and data type mappings for CloudEvents attributes.
 
 This specification does not define an envelope format. The FlatBuffers type system's intent is primarily to provide a consistent type system for structured data serialization.
 
@@ -27,7 +27,7 @@ The FlatBuffers event format does not currently define a batch mode format.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC2119.
 
-## 2. Attributes
+## 2. CloudEvent Attributes
 
 This section defines how CloudEvents attributes are mapped to the FlatBuffers type system. This specification explicitly maps each attribute.
 
