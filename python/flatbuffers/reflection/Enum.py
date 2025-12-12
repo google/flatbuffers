@@ -155,6 +155,12 @@ def EnumStartValuesVector(builder, numElems):
 def StartValuesVector(builder, numElems):
     return EnumStartValuesVector(builder, numElems)
 
+def EnumCreateValuesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateValuesVector(builder, data):
+    EnumCreateValuesVector(builder, data)
+
 def EnumAddIsUnion(builder, isUnion):
     builder.PrependBoolSlot(2, isUnion, 0)
 
@@ -179,6 +185,12 @@ def EnumStartAttributesVector(builder, numElems):
 def StartAttributesVector(builder, numElems):
     return EnumStartAttributesVector(builder, numElems)
 
+def EnumCreateAttributesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateAttributesVector(builder, data):
+    EnumCreateAttributesVector(builder, data)
+
 def EnumAddDocumentation(builder, documentation):
     builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
 
@@ -190,6 +202,12 @@ def EnumStartDocumentationVector(builder, numElems):
 
 def StartDocumentationVector(builder, numElems):
     return EnumStartDocumentationVector(builder, numElems)
+
+def EnumCreateDocumentationVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDocumentationVector(builder, data):
+    EnumCreateDocumentationVector(builder, data)
 
 def EnumAddDeclarationFile(builder, declarationFile):
     builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(declarationFile), 0)
