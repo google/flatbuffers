@@ -4,7 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from typing import Any
+from typing import Any, List
 np = import_numpy()
 
 class NestedStruct(object):
@@ -96,10 +96,6 @@ def CreateNestedStruct(builder, a, b, c, d):
         builder.PrependInt32(a[_idx0-1])
     return builder.Offset()
 
-try:
-    from typing import List
-except:
-    pass
 
 class NestedStructT(object):
 

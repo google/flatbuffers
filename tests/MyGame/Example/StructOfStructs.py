@@ -2,8 +2,11 @@
 
 # namespace: Example
 
+from MyGame.Example.Ability import AbilityT
+from MyGame.Example.Test import TestT
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Optional
 np = import_numpy()
 
 class StructOfStructs(object):
@@ -47,12 +50,6 @@ def CreateStructOfStructs(builder, a_id, a_distance, b_a, b_b, c_id, c_distance)
     builder.PrependUint32(a_id)
     return builder.Offset()
 
-import MyGame.Example.Ability
-import MyGame.Example.Test
-try:
-    from typing import Optional
-except:
-    pass
 
 class StructOfStructsT(object):
 
@@ -63,9 +60,9 @@ class StructOfStructsT(object):
         b = None,
         c = None,
     ):
-        self.a = a  # type: Optional[MyGame.Example.Ability.AbilityT]
-        self.b = b  # type: Optional[MyGame.Example.Test.TestT]
-        self.c = c  # type: Optional[MyGame.Example.Ability.AbilityT]
+        self.a = a  # type: Optional[AbilityT]
+        self.b = b  # type: Optional[TestT]
+        self.c = c  # type: Optional[AbilityT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -88,12 +85,15 @@ class StructOfStructsT(object):
     def _UnPack(self, structOfStructs):
         if structOfStructs is None:
             return
-        if structOfStructs.A(MyGame.Example.Ability.Ability()) is not None:
-            self.a = MyGame.Example.Ability.AbilityT.InitFromObj(structOfStructs.A(MyGame.Example.Ability.Ability()))
-        if structOfStructs.B(MyGame.Example.Test.Test()) is not None:
-            self.b = MyGame.Example.Test.TestT.InitFromObj(structOfStructs.B(MyGame.Example.Test.Test()))
-        if structOfStructs.C(MyGame.Example.Ability.Ability()) is not None:
-            self.c = MyGame.Example.Ability.AbilityT.InitFromObj(structOfStructs.C(MyGame.Example.Ability.Ability()))
+        from MyGame.Example.Ability import Ability
+        if structOfStructs.A(Ability()) is not None:
+            self.a = AbilityT.InitFromObj(structOfStructs.A(Ability()))
+        from MyGame.Example.Test import Test
+        if structOfStructs.B(Test()) is not None:
+            self.b = TestT.InitFromObj(structOfStructs.B(Test()))
+        from MyGame.Example.Ability import Ability
+        if structOfStructs.C(Ability()) is not None:
+            self.c = AbilityT.InitFromObj(structOfStructs.C(Ability()))
 
     # StructOfStructsT
     def Pack(self, builder):
