@@ -394,8 +394,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v6
-    - name: Set up Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_14.3.app/Contents/Developer
     - name: set up Java
       uses: actions/setup-java@v4
       with:
