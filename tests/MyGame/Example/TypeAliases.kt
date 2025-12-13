@@ -180,8 +180,8 @@ class TypeAliases : Table() {
         get() {
             val o = __offset(24); return if (o != 0) __vector_len(o) else 0
         }
-    val v8AsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(24, 1)
-    fun v8InByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 24, 1)
+    val v8AsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(24, 1)
+    fun v8InByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 24, 1)
     fun mutateV8(j: Int, v8: Byte) : Boolean {
         val o = __offset(24)
         return if (o != 0) {
@@ -203,8 +203,8 @@ class TypeAliases : Table() {
         get() {
             val o = __offset(26); return if (o != 0) __vector_len(o) else 0
         }
-    val vf64AsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(26, 8)
-    fun vf64InByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 26, 8)
+    val vf64AsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(26, 8)
+    fun vf64InByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 26, 8)
     fun mutateVf64(j: Int, vf64: Double) : Boolean {
         val o = __offset(26)
         return if (o != 0) {
