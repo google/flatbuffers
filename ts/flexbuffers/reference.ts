@@ -201,16 +201,27 @@ export class Reference {
       }
       const _indirect = indirect(this.dataView, this.offset, this.parentWidth);
       const elementOffset = _indirect + key * this.byteWidth;
-      let _packedType = this.dataView.getUint8(
-        _indirect + length * this.byteWidth + key,
-      );
+
+      let _packedType: ValueType;
+
       if (isTypedVector(this.valueType)) {
-        const _valueType = typedVectorElementType(this.valueType);
-        _packedType = packedType(_valueType, BitWidth.WIDTH8);
-      } else if (isFixedTypedVector(this.valueType)) {
-        const _valueType = fixedTypedVectorElementType(this.valueType);
-        _packedType = packedType(_valueType, BitWidth.WIDTH8);
+      // Root typed vector: derive type instead of reading from buffer
+      const _valueType = typedVectorElementType(this.valueType);
+      _packedType = packedType(_valueType, BitWidth.WIDTH8);
+    } else if (isFixedTypedVector(this.valueType)) {
+      const _valueType = fixedTypedVectorElementType(this.valueType);
+      _packedType = packedType(_valueType, BitWidth.WIDTH8);
+    } else {
+      // Only read packed type from buffer if it exists
+      const typeOffset = _indirect + length * this.byteWidth + key;
+      if (typeOffset < this.dataView.byteLength) {
+        _packedType = this.dataView.getUint8(typeOffset);
+      } else {
+        // fallback for edge cases (e.g., root vectors)
+        _packedType = this.packedType;
       }
+      }
+
       return new Reference(
         this.dataView,
         elementOffset,
@@ -219,6 +230,7 @@ export class Reference {
         `${this.path}[${key}]`,
       );
     }
+
     if (typeof key === 'string') {
       const index = keyIndex(
         key,
@@ -241,6 +253,7 @@ export class Reference {
         );
       }
     }
+
     throw `Key [${key}] is not applicable on ${this.path} of ${this.valueType}`;
   }
 
