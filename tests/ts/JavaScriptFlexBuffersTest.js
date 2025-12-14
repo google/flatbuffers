@@ -14,8 +14,29 @@ function main() {
   testRoundTripWithBuilder();
   testDeduplicationOff();
   testBugWhereOffestWereStoredAsIntInsteadOfUInt();
+  testRootVector();
 
   console.log('FlexBuffers test: completed successfully');
+}
+
+function testRootVector() {
+  // Root vector of strings
+  const stringVec = ['a', 'b', 'c'];
+  const bufStr = flexbuffers.encode(stringVec).buffer;
+  const objStr = flexbuffers.toObject(bufStr);
+  assert.deepStrictEqual(objStr, stringVec);
+
+  // Root vector of numbers
+  const numVec = [1, 2, 3, 4];
+  const bufNum = flexbuffers.encode(numVec).buffer;
+  const objNum = flexbuffers.toObject(bufNum);
+  assert.deepStrictEqual(objNum, numVec);
+
+  // Root vector of mixed types
+  const mixedVec = ['x', 42, true, null];
+  const bufMixed = flexbuffers.encode(mixedVec).buffer;
+  const objMixed = flexbuffers.toObject(bufMixed);
+  assert.deepStrictEqual(objMixed, mixedVec);
 }
 
 function testSingleValueBuffers() {
