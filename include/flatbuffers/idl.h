@@ -1097,6 +1097,8 @@ class Parser : public ParserState {
   // others includes.
   std::vector<IncludedFile> GetIncludedFiles() const;
 
+  bool HasCircularStructDependency() const;
+
  private:
   class ParseDepthGuard;
 

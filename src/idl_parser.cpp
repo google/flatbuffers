@@ -2755,6 +2755,49 @@ std::vector<IncludedFile> Parser::GetIncludedFiles() const {
   return {it->second.cbegin(), it->second.cend()};
 }
 
+bool Parser::HasCircularStructDependency() const {
+  // Simple DFS to detect cycles in the struct dependency graph.
+  std::set<const StructDef*> visited;
+  std::set<const StructDef*> stack;
+
+  std::function<bool(const StructDef*)> visit =
+      [&](const StructDef* struct_def) {
+        // Only consider fixed structs
+        if (!struct_def->fixed) {
+          return false;
+        }
+
+        if (stack.count(struct_def)) {
+          return true;  // Cycle detected.
+        }
+        if (visited.count(struct_def)) {
+          return false;  // Already processed.
+        }
+
+        visited.insert(struct_def);
+        stack.insert(struct_def);
+
+        for (const auto& field : struct_def->fields.vec) {
+          if (field->value.type.base_type == BASE_TYPE_STRUCT) {
+            if (visit(field->value.type.struct_def)) {
+              return true;  // Cycle detected in recursion.
+            }
+          }
+        }
+
+        stack.erase(struct_def);
+        return false;  // No cycle detected.
+      };
+
+  for (const auto& struct_def : structs_.vec) {
+    if (visit(struct_def)) {
+      return true;  // Cycle detected.
+    }
+  }
+
+  return false;  // No cycle detected.
+}
+
 bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions& opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |

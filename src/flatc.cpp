@@ -920,6 +920,9 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         auto err = parser->ConformTo(conform_parser);
         if (!err.empty()) Error("schemas don\'t conform: " + err, false);
       }
+      if (parser->HasCircularStructDependency()) {
+        Error("schema has circular struct dependencies: " + filename, false);
+      }
       if (options.schema_binary || opts.binary_schema_gen_embed) {
         parser->Serialize();
       }
