@@ -197,7 +197,7 @@ export class Reference {
     const length = this.length();
     if (Number.isInteger(key) && isAVector(this.valueType)) {
       if (key >= length || key < 0) {
-        throw `Key: [${key}] is not applicable on ${this.path} of ${this.valueType} length: ${length}`;
+        throw new Error(`Key: [${key}] is not applicable on ${this.path} of ${this.valueType} length: ${length}`);
       }
       const _indirect = indirect(this.dataView, this.offset, this.parentWidth);
       const elementOffset = _indirect + key * this.byteWidth;
@@ -254,7 +254,7 @@ export class Reference {
       }
     }
 
-    throw `Key [${key}] is not applicable on ${this.path} of ${this.valueType}`;
+    throw new Error(`Key [${key}] is not applicable on ${this.path} of ${this.valueType}`);
   }
 
   length(): number {
