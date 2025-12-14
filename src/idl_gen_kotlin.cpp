@@ -480,7 +480,7 @@ class KotlinGenerator : public BaseGenerator {
       }
       if (IsStruct(field.value.type)) {
         GenStructBody(*field.value.type.struct_def, writer,
-                      (nameprefix + (field.name + "_")).c_str());
+                      (nameprefix + (namer_.Variable(field) + "_")).c_str());
       } else {
         writer.SetValue("type", GenMethod(field.value.type));
         writer.SetValue("argname", nameprefix + namer_.Variable(field));
