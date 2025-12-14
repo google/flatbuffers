@@ -194,6 +194,13 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       code += "\n";
 
       if (object == root_object) {
+        // emit file identifier if present
+        if (const auto ident = schema_->file_ident();
+            ident && ident->size() == 4) {
+          code += "local FileIdentifier = \"" + ident->str() + "\"\n";
+          code += "\n";
+        }
+
         code += "function " + object_name + ".GetRootAs" + object_name +
                 "(buf, offset)\n";
         code += "  if type(buf) == \"string\" then\n";
@@ -454,6 +461,35 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         code += "  return builder:EndObject()\n";
         code += "end\n";
         code += "\n";
+
+        if (object == root_object) {
+          code += "function " + object_name + ".Finish" + object_name +
+                  "Buffer(builder, offset)\n";
+          // emit file identifier if present
+          if (const auto ident = schema_->file_ident();
+              ident && ident->size() == 4) {
+            code += "  builder:FinishWithIdentifier(offset, FileIdentifier)\n";
+          } else {
+            code += "  builder:Finish(offset)\n";
+          }
+          code += "end\n";
+          code += "\n";
+
+          // size prefixed option
+          code += "function " + object_name + ".FinishSizePrefixed" +
+                  object_name + "Buffer(builder, offset)\n";
+          // emit file identifier if present
+          if (const auto ident = schema_->file_ident();
+              ident && ident->size() == 4) {
+            code +=
+                "  builder:FinishSizePrefixedWithIdentifier(offset, "
+                "FileIdentifier)\n";
+          } else {
+            code += "  builder:FinishSizePrefixed(offset)\n";
+          }
+          code += "end\n";
+          code += "\n";
+        }
       }
 
       EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
