@@ -26,14 +26,29 @@ export function toReference(buffer: ArrayBuffer): Reference {
   const len = buffer.byteLength;
 
   if (len < 3) {
-    throw 'Buffer needs to be bigger than 3';
+    throw new Error('Buffer needs to be bigger than 3 bytes');
   }
 
   const dataView = new DataView(buffer);
-  const byteWidth = dataView.getUint8(len - 1);
+  const rootByteWidth = dataView.getUint8(len - 1);
   const packedType = dataView.getUint8(len - 2);
-  const parentWidth = fromByteWidth(byteWidth);
-  const offset = len - byteWidth - 2;
+
+  let parentWidth = fromByteWidth(rootByteWidth);
+  let offset = len - rootByteWidth - 2;
+
+  const rootValueType = packedType >> 2;
+  if (
+    rootValueType === ValueType.VECTOR ||
+    rootValueType === ValueType.MAP ||
+    rootValueType === ValueType.BLOB ||
+    rootValueType === ValueType.STRING
+  ) {
+    // Ensure parent width is wide enough to address the buffer
+    let w = 1;
+    while ((1 << (w * 8)) <= len && w < 8) w <<= 1;
+    parentWidth = fromByteWidth(w);
+    offset = len - w - 2; // no extra hacks
+  }
 
   return new Reference(dataView, offset, parentWidth, packedType, '/');
 }
