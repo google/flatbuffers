@@ -37,8 +37,8 @@ class Stat : Table() {
                 null
             }
         }
-    val idAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(4, 1)
-    fun idInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 4, 1)
+    val idAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(4, 1)
+    fun idInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 4, 1)
     val val_ : Long
         get() {
             val o = __offset(6)
