@@ -30,7 +30,7 @@ Some tips for good pull requests:
 * Write a descriptive commit message. What problem are you solving and what
   are the consequences? Where and what did you test? Some good tips:
   [here](http://robots.thoughtbot.com/5-useful-tips-for-a-better-commit-message)
-  and [here](https://www.kernel.org/doc/Documentation/SubmittingPatches).
+  and [here](https://www.kernel.org/doc/Documentation/process/submitting-patches.rst).
 * If your PR consists of multiple commits which are successive improvements /
   fixes to your first commit, consider squashing them into a single commit
   (`git rebase -i`) such that your PR is a single commit on top of the current
@@ -40,3 +40,26 @@ Some tips for good pull requests:
 # The small print
 Contributions made by corporations are covered by a different agreement than
 the one above, the Software Grant and Corporate Contributor License Agreement.
+
+# Code
+
+TL/DR
+
+See [how to build flatc](https://flatbuffers.dev/building/).
+
+When making changes, build `flatc` and then re-generate the goldens files to see the effect of your changes:
+
+```
+$ cp build/flatc .
+$ goldens/generate_goldens.py
+```
+
+Re-generate other code files to see the effects of the changes:
+
+```
+$ scripts/generate_code.py
+```
+
+Run tests with [TestAll.sh](tests/TestAll.sh) in [tests](tests), or directly any of the sub-scripts run by it.
+
+[Format the code](Formatters.md) before submitting a PR.

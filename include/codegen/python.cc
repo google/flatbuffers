@@ -7,7 +7,7 @@
 
 namespace flatbuffers {
 namespace python {
-Version::Version(const std::string &version) {
+Version::Version(const std::string& version) {
   std::stringstream ss(version);
   char dot;
   ss >> major >> dot >> minor >> dot >> micro;
@@ -17,7 +17,7 @@ bool Version::IsValid() const {
   return (major == 0 || major == 2 || major == 3) && minor >= 0 && micro >= 0;
 }
 
-std::set<std::string> Keywords(const Version &version) {
+std::set<std::string> Keywords(const Version& version) {
   switch (version.major) {
     case 2:
       // https://docs.python.org/2/reference/lexical_analysis.html#keywords
@@ -44,20 +44,36 @@ std::set<std::string> Keywords(const Version &version) {
   }
 }
 
-const python::Import &python::Imports::Import(const std::string &module) {
+const python::Import& python::Imports::Import(const std::string& module) {
   python::Import import;
   import.module = module;
   imports.push_back(std::move(import));
   return imports.back();
 }
 
-const python::Import &python::Imports::Import(const std::string &module,
-                                              const std::string &name) {
+const python::Import& python::Imports::Import(const std::string& module,
+                                              const std::string& name) {
   python::Import import;
   import.module = module;
   import.name = name;
   imports.push_back(std::move(import));
   return imports.back();
+}
+
+const python::Import& python::Imports::Export(const std::string& module) {
+  python::Import import;
+  import.module = module;
+  exports.push_back(std::move(import));
+  return exports.back();
+}
+
+const python::Import& python::Imports::Export(const std::string& module,
+                                              const std::string& name) {
+  python::Import import;
+  import.module = module;
+  import.name = name;
+  exports.push_back(std::move(import));
+  return exports.back();
 }
 }  // namespace python
 }  // namespace flatbuffers

@@ -36,21 +36,15 @@ impl<'a> VectorBuilder<'a> {
     }
     /// Starts a nested vector that will be pushed onto this vector when it is dropped.
     #[inline]
-    pub fn start_vector(&mut self) -> VectorBuilder {
+    pub fn start_vector(&mut self) -> VectorBuilder<'_> {
         let start = Some(self.builder.values.len());
-        VectorBuilder {
-            builder: self.builder,
-            start,
-        }
+        VectorBuilder { builder: self.builder, start }
     }
     /// Starts a nested map that will be pushed onto this vector when it is dropped.
     #[inline]
-    pub fn start_map(&mut self) -> MapBuilder {
+    pub fn start_map(&mut self) -> MapBuilder<'_> {
         let start = Some(self.builder.values.len());
-        MapBuilder {
-            builder: self.builder,
-            start,
-        }
+        MapBuilder { builder: self.builder, start }
     }
     /// `end_vector` determines the type of the vector and writes it to the buffer.
     /// This will happen automatically if the VectorBuilder is dropped.

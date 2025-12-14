@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 25,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace v1 {
@@ -52,7 +52,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<uint8_t> *mutable_b() {
     return GetPointer<::flatbuffers::Vector<uint8_t> *>(VT_B);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_A, 4) &&
            VerifyOffset(verifier, VT_B) &&
@@ -133,11 +134,11 @@ inline void RootTable::UnPackTo(RootTableT *_o, const ::flatbuffers::resolver_fu
   { auto _e = b(); if (_e) { _o->b.resize(_e->size()); std::copy(_e->begin(), _e->end(), _o->b.begin()); } }
 }
 
-inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateRootTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return RootTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<RootTable> CreateRootTable(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const RootTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const RootTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -180,14 +181,16 @@ inline v1::RootTable *GetMutableSizePrefixedRootTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<v1::RootTable>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyRootTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<v1::RootTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<v1::RootTable>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedRootTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<v1::RootTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<v1::RootTable>(nullptr);
 }
 
 inline void FinishRootTableBuffer(

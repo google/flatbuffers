@@ -25,11 +25,7 @@ enum Enum {
     String(String),
     Strings(String, String),
     Everything(u8, u16, u32, u64, i8, i16, i32, i64, f32, f64, String),
-    Arrays {
-        a: Array3<u16>,
-        b: Array4<i32>,
-        c: Array2<f64>,
-    },
+    Arrays { a: Array3<u16>, b: Array4<i32>, c: Array2<f64> },
     Blobs(#[serde(with = "serde_bytes")] Vec<u8>),
 }
 
@@ -126,12 +122,7 @@ impl<A: Arbitrary> Arbitrary for Array3<A> {
 }
 impl<A: Arbitrary> Arbitrary for Array4<A> {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        Array4([
-            A::arbitrary(g),
-            A::arbitrary(g),
-            A::arbitrary(g),
-            A::arbitrary(g),
-        ])
+        Array4([A::arbitrary(g), A::arbitrary(g), A::arbitrary(g), A::arbitrary(g)])
     }
 }
 

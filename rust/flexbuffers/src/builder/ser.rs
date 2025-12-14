@@ -49,19 +49,13 @@ impl FlexbufferSerializer {
         Ok(())
     }
     fn start_vector(&mut self) {
-        let previous_end = if self.nesting.is_empty() {
-            None
-        } else {
-            Some(self.builder.values.len())
-        };
+        let previous_end =
+            if self.nesting.is_empty() { None } else { Some(self.builder.values.len()) };
         self.nesting.push(previous_end);
     }
     fn start_map(&mut self) {
-        let previous_end = if self.nesting.is_empty() {
-            None
-        } else {
-            Some(self.builder.values.len())
-        };
+        let previous_end =
+            if self.nesting.is_empty() { None } else { Some(self.builder.values.len()) };
         self.nesting.push(previous_end);
     }
     fn end_vector(&mut self) -> Result<(), Error> {
@@ -222,7 +216,7 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn is_human_readable(&self) -> bool {
-        cfg!(serialize_human_readable)
+        cfg!(feature = "serialize_human_readable")
     }
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.builder.push(v);

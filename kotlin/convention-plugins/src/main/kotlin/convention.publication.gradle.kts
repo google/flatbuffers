@@ -1,8 +1,8 @@
+import java.util.*
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.`maven-publish`
 import org.gradle.kotlin.dsl.signing
-import java.util.*
 
 plugins {
   `maven-publish`
@@ -11,21 +11,24 @@ plugins {
 
 // Stub secrets to let the project sync and build without the publication values set up
 ext["signing.keyId"] = null
+
 ext["signing.password"] = null
+
 ext["signing.secretKeyRingFile"] = null
+
 ext["ossrhUsername"] = null
+
 ext["ossrhPassword"] = null
 
-// Grabbing secrets from local.properties file or from environment variables, which could be used on CI
+// Grabbing secrets from local.properties file or from environment variables, which could be used on
+// CI
 val secretPropsFile = project.rootProject.file("local.properties")
+
 if (secretPropsFile.exists()) {
-  secretPropsFile.reader().use {
-    Properties().apply {
-      load(it)
-    }
-  }.onEach { (name, value) ->
-    ext[name.toString()] = value
-  }
+  secretPropsFile
+    .reader()
+    .use { Properties().apply { load(it) } }
+    .onEach { (name, value) -> ext[name.toString()] = value }
 } else {
   ext["signing.keyId"] = System.getenv("OSSRH_USERNAME")
   ext["signing.password"] = System.getenv("OSSRH_PASSWORD")
@@ -34,9 +37,7 @@ if (secretPropsFile.exists()) {
   ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
 }
 
-val javadocJar by tasks.registering(Jar::class) {
-  archiveClassifier.set("javadoc")
-}
+val javadocJar by tasks.registering(Jar::class) { archiveClassifier.set("javadoc") }
 
 fun getExtraString(name: String) = ext[name]?.toString()
 
@@ -82,14 +83,10 @@ publishing {
           email.set("dbaileychess@gmail.com")
         }
       }
-      scm {
-        url.set("https://github.com/google/flatbuffers")
-      }
+      scm { url.set("https://github.com/google/flatbuffers") }
     }
   }
 }
 
 // Signing artifacts. Signing.* extra properties values will be used
-signing {
-  sign(publishing.publications)
-}
+signing { sign(publishing.publications) }

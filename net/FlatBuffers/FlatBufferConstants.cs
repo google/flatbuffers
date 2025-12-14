@@ -32,6 +32,6 @@ namespace Google.FlatBuffers
         Changes to the C# implementation need to be sure to change
         the version here and in the code generator on every possible
         incompatible change */
-        public static void FLATBUFFERS_24_3_25() {}
+        public static void FLATBUFFERS_25_9_23() {}
     }
 }

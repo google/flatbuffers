@@ -38,13 +38,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
 using System.Buffers.Binary;
+#else
+using System.IO;
 #endif
 
 #if ENABLE_SPAN_T && !UNSAFE_BYTEBUFFER
@@ -245,24 +245,42 @@ namespace Google.FlatBuffers
 #endif
 
         // Get a portion of the buffer casted into an array of type T, given
-        // the buffer position and length.
+        // the buffer position (in bytes) and length (in bytes).
+        public T[] ToArray<T>(int posInBytes, int lenInBytes)
+            where T : struct
+        {
+            AssertOffsetAndLength(posInBytes, lenInBytes);
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
-        public T[] ToArray<T>(int pos, int len)
-            where T : struct
-        {
-            AssertOffsetAndLength(pos, len);
-            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(pos)).Slice(0, len).ToArray();
-        }
+            return MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(posInBytes, lenInBytes)).ToArray();
 #else
-        public T[] ToArray<T>(int pos, int len)
+            var lenInTs = ConvertBytesToTs<T>(lenInBytes);
+            var arrayOfTs = new T[lenInTs];
+            Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, 0, lenInBytes);
+            return arrayOfTs;
+#endif
+        }
+
+   			public T[] ToArrayPadded<T>(int posInBytes, int lenInBytes, int padLeftInBytes, int padRightInBytes)
             where T : struct
         {
-            AssertOffsetAndLength(pos, len);
-            T[] arr = new T[len];
-            Buffer.BlockCopy(_buffer.Buffer, pos, arr, 0, ArraySize(arr));
-            return arr;
-        }
+            AssertOffsetAndLength(posInBytes, lenInBytes);
+            var padLeftInTs = ConvertBytesToTs<T>(padLeftInBytes);
+            var lenInTs = ConvertBytesToTs<T>(lenInBytes);
+            var padRightInTs = ConvertBytesToTs<T>(padRightInBytes);
+            var sizeInTs = padLeftInTs + lenInTs + padRightInTs;
+            var arrayOfTs = new T[sizeInTs];
+#if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+            MemoryMarshal.Cast<byte, T>(_buffer.ReadOnlySpan.Slice(posInBytes, lenInBytes)).CopyTo(arrayOfTs.AsSpan().Slice(padLeftInTs));
+#else
+            Buffer.BlockCopy(_buffer.Buffer, posInBytes, arrayOfTs, padLeftInBytes, lenInBytes);
 #endif
+            return arrayOfTs;
+        }
+
+        public byte[] ToSizedArrayPadded(int padLeft, int padRight)
+        {
+            return ToArrayPadded<byte>(Position, Length - Position, padLeft, padRight);
+        }
 
         public byte[] ToSizedArray()
         {
@@ -275,6 +293,11 @@ namespace Google.FlatBuffers
         }
 
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
+        public ReadOnlySpan<byte> ToSizedReadOnlySpan()
+        {
+            return _buffer.ReadOnlySpan.Slice(Position, Length - Position);
+        }
+
         public ReadOnlyMemory<byte> ToReadOnlyMemory(int pos, int len)
         {
             return _buffer.ReadOnlyMemory.Slice(pos, len);
@@ -288,6 +311,11 @@ namespace Google.FlatBuffers
         public Span<byte> ToSpan(int pos, int len)
         {
             return _buffer.Span.Slice(pos, len);
+        }
+
+        public ReadOnlySpan<byte> ToReadOnlySpan(int pos, int len)
+        {
+            return _buffer.ReadOnlySpan.Slice(pos, len);
         }
 #else
         public ArraySegment<byte> ToArraySegment(int pos, int len)
@@ -380,18 +408,19 @@ namespace Google.FlatBuffers
 #elif ENABLE_SPAN_T
         protected void WriteLittleEndian(int offset, int count, ulong data)
         {
+            Span<byte> span = _buffer.Span.Slice(offset, count);
             if (BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    _buffer.Span[offset + i] = (byte)(data >> i * 8);
+                    span[i] = (byte)(data >> i * 8);
                 }
             }
             else
             {
                 for (int i = 0; i < count; i++)
                 {
-                    _buffer.Span[offset + count - 1 - i] = (byte)(data >> i * 8);
+                    span[count - 1 - i] = (byte)(data >> i * 8);
                 }
             }
         }
@@ -399,19 +428,20 @@ namespace Google.FlatBuffers
         protected ulong ReadLittleEndian(int offset, int count)
         {
             AssertOffsetAndLength(offset, count);
+            ReadOnlySpan<byte> span = _buffer.ReadOnlySpan.Slice(offset, count);
             ulong r = 0;
             if (BitConverter.IsLittleEndian)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    r |= (ulong)_buffer.Span[offset + i] << i * 8;
+                    r |= (ulong)span[i] << i * 8;
                 }
             }
             else
             {
                 for (int i = 0; i < count; i++)
                 {
-                    r |= (ulong)_buffer.Span[offset + count - 1 - i] << i * 8;
+                    r |= (ulong)span[count - 1 - i] << i * 8;
                 }
             }
             return r;
@@ -427,9 +457,31 @@ namespace Google.FlatBuffers
 #endif
         }
 
+        public static int ConvertTsToBytes<T>(int valueInTs)
+            where T : struct
+        {
+            var sizeOfT = SizeOf<T>();
+            var valueInBytes = valueInTs * sizeOfT;
+            return valueInBytes;
+        }
+
+        public static int ConvertBytesToTs<T>(int valueInBytes)
+            where T : struct
+        {
+            var sizeOfT = SizeOf<T>();
+            var valueInTs = valueInBytes / sizeOfT;
+#if !BYTEBUFFER_NO_BOUNDS_CHECK
+            if (valueInTs * sizeOfT != valueInBytes)
+            {
+                throw new ArgumentException($"{valueInBytes} must be a multiple of SizeOf<{typeof(T).Name}>()={sizeOfT}");
+            }
+#endif
+            return valueInTs;
+        }
+
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
 
-        public void PutSbyte(int offset, sbyte value)
+    public void PutSbyte(int offset, sbyte value)
         {
             AssertOffsetAndLength(offset, sizeof(sbyte));
             _buffer.Span[offset] = (byte)value;
@@ -445,8 +497,7 @@ namespace Google.FlatBuffers
         {
             AssertOffsetAndLength(offset, sizeof(byte) * count);
             Span<byte> span = _buffer.Span.Slice(offset, count);
-            for (var i = 0; i < span.Length; ++i)
-                span[i] = value;
+            span.Fill(value);
         }
 #else
         public void PutSbyte(int offset, sbyte value)
@@ -693,6 +744,7 @@ namespace Google.FlatBuffers
 #if ENABLE_SPAN_T && UNSAFE_BYTEBUFFER
         public unsafe string GetStringUTF8(int startPos, int len)
         {
+            AssertOffsetAndLength(startPos, len);
             fixed (byte* buffer = &MemoryMarshal.GetReference(_buffer.ReadOnlySpan.Slice(startPos)))
             {
                 return Encoding.UTF8.GetString(buffer, len);

@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 25,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 struct NativeInlineTable;
@@ -50,7 +50,8 @@ struct NativeInlineTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   bool mutate_a(int32_t _a = 0) {
     return SetField<int32_t>(VT_A, _a, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            verifier.EndTable();
@@ -108,7 +109,8 @@ struct TestNativeInlineTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   ::flatbuffers::Vector<::flatbuffers::Offset<NativeInlineTable>> *mutable_t() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<NativeInlineTable>> *>(VT_T);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_T) &&
            verifier.VerifyVector(t()) &&
@@ -180,11 +182,11 @@ inline void NativeInlineTable::UnPackTo(NativeInlineTableT *_o, const ::flatbuff
   { auto _e = a(); _o->a = _e; }
 }
 
-inline ::flatbuffers::Offset<NativeInlineTable> NativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateNativeInlineTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<NativeInlineTable> CreateNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return NativeInlineTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<NativeInlineTable> CreateNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<NativeInlineTable> NativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const NativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const NativeInlineTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -217,11 +219,11 @@ inline void TestNativeInlineTable::UnPackTo(TestNativeInlineTableT *_o, const ::
   { auto _e = t(); if (_e) { _o->t.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->t[_i] = *std::unique_ptr<NativeInlineTableT>(_e->Get(_i)->UnPack(_resolver)); } } else { _o->t.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<TestNativeInlineTable> TestNativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateTestNativeInlineTable(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<TestNativeInlineTable> CreateTestNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return TestNativeInlineTable::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<TestNativeInlineTable> CreateTestNativeInlineTable(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<TestNativeInlineTable> TestNativeInlineTable::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const TestNativeInlineTableT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TestNativeInlineTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;

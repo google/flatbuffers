@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
-              FLATBUFFERS_VERSION_MINOR == 3 &&
-              FLATBUFFERS_VERSION_REVISION == 25,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -116,7 +116,8 @@ struct MonsterExtra FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<float> *mutable_fvec() {
     return GetPointer<::flatbuffers::Vector<float> *>(VT_FVEC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_D0, 8) &&
            VerifyField<double>(verifier, VT_D1, 8) &&
@@ -279,11 +280,11 @@ inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const ::flatbuffers::resol
   { auto _e = fvec(); if (_e) { _o->fvec.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->fvec[_i] = _e->Get(_i); } } else { _o->fvec.resize(0); } }
 }
 
-inline ::flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMonsterExtra(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return MonsterExtra::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MonsterExtra> MonsterExtra::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MonsterExtraT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -374,14 +375,16 @@ inline bool SizePrefixedMonsterExtraBufferHasIdentifier(const void *buf) {
       buf, MonsterExtraIdentifier(), true);
 }
 
+template <bool B = false>
 inline bool VerifyMonsterExtraBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedMonsterExtraBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<MyGame::MonsterExtra>(MonsterExtraIdentifier());
 }
 
 inline const char *MonsterExtraExtension() {

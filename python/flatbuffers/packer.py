@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Provide pre-compiled struct packers for encoding and decoding.
+"""Provide pre-compiled struct packers for encoding and decoding.
 
 See: https://docs.python.org/2/library/struct.html#format-characters
 """

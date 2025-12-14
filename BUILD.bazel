@@ -31,7 +31,7 @@ filegroup(
         ".bazelignore",
         ".npmrc",
         "BUILD.bazel",
-        "WORKSPACE",
+        "MODULE.bazel",
         "build_defs.bzl",
         "package.json",
         "pnpm-lock.yaml",
@@ -121,15 +121,7 @@ filegroup(
 # Library used by flatbuffer_cc_library rules.
 cc_library(
     name = "runtime_cc",
-    hdrs = [
-        "include/flatbuffers/base.h",
-        "include/flatbuffers/flatbuffers.h",
-        "include/flatbuffers/flexbuffers.h",
-        "include/flatbuffers/stl_emulation.h",
-        "include/flatbuffers/util.h",
-        "include/flatbuffers/vector.h",
-        "include/flatbuffers/verifier.h",
-    ],
+    hdrs = ["//:public_headers"],
     linkstatic = 1,
     strip_include_prefix = "/include",
 )

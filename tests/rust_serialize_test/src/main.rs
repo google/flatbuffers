@@ -3,6 +3,9 @@
 mod monster_test_serialize_generated;
 pub use monster_test_serialize_generated::my_game;
 
+use crate::my_game::example::AnyAmbiguousAliases;
+use std::collections::HashMap;
+
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
     let mon = {
         let s0 = builder.create_string("test1");
@@ -86,4 +89,8 @@ fn main() {
 
     let t1 = testarrayofstring[1].as_str().unwrap();
     assert_eq!(t1, "test2");
+
+    let s = r#"{"val":"M1"}"#;
+    let des = serde_json::from_str::<HashMap<String, AnyAmbiguousAliases>>(s).unwrap();
+    assert_eq!(*des.get("val").unwrap(), AnyAmbiguousAliases::M1);
 }

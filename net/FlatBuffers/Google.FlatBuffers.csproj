@@ -1,14 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net8.0</TargetFrameworks>
     <Description>A cross-platform memory efficient serialization library</Description>
-    <PackageVersion>24.3.25</PackageVersion>
+    <PackageVersion>25.9.23</PackageVersion>
     <Authors>Google LLC</Authors>
     <PackageProjectUrl>https://github.com/google/flatbuffers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/google/flatbuffers</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>flatbuffers.png</PackageIcon>
     <PackageTags>Google;FlatBuffers;Serialization;Buffer;Binary;zero copy</PackageTags>
     <Copyright>Copyright 2022 Google LLC</Copyright>
@@ -35,7 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     <None Include="flatbuffers.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
