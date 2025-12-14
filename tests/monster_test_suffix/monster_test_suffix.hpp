@@ -1434,6 +1434,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
   }
+  int KeyCompareWithValue(char *_name) const {
+    return KeyCompareWithValue(static_cast<const char *>(_name));
+  }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _name) const {
     if (name()->c_str() < _name) return -1;
