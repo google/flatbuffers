@@ -195,8 +195,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
       if (object == root_object) {
         // emit file identifier if present
-        if (const auto ident = schema_->file_ident();
-            ident && ident->size() == 4) {
+        const auto ident = schema_->file_ident();
+        if (ident && ident->size() == 4) {
           code += "local FileIdentifier = \"" + ident->str() + "\"\n";
           code += "\n";
         }
@@ -466,8 +466,8 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           code += "function " + object_name + ".Finish" + object_name +
                   "Buffer(builder, offset)\n";
           // emit file identifier if present
-          if (const auto ident = schema_->file_ident();
-              ident && ident->size() == 4) {
+          const auto ident = schema_->file_ident();
+          if (ident && ident->size() == 4) {
             code += "  builder:FinishWithIdentifier(offset, FileIdentifier)\n";
           } else {
             code += "  builder:Finish(offset)\n";
@@ -479,8 +479,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
           code += "function " + object_name + ".FinishSizePrefixed" +
                   object_name + "Buffer(builder, offset)\n";
           // emit file identifier if present
-          if (const auto ident = schema_->file_ident();
-              ident && ident->size() == 4) {
+          if (ident && ident->size() == 4) {
             code +=
                 "  builder:FinishSizePrefixedWithIdentifier(offset, "
                 "FileIdentifier)\n";
