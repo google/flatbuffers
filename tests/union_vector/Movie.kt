@@ -55,8 +55,8 @@ class Movie : Table() {
         get() {
             val o = __offset(8); return if (o != 0) __vector_len(o) else 0
         }
-    val charactersTypeAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(8, 1)
-    fun charactersTypeInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 8, 1)
+    val charactersTypeAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(8, 1)
+    fun charactersTypeInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 8, 1)
     fun mutateCharactersType(j: Int, charactersType: UByte) : Boolean {
         val o = __offset(8)
         return if (o != 0) {

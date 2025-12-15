@@ -3516,8 +3516,8 @@ class CppGenerator : public BaseGenerator {
             const bool is_pointer = IsVectorOfPointers(field);
             if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
-              code += indexing + "->UnPackTo(_o->" + name +
-                      "[_i].get(), _resolver);";
+              code += indexing + "->UnPackTo(_o->" + name + "[_i]" +
+                      GenPtrGet(field) + ", _resolver);";
               code += " } else { ";
             }
             code += "_o->" + name + "[_i]" + access + " = ";
@@ -3579,7 +3579,8 @@ class CppGenerator : public BaseGenerator {
 
           if (is_pointer) {
             code += "{ if(" + out_field + ") { ";
-            code += "_e->UnPackTo(" + out_field + ".get(), _resolver);";
+            code += "_e->UnPackTo(" + out_field + GenPtrGet(field) +
+                    ", _resolver);";
             code += " } else { ";
           }
           code += out_field + " = ";
