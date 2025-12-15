@@ -132,6 +132,8 @@ func TestAll(t *testing.T) {
 	CheckByteStringIsNestedError(t.Fatalf)
 	CheckStructIsNotInlineError(t.Fatalf)
 	CheckFinishedBytesError(t.Fatalf)
+
+	CheckReset(t.Fatalf)
 	CheckSharedStrings(t.Fatalf)
 	CheckEmptiedBuilder(t.Fatalf)
 
@@ -1625,6 +1627,36 @@ func CheckEmptiedBuilder(fail func(string, ...interface{})) {
 	if err := quick.Check(f, nil); err != nil {
 		fail("expected different offset")
 	}
+}
+
+// Check Reset() functions and allocations
+func CheckReset(fail func(string, ...interface{})) {
+	checkHeadLenCap := func(b *flatbuffers.Builder, h flatbuffers.UOffsetT, l, c int) {
+		if b.Head() != h || len(b.Bytes) != l || cap(b.Bytes) != c {
+			fail("expected head=%d, len=%d, cap=%d got head=%d, len=%d, cap=%d", h, l, c, b.Head(), len(b.Bytes), cap(b.Bytes))
+		}
+	}
+
+	b := flatbuffers.NewBuilder(0)
+	checkHeadLenCap(b, 0, 0, 0)
+	b.PrependUint32(1)
+	checkHeadLenCap(b, 12, 16, 16)
+	b.PrependUint32(2)
+	b.PrependUint32(3)
+	checkHeadLenCap(b, 4, 16, 16)
+	b.PrependUint32(4)
+	b.PrependUint32(5)
+	checkHeadLenCap(b, 12, 32, 32)
+
+	b.ResetKeep()
+	checkHeadLenCap(b, 12, 12, 32)
+	b.Reset()
+	checkHeadLenCap(b, 32, 32, 32)
+
+	b.ResetBuffer(make([]byte, 1, 40))
+	checkHeadLenCap(b, 1, 1, 40)
+	b.PrependUint32(6)
+	checkHeadLenCap(b, 36, 40, 40)
 }
 
 func CheckSharedStrings(fail func(string, ...interface{})) {
