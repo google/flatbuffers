@@ -1201,11 +1201,14 @@ class PythonGenerator : public BaseGenerator {
       return;
     }  // There is no nested flatbuffer.
 
-    const std::string unqualified_name = namer_.Type(struct_def);
+    std::string unqualified_name = nested->constant;
     std::string qualified_name = NestedFlatbufferType(unqualified_name);
     if (qualified_name.empty()) {
       qualified_name = nested->constant;
     }
+
+    // name may be partially qualified -- need to get the true unqualified name
+    unqualified_name = namer_.Denamespace(qualified_name);
 
     const ImportMapEntry import_entry = {qualified_name, unqualified_name};
 
