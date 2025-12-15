@@ -169,12 +169,22 @@ impl<'a> NestedStruct {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NestedStructT {
   pub a: [i32; 2],
   pub b: TestEnum,
   pub c: [TestEnum; 2],
   pub d: [i64; 2],
+}
+impl std::default::Default for NestedStructT {
+    fn default() -> Self {
+      Self {
+        a: core::array::from_fn(|_| Default::default()),
+        b: Default::default(),
+        c: core::array::from_fn(|_| Default::default()),
+        d: core::array::from_fn(|_| Default::default()),
+    }
+  }
 }
 impl NestedStructT {
   pub fn pack(&self) -> NestedStruct {
