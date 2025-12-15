@@ -496,8 +496,6 @@ public struct Movie: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable
     case mainCharacter = 6
     case charactersType = 8
     case characters = 10
-    case gadgetType = 12
-    case gadget = 14
     var v: Int32 { Int32(self.rawValue) }
     var p: VOffset { self.rawValue }
   }
@@ -507,32 +505,24 @@ public struct Movie: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable
   public var charactersType: FlatbufferVector<Character> { return _accessor.vector(at: VTOFFSET.charactersType.v, byteSize: 1) }
   public var characters: UnionFlatbufferVector { return _accessor.unionVector(at: VTOFFSET.characters.v, byteSize: 4) }
   public func characters<T: FlatbuffersInitializable>(at index: Int32, type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.characters.v); return o == 0 ? nil : _accessor.directUnion(_accessor.vector(at: o) + index * 4) }
-  public var gadgetType: Gadget { let o = _accessor.offset(VTOFFSET.gadgetType.v); return o == 0 ? .none_ : Gadget(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
-  public func gadget<T: FlatbuffersInitializable>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.gadget.v); return o == 0 ? nil : _accessor.union(o) }
-  public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
+  public static func startMovie(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 4) }
   public static func add(mainCharacterType: Character, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mainCharacterType.rawValue, def: 0, at: VTOFFSET.mainCharacterType.p) }
   public static func add(mainCharacter: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: mainCharacter, at: VTOFFSET.mainCharacter.p) }
   public static func addVectorOf(charactersType: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: charactersType, at: VTOFFSET.charactersType.p) }
   public static func addVectorOf(characters: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: characters, at: VTOFFSET.characters.p) }
-  public static func add(gadgetType: Gadget, _ fbb: inout FlatBufferBuilder) { fbb.add(element: gadgetType.rawValue, def: 0, at: VTOFFSET.gadgetType.p) }
-  public static func add(gadget: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: gadget, at: VTOFFSET.gadget.p) }
   public static func endMovie(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createMovie(
     _ fbb: inout FlatBufferBuilder,
     mainCharacterType: Character = .none_,
     mainCharacterOffset mainCharacter: Offset = Offset(),
     charactersTypeVectorOffset charactersType: Offset = Offset(),
-    charactersVectorOffset characters: Offset = Offset(),
-    gadgetType: Gadget = .none_,
-    gadgetOffset gadget: Offset = Offset()
+    charactersVectorOffset characters: Offset = Offset()
   ) -> Offset {
     let __start = Movie.startMovie(&fbb)
     Movie.add(mainCharacterType: mainCharacterType, &fbb)
     Movie.add(mainCharacter: mainCharacter, &fbb)
     Movie.addVectorOf(charactersType: charactersType, &fbb)
     Movie.addVectorOf(characters: characters, &fbb)
-    Movie.add(gadgetType: gadgetType, &fbb)
-    Movie.add(gadget: gadget, &fbb)
     return Movie.endMovie(&fbb, start: __start)
   }
 
@@ -553,7 +543,6 @@ public struct Movie: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable
     }
     let __characters = builder.createVector(ofOffsets: __characters__)
     let __charactersType = builder.createVector(obj.characters.compactMap { $0?.type })
-    let __gadget = obj.gadget?.pack(builder: &builder) ?? Offset()
     let __root = Movie.startMovie(&builder)
     if let o = obj.mainCharacter?.type {
       Movie.add(mainCharacterType: o, &builder)
@@ -562,11 +551,6 @@ public struct Movie: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable
 
     Movie.addVectorOf(charactersType: __charactersType, &builder)
     Movie.addVectorOf(characters: __characters, &builder)
-    if let o = obj.gadget?.type {
-      Movie.add(gadgetType: o, &builder)
-      Movie.add(gadget: __gadget, &builder)
-    }
-
     return Movie.endMovie(&builder, start: __root)
   }
 
@@ -608,16 +592,6 @@ public struct Movie: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable
         try ForwardOffset<String>.verify(&verifier, at: pos, of: String.self)
       }
     })
-    try _v.visit(unionKey: VTOFFSET.gadgetType.p, unionField: VTOFFSET.gadget.p, unionKeyName: "gadgetType", fieldName: "gadget", required: false, completion: { (verifier, key: Gadget, pos) in
-      switch key {
-      case .none_:
-        break // NOTE - SWIFT doesnt support none
-      case .fallingtub:
-        try FallingTub.verify(&verifier, at: pos, of: FallingTub.self)
-      case .handfan:
-        try ForwardOffset<HandFan>.verify(&verifier, at: pos, of: HandFan.self)
-      }
-    })
     _v.finish()
   }
 }
@@ -629,8 +603,6 @@ extension Movie: Encodable {
     case mainCharacter = "main_character"
     case charactersType = "characters_type"
     case characters = "characters"
-    case gadgetType = "gadget_type"
-    case gadget = "gadget"
   }
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
@@ -684,18 +656,6 @@ extension Movie: Encodable {
       default: break;
       }
     }
-    if gadgetType != .none_ {
-      try container.encodeIfPresent(gadgetType, forKey: .gadgetType)
-    }
-    switch gadgetType {
-    case .fallingtub:
-      let _v = gadget(type: FallingTub.self)
-      try container.encodeIfPresent(_v, forKey: .gadget)
-    case .handfan:
-      let _v = gadget(type: HandFan.self)
-      try container.encodeIfPresent(_v, forKey: .gadget)
-    default: break;
-    }
   }
 }
 
@@ -703,7 +663,6 @@ public class MovieT: NativeObject {
 
   public var mainCharacter: CharacterUnion?
   public var characters: [CharacterUnion?]
-  public var gadget: GadgetUnion?
 
   public init(_ _t: borrowing Movie) {
     switch _t.mainCharacterType {
@@ -751,15 +710,6 @@ public class MovieT: NativeObject {
           characters.append(CharacterUnion(_v?.unpack(), type: .unused))
         default: break
         }
-    }
-    switch _t.gadgetType {
-    case .fallingtub:
-      let _v = _t.gadget(type: FallingTub_Mutable.self)
-      gadget = GadgetUnion(_v?.unpack(), type: .fallingtub)
-    case .handfan:
-      let _v = _t.gadget(type: HandFan.self)
-      gadget = GadgetUnion(_v?.unpack(), type: .handfan)
-    default: break
     }
   }
 

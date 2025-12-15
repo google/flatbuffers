@@ -19,7 +19,6 @@ import java.nio.ByteOrder;
 public class MovieT {
   private CharacterUnion mainCharacter;
   private CharacterUnion[] characters;
-  private GadgetUnion gadget;
 
   public CharacterUnion getMainCharacter() { return mainCharacter; }
 
@@ -29,15 +28,10 @@ public class MovieT {
 
   public void setCharacters(CharacterUnion[] characters) { this.characters = characters; }
 
-  public GadgetUnion getGadget() { return gadget; }
-
-  public void setGadget(GadgetUnion gadget) { this.gadget = gadget; }
-
 
   public MovieT() {
     this.mainCharacter = null;
     this.characters = null;
-    this.gadget = null;
   }
   public static MovieT deserializeFromBinary(byte[] fbBuffer) {
     return Movie.getRootAsMovie(ByteBuffer.wrap(fbBuffer)).unpack();

@@ -7,9 +7,6 @@ import * as flatbuffers from 'flatbuffers';
 import { Attacker, AttackerT } from './attacker.js';
 import { BookReader, BookReaderT } from './book-reader.js';
 import { Character, unionToCharacter, unionListToCharacter } from './character.js';
-import { FallingTub, FallingTubT } from './falling-tub.js';
-import { Gadget, unionToGadget, unionListToGadget } from './gadget.js';
-import { HandFan, HandFanT } from './hand-fan.js';
 import { Rapunzel, RapunzelT } from './rapunzel.js';
 
 
@@ -70,22 +67,12 @@ charactersLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
-gadgetType():Gadget {
-  const offset = this.bb!.__offset(this.bb_pos, 12);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Gadget.NONE;
-}
-
-gadget<T extends flatbuffers.Table>(obj:any):any|null {
-  const offset = this.bb!.__offset(this.bb_pos, 14);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
-}
-
 static getFullyQualifiedName(): "Movie" {
   return 'Movie';
 }
 
 static startMovie(builder:flatbuffers.Builder) {
-  builder.startObject(6);
+  builder.startObject(4);
 }
 
 static addMainCharacterType(builder:flatbuffers.Builder, mainCharacterType:Character) {
@@ -128,14 +115,6 @@ static startCharactersVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
-static addGadgetType(builder:flatbuffers.Builder, gadgetType:Gadget) {
-  builder.addFieldInt8(4, gadgetType, Gadget.NONE);
-}
-
-static addGadget(builder:flatbuffers.Builder, gadgetOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(5, gadgetOffset, 0);
-}
-
 static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
@@ -149,14 +128,12 @@ static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuf
   builder.finish(offset, 'MOVI', true);
 }
 
-static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset, gadgetType:Gadget, gadgetOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {
   Movie.startMovie(builder);
   Movie.addMainCharacterType(builder, mainCharacterType);
   Movie.addMainCharacter(builder, mainCharacterOffset);
   Movie.addCharactersType(builder, charactersTypeOffset);
   Movie.addCharacters(builder, charactersOffset);
-  Movie.addGadgetType(builder, gadgetType);
-  Movie.addGadget(builder, gadgetOffset);
   return Movie.endMovie(builder);
 }
 
@@ -182,12 +159,6 @@ unpack(): MovieT {
       ret.push(temp.unpack());
     }
     return ret;
-  })(),
-    this.gadgetType(),
-    (() => {
-      const temp = unionToGadget(this.gadgetType(), this.gadget.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
   })()
   );
 }
@@ -215,12 +186,6 @@ unpackTo(_o: MovieT): void {
     }
     return ret;
   })();
-  _o.gadgetType = this.gadgetType();
-  _o.gadget = (() => {
-      const temp = unionToGadget(this.gadgetType(), this.gadget.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
 }
 }
 
@@ -229,9 +194,7 @@ constructor(
   public mainCharacterType: Character = Character.NONE,
   public mainCharacter: AttackerT|BookReaderT|RapunzelT|string|null = null,
   public charactersType: (Character)[] = [],
-  public characters: (AttackerT|BookReaderT|RapunzelT|string)[] = [],
-  public gadgetType: Gadget = Gadget.NONE,
-  public gadget: FallingTubT|HandFanT|null = null
+  public characters: (AttackerT|BookReaderT|RapunzelT|string)[] = []
 ){}
 
 
@@ -239,15 +202,12 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   const mainCharacter = builder.createObjectOffset(this.mainCharacter);
   const charactersType = Movie.createCharactersTypeVector(builder, this.charactersType);
   const characters = Movie.createCharactersVector(builder, builder.createObjectOffsetList(this.characters));
-  const gadget = builder.createObjectOffset(this.gadget);
 
   return Movie.createMovie(builder,
     this.mainCharacterType,
     mainCharacter,
     charactersType,
-    characters,
-    this.gadgetType,
-    gadget
+    characters
   );
 }
 }

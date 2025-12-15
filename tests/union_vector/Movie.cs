@@ -38,29 +38,21 @@ public struct Movie : IFlatbufferObject
   public TTable? Characters<TTable>(int j) where TTable : struct, IFlatbufferObject { int o = __p.__offset(10); return o != 0 ? (TTable?)__p.__union<TTable>(__p.__vector(o) + j * 4) : null; }
   public string CharactersAsString(int j) { int o = __p.__offset(10); return o != 0 ? __p.__string(__p.__vector(o) + j * 4) : null; }
   public int CharactersLength { get { int o = __p.__offset(10); return o != 0 ? __p.__vector_len(o) : 0; } }
-  public Gadget GadgetType { get { int o = __p.__offset(12); return o != 0 ? (Gadget)__p.bb.Get(o + __p.bb_pos) : Gadget.NONE; } }
-  public TTable? Gadget<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(14); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
-  public FallingTub GadgetAsFallingTub() { return Gadget<FallingTub>().Value; }
-  public HandFan GadgetAsHandFan() { return Gadget<HandFan>().Value; }
 
   public static Offset<Movie> CreateMovie(FlatBufferBuilder builder,
       Character main_character_type = Character.NONE,
       int main_characterOffset = 0,
       VectorOffset characters_typeOffset = default(VectorOffset),
-      VectorOffset charactersOffset = default(VectorOffset),
-      Gadget gadget_type = Gadget.NONE,
-      int gadgetOffset = 0) {
-    builder.StartTable(6);
-    Movie.AddGadget(builder, gadgetOffset);
+      VectorOffset charactersOffset = default(VectorOffset)) {
+    builder.StartTable(4);
     Movie.AddCharacters(builder, charactersOffset);
     Movie.AddCharactersType(builder, characters_typeOffset);
     Movie.AddMainCharacter(builder, main_characterOffset);
-    Movie.AddGadgetType(builder, gadget_type);
     Movie.AddMainCharacterType(builder, main_character_type);
     return Movie.EndMovie(builder);
   }
 
-  public static void StartMovie(FlatBufferBuilder builder) { builder.StartTable(6); }
+  public static void StartMovie(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddMainCharacterType(FlatBufferBuilder builder, Character mainCharacterType) { builder.AddByte(0, (byte)mainCharacterType, 0); }
   public static void AddMainCharacter(FlatBufferBuilder builder, int mainCharacterOffset) { builder.AddOffset(1, mainCharacterOffset, 0); }
   public static void AddCharactersType(FlatBufferBuilder builder, VectorOffset charactersTypeOffset) { builder.AddOffset(2, charactersTypeOffset.Value, 0); }
@@ -75,8 +67,6 @@ public struct Movie : IFlatbufferObject
   public static VectorOffset CreateCharactersVectorBlock(FlatBufferBuilder builder, ArraySegment<int> data) { builder.StartVector(4, data.Count, 4); builder.Add(data); return builder.EndVector(); }
   public static VectorOffset CreateCharactersVectorBlock(FlatBufferBuilder builder, IntPtr dataPtr, int sizeInBytes) { builder.StartVector(1, sizeInBytes, 1); builder.Add<int>(dataPtr, sizeInBytes); return builder.EndVector(); }
   public static void StartCharactersVector(FlatBufferBuilder builder, int numElems) { builder.StartVector(4, numElems, 4); }
-  public static void AddGadgetType(FlatBufferBuilder builder, Gadget gadgetType) { builder.AddByte(4, (byte)gadgetType, 0); }
-  public static void AddGadget(FlatBufferBuilder builder, int gadgetOffset) { builder.AddOffset(5, gadgetOffset, 0); }
   public static Offset<Movie> EndMovie(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<Movie>(o);
@@ -139,17 +129,6 @@ public struct Movie : IFlatbufferObject
       }
       _o.Characters.Add(_o_Characters);
     }
-    _o.Gadget = new GadgetUnion();
-    _o.Gadget.Type = this.GadgetType;
-    switch (this.GadgetType) {
-      default: break;
-      case Gadget.FallingTub:
-        _o.Gadget.Value = this.Gadget<FallingTub>().HasValue ? this.Gadget<FallingTub>().Value.UnPack() : null;
-        break;
-      case Gadget.HandFan:
-        _o.Gadget.Value = this.Gadget<HandFan>().HasValue ? this.Gadget<HandFan>().Value.UnPack() : null;
-        break;
-    }
   }
   public static Offset<Movie> Pack(FlatBufferBuilder builder, MovieT _o) {
     if (_o == null) return default(Offset<Movie>);
@@ -167,16 +146,12 @@ public struct Movie : IFlatbufferObject
       for (var _j = 0; _j < __characters.Length; ++_j) { __characters[_j] = CharacterUnion.Pack(builder,  _o.Characters[_j]); }
       _characters = CreateCharactersVector(builder, __characters);
     }
-    var _gadget_type = _o.Gadget == null ? Gadget.NONE : _o.Gadget.Type;
-    var _gadget = _o.Gadget == null ? 0 : GadgetUnion.Pack(builder, _o.Gadget);
     return CreateMovie(
       builder,
       _main_character_type,
       _main_character,
       _characters_type,
-      _characters,
-      _gadget_type,
-      _gadget);
+      _characters);
   }
 }
 
@@ -215,24 +190,10 @@ public class MovieT
   [Newtonsoft.Json.JsonProperty("characters")]
   [Newtonsoft.Json.JsonConverter(typeof(CharacterUnion_JsonConverter))]
   public List<CharacterUnion> Characters { get; set; }
-  [Newtonsoft.Json.JsonProperty("gadget_type")]
-  private Gadget GadgetType {
-    get {
-      return this.Gadget != null ? this.Gadget.Type : Gadget.NONE;
-    }
-    set {
-      this.Gadget = new GadgetUnion();
-      this.Gadget.Type = value;
-    }
-  }
-  [Newtonsoft.Json.JsonProperty("gadget")]
-  [Newtonsoft.Json.JsonConverter(typeof(GadgetUnion_JsonConverter))]
-  public GadgetUnion Gadget { get; set; }
 
   public MovieT() {
     this.MainCharacter = null;
     this.Characters = null;
-    this.Gadget = null;
   }
 
   public static MovieT DeserializeFromJson(string jsonText) {
@@ -260,8 +221,6 @@ static public class MovieVerify
       && verifier.VerifyField(tablePos, 4 /*MainCharacterType*/, 1 /*Character*/, 1, false)
       && verifier.VerifyUnion(tablePos, 4, 6 /*MainCharacter*/, CharacterVerify.Verify, false)
       && verifier.VerifyVectorOfData(tablePos, 8 /*CharactersType*/, 1 /*Character*/, false)
-      && verifier.VerifyField(tablePos, 12 /*GadgetType*/, 1 /*Gadget*/, 1, false)
-      && verifier.VerifyUnion(tablePos, 12, 14 /*Gadget*/, GadgetVerify.Verify, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }
