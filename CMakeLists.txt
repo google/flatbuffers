@@ -182,6 +182,7 @@ set(FlatBuffers_Compiler_SRCS
   src/bfbs_gen.h
   src/bfbs_gen_lua.h
   src/bfbs_gen_nim.h
+  src/bfbs_gen_ruby.h
   src/bfbs_namer.h
   include/codegen/idl_namer.h
   include/codegen/namer.h
@@ -194,6 +195,7 @@ set(FlatBuffers_Compiler_SRCS
   src/annotated_binary_text_gen.cpp
   src/bfbs_gen_lua.cpp
   src/bfbs_gen_nim.cpp
+  src/bfbs_gen_ruby.cpp
   src/code_generators.cpp
   grpc/src/compiler/schema_interface.h
   grpc/src/compiler/cpp_generator.h

@@ -511,6 +511,13 @@ flatc(NIM_OPTS, schema="optional_scalars.fbs")
 flatc(NIM_OPTS, schema="more_defaults.fbs")
 flatc(NIM_OPTS, schema="MutatingBool.fbs")
 
+# Ruby Tests
+RUBY_OPTS = BASE_OPTS + ["--ruby"]
+flatc(RUBY_OPTS, schema="monster_test.fbs", include="include_test")
+flatc(RUBY_OPTS, schema="optional_scalars.fbs")
+flatc(RUBY_OPTS, schema="more_defaults.fbs")
+flatc(RUBY_OPTS, schema="MutatingBool.fbs")
+
 # --filename-suffix and --filename-ext tests
 flatc(
     CPP_OPTS + NO_INCL_OPTS + ["--grpc", "--filename-ext", "hpp"],
