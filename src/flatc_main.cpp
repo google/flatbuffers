@@ -181,9 +181,27 @@ int main(int argc, const char* argv[]) {
                                "Generate TypeScript code for tables/structs"},
       flatbuffers::NewTsCodeGenerator());
 
-  // Parse command-line arguments and assign to global_options
-  flatbuffers::global_options = flatc.ParseFromCommandLineArguments(argc, argv);
+  // Create the FlatC options by parsing the command line arguments.
+  flatbuffers::FlatCOptions options =
+      flatc.ParseFromCommandLineArguments(argc, argv);
+  flatbuffers::global_options = options;
+
+  // this exists here to ensure file_saver outlives the compilation process
+  std::unique_ptr<flatbuffers::FileSaver> file_saver;
+  if (options.file_names_only) {
+    file_saver.reset(new flatbuffers::FileNameSaver{});
+  } else {
+    file_saver.reset(new flatbuffers::RealFileSaver{});
+  }
+
+  options.opts.file_saver = file_saver.get();
+  FLATBUFFERS_ASSERT(options.opts.file_saver);
 
   // Compile with the extracted FlatC options.
-  return flatc.Compile(flatbuffers::global_options);
+  int success = flatc.Compile(options);
+
+  // print file names if file-names-only option is set
+  options.opts.file_saver->Finish();
+
+  return success;
 }

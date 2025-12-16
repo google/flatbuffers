@@ -30,6 +30,7 @@ function generate_go_code() {
   ../flatc -g --gen-object-api ${preserve_case_opt} -I include_test -o ${go_src} monster_test.fbs optional_scalars.fbs
   ../flatc -g --gen-object-api ${preserve_case_opt} -I include_test/sub -o ${go_src} include_test/order.fbs
   ../flatc -g --gen-object-api ${preserve_case_opt} -o ${go_src}/Pizza include_test/sub/no_namespace.fbs
+  ../flatc -g --gen-object-api ${preserve_case_opt} -o ${go_src} required_strings.fbs
 }
 
 function run_go_suite() {

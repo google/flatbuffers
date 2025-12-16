@@ -263,6 +263,11 @@ flatc(
 )
 
 flatc(
+    options=["--ts", "--gen-object-api"],
+    schema="../non_zero_enum.fbs",
+)
+
+flatc(
     options=[
         "--ts",
         "--reflect-names",

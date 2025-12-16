@@ -5,93 +5,133 @@
 #
 # See .github/workflows/label.yml for Github Action workflow script
 
-c#:
-  - '**/*.cs'
-  - net/**/*
-  - tests/FlatBuffers.Test/**/*
-  - tests/FlatBuffers.Benchmarks/**/*
-  - src/idl_gen_csharp.cpp
+"c#":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.cs'
+      - 'net/**/*'
+      - 'tests/FlatBuffers.Test/**/*'
+      - 'tests/FlatBuffers.Benchmarks/**/*'
+      - 'src/idl_gen_csharp.cpp'
 
 swift:
-  - '**/*.swift'
-  - swift/**/*
-  - tests/swift/**
-  - src/idl_gen_swift.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.swift'
+      - 'swift/**/*'
+      - 'tests/swift/**'
+      - 'src/idl_gen_swift.cpp'
 
 nim:
-  - '**/*.nim'
-  - nim/**/*
-  - src/idl_gen_nim.cpp
-  - src/bfbs_gen_nim.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.nim'
+      - 'nim/**/*'
+      - 'src/idl_gen_nim.cpp'
+      - 'src/bfbs_gen_nim.cpp'
 
 javascript:
-  - '**/*.js'
-  - src/idl_gen_ts.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.js'
+      - 'src/idl_gen_ts.cpp'
 
 typescript:
-  - '**/*.ts'
-  - src/idl_gen_ts.cpp
-  - grpc/flatbuffers-js-grpc/**/*.ts
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.ts'
+      - 'src/idl_gen_ts.cpp'
+      - 'grpc/flatbuffers-js-grpc/**/*.ts'
 
 golang:
-  - '**/*.go'
-  - src/idl_gen_go.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.go'
+      - 'src/idl_gen_go.cpp'
 
 python:
-  - '**/*.py'
-  - src/idl_gen_python.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.py'
+      - 'src/idl_gen_python.cpp'
 
 java:
-  - '**/*.java'
-  - src/idl_gen_java.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.java'
+      - 'src/idl_gen_java.cpp'
 
 kotlin:
-  - '**/*.kt'
-  - src/idl_gen_kotlin.cpp
-  - src/idl_gen_kotlin_kmp.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.kt'
+      - 'src/idl_gen_kotlin.cpp'
+      - 'src/idl_gen_kotlin_kmp.cpp'
 
 lua:
-  - '**/*.lua'
-  - lua/**/*
-  - src/bfbs_gen_lua.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.lua'
+      - 'lua/**/*'
+      - 'src/bfbs_gen_lua.cpp'
 
 lobster:
-  - '**/*.lobster'
-  - src/idl_gen_lobster.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.lobster'
+      - 'src/idl_gen_lobster.cpp'
 
 php:
-  - '**/*.php'
-  - src/idl_gen_php.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.php'
+      - 'src/idl_gen_php.cpp'
 
 rust:
-  - '**/*.rs'
-  - rust/**/*
-  - src/idl_gen_rust.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.rs'
+      - 'rust/**/*'
+      - 'src/idl_gen_rust.cpp'
 
 dart:
-  - '**/*.dart'
-  - src/idl_gen_dart.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.dart'
+      - 'src/idl_gen_dart.cpp'
 
-c++:
-  - '**/*.cc'
-  - '**/*.cpp'
-  - '**/*.h'
+"c++":
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.cc'
+      - '**/*.cpp'
+      - '**/*.h'
 
 json:
-  - '**/*.json'
-  - src/idl_gen_json_schema.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.json'
+      - 'src/idl_gen_json_schema.cpp'
 
 codegen:
-  - src/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/**/*'
 
 documentation:
-  - docs/**/*
-  - '**/*.md'
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'docs/**/*'
+      - '**/*.md'
 
 CI:
-  - '.github/**/*'
-  - '.bazelci/**/*'
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**/*'
+      - '.bazelci/**/*'
 
 grpc:
-  - grpc/**/*
-  - src/idl_gen_grpc.cpp
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'grpc/**/*'
+      - 'src/idl_gen_grpc.cpp'

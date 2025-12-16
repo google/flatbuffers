@@ -19,12 +19,14 @@
 
 #include <string>
 
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/idl.h"
 
 namespace flatbuffers {
 
 struct CodeGenOptions {
   std::string output_path;
+  FileSaver* file_saver{nullptr};
 };
 
   // A code generator interface for producing converting flatbuffer schema into
