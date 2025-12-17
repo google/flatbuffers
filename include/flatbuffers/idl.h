@@ -735,6 +735,7 @@ struct IDLOptions {
   bool no_leak_private_annotations;
   bool require_json_eof;
   bool keep_proto_id;
+  bool jsonschema_include_xflatbuffers;
 
   /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
@@ -878,6 +879,7 @@ struct IDLOptions {
         no_leak_private_annotations(false),
         require_json_eof(true),
         keep_proto_id(false),
+        jsonschema_include_xflatbuffers(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
         python_gen_numpy(true),

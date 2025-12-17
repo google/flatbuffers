@@ -260,6 +260,8 @@ const static FlatCOption flatc_options[] = {
     {"", "python-no-type-prefix-suffix", "",
      "Skip emission of Python functions that are prefixed with typenames"},
     {"", "preserve-case", "", "Preserve all property cases as defined in IDL"},
+    {"", "jsonschema-xflatbuffers", "",
+     "Include x-flatbuffers metadata in generated JSON Schema."},
     {"", "python-typing", "", "Generate Python type annotations"},
     {"", "python-version", "", "Generate code for the given Python version."},
     {"", "python-decode-obj-api-strings", "",
@@ -656,6 +658,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.set_empty_vectors_to_null = false;
       } else if (arg == "--preserve-case") {
         options.preserve_case = true;
+      } else if (arg == "--jsonschema-xflatbuffers") {
+        opts.jsonschema_include_xflatbuffers = true;
       } else if (arg == "--java-primitive-has-method") {
         opts.java_primitive_has_method = true;
       } else if (arg == "--cs-gen-json-serializer") {
