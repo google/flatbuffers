@@ -1,0 +1,32 @@
+/**
+ * Used to test the --ts-undefined-for-optionals command line argument.
+ */
+
+table LalalaOptions {
+    option_1: uint64;
+    option_2: [uint32];
+    option_3: [uint32] (required);
+}
+
+table OptionalValues {
+    /**
+     * Optional string.
+     */
+    foo_string: string;
+    /**
+     * Optional number.
+     */
+    bar1_number: uint16;
+    /**
+     * Optional number with numeric default value.
+     */
+    bar2_number: uint16 = 1234;
+    /**
+     * Optional number with undefined default value.
+     */
+    bar3_number: uint16 = null;
+    /**
+     * LalalaOptions
+     */
+    lalala_options_1: LalalaOptions;
+}

@@ -102,6 +102,15 @@ flatc(
 flatc(
     options=[
         "--ts",
+        "--gen-object-api",
+        "--ts-undefined-for-optionals",
+    ],
+    schema="../optional_values.fbs",
+)
+
+flatc(
+    options=[
+        "--ts",
         "--reflect-names",
         "--gen-name-strings",
         "--gen-mutable",
