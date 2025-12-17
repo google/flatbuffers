@@ -266,7 +266,8 @@ const static FlatCOption flatc_options[] = {
     {"", "ts-omit-entrypoint", "",
      "Omit emission of namespace entrypoint file"},
     {"", "ts-undefined-for-optionals", "",
-     "Whether to generate undefined values instead of null values for missing optional keys"},
+     "Whether to generate undefined values instead of null values for missing "
+     "optional keys"},
     {"", "file-names-only", "",
      "Print out generated file names without writing to the files"},
     {"", "grpc-filename-suffix", "SUFFIX",

@@ -77,17 +77,16 @@ Namer::Config TypeScriptDefaultConfig() {
 std::set<std::string> TypescriptKeywords() {
   // List of keywords retrieved from here:
   // https://github.com/microsoft/TypeScript/issues/2536
-  return {
-      "arguments", "break",    "case",      "catch",      "class",      "const",
-      "continue",  "debugger", "default",   "delete",     "do",         "else",
-      "enum",      "export",   "extends",   "false",      "finally",    "for",
-      "function",  "if",       "import",    "in",         "instanceof", "new",
-      "null",      "Object",   "return",    "super",      "switch",     "this",
-      "throw",     "true",     "try",       "typeof",     "var",        "void",
-      "while",     "with",     "as",        "implements", "interface",  "let",
-      "package",   "private",  "protected", "public",     "static",     "yield",
-      "undefined"
-  };
+  return {"arguments", "break",    "case",       "catch",    "class",
+          "const",     "continue", "debugger",   "default",  "delete",
+          "do",        "else",     "enum",       "export",   "extends",
+          "false",     "finally",  "for",        "function", "if",
+          "import",    "in",       "instanceof", "new",      "null",
+          "Object",    "return",   "super",      "switch",   "this",
+          "throw",     "true",     "try",        "typeof",   "var",
+          "void",      "while",    "with",       "as",       "implements",
+          "interface", "let",      "package",    "private",  "protected",
+          "public",    "static",   "yield",      "undefined"};
 }
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
@@ -1169,11 +1168,11 @@ class TsGenerator : public BaseGenerator {
     return "";
   }
 
-  std::string GenNullCheckConditional(
-      const std::string& nullCheckVar, const std::string& trueVal,
-      const std::string& falseVal) {
-    return "(" + nullCheckVar + " !== " + null_ + " ? " + trueVal + " : " + falseVal +
-           ")";
+  std::string GenNullCheckConditional(const std::string& nullCheckVar,
+                                      const std::string& trueVal,
+                                      const std::string& falseVal) {
+    return "(" + nullCheckVar + " !== " + null_ + " ? " + trueVal + " : " +
+           falseVal + ")";
   }
 
   std::string GenStructMemberValueTS(const StructDef& struct_def,
@@ -1307,8 +1306,8 @@ class TsGenerator : public BaseGenerator {
 
             const std::string field_accessor =
                 "this." + namer_.Method(field) + "()";
-            field_val = GenNullCheckConditional(field_accessor,
-                                                field_accessor + "!.unpack()", null_);
+            field_val = GenNullCheckConditional(
+                field_accessor, field_accessor + "!.unpack()", null_);
             auto packing = GenNullCheckConditional(
                 "this." + field_field,
                 "this." + field_field + "!.pack(builder)", "0");
@@ -1946,8 +1945,8 @@ class TsGenerator : public BaseGenerator {
             const auto& union_enum = *(field.value.type.enum_def);
             const auto union_type = GenUnionGenericTypeTS(union_enum);
             code += "<T extends flatbuffers.Table>(obj:" + union_type +
-                    "):" + union_type +
-                    "|" + null_ + " "
+                    "):" + union_type + "|" + null_ +
+                    " "
                     "{\n";
 
             code += offset_prefix +
@@ -2014,14 +2013,15 @@ class TsGenerator : public BaseGenerator {
           GenDocComment(code_ptr);
 
           code += namer_.Method(field, "Array");
-          code +=
-              "():" + GenType(vectorType) + "Array|" + null_ + " {\n" + offset_prefix;
+          code += "():" + GenType(vectorType) + "Array|" + null_ + " {\n" +
+                  offset_prefix;
 
           code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
                   ".bytes().buffer, " + GenBBAccess() +
                   ".bytes().byteOffset + " + GenBBAccess() +
                   ".__vector(this.bb_pos + offset), " + GenBBAccess() +
-                  ".__vector_len(this.bb_pos + offset)) : " + null_ + ";\n}\n\n";
+                  ".__vector_len(this.bb_pos + offset)) : " + null_ +
+                  ";\n}\n\n";
         }
       }
     }
