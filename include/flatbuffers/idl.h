@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/hash.h"
@@ -634,6 +635,10 @@ inline bool operator<(const IncludedFile& a, const IncludedFile& b) {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // file saver
+  // shared pointer since this object gets copied and modified.
+  FileSaver* file_saver = nullptr;
+
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
   enum class ProtoIdGapAction { NO_OP, WARNING, ERROR };
@@ -702,8 +707,6 @@ struct IDLOptions {
   bool json_nested_flatbuffers;
   bool json_nested_flexbuffers;
   bool json_nested_legacy_flatbuffers;
-  bool ts_flat_files;
-  bool ts_entry_points;
   bool ts_no_import_ext;
   bool no_leak_private_annotations;
   bool require_json_eof;
@@ -847,8 +850,6 @@ struct IDLOptions {
         json_nested_flatbuffers(true),
         json_nested_flexbuffers(true),
         json_nested_legacy_flatbuffers(false),
-        ts_flat_files(false),
-        ts_entry_points(false),
         ts_no_import_ext(false),
         no_leak_private_annotations(false),
         require_json_eof(true),

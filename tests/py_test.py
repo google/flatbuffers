@@ -2873,6 +2873,29 @@ class TestVtableDeduplication(unittest.TestCase):
     _checkTable(table1, 0, 44, 55, 66)
     _checkTable(table2, 0, 77, 88, 99)
 
+  def test_vtable_deduplication_respects_object_size(self):
+    """Vtables can't be shared if object sizes differ."""
+
+    b = flatbuffers.Builder(0)
+
+    b.StartObject(1)
+    b.PrependInt32Slot(0, 1, 0)
+    first = b.EndObject()
+
+    b.StartObject(1)
+    b.PrependInt64Slot(0, 2, 0)
+    second = b.EndObject()
+    b.Finish(second)
+
+    # The second object has to point to a different vtable than the first one.
+    table_first = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - first)
+    table_second = flatbuffers.table.Table(b.Bytes, len(b.Bytes) - second)
+
+    self.assertEqual(8, table_first.GetVOffsetTSlot(2, 0))
+    self.assertEqual(14, table_second.GetVOffsetTSlot(2, 0))
+
+    # Ensure two distinct vtables exist so dedup considers object size.
+    self.assertEqual(2, len(b.vtables))
 
 class TestExceptions(unittest.TestCase):
 

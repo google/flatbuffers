@@ -330,7 +330,7 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   bool save() const {
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
-    return SaveFile(file_path.c_str(), code_, false);
+    return parser_.opts.file_saver->SaveFile(file_path.c_str(), code_, false);
   }
 
   const std::string getJson() { return code_; }

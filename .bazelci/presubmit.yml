@@ -10,7 +10,7 @@ tasks:
     bazel: ${{ bazel }}
     environment:
       CC: clang
-      SWIFT_VERSION: "5.9"
+      SWIFT_VERSION: "5.10"
       SWIFT_HOME: "$HOME/swift-$SWIFT_VERSION"
       PATH: "$PATH:$SWIFT_HOME/usr/bin"
     shell_commands:
@@ -26,7 +26,7 @@ tasks:
     bazel: ${{ bazel }}
     environment:
       CC: clang
-      SWIFT_VERSION: "5.9"
+      SWIFT_VERSION: "5.10"
       SWIFT_HOME: "$HOME/swift-$SWIFT_VERSION"
       PATH: "$PATH:$SWIFT_HOME/usr/bin"
     shell_commands:

@@ -113,7 +113,7 @@ class GoGenerator : public BaseGenerator {
       code += one_file_code;
       const std::string filename =
           GeneratedFileName(path_, file_name_, parser_.opts);
-      return SaveFile(filename.c_str(), code, false);
+      return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
     }
 
     return true;
@@ -1122,11 +1122,16 @@ class GoGenerator : public BaseGenerator {
       const std::string offset = field_var + "Offset";
 
       if (IsString(field.value.type)) {
-        code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
-        code += "\tif t." + field_field + " != \"\" {\n";
-        code += "\t\t" + offset + " = builder.CreateString(t." + field_field +
-                ")\n";
-        code += "\t}\n";
+        if (!field.IsRequired()) {
+          code += "\t" + offset + " := flatbuffers.UOffsetT(0)\n";
+          code += "\tif t." + field_field + " != \"\" {\n";
+          code += "\t\t" + offset + " = builder.CreateString(t." + field_field +
+                  ")\n";
+          code += "\t}\n";
+        } else {
+          code += "\t" + offset + " := builder.CreateString(t." + field_field +
+                  ")\n";
+        }
       } else if (IsVector(field.value.type) &&
                  field.value.type.element == BASE_TYPE_UCHAR &&
                  field.value.type.enum_def == nullptr) {
@@ -1622,7 +1627,7 @@ class GoGenerator : public BaseGenerator {
     std::string file = namer_.File(def, SkipFile::Suffix);
     EnsureDirExists(directory);
     std::string filename = directory + file;
-    return SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
   // Create the full name of the imported namespace (format: A__B__C).

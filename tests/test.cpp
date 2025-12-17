@@ -58,6 +58,7 @@
 #include "native_type_test_generated.h"
 #include "test_assert.h"
 #include "util_test.h"
+#include "vector_table_naked_ptr_test.h"
 
 void FlatBufferBuilderTest();
 
@@ -920,11 +921,11 @@ void NativeTypeTest() {
         Native::Vector3D(20 * i + 0.1f, 20 * i + 0.2f, 20 * i + 0.3f));
   }
 
-  src_data.matrix = std::make_unique<Native::Matrix>(1, 2);
+  src_data.matrix = std::unique_ptr<Native::Matrix>(new Native::Matrix(1, 2));
   src_data.matrix->values = {3, 4};
 
   for (int i = 0; i < N; ++i) {
-    src_data.matrices.push_back(std::make_unique<Native::Matrix>(1, i));
+    src_data.matrices.push_back(std::unique_ptr<Native::Matrix>(new Native::Matrix(1, i)));
     std::fill(src_data.matrices[i]->values.begin(),
               src_data.matrices[i]->values.end(), i + 0.5f);
   }
@@ -1277,6 +1278,35 @@ void NestedVerifierTest() {
                                    builder.GetSize());
     TEST_EQ(false, VerifyMonsterBuffer(verifier));
   }
+}
+
+void SizeVerifierTest() {
+  // Create a monster.
+  flatbuffers::FlatBufferBuilder builder;
+  FinishMonsterBuffer(builder,
+                      CreateMonster(builder, nullptr, 0, 0,
+                                    builder.CreateString("NestedMonster")));
+  size_t length = builder.GetSize();
+  const uint8_t* data = builder.GetBufferPointer();
+
+  // Verify the monster, using SizeVerifier.
+  // We verify in several ways, using several different API functions/methods,
+  // to ensure that all of these APIs are tested.
+  flatbuffers::SizeVerifier size_verifier(data,
+                                          FLATBUFFERS_MAX_BUFFER_SIZE - 1);
+  {
+    TEST_EQ(true, VerifyMonsterBuffer(size_verifier));
+  }
+  {
+    TEST_EQ(true, size_verifier.VerifyBuffer<Monster>());
+  }
+  {
+    const MyGame::Example::Monster* my_buffer = GetMonster(data);
+    TEST_EQ(true, my_buffer->Verify(size_verifier));
+  }
+
+  // Verify that the size verifier computed the correct size.
+  TEST_EQ(length, size_verifier.GetComputedSize());
 }
 
 template <class T, class Container>
@@ -1694,6 +1724,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedLengthArraySpanTest(tests_data_path);
   DoNotRequireEofTest(tests_data_path);
   JsonUnionStructTest();
+  VectorTableNakedPtrTest();
 #else
   // Guard against -Wunused-parameter.
   (void)tests_data_path;
@@ -1750,6 +1781,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersIteratorsTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
+  SizeVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
   VectorSpanTest();

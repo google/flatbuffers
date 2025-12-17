@@ -120,7 +120,7 @@ class PythonStubGenerator {
     ss << content.str() << '\n';
 
     EnsureDirExists(StripFileName(filename));
-    return flatbuffers::SaveFile(filename.c_str(), ss.str(), false);
+    return parser_.opts.file_saver->SaveFile(filename.c_str(), ss.str(), false);
   }
 
   static void DeclareUOffset(std::stringstream& stub, Imports* imports) {
@@ -1263,7 +1263,7 @@ class PythonGenerator : public BaseGenerator {
     auto& code = *code_ptr;
 
     code += "\n";
-    code += "def Create" + namer_.Type(struct_def);
+    code += "def Create" + namer_.Function(struct_def);
     code += "(builder";
   }
 
@@ -2913,15 +2913,16 @@ class PythonGenerator : public BaseGenerator {
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
     EnsureDirExists(directories);
 
-    for (size_t i = path_.size() + 1; i != std::string::npos;
+    for (size_t i = directories.find(kPathSeparator, path_.size());
+         i != std::string::npos;
          i = directories.find(kPathSeparator, i + 1)) {
       const std::string init_py =
           directories.substr(0, i) + kPathSeparator + "__init__.py";
-      SaveFile(init_py.c_str(), "", false);
+      parser_.opts.file_saver->SaveFile(init_py.c_str(), "", false);
     }
 
     const std::string filename = directories + defname;
-    return SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
  private:
@@ -2931,19 +2932,19 @@ class PythonGenerator : public BaseGenerator {
 
 }  // namespace python
 
-static bool GeneratePython(const Parser& parser, const std::string& path,
+static const char* GeneratePython(const Parser& parser, const std::string& path,
                            const std::string& file_name) {
   python::Version version{parser.opts.python_version};
-  if (!version.IsValid()) return false;
+  if (!version.IsValid()) return "The provided Python version is not valid";
 
   python::PythonGenerator generator(parser, path, file_name, version);
-  if (!generator.generate()) return false;
+  if (!generator.generate()) return "could not generate Python code";
 
   if (parser.opts.python_typing) {
     python::PythonStubGenerator stub_generator(parser, path, version);
-    if (!stub_generator.Generate()) return false;
+    if (!stub_generator.Generate()) return "could not generate Python type stubs";
   }
-  return true;
+  return nullptr;
 }
 
 namespace {
@@ -2952,7 +2953,9 @@ class PythonCodeGenerator : public CodeGenerator {
  public:
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
-    if (!GeneratePython(parser, path, filename)) {
+    auto err = GeneratePython(parser, path, filename);
+    if (err) {
+      status_detail = " " + std::string(err);
       return Status::ERROR;
     }
     return Status::OK;
@@ -2974,7 +2977,7 @@ class PythonCodeGenerator : public CodeGenerator {
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
                           const std::string& filename) override {
-    if (!GeneratePythonGRPC(parser, path, filename)) {
+    if (!GeneratePythonGRPC(parser, path, filename)) { // TODO add status GeneratePythonGRPC
       return Status::ERROR;
     }
     return Status::OK;

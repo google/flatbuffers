@@ -248,11 +248,8 @@ const static FlatCOption flatc_options[] = {
     {"", "json-nested-bytes", "",
      "Allow a nested_flatbuffer field to be parsed as a vector of bytes "
      "in JSON, which is unsafe unless checked by a verifier afterwards."},
-    {"", "ts-flat-files", "",
-     "Generate a single typescript file per .fbs file. Implies "
-     "ts_entry_points."},
-    {"", "ts-entry-points", "",
-     "Generate entry point typescript per namespace. Implies gen-all."},
+    {"", "ts-flat-files", "", "(deprecated) Alias for --gen-all."},
+    {"", "ts-entry-points", "", "(deprecated) Alias for --gen-all."},
     {"", "annotate-sparse-vectors", "", "Don't annotate every vector element."},
     {"", "annotate", "SCHEMA",
      "Annotate the provided BINARY_FILE with the specified SCHEMA file."},
@@ -680,11 +677,12 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--json-nested-bytes") {
         opts.json_nested_legacy_flatbuffers = true;
       } else if (arg == "--ts-flat-files") {
-        opts.ts_flat_files = true;
-        opts.ts_entry_points = true;
+        // deprecated -- just enables generate_all
+        Warn("--ts-flat-files is deprecated; use --gen-all instead.\n");
         opts.generate_all = true;
       } else if (arg == "--ts-entry-points") {
-        opts.ts_entry_points = true;
+        // deprecated -- just enables generate_all
+        Warn("--ts-entry-points is deprecated; use --gen-all instead.\n");
         opts.generate_all = true;
       } else if (arg == "--ts-no-import-ext") {
         opts.ts_no_import_ext = true;
@@ -716,7 +714,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.annotate_schema = flatbuffers::PosixPath(argv[argi]);
       } else if (arg == "--file-names-only") {
-        // TODO (khhn): Provide 2 implementation
         options.file_names_only = true;
       } else if (arg == "--grpc-filename-suffix") {
         if (++argi >= argc) Error("missing gRPC filename suffix: " + arg, true);
@@ -963,6 +960,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         if (code_generator->SupportsBfbsGeneration()) {
           CodeGenOptions code_gen_options;
           code_gen_options.output_path = options.output_path;
+          code_gen_options.file_saver = options.opts.file_saver;
 
           const CodeGenerator::Status status = code_generator->GenerateCode(
               bfbs_buffer, bfbs_length, code_gen_options);
