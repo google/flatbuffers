@@ -40,6 +40,7 @@
 #include "monster_test.h"
 #include "monster_test_generated.h"
 #include "native_inline_table_test_generated.h"
+#include "null_offset_vector_test_generated.h"
 #include "optional_scalars_test.h"
 #include "parser_test.h"
 #include "proto_test.h"
@@ -1586,6 +1587,32 @@ void NativeInlineTableVectorTest() {
   TEST_ASSERT(unpacked.t == test.t);
 }
 
+void NullOffsetInVectorOfTablesTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  std::vector<flatbuffers::Offset<NullableUint>> v;
+  v.push_back(0);
+  v.push_back(CreateNullableUint(builder, 123));
+  v.push_back(0);
+
+  auto vec = builder.CreateVector(v);
+  auto root = CreateArr(builder, vec);
+  FinishArrBuffer(builder, root);
+
+  flatbuffers::Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
+  TEST_ASSERT(VerifyArrBuffer(verifier));
+
+  const Arr* arr = GetArr(builder.GetBufferPointer());
+  TEST_NOTNULL(arr);
+  TEST_NOTNULL(arr->list());
+  TEST_EQ(arr->list()->size(), 3);
+
+  TEST_EQ(arr->list()->Get(0)->value(), 0);
+  TEST_NOTNULL(arr->list()->Get(1));
+  TEST_EQ(arr->list()->Get(1)->value(), 123u);
+  TEST_EQ(arr->list()->Get(2)->value(), 0);
+}
+
 // Guard against -Wunused-function on platforms without file tests.
 #ifndef FLATBUFFERS_NO_FILE_TESTS
 void DoNotRequireEofTest(const std::string& tests_data_path) {
@@ -1793,6 +1820,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   EmbeddedSchemaAccess();
   Offset64Tests();
   UnionUnderlyingTypeTest();
+  NullOffsetInVectorOfTablesTest();
   return 0;
 }
 }  // namespace

@@ -1,0 +1,9 @@
+table NullableUint {
+  value: uint;
+}
+
+table Arr {
+  list: [NullableUint];
+}
+
+root_type Arr;

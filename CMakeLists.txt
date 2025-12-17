@@ -550,6 +550,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   compile_schema_for_test(tests/64bit/evolution/v1.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/64bit/evolution/v2.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/union_underlying_type_test.fbs "${FLATC_OPT_SCOPED_ENUMS}")
+  compile_schema_for_test(tests/null_offset_vector_test.fbs "${FLATC_OPT_COMP}")
 
   if(FLATBUFFERS_CODE_SANITIZE)
     add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})

@@ -377,6 +377,11 @@ flatc(
 )
 
 flatc(
+    CPP_OPTS,
+    schema="null_offset_vector_test.fbs",
+)
+
+flatc(
     RUST_OPTS,
     prefix="arrays_test",
     schema="arrays_test.fbs",
