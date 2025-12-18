@@ -108,6 +108,10 @@ flatc(
     schema="optional_values/optional_values.fbs",
     prefix="optional_values",
 )
+esbuild(
+    "optional_values/optional_values.ts",
+    "optional_values/optional_values_generated.cjs",
+)
 
 flatc(
     options=[
