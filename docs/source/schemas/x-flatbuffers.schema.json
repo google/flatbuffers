@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "FlatBuffers x-flatbuffers Vendor Extension",
+  "description": "A meta-schema for the `x-flatbuffers` vendor extension emitted by `flatc --jsonschema --jsonschema-xflatbuffers`.",
+  "oneOf": [
+    { "$ref": "#/$defs/root" },
+    { "$ref": "#/$defs/enum_def" },
+    { "$ref": "#/$defs/struct_def" },
+    { "$ref": "#/$defs/field" },
+    { "$ref": "#/$defs/type" }
+  ],
+  "$defs": {
+    "namespace": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "presence": {
+      "type": "string",
+      "enum": ["required", "optional", "default"]
+    },
+    "scalar_name": {
+      "type": "string",
+      "enum": [
+        "bool",
+        "byte",
+        "ubyte",
+        "short",
+        "ushort",
+        "int",
+        "uint",
+        "long",
+        "ulong",
+        "float",
+        "double",
+        "string",
+        "utype"
+      ]
+    },
+    "enum_underlying_type": {
+      "type": "string",
+      "enum": [
+        "byte",
+        "ubyte",
+        "short",
+        "ushort",
+        "int",
+        "uint",
+        "long",
+        "ulong",
+        "utype"
+      ]
+    },
+    "type": {
+      "type": "object",
+      "properties": {
+        "base": {
+          "type": "string",
+          "enum": [
+            "bool",
+            "byte",
+            "ubyte",
+            "short",
+            "ushort",
+            "int",
+            "uint",
+            "long",
+            "ulong",
+            "float",
+            "double",
+            "string",
+            "utype",
+            "struct",
+            "table",
+            "union",
+            "enum",
+            "vector",
+            "array"
+          ]
+        },
+        "ref": { "type": "string" },
+        "scalar": { "$ref": "#/$defs/scalar_name" },
+        "vector64": { "type": "boolean" },
+        "fixed_length": { "type": "integer", "minimum": 0 },
+        "element": { "$ref": "#/$defs/type" }
+      },
+      "required": ["base"],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "properties": { "base": { "enum": ["bool", "byte", "ubyte", "short", "ushort", "int", "uint", "long", "ulong", "float", "double", "string"] } },
+          "required": ["base"],
+          "additionalProperties": false
+        },
+        {
+          "properties": { "base": { "const": "utype" }, "ref": { "type": "string" } },
+          "required": ["base", "ref"],
+          "additionalProperties": false
+        },
+        {
+          "properties": { "base": { "enum": ["struct", "table"] }, "ref": { "type": "string" } },
+          "required": ["base", "ref"],
+          "additionalProperties": false
+        },
+        {
+          "properties": { "base": { "const": "union" }, "ref": { "type": "string" } },
+          "required": ["base", "ref"],
+          "additionalProperties": false
+        },
+        {
+          "properties": { "base": { "const": "enum" }, "ref": { "type": "string" }, "scalar": { "$ref": "#/$defs/scalar_name" } },
+          "required": ["base", "ref", "scalar"],
+          "additionalProperties": false
+        },
+        {
+          "properties": { "base": { "const": "vector" }, "element": { "$ref": "#/$defs/type" }, "vector64": { "type": "boolean" } },
+          "required": ["base", "element"],
+          "additionalProperties": false
+        },
+        {
+          "properties": { "base": { "const": "array" }, "element": { "$ref": "#/$defs/type" }, "fixed_length": { "type": "integer", "minimum": 0 } },
+          "required": ["base", "element", "fixed_length"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "type": { "$ref": "#/$defs/type" },
+        "id": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" }
+          ]
+        },
+        "presence": { "$ref": "#/$defs/presence" },
+        "deprecated": { "type": "boolean" },
+        "key": { "type": "boolean" },
+        "shared": { "type": "boolean" },
+        "native_inline": { "type": "boolean" },
+        "flexbuffer": { "type": "boolean" },
+        "offset64": { "type": "boolean" },
+        "nested_flatbuffer": { "type": "string" },
+        "union_type_field": { "type": "string" },
+        "union_value_field": { "type": "string" }
+      },
+      "required": ["type", "presence"],
+      "additionalProperties": false
+    },
+    "enum_value": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "string" },
+        "union_type": { "type": "string" }
+      },
+      "required": ["name", "value"],
+      "additionalProperties": false
+    },
+    "enum_def": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["enum", "union"] },
+        "name": { "type": "string" },
+        "namespace": { "$ref": "#/$defs/namespace" },
+        "underlying_type": { "$ref": "#/$defs/enum_underlying_type" },
+        "values": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/enum_value" }
+        }
+      },
+      "required": ["kind", "name", "namespace", "underlying_type", "values"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "union" } }, "required": ["kind"] },
+          "then": { "properties": { "underlying_type": { "const": "utype" } } }
+        }
+      ]
+    },
+    "struct_def": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["struct", "table"] },
+        "name": { "type": "string" },
+        "namespace": { "$ref": "#/$defs/namespace" },
+        "has_key": { "type": "boolean" },
+        "minalign": { "type": "integer", "minimum": 1 },
+        "bytesize": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["kind", "name", "namespace"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "struct" } }, "required": ["kind"] },
+          "then": { "required": ["minalign", "bytesize"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "table" } }, "required": ["kind"] },
+          "then": {
+            "not": {
+              "anyOf": [
+                { "required": ["minalign"] },
+                { "required": ["bytesize"] }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "root": {
+      "type": "object",
+      "properties": {
+        "root_type": { "type": "string" },
+        "file_identifier": { "type": "string", "minLength": 4, "maxLength": 4 },
+        "file_extension": { "type": "string" }
+      },
+      "required": ["root_type"],
+      "additionalProperties": false
+    }
+  }
+}
+

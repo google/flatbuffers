@@ -5,6 +5,8 @@
 **This is a fork of the Google Flatbuffers Library with the following features added:**
 
 - A `--preserve-case` flag to prevent IDL name mangling
+- JSON Schema schema import/export (`--jsonschema`, `*.schema.json`)
+- Optional lossless JSON Schema round-tripping via `--jsonschema-xflatbuffers` metadata
 
 
 ![logo](https://flatbuffers.dev/assets/flatbuffers_logo.svg) FlatBuffers

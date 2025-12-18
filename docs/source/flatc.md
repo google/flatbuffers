@@ -51,6 +51,11 @@ Additionally, adding:
   * `--grpc` Will generate RPC stub code for gRPC (not available in all
     languages)
 
+Other schema outputs:
+
+  * `--jsonschema`: Generate JSON Schema (`*.schema.json`) from a FlatBuffers schema.
+  * `--jsonschema-xflatbuffers`: Include `x-flatbuffers` vendor metadata in the generated JSON Schema for lossless round-tripping. See [JSON Schema](json_schema.md).
+
 ### Data Files
 
 If `FILES...` contain data files, they can be exported to either a binary or
@@ -305,4 +310,3 @@ Additional gRPC options:
 
 NOTE: short-form options for generators are deprecated, use the long form
 whenever possible.
-

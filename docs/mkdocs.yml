@@ -128,6 +128,7 @@ nav:
   - Compiler (flatc): 
     - Building: "building.md"
     - Using: "flatc.md"
+    - JSON Schema: "json_schema.md"
   - Schema (.fbs): 
     - Overview: "schema.md"
     - Evolution: "evolution.md"
