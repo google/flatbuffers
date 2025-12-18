@@ -166,6 +166,22 @@ class JsonSchemaGenerator : public BaseGenerator {
     return parser_.opts.jsonschema_include_xflatbuffers;
   }
 
+  const Value *LookupAttribute(const Definition &def,
+                               const char *key) const {
+    return def.attributes.Lookup(key);
+  }
+
+  const std::string *LookupAttributeString(const Definition &def,
+                                           const char *key) const {
+    const auto *attr = LookupAttribute(def, key);
+    return attr ? &attr->constant : nullptr;
+  }
+
+  bool AttributeIsTrue(const Definition &def, const char *key) const {
+    const auto *attr = LookupAttribute(def, key);
+    return attr && (attr->constant == "true" || attr->constant == "1");
+  }
+
   std::string JsonString(const std::string& value) const {
     std::string escaped;
     if (EscapeString(value.c_str(), value.length(), &escaped,
@@ -491,6 +507,20 @@ class JsonSchemaGenerator : public BaseGenerator {
                       NumToString(property->value.type.fixed_length) + "," +
                       NewLine() + Indent(8) + "\"maxItems\": " +
                       NumToString(property->value.type.fixed_length);
+        } else if (IsVector(property->value.type)) {
+          if (const auto* min_items =
+                  LookupAttributeString(*property, "jsonschema_minItems")) {
+            arrayInfo += "," + NewLine() + Indent(8) + "\"minItems\": " +
+                         *min_items;
+          }
+          if (const auto* max_items =
+                  LookupAttributeString(*property, "jsonschema_maxItems")) {
+            arrayInfo += "," + NewLine() + Indent(8) + "\"maxItems\": " +
+                         *max_items;
+          }
+        }
+        if (AttributeIsTrue(*property, "jsonschema_uniqueItems")) {
+          arrayInfo += "," + NewLine() + Indent(8) + "\"uniqueItems\": true";
         }
         std::string deprecated_info = "";
         if (property->deprecated) {
@@ -505,7 +535,62 @@ class JsonSchemaGenerator : public BaseGenerator {
         }
         std::string typeLine = Indent(4) + "\"" + property->name + "\"";
         typeLine += " : {" + NewLine() + Indent(8);
-        typeLine += GenType(property->value.type);
+        const auto* format =
+            LookupAttributeString(*property, "jsonschema_format");
+        const auto* min_length =
+            LookupAttributeString(*property, "jsonschema_minLength");
+        const auto* max_length =
+            LookupAttributeString(*property, "jsonschema_maxLength");
+        const auto* minimum =
+            LookupAttributeString(*property, "jsonschema_minimum");
+        const auto* maximum =
+            LookupAttributeString(*property, "jsonschema_maximum");
+        const auto* exclusive_min =
+            LookupAttributeString(*property, "jsonschema_exclusiveMinimum");
+        const auto* exclusive_max =
+            LookupAttributeString(*property, "jsonschema_exclusiveMaximum");
+
+        const bool is_scalar_integer =
+            property->value.type.enum_def == nullptr &&
+            IsInteger(property->value.type.base_type);
+        const bool suppress_integer_range =
+            is_scalar_integer &&
+            (format || minimum || maximum || exclusive_min || exclusive_max);
+        if (suppress_integer_range) {
+          typeLine += GenType("integer");
+        } else {
+          typeLine += GenType(property->value.type);
+        }
+
+        if (format) {
+          typeLine += "," + NewLine() + Indent(8) + "\"format\" : " +
+                      JsonString(*format);
+        }
+        if (min_length) {
+          typeLine += "," + NewLine() + Indent(8) + "\"minLength\" : " +
+                      *min_length;
+        }
+        if (max_length) {
+          typeLine += "," + NewLine() + Indent(8) + "\"maxLength\" : " +
+                      *max_length;
+        }
+        if (exclusive_min) {
+          typeLine += "," + NewLine() + Indent(8) +
+                      "\"exclusiveMinimum\" : " + *exclusive_min;
+        } else if (minimum) {
+          typeLine += "," + NewLine() + Indent(8) + "\"minimum\" : " +
+                      *minimum;
+        }
+        if (exclusive_max) {
+          typeLine += "," + NewLine() + Indent(8) +
+                      "\"exclusiveMaximum\" : " + *exclusive_max;
+        } else if (maximum) {
+          typeLine += "," + NewLine() + Indent(8) + "\"maximum\" : " +
+                      *maximum;
+        }
+        if (AttributeIsTrue(*property, "jsonschema_readOnly")) {
+          typeLine += "," + NewLine() + Indent(8) + "\"readOnly\" : true";
+        }
         typeLine += arrayInfo;
         typeLine += deprecated_info;
         typeLine += flatbuffers_info;
@@ -539,7 +624,13 @@ class JsonSchemaGenerator : public BaseGenerator {
         required_string.append("],");
         code_ += required_string + NewLine();
       }
-      code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
+      const auto* additional_props =
+          LookupAttributeString(*structure, "jsonschema_additionalProperties");
+      const bool allow_additional =
+          additional_props && (*additional_props == "true" || *additional_props == "1");
+      if (!allow_additional) {
+        code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
+      }
       auto closeType(Indent(2) + "}");
       if (*s != parser_.structs_.vec.back()) {
         closeType.append(",");

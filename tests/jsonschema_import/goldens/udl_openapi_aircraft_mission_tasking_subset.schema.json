@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "definitions": {
+    "AircraftMissionLocationTasking_Abridged" : {
+      "type" : "object",
+      "description" : "Collection of aircraft mission location information for this aircraft mission tasking.",
+      "properties" : {
+        "airMsnPri" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The code for the priority assigned to this mission."
+              },
+        "alt" : {
+                "type" : "integer",
+                "format" : "int32",
+                "description" : "The altitude for this mission represented as hundreds of feet above MSL."
+              },
+        "areaGeoRad" : {
+                "type" : "integer",
+                "format" : "int32",
+                "description" : "The radius of the circle around the location being reported in feet."
+              },
+        "endTime" : {
+                "type" : "string",
+                "format" : "date-time",
+                "description" : "The end time of this mission in ISO 8601 UTC format with millisecond precision."
+              },
+        "msnLocName" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 24,
+                "description" : "The name that identifies the location at which this mission is to be performed. This can be the name of a general target area, orbit, cap point, station, etc."
+              },
+        "msnLocPtBarT" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 36,
+                "description" : "The alpha-numeric specified location for this mission specified as a bearing angle in degrees relative to true north and a range in nautical miles (NM)."
+              },
+        "msnLocPtLat" : {
+                "type" : "number",
+                "format" : "double",
+                "minimum" : -90,
+                "maximum" : 90,
+                "description" : "WGS-84 latitude of the mission location, in degrees. -90 to 90 degrees (negative values south of equator) for this tasked air mission."
+              },
+        "msnLocPtLon" : {
+                "type" : "number",
+                "format" : "double",
+                "minimum" : -180,
+                "maximum" : 180,
+                "description" : "WGS-84 longitude of the mission location, in degrees. -180 to 180 degrees (negative values west of Prime Meridian) for this tasked air mission."
+              },
+        "msnLocPtName" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 36,
+                "description" : "The location name for this mission."
+              },
+        "startTime" : {
+                "type" : "string",
+                "format" : "date-time",
+                "description" : "The start time of this mission in ISO 8601 UTC format with millisecond precision."
+              }
+      },
+      "required" : ["startTime"],
+    },
+    "AircraftMissionTasking_Abridged" : {
+      "type" : "object",
+      "description" : "Collection that specifies the tasked country, tasked service, unit and mission level tasking for this ATO.",
+      "properties" : {
+        "acMsnLocSeg" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/AircraftMissionLocationTasking_Abridged"},
+                "description" : "A collection of aircraft mission location information for this aircraft mission tasking."
+              },
+        "alertStatus" : {
+                "type" : "integer",
+                "format" : "int32",
+                "description" : "The readiness status expressed in time (minutes) for an aircraft to be airborne after the launch order is received or the time required for a missile unit to assume battle stations."
+              },
+        "amcMsnNum" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 16,
+                "description" : "The AMC number assigned to identify one aircraft from another."
+              },
+        "countryCode" : {
+                "type" : "string",
+                "minLength" : 1,
+                "maxLength" : 4,
+                "description" : "The country code responsible for conducting this aircraft mission tasking for the exercise or operation."
+              },
+        "depLocLat" : {
+                "type" : "number",
+                "format" : "double",
+                "minimum" : -90,
+                "maximum" : 90,
+                "description" : "WGS-84 latitude of the departure location, in degrees. -90 to 90 degrees (negative values south of equator) for this tasked air mission."
+              },
+        "depLocLon" : {
+                "type" : "number",
+                "format" : "double",
+                "minimum" : -180,
+                "maximum" : 180,
+                "description" : "WGS-84 longitude of the departure location, in degrees. -180 to 180 degrees (negative values west of Prime Meridian) for this tasked air mission."
+              },
+        "depLocName" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 36,
+                "description" : "The location or name specified for the departure of the tasked air mission."
+              },
+        "depLocUTM" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 36,
+                "description" : "The departure location specified in UTM (100 meter) coordinates for the tasked air mission."
+              },
+        "depTime" : {
+                "type" : "string",
+                "format" : "date-time",
+                "description" : "The time of departure for the tasked air mission in ISO8601 UTC format with millisecond precision."
+              },
+        "indACTasking" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/IndividualAircraftTasking_Abridged"},
+                "description" : "A collection of the individual aircraft assigned to this aircraft mission tasking."
+              },
+        "msnCommander" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The commander responsible for the planning and execution of the forces necessary to achieve desired objectives."
+              },
+        "msnNum" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The mission number assigned to this mission."
+              },
+        "pkgId" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The identifier for the composite set of missions for this operation/exercise."
+              },
+        "priMsnType" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The code for the preferred type or designator for a tasked air mission."
+              },
+        "rcvyLocLat" : {
+                "type" : "array", "items" : {"type" : "number"},
+                "description" : "An array of WGS-84 latitude of the recovery locations, in degrees. -90 to 90 degrees (negative values south of equator) for this tasked air mission."
+              },
+        "rcvyLocLon" : {
+                "type" : "array", "items" : {"type" : "number"},
+                "description" : "An array of WGS-84 longitude of the recovery locations, in degrees. -180 to 180 degrees (negative values west of Prime Meridian) for this tasked air mission."
+              },
+        "rcvyLocName" : {
+                "type" : "array", "items" : {"type" : "string"},
+                "minItems": 0,
+                "maxItems": 36,
+                "description" : "An array of locations specified for the recovery of the tasked air mission represented by varying formats."
+              },
+        "rcvyLocUTM" : {
+                "type" : "array", "items" : {"type" : "string"},
+                "minItems": 0,
+                "maxItems": 36,
+                "description" : "An array of recovery locations specified in UTM (100 meter) coordinates for the tasked air mission."
+              },
+        "rcvyTime" : {
+                "type" : "array", "items" : {"type" : "string"},
+                "description" : "An array of recovery times for the tasked air mission in ISO8601 UTC format with millisecond precision."
+              },
+        "resMsnInd" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 1,
+                "description" : "An indicator of whether a mission is or will be a residual mission."
+              },
+        "secMsnType" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The code for the alternative type of a tasked air mission."
+              },
+        "taskedService" : {
+                "type" : "string",
+                "minLength" : 1,
+                "maxLength" : 1,
+                "description" : "The service tasked with conducting this aircraft mission tasking for the exercise or operation."
+              },
+        "unitDesignator" : {
+                "type" : "string",
+                "minLength" : 1,
+                "maxLength" : 36,
+                "description" : "The designator of the unit that is tasked to perform this aircraft mission tasking."
+              },
+        "unitLocName" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 36,
+                "description" : "The tasked units location expressed as an ICAO or a place name."
+              }
+      },
+      "required" : ["countryCode", "taskedService", "unitDesignator"],
+    },
+    "IndividualAircraftTasking_Abridged" : {
+      "type" : "object",
+      "description" : "Collection that specifies the naval flight operations for this ATO.",
+      "properties" : {
+        "acftType" : {
+                "type" : "string",
+                "minLength" : 1,
+                "maxLength" : 36,
+                "description" : "The type and model number for the aircraft. The field may specify a value of an aircraft not yet assigned an aircraft code contained in the aircraft codes list."
+              },
+        "callSign" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 24,
+                "description" : "The call sign assigned to this mission aircraft."
+              },
+        "iffSifMode1Code" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The mode 1 and code of the Identification Friend or FOE (IFF) or Selective Identification Feature (SIF)."
+              },
+        "iffSifMode2Code" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The mode 2 and code of the Identification Friend or FOE (IFF) or Selective Identification Feature (SIF)."
+              },
+        "iffSifMode3Code" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The mode 3 and code of the Identification Friend or FOE (IFF) or Selective Identification Feature (SIF)."
+              },
+        "juAddress" : {
+                "type" : "array", "items" : {"type" : "integer", "minimum" : -2147483648, "maximum" : 2147483647},
+                "description" : "An optional array of link 16 octal track numbers assigned as the primary JTIDS Unit (JU) address for the mission aircraft."
+              },
+        "link16CallSign" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 8,
+                "description" : "The Link 16 abbreviated call sign assigned to the ACA. This is normally the first and last letter and the last two numbers of the call sign."
+              },
+        "numAcft" : {
+                "type" : "integer",
+                "format" : "int32",
+                "description" : "The number of aircraft participating in this mission."
+              },
+        "priConfigCode" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 48,
+                "description" : "The code that indicates the ordinance mix carried on this mission aircraft."
+              },
+        "secConfigCode" : {
+                "type" : "string",
+                "minLength" : 0,
+                "maxLength" : 48,
+                "description" : "The code for the secondary ordinance mix carried on this mission aircraft."
+              },
+        "tacanChan" : {
+                "type" : "integer",
+                "format" : "int32",
+                "description" : "The TACAN channel assigned to this mission aircraft."
+              }
+      },
+      "required" : ["acftType"],
+    }
+  },
+  "$ref" : "#/definitions/AircraftMissionTasking_Abridged"
+}

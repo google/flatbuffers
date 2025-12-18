@@ -3995,6 +3995,36 @@ CheckedError Parser::DoParseJsonSchema() {
     Type type;
     bool deprecated = false;
     std::string description;
+    bool has_enum = false;
+    std::vector<std::string> enum_values;
+    bool has_format = false;
+    std::string format;
+    bool has_min_length = false;
+    int64_t min_length = 0;
+    bool has_max_length = false;
+    int64_t max_length = 0;
+    bool has_minimum = false;
+    std::string minimum;
+    bool has_maximum = false;
+    std::string maximum;
+    // OpenAPI 3.0 / JSON Schema draft-04 style exclusivity flags.
+    bool has_exclusive_minimum = false;
+    bool exclusive_minimum = false;
+    bool has_exclusive_maximum = false;
+    bool exclusive_maximum = false;
+    // JSON Schema 2019-09+ style exclusive bounds (numeric).
+    bool has_exclusive_minimum_number = false;
+    std::string exclusive_minimum_number;
+    bool has_exclusive_maximum_number = false;
+    std::string exclusive_maximum_number;
+    bool has_read_only = false;
+    bool read_only = false;
+    bool has_unique_items = false;
+    bool unique_items = false;
+    bool has_min_items = false;
+    int64_t min_items = 0;
+    bool has_max_items = false;
+    int64_t max_items = 0;
     FieldXfbMeta xfb;
     bool is_anyof = false;
     std::vector<std::string> anyof_types;
@@ -4030,11 +4060,13 @@ CheckedError Parser::DoParseJsonSchema() {
     return NoError();
   };
 
-  auto ParseUInt64 = [&](uint64_t* out) -> CheckedError {
-    if (token_ != kTokenIntegerConstant) return Error("integer constant expected");
-    if (!StringToNumber(attribute_.c_str(), out)) {
-      return Error("invalid integer constant: " + attribute_);
+  auto ParseNumberString = [&](std::string* out,
+                               bool* out_is_integer) -> CheckedError {
+    if (token_ != kTokenIntegerConstant && token_ != kTokenFloatConstant) {
+      return Error("number constant expected");
     }
+    *out = attribute_;
+    if (out_is_integer) *out_is_integer = (token_ == kTokenIntegerConstant);
     NEXT();
     return NoError();
   };
@@ -4082,11 +4114,18 @@ CheckedError Parser::DoParseJsonSchema() {
 
   auto ExtractDefinitionRef = [&](const std::string& ref,
                                   std::string* out) -> CheckedError {
-    static const std::string kPrefix = "#/definitions/";
-    if (ref.rfind(kPrefix, 0) != 0) return Error("unsupported $ref: " + ref);
-    *out = ref.substr(kPrefix.size());
-    if (out->empty()) return Error("unsupported $ref: " + ref);
-    return NoError();
+    static const std::string kDefinitionsPrefix = "#/definitions/";
+    static const std::string kDefsPrefix = "#/$defs/";
+    static const std::string kOpenApiSchemasPrefix = "#/components/schemas/";
+    const std::string* prefixes[] = {&kDefinitionsPrefix, &kDefsPrefix,
+                                     &kOpenApiSchemasPrefix};
+    for (auto prefix : prefixes) {
+      if (ref.rfind(*prefix, 0) != 0) continue;
+      *out = ref.substr(prefix->size());
+      if (out->empty()) return Error("unsupported $ref: " + ref);
+      return NoError();
+    }
+    return Error("unsupported $ref: " + ref);
   };
 
   auto BaseTypeFromScalarName = [&](const std::string& name,
@@ -4136,51 +4175,72 @@ CheckedError Parser::DoParseJsonSchema() {
 
   auto InferIntegerBaseType = [&](int64_t min_value, uint64_t max_value,
                                   BaseType* out) -> bool {
-    if (min_value == flatbuffers::numeric_limits<int8_t>::min() &&
-        max_value == static_cast<uint64_t>(
-                         flatbuffers::numeric_limits<int8_t>::max())) {
-      *out = BASE_TYPE_CHAR;
-      return true;
+    if (min_value >= 0 &&
+        static_cast<uint64_t>(min_value) > max_value) {
+      return false;
     }
-    if (min_value == 0 &&
-        max_value == flatbuffers::numeric_limits<uint8_t>::max()) {
-      *out = BASE_TYPE_UCHAR;
-      return true;
-    }
-    if (min_value == flatbuffers::numeric_limits<int16_t>::min() &&
-        max_value == static_cast<uint64_t>(
-                         flatbuffers::numeric_limits<int16_t>::max())) {
-      *out = BASE_TYPE_SHORT;
-      return true;
-    }
-    if (min_value == 0 &&
-        max_value == flatbuffers::numeric_limits<uint16_t>::max()) {
-      *out = BASE_TYPE_USHORT;
-      return true;
-    }
-    if (min_value == flatbuffers::numeric_limits<int32_t>::min() &&
-        max_value == static_cast<uint64_t>(
-                         flatbuffers::numeric_limits<int32_t>::max())) {
-      *out = BASE_TYPE_INT;
-      return true;
-    }
-    if (min_value == 0 &&
-        max_value == flatbuffers::numeric_limits<uint32_t>::max()) {
-      *out = BASE_TYPE_UINT;
-      return true;
-    }
-    if (min_value == flatbuffers::numeric_limits<int64_t>::min() &&
-        max_value == static_cast<uint64_t>(
-                         flatbuffers::numeric_limits<int64_t>::max())) {
+
+    if (min_value < 0) {
+      if (max_value >
+          static_cast<uint64_t>(flatbuffers::numeric_limits<int64_t>::max())) {
+        return false;
+      }
+      const int64_t max_i64 = static_cast<int64_t>(max_value);
+      if (min_value >= flatbuffers::numeric_limits<int8_t>::min() &&
+          max_i64 <= flatbuffers::numeric_limits<int8_t>::max()) {
+        *out = BASE_TYPE_CHAR;
+        return true;
+      }
+      if (min_value >= flatbuffers::numeric_limits<int16_t>::min() &&
+          max_i64 <= flatbuffers::numeric_limits<int16_t>::max()) {
+        *out = BASE_TYPE_SHORT;
+        return true;
+      }
+      if (min_value >= flatbuffers::numeric_limits<int32_t>::min() &&
+          max_i64 <= flatbuffers::numeric_limits<int32_t>::max()) {
+        *out = BASE_TYPE_INT;
+        return true;
+      }
       *out = BASE_TYPE_LONG;
       return true;
     }
-    if (min_value == 0 &&
-        max_value == flatbuffers::numeric_limits<uint64_t>::max()) {
-      *out = BASE_TYPE_ULONG;
+
+    // Non-negative integers: prefer the smallest width; use unsigned only if
+    // signed of that width can't represent `max_value`.
+    if (max_value <=
+        static_cast<uint64_t>(flatbuffers::numeric_limits<int8_t>::max())) {
+      *out = BASE_TYPE_CHAR;
       return true;
     }
-    return false;
+    if (max_value <= flatbuffers::numeric_limits<uint8_t>::max()) {
+      *out = BASE_TYPE_UCHAR;
+      return true;
+    }
+    if (max_value <=
+        static_cast<uint64_t>(flatbuffers::numeric_limits<int16_t>::max())) {
+      *out = BASE_TYPE_SHORT;
+      return true;
+    }
+    if (max_value <= flatbuffers::numeric_limits<uint16_t>::max()) {
+      *out = BASE_TYPE_USHORT;
+      return true;
+    }
+    if (max_value <=
+        static_cast<uint64_t>(flatbuffers::numeric_limits<int32_t>::max())) {
+      *out = BASE_TYPE_INT;
+      return true;
+    }
+    if (max_value <= flatbuffers::numeric_limits<uint32_t>::max()) {
+      *out = BASE_TYPE_UINT;
+      return true;
+    }
+    if (max_value <=
+        static_cast<uint64_t>(flatbuffers::numeric_limits<int64_t>::max())) {
+      *out = BASE_TYPE_LONG;
+      return true;
+    }
+    *out = BASE_TYPE_ULONG;
+    return true;
   };
 
   std::map<std::string, EnumDef*> enum_by_fullname;
@@ -4513,21 +4573,46 @@ CheckedError Parser::DoParseJsonSchema() {
     out->xfb.union_value_field.clear();
     out->deprecated = false;
     out->description.clear();
+    out->has_enum = false;
+    out->enum_values.clear();
+    out->has_format = false;
+    out->format.clear();
+    out->has_min_length = false;
+    out->min_length = 0;
+    out->has_max_length = false;
+    out->max_length = 0;
+    out->has_minimum = false;
+    out->minimum.clear();
+    out->has_maximum = false;
+    out->maximum.clear();
+    out->has_exclusive_minimum = false;
+    out->exclusive_minimum = false;
+    out->has_exclusive_maximum = false;
+    out->exclusive_maximum = false;
+    out->has_exclusive_minimum_number = false;
+    out->exclusive_minimum_number.clear();
+    out->has_exclusive_maximum_number = false;
+    out->exclusive_maximum_number.clear();
+    out->has_read_only = false;
+    out->read_only = false;
+    out->has_unique_items = false;
+    out->unique_items = false;
+    out->has_min_items = false;
+    out->min_items = 0;
+    out->has_max_items = false;
+    out->max_items = 0;
     out->is_anyof = false;
     out->anyof_types.clear();
 
     std::string ref_fullname;
     std::string type_name;
-    bool has_min = false;
-    bool has_max = false;
+    bool has_min_int = false;
+    bool has_max_u64 = false;
+    bool max_is_negative = false;
     int64_t min_value = 0;
     uint64_t max_value = 0;
     bool has_items = false;
     Type items_type;
-    bool has_min_items = false;
-    bool has_max_items = false;
-    int64_t min_items = 0;
-    int64_t max_items = 0;
 
     size_t fieldn = 0;
     auto err = ParseTableDelimiters(
@@ -4541,12 +4626,61 @@ CheckedError Parser::DoParseJsonSchema() {
             ECHECK(ExtractDefinitionRef(ref, &ref_fullname));
           } else if (key == "type") {
             ECHECK(ParseString(&type_name));
+          } else if (key == "format") {
+            out->has_format = true;
+            ECHECK(ParseString(&out->format));
+          } else if (key == "enum") {
+            out->has_enum = true;
+            ECHECK(ParseStringArray(&out->enum_values));
+          } else if (key == "minLength") {
+            out->has_min_length = true;
+            ECHECK(ParseInt64(&out->min_length));
+          } else if (key == "maxLength") {
+            out->has_max_length = true;
+            ECHECK(ParseInt64(&out->max_length));
+          } else if (key == "readOnly") {
+            out->has_read_only = true;
+            ECHECK(ParseBool(&out->read_only));
           } else if (key == "minimum") {
-            has_min = true;
-            ECHECK(ParseInt64(&min_value));
+            out->has_minimum = true;
+            bool is_integer = false;
+            ECHECK(ParseNumberString(&out->minimum, &is_integer));
+            if (is_integer) {
+              has_min_int = true;
+              if (!StringToNumber(out->minimum.c_str(), &min_value)) {
+                return Error("invalid minimum: " + out->minimum);
+              }
+            }
           } else if (key == "maximum") {
-            has_max = true;
-            ECHECK(ParseUInt64(&max_value));
+            out->has_maximum = true;
+            bool is_integer = false;
+            ECHECK(ParseNumberString(&out->maximum, &is_integer));
+            if (is_integer) {
+              if (!out->maximum.empty() && out->maximum[0] == '-') {
+                max_is_negative = true;
+              } else {
+                has_max_u64 = true;
+                if (!StringToNumber(out->maximum.c_str(), &max_value)) {
+                  return Error("invalid maximum: " + out->maximum);
+                }
+              }
+            }
+          } else if (key == "exclusiveMinimum") {
+            if (token_ == kTokenIntegerConstant || token_ == kTokenFloatConstant) {
+              out->has_exclusive_minimum_number = true;
+              ECHECK(ParseNumberString(&out->exclusive_minimum_number, nullptr));
+            } else {
+              out->has_exclusive_minimum = true;
+              ECHECK(ParseBool(&out->exclusive_minimum));
+            }
+          } else if (key == "exclusiveMaximum") {
+            if (token_ == kTokenIntegerConstant || token_ == kTokenFloatConstant) {
+              out->has_exclusive_maximum_number = true;
+              ECHECK(ParseNumberString(&out->exclusive_maximum_number, nullptr));
+            } else {
+              out->has_exclusive_maximum = true;
+              ECHECK(ParseBool(&out->exclusive_maximum));
+            }
           } else if (key == "items") {
             has_items = true;
             ParsedField items;
@@ -4554,11 +4688,14 @@ CheckedError Parser::DoParseJsonSchema() {
             ECHECK(ParseFieldSchemaRef(&items, ParseFieldSchemaRef));
             items_type = items.type;
           } else if (key == "minItems") {
-            has_min_items = true;
-            ECHECK(ParseInt64(&min_items));
+            out->has_min_items = true;
+            ECHECK(ParseInt64(&out->min_items));
           } else if (key == "maxItems") {
-            has_max_items = true;
-            ECHECK(ParseInt64(&max_items));
+            out->has_max_items = true;
+            ECHECK(ParseInt64(&out->max_items));
+          } else if (key == "uniqueItems") {
+            out->has_unique_items = true;
+            ECHECK(ParseBool(&out->unique_items));
           } else if (key == "anyOf") {
             out->is_anyof = true;
             ECHECK(ParseAnyOfRefs(&out->anyof_types));
@@ -4590,34 +4727,55 @@ CheckedError Parser::DoParseJsonSchema() {
 
     if (type_name == "integer") {
       BaseType bt = BASE_TYPE_INT;
-      if (has_min && has_max) InferIntegerBaseType(min_value, max_value, &bt);
+      if (out->has_format) {
+        if (out->format == "int32") {
+          bt = BASE_TYPE_INT;
+        } else if (out->format == "int64") {
+          bt = BASE_TYPE_LONG;
+        } else if (out->format == "uint32") {
+          bt = BASE_TYPE_UINT;
+        } else if (out->format == "uint64") {
+          bt = BASE_TYPE_ULONG;
+        }
+      } else if (has_min_int && has_max_u64 && !max_is_negative) {
+        InferIntegerBaseType(min_value, max_value, &bt);
+      }
       out->type = Type(bt);
       return NoError();
     }
     if (type_name == "number") {
-      out->type = Type(BASE_TYPE_FLOAT);
+      BaseType bt = BASE_TYPE_FLOAT;
+      if (out->has_format) {
+        if (out->format == "double") {
+          bt = BASE_TYPE_DOUBLE;
+        } else if (out->format == "float") {
+          bt = BASE_TYPE_FLOAT;
+        }
+      }
+      out->type = Type(bt);
       return NoError();
     }
     if (type_name == "boolean") {
       out->type = Type(BASE_TYPE_BOOL);
       return NoError();
     }
-    if (type_name == "string") {
+    if (type_name == "string" || (type_name.empty() && out->has_enum)) {
       out->type = Type(BASE_TYPE_STRING);
       return NoError();
     }
     if (type_name == "array") {
       if (!has_items) return Error("array missing 'items'");
-      const bool is_fixed = has_min_items && has_max_items &&
-                            min_items == max_items && min_items >= 0;
+      const bool is_fixed = out->has_min_items && out->has_max_items &&
+                            out->min_items == out->max_items &&
+                            out->min_items >= 0;
       if (is_fixed) {
-        if (min_items < 1 ||
-            min_items > flatbuffers::numeric_limits<uint16_t>::max()) {
+        if (out->min_items < 1 ||
+            out->min_items > flatbuffers::numeric_limits<uint16_t>::max()) {
           return Error("fixed array length out of range");
         }
         out->type =
             Type(BASE_TYPE_ARRAY, items_type.struct_def, items_type.enum_def,
-                 static_cast<uint16_t>(min_items));
+                 static_cast<uint16_t>(out->min_items));
       } else {
         out->type =
             Type(BASE_TYPE_VECTOR, items_type.struct_def, items_type.enum_def);
@@ -4668,87 +4826,124 @@ CheckedError Parser::DoParseJsonSchema() {
                                                   : schema_filename.c_str()));
 
     bool found_definitions = false;
+
+    auto ParseDefinitionsTable = [&]() -> CheckedError {
+      found_definitions = true;
+      size_t defn = 0;
+      auto defs_err = ParseTableDelimiters(
+          defn, nullptr,
+          [&](const std::string& def_fullname, size_t&,
+              const StructDef*) -> CheckedError {
+            std::string def_type;
+            bool has_anyof = false;
+            DefinitionXfbMeta xfb;
+            size_t dn = 0;
+            auto def_err = ParseTableDelimiters(
+                dn, nullptr,
+                [&](const std::string& dk, size_t&,
+                    const StructDef*) -> CheckedError {
+                  if (dk == "type") {
+                    ECHECK(ParseString(&def_type));
+                  } else if (dk == "anyOf") {
+                    has_anyof = true;
+                    ECHECK(SkipAnyJsonValue());
+                  } else if (dk == "x-flatbuffers") {
+                    ECHECK(ParseDefinitionXfbMeta(&xfb));
+                  } else {
+                    ECHECK(SkipAnyJsonValue());
+                  }
+                  return NoError();
+                });
+            ECHECK(def_err);
+
+            if (def_type.empty()) {
+              if (has_anyof) {
+                // OpenAPI/JSON Schema unions are commonly expressed as `anyOf`
+                // without an explicit `type`. Treat as a FlatBuffers union.
+                def_type = "string";
+              } else {
+                return Error("definition missing 'type': " + def_fullname);
+              }
+            }
+
+            std::string decl_name =
+                xfb.present && !xfb.name.empty() ? xfb.name : def_fullname;
+            std::vector<std::string> decl_namespace =
+                xfb.present ? xfb.name_space : std::vector<std::string>();
+
+            if (xfb.present &&
+                (!xfb.name.empty() || !xfb.name_space.empty())) {
+              const auto expected =
+                  MakeSchemaFullName(decl_namespace, decl_name);
+              if (expected != def_fullname) {
+                return Error("definition name mismatch: '" + def_fullname +
+                             "' vs '" + expected + "'");
+              }
+            }
+
+            return WithNamespace(decl_namespace, [&]() -> CheckedError {
+              if (def_type == "string") {
+                const bool is_union =
+                    has_anyof || (xfb.present && xfb.kind == "union");
+                EnumDef* enum_def = nullptr;
+                ECHECK(StartEnum(decl_name, is_union, &enum_def));
+                enum_by_fullname[def_fullname] = enum_def;
+              } else if (def_type == "object") {
+                StructDef* struct_def = nullptr;
+                ECHECK(StartStruct(decl_name, &struct_def));
+                if (xfb.present) {
+                  if (xfb.kind == "struct") struct_def->fixed = true;
+                  if (xfb.kind == "table") struct_def->fixed = false;
+                  if (xfb.has_key) struct_def->has_key = true;
+                } else {
+                  struct_def->fixed = false;
+                }
+                struct_def->sortbysize = !struct_def->fixed;
+                struct_by_fullname[def_fullname] = struct_def;
+              } else {
+                return Error("unsupported definition type: " + def_type);
+              }
+              return NoError();
+            });
+          });
+      ECHECK(defs_err);
+      return NoError();
+    };
+
     size_t fieldn = 0;
     auto root_err = ParseTableDelimiters(
         fieldn, nullptr,
         [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
-          if (key != "definitions") {
-            ECHECK(SkipAnyJsonValue());
+          if (key == "definitions" || key == "$defs") {
+            return ParseDefinitionsTable();
+          }
+          if (key == "components") {
+            size_t cn = 0;
+            auto comp_err = ParseTableDelimiters(
+                cn, nullptr,
+                [&](const std::string& ck, size_t&,
+                    const StructDef*) -> CheckedError {
+                  if (ck == "schemas") {
+                    return ParseDefinitionsTable();
+                  }
+                  ECHECK(SkipAnyJsonValue());
+                  return NoError();
+                });
+            ECHECK(comp_err);
             return NoError();
           }
 
-          found_definitions = true;
-          size_t defn = 0;
-          auto defs_err = ParseTableDelimiters(
-              defn, nullptr,
-              [&](const std::string& def_fullname, size_t&,
-                  const StructDef*) -> CheckedError {
-                std::string def_type;
-                DefinitionXfbMeta xfb;
-                size_t dn = 0;
-                auto def_err = ParseTableDelimiters(
-                    dn, nullptr,
-                    [&](const std::string& dk, size_t&,
-                        const StructDef*) -> CheckedError {
-                      if (dk == "type") {
-                        ECHECK(ParseString(&def_type));
-                      } else if (dk == "x-flatbuffers") {
-                        ECHECK(ParseDefinitionXfbMeta(&xfb));
-                      } else {
-                        ECHECK(SkipAnyJsonValue());
-                      }
-                      return NoError();
-                    });
-                ECHECK(def_err);
-
-                if (def_type.empty()) {
-                  return Error("definition missing 'type': " + def_fullname);
-                }
-
-                std::string decl_name =
-                    xfb.present && !xfb.name.empty() ? xfb.name : def_fullname;
-                std::vector<std::string> decl_namespace =
-                    xfb.present ? xfb.name_space : std::vector<std::string>();
-
-                if (xfb.present && (!xfb.name.empty() || !xfb.name_space.empty())) {
-                  const auto expected = MakeSchemaFullName(decl_namespace, decl_name);
-                  if (expected != def_fullname) {
-                    return Error("definition name mismatch: '" + def_fullname +
-                                 "' vs '" + expected + "'");
-                  }
-                }
-
-                return WithNamespace(decl_namespace, [&]() -> CheckedError {
-                  if (def_type == "string") {
-                    const bool is_union = xfb.present && xfb.kind == "union";
-                    EnumDef* enum_def = nullptr;
-                    ECHECK(StartEnum(decl_name, is_union, &enum_def));
-                    enum_by_fullname[def_fullname] = enum_def;
-                  } else if (def_type == "object") {
-                    StructDef* struct_def = nullptr;
-                    ECHECK(StartStruct(decl_name, &struct_def));
-                    if (xfb.present) {
-                      if (xfb.kind == "struct") struct_def->fixed = true;
-                      if (xfb.kind == "table") struct_def->fixed = false;
-                      if (xfb.has_key) struct_def->has_key = true;
-                    } else {
-                      struct_def->fixed = false;
-                    }
-                    struct_def->sortbysize = !struct_def->fixed;
-                    struct_by_fullname[def_fullname] = struct_def;
-                  } else {
-                    return Error("unsupported definition type: " + def_type);
-                  }
-                  return NoError();
-                });
-              });
-          ECHECK(defs_err);
+          ECHECK(SkipAnyJsonValue());
           return NoError();
         });
     ECHECK(root_err);
 
     if (opts.require_json_eof) EXPECT(kTokenEof);
-    if (!found_definitions) return Error("JSON Schema missing 'definitions'");
+    if (!found_definitions) {
+      return Error(
+          "JSON Schema missing 'definitions' (or '$defs' / "
+          "OpenAPI 'components.schemas')");
+    }
     return NoError();
   };
 
@@ -4836,10 +5031,61 @@ CheckedError Parser::DoParseJsonSchema() {
     return NoError();
   };
 
+  auto FillUnionEnumFromAnyOf =
+      [&](EnumDef& enum_def, const DefinitionXfbMeta& xfb,
+          const std::vector<std::string>& anyof_types) -> CheckedError {
+    if (enum_def.size()) return Error("enum redefinition: " + enum_def.name);
+
+    ECHECK(ApplyEnumMeta(enum_def, xfb));
+    enum_def.is_union = true;
+    enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
+    enum_def.underlying_type.enum_def = &enum_def;
+
+    EnumValBuilder evb(*this, enum_def);
+    evb.CreateEnumerator("NONE");
+    ECHECK(evb.AcceptEnumerator("NONE"));
+
+    for (const auto& type_fullname : anyof_types) {
+      auto sit = struct_by_fullname.find(type_fullname);
+      if (sit == struct_by_fullname.end()) {
+        return Error("unknown union anyOf type: " + type_fullname);
+      }
+      auto* ev = evb.CreateEnumerator(sit->second->name);
+      ev->union_type = Type(BASE_TYPE_STRUCT, sit->second);
+      ECHECK(evb.AcceptEnumerator(sit->second->name));
+    }
+
+    enum_def.SortByValue();
+    return NoError();
+  };
+
+  auto AddAttribute = [&](SymbolTable<Value>& attrs, const std::string& key,
+                          const std::string& constant) {
+    known_attributes_[key] = false;
+    if (auto* existing = attrs.Lookup(key)) {
+      existing->constant = constant;
+      return;
+    }
+    auto* v = new Value();
+    v->constant = constant;
+    attrs.Add(key, v);
+  };
+
+  auto AddBoolAttribute = [&](SymbolTable<Value>& attrs, const std::string& key,
+                              bool value) {
+    AddAttribute(attrs, key, value ? "true" : "false");
+  };
+
+  auto AddInt64Attribute = [&](SymbolTable<Value>& attrs, const std::string& key,
+                               int64_t value) {
+    AddAttribute(attrs, key, NumToString(value));
+  };
+
   auto FillStruct = [&](StructDef& struct_def,
                         const DefinitionXfbMeta& xfb,
                         const std::vector<ParsedField>& fields,
                         const std::vector<std::string>& required_fields,
+                        bool additional_properties,
                         const std::string& description) -> CheckedError {
     if (!struct_def.fields.vec.empty()) {
       return Error("struct redefinition: " + struct_def.name);
@@ -4847,17 +5093,42 @@ CheckedError Parser::DoParseJsonSchema() {
 
     if (!description.empty()) struct_def.doc_comment = SplitLines(description);
 
+    // Preserve JSON Schema object-level settings.
+    AddBoolAttribute(struct_def.attributes, "jsonschema_additionalProperties",
+                     additional_properties);
+
     if (xfb.present && !xfb.kind.empty()) {
       if (xfb.kind == "struct") struct_def.fixed = true;
       if (xfb.kind == "table") struct_def.fixed = false;
       if (xfb.has_key) struct_def.has_key = true;
     } else {
-      for (const auto& field : fields) {
-        if (field.type.base_type == BASE_TYPE_ARRAY) {
-          struct_def.fixed = true;
-          break;
+      auto IsStructSafeType = [&](const Type& type) {
+        if (IsScalar(type.base_type)) return true;
+        if (type.base_type == BASE_TYPE_STRUCT && type.struct_def) {
+          return type.struct_def->fixed;
         }
+        if (type.base_type == BASE_TYPE_ARRAY) {
+          const auto elem = type.VectorType();
+          if (IsScalar(elem.base_type)) return true;
+          if (elem.base_type == BASE_TYPE_STRUCT && elem.struct_def) {
+            return elem.struct_def->fixed;
+          }
+          return false;
+        }
+        return false;
+      };
+
+      bool has_fixed_array = false;
+      bool struct_safe = true;
+      for (const auto& field : fields) {
+        if (field.type.base_type == BASE_TYPE_ARRAY) has_fixed_array = true;
+        if (!IsStructSafeType(field.type)) struct_safe = false;
       }
+
+      // FlatBuffers fixed-length arrays are only legal inside structs. For JSON
+      // Schema inputs, only infer "struct" when the definition is otherwise
+      // struct-safe.
+      struct_def.fixed = has_fixed_array && struct_safe;
     }
     struct_def.sortbysize = !struct_def.fixed;
 
@@ -4866,13 +5137,178 @@ CheckedError Parser::DoParseJsonSchema() {
     std::vector<std::pair<FieldDef*, std::vector<std::string>>> pending_unions;
 
     for (const auto& parsed : fields) {
+      Type field_type = parsed.type;
+
+      // Inline string enums become generated FlatBuffers enums.
+      if (parsed.has_enum && field_type.base_type == BASE_TYPE_STRING &&
+          !parsed.enum_values.empty()) {
+        auto* prev_namespace = current_namespace_;
+        current_namespace_ = struct_def.defined_namespace;
+
+        const std::string base_name = struct_def.name + "_" + parsed.name;
+        std::string enum_name = base_name;
+        for (int n = 0;
+             enums_.Lookup(current_namespace_->GetFullyQualifiedName(enum_name));
+             ++n) {
+          enum_name = base_name + "_" + NumToString(n);
+        }
+
+        EnumDef* enum_def = nullptr;
+        ECHECK(StartEnum(enum_name, /*is_union=*/false, &enum_def));
+        current_namespace_ = prev_namespace;
+
+        DefinitionXfbMeta empty_meta;
+        ECHECK(FillEnum(*enum_def, empty_meta, parsed.enum_values));
+        field_type = enum_def->underlying_type;
+      }
+
+      // If we inferred a fixed-length array but the container is a table,
+      // represent it as a vector and preserve length constraints via
+      // jsonschema_minItems/jsonschema_maxItems.
+      const auto fixed_length_constraints = field_type.fixed_length;
+      const bool demote_fixed_array_to_vector =
+          !struct_def.fixed && field_type.base_type == BASE_TYPE_ARRAY;
+      if (demote_fixed_array_to_vector) {
+        Type vector_type(BASE_TYPE_VECTOR, field_type.struct_def,
+                         field_type.enum_def);
+        vector_type.element = field_type.element;
+        field_type = vector_type;
+      }
+
       FieldDef* field_def = nullptr;
-      ECHECK(AddField(struct_def, parsed.name, parsed.type, &field_def));
+      ECHECK(AddField(struct_def, parsed.name, field_type, &field_def));
       field_by_name[parsed.name] = field_def;
 
       if (parsed.deprecated) field_def->deprecated = true;
       if (!parsed.description.empty()) {
         field_def->doc_comment = SplitLines(parsed.description);
+      }
+
+      if (parsed.has_format && !parsed.format.empty()) {
+        AddAttribute(field_def->attributes, "jsonschema_format", parsed.format);
+      }
+      if (parsed.has_min_length) {
+        AddInt64Attribute(field_def->attributes, "jsonschema_minLength",
+                          parsed.min_length);
+      }
+      if (parsed.has_max_length) {
+        AddInt64Attribute(field_def->attributes, "jsonschema_maxLength",
+                          parsed.max_length);
+      }
+      if (parsed.has_read_only && parsed.read_only) {
+        AddBoolAttribute(field_def->attributes, "jsonschema_readOnly", true);
+      }
+      if (parsed.has_unique_items && parsed.unique_items) {
+        AddBoolAttribute(field_def->attributes, "jsonschema_uniqueItems", true);
+      }
+      if (parsed.has_min_items) {
+        AddInt64Attribute(field_def->attributes, "jsonschema_minItems",
+                          parsed.min_items);
+      }
+      if (parsed.has_max_items) {
+        AddInt64Attribute(field_def->attributes, "jsonschema_maxItems",
+                          parsed.max_items);
+      }
+
+      // Preserve numeric bounds. Prefer exclusive bound representation when
+      // available and applicable.
+      const bool is_integer_scalar =
+          field_def->value.type.enum_def == nullptr &&
+          IsInteger(field_def->value.type.base_type);
+      bool skip_default_integer_bounds = false;
+      if (is_integer_scalar && parsed.has_minimum && parsed.has_maximum &&
+          !parsed.has_exclusive_minimum_number &&
+          !parsed.has_exclusive_maximum_number &&
+          !(parsed.has_exclusive_minimum && parsed.exclusive_minimum) &&
+          !(parsed.has_exclusive_maximum && parsed.exclusive_maximum)) {
+        std::string expected_min;
+        std::string expected_max;
+        switch (field_def->value.type.base_type) {
+          case BASE_TYPE_CHAR:
+            expected_min =
+                NumToString(flatbuffers::numeric_limits<int8_t>::min());
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<int8_t>::max());
+            break;
+          case BASE_TYPE_UCHAR:
+            expected_min = "0";
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<uint8_t>::max());
+            break;
+          case BASE_TYPE_SHORT:
+            expected_min =
+                NumToString(flatbuffers::numeric_limits<int16_t>::min());
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<int16_t>::max());
+            break;
+          case BASE_TYPE_USHORT:
+            expected_min = "0";
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<uint16_t>::max());
+            break;
+          case BASE_TYPE_INT:
+            expected_min =
+                NumToString(flatbuffers::numeric_limits<int32_t>::min());
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<int32_t>::max());
+            break;
+          case BASE_TYPE_UINT:
+            expected_min = "0";
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<uint32_t>::max());
+            break;
+          case BASE_TYPE_LONG:
+            expected_min =
+                NumToString(flatbuffers::numeric_limits<int64_t>::min());
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<int64_t>::max());
+            break;
+          case BASE_TYPE_ULONG:
+            expected_min = "0";
+            expected_max =
+                NumToString(flatbuffers::numeric_limits<uint64_t>::max());
+            break;
+          default: break;
+        }
+        if (!expected_min.empty() && !expected_max.empty() &&
+            parsed.minimum == expected_min && parsed.maximum == expected_max) {
+          skip_default_integer_bounds = true;
+        }
+      }
+
+      if (parsed.has_exclusive_minimum_number &&
+          !parsed.exclusive_minimum_number.empty()) {
+        AddAttribute(field_def->attributes, "jsonschema_exclusiveMinimum",
+                     parsed.exclusive_minimum_number);
+      } else if (parsed.has_exclusive_minimum && parsed.exclusive_minimum &&
+                 parsed.has_minimum && !parsed.minimum.empty()) {
+        AddAttribute(field_def->attributes, "jsonschema_exclusiveMinimum",
+                     parsed.minimum);
+      } else if (!skip_default_integer_bounds && parsed.has_minimum &&
+                 !parsed.minimum.empty()) {
+        AddAttribute(field_def->attributes, "jsonschema_minimum",
+                     parsed.minimum);
+      }
+
+      if (parsed.has_exclusive_maximum_number &&
+          !parsed.exclusive_maximum_number.empty()) {
+        AddAttribute(field_def->attributes, "jsonschema_exclusiveMaximum",
+                     parsed.exclusive_maximum_number);
+      } else if (parsed.has_exclusive_maximum && parsed.exclusive_maximum &&
+                 parsed.has_maximum && !parsed.maximum.empty()) {
+        AddAttribute(field_def->attributes, "jsonschema_exclusiveMaximum",
+                     parsed.maximum);
+      } else if (!skip_default_integer_bounds && parsed.has_maximum &&
+                 !parsed.maximum.empty()) {
+        AddAttribute(field_def->attributes, "jsonschema_maximum",
+                     parsed.maximum);
+      }
+
+      if (demote_fixed_array_to_vector) {
+        AddInt64Attribute(field_def->attributes, "jsonschema_minItems",
+                          fixed_length_constraints);
+        AddInt64Attribute(field_def->attributes, "jsonschema_maxItems",
+                          fixed_length_constraints);
       }
 
       ECHECK(ApplyFieldXfb(*field_def, parsed.xfb));
@@ -4972,6 +5408,93 @@ CheckedError Parser::DoParseJsonSchema() {
   };
 
   size_t root_fieldn = 0;
+  auto ParseAndFillDefinitionsTable = [&]() -> CheckedError {
+    size_t defn = 0;
+    auto defs_err = ParseTableDelimiters(
+        defn, nullptr,
+        [&](const std::string& def_fullname, size_t&,
+            const StructDef*) -> CheckedError {
+          auto eit = enum_by_fullname.find(def_fullname);
+          auto sit = struct_by_fullname.find(def_fullname);
+          if (eit == enum_by_fullname.end() &&
+              sit == struct_by_fullname.end()) {
+            return Error("unknown definition: " + def_fullname);
+          }
+
+          std::string def_type;
+          std::string description;
+          DefinitionXfbMeta xfb;
+          std::vector<std::string> enum_values;
+          std::vector<std::string> anyof_types;
+          std::vector<std::string> required_fields;
+          std::vector<ParsedField> fields;
+          bool additional_properties = true;
+
+          size_t dn = 0;
+          auto def_err = ParseTableDelimiters(
+              dn, nullptr,
+              [&](const std::string& dk, size_t&, const StructDef*)
+                  -> CheckedError {
+                if (dk == "type") {
+                  ECHECK(ParseString(&def_type));
+                } else if (dk == "description") {
+                  ECHECK(ParseString(&description));
+                } else if (dk == "x-flatbuffers") {
+                  ECHECK(ParseDefinitionXfbMeta(&xfb));
+                } else if (dk == "enum") {
+                  ECHECK(ParseStringArray(&enum_values));
+                } else if (dk == "anyOf") {
+                  ECHECK(ParseAnyOfRefs(&anyof_types));
+                } else if (dk == "required") {
+                  ECHECK(ParseStringArray(&required_fields));
+                } else if (dk == "additionalProperties") {
+                  ECHECK(ParseBool(&additional_properties));
+                } else if (dk == "properties") {
+                  size_t pn = 0;
+                  auto props_err = ParseTableDelimiters(
+                      pn, nullptr,
+                      [&](const std::string& field_name, size_t&,
+                          const StructDef*) -> CheckedError {
+                        ParsedField parsed;
+                        parsed.name = field_name;
+                        ECHECK(ParseFieldSchema(&parsed, ParseFieldSchema));
+                        fields.push_back(std::move(parsed));
+                        return NoError();
+                      });
+                  ECHECK(props_err);
+                } else {
+                  ECHECK(SkipAnyJsonValue());
+                }
+                return NoError();
+              });
+          ECHECK(def_err);
+
+          if (eit != enum_by_fullname.end()) {
+            if (!def_type.empty() && def_type != "string") {
+              return Error("enum type must be 'string': " + def_fullname);
+            }
+            if (!description.empty()) {
+              eit->second->doc_comment = SplitLines(description);
+            }
+            if (!anyof_types.empty()) {
+              ECHECK(FillUnionEnumFromAnyOf(*eit->second, xfb, anyof_types));
+            } else {
+              ECHECK(FillEnum(*eit->second, xfb, enum_values));
+            }
+          } else {
+            if (!def_type.empty() && def_type != "object") {
+              return Error("struct type must be 'object': " + def_fullname);
+            }
+            ECHECK(FillStruct(*sit->second, xfb, fields, required_fields,
+                              additional_properties, description));
+          }
+
+          return NoError();
+        });
+    ECHECK(defs_err);
+    return NoError();
+  };
+
   auto root_err = ParseTableDelimiters(
       root_fieldn, nullptr,
       [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
@@ -4985,96 +5508,58 @@ CheckedError Parser::DoParseJsonSchema() {
           ECHECK(ParseRootXfbMeta());
           return NoError();
         }
-        if (key != "definitions") {
-          ECHECK(SkipAnyJsonValue());
+        if (key == "definitions" || key == "$defs") {
+          return ParseAndFillDefinitionsTable();
+        }
+        if (key == "components") {
+          size_t cn = 0;
+          auto comp_err = ParseTableDelimiters(
+              cn, nullptr,
+              [&](const std::string& ck, size_t&,
+                  const StructDef*) -> CheckedError {
+                if (ck == "schemas") {
+                  return ParseAndFillDefinitionsTable();
+                }
+                ECHECK(SkipAnyJsonValue());
+                return NoError();
+              });
+          ECHECK(comp_err);
           return NoError();
         }
 
-        size_t defn = 0;
-        auto defs_err = ParseTableDelimiters(
-            defn, nullptr,
-            [&](const std::string& def_fullname, size_t&,
-                const StructDef*) -> CheckedError {
-              auto eit = enum_by_fullname.find(def_fullname);
-              auto sit = struct_by_fullname.find(def_fullname);
-              if (eit == enum_by_fullname.end() &&
-                  sit == struct_by_fullname.end()) {
-                return Error("unknown definition: " + def_fullname);
-              }
-
-              std::string def_type;
-              std::string description;
-              DefinitionXfbMeta xfb;
-              std::vector<std::string> enum_values;
-              std::vector<std::string> required_fields;
-              std::vector<ParsedField> fields;
-
-              size_t dn = 0;
-              auto def_err = ParseTableDelimiters(
-                  dn, nullptr,
-                  [&](const std::string& dk, size_t&, const StructDef*)
-                      -> CheckedError {
-                    if (dk == "type") {
-                      ECHECK(ParseString(&def_type));
-                    } else if (dk == "description") {
-                      ECHECK(ParseString(&description));
-                    } else if (dk == "x-flatbuffers") {
-                      ECHECK(ParseDefinitionXfbMeta(&xfb));
-                    } else if (dk == "enum") {
-                      ECHECK(ParseStringArray(&enum_values));
-                    } else if (dk == "required") {
-                      ECHECK(ParseStringArray(&required_fields));
-                    } else if (dk == "properties") {
-                      size_t pn = 0;
-                      auto props_err = ParseTableDelimiters(
-                          pn, nullptr,
-                          [&](const std::string& field_name, size_t&,
-                              const StructDef*) -> CheckedError {
-                            ParsedField parsed;
-                            parsed.name = field_name;
-                            ECHECK(ParseFieldSchema(&parsed, ParseFieldSchema));
-                            fields.push_back(std::move(parsed));
-                            return NoError();
-                          });
-                      ECHECK(props_err);
-                    } else {
-                      ECHECK(SkipAnyJsonValue());
-                    }
-                    return NoError();
-                  });
-              ECHECK(def_err);
-
-              if (eit != enum_by_fullname.end()) {
-                if (!def_type.empty() && def_type != "string") {
-                  return Error("enum type must be 'string': " + def_fullname);
-                }
-                if (!description.empty()) {
-                  eit->second->doc_comment = SplitLines(description);
-                }
-                ECHECK(FillEnum(*eit->second, xfb, enum_values));
-              } else {
-                if (!def_type.empty() && def_type != "object") {
-                  return Error("struct type must be 'object': " + def_fullname);
-                }
-                ECHECK(FillStruct(*sit->second, xfb, fields, required_fields,
-                                  description));
-              }
-
-              return NoError();
-            });
-        ECHECK(defs_err);
+        ECHECK(SkipAnyJsonValue());
         return NoError();
       });
   ECHECK(root_err);
 
   if (opts.require_json_eof) EXPECT(kTokenEof);
 
-  if (root_ref_fullname.empty()) return Error("JSON Schema missing root '$ref'");
-  auto it_root = struct_by_fullname.find(root_ref_fullname);
-  if (it_root == struct_by_fullname.end()) {
-    return Error("root '$ref' is not a struct definition: " + root_ref_fullname);
+  auto LookupRoot = [&](const std::string& name) -> StructDef* {
+    auto it = struct_by_fullname.find(name);
+    return it == struct_by_fullname.end() ? nullptr : it->second;
+  };
+
+  StructDef* root = nullptr;
+  if (!root_ref_fullname.empty()) {
+    root = LookupRoot(root_ref_fullname);
+    if (!root) {
+      return Error("root '$ref' is not a struct definition: " +
+                   root_ref_fullname);
+    }
+  } else if (!opts.root_type.empty()) {
+    root = LookupRoot(opts.root_type);
+    if (!root) {
+      std::string underscored = opts.root_type;
+      std::replace(underscored.begin(), underscored.end(), '.', '_');
+      root = LookupRoot(underscored);
+    }
+    if (!root) return Error("unknown root type: " + opts.root_type);
+  } else if (!struct_by_fullname.empty()) {
+    root = struct_by_fullname.begin()->second;
   }
-  root_struct_def_ = it_root->second;
+
+  if (!root) return Error("JSON Schema contains no root struct definition");
+  root_struct_def_ = root;
 
   return NoError();
 }
