@@ -94,9 +94,9 @@ class Namer {
     // The casing used for keywords when escaping. For most languages, keywords
     // are case sensitive. PHP is an instance where some keywords are case
     // insensitive.
-    enum KeywordsCasing {
-      CASE_SENSITIVE,
-      CASE_INSENSITIVE,
+    enum class KeywordsCasing {
+      CaseSensitive,
+      CaseInsensitive,
     };
     KeywordsCasing keywords_casing;
 
@@ -215,7 +215,7 @@ class Namer {
   virtual std::string EscapeKeyword(const std::string& name) const {
     std::string cased_name(name);
 
-    if (config_.keywords_casing == Config::KeywordsCasing::CASE_INSENSITIVE) {
+    if (config_.keywords_casing == Config::KeywordsCasing::CaseInsensitive) {
       for (auto chr = cased_name.begin(); chr != cased_name.end(); chr++) {
         *chr = CharToLower(*chr);
       }

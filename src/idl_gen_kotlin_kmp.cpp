@@ -62,7 +62,7 @@ static Namer::Config KotlinDefaultConfig() {
           /*object_suffix=*/"T",
           /*keyword_prefix=*/"",
           /*keyword_suffix=*/"E",
-          /*keywords_casing=*/Namer::Config::KeywordsCasing::CASE_SENSITIVE,
+          /*keywords_casing=*/Namer::Config::KeywordsCasing::CaseSensitive,
           /*filenames=*/Case::kUpperCamel,
           /*directories=*/Case::kLowerCamel,
           /*output_path=*/"",
