@@ -152,8 +152,8 @@ class MonsterExtra : Table() {
         get() {
             val o = __offset(20); return if (o != 0) __vector_len(o) else 0
         }
-    val dvecAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(20, 8)
-    fun dvecInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 20, 8)
+    val dvecAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(20, 8)
+    fun dvecInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 20, 8)
     fun mutateDvec(j: Int, dvec: Double) : Boolean {
         val o = __offset(20)
         return if (o != 0) {
@@ -175,8 +175,8 @@ class MonsterExtra : Table() {
         get() {
             val o = __offset(22); return if (o != 0) __vector_len(o) else 0
         }
-    val fvecAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(22, 4)
-    fun fvecInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 22, 4)
+    val fvecAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(22, 4)
+    fun fvecInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 22, 4)
     fun mutateFvec(j: Int, fvec: Float) : Boolean {
         val o = __offset(22)
         return if (o != 0) {
