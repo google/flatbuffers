@@ -105,7 +105,8 @@ flatc(
         "--gen-object-api",
         "--ts-undefined-for-optionals",
     ],
-    schema="../optional_values.fbs",
+    schema="optional_values/optional_values.fbs",
+    prefix="optional_values",
 )
 
 flatc(
