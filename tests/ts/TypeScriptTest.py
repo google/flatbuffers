@@ -105,12 +105,12 @@ flatc(
         "--gen-object-api",
         "--ts-undefined-for-optionals",
     ],
-    schema="optional_values/optional_values.fbs",
-    prefix="optional_values",
+    schema="../optional_scalars.fbs",
+    prefix="ts-undefined-for-optionals",
 )
 esbuild(
-    "optional_values/optional_values.ts",
-    "optional_values/optional_values_generated.cjs",
+    "ts-undefined-for-optionals/optional_scalars.ts",
+    "ts-undefined-for-optionals/optional_scalars_generated.cjs",
 )
 
 flatc(
@@ -215,6 +215,7 @@ check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
 check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
+check_call(NODE_CMD + ["JavaScriptUndefinedForOptionals"])
 
 print("Running old v1 TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])

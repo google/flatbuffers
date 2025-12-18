@@ -2,5 +2,4 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { LalalaOptions, LalalaOptionsT } from './lalala-options.js';
-export { OptionalValues, OptionalValuesT } from './optional-values.js';
+export * as optional_scalars from './optional-scalars.js';
