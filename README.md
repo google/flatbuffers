@@ -8,6 +8,130 @@
 - JSON Schema schema import/export (`--jsonschema`, `*.schema.json`)
 - Optional lossless JSON Schema round-tripping via `--jsonschema-xflatbuffers` metadata
 
+## Fork Features
+
+This fork adds a few features to the `flatc` compiler intended to treat JSON Schema as a first-class schema format, while still flowing through the same FlatBuffers schema IR (see [`reflection/reflection.fbs`](reflection/reflection.fbs)).
+
+### Preserve-case naming (`--preserve-case`)
+
+By default, many language generators apply case conversions to schema identifiers (for example converting `snake_case` field names into `camelCase` accessors). The `--preserve-case` flag disables this name mangling for identifiers coming from the schema, and emits names “as written” instead.
+
+Example:
+
+```sh
+flatc --cpp --preserve-case schema.fbs
+```
+
+Notes:
+
+- This is currently supported for these generators: C++, Go, Java, Rust, Dart, Python, TypeScript, PHP, and JSON Schema (see [`src/flatc.cpp`](src/flatc.cpp)).
+- Implementation: [`src/flatc.cpp`](src/flatc.cpp), [`src/util.cpp`](src/util.cpp).
+- Tests: [`tests/GoTest.sh`](tests/GoTest.sh), [`tests/PHPTest.sh`](tests/PHPTest.sh), [`tests/PythonTest.sh`](tests/PythonTest.sh), [`tests/JsonSchemaTest.sh`](tests/JsonSchemaTest.sh).
+
+### JSON Schema schema import/export
+
+- Export a FlatBuffers schema (`.fbs`) to JSON Schema (`.schema.json`).
+- Import a JSON Schema (`.schema.json`) as a schema input (as if it were an IDL), map it into FlatBuffers’ schema IR, and run the normal FlatBuffers code generators.
+
+Implementation:
+
+- JSON Schema generator: [`src/idl_gen_json_schema.cpp`](src/idl_gen_json_schema.cpp)
+- JSON Schema importer/parser: [`src/idl_parser.cpp`](src/idl_parser.cpp) (`Parser::DoParseJsonSchema`)
+- CLI wiring + `.schema.json` input detection: [`src/flatc.cpp`](src/flatc.cpp)
+- Additional docs: [`docs/source/json_schema.md`](docs/source/json_schema.md), [`docs/source/flatc.md`](docs/source/flatc.md)
+
+#### Export: FlatBuffers → JSON Schema (`--jsonschema`)
+
+Generate `*.schema.json` from `*.fbs`:
+
+```sh
+flatc --jsonschema -o out_dir schema.fbs
+```
+
+This produces `out_dir/schema.schema.json`.
+
+#### Import: JSON Schema → FlatBuffers IR (`*.schema.json` input)
+
+Any file ending in `.schema.json` can be used anywhere `flatc` expects a schema file:
+
+```sh
+flatc --cpp -o out_dir schema.schema.json
+```
+
+Root selection:
+
+- If the schema root contains a `$ref` to a definition, that definition becomes the FlatBuffers root type.
+- Otherwise you can specify/override the root with `--root-type` (see [`src/flatc.cpp`](src/flatc.cpp) and [`docs/source/flatc.md`](docs/source/flatc.md)).
+
+#### Best-effort mapping for “wild” JSON Schema + OpenAPI
+
+The importer is intentionally permissive and ignores unknown JSON Schema/OpenAPI keywords while making “sane defaults” to treat the input as an IDL.
+
+Supported input shapes:
+
+- Schema definitions under `definitions`, `$defs`, or OpenAPI `components.schemas` (see fixtures under [`tests/jsonschema_import/inputs`](tests/jsonschema_import/inputs)).
+- `$ref` resolution for `#/definitions/...`, `#/$defs/...`, and `#/components/schemas/...`.
+
+Type/shape mapping (when `x-flatbuffers` is not present):
+
+- `type: "object"` → FlatBuffers table by default; may infer a struct if the definition contains fixed-length arrays and is otherwise “struct-safe” (see [`src/idl_parser.cpp`](src/idl_parser.cpp)).
+- `type: "array"` → FlatBuffers vector; if `minItems == maxItems` it may become a fixed-length array (and will fall back to a vector with `minItems`/`maxItems` preserved if a fixed array would be illegal in FlatBuffers).
+- `type: "integer"` → a concrete FlatBuffers integer scalar inferred from numeric range (`minimum`/`maximum`) when provided; `format` of `int32`/`int64`/`uint32`/`uint64` overrides inference.
+- `type: "number"` → `float` by default; `format` of `float`/`double` overrides.
+- `type: "string"` → FlatBuffers `string`.
+- String `enum: ["A", "B", ...]` on a field → generates a FlatBuffers enum for that field.
+- `anyOf: [{ "$ref": ... }, ...]` on a field → FlatBuffers union. If the input follows the FlatBuffers JSON/JSON-Schema union convention (a value field plus a sibling `<name>_type` field), the importer will link them (see [`src/idl_parser.cpp`](src/idl_parser.cpp)).
+
+JSON Schema/OpenAPI keyword preservation:
+
+To keep the generated JSON Schema close to the original, the importer preserves a subset of JSON Schema/OpenAPI keywords (either as FlatBuffers doc flags, or as `jsonschema_*` attributes so they survive through the schema IR), and the JSON Schema generator re-emits them:
+
+- Definitions + fields: `description`
+- Fields: `deprecated`
+- Objects: `required`, `additionalProperties`
+- Arrays: `minItems`, `maxItems`, `uniqueItems`
+- Strings: `format`, `minLength`, `maxLength`, `readOnly`
+- Numbers/integers: `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`
+
+#### Optional lossless semantics: `x-flatbuffers` (`--jsonschema-xflatbuffers`)
+
+JSON Schema cannot represent some FlatBuffers semantics (for example: struct vs table, exact scalar widths, union details, field ids, and presence rules). To enable lossless round-trips, the JSON Schema generator can emit an optional vendor extension:
+
+```sh
+flatc --jsonschema --jsonschema-xflatbuffers -o out_dir schema.fbs
+```
+
+This emits `x-flatbuffers` metadata objects at the schema root, at each definition, and at each field. Because this uses the standard vendor extension mechanism (`x-...`), most JSON Schema tooling ignores it and continues to work normally (for example QuickType and similar code generators).
+
+At a high level:
+
+- Root metadata: `root_type`, plus optional `file_identifier` and `file_extension`.
+- Definition metadata: enum/union kind + values; struct/table kind + (struct-only) `minalign`/`bytesize`.
+- Field metadata: exact FlatBuffers type (including union/enum refs), plus presence and selected field attributes (for example `id`, `deprecated`, `key`).
+
+The allowed keys/values for the `x-flatbuffers` vendor extension are described by the meta-schema:
+
+- [`docs/source/schemas/x-flatbuffers.schema.json`](docs/source/schemas/x-flatbuffers.schema.json)
+
+#### Tests (goldens + round-trip stability)
+
+This fork uses golden JSON Schemas and round-trip tests to ensure stability:
+
+- Generation + round-trip for FlatBuffers-emitted JSON Schema (with and without `x-flatbuffers`): [`tests/JsonSchemaTest.sh`](tests/JsonSchemaTest.sh)
+  - Goldens: [`tests/monster_test.schema.json`](tests/monster_test.schema.json), [`tests/arrays_test.schema.json`](tests/arrays_test.schema.json)
+- Import “wild” JSON Schema / OpenAPI fixtures and ensure stable regeneration: [`tests/JsonSchemaImportTest.sh`](tests/JsonSchemaImportTest.sh)
+  - Inputs: [`tests/jsonschema_import/inputs`](tests/jsonschema_import/inputs)
+  - Goldens: [`tests/jsonschema_import/goldens`](tests/jsonschema_import/goldens)
+
+Typical local run:
+
+```sh
+cmake -B build -S .
+cmake --build build --target flatc -j
+tests/JsonSchemaTest.sh
+tests/JsonSchemaImportTest.sh
+```
+
 
 ![logo](https://flatbuffers.dev/assets/flatbuffers_logo.svg) FlatBuffers
 ===========
