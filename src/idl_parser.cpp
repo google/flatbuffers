@@ -3578,6 +3578,16 @@ bool Parser::ParseJson(const char* json, const char* json_filename) {
   return done;
 }
 
+bool Parser::ParseJsonSchema(const char* json_schema,
+                             const char* json_schema_filename) {
+  const auto initial_depth = parse_depth_counter_;
+  (void)initial_depth;
+  const auto done = !StartParseFile(json_schema, json_schema_filename).Check() &&
+                    !DoParseJsonSchema().Check();
+  FLATBUFFERS_ASSERT(initial_depth == parse_depth_counter_);
+  return done;
+}
+
 std::ptrdiff_t Parser::BytesConsumed() const {
   return std::distance(source_, prev_cursor_);
 }
@@ -3932,6 +3942,1140 @@ CheckedError Parser::DoParseJson() {
     // Comments after JSON are allowed.
     EXPECT(kTokenEof);
   }
+  return NoError();
+}
+
+CheckedError Parser::DoParseJsonSchema() {
+  const char* const schema_source = source_;
+  const std::string schema_filename = file_being_parsed_;
+
+  struct EnumValueMeta {
+    std::string name;
+    std::string value;
+    std::string union_type;
+  };
+
+  struct DefinitionXfbMeta {
+    bool present = false;
+    std::string kind;
+    std::string name;
+    std::vector<std::string> name_space;
+    std::string underlying_type;
+    std::vector<EnumValueMeta> values;
+    bool has_key = false;
+  };
+
+  struct FieldXfbMeta {
+    bool present = false;
+    bool has_type = false;
+    Type type;
+    bool has_id = false;
+    std::string id;
+    bool has_presence = false;
+    FieldDef::Presence presence = FieldDef::kDefault;
+    bool has_deprecated = false;
+    bool deprecated = false;
+    bool has_key = false;
+    bool key = false;
+    bool has_shared = false;
+    bool shared = false;
+    bool has_native_inline = false;
+    bool native_inline = false;
+    bool has_flexbuffer = false;
+    bool flexbuffer = false;
+    bool has_offset64 = false;
+    bool offset64 = false;
+    std::string nested_flatbuffer;
+    std::string union_type_field;
+    std::string union_value_field;
+  };
+
+  struct ParsedField {
+    std::string name;
+    Type type;
+    bool deprecated = false;
+    std::string description;
+    FieldXfbMeta xfb;
+    bool is_anyof = false;
+    std::vector<std::string> anyof_types;
+  };
+
+  auto ParseString = [&](std::string* out) -> CheckedError {
+    if (!Is(kTokenStringConstant)) return Error("string constant expected");
+    *out = attribute_;
+    EXPECT(kTokenStringConstant);
+    return NoError();
+  };
+
+  auto ParseBool = [&](bool* out) -> CheckedError {
+    if (IsIdent("true")) {
+      *out = true;
+      NEXT();
+      return NoError();
+    }
+    if (IsIdent("false")) {
+      *out = false;
+      NEXT();
+      return NoError();
+    }
+    return Error("boolean constant expected");
+  };
+
+  auto ParseInt64 = [&](int64_t* out) -> CheckedError {
+    if (token_ != kTokenIntegerConstant) return Error("integer constant expected");
+    if (!StringToNumber(attribute_.c_str(), out)) {
+      return Error("invalid integer constant: " + attribute_);
+    }
+    NEXT();
+    return NoError();
+  };
+
+  auto ParseUInt64 = [&](uint64_t* out) -> CheckedError {
+    if (token_ != kTokenIntegerConstant) return Error("integer constant expected");
+    if (!StringToNumber(attribute_.c_str(), out)) {
+      return Error("invalid integer constant: " + attribute_);
+    }
+    NEXT();
+    return NoError();
+  };
+
+  auto ParseStringArray = [&](std::vector<std::string>* out) -> CheckedError {
+    out->clear();
+    size_t count = 0;
+    auto err = ParseVectorDelimiters(count, [&](size_t&) -> CheckedError {
+      std::string value;
+      ECHECK(ParseString(&value));
+      out->push_back(std::move(value));
+      return NoError();
+    });
+    ECHECK(err);
+    return NoError();
+  };
+
+  auto ParseNamespaceArray = [&](std::vector<std::string>* out) -> CheckedError {
+    return ParseStringArray(out);
+  };
+
+  auto SplitLines = [&](const std::string& text) {
+    std::vector<std::string> lines;
+    size_t start = 0;
+    while (start <= text.size()) {
+      auto end = text.find('\n', start);
+      if (end == std::string::npos) end = text.size();
+      lines.push_back(text.substr(start, end - start));
+      if (end == text.size()) break;
+      start = end + 1;
+    }
+    return lines;
+  };
+
+  auto MakeSchemaFullName = [&](const std::vector<std::string>& ns,
+                                const std::string& name) {
+    std::string full_name;
+    for (const auto& component : ns) {
+      full_name.append(component);
+      full_name.push_back('_');
+    }
+    full_name.append(name);
+    return full_name;
+  };
+
+  auto ExtractDefinitionRef = [&](const std::string& ref,
+                                  std::string* out) -> CheckedError {
+    static const std::string kPrefix = "#/definitions/";
+    if (ref.rfind(kPrefix, 0) != 0) return Error("unsupported $ref: " + ref);
+    *out = ref.substr(kPrefix.size());
+    if (out->empty()) return Error("unsupported $ref: " + ref);
+    return NoError();
+  };
+
+  auto BaseTypeFromScalarName = [&](const std::string& name,
+                                    BaseType* out) -> bool {
+    if (name == "bool") {
+      *out = BASE_TYPE_BOOL;
+      return true;
+    } else if (name == "byte") {
+      *out = BASE_TYPE_CHAR;
+      return true;
+    } else if (name == "ubyte") {
+      *out = BASE_TYPE_UCHAR;
+      return true;
+    } else if (name == "short") {
+      *out = BASE_TYPE_SHORT;
+      return true;
+    } else if (name == "ushort") {
+      *out = BASE_TYPE_USHORT;
+      return true;
+    } else if (name == "int") {
+      *out = BASE_TYPE_INT;
+      return true;
+    } else if (name == "uint") {
+      *out = BASE_TYPE_UINT;
+      return true;
+    } else if (name == "long") {
+      *out = BASE_TYPE_LONG;
+      return true;
+    } else if (name == "ulong") {
+      *out = BASE_TYPE_ULONG;
+      return true;
+    } else if (name == "float") {
+      *out = BASE_TYPE_FLOAT;
+      return true;
+    } else if (name == "double") {
+      *out = BASE_TYPE_DOUBLE;
+      return true;
+    } else if (name == "string") {
+      *out = BASE_TYPE_STRING;
+      return true;
+    } else if (name == "utype") {
+      *out = BASE_TYPE_UTYPE;
+      return true;
+    }
+    return false;
+  };
+
+  auto InferIntegerBaseType = [&](int64_t min_value, uint64_t max_value,
+                                  BaseType* out) -> bool {
+    if (min_value == flatbuffers::numeric_limits<int8_t>::min() &&
+        max_value == static_cast<uint64_t>(
+                         flatbuffers::numeric_limits<int8_t>::max())) {
+      *out = BASE_TYPE_CHAR;
+      return true;
+    }
+    if (min_value == 0 &&
+        max_value == flatbuffers::numeric_limits<uint8_t>::max()) {
+      *out = BASE_TYPE_UCHAR;
+      return true;
+    }
+    if (min_value == flatbuffers::numeric_limits<int16_t>::min() &&
+        max_value == static_cast<uint64_t>(
+                         flatbuffers::numeric_limits<int16_t>::max())) {
+      *out = BASE_TYPE_SHORT;
+      return true;
+    }
+    if (min_value == 0 &&
+        max_value == flatbuffers::numeric_limits<uint16_t>::max()) {
+      *out = BASE_TYPE_USHORT;
+      return true;
+    }
+    if (min_value == flatbuffers::numeric_limits<int32_t>::min() &&
+        max_value == static_cast<uint64_t>(
+                         flatbuffers::numeric_limits<int32_t>::max())) {
+      *out = BASE_TYPE_INT;
+      return true;
+    }
+    if (min_value == 0 &&
+        max_value == flatbuffers::numeric_limits<uint32_t>::max()) {
+      *out = BASE_TYPE_UINT;
+      return true;
+    }
+    if (min_value == flatbuffers::numeric_limits<int64_t>::min() &&
+        max_value == static_cast<uint64_t>(
+                         flatbuffers::numeric_limits<int64_t>::max())) {
+      *out = BASE_TYPE_LONG;
+      return true;
+    }
+    if (min_value == 0 &&
+        max_value == flatbuffers::numeric_limits<uint64_t>::max()) {
+      *out = BASE_TYPE_ULONG;
+      return true;
+    }
+    return false;
+  };
+
+  std::map<std::string, EnumDef*> enum_by_fullname;
+  std::map<std::string, StructDef*> struct_by_fullname;
+
+  auto ParseXfbType = [&](Type* out_type,
+                          auto&& ParseXfbTypeRef) -> CheckedError {
+    std::string base;
+    std::string ref;
+    std::string scalar;
+    bool vector64 = false;
+    bool has_vector64 = false;
+    uint16_t fixed_length = 0;
+    bool has_fixed_length = false;
+    Type element_type;
+    bool has_element = false;
+
+    size_t fieldn = 0;
+    auto err = ParseTableDelimiters(
+        fieldn, nullptr,
+        [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
+          if (key == "base") {
+            ECHECK(ParseString(&base));
+          } else if (key == "ref") {
+            ECHECK(ParseString(&ref));
+          } else if (key == "scalar") {
+            ECHECK(ParseString(&scalar));
+          } else if (key == "vector64") {
+            has_vector64 = true;
+            ECHECK(ParseBool(&vector64));
+          } else if (key == "fixed_length") {
+            int64_t v = 0;
+            ECHECK(ParseInt64(&v));
+            if (v < 0 || v > flatbuffers::numeric_limits<uint16_t>::max()) {
+              return Error("fixed_length out of range");
+            }
+            fixed_length = static_cast<uint16_t>(v);
+            has_fixed_length = true;
+          } else if (key == "element") {
+            has_element = true;
+            ECHECK(ParseXfbTypeRef(&element_type, ParseXfbTypeRef));
+          } else {
+            ECHECK(SkipAnyJsonValue());
+          }
+          return NoError();
+        });
+    ECHECK(err);
+
+    if (base.empty()) return Error("x-flatbuffers type missing 'base'");
+
+    if (base == "struct" || base == "table") {
+      auto it = struct_by_fullname.find(ref);
+      if (it == struct_by_fullname.end()) {
+        return Error("unknown struct ref in x-flatbuffers type: " + ref);
+      }
+      *out_type = Type(BASE_TYPE_STRUCT, it->second);
+      if (base == "struct") it->second->fixed = true;
+      return NoError();
+    }
+    if (base == "union") {
+      auto it = enum_by_fullname.find(ref);
+      if (it == enum_by_fullname.end()) {
+        return Error("unknown enum ref in x-flatbuffers type: " + ref);
+      }
+      it->second->is_union = true;
+      it->second->underlying_type.base_type = BASE_TYPE_UTYPE;
+      it->second->underlying_type.enum_def = it->second;
+      *out_type = Type(BASE_TYPE_UNION, nullptr, it->second);
+      return NoError();
+    }
+    if (base == "utype") {
+      auto it = enum_by_fullname.find(ref);
+      if (it == enum_by_fullname.end()) {
+        return Error("unknown enum ref in x-flatbuffers type: " + ref);
+      }
+      it->second->is_union = true;
+      it->second->underlying_type.base_type = BASE_TYPE_UTYPE;
+      it->second->underlying_type.enum_def = it->second;
+      *out_type = Type(BASE_TYPE_UTYPE, nullptr, it->second);
+      return NoError();
+    }
+    if (base == "enum") {
+      auto it = enum_by_fullname.find(ref);
+      if (it == enum_by_fullname.end()) {
+        return Error("unknown enum ref in x-flatbuffers type: " + ref);
+      }
+      BaseType bt = BASE_TYPE_INT;
+      if (!scalar.empty() && !BaseTypeFromScalarName(scalar, &bt)) {
+        return Error("unknown scalar type in x-flatbuffers enum: " + scalar);
+      }
+      it->second->underlying_type.base_type = bt;
+      it->second->underlying_type.enum_def = it->second;
+      *out_type = Type(bt, nullptr, it->second);
+      return NoError();
+    }
+    if (base == "vector" || base == "array") {
+      if (!has_element) return Error("x-flatbuffers type missing 'element'");
+      auto vector_base =
+          (has_vector64 && vector64) ? BASE_TYPE_VECTOR64 : BASE_TYPE_VECTOR;
+      if (base == "array") vector_base = BASE_TYPE_ARRAY;
+
+      *out_type = Type(vector_base, element_type.struct_def,
+                       element_type.enum_def,
+                       vector_base == BASE_TYPE_ARRAY ? fixed_length : 0);
+      out_type->element = element_type.base_type;
+      if (vector_base == BASE_TYPE_ARRAY && !has_fixed_length) {
+        return Error("x-flatbuffers array missing 'fixed_length'");
+      }
+      return NoError();
+    }
+
+    BaseType bt = BASE_TYPE_NONE;
+    if (!BaseTypeFromScalarName(base, &bt)) {
+      return Error("unknown scalar type in x-flatbuffers type: " + base);
+    }
+    *out_type = Type(bt);
+    return NoError();
+  };
+
+  auto ParseDefinitionXfbMeta = [&](DefinitionXfbMeta* meta) -> CheckedError {
+    meta->present = true;
+    size_t fieldn = 0;
+    auto err = ParseTableDelimiters(
+        fieldn, nullptr,
+        [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
+          if (key == "kind") {
+            ECHECK(ParseString(&meta->kind));
+          } else if (key == "name") {
+            ECHECK(ParseString(&meta->name));
+          } else if (key == "namespace") {
+            ECHECK(ParseNamespaceArray(&meta->name_space));
+          } else if (key == "underlying_type") {
+            ECHECK(ParseString(&meta->underlying_type));
+          } else if (key == "has_key") {
+            ECHECK(ParseBool(&meta->has_key));
+          } else if (key == "values") {
+            size_t count = 0;
+            meta->values.clear();
+            auto values_err =
+                ParseVectorDelimiters(count, [&](size_t&) -> CheckedError {
+                  EnumValueMeta value_meta;
+                  size_t vn = 0;
+                  auto obj_err = ParseTableDelimiters(
+                      vn, nullptr,
+                      [&](const std::string& vk, size_t&,
+                          const StructDef*) -> CheckedError {
+                        if (vk == "name") {
+                          ECHECK(ParseString(&value_meta.name));
+                        } else if (vk == "value") {
+                          ECHECK(ParseString(&value_meta.value));
+                        } else if (vk == "union_type") {
+                          ECHECK(ParseString(&value_meta.union_type));
+                        } else {
+                          ECHECK(SkipAnyJsonValue());
+                        }
+                        return NoError();
+                      });
+                  ECHECK(obj_err);
+                  meta->values.push_back(std::move(value_meta));
+                  return NoError();
+                });
+            ECHECK(values_err);
+          } else {
+            ECHECK(SkipAnyJsonValue());
+          }
+          return NoError();
+        });
+    ECHECK(err);
+    return NoError();
+  };
+
+  auto ParseFieldXfbMeta = [&](FieldXfbMeta* meta) -> CheckedError {
+    meta->present = true;
+    size_t fieldn = 0;
+    auto err = ParseTableDelimiters(
+        fieldn, nullptr,
+        [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
+          if (key == "type") {
+            meta->has_type = true;
+            ECHECK(ParseXfbType(&meta->type, ParseXfbType));
+          } else if (key == "id") {
+            meta->has_id = true;
+            if (Is(kTokenStringConstant)) {
+              ECHECK(ParseString(&meta->id));
+            } else if (token_ == kTokenIntegerConstant) {
+              meta->id = attribute_;
+              NEXT();
+            } else {
+              return Error("unexpected id value in x-flatbuffers metadata");
+            }
+          } else if (key == "presence") {
+            meta->has_presence = true;
+            std::string presence;
+            ECHECK(ParseString(&presence));
+            if (presence == "required") {
+              meta->presence = FieldDef::kRequired;
+            } else if (presence == "optional") {
+              meta->presence = FieldDef::kOptional;
+            } else if (presence == "default") {
+              meta->presence = FieldDef::kDefault;
+            } else {
+              return Error("unknown presence: " + presence);
+            }
+          } else if (key == "deprecated") {
+            meta->has_deprecated = true;
+            ECHECK(ParseBool(&meta->deprecated));
+          } else if (key == "key") {
+            meta->has_key = true;
+            ECHECK(ParseBool(&meta->key));
+          } else if (key == "shared") {
+            meta->has_shared = true;
+            ECHECK(ParseBool(&meta->shared));
+          } else if (key == "native_inline") {
+            meta->has_native_inline = true;
+            ECHECK(ParseBool(&meta->native_inline));
+          } else if (key == "flexbuffer") {
+            meta->has_flexbuffer = true;
+            ECHECK(ParseBool(&meta->flexbuffer));
+          } else if (key == "offset64") {
+            meta->has_offset64 = true;
+            ECHECK(ParseBool(&meta->offset64));
+          } else if (key == "nested_flatbuffer") {
+            ECHECK(ParseString(&meta->nested_flatbuffer));
+          } else if (key == "union_type_field") {
+            ECHECK(ParseString(&meta->union_type_field));
+          } else if (key == "union_value_field") {
+            ECHECK(ParseString(&meta->union_value_field));
+          } else {
+            ECHECK(SkipAnyJsonValue());
+          }
+          return NoError();
+        });
+    ECHECK(err);
+    return NoError();
+  };
+
+  auto ApplyFieldXfb = [&](FieldDef& field,
+                           const FieldXfbMeta& xfb_field) -> CheckedError {
+    if (!xfb_field.present) return NoError();
+
+    if (xfb_field.has_id) {
+      auto* v = new Value();
+      v->constant = xfb_field.id;
+      field.attributes.Add("id", v);
+    }
+    if (xfb_field.has_presence) field.presence = xfb_field.presence;
+    if (xfb_field.has_deprecated) field.deprecated = xfb_field.deprecated;
+    if (xfb_field.has_key) field.key = xfb_field.key;
+    if (xfb_field.has_shared) field.shared = xfb_field.shared;
+    if (xfb_field.has_native_inline) field.native_inline = xfb_field.native_inline;
+    if (xfb_field.has_flexbuffer) field.flexbuffer = xfb_field.flexbuffer;
+    if (xfb_field.has_offset64) field.offset64 = xfb_field.offset64;
+
+    if (!xfb_field.nested_flatbuffer.empty()) {
+      auto it = struct_by_fullname.find(xfb_field.nested_flatbuffer);
+      if (it == struct_by_fullname.end()) {
+        return Error("unknown nested_flatbuffer: " + xfb_field.nested_flatbuffer);
+      }
+      field.nested_flatbuffer = it->second;
+    }
+
+    return NoError();
+  };
+
+  auto ResolveRefType = [&](const std::string& ref_fullname,
+                            Type* out_type) -> CheckedError {
+    auto eit = enum_by_fullname.find(ref_fullname);
+    if (eit != enum_by_fullname.end()) {
+      *out_type = eit->second->underlying_type;
+      return NoError();
+    }
+    auto sit = struct_by_fullname.find(ref_fullname);
+    if (sit != struct_by_fullname.end()) {
+      *out_type = Type(BASE_TYPE_STRUCT, sit->second);
+      return NoError();
+    }
+    return Error("unknown $ref: " + ref_fullname);
+  };
+
+  auto ParseAnyOfRefs = [&](std::vector<std::string>* out) -> CheckedError {
+    out->clear();
+    size_t count = 0;
+    auto err = ParseVectorDelimiters(count, [&](size_t&) -> CheckedError {
+      std::string ref_fullname;
+      size_t fn = 0;
+      auto obj_err = ParseTableDelimiters(
+          fn, nullptr,
+          [&](const std::string& k, size_t&, const StructDef*) -> CheckedError {
+            if (k == "$ref") {
+              std::string ref;
+              ECHECK(ParseString(&ref));
+              ECHECK(ExtractDefinitionRef(ref, &ref_fullname));
+            } else {
+              ECHECK(SkipAnyJsonValue());
+            }
+            return NoError();
+          });
+      ECHECK(obj_err);
+      if (ref_fullname.empty()) return Error("anyOf item missing $ref");
+      out->push_back(std::move(ref_fullname));
+      return NoError();
+    });
+    ECHECK(err);
+    return NoError();
+  };
+
+  auto ParseFieldSchema = [&](ParsedField* out,
+                              auto&& ParseFieldSchemaRef) -> CheckedError {
+    out->xfb.present = false;
+    out->xfb.has_type = false;
+    out->xfb.type = Type();
+    out->xfb.has_id = false;
+    out->xfb.id.clear();
+    out->xfb.has_presence = false;
+    out->xfb.presence = FieldDef::kDefault;
+    out->xfb.has_deprecated = false;
+    out->xfb.deprecated = false;
+    out->xfb.has_key = false;
+    out->xfb.key = false;
+    out->xfb.has_shared = false;
+    out->xfb.shared = false;
+    out->xfb.has_native_inline = false;
+    out->xfb.native_inline = false;
+    out->xfb.has_flexbuffer = false;
+    out->xfb.flexbuffer = false;
+    out->xfb.has_offset64 = false;
+    out->xfb.offset64 = false;
+    out->xfb.nested_flatbuffer.clear();
+    out->xfb.union_type_field.clear();
+    out->xfb.union_value_field.clear();
+    out->deprecated = false;
+    out->description.clear();
+    out->is_anyof = false;
+    out->anyof_types.clear();
+
+    std::string ref_fullname;
+    std::string type_name;
+    bool has_min = false;
+    bool has_max = false;
+    int64_t min_value = 0;
+    uint64_t max_value = 0;
+    bool has_items = false;
+    Type items_type;
+    bool has_min_items = false;
+    bool has_max_items = false;
+    int64_t min_items = 0;
+    int64_t max_items = 0;
+
+    size_t fieldn = 0;
+    auto err = ParseTableDelimiters(
+        fieldn, nullptr,
+        [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
+          if (key == "x-flatbuffers") {
+            ECHECK(ParseFieldXfbMeta(&out->xfb));
+          } else if (key == "$ref") {
+            std::string ref;
+            ECHECK(ParseString(&ref));
+            ECHECK(ExtractDefinitionRef(ref, &ref_fullname));
+          } else if (key == "type") {
+            ECHECK(ParseString(&type_name));
+          } else if (key == "minimum") {
+            has_min = true;
+            ECHECK(ParseInt64(&min_value));
+          } else if (key == "maximum") {
+            has_max = true;
+            ECHECK(ParseUInt64(&max_value));
+          } else if (key == "items") {
+            has_items = true;
+            ParsedField items;
+            items.name.clear();
+            ECHECK(ParseFieldSchemaRef(&items, ParseFieldSchemaRef));
+            items_type = items.type;
+          } else if (key == "minItems") {
+            has_min_items = true;
+            ECHECK(ParseInt64(&min_items));
+          } else if (key == "maxItems") {
+            has_max_items = true;
+            ECHECK(ParseInt64(&max_items));
+          } else if (key == "anyOf") {
+            out->is_anyof = true;
+            ECHECK(ParseAnyOfRefs(&out->anyof_types));
+          } else if (key == "deprecated") {
+            ECHECK(ParseBool(&out->deprecated));
+          } else if (key == "description") {
+            ECHECK(ParseString(&out->description));
+          } else {
+            ECHECK(SkipAnyJsonValue());
+          }
+          return NoError();
+        });
+    ECHECK(err);
+
+    if (out->xfb.present && out->xfb.has_type) {
+      out->type = out->xfb.type;
+      return NoError();
+    }
+
+    if (!ref_fullname.empty()) {
+      ECHECK(ResolveRefType(ref_fullname, &out->type));
+      return NoError();
+    }
+
+    if (out->is_anyof) {
+      out->type = Type(BASE_TYPE_UNION);
+      return NoError();
+    }
+
+    if (type_name == "integer") {
+      BaseType bt = BASE_TYPE_INT;
+      if (has_min && has_max) InferIntegerBaseType(min_value, max_value, &bt);
+      out->type = Type(bt);
+      return NoError();
+    }
+    if (type_name == "number") {
+      out->type = Type(BASE_TYPE_FLOAT);
+      return NoError();
+    }
+    if (type_name == "boolean") {
+      out->type = Type(BASE_TYPE_BOOL);
+      return NoError();
+    }
+    if (type_name == "string") {
+      out->type = Type(BASE_TYPE_STRING);
+      return NoError();
+    }
+    if (type_name == "array") {
+      if (!has_items) return Error("array missing 'items'");
+      const bool is_fixed = has_min_items && has_max_items &&
+                            min_items == max_items && min_items >= 0;
+      if (is_fixed) {
+        if (min_items < 1 ||
+            min_items > flatbuffers::numeric_limits<uint16_t>::max()) {
+          return Error("fixed array length out of range");
+        }
+        out->type =
+            Type(BASE_TYPE_ARRAY, items_type.struct_def, items_type.enum_def,
+                 static_cast<uint16_t>(min_items));
+      } else {
+        out->type =
+            Type(BASE_TYPE_VECTOR, items_type.struct_def, items_type.enum_def);
+      }
+      out->type.element = items_type.base_type;
+      return NoError();
+    }
+
+    return Error("unable to determine type");
+  };
+
+  auto ParseRootXfbMeta = [&]() -> CheckedError {
+    size_t fieldn = 0;
+    auto err = ParseTableDelimiters(
+        fieldn, nullptr,
+        [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
+          if (key == "file_identifier") {
+            ECHECK(ParseString(&file_identifier_));
+          } else if (key == "file_extension") {
+            ECHECK(ParseString(&file_extension_));
+          } else {
+            ECHECK(SkipAnyJsonValue());
+          }
+          return NoError();
+        });
+    ECHECK(err);
+    return NoError();
+  };
+
+  auto WithNamespace = [&](const std::vector<std::string>& name_space,
+                           auto&& fn) -> CheckedError {
+    auto* prev_namespace = current_namespace_;
+    if (name_space.empty()) {
+      current_namespace_ = empty_namespace_;
+    } else {
+      auto* ns = new Namespace();
+      ns->components = name_space;
+      current_namespace_ = UniqueNamespace(ns);
+    }
+    auto err = fn();
+    current_namespace_ = prev_namespace;
+    return err;
+  };
+
+  auto CreateDefinitionsPass = [&]() -> CheckedError {
+    ECHECK(StartParseFile(schema_source,
+                          schema_filename.empty() ? nullptr
+                                                  : schema_filename.c_str()));
+
+    bool found_definitions = false;
+    size_t fieldn = 0;
+    auto root_err = ParseTableDelimiters(
+        fieldn, nullptr,
+        [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
+          if (key != "definitions") {
+            ECHECK(SkipAnyJsonValue());
+            return NoError();
+          }
+
+          found_definitions = true;
+          size_t defn = 0;
+          auto defs_err = ParseTableDelimiters(
+              defn, nullptr,
+              [&](const std::string& def_fullname, size_t&,
+                  const StructDef*) -> CheckedError {
+                std::string def_type;
+                DefinitionXfbMeta xfb;
+                size_t dn = 0;
+                auto def_err = ParseTableDelimiters(
+                    dn, nullptr,
+                    [&](const std::string& dk, size_t&,
+                        const StructDef*) -> CheckedError {
+                      if (dk == "type") {
+                        ECHECK(ParseString(&def_type));
+                      } else if (dk == "x-flatbuffers") {
+                        ECHECK(ParseDefinitionXfbMeta(&xfb));
+                      } else {
+                        ECHECK(SkipAnyJsonValue());
+                      }
+                      return NoError();
+                    });
+                ECHECK(def_err);
+
+                if (def_type.empty()) {
+                  return Error("definition missing 'type': " + def_fullname);
+                }
+
+                std::string decl_name =
+                    xfb.present && !xfb.name.empty() ? xfb.name : def_fullname;
+                std::vector<std::string> decl_namespace =
+                    xfb.present ? xfb.name_space : std::vector<std::string>();
+
+                if (xfb.present && (!xfb.name.empty() || !xfb.name_space.empty())) {
+                  const auto expected = MakeSchemaFullName(decl_namespace, decl_name);
+                  if (expected != def_fullname) {
+                    return Error("definition name mismatch: '" + def_fullname +
+                                 "' vs '" + expected + "'");
+                  }
+                }
+
+                return WithNamespace(decl_namespace, [&]() -> CheckedError {
+                  if (def_type == "string") {
+                    const bool is_union = xfb.present && xfb.kind == "union";
+                    EnumDef* enum_def = nullptr;
+                    ECHECK(StartEnum(decl_name, is_union, &enum_def));
+                    enum_by_fullname[def_fullname] = enum_def;
+                  } else if (def_type == "object") {
+                    StructDef* struct_def = nullptr;
+                    ECHECK(StartStruct(decl_name, &struct_def));
+                    if (xfb.present) {
+                      if (xfb.kind == "struct") struct_def->fixed = true;
+                      if (xfb.kind == "table") struct_def->fixed = false;
+                      if (xfb.has_key) struct_def->has_key = true;
+                    } else {
+                      struct_def->fixed = false;
+                    }
+                    struct_def->sortbysize = !struct_def->fixed;
+                    struct_by_fullname[def_fullname] = struct_def;
+                  } else {
+                    return Error("unsupported definition type: " + def_type);
+                  }
+                  return NoError();
+                });
+              });
+          ECHECK(defs_err);
+          return NoError();
+        });
+    ECHECK(root_err);
+
+    if (opts.require_json_eof) EXPECT(kTokenEof);
+    if (!found_definitions) return Error("JSON Schema missing 'definitions'");
+    return NoError();
+  };
+
+  ECHECK(CreateDefinitionsPass());
+
+  ECHECK(StartParseFile(schema_source,
+                        schema_filename.empty() ? nullptr
+                                                : schema_filename.c_str()));
+
+  std::string root_ref_fullname;
+
+  auto ApplyEnumMeta = [&](EnumDef& enum_def,
+                           const DefinitionXfbMeta& xfb) -> CheckedError {
+    if (!xfb.present) return NoError();
+
+    if (!xfb.kind.empty()) {
+      enum_def.is_union = xfb.kind == "union";
+      if (enum_def.is_union) {
+        enum_def.underlying_type.base_type = BASE_TYPE_UTYPE;
+        enum_def.underlying_type.enum_def = &enum_def;
+      }
+    }
+
+    if (!xfb.underlying_type.empty()) {
+      BaseType bt = BASE_TYPE_NONE;
+      if (!BaseTypeFromScalarName(xfb.underlying_type, &bt)) {
+        return Error("invalid enum underlying_type: " + xfb.underlying_type);
+      }
+      if (enum_def.is_union) {
+        if (bt != BASE_TYPE_UTYPE) {
+          return Error("union underlying_type must be utype");
+        }
+      } else if (!IsInteger(bt)) {
+        return Error("invalid enum underlying_type: " + xfb.underlying_type);
+      }
+      enum_def.underlying_type.base_type = bt;
+      enum_def.underlying_type.enum_def = &enum_def;
+    }
+    return NoError();
+  };
+
+  auto FillEnum = [&](EnumDef& enum_def,
+                      const DefinitionXfbMeta& xfb,
+                      const std::vector<std::string>& enum_values)
+                      -> CheckedError {
+    if (enum_def.size()) return Error("enum redefinition: " + enum_def.name);
+
+    ECHECK(ApplyEnumMeta(enum_def, xfb));
+
+    EnumValBuilder evb(*this, enum_def);
+
+    if (xfb.present && !xfb.values.empty()) {
+      for (const auto& vm : xfb.values) {
+        int64_t v = 0;
+        if (enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
+          uint64_t u = 0;
+          if (!StringToNumber(vm.value.c_str(), &u)) {
+            return Error("invalid enum value: " + vm.value);
+          }
+          v = static_cast<int64_t>(u);
+        } else {
+          if (!StringToNumber(vm.value.c_str(), &v)) {
+            return Error("invalid enum value: " + vm.value);
+          }
+        }
+
+        auto* ev = evb.CreateEnumerator(vm.name, v);
+        if (enum_def.is_union && !vm.union_type.empty()) {
+          auto it = struct_by_fullname.find(vm.union_type);
+          if (it == struct_by_fullname.end()) {
+            return Error("unknown union_type: " + vm.union_type);
+          }
+          ev->union_type = Type(BASE_TYPE_STRUCT, it->second);
+        }
+        ECHECK(evb.AcceptEnumerator(vm.name));
+      }
+    } else {
+      for (const auto& name : enum_values) {
+        evb.CreateEnumerator(name);
+        ECHECK(evb.AcceptEnumerator(name));
+      }
+    }
+
+    enum_def.SortByValue();
+    return NoError();
+  };
+
+  auto FillStruct = [&](StructDef& struct_def,
+                        const DefinitionXfbMeta& xfb,
+                        const std::vector<ParsedField>& fields,
+                        const std::vector<std::string>& required_fields,
+                        const std::string& description) -> CheckedError {
+    if (!struct_def.fields.vec.empty()) {
+      return Error("struct redefinition: " + struct_def.name);
+    }
+
+    if (!description.empty()) struct_def.doc_comment = SplitLines(description);
+
+    if (xfb.present && !xfb.kind.empty()) {
+      if (xfb.kind == "struct") struct_def.fixed = true;
+      if (xfb.kind == "table") struct_def.fixed = false;
+      if (xfb.has_key) struct_def.has_key = true;
+    } else {
+      for (const auto& field : fields) {
+        if (field.type.base_type == BASE_TYPE_ARRAY) {
+          struct_def.fixed = true;
+          break;
+        }
+      }
+    }
+    struct_def.sortbysize = !struct_def.fixed;
+
+    std::map<std::string, FieldDef*> field_by_name;
+    std::map<std::string, std::string> explicit_union_type_field_by_value;
+    std::vector<std::pair<FieldDef*, std::vector<std::string>>> pending_unions;
+
+    for (const auto& parsed : fields) {
+      FieldDef* field_def = nullptr;
+      ECHECK(AddField(struct_def, parsed.name, parsed.type, &field_def));
+      field_by_name[parsed.name] = field_def;
+
+      if (parsed.deprecated) field_def->deprecated = true;
+      if (!parsed.description.empty()) {
+        field_def->doc_comment = SplitLines(parsed.description);
+      }
+
+      ECHECK(ApplyFieldXfb(*field_def, parsed.xfb));
+      if (parsed.xfb.present && parsed.xfb.has_deprecated) {
+        field_def->deprecated = parsed.xfb.deprecated;
+      }
+
+      if (!parsed.xfb.union_type_field.empty()) {
+        explicit_union_type_field_by_value[parsed.name] = parsed.xfb.union_type_field;
+      }
+
+      if (parsed.is_anyof) {
+        pending_unions.emplace_back(field_def, parsed.anyof_types);
+      }
+    }
+
+    // Apply required list.
+    for (const auto& req : required_fields) {
+      auto it = field_by_name.find(req);
+      if (it == field_by_name.end()) {
+        return Error("unknown required field: " + req);
+      }
+      it->second->presence = FieldDef::kRequired;
+    }
+
+    // Resolve unions (value field + type field + union enum mapping).
+    for (auto& pending : pending_unions) {
+      FieldDef* value_field = pending.first;
+      const auto& anyof_types = pending.second;
+
+      const auto explicit_it =
+          explicit_union_type_field_by_value.find(value_field->name);
+      const std::string type_field_name =
+          explicit_it != explicit_union_type_field_by_value.end()
+              ? explicit_it->second
+              : value_field->name + UnionTypeFieldSuffix();
+
+      auto it_type_field = field_by_name.find(type_field_name);
+      if (it_type_field == field_by_name.end()) continue;
+      FieldDef* type_field = it_type_field->second;
+
+      auto* enum_def = type_field->value.type.enum_def;
+      if (!enum_def) {
+        enum_def = value_field->value.type.enum_def;
+      }
+      if (!enum_def) {
+        return Error("unable to resolve union enum for field: " +
+                     value_field->name);
+      }
+
+      enum_def->is_union = true;
+      enum_def->underlying_type.base_type = BASE_TYPE_UTYPE;
+      enum_def->underlying_type.enum_def = enum_def;
+
+      value_field->value.type.base_type = BASE_TYPE_UNION;
+      value_field->value.type.enum_def = enum_def;
+
+      type_field->value.type.base_type = BASE_TYPE_UTYPE;
+      type_field->value.type.enum_def = enum_def;
+
+      value_field->sibling_union_field = type_field;
+      type_field->sibling_union_field = value_field;
+
+      // Fill union value -> type mapping if not already present.
+      if (enum_def->Vals().empty()) continue;
+
+      const bool has_none = enum_def->Vals().front()->name == "NONE";
+      const size_t offset = has_none ? 1 : 0;
+      if (enum_def->Vals().size() < offset) continue;
+      if (enum_def->Vals().size() - offset != anyof_types.size()) {
+        return Error("union anyOf size mismatch for " + enum_def->name);
+      }
+
+      bool already_mapped = false;
+      for (size_t i = offset; i < enum_def->Vals().size(); ++i) {
+        if (enum_def->Vals()[i]->union_type.base_type != BASE_TYPE_NONE) {
+          already_mapped = true;
+          break;
+        }
+      }
+
+      for (size_t i = 0; i < anyof_types.size(); ++i) {
+        auto sit = struct_by_fullname.find(anyof_types[i]);
+        if (sit == struct_by_fullname.end()) {
+          return Error("unknown union anyOf type: " + anyof_types[i]);
+        }
+        if (already_mapped) {
+          continue;
+        }
+        enum_def->Vals()[i + offset]->union_type =
+            Type(BASE_TYPE_STRUCT, sit->second);
+      }
+    }
+
+    if (struct_def.fixed) struct_def.PadLastField(struct_def.minalign);
+    return NoError();
+  };
+
+  size_t root_fieldn = 0;
+  auto root_err = ParseTableDelimiters(
+      root_fieldn, nullptr,
+      [&](const std::string& key, size_t&, const StructDef*) -> CheckedError {
+        if (key == "$ref") {
+          std::string ref;
+          ECHECK(ParseString(&ref));
+          ECHECK(ExtractDefinitionRef(ref, &root_ref_fullname));
+          return NoError();
+        }
+        if (key == "x-flatbuffers") {
+          ECHECK(ParseRootXfbMeta());
+          return NoError();
+        }
+        if (key != "definitions") {
+          ECHECK(SkipAnyJsonValue());
+          return NoError();
+        }
+
+        size_t defn = 0;
+        auto defs_err = ParseTableDelimiters(
+            defn, nullptr,
+            [&](const std::string& def_fullname, size_t&,
+                const StructDef*) -> CheckedError {
+              auto eit = enum_by_fullname.find(def_fullname);
+              auto sit = struct_by_fullname.find(def_fullname);
+              if (eit == enum_by_fullname.end() &&
+                  sit == struct_by_fullname.end()) {
+                return Error("unknown definition: " + def_fullname);
+              }
+
+              std::string def_type;
+              std::string description;
+              DefinitionXfbMeta xfb;
+              std::vector<std::string> enum_values;
+              std::vector<std::string> required_fields;
+              std::vector<ParsedField> fields;
+
+              size_t dn = 0;
+              auto def_err = ParseTableDelimiters(
+                  dn, nullptr,
+                  [&](const std::string& dk, size_t&, const StructDef*)
+                      -> CheckedError {
+                    if (dk == "type") {
+                      ECHECK(ParseString(&def_type));
+                    } else if (dk == "description") {
+                      ECHECK(ParseString(&description));
+                    } else if (dk == "x-flatbuffers") {
+                      ECHECK(ParseDefinitionXfbMeta(&xfb));
+                    } else if (dk == "enum") {
+                      ECHECK(ParseStringArray(&enum_values));
+                    } else if (dk == "required") {
+                      ECHECK(ParseStringArray(&required_fields));
+                    } else if (dk == "properties") {
+                      size_t pn = 0;
+                      auto props_err = ParseTableDelimiters(
+                          pn, nullptr,
+                          [&](const std::string& field_name, size_t&,
+                              const StructDef*) -> CheckedError {
+                            ParsedField parsed;
+                            parsed.name = field_name;
+                            ECHECK(ParseFieldSchema(&parsed, ParseFieldSchema));
+                            fields.push_back(std::move(parsed));
+                            return NoError();
+                          });
+                      ECHECK(props_err);
+                    } else {
+                      ECHECK(SkipAnyJsonValue());
+                    }
+                    return NoError();
+                  });
+              ECHECK(def_err);
+
+              if (eit != enum_by_fullname.end()) {
+                if (!def_type.empty() && def_type != "string") {
+                  return Error("enum type must be 'string': " + def_fullname);
+                }
+                if (!description.empty()) {
+                  eit->second->doc_comment = SplitLines(description);
+                }
+                ECHECK(FillEnum(*eit->second, xfb, enum_values));
+              } else {
+                if (!def_type.empty() && def_type != "object") {
+                  return Error("struct type must be 'object': " + def_fullname);
+                }
+                ECHECK(FillStruct(*sit->second, xfb, fields, required_fields,
+                                  description));
+              }
+
+              return NoError();
+            });
+        ECHECK(defs_err);
+        return NoError();
+      });
+  ECHECK(root_err);
+
+  if (opts.require_json_eof) EXPECT(kTokenEof);
+
+  if (root_ref_fullname.empty()) return Error("JSON Schema missing root '$ref'");
+  auto it_root = struct_by_fullname.find(root_ref_fullname);
+  if (it_root == struct_by_fullname.end()) {
+    return Error("root '$ref' is not a struct definition: " + root_ref_fullname);
+  }
+  root_struct_def_ = it_root->second;
+
   return NoError();
 }
 

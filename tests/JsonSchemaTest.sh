@@ -83,6 +83,19 @@ PY
   done
 }
 
+compare_output_against_dir() {
+  local expected_dir="$1"
+  local out_dir="$2"
+  for golden in "${golden_files[@]}"; do
+    local expected="${expected_dir}/${golden}"
+    local generated="${out_dir}/${golden}"
+    if ! diff -u "${expected}" "${generated}"; then
+      echo "JSON Schema mismatch for ${golden}" >&2
+      exit 1
+    fi
+  done
+}
+
 run_case_diff() {
   local label="$1"
   local out_dir="$2"
@@ -107,12 +120,45 @@ run_case_xflatbuffers() {
   compare_output_stripping_xflatbuffers "${out_dir}"
 }
 
+run_case_roundtrip_golden() {
+  local label="$1"
+  local out_dir="$2"
+  shift 2
+
+  echo "Round-tripping JSON Schemas (${label})"
+  rm -rf "${out_dir}"
+  mkdir -p "${out_dir}"
+  ( cd "${script_dir}" && "${flatc}" "$@" -o "${out_dir}" "${golden_files[@]}" )
+  compare_output "${out_dir}"
+}
+
+run_case_roundtrip_xflatbuffers() {
+  local label="$1"
+  local gen_dir="$2"
+  local out_dir="$3"
+  shift 3
+
+  echo "Round-tripping JSON Schemas (${label})"
+  rm -rf "${gen_dir}" "${out_dir}"
+  mkdir -p "${gen_dir}" "${out_dir}"
+
+  ( cd "${script_dir}" && "${flatc}" "$@" "${include_flags[@]}" -o "${gen_dir}" "${schemas[@]}" )
+  ( cd "${gen_dir}" && "${flatc}" "$@" -o "${out_dir}" "${golden_files[@]}" )
+
+  compare_output_against_dir "${gen_dir}" "${out_dir}"
+}
+
 tmp_default="$(mktemp -d)"
 tmp_preserve="$(mktemp -d)"
 tmp_xflatbuffers_default="$(mktemp -d)"
 tmp_xflatbuffers_preserve="$(mktemp -d)"
+tmp_roundtrip_default="$(mktemp -d)"
+tmp_roundtrip_xfb_gen="$(mktemp -d)"
+tmp_roundtrip_xfb="$(mktemp -d)"
 cleanup() {
-  rm -rf "${tmp_default}" "${tmp_preserve}" "${tmp_xflatbuffers_default}" "${tmp_xflatbuffers_preserve}"
+  rm -rf "${tmp_default}" "${tmp_preserve}" \
+    "${tmp_xflatbuffers_default}" "${tmp_xflatbuffers_preserve}" \
+    "${tmp_roundtrip_default}" "${tmp_roundtrip_xfb_gen}" "${tmp_roundtrip_xfb}"
 }
 trap cleanup EXIT
 
@@ -120,5 +166,7 @@ run_case_diff "default naming" "${tmp_default}" --jsonschema
 run_case_diff "preserve-case naming" "${tmp_preserve}" --jsonschema --preserve-case
 run_case_xflatbuffers "x-flatbuffers metadata" "${tmp_xflatbuffers_default}" --jsonschema --jsonschema-xflatbuffers
 run_case_xflatbuffers "x-flatbuffers metadata + preserve-case" "${tmp_xflatbuffers_preserve}" --jsonschema --jsonschema-xflatbuffers --preserve-case
+run_case_roundtrip_golden "goldens" "${tmp_roundtrip_default}" --jsonschema
+run_case_roundtrip_xflatbuffers "x-flatbuffers metadata" "${tmp_roundtrip_xfb_gen}" "${tmp_roundtrip_xfb}" --jsonschema --jsonschema-xflatbuffers
 
-echo "JSON Schema tests (default + preserve-case + x-flatbuffers) passed"
+echo "JSON Schema tests (generation + roundtrip) passed"

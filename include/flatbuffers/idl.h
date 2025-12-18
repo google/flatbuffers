@@ -1070,6 +1070,11 @@ class Parser : public ParserState {
 
   bool ParseJson(const char* json, const char* json_filename = nullptr);
 
+  // Parse a JSON Schema (as produced by `flatc --jsonschema`) into the
+  // FlatBuffers schema IR.
+  bool ParseJsonSchema(const char* json_schema,
+                       const char* json_schema_filename = nullptr);
+
   // Returns the number of characters were consumed when parsing a JSON string.
   std::ptrdiff_t BytesConsumed() const;
 
@@ -1216,6 +1221,7 @@ class Parser : public ParserState {
                                     const char* source_filename,
                                     const char* include_filename);
   FLATBUFFERS_CHECKED_ERROR DoParseJson();
+  FLATBUFFERS_CHECKED_ERROR DoParseJsonSchema();
   FLATBUFFERS_CHECKED_ERROR CheckClash(std::vector<FieldDef*>& fields,
                                        StructDef* struct_def,
                                        const char* suffix, BaseType baseType);
