@@ -1,10 +1,10 @@
-#include "fuzz_test.h"
+#include "tests/fuzz_test.h"
 
 #include <algorithm>
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
-#include "test_assert.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

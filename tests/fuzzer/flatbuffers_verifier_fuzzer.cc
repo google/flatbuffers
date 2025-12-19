@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "cpp17/generated_cpp17/monster_test_generated.h"
+#include "tests/cpp17/generated_cpp17/monster_test_generated.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   flatbuffers::Verifier verifier(data, size);

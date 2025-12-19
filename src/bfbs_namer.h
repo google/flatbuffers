@@ -1,8 +1,8 @@
 #ifndef FLATBUFFERS_BFBS_NAMER
 #define FLATBUFFERS_BFBS_NAMER
 
+#include "codegen/namer.h"
 #include "flatbuffers/reflection.h"
-#include "namer.h"
 
 namespace flatbuffers {
 

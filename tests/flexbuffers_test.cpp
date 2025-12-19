@@ -1,11 +1,11 @@
-#include "flexbuffers_test.h"
+#include "tests/flexbuffers_test.h"
 
 #include <limits>
 
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
-#include "is_quiet_nan.h"
-#include "test_assert.h"
+#include "tests/is_quiet_nan.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

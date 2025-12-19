@@ -7,9 +7,9 @@
 #include <sstream>
 #include <string>
 
-#include "binary_annotator.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
+#include "binary_annotator.h"
 
 namespace flatbuffers {
 namespace {

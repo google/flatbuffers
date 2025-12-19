@@ -19,9 +19,9 @@
 #include <condition_variable>
 #include <thread>
 
-#include "monster_test.grpc.fb.h"
-#include "monster_test_generated.h"
-#include "test_assert.h"
+#include "tests/monster_test.grpc.fb.h"
+#include "tests/monster_test_generated.h"
+#include "tests/test_assert.h"
 
 using namespace MyGame::Example;
 using flatbuffers::FlatBufferBuilder;

@@ -3,7 +3,7 @@
 #include <string>
 
 #include "binary_annotator.h"
-#include "test_init.h"
+#include "tests/fuzzer/test_init.h"
 
 static std::filesystem::path exe_path_;
 static const uint8_t* schema_bfbs_;

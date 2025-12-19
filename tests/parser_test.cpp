@@ -1,11 +1,11 @@
-#include "parser_test.h"
+#include "tests/parser_test.h"
 
 #include <cmath>
 #include <limits>
 #include <string>
 
 #include "flatbuffers/idl.h"
-#include "test_assert.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

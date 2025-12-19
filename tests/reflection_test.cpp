@@ -1,13 +1,13 @@
-#include "reflection_test.h"
+#include "tests/reflection_test.h"
 
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/verifier.h"
-#include "monster_test.h"
-#include "monster_test_generated.h"
-#include "test_assert.h"
 #include "tests/arrays_test_generated.h"
+#include "tests/monster_test.h"
+#include "tests/monster_test_generated.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

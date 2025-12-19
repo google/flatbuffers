@@ -1,11 +1,11 @@
-#include "key_field_test.h"
+#include "tests/key_field_test.h"
 
 #include <iostream>
 
+#include "key_field/key_field_sample_generated.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
-#include "key_field/key_field_sample_generated.h"
-#include "test_assert.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

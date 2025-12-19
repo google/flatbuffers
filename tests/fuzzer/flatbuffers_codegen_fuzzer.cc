@@ -1,31 +1,32 @@
-#include <stddef.h>
-#include <stdint.h>
-#include <string>
-#include "flatbuffers/idl.h"  // For Parser and generation functions
-#include "test_init.h"
-#include <memory>
+#include <bfbs_gen_lua.h>
+#include <bfbs_gen_nim.h>
 #include <flatbuffers/flatc.h>
-#include "idl_gen_cpp.h"  // For C++ generator
-#include <idl_gen_csharp.h>
-#include <iostream>
-#include "flatbuffers/code_generator.h"
 #include <idl_gen_binary.h>
+#include <idl_gen_csharp.h>
 #include <idl_gen_dart.h>
 #include <idl_gen_fbs.h>
 #include <idl_gen_go.h>
 #include <idl_gen_java.h>
 #include <idl_gen_json_schema.h>
 #include <idl_gen_kotlin.h>
-#include <idl_gen_kotlin.h>
 #include <idl_gen_lobster.h>
-#include <bfbs_gen_lua.h>
-#include <bfbs_gen_nim.h>
-#include <idl_gen_python.h>
 #include <idl_gen_php.h>
+#include <idl_gen_python.h>
 #include <idl_gen_rust.h>
-#include <idl_gen_text.h>
 #include <idl_gen_swift.h>
+#include <idl_gen_text.h>
 #include <idl_gen_ts.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include <iostream>
+#include <memory>
+#include <string>
+
+#include "flatbuffers/code_generator.h"
+#include "flatbuffers/idl.h"  // For Parser and generation functions
+#include "idl_gen_cpp.h"  // For C++ generator
+#include "tests/fuzzer/test_init.h"
 
 static constexpr size_t kMinInputLength = 1;
 static constexpr size_t kMaxInputLength = 16384;
@@ -98,8 +99,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   if (parser.Parse(parse_input)) {
     parser.Serialize();
     const uint8_t* buf = parser.builder_.GetBufferPointer();
-    flatbuffers::Verifier verifier(buf,
-                                   parser.builder_.GetSize());
+    flatbuffers::Verifier verifier(buf, parser.builder_.GetSize());
     TEST_EQ(true, reflection::VerifySchemaBuffer(verifier));
 
     auto root = flatbuffers::GetRoot<flatbuffers::Table>(buf);
@@ -126,8 +126,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     generators.emplace_back(flatbuffers::NewKotlinCodeGenerator());
     generators.emplace_back(flatbuffers::NewKotlinKMPCodeGenerator());
     generators.emplace_back(flatbuffers::NewLobsterCodeGenerator());
-    generators.emplace_back(flatbuffers::NewLuaBfbsGenerator(flatbuffers_version));
-    generators.emplace_back(flatbuffers::NewNimBfbsGenerator(flatbuffers_version));
+    generators.emplace_back(
+        flatbuffers::NewLuaBfbsGenerator(flatbuffers_version));
+    generators.emplace_back(
+        flatbuffers::NewNimBfbsGenerator(flatbuffers_version));
     generators.emplace_back(flatbuffers::NewPythonCodeGenerator());
     generators.emplace_back(flatbuffers::NewPhpCodeGenerator());
     generators.emplace_back(flatbuffers::NewRustCodeGenerator());

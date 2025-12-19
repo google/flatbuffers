@@ -23,12 +23,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "codegen/idl_namer.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "idl_namer.h"
 
 namespace flatbuffers {
 namespace {
@@ -339,8 +339,7 @@ class TsGenerator : public BaseGenerator {
     for (auto it = dc.begin(); it != dc.end(); ++it) {
       if (indent) code += indent;
       std::string safe = *it;
-      for (size_t pos = 0;
-           (pos = safe.find("*/", pos)) != std::string::npos;) {
+      for (size_t pos = 0; (pos = safe.find("*/", pos)) != std::string::npos;) {
         safe.replace(pos, 2, "*\\/");
         pos += 3;
       }

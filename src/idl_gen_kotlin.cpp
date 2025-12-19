@@ -21,11 +21,11 @@
 #include <functional>
 #include <unordered_set>
 
+#include "codegen/idl_namer.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "idl_namer.h"
 
 namespace flatbuffers {
 
@@ -1216,8 +1216,8 @@ class KotlinGenerator : public BaseGenerator {
         // fun inventoryInByteBuffer(_bb: Bytebuffer):
         //     ByteBuffer? = __vector_as_bytebuffer(_bb, 14, 1)
         GenerateFunOneLine(
-            writer, field_name + "InByteBuffer", "_bb: ByteBuffer",
-            buffer_type, [&]() {
+            writer, field_name + "InByteBuffer", "_bb: ByteBuffer", buffer_type,
+            [&]() {
               writer.SetValue("end", end_idx);
               writer += "__vector_in_bytebuffer(_bb, {{offset}}, {{end}})";
             });

@@ -1,0 +1,39 @@
+// C++ Only Schema for Default Vectors Test
+namespace DefaultVectorsStringsTest;
+
+struct MyStruct {
+  a:int;
+  b:int;
+}
+
+table MyTable {
+  a:int;
+}
+
+enum MyEnum:byte { A, B }
+
+table TableWithDefaultVectors {
+  int_vec:[int] = [];
+  bool_vec:[bool] = [];
+  char_vec:[byte] = [];
+  uchar_vec:[ubyte] = [];
+  short_vec:[short] = [];
+  ushort_vec:[ushort] = [];
+  uint_vec:[uint] = [];
+  long_vec:[long] = [];
+  ulong_vec:[ulong] = [];
+  float_vec:[float] = [];
+  double_vec:[double] = [];
+  string_vec:[string] = [];
+  empty_string:string = "";
+  some_string:string = "some";
+  struct_vec:[MyStruct] = [];
+  table_vec:[MyTable] = [];
+  enum_vec:[MyEnum] = [];
+  regular_int_vec:[int];
+  regular_int:int;
+  int_vec_offset64:[int] = [] (offset64);
+  int_vec64:[int]= [] (vector64);
+}
+
+root_type TableWithDefaultVectors;

@@ -15,25 +15,27 @@
  */
 
 #include <jni.h>
-#include <string>
 #include <search.h>
+
+#include <string>
+
 #include "generated/animal_generated.h"
 
 using namespace com::fbs::app;
 using namespace flatbuffers;
 
-extern "C" JNIEXPORT jbyteArray JNICALL Java_com_flatbuffers_app_MainActivity_createAnimalFromJNI(
-        JNIEnv* env,
-        jobject /* this */) {
-    // create a new animal flatbuffers
-    auto fb = FlatBufferBuilder(1024);
-    auto tiger = CreateAnimalDirect(fb, "Tiger", "Roar", 300);
-    fb.Finish(tiger);
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_com_flatbuffers_app_MainActivity_createAnimalFromJNI(JNIEnv* env,
+                                                          jobject /* this */) {
+  // create a new animal flatbuffers
+  auto fb = FlatBufferBuilder(1024);
+  auto tiger = CreateAnimalDirect(fb, "Tiger", "Roar", 300);
+  fb.Finish(tiger);
 
-    // copies it to a Java byte array.
-    auto buf = reinterpret_cast<jbyte*>(fb.GetBufferPointer());
-    int size = fb.GetSize();
-    auto ret = env->NewByteArray(size);
-    env->SetByteArrayRegion (ret, 0, fb.GetSize(), buf);
+  // copies it to a Java byte array.
+  auto buf = reinterpret_cast<jbyte*>(fb.GetBufferPointer());
+  int size = fb.GetSize();
+  auto ret = env->NewByteArray(size);
+  env->SetByteArrayRegion(ret, 0, fb.GetSize(), buf);
   return ret;
 }

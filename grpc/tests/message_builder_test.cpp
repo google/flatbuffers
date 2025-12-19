@@ -1,7 +1,7 @@
 #include "flatbuffers/grpc.h"
-#include "monster_test_generated.h"
-#include "test_assert.h"
-#include "test_builder.h"
+#include "tests/monster_test_generated.h"
+#include "tests/test_assert.h"
+#include "tests/test_builder.h"
 
 using MyGame::Example::Any_NONE;
 using MyGame::Example::CreateStat;

@@ -9,8 +9,8 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/verifier.h"
-#include "test_assert.h"
-#include "test_init.h"
+#include "tests/fuzzer/test_init.h"
+#include "tests/test_assert.h"
 
 OneTimeTestInit OneTimeTestInit::one_time_init_;
 

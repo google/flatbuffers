@@ -2,7 +2,7 @@
 // FlatBuffers modified generator: native gRPC callback client API enabled when
 // --grpc-callback-api. source: monster_test
 
-#include "monster_test_generated.h"
+#include "tests/monster_test_generated.h"
 
 #include <grpcpp/impl/codegen/async_stream.h>
 #include <grpcpp/impl/codegen/async_unary_call.h>
@@ -13,7 +13,7 @@
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
 
-#include "monster_test.grpc.fb.h"
+#include "tests/monster_test.grpc.fb.h"
 namespace MyGame {
 namespace Example {
 

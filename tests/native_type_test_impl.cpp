@@ -1,6 +1,6 @@
-#include "native_type_test_impl.h"
+#include "tests/native_type_test_impl.h"
 
-#include "native_type_test_generated.h"
+#include "tests/native_type_test_generated.h"
 
 namespace flatbuffers {
 Geometry::Vector3D Pack(const Native::Vector3D& obj) {
@@ -22,15 +22,19 @@ const Native::Vector3D UnPackVector3DAlt(const Geometry::Vector3DAlt& obj) {
 
 namespace Geometry {
 void Matrix::UnPackTo(
-    Native::Matrix *_o,
-    const ::flatbuffers::resolver_function_t *_resolver) const {
+    Native::Matrix* _o,
+    const ::flatbuffers::resolver_function_t* _resolver) const {
   (void)_resolver;
 
   auto _rows = rows();
-  if (_rows) { _o->rows = _rows; }
+  if (_rows) {
+    _o->rows = _rows;
+  }
 
   auto _columns = columns();
-  if (_columns) { _o->columns = _columns; }
+  if (_columns) {
+    _o->columns = _columns;
+  }
 
   auto _values = values();
   if (_values) {
@@ -42,8 +46,8 @@ void Matrix::UnPackTo(
 }
 
 ::flatbuffers::Offset<Matrix> Matrix::Pack(
-    ::flatbuffers::FlatBufferBuilder &_fbb, const Native::Matrix *_o,
-    const ::flatbuffers::rehasher_function_t *_rehasher) {
+    ::flatbuffers::FlatBufferBuilder& _fbb, const Native::Matrix* _o,
+    const ::flatbuffers::rehasher_function_t* _rehasher) {
   (void)_rehasher;
 
   return CreateMatrix(_fbb, _o->rows, _o->columns,

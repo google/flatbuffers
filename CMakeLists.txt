@@ -240,6 +240,8 @@ set(FlatBuffers_Tests_SRCS
   tests/native_type_test_impl.cpp
   tests/alignment_test.h
   tests/alignment_test.cpp
+  tests/default_vectors_test.h
+  tests/default_vectors_test.cpp
   tests/64bit/offset64_test.h
   tests/64bit/offset64_test.cpp
   include/flatbuffers/code_generators.h

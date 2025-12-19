@@ -2,8 +2,8 @@
 #ifndef FUZZER_TEST_INIT_H_
 #define FUZZER_TEST_INIT_H_
 
-#include "fuzzer_assert.h"
-#include "test_assert.h"
+#include "tests/fuzzer/fuzzer_assert.h"
+#include "tests/test_assert.h"
 
 // Utility for test run.
 struct OneTimeTestInit {

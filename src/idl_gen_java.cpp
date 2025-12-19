@@ -18,11 +18,11 @@
 
 #include "idl_gen_java.h"
 
+#include "codegen/idl_namer.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "idl_namer.h"
 
 namespace flatbuffers {
 namespace java {
@@ -56,16 +56,16 @@ static Namer::Config JavaDefaultConfig() {
 
 static std::set<std::string> JavaKeywords() {
   return {
-      "abstract", "assert",   "boolean",    "break",     "byte",
-      "case",     "catch",    "char",       "class",     "const",
-      "continue", "default",  "do",         "double",    "else",
-      "enum",     "extends",  "final",      "finally",   "float",
-      "for",      "goto",     "if",         "implements","import",
-      "instanceof","int",     "interface",  "long",      "native",
-      "new",      "notify",   "package",    "private",   "protected",
-      "public",   "return",   "short",      "static",    "strictfp",
-      "super",    "switch",   "synchronized","this",     "throw",
-      "throws",   "transient","try",        "void",      "volatile",
+      "abstract",   "assert",    "boolean",      "break",      "byte",
+      "case",       "catch",     "char",         "class",      "const",
+      "continue",   "default",   "do",           "double",     "else",
+      "enum",       "extends",   "final",        "finally",    "float",
+      "for",        "goto",      "if",           "implements", "import",
+      "instanceof", "int",       "interface",    "long",       "native",
+      "new",        "notify",    "package",      "private",    "protected",
+      "public",     "return",    "short",        "static",     "strictfp",
+      "super",      "switch",    "synchronized", "this",       "throw",
+      "throws",     "transient", "try",          "void",       "volatile",
       "while",
   };
 }
@@ -1468,7 +1468,8 @@ class JavaGenerator : public BaseGenerator {
             " " + variable_name + "Type = " + field_name + "Type(" +
             type_params + ");\n";
     code += indent + variable_name + ".setType(" + variable_name + "Type);\n";
-    code += indent + "com.google.flatbuffers.Table " + variable_name + "Value;\n";
+    code +=
+        indent + "com.google.flatbuffers.Table " + variable_name + "Value;\n";
     code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
