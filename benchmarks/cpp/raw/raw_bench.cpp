@@ -45,8 +45,8 @@ struct FooBarContainer {
 };
 
 struct RawBench : Bench {
-  uint8_t *Encode(void *buf, int64_t &len) override {
-    FooBarContainer *fbc = new (buf) FooBarContainer;
+  uint8_t* Encode(void* buf, int64_t& len) override {
+    FooBarContainer* fbc = new (buf) FooBarContainer;
     strcpy(fbc->location, "http://google.com/flatbuffers/");  // Unsafe eek!
     fbc->location_len = (int)strlen(fbc->location);
     fbc->fruit = Bananas;
@@ -54,16 +54,16 @@ struct RawBench : Bench {
     for (int i = 0; i < kVectorLength; i++) {
       // We add + i to not make these identical copies for a more realistic
       // compression test.
-      auto &foobar = fbc->list[i];
+      auto& foobar = fbc->list[i];
       foobar.rating = 3.1415432432445543543 + i;
       foobar.postfix = '!' + i;
       strcpy(foobar.name, "Hello, World!");
       foobar.name_len = (int)strlen(foobar.name);
-      auto &bar = foobar.sibling;
+      auto& bar = foobar.sibling;
       bar.ratio = 3.14159f + i;
       bar.size = 10000 + i;
       bar.time = 123456 + i;
-      auto &foo = bar.parent;
+      auto& foo = bar.parent;
       foo.id = 0xABADCAFEABADCAFE + i;
       foo.count = 10000 + i;
       foo.length = 1000000 + i;
@@ -71,11 +71,11 @@ struct RawBench : Bench {
     }
 
     len = sizeof(FooBarContainer);
-    return reinterpret_cast<uint8_t *>(fbc);
+    return reinterpret_cast<uint8_t*>(fbc);
   };
 
-  int64_t Use(void *decoded) override {
-    auto foobarcontainer = reinterpret_cast<FooBarContainer *>(decoded);
+  int64_t Use(void* decoded) override {
+    auto foobarcontainer = reinterpret_cast<FooBarContainer*>(decoded);
     sum = 0;
     Add(foobarcontainer->initialized);
     Add(foobarcontainer->location_len);
@@ -89,7 +89,7 @@ struct RawBench : Bench {
       Add(static_cast<int64_t>(bar->ratio));
       Add(bar->size);
       Add(bar->time);
-      auto &foo = bar->parent;
+      auto& foo = bar->parent;
       Add(foo.count);
       Add(foo.id);
       Add(foo.length);
@@ -98,8 +98,8 @@ struct RawBench : Bench {
     return sum;
   }
 
-  void *Decode(void *buf, int64_t) override { return buf; }
-  void Dealloc(void *) override{};
+  void* Decode(void* buf, int64_t) override { return buf; }
+  void Dealloc(void*) override {};
 };
 
 }  // namespace
