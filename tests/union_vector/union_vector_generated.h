@@ -384,6 +384,10 @@ inline bool operator!=(const Rapunzel &lhs, const Rapunzel &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Rapunzel &obj) {
+  return H::combine(std::move(h), obj.hair_length());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
@@ -417,6 +421,10 @@ inline bool operator!=(const BookReader &lhs, const BookReader &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const BookReader &obj) {
+  return H::combine(std::move(h), obj.books_read());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) FallingTub FLATBUFFERS_FINAL_CLASS {
  private:
@@ -450,6 +458,10 @@ inline bool operator!=(const FallingTub &lhs, const FallingTub &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const FallingTub &obj) {
+  return H::combine(std::move(h), obj.weight());
+}
 
 struct AttackerT : public ::flatbuffers::NativeTable {
   typedef Attacker TableType;

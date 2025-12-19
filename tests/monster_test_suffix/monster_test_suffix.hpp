@@ -709,6 +709,10 @@ inline bool operator!=(const Test &lhs, const Test &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Test &obj) {
+  return H::combine(std::move(h), obj.a(), obj.b());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -807,6 +811,10 @@ inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Vec3 &obj) {
+  return H::combine(std::move(h), obj.x(), obj.y(), obj.z(), obj.test1(), obj.test2(), obj.test3());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Ability FLATBUFFERS_FINAL_CLASS {
  private:
@@ -856,6 +864,10 @@ inline bool operator!=(const Ability &lhs, const Ability &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Ability &obj) {
+  return H::combine(std::move(h), obj.id(), obj.distance());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructs FLATBUFFERS_FINAL_CLASS {
  private:
@@ -909,6 +921,10 @@ inline bool operator!=(const StructOfStructs &lhs, const StructOfStructs &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const StructOfStructs &obj) {
+  return H::combine(std::move(h), obj.a(), obj.b(), obj.c());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) StructOfStructsOfStructs FLATBUFFERS_FINAL_CLASS {
  private:
@@ -942,6 +958,10 @@ inline bool operator!=(const StructOfStructsOfStructs &lhs, const StructOfStruct
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const StructOfStructsOfStructs &obj) {
+  return H::combine(std::move(h), obj.a());
+}
 
 }  // namespace Example
 

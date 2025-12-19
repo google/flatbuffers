@@ -571,8 +571,6 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Since flatsample has no sources, we have to explicitly set the linker lang.
   set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
-  
-  compile_schema_for_samples(samples/monster.fbs "${FLATC_OPT_COMP}")
 
   target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
   target_link_libraries(flatsampletext PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)

@@ -26,6 +26,13 @@
 #define INCLUDE_64_BIT_TESTS 1
 #endif
 
+#if __has_include("third_party/absl/container/flat_hash_set.h")
+#define HAS_ABSL_CONTAINERS 1
+#endif
+
+#ifdef HAS_ABSL_CONTAINERS
+#include "third_party/absl/container/flat_hash_set.h"
+#endif
 #include "alignment_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
@@ -1665,6 +1672,40 @@ void UnionUnderlyingTypeTest() {
   TEST_ASSERT(unpacked.test_vector_of_union == buffer.test_vector_of_union);
 }
 
+void StructsInHashTableTest() {
+#if defined(HAS_ABSL_CONTAINERS) && (!defined(_MSC_VER) || _MSC_VER >= 1700)
+  absl::flat_hash_set<ArrayStruct> hash_set;
+  ArrayStruct array_struct_1;
+  array_struct_1.mutate_a(0.4);
+  for (int i = 0; i < array_struct_1.b()->size(); ++i) {
+    array_struct_1.mutable_b()->Mutate(i, i * 2);
+  }
+  for (int i = 0; i < array_struct_1.d()->size(); ++i) {
+    NestedStruct nested_struct;
+    nested_struct.mutable_a()->Mutate(0, i * 3);
+    array_struct_1.mutable_d()->Mutate(i, nested_struct);
+  }
+
+  ArrayStruct array_struct_2;
+  array_struct_2.mutate_e(999);
+
+  hash_set.insert(array_struct_1);
+  hash_set.insert(array_struct_2);
+
+  TEST_EQ(hash_set.size(), 2);
+  TEST_ASSERT(hash_set.contains(array_struct_1));
+  TEST_ASSERT(hash_set.contains(array_struct_2));
+
+  ArrayStruct array_struct_3 = array_struct_1;
+  array_struct_3.mutable_b()->Mutate(0, 2);
+  TEST_ASSERT(!hash_set.contains(array_struct_3));
+
+  hash_set.insert(array_struct_3);
+  TEST_ASSERT(hash_set.contains(array_struct_3));
+#endif  // defined(HAS_ABSL_CONTAINERS) && (!defined(_MSC_VER) || _MSC_VER >=
+        // 1700)
+}
+
 static void Offset64Tests() {
 #if INCLUDE_64_BIT_TESTS
   Offset64Test();
@@ -1794,6 +1835,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   EmbeddedSchemaAccess();
   Offset64Tests();
   UnionUnderlyingTypeTest();
+  StructsInHashTableTest();
   return 0;
 }
 }  // namespace

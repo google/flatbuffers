@@ -213,6 +213,7 @@ flatbuffer_cc_library(
 include_test_args = [
     "--gen-object-api",
     "--gen-compare",
+    "--gen-absl-hash",
     "--gen-mutable",
     "--reflect-names",
     "--cpp-ptr-type flatbuffers::unique_ptr",

@@ -2311,6 +2311,34 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  void GenAbslHashValue(const StructDef& struct_def) {
+    code_ += "template <typename H>";
+    code_ += "inline H AbslHashValue(H h, const {{NATIVE_NAME}} &obj) {";
+    std::string combine_args;
+    for (const auto& field : struct_def.fields.vec) {
+      if (field->deprecated) {
+        continue;
+      }
+      if (IsArray(field->value.type)) {
+        const auto field_accessor = "obj." + Name(*field) + "()";
+        const auto& element_type = field->value.type.VectorType();
+        if (IsStruct(element_type)) {
+          code_ += "  for (const auto* element : *" + field_accessor + ") {";
+          code_ += "    h = H::combine(std::move(h), *element);";
+          code_ += "  }";
+        } else {
+          code_ += "  for (auto element : *" + field_accessor + ") {";
+          code_ += "    h = H::combine(std::move(h), element);";
+          code_ += "  }";
+        }
+      } else {
+        combine_args += ", obj." + Name(*field) + "()";
+      }
+    }
+    code_ += "  return H::combine(std::move(h)" + combine_args + ");";
+    code_ += "}";
+  }
+
   void GenOperatorNewDelete(const StructDef& struct_def) {
     if (auto native_custom_alloc =
             struct_def.attributes.Lookup("native_custom_alloc")) {
@@ -4281,7 +4309,12 @@ class CppGenerator : public BaseGenerator {
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
     code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
-    if (opts_.gen_compare) GenCompareOperator(struct_def, "()");
+    if (opts_.gen_compare) {
+      GenCompareOperator(struct_def, "()");
+    }
+    if (opts_.gen_absl_hash) {
+      GenAbslHashValue(struct_def);
+    }
     code_ += "";
 
     // Definition for type traits for this table type. This allows querying var-
