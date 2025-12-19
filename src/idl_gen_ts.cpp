@@ -86,7 +86,7 @@ std::set<std::string> TypescriptKeywords() {
       "throw",     "true",     "try",       "typeof",     "var",        "void",
       "while",     "with",     "as",        "implements", "interface",  "let",
       "package",   "private",  "protected", "public",     "static",     "yield",
-      "undefined",
+      "undefined"
   };
 }
 
