@@ -112,7 +112,8 @@ class TsGenerator : public BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", "_", "ts"),
         namer_(WithFlagOptions(TypeScriptDefaultConfig(), parser.opts, path),
                TypescriptKeywords()),
-        null_keyword_(parser_.opts.ts_undefined_for_optionals ? "undefined" : "null") {}
+        null_keyword_(parser_.opts.ts_undefined_for_optionals ? "undefined"
+                                                              : "null") {}
 
   bool generate() {
     generateEnums();
@@ -1044,7 +1045,8 @@ class TsGenerator : public BaseGenerator {
       const auto& enum_def = *union_type.enum_def;
 
       const auto valid_union_type = GenUnionTypeTS(enum_def, imports);
-      const auto valid_union_type_with_null = valid_union_type + "|" + null_keyword_;
+      const auto valid_union_type_with_null =
+          valid_union_type + "|" + null_keyword_;
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
                  "(\n  type: " + GetTypeName(enum_def) +
@@ -1125,7 +1127,8 @@ class TsGenerator : public BaseGenerator {
         ret += "      const temp = " + conversion_function + "(this." +
                namer_.Method(field_name, "Type") + "(), " +
                field_binded_method + ");\n";
-        ret += "      if(temp === " + null_keyword_ + ") { return " + null_keyword_ + "; }\n";
+        ret += "      if(temp === " + null_keyword_ + ") { return " +
+               null_keyword_ + "; }\n";
         ret += union_has_string
                    ? "      if(typeof temp === 'string') { return temp; }\n"
                    : "";
@@ -1170,8 +1173,8 @@ class TsGenerator : public BaseGenerator {
   std::string GenNullCheckConditional(const std::string& nullCheckVar,
                                       const std::string& trueVal,
                                       const std::string& falseVal) {
-    return "(" + nullCheckVar + " !== " + null_keyword_ + " ? " + trueVal + " : " +
-           falseVal + ")";
+    return "(" + nullCheckVar + " !== " + null_keyword_ + " ? " + trueVal +
+           " : " + falseVal + ")";
   }
 
   std::string GenStructMemberValueTS(const StructDef& struct_def,
@@ -1634,7 +1637,8 @@ class TsGenerator : public BaseGenerator {
               "> {\n";
     else
       code += " {\n";
-    code += "  bb: flatbuffers.ByteBuffer|" + null_keyword_ + " = " + null_keyword_ + ";\n";
+    code += "  bb: flatbuffers.ByteBuffer|" + null_keyword_ + " = " +
+            null_keyword_ + ";\n";
     code += "  bb_pos = 0;\n";
 
     // Generate the __init method that sets the field in a pre-existing
@@ -1736,7 +1740,8 @@ class TsGenerator : public BaseGenerator {
                     .name;
             GenDocComment(field.doc_comment, code_ptr);
             code += namer_.Method(field);
-            code += "(obj?:" + type + "):" + type + "|" + null_keyword_ + " {\n";
+            code +=
+                "(obj?:" + type + "):" + type + "|" + null_keyword_ + " {\n";
 
             if (struct_def.fixed) {
               code += "  return (obj || " + GenerateNewExpression(type);
@@ -2012,8 +2017,8 @@ class TsGenerator : public BaseGenerator {
           GenDocComment(code_ptr);
 
           code += namer_.Method(field, "Array");
-          code += "():" + GenType(vectorType) + "Array|" + null_keyword_ + " {\n" +
-                  offset_prefix;
+          code += "():" + GenType(vectorType) + "Array|" + null_keyword_ +
+                  " {\n" + offset_prefix;
 
           code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
                   ".bytes().buffer, " + GenBBAccess() +
