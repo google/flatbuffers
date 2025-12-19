@@ -86,7 +86,8 @@ std::set<std::string> TypescriptKeywords() {
           "throw",     "true",     "try",        "typeof",   "var",
           "void",      "while",    "with",       "as",       "implements",
           "interface", "let",      "package",    "private",  "protected",
-          "public",    "static",   "yield",      "undefined"};
+          "public",    "static",   "yield",      "undefined",
+        };
 }
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
