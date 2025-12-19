@@ -5,8 +5,8 @@
 #include <type_traits>
 
 #include "flatbuffers/flatbuffers.h"
-#include "monster_test_generated.h"
-#include "test_assert.h"
+#include "tests/monster_test_generated.h"
+#include "tests/test_assert.h"
 
 using MyGame::Example::Color;
 using MyGame::Example::Monster;

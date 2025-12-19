@@ -1,7 +1,7 @@
-#include "util_test.h"
+#include "tests/util_test.h"
 
 #include "flatbuffers/util.h"
-#include "test_assert.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

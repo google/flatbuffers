@@ -25,8 +25,8 @@
 
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/idl.h"  // For Parser and generation functions
-#include "idl_gen_cpp.h"      // For C++ generator
-#include "test_init.h"
+#include "idl_gen_cpp.h"  // For C++ generator
+#include "tests/fuzzer/test_init.h"
 
 static constexpr size_t kMinInputLength = 1;
 static constexpr size_t kMaxInputLength = 16384;

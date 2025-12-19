@@ -26,8 +26,8 @@
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
-#include "stringify_util.h"
-#include "test_assert.h"
+#include "tests/cpp17/stringify_util.h"
+#include "tests/test_assert.h"
 
 // Embed generated code into an isolated namespace.
 namespace cpp17 {

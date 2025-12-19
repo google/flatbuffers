@@ -4,7 +4,7 @@
 #include <string>
 
 #include "flatbuffers/detached_buffer.h"
-#include "monster_test_generated.h"
+#include "tests/monster_test_generated.h"
 
 namespace flatbuffers {
 namespace tests {

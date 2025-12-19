@@ -21,10 +21,10 @@
 #include <filesystem>
 #include <string>
 
-#include "cpp17/generated_cpp17/monster_test_generated.h"
 #include "flatbuffers/idl.h"
-#include "test_assert.h"
-#include "test_init.h"
+#include "tests/cpp17/generated_cpp17/monster_test_generated.h"
+#include "tests/fuzzer/test_init.h"
+#include "tests/test_assert.h"
 
 namespace fs = std::filesystem;
 

@@ -1,4 +1,4 @@
-#include "offset64_test.h"
+#include "tests/64bit/offset64_test.h"
 
 #include <stdint.h>
 

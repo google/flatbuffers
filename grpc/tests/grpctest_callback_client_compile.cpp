@@ -5,7 +5,7 @@
 
 #include <type_traits>
 
-#include "monster_test.grpc.fb.h"
+#include "tests/monster_test.grpc.fb.h"
 
 #if defined(FLATBUFFERS_GENERATED_GRPC_CALLBACK_API) && \
     defined(GRPC_CALLBACK_API_NONEXPERIMENTAL)

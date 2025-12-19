@@ -17,12 +17,12 @@
 #include <cstdio>
 #include <memory>
 
-#include "bfbs_gen_lua.h"
-#include "bfbs_gen_nim.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/flatc.h"
 #include "flatbuffers/util.h"
+#include "bfbs_gen_lua.h"
+#include "bfbs_gen_nim.h"
 #include "idl_gen_binary.h"
 #include "idl_gen_cpp.h"
 #include "idl_gen_csharp.h"

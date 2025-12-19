@@ -1,11 +1,11 @@
-#include "json_test.h"
+#include "tests/json_test.h"
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
-#include "monster_test_bfbs_generated.h"
-#include "monster_test_generated.h"
-#include "optional_scalars_generated.h"
-#include "test_assert.h"
+#include "tests/monster_test_bfbs_generated.h"
+#include "tests/monster_test_generated.h"
+#include "tests/optional_scalars_generated.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

@@ -26,39 +26,47 @@
 #define INCLUDE_64_BIT_TESTS 1
 #endif
 
-#include "alignment_test.h"
-#include "evolution_test.h"
+#if __has_include("third_party/absl/container/flat_hash_set.h")
+#define HAS_ABSL_CONTAINERS 1
+#endif
+
+#ifdef HAS_ABSL_CONTAINERS
+#include "third_party/absl/container/flat_hash_set.h"
+#endif
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
-#include "fuzz_test.h"
-#include "json_test.h"
-#include "key_field_test.h"
-#include "monster_test.h"
-#include "monster_test_generated.h"
-#include "native_inline_table_test_generated.h"
-#include "optional_scalars_test.h"
-#include "parser_test.h"
-#include "proto_test.h"
-#include "reflection_test.h"
+#include "tests/alignment_test.h"
+#include "tests/default_vectors_strings_test.h"
+#include "tests/evolution_test.h"
+#include "tests/fuzz_test.h"
+#include "tests/json_test.h"
+#include "tests/key_field_test.h"
+#include "tests/monster_test.h"
+#include "tests/monster_test_generated.h"
+#include "tests/native_inline_table_test_generated.h"
+#include "tests/optional_scalars_test.h"
+#include "tests/parser_test.h"
+#include "tests/proto_test.h"
+#include "tests/reflection_test.h"
+#include "tests/union_underlying_type_test_generated.h"
 #include "tests/union_vector/union_vector_generated.h"
-#include "union_underlying_type_test_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #include "tests/arrays_test_generated.h"
 #endif
 #if INCLUDE_64_BIT_TESTS
 #include "tests/64bit/offset64_test.h"
 #endif
-#include "flexbuffers_test.h"
-#include "is_quiet_nan.h"
-#include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
-#include "native_type_test_generated.h"
-#include "test_assert.h"
-#include "util_test.h"
-#include "vector_table_naked_ptr_test.h"
+#include "tests/flexbuffers_test.h"
+#include "tests/is_quiet_nan.h"
+#include "tests/monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
+#include "tests/native_type_test_generated.h"
+#include "tests/test_assert.h"
+#include "tests/util_test.h"
+#include "tests/vector_table_naked_ptr_test.h"
 
 void FlatBufferBuilderTest();
 
@@ -1665,6 +1673,40 @@ void UnionUnderlyingTypeTest() {
   TEST_ASSERT(unpacked.test_vector_of_union == buffer.test_vector_of_union);
 }
 
+void StructsInHashTableTest() {
+#if defined(HAS_ABSL_CONTAINERS) && (!defined(_MSC_VER) || _MSC_VER >= 1700)
+  absl::flat_hash_set<ArrayStruct> hash_set;
+  ArrayStruct array_struct_1;
+  array_struct_1.mutate_a(0.4);
+  for (int i = 0; i < array_struct_1.b()->size(); ++i) {
+    array_struct_1.mutable_b()->Mutate(i, i * 2);
+  }
+  for (int i = 0; i < array_struct_1.d()->size(); ++i) {
+    NestedStruct nested_struct;
+    nested_struct.mutable_a()->Mutate(0, i * 3);
+    array_struct_1.mutable_d()->Mutate(i, nested_struct);
+  }
+
+  ArrayStruct array_struct_2;
+  array_struct_2.mutate_e(999);
+
+  hash_set.insert(array_struct_1);
+  hash_set.insert(array_struct_2);
+
+  TEST_EQ(hash_set.size(), 2);
+  TEST_ASSERT(hash_set.contains(array_struct_1));
+  TEST_ASSERT(hash_set.contains(array_struct_2));
+
+  ArrayStruct array_struct_3 = array_struct_1;
+  array_struct_3.mutable_b()->Mutate(0, 2);
+  TEST_ASSERT(!hash_set.contains(array_struct_3));
+
+  hash_set.insert(array_struct_3);
+  TEST_ASSERT(hash_set.contains(array_struct_3));
+#endif  // defined(HAS_ABSL_CONTAINERS) && (!defined(_MSC_VER) || _MSC_VER >=
+        // 1700)
+}
+
 static void Offset64Tests() {
 #if INCLUDE_64_BIT_TESTS
   Offset64Test();
@@ -1794,6 +1836,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
   EmbeddedSchemaAccess();
   Offset64Tests();
   UnionUnderlyingTypeTest();
+  StructsInHashTableTest();
+  DefaultVectorsStringsTest();
   return 0;
 }
 }  // namespace

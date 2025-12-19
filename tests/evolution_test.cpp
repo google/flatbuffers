@@ -1,9 +1,9 @@
-#include "evolution_test.h"
+#include "tests/evolution_test.h"
 
 #include "evolution_test/evolution_v1_generated.h"
 #include "evolution_test/evolution_v2_generated.h"
 #include "flatbuffers/idl.h"
-#include "test_assert.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

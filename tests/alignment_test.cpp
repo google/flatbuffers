@@ -1,9 +1,9 @@
-#include "alignment_test.h"
+#include "tests/alignment_test.h"
 
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/util.h"
-#include "test_assert.h"
 #include "tests/alignment_test_generated.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

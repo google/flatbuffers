@@ -1,11 +1,11 @@
-#include "optional_scalars_test.h"
+#include "tests/optional_scalars_test.h"
 
 #include <string>
 #include <vector>
 
 #include "flatbuffers/idl.h"
-#include "optional_scalars_generated.h"
-#include "test_assert.h"
+#include "tests/optional_scalars_generated.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

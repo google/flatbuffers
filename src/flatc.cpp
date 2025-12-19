@@ -23,11 +23,11 @@
 #include <sstream>
 #include <string>
 
-#include "annotated_binary_text_gen.h"
-#include "binary_annotator.h"
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+#include "annotated_binary_text_gen.h"
+#include "binary_annotator.h"
 
 namespace flatbuffers {
 
@@ -529,6 +529,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.generate_object_based_api = true;
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
+      } else if (arg == "--gen-absl-hash") {
+        opts.gen_absl_hash = true;
       } else if (arg == "--cpp-include") {
         if (++argi >= argc) Error("missing include following: " + arg, true);
         opts.cpp_includes.push_back(argv[argi]);

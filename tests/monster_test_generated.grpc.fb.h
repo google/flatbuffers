@@ -15,7 +15,7 @@
 #include <grpcpp/impl/codegen/sync_stream.h>
 
 #include "flatbuffers/grpc.h"
-#include "monster_test_generated.h"
+#include "tests/monster_test_generated.h"
 
 namespace grpc {
 class CompletionQueue;

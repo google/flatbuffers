@@ -33,7 +33,10 @@ public protocol FlatBufferTable: FlatbuffersInitializable,
   FlatbuffersVectorInitializable
 {
   var __buffer: ByteBuffer! { get }
+  var __offset: Int32 { get }
 }
+
+public typealias FlatBufferObject = FlatBufferTable
 
 /// FlatbufferStruct structures all the Flatbuffers structs
 public protocol FlatBufferStruct: FlatbuffersInitializable,

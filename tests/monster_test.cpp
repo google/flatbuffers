@@ -1,4 +1,4 @@
-#include "monster_test.h"
+#include "tests/monster_test.h"
 
 #include <limits>
 #include <vector>
@@ -9,10 +9,10 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/verifier.h"
-#include "is_quiet_nan.h"
-#include "monster_extra_generated.h"
-#include "monster_test_generated.h"
-#include "test_assert.h"
+#include "tests/is_quiet_nan.h"
+#include "tests/monster_extra_generated.h"
+#include "tests/monster_test_generated.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {

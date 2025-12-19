@@ -23,12 +23,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "codegen/idl_namer.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "idl_namer.h"
 
 namespace flatbuffers {
 namespace {

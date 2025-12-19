@@ -25,7 +25,7 @@
 #include <string>
 
 #include "flatbuffers/idl.h"
-#include "test_init.h"
+#include "tests/fuzzer/test_init.h"
 
 static constexpr size_t kMinInputLength = 1;
 static constexpr size_t kMaxInputLength = 3000;

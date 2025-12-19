@@ -1,7 +1,7 @@
-#include "vector_table_naked_ptr_test.h"
+#include "tests/vector_table_naked_ptr_test.h"
 
-#include "test_assert.h"
-#include "vector_table_naked_ptr/vector_table_naked_ptr_generated.h"
+#include "tests/test_assert.h"
+#include "tests/vector_table_naked_ptr/vector_table_naked_ptr_generated.h"
 
 namespace flatbuffers {
 namespace tests {

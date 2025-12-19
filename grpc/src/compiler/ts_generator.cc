@@ -26,8 +26,8 @@
 #include <map>
 #include <sstream>
 
-#include "flatbuffers/util.h"
 #include "src/compiler/schema_interface.h"
+#include "flatbuffers/util.h"
 
 namespace grpc_ts_generator {
 namespace {

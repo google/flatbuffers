@@ -1,4 +1,4 @@
-#include "monster_test.grpc.fb.h"
+#include "tests/monster_test.grpc.fb.h"
 
 // This test only verifies that the generated CallbackService compiles when the
 // callback API is available. It does not run any RPCs.

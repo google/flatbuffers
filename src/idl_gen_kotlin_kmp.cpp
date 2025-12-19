@@ -19,11 +19,11 @@
 #include <functional>
 #include <unordered_set>
 
+#include "codegen/idl_namer.h"
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 #include "idl_gen_kotlin.h"
-#include "idl_namer.h"
 
 namespace flatbuffers {
 

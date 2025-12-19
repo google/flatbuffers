@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import Foundation
-
 public struct FlatbufferVector<
   Element: FlatbuffersVectorInitializable
 >: RandomAccessCollection {

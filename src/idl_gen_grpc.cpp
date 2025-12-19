@@ -18,16 +18,16 @@
 
 #include <cstdio>
 
-#include "flatbuffers/code_generators.h"
-#include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/idl.h"
-#include "flatbuffers/util.h"
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/go_generator.h"
 #include "src/compiler/java_generator.h"
 #include "src/compiler/python_generator.h"
 #include "src/compiler/swift_generator.h"
 #include "src/compiler/ts_generator.h"
+#include "flatbuffers/code_generators.h"
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/idl.h"
+#include "flatbuffers/util.h"
 
 #if defined(_MSC_VER)
 #pragma warning(push)

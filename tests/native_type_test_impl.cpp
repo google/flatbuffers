@@ -1,6 +1,6 @@
-#include "native_type_test_impl.h"
+#include "tests/native_type_test_impl.h"
 
-#include "native_type_test_generated.h"
+#include "tests/native_type_test_generated.h"
 
 namespace flatbuffers {
 Geometry::Vector3D Pack(const Native::Vector3D& obj) {

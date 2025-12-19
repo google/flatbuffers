@@ -1,8 +1,8 @@
-#include "proto_test.h"
+#include "tests/proto_test.h"
 
 #include "flatbuffers/code_generator.h"
 #include "idl_gen_fbs.h"
-#include "test_assert.h"
+#include "tests/test_assert.h"
 
 namespace flatbuffers {
 namespace tests {
