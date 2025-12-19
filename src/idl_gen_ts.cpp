@@ -78,17 +78,16 @@ std::set<std::string> TypescriptKeywords() {
   // List of keywords retrieved from here:
   // https://github.com/microsoft/TypeScript/issues/2536
   return {
-    "arguments", "break",    "case",       "catch",    "class",
-          "const",     "continue", "debugger",   "default",  "delete",
-          "do",        "else",     "enum",       "export",   "extends",
-          "false",     "finally",  "for",        "function", "if",
-          "import",    "in",       "instanceof", "new",      "null",
-          "Object",    "return",   "super",      "switch",   "this",
-          "throw",     "true",     "try",        "typeof",   "var",
-          "void",      "while",    "with",       "as",       "implements",
-          "interface", "let",      "package",    "private",  "protected",
-          "public",    "static",   "yield",      "undefined" // Used instead of "null" when --ts-undefined-for-optionals is set
-        };
+      "arguments", "break",    "case",      "catch",      "class",      "const",
+      "continue",  "debugger", "default",   "delete",     "do",         "else",
+      "enum",      "export",   "extends",   "false",      "finally",    "for",
+      "function",  "if",       "import",    "in",         "instanceof", "new",
+      "null",      "Object",   "return",    "super",      "switch",     "this",
+      "throw",     "true",     "try",       "typeof",     "var",        "void",
+      "while",     "with",     "as",        "implements", "interface",  "let",
+      "package",   "private",  "protected", "public",     "static",     "yield",
+      "undefined"  // Used with --ts-undefined-for-optionals
+  };
 }
 
 enum AnnotationType { kParam = 0, kType = 1, kReturns = 2 };
