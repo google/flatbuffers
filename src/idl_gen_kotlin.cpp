@@ -1216,8 +1216,8 @@ class KotlinGenerator : public BaseGenerator {
         // fun inventoryInByteBuffer(_bb: Bytebuffer):
         //     ByteBuffer? = __vector_as_bytebuffer(_bb, 14, 1)
         GenerateFunOneLine(
-            writer, field_name + "InByteBuffer", "_bb: ByteBuffer",
-            buffer_type, [&]() {
+            writer, field_name + "InByteBuffer", "_bb: ByteBuffer", buffer_type,
+            [&]() {
               writer.SetValue("end", end_idx);
               writer += "__vector_in_bytebuffer(_bb, {{offset}}, {{end}})";
             });
