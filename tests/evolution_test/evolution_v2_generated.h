@@ -161,6 +161,10 @@ inline bool operator!=(const Struct &lhs, const Struct &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Struct &obj) {
+  return H::combine(std::move(h), obj.a(), obj.b());
+}
 
 struct TableA FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TableABuilder Builder;
