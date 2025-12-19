@@ -236,6 +236,10 @@ inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Vec3 &obj) {
+  return H::combine(std::move(h), obj.x(), obj.y(), obj.z());
+}
 
 struct MonsterT : public ::flatbuffers::NativeTable {
   typedef Monster TableType;
