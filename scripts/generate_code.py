@@ -400,6 +400,10 @@ flatc(
     schema="nested_union_test.fbs",
 )
 
+flatc(
+    NO_INCL_OPTS + CPP_OPTS,
+    schema="default_vectors_strings_test.fbs",
+)
 
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
