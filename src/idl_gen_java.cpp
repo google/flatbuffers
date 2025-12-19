@@ -725,7 +725,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_25_9_23(); ";
+      code += "FLATBUFFERS_25_12_19(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
