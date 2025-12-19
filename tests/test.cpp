@@ -771,15 +771,15 @@ void FixedLengthArrayTest() {
   // set memory chunk of size ArrayStruct to 1's
   std::memset(static_cast<void*>(non_zero_memory), 1, arr_size);
   // after placement-new it should be all 0's
-#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
-    defined(_MSC_VER) && defined(_DEBUG)
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_MSC_VER) && \
+    defined(_DEBUG)
 #undef new
 #endif
   MyGame::Example::ArrayStruct* ap =
       new (non_zero_memory) MyGame::Example::ArrayStruct;
-#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && \
-    defined(_MSC_VER) && defined(_DEBUG)
-  #define new DEBUG_NEW
+#if defined(FLATBUFFERS_MEMORY_LEAK_TRACKING) && defined(_MSC_VER) && \
+    defined(_DEBUG)
+#define new DEBUG_NEW
 #endif
   (void)ap;
   for (size_t i = 0; i < arr_size; ++i) {
@@ -925,7 +925,8 @@ void NativeTypeTest() {
   src_data.matrix->values = {3, 4};
 
   for (int i = 0; i < N; ++i) {
-    src_data.matrices.push_back(std::unique_ptr<Native::Matrix>(new Native::Matrix(1, i)));
+    src_data.matrices.push_back(
+        std::unique_ptr<Native::Matrix>(new Native::Matrix(1, i)));
     std::fill(src_data.matrices[i]->values.begin(),
               src_data.matrices[i]->values.end(), i + 0.5f);
   }
@@ -960,7 +961,7 @@ void NativeTypeTest() {
   TEST_EQ(dstDataT->matrix->values[1], 4);
 
   for (int i = 0; i < N; ++i) {
-    const Native::Matrix &m = *dstDataT->matrices[i];
+    const Native::Matrix& m = *dstDataT->matrices[i];
     TEST_EQ(m.rows, 1);
     TEST_EQ(m.columns, i);
     for (int j = 0; j < i; ++j) {
