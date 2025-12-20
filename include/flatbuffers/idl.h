@@ -664,6 +664,7 @@ struct IDLOptions {
   bool generate_name_strings;
   bool generate_object_based_api;
   bool gen_compare;
+  bool gen_absl_hash;
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
@@ -707,8 +708,6 @@ struct IDLOptions {
   bool json_nested_flatbuffers;
   bool json_nested_flexbuffers;
   bool json_nested_legacy_flatbuffers;
-  bool ts_flat_files;
-  bool ts_entry_points;
   bool ts_no_import_ext;
   bool no_leak_private_annotations;
   bool require_json_eof;
@@ -820,6 +819,7 @@ struct IDLOptions {
         generate_name_strings(false),
         generate_object_based_api(false),
         gen_compare(false),
+        gen_absl_hash(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
         cpp_object_api_field_case_style(CaseStyle_Unchanged),
@@ -852,8 +852,6 @@ struct IDLOptions {
         json_nested_flatbuffers(true),
         json_nested_flexbuffers(true),
         json_nested_legacy_flatbuffers(false),
-        ts_flat_files(false),
-        ts_entry_points(false),
         ts_no_import_ext(false),
         no_leak_private_annotations(false),
         require_json_eof(true),

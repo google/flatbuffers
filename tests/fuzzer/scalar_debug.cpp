@@ -1,9 +1,10 @@
 #include <iostream>
+
 #include "flatbuffers/util.h"
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size);
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cerr << "Usage: scalar_debug <path to fuzzer crash file>\n";
     return 0;
@@ -21,7 +22,7 @@ int main(int argc, char *argv[]) {
     return -2;
   }
   auto rc = LLVMFuzzerTestOneInput(
-      reinterpret_cast<const uint8_t *>(crash_file_data.data()),
+      reinterpret_cast<const uint8_t*>(crash_file_data.data()),
       crash_file_data.size());
   std::cout << "LLVMFuzzerTestOneInput finished with code " << rc << "\n\n";
   return rc;
