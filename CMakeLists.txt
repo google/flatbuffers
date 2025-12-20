@@ -147,6 +147,8 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/vector.h
   include/flatbuffers/vector_downward.h
   include/flatbuffers/verifier.h
+  src/file_manager.cpp
+  src/file_name_manager.cpp
   src/idl_parser.cpp
   src/idl_gen_text.cpp
   src/reflection.cpp
@@ -173,9 +175,6 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/idl_gen_json_schema.cpp
   src/idl_gen_swift.cpp
-  src/file_name_saving_file_manager.cpp
-  src/file_binary_writer.cpp
-  src/file_writer.cpp
   src/idl_namer.h
   src/namer.h
   src/flatc.cpp
@@ -219,6 +218,8 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  tests/default_vectors_strings_test.cpp
+  tests/default_vectors_strings_test.h
   tests/evolution_test.cpp
   tests/flexbuffers_test.cpp
   tests/fuzz_test.cpp
@@ -235,6 +236,8 @@ set(FlatBuffers_Tests_SRCS
   tests/test_builder.h
   tests/test_builder.cpp
   tests/util_test.cpp
+  tests/vector_table_naked_ptr_test.h
+  tests/vector_table_naked_ptr_test.cpp
   tests/native_type_test_impl.h
   tests/native_type_test_impl.cpp
   tests/alignment_test.h
@@ -495,28 +498,34 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   endif()
 endif()
 
-function(compile_schema SRC_FBS OPT OUT_GEN_FILE) 
+function(compile_schema SRC_FBS OPT SUFFIX OUT_GEN_FILE) 
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
-  string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
+  string(REGEX REPLACE "\\.fbs$" "${SUFFIX}.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
     OUTPUT ${GEN_HEADER}
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}"
       ${OPT}
+      --filename-suffix ${SUFFIX}
       -o "${SRC_FBS_DIR}"
       "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
     DEPENDS flatc ${SRC_FBS}
     COMMENT "flatc generation: `${SRC_FBS}` -> `${GEN_HEADER}`"
-    )
+  )
   set(${OUT_GEN_FILE} ${GEN_HEADER} PARENT_SCOPE)
 endfunction()
 
 function(compile_schema_for_test SRC_FBS OPT)
-  compile_schema("${SRC_FBS}" "${OPT}" GEN_FILE)
+  compile_schema("${SRC_FBS}" "${OPT}" "_generated" GEN_FILE)
+  target_sources(flattests PRIVATE ${GEN_FILE})
+endfunction()
+
+function(compile_schema_for_test_fbsh SRC_FBS OPT)
+  compile_schema("${SRC_FBS}" "${OPT}" ".fbs" GEN_FILE)
   target_sources(flattests PRIVATE ${GEN_FILE})
 endfunction()
 
 function(compile_schema_for_samples SRC_FBS OPT)
-  compile_schema("${SRC_FBS}" "${OPT}" GEN_FILE)
+  compile_schema("${SRC_FBS}" "${OPT}" "_generated" GEN_FILE)
   target_sources(flatsample PRIVATE ${GEN_FILE})
 endfunction()
 
@@ -541,6 +550,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   SET(FLATC_OPT_SCOPED_ENUMS ${FLATC_OPT_COMP};--scoped-enums)
 
   compile_schema_for_test(tests/alignment_test.fbs "${FLATC_OPT_COMP}")
+  compile_schema_for_test_fbsh(tests/default_vectors_strings_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/arrays_test.fbs "${FLATC_OPT_SCOPED_ENUMS}")
   compile_schema_for_test(tests/native_inline_table_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/native_type_test.fbs "${FLATC_OPT_COMP}")
@@ -570,8 +580,6 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Since flatsample has no sources, we have to explicitly set the linker lang.
   set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
-  
-  compile_schema_for_samples(samples/monster.fbs "${FLATC_OPT_COMP}")
 
   target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
   target_link_libraries(flatsampletext PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
