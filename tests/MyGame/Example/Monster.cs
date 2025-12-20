@@ -14,7 +14,7 @@ public struct Monster : IFlatbufferObject
 {
   private Table __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
-  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_9_23(); }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_25_12_19(); }
   public static Monster GetRootAsMonster(ByteBuffer _bb) { return GetRootAsMonster(_bb, new Monster()); }
   public static Monster GetRootAsMonster(ByteBuffer _bb, Monster obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
   public static bool MonsterBufferHasIdentifier(ByteBuffer _bb) { return Table.__has_identifier(_bb, "MONS"); }
@@ -521,7 +521,7 @@ public struct Monster : IFlatbufferObject
   public static VectorOffset CreateSortedVectorOfMonster(FlatBufferBuilder builder, Offset<Monster>[] offsets) {
     Array.Sort(offsets,
       (Offset<Monster> o1, Offset<Monster> o2) =>
-        new Monster().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Name.CompareTo(new Monster().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Name));
+        string.CompareOrdinal(new Monster().__assign(builder.DataBuffer.Length - o1.Value, builder.DataBuffer).Name, new Monster().__assign(builder.DataBuffer.Length - o2.Value, builder.DataBuffer).Name));
     return builder.CreateVectorOfTables(offsets);
   }
 
@@ -533,7 +533,7 @@ public struct Monster : IFlatbufferObject
       int middle = span / 2;
       int tableOffset = Table.__indirect(vectorLocation + 4 * (start + middle), bb);
       obj_.__assign(tableOffset, bb);
-      int comp = obj_.Name.CompareTo(key);
+      int comp = string.CompareOrdinal(obj_.Name, key);
       if (comp > 0) {
         span = middle;
       } else if (comp < 0) {

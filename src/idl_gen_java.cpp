@@ -56,16 +56,17 @@ static Namer::Config JavaDefaultConfig() {
 
 static std::set<std::string> JavaKeywords() {
   return {
-      "abstract", "continue", "for",        "new",       "switch",
-      "assert",   "default",  "goto",       "package",   "synchronized",
-      "boolean",  "do",       "if",         "private",   "this",
-      "break",    "double",   "implements", "protected", "throw",
-      "byte",     "else",     "import",     "public",    "throws",
-      "case",     "enum",     "instanceof", "return",    "transient",
-      "catch",    "extends",  "int",        "short",     "try",
-      "char",     "final",    "interface",  "static",    "void",
-      "class",    "finally",  "long",       "strictfp",  "volatile",
-      "const",    "float",    "native",     "super",     "while",
+      "abstract",   "assert",    "boolean",      "break",      "byte",
+      "case",       "catch",     "char",         "class",      "const",
+      "continue",   "default",   "do",           "double",     "else",
+      "enum",       "extends",   "final",        "finally",    "float",
+      "for",        "goto",      "if",           "implements", "import",
+      "instanceof", "int",       "interface",    "long",       "native",
+      "new",        "notify",    "package",      "private",    "protected",
+      "public",     "return",    "short",        "static",     "strictfp",
+      "super",      "switch",    "synchronized", "this",       "throw",
+      "throws",     "transient", "try",          "void",       "volatile",
+      "while",
   };
 }
 
@@ -206,7 +207,6 @@ class JavaGenerator : public BaseGenerator {
           "import com.google.flatbuffers.ShortVector;\n"
           "import com.google.flatbuffers.StringVector;\n"
           "import com.google.flatbuffers.Struct;\n"
-          "import com.google.flatbuffers.Table;\n"
           "import com.google.flatbuffers.UnionVector;\n"
           "import java.nio.ByteBuffer;\n"
           "import java.nio.ByteOrder;\n";
@@ -225,7 +225,7 @@ class JavaGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
-    return SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
   const Namespace* CurrentNameSpace() const { return cur_name_space_; }
@@ -268,7 +268,7 @@ class JavaGenerator : public BaseGenerator {
       case BASE_TYPE_UNION:
         FLATBUFFERS_FALLTHROUGH();  // else fall thru
       default:
-        return "Table";
+        return "com.google.flatbuffers.Table";
     }
   }
 
@@ -445,7 +445,8 @@ class JavaGenerator : public BaseGenerator {
       code += " ";
       code += namer_.Variant(ev) + " = ";
       code += enum_def.ToString(ev);
-      if (enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
+      if (enum_def.underlying_type.base_type == BASE_TYPE_UINT ||
+          enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
           enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
         code += "L";
       }
@@ -716,7 +717,7 @@ class JavaGenerator : public BaseGenerator {
     const auto struct_class = namer_.Type(struct_def);
     code += "final class " + struct_class;
     code += " extends ";
-    code += struct_def.fixed ? "Struct" : "Table";
+    code += struct_def.fixed ? "Struct" : "com.google.flatbuffers.Table";
     code += " {\n";
 
     if (!struct_def.fixed) {
@@ -724,7 +725,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_25_9_23(); ";
+      code += "FLATBUFFERS_25_12_19(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1467,7 +1468,8 @@ class JavaGenerator : public BaseGenerator {
             " " + variable_name + "Type = " + field_name + "Type(" +
             type_params + ");\n";
     code += indent + variable_name + ".setType(" + variable_name + "Type);\n";
-    code += indent + "Table " + variable_name + "Value;\n";
+    code +=
+        indent + "com.google.flatbuffers.Table " + variable_name + "Value;\n";
     code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {

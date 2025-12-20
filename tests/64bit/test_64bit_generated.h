@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 // For access to the binary schema that produced this file.
@@ -108,7 +108,8 @@ struct WrapperTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<int8_t> *mutable_vector() {
     return GetPointer64<::flatbuffers::Vector<int8_t> *>(VT_VECTOR);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset64(verifier, VT_VECTOR) &&
            verifier.VerifyVector(vector()) &&
@@ -266,7 +267,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector64<uint8_t> *mutable_forced_aligned_vector() {
     return GetPointer64<::flatbuffers::Vector64<uint8_t> *>(VT_FORCED_ALIGNED_VECTOR);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset64(verifier, VT_FAR_VECTOR) &&
            verifier.VerifyVector(far_vector()) &&
@@ -281,7 +283,7 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyString(near_string()) &&
            VerifyOffset64(verifier, VT_NESTED_ROOT) &&
            verifier.VerifyVector(nested_root()) &&
-           verifier.VerifyNestedFlatBuffer<RootTable>(nested_root(), nullptr) &&
+           verifier.template VerifyNestedFlatBuffer<RootTable>(nested_root(), nullptr) &&
            VerifyOffset64(verifier, VT_FAR_STRUCT_VECTOR) &&
            verifier.VerifyVector(far_struct_vector()) &&
            VerifyOffset64(verifier, VT_BIG_STRUCT_VECTOR) &&
@@ -642,14 +644,16 @@ inline RootTable *GetMutableSizePrefixedRootTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<RootTable,::flatbuffers::uoffset64_t>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyRootTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<RootTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<RootTable>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedRootTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<RootTable,::flatbuffers::uoffset64_t>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<RootTable,::flatbuffers::uoffset64_t>(nullptr);
 }
 
 inline void FinishRootTableBuffer(

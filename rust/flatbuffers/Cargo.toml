@@ -1,6 +1,6 @@
 [package]
 name = "flatbuffers"
-version = "25.9.23"
+version = "25.12.19"
 edition = "2018"
 authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
 license = "Apache-2.0"
@@ -9,7 +9,7 @@ homepage = "https://google.github.io/flatbuffers/"
 repository = "https://github.com/google/flatbuffers"
 keywords = ["flatbuffers", "serialization", "zero-copy"]
 categories = ["encoding", "data-structures", "memory-management"]
-rust = "1.51"
+rust-version = "1.51"
 
 [features]
 default = ["std"]
