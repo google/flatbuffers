@@ -2,11 +2,10 @@
 
 # namespace: Example
 
+from MyGame.Example.ArrayStruct import ArrayStruct, ArrayStructT
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from typing import Any
-from MyGame.Example.ArrayStruct import ArrayStruct
-from typing import Optional
+from typing import Any, Optional
 np = import_numpy()
 
 class ArrayTable(object):
@@ -59,11 +58,6 @@ def ArrayTableEnd(builder: flatbuffers.Builder) -> int:
 def End(builder: flatbuffers.Builder) -> int:
     return ArrayTableEnd(builder)
 
-import MyGame.Example.ArrayStruct
-try:
-    from typing import Optional
-except:
-    pass
 
 class ArrayTableT(object):
 
@@ -72,7 +66,7 @@ class ArrayTableT(object):
         self,
         a = None,
     ):
-        self.a = a  # type: Optional[MyGame.Example.ArrayStruct.ArrayStructT]
+        self.a = a  # type: Optional[ArrayStructT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -96,7 +90,7 @@ class ArrayTableT(object):
         if arrayTable is None:
             return
         if arrayTable.A() is not None:
-            self.a = MyGame.Example.ArrayStruct.ArrayStructT.InitFromObj(arrayTable.A())
+            self.a = ArrayStructT.InitFromObj(arrayTable.A())
 
     # ArrayTableT
     def Pack(self, builder):

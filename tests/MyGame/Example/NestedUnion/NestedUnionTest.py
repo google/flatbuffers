@@ -2,11 +2,12 @@
 
 # namespace: NestedUnion
 
+from MyGame.Example.NestedUnion.TestSimpleTableWithEnum import TestSimpleTableWithEnumT
+from MyGame.Example.NestedUnion.Vec3 import Vec3T
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from typing import Any
 from flatbuffers.table import Table
-from typing import Optional
+from typing import Any, Optional, Union
 np = import_numpy()
 
 class NestedUnionTest(object):
@@ -93,13 +94,6 @@ def NestedUnionTestEnd(builder: flatbuffers.Builder) -> int:
 def End(builder: flatbuffers.Builder) -> int:
     return NestedUnionTestEnd(builder)
 
-import MyGame.Example.NestedUnion.Any
-import MyGame.Example.NestedUnion.TestSimpleTableWithEnum
-import MyGame.Example.NestedUnion.Vec3
-try:
-    from typing import Union
-except:
-    pass
 
 class NestedUnionTestT(object):
 
@@ -113,7 +107,7 @@ class NestedUnionTestT(object):
     ):
         self.name = name  # type: Optional[str]
         self.dataType = dataType  # type: int
-        self.data = data  # type: Union[None, 'MyGame.Example.NestedUnion.Vec3.Vec3T', 'MyGame.Example.NestedUnion.TestSimpleTableWithEnum.TestSimpleTableWithEnumT']
+        self.data = data  # type: Union[None, Vec3T, TestSimpleTableWithEnumT]
         self.id = id  # type: int
 
     @classmethod
@@ -141,7 +135,8 @@ class NestedUnionTestT(object):
         if self.name is not None:
             self.name = self.name.decode('utf-8')
         self.dataType = nestedUnionTest.DataType()
-        self.data = MyGame.Example.NestedUnion.Any.AnyCreator(self.dataType, nestedUnionTest.Data())
+        from MyGame.Example.NestedUnion.Any import AnyCreator
+        self.data = AnyCreator(self.dataType, nestedUnionTest.Data())
         self.id = nestedUnionTest.Id()
 
     # NestedUnionTestT

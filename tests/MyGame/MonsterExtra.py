@@ -4,7 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
-from typing import Any
+from typing import Any, List
 np = import_numpy()
 
 class MonsterExtra(object):
@@ -223,10 +223,6 @@ def MonsterExtraEnd(builder: flatbuffers.Builder) -> int:
 def End(builder: flatbuffers.Builder) -> int:
     return MonsterExtraEnd(builder)
 
-try:
-    from typing import List
-except:
-    pass
 
 class MonsterExtraT(object):
 

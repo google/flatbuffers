@@ -4,6 +4,7 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+from typing import Optional
 np = import_numpy()
 
 class ScalarStuff(object):
@@ -508,10 +509,6 @@ def ScalarStuffEnd(builder):
 def End(builder):
     return ScalarStuffEnd(builder)
 
-try:
-    from typing import Optional
-except:
-    pass
 
 class ScalarStuffT(object):
 

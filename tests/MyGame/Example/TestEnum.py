@@ -2,6 +2,8 @@
 
 # namespace: Example
 
+from typing import Any
+
 class TestEnum(object):
     A = 0
     B = 1
