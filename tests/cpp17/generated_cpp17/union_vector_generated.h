@@ -595,9 +595,6 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *main_character_as_Unused() const {
     return main_character_type() == Character::Unused ? static_cast<const ::flatbuffers::String *>(main_character()) : nullptr;
   }
-  void *mutable_main_character() {
-    return GetPointer<void *>(VT_MAIN_CHARACTER);
-  }
   Attacker *mutable_main_character_as_MuLan() {
     return main_character_type() == Character::MuLan ? static_cast<Attacker *>(mutable_main_character()) : nullptr;
   }
@@ -615,6 +612,9 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   ::flatbuffers::String *mutable_main_character_as_Unused() {
     return main_character_type() == Character::Unused ? static_cast<::flatbuffers::String *>(mutable_main_character()) : nullptr;
+  }
+  void *mutable_main_character() {
+    return GetPointer<void *>(VT_MAIN_CHARACTER);
   }
   const ::flatbuffers::Vector<Character> *characters_type() const {
     return GetPointer<const ::flatbuffers::Vector<Character> *>(VT_CHARACTERS_TYPE);

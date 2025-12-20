@@ -328,12 +328,12 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Sample::Weapon *equipped_as_Weapon() const {
     return equipped_type() == MyGame::Sample::Equipment_Weapon ? static_cast<const MyGame::Sample::Weapon *>(equipped()) : nullptr;
   }
-  void *mutable_equipped() {
-    return GetPointer<void *>(VT_EQUIPPED);
-  }
   template<typename T> T *mutable_equipped_as();
   MyGame::Sample::Weapon *mutable_equipped_as_Weapon() {
     return equipped_type() == MyGame::Sample::Equipment_Weapon ? static_cast<MyGame::Sample::Weapon *>(mutable_equipped()) : nullptr;
+  }
+  void *mutable_equipped() {
+    return GetPointer<void *>(VT_EQUIPPED);
   }
   const ::flatbuffers::Vector<const MyGame::Sample::Vec3 *> *path() const {
     return GetPointer<const ::flatbuffers::Vector<const MyGame::Sample::Vec3 *> *>(VT_PATH);

@@ -117,12 +117,12 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const NamespaceA::NamespaceB::TableInNestedNS *foo_union_as_TableInNestedNS() const {
     return foo_union_type() == NamespaceA::NamespaceB::UnionInNestedNS_TableInNestedNS ? static_cast<const NamespaceA::NamespaceB::TableInNestedNS *>(foo_union()) : nullptr;
   }
-  void *mutable_foo_union() {
-    return GetPointer<void *>(VT_FOO_UNION);
-  }
   template<typename T> T *mutable_foo_union_as();
   NamespaceA::NamespaceB::TableInNestedNS *mutable_foo_union_as_TableInNestedNS() {
     return foo_union_type() == NamespaceA::NamespaceB::UnionInNestedNS_TableInNestedNS ? static_cast<NamespaceA::NamespaceB::TableInNestedNS *>(mutable_foo_union()) : nullptr;
+  }
+  void *mutable_foo_union() {
+    return GetPointer<void *>(VT_FOO_UNION);
   }
   const NamespaceA::NamespaceB::StructInNestedNS *foo_struct() const {
     return GetStruct<const NamespaceA::NamespaceB::StructInNestedNS *>(VT_FOO_STRUCT);

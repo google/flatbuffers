@@ -1481,9 +1481,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *test_as_MyGame_Example2_Monster() const {
     return test_type() == MyGame::Example::Any::MyGame_Example2_Monster ? static_cast<const MyGame::Example2::Monster *>(test()) : nullptr;
   }
-  void *mutable_test() {
-    return GetPointer<void *>(VT_TEST);
-  }
   template<typename T> T *mutable_test_as();
   MyGame::Example::Monster *mutable_test_as_Monster() {
     return test_type() == MyGame::Example::Any::Monster ? static_cast<MyGame::Example::Monster *>(mutable_test()) : nullptr;
@@ -1493,6 +1490,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   MyGame::Example2::Monster *mutable_test_as_MyGame_Example2_Monster() {
     return test_type() == MyGame::Example::Any::MyGame_Example2_Monster ? static_cast<MyGame::Example2::Monster *>(mutable_test()) : nullptr;
+  }
+  void *mutable_test() {
+    return GetPointer<void *>(VT_TEST);
   }
   const ::flatbuffers::Vector<const MyGame::Example::Test *> *test4() const {
     return GetPointer<const ::flatbuffers::Vector<const MyGame::Example::Test *> *>(VT_TEST4);
@@ -1726,9 +1726,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *any_unique_as_M2() const {
     return any_unique_type() == MyGame::Example::AnyUniqueAliases::M2 ? static_cast<const MyGame::Example2::Monster *>(any_unique()) : nullptr;
   }
-  void *mutable_any_unique() {
-    return GetPointer<void *>(VT_ANY_UNIQUE);
-  }
   template<typename T> T *mutable_any_unique_as();
   MyGame::Example::Monster *mutable_any_unique_as_M() {
     return any_unique_type() == MyGame::Example::AnyUniqueAliases::M ? static_cast<MyGame::Example::Monster *>(mutable_any_unique()) : nullptr;
@@ -1738,6 +1735,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   MyGame::Example2::Monster *mutable_any_unique_as_M2() {
     return any_unique_type() == MyGame::Example::AnyUniqueAliases::M2 ? static_cast<MyGame::Example2::Monster *>(mutable_any_unique()) : nullptr;
+  }
+  void *mutable_any_unique() {
+    return GetPointer<void *>(VT_ANY_UNIQUE);
   }
   MyGame::Example::AnyAmbiguousAliases any_ambiguous_type() const {
     return static_cast<MyGame::Example::AnyAmbiguousAliases>(GetField<uint8_t>(VT_ANY_AMBIGUOUS_TYPE, 0));
@@ -1754,9 +1754,6 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example::Monster *any_ambiguous_as_M3() const {
     return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M3 ? static_cast<const MyGame::Example::Monster *>(any_ambiguous()) : nullptr;
   }
-  void *mutable_any_ambiguous() {
-    return GetPointer<void *>(VT_ANY_AMBIGUOUS);
-  }
   MyGame::Example::Monster *mutable_any_ambiguous_as_M1() {
     return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M1 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
   }
@@ -1765,6 +1762,9 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   MyGame::Example::Monster *mutable_any_ambiguous_as_M3() {
     return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M3 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
+  }
+  void *mutable_any_ambiguous() {
+    return GetPointer<void *>(VT_ANY_AMBIGUOUS);
   }
   const ::flatbuffers::Vector<MyGame::Example::Color> *vector_of_enums() const {
     return GetPointer<const ::flatbuffers::Vector<MyGame::Example::Color> *>(VT_VECTOR_OF_ENUMS);
