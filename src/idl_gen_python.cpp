@@ -2885,8 +2885,7 @@ class PythonGenerator : public BaseGenerator {
     EnsureDirExists(directories);
 
     for (size_t i = directories.find(kPathSeparator, path_.size());
-         i != std::string::npos;
-         i = directories.find(kPathSeparator, i + 1)) {
+         i != std::string::npos; i = directories.find(kPathSeparator, i + 1)) {
       const std::string init_py =
           directories.substr(0, i) + kPathSeparator + "__init__.py";
       parser_.opts.file_saver->SaveFile(init_py.c_str(), "", false);
@@ -2904,7 +2903,7 @@ class PythonGenerator : public BaseGenerator {
 }  // namespace python
 
 static const char* GeneratePython(const Parser& parser, const std::string& path,
-                           const std::string& file_name) {
+                                  const std::string& file_name) {
   python::Version version{parser.opts.python_version};
   if (!version.IsValid()) return "The provided Python version is not valid";
 
@@ -2913,7 +2912,8 @@ static const char* GeneratePython(const Parser& parser, const std::string& path,
 
   if (parser.opts.python_typing) {
     python::PythonStubGenerator stub_generator(parser, path, version);
-    if (!stub_generator.Generate()) return "could not generate Python type stubs";
+    if (!stub_generator.Generate())
+      return "could not generate Python type stubs";
   }
   return nullptr;
 }
@@ -2948,7 +2948,8 @@ class PythonCodeGenerator : public CodeGenerator {
 
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
                           const std::string& filename) override {
-    if (!GeneratePythonGRPC(parser, path, filename)) { // TODO add status GeneratePythonGRPC
+    if (!GeneratePythonGRPC(parser, path,
+                            filename)) {  // TODO add status GeneratePythonGRPC
       return Status::ERROR;
     }
     return Status::OK;
