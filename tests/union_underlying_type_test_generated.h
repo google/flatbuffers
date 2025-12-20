@@ -420,9 +420,6 @@ struct D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const UnionUnderlyingType::C *test_union_as_C() const {
     return test_union_type() == UnionUnderlyingType::ABC::C ? static_cast<const UnionUnderlyingType::C *>(test_union()) : nullptr;
   }
-  void *mutable_test_union() {
-    return GetPointer<void *>(VT_TEST_UNION);
-  }
   template<typename T> T *mutable_test_union_as();
   UnionUnderlyingType::A *mutable_test_union_as_A() {
     return test_union_type() == UnionUnderlyingType::ABC::A ? static_cast<UnionUnderlyingType::A *>(mutable_test_union()) : nullptr;
@@ -432,6 +429,9 @@ struct D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   UnionUnderlyingType::C *mutable_test_union_as_C() {
     return test_union_type() == UnionUnderlyingType::ABC::C ? static_cast<UnionUnderlyingType::C *>(mutable_test_union()) : nullptr;
+  }
+  void *mutable_test_union() {
+    return GetPointer<void *>(VT_TEST_UNION);
   }
   const ::flatbuffers::Vector<UnionUnderlyingType::ABC> *test_vector_of_union_type() const {
     return GetPointer<const ::flatbuffers::Vector<UnionUnderlyingType::ABC> *>(VT_TEST_VECTOR_OF_UNION_TYPE);
