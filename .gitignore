@@ -157,3 +157,6 @@ MODULE.bazel.lock
 
 # Ignore the generated docs
 docs/site
+
+# Ignore generated files
+*.fbs.h
