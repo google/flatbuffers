@@ -2982,10 +2982,6 @@ class CppGenerator : public BaseGenerator {
       auto wire_type = GenTypeGet(type, " ", "", postptr.c_str(), true);
       code_.SetValue("FIELD_TYPE", wire_type);
 
-      code_ += "  {{FIELD_TYPE}}mutable_{{FIELD_NAME}}() {";
-      code_ += "    return {{FIELD_VALUE}};";
-      code_ += "  }";
-
       // mutable union accessors
       if (type.base_type == BASE_TYPE_UNION) {
         GenTableUnionAsGetters(field, true);
