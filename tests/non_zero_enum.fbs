@@ -1,0 +1,13 @@
+enum NonZero: ubyte {
+    VAL = 1,
+}
+
+// this now is not allowed because arrays of enums must have a zero value
+// struct NonZeroArrayStruct {
+//     data: [NonZero:4];
+// }
+
+table NonZeroVectorTable {
+    values: [NonZero];
+    value: NonZero = VAL;
+}
