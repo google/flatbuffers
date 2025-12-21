@@ -48,22 +48,22 @@ using ::cpp17::MyGame::Example::Vec3;
 ** Build some FB objects.
 *******************************************************************************/
 namespace {
-const Monster *BuildMonster(flatbuffers::FlatBufferBuilder &fbb) {
+const Monster* BuildMonster(flatbuffers::FlatBufferBuilder& fbb) {
   using ::cpp17::MyGame::Example::Color;
   using ::cpp17::MyGame::Example::MonsterBuilder;
   using ::cpp17::MyGame::Example::Test;
   auto name = fbb.CreateString("my_monster");
-  auto inventory = fbb.CreateVector(std::vector<uint8_t>{ 4, 5, 6, 7 });
+  auto inventory = fbb.CreateVector(std::vector<uint8_t>{4, 5, 6, 7});
   MonsterBuilder builder(fbb);
-  auto vec3 = Vec3{ /*x=*/1.1f,
-                    /*y=*/2.2f,
-                    /*z=*/3.3f,
-                    /*test1=*/6.6,
-                    /*test2=*/Color::Green,
-                    /*test3=*/
-                    Test(
-                        /*a=*/11,
-                        /*b=*/90) };
+  auto vec3 = Vec3{/*x=*/1.1f,
+                   /*y=*/2.2f,
+                   /*z=*/3.3f,
+                   /*test1=*/6.6,
+                   /*test2=*/Color::Green,
+                   /*test3=*/
+                   Test(
+                       /*a=*/11,
+                       /*b=*/90)};
   builder.add_pos(&vec3);
   builder.add_name(name);
   builder.add_mana(1);
@@ -85,7 +85,7 @@ const Monster *BuildMonster(flatbuffers::FlatBufferBuilder &fbb) {
   builder.add_non_owning_reference(17);
   builder.add_inventory(inventory);
   fbb.Finish(builder.Finish());
-  const Monster *monster =
+  const Monster* monster =
       flatbuffers::GetRoot<Monster>(fbb.GetBufferPointer());
   return monster;
 }
@@ -103,7 +103,7 @@ void StringifyAnyFlatbuffersTypeTest() {
   flatbuffers::FlatBufferBuilder fbb;
   // We are using a Monster here, but we could have used any type, because the
   // code that follows is totally generic!
-  const auto *monster = BuildMonster(fbb);
+  const auto* monster = BuildMonster(fbb);
 
   std::string expected = R"(MyGame.Example.Monster{
         pos = MyGame.Example.Vec3{
@@ -179,13 +179,13 @@ void StringifyAnyFlatbuffersTypeTest() {
 ** Test Traits::FieldType
 *******************************************************************************/
 using pos_type = Monster::Traits::FieldType<0>;
-static_assert(std::is_same_v<pos_type, const Vec3 *>);
+static_assert(std::is_same_v<pos_type, const Vec3*>);
 
 using mana_type = Monster::Traits::FieldType<1>;
 static_assert(std::is_same_v<mana_type, int16_t>);
 
 using name_type = Monster::Traits::FieldType<3>;
-static_assert(std::is_same_v<name_type, const flatbuffers::String *>);
+static_assert(std::is_same_v<name_type, const flatbuffers::String*>);
 
 /*******************************************************************************
 ** Generic Create Function Test.
@@ -263,7 +263,7 @@ int FlatBufferCpp17Tests() {
 }
 }  // namespace
 
-int main(int /*argc*/, const char * /*argv*/[]) {
+int main(int /*argc*/, const char* /*argv*/[]) {
   InitTestEngine();
 
   FlatBufferCpp17Tests();

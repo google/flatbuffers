@@ -69,6 +69,7 @@ CS_OPTS = ["--csharp", "--cs-gen-json-serializer"]
 CPP_OPTS = [
     "--cpp",
     "--gen-compare",
+    "--gen-absl-hash",
 ] + (["--cpp-std", "c++0x"] if args.cpp_0x else [])
 
 CPP_17_OPTS = NO_INCL_OPTS + [
@@ -241,6 +242,12 @@ flatc(
         "namespace_test/namespace_test1.fbs",
         "namespace_test/namespace_test2.fbs",
     ],
+)
+
+flatc(
+    BASE_OPTS + CPP_OPTS + ["--cpp-ptr-type", "naked"],
+    prefix="vector_table_naked_ptr",
+    schema="vector_table_naked_ptr.fbs",
 )
 
 flatc(
@@ -420,6 +427,10 @@ flatc(
     schema="nested_union_test.fbs",
 )
 
+flatc(
+    NO_INCL_OPTS + CPP_OPTS,
+    schema="default_vectors_strings_test.fbs",
+)
 
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
