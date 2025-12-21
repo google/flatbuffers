@@ -212,15 +212,16 @@ class Namer {
     return result;
   }
 
-  virtual std::string EscapeKeyword(const std::string& name) const {
-    std::string cased_name(name);
-
+  virtual std::string NormalizeKeywordCase(const std::string& name) const {
     if (config_.keywords_casing == Config::KeywordsCasing::CaseInsensitive) {
-      for (auto chr = cased_name.begin(); chr != cased_name.end(); chr++) {
-        *chr = CharToLower(*chr);
-      }
+      return ConvertCase(name, Case::kAllLower);
+    } else {
+      return name;
     }
-    if (keywords_.find(cased_name) == keywords_.end()) {
+  }
+
+  virtual std::string EscapeKeyword(const std::string& name) const {
+    if (keywords_.find(NormalizeKeywordCase(name)) == keywords_.end()) {
       return name;
     } else {
       return config_.keyword_prefix + name + config_.keyword_suffix;
