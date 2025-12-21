@@ -2685,14 +2685,18 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
   }
 
-  void GenTableUnionAsGetters(const FieldDef& field) {
+  void GenTableUnionAsGetters(const FieldDef& field, bool is_mutable) {
     const auto& type = field.value.type;
     auto u = type.enum_def;
 
+    code_.SetValue("MUTABLE_EXT", is_mutable ? "" : " const");
+    code_.SetValue("MUTABLE", is_mutable ? "mutable_" : "");
+
     if (!type.enum_def->uses_multiple_type_instances)
       code_ +=
-          "  template<typename T> "
-          "const T *{{NULLABLE_EXT}}{{FIELD_NAME}}_as() const;";
+          "  template<typename T>"
+          "{{MUTABLE_EXT}} T *{{MUTABLE}}{{NULLABLE_EXT}}{{FIELD_NAME}}_as()"
+          "{{MUTABLE_EXT}};";
 
     for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
       auto& ev = **u_it;
@@ -2706,15 +2710,19 @@ class CppGenerator : public BaseGenerator {
                      EscapeKeyword(Name(field) + UnionTypeFieldSuffix()));
       code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(u->defined_namespace,
                                                        GetEnumValUse(*u, ev)));
-      code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
+      code_.SetValue("U_FIELD_TYPE",
+                     (is_mutable ? "" : "const ") + full_struct_name + " *");
       code_.SetValue("U_FIELD_NAME", Name(field) + "_as_" + Name(ev));
       code_.SetValue("U_NULLABLE", NullableExtension());
 
       // `const Type *union_name_asType() const` accessor.
-      code_ += "  {{U_FIELD_TYPE}}{{U_NULLABLE}}{{U_FIELD_NAME}}() const {";
+      // and `Type *mutable_union_name_asType()` accessor.
+      code_ +=
+          "  {{U_FIELD_TYPE}}{{U_NULLABLE}}{{MUTABLE}}{{U_FIELD_NAME}}()"
+          "{{MUTABLE_EXT}} {";
       code_ +=
           "    return {{U_GET_TYPE}}() == {{U_ELEMENT_TYPE}} ? "
-          "static_cast<{{U_FIELD_TYPE}}>({{FIELD_NAME}}()) "
+          "static_cast<{{U_FIELD_TYPE}}>({{MUTABLE}}{{FIELD_NAME}}()) "
           ": nullptr;";
       code_ += "  }";
     }
@@ -2755,7 +2763,7 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
       code_.SetValue("NULLABLE_EXT", NullableExtension());
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
-            if (IsVector(type) && field.value.constant == "[]") {
+      if (IsVector(type) && field.value.constant == "[]") {
         const auto& vec_type = type.VectorType();
         const std::string vtype_wire = GenTypeWire(
             vec_type, "", VectorElementUserFacing(vec_type), field.offset64);
@@ -2799,7 +2807,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     if (type.base_type == BASE_TYPE_UNION) {
-      GenTableUnionAsGetters(field);
+      GenTableUnionAsGetters(field, false);
     }
   }
 
@@ -2973,6 +2981,11 @@ class CppGenerator : public BaseGenerator {
       auto postptr = " *" + NullableExtension();
       auto wire_type = GenTypeGet(type, " ", "", postptr.c_str(), true);
       code_.SetValue("FIELD_TYPE", wire_type);
+
+      // mutable union accessors
+      if (type.base_type == BASE_TYPE_UNION) {
+        GenTableUnionAsGetters(field, true);
+      }
 
       if (IsVector(type) && field.value.constant == "[]") {
         const auto& vec_type = type.VectorType();
@@ -3185,6 +3198,7 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("U_FIELD_NAME", Name(*field) + "_as_" + Name(ev));
 
         // `template<> const T *union_name_as<T>() const` accessor.
+        // and `template<> T *mutable_union_name_as<T>()` accessor.
         code_ +=
             "template<> "
             "inline {{U_FIELD_TYPE}}{{STRUCT_NAME}}::{{FIELD_NAME}}_as"
@@ -3192,6 +3206,20 @@ class CppGenerator : public BaseGenerator {
         code_ += "  return {{U_FIELD_NAME}}();";
         code_ += "}";
         code_ += "";
+
+        if (opts_.mutable_buffer) {
+          code_.SetValue("U_FIELD_TYPE", full_struct_name + " *");
+          code_.SetValue("U_FIELD_NAME",
+                         "mutable_" + Name(*field) + "_as_" + Name(ev));
+          code_ +=
+              "template<> "
+              "inline {{U_FIELD_TYPE}}"
+              "{{STRUCT_NAME}}::mutable_{{FIELD_NAME}}_as"
+              "<{{U_ELEMENT_NAME}}>() {";
+          code_ += "  return {{U_FIELD_NAME}}();";
+          code_ += "}";
+          code_ += "";
+        }
       }
     }
 
