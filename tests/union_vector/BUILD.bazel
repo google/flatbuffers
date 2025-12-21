@@ -1,0 +1,25 @@
+load("//:build_defs.bzl", "flatbuffer_cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+flatbuffer_cc_library(
+    name = "union_vector_cc_fbs",
+    srcs = ["union_vector.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
+)
+
+# Data needed by the tests at runtime
+filegroup(
+    name = "test_data",
+    srcs = [
+        "union_vector.fbs",
+        "union_vector.json",
+    ],
+)

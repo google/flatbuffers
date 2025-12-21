@@ -1,0 +1,30 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//:build_defs.bzl", "flatbuffer_cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "offset64_test",
+    testonly = 1,
+    srcs = ["offset64_test.cpp"],
+    hdrs = ["offset64_test.h"],
+    deps = [
+        ":test_64bit_cc_fbs",
+        "//tests:test_assert",
+        "//tests/64bit/evolution:v1_cc_fbs",
+        "//tests/64bit/evolution:v2_cc_fbs",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "test_64bit_cc_fbs",
+    srcs = ["test_64bit.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
+)

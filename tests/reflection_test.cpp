@@ -7,7 +7,7 @@
 #include "monster_test.h"
 #include "monster_test_generated.h"
 #include "test_assert.h"
-#include "tests/arrays_test_generated.h"
+#include "tests/arrays_test.fbs.h"
 
 namespace flatbuffers {
 namespace tests {

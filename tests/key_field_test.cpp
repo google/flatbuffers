@@ -4,7 +4,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
-#include "key_field/key_field_sample_generated.h"
+#include "key_field/key_field_sample.fbs.h"
 #include "test_assert.h"
 
 namespace flatbuffers {

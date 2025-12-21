@@ -24,21 +24,12 @@ cc_test(
     name = "flatbuffers_test",
     testonly = 1,
     srcs = [
-        "64bit/evolution/v1_generated.h",
-        "64bit/evolution/v2_generated.h",
-        "64bit/offset64_test.cpp",
-        "64bit/offset64_test.h",
-        "64bit/test_64bit_bfbs_generated.h",
-        "64bit/test_64bit_generated.h",
         "alignment_test.cpp",
         "alignment_test.h",
-        "alignment_test_generated.h",
         "default_vectors_strings_test.cpp",
         "default_vectors_strings_test.h",
         "evolution_test.cpp",
         "evolution_test.h",
-        "evolution_test/evolution_v1_generated.h",
-        "evolution_test/evolution_v2_generated.h",
         "flexbuffers_test.cpp",
         "flexbuffers_test.h",
         "fuzz_test.cpp",
@@ -46,18 +37,13 @@ cc_test(
         "is_quiet_nan.h",
         "json_test.cpp",
         "json_test.h",
-        "key_field/key_field_sample_generated.h",
         "key_field_test.cpp",
         "key_field_test.h",
         "monster_test.cpp",
         "monster_test.h",
         "monster_test_bfbs_generated.h",
-        "namespace_test/namespace_test1_generated.h",
-        "namespace_test/namespace_test2_generated.h",
-        "native_inline_table_test_generated.h",
         "native_type_test_impl.cpp",
         "native_type_test_impl.h",
-        "optional_scalars_generated.h",
         "optional_scalars_test.cpp",
         "optional_scalars_test.h",
         "parser_test.cpp",
@@ -71,13 +57,10 @@ cc_test(
         "test_assert.h",
         "test_builder.cpp",
         "test_builder.h",
-        "union_underlying_type_test_generated.h",
-        "union_vector/union_vector_generated.h",
         "util_test.cpp",
         "util_test.h",
-        "vector_table_naked_ptr/vector_table_naked_ptr_generated.h",
-        "vector_table_naked_ptr_test.h",
         "vector_table_naked_ptr_test.cpp",
+        "vector_table_naked_ptr_test.h",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
@@ -87,13 +70,8 @@ cc_test(
         ":arrays_test.bfbs",
         ":arrays_test.fbs",
         ":arrays_test.golden",
-        ":evolution_test/evolution_v1.fbs",
-        ":evolution_test/evolution_v1.json",
-        ":evolution_test/evolution_v2.fbs",
-        ":evolution_test/evolution_v2.json",
         ":include_test/include_test1.fbs",
         ":include_test/sub/include_test2.fbs",
-        ":key_field/key_field_sample.fbs",
         ":monster_extra.fbs",
         ":monster_test.bfbs",
         ":monster_test.fbs",
@@ -104,7 +82,6 @@ cc_test(
         ":name_clash_test/invalid_test2.fbs",
         ":name_clash_test/valid_test1.fbs",
         ":name_clash_test/valid_test2.fbs",
-        ":native_type_test.fbs",
         ":optional_scalars.fbs",
         ":optional_scalars.json",
         ":optional_scalars_defaults.json",
@@ -126,8 +103,8 @@ cc_test(
         ":prototest/twice-id.proto",
         ":prototest/use-reserved-id.proto",
         ":unicode_test.json",
-        ":union_vector/union_vector.fbs",
-        ":union_vector/union_vector.json",
+        "//tests/evolution_test:test_data",
+        "//tests/union_vector:test_data",
     ],
     includes = [
         "",
@@ -139,9 +116,18 @@ cc_test(
         ":default_vectors_strings_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
+        ":native_inline_table_test_cc_fbs",
         ":native_type_test_cc_fbs",
+        ":optional_scalars_cc_fbs",
+        ":union_underlying_type_test_cc_fbs",
+        ":vector_table_naked_ptr_cc_fbs",
         "//:flatbuffers",
         "//src:generate_fbs",
+        "//tests/64bit:offset64_test",
+        "//tests/evolution_test:evolution_v1_cc_fbs",
+        "//tests/evolution_test:evolution_v2_cc_fbs",
+        "//tests/key_field:key_field_sample_cc_fbs",
+        "//tests/union_vector:union_vector_cc_fbs",
     ],
 )
 
@@ -151,7 +137,10 @@ cc_library(
     name = "test_assert",
     srcs = ["test_assert.cpp"],
     hdrs = ["test_assert.h"],
-    visibility = ["//grpc/tests:__subpackages__"],
+    visibility = [
+        "//grpc/tests:__subpackages__",
+        "//tests:__subpackages__",
+    ],
     deps = ["//:flatbuffers"],
 )
 
@@ -245,11 +234,20 @@ cc_library(
 flatbuffer_cc_library(
     name = "monster_extra_cc_fbs",
     srcs = ["monster_extra.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
 )
 
 flatbuffer_cc_library(
     name = "arrays_test_cc_fbs",
     srcs = ["arrays_test.fbs"],
+    filename_suffix = ".fbs",
     flatc_args = [
         "--gen-object-api",
         "--gen-compare",
@@ -258,27 +256,26 @@ flatbuffer_cc_library(
         "--reflect-names",
         "--cpp-ptr-type flatbuffers::unique_ptr",
         "--scoped-enums",
+        "--filename-suffix .fbs",
     ],
 )
 
 flatbuffer_cc_library(
     name = "native_type_test_cc_fbs",
     srcs = ["native_type_test.fbs"],
+    filename_suffix = ".fbs",
     flatc_args = [
         "--gen-object-api",
         "--gen-mutable",
         "--cpp-ptr-type flatbuffers::unique_ptr",
+        "--filename-suffix .fbs",
     ],
 )
 
 flatbuffer_cc_library(
     name = "alignment_test_cc_fbs",
     srcs = ["alignment_test.fbs"],
-)
-
-flatbuffer_cc_library(
-    name = "default_vectors_strings_test_cc_fbs",
-    srcs = ["default_vectors_strings_test.fbs"],
+    filename_suffix = ".fbs",
     flatc_args = [
         "--gen-compare",
         "--gen-mutable",
@@ -286,5 +283,71 @@ flatbuffer_cc_library(
         "--reflect-names",
         "--filename-suffix .fbs",
     ],
-    filename_suffix = ".fbs"
+)
+
+flatbuffer_cc_library(
+    name = "default_vectors_strings_test_cc_fbs",
+    srcs = ["default_vectors_strings_test.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "native_inline_table_test_cc_fbs",
+    srcs = ["native_inline_table_test.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "optional_scalars_cc_fbs",
+    srcs = ["optional_scalars.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "union_underlying_type_test_cc_fbs",
+    srcs = ["union_underlying_type_test.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+        "--scoped-enums",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "vector_table_naked_ptr_cc_fbs",
+    srcs = ["vector_table_naked_ptr.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+        "--cpp-ptr-type naked",
+    ],
 )

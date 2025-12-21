@@ -31,14 +31,14 @@
 
 // Embed generated code into an isolated namespace.
 namespace cpp17 {
-#include "generated_cpp17/monster_test_generated.h"
-#include "generated_cpp17/optional_scalars_generated.h"
-#include "generated_cpp17/union_vector_generated.h"
+#include "tests/cpp17/generated_cpp17/monster_test_generated.h"
+#include "tests/cpp17/generated_cpp17/optional_scalars_generated.h"
+#include "tests/cpp17/generated_cpp17/union_vector_generated.h"
 }  // namespace cpp17
 
 namespace cpp11 {
-#include "../monster_test_generated.h"
-#include "../optional_scalars_generated.h"
+#include "tests/monster_test_generated.h"
+#include "tests/optional_scalars.fbs.h"
 }  // namespace cpp11
 
 using ::cpp17::MyGame::Example::Monster;
