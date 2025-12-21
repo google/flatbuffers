@@ -187,6 +187,7 @@ def flatbuffer_cc_library(
         visibility = None,
         compatible_with = None,
         restricted_to = None,
+        filename_suffix = "_generated",
         target_compatible_with = None,
         srcs_filegroup_visibility = None,
         gen_reflections = False):
@@ -230,10 +231,13 @@ def flatbuffer_cc_library(
       Fileset([name]_reflection): (Optional) all generated reflection binaries.
       cc_library([name]): library with sources and flatbuffers deps.
     """
-    output_headers = [
-        (out_prefix + "%s_generated.h") % (s.replace(".fbs", "").split("/")[-1].split(":")[-1])
-        for s in srcs
-    ]
+
+    output_headers = []
+    for s in srcs:
+        base_name = s.split("/")[-1].split(":")[-1].replace(".fbs", "")
+        header = out_prefix + base_name + filename_suffix + ".h"
+        output_headers.append(header)
+
     if deps and includes:
         # There is no inherent reason we couldn't support both, but this discourages
         # use of includes without good reason.

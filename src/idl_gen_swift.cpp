@@ -1347,7 +1347,8 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void GenerateObjectAPIStructConstructor(const StructDef& struct_def) {
-    code_ += "{{ACCESS_TYPE}} init(_ _t: borrowing {{STRUCTNAME}}" + Mutable() + ") {";
+    code_ += "{{ACCESS_TYPE}} init(_ _t: borrowing {{STRUCTNAME}}" + Mutable() +
+             ") {";
     Indent();
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1393,8 +1394,9 @@ class SwiftGenerator : public BaseGenerator {
                                     base_constructor);
     }
     code_ += "";
-    BuildObjectConstructor(buffer_constructor,
-                           "_ _t: borrowing " + namer_.NamespacedType(struct_def));
+    BuildObjectConstructor(
+        buffer_constructor,
+        "_ _t: borrowing " + namer_.NamespacedType(struct_def));
     BuildObjectConstructor(base_constructor);
     if (!struct_def.fixed)
       code_ +=
@@ -1954,13 +1956,13 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "static func validateVersion() { FlatBuffersVersion_25_9_23() }";
+    return "static func validateVersion() { FlatBuffersVersion_25_12_19() }";
   }
 
   std::string GenType(const Type& type,
                       const bool should_consider_suffix = false) const {
     return IsScalar(type.base_type) ? GenTypeBasic(type)
-           : IsArray(type)          ? GenType(type.VectorType())
+           : IsArray(type) ? GenType(type.VectorType())
                            : GenTypePointer(type, should_consider_suffix);
   }
 
