@@ -2755,27 +2755,20 @@ std::vector<IncludedFile> Parser::GetIncludedFiles() const {
   return {it->second.cbegin(), it->second.cend()};
 }
 
-bool Parser::HasCircularStructDependency() const {
-  // Simple DFS to detect cycles in the struct dependency graph.
-  std::set<const StructDef*> visited;
-  std::set<const StructDef*> stack;
-
-  std::function<bool(const StructDef*)> visit =
-      [&](const StructDef* struct_def) {
+bool Parser::HasCircularStructDependency() {
+  std::function<bool(StructDef*)> visit =
+      [&](StructDef* struct_def) {
         // Only consider fixed structs
         if (!struct_def->fixed) {
           return false;
         }
 
-        if (stack.count(struct_def)) {
-          return true;  // Cycle detected.
-        }
-        if (visited.count(struct_def)) {
-          return false;  // Already processed.
+        if (struct_def->cycle_status == StructDef::CycleStatus::InProgress) {
+          // cycle found
+          return true;
         }
 
-        visited.insert(struct_def);
-        stack.insert(struct_def);
+        struct_def->cycle_status = StructDef::CycleStatus::InProgress;
 
         for (const auto& field : struct_def->fields.vec) {
           if (field->value.type.base_type == BASE_TYPE_STRUCT) {
@@ -2785,7 +2778,7 @@ bool Parser::HasCircularStructDependency() const {
           }
         }
 
-        stack.erase(struct_def);
+        struct_def->cycle_status = StructDef::CycleStatus::Checked;
         return false;  // No cycle detected.
       };
 
