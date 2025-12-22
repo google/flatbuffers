@@ -49,14 +49,6 @@ mod more_defaults_test;
 mod optional_scalars_test;
 
 #[allow(dead_code, unused_imports, clippy::all)]
-#[path = "../../include_test1/mod.rs"]
-pub mod include_test1_generated;
-
-#[allow(dead_code, unused_imports, clippy::all)]
-#[path = "../../include_test2/mod.rs"]
-pub mod include_test2_generated;
-
-#[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../namespace_test/mod.rs"]
 pub mod namespace_test_generated;
 
