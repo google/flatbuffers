@@ -593,6 +593,18 @@ class PythonStubGenerator {
                     "bytes) -> uoffset: ...\n";
           }
         }
+
+        stub << "def ";
+        if (!parser_.opts.python_no_type_prefix_suffix) stub << type;
+        stub << "Create" << namer_.Method(*field)
+             << "Vector(builder: flatbuffers.Builder, data: typing.Iterable["
+                "typing.Any]) -> uoffset: ...\n";
+        if (!parser_.opts.one_file &&
+            !parser_.opts.python_no_type_prefix_suffix) {
+          stub << "def Create" << namer_.Method(*field)
+               << "Vector(builder: flatbuffers.Builder, data: "
+                  "typing.Iterable[typing.Any]) -> uoffset: ...\n";
+        }
       }
     }
 
@@ -1467,6 +1479,59 @@ class PythonGenerator : public BaseGenerator {
     }
   }
 
+  void BuildVectorCreationHelper(const StructDef& struct_def,
+                                 const FieldDef& field, std::string* code_ptr,
+                                 ImportMap& imports) const {
+    auto& code = *code_ptr;
+    const auto vector_type = field.value.type.VectorType();
+    const bool is_struct_vector = IsStruct(vector_type);
+    const bool is_scalar_vector =
+        IsScalar(vector_type.base_type) || vector_type.enum_def != nullptr;
+    const std::string struct_type = namer_.Type(struct_def);
+    const std::string field_method = namer_.Method(field);
+    const std::string helper_name =
+        parser_.opts.python_no_type_prefix_suffix
+            ? "Create" + field_method + "Vector"
+            : struct_type + "Create" + field_method + "Vector";
+
+    if (parser_.opts.python_typing) {
+      imports.insert(ImportMapEntry{"typing", "Iterable"});
+      code += "def " + helper_name +
+              "(builder: flatbuffers.Builder, data: Iterable[Any]) -> int:\n";
+    } else {
+      code += "def " + helper_name + "(builder, data):\n";
+    }
+
+    if (is_scalar_vector || is_struct_vector) {
+      auto alignment = InlineAlignment(vector_type);
+      auto elem_size = InlineSize(vector_type);
+      code += Indent + "data = list(data)\n";
+      code += Indent + "builder.StartVector(" + NumToString(elem_size) +
+              ", len(data), " + NumToString(alignment) + ")\n";
+      code += Indent + "for item in reversed(data):\n";
+      if (is_struct_vector) {
+        code += Indent + Indent + "item.Pack(builder)\n";
+      } else {
+        code += Indent + Indent + "builder.Prepend" +
+                namer_.Method(GenTypeBasic(vector_type)) + "(item)\n";
+      }
+      code += Indent + "return builder.EndVector()\n\n";
+    } else {
+      code += Indent + "return builder.CreateVectorOfTables(data)\n\n";
+    }
+
+    if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
+      if (parser_.opts.python_typing) {
+        code += "def Create" + field_method +
+                "Vector(builder: flatbuffers.Builder, data: Iterable[Any]) "
+                "-> int:\n";
+      } else {
+        code += "def Create" + field_method + "Vector(builder, data):\n";
+      }
+      code += Indent + helper_name + "(builder, data)\n\n";
+    }
+  }
+
   // Set the value of one of the members of a table's vector and fills in the
   // elements from a bytearray. This is for simplifying the use of nested
   // flatbuffers.
@@ -1617,8 +1682,8 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate table constructors, conditioned on its members' types.
-  void GenTableBuilders(const StructDef& struct_def,
-                        std::string* code_ptr) const {
+  void GenTableBuilders(const StructDef& struct_def, std::string* code_ptr,
+                        ImportMap& imports) const {
     GetStartOfTable(struct_def, code_ptr);
 
     for (auto it = struct_def.fields.vec.begin();
@@ -1630,6 +1695,7 @@ class PythonGenerator : public BaseGenerator {
       BuildFieldOfTable(struct_def, field, offset, code_ptr);
       if (IsVector(field.value.type)) {
         BuildVectorOfTable(struct_def, field, code_ptr);
+        BuildVectorCreationHelper(struct_def, field, code_ptr, imports);
         BuildVectorOfTableFromBytes(struct_def, field, code_ptr);
       }
     }
@@ -1696,7 +1762,7 @@ class PythonGenerator : public BaseGenerator {
       GenStructBuilder(struct_def, code_ptr);
     } else {
       // Creates a set of functions that allow table construction.
-      GenTableBuilders(struct_def, code_ptr);
+      GenTableBuilders(struct_def, code_ptr, imports);
     }
   }
 
