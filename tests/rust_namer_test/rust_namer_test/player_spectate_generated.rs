@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum PlayerSpectateOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum PlayerSpectateOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct PlayerSpectate<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for PlayerSpectate<'a> {
   type Inner = PlayerSpectate<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -18,7 +20,6 @@ impl<'a> ::flatbuffers::Follow<'a> for PlayerSpectate<'a> {
 }
 
 impl<'a> PlayerSpectate<'a> {
-
   pub const fn get_fully_qualified_name() -> &'static str {
     "RustNamerTest.PlayerSpectate"
   }
@@ -27,6 +28,7 @@ impl<'a> PlayerSpectate<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     PlayerSpectate { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -52,8 +54,10 @@ impl ::flatbuffers::Verifiable for PlayerSpectate<'_> {
     Ok(())
   }
 }
+
 pub struct PlayerSpectateArgs {
 }
+
 impl<'a> Default for PlayerSpectateArgs {
   #[inline]
   fn default() -> Self {
@@ -66,6 +70,7 @@ pub struct PlayerSpectateBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> PlayerSpectateBuilder<'a, 'b, A> {
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> PlayerSpectateBuilder<'a, 'b, A> {
@@ -75,6 +80,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> PlayerSpectateBuilder<'a, 'b,
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<PlayerSpectate<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -88,16 +94,19 @@ impl ::core::fmt::Debug for PlayerSpectate<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct PlayerSpectateT {
 }
+
 impl Default for PlayerSpectateT {
   fn default() -> Self {
     Self {
     }
   }
 }
+
 impl PlayerSpectateT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

@@ -4,10 +4,13 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY: u8 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_ANY: u8 = 3;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY: [Any; 4] = [
@@ -20,6 +23,7 @@ pub const ENUM_VALUES_ANY: [Any; 4] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct Any(pub u8);
+
 #[allow(non_upper_case_globals)]
 impl Any {
   pub const NONE: Self = Self(0);
@@ -35,6 +39,7 @@ impl Any {
     Self::TestSimpleTableWithEnum,
     Self::MyGame_Example2_Monster,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -46,6 +51,7 @@ impl Any {
     }
   }
 }
+
 impl ::core::fmt::Debug for Any {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -55,6 +61,7 @@ impl ::core::fmt::Debug for Any {
     }
   }
 }
+
 impl Serialize for Any {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
@@ -85,6 +92,7 @@ impl<'de> serde::Deserialize<'de> for Any {
 
 impl<'a> ::flatbuffers::Follow<'a> for Any {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
@@ -94,6 +102,7 @@ impl<'a> ::flatbuffers::Follow<'a> for Any {
 
 impl ::flatbuffers::Push for Any {
     type Output = Any;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u8>(dst, self.0) };
@@ -102,10 +111,12 @@ impl ::flatbuffers::Push for Any {
 
 impl ::flatbuffers::EndianScalar for Any {
   type Scalar = u8;
+
   #[inline]
   fn to_little_endian(self) -> u8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u8) -> Self {
@@ -124,6 +135,7 @@ impl<'a> ::flatbuffers::Verifiable for Any {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for Any {}
+
 pub struct AnyUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
@@ -135,11 +147,13 @@ pub enum AnyT {
   TestSimpleTableWithEnum(alloc::boxed::Box<TestSimpleTableWithEnumT>),
   MyGameExample2Monster(alloc::boxed::Box<super::example_2::MonsterT>),
 }
+
 impl Default for AnyT {
   fn default() -> Self {
     Self::NONE
   }
 }
+
 impl AnyT {
   pub fn any_type(&self) -> Any {
     match self {
@@ -149,6 +163,7 @@ impl AnyT {
       Self::MyGameExample2Monster(_) => Any::MyGame_Example2_Monster,
     }
   }
+
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
@@ -157,6 +172,7 @@ impl AnyT {
       Self::MyGameExample2Monster(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
+
   /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_monster(&mut self) -> Option<alloc::boxed::Box<MonsterT>> {
     if let Self::Monster(_) = self {
@@ -170,14 +186,17 @@ impl AnyT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the MonsterT.
   pub fn as_monster(&self) -> Option<&MonsterT> {
     if let Self::Monster(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the MonsterT.
   pub fn as_monster_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::Monster(v) = self { Some(v.as_mut()) } else { None }
   }
+
   /// If the union variant matches, return the owned TestSimpleTableWithEnumT, setting the union to NONE.
   pub fn take_test_simple_table_with_enum(&mut self) -> Option<alloc::boxed::Box<TestSimpleTableWithEnumT>> {
     if let Self::TestSimpleTableWithEnum(_) = self {
@@ -191,14 +210,17 @@ impl AnyT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the TestSimpleTableWithEnumT.
   pub fn as_test_simple_table_with_enum(&self) -> Option<&TestSimpleTableWithEnumT> {
     if let Self::TestSimpleTableWithEnum(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the TestSimpleTableWithEnumT.
   pub fn as_test_simple_table_with_enum_mut(&mut self) -> Option<&mut TestSimpleTableWithEnumT> {
     if let Self::TestSimpleTableWithEnum(v) = self { Some(v.as_mut()) } else { None }
   }
+
   /// If the union variant matches, return the owned super::example_2::MonsterT, setting the union to NONE.
   pub fn take_my_game_example_2_monster(&mut self) -> Option<alloc::boxed::Box<super::example_2::MonsterT>> {
     if let Self::MyGameExample2Monster(_) = self {
@@ -212,12 +234,15 @@ impl AnyT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the super::example_2::MonsterT.
   pub fn as_my_game_example_2_monster(&self) -> Option<&super::example_2::MonsterT> {
     if let Self::MyGameExample2Monster(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the super::example_2::MonsterT.
   pub fn as_my_game_example_2_monster_mut(&mut self) -> Option<&mut super::example_2::MonsterT> {
     if let Self::MyGameExample2Monster(v) = self { Some(v.as_mut()) } else { None }
   }
 }
+

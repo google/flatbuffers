@@ -4,6 +4,7 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 #[allow(non_upper_case_globals)]
 mod bitflags_long_enum {
   ::flatbuffers::bitflags::bitflags! {
@@ -15,6 +16,7 @@ mod bitflags_long_enum {
     }
   }
 }
+
 pub use self::bitflags_long_enum::LongEnum;
 
 impl Serialize for LongEnum {
@@ -28,6 +30,7 @@ impl Serialize for LongEnum {
 
 impl<'a> ::flatbuffers::Follow<'a> for LongEnum {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<u64>(buf, loc) };
@@ -37,6 +40,7 @@ impl<'a> ::flatbuffers::Follow<'a> for LongEnum {
 
 impl ::flatbuffers::Push for LongEnum {
     type Output = LongEnum;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u64>(dst, self.bits()) };
@@ -45,10 +49,12 @@ impl ::flatbuffers::Push for LongEnum {
 
 impl ::flatbuffers::EndianScalar for LongEnum {
   type Scalar = u64;
+
   #[inline]
   fn to_little_endian(self) -> u64 {
     self.bits().to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u64) -> Self {

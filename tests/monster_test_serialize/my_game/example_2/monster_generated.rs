@@ -4,15 +4,17 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
-pub enum MonsterOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum MonsterOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct Monster<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for Monster<'a> {
   type Inner = Monster<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -20,7 +22,6 @@ impl<'a> ::flatbuffers::Follow<'a> for Monster<'a> {
 }
 
 impl<'a> Monster<'a> {
-
   pub const fn get_fully_qualified_name() -> &'static str {
     "MyGame.Example2.Monster"
   }
@@ -29,6 +30,7 @@ impl<'a> Monster<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     Monster { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -54,8 +56,10 @@ impl ::flatbuffers::Verifiable for Monster<'_> {
     Ok(())
   }
 }
+
 pub struct MonsterArgs {
 }
+
 impl<'a> Default for MonsterArgs {
   #[inline]
   fn default() -> Self {
@@ -78,6 +82,7 @@ pub struct MonsterBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> MonsterBuilder<'a, 'b, A> {
@@ -87,6 +92,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<Monster<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -100,16 +106,19 @@ impl ::core::fmt::Debug for Monster<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
 }
+
 impl Default for MonsterT {
   fn default() -> Self {
     Self {
     }
   }
 }
+
 impl MonsterT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

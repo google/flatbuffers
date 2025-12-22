@@ -4,10 +4,13 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_RACE: i8 = -1;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_RACE: i8 = 2;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_RACE: [Race; 4] = [
@@ -20,6 +23,7 @@ pub const ENUM_VALUES_RACE: [Race; 4] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct Race(pub i8);
+
 #[allow(non_upper_case_globals)]
 impl Race {
   pub const None: Self = Self(-1);
@@ -35,6 +39,7 @@ impl Race {
     Self::Dwarf,
     Self::Elf,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -46,6 +51,7 @@ impl Race {
     }
   }
 }
+
 impl ::core::fmt::Debug for Race {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -55,6 +61,7 @@ impl ::core::fmt::Debug for Race {
     }
   }
 }
+
 impl Serialize for Race {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
@@ -85,6 +92,7 @@ impl<'de> serde::Deserialize<'de> for Race {
 
 impl<'a> ::flatbuffers::Follow<'a> for Race {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<i8>(buf, loc) };
@@ -94,6 +102,7 @@ impl<'a> ::flatbuffers::Follow<'a> for Race {
 
 impl ::flatbuffers::Push for Race {
     type Output = Race;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<i8>(dst, self.0) };
@@ -102,10 +111,12 @@ impl ::flatbuffers::Push for Race {
 
 impl ::flatbuffers::EndianScalar for Race {
   type Scalar = i8;
+
   #[inline]
   fn to_little_endian(self) -> i8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: i8) -> Self {

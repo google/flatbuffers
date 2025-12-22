@@ -4,15 +4,18 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 // struct StructOfStructsOfStructs, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct StructOfStructsOfStructs(pub [u8; 20]);
+
 impl Default for StructOfStructsOfStructs { 
   fn default() -> Self { 
     Self([0; 20])
   }
 }
+
 impl ::core::fmt::Debug for StructOfStructsOfStructs {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("StructOfStructsOfStructs")
@@ -22,27 +25,34 @@ impl ::core::fmt::Debug for StructOfStructsOfStructs {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for StructOfStructsOfStructs {}
+
 impl<'a> ::flatbuffers::Follow<'a> for StructOfStructsOfStructs {
   type Inner = &'a StructOfStructsOfStructs;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a StructOfStructsOfStructs>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a StructOfStructsOfStructs {
   type Inner = &'a StructOfStructsOfStructs;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<StructOfStructsOfStructs>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for StructOfStructsOfStructs {
     type Output = StructOfStructsOfStructs;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const StructOfStructsOfStructs as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -106,6 +116,7 @@ impl<'a> StructOfStructsOfStructs {
 pub struct StructOfStructsOfStructsT {
   pub a: StructOfStructsT,
 }
+
 impl StructOfStructsOfStructsT {
   pub fn pack(&self) -> StructOfStructsOfStructs {
     StructOfStructsOfStructs::new(
@@ -113,4 +124,3 @@ impl StructOfStructsOfStructsT {
     )
   }
 }
-

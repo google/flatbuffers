@@ -2,15 +2,18 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 // struct Vec3, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct Vec3(pub [u8; 32]);
+
 impl Default for Vec3 { 
   fn default() -> Self { 
     Self([0; 32])
   }
 }
+
 impl ::core::fmt::Debug for Vec3 {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("Vec3")
@@ -25,27 +28,34 @@ impl ::core::fmt::Debug for Vec3 {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for Vec3 {}
+
 impl<'a> ::flatbuffers::Follow<'a> for Vec3 {
   type Inner = &'a Vec3;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a Vec3>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a Vec3 {
   type Inner = &'a Vec3;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<Vec3>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for Vec3 {
     type Output = Vec3;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(8)
@@ -263,6 +273,7 @@ pub struct Vec3T {
   pub test2: Color,
   pub test3: TestT,
 }
+
 impl Vec3T {
   pub fn pack(&self) -> Vec3 {
     Vec3::new(
@@ -275,4 +286,3 @@ impl Vec3T {
     )
   }
 }
-

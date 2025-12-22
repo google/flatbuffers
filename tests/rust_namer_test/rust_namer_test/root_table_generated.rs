@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum RootTableOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum RootTableOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct RootTable<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for RootTable<'a> {
   type Inner = RootTable<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -29,6 +31,7 @@ impl<'a> RootTable<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     RootTable { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -62,6 +65,7 @@ impl<'a> RootTable<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<FieldUnion>(RootTable::VT_FIELD42_TYPE, Some(FieldUnion::NONE)).unwrap()}
   }
+
   #[inline]
   pub fn field42(&self) -> Option<::flatbuffers::Table<'a>> {
     // Safety:
@@ -69,6 +73,7 @@ impl<'a> RootTable<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Table<'a>>>(RootTable::VT_FIELD42, None)}
   }
+
   #[inline]
   #[allow(non_snake_case)]
   pub fn field42_as_f(&self) -> Option<FieldTable<'a>> {
@@ -83,7 +88,6 @@ impl<'a> RootTable<'a> {
       None
     }
   }
-
 }
 
 impl ::flatbuffers::Verifiable for RootTable<'_> {
@@ -102,10 +106,12 @@ impl ::flatbuffers::Verifiable for RootTable<'_> {
     Ok(())
   }
 }
+
 pub struct RootTableArgs {
     pub field42_type: FieldUnion,
     pub field42: Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>>,
 }
+
 impl<'a> Default for RootTableArgs {
   #[inline]
   fn default() -> Self {
@@ -120,15 +126,18 @@ pub struct RootTableBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> RootTableBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_field42_type(&mut self, field42_type: FieldUnion) {
     self.fbb_.push_slot::<FieldUnion>(RootTable::VT_FIELD42_TYPE, field42_type, FieldUnion::NONE);
   }
+
   #[inline]
   pub fn add_field42(&mut self, field42: ::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(RootTable::VT_FIELD42, field42);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> RootTableBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -137,6 +146,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> RootTableBuilder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<RootTable<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -164,11 +174,13 @@ impl ::core::fmt::Debug for RootTable<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct RootTableT {
   pub field42: FieldUnionT,
 }
+
 impl Default for RootTableT {
   fn default() -> Self {
     Self {
@@ -176,6 +188,7 @@ impl Default for RootTableT {
     }
   }
 }
+
 impl RootTableT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

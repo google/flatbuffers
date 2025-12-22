@@ -4,15 +4,18 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 // struct StructOfStructs, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct StructOfStructs(pub [u8; 20]);
+
 impl Default for StructOfStructs { 
   fn default() -> Self { 
     Self([0; 20])
   }
 }
+
 impl ::core::fmt::Debug for StructOfStructs {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("StructOfStructs")
@@ -24,27 +27,34 @@ impl ::core::fmt::Debug for StructOfStructs {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for StructOfStructs {}
+
 impl<'a> ::flatbuffers::Follow<'a> for StructOfStructs {
   type Inner = &'a StructOfStructs;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a StructOfStructs>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a StructOfStructs {
   type Inner = &'a StructOfStructs;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<StructOfStructs>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for StructOfStructs {
     type Output = StructOfStructs;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const StructOfStructs as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -142,6 +152,7 @@ pub struct StructOfStructsT {
   pub b: TestT,
   pub c: AbilityT,
 }
+
 impl StructOfStructsT {
   pub fn pack(&self) -> StructOfStructs {
     StructOfStructs::new(
@@ -151,4 +162,3 @@ impl StructOfStructsT {
     )
   }
 }
-

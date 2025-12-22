@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum KeywordsInTableOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum KeywordsInTableOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct KeywordsInTable<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for KeywordsInTable<'a> {
   type Inner = KeywordsInTable<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -31,6 +33,7 @@ impl<'a> KeywordsInTable<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     KeywordsInTable { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -64,6 +67,7 @@ impl<'a> KeywordsInTable<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<ABC>(KeywordsInTable::VT_IS, Some(ABC::void)).unwrap()}
   }
+
   #[inline]
   pub fn private(&self) -> public {
     // Safety:
@@ -71,6 +75,7 @@ impl<'a> KeywordsInTable<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<public>(KeywordsInTable::VT_PRIVATE, Some(public::NONE)).unwrap()}
   }
+
   #[inline]
   pub fn type_(&self) -> i32 {
     // Safety:
@@ -78,6 +83,7 @@ impl<'a> KeywordsInTable<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(KeywordsInTable::VT_TYPE_, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn default(&self) -> bool {
     // Safety:
@@ -101,12 +107,14 @@ impl ::flatbuffers::Verifiable for KeywordsInTable<'_> {
     Ok(())
   }
 }
+
 pub struct KeywordsInTableArgs {
     pub is: ABC,
     pub private: public,
     pub type_: i32,
     pub default: bool,
 }
+
 impl<'a> Default for KeywordsInTableArgs {
   #[inline]
   fn default() -> Self {
@@ -123,23 +131,28 @@ pub struct KeywordsInTableBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> 
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> KeywordsInTableBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_is(&mut self, is: ABC) {
     self.fbb_.push_slot::<ABC>(KeywordsInTable::VT_IS, is, ABC::void);
   }
+
   #[inline]
   pub fn add_private(&mut self, private: public) {
     self.fbb_.push_slot::<public>(KeywordsInTable::VT_PRIVATE, private, public::NONE);
   }
+
   #[inline]
   pub fn add_type_(&mut self, type_: i32) {
     self.fbb_.push_slot::<i32>(KeywordsInTable::VT_TYPE_, type_, 0);
   }
+
   #[inline]
   pub fn add_default(&mut self, default: bool) {
     self.fbb_.push_slot::<bool>(KeywordsInTable::VT_DEFAULT, default, false);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> KeywordsInTableBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -148,6 +161,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> KeywordsInTableBuilder<'a, 'b
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<KeywordsInTable<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -165,6 +179,7 @@ impl ::core::fmt::Debug for KeywordsInTable<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct KeywordsInTableT {
@@ -173,6 +188,7 @@ pub struct KeywordsInTableT {
   pub type_: i32,
   pub default: bool,
 }
+
 impl Default for KeywordsInTableT {
   fn default() -> Self {
     Self {
@@ -183,6 +199,7 @@ impl Default for KeywordsInTableT {
     }
   }
 }
+
 impl KeywordsInTableT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

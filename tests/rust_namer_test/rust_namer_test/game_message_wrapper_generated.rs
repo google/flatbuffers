@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum GameMessageWrapperOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum GameMessageWrapperOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct GameMessageWrapper<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for GameMessageWrapper<'a> {
   type Inner = GameMessageWrapper<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -29,6 +31,7 @@ impl<'a> GameMessageWrapper<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     GameMessageWrapper { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -72,6 +75,7 @@ impl<'a> GameMessageWrapper<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<GameMessage>(GameMessageWrapper::VT_MESSAGE_TYPE, Some(GameMessage::NONE)).unwrap()}
   }
+
   #[inline]
   pub fn Message(&self) -> Option<::flatbuffers::Table<'a>> {
     // Safety:
@@ -79,6 +83,7 @@ impl<'a> GameMessageWrapper<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Table<'a>>>(GameMessageWrapper::VT_MESSAGE, None)}
   }
+
   #[inline]
   #[allow(non_snake_case)]
   pub fn Message_as_player_stat_event(&self) -> Option<PlayerStatEvent<'a>> {
@@ -123,7 +128,6 @@ impl<'a> GameMessageWrapper<'a> {
       None
     }
   }
-
 }
 
 impl ::flatbuffers::Verifiable for GameMessageWrapper<'_> {
@@ -144,10 +148,12 @@ impl ::flatbuffers::Verifiable for GameMessageWrapper<'_> {
     Ok(())
   }
 }
+
 pub struct GameMessageWrapperArgs {
     pub Message_type: GameMessage,
     pub Message: Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>>,
 }
+
 impl<'a> Default for GameMessageWrapperArgs {
   #[inline]
   fn default() -> Self {
@@ -162,15 +168,18 @@ pub struct GameMessageWrapperBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + '
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> GameMessageWrapperBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_Message_type(&mut self, Message_type: GameMessage) {
     self.fbb_.push_slot::<GameMessage>(GameMessageWrapper::VT_MESSAGE_TYPE, Message_type, GameMessage::NONE);
   }
+
   #[inline]
   pub fn add_Message(&mut self, Message: ::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(GameMessageWrapper::VT_MESSAGE, Message);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> GameMessageWrapperBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -179,6 +188,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> GameMessageWrapperBuilder<'a,
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<GameMessageWrapper<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -220,11 +230,13 @@ impl ::core::fmt::Debug for GameMessageWrapper<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct GameMessageWrapperT {
   pub Message: GameMessageT,
 }
+
 impl Default for GameMessageWrapperT {
   fn default() -> Self {
     Self {
@@ -232,6 +244,7 @@ impl Default for GameMessageWrapperT {
     }
   }
 }
+
 impl GameMessageWrapperT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

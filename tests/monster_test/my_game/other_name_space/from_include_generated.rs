@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
@@ -15,6 +18,7 @@ pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct FromInclude(pub i64);
+
 #[allow(non_upper_case_globals)]
 impl FromInclude {
   pub const IncludeVal: Self = Self(0);
@@ -24,6 +28,7 @@ impl FromInclude {
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::IncludeVal,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -32,6 +37,7 @@ impl FromInclude {
     }
   }
 }
+
 impl ::core::fmt::Debug for FromInclude {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -41,8 +47,10 @@ impl ::core::fmt::Debug for FromInclude {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for FromInclude {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<i64>(buf, loc) };
@@ -52,6 +60,7 @@ impl<'a> ::flatbuffers::Follow<'a> for FromInclude {
 
 impl ::flatbuffers::Push for FromInclude {
     type Output = FromInclude;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<i64>(dst, self.0) };
@@ -60,10 +69,12 @@ impl ::flatbuffers::Push for FromInclude {
 
 impl ::flatbuffers::EndianScalar for FromInclude {
   type Scalar = i64;
+
   #[inline]
   fn to_little_endian(self) -> i64 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: i64) -> Self {

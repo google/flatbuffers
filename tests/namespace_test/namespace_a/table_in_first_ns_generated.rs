@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum TableInFirstNSOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum TableInFirstNSOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct TableInFirstNS<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for TableInFirstNS<'a> {
   type Inner = TableInFirstNS<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -32,6 +34,7 @@ impl<'a> TableInFirstNS<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     TableInFirstNS { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -78,6 +81,7 @@ impl<'a> TableInFirstNS<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, None)}
   }
+
   #[inline]
   pub fn foo_enum(&self) -> namespace_b::EnumInNestedNS {
     // Safety:
@@ -85,6 +89,7 @@ impl<'a> TableInFirstNS<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, Some(namespace_b::EnumInNestedNS::A)).unwrap()}
   }
+
   #[inline]
   pub fn foo_union_type(&self) -> namespace_b::UnionInNestedNS {
     // Safety:
@@ -92,6 +97,7 @@ impl<'a> TableInFirstNS<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<namespace_b::UnionInNestedNS>(TableInFirstNS::VT_FOO_UNION_TYPE, Some(namespace_b::UnionInNestedNS::NONE)).unwrap()}
   }
+
   #[inline]
   pub fn foo_union(&self) -> Option<::flatbuffers::Table<'a>> {
     // Safety:
@@ -99,6 +105,7 @@ impl<'a> TableInFirstNS<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Table<'a>>>(TableInFirstNS::VT_FOO_UNION, None)}
   }
+
   #[inline]
   pub fn foo_struct(&self) -> Option<&'a namespace_b::StructInNestedNS> {
     // Safety:
@@ -106,6 +113,7 @@ impl<'a> TableInFirstNS<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, None)}
   }
+
   #[inline]
   #[allow(non_snake_case)]
   pub fn foo_union_as_table_in_nested_ns(&self) -> Option<namespace_b::TableInNestedNS<'a>> {
@@ -120,7 +128,6 @@ impl<'a> TableInFirstNS<'a> {
       None
     }
   }
-
 }
 
 impl ::flatbuffers::Verifiable for TableInFirstNS<'_> {
@@ -142,6 +149,7 @@ impl ::flatbuffers::Verifiable for TableInFirstNS<'_> {
     Ok(())
   }
 }
+
 pub struct TableInFirstNSArgs<'a> {
     pub foo_table: Option<::flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'a>>>,
     pub foo_enum: namespace_b::EnumInNestedNS,
@@ -149,6 +157,7 @@ pub struct TableInFirstNSArgs<'a> {
     pub foo_union: Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>>,
     pub foo_struct: Option<&'a namespace_b::StructInNestedNS>,
 }
+
 impl<'a> Default for TableInFirstNSArgs<'a> {
   #[inline]
   fn default() -> Self {
@@ -166,27 +175,33 @@ pub struct TableInFirstNSBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableInFirstNSBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_foo_table(&mut self, foo_table: ::flatbuffers::WIPOffset<namespace_b::TableInNestedNS<'b >>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<namespace_b::TableInNestedNS>>(TableInFirstNS::VT_FOO_TABLE, foo_table);
   }
+
   #[inline]
   pub fn add_foo_enum(&mut self, foo_enum: namespace_b::EnumInNestedNS) {
     self.fbb_.push_slot::<namespace_b::EnumInNestedNS>(TableInFirstNS::VT_FOO_ENUM, foo_enum, namespace_b::EnumInNestedNS::A);
   }
+
   #[inline]
   pub fn add_foo_union_type(&mut self, foo_union_type: namespace_b::UnionInNestedNS) {
     self.fbb_.push_slot::<namespace_b::UnionInNestedNS>(TableInFirstNS::VT_FOO_UNION_TYPE, foo_union_type, namespace_b::UnionInNestedNS::NONE);
   }
+
   #[inline]
   pub fn add_foo_union(&mut self, foo_union: ::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(TableInFirstNS::VT_FOO_UNION, foo_union);
   }
+
   #[inline]
   pub fn add_foo_struct(&mut self, foo_struct: &namespace_b::StructInNestedNS) {
     self.fbb_.push_slot_always::<&namespace_b::StructInNestedNS>(TableInFirstNS::VT_FOO_STRUCT, foo_struct);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> TableInFirstNSBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -195,6 +210,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableInFirstNSBuilder<'a, 'b,
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<TableInFirstNS<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -225,6 +241,7 @@ impl ::core::fmt::Debug for TableInFirstNS<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableInFirstNST {
@@ -233,6 +250,7 @@ pub struct TableInFirstNST {
   pub foo_union: namespace_b::UnionInNestedNST,
   pub foo_struct: Option<namespace_b::StructInNestedNST>,
 }
+
 impl Default for TableInFirstNST {
   fn default() -> Self {
     Self {
@@ -243,6 +261,7 @@ impl Default for TableInFirstNST {
     }
   }
 }
+
 impl TableInFirstNST {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_ANY_AMBIGUOUS_ALIASES: u8 = 3;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
@@ -18,6 +21,7 @@ pub const ENUM_VALUES_ANY_AMBIGUOUS_ALIASES: [AnyAmbiguousAliases; 4] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct AnyAmbiguousAliases(pub u8);
+
 #[allow(non_upper_case_globals)]
 impl AnyAmbiguousAliases {
   pub const NONE: Self = Self(0);
@@ -33,6 +37,7 @@ impl AnyAmbiguousAliases {
     Self::M2,
     Self::M3,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -44,6 +49,7 @@ impl AnyAmbiguousAliases {
     }
   }
 }
+
 impl ::core::fmt::Debug for AnyAmbiguousAliases {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -53,8 +59,10 @@ impl ::core::fmt::Debug for AnyAmbiguousAliases {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for AnyAmbiguousAliases {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
@@ -64,6 +72,7 @@ impl<'a> ::flatbuffers::Follow<'a> for AnyAmbiguousAliases {
 
 impl ::flatbuffers::Push for AnyAmbiguousAliases {
     type Output = AnyAmbiguousAliases;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u8>(dst, self.0) };
@@ -72,10 +81,12 @@ impl ::flatbuffers::Push for AnyAmbiguousAliases {
 
 impl ::flatbuffers::EndianScalar for AnyAmbiguousAliases {
   type Scalar = u8;
+
   #[inline]
   fn to_little_endian(self) -> u8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u8) -> Self {
@@ -94,6 +105,7 @@ impl<'a> ::flatbuffers::Verifiable for AnyAmbiguousAliases {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for AnyAmbiguousAliases {}
+
 pub struct AnyAmbiguousAliasesUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
@@ -105,11 +117,13 @@ pub enum AnyAmbiguousAliasesT {
   M2(alloc::boxed::Box<MonsterT>),
   M3(alloc::boxed::Box<MonsterT>),
 }
+
 impl Default for AnyAmbiguousAliasesT {
   fn default() -> Self {
     Self::NONE
   }
 }
+
 impl AnyAmbiguousAliasesT {
   pub fn any_ambiguous_aliases_type(&self) -> AnyAmbiguousAliases {
     match self {
@@ -119,6 +133,7 @@ impl AnyAmbiguousAliasesT {
       Self::M3(_) => AnyAmbiguousAliases::M3,
     }
   }
+
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
@@ -127,6 +142,7 @@ impl AnyAmbiguousAliasesT {
       Self::M3(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
+
   /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_m1(&mut self) -> Option<alloc::boxed::Box<MonsterT>> {
     if let Self::M1(_) = self {
@@ -140,14 +156,17 @@ impl AnyAmbiguousAliasesT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the MonsterT.
   pub fn as_m1(&self) -> Option<&MonsterT> {
     if let Self::M1(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the MonsterT.
   pub fn as_m1_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::M1(v) = self { Some(v.as_mut()) } else { None }
   }
+
   /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_m2(&mut self) -> Option<alloc::boxed::Box<MonsterT>> {
     if let Self::M2(_) = self {
@@ -161,14 +180,17 @@ impl AnyAmbiguousAliasesT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the MonsterT.
   pub fn as_m2(&self) -> Option<&MonsterT> {
     if let Self::M2(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the MonsterT.
   pub fn as_m2_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::M2(v) = self { Some(v.as_mut()) } else { None }
   }
+
   /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
   pub fn take_m3(&mut self) -> Option<alloc::boxed::Box<MonsterT>> {
     if let Self::M3(_) = self {
@@ -182,12 +204,15 @@ impl AnyAmbiguousAliasesT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the MonsterT.
   pub fn as_m3(&self) -> Option<&MonsterT> {
     if let Self::M3(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the MonsterT.
   pub fn as_m3_mut(&mut self) -> Option<&mut MonsterT> {
     if let Self::M3(v) = self { Some(v.as_mut()) } else { None }
   }
 }
+
