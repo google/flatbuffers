@@ -305,8 +305,7 @@ function(flatbuffers_generate_headers)
       ${FLATBUFFERS_GENERATE_HEADERS_SCHEMAS})
   add_dependencies(
     ${FLATBUFFERS_GENERATE_HEADERS_TARGET}
-    ${FLATC}
-    ${FLATBUFFERS_GENERATE_HEADERS_SCHEMAS})
+    ${FLATC_TARGET})
   target_include_directories(
     ${FLATBUFFERS_GENERATE_HEADERS_TARGET}
     INTERFACE ${generated_target_dir})
