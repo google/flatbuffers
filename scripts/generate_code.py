@@ -85,6 +85,10 @@ RUST_OPTS = BASE_OPTS + [
     "--gen-name-strings",
     "--rust-module-root-file",
 ]
+RUST_MODULE_OPTS = BASE_OPTS + [
+    "--rust",
+    "--gen-name-strings",
+]
 RUST_SERIALIZE_OPTS = BASE_OPTS + [
     "--rust",
     "--gen-all",
@@ -381,6 +385,29 @@ flatc(
     RUST_OPTS,
     prefix="arrays_test",
     schema="arrays_test.fbs",
+)
+
+flatc(
+    RUST_MODULE_OPTS,
+    prefix="rust_module_test/a",
+    include="rust_module_test",
+    schema="rust_module_test/module_a.fbs",
+)
+
+flatc(
+    RUST_MODULE_OPTS
+    + ["--module-mapping", "rust_module_test/module_a.fbs=rust_module_test_a"],
+    prefix="rust_module_test/b",
+    include="rust_module_test",
+    schema="rust_module_test/module_b.fbs",
+)
+
+flatc(
+    RUST_MODULE_OPTS
+    + ["--module-mapping", "rust_module_test/module_b.fbs=rust_module_test_b"],
+    prefix="rust_module_test/c",
+    include="rust_module_test",
+    schema="rust_module_test/module_c.fbs",
 )
 
 flatc(
