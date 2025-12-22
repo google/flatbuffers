@@ -7,92 +7,92 @@ pub enum PlayerSpectateOffset {}
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct PlayerSpectate<'a> {
-  pub _tab: ::flatbuffers::Table<'a>,
+    pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for PlayerSpectate<'a> {
-  type Inner = PlayerSpectate<'a>;
+    type Inner = PlayerSpectate<'a>;
 
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
-  }
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+    }
 }
 
 impl<'a> PlayerSpectate<'a> {
-  pub const fn get_fully_qualified_name() -> &'static str {
-    "RustNamerTest.PlayerSpectate"
-  }
-
-  #[inline]
-  pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
-    PlayerSpectate { _tab: table }
-  }
-
-  #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
-    _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-    _args: &'args PlayerSpectateArgs
-  ) -> ::flatbuffers::WIPOffset<PlayerSpectate<'bldr>> {
-    let mut builder = PlayerSpectateBuilder::new(_fbb);
-    builder.finish()
-  }
-
-  pub fn unpack(&self) -> PlayerSpectateT {
-    PlayerSpectateT {
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "RustNamerTest.PlayerSpectate"
     }
-  }
+
+    #[inline]
+    pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
+        PlayerSpectate { _tab: table }
+    }
+
+    #[allow(unused_mut)]
+    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+        _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
+        _args: &'args PlayerSpectateArgs
+    ) -> ::flatbuffers::WIPOffset<PlayerSpectate<'bldr>> {
+        let mut builder = PlayerSpectateBuilder::new(_fbb);
+        builder.finish()
+    }
+
+    pub fn unpack(&self) -> PlayerSpectateT {
+        PlayerSpectateT {
+        }
+    }
 }
 
 impl ::flatbuffers::Verifiable for PlayerSpectate<'_> {
-  #[inline]
-  fn run_verifier(
-    v: &mut ::flatbuffers::Verifier, pos: usize
-  ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
-    v.visit_table(pos)?
-     .finish();
-    Ok(())
-  }
+    #[inline]
+    fn run_verifier(
+        v: &mut ::flatbuffers::Verifier, pos: usize
+    ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
+        v.visit_table(pos)?
+            .finish();
+        Ok(())
+    }
 }
 
 pub struct PlayerSpectateArgs {
 }
 
 impl<'a> Default for PlayerSpectateArgs {
-  #[inline]
-  fn default() -> Self {
-    PlayerSpectateArgs {
+    #[inline]
+    fn default() -> Self {
+        PlayerSpectateArgs {
+        }
     }
-  }
 }
 
 pub struct PlayerSpectateBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
-  fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
-  start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
+    fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
+    start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
 
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> PlayerSpectateBuilder<'a, 'b, A> {
-  #[inline]
-  pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> PlayerSpectateBuilder<'a, 'b, A> {
-    let start = _fbb.start_table();
-    PlayerSpectateBuilder {
-      fbb_: _fbb,
-      start_: start,
+    #[inline]
+    pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> PlayerSpectateBuilder<'a, 'b, A> {
+        let start = _fbb.start_table();
+        PlayerSpectateBuilder {
+            fbb_: _fbb,
+            start_: start,
+        }
     }
-  }
 
-  #[inline]
-  pub fn finish(self) -> ::flatbuffers::WIPOffset<PlayerSpectate<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    ::flatbuffers::WIPOffset::new(o.value())
-  }
+    #[inline]
+    pub fn finish(self) -> ::flatbuffers::WIPOffset<PlayerSpectate<'a>> {
+        let o = self.fbb_.end_table(self.start_);
+        ::flatbuffers::WIPOffset::new(o.value())
+    }
 }
 
 impl ::core::fmt::Debug for PlayerSpectate<'_> {
-  fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-    let mut ds = f.debug_struct("PlayerSpectate");
-      ds.finish()
-  }
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        let mut ds = f.debug_struct("PlayerSpectate");
+        ds.finish()
+    }
 }
 
 #[non_exhaustive]
@@ -101,18 +101,18 @@ pub struct PlayerSpectateT {
 }
 
 impl Default for PlayerSpectateT {
-  fn default() -> Self {
-    Self {
+    fn default() -> Self {
+        Self {
+        }
     }
-  }
 }
 
 impl PlayerSpectateT {
-  pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
-    &self,
-    _fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
-  ) -> ::flatbuffers::WIPOffset<PlayerSpectate<'b>> {
-    PlayerSpectate::create(_fbb, &PlayerSpectateArgs{
-    })
-  }
+    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
+        &self,
+        _fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+    ) -> ::flatbuffers::WIPOffset<PlayerSpectate<'b>> {
+        PlayerSpectate::create(_fbb, &PlayerSpectateArgs{
+        })
+    }
 }

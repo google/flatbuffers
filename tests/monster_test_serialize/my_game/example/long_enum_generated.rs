@@ -7,35 +7,35 @@ use super::*;
 
 #[allow(non_upper_case_globals)]
 mod bitflags_long_enum {
-  ::flatbuffers::bitflags::bitflags! {
-    #[derive(Default, Debug, Clone, Copy, PartialEq)]
-    pub struct LongEnum: u64 {
-      const LongOne = 2;
-      const LongTwo = 4;
-      const LongBig = 1099511627776;
+    ::flatbuffers::bitflags::bitflags! {
+        #[derive(Default, Debug, Clone, Copy, PartialEq)]
+        pub struct LongEnum: u64 {
+            const LongOne = 2;
+            const LongTwo = 4;
+            const LongBig = 1099511627776;
+        }
     }
-  }
 }
 
 pub use self::bitflags_long_enum::LongEnum;
 
 impl Serialize for LongEnum {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.serialize_u32(self.bits() as u32)
-  }
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_u32(self.bits() as u32)
+    }
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for LongEnum {
-  type Inner = Self;
+    type Inner = Self;
 
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = unsafe { ::flatbuffers::read_scalar_at::<u64>(buf, loc) };
-    Self::from_bits_retain(b)
-  }
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        let b = unsafe { ::flatbuffers::read_scalar_at::<u64>(buf, loc) };
+        Self::from_bits_retain(b)
+    }
 }
 
 impl ::flatbuffers::Push for LongEnum {
@@ -48,28 +48,28 @@ impl ::flatbuffers::Push for LongEnum {
 }
 
 impl ::flatbuffers::EndianScalar for LongEnum {
-  type Scalar = u64;
+    type Scalar = u64;
 
-  #[inline]
-  fn to_little_endian(self) -> u64 {
-    self.bits().to_le()
-  }
+    #[inline]
+    fn to_little_endian(self) -> u64 {
+        self.bits().to_le()
+    }
 
-  #[inline]
-  #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(v: u64) -> Self {
-    let b = u64::from_le(v);
-    Self::from_bits_retain(b)
-  }
+    #[inline]
+    #[allow(clippy::wrong_self_convention)]
+    fn from_little_endian(v: u64) -> Self {
+        let b = u64::from_le(v);
+        Self::from_bits_retain(b)
+    }
 }
 
 impl<'a> ::flatbuffers::Verifiable for LongEnum {
-  #[inline]
-  fn run_verifier(
-    v: &mut ::flatbuffers::Verifier, pos: usize
-  ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
-    u64::run_verifier(v, pos)
-  }
+    #[inline]
+    fn run_verifier(
+        v: &mut ::flatbuffers::Verifier, pos: usize
+    ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
+        u64::run_verifier(v, pos)
+    }
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for LongEnum {}

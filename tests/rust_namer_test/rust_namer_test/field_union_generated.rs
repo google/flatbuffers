@@ -12,8 +12,8 @@ pub const ENUM_MAX_FIELD_UNION: u8 = 1;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_FIELD_UNION: [FieldUnion; 2] = [
-  FieldUnion::NONE,
-  FieldUnion::f,
+    FieldUnion::NONE,
+    FieldUnion::f,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -22,44 +22,44 @@ pub struct FieldUnion(pub u8);
 
 #[allow(non_upper_case_globals)]
 impl FieldUnion {
-  pub const NONE: Self = Self(0);
-  pub const f: Self = Self(1);
+    pub const NONE: Self = Self(0);
+    pub const f: Self = Self(1);
 
-  pub const ENUM_MIN: u8 = 0;
-  pub const ENUM_MAX: u8 = 1;
-  pub const ENUM_VALUES: &'static [Self] = &[
-    Self::NONE,
-    Self::f,
-  ];
+    pub const ENUM_MIN: u8 = 0;
+    pub const ENUM_MAX: u8 = 1;
+    pub const ENUM_VALUES: &'static [Self] = &[
+        Self::NONE,
+        Self::f,
+    ];
 
-  /// Returns the variant's name or "" if unknown.
-  pub fn variant_name(self) -> Option<&'static str> {
-    match self {
-      Self::NONE => Some("NONE"),
-      Self::f => Some("f"),
-      _ => None,
+    /// Returns the variant's name or "" if unknown.
+    pub fn variant_name(self) -> Option<&'static str> {
+        match self {
+            Self::NONE => Some("NONE"),
+            Self::f => Some("f"),
+            _ => None,
+        }
     }
-  }
 }
 
 impl ::core::fmt::Debug for FieldUnion {
-  fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-    if let Some(name) = self.variant_name() {
-      f.write_str(name)
-    } else {
-      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        if let Some(name) = self.variant_name() {
+            f.write_str(name)
+        } else {
+            f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
+        }
     }
-  }
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for FieldUnion {
-  type Inner = Self;
+    type Inner = Self;
 
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
-    Self(b)
-  }
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
+        Self(b)
+    }
 }
 
 impl ::flatbuffers::Push for FieldUnion {
@@ -72,28 +72,28 @@ impl ::flatbuffers::Push for FieldUnion {
 }
 
 impl ::flatbuffers::EndianScalar for FieldUnion {
-  type Scalar = u8;
+    type Scalar = u8;
 
-  #[inline]
-  fn to_little_endian(self) -> u8 {
-    self.0.to_le()
-  }
+    #[inline]
+    fn to_little_endian(self) -> u8 {
+        self.0.to_le()
+    }
 
-  #[inline]
-  #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(v: u8) -> Self {
-    let b = u8::from_le(v);
-    Self(b)
-  }
+    #[inline]
+    #[allow(clippy::wrong_self_convention)]
+    fn from_little_endian(v: u8) -> Self {
+        let b = u8::from_le(v);
+        Self(b)
+    }
 }
 
 impl<'a> ::flatbuffers::Verifiable for FieldUnion {
-  #[inline]
-  fn run_verifier(
-    v: &mut ::flatbuffers::Verifier, pos: usize
-  ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
-    u8::run_verifier(v, pos)
-  }
+    #[inline]
+    fn run_verifier(
+        v: &mut ::flatbuffers::Verifier, pos: usize
+    ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
+        u8::run_verifier(v, pos)
+    }
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for FieldUnion {}
@@ -104,53 +104,53 @@ pub struct FieldUnionUnionTableOffset {}
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub enum FieldUnionT {
-  NONE,
-  F(alloc::boxed::Box<FieldTableT>),
+    NONE,
+    F(alloc::boxed::Box<FieldTableT>),
 }
 
 impl Default for FieldUnionT {
-  fn default() -> Self {
-    Self::NONE
-  }
+    fn default() -> Self {
+        Self::NONE
+    }
 }
 
 impl FieldUnionT {
-  pub fn field_union_type(&self) -> FieldUnion {
-    match self {
-      Self::NONE => FieldUnion::NONE,
-      Self::F(_) => FieldUnion::f,
+    pub fn field_union_type(&self) -> FieldUnion {
+        match self {
+            Self::NONE => FieldUnion::NONE,
+            Self::F(_) => FieldUnion::f,
+        }
     }
-  }
 
-  pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
-    match self {
-      Self::NONE => None,
-      Self::F(v) => Some(v.pack(fbb).as_union_value()),
+    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
+        match self {
+            Self::NONE => None,
+            Self::F(v) => Some(v.pack(fbb).as_union_value()),
+        }
     }
-  }
 
-  /// If the union variant matches, return the owned FieldTableT, setting the union to NONE.
-  pub fn take_f(&mut self) -> Option<alloc::boxed::Box<FieldTableT>> {
-    if let Self::F(_) = self {
-      let v = ::core::mem::replace(self, Self::NONE);
-      if let Self::F(w) = v {
-        Some(w)
-      } else {
-        unreachable!()
-      }
-    } else {
-      None
+    /// If the union variant matches, return the owned FieldTableT, setting the union to NONE.
+    pub fn take_f(&mut self) -> Option<alloc::boxed::Box<FieldTableT>> {
+        if let Self::F(_) = self {
+            let v = ::core::mem::replace(self, Self::NONE);
+            if let Self::F(w) = v {
+                Some(w)
+            } else {
+                unreachable!()
+            }
+        } else {
+            None
+        }
     }
-  }
 
-  /// If the union variant matches, return a reference to the FieldTableT.
-  pub fn as_f(&self) -> Option<&FieldTableT> {
-    if let Self::F(v) = self { Some(v.as_ref()) } else { None }
-  }
+    /// If the union variant matches, return a reference to the FieldTableT.
+    pub fn as_f(&self) -> Option<&FieldTableT> {
+        if let Self::F(v) = self { Some(v.as_ref()) } else { None }
+    }
 
-  /// If the union variant matches, return a mutable reference to the FieldTableT.
-  pub fn as_f_mut(&mut self) -> Option<&mut FieldTableT> {
-    if let Self::F(v) = self { Some(v.as_mut()) } else { None }
-  }
+    /// If the union variant matches, return a mutable reference to the FieldTableT.
+    pub fn as_f_mut(&mut self) -> Option<&mut FieldTableT> {
+        if let Self::F(v) = self { Some(v.as_mut()) } else { None }
+    }
 }
 
