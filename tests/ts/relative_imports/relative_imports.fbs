@@ -1,0 +1,20 @@
+namespace Transit.One;
+
+table Info {
+  timestamp:ulong;
+}
+
+namespace Transit.Two;
+
+table Identity {
+  id:uint;
+}
+
+namespace Transit.Three;
+
+table Header {
+  info:Transit.One.Info;
+  id:Transit.Two.Identity;
+}
+
+root_type Header;
