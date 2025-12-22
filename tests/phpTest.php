@@ -8,6 +8,7 @@ require join(DIRECTORY_SEPARATOR, array(dirname(dirname(__FILE__)), "php", "Stru
 foreach (glob(join(DIRECTORY_SEPARATOR, array(dirname(__FILE__), "MyGame", "Example", "*.php"))) as $file) {
     require $file;
 }
+require join(DIRECTORY_SEPARATOR, array(dirname(__FILE__), "PhpKeywordTest", "PhpKeywordTest", "Bool.php"));
 
 function main()
 {
@@ -78,6 +79,7 @@ function main()
     testByteBuffer($assert);
     fuzzTest1($assert);
 //    testUnicode($assert);
+    test_keyword_table($assert);
 
     echo 'FlatBuffers php test: completed successfully' . PHP_EOL;
 }
@@ -596,6 +598,19 @@ function testByteBuffer(Assert $assert) {
     $uut = Google\FlatBuffers\ByteBuffer::wrap($buffer);
     $assert->Equal(0x0D0C0B0A, $uut->readLittleEndian(0, 4, true));
 
+}
+
+function test_keyword_table(Assert $assert) {
+    $fbb = new Google\FlatBuffers\FlatBufferBuilder(1);
+
+    \PhpKeywordTest\Bool_::startBool_($fbb);
+    \PhpKeywordTest\Bool_::addValue($fbb, true);
+    $offset = \PhpKeywordTest\Bool_::endBool_($fbb);
+    \PhpKeywordTest\Bool_::finishBoolBuffer($fbb, $offset);
+
+    $bb = $fbb->dataBuffer();
+    $obj = \PhpKeywordTest\Bool_::getRootAsBool_($bb);
+    $assert->equal($obj->getValue(), true);
 }
 
 class Assert {

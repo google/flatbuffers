@@ -253,6 +253,12 @@ flatc(
 )
 
 flatc(
+    PHP_OPTS,
+    prefix="PhpKeywordTest",
+    schema="php_keyword_test.fbs",
+)
+
+flatc(
     BASE_OPTS + TS_OPTS,
     cwd=ts_code_gen,
     prefix="union_vector",
