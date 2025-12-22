@@ -318,9 +318,10 @@ class TsGenerator : public BaseGenerator {
         export_counter++;
       }
 
-      if (export_counter > 0)
+      if (export_counter > 0) {
         parser_.opts.file_saver->SaveFile(it.second.filepath.c_str(), code,
                                           false);
+      }
     }
   }
 
@@ -641,7 +642,8 @@ class TsGenerator : public BaseGenerator {
   }
 
   void GenStructArgs(import_set& imports, const StructDef& struct_def,
-                     std::string* arguments, const std::string& nameprefix) {
+                     const Definition& owner, std::string* arguments,
+                     const std::string& nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto& field = **it;
@@ -649,11 +651,11 @@ class TsGenerator : public BaseGenerator {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructArgs(imports, *field.value.type.struct_def, arguments,
+        GenStructArgs(imports, *field.value.type.struct_def, owner, arguments,
                       nameprefix + field.name + "_");
       } else {
         *arguments += ", " + nameprefix + field.name + ": " +
-                      GenTypeName(imports, field, field.value.type, true,
+                      GenTypeName(imports, owner, field.value.type, true,
                                   field.IsOptional());
       }
     }
@@ -915,6 +917,48 @@ class TsGenerator : public BaseGenerator {
     return symbols_expression;
   }
 
+  std::vector<std::string> PathComponents(const std::string& path) const {
+    std::vector<std::string> components;
+    size_t start = 0;
+    while (start < path.size()) {
+      auto end = path.find(kPathSeparator, start);
+      if (end == std::string::npos) end = path.size();
+      if (end > start) {
+        components.emplace_back(path.substr(start, end - start));
+      }
+      if (end == path.size()) break;
+      start = end + 1;
+    }
+    return components;
+  }
+
+  std::string RelativeDirectory(const std::vector<std::string>& from,
+                                const std::vector<std::string>& to) const {
+    size_t common = 0;
+    while (common < from.size() && common < to.size() &&
+           from[common] == to[common]) {
+      ++common;
+    }
+
+    std::string rel;
+    const size_t ups = from.size() - common;
+    if (ups == 0) {
+      rel = ".";
+    } else {
+      for (size_t i = 0; i < ups; ++i) {
+        if (!rel.empty()) rel += kPathSeparator;
+        rel += "..";
+      }
+    }
+
+    for (size_t i = common; i < to.size(); ++i) {
+      if (!rel.empty()) rel += kPathSeparator;
+      rel += to[i];
+    }
+
+    return rel;
+  }
+
   template <typename DefinitionT>
   ImportDefinition AddImport(import_set& imports, const Definition& dependent,
                              const DefinitionT& dependency) {
@@ -942,26 +986,32 @@ class TsGenerator : public BaseGenerator {
     const std::string symbols_expression = GenSymbolExpression(
         dependency, has_name_clash, import_name, name, object_name);
 
-    std::string bare_file_path;
-    std::string rel_file_path;
-    if (dependent.defined_namespace) {
-      const auto& dep_comps = dependent.defined_namespace->components;
-      for (size_t i = 0; i < dep_comps.size(); i++) {
-        rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-      }
-      if (dep_comps.size() == 0) {
-        rel_file_path += ".";
-      }
-    } else {
-      rel_file_path += "..";
-    }
+    const Namespace* dependent_ns = dependent.defined_namespace
+                                        ? dependent.defined_namespace
+                                        : parser_.empty_namespace_;
+    const Namespace* dependency_ns = dependency.defined_namespace
+                                         ? dependency.defined_namespace
+                                         : parser_.empty_namespace_;
 
-    bare_file_path +=
-        kPathSeparator +
-        namer_.Directories(dependency.defined_namespace->components,
-                           SkipDir::OutputPath) +
+    const std::string dependent_dirs =
+        namer_.Directories(*dependent_ns, SkipDir::OutputPath);
+    const std::string dependency_dirs =
+        namer_.Directories(*dependency_ns, SkipDir::OutputPath);
+
+    const auto dependent_components = PathComponents(dependent_dirs);
+    const auto dependency_components = PathComponents(dependency_dirs);
+
+    std::string rel_dir =
+        RelativeDirectory(dependent_components, dependency_components);
+    if (rel_dir.empty()) rel_dir = ".";
+    if (!rel_dir.empty()) rel_dir += kPathSeparator;
+
+    std::string rel_file_path =
+        rel_dir + namer_.File(dependency, SkipFile::SuffixAndExtension);
+
+    std::string bare_file_path =
+        kPathSeparator + dependency_dirs +
         namer_.File(dependency, SkipFile::SuffixAndExtension);
-    rel_file_path += bare_file_path;
 
     ImportDefinition import;
     import.name = name;
@@ -1624,11 +1674,12 @@ class TsGenerator : public BaseGenerator {
     GenDocComment(struct_def.doc_comment, code_ptr);
     code += "export class ";
     code += object_name;
-    if (parser.opts.generate_object_based_api)
+    if (parser.opts.generate_object_based_api) {
       code += " implements flatbuffers.IUnpackableObject<" + object_api_name +
               "> {\n";
-    else
+    } else {
       code += " {\n";
+    }
     code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
     code += "  bb_pos = 0;\n";
 
@@ -2043,7 +2094,7 @@ class TsGenerator : public BaseGenerator {
     // Emit a factory constructor
     if (struct_def.fixed) {
       std::string arguments;
-      GenStructArgs(imports, struct_def, &arguments, "");
+      GenStructArgs(imports, struct_def, struct_def, &arguments, "");
       GenDocComment(code_ptr);
 
       code += "static create" + GetPrefixedName(struct_def) +
