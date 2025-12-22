@@ -303,6 +303,8 @@ local function finish(self, rootTable, sizePrefix, fileIdentifier)
         assert(#fileIdentifier == 4, "File identifier must be exactly 4 bytes")
     end
 
+    local fid_byte_count = (hasFid and 4 or 0)
+
     -- alignment:
     -- root offset (4)
     -- optional file id (4)
@@ -311,11 +313,11 @@ local function finish(self, rootTable, sizePrefix, fileIdentifier)
         self.minalign,
         (sizePrefix and 4 or 0) +
         4 +
-        (hasFid and 4 or 0)
+        fid_byte_count
     )
 
     -- root offset (points past file identifier if present)
-    self:PrependUOffsetTRelative(rootTable + (hasFid and 4 or 0))
+    self:PrependUOffsetTRelative(rootTable + fid_byte_count)
 
     -- file identifier
     if hasFid then
