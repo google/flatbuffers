@@ -438,8 +438,7 @@ namespace Google.FlatBuffers
             if (off > Offset)
                 throw new ArgumentException();
 
-            if (off != 0)
-                off = Offset - off + sizeof(int);
+            off = Offset - off + sizeof(int);
             PutInt(off);
         }
 
