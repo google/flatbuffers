@@ -4,6 +4,7 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 #[allow(non_upper_case_globals)]
 mod bitflags_color {
   ::flatbuffers::bitflags::bitflags! {
@@ -19,6 +20,7 @@ mod bitflags_color {
     }
   }
 }
+
 pub use self::bitflags_color::Color;
 
 impl Serialize for Color {
@@ -32,6 +34,7 @@ impl Serialize for Color {
 
 impl<'a> ::flatbuffers::Follow<'a> for Color {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
@@ -41,6 +44,7 @@ impl<'a> ::flatbuffers::Follow<'a> for Color {
 
 impl ::flatbuffers::Push for Color {
     type Output = Color;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u8>(dst, self.bits()) };
@@ -49,10 +53,12 @@ impl ::flatbuffers::Push for Color {
 
 impl ::flatbuffers::EndianScalar for Color {
   type Scalar = u8;
+
   #[inline]
   fn to_little_endian(self) -> u8 {
     self.bits().to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u8) -> Self {

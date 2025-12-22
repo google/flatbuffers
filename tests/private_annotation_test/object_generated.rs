@@ -2,15 +2,18 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 // struct Object, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) struct Object(pub [u8; 4]);
+
 impl Default for Object { 
   fn default() -> Self { 
     Self([0; 4])
   }
 }
+
 impl ::core::fmt::Debug for Object {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("Object")
@@ -20,27 +23,34 @@ impl ::core::fmt::Debug for Object {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for Object {}
+
 impl<'a> ::flatbuffers::Follow<'a> for Object {
   type Inner = &'a Object;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a Object>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a Object {
   type Inner = &'a Object;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<Object>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for Object {
     type Output = Object;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const Object as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -110,6 +120,7 @@ impl<'a> Object {
 pub(crate) struct ObjectT {
   pub value: i32,
 }
+
 impl ObjectT {
   pub fn pack(&self) -> Object {
     Object::new(
@@ -117,4 +128,3 @@ impl ObjectT {
     )
   }
 }
-

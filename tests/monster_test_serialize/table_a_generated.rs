@@ -4,15 +4,17 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
-pub enum TableAOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum TableAOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct TableA<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for TableA<'a> {
   type Inner = TableA<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -30,6 +32,7 @@ impl<'a> TableA<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     TableA { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -69,9 +72,11 @@ impl ::flatbuffers::Verifiable for TableA<'_> {
     Ok(())
   }
 }
+
 pub struct TableAArgs<'a> {
     pub b: Option<::flatbuffers::WIPOffset<my_game::other_name_space::TableB<'a>>>,
 }
+
 impl<'a> Default for TableAArgs<'a> {
   #[inline]
   fn default() -> Self {
@@ -100,11 +105,13 @@ pub struct TableABuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableABuilder<'a, 'b, A> {
   #[inline]
   pub fn add_b(&mut self, b: ::flatbuffers::WIPOffset<my_game::other_name_space::TableB<'b >>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<my_game::other_name_space::TableB>>(TableA::VT_B, b);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> TableABuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -113,6 +120,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableABuilder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<TableA<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -127,11 +135,13 @@ impl ::core::fmt::Debug for TableA<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableAT {
   pub b: Option<alloc::boxed::Box<my_game::other_name_space::TableBT>>,
 }
+
 impl Default for TableAT {
   fn default() -> Self {
     Self {
@@ -139,6 +149,7 @@ impl Default for TableAT {
     }
   }
 }
+
 impl TableAT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

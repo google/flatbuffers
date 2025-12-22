@@ -4,15 +4,18 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 // struct Unused, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct Unused(pub [u8; 4]);
+
 impl Default for Unused { 
   fn default() -> Self { 
     Self([0; 4])
   }
 }
+
 impl ::core::fmt::Debug for Unused {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("Unused")
@@ -22,27 +25,34 @@ impl ::core::fmt::Debug for Unused {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for Unused {}
+
 impl<'a> ::flatbuffers::Follow<'a> for Unused {
   type Inner = &'a Unused;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a Unused>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a Unused {
   type Inner = &'a Unused;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<Unused>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for Unused {
     type Output = Unused;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const Unused as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -123,6 +133,7 @@ impl<'a> Unused {
 pub struct UnusedT {
   pub a: i32,
 }
+
 impl UnusedT {
   pub fn pack(&self) -> Unused {
     Unused::new(
@@ -130,4 +141,3 @@ impl UnusedT {
     )
   }
 }
-
