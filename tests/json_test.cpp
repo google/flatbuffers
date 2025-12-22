@@ -4,7 +4,7 @@
 #include "flatbuffers/idl.h"
 #include "monster_test_bfbs_generated.h"
 #include "monster_test_generated.h"
-#include "optional_scalars_generated.h"
+#include "optional_scalars.fbs.h"
 #include "test_assert.h"
 
 namespace flatbuffers {

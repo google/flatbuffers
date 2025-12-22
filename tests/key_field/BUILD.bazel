@@ -1,0 +1,16 @@
+load("//:build_defs.bzl", "flatbuffer_cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+flatbuffer_cc_library(
+    name = "key_field_sample_cc_fbs",
+    srcs = ["key_field_sample.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
+)

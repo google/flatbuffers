@@ -11,9 +11,9 @@
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/flatbuffers.h"
-#include "tests/64bit/evolution/v1_generated.h"
-#include "tests/64bit/evolution/v2_generated.h"
-#include "tests/64bit/test_64bit_generated.h"
+#include "tests/64bit/evolution/v1.fbs.h"
+#include "tests/64bit/evolution/v2.fbs.h"
+#include "tests/64bit/test_64bit.fbs.h"
 #include "tests/test_assert.h"
 
 namespace flatbuffers {
