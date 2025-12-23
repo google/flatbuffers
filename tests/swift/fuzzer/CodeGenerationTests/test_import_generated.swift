@@ -17,16 +17,14 @@ internal struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifi
   private init(_ t: Table) { _accessor = t }
   internal init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case internalMessage = 4
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let internalMessage: VOffset = 4
   }
 
-  internal var internalMessage: String? { let o = _accessor.offset(VTOFFSET.internalMessage.v); return o == 0 ? nil : _accessor.string(at: o) }
-  internal var internalMessageSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.internalMessage.v) }
+  internal var internalMessage: String? { let o = _accessor.offset(VT.internalMessage); return o == 0 ? nil : _accessor.string(at: o) }
+  internal var internalMessageSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.internalMessage) }
   internal static func startMessage(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  internal static func add(internalMessage: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: internalMessage, at: VTOFFSET.internalMessage.p) }
+  internal static func add(internalMessage: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: internalMessage, at: VT.internalMessage) }
   internal static func endMessage(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   internal static func createMessage(
     _ fbb: inout FlatBufferBuilder,
@@ -60,16 +58,16 @@ internal struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifi
 
   internal static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.internalMessage.p, fieldName: "internalMessage", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.internalMessage, fieldName: "internalMessage", required: false, type: ForwardOffset<String>.self)
     _v.finish()
   }
 }
 
 extension Message: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case internalMessage = "internal_message"
   }
+
   internal func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(internalMessage, forKey: .internalMessage)
