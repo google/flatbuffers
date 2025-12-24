@@ -2758,8 +2758,8 @@ std::vector<IncludedFile> Parser::GetIncludedFiles() const {
 bool Parser::HasCircularStructDependency() {
   std::function<bool(StructDef*)> visit =
       [&](StructDef* struct_def) {
-        // Only consider fixed structs
-        if (!struct_def->fixed) {
+        // Only consider fixed structs and structs we have yet to check
+        if (!struct_def->fixed || struct_def->cycle_status == StructDef::CycleStatus::Checked) {
           return false;
         }
 
