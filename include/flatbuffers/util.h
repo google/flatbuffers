@@ -22,6 +22,7 @@
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/stl_emulation.h"
+#include "flatbuffers/dragonbox_to_chars.h"
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #include <iomanip>
@@ -155,33 +156,77 @@ inline std::string NumToString<char>(char t) {
   return NumToString(static_cast<int>(t));
 }
 
+template <typename Float>
+std::string format_fixed_dragonbox(Float value) {
+    auto dec = jkj::dragonbox::to_decimal(value);
+
+    std::string digits = std::to_string(dec.significand);
+    const int k = static_cast<int>(digits.size());
+    const int exp = dec.exponent;
+
+    std::string out;
+
+    if (dec.is_negative) {
+        out.push_back('-');
+    }
+
+    if (exp >= 0) {
+        out += digits;
+        out.append(exp, '0');
+    }
+    else if (exp > -k) {
+        const int pos = k + exp;
+        out.append(digits, 0, pos);
+        out.push_back('.');
+        out.append(digits, pos, std::string::npos);
+    }
+    else {
+        out += "0.";
+        out.append(-exp - k, '0');
+        out += digits;
+    }
+
+    if (out.find('.') == std::string::npos) {
+        out += ".0";
+    }
+
+    return out;
+}
+
 // Special versions for floats/doubles.
 template <typename T>
-std::string FloatToString(T t, int precision) {
+std::string FloatToString(T t, [[maybe_unused]] int precision) {
   // clang-format off
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
-    // to_string() prints different numbers of digits for floats depending on
-    // platform and isn't available on Android, so we use stringstream
-    std::stringstream ss;
-    // Use std::fixed to suppress scientific notation.
-    ss << std::fixed;
-    // Default precision is 6, we want that to be higher for doubles.
-    ss << std::setprecision(precision);
-    ss << t;
-    auto s = ss.str();
+    // Handle NaN
+    if (std::isnan(t)) {
+        return "nan";
+    }
+
+    // Handle infinities
+    if (std::isinf(t)) {
+        return std::signbit(t) ? "-inf" : "inf";
+    }
+
+    // Handle zero (preserve sign of -0.0 if desired)
+    if (t == T{0}) {
+        return "0.0";
+    }
+
+    return format_fixed_dragonbox(t);
   #else // FLATBUFFERS_PREFER_PRINTF
     auto v = static_cast<double>(t);
     auto s = NumToStringImplWrapper(v, "%0.*f", precision);
+    // clang-format on
+    // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
+    auto p = s.find_last_not_of('0');
+    if (p != std::string::npos) {
+      // Strip trailing zeroes. If it is a whole number, keep one zero.
+      s.resize(p + (s[p] == '.' ? 2 : 1));
+    }
+    return s;
   #endif // FLATBUFFERS_PREFER_PRINTF
-  // clang-format on
-  // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
-  auto p = s.find_last_not_of('0');
-  if (p != std::string::npos) {
-    // Strip trailing zeroes. If it is a whole number, keep one zero.
-    s.resize(p + (s[p] == '.' ? 2 : 1));
-  }
-  return s;
 }
 
 template <>
