@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # NOTE: Code coverage only works on Linux & OSX.
 option(FLATBUFFERS_CODE_COVERAGE "Enable the code coverage build option." OFF)
+option(FLATBUFFERS_INSTALL_RUNTIME_ON_BIN "Enable the shared flatbuffers to be installed on bindir" OFF)
 option(FLATBUFFERS_BUILD_TESTS "Enable the build of tests and samples." ON)
 option(FLATBUFFERS_INSTALL "Enable the installation of targets." ON)
 option(FLATBUFFERS_BUILD_FLATLIB "Enable the build of the flatbuffers library"
@@ -667,10 +668,15 @@ if(FLATBUFFERS_INSTALL)
   endif()
 
   if(FLATBUFFERS_BUILD_SHAREDLIB)
+    if(FLATBUFFERS_INSTALL_RUNTIME_ON_BIN)
+      set(RUNTIME_DIR ${CMAKE_INSTALL_BINDIR})
+    else()
+      set(RUNTIME_DIR ${CMAKE_INSTALL_LIBDIR})
+    endif()
     install(
       TARGETS flatbuffers_shared EXPORT FlatBuffersSharedTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${RUNTIME_DIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
