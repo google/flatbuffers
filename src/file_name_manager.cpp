@@ -21,24 +21,35 @@
 
 namespace flatbuffers {
 
-bool FileNameSaver::SaveFile(const char* name, const char* buf, size_t len,
-                             bool binary) {
-  (void)buf;
-  (void)len;
-  (void)binary;
+class FileNameSaver final : public FileSaver {
+ public:
+  bool SaveFile(const char* name, const char* buf, size_t len,
+                bool binary) final {
+    (void)buf;
+    (void)len;
+    (void)binary;
 
-  std::ignore = file_names_.insert(name);
+    std::ignore = file_names_.insert(name);
 
-  // we want to simulate always successful save
-  return true;
-}
-
-void FileNameSaver::Finish() {
-  for (const auto& file_name : file_names_) {
-    // Just print the file names to standard output.
-    // No actual file is created.
-    std::cout << file_name << "\n";
+    // we want to simulate always successful save
+    return true;
   }
+
+  void Finish() final {
+    for (const auto& file_name : file_names_) {
+      // Just print the file names to standard output.
+      // No actual file is created.
+      std::cout << file_name << "\n";
+    }
+  }
+
+ private:
+  std::set<std::string> file_names_{};
+};
+
+std::unique_ptr<FileSaver> CreateFileNameCollector() {
+  // compiler limitations mean we can't use std::make_unique
+  return std::unique_ptr<FileSaver>{new FileNameSaver()};
 }
 
 }  // namespace flatbuffers
