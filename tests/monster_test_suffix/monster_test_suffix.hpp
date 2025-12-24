@@ -1491,6 +1491,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *test_as_MyGame_Example2_Monster() const {
     return test_type() == MyGame::Example::Any_MyGame_Example2_Monster ? static_cast<const MyGame::Example2::Monster *>(test()) : nullptr;
   }
+  template<typename T> T *mutable_test_as();
+  MyGame::Example::Monster *mutable_test_as_Monster() {
+    return test_type() == MyGame::Example::Any_Monster ? static_cast<MyGame::Example::Monster *>(mutable_test()) : nullptr;
+  }
+  MyGame::Example::TestSimpleTableWithEnum *mutable_test_as_TestSimpleTableWithEnum() {
+    return test_type() == MyGame::Example::Any_TestSimpleTableWithEnum ? static_cast<MyGame::Example::TestSimpleTableWithEnum *>(mutable_test()) : nullptr;
+  }
+  MyGame::Example2::Monster *mutable_test_as_MyGame_Example2_Monster() {
+    return test_type() == MyGame::Example::Any_MyGame_Example2_Monster ? static_cast<MyGame::Example2::Monster *>(mutable_test()) : nullptr;
+  }
   void *mutable_test() {
     return GetPointer<void *>(VT_TEST);
   }
@@ -1726,6 +1736,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *any_unique_as_M2() const {
     return any_unique_type() == MyGame::Example::AnyUniqueAliases_M2 ? static_cast<const MyGame::Example2::Monster *>(any_unique()) : nullptr;
   }
+  template<typename T> T *mutable_any_unique_as();
+  MyGame::Example::Monster *mutable_any_unique_as_M() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases_M ? static_cast<MyGame::Example::Monster *>(mutable_any_unique()) : nullptr;
+  }
+  MyGame::Example::TestSimpleTableWithEnum *mutable_any_unique_as_TS() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases_TS ? static_cast<MyGame::Example::TestSimpleTableWithEnum *>(mutable_any_unique()) : nullptr;
+  }
+  MyGame::Example2::Monster *mutable_any_unique_as_M2() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases_M2 ? static_cast<MyGame::Example2::Monster *>(mutable_any_unique()) : nullptr;
+  }
   void *mutable_any_unique() {
     return GetPointer<void *>(VT_ANY_UNIQUE);
   }
@@ -1743,6 +1763,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   const MyGame::Example::Monster *any_ambiguous_as_M3() const {
     return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases_M3 ? static_cast<const MyGame::Example::Monster *>(any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M1() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases_M1 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M2() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases_M2 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M3() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases_M3 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
   }
   void *mutable_any_ambiguous() {
     return GetPointer<void *>(VT_ANY_AMBIGUOUS);
@@ -1953,24 +1982,48 @@ template<> inline const MyGame::Example::Monster *Monster::test_as<MyGame::Examp
   return test_as_Monster();
 }
 
+template<> inline MyGame::Example::Monster *Monster::mutable_test_as<MyGame::Example::Monster>() {
+  return mutable_test_as_Monster();
+}
+
 template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::test_as<MyGame::Example::TestSimpleTableWithEnum>() const {
   return test_as_TestSimpleTableWithEnum();
+}
+
+template<> inline MyGame::Example::TestSimpleTableWithEnum *Monster::mutable_test_as<MyGame::Example::TestSimpleTableWithEnum>() {
+  return mutable_test_as_TestSimpleTableWithEnum();
 }
 
 template<> inline const MyGame::Example2::Monster *Monster::test_as<MyGame::Example2::Monster>() const {
   return test_as_MyGame_Example2_Monster();
 }
 
+template<> inline MyGame::Example2::Monster *Monster::mutable_test_as<MyGame::Example2::Monster>() {
+  return mutable_test_as_MyGame_Example2_Monster();
+}
+
 template<> inline const MyGame::Example::Monster *Monster::any_unique_as<MyGame::Example::Monster>() const {
   return any_unique_as_M();
+}
+
+template<> inline MyGame::Example::Monster *Monster::mutable_any_unique_as<MyGame::Example::Monster>() {
+  return mutable_any_unique_as_M();
 }
 
 template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::any_unique_as<MyGame::Example::TestSimpleTableWithEnum>() const {
   return any_unique_as_TS();
 }
 
+template<> inline MyGame::Example::TestSimpleTableWithEnum *Monster::mutable_any_unique_as<MyGame::Example::TestSimpleTableWithEnum>() {
+  return mutable_any_unique_as_TS();
+}
+
 template<> inline const MyGame::Example2::Monster *Monster::any_unique_as<MyGame::Example2::Monster>() const {
   return any_unique_as_M2();
+}
+
+template<> inline MyGame::Example2::Monster *Monster::mutable_any_unique_as<MyGame::Example2::Monster>() {
+  return mutable_any_unique_as_M2();
 }
 
 struct MonsterBuilder {
