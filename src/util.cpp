@@ -54,6 +54,8 @@
 
 #include "flatbuffers/base.h"
 
+#include "dragonbox.h"
+
 namespace flatbuffers {
 
 namespace {
@@ -488,5 +490,60 @@ std::string ConvertCase(const std::string& input, Case output_case,
       return input;
   }
 }
+
+template <typename Float>
+std::string format_fixed_dragonbox(Float value) {
+    // Handle NaN
+    if (std::isnan(value)) {
+        return "nan";
+    }
+
+    // Handle infinities
+    if (std::isinf(value)) {
+        return std::signbit(value) ? "-inf" : "inf";
+    }
+
+    // Handle zero (preserve sign of -0.0 if desired)
+    if (value == Float{0}) {
+        return "0.0";
+    }
+
+    auto dec = jkj::dragonbox::to_decimal(value);
+
+    std::string digits = std::to_string(dec.significand);
+    const int k = static_cast<int>(digits.size());
+    const int exp = dec.exponent;
+
+    std::string out;
+
+    if (dec.is_negative) {
+        out.push_back('-');
+    }
+
+    if (exp >= 0) {
+        out += digits;
+        out.append(exp, '0');
+    }
+    else if (exp > -k) {
+        const int pos = k + exp;
+        out.append(digits, 0, pos);
+        out.push_back('.');
+        out.append(digits, pos, std::string::npos);
+    }
+    else {
+        out += "0.";
+        out.append(-exp - k, '0');
+        out += digits;
+    }
+
+    if (out.find('.') == std::string::npos) {
+        out += ".0";
+    }
+
+    return out;
+}
+
+template std::string format_fixed_dragonbox<float>(float value);
+template std::string format_fixed_dragonbox<double>(double value);
 
 }  // namespace flatbuffers

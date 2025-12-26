@@ -127,7 +127,6 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/buffer_ref.h
   include/flatbuffers/default_allocator.h
   include/flatbuffers/detached_buffer.h
-  include/flatbuffers/dragonbox.h
   include/flatbuffers/code_generator.h
   include/flatbuffers/file_manager.h
   include/flatbuffers/flatbuffer_builder.h
