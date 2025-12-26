@@ -244,6 +244,7 @@ set(FlatBuffers_Tests_SRCS
   tests/alignment_test.cpp
   tests/64bit/offset64_test.h
   tests/64bit/offset64_test.cpp
+  tests/float_to_string_test.cpp
   include/flatbuffers/code_generators.h
   src/code_generators.cpp
 )
@@ -543,7 +544,11 @@ if(FLATBUFFERS_BUILD_TESTS)
   )
 
   # Have tests load data from the source directory, not the build directory.
-  add_definitions(-DFLATBUFFERS_TEST_PATH_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/)
+  target_compile_definitions(flattests 
+    PRIVATE
+      -DFLATBUFFERS_TEST_PATH_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/
+      -DFLATBUFFERS_PREFER_OLD_FLOATTOSTRING
+  )
 
   # The flattest target needs some generated files
   SET(FLATC_OPT_COMP --cpp --gen-compare --gen-mutable --gen-object-api --reflect-names)
