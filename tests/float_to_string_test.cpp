@@ -7,65 +7,66 @@ namespace flatbuffers {
 namespace tests {
 
 void FloatToStringTest() {
-  // Test various float to string conversions
-  struct FloatTestCase {
-    float value;
-    std::string expected;
+  // convert an array of floats to strings and back, and check they are the same
+  std::array floats_to_test = {
+      0.0f,
+      -0.0f,
+      1.0f,
+      -1.0f,
+      123.456f,
+      -123.456f,
+      1.23456e10f,
+      -1.23456e10f,
+      std::numeric_limits<float>::infinity(),
+      -std::numeric_limits<float>::infinity(),
+      std::numeric_limits<float>::quiet_NaN(),
+      // these don't pass the old method
+      1.23456e-10f,
+      -1.23456e-10f,
   };
 
-  struct DoubleTestCase {
-    double value;
-    std::string expected;
-  };
+  for (auto original_float : floats_to_test) {
+    std::string float_str = NumToString(original_float);
+    float parsed_float = 0.0f;
+    bool success = StringToNumber(float_str.c_str(), &parsed_float);
 
-  // floats
-  std::array float_test_cases = {
-      FloatTestCase{0.0f, "0.0"},
-      FloatTestCase{-0.0f, "-0.0"},
-      FloatTestCase{1.0f, "1.0"},
-      FloatTestCase{-1.0f, "-1.0"},
-      //   FloatTestCase{123.456f, "123.456"},
-      //   FloatTestCase{-123.456f, "-123.456"},
-      //   FloatTestCase{1.23456e10f, "12345600000.0"},
-      //   FloatTestCase{-1.23456e10f, "-12345600000.0"},
-      //   FloatTestCase{1.23456e-10f, "0.000000000123456"},
-      //   FloatTestCase{-1.23456e-10f, "-0.000000000123456"},
-      // infinity
-      FloatTestCase{std::numeric_limits<float>::infinity(), "inf"},
-      FloatTestCase{-std::numeric_limits<float>::infinity(), "-inf"},
-      // nan
-      FloatTestCase{std::numeric_limits<float>::quiet_NaN(), "nan"},
-  };
-
-  // doubles
-  std::array double_test_cases = {
-      DoubleTestCase{0.0, "0.0"},
-      DoubleTestCase{-0.0, "-0.0"},
-      DoubleTestCase{1.0, "1.0"},
-      DoubleTestCase{-1.0, "-1.0"},
-      //   DoubleTestCase{123.456, "123.456"},
-      //   DoubleTestCase{-123.456, "-123.456"},
-      //   DoubleTestCase{1.23456e10, "12345600000.0"},
-      //   DoubleTestCase{-1.23456e10, "-12345600000.0"},
-      //   DoubleTestCase{1.23456e-10, "0.000000000123456"},
-      //   DoubleTestCase{-1.23456e-10, "-0.000000000123456"},
-      // infinity
-      DoubleTestCase{std::numeric_limits<double>::infinity(), "inf"},
-      DoubleTestCase{-std::numeric_limits<double>::infinity(), "-inf"},
-      // nan
-      DoubleTestCase{std::numeric_limits<double>::quiet_NaN(), "nan"},
-      // edge case from issue
-      DoubleTestCase{6696.133544400395, "6696.133544400395"},
-  };
-
-  for (const auto& test : float_test_cases) {
-    std::string result = NumToString(test.value);
-    TEST_EQ(test.expected, result);
+    if (std::isnan(original_float)) {
+      TEST_ASSERT(std::isnan(parsed_float));
+    } else {
+      TEST_ASSERT(success);
+      TEST_EQ(original_float, parsed_float);
+    }
   }
 
-  for (const auto& test : double_test_cases) {
-    std::string result = NumToString(test.value);
-    TEST_EQ(test.expected, result);
+  // doubles
+  std::array doubles_to_test = {
+      0.0,
+      -0.0,
+      1.0,
+      -1.0,
+      123.456,
+      -123.456,
+      1.234567890123e100,
+      -1.234567890123e100,
+      std::numeric_limits<double>::infinity(),
+      -std::numeric_limits<double>::infinity(),
+      std::numeric_limits<double>::quiet_NaN(),
+      // these don't pass the old method
+      1.234567890123e-100,
+      -1.234567890123e-100,
+  };
+
+  for (auto original_double : doubles_to_test) {
+    std::string double_str = NumToString(original_double);
+    double parsed_double = 0.0;
+    bool success = StringToNumber(double_str.c_str(), &parsed_double);
+
+    if (std::isnan(original_double)) {
+      TEST_ASSERT(std::isnan(parsed_double));
+    } else {
+      TEST_ASSERT(success);
+      TEST_EQ(original_double, parsed_double);
+    }
   }
 }
 

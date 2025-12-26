@@ -547,7 +547,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   target_compile_definitions(flattests 
     PRIVATE
       -DFLATBUFFERS_TEST_PATH_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/
-      -DFLATBUFFERS_PREFER_OLD_FLOATTOSTRING
+      # -DFLATBUFFERS_PREFER_OLD_FLOATTOSTRING
   )
 
   # The flattest target needs some generated files
