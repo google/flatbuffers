@@ -492,7 +492,7 @@ std::string ConvertCase(const std::string& input, Case output_case,
 }
 
 template <typename Float>
-std::string format_fixed_dragonbox(Float value) {
+std::string FloatToStringImpl(Float value) {
     // Handle NaN
     if (std::isnan(value)) {
         return "nan";
@@ -543,7 +543,7 @@ std::string format_fixed_dragonbox(Float value) {
     return out;
 }
 
-template std::string format_fixed_dragonbox<float>(float value);
-template std::string format_fixed_dragonbox<double>(double value);
+template std::string FloatToStringImpl<float>(float value);
+template std::string FloatToStringImpl<double>(double value);
 
 }  // namespace flatbuffers

@@ -157,7 +157,7 @@ inline std::string NumToString<char>(char t) {
 
 // definitions in util.cpp
 template <typename Float>
-std::string format_fixed_dragonbox(Float value);
+std::string FloatToStringImpl(Float value);
 
 // Special versions for floats/doubles.
 template <typename T>
@@ -165,19 +165,35 @@ std::string FloatToString(T t, [[maybe_unused]] int precision) {
   // clang-format off
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
-    return format_fixed_dragonbox(t);
+    #ifndef FLATBUFFERS_PREFER_OLD_FLOATTOSTRING
+      return FloatToStringImpl(t);
+    #else  // FLATBUFFERS_PREFER_OLD_FLOATTOSTRING
+      // to_string() prints different numbers of digits for floats depending on
+      // platform and isn't available on Android, so we use stringstream
+      std::stringstream ss;
+      // Use std::fixed to suppress scientific notation.
+      ss << std::fixed;
+      // Default precision is 6, we want that to be higher for doubles.
+      ss << std::setprecision(precision);
+      ss << t;
+      auto s = ss.str();
+    #endif // FLATBUFFERS_PREFER_OLD_FLOATTOSTRING
   #else // FLATBUFFERS_PREFER_PRINTF
     auto v = static_cast<double>(t);
     auto s = NumToStringImplWrapper(v, "%0.*f", precision);
-    // clang-format on
+  #endif // FLATBUFFERS_PREFER_PRINTF
+  
+  #if defined(FLATBUFFERS_PREFER_OLD_FLOATTOSTRING) || defined(FLATBUFFERS_PREFER_PRINTF)
     // Sadly, std::fixed turns "1" into "1.00000", so here we undo that.
     auto p = s.find_last_not_of('0');
     if (p != std::string::npos) {
       // Strip trailing zeroes. If it is a whole number, keep one zero.
       s.resize(p + (s[p] == '.' ? 2 : 1));
     }
+    
     return s;
-  #endif // FLATBUFFERS_PREFER_PRINTF
+  #endif
+  // clang-format on
 }
 
 template <>
