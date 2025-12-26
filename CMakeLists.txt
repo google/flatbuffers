@@ -128,7 +128,6 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/default_allocator.h
   include/flatbuffers/detached_buffer.h
   include/flatbuffers/dragonbox.h
-  include/flatbuffers/dragonbox_to_chars.h
   include/flatbuffers/code_generator.h
   include/flatbuffers/file_manager.h
   include/flatbuffers/flatbuffer_builder.h
@@ -149,7 +148,6 @@ set(FlatBuffers_Library_SRCS
   include/flatbuffers/vector.h
   include/flatbuffers/vector_downward.h
   include/flatbuffers/verifier.h
-  src/dragonbox_to_chars.cpp
   src/file_manager.cpp
   src/file_name_manager.cpp
   src/idl_parser.cpp
