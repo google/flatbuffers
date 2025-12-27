@@ -78,6 +78,8 @@ cc_test(
         "vector_table_naked_ptr/vector_table_naked_ptr_generated.h",
         "vector_table_naked_ptr_test.h",
         "vector_table_naked_ptr_test.cpp",
+        "float_to_string_test.h",
+        "float_to_string_test.cpp",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
