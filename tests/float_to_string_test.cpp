@@ -8,7 +8,7 @@ namespace tests {
 
 void FloatToStringRoundTripTest() {
   // convert an array of floats to strings and back, and check they are the same
-  std::array floats_to_test = {
+  std::array<float, 13> floats_to_test = {
       0.0f,
       -0.0f,
       1.0f,
@@ -39,7 +39,7 @@ void FloatToStringRoundTripTest() {
   }
 
   // doubles
-  std::array doubles_to_test = {
+  std::array<double, 13> doubles_to_test = {
       0.0,
       -0.0,
       1.0,
@@ -83,7 +83,7 @@ struct TestCase {
 void FloatToStringOutputTest() {
   // Test that FloatToString produces expected string outputs for given inputs
 
-  std::vector<TestCase<float>> test_cases = {
+  std::array<TestCase<float>, 13> test_cases = {
       {0.0f, "0.0"},
       {-0.0f, "-0.0"},
       {1.0f, "1.0"},
@@ -105,7 +105,7 @@ void FloatToStringOutputTest() {
   }
 
   // doubles
-  std::vector<TestCase<double>> double_test_cases = {
+  std::array<TestCase<double>, 13> double_test_cases = {
       {0.0, "0.0"},
       {-0.0, "-0.0"},
       {1.0, "1.0"},
