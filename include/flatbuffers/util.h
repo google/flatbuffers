@@ -161,7 +161,7 @@ std::string FloatToStringImpl(Float value);
 
 // Special versions for floats/doubles.
 template <typename T>
-std::string FloatToString(T t, [[maybe_unused]] int precision) {
+std::string FloatToString(T t, int precision) {
   // clang-format off
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
