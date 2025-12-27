@@ -166,6 +166,7 @@ std::string FloatToString(T t, int precision) {
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
     #ifndef FLATBUFFERS_PREFER_OLD_FLOATTOSTRING
+      (void)precision;  // unused, can't use [[maybe_unused]]
       return FloatToStringImpl(t);
     #else  // FLATBUFFERS_PREFER_OLD_FLOATTOSTRING
       // to_string() prints different numbers of digits for floats depending on
