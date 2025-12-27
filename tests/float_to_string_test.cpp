@@ -8,7 +8,7 @@ namespace tests {
 
 void FloatToStringRoundTripTest() {
   // convert an array of floats to strings and back, and check they are the same
-  constexpr std::array<float, 13> floats_to_test = {
+  std::array<float, 13> floats_to_test = {
       0.0f,
       -0.0f,
       1.0f,
@@ -39,7 +39,7 @@ void FloatToStringRoundTripTest() {
   }
 
   // doubles
-  constexpr std::array<double, 13> doubles_to_test = {
+  std::array<double, 13> doubles_to_test = {
       0.0,
       -0.0,
       1.0,
@@ -75,7 +75,7 @@ namespace {
 template <typename T>
 struct TestCase {
   T input;
-  std::string_view expected_output;
+  std::string expected_output;
 };
 
 }  // namespace
@@ -83,7 +83,7 @@ struct TestCase {
 void FloatToStringOutputTest() {
   // Test that FloatToString produces expected string outputs for given inputs
 
-  constexpr std::array<TestCase<float>, 13> test_cases{
+  std::array<TestCase<float>, 13> test_cases{
       TestCase<float>{0.0f, "0.0"},
       TestCase<float>{-0.0f, "-0.0"},
       TestCase<float>{1.0f, "1.0"},
@@ -101,11 +101,11 @@ void FloatToStringOutputTest() {
 
   for (const auto& test_case : test_cases) {
     std::string output = NumToString(test_case.input);
-    TEST_EQ(output, std::string{test_case.expected_output});
+    TEST_EQ(output, test_case.expected_output);
   }
 
   // doubles
-  constexpr std::array<TestCase<double>, 13> double_test_cases = {
+  std::array<TestCase<double>, 10> double_test_cases = {
       TestCase<double>{0.0, "0.0"},
       TestCase<double>{-0.0, "-0.0"},
       TestCase<double>{1.0, "1.0"},
@@ -123,7 +123,7 @@ void FloatToStringOutputTest() {
 
   for (const auto& test_case : double_test_cases) {
     std::string output = NumToString(test_case.input);
-    TEST_EQ(output, std::string{test_case.expected_output});
+    TEST_EQ(output, test_case.expected_output);
   }
 }
 
