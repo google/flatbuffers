@@ -1839,7 +1839,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
   UnionUnderlyingTypeTest();
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
-  FloatToStringTest();
+  FloatToStringRoundTripTest();
+  FloatToStringOutputTest();
   return 0;
 }
 }  // namespace

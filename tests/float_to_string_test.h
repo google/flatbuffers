@@ -3,7 +3,8 @@
 namespace flatbuffers {
 namespace tests {
 
-void FloatToStringTest();
+void FloatToStringRoundTripTest();
 
+void FloatToStringOutputTest();
 }
 }  // namespace flatbuffers

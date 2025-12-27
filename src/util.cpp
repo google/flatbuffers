@@ -493,56 +493,52 @@ std::string ConvertCase(const std::string& input, Case output_case,
 
 template <typename Float>
 std::string FloatToStringImpl(Float value) {
-    // Handle NaN
-    if (std::isnan(value)) {
-        return "nan";
-    }
+  // handle special cases
+  switch (std::fpclassify(value)) {
+    case FP_INFINITE:
+      return std::signbit(value) ? "-inf" : "inf";
+    case FP_NAN:
+      return "nan";
+    case FP_ZERO:
+      return std::signbit(value) ? "-0.0" : "0.0";
+    default:
+      break;
+  }
 
-    // Handle infinities
-    if (std::isinf(value)) {
-        return std::signbit(value) ? "-inf" : "inf";
-    }
+  const auto dec = jkj::dragonbox::to_decimal(value);
 
-    // Handle zero (preserve sign of -0.0 if desired)
-    if (value == Float{0}) {
-        return "0.0";
-    }
+  const std::string digits = std::to_string(dec.significand);
+  const int k = static_cast<int>(digits.size());
+  const int exp = dec.exponent;
 
-    auto dec = jkj::dragonbox::to_decimal(value);
+  std::string out;
 
-    std::string digits = std::to_string(dec.significand);
-    const int k = static_cast<int>(digits.size());
-    const int exp = dec.exponent;
+  if (dec.is_negative) {
+    out.push_back('-');
+  }
 
-    std::string out;
+  if (exp >= 0) {
+    out += digits;
+    out.append(exp, '0');
+  } else if (exp > -k) {
+    const int pos = k + exp;
+    out.append(digits, 0, pos);
+    out.push_back('.');
+    out.append(digits, pos, std::string::npos);
+  } else {
+    out += "0.";
+    out.append(-exp - k, '0');
+    out += digits;
+  }
 
-    if (dec.is_negative) {
-        out.push_back('-');
-    }
+  if (out.find('.') == std::string::npos) {
+    out += ".0";
+  }
 
-    if (exp >= 0) {
-        out += digits;
-        out.append(exp, '0');
-    }
-    else if (exp > -k) {
-        const int pos = k + exp;
-        out.append(digits, 0, pos);
-        out.push_back('.');
-        out.append(digits, pos, std::string::npos);
-    }
-    else {
-        out += "0.";
-        out.append(-exp - k, '0');
-        out += digits;
-    }
-
-    if (out.find('.') == std::string::npos) {
-        out += ".0";
-    }
-
-    return out;
+  return out;
 }
 
+// explicit template declarations allow the definitions to exist in the cpp
 template std::string FloatToStringImpl<float>(float value);
 template std::string FloatToStringImpl<double>(double value);
 
