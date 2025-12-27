@@ -8,7 +8,7 @@ namespace tests {
 
 void FloatToStringRoundTripTest() {
   // convert an array of floats to strings and back, and check they are the same
-  std::array<float, 13> floats_to_test = {
+  constexpr std::array<float, 13> floats_to_test = {
       0.0f,
       -0.0f,
       1.0f,
@@ -39,7 +39,7 @@ void FloatToStringRoundTripTest() {
   }
 
   // doubles
-  std::array<double, 13> doubles_to_test = {
+  constexpr std::array<double, 13> doubles_to_test = {
       0.0,
       -0.0,
       1.0,
@@ -75,7 +75,7 @@ namespace {
 template <typename T>
 struct TestCase {
   T input;
-  std::string expected_output;
+  std::string_view expected_output;
 };
 
 }  // namespace
@@ -83,46 +83,47 @@ struct TestCase {
 void FloatToStringOutputTest() {
   // Test that FloatToString produces expected string outputs for given inputs
 
-  std::array<TestCase<float>, 13> test_cases = {
-      {0.0f, "0.0"},
-      {-0.0f, "-0.0"},
-      {1.0f, "1.0"},
-      {-1.0f, "-1.0"},
-      {123.456f, "123.456"},
-      {-123.456f, "-123.456"},
-      {1.234567890123e10f, "12345679000.0"},
-      {-1.234567890123e10f, "-12345679000.0"},
-      {1.234567890123e-10f, "0.00000000012345679"},
-      {-1.234567890123e-10f, "-0.00000000012345679"},
-      {std::numeric_limits<float>::infinity(), "inf"},
-      {-std::numeric_limits<float>::infinity(), "-inf"},
-      {std::numeric_limits<float>::quiet_NaN(), "nan"},
+  constexpr std::array<TestCase<float>, 13> test_cases{
+      TestCase<float>{0.0f, "0.0"},
+      TestCase<float>{-0.0f, "-0.0"},
+      TestCase<float>{1.0f, "1.0"},
+      TestCase<float>{-1.0f, "-1.0"},
+      TestCase<float>{123.456f, "123.456"},
+      TestCase<float>{-123.456f, "-123.456"},
+      TestCase<float>{1.234567890123e10f, "12345679000.0"},
+      TestCase<float>{-1.234567890123e10f, "-12345679000.0"},
+      TestCase<float>{1.234567890123e-10f, "0.00000000012345679"},
+      TestCase<float>{-1.234567890123e-10f, "-0.00000000012345679"},
+      TestCase<float>{std::numeric_limits<float>::infinity(), "inf"},
+      TestCase<float>{-std::numeric_limits<float>::infinity(), "-inf"},
+      TestCase<float>{std::numeric_limits<float>::quiet_NaN(), "nan"},
   };
 
   for (const auto& test_case : test_cases) {
     std::string output = NumToString(test_case.input);
-    TEST_EQ(output, test_case.expected_output);
+    TEST_EQ(output, std::string{test_case.expected_output});
   }
 
   // doubles
-  std::array<TestCase<double>, 13> double_test_cases = {
-      {0.0, "0.0"},
-      {-0.0, "-0.0"},
-      {1.0, "1.0"},
-      {-1.0, "-1.0"},
-      {123.456789012345, "123.456789012345"},
-      {-123.456789012345, "-123.456789012345"},
-      {1.234567890123456e100,
-       "12345678901234560000000000000000000000000000000000000000000000000000000"
-       "000000000000000000000000000000.0"},
-      {std::numeric_limits<double>::infinity(), "inf"},
-      {-std::numeric_limits<double>::infinity(), "-inf"},
-      {std::numeric_limits<double>::quiet_NaN(), "nan"},
+  constexpr std::array<TestCase<double>, 13> double_test_cases = {
+      TestCase<double>{0.0, "0.0"},
+      TestCase<double>{-0.0, "-0.0"},
+      TestCase<double>{1.0, "1.0"},
+      TestCase<double>{-1.0, "-1.0"},
+      TestCase<double>{123.456789012345, "123.456789012345"},
+      TestCase<double>{-123.456789012345, "-123.456789012345"},
+      TestCase<double>{1.234567890123456e100,
+                       "1234567890123456000000000000000000000000000000000000000"
+                       "0000000000000000"
+                       "000000000000000000000000000000.0"},
+      TestCase<double>{std::numeric_limits<double>::infinity(), "inf"},
+      TestCase<double>{-std::numeric_limits<double>::infinity(), "-inf"},
+      TestCase<double>{std::numeric_limits<double>::quiet_NaN(), "nan"},
   };
 
   for (const auto& test_case : double_test_cases) {
     std::string output = NumToString(test_case.input);
-    TEST_EQ(output, test_case.expected_output);
+    TEST_EQ(output, std::string{test_case.expected_output});
   }
 }
 
