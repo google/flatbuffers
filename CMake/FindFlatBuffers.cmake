@@ -54,7 +54,7 @@ find_package_handle_standard_args(FlatBuffers
 # Provide legacy alias for all-caps.
 set(FLATBUFFERS_FOUND ${FlatBuffers_FOUND})
 
-if(FlatBuffers_FOUND)
+if(FlatBuffers_FOUND AND NOT TARGET flatbuffers::flatc)
   # Provide imported target for the executable
   add_executable(flatbuffers::flatc IMPORTED GLOBAL)
   set_property(TARGET flatbuffers::flatc PROPERTY IMPORTED_LOCATION ${FLATBUFFERS_FLATC_EXECUTABLE})
