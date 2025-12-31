@@ -580,6 +580,7 @@ if(FLATBUFFERS_BUILD_TESTS)
   flatbuffers_generate_headers(TARGET flatsample
       SCHEMAS samples/monster.fbs
       BINARY_SCHEMAS_DIR samples/
+      BINARY_SCHEMAS_FLAGS --bfbs-comments --bfbs-builtins
       FLAGS ${FLATC_OPT_COMP})
 
   target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)

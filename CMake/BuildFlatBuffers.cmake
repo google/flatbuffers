@@ -196,6 +196,8 @@ endfunction()
 #       files. Use this instead of the --include-prefix option.
 #   FLAGS: Optional. A list of any additional flags that you would like to pass
 #       to flatc.
+#   BINARY_SCHEMAS_FLAGS: Optional. Flags to pass to pass to flatc when generating
+#       binary schemas, if enabled. Note that FLAGS is not passed for generating binary schemas.
 #
 # Example:
 #
@@ -220,7 +222,8 @@ function(flatbuffers_generate_headers)
   set(multi_value_args
     "SCHEMAS"
     "INCLUDE"
-    "FLAGS")
+    "FLAGS"
+    "BINARY_SCHEMAS_FLAGS")
   cmake_parse_arguments(
     PARSE_ARGV 0
     FLATBUFFERS_GENERATE_HEADERS
@@ -294,7 +297,8 @@ function(flatbuffers_generate_headers)
       add_custom_command(
         OUTPUT ${binary_schema}
         COMMAND ${FLATC} -b --schema
-        -o ${FLATBUFFERS_GENERATE_HEADERS_BINARY_SCHEMAS_DIR}
+            ${FLATBUFFERS_GENERATE_HEADERS_BINARY_SCHEMAS_FLAGS}
+            -o ${FLATBUFFERS_GENERATE_HEADERS_BINARY_SCHEMAS_DIR}
         ${include_params}
         ${schema}
         DEPENDS ${FLATC} ${schema}

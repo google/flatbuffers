@@ -355,16 +355,6 @@ jobs:
       run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
       run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
-
-    # This is something of a hack to get CI to pass. It appears that the binary schema files (bfbs) are getting
-    # generated with different binary content between Windows and other platforms. Before flatbuffers#8008, the bfbs
-    # file was not regenerated at all by the CMake build job, so this issue was not noticed.
-    # Now, running CMake does regenerate the bfbs file, so it sees a diff on this file and fails the job.
-    # For now, we explictly revert this file after building to avoid this.
-    # Filed issue #8816 to track this.
-    - name: Revert monster.bfbs
-      run: git checkout HEAD samples/monster.bfbs
-
     - name: Generate
       run: python3 scripts/check_generate_code.py --flatc Release\flatc.exe
     - name: Generate gRPC
