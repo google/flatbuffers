@@ -85,7 +85,7 @@ endif()
 
 if(NOT FLATBUFFERS_BUILD_FLATC)
   # If we aren't supposed to build flatc, see if we can find it.
-  find_package(FlatBuffers ${FLATBUFFERS_VERSION_NOCOMMIT})
+  find_package(FlatBuffers ${FLATBUFFERS_VERSION_NOCOMMIT} EXACT)
   set(FLATBUFFERS_FLATC_COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE})
 
   if(NOT FlatBuffers_FOUND AND FLATBUFFERS_BUILD_TESTS)
