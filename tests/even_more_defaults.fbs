@@ -1,0 +1,18 @@
+
+enum ABC: int { A, B, C }
+
+
+table EvenMoreDefaults {
+  ints: [int] = [];
+  floats: [float] = [     ];
+  float_optional: [float];
+  floats_required: [float] (required);
+  empty_string: string = "";
+  some_string: string = "some";
+  zero_string: string = "0";
+  another_string: string;
+  required_string: string (required);
+  abcs: [ABC] = [];
+  bools: [bool] = [];
+  one_bool: bool = true;
+}
