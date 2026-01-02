@@ -2809,7 +2809,8 @@ bool Parser::SupportsOptionalScalars() const {
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim |
-      IDLOptions::kCpp | IDLOptions::kBinary | IDLOptions::kJson;
+      IDLOptions::kCpp | IDLOptions::kBinary | IDLOptions::kJson |
+      IDLOptions::kTs;
   return !(opts.lang_to_generate & ~supported_langs);
 }
 

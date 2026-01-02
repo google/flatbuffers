@@ -81,11 +81,11 @@ mutate_hp(value:number):boolean {
   return true;
 }
 
-name():string|null
-name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-name(optionalEncoding?:any):string|Uint8Array|null {
+name():string
+name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array
+name(optionalEncoding?:any):string|Uint8Array {
   const offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return this.bb!.__string(this.bb_pos + offset, optionalEncoding);
 }
 
 inventory(index: number):number|null {
