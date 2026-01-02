@@ -150,7 +150,9 @@ namespace Google.FlatBuffers
 
             var pos = this.__vector(o);
             var len = this.__vector_len(o);
-            return bb.ToArray<T>(pos, len);
+            // Fix memory alignment issue: calculate correct byte length (element count × element size)
+            var byteLen = len * System.Runtime.InteropServices.Marshal.SizeOf<T>();
+            return bb.ToArray<T>(pos, byteLen);
         }
 
         // Initialize any Table-derived type to point to the union at the given offset.
