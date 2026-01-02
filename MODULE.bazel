@@ -22,6 +22,10 @@ bazel_dep(
     version = "3.6.0",
 )
 bazel_dep(
+    name = "googletest",
+    version = "1.16.0",
+)
+bazel_dep(
     name = "grpc",
     version = "1.70.1",
     repo_name = "com_github_grpc_grpc",
@@ -32,7 +36,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_cc",
-    version = "0.0.16",
+    version = "0.0.17",
 )
 bazel_dep(
     name = "rules_go",
@@ -42,6 +46,10 @@ bazel_dep(
 bazel_dep(
     name = "rules_nodejs",
     version = "6.3.3",
+)
+bazel_dep(
+    name = "rules_python",
+    version = "1.2.0",
 )
 bazel_dep(
     name = "rules_shell",
