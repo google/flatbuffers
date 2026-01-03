@@ -661,10 +661,9 @@ class TsGenerator : public BaseGenerator {
         GenStructArgs(imports, *field.value.type.struct_def, arguments,
                       nameprefix + field.name + "_");
       } else {
-        *arguments +=
-            ", " + nameprefix + field.name + ": " +
-            GenTypeName(imports, field, field.value.type, true,
-                        field.IsOptional() && !HasDefaultValue(field));
+        *arguments += ", " + nameprefix + field.name + ": " +
+                      GenTypeName(imports, field, field.value.type, true,
+                                  field.IsOptional());
       }
     }
   }
@@ -2041,13 +2040,16 @@ class TsGenerator : public BaseGenerator {
                     ".__vector(this.bb_pos + offset), " + GenBBAccess() +
                     ".__vector_len(this.bb_pos + offset));\n}\n\n";
           } else {
+            std::string value = HasDefaultValue(field)
+                                    ? "new " + GenType(vectorType) + "Array()"
+                                    : "null";
             code += "():" + GenType(vectorType) + return_type + " {\n" +
                     offset_prefix + "offset ? new " + GenType(vectorType) +
                     "Array(" + GenBBAccess() + ".bytes().buffer, " +
                     GenBBAccess() + ".bytes().byteOffset + " + GenBBAccess() +
                     ".__vector(this.bb_pos + offset), " + GenBBAccess() +
-                    ".__vector_len(this.bb_pos + offset)) : new " +
-                    GenType(vectorType) + "Array();\n}\n\n";
+                    ".__vector_len(this.bb_pos + offset)) : " + value +
+                    ";\n}\n\n";
           }
         }
       }
@@ -2287,8 +2289,11 @@ class TsGenerator : public BaseGenerator {
         return false;
       }
 
-      // The only supported default for vectors is []
+      // Arrays always have a default (empty array)
       case BASE_TYPE_ARRAY:
+        return true;
+
+      // The only supported default for vectors is []
       case BASE_TYPE_VECTOR:
         return field.value.constant == "[]";
 
