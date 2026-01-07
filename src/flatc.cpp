@@ -532,6 +532,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.generate_object_based_api = true;
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
+      } else if (arg == "--gen-absl-hash") {
+        opts.gen_absl_hash = true;
       } else if (arg == "--cpp-include") {
         if (++argi >= argc) Error("missing include following: " + arg, true);
         opts.cpp_includes.push_back(argv[argi]);

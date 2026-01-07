@@ -1,25 +1,25 @@
-#include "greeter.grpc.fb.h"
-#include "greeter_generated.h"
-
 #include <grpcpp/grpcpp.h>
 
 #include <iostream>
 #include <memory>
 #include <string>
 
+#include "greeter.grpc.fb.h"
+#include "greeter_generated.h"
+
 class GreeterServiceImpl final : public Greeter::Service {
   virtual grpc::Status SayHello(
-      grpc::ServerContext *context,
-      const flatbuffers::grpc::Message<HelloRequest> *request_msg,
-      flatbuffers::grpc::Message<HelloReply> *response_msg) override {
+      grpc::ServerContext* context,
+      const flatbuffers::grpc::Message<HelloRequest>* request_msg,
+      flatbuffers::grpc::Message<HelloReply>* response_msg) override {
     flatbuffers::grpc::MessageBuilder mb_;
 
     // We call GetRoot to "parse" the message. Verification is already
     // performed by default. See the notes below for more details.
-    const HelloRequest *request = request_msg->GetRoot();
+    const HelloRequest* request = request_msg->GetRoot();
 
     // Fields are retrieved as usual with FlatBuffers
-    const std::string &name = request->name()->str();
+    const std::string& name = request->name()->str();
 
     // `flatbuffers::grpc::MessageBuilder` is a `FlatBufferBuilder` with a
     // special allocator for efficient gRPC buffer transfer, but otherwise
@@ -39,14 +39,14 @@ class GreeterServiceImpl final : public Greeter::Service {
   }
 
   virtual grpc::Status SayManyHellos(
-      grpc::ServerContext *context,
-      const flatbuffers::grpc::Message<ManyHellosRequest> *request_msg,
-      grpc::ServerWriter<flatbuffers::grpc::Message<HelloReply>> *writer)
+      grpc::ServerContext* context,
+      const flatbuffers::grpc::Message<ManyHellosRequest>* request_msg,
+      grpc::ServerWriter<flatbuffers::grpc::Message<HelloReply>>* writer)
       override {
     // The streaming usage below is simply a combination of standard gRPC
     // streaming with the FlatBuffers usage shown above.
-    const ManyHellosRequest *request = request_msg->GetRoot();
-    const std::string &name = request->name()->str();
+    const ManyHellosRequest* request = request_msg->GetRoot();
+    const std::string& name = request->name()->str();
     int num_greetings = request->num_greetings();
 
     for (int i = 0; i < num_greetings; i++) {
@@ -75,7 +75,7 @@ void RunServer() {
   server->Wait();
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char* argv[]) {
   RunServer();
   return 0;
 }

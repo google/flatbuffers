@@ -551,7 +551,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_25_9_23()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_25_12_19()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
@@ -1216,8 +1216,8 @@ class KotlinGenerator : public BaseGenerator {
         // fun inventoryInByteBuffer(_bb: Bytebuffer):
         //     ByteBuffer? = __vector_as_bytebuffer(_bb, 14, 1)
         GenerateFunOneLine(
-            writer, field_name + "InByteBuffer", "_bb: ByteBuffer",
-            buffer_type, [&]() {
+            writer, field_name + "InByteBuffer", "_bb: ByteBuffer", buffer_type,
+            [&]() {
               writer.SetValue("end", end_idx);
               writer += "__vector_in_bytebuffer(_bb, {{offset}}, {{end}})";
             });
