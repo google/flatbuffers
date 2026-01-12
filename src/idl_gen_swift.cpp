@@ -1962,7 +1962,7 @@ class SwiftGenerator : public BaseGenerator {
   std::string GenType(const Type& type,
                       const bool should_consider_suffix = false) const {
     return IsScalar(type.base_type) ? GenTypeBasic(type)
-           : IsArray(type) ? GenType(type.VectorType())
+           : IsArray(type)          ? GenType(type.VectorType())
                            : GenTypePointer(type, should_consider_suffix);
   }
 
