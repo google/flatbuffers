@@ -23,7 +23,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "grpc",
-    version = "1.70.1",
+    version = "1.76.0",
     repo_name = "com_github_grpc_grpc",
 )
 bazel_dep(
@@ -49,7 +49,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_swift",
-    version = "2.1.1",
+    version = "3.1.2",
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(
