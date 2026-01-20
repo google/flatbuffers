@@ -223,7 +223,7 @@ struct Type {
   uint16_t fixed_length;  // only set if t == BASE_TYPE_ARRAY
 };
 
-// Represents a parsed scalar value, it's type, and field offset.
+// Represents a parsed scalar value, its type, and field offset.
 struct Value {
   Value()
       : constant("0"),
