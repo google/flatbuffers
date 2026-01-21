@@ -241,12 +241,6 @@ flatc(
 )
 
 flatc(
-    BASE_OPTS + CPP_OPTS + ["--cpp-ptr-type", "naked"],
-    prefix="vector_table_naked_ptr",
-    schema="vector_table_naked_ptr.fbs",
-)
-
-flatc(
     BASE_OPTS + CPP_OPTS + CS_OPTS + JAVA_OPTS + KOTLIN_OPTS + PHP_OPTS,
     prefix="union_vector",
     schema="union_vector/union_vector.fbs",
@@ -362,7 +356,13 @@ flatc(
 )
 
 flatc(
-    ["--cpp", "--gen-compare", "--gen-mutable", "--gen-object-api", "--reflect-names"],
+    [
+        "--cpp",
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+    ],
     schema="native_type_test.fbs",
 )
 

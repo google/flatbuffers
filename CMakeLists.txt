@@ -515,13 +515,13 @@ function(compile_schema SRC_FBS OPT SUFFIX OUT_GEN_FILE)
 endfunction()
 
 function(compile_schema_for_test SRC_FBS OPT)
-  compile_schema("${SRC_FBS}" "${OPT}" "_generated" GEN_FILE)
+  compile_schema("${SRC_FBS}" "${OPT}" ".fbs" GEN_FILE)
   target_sources(flattests PRIVATE ${GEN_FILE})
 endfunction()
 
-function(compile_schema_for_test_fbsh SRC_FBS OPT)
+function(compile_schema_for_test_17 SRC_FBS OPT)
   compile_schema("${SRC_FBS}" "${OPT}" ".fbs" GEN_FILE)
-  target_sources(flattests PRIVATE ${GEN_FILE})
+  target_sources(flattests_cpp17 PRIVATE ${GEN_FILE})
 endfunction()
 
 function(compile_schema_for_samples SRC_FBS OPT)
@@ -548,17 +548,26 @@ if(FLATBUFFERS_BUILD_TESTS)
   # The flattest target needs some generated files
   SET(FLATC_OPT_COMP --cpp --gen-compare --gen-mutable --gen-object-api --reflect-names)
   SET(FLATC_OPT_SCOPED_ENUMS ${FLATC_OPT_COMP};--scoped-enums)
+  SET(FLATC_OPT_NAKED_PTR ${FLATC_OPT_COMP} --cpp-ptr-type naked)
 
   compile_schema_for_test(tests/alignment_test.fbs "${FLATC_OPT_COMP}")
-  compile_schema_for_test_fbsh(tests/default_vectors_strings_test.fbs "${FLATC_OPT_COMP}")
+  compile_schema_for_test(tests/default_vectors_strings_test.fbs "${FLATC_OPT_COMP}")
+  compile_schema_for_test(tests/monster_extra.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/arrays_test.fbs "${FLATC_OPT_SCOPED_ENUMS}")
   compile_schema_for_test(tests/native_inline_table_test.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/native_type_test.fbs "${FLATC_OPT_COMP}")
+  compile_schema_for_test(tests/optional_scalars.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/key_field/key_field_sample.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/64bit/test_64bit.fbs "${FLATC_OPT_COMP};--bfbs-gen-embed")
   compile_schema_for_test(tests/64bit/evolution/v1.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/64bit/evolution/v2.fbs "${FLATC_OPT_COMP}")
   compile_schema_for_test(tests/union_underlying_type_test.fbs "${FLATC_OPT_SCOPED_ENUMS}")
+  compile_schema_for_test(tests/evolution_test/evolution_v1.fbs "${FLATC_OPT_SCOPED_ENUMS}")
+  compile_schema_for_test(tests/evolution_test/evolution_v2.fbs "${FLATC_OPT_SCOPED_ENUMS}")
+  compile_schema_for_test(tests/vector_table_naked_ptr.fbs "${FLATC_OPT_NAKED_PTR}")
+  compile_schema_for_test(tests/namespace_test/namespace_test1.fbs "${FLATC_OPT_SCOPED_ENUMS}")
+  compile_schema_for_test(tests/namespace_test/namespace_test2.fbs "${FLATC_OPT_SCOPED_ENUMS}")
+  compile_schema_for_test(tests/union_vector/union_vector.fbs "${FLATC_OPT_COMP}")
 
   if(FLATBUFFERS_CODE_SANITIZE)
     add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
@@ -588,8 +597,18 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_BUILD_CPP17)
     add_executable(flattests_cpp17 ${FlatBuffers_Tests_CPP17_SRCS})
     target_link_libraries(flattests_cpp17 PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-    target_include_directories(flattests_cpp17 PUBLIC src tests)
+    target_include_directories(flattests_cpp17 PUBLIC 
+      # Ideally everything is fully qualified from the root directories
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_BINARY_DIR}
+      # TODO(derekbailey): update includes to fully qualify src/ and tests/
+      src 
+      tests 
+      ${CMAKE_CURRENT_BINARY_DIR}/tests 
+    )
     target_compile_features(flattests_cpp17 PRIVATE cxx_std_17) # requires cmake 3.8
+
+    compile_schema_for_test_17(tests/optional_scalars.fbs "${FLATC_OPT_COMP}")
 
     if(FLATBUFFERS_CODE_SANITIZE)
       add_fsanitize_to_target(flattests_cpp17 ${FLATBUFFERS_CODE_SANITIZE})

@@ -1,0 +1,42 @@
+load("//:build_defs.bzl", "flatbuffer_cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+flatbuffer_cc_library(
+    name = "evolution_v1_cc_fbs",
+    srcs = ["evolution_v1.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+        "--scoped-enums",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "evolution_v2_cc_fbs",
+    srcs = ["evolution_v2.fbs"],
+    filename_suffix = ".fbs",
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+        "--scoped-enums",
+    ],
+)
+
+# Data needed by evolution_test.cpp to read at runtime.
+filegroup(
+    name = "test_data",
+    srcs = [
+        "evolution_v1.fbs",
+        "evolution_v1.json",
+        "evolution_v2.fbs",
+        "evolution_v2.json",
+    ],
+)
