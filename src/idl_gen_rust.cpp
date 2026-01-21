@@ -540,22 +540,38 @@ class RustGenerator : public BaseGenerator {
     return false;
   }
 
+  std::string GetModule(const Definition& def) const {
+    if (parser_.file_being_parsed_ == def.file) return std::string();
+
+    auto it = parser_.opts.module_map.schema_to_module.find(def.file);
+    if (it == parser_.opts.module_map.schema_to_module.end()) {
+      return std::string();
+    }
+
+    return it->second;
+  }
+
   std::string NamespacedNativeName(const EnumDef& def) {
-    return WrapInNameSpace(def.defined_namespace, namer_.ObjectType(def));
+    return WrapInNameSpace(def.defined_namespace, GetModule(def),
+                           namer_.ObjectType(def));
   }
   std::string NamespacedNativeName(const StructDef& def) {
-    return WrapInNameSpace(def.defined_namespace, namer_.ObjectType(def));
+    return WrapInNameSpace(def.defined_namespace, GetModule(def),
+                           namer_.ObjectType(def));
   }
 
   std::string WrapInNameSpace(const Definition& def) const {
-    return WrapInNameSpace(def.defined_namespace,
+    return WrapInNameSpace(def.defined_namespace, GetModule(def),
                            namer_.EscapeKeyword(def.name));
   }
-  std::string WrapInNameSpace(const Namespace* ns,
+  std::string WrapInNameSpace(const Namespace* ns, const std::string& module,
                               const std::string& name) const {
-    if (CurrentNameSpace() == ns) return name;
-    std::string prefix = GetRelativeNamespaceTraversal(CurrentNameSpace(), ns);
-    return prefix + name;
+    if (CurrentNameSpace() == ns && module.empty()) return name;
+
+    auto joiner = module.empty() ? std::string() : "::";
+    auto source_namespace = module.empty() ? CurrentNameSpace() : nullptr;
+    std::string prefix = GetRelativeNamespaceTraversal(source_namespace, ns);
+    return joiner + module + joiner + prefix + name;
   }
 
   // Determine the relative namespace traversal needed to reference one
@@ -669,13 +685,10 @@ class RustGenerator : public BaseGenerator {
                NumToString(type.fixed_length) + "]";
       }
       case ftTable: {
-        return WrapInNameSpace(type.struct_def->defined_namespace,
-                               type.struct_def->name) +
-               "<'a>";
+        return WrapInNameSpace(*type.struct_def) + "<'a>";
       }
       default: {
-        return WrapInNameSpace(type.struct_def->defined_namespace,
-                               type.struct_def->name);
+        return WrapInNameSpace(*type.struct_def);
       }
     }
   }
@@ -1092,6 +1105,7 @@ class RustGenerator : public BaseGenerator {
         if (!ev) return "Default::default()";  // Bitflags enum.
         return WrapInNameSpace(
             field.value.type.enum_def->defined_namespace,
+            GetModule(*field.value.type.enum_def),
             namer_.EnumVariant(*field.value.type.enum_def, *ev));
       }
       case ftUnionValue: {
@@ -1636,13 +1650,11 @@ class RustGenerator : public BaseGenerator {
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         continue;
       }
-      code_.SetValue(
-          "U_ELEMENT_ENUM_TYPE",
-          WrapInNameSpace(def.defined_namespace, namer_.EnumVariant(def, ev)));
-      code_.SetValue(
-          "U_ELEMENT_TABLE_TYPE",
-          WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
-                          ev.union_type.struct_def->name));
+      code_.SetValue("U_ELEMENT_ENUM_TYPE",
+                     WrapInNameSpace(def.defined_namespace, GetModule(def),
+                                     namer_.EnumVariant(def, ev)));
+      code_.SetValue("U_ELEMENT_TABLE_TYPE",
+                     WrapInNameSpace(*ev.union_type.struct_def));
       code_.SetValue("U_ELEMENT_NAME", namer_.Function(ev.name));
       cb(ev);
     }
@@ -2981,10 +2993,19 @@ class RustGenerator : public BaseGenerator {
     std::string indent = std::string(white_spaces, ' ');
     code_ += "";
     if (!parser_.opts.generate_all) {
-      for (auto it = parser_.included_files_.begin();
-           it != parser_.included_files_.end(); ++it) {
-        if (it->second.empty()) continue;
-        auto noext = flatbuffers::StripExtension(it->second);
+      std::vector<IncludedFile> included_files = parser_.GetIncludedFiles();
+      for (auto it = included_files.begin(); it != included_files.end(); ++it) {
+        if (it->schema_name.empty()) continue;
+
+        auto module_map =
+            parser_.opts.module_map.schema_to_module.find(it->filename);
+        if (module_map != parser_.opts.module_map.schema_to_module.end()) {
+          // This include comes from another crate. The fully qualified name
+          // will be used in the generated code.
+          continue;
+        }
+
+        auto noext = flatbuffers::StripExtension(it->schema_name);
         auto basename = flatbuffers::StripPath(noext);
 
         if (parser_.opts.include_prefix.empty()) {

@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <stack>
+#include <unordered_map>
 #include <vector>
 
 #include "flatbuffers/base.h"
@@ -628,6 +629,25 @@ struct IncludedFile {
   std::string filename;
 };
 
+// Contains a mapping from schema names to module names.
+struct ModuleMap {
+  // The type used to represent a schema name.
+  using Schema = std::string;
+
+  // The type used to represent a module name.
+  using Module = std::string;
+
+  // The type used to represent a mapping from schema file paths to module
+  // names.
+  using SchemaToModuleMap = std::unordered_map<Schema, Module>;
+
+  // A mapping from schema name to module name. In module-based languages, this
+  // is used to allow module based imports for dependencies on schemas contained
+  // in other modules. The mapping from schema names to module names is provided
+  // by the user with `flatc --module-mapping SCHEMA=MODULE`.
+  SchemaToModuleMap schema_to_module;
+};
+
 // Since IncludedFile is contained within a std::set, need to provide ordering.
 inline bool operator<(const IncludedFile& a, const IncludedFile& b) {
   return a.filename < b.filename;
@@ -701,6 +721,7 @@ struct IDLOptions {
   std::string proto_namespace_suffix;
   std::string filename_suffix;
   std::string filename_extension;
+  ModuleMap module_map;
   bool no_warnings;
   bool warnings_as_errors;
   std::string project_root;
@@ -845,6 +866,7 @@ struct IDLOptions {
         cpp_static_reflection(false),
         filename_suffix("_generated"),
         filename_extension(),
+        module_map(ModuleMap()),
         no_warnings(false),
         warnings_as_errors(false),
         project_root(""),

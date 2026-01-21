@@ -1,0 +1,11 @@
+[package]
+name = "rust_module_test_b"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "module_b_generated.rs"
+
+[dependencies]
+rust_module_test_a = { path = "../a" }
+flatbuffers = { path = "../../../rust/flatbuffers", default-features = false }
