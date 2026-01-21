@@ -422,7 +422,6 @@ class Builder(object):
     off2 = self.Offset() - off + N.UOffsetTFlags.bytewidth
     self.PlaceUOffsetT(off2)
 
-  ## @cond FLATBUFFERS_INTERNAL
   def StartVector(self, elemSize, numElems, alignment):
     """StartVector initializes bookkeeping for writing a new vector.
 
@@ -437,8 +436,6 @@ class Builder(object):
     self.Prep(N.Uint32Flags.bytewidth, elemSize * numElems)
     self.Prep(alignment, elemSize * numElems)  # In case alignment > int.
     return self.Offset()
-
-  ## @endcond
 
   def EndVector(self, numElems=None):
     """EndVector writes data necessary to finish vector construction."""
@@ -554,6 +551,21 @@ class Builder(object):
     self.Bytes[new_head : new_head + payload_len] = payload
 
     self.vectorNumElems = x.size
+    return self.EndVector()
+
+  def CreateVectorOfTables(self, offsets):
+    """CreateVectorOfTables writes a vector of offsets such as tables or strings.
+
+    Args:
+      offsets: Iterable of offsets returned from previous builder operations.
+               Each element should be an integer compatible with UOffsetT.
+    """
+
+    offsets = list(offsets)
+    self.StartVector(N.UOffsetTFlags.bytewidth, len(offsets),
+                     N.UOffsetTFlags.bytewidth)
+    for off in reversed(offsets):
+      self.PrependUOffsetTRelative(off)
     return self.EndVector()
 
   ## @cond FLATBUFFERS_INTERNAL
