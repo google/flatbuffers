@@ -18,6 +18,7 @@
 #define FLATBUFFERS_FILE_MANAGER_H_
 
 #include <cstddef>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -48,22 +49,8 @@ class FileSaver {
   FileSaver& operator=(FileSaver&&) = default;
 };
 
-class RealFileSaver final : public FileSaver {
- public:
-  bool SaveFile(const char* name, const char* buf, size_t len,
-                bool binary) final;
-};
-
-class FileNameSaver final : public FileSaver {
- public:
-  bool SaveFile(const char* name, const char* buf, size_t len,
-                bool binary) final;
-
-  void Finish() final;
-
- private:
-  std::set<std::string> file_names_{};
-};
+std::unique_ptr<FileSaver> CreateFileSaver();
+std::unique_ptr<FileSaver> CreateFileNameCollector();
 
 }  // namespace flatbuffers
 
