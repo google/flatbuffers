@@ -183,14 +183,21 @@ impl<'a> PossiblyReservedWords {
 
   pub fn set_alignment(&mut self, x: f32) {
     let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
+
+    let __fb_size = ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>();
+    let __fb_dst = self
+      .0
+      .get_mut(12..(12 + __fb_size))
+      .expect("flatbuffers: buffer too short for mutation")
+      .as_mut_ptr();
+
     // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid value in this slot
+    // Destination is bounds-checked above.
     unsafe {
       ::core::ptr::copy_nonoverlapping(
-        &x_le as *const _ as *const u8,
-        self.0[12..].as_mut_ptr(),
-        ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>(),
+        (&x_le as *const _ as *const u8),
+        __fb_dst,
+        __fb_size,
       );
     }
   }
