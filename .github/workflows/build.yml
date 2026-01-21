@@ -592,11 +592,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
+      # Explicitly use 8.5.1 until we can update or https://github.com/actions/runner-images/issues/13564 is fixed.
+      - name: Set env
+        run: >
+          echo "USE_BAZEL_VERSION=8.5.1" >> $GITHUB_ENV
       - name: bazel build
         run: >
           bazel build
           //:flatc
           //:flatbuffers
+          //tests:flatbuffers_test
       - name: bazel test
         run: >
           bazel test
