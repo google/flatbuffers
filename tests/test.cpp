@@ -61,6 +61,7 @@
 #include "tests/64bit/offset64_test.h"
 #endif
 #include "flexbuffers_test.h"
+#include "float_to_string_test.h"
 #include "is_quiet_nan.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
 #include "native_type_test_generated.h"
@@ -1838,6 +1839,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
   UnionUnderlyingTypeTest();
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
+  FloatToStringRoundTripTest();
+  FloatToStringOutputTest();
   return 0;
 }
 }  // namespace
