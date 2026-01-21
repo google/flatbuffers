@@ -4,19 +4,19 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT } from '../../my-game/example2/monster.js';
-import { Ability, AbilityT } from '../../my-game/example/ability.js';
-import { Any, unionToAny, unionListToAny } from '../../my-game/example/any.js';
-import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from '../../my-game/example/any-ambiguous-aliases.js';
-import { AnyUniqueAliases, unionToAnyUniqueAliases, unionListToAnyUniqueAliases } from '../../my-game/example/any-unique-aliases.js';
-import { Color } from '../../my-game/example/color.js';
-import { Race } from '../../my-game/example/race.js';
-import { Referrable, ReferrableT } from '../../my-game/example/referrable.js';
-import { Stat, StatT } from '../../my-game/example/stat.js';
-import { Test, TestT } from '../../my-game/example/test.js';
-import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from '../../my-game/example/test-simple-table-with-enum.js';
-import { Vec3, Vec3T } from '../../my-game/example/vec3.js';
-import { InParentNamespace, InParentNamespaceT } from '../../my-game/in-parent-namespace.js';
+import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT } from '../example2/monster.js';
+import { Ability, AbilityT } from './ability.js';
+import { Any, unionToAny, unionListToAny } from './any.js';
+import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from './any-ambiguous-aliases.js';
+import { AnyUniqueAliases, unionToAnyUniqueAliases, unionListToAnyUniqueAliases } from './any-unique-aliases.js';
+import { Color } from './color.js';
+import { Race } from './race.js';
+import { Referrable, ReferrableT } from './referrable.js';
+import { Stat, StatT } from './stat.js';
+import { Test, TestT } from './test.js';
+import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT } from './test-simple-table-with-enum.js';
+import { Vec3, Vec3T } from './vec3.js';
+import { InParentNamespace, InParentNamespaceT } from '../in-parent-namespace.js';
 
 
 /**

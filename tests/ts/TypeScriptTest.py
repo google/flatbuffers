@@ -185,6 +185,20 @@ flatc(
 flatc(options=["--ts"], schema="../long_namespace.fbs")
 flatc(options=["--ts"], schema="../longer_namespace.fbs")
 
+
+flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="relative_imports/relative_imports.fbs",
+    prefix="relative_imports",
+)
+
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
 print(
@@ -201,6 +215,7 @@ check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
 check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
+check_call(NODE_CMD + ["JavaScriptRelativeImportPathTest"])
 
 print("Running old v1 TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])
