@@ -71,3 +71,12 @@ class SchemaTests:
         schema_json["enums"][0]["values"][2]["attributes"][1]["value"]
         == "Value 3 (deprecated)"
     )
+
+  def CircularStructDependency(self):
+    try:
+      flatc(["-c", "circular_struct_dependency.fbs"])
+      assert False, "Expected flatc to fail on circular struct dependency"
+    except subprocess.CalledProcessError:
+      pass
+    
+    flatc(["-c", "circular_table.fbs"])
