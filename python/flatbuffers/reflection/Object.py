@@ -158,6 +158,12 @@ def ObjectStartFieldsVector(builder, numElems):
 def StartFieldsVector(builder, numElems):
     return ObjectStartFieldsVector(builder, numElems)
 
+def ObjectCreateFieldsVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateFieldsVector(builder, data):
+    ObjectCreateFieldsVector(builder, data)
+
 def ObjectAddIsStruct(builder, isStruct):
     builder.PrependBoolSlot(2, isStruct, 0)
 
@@ -188,6 +194,12 @@ def ObjectStartAttributesVector(builder, numElems):
 def StartAttributesVector(builder, numElems):
     return ObjectStartAttributesVector(builder, numElems)
 
+def ObjectCreateAttributesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateAttributesVector(builder, data):
+    ObjectCreateAttributesVector(builder, data)
+
 def ObjectAddDocumentation(builder, documentation):
     builder.PrependUOffsetTRelativeSlot(6, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
 
@@ -199,6 +211,12 @@ def ObjectStartDocumentationVector(builder, numElems):
 
 def StartDocumentationVector(builder, numElems):
     return ObjectStartDocumentationVector(builder, numElems)
+
+def ObjectCreateDocumentationVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDocumentationVector(builder, data):
+    ObjectCreateDocumentationVector(builder, data)
 
 def ObjectAddDeclarationFile(builder, declarationFile):
     builder.PrependUOffsetTRelativeSlot(7, flatbuffers.number_types.UOffsetTFlags.py_type(declarationFile), 0)

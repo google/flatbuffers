@@ -138,6 +138,12 @@ def RPCCallStartAttributesVector(builder, numElems):
 def StartAttributesVector(builder, numElems):
     return RPCCallStartAttributesVector(builder, numElems)
 
+def RPCCallCreateAttributesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateAttributesVector(builder, data):
+    RPCCallCreateAttributesVector(builder, data)
+
 def RPCCallAddDocumentation(builder, documentation):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
 
@@ -149,6 +155,12 @@ def RPCCallStartDocumentationVector(builder, numElems):
 
 def StartDocumentationVector(builder, numElems):
     return RPCCallStartDocumentationVector(builder, numElems)
+
+def RPCCallCreateDocumentationVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateDocumentationVector(builder, data):
+    RPCCallCreateDocumentationVector(builder, data)
 
 def RPCCallEnd(builder):
     return builder.EndObject()

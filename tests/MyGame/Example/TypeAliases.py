@@ -230,6 +230,16 @@ def TypeAliasesStartV8Vector(builder, numElems):
 def StartV8Vector(builder, numElems):
     return TypeAliasesStartV8Vector(builder, numElems)
 
+def TypeAliasesCreateV8Vector(builder, data):
+    data = list(data)
+    builder.StartVector(1, len(data), 1)
+    for item in reversed(data):
+        builder.PrependInt8(item)
+    return builder.EndVector()
+
+def CreateV8Vector(builder, data):
+    TypeAliasesCreateV8Vector(builder, data)
+
 def TypeAliasesAddVf64(builder, vf64):
     builder.PrependUOffsetTRelativeSlot(11, flatbuffers.number_types.UOffsetTFlags.py_type(vf64), 0)
 
@@ -241,6 +251,16 @@ def TypeAliasesStartVf64Vector(builder, numElems):
 
 def StartVf64Vector(builder, numElems):
     return TypeAliasesStartVf64Vector(builder, numElems)
+
+def TypeAliasesCreateVf64Vector(builder, data):
+    data = list(data)
+    builder.StartVector(8, len(data), 8)
+    for item in reversed(data):
+        builder.PrependFloat64(item)
+    return builder.EndVector()
+
+def CreateVf64Vector(builder, data):
+    TypeAliasesCreateVf64Vector(builder, data)
 
 def TypeAliasesEnd(builder):
     return builder.EndObject()
