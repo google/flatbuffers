@@ -2200,27 +2200,18 @@ def make_monster_from_generated_code(
   test2 = b.CreateString('test2')
   fred = b.CreateString('Fred')
 
-  _MONSTER.MonsterStartInventoryVector(b, 5)
-  b.PrependByte(4)
-  b.PrependByte(3)
-  b.PrependByte(2)
-  b.PrependByte(1)
-  b.PrependByte(0)
-  inv = b.EndVector()
+  inv = _MONSTER.MonsterCreateInventoryVector(b, range(5))
 
   _MONSTER.MonsterStart(b)
   _MONSTER.MonsterAddName(b, fred)
   mon2 = _MONSTER.MonsterEnd(b)
 
-  _MONSTER.MonsterStartTest4Vector(b, 2)
-  _TEST.CreateTest(b, 10, 20)
-  _TEST.CreateTest(b, 30, 40)
-  test4 = b.EndVector()
+  test4_structs = (_TEST.TestT(10, 20), _TEST.TestT(30, 40))
+  test4 = _MONSTER.MonsterCreateTest4Vector(b, test4_structs)
 
-  _MONSTER.MonsterStartTestarrayofstringVector(b, 2)
-  b.PrependUOffsetTRelative(test2)
-  b.PrependUOffsetTRelative(test1)
-  testArrayOfString = b.EndVector()
+  testArrayOfString = _MONSTER.MonsterCreateTestarrayofstringVector(
+      b, [test1, test2]
+  )
 
   _MONSTER.MonsterStartVectorOfLongsVector(b, 5)
   b.PrependInt64(100000000)
