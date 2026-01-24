@@ -23,7 +23,9 @@ public struct NestedStruct : IFlatbufferObject
 #else
   public ArraySegment<byte>? GetABytes() { return __p.bb.ToArraySegment(__p.bb_pos + 0, 8);}
 #endif
+  public void MutateA(int j, int a) { __p.bb.PutInt(__p.bb_pos + 0 + j * 4, a); }
   public MyGame.Example.TestEnum B { get { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 8); } }
+  public void MutateB(MyGame.Example.TestEnum b) { __p.bb.PutSbyte(__p.bb_pos + 8, (sbyte)b); }
   public MyGame.Example.TestEnum C(int j) { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 9 + j * 1); }
   public const int CLength = 2;
 #if ENABLE_SPAN_T
@@ -31,6 +33,7 @@ public struct NestedStruct : IFlatbufferObject
 #else
   public ArraySegment<byte>? GetCBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 9, 2);}
 #endif
+  public void MutateC(int j, MyGame.Example.TestEnum c) { __p.bb.PutSbyte(__p.bb_pos + 9 + j * 1, (sbyte)c); }
   public long D(int j) { return __p.bb.GetLong(__p.bb_pos + 16 + j * 8); }
   public const int DLength = 2;
 #if ENABLE_SPAN_T
@@ -38,6 +41,7 @@ public struct NestedStruct : IFlatbufferObject
 #else
   public ArraySegment<byte>? GetDBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 16, 16);}
 #endif
+  public void MutateD(int j, long d) { __p.bb.PutLong(__p.bb_pos + 16 + j * 8, d); }
 
   public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C, long[] D) {
     builder.Prep(8, 32);

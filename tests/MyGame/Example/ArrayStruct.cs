@@ -17,6 +17,7 @@ public struct ArrayStruct : IFlatbufferObject
   public ArrayStruct __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public float A { get { return __p.bb.GetFloat(__p.bb_pos + 0); } }
+  public void MutateA(float a) { __p.bb.PutFloat(__p.bb_pos + 0, a); }
   public int B(int j) { return __p.bb.GetInt(__p.bb_pos + 4 + j * 4); }
   public const int BLength = 15;
 #if ENABLE_SPAN_T
@@ -24,9 +25,12 @@ public struct ArrayStruct : IFlatbufferObject
 #else
   public ArraySegment<byte>? GetBBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 4, 60);}
 #endif
+  public void MutateB(int j, int b) { __p.bb.PutInt(__p.bb_pos + 4 + j * 4, b); }
   public sbyte C { get { return __p.bb.GetSbyte(__p.bb_pos + 64); } }
+  public void MutateC(sbyte c) { __p.bb.PutSbyte(__p.bb_pos + 64, c); }
   public MyGame.Example.NestedStruct D(int j) { return (new MyGame.Example.NestedStruct()).__assign(__p.bb_pos + 72 + j * 32, __p.bb); }
   public int E { get { return __p.bb.GetInt(__p.bb_pos + 136); } }
+  public void MutateE(int e) { __p.bb.PutInt(__p.bb_pos + 136, e); }
   public long F(int j) { return __p.bb.GetLong(__p.bb_pos + 144 + j * 8); }
   public const int FLength = 2;
 #if ENABLE_SPAN_T
@@ -34,6 +38,7 @@ public struct ArrayStruct : IFlatbufferObject
 #else
   public ArraySegment<byte>? GetFBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 144, 16);}
 #endif
+  public void MutateF(int j, long f) { __p.bb.PutLong(__p.bb_pos + 144 + j * 8, f); }
 
   public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C, long[,] d_D, int E, long[] F) {
     builder.Prep(8, 160);
