@@ -29,5 +29,9 @@ public class ReferrableT {
   public ReferrableT() {
     this.id = 0L;
   }
+
+  public ReferrableT(long id) {
+    this.id = id;
+  }
 }
 

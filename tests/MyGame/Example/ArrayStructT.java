@@ -32,7 +32,12 @@ public class ArrayStructT {
 
   public int[] getB() { return b; }
 
-  public void setB(int[] b) { if (b != null && b.length == 15) this.b = b; }
+  public void setB(int[] b) {
+    if (b != null && b.length != 15) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"b\" must have length 15.");
+    }
+    this.b = b;
+  }
 
   public byte getC() { return c; }
 
@@ -40,7 +45,12 @@ public class ArrayStructT {
 
   public MyGame.Example.NestedStructT[] getD() { return d; }
 
-  public void setD(MyGame.Example.NestedStructT[] d) { if (d != null && d.length == 2) this.d = d; }
+  public void setD(MyGame.Example.NestedStructT[] d) {
+    if (d != null && d.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"d\" must have length 2.");
+    }
+    this.d = d;
+  }
 
   public int getE() { return e; }
 
@@ -48,7 +58,12 @@ public class ArrayStructT {
 
   public long[] getF() { return f; }
 
-  public void setF(long[] f) { if (f != null && f.length == 2) this.f = f; }
+  public void setF(long[] f) {
+    if (f != null && f.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"f\" must have length 2.");
+    }
+    this.f = f;
+  }
 
 
   public ArrayStructT() {
@@ -58,6 +73,24 @@ public class ArrayStructT {
     this.d = new MyGame.Example.NestedStructT[2];
     this.e = 0;
     this.f = new long[2];
+  }
+
+  public ArrayStructT(float a, int[] b, byte c, MyGame.Example.NestedStructT[] d, int e, long[] f) {
+    this.a = a;
+    if (b != null && b.length != 15) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"b\" must have length 15.");
+    }
+    this.b = b;
+    this.c = c;
+    if (d != null && d.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"d\" must have length 2.");
+    }
+    this.d = d;
+    this.e = e;
+    if (f != null && f.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"f\" must have length 2.");
+    }
+    this.f = f;
   }
 }
 

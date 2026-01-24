@@ -29,5 +29,9 @@ public class StructOfStructsOfStructsT {
   public StructOfStructsOfStructsT() {
     this.a = new MyGame.Example.StructOfStructsT();
   }
+
+  public StructOfStructsOfStructsT(MyGame.Example.StructOfStructsT a) {
+    this.a = a;
+  }
 }
 

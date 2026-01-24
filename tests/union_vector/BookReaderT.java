@@ -27,5 +27,9 @@ public class BookReaderT {
   public BookReaderT() {
     this.booksRead = 0;
   }
+
+  public BookReaderT(int booksRead) {
+    this.booksRead = booksRead;
+  }
 }
 

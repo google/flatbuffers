@@ -80,6 +80,93 @@ public class JavaTest {
   }
 
   @org.junit.Test
+  public void testVectorCreationHelpers() {
+    FlatBufferBuilder fbb = new FlatBufferBuilder(16);
+    boolean[] bools = { true, false, true };
+    int boolVec = Monster.createTestarrayofboolsVector(fbb, bools);
+
+    long[] longs = { 1L, 2L, Long.MAX_VALUE };
+    int longVec = Monster.createVectorOfLongsVector(fbb, longs);
+
+    double[] doubles = { 1.0, 2.0, 3.14 };
+    int doubleVec = Monster.createVectorOfDoublesVector(fbb, doubles);
+
+    int name = fbb.createString("TestVectors");
+
+    Monster.startMonster(fbb);
+    Monster.addName(fbb, name);
+    Monster.addTestarrayofbools(fbb, boolVec);
+    Monster.addVectorOfLongs(fbb, longVec);
+    Monster.addVectorOfDoubles(fbb, doubleVec);
+    int mon = Monster.endMonster(fbb);
+    Monster.finishMonsterBuffer(fbb, mon);
+
+    Monster monster = Monster.getRootAsMonster(fbb.dataBuffer());
+
+    assertThat(monster.testarrayofboolsLength()).isEqualTo(3);
+    assertThat(monster.testarrayofbools(0)).isTrue();
+    assertThat(monster.testarrayofbools(1)).isFalse();
+    assertThat(monster.testarrayofbools(2)).isTrue();
+
+    assertThat(monster.vectorOfLongsLength()).isEqualTo(3);
+    assertThat(monster.vectorOfLongs(2)).isEqualTo(Long.MAX_VALUE);
+
+    assertThat(monster.vectorOfDoublesLength()).isEqualTo(3);
+    assertThat(monster.vectorOfDoubles(2)).isEqualTo(3.14);
+  }
+
+  @org.junit.Test
+  public void testObjectVectorCreationHelpers() {
+    FlatBufferBuilder fbb = new FlatBufferBuilder(16);
+    AbilityT[] abilities = {
+        new AbilityT(10, 20),
+        new AbilityT(30, 40)
+    };
+
+    int abilityVec = Monster.createTestarrayofsortedstructVector(fbb, abilities);
+    int name = fbb.createString("TestObjectVectors");
+
+    Monster.startMonster(fbb);
+    Monster.addName(fbb, name);
+    Monster.addTestarrayofsortedstruct(fbb, abilityVec);
+    int mon = Monster.endMonster(fbb);
+    Monster.finishMonsterBuffer(fbb, mon);
+
+    Monster monster = Monster.getRootAsMonster(fbb.dataBuffer());
+    assertThat(monster.testarrayofsortedstructLength()).isEqualTo(2);
+    assertThat(monster.testarrayofsortedstruct(0).id()).isEqualTo(10L);
+    assertThat(monster.testarrayofsortedstruct(0).distance()).isEqualTo(20L);
+    assertThat(monster.testarrayofsortedstruct(1).id()).isEqualTo(30L);
+    assertThat(monster.testarrayofsortedstruct(1).distance()).isEqualTo(40L);
+  }
+
+  @org.junit.Test
+  public void testFixedSizeArrayValidation() {
+    ArrayStructT s = new ArrayStructT();
+    // Valid length should work
+    int[] validB = new int[15];
+    s.setB(validB);
+    assertThat(s.getB()).isSameInstanceAs(validB);
+
+    // Invalid length should throw
+    int[] invalidB = new int[14];
+    try {
+      s.setB(invalidB);
+      org.junit.Assert.fail("Expected IllegalArgumentException was not thrown");
+    } catch (IllegalArgumentException e) {
+      assertThat(e.getMessage()).isEqualTo("FlatBuffers: fixed-size array \"b\" must have length 15.");
+    }
+
+    // Constructor should also validate
+    try {
+      new ArrayStructT(0.0f, invalidB, (byte)0, null, 0, null);
+      org.junit.Assert.fail("Expected IllegalArgumentException was not thrown in constructor");
+    } catch (IllegalArgumentException e) {
+      assertThat(e.getMessage()).isEqualTo("FlatBuffers: fixed-size array \"b\" must have length 15.");
+    }
+  }
+
+  @org.junit.Test
   public void TestEnums() {
     assertThat(Color.name(Color.Red)).isEqualTo("Red");
     assertThat(Color.name(Color.Blue)).isEqualTo("Blue");

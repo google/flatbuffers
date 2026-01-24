@@ -27,5 +27,9 @@ public class AttackerT {
   public AttackerT() {
     this.swordAttackDamage = 0;
   }
+
+  public AttackerT(int swordAttackDamage) {
+    this.swordAttackDamage = swordAttackDamage;
+  }
 }
 
