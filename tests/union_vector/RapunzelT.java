@@ -27,5 +27,9 @@ public class RapunzelT {
   public RapunzelT() {
     this.hairLength = 0;
   }
+
+  public RapunzelT(int hairLength) {
+    this.hairLength = hairLength;
+  }
 }
 

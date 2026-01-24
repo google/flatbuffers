@@ -689,6 +689,116 @@ public class FlatBufferBuilder {
     return endVector();
   }
 
+  /**
+   * Create a boolean array in the buffer.
+   *
+   * @param arr A source array with data
+   * @return The offset in the buffer where the encoded array starts.
+   */
+  public int createBooleanVector(boolean[] arr) {
+    int length = arr.length;
+    startVector(1, length, 1);
+    bb.position(space -= length);
+    for (int i = 0; i < length; i++) bb.put(arr[i] ? (byte) 1 : (byte) 0);
+    return endVector();
+  }
+
+  /**
+   * Create a short array in the buffer.
+   *
+   * @param arr A source array with data
+   * @return The offset in the buffer where the encoded array starts.
+   */
+  public int createShortVector(short[] arr) {
+    int length = arr.length * 2;
+    startVector(2, arr.length, 2);
+    bb.position(space -= length);
+    bb.asShortBuffer().put(arr);
+    return endVector();
+  }
+
+  /**
+   * Create an int array in the buffer.
+   *
+   * @param arr A source array with data
+   * @return The offset in the buffer where the encoded array starts.
+   */
+  public int createIntVector(int[] arr) {
+    int length = arr.length * 4;
+    startVector(4, arr.length, 4);
+    bb.position(space -= length);
+    bb.asIntBuffer().put(arr);
+    return endVector();
+  }
+
+  /**
+   * Create a long array in the buffer.
+   *
+   * @param arr A source array with data
+   * @return The offset in the buffer where the encoded array starts.
+   */
+  public int createLongVector(long[] arr) {
+    int length = arr.length * 8;
+    startVector(8, arr.length, 8);
+    bb.position(space -= length);
+    bb.asLongBuffer().put(arr);
+    return endVector();
+  }
+
+  /**
+   * Create a float array in the buffer.
+   *
+   * @param arr A source array with data
+   * @return The offset in the buffer where the encoded array starts.
+   */
+  public int createFloatVector(float[] arr) {
+    int length = arr.length * 4;
+    startVector(4, arr.length, 4);
+    bb.position(space -= length);
+    bb.asFloatBuffer().put(arr);
+    return endVector();
+  }
+
+  /**
+   * Create a double array in the buffer.
+   *
+   * @param arr A source array with data
+   * @return The offset in the buffer where the encoded array starts.
+   */
+  public int createDoubleVector(double[] arr) {
+    int length = arr.length * 8;
+    startVector(8, arr.length, 8);
+    bb.position(space -= length);
+    bb.asDoubleBuffer().put(arr);
+    return endVector();
+  }
+
+  /**
+   * Create a struct array in the buffer.
+   *
+   * @param arr A source array with structs
+   * @param elementSize The size of each struct element
+   * @param alignment The alignment of the struct
+   * @return The offset in the buffer where the encoded array starts.
+   */
+  public int createStructVector(Struct[] arr, int elementSize, int alignment) {
+    int length = arr.length * elementSize;
+    startVector(elementSize, arr.length, alignment);
+    bb.position(space -= length);
+    // Copy the structs
+    for (int i = 0; i < arr.length; i++) {
+      Struct s = arr[i];
+      // We copy directly from the source buffer to the destination buffer.
+      ByteBuffer src = s.bb.duplicate();
+      src.position(s.bb_pos);
+      src.limit(s.bb_pos + elementSize);
+      ByteBuffer dst = bb.duplicate();
+      dst.position(space + i * elementSize);
+      dst.put(src);
+    }
+    return endVector();
+  }
+
   /// @cond FLATBUFFERS_INTERNAL
   /** Should not be accessing the final buffer before it is finished. */
   public void finished() {
