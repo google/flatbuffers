@@ -27,5 +27,9 @@ public class FallingTubT {
   public FallingTubT() {
     this.weight = 0;
   }
+
+  public FallingTubT(int weight) {
+    this.weight = weight;
+  }
 }
 

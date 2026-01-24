@@ -41,5 +41,11 @@ public class StatT {
     this.val = 0L;
     this.count = 0;
   }
+
+  public StatT(String id, long val, int count) {
+    this.id = id;
+    this.val = val;
+    this.count = count;
+  }
 }
 

@@ -27,23 +27,48 @@ public class LargeArrayStructT {
 
   public int[] getD() { return d; }
 
-  public void setD(int[] d) { if (d != null && d.length == 64) this.d = d; }
+  public void setD(int[] d) {
+    if (d == null || d.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"d\" must have length 64");
+    }
+    this.d = d;
+  }
 
   public float[] getE() { return e; }
 
-  public void setE(float[] e) { if (e != null && e.length == 64) this.e = e; }
+  public void setE(float[] e) {
+    if (e == null || e.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"e\" must have length 64");
+    }
+    this.e = e;
+  }
 
   public boolean[] getF() { return f; }
 
-  public void setF(boolean[] f) { if (f != null && f.length == 64) this.f = f; }
+  public void setF(boolean[] f) {
+    if (f == null || f.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"f\" must have length 64");
+    }
+    this.f = f;
+  }
 
   public MyGame.Example.NestedStructT[] getG() { return g; }
 
-  public void setG(MyGame.Example.NestedStructT[] g) { if (g != null && g.length == 64) this.g = g; }
+  public void setG(MyGame.Example.NestedStructT[] g) {
+    if (g == null || g.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"g\" must have length 64");
+    }
+    this.g = g;
+  }
 
   public byte[] getH() { return h; }
 
-  public void setH(byte[] h) { if (h != null && h.length == 64) this.h = h; }
+  public void setH(byte[] h) {
+    if (h == null || h.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"h\" must have length 64");
+    }
+    this.h = h;
+  }
 
 
   public LargeArrayStructT() {
@@ -52,6 +77,29 @@ public class LargeArrayStructT {
     this.f = new boolean[64];
     this.g = new MyGame.Example.NestedStructT[64];
     this.h = new byte[64];
+  }
+
+  public LargeArrayStructT(int[] d, float[] e, boolean[] f, MyGame.Example.NestedStructT[] g, byte[] h) {
+    if (d == null || d.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"d\" must have length 64");
+    }
+    this.d = d;
+    if (e == null || e.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"e\" must have length 64");
+    }
+    this.e = e;
+    if (f == null || f.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"f\" must have length 64");
+    }
+    this.f = f;
+    if (g == null || g.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"g\" must have length 64");
+    }
+    this.g = g;
+    if (h == null || h.length != 64) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"h\" must have length 64");
+    }
+    this.h = h;
   }
 }
 
