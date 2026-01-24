@@ -19,6 +19,12 @@ public struct ArrayStruct : IFlatbufferObject
   public float A { get { return __p.bb.GetFloat(__p.bb_pos + 0); } }
   public void MutateA(float a) { __p.bb.PutFloat(__p.bb_pos + 0, a); }
   public int B(int j) { return __p.bb.GetInt(__p.bb_pos + 4 + j * 4); }
+  public const int BLength = 15;
+#if ENABLE_SPAN_T
+  public Span<int> GetBBytes() { return System.Runtime.InteropServices.MemoryMarshal.Cast<byte, int>(__p.bb.ToSpan(__p.bb_pos + 4, 60)); }
+#else
+  public ArraySegment<byte>? GetBBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 4, 60);}
+#endif
   public void MutateB(int j, int b) { __p.bb.PutInt(__p.bb_pos + 4 + j * 4, b); }
   public sbyte C { get { return __p.bb.GetSbyte(__p.bb_pos + 64); } }
   public void MutateC(sbyte c) { __p.bb.PutSbyte(__p.bb_pos + 64, c); }
@@ -26,6 +32,12 @@ public struct ArrayStruct : IFlatbufferObject
   public int E { get { return __p.bb.GetInt(__p.bb_pos + 136); } }
   public void MutateE(int e) { __p.bb.PutInt(__p.bb_pos + 136, e); }
   public long F(int j) { return __p.bb.GetLong(__p.bb_pos + 144 + j * 8); }
+  public const int FLength = 2;
+#if ENABLE_SPAN_T
+  public Span<long> GetFBytes() { return System.Runtime.InteropServices.MemoryMarshal.Cast<byte, long>(__p.bb.ToSpan(__p.bb_pos + 144, 16)); }
+#else
+  public ArraySegment<byte>? GetFBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 144, 16);}
+#endif
   public void MutateF(int j, long f) { __p.bb.PutLong(__p.bb_pos + 144 + j * 8, f); }
 
   public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C, long[,] d_D, int E, long[] F) {
