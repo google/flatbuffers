@@ -1,0 +1,5 @@
+# Default owner
+* @dbaileychess derekbailey@google.com
+
+# Prevent modification of this file
+.github/CODEOWNERS @dbaileychess derekbailey@google.com

@@ -67,6 +67,7 @@ Namer::Config TypeScriptDefaultConfig() {
           /*object_suffix=*/"T",
           /*keyword_prefix=*/"",
           /*keyword_suffix=*/"_",
+          /*keywords_casing=*/Namer::Config::KeywordsCasing::CaseSensitive,
           /*filenames=*/Case::kDasher,
           /*directories=*/Case::kDasher,
           /*output_path=*/"",
@@ -118,7 +119,6 @@ class TsGenerator : public BaseGenerator {
     if (!parser_.opts.ts_omit_entrypoint) {
       generateEntry();
     }
-    if (!generateBundle()) return false;
     return true;
   }
 
@@ -325,29 +325,6 @@ class TsGenerator : public BaseGenerator {
     }
   }
 
-  bool generateBundle() {
-    if (parser_.opts.ts_flat_files) {
-      std::string inputpath;
-      std::string symbolic_name = file_name_;
-      inputpath = path_ + file_name_ + ".ts";
-      std::string bundlepath =
-          GeneratedFileName(path_, file_name_, parser_.opts);
-      bundlepath = bundlepath.substr(0, bundlepath.size() - 3) + ".js";
-      std::string cmd = "esbuild";
-      cmd += " ";
-      cmd += inputpath;
-      // cmd += " --minify";
-      cmd += " --format=cjs --bundle --outfile=";
-      cmd += bundlepath;
-      cmd += " --external:flatbuffers";
-      std::cout << "Entry point " << inputpath << " generated." << std::endl;
-      std::cout << "A single file bundle can be created using fx. esbuild with:"
-                << std::endl;
-      std::cout << "> " << cmd << std::endl;
-    }
-    return true;
-  }
-
   // Generate a documentation comment, if available.
   static void GenDocComment(const std::vector<std::string>& dc,
                             std::string* code_ptr,
@@ -363,8 +340,7 @@ class TsGenerator : public BaseGenerator {
     for (auto it = dc.begin(); it != dc.end(); ++it) {
       if (indent) code += indent;
       std::string safe = *it;
-      for (size_t pos = 0;
-           (pos = safe.find("*/", pos)) != std::string::npos;) {
+      for (size_t pos = 0; (pos = safe.find("*/", pos)) != std::string::npos;) {
         safe.replace(pos, 2, "*\\/");
         pos += 3;
       }
@@ -505,8 +481,12 @@ class TsGenerator : public BaseGenerator {
             std::string enum_name =
                 AddImport(imports, *value.type.enum_def, *value.type.enum_def)
                     .name;
-            std::string enum_value = namer_.Variant(
-                *value.type.enum_def->FindByValue(value.constant));
+            const EnumVal* val =
+                value.type.enum_def->FindByValue(value.constant);
+            if (val == nullptr) {
+              val = value.type.enum_def->MinValue();
+            }
+            std::string enum_value = namer_.Variant(*val);
             ret += enum_name + "." + enum_value +
                    (i < value.type.fixed_length - 1 ? ", " : "");
           }
@@ -521,9 +501,10 @@ class TsGenerator : public BaseGenerator {
           return "BigInt('" + value.constant + "')";
         }
         default: {
-          EnumVal* val = value.type.enum_def->FindByValue(value.constant);
-          if (val == nullptr)
-            val = const_cast<EnumVal*>(value.type.enum_def->MinValue());
+          const EnumVal* val = value.type.enum_def->FindByValue(value.constant);
+          if (val == nullptr) {
+            val = value.type.enum_def->MinValue();
+          }
           return AddImport(imports, *value.type.enum_def, *value.type.enum_def)
                      .name +
                  "." + namer_.Variant(*val);

@@ -1,13 +1,13 @@
 module(
     name = "flatbuffers",
-    version = "25.9.23",
+    version = "25.12.19",
     compatibility_level = 1,
     repo_name = "com_github_google_flatbuffers",
 )
 
 bazel_dep(
     name = "aspect_bazel_lib",
-    version = "2.11.0",
+    version = "2.14.0",
 )
 bazel_dep(
     name = "aspect_rules_esbuild",
@@ -28,11 +28,11 @@ bazel_dep(
 )
 bazel_dep(
     name = "platforms",
-    version = "0.0.10",
+    version = "0.0.11",
 )
 bazel_dep(
     name = "rules_cc",
-    version = "0.0.16",
+    version = "0.1.1",
 )
 bazel_dep(
     name = "rules_go",

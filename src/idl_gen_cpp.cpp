@@ -1924,6 +1924,10 @@ class CppGenerator : public BaseGenerator {
       } else {
         return "0";
       }
+    } else if (IsVector(type) && field.value.constant == "[]") {
+      return "0";
+    } else if (IsString(type) && field.value.constant != "0") {
+      return "0";
     } else if (IsStruct(type) && (field.value.constant == "0")) {
       return "nullptr";
     } else {
@@ -2311,6 +2315,34 @@ class CppGenerator : public BaseGenerator {
     code_ += "";
   }
 
+  void GenAbslHashValue(const StructDef& struct_def) {
+    code_ += "template <typename H>";
+    code_ += "inline H AbslHashValue(H h, const {{NATIVE_NAME}} &obj) {";
+    std::string combine_args;
+    for (const auto& field : struct_def.fields.vec) {
+      if (field->deprecated) {
+        continue;
+      }
+      if (IsArray(field->value.type)) {
+        const auto field_accessor = "obj." + Name(*field) + "()";
+        const auto& element_type = field->value.type.VectorType();
+        if (IsStruct(element_type)) {
+          code_ += "  for (const auto* element : *" + field_accessor + ") {";
+          code_ += "    h = H::combine(std::move(h), *element);";
+          code_ += "  }";
+        } else {
+          code_ += "  for (auto element : *" + field_accessor + ") {";
+          code_ += "    h = H::combine(std::move(h), element);";
+          code_ += "  }";
+        }
+      } else {
+        combine_args += ", obj." + Name(*field) + "()";
+      }
+    }
+    code_ += "  return H::combine(std::move(h)" + combine_args + ");";
+    code_ += "}";
+  }
+
   void GenOperatorNewDelete(const StructDef& struct_def) {
     if (auto native_custom_alloc =
             struct_def.attributes.Lookup("native_custom_alloc")) {
@@ -2399,12 +2431,40 @@ class CppGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_STRING: {
-        code_ += "{{PRE}}verifier.VerifyString({{NAME}}())\\";
+        if (field.value.constant != "0") {
+          if (field.offset64) {
+            code_ +=
+                "{{PRE}}VerifyStringWithDefault<::flatbuffers::uoffset64_t>("
+                "verifier, "
+                "{{OFFSET}})\\";
+          } else {
+            code_ += "{{PRE}}VerifyStringWithDefault(verifier, {{OFFSET}})\\";
+          }
+        } else {
+          code_ += "{{PRE}}verifier.VerifyString({{NAME}}())\\";
+        }
         break;
       }
       case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
-        code_ += "{{PRE}}verifier.VerifyVector({{NAME}}())\\";
+        if (field.value.constant == "[]") {
+          const auto& vec_type = field.value.type.VectorType();
+          const std::string vtype_wire = GenTypeWire(
+              vec_type, "", VectorElementUserFacing(vec_type), field.offset64);
+          std::string verify_call;
+          if (field.offset64) {
+            verify_call = "{{PRE}}VerifyVector64WithDefault<" + vtype_wire;
+          } else {
+            verify_call = "{{PRE}}VerifyVectorWithDefault<" + vtype_wire;
+          }
+          if (field.value.type.base_type == BASE_TYPE_VECTOR64) {
+            verify_call += ", ::flatbuffers::uoffset64_t";
+          }
+          verify_call += ">(verifier, {{OFFSET}})\\";
+          code_ += verify_call;
+        } else {
+          code_ += "{{PRE}}verifier.VerifyVector({{NAME}}())\\";
+        }
 
         switch (field.value.type.element) {
           case BASE_TYPE_STRING: {
@@ -2625,14 +2685,18 @@ class CppGenerator : public BaseGenerator {
     code_ += "  }";
   }
 
-  void GenTableUnionAsGetters(const FieldDef& field) {
+  void GenTableUnionAsGetters(const FieldDef& field, bool is_mutable) {
     const auto& type = field.value.type;
     auto u = type.enum_def;
 
+    code_.SetValue("MUTABLE_EXT", is_mutable ? "" : " const");
+    code_.SetValue("MUTABLE", is_mutable ? "mutable_" : "");
+
     if (!type.enum_def->uses_multiple_type_instances)
       code_ +=
-          "  template<typename T> "
-          "const T *{{NULLABLE_EXT}}{{FIELD_NAME}}_as() const;";
+          "  template<typename T>"
+          "{{MUTABLE_EXT}} T *{{MUTABLE}}{{NULLABLE_EXT}}{{FIELD_NAME}}_as()"
+          "{{MUTABLE_EXT}};";
 
     for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
       auto& ev = **u_it;
@@ -2646,15 +2710,19 @@ class CppGenerator : public BaseGenerator {
                      EscapeKeyword(Name(field) + UnionTypeFieldSuffix()));
       code_.SetValue("U_ELEMENT_TYPE", WrapInNameSpace(u->defined_namespace,
                                                        GetEnumValUse(*u, ev)));
-      code_.SetValue("U_FIELD_TYPE", "const " + full_struct_name + " *");
+      code_.SetValue("U_FIELD_TYPE",
+                     (is_mutable ? "" : "const ") + full_struct_name + " *");
       code_.SetValue("U_FIELD_NAME", Name(field) + "_as_" + Name(ev));
       code_.SetValue("U_NULLABLE", NullableExtension());
 
       // `const Type *union_name_asType() const` accessor.
-      code_ += "  {{U_FIELD_TYPE}}{{U_NULLABLE}}{{U_FIELD_NAME}}() const {";
+      // and `Type *mutable_union_name_asType()` accessor.
+      code_ +=
+          "  {{U_FIELD_TYPE}}{{U_NULLABLE}}{{MUTABLE}}{{U_FIELD_NAME}}()"
+          "{{MUTABLE_EXT}} {";
       code_ +=
           "    return {{U_GET_TYPE}}() == {{U_ELEMENT_TYPE}} ? "
-          "static_cast<{{U_FIELD_TYPE}}>({{FIELD_NAME}}()) "
+          "static_cast<{{U_FIELD_TYPE}}>({{MUTABLE}}{{FIELD_NAME}}()) "
           ": nullptr;";
       code_ += "  }";
     }
@@ -2695,7 +2763,37 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
       code_.SetValue("NULLABLE_EXT", NullableExtension());
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";
-      code_ += "    return {{FIELD_VALUE}};";
+      if (IsVector(type) && field.value.constant == "[]") {
+        const auto& vec_type = type.VectorType();
+        const std::string vtype_wire = GenTypeWire(
+            vec_type, "", VectorElementUserFacing(vec_type), field.offset64);
+        std::string get_call;
+        if (field.offset64) {
+          get_call = "    return GetVectorPointer64OrEmpty<" + vtype_wire;
+        } else {
+          get_call = "    return GetVectorPointerOrEmpty<" + vtype_wire;
+        }
+        if (type.base_type == BASE_TYPE_VECTOR64) {
+          get_call += ", ::flatbuffers::uoffset64_t";
+        }
+        get_call += ">(" + offset_str + ");";
+        code_ += get_call;
+      } else if (IsString(type) && field.value.constant != "0") {
+        // TODO: Add logic to always convert the string to a valid C++ string
+        // literal by handling string escapes.
+        code_ += "    auto* ptr = {{FIELD_VALUE}};";
+        code_ += "    if (ptr) return ptr;";
+        code_ += "    static const struct { uint32_t len; const char s[" +
+                 NumToString(field.value.constant.length() + 1) +
+                 "]; } bfbs_string = { " +
+                 NumToString(field.value.constant.length()) + ", \"" +
+                 field.value.constant + "\" };";
+        code_ +=
+            "    return reinterpret_cast<const ::flatbuffers::String "
+            " *>(&bfbs_string);";
+      } else {
+        code_ += "    return {{FIELD_VALUE}};";
+      }
       code_ += "  }";
     } else {
       auto wire_type = GenTypeBasic(type, false);
@@ -2709,7 +2807,7 @@ class CppGenerator : public BaseGenerator {
     }
 
     if (type.base_type == BASE_TYPE_UNION) {
-      GenTableUnionAsGetters(field);
+      GenTableUnionAsGetters(field, false);
     }
   }
 
@@ -2882,22 +2980,48 @@ class CppGenerator : public BaseGenerator {
     } else {
       auto postptr = " *" + NullableExtension();
       auto wire_type = GenTypeGet(type, " ", "", postptr.c_str(), true);
-      const std::string accessor = [&]() {
-        if (IsStruct(type)) {
-          return "GetStruct<";
-        }
-        if (field.offset64) {
-          return "GetPointer64<";
-        }
-        return "GetPointer<";
-      }();
-      auto underlying = accessor + wire_type + ">(" + offset_str + ")";
       code_.SetValue("FIELD_TYPE", wire_type);
-      code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, underlying));
 
-      code_ += "  {{FIELD_TYPE}}mutable_{{FIELD_NAME}}() {";
-      code_ += "    return {{FIELD_VALUE}};";
-      code_ += "  }";
+      // mutable union accessors
+      if (type.base_type == BASE_TYPE_UNION) {
+        GenTableUnionAsGetters(field, true);
+      }
+
+      if (IsVector(type) && field.value.constant == "[]") {
+        const auto& vec_type = type.VectorType();
+        const std::string vtype_wire = GenTypeWire(
+            vec_type, "", VectorElementUserFacing(vec_type), field.offset64);
+        code_ += "  {{FIELD_TYPE}}mutable_{{FIELD_NAME}}() {";
+        std::string get_call;
+        if (field.offset64) {
+          get_call =
+              "    return GetMutableVectorPointer64OrEmpty<" + vtype_wire;
+        } else {
+          get_call = "    return GetMutableVectorPointerOrEmpty<" + vtype_wire;
+        }
+        if (type.base_type == BASE_TYPE_VECTOR64) {
+          get_call += ", ::flatbuffers::uoffset64_t";
+        }
+        get_call += ">(" + offset_str + ");";
+        code_ += get_call;
+        code_ += "  }";
+      } else {
+        const std::string accessor = [&]() {
+          if (IsStruct(type)) {
+            return "GetStruct<";
+          }
+          if (field.offset64) {
+            return "GetPointer64<";
+          }
+          return "GetPointer<";
+        }();
+        auto underlying = accessor + wire_type + ">(" + offset_str + ")";
+        code_.SetValue("FIELD_VALUE",
+                       GenUnderlyingCast(field, true, underlying));
+        code_ += "  {{FIELD_TYPE}}mutable_{{FIELD_NAME}}() {";
+        code_ += "    return {{FIELD_VALUE}};";
+        code_ += "  }";
+      }
     }
   }
 
@@ -3074,6 +3198,7 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("U_FIELD_NAME", Name(*field) + "_as_" + Name(ev));
 
         // `template<> const T *union_name_as<T>() const` accessor.
+        // and `template<> T *mutable_union_name_as<T>()` accessor.
         code_ +=
             "template<> "
             "inline {{U_FIELD_TYPE}}{{STRUCT_NAME}}::{{FIELD_NAME}}_as"
@@ -3081,6 +3206,20 @@ class CppGenerator : public BaseGenerator {
         code_ += "  return {{U_FIELD_NAME}}();";
         code_ += "}";
         code_ += "";
+
+        if (opts_.mutable_buffer) {
+          code_.SetValue("U_FIELD_TYPE", full_struct_name + " *");
+          code_.SetValue("U_FIELD_NAME",
+                         "mutable_" + Name(*field) + "_as_" + Name(ev));
+          code_ +=
+              "template<> "
+              "inline {{U_FIELD_TYPE}}"
+              "{{STRUCT_NAME}}::mutable_{{FIELD_NAME}}_as"
+              "<{{U_ELEMENT_NAME}}>() {";
+          code_ += "  return {{U_FIELD_NAME}}();";
+          code_ += "}";
+          code_ += "";
+        }
       }
     }
 
@@ -3277,9 +3416,17 @@ class CppGenerator : public BaseGenerator {
           } else {
             code_.SetValue("CREATE_STRING", "CreateSharedString");
           }
-          code_ +=
-              "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
-              "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
+          if (field->value.constant != "0") {
+            code_ +=
+                "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
+                "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : "
+                "_fbb.{{CREATE_STRING}}(\"" +
+                field->value.constant + "\");";
+          } else {
+            code_ +=
+                "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
+                "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : 0;";
+          }
         } else if (IsVector(field->value.type)) {
           const std::string force_align_code =
               GenVectorForceAlign(*field, Name(*field) + "->size()");
@@ -3488,8 +3635,8 @@ class CppGenerator : public BaseGenerator {
             const bool is_pointer = IsVectorOfPointers(field);
             if (is_pointer) {
               code += "if(_o->" + name + "[_i]" + ") { ";
-              code += indexing + "->UnPackTo(_o->" + name +
-                      "[_i].get(), _resolver);";
+              code += indexing + "->UnPackTo(_o->" + name + "[_i]" +
+                      GenPtrGet(field) + ", _resolver);";
               code += " } else { ";
             }
             code += "_o->" + name + "[_i]" + access + " = ";
@@ -3551,7 +3698,8 @@ class CppGenerator : public BaseGenerator {
 
           if (is_pointer) {
             code += "{ if(" + out_field + ") { ";
-            code += "_e->UnPackTo(" + out_field + ".get(), _resolver);";
+            code += "_e->UnPackTo(" + out_field + GenPtrGet(field) +
+                    ", _resolver);";
             code += " } else { ";
           }
           code += out_field + " = ";
@@ -4280,7 +4428,12 @@ class CppGenerator : public BaseGenerator {
 
     code_.SetValue("STRUCT_BYTE_SIZE", NumToString(struct_def.bytesize));
     code_ += "FLATBUFFERS_STRUCT_END({{STRUCT_NAME}}, {{STRUCT_BYTE_SIZE}});";
-    if (opts_.gen_compare) GenCompareOperator(struct_def, "()");
+    if (opts_.gen_compare) {
+      GenCompareOperator(struct_def, "()");
+    }
+    if (opts_.gen_absl_hash) {
+      GenAbslHashValue(struct_def);
+    }
     code_ += "";
 
     // Definition for type traits for this table type. This allows querying var-

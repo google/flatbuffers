@@ -652,19 +652,23 @@ class CSharpGenerator : public BaseGenerator {
     // Get the getter for the key of the struct.
     if (IsString(key_field->value.type)) {
       return "string.CompareOrdinal(" +
-         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer", 
-           "builder.DataBuffer.Length - o1.Value") +
-         ", " +
-         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
-           "builder.DataBuffer.Length - o2.Value") + 
-         ")";
+             GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o1.Value") +
+             ", " +
+             GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o2.Value") +
+             ")";
     } else {
-      return GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
-                     "builder.DataBuffer.Length - o1.Value") +
-         ".CompareTo(" +
-         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer", 
-                     "builder.DataBuffer.Length - o2.Value") +
-         ")";
+      return GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o1.Value") +
+             ".CompareTo(" +
+             GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o2.Value") +
+             ")";
     }
   }
 
@@ -890,7 +894,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_25_9_23(); ";
+      code += "FLATBUFFERS_25_12_19(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1648,7 +1652,8 @@ class CSharpGenerator : public BaseGenerator {
 
       code += "      obj_.__assign(tableOffset, bb);\n";
       if (IsString(key_field->value.type)) {
-        code += "      int comp = string.CompareOrdinal(obj_." + name + ", key);\n";
+        code +=
+            "      int comp = string.CompareOrdinal(obj_." + name + ", key);\n";
       } else {
         code += "      int comp = obj_." + name + ".CompareTo(key);\n";
       }

@@ -64,6 +64,7 @@ static Namer::Config KotlinDefaultConfig() {
           /*object_suffix=*/"T",
           /*keyword_prefix=*/"",
           /*keyword_suffix=*/"_",
+          /*keywords_casing=*/Namer::Config::KeywordsCasing::CaseSensitive,
           /*filenames=*/Case::kKeep,
           /*directories=*/Case::kKeep,
           /*output_path=*/"",
@@ -480,7 +481,7 @@ class KotlinGenerator : public BaseGenerator {
       }
       if (IsStruct(field.value.type)) {
         GenStructBody(*field.value.type.struct_def, writer,
-                      (nameprefix + (field.name + "_")).c_str());
+                      (nameprefix + (namer_.Variable(field) + "_")).c_str());
       } else {
         writer.SetValue("type", GenMethod(field.value.type));
         writer.SetValue("argname", nameprefix + namer_.Variable(field));
@@ -551,7 +552,7 @@ class KotlinGenerator : public BaseGenerator {
           // runtime.
           GenerateFunOneLine(
               writer, "validateVersion", "", "",
-              [&]() { writer += "Constants.FLATBUFFERS_25_9_23()"; },
+              [&]() { writer += "Constants.FLATBUFFERS_25_12_19()"; },
               options.gen_jvmstatic);
 
           GenerateGetRootAsAccessors(namer_.Type(struct_def), writer, options);
@@ -1201,11 +1202,12 @@ class KotlinGenerator : public BaseGenerator {
                             : InlineSize(field.value.type.VectorType()));
         // Generate a ByteBuffer accessor for strings & vectors of scalars.
         // e.g.
-        // val inventoryByteBuffer: ByteBuffer
+        // val inventoryByteBuffer: ByteBuffer?
         //     get =  __vector_as_bytebuffer(14, 1)
 
+        auto buffer_type = field.IsRequired() ? "ByteBuffer" : "ByteBuffer?";
         GenerateGetterOneLine(
-            writer, field_name + "AsByteBuffer", "ByteBuffer", [&]() {
+            writer, field_name + "AsByteBuffer", buffer_type, [&]() {
               writer.SetValue("end", end_idx);
               writer += "__vector_as_bytebuffer({{offset}}, {{end}})";
             });
@@ -1213,10 +1215,10 @@ class KotlinGenerator : public BaseGenerator {
         // Generate a ByteBuffer accessor for strings & vectors of scalars.
         // e.g.
         // fun inventoryInByteBuffer(_bb: Bytebuffer):
-        //     ByteBuffer = __vector_as_bytebuffer(_bb, 14, 1)
+        //     ByteBuffer? = __vector_as_bytebuffer(_bb, 14, 1)
         GenerateFunOneLine(
-            writer, field_name + "InByteBuffer", "_bb: ByteBuffer",
-            "ByteBuffer", [&]() {
+            writer, field_name + "InByteBuffer", "_bb: ByteBuffer", buffer_type,
+            [&]() {
               writer.SetValue("end", end_idx);
               writer += "__vector_in_bytebuffer(_bb, {{offset}}, {{end}})";
             });
