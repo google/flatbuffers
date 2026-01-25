@@ -257,6 +257,9 @@ public final class Monster extends com.google.flatbuffers.Table {
   public static void addTestType(FlatBufferBuilder builder, byte testType) { builder.addByte(7, testType, 0); }
   public static void addTest(FlatBufferBuilder builder, int testOffset) { builder.addOffset(8, testOffset, 0); }
   public static void addTest4(FlatBufferBuilder builder, int test4Offset) { builder.addOffset(9, test4Offset, 0); }
+  public static int createTest4Vector(FlatBufferBuilder builder, MyGame.Example.Test[] data) { return builder.createStructVector(data, 4, 2); }
+  public static int createTest4Vector(FlatBufferBuilder builder, MyGame.Example.TestT[] data) { builder.startVector(4, data.length, 2); for (int i = data.length - 1; i >= 0; i--) { MyGame.Example.Test.pack(builder, data[i]); } return builder.endVector(); }
+
   public static void startTest4Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 2); }
   public static void addTestarrayofstring(FlatBufferBuilder builder, int testarrayofstringOffset) { builder.addOffset(10, testarrayofstringOffset, 0); }
   public static int createTestarrayofstringVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
@@ -280,7 +283,7 @@ public final class Monster extends com.google.flatbuffers.Table {
   public static void addTesthashs64Fnv1a(FlatBufferBuilder builder, long testhashs64Fnv1a) { builder.addLong(22, testhashs64Fnv1a, 0L); }
   public static void addTesthashu64Fnv1a(FlatBufferBuilder builder, long testhashu64Fnv1a) { builder.addLong(23, testhashu64Fnv1a, 0L); }
   public static void addTestarrayofbools(FlatBufferBuilder builder, int testarrayofboolsOffset) { builder.addOffset(24, testarrayofboolsOffset, 0); }
-  public static int createTestarrayofboolsVector(FlatBufferBuilder builder, boolean[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addBoolean(data[i]); return builder.endVector(); }
+  public static int createTestarrayofboolsVector(FlatBufferBuilder builder, boolean[] data) { return builder.createBooleanVector(data); }
   public static void startTestarrayofboolsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addTestf(FlatBufferBuilder builder, float testf) { builder.addFloat(25, testf, 3.14159f); }
   public static void addTestf2(FlatBufferBuilder builder, float testf2) { builder.addFloat(26, testf2, 3.0f); }
@@ -289,18 +292,24 @@ public final class Monster extends com.google.flatbuffers.Table {
   public static int createTestarrayofstring2Vector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startTestarrayofstring2Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addTestarrayofsortedstruct(FlatBufferBuilder builder, int testarrayofsortedstructOffset) { builder.addOffset(29, testarrayofsortedstructOffset, 0); }
+  public static int createTestarrayofsortedstructVector(FlatBufferBuilder builder, MyGame.Example.Ability[] data) { return builder.createStructVector(data, 8, 4); }
+  public static int createTestarrayofsortedstructVector(FlatBufferBuilder builder, MyGame.Example.AbilityT[] data) { builder.startVector(8, data.length, 4); for (int i = data.length - 1; i >= 0; i--) { MyGame.Example.Ability.pack(builder, data[i]); } return builder.endVector(); }
+
   public static void startTestarrayofsortedstructVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 4); }
   public static void addFlex(FlatBufferBuilder builder, int flexOffset) { builder.addOffset(30, flexOffset, 0); }
   public static int createFlexVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
   public static int createFlexVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startFlexVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addTest5(FlatBufferBuilder builder, int test5Offset) { builder.addOffset(31, test5Offset, 0); }
+  public static int createTest5Vector(FlatBufferBuilder builder, MyGame.Example.Test[] data) { return builder.createStructVector(data, 4, 2); }
+  public static int createTest5Vector(FlatBufferBuilder builder, MyGame.Example.TestT[] data) { builder.startVector(4, data.length, 2); for (int i = data.length - 1; i >= 0; i--) { MyGame.Example.Test.pack(builder, data[i]); } return builder.endVector(); }
+
   public static void startTest5Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 2); }
   public static void addVectorOfLongs(FlatBufferBuilder builder, int vectorOfLongsOffset) { builder.addOffset(32, vectorOfLongsOffset, 0); }
-  public static int createVectorOfLongsVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfLongsVector(FlatBufferBuilder builder, long[] data) { return builder.createLongVector(data); }
   public static void startVectorOfLongsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addVectorOfDoubles(FlatBufferBuilder builder, int vectorOfDoublesOffset) { builder.addOffset(33, vectorOfDoublesOffset, 0); }
-  public static int createVectorOfDoublesVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
+  public static int createVectorOfDoublesVector(FlatBufferBuilder builder, double[] data) { return builder.createDoubleVector(data); }
   public static void startVectorOfDoublesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addParentNamespaceTest(FlatBufferBuilder builder, int parentNamespaceTestOffset) { builder.addOffset(34, parentNamespaceTestOffset, 0); }
   public static void addVectorOfReferrables(FlatBufferBuilder builder, int vectorOfReferrablesOffset) { builder.addOffset(35, vectorOfReferrablesOffset, 0); }
@@ -308,18 +317,18 @@ public final class Monster extends com.google.flatbuffers.Table {
   public static void startVectorOfReferrablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addSingleWeakReference(FlatBufferBuilder builder, long singleWeakReference) { builder.addLong(36, singleWeakReference, 0L); }
   public static void addVectorOfWeakReferences(FlatBufferBuilder builder, int vectorOfWeakReferencesOffset) { builder.addOffset(37, vectorOfWeakReferencesOffset, 0); }
-  public static int createVectorOfWeakReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfWeakReferencesVector(FlatBufferBuilder builder, long[] data) { return builder.createLongVector(data); }
   public static void startVectorOfWeakReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addVectorOfStrongReferrables(FlatBufferBuilder builder, int vectorOfStrongReferrablesOffset) { builder.addOffset(38, vectorOfStrongReferrablesOffset, 0); }
   public static int createVectorOfStrongReferrablesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startVectorOfStrongReferrablesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addCoOwningReference(FlatBufferBuilder builder, long coOwningReference) { builder.addLong(39, coOwningReference, 0L); }
   public static void addVectorOfCoOwningReferences(FlatBufferBuilder builder, int vectorOfCoOwningReferencesOffset) { builder.addOffset(40, vectorOfCoOwningReferencesOffset, 0); }
-  public static int createVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, long[] data) { return builder.createLongVector(data); }
   public static void startVectorOfCoOwningReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addNonOwningReference(FlatBufferBuilder builder, long nonOwningReference) { builder.addLong(41, nonOwningReference, 0L); }
   public static void addVectorOfNonOwningReferences(FlatBufferBuilder builder, int vectorOfNonOwningReferencesOffset) { builder.addOffset(42, vectorOfNonOwningReferencesOffset, 0); }
-  public static int createVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, long[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addLong(data[i]); return builder.endVector(); }
+  public static int createVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, long[] data) { return builder.createLongVector(data); }
   public static void startVectorOfNonOwningReferencesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addAnyUniqueType(FlatBufferBuilder builder, byte anyUniqueType) { builder.addByte(43, anyUniqueType, 0); }
   public static void addAnyUnique(FlatBufferBuilder builder, int anyUniqueOffset) { builder.addOffset(44, anyUniqueOffset, 0); }

@@ -29,6 +29,11 @@ public class ArrayTableT {
   public ArrayTableT() {
     this.a = new MyGame.Example.ArrayStructT();
   }
+
+  public ArrayTableT(MyGame.Example.ArrayStructT a) {
+    this.a = a;
+  }
+
   public static ArrayTableT deserializeFromBinary(byte[] fbBuffer) {
     return ArrayTable.getRootAsArrayTable(ByteBuffer.wrap(fbBuffer)).unpack();
   }
