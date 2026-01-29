@@ -196,9 +196,8 @@ jobs:
       matrix:
         configuration: [
           '',
-          '-p:UnsafeByteBuffer=true',
-          # Fails two tests currently.
-          #'-p:EnableSpanT=true,UnsafeByteBuffer=true'
+          '-p:UnsafeByteBuffer=true'
+          '-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
     steps:
     - uses: actions/checkout@v6
