@@ -196,7 +196,7 @@ jobs:
       matrix:
         configuration: [
           '',
-          '-p:UnsafeByteBuffer=true'
+          '-p:UnsafeByteBuffer=true',
           '-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
     steps:
