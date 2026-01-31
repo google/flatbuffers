@@ -208,7 +208,7 @@ jobs:
     - name: Build
       run: |
         cd tests\FlatBuffers.Test
-        dotnet new sln --force --name FlatBuffers.Test
+        dotnet new sln --force --name FlatBuffers.Test --format sln
         dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
         dotnet build -c Release ${{matrix.configuration}} FlatBuffers.Test.sln
     - name: Run net6.0
