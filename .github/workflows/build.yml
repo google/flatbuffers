@@ -197,8 +197,7 @@ jobs:
         configuration: [
           '',
           '-p:UnsafeByteBuffer=true',
-          # Fails two tests currently.
-          #'-p:EnableSpanT=true,UnsafeByteBuffer=true'
+          '-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
     steps:
     - uses: actions/checkout@v6
@@ -209,7 +208,7 @@ jobs:
     - name: Build
       run: |
         cd tests\FlatBuffers.Test
-        dotnet new sln --force --name FlatBuffers.Test
+        dotnet new sln --force --name FlatBuffers.Test --format sln
         dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
         dotnet build -c Release ${{matrix.configuration}} FlatBuffers.Test.sln
     - name: Run net6.0
@@ -592,11 +591,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
+      # Explicitly use 8.5.1 until we can update or https://github.com/actions/runner-images/issues/13564 is fixed.
+      - name: Set env
+        run: >
+          echo "USE_BAZEL_VERSION=8.5.1" >> $GITHUB_ENV
       - name: bazel build
         run: >
           bazel build
           //:flatc
           //:flatbuffers
+          //tests:flatbuffers_test
       - name: bazel test
         run: >
           bazel test
@@ -633,8 +637,7 @@ jobs:
       actions: read   # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.1
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.release-digests.outputs.digests }}"
       upload-assets: true # Optional: Upload to a new release
-      compile-generator: true # Workaround for https://github.com/slsa-framework/slsa-github-generator/issues/1163
