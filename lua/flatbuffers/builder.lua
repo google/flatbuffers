@@ -296,25 +296,62 @@ function mt:Slot(slotnum)
     self.currentVTable[slotnum + 1] = self:Offset()
 end
 
-local function finish(self, rootTable, sizePrefix)
+local function finish(self, rootTable, sizePrefix, fileIdentifier)
     UOffsetT:EnforceNumber(rootTable)
-    self:Prep(self.minalign, sizePrefix and 8 or 4)
-    self:PrependUOffsetTRelative(rootTable)
+    local hasFid = fileIdentifier ~= nil
+    if hasFid then
+        assert(#fileIdentifier == 4, "File identifier must be exactly 4 bytes")
+    end
+
+    local fid_byte_count = (hasFid and 4 or 0)
+
+    -- alignment:
+    -- root offset (4)
+    -- optional file id (4)
+    -- optional size prefix (4)
+    self:Prep(
+        self.minalign,
+        (sizePrefix and 4 or 0) +
+        4 +
+        fid_byte_count
+    )
+
+    -- root offset (points past file identifier if present)
+    self:PrependUOffsetTRelative(rootTable + fid_byte_count)
+
+    -- file identifier
+    if hasFid then
+        for i = 4, 1, -1 do
+            self:PrependByte(string.byte(fileIdentifier, i))
+        end
+    end
+
+    -- size prefix
     if sizePrefix then
         local size = self.bytes.size - self.head
         Int32:EnforceNumber(size)
         self:PrependInt32(size)
     end
+
     self.finished = true
     return self.head
 end
 
+
 function mt:Finish(rootTable)
-    return finish(self, rootTable, false)
+    return finish(self, rootTable, false, nil)
 end
 
 function mt:FinishSizePrefixed(rootTable)
-    return finish(self, rootTable, true)
+    return finish(self, rootTable, true, nil)
+end
+
+function mt:FinishWithIdentifier(rootTable, fileIdentifier)
+    return finish(self, rootTable, false, fileIdentifier)
+end
+
+function mt:FinishSizePrefixedWithIdentifier(rootTable, fileIdentifier)
+    return finish(self, rootTable, true, fileIdentifier)
 end
 
 function mt:Prepend(flags, off)

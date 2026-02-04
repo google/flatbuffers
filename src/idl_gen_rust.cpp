@@ -424,7 +424,6 @@ class RustGenerator : public BaseGenerator {
     code_.Clear();
     code_ += "// " + std::string(FlatBuffersGeneratedWarning());
     code_ += "// @generated";
-    code_ += "extern crate alloc;";
 
     assert(!cur_name_space_);
 
@@ -3006,6 +3005,7 @@ class RustGenerator : public BaseGenerator {
           "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
       code_ += "";
     }
+    code_ += "extern crate alloc;";
   }
 
   // Set up the correct namespace. This opens a namespace if the current
