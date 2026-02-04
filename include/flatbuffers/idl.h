@@ -734,6 +734,7 @@ struct IDLOptions {
   bool python_gen_numpy;
 
   bool ts_omit_entrypoint;
+  bool ts_undefined_for_optionals;
   ProtoIdGapAction proto_id_gap_action;
 
   // Possible options for the more general generator below.
@@ -860,6 +861,7 @@ struct IDLOptions {
         python_typing(false),
         python_gen_numpy(true),
         ts_omit_entrypoint(false),
+        ts_undefined_for_optionals(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
