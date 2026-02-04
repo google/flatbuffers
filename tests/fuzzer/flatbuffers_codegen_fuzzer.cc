@@ -91,7 +91,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   opts.allow_non_utf8 = (flags & flags_allow_non_utf8);
 
   // make sure we have a file saver
-  opts.file_saver = flatbuffers::CreateFileSaver();
+  auto saver = flatbuffers::CreateFileSaver();
+  opts.file_saver = saver.get();
 
   flatbuffers::Parser parser(opts);
 
