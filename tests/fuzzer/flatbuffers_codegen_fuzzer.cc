@@ -90,6 +90,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       (flags & flags_skip_unexpected_fields_in_json);
   opts.allow_non_utf8 = (flags & flags_allow_non_utf8);
 
+  // make sure we have a file saver
+  opts.file_saver = flatbuffers::CreateFileSaver();
+
   flatbuffers::Parser parser(opts);
 
   // Guarantee 0-termination in the input.
