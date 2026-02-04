@@ -79,11 +79,12 @@ list of `FILES...`.
     `myschema.fbs` to JSON:
 
     ```sh
-    flatc --json myschema.fbs mydata.bin
+    flatc --json myschema.fbs -- mydata.bin
     ```
 
-    This will generate a `mydata.json` file.
-
+    This will generate a `mydata.json` file. If there is no
+    [`file_identifier`](schema.md/#file-identification-and-extension) defined
+    for this schema, you will need to use the `--raw-binary` option.
 
 ### Additional options
 
