@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2014 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,6 +90,9 @@ namespace Google.FlatBuffers.Test
             fbb.AddOffset(test1.Value);
             var testArrayOfString = fbb.EndVector();
 
+            var longsVector = Monster.CreateVectorOfLongsVector(fbb, new long[] { 1, 100, 10000, 1000000, 100000000 });
+            var doublesVector = Monster.CreateVectorOfDoublesVector(fbb, new double[] { -1.7976931348623157e+308, 0, 1.7976931348623157e+308 });
+
             Monster.StartMonster(fbb);
             Monster.AddPos(fbb, Vec3.CreateVec3(fbb, 1.0f, 2.0f, 3.0f, 3.0,
                                                      Color.Green, (short)5, (sbyte)6));
@@ -102,6 +105,8 @@ namespace Google.FlatBuffers.Test
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
             Monster.AddTestbool(fbb, true);
             Monster.AddTestarrayoftables(fbb, sortMons);
+            Monster.AddVectorOfLongs(fbb, longsVector);
+            Monster.AddVectorOfDoubles(fbb, doublesVector);
             var mon = Monster.EndMonster(fbb);
 
             if (sizePrefix)
@@ -285,6 +290,13 @@ namespace Google.FlatBuffers.Test
                 Assert.IsTrue(monster.GetTestarrayofboolsBytes().HasValue);
             }
             #endif
+
+            var longArray = monster.GetVectorOfLongsArray();
+            Assert.AreEqual(5, longArray.Length);
+            Assert.AreEqual(100, longArray[1]);
+
+            var doublesArray = monster.GetVectorOfDoublesArray();
+            Assert.AreEqual(3, doublesArray.Length);
         }
 
         [FlatBuffersTestMethod]
