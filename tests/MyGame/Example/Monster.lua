@@ -28,6 +28,8 @@ function Monster.New()
   return o
 end
 
+local FileIdentifier = "MONS"
+
 function Monster.GetRootAsMonster(buf, offset)
   if type(buf) == "string" then
     buf = flatbuffers.binaryArray.New(buf)
@@ -1097,6 +1099,14 @@ end
 
 function Monster.End(builder)
   return builder:EndObject()
+end
+
+function Monster.FinishMonsterBuffer(builder, offset)
+  builder:FinishWithIdentifier(offset, FileIdentifier)
+end
+
+function Monster.FinishSizePrefixedMonsterBuffer(builder, offset)
+  builder:FinishSizePrefixedWithIdentifier(offset, FileIdentifier)
 end
 
 return Monster
