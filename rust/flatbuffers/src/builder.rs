@@ -611,6 +611,8 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         // Write the VTable (we may delete it afterwards, if it is a duplicate):
         let vt_start_pos = self.head;
         let vt_end_pos = self.head + vtable_byte_len;
+        // Zero out the vtable space - make_space only reserves but doesn't initialize
+        self.allocator[vt_start_pos.range_to(vt_end_pos)].fill(0);
         {
             // write the vtable header:
             let vtfw =
