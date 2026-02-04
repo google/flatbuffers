@@ -223,7 +223,7 @@ struct Type {
   uint16_t fixed_length;  // only set if t == BASE_TYPE_ARRAY
 };
 
-// Represents a parsed scalar value, it's type, and field offset.
+// Represents a parsed scalar value, its type, and field offset.
 struct Value {
   Value()
       : constant("0"),
@@ -743,6 +743,7 @@ struct IDLOptions {
   bool python_gen_numpy;
 
   bool ts_omit_entrypoint;
+  bool ts_undefined_for_optionals;
   ProtoIdGapAction proto_id_gap_action;
 
   // Possible options for the more general generator below.
@@ -869,6 +870,7 @@ struct IDLOptions {
         python_typing(false),
         python_gen_numpy(true),
         ts_omit_entrypoint(false),
+        ts_undefined_for_optionals(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
