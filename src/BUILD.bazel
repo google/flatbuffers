@@ -44,6 +44,7 @@ cc_library(
         "idl_parser.cpp",
         "reflection.cpp",
         "util.cpp",
+        "dragonbox.h"
     ],
     hdrs = [
         "//:public_headers",
@@ -141,6 +142,7 @@ cc_library(
         "idl_namer.h",
         "namer.h",
         "util.cpp",
+        "dragonbox.h",
     ],
     hdrs = [
         "//:flatc_headers",
