@@ -418,10 +418,28 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
       const Definition* def = parser_.services_.vec[i];
       p.package_name =
           def->defined_namespace->GetFullyQualifiedName("");  // file.package();
+      auto package_prefix = this->parser_.opts.java_package_prefix;
+
+      Namespace package_prefix_patched_ns;
+      if (!package_prefix.empty()) {
+        std::istringstream iss(package_prefix);
+        std::string component;
+        while (std::getline(iss, component, '.')) {
+          package_prefix_patched_ns.components.push_back(component);
+        }
+      }
+
+      package_prefix_patched_ns.components.insert(
+          package_prefix_patched_ns.components.end(),
+          def->defined_namespace->components.begin(),
+          def->defined_namespace->components.end());
+
+      p.java_package_name = package_prefix_patched_ns.GetFullyQualifiedName(
+          "");  // file.package();
       std::string output =
           grpc_java_generator::GenerateServiceSource(&file, service.get(), &p);
       std::string filename =
-          NamespaceDir(*def->defined_namespace) + def->name + "Grpc.java";
+          NamespaceDir(package_prefix_patched_ns) + def->name + "Grpc.java";
       if (!parser_.opts.file_saver->SaveFile(filename.c_str(), output, false))
         return false;
     }
