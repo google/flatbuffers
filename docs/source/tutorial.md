@@ -1075,9 +1075,7 @@ The Builder provides multiple ways to create `vectors`.
     ```java
     // Place the two weapons into an array, and pass it to the
     // `createWeaponsVector()` method to create a FlatBuffer vector.
-    int[] weaps = new int[2];
-    weaps[0] = sword;
-    weaps[1] = axe;
+    int[] weaps = { sword, axe };
 
     // Pass the `weaps` array into the `createWeaponsVector()` method to create
     // a FlatBuffer vector.
@@ -1211,14 +1209,15 @@ bit more directly.
     Offset<Vector<byte>> inventory = builder.EndVector();
 
       // Start building a path vector of length 2.
-    Monster.StartPathVector(fbb, 2);
+    Monster.StartPathVector(builder, 2);
 
-    // Serialize the individual Vec3 structs
-    Vec3.CreateVec3(builder, 1.0f, 2.0f, 3.0f);
+    // Serialize the individual Vec3 structs.
+    // Note that the intended order should be reversed if order is important.
     Vec3.CreateVec3(builder, 4.0f, 5.0f, 6.0f);
+    Vec3.CreateVec3(builder, 1.0f, 2.0f, 3.0f);
 
     // End the vector to get the offset
-    Offset<Vector<Vec3>> path = fbb.EndVector();
+    Offset<Vector<Vec3>> path = builder.EndVector();
     ```
 
 === "Dart"
@@ -1249,9 +1248,11 @@ bit more directly.
     }
     inv := builder.EndVector(10)
 
+    // Serialize the individual Vec3 structs.
+    // Note that the intended order should be reversed if order is important.
     sample.MonsterStartPathVector(builder, 2)
-    sample.CreateVec3(builder, 1.0, 2.0, 3.0)
     sample.CreateVec3(builder, 4.0, 5.0, 6.0)
+    sample.CreateVec3(builder, 1.0, 2.0, 3.0)
     path := builder.EndVector(2)
     ```
 
@@ -1263,10 +1264,12 @@ bit more directly.
     byte[] treasure = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     int inv = Monster.createInventoryVector(builder, treasure);
 
-    Monster.startPathVector(fbb, 2);
-    Vec3.createVec3(builder, 1.0f, 2.0f, 3.0f);
-    Vec3.createVec3(builder, 4.0f, 5.0f, 6.0f);
-    int path = fbb.endVector();
+    Vec3T[] pathData = {
+        new Vec3T(1.0f, 2.0f, 3.0f),
+        new Vec3T(4.0f, 5.0f, 6.0f)
+    };
+    
+    int path = Monster.createPathVector(builder, pathData);
     ```
 
 === "JavaScript"
@@ -1277,9 +1280,10 @@ bit more directly.
     var treasure = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     var inv = MyGame.Sample.Monster.createInventoryVector(builder, treasure);
 
+    // Note that the intended order should be reversed if order is important.
     MyGame.Sample.Monster.startPathVector(builder, 2);
-    MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
     MyGame.Sample.Vec3.createVec3(builder, 4.0, 5.0, 6.0);
+    MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
     var path = builder.endVector();
     ```
 
@@ -1291,10 +1295,11 @@ bit more directly.
     val treasure = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     val inv = Monster.createInventoryVector(builder, treasure)
 
-    Monster.startPathVector(fbb, 2)
-    Vec3.createVec3(builder, 1.0f, 2.0f, 3.0f)
+    // Note that the intended order should be reversed if order is important.
+    Monster.startPathVector(builder, 2)
     Vec3.createVec3(builder, 4.0f, 5.0f, 6.0f)
-    val path = fbb.endVector()
+    Vec3.createVec3(builder, 1.0f, 2.0f, 3.0f)
+    val path = builder.endVector()
     ```
 
 === "Lobster"
@@ -1303,9 +1308,10 @@ bit more directly.
     // Inventory.
     let inv = builder.MyGame_Sample_MonsterCreateInventoryVector(map(10): _)
 
+    // Note that the intended order should be reversed if order is important.
     builder.MyGame_Sample_MonsterStartPathVector(2)
-    builder.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0)
     builder.MyGame_Sample_CreateVec3(4.0, 5.0, 6.0)
+    builder.MyGame_Sample_CreateVec3(1.0, 2.0, 3.0)
     let path = builder.EndVector(2)
     ```
 
@@ -1324,8 +1330,8 @@ bit more directly.
     -- Create a FlatBuffer vector and prepend the path locations.
     -- Note: Since we prepend the data, prepend them in reverse order.
     monster.StartPathVector(builder, 2)
-    vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
     vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
+    vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
     local path = builder:EndVector(2)
     ```
 
@@ -1337,8 +1343,9 @@ bit more directly.
     $treasure = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
     $inv = \MyGame\Sample\Monster::CreateInventoryVector($builder, $treasure);
 
+    // Note that the intended order should be reversed if order is important.
     \MyGame\Example\Monster::StartPathVector($builder, 2);
-    \MyGame\Sample\Vec3::CreateVec3($builder, 1.0, 2.0, 3.0);
+    \MyGame\Sample\Vec3::CreateVec3($builder, 4.0, 5.0, 6.0);
     \MyGame\Sample\Vec3::CreateVec3($builder, 1.0, 2.0, 3.0);
     $path = $builder->endVector();
     ```
@@ -1376,7 +1383,7 @@ bit more directly.
     let inventory: [Byte] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     let inventoryOffset = builder.createVector(inventory)
 
-    let path = fbb.createVector(ofStructs: [
+    let path = builder.createVector(ofStructs: [
         Vec3(x: 1, y: 2, z: 3),
         Vec3(x: 4, y: 5, z: 6)
     ])
@@ -1390,9 +1397,10 @@ bit more directly.
     let treasure = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let inv = MyGame.Sample.Monster.createInventoryVector(builder, treasure);
 
+    // Note that the intended order should be reversed if order is important.
     MyGame.Sample.Monster.startPathVector(builder, 2);
-    MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
     MyGame.Sample.Vec3.createVec3(builder, 4.0, 5.0, 6.0);
+    MyGame.Sample.Vec3.createVec3(builder, 1.0, 2.0, 3.0);
     let path = builder.endVector();
     ```
 

@@ -95,5 +95,20 @@ public class TypeAliasesT {
     this.v8 = null;
     this.vf64 = null;
   }
+
+  public TypeAliasesT(byte i8, int u8, short i16, int u16, int i32, long u32, long i64, long u64, float f32, double f64, byte[] v8, double[] vf64) {
+    this.i8 = i8;
+    this.u8 = u8;
+    this.i16 = i16;
+    this.u16 = u16;
+    this.i32 = i32;
+    this.u32 = u32;
+    this.i64 = i64;
+    this.u64 = u64;
+    this.f32 = f32;
+    this.f64 = f64;
+    this.v8 = v8;
+    this.vf64 = vf64;
+  }
 }
 
