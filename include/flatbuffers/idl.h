@@ -725,6 +725,7 @@ struct IDLOptions {
   /********************************** Python **********************************/
   bool python_no_type_prefix_suffix;
   bool python_typing;
+  bool python_enum;
   bool python_decode_obj_api_strings = false;
 
   // The target Python version. Can be one of the following:
@@ -868,6 +869,7 @@ struct IDLOptions {
         keep_proto_id(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
+        python_enum(false),
         python_gen_numpy(true),
         ts_omit_entrypoint(false),
         ts_undefined_for_optionals(false),
