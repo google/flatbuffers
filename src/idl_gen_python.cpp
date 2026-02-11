@@ -1120,6 +1120,30 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + "return None\n\n";
   }
 
+  // Get the value of a vector's union member.
+  void GetMemberOfVectorOfUnion(const StructDef &struct_def,
+                                const FieldDef &field,
+                                std::string *code_ptr) const {
+    auto &code = *code_ptr;
+    auto vectortype = field.value.type.VectorType();
+
+    GenReceiver(struct_def, code_ptr);
+    code += namer_.Method(field);
+    code += "(self, j):" + OffsetPrefix(field);
+    code += Indent + Indent + Indent + "x = self._tab.Vector(o)\n";
+    code += Indent + Indent + Indent;
+    code += "x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * ";
+    code += NumToString(InlineSize(vectortype)) + "\n";
+    code += Indent + Indent + Indent;
+    code += "x -= self._tab.Pos\n";
+    code +=
+        Indent + Indent + Indent + "from flatbuffers.table import Table\n";
+    code += Indent + Indent + Indent + "obj = Table(bytearray(), 0)\n";
+    code += Indent + Indent + Indent + GenGetter(field.value.type);
+    code += "obj, x)\n" + Indent + Indent + Indent + "return obj\n";
+    code += Indent + Indent + "return None\n\n";
+  }
+
   // Get the value of a vector's non-struct member. Uses a named return
   // argument to conveniently set the zero value for the result.
   void GetMemberOfVectorOfNonStruct(const StructDef& struct_def,
@@ -1631,6 +1655,8 @@ class PythonGenerator : public BaseGenerator {
           auto vectortype = field.value.type.VectorType();
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             GetMemberOfVectorOfStruct(struct_def, field, code_ptr, imports);
+          } else if (vectortype.base_type == BASE_TYPE_UNION) {
+            GetMemberOfVectorOfUnion(struct_def, field, code_ptr);
           } else {
             GetMemberOfVectorOfNonStruct(struct_def, field, code_ptr);
             if (parser_.opts.python_gen_numpy) {
@@ -1897,6 +1923,9 @@ class PythonGenerator : public BaseGenerator {
         import_list->insert("import " + package_reference);
       }
       field_type = "Optional[List[" + field_type + "]";
+    } else if (base_type == BASE_TYPE_UNION) {
+      GenUnionInit(field, field_type_ptr, import_list, import_typing_list);
+      field_type = "Optional[List[" + field_type + "]]";
     } else {
       field_type = "Optional[List[" +
                    GetBasePythonTypeForScalarAndString(base_type) + "]]";
@@ -2651,7 +2680,7 @@ class PythonGenerator : public BaseGenerator {
     code +=
         GenIndents(1) + "if unionType == " + union_type + "()." + variant + ":";
     code += GenIndents(2) + "tab = Table(table.Bytes, table.Pos)";
-    code += GenIndents(2) + "union = tab.String(table.Pos)";
+    code += GenIndents(2) + "union = tab.UnionString(table.Pos)";
     code += GenIndents(2) + "return union";
   }
 
