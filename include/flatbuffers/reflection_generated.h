@@ -275,6 +275,9 @@ struct KeyValue FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *_key) const {
     return strcmp(key()->c_str(), _key);
   }
+  int KeyCompareWithValue(char *_key) const {
+    return KeyCompareWithValue(static_cast<const char *>(_key));
+  }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _key) const {
     if (key()->c_str() < _key) return -1;
@@ -473,6 +476,9 @@ struct Enum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
   }
+  int KeyCompareWithValue(char *_name) const {
+    return KeyCompareWithValue(static_cast<const char *>(_name));
+  }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _name) const {
     if (name()->c_str() < _name) return -1;
@@ -631,6 +637,9 @@ struct Field FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
+  }
+  int KeyCompareWithValue(char *_name) const {
+    return KeyCompareWithValue(static_cast<const char *>(_name));
   }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _name) const {
@@ -857,6 +866,9 @@ struct Object FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
   }
+  int KeyCompareWithValue(char *_name) const {
+    return KeyCompareWithValue(static_cast<const char *>(_name));
+  }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _name) const {
     if (name()->c_str() < _name) return -1;
@@ -1016,6 +1028,9 @@ struct RPCCall FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
   }
+  int KeyCompareWithValue(char *_name) const {
+    return KeyCompareWithValue(static_cast<const char *>(_name));
+  }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _name) const {
     if (name()->c_str() < _name) return -1;
@@ -1138,6 +1153,9 @@ struct Service FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   int KeyCompareWithValue(const char *_name) const {
     return strcmp(name()->c_str(), _name);
+  }
+  int KeyCompareWithValue(char *_name) const {
+    return KeyCompareWithValue(static_cast<const char *>(_name));
   }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _name) const {
@@ -1264,6 +1282,9 @@ struct SchemaFile FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   int KeyCompareWithValue(const char *_filename) const {
     return strcmp(filename()->c_str(), _filename);
+  }
+  int KeyCompareWithValue(char *_filename) const {
+    return KeyCompareWithValue(static_cast<const char *>(_filename));
   }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _filename) const {
