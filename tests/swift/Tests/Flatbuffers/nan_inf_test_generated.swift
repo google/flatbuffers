@@ -17,33 +17,31 @@ public struct Swift_Tests_NanInfTable: FlatBufferTable, FlatbuffersVectorInitial
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case defaultNan = 4
-    case defaultInf = 6
-    case defaultNinf = 8
-    case valueNan = 10
-    case valueInf = 12
-    case valueNinf = 14
-    case value = 16
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let defaultNan: VOffset = 4
+    static let defaultInf: VOffset = 6
+    static let defaultNinf: VOffset = 8
+    static let valueNan: VOffset = 10
+    static let valueInf: VOffset = 12
+    static let valueNinf: VOffset = 14
+    static let value: VOffset = 16
   }
 
-  public var defaultNan: Double { let o = _accessor.offset(VTOFFSET.defaultNan.v); return o == 0 ? .nan : _accessor.readBuffer(of: Double.self, at: o) }
-  public var defaultInf: Double { let o = _accessor.offset(VTOFFSET.defaultInf.v); return o == 0 ? .infinity : _accessor.readBuffer(of: Double.self, at: o) }
-  public var defaultNinf: Double { let o = _accessor.offset(VTOFFSET.defaultNinf.v); return o == 0 ? -.infinity : _accessor.readBuffer(of: Double.self, at: o) }
-  public var valueNan: Double { let o = _accessor.offset(VTOFFSET.valueNan.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
-  public var valueInf: Double { let o = _accessor.offset(VTOFFSET.valueInf.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
-  public var valueNinf: Double { let o = _accessor.offset(VTOFFSET.valueNinf.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
-  public var value: Double { let o = _accessor.offset(VTOFFSET.value.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
+  public var defaultNan: Double { let o = _accessor.offset(VT.defaultNan); return o == 0 ? .nan : _accessor.readBuffer(of: Double.self, at: o) }
+  public var defaultInf: Double { let o = _accessor.offset(VT.defaultInf); return o == 0 ? .infinity : _accessor.readBuffer(of: Double.self, at: o) }
+  public var defaultNinf: Double { let o = _accessor.offset(VT.defaultNinf); return o == 0 ? -.infinity : _accessor.readBuffer(of: Double.self, at: o) }
+  public var valueNan: Double { let o = _accessor.offset(VT.valueNan); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
+  public var valueInf: Double { let o = _accessor.offset(VT.valueInf); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
+  public var valueNinf: Double { let o = _accessor.offset(VT.valueNinf); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
+  public var value: Double { let o = _accessor.offset(VT.value); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
   public static func startNanInfTable(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 7) }
-  public static func add(defaultNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNan, def: .nan, at: VTOFFSET.defaultNan.p) }
-  public static func add(defaultInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultInf, def: .infinity, at: VTOFFSET.defaultInf.p) }
-  public static func add(defaultNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNinf, def: -.infinity, at: VTOFFSET.defaultNinf.p) }
-  public static func add(valueNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueNan, def: 0.0, at: VTOFFSET.valueNan.p) }
-  public static func add(valueInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueInf, def: 0.0, at: VTOFFSET.valueInf.p) }
-  public static func add(valueNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueNinf, def: 0.0, at: VTOFFSET.valueNinf.p) }
-  public static func add(value: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: value, def: 0.0, at: VTOFFSET.value.p) }
+  public static func add(defaultNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNan, def: .nan, at: VT.defaultNan) }
+  public static func add(defaultInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultInf, def: .infinity, at: VT.defaultInf) }
+  public static func add(defaultNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: defaultNinf, def: -.infinity, at: VT.defaultNinf) }
+  public static func add(valueNan: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueNan, def: 0.0, at: VT.valueNan) }
+  public static func add(valueInf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueInf, def: 0.0, at: VT.valueInf) }
+  public static func add(valueNinf: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: valueNinf, def: 0.0, at: VT.valueNinf) }
+  public static func add(value: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: value, def: 0.0, at: VT.value) }
   public static func endNanInfTable(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createNanInfTable(
     _ fbb: inout FlatBufferBuilder,
@@ -68,19 +66,18 @@ public struct Swift_Tests_NanInfTable: FlatBufferTable, FlatbuffersVectorInitial
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.defaultNan.p, fieldName: "defaultNan", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.defaultInf.p, fieldName: "defaultInf", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.defaultNinf.p, fieldName: "defaultNinf", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.valueNan.p, fieldName: "valueNan", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.valueInf.p, fieldName: "valueInf", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.valueNinf.p, fieldName: "valueNinf", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.value.p, fieldName: "value", required: false, type: Double.self)
+    try _v.visit(field: VT.defaultNan, fieldName: "defaultNan", required: false, type: Double.self)
+    try _v.visit(field: VT.defaultInf, fieldName: "defaultInf", required: false, type: Double.self)
+    try _v.visit(field: VT.defaultNinf, fieldName: "defaultNinf", required: false, type: Double.self)
+    try _v.visit(field: VT.valueNan, fieldName: "valueNan", required: false, type: Double.self)
+    try _v.visit(field: VT.valueInf, fieldName: "valueInf", required: false, type: Double.self)
+    try _v.visit(field: VT.valueNinf, fieldName: "valueNinf", required: false, type: Double.self)
+    try _v.visit(field: VT.value, fieldName: "value", required: false, type: Double.self)
     _v.finish()
   }
 }
 
 extension Swift_Tests_NanInfTable: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case defaultNan = "default_nan"
     case defaultInf = "default_inf"
@@ -90,6 +87,7 @@ extension Swift_Tests_NanInfTable: Encodable {
     case valueNinf = "value_ninf"
     case value = "value"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     if !defaultNan.isNaN {
