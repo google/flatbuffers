@@ -110,6 +110,8 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/include/flatbuffers/vector.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/vector_downward.h
     ${FLATBUFFERS_DIR}/include/flatbuffers/verifier.h
+    ${FLATBUFFERS_DIR}/src/file_manager.cpp
+    ${FLATBUFFERS_DIR}/src/file_name_manager.cpp
     ${FLATBUFFERS_DIR}/src/idl_parser.cpp
     ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
     ${FLATBUFFERS_DIR}/src/reflection.cpp
@@ -120,9 +122,66 @@ set(FlatBuffers_Library_SRCS
     ${FLATBUFFERS_DIR}/tests/64bit/test_64bit_bfbs_generated.h
 )
 
+set(FlatBuffers_Compiler_SRCS
+  ${FLATBUFFERS_DIR}/src/idl_gen_binary.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_text.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_cpp.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_csharp.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_dart.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_kotlin.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_kotlin_kmp.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_go.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_java.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_ts.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_php.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_python.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_lobster.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_rust.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_fbs.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_grpc.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_json_schema.cpp
+  ${FLATBUFFERS_DIR}/src/idl_gen_swift.cpp
+  ${FLATBUFFERS_DIR}/src/file_manager.cpp
+  ${FLATBUFFERS_DIR}/src/file_name_manager.cpp
+  ${FLATBUFFERS_DIR}/src/idl_namer.h
+  ${FLATBUFFERS_DIR}/src/namer.h
+  ${FLATBUFFERS_DIR}/src/flatc.cpp
+  # ${FLATBUFFERS_DIR}/src/flatc_main.cpp
+  ${FLATBUFFERS_DIR}/src/bfbs_gen.h
+  ${FLATBUFFERS_DIR}/src/bfbs_gen_lua.h
+  ${FLATBUFFERS_DIR}/src/bfbs_gen_nim.h
+  ${FLATBUFFERS_DIR}/src/bfbs_namer.h
+  ${FLATBUFFERS_DIR}/include/codegen/idl_namer.h
+  ${FLATBUFFERS_DIR}/include/codegen/namer.h
+  ${FLATBUFFERS_DIR}/include/codegen/python.h
+  ${FLATBUFFERS_DIR}/include/codegen/python.cc
+  ${FLATBUFFERS_DIR}/include/flatbuffers/code_generators.h
+  ${FLATBUFFERS_DIR}/src/binary_annotator.h
+  ${FLATBUFFERS_DIR}/src/binary_annotator.cpp
+  ${FLATBUFFERS_DIR}/src/annotated_binary_text_gen.h
+  ${FLATBUFFERS_DIR}/src/annotated_binary_text_gen.cpp
+  ${FLATBUFFERS_DIR}/src/bfbs_gen_lua.cpp
+  ${FLATBUFFERS_DIR}/src/bfbs_gen_nim.cpp
+  ${FLATBUFFERS_DIR}/src/code_generators.cpp
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/schema_interface.h
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/cpp_generator.h
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/cpp_generator.cc
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/go_generator.h
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/go_generator.cc
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/java_generator.h
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/java_generator.cc
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/python_generator.h
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/python_generator.cc
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/swift_generator.h
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/swift_generator.cc
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/ts_generator.h
+  ${FLATBUFFERS_DIR}/grpc/src/compiler/ts_generator.cc
+)
+
 include_directories(${FLATBUFFERS_DIR}/include)
 include_directories(${FLATBUFFERS_DIR}/tests)
 include_directories(${FLATBUFFERS_DIR}/src)
+include_directories(${FLATBUFFERS_DIR}/grpc)
 
 add_library(flatbuffers_fuzzed STATIC ${FlatBuffers_Library_SRCS})
 # Use PUBLIC to force 'fuzzer_config' for all dependent targets
@@ -156,6 +215,11 @@ target_link_libraries(flexverifier_fuzzer PRIVATE flatbuffers_fuzzed)
 
 add_executable(monster_fuzzer flatbuffers_monster_fuzzer.cc)
 target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)
+
+add_executable(codegen_fuzzer flatbuffers_codegen_fuzzer.cc ${FlatBuffers_Compiler_SRCS})
+target_link_libraries(codegen_fuzzer PRIVATE flatbuffers_fuzzed)
+target_compile_definitions(codegen_fuzzer PRIVATE assert=fuzzer_assert_impl)
+
 add_custom_command(
   TARGET monster_fuzzer PRE_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
@@ -197,7 +261,7 @@ if(BUILD_DEBUGGER)
       >
       -fno-limit-debug-info
   )
-  
+
   target_link_libraries(
     flatbuffers_nonfuzz
     PUBLIC
@@ -230,5 +294,5 @@ if(BUILD_DEBUGGER)
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_SOURCE_DIR}/../monster_test.bfbs
     ${CMAKE_CURRENT_BINARY_DIR}/monster_test.bfbs)
-  
+
 endif(BUILD_DEBUGGER)

@@ -11,8 +11,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -323,8 +323,10 @@ struct AnyUnion {
   }
 };
 
-bool VerifyAny(::flatbuffers::Verifier &verifier, const void *obj, Any type);
-bool VerifyAnyVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types);
+template <bool B = false>
+bool VerifyAny(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Any type);
+template <bool B = false>
+bool VerifyAnyVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types);
 
 enum class AnyUniqueAliases : uint8_t {
   NONE = 0,
@@ -450,8 +452,10 @@ struct AnyUniqueAliasesUnion {
   }
 };
 
-bool VerifyAnyUniqueAliases(::flatbuffers::Verifier &verifier, const void *obj, AnyUniqueAliases type);
-bool VerifyAnyUniqueAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types);
+template <bool B = false>
+bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyUniqueAliases type);
+template <bool B = false>
+bool VerifyAnyUniqueAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types);
 
 enum class AnyAmbiguousAliases : uint8_t {
   NONE = 0,
@@ -535,8 +539,10 @@ struct AnyAmbiguousAliasesUnion {
   }
 };
 
-bool VerifyAnyAmbiguousAliases(::flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type);
-bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types);
+template <bool B = false>
+bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyAmbiguousAliases type);
+template <bool B = false>
+bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(2) Test FLATBUFFERS_FINAL_CLASS {
  private:
@@ -881,7 +887,8 @@ struct InParentNamespace FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return InParentNamespaceTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -935,7 +942,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return MonsterTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -1006,7 +1014,8 @@ struct TestSimpleTableWithEnum FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
          if constexpr (Index == 0) return color();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_COLOR, 1) &&
            verifier.EndTable();
@@ -1107,7 +1116,8 @@ struct Stat FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 2) return count();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ID) &&
            verifier.VerifyString(id()) &&
@@ -1218,7 +1228,8 @@ struct Referrable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
          if constexpr (Index == 0) return id();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint64_t>(verifier, VT_ID, 8) &&
            verifier.EndTable();
@@ -1470,6 +1481,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *test_as_MyGame_Example2_Monster() const {
     return test_type() == MyGame::Example::Any::MyGame_Example2_Monster ? static_cast<const MyGame::Example2::Monster *>(test()) : nullptr;
   }
+  template<typename T> T *mutable_test_as();
+  MyGame::Example::Monster *mutable_test_as_Monster() {
+    return test_type() == MyGame::Example::Any::Monster ? static_cast<MyGame::Example::Monster *>(mutable_test()) : nullptr;
+  }
+  MyGame::Example::TestSimpleTableWithEnum *mutable_test_as_TestSimpleTableWithEnum() {
+    return test_type() == MyGame::Example::Any::TestSimpleTableWithEnum ? static_cast<MyGame::Example::TestSimpleTableWithEnum *>(mutable_test()) : nullptr;
+  }
+  MyGame::Example2::Monster *mutable_test_as_MyGame_Example2_Monster() {
+    return test_type() == MyGame::Example::Any::MyGame_Example2_Monster ? static_cast<MyGame::Example2::Monster *>(mutable_test()) : nullptr;
+  }
   void *mutable_test() {
     return GetPointer<void *>(VT_TEST);
   }
@@ -1705,6 +1726,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *any_unique_as_M2() const {
     return any_unique_type() == MyGame::Example::AnyUniqueAliases::M2 ? static_cast<const MyGame::Example2::Monster *>(any_unique()) : nullptr;
   }
+  template<typename T> T *mutable_any_unique_as();
+  MyGame::Example::Monster *mutable_any_unique_as_M() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases::M ? static_cast<MyGame::Example::Monster *>(mutable_any_unique()) : nullptr;
+  }
+  MyGame::Example::TestSimpleTableWithEnum *mutable_any_unique_as_TS() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases::TS ? static_cast<MyGame::Example::TestSimpleTableWithEnum *>(mutable_any_unique()) : nullptr;
+  }
+  MyGame::Example2::Monster *mutable_any_unique_as_M2() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases::M2 ? static_cast<MyGame::Example2::Monster *>(mutable_any_unique()) : nullptr;
+  }
   void *mutable_any_unique() {
     return GetPointer<void *>(VT_ANY_UNIQUE);
   }
@@ -1722,6 +1753,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   const MyGame::Example::Monster *any_ambiguous_as_M3() const {
     return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M3 ? static_cast<const MyGame::Example::Monster *>(any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M1() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M1 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M2() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M2 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M3() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M3 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
   }
   void *mutable_any_ambiguous() {
     return GetPointer<void *>(VT_ANY_AMBIGUOUS);
@@ -1886,7 +1926,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 60) return double_inf_default();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Example::Vec3>(verifier, VT_POS, 8) &&
            VerifyField<int16_t>(verifier, VT_MANA, 2) &&
@@ -1911,7 +1952,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            verifier.VerifyTable(enemy()) &&
            VerifyOffset(verifier, VT_TESTNESTEDFLATBUFFER) &&
            verifier.VerifyVector(testnestedflatbuffer()) &&
-           verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testnestedflatbuffer(), nullptr) &&
+           verifier.template VerifyNestedFlatBuffer<MyGame::Example::Monster>(testnestedflatbuffer(), nullptr) &&
            VerifyOffset(verifier, VT_TESTEMPTY) &&
            verifier.VerifyTable(testempty()) &&
            VerifyField<uint8_t>(verifier, VT_TESTBOOL, 1) &&
@@ -1970,7 +2011,7 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<int8_t>(verifier, VT_SIGNED_ENUM, 1) &&
            VerifyOffset(verifier, VT_TESTREQUIREDNESTEDFLATBUFFER) &&
            verifier.VerifyVector(testrequirednestedflatbuffer()) &&
-           verifier.VerifyNestedFlatBuffer<MyGame::Example::Monster>(testrequirednestedflatbuffer(), nullptr) &&
+           verifier.template VerifyNestedFlatBuffer<MyGame::Example::Monster>(testrequirednestedflatbuffer(), nullptr) &&
            VerifyOffset(verifier, VT_SCALAR_KEY_SORTED_TABLES) &&
            verifier.VerifyVector(scalar_key_sorted_tables()) &&
            verifier.VerifyVectorOfTables(scalar_key_sorted_tables()) &&
@@ -1996,24 +2037,48 @@ template<> inline const MyGame::Example::Monster *Monster::test_as<MyGame::Examp
   return test_as_Monster();
 }
 
+template<> inline MyGame::Example::Monster *Monster::mutable_test_as<MyGame::Example::Monster>() {
+  return mutable_test_as_Monster();
+}
+
 template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::test_as<MyGame::Example::TestSimpleTableWithEnum>() const {
   return test_as_TestSimpleTableWithEnum();
+}
+
+template<> inline MyGame::Example::TestSimpleTableWithEnum *Monster::mutable_test_as<MyGame::Example::TestSimpleTableWithEnum>() {
+  return mutable_test_as_TestSimpleTableWithEnum();
 }
 
 template<> inline const MyGame::Example2::Monster *Monster::test_as<MyGame::Example2::Monster>() const {
   return test_as_MyGame_Example2_Monster();
 }
 
+template<> inline MyGame::Example2::Monster *Monster::mutable_test_as<MyGame::Example2::Monster>() {
+  return mutable_test_as_MyGame_Example2_Monster();
+}
+
 template<> inline const MyGame::Example::Monster *Monster::any_unique_as<MyGame::Example::Monster>() const {
   return any_unique_as_M();
+}
+
+template<> inline MyGame::Example::Monster *Monster::mutable_any_unique_as<MyGame::Example::Monster>() {
+  return mutable_any_unique_as_M();
 }
 
 template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::any_unique_as<MyGame::Example::TestSimpleTableWithEnum>() const {
   return any_unique_as_TS();
 }
 
+template<> inline MyGame::Example::TestSimpleTableWithEnum *Monster::mutable_any_unique_as<MyGame::Example::TestSimpleTableWithEnum>() {
+  return mutable_any_unique_as_TS();
+}
+
 template<> inline const MyGame::Example2::Monster *Monster::any_unique_as<MyGame::Example2::Monster>() const {
   return any_unique_as_M2();
+}
+
+template<> inline MyGame::Example2::Monster *Monster::mutable_any_unique_as<MyGame::Example2::Monster>() {
+  return mutable_any_unique_as_M2();
 }
 
 struct MonsterBuilder {
@@ -2692,7 +2757,8 @@ struct TypeAliases FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 11) return vf64();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_I8, 1) &&
            VerifyField<uint8_t>(verifier, VT_U8, 1) &&
@@ -3385,7 +3451,8 @@ inline ::flatbuffers::Offset<TypeAliases> TypeAliases::Pack(::flatbuffers::FlatB
       _vf64);
 }
 
-inline bool VerifyAny(::flatbuffers::Verifier &verifier, const void *obj, Any type) {
+template <bool B>
+inline bool VerifyAny(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Any type) {
   switch (type) {
     case Any::NONE: {
       return true;
@@ -3406,7 +3473,8 @@ inline bool VerifyAny(::flatbuffers::Verifier &verifier, const void *obj, Any ty
   }
 }
 
-inline bool VerifyAnyVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types) {
+template <bool B>
+inline bool VerifyAnyVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Any> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -3498,7 +3566,8 @@ inline void AnyUnion::Reset() {
   type = Any::NONE;
 }
 
-inline bool VerifyAnyUniqueAliases(::flatbuffers::Verifier &verifier, const void *obj, AnyUniqueAliases type) {
+template <bool B>
+inline bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyUniqueAliases type) {
   switch (type) {
     case AnyUniqueAliases::NONE: {
       return true;
@@ -3519,7 +3588,8 @@ inline bool VerifyAnyUniqueAliases(::flatbuffers::Verifier &verifier, const void
   }
 }
 
-inline bool VerifyAnyUniqueAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types) {
+template <bool B>
+inline bool VerifyAnyUniqueAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyUniqueAliases> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -3611,7 +3681,8 @@ inline void AnyUniqueAliasesUnion::Reset() {
   type = AnyUniqueAliases::NONE;
 }
 
-inline bool VerifyAnyAmbiguousAliases(::flatbuffers::Verifier &verifier, const void *obj, AnyAmbiguousAliases type) {
+template <bool B>
+inline bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, AnyAmbiguousAliases type) {
   switch (type) {
     case AnyAmbiguousAliases::NONE: {
       return true;
@@ -3632,7 +3703,8 @@ inline bool VerifyAnyAmbiguousAliases(::flatbuffers::Verifier &verifier, const v
   }
 }
 
-inline bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types) {
+template <bool B>
+inline bool VerifyAnyAmbiguousAliasesVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<AnyAmbiguousAliases> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -4241,14 +4313,16 @@ inline bool SizePrefixedMonsterBufferHasIdentifier(const void *buf) {
       buf, MonsterIdentifier(), true);
 }
 
+template <bool B = false>
 inline bool VerifyMonsterBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<MyGame::Example::Monster>(MonsterIdentifier());
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedMonsterBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier());
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<MyGame::Example::Monster>(MonsterIdentifier());
 }
 
 inline const char *MonsterExtension() {

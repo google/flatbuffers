@@ -33,42 +33,40 @@ extension ABC: Encodable {
 
 public struct MoreDefaults: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case ints = 4
-    case floats = 6
-    case emptyString = 8
-    case someString = 10
-    case abcs = 12
-    case bools = 14
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let ints: VOffset = 4
+    static let floats: VOffset = 6
+    static let emptyString: VOffset = 8
+    static let someString: VOffset = 10
+    static let abcs: VOffset = 12
+    static let bools: VOffset = 14
   }
 
-  public var ints: FlatbufferVector<Int32> { return _accessor.vector(at: VTOFFSET.ints.v, byteSize: 4) }
-  public func withUnsafePointerToInts<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.ints.v, body: body) }
-  public var floats: FlatbufferVector<Float32> { return _accessor.vector(at: VTOFFSET.floats.v, byteSize: 4) }
-  public func withUnsafePointerToFloats<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.floats.v, body: body) }
-  public var emptyString: String? { let o = _accessor.offset(VTOFFSET.emptyString.v); return o == 0 ? "" : _accessor.string(at: o) }
-  public var emptyStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.emptyString.v) }
-  public var someString: String? { let o = _accessor.offset(VTOFFSET.someString.v); return o == 0 ? "some" : _accessor.string(at: o) }
-  public var someStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.someString.v) }
-  public var abcs: FlatbufferVector<ABC> { return _accessor.vector(at: VTOFFSET.abcs.v, byteSize: 4) }
-  public var bools: FlatbufferVector<Bool> { return _accessor.vector(at: VTOFFSET.bools.v, byteSize: 1) }
-  public func withUnsafePointerToBools<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.bools.v, body: body) }
+  public var ints: FlatbufferVector<Int32> { return _accessor.vector(at: VT.ints, byteSize: 4) }
+  public func withUnsafePointerToInts<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.ints, body: body) }
+  public var floats: FlatbufferVector<Float32> { return _accessor.vector(at: VT.floats, byteSize: 4) }
+  public func withUnsafePointerToFloats<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.floats, body: body) }
+  public var emptyString: String? { let o = _accessor.offset(VT.emptyString); return o == 0 ? "" : _accessor.string(at: o) }
+  public var emptyStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.emptyString) }
+  public var someString: String? { let o = _accessor.offset(VT.someString); return o == 0 ? "some" : _accessor.string(at: o) }
+  public var someStringSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.someString) }
+  public var abcs: FlatbufferVector<ABC> { return _accessor.vector(at: VT.abcs, byteSize: 4) }
+  public var bools: FlatbufferVector<Bool> { return _accessor.vector(at: VT.bools, byteSize: 1) }
+  public func withUnsafePointerToBools<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.bools, body: body) }
   public static func startMoreDefaults(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 6) }
-  public static func addVectorOf(ints: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: ints, at: VTOFFSET.ints.p) }
-  public static func addVectorOf(floats: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: floats, at: VTOFFSET.floats.p) }
-  public static func add(emptyString: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: emptyString, at: VTOFFSET.emptyString.p) }
-  public static func add(someString: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: someString, at: VTOFFSET.someString.p) }
-  public static func addVectorOf(abcs: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: abcs, at: VTOFFSET.abcs.p) }
-  public static func addVectorOf(bools: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: bools, at: VTOFFSET.bools.p) }
+  public static func addVectorOf(ints: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: ints, at: VT.ints) }
+  public static func addVectorOf(floats: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: floats, at: VT.floats) }
+  public static func add(emptyString: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: emptyString, at: VT.emptyString) }
+  public static func add(someString: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: someString, at: VT.someString) }
+  public static func addVectorOf(abcs: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: abcs, at: VT.abcs) }
+  public static func addVectorOf(bools: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: bools, at: VT.bools) }
   public static func endMoreDefaults(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createMoreDefaults(
     _ fbb: inout FlatBufferBuilder,
@@ -88,10 +86,9 @@ public struct MoreDefaults: FlatBufferTable, FlatbuffersVectorInitializable, Ver
     MoreDefaults.addVectorOf(bools: bools, &fbb)
     return MoreDefaults.endMoreDefaults(&fbb, start: __start)
   }
-  
 
-  public mutating func unpack() -> MoreDefaultsT {
-    return MoreDefaultsT(&self)
+  public func unpack() -> MoreDefaultsT {
+    return MoreDefaultsT(self)
   }
   public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MoreDefaultsT?) -> Offset {
     guard var obj = obj else { return Offset() }
@@ -129,18 +126,17 @@ public struct MoreDefaults: FlatBufferTable, FlatbuffersVectorInitializable, Ver
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.ints.p, fieldName: "ints", required: false, type: ForwardOffset<Vector<Int32, Int32>>.self)
-    try _v.visit(field: VTOFFSET.floats.p, fieldName: "floats", required: false, type: ForwardOffset<Vector<Float32, Float32>>.self)
-    try _v.visit(field: VTOFFSET.emptyString.p, fieldName: "emptyString", required: false, type: ForwardOffset<String>.self)
-    try _v.visit(field: VTOFFSET.someString.p, fieldName: "someString", required: false, type: ForwardOffset<String>.self)
-    try _v.visit(field: VTOFFSET.abcs.p, fieldName: "abcs", required: false, type: ForwardOffset<Vector<ABC, ABC>>.self)
-    try _v.visit(field: VTOFFSET.bools.p, fieldName: "bools", required: false, type: ForwardOffset<Vector<Bool, Bool>>.self)
+    try _v.visit(field: VT.ints, fieldName: "ints", required: false, type: ForwardOffset<Vector<Int32, Int32>>.self)
+    try _v.visit(field: VT.floats, fieldName: "floats", required: false, type: ForwardOffset<Vector<Float32, Float32>>.self)
+    try _v.visit(field: VT.emptyString, fieldName: "emptyString", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.someString, fieldName: "someString", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.abcs, fieldName: "abcs", required: false, type: ForwardOffset<Vector<ABC, ABC>>.self)
+    try _v.visit(field: VT.bools, fieldName: "bools", required: false, type: ForwardOffset<Vector<Bool, Bool>>.self)
     _v.finish()
   }
 }
 
 extension MoreDefaults: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case ints = "ints"
     case floats = "floats"
@@ -149,6 +145,7 @@ extension MoreDefaults: Encodable {
     case abcs = "abcs"
     case bools = "bools"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(ints, forKey: .ints)
@@ -169,7 +166,7 @@ public class MoreDefaultsT: NativeObject {
   public var abcs: [ABC]
   public var bools: [Bool]
 
-  public init(_ _t: inout MoreDefaults) {
+  public init(_ _t: borrowing MoreDefaults) {
     ints = []
     ints.append(contentsOf: _t.ints)
     floats = []

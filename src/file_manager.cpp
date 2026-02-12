@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google Inc. All rights reserved.
+ * Copyright 2023 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-#include <cstdlib>
-#include <iostream>
-#include "flatbuffers/util.h"
+#include "flatbuffers/file_manager.h"
 
-// Test to validate Conan package generated
+#include <fstream>
+#include <set>
+#include <string>
 
-int main(int /*argc*/, const char * /*argv*/ []) {
+namespace flatbuffers {
 
-  const std::string filename("conanbuildinfo.cmake");
-
-  if (flatbuffers::FileExists(filename.c_str())) {
-    std::cout << "File " << filename << " exists.\n";
-  } else {
-    std::cout << "File " << filename << " does not exist.\n";
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+bool RealFileSaver::SaveFile(const char* name, const char* buf, size_t len,
+                             bool binary) {
+  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
+  if (!ofs.is_open()) return false;
+  ofs.write(buf, len);
+  return !ofs.bad();
 }
+
+}  // namespace flatbuffers

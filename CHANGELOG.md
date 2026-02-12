@@ -4,12 +4,22 @@ All major or breaking changes will be documented in this file, as well as any
 new features that should be highlighted. Minor fixes or improvements are not
 necessarily listed.
 
+## [25.12.19] (December 19 2025)(https://github.com/google/flatbuffers/releases/tag/v25.12.19)
+
+* [C++] Default emptry vector support (#8870)
+* [C++] Add --gen-absl-hash option (#8868)
+* [Kotlin] Upgrade to MacOS 15 (#8845)
+* [C++] Fix vector of table with naked ptrs (#8830)
+* [Python] Optimize Offset/Pad/Prep (#8808)
+* Implement `--file-names-only` (#8788)
+* [C++] Fix size verifer (#8740)
+
 ## [25.9.23] (September 23 2025)(https://github.com/google/flatbuffers/releases/tag/v25.9.23)
 
 * flatc: `--grpc-callback-api` flag generates C++ gRPC Callback API server `CallbackService` skeletons AND client native callback/async stubs (unary + all streaming reactor forms) (opt-in, non-breaking, issue #8596).
 * Swift - Adds new API to reduce memory copying within swift (#8484)
 * Rust - Support Rust edition 2024 (#8638)
-# [:C++] - Use the Google Style for clang-format without exceptions (#8706)
+* [C++] - Use the Google Style for clang-format without exceptions (#8706)
 
 ## [25.2.10] (February 10 2025)(https://github.com/google/flatbuffers/releases/tag/v25.2.10)
 

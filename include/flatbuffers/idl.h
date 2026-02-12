@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/hash.h"
@@ -222,7 +223,7 @@ struct Type {
   uint16_t fixed_length;  // only set if t == BASE_TYPE_ARRAY
 };
 
-// Represents a parsed scalar value, it's type, and field offset.
+// Represents a parsed scalar value, its type, and field offset.
 struct Value {
   Value()
       : constant("0"),
@@ -394,13 +395,20 @@ struct FieldDef : public Definition {
 };
 
 struct StructDef : public Definition {
+  enum class CycleStatus {
+    NotChecked,
+    InProgress,
+    Checked,
+  };
+
   StructDef()
       : fixed(false),
         predecl(true),
         sortbysize(true),
         has_key(false),
         minalign(1),
-        bytesize(0) {}
+        bytesize(0),
+        cycle_status{CycleStatus::NotChecked} {}
 
   void PadLastField(size_t min_align) {
     auto padding = PaddingBytes(bytesize, min_align);
@@ -421,6 +429,8 @@ struct StructDef : public Definition {
   bool has_key;     // It has a key field.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
+
+  CycleStatus cycle_status;  // used for determining if we have circular references
 
   flatbuffers::unique_ptr<std::string> original_location;
   std::vector<voffset_t> reserved_ids;
@@ -634,6 +644,10 @@ inline bool operator<(const IncludedFile& a, const IncludedFile& b) {
 
 // Container of options that may apply to any of the source/text generators.
 struct IDLOptions {
+  // file saver
+  // shared pointer since this object gets copied and modified.
+  FileSaver* file_saver = nullptr;
+
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
   enum class ProtoIdGapAction { NO_OP, WARNING, ERROR };
@@ -659,6 +673,7 @@ struct IDLOptions {
   bool generate_name_strings;
   bool generate_object_based_api;
   bool gen_compare;
+  bool gen_absl_hash;
   std::string cpp_object_api_pointer_type;
   std::string cpp_object_api_string_type;
   bool cpp_object_api_string_flexible_constructor;
@@ -702,8 +717,6 @@ struct IDLOptions {
   bool json_nested_flatbuffers;
   bool json_nested_flexbuffers;
   bool json_nested_legacy_flatbuffers;
-  bool ts_flat_files;
-  bool ts_entry_points;
   bool ts_no_import_ext;
   bool no_leak_private_annotations;
   bool require_json_eof;
@@ -730,6 +743,7 @@ struct IDLOptions {
   bool python_gen_numpy;
 
   bool ts_omit_entrypoint;
+  bool ts_undefined_for_optionals;
   ProtoIdGapAction proto_id_gap_action;
 
   // Possible options for the more general generator below.
@@ -815,6 +829,7 @@ struct IDLOptions {
         generate_name_strings(false),
         generate_object_based_api(false),
         gen_compare(false),
+        gen_absl_hash(false),
         cpp_object_api_pointer_type("std::unique_ptr"),
         cpp_object_api_string_flexible_constructor(false),
         cpp_object_api_field_case_style(CaseStyle_Unchanged),
@@ -847,8 +862,6 @@ struct IDLOptions {
         json_nested_flatbuffers(true),
         json_nested_flexbuffers(true),
         json_nested_legacy_flatbuffers(false),
-        ts_flat_files(false),
-        ts_entry_points(false),
         ts_no_import_ext(false),
         no_leak_private_annotations(false),
         require_json_eof(true),
@@ -857,6 +870,7 @@ struct IDLOptions {
         python_typing(false),
         python_gen_numpy(true),
         ts_omit_entrypoint(false),
+        ts_undefined_for_optionals(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
@@ -1095,6 +1109,8 @@ class Parser : public ParserState {
   // being parsed. This does not include files that are transitively included by
   // others includes.
   std::vector<IncludedFile> GetIncludedFiles() const;
+
+  bool HasCircularStructDependency();
 
  private:
   class ParseDepthGuard;

@@ -14,14 +14,13 @@ import com.google.flatbuffers.LongVector;
 import com.google.flatbuffers.ShortVector;
 import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
-import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
-public final class ArrayTable extends Table {
-  public static void ValidateVersion() { Constants.FLATBUFFERS_25_9_23(); }
+public final class ArrayTable extends com.google.flatbuffers.Table {
+  public static void ValidateVersion() { Constants.FLATBUFFERS_25_12_19(); }
   public static ArrayTable getRootAsArrayTable(ByteBuffer _bb) { return getRootAsArrayTable(_bb, new ArrayTable()); }
   public static ArrayTable getRootAsArrayTable(ByteBuffer _bb, ArrayTable obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
   public static boolean ArrayTableBufferHasIdentifier(ByteBuffer _bb) { return __has_identifier(_bb, "ARRT"); }

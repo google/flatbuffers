@@ -10,23 +10,21 @@ import FlatBuffers
 
 public struct models_HelloReply: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case message = 4
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let message: VOffset = 4
   }
 
-  public var message: String? { let o = _accessor.offset(VTOFFSET.message.v); return o == 0 ? nil : _accessor.string(at: o) }
-  public var messageSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.message.v) }
+  public var message: String? { let o = _accessor.offset(VT.message); return o == 0 ? nil : _accessor.string(at: o) }
+  public var messageSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.message) }
   public static func startHelloReply(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(message: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: message, at: VTOFFSET.message.p) }
+  public static func add(message: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: message, at: VT.message) }
   public static func endHelloReply(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createHelloReply(
     _ fbb: inout FlatBufferBuilder,
@@ -39,16 +37,16 @@ public struct models_HelloReply: FlatBufferTable, FlatbuffersVectorInitializable
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.message.p, fieldName: "message", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.message, fieldName: "message", required: false, type: ForwardOffset<String>.self)
     _v.finish()
   }
 }
 
 extension models_HelloReply: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case message = "message"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(message, forKey: .message)
@@ -57,23 +55,21 @@ extension models_HelloReply: Encodable {
 
 public struct models_HelloRequest: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case name = 4
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let name: VOffset = 4
   }
 
-  public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
-  public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
+  public var name: String? { let o = _accessor.offset(VT.name); return o == 0 ? nil : _accessor.string(at: o) }
+  public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.name) }
   public static func startHelloRequest(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
+  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VT.name) }
   public static func endHelloRequest(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createHelloRequest(
     _ fbb: inout FlatBufferBuilder,
@@ -86,16 +82,16 @@ public struct models_HelloRequest: FlatBufferTable, FlatbuffersVectorInitializab
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.name.p, fieldName: "name", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.name, fieldName: "name", required: false, type: ForwardOffset<String>.self)
     _v.finish()
   }
 }
 
 extension models_HelloRequest: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case name = "name"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(name, forKey: .name)

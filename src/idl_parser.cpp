@@ -1133,25 +1133,38 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     }
   }
 
-  // For historical convenience reasons, string keys are assumed required.
-  // Scalars are kDefault unless otherwise specified.
-  // Nonscalars are kOptional unless required;
   field->key = field->attributes.Lookup("key") != nullptr;
-  const bool required = field->attributes.Lookup("required") != nullptr ||
-                        (IsString(type) && field->key);
-  const bool default_str_or_vec =
-      ((IsString(type) || IsVector(type)) && field->value.constant != "0");
-  const bool optional = IsScalar(type.base_type)
-                            ? (field->value.constant == "null")
-                            : !(required || default_str_or_vec);
-  if (required && optional) {
-    return Error("Fields cannot be both optional and required.");
-  }
-  field->presence = FieldDef::MakeFieldPresence(optional, required);
 
-  if (required && (struct_def.fixed || IsScalar(type.base_type))) {
-    return Error("only non-scalar fields in tables may be 'required'");
+  if (!struct_def.fixed) {
+    // For historical convenience reasons, string keys are assumed required.
+    // Scalars are kDefault unless otherwise specified.
+    // Nonscalars are kOptional unless required;
+    const bool required = field->attributes.Lookup("required") != nullptr ||
+                          (IsString(type) && field->key);
+    const bool default_str_or_vec =
+        ((IsString(type) || IsVector(type)) && field->value.constant != "0");
+    const bool optional = IsScalar(type.base_type)
+                              ? (field->value.constant == "null")
+                              : !(required || default_str_or_vec);
+    if (required && optional) {
+      return Error("Fields cannot be both optional and required.");
+    }
+    field->presence = FieldDef::MakeFieldPresence(optional, required);
+
+    if (required && IsScalar(type.base_type)) {
+      return Error("only non-scalar fields in tables may be 'required'");
+    }
+  } else {
+    // all struct fields are required
+    field->presence = FieldDef::kDefault;
+
+    // setting required or optional on a struct field is meaningless
+    if (field->attributes.Lookup("required") != nullptr ||
+        field->attributes.Lookup("optional") != nullptr) {
+      return Error("struct fields are always required");
+    }
   }
+
   if (field->key) {
     if (struct_def.has_key) return Error("only one field may be set as 'key'");
     struct_def.has_key = true;
@@ -1188,6 +1201,23 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     }
   }
 
+  auto check_enum = [this](const FieldDef* field, const Type& type,
+                           const std::string& name,
+                           const std::string& constant) -> CheckedError {
+    // Optional and bitflags enums may have default constants that are not
+    // their specified variants.
+    if (!field->IsOptional() &&
+        type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
+      if (type.enum_def->FindByValue(constant) == nullptr) {
+        return Error("default value of `" + constant + "` for " + "field `" +
+                     name + "` is not part of enum `" + type.enum_def->name +
+                     "`.");
+      }
+    }
+
+    return NoError();
+  };
+
   if (type.enum_def) {
     // Verify the enum's type and default value.
     const std::string& constant = field->value.constant;
@@ -1203,19 +1233,19 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
       if (constant != "0") {
         return Error("Array defaults are not supported yet.");
       }
+      CheckedError err = check_enum(field, type.VectorType(), name, constant);
+      if (err.Check()) {
+        // reset the check state of the error
+        return CheckedError{err};
+      }
     } else {
       if (!IsInteger(type.base_type)) {
         return Error("Enums must have integer base types");
       }
-      // Optional and bitflags enums may have default constants that are not
-      // their specified variants.
-      if (!field->IsOptional() &&
-          type.enum_def->attributes.Lookup("bit_flags") == nullptr) {
-        if (type.enum_def->FindByValue(constant) == nullptr) {
-          return Error("default value of `" + constant + "` for " + "field `" +
-                       name + "` is not part of enum `" + type.enum_def->name +
-                       "`.");
-        }
+      CheckedError err = check_enum(field, type, name, constant);
+      if (err.Check()) {
+        // reset the check state of the error
+        return CheckedError{err};
       }
     }
   }
@@ -2725,6 +2755,42 @@ std::vector<IncludedFile> Parser::GetIncludedFiles() const {
   return {it->second.cbegin(), it->second.cend()};
 }
 
+bool Parser::HasCircularStructDependency() {
+  std::function<bool(StructDef*)> visit =
+      [&](StructDef* struct_def) {
+        // Only consider fixed structs and structs we have yet to check
+        if (!struct_def->fixed || struct_def->cycle_status == StructDef::CycleStatus::Checked) {
+          return false;
+        }
+
+        if (struct_def->cycle_status == StructDef::CycleStatus::InProgress) {
+          // cycle found
+          return true;
+        }
+
+        struct_def->cycle_status = StructDef::CycleStatus::InProgress;
+
+        for (const auto& field : struct_def->fields.vec) {
+          if (field->value.type.base_type == BASE_TYPE_STRUCT) {
+            if (visit(field->value.type.struct_def)) {
+              return true;  // Cycle detected in recursion.
+            }
+          }
+        }
+
+        struct_def->cycle_status = StructDef::CycleStatus::Checked;
+        return false;  // No cycle detected.
+      };
+
+  for (const auto& struct_def : structs_.vec) {
+    if (visit(struct_def)) {
+      return true;  // Cycle detected.
+    }
+  }
+
+  return false;  // No cycle detected.
+}
+
 bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions& opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
@@ -2742,7 +2808,8 @@ bool Parser::SupportsOptionalScalars() const {
 
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
-      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim;
+      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim |
+      IDLOptions::kCpp | IDLOptions::kBinary | IDLOptions::kJson;
   return !(opts.lang_to_generate & ~supported_langs);
 }
 
@@ -2758,7 +2825,8 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
-            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs)) == 0;
+            IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs |
+            IDLOptions::kSwift)) == 0;
 }
 
 bool Parser::Supports64BitOffsets() const {
@@ -4351,8 +4419,9 @@ bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
     else
       size_prefixed = true;
   }
-  auto verify_fn = size_prefixed ? &reflection::VerifySizePrefixedSchemaBuffer
-                                 : &reflection::VerifySchemaBuffer;
+  auto verify_fn = size_prefixed
+                       ? &reflection::VerifySizePrefixedSchemaBuffer<false>
+                       : &reflection::VerifySchemaBuffer<false>;
   if (!verify_fn(verifier)) {
     return false;
   }

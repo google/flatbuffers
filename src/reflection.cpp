@@ -156,6 +156,7 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       auto type_vec = table.GetPointer<Vector<uint8_t>*>(vec_field.offset() -
                                                          sizeof(voffset_t));
       if (!v.VerifyVector(type_vec)) return false;
+      if (type_vec->size() != vec->size()) return false;
       for (uoffset_t j = 0; j < vec->size(); j++) {
         //  get union type from the prev field
         auto utype = type_vec->Get(j);
@@ -640,6 +641,7 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
                              const uint8_t* newbuf, size_t newlen) {
   // Align to sizeof(uoffset_t) past sizeof(largest_scalar_t) since we're
   // going to chop off the root offset.
+  FLATBUFFERS_ASSERT(newlen >= sizeof(uoffset_t));
   while ((flatbuf.size() & (sizeof(uoffset_t) - 1)) ||
          !(flatbuf.size() & (sizeof(largest_scalar_t) - 1))) {
     flatbuf.push_back(0);

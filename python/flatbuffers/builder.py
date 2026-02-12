@@ -159,20 +159,20 @@ class Builder(object):
     self.vtables = {}
     self.nested = False
     self.forceDefaults = False
-    self.sharedStrings = {}
+    self.sharedStrings = None
     ## @endcond
     self.finished = False
 
-  def Clear(self) -> None:
+  def Clear(self):
     ## @cond FLATBUFFERS_INTERNAL
     self.current_vtable = None
-    self.head = UOffsetTFlags.py_type(len(self.Bytes))
+    self.head = len(self.Bytes)
     self.minalign = 1
     self.objectEnd = None
     self.vtables = {}
     self.nested = False
     self.forceDefaults = False
-    self.sharedStrings = {}
+    self.sharedStrings = None
     self.vectorNumElems = None
     ## @endcond
     self.finished = False
@@ -192,7 +192,7 @@ class Builder(object):
     if not self.finished:
       raise BuilderNotFinishedError()
 
-    return self.Bytes[self.Head() :]
+    return self.Bytes[self.head :]
 
   ## @cond FLATBUFFERS_INTERNAL
   def StartObject(self, numfields):
@@ -201,7 +201,7 @@ class Builder(object):
     self.assertNotNested()
 
     # use 32-bit offsets so that arithmetic doesn't overflow.
-    self.current_vtable = [0 for _ in range_func(numfields)]
+    self.current_vtable = [0] * numfields
     self.objectEnd = self.Offset()
     self.nested = True
 
@@ -245,7 +245,10 @@ class Builder(object):
 
       vtKey.append(elem)
 
+    objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
+    vtKey.append(objectSize)
     vtKey = tuple(vtKey)
+    # calculate the size of the object
     vt2Offset = self.vtables.get(vtKey)
     if vt2Offset is None:
       # Did not find a vtable, so write this one to the buffer.
@@ -275,7 +278,6 @@ class Builder(object):
       # The two metadata fields are written last.
 
       # First, store the object bytesize:
-      objectSize = UOffsetTFlags.py_type(objectOffset - self.objectEnd)
       self.PrependVOffsetT(VOffsetTFlags.py_type(objectSize))
 
       # Second, store the vtable bytesize:
@@ -319,7 +321,7 @@ class Builder(object):
     self.nested = False
     return self.WriteVtable()
 
-  def growByteBuffer(self):
+  def GrowByteBuffer(self):
     """Doubles the size of the byteslice, and copies the old data towards
 
     the end of the new buffer (since we build the buffer backwards).
@@ -350,12 +352,15 @@ class Builder(object):
   ## @cond FLATBUFFERS_INTERNAL
   def Offset(self):
     """Offset relative to the end of the buffer."""
-    return UOffsetTFlags.py_type(len(self.Bytes) - self.Head())
+    return len(self.Bytes) - self.head
 
   def Pad(self, n):
     """Pad places zeros at the current offset."""
-    for i in range_func(n):
-      self.Place(0, N.Uint8Flags)
+    if n <= 0:
+      return
+    new_head = self.head - n
+    self.Bytes[new_head : self.head] = b"\x00" * n
+    self.head = new_head
 
   def Prep(self, size, additionalBytes):
     """Prep prepares to write an element of `size` after `additional_bytes`
@@ -372,15 +377,19 @@ class Builder(object):
 
     # Find the amount of alignment needed such that `size` is properly
     # aligned after `additionalBytes`:
-    alignSize = (~(len(self.Bytes) - self.Head() + additionalBytes)) + 1
+    head = self.head
+    buf_len = len(self.Bytes)
+    alignSize = (~(buf_len - head + additionalBytes)) + 1
     alignSize &= size - 1
 
     # Reallocate the buffer if needed:
-    while self.Head() < alignSize + size + additionalBytes:
-      oldBufSize = len(self.Bytes)
-      self.growByteBuffer()
-      updated_head = self.head + len(self.Bytes) - oldBufSize
-      self.head = UOffsetTFlags.py_type(updated_head)
+    needed = alignSize + size + additionalBytes
+    while head < needed:
+      oldBufSize = buf_len
+      self.GrowByteBuffer()
+      buf_len = len(self.Bytes)
+      head += buf_len - oldBufSize
+    self.head = head
     self.Pad(alignSize)
 
   def PrependSOffsetTRelative(self, off):
@@ -413,7 +422,6 @@ class Builder(object):
     off2 = self.Offset() - off + N.UOffsetTFlags.bytewidth
     self.PlaceUOffsetT(off2)
 
-  ## @cond FLATBUFFERS_INTERNAL
   def StartVector(self, elemSize, numElems, alignment):
     """StartVector initializes bookkeeping for writing a new vector.
 
@@ -428,8 +436,6 @@ class Builder(object):
     self.Prep(N.Uint32Flags.bytewidth, elemSize * numElems)
     self.Prep(alignment, elemSize * numElems)  # In case alignment > int.
     return self.Offset()
-
-  ## @endcond
 
   def EndVector(self, numElems=None):
     """EndVector writes data necessary to finish vector construction."""
@@ -455,7 +461,9 @@ class Builder(object):
     before calling CreateString.
     """
 
-    if s in self.sharedStrings:
+    if not self.sharedStrings:
+      self.sharedStrings = {}
+    elif s in self.sharedStrings:
       return self.sharedStrings[s]
 
     off = self.CreateString(s, encoding, errors)
@@ -478,16 +486,15 @@ class Builder(object):
     else:
       raise TypeError("non-string passed to CreateString")
 
-    self.Prep(N.UOffsetTFlags.bytewidth, (len(x) + 1) * N.Uint8Flags.bytewidth)
+    payload_len = len(x)
+    self.Prep(N.UOffsetTFlags.bytewidth, (payload_len + 1) * N.Uint8Flags.bytewidth)
     self.Place(0, N.Uint8Flags)
 
-    l = UOffsetTFlags.py_type(len(s))
-    ## @cond FLATBUFFERS_INTERNAL
-    self.head = UOffsetTFlags.py_type(self.Head() - l)
-    ## @endcond
-    self.Bytes[self.Head() : self.Head() + l] = x
+    new_head = self.head - payload_len
+    self.head = new_head
+    self.Bytes[new_head : new_head + payload_len] = x
 
-    self.vectorNumElems = len(x)
+    self.vectorNumElems = payload_len
     return self.EndVector()
 
   def CreateByteVector(self, x):
@@ -501,15 +508,13 @@ class Builder(object):
     if not isinstance(x, compat.binary_types):
       raise TypeError("non-byte vector passed to CreateByteVector")
 
-    self.Prep(N.UOffsetTFlags.bytewidth, len(x) * N.Uint8Flags.bytewidth)
+    data_len = len(x)
+    self.Prep(N.UOffsetTFlags.bytewidth, data_len * N.Uint8Flags.bytewidth)
+    new_head = self.head - data_len
+    self.head = new_head
+    self.Bytes[new_head : new_head + data_len] = x
 
-    l = UOffsetTFlags.py_type(len(x))
-    ## @cond FLATBUFFERS_INTERNAL
-    self.head = UOffsetTFlags.py_type(self.Head() - l)
-    ## @endcond
-    self.Bytes[self.Head() : self.Head() + l] = x
-
-    self.vectorNumElems = len(x)
+    self.vectorNumElems = data_len
     return self.EndVector()
 
   def CreateNumpyVector(self, x):
@@ -536,16 +541,31 @@ class Builder(object):
     else:
       x_lend = x.byteswap(inplace=False)
 
-    # Calculate total length
-    l = UOffsetTFlags.py_type(x_lend.itemsize * x_lend.size)
-    ## @cond FLATBUFFERS_INTERNAL
-    self.head = UOffsetTFlags.py_type(self.Head() - l)
-    ## @endcond
-
     # tobytes ensures c_contiguous ordering
-    self.Bytes[self.Head() : self.Head() + l] = x_lend.tobytes(order="C")
+    payload = x_lend.tobytes(order="C")
+
+    # Calculate total length
+    payload_len = len(payload)
+    new_head = self.head - payload_len
+    self.head = new_head
+    self.Bytes[new_head : new_head + payload_len] = payload
 
     self.vectorNumElems = x.size
+    return self.EndVector()
+
+  def CreateVectorOfTables(self, offsets):
+    """CreateVectorOfTables writes a vector of offsets such as tables or strings.
+
+    Args:
+      offsets: Iterable of offsets returned from previous builder operations.
+               Each element should be an integer compatible with UOffsetT.
+    """
+
+    offsets = list(offsets)
+    self.StartVector(N.UOffsetTFlags.bytewidth, len(offsets),
+                     N.UOffsetTFlags.bytewidth)
+    for off in reversed(offsets):
+      self.PrependUOffsetTRelative(off)
     return self.EndVector()
 
   ## @cond FLATBUFFERS_INTERNAL
@@ -613,11 +633,11 @@ class Builder(object):
 
     self.PrependUOffsetTRelative(rootTable)
     if sizePrefix:
-      size = len(self.Bytes) - self.Head()
+      size = len(self.Bytes) - self.head
       N.enforce_number(size, N.Int32Flags)
       self.PrependInt32(size)
     self.finished = True
-    return self.Head()
+    return self.head
 
   def Finish(self, rootTable, file_identifier=None):
     """Finish finalizes a buffer, pointing to the given `rootTable`."""
@@ -811,8 +831,9 @@ class Builder(object):
     """
 
     N.enforce_number(x, flags)
-    self.head = self.head - flags.bytewidth
-    encode.Write(flags.packer_type, self.Bytes, self.Head(), x)
+    new_head = self.head - flags.bytewidth
+    self.head = new_head
+    encode.Write(flags.packer_type, self.Bytes, new_head, x)
 
   def PlaceVOffsetT(self, x):
     """PlaceVOffsetT prepends a VOffsetT to the Builder, without checking
@@ -820,8 +841,9 @@ class Builder(object):
     for space.
     """
     N.enforce_number(x, N.VOffsetTFlags)
-    self.head = self.head - N.VOffsetTFlags.bytewidth
-    encode.Write(packer.voffset, self.Bytes, self.Head(), x)
+    new_head = self.head - N.VOffsetTFlags.bytewidth
+    self.head = new_head
+    encode.Write(packer.voffset, self.Bytes, new_head, x)
 
   def PlaceSOffsetT(self, x):
     """PlaceSOffsetT prepends a SOffsetT to the Builder, without checking
@@ -829,8 +851,9 @@ class Builder(object):
     for space.
     """
     N.enforce_number(x, N.SOffsetTFlags)
-    self.head = self.head - N.SOffsetTFlags.bytewidth
-    encode.Write(packer.soffset, self.Bytes, self.Head(), x)
+    new_head = self.head - N.SOffsetTFlags.bytewidth
+    self.head = new_head
+    encode.Write(packer.soffset, self.Bytes, new_head, x)
 
   def PlaceUOffsetT(self, x):
     """PlaceUOffsetT prepends a UOffsetT to the Builder, without checking
@@ -838,33 +861,10 @@ class Builder(object):
     for space.
     """
     N.enforce_number(x, N.UOffsetTFlags)
-    self.head = self.head - N.UOffsetTFlags.bytewidth
-    encode.Write(packer.uoffset, self.Bytes, self.Head(), x)
+    new_head = self.head - N.UOffsetTFlags.bytewidth
+    self.head = new_head
+    encode.Write(packer.uoffset, self.Bytes, new_head, x)
 
   ## @endcond
 
-
-## @cond FLATBUFFERS_INTERNAL
-def vtableEqual(a, objectStart, b):
-  """vtableEqual compares an unwritten vtable to a written vtable."""
-
-  N.enforce_number(objectStart, N.UOffsetTFlags)
-
-  if len(a) * N.VOffsetTFlags.bytewidth != len(b):
-    return False
-
-  for i, elem in enumerate(a):
-    x = encode.Get(packer.voffset, b, i * N.VOffsetTFlags.bytewidth)
-
-    # Skip vtable entries that indicate a default value.
-    if x == 0 and elem == 0:
-      pass
-    else:
-      y = objectStart - elem
-      if x != y:
-        return False
-  return True
-
-
-## @endcond
 ## @}

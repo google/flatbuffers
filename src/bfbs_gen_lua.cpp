@@ -61,6 +61,7 @@ Namer::Config LuaDefaultConfig() {
           /*object_suffix=*/"",
           /*keyword_prefix=*/"",
           /*keyword_suffix=*/"_",
+          /*keywords_casing=*/Namer::Config::KeywordsCasing::CaseSensitive,
           /*filenames=*/Case::kKeep,
           /*directories=*/Case::kKeep,
           /*output_path=*/"",
@@ -194,6 +195,13 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       code += "\n";
 
       if (object == root_object) {
+        // emit file identifier if present
+        const auto ident = schema_->file_ident();
+        if (ident && ident->size() == 4) {
+          code += "local FileIdentifier = \"" + ident->str() + "\"\n";
+          code += "\n";
+        }
+
         code += "function " + object_name + ".GetRootAs" + object_name +
                 "(buf, offset)\n";
         code += "  if type(buf) == \"string\" then\n";
@@ -454,6 +462,34 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         code += "  return builder:EndObject()\n";
         code += "end\n";
         code += "\n";
+
+        if (object == root_object) {
+          code += "function " + object_name + ".Finish" + object_name +
+                  "Buffer(builder, offset)\n";
+          // emit file identifier if present
+          const auto ident = schema_->file_ident();
+          if (ident && ident->size() == 4) {
+            code += "  builder:FinishWithIdentifier(offset, FileIdentifier)\n";
+          } else {
+            code += "  builder:Finish(offset)\n";
+          }
+          code += "end\n";
+          code += "\n";
+
+          // size prefixed option
+          code += "function " + object_name + ".FinishSizePrefixed" +
+                  object_name + "Buffer(builder, offset)\n";
+          // emit file identifier if present
+          if (ident && ident->size() == 4) {
+            code +=
+                "  builder:FinishSizePrefixedWithIdentifier(offset, "
+                "FileIdentifier)\n";
+          } else {
+            code += "  builder:FinishSizePrefixed(offset)\n";
+          }
+          code += "end\n";
+          code += "\n";
+        }
       }
 
       EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
@@ -658,9 +694,6 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   void EmitCodeBlock(const std::string& code_block, const std::string& name,
                      const std::string& ns,
                      const std::string& declaring_file) const {
-    const std::string root_type = schema_->root_table()->name()->str();
-    const std::string root_file =
-        schema_->root_table()->declaration_file()->str();
     const std::string full_qualified_name = ns.empty() ? name : ns + "." + name;
 
     std::string code = "--[[ " + full_qualified_name + "\n\n";
@@ -672,7 +705,15 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";
-    code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
+
+    const r::Object* root_table = schema_->root_table();
+    if (root_table) {
+      const std::string root_type = root_table->name()->str();
+      const std::string root_file = root_table->declaration_file()->str();
+
+      code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
+    }
+
     code += "\n--]]\n\n";
 
     if (!requires_.empty()) {
@@ -698,7 +739,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     EnsureDirExists(path);
     const std::string file_name =
         options_.output_path + path + "/" + namer_.File(name);
-    SaveFile(file_name.c_str(), code, false);
+    options_.file_saver->SaveFile(file_name.c_str(), code, false);
   }
 
   std::unordered_set<std::string> keywords_;
