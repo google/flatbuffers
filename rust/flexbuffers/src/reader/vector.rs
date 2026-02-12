@@ -52,10 +52,14 @@ impl<B: Buffer> VectorReader<B> {
         if let Some(ty) = self.reader.fxb_type.typed_vector_type() {
             Ok((ty, self.reader.width))
         } else {
-            let types_addr = self.reader.address + self.length * self.reader.width.n_bytes();
+            let types_addr = self
+                .length
+                .checked_mul(self.reader.width.n_bytes())
+                .and_then(|offset| self.reader.address.checked_add(offset))
+                .ok_or(Error::FlexbufferOutOfBounds)?;
             self.reader
                 .buffer
-                .get(types_addr + i)
+                .get(types_addr.checked_add(i).ok_or(Error::FlexbufferOutOfBounds)?)
                 .ok_or(Error::FlexbufferOutOfBounds)
                 .and_then(|&t| unpack_type(t))
         }
@@ -70,7 +74,13 @@ impl<B: Buffer> VectorReader<B> {
             return Err(Error::IndexOutOfBounds);
         }
         let (fxb_type, bw) = self.get_elem_type(i)?;
-        let data_address = self.reader.address + self.reader.width.n_bytes() * i;
+        let data_address = self
+            .reader
+            .width
+            .n_bytes()
+            .checked_mul(i)
+            .and_then(|offset| self.reader.address.checked_add(offset))
+            .ok_or(Error::FlexbufferOutOfBounds)?;
         Reader::new(
             self.reader.buffer.shallow_copy(),
             data_address,
