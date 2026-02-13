@@ -572,11 +572,7 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  if(MSVC OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.0")
-    add_library(flatsample INTERFACE)
-  else()
-    add_library(flatsample STATIC)
-  endif()
+  add_library(flatsample INTERFACE)
 
   # Since flatsample has no sources, we have to explicitly set the linker lang.
   set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
