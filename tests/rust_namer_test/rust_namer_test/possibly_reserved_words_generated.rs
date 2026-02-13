@@ -2,15 +2,18 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 // struct PossiblyReservedWords, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct PossiblyReservedWords(pub [u8; 16]);
+
 impl Default for PossiblyReservedWords { 
   fn default() -> Self { 
     Self([0; 16])
   }
 }
+
 impl ::core::fmt::Debug for PossiblyReservedWords {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("PossiblyReservedWords")
@@ -23,27 +26,34 @@ impl ::core::fmt::Debug for PossiblyReservedWords {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for PossiblyReservedWords {}
+
 impl<'a> ::flatbuffers::Follow<'a> for PossiblyReservedWords {
   type Inner = &'a PossiblyReservedWords;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a PossiblyReservedWords>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a PossiblyReservedWords {
   type Inner = &'a PossiblyReservedWords;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<PossiblyReservedWords>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for PossiblyReservedWords {
     type Output = PossiblyReservedWords;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const PossiblyReservedWords as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -212,6 +222,7 @@ pub struct PossiblyReservedWordsT {
   pub size: f32,
   pub alignment: f32,
 }
+
 impl PossiblyReservedWordsT {
   pub fn pack(&self) -> PossiblyReservedWords {
     PossiblyReservedWords::new(
@@ -222,4 +233,3 @@ impl PossiblyReservedWordsT {
     )
   }
 }
-

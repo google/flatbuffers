@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_KEYWORDS_IN_UNION: u8 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_KEYWORDS_IN_UNION: u8 = 2;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_KEYWORDS_IN_UNION: [KeywordsInUnion; 3] = [
@@ -17,6 +20,7 @@ pub const ENUM_VALUES_KEYWORDS_IN_UNION: [KeywordsInUnion; 3] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct KeywordsInUnion(pub u8);
+
 #[allow(non_upper_case_globals)]
 impl KeywordsInUnion {
   pub const NONE: Self = Self(0);
@@ -30,6 +34,7 @@ impl KeywordsInUnion {
     Self::static_,
     Self::internal,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -40,6 +45,7 @@ impl KeywordsInUnion {
     }
   }
 }
+
 impl ::core::fmt::Debug for KeywordsInUnion {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -49,8 +55,10 @@ impl ::core::fmt::Debug for KeywordsInUnion {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for KeywordsInUnion {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
@@ -60,6 +68,7 @@ impl<'a> ::flatbuffers::Follow<'a> for KeywordsInUnion {
 
 impl ::flatbuffers::Push for KeywordsInUnion {
     type Output = KeywordsInUnion;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u8>(dst, self.0) };
@@ -68,10 +77,12 @@ impl ::flatbuffers::Push for KeywordsInUnion {
 
 impl ::flatbuffers::EndianScalar for KeywordsInUnion {
   type Scalar = u8;
+
   #[inline]
   fn to_little_endian(self) -> u8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u8) -> Self {
@@ -90,6 +101,7 @@ impl<'a> ::flatbuffers::Verifiable for KeywordsInUnion {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for KeywordsInUnion {}
+
 pub struct KeywordsInUnionUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
@@ -100,11 +112,13 @@ pub enum KeywordsInUnionT {
   Static_(alloc::boxed::Box<KeywordsInTableT>),
   Internal(alloc::boxed::Box<KeywordsInTableT>),
 }
+
 impl Default for KeywordsInUnionT {
   fn default() -> Self {
     Self::NONE
   }
 }
+
 impl KeywordsInUnionT {
   pub fn keywords_in_union_type(&self) -> KeywordsInUnion {
     match self {
@@ -113,6 +127,7 @@ impl KeywordsInUnionT {
       Self::Internal(_) => KeywordsInUnion::internal,
     }
   }
+
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
@@ -120,6 +135,7 @@ impl KeywordsInUnionT {
       Self::Internal(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
+
   /// If the union variant matches, return the owned KeywordsInTableT, setting the union to NONE.
   pub fn take_static_(&mut self) -> Option<alloc::boxed::Box<KeywordsInTableT>> {
     if let Self::Static_(_) = self {
@@ -133,14 +149,17 @@ impl KeywordsInUnionT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the KeywordsInTableT.
   pub fn as_static_(&self) -> Option<&KeywordsInTableT> {
     if let Self::Static_(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the KeywordsInTableT.
   pub fn as_static__mut(&mut self) -> Option<&mut KeywordsInTableT> {
     if let Self::Static_(v) = self { Some(v.as_mut()) } else { None }
   }
+
   /// If the union variant matches, return the owned KeywordsInTableT, setting the union to NONE.
   pub fn take_internal(&mut self) -> Option<alloc::boxed::Box<KeywordsInTableT>> {
     if let Self::Internal(_) = self {
@@ -154,12 +173,15 @@ impl KeywordsInUnionT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the KeywordsInTableT.
   pub fn as_internal(&self) -> Option<&KeywordsInTableT> {
     if let Self::Internal(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the KeywordsInTableT.
   pub fn as_internal_mut(&mut self) -> Option<&mut KeywordsInTableT> {
     if let Self::Internal(v) = self { Some(v.as_mut()) } else { None }
   }
 }
+

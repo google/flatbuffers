@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub(crate) enum GameOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub(crate) enum GameOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub(crate) struct Game<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for Game<'a> {
   type Inner = Game<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -28,6 +30,7 @@ impl<'a> Game<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     Game { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -65,9 +68,11 @@ impl ::flatbuffers::Verifiable for Game<'_> {
     Ok(())
   }
 }
+
 pub(crate) struct GameArgs {
     pub value: i32,
 }
+
 impl<'a> Default for GameArgs {
   #[inline]
   fn default() -> Self {
@@ -81,11 +86,13 @@ pub(crate) struct GameBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> GameBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_value(&mut self, value: i32) {
     self.fbb_.push_slot::<i32>(Game::VT_VALUE, value, 0);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> GameBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -94,6 +101,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> GameBuilder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<Game<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -108,11 +116,13 @@ impl ::core::fmt::Debug for Game<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct GameT {
   pub value: i32,
 }
+
 impl Default for GameT {
   fn default() -> Self {
     Self {
@@ -120,6 +130,7 @@ impl Default for GameT {
     }
   }
 }
+
 impl GameT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

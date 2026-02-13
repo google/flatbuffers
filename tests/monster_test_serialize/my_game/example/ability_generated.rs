@@ -4,15 +4,18 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
+
 // struct Ability, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct Ability(pub [u8; 8]);
+
 impl Default for Ability { 
   fn default() -> Self { 
     Self([0; 8])
   }
 }
+
 impl ::core::fmt::Debug for Ability {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("Ability")
@@ -23,27 +26,34 @@ impl ::core::fmt::Debug for Ability {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for Ability {}
+
 impl<'a> ::flatbuffers::Follow<'a> for Ability {
   type Inner = &'a Ability;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a Ability>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a Ability {
   type Inner = &'a Ability;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<Ability>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for Ability {
     type Output = Ability;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const Ability as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -116,6 +126,7 @@ impl<'a> Ability {
     }
   }
 
+
   #[inline]
   pub fn key_compare_less_than(&self, o: &Ability) -> bool {
     self.id() < o.id()
@@ -168,6 +179,7 @@ pub struct AbilityT {
   pub id: u32,
   pub distance: u32,
 }
+
 impl AbilityT {
   pub fn pack(&self) -> Ability {
     Ability::new(
@@ -176,4 +188,3 @@ impl AbilityT {
     )
   }
 }
-
