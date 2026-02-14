@@ -488,7 +488,7 @@ public struct FlatBufferBuilder {
   ///
   /// - Parameter bytes: bytes to be written into the buffer
   /// - Returns: ``Offset`` of the vector
-  mutating public func createVector(bytes: ContiguousBytes) -> Offset {
+  mutating public func createVector(bytes: any ContiguousBytes) -> Offset {
     bytes.withUnsafeBytes {
       startVector($0.count, elementSize: MemoryLayout<UInt8>.size)
       _bb.push(bytes: $0)
