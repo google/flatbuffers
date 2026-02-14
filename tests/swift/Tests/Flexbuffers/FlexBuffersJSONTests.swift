@@ -16,17 +16,19 @@
 
 import Common
 import FlexBuffers
-import XCTest
+import Foundation
+import Testing
 
-final class FlexBuffersJSONTests: XCTestCase {
+struct FlexBuffersJSONTests {
+  @Test
   func testEncodingJSON() throws {
     let buf: ByteBuffer = createProperBuffer().sizedByteBuffer
     let reference = try getRoot(buffer: buf)!
 
     let json = reference.jsonString()
     // swiftformat:disable all
-    XCTAssertEqual(
-      json,
+    #expect(
+      json ==
       "{\"bar\": [1, 2, 3], \"bar3\": [1, 2, 3], \"bool\": true, \"bools\": [true, false, true, false], \"foo\": 100.0, \"mymap\": {\"foo\": \"Fred\"}, \"vec\": [-100, \"Fred\", 4.0, \"M\", false, 4.0]}"
     )
     // swiftformat:enable all
@@ -37,15 +39,15 @@ final class FlexBuffersJSONTests: XCTestCase {
         with: data,
         options: []) as! [String: Any]
 
-    XCTAssertEqual(decodedData["bar"] as! [Int], [1, 2, 3])
-    XCTAssertEqual(decodedData["bar3"] as! [Int], [1, 2, 3])
+    #expect(decodedData["bar"] as! [Int] == [1, 2, 3])
+    #expect(decodedData["bar3"] as! [Int] == [1, 2, 3])
 
     let vec: [Any] = decodedData["vec"] as! [Any]
-    XCTAssertEqual(vec[0] as! Int, -100)
-    XCTAssertEqual(vec[1] as! String, "Fred")
-    XCTAssertEqual(vec[2] as! Double, 4.0)
-    XCTAssertEqual(vec[3] as! String, "M")
-    XCTAssertEqual(vec[4] as! Bool, false)
-    XCTAssertEqual(vec[5] as! Double, 4.0)
+    #expect(vec[0] as! Int == -100)
+    #expect(vec[1] as! String == "Fred")
+    #expect(vec[2] as! Double == 4.0)
+    #expect(vec[3] as! String == "M")
+    #expect(vec[4] as! Bool == false)
+    #expect(vec[5] as! Double == 4.0)
   }
 }
