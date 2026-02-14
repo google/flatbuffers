@@ -479,12 +479,12 @@ public struct FlexBuffersWriter {
   @inline(__always)
   public mutating func add(string: borrowing String, key: borrowing String) {
     add(key: key)
-    write(str: string, len: string.count)
+    write(str: string, len: string.utf8.count)
   }
 
   @inline(__always)
   public mutating func add(string: borrowing String) {
-    write(str: string, len: string.count)
+    write(str: string, len: string.utf8.count)
   }
 
   // MARK: - Writing Blobs
@@ -591,7 +591,7 @@ public struct FlexBuffersWriter {
   @discardableResult
   @inline(__always)
   private mutating func add(key: borrowing String) -> UInt {
-    add(key: key, len: key.count)
+    add(key: key, len: key.utf8.count)
   }
 
   @discardableResult
@@ -977,6 +977,9 @@ fileprivate struct Stack: RandomAccessCollection {
   mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
     count = 0
     if !keepCapacity {
+      let ptr = storage.memory
+      defer { ptr.deallocate() }
+
       capacity = Self.initialCapacity
       storage.memory = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,
