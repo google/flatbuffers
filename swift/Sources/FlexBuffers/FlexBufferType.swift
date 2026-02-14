@@ -16,7 +16,7 @@
 
 import Foundation
 
-public enum FlexBufferType: UInt64 {
+public enum FlexBufferType: UInt64, Sendable {
   case null = 0
   /// Variable width signed integer: `Int8, Int16, Int32, Int64`
   case int = 1
