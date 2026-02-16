@@ -1654,13 +1654,12 @@ class TsGenerator : public BaseGenerator {
     // to preserve backwards compatibility, we allow the first field to be a
     // struct
     return struct_def.fields.vec.size() < 2 ||
-           std::all_of(
-               std::begin(struct_def.fields.vec) + 1,
-               std::end(struct_def.fields.vec),
-               [](const FieldDef* f) -> bool {
-                 FLATBUFFERS_ASSERT(f != nullptr);
-                 return f->value.type.base_type != BASE_TYPE_STRUCT;
-               });
+           std::all_of(std::begin(struct_def.fields.vec) + 1,
+                       std::end(struct_def.fields.vec),
+                       [](const FieldDef* f) -> bool {
+                         FLATBUFFERS_ASSERT(f != nullptr);
+                         return f->value.type.base_type != BASE_TYPE_STRUCT;
+                       });
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -1687,648 +1686,655 @@ class TsGenerator : public BaseGenerator {
               "> {\n";
     } else {
       code += " {\n";
-    code += "  bb: flatbuffers.ByteBuffer|" + null_keyword_ + " = " +
-            null_keyword_ + ";\n";
-    code += "  bb_pos = 0;\n";
+      code += "  bb: flatbuffers.ByteBuffer|" + null_keyword_ + " = " +
+              null_keyword_ + ";\n";
+      code += "  bb_pos = 0;\n";
 
-    // Generate the __init method that sets the field in a pre-existing
-    // accessor object. This is to allow object reuse.
-    code +=
-        "  __init(i:number, bb:flatbuffers.ByteBuffer):" + object_name + " {\n";
-    code += "  this.bb_pos = i;\n";
-    code += "  this.bb = bb;\n";
-    code += "  return this;\n";
-    code += "}\n\n";
-
-    // Generate special accessors for the table that when used as the root of a
-    // FlatBuffer
-    GenerateRootAccessor(struct_def, code_ptr, code, object_name, false);
-    GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
-
-    // Generate the identifier check method
-    if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
-        !parser_.file_identifier_.empty()) {
-      GenDocComment(code_ptr);
-      code +=
-          "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
-          "{\n";
-      code += "  return bb.__has_identifier('" + parser_.file_identifier_;
-      code += "');\n}\n\n";
-    }
-
-    // Emit field accessors
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      auto& field = **it;
-      if (field.deprecated) continue;
-      std::string offset_prefix = "";
-
-      if (field.value.type.base_type == BASE_TYPE_ARRAY) {
-        offset_prefix = "    return ";
-      } else {
-        offset_prefix = "  const offset = " + GenBBAccess() +
-                        ".__offset(this.bb_pos, " +
-                        NumToString(field.value.offset) + ");\n";
-        offset_prefix += "  return offset ? ";
-      }
-
-      // Emit a scalar field
-      const auto is_string = IsString(field.value.type);
-      if (IsScalar(field.value.type.base_type) || is_string) {
-        const auto has_null_default = is_string || HasNullDefault(field);
-
-        GenDocComment(field.doc_comment, code_ptr);
-        std::string prefix = namer_.Method(field) + "(";
-        if (is_string) {
-          code += prefix + "):string|" + null_keyword_ + "\n";
-          code +=
-              prefix + "optionalEncoding:flatbuffers.Encoding" + "):" +
-              GenTypeName(imports, struct_def, field.value.type, false, true) +
-              "\n";
-          code += prefix + "optionalEncoding?:any";
-        } else {
-          code += prefix;
-        }
-        if (field.value.type.enum_def) {
-          code += "):" +
-                  GenTypeName(imports, struct_def, field.value.type, false,
-                              field.IsOptional()) +
-                  " {\n";
-        } else {
-          code += "):" +
-                  GenTypeName(imports, struct_def, field.value.type, false,
-                              has_null_default) +
-                  " {\n";
-        }
-
-        if (struct_def.fixed) {
-          code +=
-              "  return " +
-              GenGetter(field.value.type,
-                        "(this.bb_pos" + MaybeAdd(field.value.offset) + ")") +
-              ";\n";
-        } else {
-          std::string index = "this.bb_pos + offset";
-          if (is_string) {
-            index += ", optionalEncoding";
-          }
-          code +=
-              offset_prefix + GenGetter(field.value.type, "(" + index + ")");
-          if (field.value.type.base_type != BASE_TYPE_ARRAY) {
-            code += " : " + GenDefaultValue(field, imports);
-          }
-          code += ";\n";
-        }
-      }
-
-      // Emit an object field
-      else {
-        switch (field.value.type.base_type) {
-          case BASE_TYPE_STRUCT: {
-            const auto type =
-                AddImport(imports, struct_def, *field.value.type.struct_def)
-                    .name;
-            GenDocComment(field.doc_comment, code_ptr);
-            code += namer_.Method(field);
-            code +=
-                "(obj?:" + type + "):" + type + "|" + null_keyword_ + " {\n";
-
-            if (struct_def.fixed) {
-              code += "  return (obj || " + GenerateNewExpression(type);
-              code += ").__init(this.bb_pos";
-              code +=
-                  MaybeAdd(field.value.offset) + ", " + GenBBAccess() + ");\n";
-            } else {
-              code += offset_prefix + "(obj || " + GenerateNewExpression(type) +
-                      ").__init(";
-              code += field.value.type.struct_def->fixed
-                          ? "this.bb_pos + offset"
-                          : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
-              code += ", " + GenBBAccess() + ") : " + null_keyword_ + ";\n";
-            }
-
-            break;
-          }
-
-          case BASE_TYPE_ARRAY: {
-            auto vectortype = field.value.type.VectorType();
-            auto vectortypename =
-                GenTypeName(imports, struct_def, vectortype, false);
-            auto inline_size = InlineSize(vectortype);
-            auto index = "this.bb_pos + " + NumToString(field.value.offset) +
-                         " + index" + MaybeScale(inline_size);
-            std::string ret_type;
-            bool is_union = false;
-            switch (vectortype.base_type) {
-              case BASE_TYPE_STRUCT:
-                ret_type = vectortypename;
-                break;
-              case BASE_TYPE_STRING:
-                ret_type = vectortypename;
-                break;
-              case BASE_TYPE_UNION:
-                ret_type = "?flatbuffers.Table";
-                is_union = true;
-                break;
-              default:
-                ret_type = vectortypename;
-            }
-            GenDocComment(field.doc_comment, code_ptr);
-            std::string prefix = namer_.Method(field);
-            // TODO: make it work without any
-            // if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
-            if (is_union) {
-              prefix += "";
-            }
-            prefix += "(index: number";
-            if (is_union) {
-              const auto union_type =
-                  GenUnionGenericTypeTS(*(field.value.type.enum_def));
-
-              vectortypename = union_type;
-              code += prefix + ", obj:" + union_type;
-            } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += prefix + ", obj?:" + vectortypename;
-            } else if (IsString(vectortype)) {
-              code += prefix + "):string\n";
-              code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
-                      "):" + vectortypename + "\n";
-              code += prefix + ",optionalEncoding?:any";
-            } else {
-              code += prefix;
-            }
-            code += "):" + vectortypename + "|" + null_keyword_ + " {\n";
-
-            if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += offset_prefix + "(obj || " +
-                      GenerateNewExpression(vectortypename);
-              code += ").__init(";
-              code += vectortype.struct_def->fixed
-                          ? index
-                          : GenBBAccess() + ".__indirect(" + index + ")";
-              code += ", " + GenBBAccess() + ")";
-            } else {
-              if (is_union) {
-                index = "obj, " + index;
-              } else if (IsString(vectortype)) {
-                index += ", optionalEncoding";
-              }
-              code += offset_prefix + GenGetter(vectortype, "(" + index + ")");
-            }
-
-            switch (field.value.type.base_type) {
-              case BASE_TYPE_ARRAY: {
-                break;
-              }
-              case BASE_TYPE_BOOL: {
-                code += " : false";
-                break;
-              }
-              case BASE_TYPE_LONG:
-              case BASE_TYPE_ULONG: {
-                code += " : BigInt(0)";
-                break;
-              }
-              default: {
-                if (IsScalar(field.value.type.element)) {
-                  if (field.value.type.enum_def) {
-                    code += field.value.constant;
-                  } else {
-                    code += " : 0";
-                  }
-                } else {
-                  code += ": " + null_keyword_;
-                }
-                break;
-              }
-            }
-            code += ";\n";
-            break;
-          }
-
-          case BASE_TYPE_VECTOR: {
-            auto vectortype = field.value.type.VectorType();
-            auto vectortypename =
-                GenTypeName(imports, struct_def, vectortype, false);
-            auto type = GetUnderlyingVectorType(vectortype);
-            auto inline_size = InlineSize(type);
-            auto index = GenBBAccess() +
-                         ".__vector(this.bb_pos + offset) + index" +
-                         MaybeScale(inline_size);
-            std::string ret_type;
-            bool is_union = false;
-            switch (vectortype.base_type) {
-              case BASE_TYPE_STRUCT:
-                ret_type = vectortypename;
-                break;
-              case BASE_TYPE_STRING:
-                ret_type = vectortypename;
-                break;
-              case BASE_TYPE_UNION:
-                ret_type = "?flatbuffers.Table";
-                is_union = true;
-                break;
-              default:
-                ret_type = vectortypename;
-            }
-            GenDocComment(field.doc_comment, code_ptr);
-            std::string prefix = namer_.Method(field);
-            // TODO: make it work without any
-            // if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
-            if (is_union) {
-              prefix += "";
-            }
-            prefix += "(index: number";
-            if (is_union) {
-              const auto union_type =
-                  GenUnionGenericTypeTS(*(field.value.type.enum_def));
-
-              vectortypename = union_type;
-              code += prefix + ", obj:" + union_type;
-            } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += prefix + ", obj?:" + vectortypename;
-            } else if (IsString(vectortype)) {
-              code += prefix + "):string\n";
-              code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
-                      "):" + vectortypename + "\n";
-              code += prefix + ",optionalEncoding?:any";
-            } else {
-              code += prefix;
-            }
-            code += "):" + vectortypename + "|" + null_keyword_ + " {\n";
-
-            if (vectortype.base_type == BASE_TYPE_STRUCT) {
-              code += offset_prefix + "(obj || " +
-                      GenerateNewExpression(vectortypename);
-              code += ").__init(";
-              code += vectortype.struct_def->fixed
-                          ? index
-                          : GenBBAccess() + ".__indirect(" + index + ")";
-              code += ", " + GenBBAccess() + ")";
-            } else {
-              if (is_union) {
-                index = "obj, " + index;
-              } else if (IsString(vectortype)) {
-                index += ", optionalEncoding";
-              }
-              code += offset_prefix + GenGetter(vectortype, "(" + index + ")");
-            }
-            code += " : ";
-            if (field.value.type.element == BASE_TYPE_BOOL) {
-              code += "false";
-            } else if (field.value.type.element == BASE_TYPE_LONG ||
-                       field.value.type.element == BASE_TYPE_ULONG) {
-              code += "BigInt(0)";
-            } else if (IsScalar(field.value.type.element)) {
-              if (field.value.type.enum_def) {
-                code += null_keyword_;
-              } else {
-                code += "0";
-              }
-            } else {
-              code += null_keyword_;
-            }
-            code += ";\n";
-            break;
-          }
-
-          case BASE_TYPE_UNION: {
-            GenDocComment(field.doc_comment, code_ptr);
-            code += namer_.Method(field);
-
-            const auto& union_enum = *(field.value.type.enum_def);
-            const auto union_type = GenUnionGenericTypeTS(union_enum);
-            code += "<T extends flatbuffers.Table>(obj:" + union_type +
-                    "):" + union_type + "|" + null_keyword_ +
-                    " "
-                    "{\n";
-
-            code += offset_prefix +
-                    GenGetter(field.value.type, "(obj, this.bb_pos + offset)") +
-                    " : " + null_keyword_ + ";\n";
-            break;
-          }
-          default:
-            FLATBUFFERS_ASSERT(0);
-        }
-      }
+      // Generate the __init method that sets the field in a pre-existing
+      // accessor object. This is to allow object reuse.
+      code += "  __init(i:number, bb:flatbuffers.ByteBuffer):" + object_name +
+              " {\n";
+      code += "  this.bb_pos = i;\n";
+      code += "  this.bb = bb;\n";
+      code += "  return this;\n";
       code += "}\n\n";
 
-      // Adds the mutable scalar value to the output
-      if (IsScalar(field.value.type.base_type) && parser.opts.mutable_buffer &&
-          !IsUnion(field.value.type)) {
-        std::string type =
-            GenTypeName(imports, struct_def, field.value.type, true);
+      // Generate special accessors for the table that when used as the root of
+      // a FlatBuffer
+      GenerateRootAccessor(struct_def, code_ptr, code, object_name, false);
+      GenerateRootAccessor(struct_def, code_ptr, code, object_name, true);
 
-        code += namer_.LegacyTsMutateMethod(field) + "(value:" + type +
-                "):boolean {\n";
-
-        const std::string write_method =
-            "." + namer_.Method("write", GenType(field.value.type));
-
-        if (struct_def.fixed) {
-          code += "  " + GenBBAccess() + write_method + "(this.bb_pos + " +
-                  NumToString(field.value.offset) + ", ";
-        } else {
-          code += "  const offset = " + GenBBAccess() +
-                  ".__offset(this.bb_pos, " + NumToString(field.value.offset) +
-                  ");\n\n";
-          code += "  if (offset === 0) {\n";
-          code += "    return false;\n";
-          code += "  }\n\n";
-
-          code +=
-              "  " + GenBBAccess() + write_method + "(this.bb_pos + offset, ";
-        }
-
-        // special case for bools, which are treated as uint8
-        if (field.value.type.base_type == BASE_TYPE_BOOL) {
-          code += "+";
-        }
-
-        code += "value);\n";
-        code += "  return true;\n";
-        code += "}\n\n";
-      }
-
-      // Emit vector helpers
-      if (IsVector(field.value.type)) {
-        // Emit a length helper
+      // Generate the identifier check method
+      if (!struct_def.fixed && parser_.root_struct_def_ == &struct_def &&
+          !parser_.file_identifier_.empty()) {
         GenDocComment(code_ptr);
-        code += namer_.Method(field, "Length");
-        code += "():number {\n" + offset_prefix;
-
         code +=
-            GenBBAccess() + ".__vector_len(this.bb_pos + offset) : 0;\n}\n\n";
-
-        // For scalar types, emit a typed array helper
-        auto vectorType = field.value.type.VectorType();
-        if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
-          GenDocComment(code_ptr);
-
-          code += namer_.Method(field, "Array");
-          code += "():" + GenType(vectorType) + "Array|" + null_keyword_ +
-                  " {\n" + offset_prefix;
-
-          code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
-                  ".bytes().buffer, " + GenBBAccess() +
-                  ".bytes().byteOffset + " + GenBBAccess() +
-                  ".__vector(this.bb_pos + offset), " + GenBBAccess() +
-                  ".__vector_len(this.bb_pos + offset)) : " + null_keyword_ +
-                  ";\n}\n\n";
-        }
+            "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
+            "{\n";
+        code += "  return bb.__has_identifier('" + parser_.file_identifier_;
+        code += "');\n}\n\n";
       }
-    }
 
-    // Emit the fully qualified name
-    if (parser_.opts.generate_name_strings) {
-      const std::string fullyQualifiedName =
-          struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
-
-      GenDocComment(code_ptr);
-      code += "static getFullyQualifiedName(): \"";
-      code += fullyQualifiedName;
-      code += "\" {\n";
-      code += "  return '" + fullyQualifiedName + "';\n";
-      code += "}\n\n";
-    }
-
-    // Emit the size of the struct.
-    if (struct_def.fixed) {
-      GenDocComment(code_ptr);
-      code += "static sizeOf():number {\n";
-      code += "  return " + NumToString(struct_def.bytesize) + ";\n";
-      code += "}\n\n";
-    }
-
-    // Emit a factory constructor
-    if (struct_def.fixed) {
-      std::string arguments;
-      GenStructArgs(imports, struct_def, struct_def, &arguments, "");
-      GenDocComment(code_ptr);
-
-      code += "static create" + GetPrefixedName(struct_def) +
-              "(builder:flatbuffers.Builder";
-      code += arguments + "):flatbuffers.Offset {\n";
-
-      GenStructBody(struct_def, &code, "");
-      code += "  return builder.offset();\n}\n\n";
-    } else {
-      // Generate a method to start building a new object
-      GenDocComment(code_ptr);
-
-      code += "static start" + GetPrefixedName(struct_def) +
-              "(builder:flatbuffers.Builder) {\n";
-
-      code += "  builder.startObject(" +
-              NumToString(struct_def.fields.vec.size()) + ");\n";
-      code += "}\n\n";
-
-      // Generate a set of static methods that allow table construction
+      // Emit field accessors
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
         auto& field = **it;
         if (field.deprecated) continue;
-        const auto argname = GetArgName(field);
+        std::string offset_prefix = "";
 
-        // Generate the field insertion method
-        GenDocComment(code_ptr);
-        code += "static " + namer_.Method("add", field);
-        code += "(builder:flatbuffers.Builder, " + argname + ":" +
-                GetArgType(imports, struct_def, field, false) + ") {\n";
-        code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
-        code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
-        if (field.value.type.base_type == BASE_TYPE_BOOL) {
-          code += "+";
-        }
-        code += argname + ", ";
-        if (!IsScalar(field.value.type.base_type)) {
-          code += "0";
-        } else if (HasNullDefault(field)) {
-          code += null_keyword_;
+        if (field.value.type.base_type == BASE_TYPE_ARRAY) {
+          offset_prefix = "    return ";
         } else {
+          offset_prefix = "  const offset = " + GenBBAccess() +
+                          ".__offset(this.bb_pos, " +
+                          NumToString(field.value.offset) + ");\n";
+          offset_prefix += "  return offset ? ";
+        }
+
+        // Emit a scalar field
+        const auto is_string = IsString(field.value.type);
+        if (IsScalar(field.value.type.base_type) || is_string) {
+          const auto has_null_default = is_string || HasNullDefault(field);
+
+          GenDocComment(field.doc_comment, code_ptr);
+          std::string prefix = namer_.Method(field) + "(";
+          if (is_string) {
+            code += prefix + "):string|" + null_keyword_ + "\n";
+            code += prefix + "optionalEncoding:flatbuffers.Encoding" + "):" +
+                    GenTypeName(imports, struct_def, field.value.type, false,
+                                true) +
+                    "\n";
+            code += prefix + "optionalEncoding?:any";
+          } else {
+            code += prefix;
+          }
+          if (field.value.type.enum_def) {
+            code += "):" +
+                    GenTypeName(imports, struct_def, field.value.type, false,
+                                field.IsOptional()) +
+                    " {\n";
+          } else {
+            code += "):" +
+                    GenTypeName(imports, struct_def, field.value.type, false,
+                                has_null_default) +
+                    " {\n";
+          }
+
+          if (struct_def.fixed) {
+            code +=
+                "  return " +
+                GenGetter(field.value.type,
+                          "(this.bb_pos" + MaybeAdd(field.value.offset) + ")") +
+                ";\n";
+          } else {
+            std::string index = "this.bb_pos + offset";
+            if (is_string) {
+              index += ", optionalEncoding";
+            }
+            code +=
+                offset_prefix + GenGetter(field.value.type, "(" + index + ")");
+            if (field.value.type.base_type != BASE_TYPE_ARRAY) {
+              code += " : " + GenDefaultValue(field, imports);
+            }
+            code += ";\n";
+          }
+        }
+
+        // Emit an object field
+        else {
+          switch (field.value.type.base_type) {
+            case BASE_TYPE_STRUCT: {
+              const auto type =
+                  AddImport(imports, struct_def, *field.value.type.struct_def)
+                      .name;
+              GenDocComment(field.doc_comment, code_ptr);
+              code += namer_.Method(field);
+              code +=
+                  "(obj?:" + type + "):" + type + "|" + null_keyword_ + " {\n";
+
+              if (struct_def.fixed) {
+                code += "  return (obj || " + GenerateNewExpression(type);
+                code += ").__init(this.bb_pos";
+                code += MaybeAdd(field.value.offset) + ", " + GenBBAccess() +
+                        ");\n";
+              } else {
+                code += offset_prefix + "(obj || " +
+                        GenerateNewExpression(type) + ").__init(";
+                code +=
+                    field.value.type.struct_def->fixed
+                        ? "this.bb_pos + offset"
+                        : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
+                code += ", " + GenBBAccess() + ") : " + null_keyword_ + ";\n";
+              }
+
+              break;
+            }
+
+            case BASE_TYPE_ARRAY: {
+              auto vectortype = field.value.type.VectorType();
+              auto vectortypename =
+                  GenTypeName(imports, struct_def, vectortype, false);
+              auto inline_size = InlineSize(vectortype);
+              auto index = "this.bb_pos + " + NumToString(field.value.offset) +
+                           " + index" + MaybeScale(inline_size);
+              std::string ret_type;
+              bool is_union = false;
+              switch (vectortype.base_type) {
+                case BASE_TYPE_STRUCT:
+                  ret_type = vectortypename;
+                  break;
+                case BASE_TYPE_STRING:
+                  ret_type = vectortypename;
+                  break;
+                case BASE_TYPE_UNION:
+                  ret_type = "?flatbuffers.Table";
+                  is_union = true;
+                  break;
+                default:
+                  ret_type = vectortypename;
+              }
+              GenDocComment(field.doc_comment, code_ptr);
+              std::string prefix = namer_.Method(field);
+              // TODO: make it work without any
+              // if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+              if (is_union) {
+                prefix += "";
+              }
+              prefix += "(index: number";
+              if (is_union) {
+                const auto union_type =
+                    GenUnionGenericTypeTS(*(field.value.type.enum_def));
+
+                vectortypename = union_type;
+                code += prefix + ", obj:" + union_type;
+              } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                code += prefix + ", obj?:" + vectortypename;
+              } else if (IsString(vectortype)) {
+                code += prefix + "):string\n";
+                code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
+                        "):" + vectortypename + "\n";
+                code += prefix + ",optionalEncoding?:any";
+              } else {
+                code += prefix;
+              }
+              code += "):" + vectortypename + "|" + null_keyword_ + " {\n";
+
+              if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                code += offset_prefix + "(obj || " +
+                        GenerateNewExpression(vectortypename);
+                code += ").__init(";
+                code += vectortype.struct_def->fixed
+                            ? index
+                            : GenBBAccess() + ".__indirect(" + index + ")";
+                code += ", " + GenBBAccess() + ")";
+              } else {
+                if (is_union) {
+                  index = "obj, " + index;
+                } else if (IsString(vectortype)) {
+                  index += ", optionalEncoding";
+                }
+                code +=
+                    offset_prefix + GenGetter(vectortype, "(" + index + ")");
+              }
+
+              switch (field.value.type.base_type) {
+                case BASE_TYPE_ARRAY: {
+                  break;
+                }
+                case BASE_TYPE_BOOL: {
+                  code += " : false";
+                  break;
+                }
+                case BASE_TYPE_LONG:
+                case BASE_TYPE_ULONG: {
+                  code += " : BigInt(0)";
+                  break;
+                }
+                default: {
+                  if (IsScalar(field.value.type.element)) {
+                    if (field.value.type.enum_def) {
+                      code += field.value.constant;
+                    } else {
+                      code += " : 0";
+                    }
+                  } else {
+                    code += ": " + null_keyword_;
+                  }
+                  break;
+                }
+              }
+              code += ";\n";
+              break;
+            }
+
+            case BASE_TYPE_VECTOR: {
+              auto vectortype = field.value.type.VectorType();
+              auto vectortypename =
+                  GenTypeName(imports, struct_def, vectortype, false);
+              auto type = GetUnderlyingVectorType(vectortype);
+              auto inline_size = InlineSize(type);
+              auto index = GenBBAccess() +
+                           ".__vector(this.bb_pos + offset) + index" +
+                           MaybeScale(inline_size);
+              std::string ret_type;
+              bool is_union = false;
+              switch (vectortype.base_type) {
+                case BASE_TYPE_STRUCT:
+                  ret_type = vectortypename;
+                  break;
+                case BASE_TYPE_STRING:
+                  ret_type = vectortypename;
+                  break;
+                case BASE_TYPE_UNION:
+                  ret_type = "?flatbuffers.Table";
+                  is_union = true;
+                  break;
+                default:
+                  ret_type = vectortypename;
+              }
+              GenDocComment(field.doc_comment, code_ptr);
+              std::string prefix = namer_.Method(field);
+              // TODO: make it work without any
+              // if (is_union) { prefix += "<T extends flatbuffers.Table>"; }
+              if (is_union) {
+                prefix += "";
+              }
+              prefix += "(index: number";
+              if (is_union) {
+                const auto union_type =
+                    GenUnionGenericTypeTS(*(field.value.type.enum_def));
+
+                vectortypename = union_type;
+                code += prefix + ", obj:" + union_type;
+              } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                code += prefix + ", obj?:" + vectortypename;
+              } else if (IsString(vectortype)) {
+                code += prefix + "):string\n";
+                code += prefix + ",optionalEncoding:flatbuffers.Encoding" +
+                        "):" + vectortypename + "\n";
+                code += prefix + ",optionalEncoding?:any";
+              } else {
+                code += prefix;
+              }
+              code += "):" + vectortypename + "|" + null_keyword_ + " {\n";
+
+              if (vectortype.base_type == BASE_TYPE_STRUCT) {
+                code += offset_prefix + "(obj || " +
+                        GenerateNewExpression(vectortypename);
+                code += ").__init(";
+                code += vectortype.struct_def->fixed
+                            ? index
+                            : GenBBAccess() + ".__indirect(" + index + ")";
+                code += ", " + GenBBAccess() + ")";
+              } else {
+                if (is_union) {
+                  index = "obj, " + index;
+                } else if (IsString(vectortype)) {
+                  index += ", optionalEncoding";
+                }
+                code +=
+                    offset_prefix + GenGetter(vectortype, "(" + index + ")");
+              }
+              code += " : ";
+              if (field.value.type.element == BASE_TYPE_BOOL) {
+                code += "false";
+              } else if (field.value.type.element == BASE_TYPE_LONG ||
+                         field.value.type.element == BASE_TYPE_ULONG) {
+                code += "BigInt(0)";
+              } else if (IsScalar(field.value.type.element)) {
+                if (field.value.type.enum_def) {
+                  code += null_keyword_;
+                } else {
+                  code += "0";
+                }
+              } else {
+                code += null_keyword_;
+              }
+              code += ";\n";
+              break;
+            }
+
+            case BASE_TYPE_UNION: {
+              GenDocComment(field.doc_comment, code_ptr);
+              code += namer_.Method(field);
+
+              const auto& union_enum = *(field.value.type.enum_def);
+              const auto union_type = GenUnionGenericTypeTS(union_enum);
+              code += "<T extends flatbuffers.Table>(obj:" + union_type +
+                      "):" + union_type + "|" + null_keyword_ +
+                      " "
+                      "{\n";
+
+              code +=
+                  offset_prefix +
+                  GenGetter(field.value.type, "(obj, this.bb_pos + offset)") +
+                  " : " + null_keyword_ + ";\n";
+              break;
+            }
+            default:
+              FLATBUFFERS_ASSERT(0);
+          }
+        }
+        code += "}\n\n";
+
+        // Adds the mutable scalar value to the output
+        if (IsScalar(field.value.type.base_type) &&
+            parser.opts.mutable_buffer && !IsUnion(field.value.type)) {
+          std::string type =
+              GenTypeName(imports, struct_def, field.value.type, true);
+
+          code += namer_.LegacyTsMutateMethod(field) + "(value:" + type +
+                  "):boolean {\n";
+
+          const std::string write_method =
+              "." + namer_.Method("write", GenType(field.value.type));
+
+          if (struct_def.fixed) {
+            code += "  " + GenBBAccess() + write_method + "(this.bb_pos + " +
+                    NumToString(field.value.offset) + ", ";
+          } else {
+            code += "  const offset = " + GenBBAccess() +
+                    ".__offset(this.bb_pos, " +
+                    NumToString(field.value.offset) + ");\n\n";
+            code += "  if (offset === 0) {\n";
+            code += "    return false;\n";
+            code += "  }\n\n";
+
+            code +=
+                "  " + GenBBAccess() + write_method + "(this.bb_pos + offset, ";
+          }
+
+          // special case for bools, which are treated as uint8
           if (field.value.type.base_type == BASE_TYPE_BOOL) {
             code += "+";
           }
-          code += GenDefaultValue(field, imports);
-        }
-        code += ");\n}\n\n";
 
-        if (IsVector(field.value.type)) {
-          auto vector_type = field.value.type.VectorType();
-          auto type = GetUnderlyingVectorType(vector_type);
-          auto alignment = InlineAlignment(type);
-          auto elem_size = InlineSize(type);
-
-          // Generate a method to create a vector from a JavaScript array
-          if (!IsStruct(vector_type)) {
-            GenDocComment(code_ptr);
-
-            const std::string sig_begin =
-                "static " + namer_.Method("create", field, "Vector") +
-                "(builder:flatbuffers.Builder, data:";
-            const std::string sig_end = "):flatbuffers.Offset";
-            std::string type =
-                GenTypeName(imports, struct_def, vector_type, true) + "[]";
-            if (type == "number[]") {
-              const auto& array_type = GenType(vector_type);
-              // the old type should be deprecated in the future
-              std::string type_old = "number[]|Uint8Array";
-              std::string type_new = "number[]|" + array_type + "Array";
-              if (type_old == type_new) {
-                type = type_new;
-              } else {
-                // add function overloads
-                code += sig_begin + type_new + sig_end + ";\n";
-                code +=
-                    "/**\n * @deprecated This Uint8Array overload will "
-                    "be removed in the future.\n */\n";
-                code += sig_begin + type_old + sig_end + ";\n";
-                type = type_new + "|Uint8Array";
-              }
-            }
-            code += sig_begin + type + sig_end + " {\n";
-            code += "  builder.startVector(" + NumToString(elem_size);
-            code += ", data.length, " + NumToString(alignment) + ");\n";
-            code += "  for (let i = data.length - 1; i >= 0; i--) {\n";
-            code += "    builder.add" + GenWriteMethod(vector_type) + "(";
-            if (vector_type.base_type == BASE_TYPE_BOOL) {
-              code += "+";
-            }
-            code += "data[i]!);\n";
-            code += "  }\n";
-            code += "  return builder.endVector();\n";
-            code += "}\n\n";
-          }
-
-          // Generate a method to start a vector, data to be added manually
-          // after
-          GenDocComment(code_ptr);
-
-          code += "static ";
-          code += namer_.Method("start", field, "Vector");
-          code += "(builder:flatbuffers.Builder, numElems:number) {\n";
-          code += "  builder.startVector(" + NumToString(elem_size);
-          code += ", numElems, " + NumToString(alignment) + ");\n";
+          code += "value);\n";
+          code += "  return true;\n";
           code += "}\n\n";
         }
-      }
 
-      // Generate a method to stop building a new object
-      GenDocComment(code_ptr);
+        // Emit vector helpers
+        if (IsVector(field.value.type)) {
+          // Emit a length helper
+          GenDocComment(code_ptr);
+          code += namer_.Method(field, "Length");
+          code += "():number {\n" + offset_prefix;
 
-      code += "static end" + GetPrefixedName(struct_def);
-      code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
+          code +=
+              GenBBAccess() + ".__vector_len(this.bb_pos + offset) : 0;\n}\n\n";
 
-      code += "  const offset = builder.endObject();\n";
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        auto& field = **it;
-        if (!field.deprecated && field.IsRequired()) {
-          code += "  builder.requiredField(offset, ";
-          code += NumToString(field.value.offset);
-          code += ") // " + field.name + "\n";
+          // For scalar types, emit a typed array helper
+          auto vectorType = field.value.type.VectorType();
+          if (IsScalar(vectorType.base_type) && !IsLong(vectorType.base_type)) {
+            GenDocComment(code_ptr);
+
+            code += namer_.Method(field, "Array");
+            code += "():" + GenType(vectorType) + "Array|" + null_keyword_ +
+                    " {\n" + offset_prefix;
+
+            code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
+                    ".bytes().buffer, " + GenBBAccess() +
+                    ".bytes().byteOffset + " + GenBBAccess() +
+                    ".__vector(this.bb_pos + offset), " + GenBBAccess() +
+                    ".__vector_len(this.bb_pos + offset)) : " + null_keyword_ +
+                    ";\n}\n\n";
+          }
         }
       }
-      code += "  return offset;\n";
-      code += "}\n\n";
 
-      // Generate the methods to complete buffer construction
-      GenerateFinisher(struct_def, code_ptr, code, false);
-      GenerateFinisher(struct_def, code_ptr, code, true);
+      // Emit the fully qualified name
+      if (parser_.opts.generate_name_strings) {
+        const std::string fullyQualifiedName =
+            struct_def.defined_namespace->GetFullyQualifiedName(
+                struct_def.name);
 
-      // Generate a convenient CreateX function
-      if (CanCreateFactoryMethod(struct_def)) {
-        code += "static create" + GetPrefixedName(struct_def);
-        code += "(builder:flatbuffers.Builder";
+        GenDocComment(code_ptr);
+        code += "static getFullyQualifiedName(): \"";
+        code += fullyQualifiedName;
+        code += "\" {\n";
+        code += "  return '" + fullyQualifiedName + "';\n";
+        code += "}\n\n";
+      }
+
+      // Emit the size of the struct.
+      if (struct_def.fixed) {
+        GenDocComment(code_ptr);
+        code += "static sizeOf():number {\n";
+        code += "  return " + NumToString(struct_def.bytesize) + ";\n";
+        code += "}\n\n";
+      }
+
+      // Emit a factory constructor
+      if (struct_def.fixed) {
+        std::string arguments;
+        GenStructArgs(imports, struct_def, struct_def, &arguments, "");
+        GenDocComment(code_ptr);
+
+        code += "static create" + GetPrefixedName(struct_def) +
+                "(builder:flatbuffers.Builder";
+        code += arguments + "):flatbuffers.Offset {\n";
+
+        GenStructBody(struct_def, &code, "");
+        code += "  return builder.offset();\n}\n\n";
+      } else {
+        // Generate a method to start building a new object
+        GenDocComment(code_ptr);
+
+        code += "static start" + GetPrefixedName(struct_def) +
+                "(builder:flatbuffers.Builder) {\n";
+
+        code += "  builder.startObject(" +
+                NumToString(struct_def.fields.vec.size()) + ");\n";
+        code += "}\n\n";
+
+        // Generate a set of static methods that allow table construction
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
-          const auto& field = **it;
+          auto& field = **it;
           if (field.deprecated) continue;
-          code += ", " + GetArgName(field) + ":" +
-                  GetArgType(imports, struct_def, field, true);
+          const auto argname = GetArgName(field);
+
+          // Generate the field insertion method
+          GenDocComment(code_ptr);
+          code += "static " + namer_.Method("add", field);
+          code += "(builder:flatbuffers.Builder, " + argname + ":" +
+                  GetArgType(imports, struct_def, field, false) + ") {\n";
+          code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
+          code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
+          if (field.value.type.base_type == BASE_TYPE_BOOL) {
+            code += "+";
+          }
+          code += argname + ", ";
+          if (!IsScalar(field.value.type.base_type)) {
+            code += "0";
+          } else if (HasNullDefault(field)) {
+            code += null_keyword_;
+          } else {
+            if (field.value.type.base_type == BASE_TYPE_BOOL) {
+              code += "+";
+            }
+            code += GenDefaultValue(field, imports);
+          }
+          code += ");\n}\n\n";
+
+          if (IsVector(field.value.type)) {
+            auto vector_type = field.value.type.VectorType();
+            auto type = GetUnderlyingVectorType(vector_type);
+            auto alignment = InlineAlignment(type);
+            auto elem_size = InlineSize(type);
+
+            // Generate a method to create a vector from a JavaScript array
+            if (!IsStruct(vector_type)) {
+              GenDocComment(code_ptr);
+
+              const std::string sig_begin =
+                  "static " + namer_.Method("create", field, "Vector") +
+                  "(builder:flatbuffers.Builder, data:";
+              const std::string sig_end = "):flatbuffers.Offset";
+              std::string type =
+                  GenTypeName(imports, struct_def, vector_type, true) + "[]";
+              if (type == "number[]") {
+                const auto& array_type = GenType(vector_type);
+                // the old type should be deprecated in the future
+                std::string type_old = "number[]|Uint8Array";
+                std::string type_new = "number[]|" + array_type + "Array";
+                if (type_old == type_new) {
+                  type = type_new;
+                } else {
+                  // add function overloads
+                  code += sig_begin + type_new + sig_end + ";\n";
+                  code +=
+                      "/**\n * @deprecated This Uint8Array overload will "
+                      "be removed in the future.\n */\n";
+                  code += sig_begin + type_old + sig_end + ";\n";
+                  type = type_new + "|Uint8Array";
+                }
+              }
+              code += sig_begin + type + sig_end + " {\n";
+              code += "  builder.startVector(" + NumToString(elem_size);
+              code += ", data.length, " + NumToString(alignment) + ");\n";
+              code += "  for (let i = data.length - 1; i >= 0; i--) {\n";
+              code += "    builder.add" + GenWriteMethod(vector_type) + "(";
+              if (vector_type.base_type == BASE_TYPE_BOOL) {
+                code += "+";
+              }
+              code += "data[i]!);\n";
+              code += "  }\n";
+              code += "  return builder.endVector();\n";
+              code += "}\n\n";
+            }
+
+            // Generate a method to start a vector, data to be added manually
+            // after
+            GenDocComment(code_ptr);
+
+            code += "static ";
+            code += namer_.Method("start", field, "Vector");
+            code += "(builder:flatbuffers.Builder, numElems:number) {\n";
+            code += "  builder.startVector(" + NumToString(elem_size);
+            code += ", numElems, " + NumToString(alignment) + ");\n";
+            code += "}\n\n";
+          }
         }
 
-        code += "):flatbuffers.Offset {\n";
-        code += "  " + object_name + ".start" + GetPrefixedName(struct_def) +
-                "(builder);\n";
+        // Generate a method to stop building a new object
+        GenDocComment(code_ptr);
 
-        std::string methodPrefix = object_name;
+        code += "static end" + GetPrefixedName(struct_def);
+        code += "(builder:flatbuffers.Builder):flatbuffers.Offset {\n";
+
+        code += "  const offset = builder.endObject();\n";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
-          const auto& field = **it;
-          if (field.deprecated) continue;
+          auto& field = **it;
+          if (!field.deprecated && field.IsRequired()) {
+            code += "  builder.requiredField(offset, ";
+            code += NumToString(field.value.offset);
+            code += ") // " + field.name + "\n";
+          }
+        }
+        code += "  return offset;\n";
+        code += "}\n\n";
 
-          const auto arg_name = GetArgName(field);
+        // Generate the methods to complete buffer construction
+        GenerateFinisher(struct_def, code_ptr, code, false);
+        GenerateFinisher(struct_def, code_ptr, code, true);
 
-          if (field.IsScalarOptional()) {
-            code += "  if (" + arg_name + " !== " + null_keyword_ + ")\n  ";
+        // Generate a convenient CreateX function
+        if (CanCreateFactoryMethod(struct_def)) {
+          code += "static create" + GetPrefixedName(struct_def);
+          code += "(builder:flatbuffers.Builder";
+          for (auto it = struct_def.fields.vec.begin();
+               it != struct_def.fields.vec.end(); ++it) {
+            const auto& field = **it;
+            if (field.deprecated) continue;
+            code += ", " + GetArgName(field) + ":" +
+                    GetArgType(imports, struct_def, field, true);
           }
 
-          code += "  " + methodPrefix + "." + namer_.Method("add", field) + "(";
-          code += "builder, " + arg_name + ");\n";
-        }
+          code += "):flatbuffers.Offset {\n";
+          code += "  " + object_name + ".start" + GetPrefixedName(struct_def) +
+                  "(builder);\n";
 
-        code += "  return " + methodPrefix + ".end" +
-                GetPrefixedName(struct_def) + "(builder);\n";
+          std::string methodPrefix = object_name;
+          for (auto it = struct_def.fields.vec.begin();
+               it != struct_def.fields.vec.end(); ++it) {
+            const auto& field = **it;
+            if (field.deprecated) continue;
+
+            const auto arg_name = GetArgName(field);
+
+            if (field.IsScalarOptional()) {
+              code += "  if (" + arg_name + " !== " + null_keyword_ + ")\n  ";
+            }
+
+            code +=
+                "  " + methodPrefix + "." + namer_.Method("add", field) + "(";
+            code += "builder, " + arg_name + ");\n";
+          }
+
+          code += "  return " + methodPrefix + ".end" +
+                  GetPrefixedName(struct_def) + "(builder);\n";
+          code += "}\n";
+        }
+      }
+
+      if (!struct_def.fixed && parser_.services_.vec.size() != 0) {
+        auto name = GetPrefixedName(struct_def, "");
+        code += "\n";
+        code += "serialize():Uint8Array {\n";
+        code += "  return this.bb!.bytes();\n";
+        code += "}\n";
+
+        code += "\n";
+        code += "static deserialize(buffer: Uint8Array):" +
+                namer_.EscapeKeyword(name) + " {\n";
+        code += "  return " + AddImport(imports, struct_def, struct_def).name +
+                ".getRootAs" + name + "(new flatbuffers.ByteBuffer(buffer))\n";
+        code += "}\n";
+      }
+
+      if (parser_.opts.generate_object_based_api) {
+        std::string obj_api_class;
+        std::string obj_api_unpack_func;
+        GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
+                  imports);
+
+        code += obj_api_unpack_func + "}\n" + obj_api_class;
+      } else {
         code += "}\n";
       }
     }
 
-    if (!struct_def.fixed && parser_.services_.vec.size() != 0) {
-      auto name = GetPrefixedName(struct_def, "");
-      code += "\n";
-      code += "serialize():Uint8Array {\n";
-      code += "  return this.bb!.bytes();\n";
-      code += "}\n";
-
-      code += "\n";
-      code += "static deserialize(buffer: Uint8Array):" +
-              namer_.EscapeKeyword(name) + " {\n";
-      code += "  return " + AddImport(imports, struct_def, struct_def).name +
-              ".getRootAs" + name + "(new flatbuffers.ByteBuffer(buffer))\n";
-      code += "}\n";
+    bool HasNullDefault(const FieldDef& field) {
+      return field.IsOptional() && field.value.constant == "null";
     }
 
-    if (parser_.opts.generate_object_based_api) {
-      std::string obj_api_class;
-      std::string obj_api_unpack_func;
-      GenObjApi(parser_, struct_def, obj_api_unpack_func, obj_api_class,
-                imports);
-
-      code += obj_api_unpack_func + "}\n" + obj_api_class;
-    } else {
-      code += "}\n";
+    std::string GetArgType(import_set & imports, const Definition& owner,
+                           const FieldDef& field, bool allowNull) {
+      return GenTypeName(imports, owner, field.value.type, true,
+                         allowNull && field.IsOptional());
     }
-  }
 
-  bool HasNullDefault(const FieldDef& field) {
-    return field.IsOptional() && field.value.constant == "null";
-  }
-
-  std::string GetArgType(import_set& imports, const Definition& owner,
-                         const FieldDef& field, bool allowNull) {
-    return GenTypeName(imports, owner, field.value.type, true,
-                       allowNull && field.IsOptional());
-  }
-
-  std::string GetArgName(const FieldDef& field) {
-    auto argname = namer_.Variable(field);
-    if (!IsScalar(field.value.type.base_type)) {
-      argname += "Offset";
+    std::string GetArgName(const FieldDef& field) {
+      auto argname = namer_.Variable(field);
+      if (!IsScalar(field.value.type.base_type)) {
+        argname += "Offset";
+      }
+      return argname;
     }
-    return argname;
-  }
 
-  std::string GetPrefixedName(const StructDef& struct_def,
-                              const char* prefix = "") {
-    return prefix + struct_def.name;
-  }
-};  // namespace ts
+    std::string GetPrefixedName(const StructDef& struct_def,
+                                const char* prefix = "") {
+      return prefix + struct_def.name;
+    }
+  };  // namespace ts
 }  // namespace ts
 
-static bool GenerateTS(const Parser& parser, const std::string& path,
-                       const std::string& file_name) {
+static bool
+GenerateTS(const Parser& parser, const std::string& path,
+           const std::string& file_name) {
   ts::TsGenerator generator(parser, path, file_name);
   return generator.generate();
 }
