@@ -1222,9 +1222,10 @@ class TsGenerator : public BaseGenerator {
 
   std::string GenNullCheckConditional(const std::string& nullCheckVar,
                                       const std::string& trueVal,
-                                      const std::string& falseVal) {
+                                      const std::string& falseVal = "") {
+    std::string false_val = falseVal.empty() ? null_keyword_ : falseVal;
     return "(" + nullCheckVar + " !== " + null_keyword_ + " ? " + trueVal +
-           " : " + falseVal + ")";
+           " : " + false_val + ")";
   }
 
   std::string GenStructMemberValueTS(const StructDef& struct_def,
@@ -1687,6 +1688,7 @@ class TsGenerator : public BaseGenerator {
               "> {\n";
     } else {
       code += " {\n";
+    }
     code += "  bb: flatbuffers.ByteBuffer|" + null_keyword_ + " = " +
             null_keyword_ + ";\n";
     code += "  bb_pos = 0;\n";
