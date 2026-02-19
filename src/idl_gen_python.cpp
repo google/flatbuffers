@@ -208,15 +208,9 @@ class PythonStubGenerator {
 
   std::string EnumType(const EnumDef& enum_def, Imports* imports) const {
     imports->Import("typing");
-    const Import& import =
-        imports->Import(ModuleFor(&enum_def), namer_.Type(enum_def));
+    std::ignore = imports->Import(ModuleFor(&enum_def), namer_.Type(enum_def));
 
-    std::string result = "";
-    for (const EnumVal* val : enum_def.Vals()) {
-      if (!result.empty()) result += ", ";
-      result += import.name + "." + namer_.Variant(*val);
-    }
-    return "typing.Literal[" + result + "]";
+    return namer_.Type(enum_def);
   }
 
   std::string TypeOf(const Type& type, Imports* imports) const {
@@ -530,7 +524,7 @@ class PythonStubGenerator {
     StructBuilderArgs(*struct_def, "", imports, &args);
 
     stub << '\n';
-    stub << "def Create" + namer_.Type(*struct_def)
+    stub << "def Create" + namer_.Function(*struct_def)
          << "(builder: flatbuffers.Builder";
     for (const std::string& arg : args) {
       stub << ", " << arg;
@@ -610,10 +604,10 @@ class PythonStubGenerator {
     stub << "class " << namer_.Type(*enum_def);
     imports->Export(ModuleFor(enum_def), namer_.Type(*enum_def));
 
-    imports->Import("typing", "cast");
+    imports->Import("typing", "Final");
 
-    if (parser_.opts.python_typing && parser_.opts.python_enum) {
-      if (enum_def->attributes.Lookup("big_flags")) {
+    if (parser_.opts.python_typing) {
+      if (enum_def->attributes.Lookup("bit_flags")) {
         imports->Import("enum", "IntFlag");
         stub << "(IntFlag)";
       } else {
@@ -626,13 +620,15 @@ class PythonStubGenerator {
 
     stub << ":\n";
     for (const EnumVal* val : enum_def->Vals()) {
-      stub << "  " << namer_.Variant(*val) << " = cast("
-           << ScalarType(enum_def->underlying_type.base_type) << ", ...)\n";
+      stub << "  " << namer_.Variant(*val) << ": Final["
+           << namer_.Type(*enum_def) << "]\n";
     }
+    stub << "  def __new__(cls, value: int) -> " << namer_.Type(*enum_def)
+         << ": ...\n";
 
     if (parser_.opts.generate_object_based_api & enum_def->is_union) {
       imports->Import("flatbuffers", "table");
-      stub << "def " << namer_.Function(*enum_def)
+      stub << "\ndef " << namer_.Function(*enum_def)
            << "Creator(union_type: " << EnumType(*enum_def, imports)
            << ", table: table.Table) -> " << UnionType(*enum_def, imports)
            << ": ...\n";
@@ -729,7 +725,8 @@ class PythonGenerator : public BaseGenerator {
 
     code += "class " + namer_.Type(enum_def);
 
-    if (parser_.opts.python_enum) {
+    python::Version version{parser_.opts.python_version};
+    if (version.major == 3) {
       if (enum_def.attributes.Lookup("bit_flags")) {
         code += "(IntFlag)";
       } else {
@@ -870,7 +867,7 @@ class PythonGenerator : public BaseGenerator {
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
-    code += "(self):";
+    code += "(self):";  // TODO: add typing
     code += OffsetPrefix(field);
     getter += "o + self._tab.Pos)";
     auto is_bool = IsBool(field.value.type.base_type);
@@ -1705,8 +1702,7 @@ class PythonGenerator : public BaseGenerator {
 
       // include import for enum type if used in this struct, we want type
       // information, and we want modern enums.
-      if (IsEnum(field.value.type) && parser_.opts.python_typing &&
-          parser_.opts.python_enum) {
+      if (IsEnum(field.value.type) && parser_.opts.python_typing) {
         imports.insert(ImportMapEntry{GenPackageReference(field.value.type),
                                       namer_.Type(*field.value.type.enum_def)});
       }
@@ -1766,7 +1762,8 @@ class PythonGenerator : public BaseGenerator {
       return float_const_gen_.GenFloatConstant(field);
     } else if (IsInteger(base_type)) {
       // wrap the default value in the enum constructor to aid type hinting
-      if (parser_.opts.python_enum && IsEnum(field.value.type)) {
+      python::Version version{parser_.opts.python_version};
+      if (version.major == 3 && IsEnum(field.value.type)) {
         auto enum_type = namer_.Type(*field.value.type.enum_def);
         return enum_type + "(" + field.value.constant + ")";
       }
@@ -1897,7 +1894,8 @@ class PythonGenerator : public BaseGenerator {
         }
         default:
           // Scalar or string fields.
-          if (parser_.opts.python_enum && IsEnum(field.value.type)) {
+          python::Version version{parser_.opts.python_version};
+          if (version.major == 3 && IsEnum(field.value.type)) {
             field_type = namer_.Type(*field.value.type.enum_def);
           } else {
             field_type = GetBasePythonTypeForScalarAndString(base_type);
@@ -2682,7 +2680,8 @@ class PythonGenerator : public BaseGenerator {
 
   std::string GenFieldTy(const FieldDef& field) const {
     if (IsScalar(field.value.type.base_type) || IsArray(field.value.type)) {
-      if (parser_.opts.python_enum) {
+      python::Version version{parser_.opts.python_version};
+      if (version.major == 3) {
         if (IsEnum(field.value.type)) {
           return namer_.Type(*field.value.type.enum_def);
         }
@@ -2828,8 +2827,9 @@ class PythonGenerator : public BaseGenerator {
         GenUnionCreator(enum_def, &enumcode);
       }
 
+      python::Version version{parser_.opts.python_version};
       if (parser_.opts.one_file && !enumcode.empty()) {
-        if (parser_.opts.python_enum) {
+        if (version.major == 3) {
           if (enum_def.attributes.Lookup("bit_flags")) {
             one_file_imports.insert({"enum", "IntFlag"});
           } else {
@@ -2841,7 +2841,7 @@ class PythonGenerator : public BaseGenerator {
       } else {
         ImportMap imports;
 
-        if (parser_.opts.python_enum) {
+        if (version.major == 3) {
           if (enum_def.attributes.Lookup("bit_flags")) {
             imports.insert({"enum", "IntFlag"});
           } else {

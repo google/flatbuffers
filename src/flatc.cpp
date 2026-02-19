@@ -262,9 +262,6 @@ const static FlatCOption flatc_options[] = {
     {"", "python-no-type-prefix-suffix", "",
      "Skip emission of Python functions that are prefixed with typenames"},
     {"", "python-typing", "", "Generate Python type annotations"},
-    {"", "python-enum", "",
-     "Generate enum types as IntEnum and IntFlag (assumes python-version >= "
-     "3"},
     {"", "python-version", "", "Generate code for the given Python version."},
     {"", "python-decode-obj-api-strings", "",
      "Decode bytes to strings for the Python Object API"},
@@ -697,8 +694,6 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.python_no_type_prefix_suffix = true;
       } else if (arg == "--python-typing") {
         opts.python_typing = true;
-      } else if (arg == "--python-enum") {
-        opts.python_enum = true;
       } else if (arg.rfind("--python-version=", 0) == 0) {
         opts.python_version =
             arg.substr(std::string("--python-version=").size());
@@ -802,11 +797,6 @@ void FlatCompiler::ValidateOptions(const FlatCOptions& options) {
   } else if (!options.any_generator && options.conform_to_schema.empty() &&
              options.annotate_schema.empty()) {
     Error("no options: specify at least one generator.", true);
-  }
-
-  if (opts.python_enum &&
-      (opts.python_version.empty() || opts.python_version[0] != '3')) {
-    Error("--python-enum requires --python-version >= 3");
   }
 
   if (opts.cs_gen_json_serializer && !opts.generate_object_based_api) {
