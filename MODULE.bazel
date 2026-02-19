@@ -7,7 +7,7 @@ module(
 
 bazel_dep(
     name = "aspect_bazel_lib",
-    version = "2.11.0",
+    version = "2.14.0",
 )
 bazel_dep(
     name = "aspect_rules_esbuild",
@@ -28,11 +28,11 @@ bazel_dep(
 )
 bazel_dep(
     name = "platforms",
-    version = "0.0.10",
+    version = "0.0.11",
 )
 bazel_dep(
     name = "rules_cc",
-    version = "0.0.16",
+    version = "0.1.1",
 )
 bazel_dep(
     name = "rules_go",
@@ -50,6 +50,7 @@ bazel_dep(
 bazel_dep(
     name = "rules_swift",
     version = "2.1.1",
+    max_compatibility_level = 3,
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(
@@ -62,9 +63,6 @@ npm.npm_translate_lock(
     name = "flatbuffers_npm",
     npmrc = "//:.npmrc",
     pnpm_lock = "//ts:pnpm-lock.yaml",
-    # Override the Bazel package where pnpm-lock.yaml is located and link
-    # to the specified package instead.
-    root_package = "ts",
     verify_node_modules_ignored = "//:.bazelignore",
 )
 use_repo(npm, "flatbuffers_npm")

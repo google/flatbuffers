@@ -32,10 +32,10 @@ public struct BytesCount: NativeStruct, FlatbuffersVectorInitializable, Verifiab
 }
 
 extension BytesCount: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case x = "x"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     if x != 0 {
@@ -77,16 +77,14 @@ public struct InternalMessage: FlatBufferTable, FlatbuffersVectorInitializable, 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case str = 4
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let str: VOffset = 4
   }
 
-  public var str: String? { let o = _accessor.offset(VTOFFSET.str.v); return o == 0 ? nil : _accessor.string(at: o) }
-  public var strSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.str.v) }
+  public var str: String? { let o = _accessor.offset(VT.str); return o == 0 ? nil : _accessor.string(at: o) }
+  public var strSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.str) }
   public static func startInternalMessage(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(str: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: str, at: VTOFFSET.str.p) }
+  public static func add(str: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: str, at: VT.str) }
   public static func endInternalMessage(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createInternalMessage(
     _ fbb: inout FlatBufferBuilder,
@@ -120,16 +118,16 @@ public struct InternalMessage: FlatBufferTable, FlatbuffersVectorInitializable, 
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.str.p, fieldName: "str", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.str, fieldName: "str", required: false, type: ForwardOffset<String>.self)
     _v.finish()
   }
 }
 
 extension InternalMessage: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case str = "str"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(str, forKey: .str)
@@ -159,23 +157,21 @@ public struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiab
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case id = 4
-    case position = 6
-    case pointer = 8
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let id: VOffset = 4
+    static let position: VOffset = 6
+    static let pointer: VOffset = 8
   }
 
-  public var id: Int64 { let o = _accessor.offset(VTOFFSET.id.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int64.self, at: o) }
-  @discardableResult public func mutate(id: Int64) -> Bool {let o = _accessor.offset(VTOFFSET.id.v);  return _accessor.mutate(id, index: o) }
-  public var position: BytesCount! { let o = _accessor.offset(VTOFFSET.position.v); return _accessor.readBuffer(of: BytesCount.self, at: o) }
-  public var mutablePosition: BytesCount_Mutable! { let o = _accessor.offset(VTOFFSET.position.v); return BytesCount_Mutable(_accessor.bb, o: o + _accessor.position) }
-  public var pointer: InternalMessage! { let o = _accessor.offset(VTOFFSET.pointer.v); return InternalMessage(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
+  public var id: Int64 { let o = _accessor.offset(VT.id); return o == 0 ? 0 : _accessor.readBuffer(of: Int64.self, at: o) }
+  @discardableResult public func mutate(id: Int64) -> Bool {let o = _accessor.offset(VT.id);  return _accessor.mutate(id, index: o) }
+  public var position: BytesCount! { let o = _accessor.offset(VT.position); return _accessor.readBuffer(of: BytesCount.self, at: o) }
+  public var mutablePosition: BytesCount_Mutable! { let o = _accessor.offset(VT.position); return BytesCount_Mutable(_accessor.bb, o: o + _accessor.position) }
+  public var pointer: InternalMessage! { let o = _accessor.offset(VT.pointer); return InternalMessage(_accessor.bb, o: _accessor.indirect(o + _accessor.position)) }
   public static func startMessage(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 3) }
-  public static func add(id: Int64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: id, def: 0, at: VTOFFSET.id.p) }
-  public static func add(position: BytesCount?, _ fbb: inout FlatBufferBuilder) { guard let position = position else { return }; fbb.create(struct: position, position: VTOFFSET.position.p) }
-  public static func add(pointer: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: pointer, at: VTOFFSET.pointer.p) }
+  public static func add(id: Int64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: id, def: 0, at: VT.id) }
+  public static func add(position: BytesCount?, _ fbb: inout FlatBufferBuilder) { guard let position = position else { return }; fbb.create(struct: position, position: VT.position) }
+  public static func add(pointer: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: pointer, at: VT.pointer) }
   public static func endMessage(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); fbb.require(table: end, fields: [6, 8]); return end }
   public static func createMessage(
     _ fbb: inout FlatBufferBuilder,
@@ -209,20 +205,20 @@ public struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiab
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.id.p, fieldName: "id", required: false, type: Int64.self)
-    try _v.visit(field: VTOFFSET.position.p, fieldName: "position", required: true, type: BytesCount.self)
-    try _v.visit(field: VTOFFSET.pointer.p, fieldName: "pointer", required: true, type: ForwardOffset<InternalMessage>.self)
+    try _v.visit(field: VT.id, fieldName: "id", required: false, type: Int64.self)
+    try _v.visit(field: VT.position, fieldName: "position", required: true, type: BytesCount.self)
+    try _v.visit(field: VT.pointer, fieldName: "pointer", required: true, type: ForwardOffset<InternalMessage>.self)
     _v.finish()
   }
 }
 
 extension Message: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case id = "id"
     case position = "position"
     case pointer = "pointer"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     if id != 0 {

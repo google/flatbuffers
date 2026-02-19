@@ -421,6 +421,9 @@ impl<'a> Serializer for MapKeySerializer<'a> {
     type SerializeStruct = Impossible<(), Error>;
     type SerializeStructVariant = Impossible<(), Error>;
 
+    fn is_human_readable(&self) -> bool {
+        self.0.is_human_readable()
+    }
     fn serialize_bool(self, _value: bool) -> Result<(), Error> {
         key_must_be_a_string()
     }
