@@ -376,9 +376,15 @@ class RustGenerator : public BaseGenerator {
       code_ += "// @generated";
       code_ += "extern crate alloc;";
       if (parser_.opts.generate_object_based_api) {
+        code_ += "#[allow(unused_imports)]";
         code_ += "use alloc::vec::Vec;";
-        code_ += "use alloc::string::String;";
+        if (!AnyNamespaceHasStringTable()) {
+          code_ += "#[allow(unused_imports)]";
+          code_ += "use alloc::string::String;";
+        }
+        code_ += "#[allow(unused_imports)]";
         code_ += "use alloc::boxed::Box;";
+        code_ += "#[allow(unused_imports)]";
         code_ += "use alloc::string::ToString;";
       }
       if (parser_.opts.rust_serialize) {
@@ -3022,9 +3028,15 @@ class RustGenerator : public BaseGenerator {
     }
     code_ += "extern crate alloc;";
     if (parser_.opts.generate_object_based_api) {
+      code_ += "#[allow(unused_imports)]";
       code_ += "use alloc::vec::Vec;";
-      code_ += "use alloc::string::String;";
+      if (!AnyNamespaceHasStringTable()) {
+        code_ += "#[allow(unused_imports)]";
+        code_ += "use alloc::string::String;";
+      }
+      code_ += "#[allow(unused_imports)]";
       code_ += "use alloc::boxed::Box;";
+      code_ += "#[allow(unused_imports)]";
       code_ += "use alloc::string::ToString;";
     }
   }
@@ -3131,8 +3143,23 @@ class RustGenerator : public BaseGenerator {
     if (hashable) {
       derives += ", Eq, Hash";
     }
+    if (parser_.opts.rust_serialize) {
+      derives += ", serde::Serialize, serde::Deserialize";
+    }
     derives += ")]";
     return derives;
+  }
+
+  // Check if any namespace in the schema defines a table named "String".
+  // When true, we must not emit `use alloc::string::String;` because it
+  // would shadow the FlatBuffer String table type in generated code.
+  bool AnyNamespaceHasStringTable() const {
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      const StructDef& other = **it;
+      if (other.name == "String") return true;
+    }
+    return false;
   }
 
   // Check if a namespace defines a table named "String" which would shadow
