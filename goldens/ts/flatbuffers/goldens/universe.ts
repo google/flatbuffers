@@ -4,7 +4,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Galaxy } from '../../flatbuffers/goldens/galaxy.js';
+import { Galaxy } from './galaxy.js';
 
 
 export class Universe {

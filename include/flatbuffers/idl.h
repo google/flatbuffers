@@ -223,7 +223,7 @@ struct Type {
   uint16_t fixed_length;  // only set if t == BASE_TYPE_ARRAY
 };
 
-// Represents a parsed scalar value, it's type, and field offset.
+// Represents a parsed scalar value, its type, and field offset.
 struct Value {
   Value()
       : constant("0"),
@@ -395,13 +395,20 @@ struct FieldDef : public Definition {
 };
 
 struct StructDef : public Definition {
+  enum class CycleStatus {
+    NotChecked,
+    InProgress,
+    Checked,
+  };
+
   StructDef()
       : fixed(false),
         predecl(true),
         sortbysize(true),
         has_key(false),
         minalign(1),
-        bytesize(0) {}
+        bytesize(0),
+        cycle_status{CycleStatus::NotChecked} {}
 
   void PadLastField(size_t min_align) {
     auto padding = PaddingBytes(bytesize, min_align);
@@ -422,6 +429,8 @@ struct StructDef : public Definition {
   bool has_key;     // It has a key field.
   size_t minalign;  // What the whole object needs to be aligned to.
   size_t bytesize;  // Size if fixed.
+
+  CycleStatus cycle_status;  // used for determining if we have circular references
 
   flatbuffers::unique_ptr<std::string> original_location;
   std::vector<voffset_t> reserved_ids;
@@ -1100,6 +1109,8 @@ class Parser : public ParserState {
   // being parsed. This does not include files that are transitively included by
   // others includes.
   std::vector<IncludedFile> GetIncludedFiles() const;
+
+  bool HasCircularStructDependency();
 
  private:
   class ParseDepthGuard;

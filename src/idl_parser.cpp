@@ -2755,6 +2755,42 @@ std::vector<IncludedFile> Parser::GetIncludedFiles() const {
   return {it->second.cbegin(), it->second.cend()};
 }
 
+bool Parser::HasCircularStructDependency() {
+  std::function<bool(StructDef*)> visit =
+      [&](StructDef* struct_def) {
+        // Only consider fixed structs and structs we have yet to check
+        if (!struct_def->fixed || struct_def->cycle_status == StructDef::CycleStatus::Checked) {
+          return false;
+        }
+
+        if (struct_def->cycle_status == StructDef::CycleStatus::InProgress) {
+          // cycle found
+          return true;
+        }
+
+        struct_def->cycle_status = StructDef::CycleStatus::InProgress;
+
+        for (const auto& field : struct_def->fields.vec) {
+          if (field->value.type.base_type == BASE_TYPE_STRUCT) {
+            if (visit(field->value.type.struct_def)) {
+              return true;  // Cycle detected in recursion.
+            }
+          }
+        }
+
+        struct_def->cycle_status = StructDef::CycleStatus::Checked;
+        return false;  // No cycle detected.
+      };
+
+  for (const auto& struct_def : structs_.vec) {
+    if (visit(struct_def)) {
+      return true;  // Cycle detected.
+    }
+  }
+
+  return false;  // No cycle detected.
+}
+
 bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions& opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |

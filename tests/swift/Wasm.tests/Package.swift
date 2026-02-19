@@ -24,7 +24,7 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../.."),
-    .package(url: "https://github.com/swiftwasm/WasmKit", exact: "0.1.6")
+    .package(url: "https://github.com/swiftwasm/WasmKit", exact: "0.1.6"),
   ],
   targets: [
     .target(name: "Wasm"),
@@ -37,5 +37,5 @@ let package = Package(
       name: "FlexBuffers.Test.Swift.WasmTests",
       dependencies: [
         .product(name: "FlexBuffers", package: "flatbuffers"),
-      ])
+      ]),
   ])
