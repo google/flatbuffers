@@ -375,6 +375,12 @@ class RustGenerator : public BaseGenerator {
       code_ += "// " + std::string(FlatBuffersGeneratedWarning());
       code_ += "// @generated";
       code_ += "extern crate alloc;";
+      if (parser_.opts.generate_object_based_api) {
+        code_ += "use alloc::vec::Vec;";
+        code_ += "use alloc::string::String;";
+        code_ += "use alloc::boxed::Box;";
+        code_ += "use alloc::string::ToString;";
+      }
       if (parser_.opts.rust_serialize) {
         code_ += "extern crate serde;";
         code_ +=
@@ -730,7 +736,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "mod bitflags_{{ENUM_NAMESPACE}} {";
       code_ += "  ::flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment, "    ");
-      code_ += "    #[derive(Default, Debug, Clone, Copy, PartialEq)]";
+      code_ += "    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]";
       code_ += "    {{ACCESS_TYPE}} struct {{ENUM_TY}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal& ev) {
         this->GenComment(ev.doc_comment, "    ");
@@ -844,7 +850,7 @@ class RustGenerator : public BaseGenerator {
         code_ += "    where";
         code_ += "        D: serde::Deserializer<'de>,";
         code_ += "    {";
-        code_ += "        let s = String::deserialize(deserializer)?;";
+        code_ += "        let s = <std::string::String as serde::Deserialize>::deserialize(deserializer)?;";
         code_ += "        for item in {{ENUM_TY}}::ENUM_VALUES {";
         code_ += "            if let Some(item_name) = item.variant_name() {";
         code_ += "                if item_name == s {";
@@ -957,13 +963,12 @@ class RustGenerator : public BaseGenerator {
     // Generate native union.
     code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is
                                                        // intended.
-    code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq)]";
+    code_ += ObjectDerives(UnionIsHashable(enum_def));
     code_ += "{{ACCESS_TYPE}} enum {{ENUM_OTY}} {";
     code_ += "  NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
       code_ +=
-          "{{NATIVE_VARIANT}}(alloc::boxed::Box<{{U_ELEMENT_TABLE_TYPE}}>),";
+          "{{NATIVE_VARIANT}}(Box<{{U_ELEMENT_TABLE_TYPE}}>),";
     });
     code_ += "}";
     // Generate Default (NONE).
@@ -1011,7 +1016,7 @@ class RustGenerator : public BaseGenerator {
           "{{U_ELEMENT_TABLE_TYPE}}, setting the union to NONE.";
       code_ +=
           "pub fn take_{{U_ELEMENT_NAME}}(&mut self) -> "
-          "Option<alloc::boxed::Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
+          "Option<Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
       code_ += "  if let Self::{{NATIVE_VARIANT}}(_) = self {";
       code_ += "    let v = ::core::mem::replace(self, Self::NONE);";
       code_ += "    if let Self::{{NATIVE_VARIANT}}(w) = v {";
@@ -1105,7 +1110,7 @@ class RustGenerator : public BaseGenerator {
         const std::string defval =
             field.IsRequired() ? "\"\"" : "\"" + field.value.constant + "\"";
         if (context == kObject) {
-          return "alloc::string::ToString::to_string(" + defval + ")";
+          return defval + ".to_string()";
         }
         if (context == kAccessor) return "&" + defval;
         FLATBUFFERS_ASSERT(false);
@@ -1224,7 +1229,8 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
-  std::string ObjectFieldType(const FieldDef& field, bool in_a_table) {
+  std::string ObjectFieldType(const FieldDef& field, bool in_a_table,
+                              const StructDef* parent_struct = nullptr) {
     const Type& type = field.value.type;
     std::string ty;
     switch (GetFullType(type)) {
@@ -1235,7 +1241,7 @@ class RustGenerator : public BaseGenerator {
         break;
       }
       case ftString: {
-        ty = "alloc::string::String";
+        ty = parent_struct ? ObjectStringType(*parent_struct) : "String";
         break;
       }
       case ftStruct: {
@@ -1246,7 +1252,7 @@ class RustGenerator : public BaseGenerator {
         // Since Tables can contain themselves, Box is required to avoid
         // infinite types.
         ty =
-            "alloc::boxed::Box<" + NamespacedNativeName(*type.struct_def) + ">";
+            "Box<" + NamespacedNativeName(*type.struct_def) + ">";
         break;
       }
       case ftUnionKey: {
@@ -1264,24 +1270,24 @@ class RustGenerator : public BaseGenerator {
       }
       // Vectors are in tables and are optional
       case ftVectorOfEnumKey: {
-        ty = "alloc::vec::Vec<" + WrapInNameSpace(*type.VectorType().enum_def) +
+        ty = "Vec<" + WrapInNameSpace(*type.VectorType().enum_def) +
              ">";
         break;
       }
       case ftVectorOfInteger:
       case ftVectorOfBool:
       case ftVectorOfFloat: {
-        ty = "alloc::vec::Vec<" + GetTypeBasic(type.VectorType()) + ">";
+        ty = "Vec<" + GetTypeBasic(type.VectorType()) + ">";
         break;
       }
       case ftVectorOfString: {
-        ty = "alloc::vec::Vec<alloc::string::String>";
+        ty = "Vec<" + (parent_struct ? ObjectStringType(*parent_struct) : std::string("String")) + ">";
         break;
       }
       case ftVectorOfTable:
       case ftVectorOfStruct: {
         ty = NamespacedNativeName(*type.VectorType().struct_def);
-        ty = "alloc::vec::Vec<" + ty + ">";
+        ty = "Vec<" + ty + ">";
         break;
       }
       case ftVectorOfUnionValue: {
@@ -1789,7 +1795,7 @@ class RustGenerator : public BaseGenerator {
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_ +=
                   "  {{ENUM_TY}}::{{VARIANT_NAME}} => "
-                  "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(alloc::boxed::Box::"
+                  "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(Box::"
                   "new(";
               code_ += "    self.{{FIELD}}_as_{{U_ELEMENT_NAME}}()";
               code_ +=
@@ -1806,7 +1812,7 @@ class RustGenerator : public BaseGenerator {
           // The rest of the types need special handling based on if the field
           // is optional or not.
           case ftString: {
-            code_.SetValue("EXPR", "alloc::string::ToString::to_string(x)");
+            code_.SetValue("EXPR", "x.to_string()");
             break;
           }
           case ftStruct: {
@@ -1814,7 +1820,7 @@ class RustGenerator : public BaseGenerator {
             break;
           }
           case ftTable: {
-            code_.SetValue("EXPR", "alloc::boxed::Box::new(x.unpack())");
+            code_.SetValue("EXPR", "Box::new(x.unpack())");
             break;
           }
           case ftVectorOfInteger:
@@ -1827,7 +1833,7 @@ class RustGenerator : public BaseGenerator {
           case ftVectorOfString: {
             code_.SetValue("EXPR",
                            "x.iter().map(|s| "
-                           "alloc::string::ToString::to_string(s)).collect()");
+                           "s.to_string()).collect()");
             break;
           }
           case ftVectorOfStruct:
@@ -2262,8 +2268,7 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_TY", namer_.Type(table));
 
     // Generate the native object.
-    code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq)]";
+    code_ += ObjectDerives(TypeIsHashable(table));
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
     ForAllObjectTableFields(table, [&](const FieldDef& field) {
       // Union objects combine both the union discriminant and value, so we
@@ -2351,7 +2356,7 @@ class RustGenerator : public BaseGenerator {
         }
         case ftVectorOfStruct: {
           MapNativeTableField(field,
-                              "let w: alloc::vec::Vec<_> = x.iter().map(|t| "
+                              "let w: Vec<_> = x.iter().map(|t| "
                               "t.pack()).collect();"
                               "_fbb.create_vector(&w)");
           return;
@@ -2361,14 +2366,14 @@ class RustGenerator : public BaseGenerator {
           // allocations.
 
           MapNativeTableField(field,
-                              "let w: alloc::vec::Vec<_> = x.iter().map(|s| "
+                              "let w: Vec<_> = x.iter().map(|s| "
                               "_fbb.create_string(s)).collect();"
                               "_fbb.create_vector(&w)");
           return;
         }
         case ftVectorOfTable: {
           MapNativeTableField(field,
-                              "let w: alloc::vec::Vec<_> = x.iter().map(|t| "
+                              "let w: Vec<_> = x.iter().map(|t| "
                               "t.pack(_fbb)).collect();"
                               "_fbb.create_vector(&w)");
           return;
@@ -2401,7 +2406,7 @@ class RustGenerator : public BaseGenerator {
       const FieldDef& field = **it;
       if (field.deprecated) continue;
       code_.SetValue("FIELD", namer_.Field(field));
-      code_.SetValue("FIELD_OTY", ObjectFieldType(field, true));
+      code_.SetValue("FIELD_OTY", ObjectFieldType(field, true, &table));
       code_.IncrementIdentLevel();
       cb(field);
       code_.DecrementIdentLevel();
@@ -2637,7 +2642,7 @@ class RustGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const auto& field = **it;
       code_.SetValue("FIELD_TYPE", GetTypeGet(field.value.type));
-      code_.SetValue("FIELD_OTY", ObjectFieldType(field, false));
+      code_.SetValue("FIELD_OTY", ObjectFieldType(field, false, &struct_def));
       code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("FIELD_OFFSET", NumToString(offset_to_field));
       code_.SetValue(
@@ -2939,7 +2944,14 @@ class RustGenerator : public BaseGenerator {
     // Generate Struct Object.
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
-      code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
+      {
+        std::string derives = "#[derive(Debug, Clone, PartialEq, Default";
+        if (TypeIsHashable(struct_def)) {
+          derives += ", Eq, Hash";
+        }
+        derives += ")]";
+        code_ += derives;
+      }
       code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
         (void)field;  // unused.
@@ -2987,12 +2999,14 @@ class RustGenerator : public BaseGenerator {
         auto basename = flatbuffers::StripPath(noext);
 
         if (parser_.opts.include_prefix.empty()) {
+          code_ += indent + "#[allow(unused_imports)]";
           code_ += indent + "use crate::" + basename +
                    parser_.opts.filename_suffix + "::*;";
         } else {
           auto prefix = parser_.opts.include_prefix;
           prefix.pop_back();
 
+          code_ += indent + "#[allow(unused_imports)]";
           code_ += indent + "use crate::" + prefix + "::" + basename +
                    parser_.opts.filename_suffix + "::*;";
         }
@@ -3000,12 +3014,19 @@ class RustGenerator : public BaseGenerator {
     }
     if (parser_.opts.rust_serialize) {
       code_ += indent + "extern crate serde;";
+      code_ += indent + "#[allow(unused_imports)]";
       code_ +=
           indent +
           "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
       code_ += "";
     }
     code_ += "extern crate alloc;";
+    if (parser_.opts.generate_object_based_api) {
+      code_ += "use alloc::vec::Vec;";
+      code_ += "use alloc::string::String;";
+      code_ += "use alloc::boxed::Box;";
+      code_ += "use alloc::string::ToString;";
+    }
   }
 
   // Set up the correct namespace. This opens a namespace if the current
@@ -3055,6 +3076,85 @@ class RustGenerator : public BaseGenerator {
     }
 
     cur_name_space_ = ns;
+  }
+
+  // Check if a type transitively contains f32/f64 fields.
+  // Types with floats cannot derive Hash or Eq.
+  bool HasFloatFields(const StructDef& struct_def,
+                      std::set<const StructDef*>& visited) const {
+    if (!visited.insert(&struct_def).second) return false;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef& field = **it;
+      if (IsFloat(field.value.type.base_type)) return true;
+      // Check vector element type
+      if (IsVector(field.value.type) &&
+          IsFloat(field.value.type.VectorType().base_type))
+        return true;
+      // Check nested struct/table
+      if (field.value.type.struct_def &&
+          HasFloatFields(*field.value.type.struct_def, visited))
+        return true;
+      // Check union variants
+      if (field.value.type.enum_def &&
+          HasFloatFieldsInUnion(*field.value.type.enum_def, visited))
+        return true;
+    }
+    return false;
+  }
+
+  bool HasFloatFieldsInUnion(const EnumDef& enum_def,
+                             std::set<const StructDef*>& visited) const {
+    if (!enum_def.is_union) return false;
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const EnumVal& ev = **it;
+      if (ev.union_type.struct_def &&
+          HasFloatFields(*ev.union_type.struct_def, visited))
+        return true;
+    }
+    return false;
+  }
+
+  bool TypeIsHashable(const StructDef& struct_def) const {
+    std::set<const StructDef*> visited;
+    return !HasFloatFields(struct_def, visited);
+  }
+
+  bool UnionIsHashable(const EnumDef& enum_def) const {
+    std::set<const StructDef*> visited;
+    return !HasFloatFieldsInUnion(enum_def, visited);
+  }
+
+  // Build the derive string for Object API *T types.
+  std::string ObjectDerives(bool hashable) const {
+    std::string derives = "#[derive(Debug, Clone, PartialEq";
+    if (hashable) {
+      derives += ", Eq, Hash";
+    }
+    derives += ")]";
+    return derives;
+  }
+
+  // Check if a namespace defines a table named "String" which would shadow
+  // std::string::String in Rust Object API types.
+  bool NamespaceShadowsString(const StructDef& struct_def) const {
+    if (!struct_def.defined_namespace) return false;
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      const StructDef& other = **it;
+      if (other.defined_namespace == struct_def.defined_namespace &&
+          other.name == "String")
+        return true;
+    }
+    return false;
+  }
+
+  // Return the Rust type for a String field in Object API, qualified if needed.
+  std::string ObjectStringType(const StructDef& struct_def) const {
+    if (NamespaceShadowsString(struct_def)) {
+      return "std::string::String";
+    }
+    return "String";
   }
 
  private:
