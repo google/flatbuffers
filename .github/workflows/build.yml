@@ -30,7 +30,7 @@ jobs:
         cxx: [g++-13, clang++-18]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_STATIC_FLATC=ON .
     - name: build
@@ -51,7 +51,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: zip Linux.flatc.binary.${{ matrix.cxx }}.zip flatc
     - name: Release zip file
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: Linux.flatc.binary.${{ matrix.cxx }}.zip
@@ -68,7 +68,7 @@ jobs:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: cmake
       run: CXX=clang++-18 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
@@ -80,7 +80,7 @@ jobs:
     name: Build Linux with out-of-source build location
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: make build directory
       run: mkdir build
     - name: cmake
@@ -112,7 +112,7 @@ jobs:
             std: 23
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: cmake
       run: >
         CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles"
@@ -135,9 +135,9 @@ jobs:
         std: [11, 14, 17, 20, 23]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: cmake
       run: >
         cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
@@ -160,9 +160,9 @@ jobs:
     name: Build Windows 2022
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: cmake
       run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -179,7 +179,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: move Release/flatc.exe . && Compress-Archive flatc.exe Windows.flatc.binary.zip
     - name: Release binary
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: Windows.flatc.binary.zip
@@ -197,19 +197,18 @@ jobs:
         configuration: [
           '',
           '-p:UnsafeByteBuffer=true',
-          # Fails two tests currently.
-          #'-p:EnableSpanT=true,UnsafeByteBuffer=true'
+          '-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v4.2.0
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
     - name: Build
       run: |
         cd tests\FlatBuffers.Test
-        dotnet new sln --force --name FlatBuffers.Test
+        dotnet new sln --force --name FlatBuffers.Test --format sln
         dotnet sln FlatBuffers.Test.sln add FlatBuffers.Test.csproj
         dotnet build -c Release ${{matrix.configuration}} FlatBuffers.Test.sln
     - name: Run net6.0
@@ -228,9 +227,9 @@ jobs:
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
-    runs-on: macos-latest-large
+    runs-on: macos-15-intel
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: cmake
       run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -256,7 +255,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: mv Release/flatc . && zip MacIntel.flatc.binary.zip flatc
     - name: Release binary
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: MacIntel.flatc.binary.zip
@@ -273,7 +272,7 @@ jobs:
     name: Build Mac (universal build)
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: cmake
       run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -299,7 +298,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       run: mv Release/flatc . && zip Mac.flatc.binary.zip flatc
     - name: Release binary
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: Mac.flatc.binary.zip
@@ -313,14 +312,14 @@ jobs:
    if: false #disabled due to continual failure
    runs-on: ubuntu-24.04
    steps:
-   - uses: actions/checkout@v3
+   - uses: actions/checkout@v6
    - name: set up Java
      uses: actions/setup-java@v4
      with:
        distribution: temurin
        java-version: 17
    - name: set up Gradle
-     uses: gradle/actions/setup-gradle@v4
+     uses: gradle/actions/setup-gradle@v5
    - name: set up flatc
      run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
@@ -337,7 +336,7 @@ jobs:
       matrix:
         cxx: [g++-13, clang++-18]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Generate
@@ -349,9 +348,9 @@ jobs:
     name: Check Generated Code on Windows
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
     - name: cmake
       run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -368,7 +367,7 @@ jobs:
       matrix:
         cxx: [g++-13]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Run benchmarks
@@ -383,31 +382,24 @@ jobs:
     name: Build Java
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: test
       working-directory: java
       run: mvn test
 
   build-kotlin-macos:
     name: Build Kotlin MacOS
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
-      # Force Xcode 14.3 since Xcode 15 doesnt support older versions of
-      # kotlin. For Xcode 15, kotlin should be bumpped to 1.9.10
-      # https://stackoverflow.com/a/77150623
-      # For now, run with macos-13 which has this 14.3 installed:
-      # https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
-    - name: Set up Xcode version
-      run: sudo xcode-select -s /Applications/Xcode_14.3.app/Contents/Developer
+      uses: actions/checkout@v6
     - name: set up Java
       uses: actions/setup-java@v4
       with:
         distribution: temurin
         java-version: 17
     - name: set up Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
@@ -423,14 +415,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - name: set up Java
       uses: actions/setup-java@v4
       with:
         distribution: temurin
         java-version: 17
     - name: set up Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
@@ -447,7 +439,7 @@ jobs:
     name: Build Rust Linux
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: test
       working-directory: tests
       run: bash RustTest.sh
@@ -456,7 +448,7 @@ jobs:
     name: Build Rust Windows
     runs-on: windows-2022-64core
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: test
       working-directory: tests
       run: ./RustTest.bat
@@ -465,7 +457,7 @@ jobs:
     name: Build Python
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -477,7 +469,7 @@ jobs:
     name: Build Go
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -489,7 +481,7 @@ jobs:
    name: Build PHP
    runs-on: ubuntu-24.04
    steps:
-   - uses: actions/checkout@v3
+   - uses: actions/checkout@v6
    - name: flatc
      # FIXME: make test script not rely on flatc
      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -500,29 +492,26 @@ jobs:
        sh phpUnionVectorTest.sh
 
   build-swift:
-    name: Test Swift
+    name: Test Swift Linux
     strategy:
       matrix:
         swift: ["5.10", "6.1", "6.2"]
-    # Only 22.04 has swift at the moment https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md?plain=1#L30
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
-    - uses: vapor/swiftly-action@v0.2
+    - uses: actions/checkout@v6
+    - uses: swift-actions/setup-swift@v2
       with:
-        toolchain: ${{ matrix.swift }}
+        swift-version: ${{ matrix.swift }}
     - name: Get swift version
       run: swift --version
     - name: test
-      run: |
-        swift build --build-tests
-        swift test
+      run: swift test
 
   build-swift-windows:
     name: Test swift windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - uses: SwiftyLab/setup-swift@latest
         with:
           swift-version: '6.1'
@@ -532,23 +521,26 @@ jobs:
   build-swift-wasm:
     name: Test Swift Wasm
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/swiftwasm/carton:0.20.1
     steps:
-       - uses: actions/checkout@v3
-       - uses: bytecodealliance/actions/wasmtime/setup@v1
-       - uses: swiftwasm/setup-swiftwasm@v1
+       - uses: actions/checkout@v6
+       - uses: swift-actions/setup-swift@v2
          with:
-           swift-version: "wasm-6.0.2-RELEASE"
+           swift-version: 6.2.1
+       - uses: bytecodealliance/actions/wasmtime/setup@v1
+       - name: Install Swift SDK
+         run: swift sdk install https://download.swift.org/swift-6.2.1-release/wasm-sdk/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE_wasm.artifactbundle.tar.gz --checksum 482b9f95462b87bedfafca94a092cf9ec4496671ca13b43745097122d20f18af
        - name: Test
          working-directory: tests/swift/Wasm.tests
-         run: swift run carton test
+         run: |
+           swift sdk list
+           swift build --build-tests --swift-sdk swift-6.2.1-RELEASE_wasm
+           wasmtime --dir . .build/wasm32-unknown-wasip1/debug/FlatBuffers.Test.Swift.WasmPackageTests.xctest
 
   build-ts:
     name: Build TS
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
@@ -567,7 +559,7 @@ jobs:
     name: Build Dart
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
@@ -582,11 +574,11 @@ jobs:
     name: Build Nim
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
-    - uses: jiro4989/setup-nim-action@v1
+    - uses: jiro4989/setup-nim-action@v2
     - name: install library
       working-directory: nim
       run: nimble -y develop && nimble install
@@ -598,12 +590,17 @@ jobs:
     name: Bazel
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
+      # Explicitly use 8.5.1 until we can update or https://github.com/actions/runner-images/issues/13564 is fixed.
+      - name: Set env
+        run: >
+          echo "USE_BAZEL_VERSION=8.5.1" >> $GITHUB_ENV
       - name: bazel build
         run: >
           bazel build
           //:flatc
           //:flatbuffers
+          //tests:flatbuffers_test
       - name: bazel test
         run: >
           bazel test
@@ -640,8 +637,7 @@ jobs:
       actions: read   # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.1
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.release-digests.outputs.digests }}"
       upload-assets: true # Optional: Upload to a new release
-      compile-generator: true # Workaround for https://github.com/slsa-framework/slsa-github-generator/issues/1163

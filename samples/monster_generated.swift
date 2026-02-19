@@ -75,7 +75,7 @@ public struct MyGame_Sample_EquipmentUnion {
 }
 public struct MyGame_Sample_Vec3: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
   private var _x: Float32
   private var _y: Float32
@@ -113,12 +113,12 @@ public struct MyGame_Sample_Vec3: NativeStruct, FlatbuffersVectorInitializable, 
 }
 
 extension MyGame_Sample_Vec3: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case x = "x"
     case y = "y"
     case z = "z"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     if x != 0.0 {
@@ -135,7 +135,7 @@ extension MyGame_Sample_Vec3: Encodable {
 
 public struct MyGame_Sample_Vec3_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -163,58 +163,56 @@ public struct MyGame_Sample_Vec3_Mutable: FlatBufferStruct, FlatbuffersVectorIni
 
 public struct MyGame_Sample_Monster: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case pos = 4
-    case mana = 6
-    case hp = 8
-    case name = 10
-    case inventory = 14
-    case color = 16
-    case weapons = 18
-    case equippedType = 20
-    case equipped = 22
-    case path = 24
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let pos: VOffset = 4
+    static let mana: VOffset = 6
+    static let hp: VOffset = 8
+    static let name: VOffset = 10
+    static let inventory: VOffset = 14
+    static let color: VOffset = 16
+    static let weapons: VOffset = 18
+    static let equippedType: VOffset = 20
+    static let equipped: VOffset = 22
+    static let path: VOffset = 24
   }
 
-  public var pos: MyGame_Sample_Vec3? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : _accessor.readBuffer(of: MyGame_Sample_Vec3.self, at: o) }
-  public var mutablePos: MyGame_Sample_Vec3_Mutable? { let o = _accessor.offset(VTOFFSET.pos.v); return o == 0 ? nil : MyGame_Sample_Vec3_Mutable(_accessor.bb, o: o + _accessor.position) }
-  public var mana: Int16 { let o = _accessor.offset(VTOFFSET.mana.v); return o == 0 ? 150 : _accessor.readBuffer(of: Int16.self, at: o) }
-  @discardableResult public func mutate(mana: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.mana.v);  return _accessor.mutate(mana, index: o) }
-  public var hp: Int16 { let o = _accessor.offset(VTOFFSET.hp.v); return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o) }
-  @discardableResult public func mutate(hp: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.hp.v);  return _accessor.mutate(hp, index: o) }
-  public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
-  public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
-  public var inventory: FlatbufferVector<UInt8> { return _accessor.vector(at: VTOFFSET.inventory.v, byteSize: 1) }
-  public func mutate(inventory: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VTOFFSET.inventory.v); return _accessor.directMutate(inventory, index: _accessor.vector(at: o) + index * 1) }
-  public func withUnsafePointerToInventory<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.inventory.v, body: body) }
-  public var color: MyGame_Sample_Color { let o = _accessor.offset(VTOFFSET.color.v); return o == 0 ? .blue : MyGame_Sample_Color(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .blue }
-  @discardableResult public func mutate(color: MyGame_Sample_Color) -> Bool {let o = _accessor.offset(VTOFFSET.color.v);  return _accessor.mutate(color.rawValue, index: o) }
-  public var weapons: FlatbufferVector<MyGame_Sample_Weapon> { return _accessor.vector(at: VTOFFSET.weapons.v, byteSize: 4) }
-  public var equippedType: MyGame_Sample_Equipment { let o = _accessor.offset(VTOFFSET.equippedType.v); return o == 0 ? .none_ : MyGame_Sample_Equipment(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
-  public func equipped<T: FlatbuffersInitializable>(type: T.Type) -> T? { let o = _accessor.offset(VTOFFSET.equipped.v); return o == 0 ? nil : _accessor.union(o) }
-  public var path: FlatbufferVector<MyGame_Sample_Vec3> { return _accessor.vector(at: VTOFFSET.path.v, byteSize: 12) }
-  public var mutablePath: FlatbufferVector<MyGame_Sample_Vec3_Mutable> { return _accessor.vector(at: VTOFFSET.path.v, byteSize: 12) }
-  public func withUnsafePointerToPath<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.path.v, body: body) }
+  public var pos: MyGame_Sample_Vec3? { let o = _accessor.offset(VT.pos); return o == 0 ? nil : _accessor.readBuffer(of: MyGame_Sample_Vec3.self, at: o) }
+  public var mutablePos: MyGame_Sample_Vec3_Mutable? { let o = _accessor.offset(VT.pos); return o == 0 ? nil : MyGame_Sample_Vec3_Mutable(_accessor.bb, o: o + _accessor.position) }
+  public var mana: Int16 { let o = _accessor.offset(VT.mana); return o == 0 ? 150 : _accessor.readBuffer(of: Int16.self, at: o) }
+  @discardableResult public func mutate(mana: Int16) -> Bool {let o = _accessor.offset(VT.mana);  return _accessor.mutate(mana, index: o) }
+  public var hp: Int16 { let o = _accessor.offset(VT.hp); return o == 0 ? 100 : _accessor.readBuffer(of: Int16.self, at: o) }
+  @discardableResult public func mutate(hp: Int16) -> Bool {let o = _accessor.offset(VT.hp);  return _accessor.mutate(hp, index: o) }
+  public var name: String? { let o = _accessor.offset(VT.name); return o == 0 ? nil : _accessor.string(at: o) }
+  public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.name) }
+  public var inventory: FlatbufferVector<UInt8> { return _accessor.vector(at: VT.inventory, byteSize: 1) }
+  public func mutate(inventory: UInt8, at index: Int32) -> Bool { let o = _accessor.offset(VT.inventory); return _accessor.directMutate(inventory, index: _accessor.vector(at: o) + index * 1) }
+  public func withUnsafePointerToInventory<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.inventory, body: body) }
+  public var color: MyGame_Sample_Color { let o = _accessor.offset(VT.color); return o == 0 ? .blue : MyGame_Sample_Color(rawValue: _accessor.readBuffer(of: Int8.self, at: o)) ?? .blue }
+  @discardableResult public func mutate(color: MyGame_Sample_Color) -> Bool {let o = _accessor.offset(VT.color);  return _accessor.mutate(color.rawValue, index: o) }
+  public var weapons: FlatbufferVector<MyGame_Sample_Weapon> { return _accessor.vector(at: VT.weapons, byteSize: 4) }
+  public var equippedType: MyGame_Sample_Equipment { let o = _accessor.offset(VT.equippedType); return o == 0 ? .none_ : MyGame_Sample_Equipment(rawValue: _accessor.readBuffer(of: UInt8.self, at: o)) ?? .none_ }
+  public func equipped<T: FlatbuffersInitializable>(type: T.Type) -> T? { let o = _accessor.offset(VT.equipped); return o == 0 ? nil : _accessor.union(o) }
+  public var path: FlatbufferVector<MyGame_Sample_Vec3> { return _accessor.vector(at: VT.path, byteSize: 12) }
+  public var mutablePath: FlatbufferVector<MyGame_Sample_Vec3_Mutable> { return _accessor.vector(at: VT.path, byteSize: 12) }
+  public func withUnsafePointerToPath<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.path, body: body) }
   public static func startMonster(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 11) }
-  public static func add(pos: MyGame_Sample_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VTOFFSET.pos.p) }
-  public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VTOFFSET.mana.p) }
-  public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VTOFFSET.hp.p) }
-  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
-  public static func addVectorOf(inventory: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: inventory, at: VTOFFSET.inventory.p) }
-  public static func add(color: MyGame_Sample_Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 2, at: VTOFFSET.color.p) }
-  public static func addVectorOf(weapons: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: weapons, at: VTOFFSET.weapons.p) }
-  public static func add(equippedType: MyGame_Sample_Equipment, _ fbb: inout FlatBufferBuilder) { fbb.add(element: equippedType.rawValue, def: 0, at: VTOFFSET.equippedType.p) }
-  public static func add(equipped: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: equipped, at: VTOFFSET.equipped.p) }
-  public static func addVectorOf(path: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: path, at: VTOFFSET.path.p) }
+  public static func add(pos: MyGame_Sample_Vec3?, _ fbb: inout FlatBufferBuilder) { guard let pos = pos else { return }; fbb.create(struct: pos, position: VT.pos) }
+  public static func add(mana: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: mana, def: 150, at: VT.mana) }
+  public static func add(hp: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: hp, def: 100, at: VT.hp) }
+  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VT.name) }
+  public static func addVectorOf(inventory: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: inventory, at: VT.inventory) }
+  public static func add(color: MyGame_Sample_Color, _ fbb: inout FlatBufferBuilder) { fbb.add(element: color.rawValue, def: 2, at: VT.color) }
+  public static func addVectorOf(weapons: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: weapons, at: VT.weapons) }
+  public static func add(equippedType: MyGame_Sample_Equipment, _ fbb: inout FlatBufferBuilder) { fbb.add(element: equippedType.rawValue, def: 0, at: VT.equippedType) }
+  public static func add(equipped: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: equipped, at: VT.equipped) }
+  public static func addVectorOf(path: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: path, at: VT.path) }
   public static func startVectorOfPath(_ size: Int, in builder: inout FlatBufferBuilder) {
     builder.startVector(size * MemoryLayout<MyGame_Sample_Vec3>.size, elementSize: MemoryLayout<MyGame_Sample_Vec3>.alignment)
   }
@@ -293,14 +291,14 @@ public struct MyGame_Sample_Monster: FlatBufferTable, FlatbuffersVectorInitializ
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.pos.p, fieldName: "pos", required: false, type: MyGame_Sample_Vec3.self)
-    try _v.visit(field: VTOFFSET.mana.p, fieldName: "mana", required: false, type: Int16.self)
-    try _v.visit(field: VTOFFSET.hp.p, fieldName: "hp", required: false, type: Int16.self)
-    try _v.visit(field: VTOFFSET.name.p, fieldName: "name", required: false, type: ForwardOffset<String>.self)
-    try _v.visit(field: VTOFFSET.inventory.p, fieldName: "inventory", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
-    try _v.visit(field: VTOFFSET.color.p, fieldName: "color", required: false, type: MyGame_Sample_Color.self)
-    try _v.visit(field: VTOFFSET.weapons.p, fieldName: "weapons", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Sample_Weapon>, MyGame_Sample_Weapon>>.self)
-    try _v.visit(unionKey: VTOFFSET.equippedType.p, unionField: VTOFFSET.equipped.p, unionKeyName: "equippedType", fieldName: "equipped", required: false, completion: { (verifier, key: MyGame_Sample_Equipment, pos) in
+    try _v.visit(field: VT.pos, fieldName: "pos", required: false, type: MyGame_Sample_Vec3.self)
+    try _v.visit(field: VT.mana, fieldName: "mana", required: false, type: Int16.self)
+    try _v.visit(field: VT.hp, fieldName: "hp", required: false, type: Int16.self)
+    try _v.visit(field: VT.name, fieldName: "name", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.inventory, fieldName: "inventory", required: false, type: ForwardOffset<Vector<UInt8, UInt8>>.self)
+    try _v.visit(field: VT.color, fieldName: "color", required: false, type: MyGame_Sample_Color.self)
+    try _v.visit(field: VT.weapons, fieldName: "weapons", required: false, type: ForwardOffset<Vector<ForwardOffset<MyGame_Sample_Weapon>, MyGame_Sample_Weapon>>.self)
+    try _v.visit(unionKey: VT.equippedType, unionField: VT.equipped, unionKeyName: "equippedType", fieldName: "equipped", required: false, completion: { (verifier, key: MyGame_Sample_Equipment, pos) in
       switch key {
       case .none_:
         break // NOTE - SWIFT doesnt support none
@@ -308,13 +306,12 @@ public struct MyGame_Sample_Monster: FlatBufferTable, FlatbuffersVectorInitializ
         try ForwardOffset<MyGame_Sample_Weapon>.verify(&verifier, at: pos, of: MyGame_Sample_Weapon.self)
       }
     })
-    try _v.visit(field: VTOFFSET.path.p, fieldName: "path", required: false, type: ForwardOffset<Vector<MyGame_Sample_Vec3, MyGame_Sample_Vec3>>.self)
+    try _v.visit(field: VT.path, fieldName: "path", required: false, type: ForwardOffset<Vector<MyGame_Sample_Vec3, MyGame_Sample_Vec3>>.self)
     _v.finish()
   }
 }
 
 extension MyGame_Sample_Monster: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case pos = "pos"
     case mana = "mana"
@@ -327,6 +324,7 @@ extension MyGame_Sample_Monster: Encodable {
     case equipped = "equipped"
     case path = "path"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(pos, forKey: .pos)
@@ -404,27 +402,25 @@ public class MyGame_Sample_MonsterT: NativeObject {
 }
 public struct MyGame_Sample_Weapon: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case name = 4
-    case damage = 6
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let name: VOffset = 4
+    static let damage: VOffset = 6
   }
 
-  public var name: String? { let o = _accessor.offset(VTOFFSET.name.v); return o == 0 ? nil : _accessor.string(at: o) }
-  public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VTOFFSET.name.v) }
-  public var damage: Int16 { let o = _accessor.offset(VTOFFSET.damage.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int16.self, at: o) }
-  @discardableResult public func mutate(damage: Int16) -> Bool {let o = _accessor.offset(VTOFFSET.damage.v);  return _accessor.mutate(damage, index: o) }
+  public var name: String? { let o = _accessor.offset(VT.name); return o == 0 ? nil : _accessor.string(at: o) }
+  public var nameSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.name) }
+  public var damage: Int16 { let o = _accessor.offset(VT.damage); return o == 0 ? 0 : _accessor.readBuffer(of: Int16.self, at: o) }
+  @discardableResult public func mutate(damage: Int16) -> Bool {let o = _accessor.offset(VT.damage);  return _accessor.mutate(damage, index: o) }
   public static func startWeapon(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
-  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VTOFFSET.name.p) }
-  public static func add(damage: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: damage, def: 0, at: VTOFFSET.damage.p) }
+  public static func add(name: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: name, at: VT.name) }
+  public static func add(damage: Int16, _ fbb: inout FlatBufferBuilder) { fbb.add(element: damage, def: 0, at: VT.damage) }
   public static func endWeapon(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createWeapon(
     _ fbb: inout FlatBufferBuilder,
@@ -461,18 +457,18 @@ public struct MyGame_Sample_Weapon: FlatBufferTable, FlatbuffersVectorInitializa
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.name.p, fieldName: "name", required: false, type: ForwardOffset<String>.self)
-    try _v.visit(field: VTOFFSET.damage.p, fieldName: "damage", required: false, type: Int16.self)
+    try _v.visit(field: VT.name, fieldName: "name", required: false, type: ForwardOffset<String>.self)
+    try _v.visit(field: VT.damage, fieldName: "damage", required: false, type: Int16.self)
     _v.finish()
   }
 }
 
 extension MyGame_Sample_Weapon: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case name = "name"
     case damage = "damage"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(name, forKey: .name)

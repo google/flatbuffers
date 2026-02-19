@@ -216,7 +216,7 @@ impl<'a> ser::Serializer for &'a mut FlexbufferSerializer {
     type Ok = ();
     type Error = Error;
     fn is_human_readable(&self) -> bool {
-        cfg!(serialize_human_readable)
+        cfg!(feature = "serialize_human_readable")
     }
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
         self.builder.push(v);
@@ -421,6 +421,9 @@ impl<'a> Serializer for MapKeySerializer<'a> {
     type SerializeStruct = Impossible<(), Error>;
     type SerializeStructVariant = Impossible<(), Error>;
 
+    fn is_human_readable(&self) -> bool {
+        self.0.is_human_readable()
+    }
     fn serialize_bool(self, _value: bool) -> Result<(), Error> {
         key_must_be_a_string()
     }

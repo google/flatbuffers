@@ -10,31 +10,29 @@ import FlatBuffers
 
 public struct Swift_Tests_Vectors: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case none_ = 4
-    case empty = 6
-    case array = 8
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let none_: VOffset = 4
+    static let empty: VOffset = 6
+    static let array: VOffset = 8
   }
 
-  public var none_: FlatbufferVector<UInt64> { return _accessor.vector(at: VTOFFSET.none_.v, byteSize: 8) }
-  public func withUnsafePointerToNone<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.none_.v, body: body) }
-  public var empty: FlatbufferVector<UInt64> { return _accessor.vector(at: VTOFFSET.empty.v, byteSize: 8) }
-  public func withUnsafePointerToEmpty<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.empty.v, body: body) }
-  public var array: FlatbufferVector<UInt64> { return _accessor.vector(at: VTOFFSET.array.v, byteSize: 8) }
-  public func withUnsafePointerToArray<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VTOFFSET.array.v, body: body) }
+  public var none_: FlatbufferVector<UInt64> { return _accessor.vector(at: VT.none_, byteSize: 8) }
+  public func withUnsafePointerToNone<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.none_, body: body) }
+  public var empty: FlatbufferVector<UInt64> { return _accessor.vector(at: VT.empty, byteSize: 8) }
+  public func withUnsafePointerToEmpty<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.empty, body: body) }
+  public var array: FlatbufferVector<UInt64> { return _accessor.vector(at: VT.array, byteSize: 8) }
+  public func withUnsafePointerToArray<T>(_ body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T? { return try _accessor.withUnsafePointerToSlice(at: VT.array, body: body) }
   public static func startVectors(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 3) }
-  public static func addVectorOf(none_: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: none_, at: VTOFFSET.none_.p) }
-  public static func addVectorOf(empty: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: empty, at: VTOFFSET.empty.p) }
-  public static func addVectorOf(array: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: array, at: VTOFFSET.array.p) }
+  public static func addVectorOf(none_: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: none_, at: VT.none_) }
+  public static func addVectorOf(empty: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: empty, at: VT.empty) }
+  public static func addVectorOf(array: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: array, at: VT.array) }
   public static func endVectors(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createVectors(
     _ fbb: inout FlatBufferBuilder,
@@ -51,20 +49,20 @@ public struct Swift_Tests_Vectors: FlatBufferTable, FlatbuffersVectorInitializab
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.none_.p, fieldName: "none_", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
-    try _v.visit(field: VTOFFSET.empty.p, fieldName: "empty", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
-    try _v.visit(field: VTOFFSET.array.p, fieldName: "array", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
+    try _v.visit(field: VT.none_, fieldName: "none_", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
+    try _v.visit(field: VT.empty, fieldName: "empty", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
+    try _v.visit(field: VT.array, fieldName: "array", required: false, type: ForwardOffset<Vector<UInt64, UInt64>>.self)
     _v.finish()
   }
 }
 
 extension Swift_Tests_Vectors: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case none_ = "none"
     case empty = "empty"
     case array = "array"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(none_, forKey: .none_)

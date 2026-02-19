@@ -47,7 +47,7 @@ struct NsDefinition {
   std::string path;
   std::string filepath;
   std::string symbolic_name;
-  const Namespace* ns;
+  const Namespace* ns = nullptr;
   std::map<std::string, const Definition*> definitions;
 };
 
@@ -67,6 +67,7 @@ Namer::Config TypeScriptDefaultConfig() {
           /*object_suffix=*/"T",
           /*keyword_prefix=*/"",
           /*keyword_suffix=*/"_",
+          /*keywords_casing=*/Namer::Config::KeywordsCasing::CaseSensitive,
           /*filenames=*/Case::kDasher,
           /*directories=*/Case::kDasher,
           /*output_path=*/"",
@@ -86,6 +87,7 @@ std::set<std::string> TypescriptKeywords() {
       "throw",     "true",     "try",       "typeof",     "var",        "void",
       "while",     "with",     "as",        "implements", "interface",  "let",
       "package",   "private",  "protected", "public",     "static",     "yield",
+      "undefined"  // Used with --ts-undefined-for-optionals
   };
 }
 
@@ -110,7 +112,9 @@ class TsGenerator : public BaseGenerator {
               const std::string& file_name)
       : BaseGenerator(parser, path, file_name, "", "_", "ts"),
         namer_(WithFlagOptions(TypeScriptDefaultConfig(), parser.opts, path),
-               TypescriptKeywords()) {}
+               TypescriptKeywords()),
+        null_keyword_(parser_.opts.ts_undefined_for_optionals ? "undefined"
+                                                              : "null") {}
 
   bool generate() {
     generateEnums();
@@ -118,7 +122,6 @@ class TsGenerator : public BaseGenerator {
     if (!parser_.opts.ts_omit_entrypoint) {
       generateEntry();
     }
-    if (!generateBundle()) return false;
     return true;
   }
 
@@ -178,7 +181,7 @@ class TsGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     auto basename = dirs + namer_.File(definition, SkipFile::Suffix);
 
-    return SaveFile(basename.c_str(), code, false);
+    return parser_.opts.file_saver->SaveFile(basename.c_str(), code, false);
   }
 
   void TrackNsDef(const Definition& definition, std::string type_name) {
@@ -214,6 +217,8 @@ class TsGenerator : public BaseGenerator {
   IdlNamer namer_;
 
   std::map<std::string, NsDefinition> ns_defs_;
+
+  std::string null_keyword_;
 
   // Generate code for all enums.
   void generateEnums() {
@@ -258,7 +263,7 @@ class TsGenerator : public BaseGenerator {
       nsDef.path = root;
       nsDef.symbolic_name = file_name_;
       nsDef.filepath = path_ + file_name_ + ".ts";
-      nsDef.ns = new Namespace();
+      nsDef.ns = parser_.empty_namespace_;
       ns_defs_[nsDef.path] = nsDef;
     }
 
@@ -319,31 +324,11 @@ class TsGenerator : public BaseGenerator {
         export_counter++;
       }
 
-      if (export_counter > 0) SaveFile(it.second.filepath.c_str(), code, false);
+      if (export_counter > 0) {
+        parser_.opts.file_saver->SaveFile(it.second.filepath.c_str(), code,
+                                          false);
+      }
     }
-  }
-
-  bool generateBundle() {
-    if (parser_.opts.ts_flat_files) {
-      std::string inputpath;
-      std::string symbolic_name = file_name_;
-      inputpath = path_ + file_name_ + ".ts";
-      std::string bundlepath =
-          GeneratedFileName(path_, file_name_, parser_.opts);
-      bundlepath = bundlepath.substr(0, bundlepath.size() - 3) + ".js";
-      std::string cmd = "esbuild";
-      cmd += " ";
-      cmd += inputpath;
-      // cmd += " --minify";
-      cmd += " --format=cjs --bundle --outfile=";
-      cmd += bundlepath;
-      cmd += " --external:flatbuffers";
-      std::cout << "Entry point " << inputpath << " generated." << std::endl;
-      std::cout << "A single file bundle can be created using fx. esbuild with:"
-                << std::endl;
-      std::cout << "> " << cmd << std::endl;
-    }
-    return true;
   }
 
   // Generate a documentation comment, if available.
@@ -360,7 +345,12 @@ class TsGenerator : public BaseGenerator {
     code += "/**\n";
     for (auto it = dc.begin(); it != dc.end(); ++it) {
       if (indent) code += indent;
-      code += " *" + *it + "\n";
+      std::string safe = *it;
+      for (size_t pos = 0; (pos = safe.find("*/", pos)) != std::string::npos;) {
+        safe.replace(pos, 2, "*\\/");
+        pos += 3;
+      }
+      code += " *" + safe + "\n";
     }
     if (indent) code += indent;
     code += " */\n";
@@ -484,7 +474,7 @@ class TsGenerator : public BaseGenerator {
 
   std::string GenDefaultValue(const FieldDef& field, import_set& imports) {
     if (field.IsScalarOptional()) {
-      return "null";
+      return null_keyword_;
     }
 
     const auto& value = field.value;
@@ -497,8 +487,12 @@ class TsGenerator : public BaseGenerator {
             std::string enum_name =
                 AddImport(imports, *value.type.enum_def, *value.type.enum_def)
                     .name;
-            std::string enum_value = namer_.Variant(
-                *value.type.enum_def->FindByValue(value.constant));
+            const EnumVal* val =
+                value.type.enum_def->FindByValue(value.constant);
+            if (val == nullptr) {
+              val = value.type.enum_def->MinValue();
+            }
+            std::string enum_value = namer_.Variant(*val);
             ret += enum_name + "." + enum_value +
                    (i < value.type.fixed_length - 1 ? ", " : "");
           }
@@ -513,9 +507,10 @@ class TsGenerator : public BaseGenerator {
           return "BigInt('" + value.constant + "')";
         }
         default: {
-          EnumVal* val = value.type.enum_def->FindByValue(value.constant);
-          if (val == nullptr)
-            val = const_cast<EnumVal*>(value.type.enum_def->MinValue());
+          const EnumVal* val = value.type.enum_def->FindByValue(value.constant);
+          if (val == nullptr) {
+            val = value.type.enum_def->MinValue();
+          }
           return AddImport(imports, *value.type.enum_def, *value.type.enum_def)
                      .name +
                  "." + namer_.Variant(*val);
@@ -530,7 +525,7 @@ class TsGenerator : public BaseGenerator {
       case BASE_TYPE_STRING:
       case BASE_TYPE_UNION:
       case BASE_TYPE_STRUCT: {
-        return "null";
+        return null_keyword_;
       }
 
       case BASE_TYPE_ARRAY:
@@ -566,16 +561,16 @@ class TsGenerator : public BaseGenerator {
         } else {
           name = AddImport(imports, owner, *type.struct_def).name;
         }
-        return allowNull ? (name + "|null") : name;
+        return allowNull ? (name + "|" + null_keyword_) : name;
       }
     }
 
     switch (type.base_type) {
       case BASE_TYPE_BOOL:
-        return allowNull ? "boolean|null" : "boolean";
+        return allowNull ? ("boolean|" + null_keyword_) : "boolean";
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG:
-        return allowNull ? "bigint|null" : "bigint";
+        return allowNull ? ("bigint|" + null_keyword_) : "bigint";
       case BASE_TYPE_ARRAY: {
         std::string name;
         if (type.element == BASE_TYPE_LONG || type.element == BASE_TYPE_ULONG) {
@@ -590,16 +585,16 @@ class TsGenerator : public BaseGenerator {
           }
         }
 
-        return name + (allowNull ? "|null" : "");
+        return name + (allowNull ? ("|" + null_keyword_) : "");
       }
       default:
         if (IsScalar(type.base_type)) {
           if (type.enum_def) {
             const auto enum_name =
                 AddImport(imports, owner, *type.enum_def).name;
-            return allowNull ? (enum_name + "|null") : enum_name;
+            return allowNull ? (enum_name + "|" + null_keyword_) : enum_name;
           }
-          return allowNull ? "number|null" : "number";
+          return allowNull ? ("number|" + null_keyword_) : "number";
         }
         return "flatbuffers.Offset";
     }
@@ -653,7 +648,8 @@ class TsGenerator : public BaseGenerator {
   }
 
   void GenStructArgs(import_set& imports, const StructDef& struct_def,
-                     std::string* arguments, const std::string& nameprefix) {
+                     const Definition& owner, std::string* arguments,
+                     const std::string& nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto& field = **it;
@@ -661,11 +657,11 @@ class TsGenerator : public BaseGenerator {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
-        GenStructArgs(imports, *field.value.type.struct_def, arguments,
+        GenStructArgs(imports, *field.value.type.struct_def, owner, arguments,
                       nameprefix + field.name + "_");
       } else {
         *arguments += ", " + nameprefix + field.name + ": " +
-                      GenTypeName(imports, field, field.value.type, true,
+                      GenTypeName(imports, owner, field.value.type, true,
                                   field.IsOptional());
       }
     }
@@ -927,6 +923,48 @@ class TsGenerator : public BaseGenerator {
     return symbols_expression;
   }
 
+  std::vector<std::string> PathComponents(const std::string& path) const {
+    std::vector<std::string> components;
+    size_t start = 0;
+    while (start < path.size()) {
+      auto end = path.find(kPathSeparator, start);
+      if (end == std::string::npos) end = path.size();
+      if (end > start) {
+        components.emplace_back(path.substr(start, end - start));
+      }
+      if (end == path.size()) break;
+      start = end + 1;
+    }
+    return components;
+  }
+
+  std::string RelativeDirectory(const std::vector<std::string>& from,
+                                const std::vector<std::string>& to) const {
+    size_t common = 0;
+    while (common < from.size() && common < to.size() &&
+           from[common] == to[common]) {
+      ++common;
+    }
+
+    std::string rel;
+    const size_t ups = from.size() - common;
+    if (ups == 0) {
+      rel = ".";
+    } else {
+      for (size_t i = 0; i < ups; ++i) {
+        if (!rel.empty()) rel += kPathSeparator;
+        rel += "..";
+      }
+    }
+
+    for (size_t i = common; i < to.size(); ++i) {
+      if (!rel.empty()) rel += kPathSeparator;
+      rel += to[i];
+    }
+
+    return rel;
+  }
+
   template <typename DefinitionT>
   ImportDefinition AddImport(import_set& imports, const Definition& dependent,
                              const DefinitionT& dependency) {
@@ -954,26 +992,32 @@ class TsGenerator : public BaseGenerator {
     const std::string symbols_expression = GenSymbolExpression(
         dependency, has_name_clash, import_name, name, object_name);
 
-    std::string bare_file_path;
-    std::string rel_file_path;
-    if (dependent.defined_namespace) {
-      const auto& dep_comps = dependent.defined_namespace->components;
-      for (size_t i = 0; i < dep_comps.size(); i++) {
-        rel_file_path += i == 0 ? ".." : (kPathSeparator + std::string(".."));
-      }
-      if (dep_comps.size() == 0) {
-        rel_file_path += ".";
-      }
-    } else {
-      rel_file_path += "..";
-    }
+    const Namespace* dependent_ns = dependent.defined_namespace
+                                        ? dependent.defined_namespace
+                                        : parser_.empty_namespace_;
+    const Namespace* dependency_ns = dependency.defined_namespace
+                                         ? dependency.defined_namespace
+                                         : parser_.empty_namespace_;
 
-    bare_file_path +=
-        kPathSeparator +
-        namer_.Directories(dependency.defined_namespace->components,
-                           SkipDir::OutputPath) +
+    const std::string dependent_dirs =
+        namer_.Directories(*dependent_ns, SkipDir::OutputPath);
+    const std::string dependency_dirs =
+        namer_.Directories(*dependency_ns, SkipDir::OutputPath);
+
+    const auto dependent_components = PathComponents(dependent_dirs);
+    const auto dependency_components = PathComponents(dependency_dirs);
+
+    std::string rel_dir =
+        RelativeDirectory(dependent_components, dependency_components);
+    if (rel_dir.empty()) rel_dir = ".";
+    if (!rel_dir.empty()) rel_dir += kPathSeparator;
+
+    std::string rel_file_path =
+        rel_dir + namer_.File(dependency, SkipFile::SuffixAndExtension);
+
+    std::string bare_file_path =
+        kPathSeparator + dependency_dirs +
         namer_.File(dependency, SkipFile::SuffixAndExtension);
-    rel_file_path += bare_file_path;
 
     ImportDefinition import;
     import.name = name;
@@ -1051,7 +1095,8 @@ class TsGenerator : public BaseGenerator {
       const auto& enum_def = *union_type.enum_def;
 
       const auto valid_union_type = GenUnionTypeTS(enum_def, imports);
-      const auto valid_union_type_with_null = valid_union_type + "|null";
+      const auto valid_union_type_with_null =
+          valid_union_type + "|" + null_keyword_;
 
       auto ret = "\n\nexport function " + GenUnionConvFuncName(enum_def) +
                  "(\n  type: " + GetTypeName(enum_def) +
@@ -1063,7 +1108,7 @@ class TsGenerator : public BaseGenerator {
 
       const auto union_enum_loop = [&](const std::string& accessor_str) {
         ret += "  switch(" + enum_type + "[type]) {\n";
-        ret += "    case 'NONE': return null; \n";
+        ret += "    case 'NONE': return " + null_keyword_ + "; \n";
 
         for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
@@ -1087,7 +1132,7 @@ class TsGenerator : public BaseGenerator {
           ret += "\n";
         }
 
-        ret += "    default: return null;\n";
+        ret += "    default: return " + null_keyword_ + ";\n";
         ret += "  }\n";
       };
 
@@ -1132,7 +1177,8 @@ class TsGenerator : public BaseGenerator {
         ret += "      const temp = " + conversion_function + "(this." +
                namer_.Method(field_name, "Type") + "(), " +
                field_binded_method + ");\n";
-        ret += "      if(temp === null) { return null; }\n";
+        ret += "      if(temp === " + null_keyword_ + ") { return " +
+               null_keyword_ + "; }\n";
         ret += union_has_string
                    ? "      if(typeof temp === 'string') { return temp; }\n"
                    : "";
@@ -1152,12 +1198,12 @@ class TsGenerator : public BaseGenerator {
                "++targetEnumIndex) {\n";
         ret += "      const targetEnum = this." +
                namer_.Method(field_name, "Type") + "(targetEnumIndex);\n";
-        ret += "      if(targetEnum === null || " + enum_type +
+        ret += "      if(targetEnum === " + null_keyword_ + " || " + enum_type +
                "[targetEnum!] === 'NONE') { "
                "continue; }\n\n";
         ret += "      const temp = " + conversion_function + "(targetEnum, " +
                field_binded_method + ", targetEnumIndex);\n";
-        ret += "      if(temp === null) { continue; }\n";
+        ret += "      if(temp === " + null_keyword_ + ") { continue; }\n";
         ret += union_has_string ? "      if(typeof temp === 'string') { "
                                   "ret.push(temp); continue; }\n"
                                 : "";
@@ -1174,11 +1220,12 @@ class TsGenerator : public BaseGenerator {
     return "";
   }
 
-  static std::string GenNullCheckConditional(
-      const std::string& nullCheckVar, const std::string& trueVal,
-      const std::string& falseVal = "null") {
-    return "(" + nullCheckVar + " !== null ? " + trueVal + " : " + falseVal +
-           ")";
+  std::string GenNullCheckConditional(const std::string& nullCheckVar,
+                                      const std::string& trueVal,
+                                      const std::string& falseVal = "") {
+    std::string false_val = falseVal.empty() ? null_keyword_ : falseVal;
+    return "(" + nullCheckVar + " !== " + null_keyword_ + " ? " + trueVal +
+           " : " + false_val + ")";
   }
 
   std::string GenStructMemberValueTS(const StructDef& struct_def,
@@ -1312,8 +1359,8 @@ class TsGenerator : public BaseGenerator {
 
             const std::string field_accessor =
                 "this." + namer_.Method(field) + "()";
-            field_val = GenNullCheckConditional(field_accessor,
-                                                field_accessor + "!.unpack()");
+            field_val = GenNullCheckConditional(
+                field_accessor, field_accessor + "!.unpack()", null_keyword_);
             auto packing = GenNullCheckConditional(
                 "this." + field_field,
                 "this." + field_field + "!.pack(builder)", "0");
@@ -1521,8 +1568,8 @@ class TsGenerator : public BaseGenerator {
             break;
         }
 
-        // length 0 vector is simply empty instead of null
-        field_type += is_vector ? "" : "|null";
+        // length 0 vector is simply empty instead of null/undefined.
+        field_type += is_vector ? "" : ("|" + null_keyword_);
       }
 
       if (!field_offset_decl.empty()) {
@@ -1551,7 +1598,7 @@ class TsGenerator : public BaseGenerator {
         } else {
           if (field.IsScalarOptional()) {
             pack_func_create_call +=
-                "  if (" + field_offset_val + " !== null)\n  ";
+                "  if (" + field_offset_val + " !== " + null_keyword_ + ")\n  ";
           }
           pack_func_create_call += "  " + struct_name + "." +
                                    namer_.Method("add", field) + "(builder, " +
@@ -1636,12 +1683,14 @@ class TsGenerator : public BaseGenerator {
     GenDocComment(struct_def.doc_comment, code_ptr);
     code += "export class ";
     code += object_name;
-    if (parser.opts.generate_object_based_api)
+    if (parser.opts.generate_object_based_api) {
       code += " implements flatbuffers.IUnpackableObject<" + object_api_name +
               "> {\n";
-    else
+    } else {
       code += " {\n";
-    code += "  bb: flatbuffers.ByteBuffer|null = null;\n";
+    }
+    code += "  bb: flatbuffers.ByteBuffer|" + null_keyword_ + " = " +
+            null_keyword_ + ";\n";
     code += "  bb_pos = 0;\n";
 
     // Generate the __init method that sets the field in a pre-existing
@@ -1693,7 +1742,7 @@ class TsGenerator : public BaseGenerator {
         GenDocComment(field.doc_comment, code_ptr);
         std::string prefix = namer_.Method(field) + "(";
         if (is_string) {
-          code += prefix + "):string|null\n";
+          code += prefix + "):string|" + null_keyword_ + "\n";
           code +=
               prefix + "optionalEncoding:flatbuffers.Encoding" + "):" +
               GenTypeName(imports, struct_def, field.value.type, false, true) +
@@ -1743,7 +1792,8 @@ class TsGenerator : public BaseGenerator {
                     .name;
             GenDocComment(field.doc_comment, code_ptr);
             code += namer_.Method(field);
-            code += "(obj?:" + type + "):" + type + "|null {\n";
+            code +=
+                "(obj?:" + type + "):" + type + "|" + null_keyword_ + " {\n";
 
             if (struct_def.fixed) {
               code += "  return (obj || " + GenerateNewExpression(type);
@@ -1756,7 +1806,7 @@ class TsGenerator : public BaseGenerator {
               code += field.value.type.struct_def->fixed
                           ? "this.bb_pos + offset"
                           : GenBBAccess() + ".__indirect(this.bb_pos + offset)";
-              code += ", " + GenBBAccess() + ") : null;\n";
+              code += ", " + GenBBAccess() + ") : " + null_keyword_ + ";\n";
             }
 
             break;
@@ -1809,7 +1859,7 @@ class TsGenerator : public BaseGenerator {
             } else {
               code += prefix;
             }
-            code += "):" + vectortypename + "|null {\n";
+            code += "):" + vectortypename + "|" + null_keyword_ + " {\n";
 
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
               code += offset_prefix + "(obj || " +
@@ -1849,7 +1899,7 @@ class TsGenerator : public BaseGenerator {
                     code += " : 0";
                   }
                 } else {
-                  code += ": null";
+                  code += ": " + null_keyword_;
                 }
                 break;
               }
@@ -1907,7 +1957,7 @@ class TsGenerator : public BaseGenerator {
             } else {
               code += prefix;
             }
-            code += "):" + vectortypename + "|null {\n";
+            code += "):" + vectortypename + "|" + null_keyword_ + " {\n";
 
             if (vectortype.base_type == BASE_TYPE_STRUCT) {
               code += offset_prefix + "(obj || " +
@@ -1933,12 +1983,12 @@ class TsGenerator : public BaseGenerator {
               code += "BigInt(0)";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
-                code += "null";
+                code += null_keyword_;
               } else {
                 code += "0";
               }
             } else {
-              code += "null";
+              code += null_keyword_;
             }
             code += ";\n";
             break;
@@ -1951,13 +2001,13 @@ class TsGenerator : public BaseGenerator {
             const auto& union_enum = *(field.value.type.enum_def);
             const auto union_type = GenUnionGenericTypeTS(union_enum);
             code += "<T extends flatbuffers.Table>(obj:" + union_type +
-                    "):" + union_type +
-                    "|null "
+                    "):" + union_type + "|" + null_keyword_ +
+                    " "
                     "{\n";
 
             code += offset_prefix +
                     GenGetter(field.value.type, "(obj, this.bb_pos + offset)") +
-                    " : null;\n";
+                    " : " + null_keyword_ + ";\n";
             break;
           }
           default:
@@ -2019,14 +2069,15 @@ class TsGenerator : public BaseGenerator {
           GenDocComment(code_ptr);
 
           code += namer_.Method(field, "Array");
-          code +=
-              "():" + GenType(vectorType) + "Array|null {\n" + offset_prefix;
+          code += "():" + GenType(vectorType) + "Array|" + null_keyword_ +
+                  " {\n" + offset_prefix;
 
           code += "new " + GenType(vectorType) + "Array(" + GenBBAccess() +
                   ".bytes().buffer, " + GenBBAccess() +
                   ".bytes().byteOffset + " + GenBBAccess() +
                   ".__vector(this.bb_pos + offset), " + GenBBAccess() +
-                  ".__vector_len(this.bb_pos + offset)) : null;\n}\n\n";
+                  ".__vector_len(this.bb_pos + offset)) : " + null_keyword_ +
+                  ";\n}\n\n";
         }
       }
     }
@@ -2055,7 +2106,7 @@ class TsGenerator : public BaseGenerator {
     // Emit a factory constructor
     if (struct_def.fixed) {
       std::string arguments;
-      GenStructArgs(imports, struct_def, &arguments, "");
+      GenStructArgs(imports, struct_def, struct_def, &arguments, "");
       GenDocComment(code_ptr);
 
       code += "static create" + GetPrefixedName(struct_def) +
@@ -2096,7 +2147,7 @@ class TsGenerator : public BaseGenerator {
         if (!IsScalar(field.value.type.base_type)) {
           code += "0";
         } else if (HasNullDefault(field)) {
-          code += "null";
+          code += null_keyword_;
         } else {
           if (field.value.type.base_type == BASE_TYPE_BOOL) {
             code += "+";
@@ -2213,7 +2264,7 @@ class TsGenerator : public BaseGenerator {
           const auto arg_name = GetArgName(field);
 
           if (field.IsScalarOptional()) {
-            code += "  if (" + arg_name + " !== null)\n  ";
+            code += "  if (" + arg_name + " !== " + null_keyword_ + ")\n  ";
           }
 
           code += "  " + methodPrefix + "." + namer_.Method("add", field) + "(";
@@ -2253,7 +2304,7 @@ class TsGenerator : public BaseGenerator {
     }
   }
 
-  static bool HasNullDefault(const FieldDef& field) {
+  bool HasNullDefault(const FieldDef& field) {
     return field.IsOptional() && field.value.constant == "null";
   }
 

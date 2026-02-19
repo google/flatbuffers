@@ -35,7 +35,7 @@ extension MyGame_Example_TestEnum: Encodable {
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 public struct MyGame_Example_NestedStruct: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
   private var _a: InlineArray<2, Int32>
   private var _b: Int8
@@ -84,13 +84,13 @@ public struct MyGame_Example_NestedStruct: NativeStruct, FlatbuffersVectorInitia
 
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 extension MyGame_Example_NestedStruct: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case a = "a"
     case b = "b"
     case c = "c"
     case d = "d"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     var aContainer = container.nestedUnkeyedContainer(forKey: .a)
@@ -114,7 +114,7 @@ extension MyGame_Example_NestedStruct: Encodable {
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 public struct MyGame_Example_NestedStruct_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -145,7 +145,7 @@ public struct MyGame_Example_NestedStruct_Mutable: FlatBufferStruct, Flatbuffers
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 public struct MyGame_Example_ArrayStruct: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
   private var _a: Float32
   private var _b: InlineArray<15, Int32>
@@ -206,7 +206,6 @@ public struct MyGame_Example_ArrayStruct: NativeStruct, FlatbuffersVectorInitial
 
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 extension MyGame_Example_ArrayStruct: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case a = "a"
     case b = "b"
@@ -215,6 +214,7 @@ extension MyGame_Example_ArrayStruct: Encodable {
     case e = "e"
     case f = "f"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     if a != 0.0 {
@@ -244,7 +244,7 @@ extension MyGame_Example_ArrayStruct: Encodable {
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 public struct MyGame_Example_ArrayStruct_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -278,7 +278,7 @@ public struct MyGame_Example_ArrayStruct_Mutable: FlatBufferStruct, FlatbuffersV
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 public struct MyGame_Example_ArrayTable: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
@@ -287,16 +287,14 @@ public struct MyGame_Example_ArrayTable: FlatBufferTable, FlatbuffersVectorIniti
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case a = 4
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let a: VOffset = 4
   }
 
-  public var a: MyGame_Example_ArrayStruct? { let o = _accessor.offset(VTOFFSET.a.v); return o == 0 ? nil : _accessor.readBuffer(of: MyGame_Example_ArrayStruct.self, at: o) }
-  public var mutableA: MyGame_Example_ArrayStruct_Mutable? { let o = _accessor.offset(VTOFFSET.a.v); return o == 0 ? nil : MyGame_Example_ArrayStruct_Mutable(_accessor.bb, o: o + _accessor.position) }
+  public var a: MyGame_Example_ArrayStruct? { let o = _accessor.offset(VT.a); return o == 0 ? nil : _accessor.readBuffer(of: MyGame_Example_ArrayStruct.self, at: o) }
+  public var mutableA: MyGame_Example_ArrayStruct_Mutable? { let o = _accessor.offset(VT.a); return o == 0 ? nil : MyGame_Example_ArrayStruct_Mutable(_accessor.bb, o: o + _accessor.position) }
   public static func startArrayTable(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(a: MyGame_Example_ArrayStruct?, _ fbb: inout FlatBufferBuilder) { guard let a = a else { return }; fbb.create(struct: a, position: VTOFFSET.a.p) }
+  public static func add(a: MyGame_Example_ArrayStruct?, _ fbb: inout FlatBufferBuilder) { guard let a = a else { return }; fbb.create(struct: a, position: VT.a) }
   public static func endArrayTable(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createArrayTable(
     _ fbb: inout FlatBufferBuilder,
@@ -323,17 +321,17 @@ public struct MyGame_Example_ArrayTable: FlatBufferTable, FlatbuffersVectorIniti
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.a.p, fieldName: "a", required: false, type: MyGame_Example_ArrayStruct.self)
+    try _v.visit(field: VT.a, fieldName: "a", required: false, type: MyGame_Example_ArrayStruct.self)
     _v.finish()
   }
 }
 
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 extension MyGame_Example_ArrayTable: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case a = "a"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(a, forKey: .a)

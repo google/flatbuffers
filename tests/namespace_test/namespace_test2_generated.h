@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace NamespaceA {
@@ -117,6 +117,10 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const NamespaceA::NamespaceB::TableInNestedNS *foo_union_as_TableInNestedNS() const {
     return foo_union_type() == NamespaceA::NamespaceB::UnionInNestedNS_TableInNestedNS ? static_cast<const NamespaceA::NamespaceB::TableInNestedNS *>(foo_union()) : nullptr;
   }
+  template<typename T> T *mutable_foo_union_as();
+  NamespaceA::NamespaceB::TableInNestedNS *mutable_foo_union_as_TableInNestedNS() {
+    return foo_union_type() == NamespaceA::NamespaceB::UnionInNestedNS_TableInNestedNS ? static_cast<NamespaceA::NamespaceB::TableInNestedNS *>(mutable_foo_union()) : nullptr;
+  }
   void *mutable_foo_union() {
     return GetPointer<void *>(VT_FOO_UNION);
   }
@@ -126,7 +130,8 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   NamespaceA::NamespaceB::StructInNestedNS *mutable_foo_struct() {
     return GetStruct<NamespaceA::NamespaceB::StructInNestedNS *>(VT_FOO_STRUCT);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_FOO_TABLE) &&
            verifier.VerifyTable(foo_table()) &&
@@ -144,6 +149,10 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 
 template<> inline const NamespaceA::NamespaceB::TableInNestedNS *TableInFirstNS::foo_union_as<NamespaceA::NamespaceB::TableInNestedNS>() const {
   return foo_union_as_TableInNestedNS();
+}
+
+template<> inline NamespaceA::NamespaceB::TableInNestedNS *TableInFirstNS::mutable_foo_union_as<NamespaceA::NamespaceB::TableInNestedNS>() {
+  return mutable_foo_union_as_TableInNestedNS();
 }
 
 struct TableInFirstNSBuilder {
@@ -236,7 +245,8 @@ struct TableInC FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   NamespaceA::SecondTableInA *mutable_refer_to_a2() {
     return GetPointer<NamespaceA::SecondTableInA *>(VT_REFER_TO_A2);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_REFER_TO_A1) &&
            verifier.VerifyTable(refer_to_a1()) &&
@@ -316,7 +326,8 @@ struct SecondTableInA FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   NamespaceC::TableInC *mutable_refer_to_c() {
     return GetPointer<NamespaceC::TableInC *>(VT_REFER_TO_C);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_REFER_TO_C) &&
            verifier.VerifyTable(refer_to_c()) &&

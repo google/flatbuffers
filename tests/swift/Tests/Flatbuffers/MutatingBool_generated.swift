@@ -10,7 +10,7 @@ import FlatBuffers
 
 public struct Property: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
   private var _property: Bool
 
@@ -38,10 +38,10 @@ public struct Property: NativeStruct, FlatbuffersVectorInitializable, Verifiable
 }
 
 extension Property: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case property = "property"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     if property != false {
@@ -52,7 +52,7 @@ extension Property: Encodable {
 
 public struct Property_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Struct
 
@@ -76,23 +76,21 @@ public struct Property_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable
 
 public struct TestMutatingBool: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
-  static func validateVersion() { FlatBuffersVersion_25_9_23() }
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
   private var _accessor: Table
 
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case b = 4
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let b: VOffset = 4
   }
 
-  public var b: Property? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : _accessor.readBuffer(of: Property.self, at: o) }
-  public var mutableB: Property_Mutable? { let o = _accessor.offset(VTOFFSET.b.v); return o == 0 ? nil : Property_Mutable(_accessor.bb, o: o + _accessor.position) }
+  public var b: Property? { let o = _accessor.offset(VT.b); return o == 0 ? nil : _accessor.readBuffer(of: Property.self, at: o) }
+  public var mutableB: Property_Mutable? { let o = _accessor.offset(VT.b); return o == 0 ? nil : Property_Mutable(_accessor.bb, o: o + _accessor.position) }
   public static func startTestMutatingBool(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(b: Property?, _ fbb: inout FlatBufferBuilder) { guard let b = b else { return }; fbb.create(struct: b, position: VTOFFSET.b.p) }
+  public static func add(b: Property?, _ fbb: inout FlatBufferBuilder) { guard let b = b else { return }; fbb.create(struct: b, position: VT.b) }
   public static func endTestMutatingBool(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createTestMutatingBool(
     _ fbb: inout FlatBufferBuilder,
@@ -119,16 +117,16 @@ public struct TestMutatingBool: FlatBufferTable, FlatbuffersVectorInitializable,
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.b.p, fieldName: "b", required: false, type: Property.self)
+    try _v.visit(field: VT.b, fieldName: "b", required: false, type: Property.self)
     _v.finish()
   }
 }
 
 extension TestMutatingBool: Encodable {
-
   enum CodingKeys: String, CodingKey {
     case b = "b"
   }
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encodeIfPresent(b, forKey: .b)
