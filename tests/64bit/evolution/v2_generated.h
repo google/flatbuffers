@@ -105,7 +105,6 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(
     ::flatbuffers::Offset<::flatbuffers::Vector<uint8_t>> b = 0,
     ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> big_vector = 0) {
   RootTableBuilder builder_(_fbb);
-  builder_.add_big_vector(big_vector);
   builder_.add_b(b);
   builder_.add_a(a);
   return builder_.Finish();
