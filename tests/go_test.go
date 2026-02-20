@@ -190,8 +190,11 @@ func TestAll(t *testing.T) {
 	// some sanity checks:
 	CheckDocExample(generated, off, t.Fatalf)
 
-	// Check Builder.CreateByteVector
+	// Check Builder.CreateByteVector and Builder.CreateUninitializedByteVector
 	CheckCreateByteVector(t.Fatalf)
+
+	// Check Builder.StartVector and Builder.CreateUninitializedVector
+	CheckUint64Vector(t.Fatalf)
 
 	// Check a parent namespace import
 	CheckParentNamespace(t.Fatalf)
@@ -1800,12 +1803,38 @@ func CheckCreateByteVector(fail func(string, ...interface{})) {
 	for size := 0; size < len(raw); size++ {
 		b1 := flatbuffers.NewBuilder(0)
 		b2 := flatbuffers.NewBuilder(0)
+		b3 := flatbuffers.NewBuilder(0)
 		b1.StartVector(1, size, 1)
 		for i := size - 1; i >= 0; i-- {
 			b1.PrependByte(raw[i])
 		}
 		b1.EndVector(size)
 		b2.CreateByteVector(raw[:size])
+		_, uninitialized := b3.CreateUninitializedByteVector(size)
+		copy(uninitialized, raw[:size])
+		CheckByteEquality(b1.Bytes, b2.Bytes, fail)
+		CheckByteEquality(b1.Bytes, b3.Bytes, fail)
+	}
+}
+
+func CheckUint64Vector(fail func(string, ...interface{})) {
+	raw := [30]uint64{}
+	for i := 0; i < len(raw); i++ {
+		raw[i] = 1234567890123456789 * uint64(i)
+	}
+
+	for size := 0; size < len(raw); size++ {
+		b1 := flatbuffers.NewBuilder(0)
+		b2 := flatbuffers.NewBuilder(0)
+		b1.StartVector(8, size, 8)
+		for i := size - 1; i >= 0; i-- {
+			b1.PrependUint64(raw[i])
+		}
+		b1.EndVector(size)
+		_, uninitialized := b2.CreateUninitializedVector(8, size, 8)
+		for i := 0; i < size; i++ {
+			flatbuffers.WriteUint64(uninitialized[8*i:], raw[i])
+		}
 		CheckByteEquality(b1.Bytes, b2.Bytes, fail)
 	}
 }
