@@ -92,13 +92,12 @@ func (rcv *TypeAliases) UnPack() *TypeAliasesT {
 }
 
 type TypeAliases struct {
-	_tab flatbuffers.Table
+	flatbuffers.Table
 }
 
-func GetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
+func GetRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) (x TypeAliases) {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &TypeAliases{}
-	x.Init(buf, n+offset)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset}
 	return x
 }
 
@@ -106,10 +105,9 @@ func FinishTypeAliasesBuffer(builder *flatbuffers.Builder, offset flatbuffers.UO
 	builder.Finish(offset)
 }
 
-func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *TypeAliases {
+func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) (x TypeAliases) {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &TypeAliases{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset+flatbuffers.SizeUint32}
 	return x
 }
 
@@ -118,182 +116,178 @@ func FinishSizePrefixedTypeAliasesBuffer(builder *flatbuffers.Builder, offset fl
 }
 
 func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *TypeAliases) Table() flatbuffers.Table {
-	return rcv._tab
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func (rcv *TypeAliases) I8() int8 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
+	o := flatbuffers.UOffsetT(rcv.Offset(4))
 	if o != 0 {
-		return rcv._tab.GetInt8(o + rcv._tab.Pos)
+		return rcv.GetInt8(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateI8(n int8) bool {
-	return rcv._tab.MutateInt8Slot(4, n)
+	return rcv.MutateInt8Slot(4, n)
 }
 
 func (rcv *TypeAliases) U8() byte {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	o := flatbuffers.UOffsetT(rcv.Offset(6))
 	if o != 0 {
-		return rcv._tab.GetByte(o + rcv._tab.Pos)
+		return rcv.GetByte(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateU8(n byte) bool {
-	return rcv._tab.MutateByteSlot(6, n)
+	return rcv.MutateByteSlot(6, n)
 }
 
 func (rcv *TypeAliases) I16() int16 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
+	o := flatbuffers.UOffsetT(rcv.Offset(8))
 	if o != 0 {
-		return rcv._tab.GetInt16(o + rcv._tab.Pos)
+		return rcv.GetInt16(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateI16(n int16) bool {
-	return rcv._tab.MutateInt16Slot(8, n)
+	return rcv.MutateInt16Slot(8, n)
 }
 
 func (rcv *TypeAliases) U16() uint16 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
+	o := flatbuffers.UOffsetT(rcv.Offset(10))
 	if o != 0 {
-		return rcv._tab.GetUint16(o + rcv._tab.Pos)
+		return rcv.GetUint16(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateU16(n uint16) bool {
-	return rcv._tab.MutateUint16Slot(10, n)
+	return rcv.MutateUint16Slot(10, n)
 }
 
 func (rcv *TypeAliases) I32() int32 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(12))
+	o := flatbuffers.UOffsetT(rcv.Offset(12))
 	if o != 0 {
-		return rcv._tab.GetInt32(o + rcv._tab.Pos)
+		return rcv.GetInt32(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateI32(n int32) bool {
-	return rcv._tab.MutateInt32Slot(12, n)
+	return rcv.MutateInt32Slot(12, n)
 }
 
 func (rcv *TypeAliases) U32() uint32 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(14))
+	o := flatbuffers.UOffsetT(rcv.Offset(14))
 	if o != 0 {
-		return rcv._tab.GetUint32(o + rcv._tab.Pos)
+		return rcv.GetUint32(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateU32(n uint32) bool {
-	return rcv._tab.MutateUint32Slot(14, n)
+	return rcv.MutateUint32Slot(14, n)
 }
 
 func (rcv *TypeAliases) I64() int64 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(16))
+	o := flatbuffers.UOffsetT(rcv.Offset(16))
 	if o != 0 {
-		return rcv._tab.GetInt64(o + rcv._tab.Pos)
+		return rcv.GetInt64(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateI64(n int64) bool {
-	return rcv._tab.MutateInt64Slot(16, n)
+	return rcv.MutateInt64Slot(16, n)
 }
 
 func (rcv *TypeAliases) U64() uint64 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(18))
+	o := flatbuffers.UOffsetT(rcv.Offset(18))
 	if o != 0 {
-		return rcv._tab.GetUint64(o + rcv._tab.Pos)
+		return rcv.GetUint64(o + rcv.Pos)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateU64(n uint64) bool {
-	return rcv._tab.MutateUint64Slot(18, n)
+	return rcv.MutateUint64Slot(18, n)
 }
 
 func (rcv *TypeAliases) F32() float32 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(20))
+	o := flatbuffers.UOffsetT(rcv.Offset(20))
 	if o != 0 {
-		return rcv._tab.GetFloat32(o + rcv._tab.Pos)
+		return rcv.GetFloat32(o + rcv.Pos)
 	}
 	return 0.0
 }
 
 func (rcv *TypeAliases) MutateF32(n float32) bool {
-	return rcv._tab.MutateFloat32Slot(20, n)
+	return rcv.MutateFloat32Slot(20, n)
 }
 
 func (rcv *TypeAliases) F64() float64 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(22))
+	o := flatbuffers.UOffsetT(rcv.Offset(22))
 	if o != 0 {
-		return rcv._tab.GetFloat64(o + rcv._tab.Pos)
+		return rcv.GetFloat64(o + rcv.Pos)
 	}
 	return 0.0
 }
 
 func (rcv *TypeAliases) MutateF64(n float64) bool {
-	return rcv._tab.MutateFloat64Slot(22, n)
+	return rcv.MutateFloat64Slot(22, n)
 }
 
 func (rcv *TypeAliases) V8(j int) int8 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
+	o := flatbuffers.UOffsetT(rcv.Offset(24))
 	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return rcv._tab.GetInt8(a + flatbuffers.UOffsetT(j*1))
+		a := rcv.Vector(o)
+		return rcv.GetInt8(a + flatbuffers.UOffsetT(j*1))
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) V8Length() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
+	o := flatbuffers.UOffsetT(rcv.Offset(24))
 	if o != 0 {
-		return rcv._tab.VectorLen(o)
+		return rcv.VectorLen(o)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateV8(j int, n int8) bool {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(24))
+	o := flatbuffers.UOffsetT(rcv.Offset(24))
 	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateInt8(a+flatbuffers.UOffsetT(j*1), n)
+		a := rcv.Vector(o)
+		return rcv.MutateInt8(a+flatbuffers.UOffsetT(j*1), n)
 	}
 	return false
 }
 
 func (rcv *TypeAliases) Vf64(j int) float64 {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	o := flatbuffers.UOffsetT(rcv.Offset(26))
 	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return rcv._tab.GetFloat64(a + flatbuffers.UOffsetT(j*8))
+		a := rcv.Vector(o)
+		return rcv.GetFloat64(a + flatbuffers.UOffsetT(j*8))
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) Vf64Length() int {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	o := flatbuffers.UOffsetT(rcv.Offset(26))
 	if o != 0 {
-		return rcv._tab.VectorLen(o)
+		return rcv.VectorLen(o)
 	}
 	return 0
 }
 
 func (rcv *TypeAliases) MutateVf64(j int, n float64) bool {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
+	o := flatbuffers.UOffsetT(rcv.Offset(26))
 	if o != 0 {
-		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateFloat64(a+flatbuffers.UOffsetT(j*8), n)
+		a := rcv.Vector(o)
+		return rcv.MutateFloat64(a+flatbuffers.UOffsetT(j*8), n)
 	}
 	return false
 }
