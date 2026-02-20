@@ -153,10 +153,18 @@ impl<'a> Test {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TestT {
   pub a: i16,
   pub b: i8,
+}
+impl std::default::Default for TestT {
+    fn default() -> Self {
+      Self {
+        a: Default::default(),
+        b: Default::default(),
+    }
+  }
 }
 impl TestT {
   pub fn pack(&self) -> Test {

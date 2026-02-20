@@ -106,9 +106,16 @@ impl<'a> Object {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ObjectT {
   pub value: i32,
+}
+impl std::default::Default for ObjectT {
+    fn default() -> Self {
+      Self {
+        value: Default::default(),
+    }
+  }
 }
 impl ObjectT {
   pub fn pack(&self) -> Object {

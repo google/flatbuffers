@@ -163,10 +163,18 @@ impl<'a> Ability {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AbilityT {
   pub id: u32,
   pub distance: u32,
+}
+impl std::default::Default for AbilityT {
+    fn default() -> Self {
+      Self {
+        id: Default::default(),
+        distance: Default::default(),
+    }
+  }
 }
 impl AbilityT {
   pub fn pack(&self) -> Ability {

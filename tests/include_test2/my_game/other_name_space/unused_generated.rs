@@ -106,9 +106,16 @@ impl<'a> Unused {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnusedT {
   pub a: i32,
+}
+impl std::default::Default for UnusedT {
+    fn default() -> Self {
+      Self {
+        a: Default::default(),
+    }
+  }
 }
 impl UnusedT {
   pub fn pack(&self) -> Unused {

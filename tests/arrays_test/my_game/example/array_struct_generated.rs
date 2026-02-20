@@ -235,7 +235,7 @@ impl<'a> ArrayStruct {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ArrayStructT {
   pub a: f32,
   pub b: [i32; 15],
@@ -243,6 +243,18 @@ pub struct ArrayStructT {
   pub d: [NestedStructT; 2],
   pub e: i32,
   pub f: [i64; 2],
+}
+impl std::default::Default for ArrayStructT {
+    fn default() -> Self {
+      Self {
+        a: Default::default(),
+        b: core::array::from_fn(|_| Default::default()),
+        c: Default::default(),
+        d: core::array::from_fn(|_| Default::default()),
+        e: Default::default(),
+        f: core::array::from_fn(|_| Default::default()),
+    }
+  }
 }
 impl ArrayStructT {
   pub fn pack(&self) -> ArrayStruct {

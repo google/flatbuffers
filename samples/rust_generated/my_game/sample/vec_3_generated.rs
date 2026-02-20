@@ -172,11 +172,20 @@ impl<'a> Vec3 {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Vec3T {
   pub x: f32,
   pub y: f32,
   pub z: f32,
+}
+impl std::default::Default for Vec3T {
+    fn default() -> Self {
+      Self {
+        x: Default::default(),
+        y: Default::default(),
+        z: Default::default(),
+    }
+  }
 }
 impl Vec3T {
   pub fn pack(&self) -> Vec3 {
