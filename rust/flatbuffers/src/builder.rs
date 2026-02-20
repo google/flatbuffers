@@ -517,7 +517,10 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// internal state of the FlatBufferBuilder as `finished`. Afterwards,
     /// users can call `finished_data` to get the resulting data.
     #[inline]
-    pub fn finish_size_prefixed<T>(&mut self, root: WIPOffset<T>, file_identifier: Option<&str>) {
+    pub fn finish_size_prefixed<T>(&mut self, root: WIPOffset<T>, file_identifier: Option<&str>)
+    where
+        T: 'fbb,
+    {
         self.finish_with_opts(root, file_identifier, true);
     }
 
@@ -526,7 +529,10 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// FlatBufferBuilder as `finished`. Afterwards, users can call
     /// `finished_data` to get the resulting data.
     #[inline]
-    pub fn finish<T>(&mut self, root: WIPOffset<T>, file_identifier: Option<&str>) {
+    pub fn finish<T>(&mut self, root: WIPOffset<T>, file_identifier: Option<&str>)
+    where
+        T: 'fbb,
+    {
         self.finish_with_opts(root, file_identifier, false);
     }
 
@@ -534,7 +540,10 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// of the FlatBufferBuilder as `finished`. Afterwards, users can call
     /// `finished_data` to get the resulting data.
     #[inline]
-    pub fn finish_minimal<T>(&mut self, root: WIPOffset<T>) {
+    pub fn finish_minimal<T>(&mut self, root: WIPOffset<T>)
+    where
+        T: 'fbb,
+    {
         self.finish_with_opts(root, None, false);
     }
 
@@ -691,7 +700,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         root: WIPOffset<T>,
         file_identifier: Option<&str>,
         size_prefixed: bool,
-    ) {
+    ) where
+        T: 'fbb,
+    {
         self.assert_not_finished("buffer cannot be finished when it is already finished");
         self.assert_not_nested(
             "buffer cannot be finished when a table or vector is under construction",
