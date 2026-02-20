@@ -260,15 +260,15 @@ inline const char* flatbuffers_version_string() {
     inline FLATBUFFERS_CONSTEXPR_CPP11 E operator ~ (E lhs){\
         return E(~T(lhs));\
     }\
-    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator |= (E &lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP14 E operator |= (E &lhs, E rhs){\
         lhs = lhs | rhs;\
         return lhs;\
     }\
-    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator &= (E &lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP14 E operator &= (E &lhs, E rhs){\
         lhs = lhs & rhs;\
         return lhs;\
     }\
-    inline FLATBUFFERS_CONSTEXPR_CPP11 E operator ^= (E &lhs, E rhs){\
+    inline FLATBUFFERS_CONSTEXPR_CPP14 E operator ^= (E &lhs, E rhs){\
         lhs = lhs ^ rhs;\
         return lhs;\
     }\
