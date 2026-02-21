@@ -428,6 +428,12 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
                                ? std::to_string(field->default_real())
                                : std::to_string(field->default_integer());
           default_label += "> (";
+        } else if ((field->type()->base_type() == reflection::String ||
+                    field->type()->base_type() == reflection::Vector) &&
+                   field->default_non_scalar() != nullptr) {
+          default_label += "<defaults to \"";
+          default_label += field->default_non_scalar()->str();
+          default_label += "\"> (";
         } else {
           default_label += "<null> (";
         }
