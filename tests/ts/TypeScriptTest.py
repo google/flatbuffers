@@ -88,6 +88,20 @@ flatc(
 esbuild("monster_test.ts", "monster_test_generated.cjs")
 
 flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="../even_more_defaults.fbs",
+    include="../include_test",
+)
+
+flatc(
     options=["--gen-object-api", "-b"],
     schema="../monster_test.fbs",
     include="../include_test",

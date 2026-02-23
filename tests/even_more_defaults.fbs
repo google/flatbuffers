@@ -1,0 +1,23 @@
+
+enum ABC: int { A, B, C }
+
+struct EvenMoreStruct {
+  g:[int64:2];
+}
+
+table EvenMoreDefaults {
+  str: EvenMoreStruct;
+  ints: [int] = [];
+  floats: [float] = [     ];
+  float_optional: [float];
+  bytes_optional: [ubyte];
+  floats_required: [float] (required);
+  empty_string: string = "";
+  some_string: string = "some";
+  zero_string: string = "0";
+  a_string:string (key);
+  required_string: string (required);
+  abcs: [ABC] = [];
+  bools: [bool] = [];
+  one_bool: bool = true;
+}
