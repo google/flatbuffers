@@ -41,6 +41,9 @@ static std::string BinaryFileName(const Parser& parser, const std::string& path,
 
 static bool GenerateBinary(const Parser& parser, const std::string& path,
                            const std::string& file_name) {
+  // sanity check we have a file saver
+  if (!parser.opts.file_saver) return false;
+
   if (parser.opts.use_flexbuffers) {
     auto data_vec = parser.flex_builder_.GetBuffer();
     auto data_ptr = reinterpret_cast<char*>(data(data_vec));
