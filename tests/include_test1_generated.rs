@@ -2,6 +2,10 @@
 // @generated
 
 extern crate alloc;
+use alloc::vec::Vec;
+use alloc::string::String;
+use alloc::boxed::Box;
+use alloc::string::ToString;
 
 pub enum TableAOffset {}
 #[derive(Copy, Clone, PartialEq)]
@@ -41,7 +45,7 @@ impl<'a> TableA<'a> {
 
   pub fn unpack(&self) -> TableAT {
     let b = self.b().map(|x| {
-      alloc::boxed::Box::new(x.unpack())
+      Box::new(x.unpack())
     });
     TableAT {
       b,
@@ -111,10 +115,9 @@ impl ::core::fmt::Debug for TableA<'_> {
       ds.finish()
   }
 }
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TableAT {
-  pub b: Option<alloc::boxed::Box<my_game::other_name_space::TableBT>>,
+  pub b: Option<Box<my_game::other_name_space::TableBT>>,
 }
 impl Default for TableAT {
   fn default() -> Self {
@@ -140,10 +143,18 @@ impl TableAT {
 pub mod my_game {
 
 extern crate alloc;
+use alloc::vec::Vec;
+use alloc::string::String;
+use alloc::boxed::Box;
+use alloc::string::ToString;
 #[allow(unused_imports, dead_code)]
 pub mod other_name_space {
 
 extern crate alloc;
+use alloc::vec::Vec;
+use alloc::string::String;
+use alloc::boxed::Box;
+use alloc::string::ToString;
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
@@ -329,7 +340,7 @@ impl<'a> Unused {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Hash)]
 pub struct UnusedT {
   pub a: i32,
 }
@@ -379,7 +390,7 @@ impl<'a> TableB<'a> {
 
   pub fn unpack(&self) -> TableBT {
     let a = self.a().map(|x| {
-      alloc::boxed::Box::new(x.unpack())
+      Box::new(x.unpack())
     });
     TableBT {
       a,
@@ -449,10 +460,9 @@ impl ::core::fmt::Debug for TableB<'_> {
       ds.finish()
   }
 }
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TableBT {
-  pub a: Option<alloc::boxed::Box<super::super::TableAT>>,
+  pub a: Option<Box<super::super::TableAT>>,
 }
 impl Default for TableBT {
   fn default() -> Self {
