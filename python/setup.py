@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='flatbuffers',
@@ -26,7 +26,7 @@ setup(
         '`Flatbuffers <https://google.github.io/flatbuffers/>`_ '
         'serialization format.'
     ),
-    packages=['flatbuffers'],
+    packages=find_packages(),
     include_package_data=True,
     requires=[],
     description='The FlatBuffers serialization format for Python',

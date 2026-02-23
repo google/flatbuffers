@@ -3020,6 +3020,23 @@ class TestNestedUnionTables(unittest.TestCase):
     )
 
 
+class TestReflectionImport(unittest.TestCase):
+
+  def test_import_reflection(self):
+    """Test that flatbuffers.reflection module can be imported."""
+    try:
+      import flatbuffers.reflection
+      # Some example imports to test
+      from flatbuffers.reflection.Schema import Schema
+      from flatbuffers.reflection.Object import Object
+      from flatbuffers.reflection.Field import Field
+      from flatbuffers.reflection.Type import Type
+      from flatbuffers.reflection.Enum import Enum
+      # If we got here, the import was successful
+    except ImportError as e:
+      self.fail(f"Failed to import flatbuffers.reflection: {e}")
+
+
 class TestBuilderClear(unittest.TestCase):
 
   def test_consistency(self):
