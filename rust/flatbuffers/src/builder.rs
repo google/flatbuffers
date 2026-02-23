@@ -160,6 +160,60 @@ impl<'fbb> FlatBufferBuilder<'fbb, DefaultAllocator> {
     pub fn with_capacity(size: usize) -> Self {
         Self::from_vec(vec![0; size])
     }
+    /// Create a FlatBufferBuilder that is ready for writing, with a
+    /// ready-to-use capacity of the provided size and preallocated internal vecs.
+    ///
+    /// The maximum valid value for `size` is `FLATBUFFERS_MAX_BUFFER_SIZE`.
+    ///
+    /// # Arguments
+    ///
+    /// * `size` - The initial capacity of the backing buffer in bytes.
+    /// * `field_locs_capacity` - Preallocated capacity for the field locations vec.
+    /// * `written_vtable_revpos_capacity` - Preallocated capacity for the written vtable reverse positions vec.
+    /// * `strings_pool_capacity` - Preallocated capacity for the shared strings pool vec.
+    pub fn with_internal_capacity(
+        size: usize,
+        field_locs_capacity: usize,
+        written_vtable_revpos_capacity: usize,
+        strings_pool_capacity: usize,
+    ) -> Self {
+        Self::from_vec_with_internal_capacity(
+            vec![0; size],
+            field_locs_capacity,
+            written_vtable_revpos_capacity,
+            strings_pool_capacity,
+        )
+    }
+    /// Create a FlatBufferBuilder that is ready for writing, reusing
+    /// an existing vector and preallocated internal vecs.
+    ///
+    /// # Arguments
+    ///
+    /// * `buffer` - An existing `Vec<u8>` to reuse as the backing buffer.
+    /// * `field_locs_capacity` - Preallocated capacity for the field locations vec.
+    /// * `written_vtable_revpos_capacity` - Preallocated capacity for the written vtable reverse positions vec.
+    /// * `strings_pool_capacity` - Preallocated capacity for the shared strings pool vec.
+    pub fn from_vec_with_internal_capacity(
+        buffer: Vec<u8>,
+        field_locs_capacity: usize,
+        written_vtable_revpos_capacity: usize,
+        strings_pool_capacity: usize,
+    ) -> Self {
+        // we need to check the size here because we create the backing buffer
+        // directly, bypassing the typical way of using grow_allocator:
+        assert!(
+            buffer.len() <= FLATBUFFERS_MAX_BUFFER_SIZE,
+            "cannot initialize buffer bigger than 2 gigabytes"
+        );
+        let allocator = DefaultAllocator::from_vec(buffer);
+        Self::new_in_with_internal_capacity(
+            allocator,
+            field_locs_capacity,
+            written_vtable_revpos_capacity,
+            strings_pool_capacity,
+        )
+    }
+
     /// Create a FlatBufferBuilder that is ready for writing, reusing
     /// an existing vector.
     pub fn from_vec(buffer: Vec<u8>) -> Self {
@@ -203,6 +257,40 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         }
     }
 
+    /// Create a [`FlatBufferBuilder`] that is ready for writing with a custom [`Allocator`]
+    /// and preallocated internal vecs.
+    ///
+    /// # Arguments
+    ///
+    /// * `allocator` - A custom [`Allocator`] to use as the backing buffer.
+    /// * `field_locs_capacity` - Preallocated capacity for the field locations vec.
+    /// * `written_vtable_revpos_capacity` - Preallocated capacity for the written vtable reverse positions vec.
+    /// * `strings_pool_capacity` - Preallocated capacity for the shared strings pool vec.
+    pub fn new_in_with_internal_capacity(
+        allocator: A,
+        field_locs_capacity: usize,
+        written_vtable_revpos_capacity: usize,
+        strings_pool_capacity: usize,
+    ) -> Self {
+        let head = ReverseIndex::end();
+        FlatBufferBuilder {
+            allocator,
+            head,
+
+            field_locs: Vec::with_capacity(field_locs_capacity),
+            written_vtable_revpos: Vec::with_capacity(written_vtable_revpos_capacity),
+
+            nested: false,
+            finished: false,
+
+            min_align: 0,
+            force_defaults: false,
+            strings_pool: Vec::with_capacity(strings_pool_capacity),
+
+            _phantom: PhantomData,
+        }
+    }
+
     /// Destroy the [`FlatBufferBuilder`], returning its [`Allocator`] and the index
     /// into it that represents the start of valid data.
     pub fn collapse_in(self) -> (A, usize) {
@@ -223,7 +311,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// new object.
     pub fn reset(&mut self) {
         // memset only the part of the buffer that could be dirty:
-        self.allocator[self.head.range_to_end()].iter_mut().for_each(|x| *x = 0);
+        self.allocator[self.head.range_to_end()]
+            .iter_mut()
+            .for_each(|x| *x = 0);
 
         self.head = ReverseIndex::end();
         self.written_vtable_revpos.clear();
@@ -931,6 +1021,33 @@ impl<T> IndexMut<ReverseIndexRange> for [T] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core::sync::atomic::{AtomicUsize, Ordering};
+    use std::alloc::{GlobalAlloc, Layout, System};
+
+    static ALLOC_COUNT: AtomicUsize = AtomicUsize::new(0);
+
+    struct CountingAllocator;
+
+    unsafe impl GlobalAlloc for CountingAllocator {
+        unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+            ALLOC_COUNT.fetch_add(1, Ordering::Relaxed);
+            unsafe { System.alloc(layout) }
+        }
+        unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+            unsafe { System.dealloc(ptr, layout) }
+        }
+    }
+
+    #[global_allocator]
+    static GLOBAL: CountingAllocator = CountingAllocator;
+
+    fn reset_alloc_count() {
+        ALLOC_COUNT.store(0, Ordering::Relaxed);
+    }
+
+    fn alloc_count() -> usize {
+        ALLOC_COUNT.load(Ordering::Relaxed)
+    }
 
     #[test]
     fn reverse_index_test() {
@@ -939,5 +1056,44 @@ mod tests {
         assert_eq!(&buf[idx.range_to_end()], &[4, 5]);
         assert_eq!(&buf[idx.range_to(idx + 1)], &[4]);
         assert_eq!(idx.to_forward_index(&buf), 4);
+    }
+
+    #[test]
+    fn with_internal_capacity_preallocates_vecs() {
+        let mut builder = FlatBufferBuilder::with_internal_capacity(64, 8, 16, 32);
+
+        assert!(builder.allocator.len() >= 64);
+        assert!(builder.field_locs.capacity() >= 8);
+        assert!(builder.written_vtable_revpos.capacity() >= 16);
+        assert!(builder.strings_pool.capacity() >= 32);
+
+        assert!(builder.field_locs.is_empty());
+        assert!(builder.written_vtable_revpos.is_empty());
+        assert!(builder.strings_pool.is_empty());
+
+        // Reset the allocation counter after builder construction
+        reset_alloc_count();
+
+        // Add a shared string and verify it lands in the pool
+        let s1 = builder.create_shared_string("hello");
+        assert_eq!(builder.strings_pool.len(), 1);
+
+        // Adding the same string again should reuse the pooled entry
+        let s2 = builder.create_shared_string("hello");
+        assert_eq!(builder.strings_pool.len(), 1);
+        assert_eq!(s1.value(), s2.value());
+
+        // A different string should add a new entry
+        let _s3 = builder.create_shared_string("world");
+        assert_eq!(builder.strings_pool.len(), 2);
+
+        // With sufficient preallocated capacity, no additional allocations
+        // should have occurred for the internal vecs during the operations above
+        let allocs = alloc_count();
+        assert_eq!(
+            allocs, 0,
+            "expected 0 allocations after builder construction, got {}",
+            allocs
+        );
     }
 }
