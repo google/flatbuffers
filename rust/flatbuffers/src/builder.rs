@@ -223,7 +223,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// new object.
     pub fn reset(&mut self) {
         // memset only the part of the buffer that could be dirty:
-        self.allocator[self.head.range_to_end()].iter_mut().for_each(|x| *x = 0);
+        self.allocator[self.head.range_to_end()]
+            .iter_mut()
+            .for_each(|x| *x = 0);
 
         self.head = ReverseIndex::end();
         self.written_vtable_revpos.clear();
@@ -235,22 +237,43 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         self.strings_pool.clear();
     }
 
-    /// Push a Push'able value onto the front of the in-progress data.
-    ///
-    /// This function uses traits to provide a unified API for writing
-    /// scalars, tables, vectors, and WIPOffsets.
+    /// Fallible version of [`push`](Self::push).
     #[inline]
-    pub fn push<P: Push>(&mut self, x: P) -> WIPOffset<P::Output> {
+    pub fn try_push<P: Push>(&mut self, x: P) -> Result<WIPOffset<P::Output>, A::Error> {
         let sz = P::size();
-        self.align(sz, P::alignment());
-        self.make_space(sz);
+        self.align(sz, P::alignment())?;
+        self.make_space(sz)?;
         {
             let (dst, rest) = self.allocator[self.head.range_to_end()].split_at_mut(sz);
             // Safety:
             // Called make_space above
             unsafe { x.push(dst, rest.len()) };
         }
-        WIPOffset::new(self.used_space() as UOffsetT)
+        Ok(WIPOffset::new(self.used_space() as UOffsetT))
+    }
+
+    /// Push a Push'able value onto the front of the in-progress data.
+    ///
+    /// This function uses traits to provide a unified API for writing
+    /// scalars, tables, vectors, and WIPOffsets.
+    #[inline]
+    pub fn push<P: Push>(&mut self, x: P) -> WIPOffset<P::Output> {
+        self.try_push(x).expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`push_slot`](Self::push_slot).
+    #[inline]
+    pub fn try_push_slot<X: Push + PartialEq>(
+        &mut self,
+        slotoff: VOffsetT,
+        x: X,
+        default: X,
+    ) -> Result<(), A::Error> {
+        self.assert_nested("push_slot");
+        if x != default || self.force_defaults {
+            self.try_push_slot_always(slotoff, x)?;
+        }
+        Ok(())
     }
 
     /// Push a Push'able value onto the front of the in-progress data, and
@@ -258,19 +281,29 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// the default, then this is a no-op.
     #[inline]
     pub fn push_slot<X: Push + PartialEq>(&mut self, slotoff: VOffsetT, x: X, default: X) {
-        self.assert_nested("push_slot");
-        if x != default || self.force_defaults {
-            self.push_slot_always(slotoff, x);
-        }
+        self.try_push_slot(slotoff, x, default)
+            .expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`push_slot_always`](Self::push_slot_always).
+    #[inline]
+    pub fn try_push_slot_always<X: Push>(
+        &mut self,
+        slotoff: VOffsetT,
+        x: X,
+    ) -> Result<(), A::Error> {
+        self.assert_nested("push_slot_always");
+        let off = self.try_push(x)?;
+        self.track_field(slotoff, off.value());
+        Ok(())
     }
 
     /// Push a Push'able value onto the front of the in-progress data, and
     /// store a reference to it in the in-progress vtable.
     #[inline]
     pub fn push_slot_always<X: Push>(&mut self, slotoff: VOffsetT, x: X) {
-        self.assert_nested("push_slot_always");
-        let off = self.push(x);
-        self.track_field(slotoff, off.value());
+        self.try_push_slot_always(slotoff, x)
+            .expect("Flatbuffer allocation failure")
     }
 
     /// Retrieve the number of vtables that have been serialized into the
@@ -295,6 +328,22 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         WIPOffset::new(self.used_space() as UOffsetT)
     }
 
+    /// Fallible version of [`end_table`](Self::end_table).
+    #[inline]
+    pub fn try_end_table(
+        &mut self,
+        off: WIPOffset<TableUnfinishedWIPOffset>,
+    ) -> Result<WIPOffset<TableFinishedWIPOffset>, A::Error> {
+        self.assert_nested("end_table");
+
+        let o = self.write_vtable(off)?;
+
+        self.nested = false;
+        self.field_locs.clear();
+
+        Ok(WIPOffset::new(o.value()))
+    }
+
     /// End a Table write.
     ///
     /// Asserts that the builder is in a nested state.
@@ -303,14 +352,19 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         &mut self,
         off: WIPOffset<TableUnfinishedWIPOffset>,
     ) -> WIPOffset<TableFinishedWIPOffset> {
-        self.assert_nested("end_table");
+        self.try_end_table(off)
+            .expect("Flatbuffer allocation failure")
+    }
 
-        let o = self.write_vtable(off);
-
-        self.nested = false;
-        self.field_locs.clear();
-
-        WIPOffset::new(o.value())
+    /// Fallible version of [`start_vector`](Self::start_vector).
+    #[inline]
+    pub fn try_start_vector<T: Push>(&mut self, num_items: usize) -> Result<(), A::Error> {
+        self.assert_not_nested(
+            "start_vector can not be called when a table or vector is under construction",
+        );
+        self.align(num_items * T::size(), T::alignment().max_of(SIZE_UOFFSET))?;
+        self.nested = true;
+        Ok(())
     }
 
     /// Start a Vector write.
@@ -322,11 +376,20 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// function will want to use `push` to add values.
     #[inline]
     pub fn start_vector<T: Push>(&mut self, num_items: usize) {
-        self.assert_not_nested(
-            "start_vector can not be called when a table or vector is under construction",
-        );
-        self.nested = true;
-        self.align(num_items * T::size(), T::alignment().max_of(SIZE_UOFFSET));
+        self.try_start_vector::<T>(num_items)
+            .expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`end_vector`](Self::end_vector).
+    #[inline]
+    pub fn try_end_vector<T: Push>(
+        &mut self,
+        num_elems: usize,
+    ) -> Result<WIPOffset<Vector<'fbb, T>>, A::Error> {
+        self.assert_nested("end_vector");
+        let o = self.try_push::<UOffsetT>(num_elems as UOffsetT)?;
+        self.nested = false;
+        Ok(WIPOffset::new(o.value()))
     }
 
     /// End a Vector write.
@@ -337,14 +400,16 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// Asserts that the builder is in a nested state.
     #[inline]
     pub fn end_vector<T: Push>(&mut self, num_elems: usize) -> WIPOffset<Vector<'fbb, T>> {
-        self.assert_nested("end_vector");
-        self.nested = false;
-        let o = self.push::<UOffsetT>(num_elems as UOffsetT);
-        WIPOffset::new(o.value())
+        self.try_end_vector::<T>(num_elems)
+            .expect("Flatbuffer allocation failure")
     }
 
+    /// Fallible version of [`create_shared_string`](Self::create_shared_string).
     #[inline]
-    pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
+    pub fn try_create_shared_string<'a: 'b, 'b>(
+        &'a mut self,
+        s: &'b str,
+    ) -> Result<WIPOffset<&'fbb str>, A::Error> {
         self.assert_not_nested(
             "create_shared_string can not be called when a table or vector is under construction",
         );
@@ -371,13 +436,34 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         });
 
         match found {
-            Ok(index) => self.strings_pool[index],
+            Ok(index) => Ok(self.strings_pool[index]),
             Err(index) => {
-                let address = WIPOffset::new(self.create_byte_string(s.as_bytes()).value());
+                let address =
+                    WIPOffset::new(self.try_create_byte_string(s.as_bytes())?.value());
                 self.strings_pool.insert(index, address);
-                address
+                Ok(address)
             }
         }
+    }
+
+    #[inline]
+    pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
+        self.try_create_shared_string(s)
+            .expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`create_string`](Self::create_string).
+    #[inline]
+    pub fn try_create_string<'a: 'b, 'b>(
+        &'a mut self,
+        s: &'b str,
+    ) -> Result<WIPOffset<&'fbb str>, A::Error> {
+        self.assert_not_nested(
+            "create_string can not be called when a table or vector is under construction",
+        );
+        Ok(WIPOffset::new(
+            self.try_create_byte_string(s.as_bytes())?.value(),
+        ))
     }
 
     /// Create a utf8 string.
@@ -385,38 +471,43 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// The wire format represents this as a zero-terminated byte vector.
     #[inline]
     pub fn create_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
+        self.try_create_string(s)
+            .expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`create_byte_string`](Self::create_byte_string).
+    #[inline]
+    pub fn try_create_byte_string(
+        &mut self,
+        data: &[u8],
+    ) -> Result<WIPOffset<&'fbb [u8]>, A::Error> {
         self.assert_not_nested(
-            "create_string can not be called when a table or vector is under construction",
+            "create_byte_string can not be called when a table or vector is under construction",
         );
-        WIPOffset::new(self.create_byte_string(s.as_bytes()).value())
+        self.align(data.len() + 1, PushAlignment::new(SIZE_UOFFSET))?;
+        self.try_push(0u8)?;
+        self.push_bytes_unprefixed(data)?;
+        self.try_push(data.len() as UOffsetT)?;
+        Ok(WIPOffset::new(self.used_space() as UOffsetT))
     }
 
     /// Create a zero-terminated byte vector.
     #[inline]
     pub fn create_byte_string(&mut self, data: &[u8]) -> WIPOffset<&'fbb [u8]> {
-        self.assert_not_nested(
-            "create_byte_string can not be called when a table or vector is under construction",
-        );
-        self.align(data.len() + 1, PushAlignment::new(SIZE_UOFFSET));
-        self.push(0u8);
-        self.push_bytes_unprefixed(data);
-        self.push(data.len() as UOffsetT);
-        WIPOffset::new(self.used_space() as UOffsetT)
+        self.try_create_byte_string(data)
+            .expect("Flatbuffer allocation failure")
     }
 
-    /// Create a vector of Push-able objects.
-    ///
-    /// Speed-sensitive users may wish to reduce memory usage by creating the
-    /// vector manually: use `start_vector`, `push`, and `end_vector`.
+    /// Fallible version of [`create_vector`](Self::create_vector).
     #[inline]
-    pub fn create_vector<'a: 'b, 'b, T: Push + 'b>(
+    pub fn try_create_vector<'a: 'b, 'b, T: Push + 'b>(
         &'a mut self,
         items: &'b [T],
-    ) -> WIPOffset<Vector<'fbb, T::Output>> {
+    ) -> Result<WIPOffset<Vector<'fbb, T::Output>>, A::Error> {
         let elem_size = T::size();
         let slice_size = items.len() * elem_size;
-        self.align(slice_size, T::alignment().max_of(SIZE_UOFFSET));
-        self.ensure_capacity(slice_size + UOffsetT::size());
+        self.align(slice_size, T::alignment().max_of(SIZE_UOFFSET))?;
+        self.ensure_capacity(slice_size + UOffsetT::size())?;
 
         self.head -= slice_size;
         let mut written_len = self.head.distance_to_end();
@@ -430,7 +521,38 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             unsafe { item.push(out, written_len) };
         }
 
-        WIPOffset::new(self.push::<UOffsetT>(items.len() as UOffsetT).value())
+        Ok(WIPOffset::new(
+            self.try_push::<UOffsetT>(items.len() as UOffsetT)?.value(),
+        ))
+    }
+
+    /// Create a vector of Push-able objects.
+    ///
+    /// Speed-sensitive users may wish to reduce memory usage by creating the
+    /// vector manually: use `start_vector`, `push`, and `end_vector`.
+    #[inline]
+    pub fn create_vector<'a: 'b, 'b, T: Push + 'b>(
+        &'a mut self,
+        items: &'b [T],
+    ) -> WIPOffset<Vector<'fbb, T::Output>> {
+        self.try_create_vector(items)
+            .expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`create_vector_from_iter`](Self::create_vector_from_iter).
+    #[inline]
+    pub fn try_create_vector_from_iter<T: Push>(
+        &mut self,
+        items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
+    ) -> Result<WIPOffset<Vector<'fbb, T::Output>>, A::Error> {
+        let elem_size = T::size();
+        self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET))?;
+        let mut actual = 0;
+        for item in items.rev() {
+            self.try_push(item)?;
+            actual += 1;
+        }
+        Ok(WIPOffset::new(self.try_push::<UOffsetT>(actual)?.value()))
     }
 
     /// Create a vector of Push-able objects.
@@ -442,14 +564,8 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         &mut self,
         items: impl ExactSizeIterator<Item = T> + DoubleEndedIterator,
     ) -> WIPOffset<Vector<'fbb, T::Output>> {
-        let elem_size = T::size();
-        self.align(items.len() * elem_size, T::alignment().max_of(SIZE_UOFFSET));
-        let mut actual = 0;
-        for item in items.rev() {
-            self.push(item);
-            actual += 1;
-        }
-        WIPOffset::new(self.push::<UOffsetT>(actual).value())
+        self.try_create_vector_from_iter(items)
+            .expect("Flatbuffer allocation failure")
     }
 
     /// Set whether default values are stored.
@@ -512,13 +628,34 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         assert!(o != 0, "missing required field {}", assert_msg_name);
     }
 
+    /// Fallible version of [`finish_size_prefixed`](Self::finish_size_prefixed).
+    #[inline]
+    pub fn try_finish_size_prefixed<T>(
+        &mut self,
+        root: WIPOffset<T>,
+        file_identifier: Option<&str>,
+    ) -> Result<(), A::Error> {
+        self.finish_with_opts(root, file_identifier, true)
+    }
+
     /// Finalize the FlatBuffer by: aligning it, pushing an optional file
     /// identifier on to it, pushing a size prefix on to it, and marking the
     /// internal state of the FlatBufferBuilder as `finished`. Afterwards,
     /// users can call `finished_data` to get the resulting data.
     #[inline]
     pub fn finish_size_prefixed<T>(&mut self, root: WIPOffset<T>, file_identifier: Option<&str>) {
-        self.finish_with_opts(root, file_identifier, true);
+        self.try_finish_size_prefixed(root, file_identifier)
+            .expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`finish`](Self::finish).
+    #[inline]
+    pub fn try_finish<T>(
+        &mut self,
+        root: WIPOffset<T>,
+        file_identifier: Option<&str>,
+    ) -> Result<(), A::Error> {
+        self.finish_with_opts(root, file_identifier, false)
     }
 
     /// Finalize the FlatBuffer by: aligning it, pushing an optional file
@@ -527,7 +664,14 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// `finished_data` to get the resulting data.
     #[inline]
     pub fn finish<T>(&mut self, root: WIPOffset<T>, file_identifier: Option<&str>) {
-        self.finish_with_opts(root, file_identifier, false);
+        self.try_finish(root, file_identifier)
+            .expect("Flatbuffer allocation failure")
+    }
+
+    /// Fallible version of [`finish_minimal`](Self::finish_minimal).
+    #[inline]
+    pub fn try_finish_minimal<T>(&mut self, root: WIPOffset<T>) -> Result<(), A::Error> {
+        self.finish_with_opts(root, None, false)
     }
 
     /// Finalize the FlatBuffer by: aligning it and marking the internal state
@@ -535,7 +679,8 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// `finished_data` to get the resulting data.
     #[inline]
     pub fn finish_minimal<T>(&mut self, root: WIPOffset<T>) {
-        self.finish_with_opts(root, None, false);
+        self.try_finish_minimal(root)
+            .expect("Flatbuffer allocation failure")
     }
 
     #[inline]
@@ -553,13 +698,13 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     fn write_vtable(
         &mut self,
         table_tail_revloc: WIPOffset<TableUnfinishedWIPOffset>,
-    ) -> WIPOffset<VTableWIPOffset> {
+    ) -> Result<WIPOffset<VTableWIPOffset>, A::Error> {
         self.assert_nested("write_vtable");
 
         // Write the vtable offset, which is the start of any Table.
         // We fill its value later.
         let object_revloc_to_vtable: WIPOffset<VTableWIPOffset> =
-            WIPOffset::new(self.push::<UOffsetT>(0xF0F0_F0F0).value());
+            WIPOffset::new(self.try_push::<UOffsetT>(0xF0F0_F0F0)?.value());
 
         // Layout of the data this function will create when a new vtable is
         // needed.
@@ -602,7 +747,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
         // fill the WIP vtable with zeros:
         let vtable_byte_len = get_vtable_byte_len(&self.field_locs);
-        self.make_space(vtable_byte_len);
+        self.make_space(vtable_byte_len)?;
 
         // compute the length of the table (not vtable!) in bytes:
         let table_object_size = object_revloc_to_vtable.value() - table_tail_revloc.value();
@@ -627,13 +772,15 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             }
         }
         let new_vt_bytes = &self.allocator[vt_start_pos.range_to(vt_end_pos)];
-        let found = self.written_vtable_revpos.binary_search_by(|old_vtable_revpos: &UOffsetT| {
-            let old_vtable_pos = self.allocator.len() - *old_vtable_revpos as usize;
-            // Safety:
-            // Already written vtables are valid by construction
-            let old_vtable = unsafe { VTable::init(&self.allocator, old_vtable_pos) };
-            new_vt_bytes.cmp(old_vtable.as_bytes())
-        });
+        let found = self
+            .written_vtable_revpos
+            .binary_search_by(|old_vtable_revpos: &UOffsetT| {
+                let old_vtable_pos = self.allocator.len() - *old_vtable_revpos as usize;
+                // Safety:
+                // Already written vtables are valid by construction
+                let old_vtable = unsafe { VTable::init(&self.allocator, old_vtable_pos) };
+                new_vt_bytes.cmp(old_vtable.as_bytes())
+            });
         let final_vtable_revpos = match found {
             Ok(i) => {
                 // The new vtable is a duplicate so clear it.
@@ -671,17 +818,18 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
         self.field_locs.clear();
 
-        object_revloc_to_vtable
+        Ok(object_revloc_to_vtable)
     }
 
     // Only call this when you know it is safe to double the size of the buffer.
     #[inline]
-    fn grow_allocator(&mut self) {
+    fn grow_allocator(&mut self) -> Result<(), A::Error> {
         let starting_active_size = self.used_space();
-        self.allocator.grow_downwards().expect("Flatbuffer allocation failure");
+        self.allocator.grow_downwards()?;
 
         let ending_active_size = self.used_space();
         debug_assert_eq!(starting_active_size, ending_active_size);
+        Ok(())
     }
 
     // with or without a size prefix changes how we load the data, so finish*
@@ -691,7 +839,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         root: WIPOffset<T>,
         file_identifier: Option<&str>,
         size_prefixed: bool,
-    ) {
+    ) -> Result<(), A::Error> {
         self.assert_not_finished("buffer cannot be finished when it is already finished");
         self.assert_not_nested(
             "buffer cannot be finished when a table or vector is under construction",
@@ -704,34 +852,40 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             // for the size prefix:
             let b = if size_prefixed { SIZE_UOFFSET } else { 0 };
             // for the file identifier (a string that is not zero-terminated):
-            let c = if file_identifier.is_some() { FILE_IDENTIFIER_LENGTH } else { 0 };
+            let c = if file_identifier.is_some() {
+                FILE_IDENTIFIER_LENGTH
+            } else {
+                0
+            };
             a + b + c
         };
 
         {
             let ma = PushAlignment::new(self.min_align);
-            self.align(to_align, ma);
+            self.align(to_align, ma)?;
         }
 
         if let Some(ident) = file_identifier {
             debug_assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
-            self.push_bytes_unprefixed(ident.as_bytes());
+            self.push_bytes_unprefixed(ident.as_bytes())?;
         }
 
-        self.push(root);
+        self.try_push(root)?;
 
         if size_prefixed {
             let sz = self.used_space() as UOffsetT;
-            self.push::<UOffsetT>(sz);
+            self.try_push::<UOffsetT>(sz)?;
         }
         self.finished = true;
+        Ok(())
     }
 
     #[inline]
-    fn align(&mut self, len: usize, alignment: PushAlignment) {
+    fn align(&mut self, len: usize, alignment: PushAlignment) -> Result<(), A::Error> {
         self.track_min_align(alignment.value());
         let s = self.used_space() as usize;
-        self.make_space(padding_bytes(s + len, alignment.value()));
+        self.make_space(padding_bytes(s + len, alignment.value()))?;
+        Ok(())
     }
 
     #[inline]
@@ -740,31 +894,34 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     }
 
     #[inline]
-    fn push_bytes_unprefixed(&mut self, x: &[u8]) -> UOffsetT {
-        let n = self.make_space(x.len());
+    fn push_bytes_unprefixed(&mut self, x: &[u8]) -> Result<UOffsetT, A::Error> {
+        let n = self.make_space(x.len())?;
         self.allocator[n.range_to(n + x.len())].copy_from_slice(x);
 
-        n.to_forward_index(&self.allocator) as UOffsetT
+        Ok(n.to_forward_index(&self.allocator) as UOffsetT)
     }
 
     #[inline]
-    fn make_space(&mut self, want: usize) -> ReverseIndex {
-        self.ensure_capacity(want);
+    fn make_space(&mut self, want: usize) -> Result<ReverseIndex, A::Error> {
+        self.ensure_capacity(want)?;
         self.head -= want;
-        self.head
+        Ok(self.head)
     }
 
     #[inline]
-    fn ensure_capacity(&mut self, want: usize) -> usize {
+    fn ensure_capacity(&mut self, want: usize) -> Result<usize, A::Error> {
         if self.unused_ready_space() >= want {
-            return want;
+            return Ok(want);
         }
-        assert!(want <= FLATBUFFERS_MAX_BUFFER_SIZE, "cannot grow buffer beyond 2 gigabytes");
+        assert!(
+            want <= FLATBUFFERS_MAX_BUFFER_SIZE,
+            "cannot grow buffer beyond 2 gigabytes"
+        );
 
         while self.unused_ready_space() < want {
-            self.grow_allocator();
+            self.grow_allocator()?;
         }
-        want
+        Ok(want)
     }
     #[inline]
     fn unused_ready_space(&self) -> usize {
@@ -939,5 +1096,112 @@ mod tests {
         assert_eq!(&buf[idx.range_to_end()], &[4, 5]);
         assert_eq!(&buf[idx.range_to(idx + 1)], &[4]);
         assert_eq!(idx.to_forward_index(&buf), 4);
+    }
+
+    /// A test allocator that fails after a specified number of grow operations.
+    struct FailingAllocator {
+        inner: DefaultAllocator,
+        grows_remaining: usize,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct AllocationError;
+
+    impl core::fmt::Display for AllocationError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            write!(f, "allocation failed")
+        }
+    }
+
+    impl FailingAllocator {
+        fn new(initial_size: usize, max_grows: usize) -> Self {
+            Self {
+                inner: DefaultAllocator::from_vec(vec![0u8; initial_size]),
+                grows_remaining: max_grows,
+            }
+        }
+    }
+
+    impl Deref for FailingAllocator {
+        type Target = [u8];
+        fn deref(&self) -> &Self::Target {
+            &self.inner
+        }
+    }
+
+    impl DerefMut for FailingAllocator {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.inner
+        }
+    }
+
+    unsafe impl Allocator for FailingAllocator {
+        type Error = AllocationError;
+
+        fn grow_downwards(&mut self) -> Result<(), Self::Error> {
+            if self.grows_remaining == 0 {
+                return Err(AllocationError);
+            }
+            self.grows_remaining -= 1;
+            // DefaultAllocator returns Infallible, so unwrap is safe
+            self.inner.grow_downwards().unwrap();
+            Ok(())
+        }
+
+        fn len(&self) -> usize {
+            self.inner.len()
+        }
+    }
+
+    #[test]
+    fn try_push_propagates_allocation_error() {
+        let allocator = FailingAllocator::new(1, 0);
+        let mut builder = FlatBufferBuilder::new_in(allocator);
+
+        let result = builder.try_push::<u64>(0x1234567890ABCDEF);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn try_create_string_propagates_allocation_error() {
+        let allocator = FailingAllocator::new(1, 0);
+        let mut builder = FlatBufferBuilder::new_in(allocator);
+
+        let result = builder.try_create_string("hello world");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn try_create_vector_propagates_allocation_error() {
+        let allocator = FailingAllocator::new(1, 0);
+        let mut builder = FlatBufferBuilder::new_in(allocator);
+
+        let result = builder.try_create_vector(&[1u32, 2, 3, 4, 5]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn try_methods_succeed_with_sufficient_capacity() {
+        let allocator = FailingAllocator::new(1, 10);
+        let mut builder = FlatBufferBuilder::new_in(allocator);
+
+        let result = builder.try_create_string("hello");
+        assert!(result.is_ok());
+
+        let result = builder.try_create_vector(&[1u32, 2, 3]);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn try_finish_propagates_allocation_error() {
+        let allocator = FailingAllocator::new(1, 3);
+        let mut builder = FlatBufferBuilder::new_in(allocator);
+
+        let start = builder.start_table();
+        let table = builder
+            .try_end_table(start)
+            .expect("end_table should succeed with 3 grows");
+        let result = builder.try_finish_minimal(table);
+        assert!(result.is_err(), "finish should fail after grows exhausted");
     }
 }
