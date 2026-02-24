@@ -1,0 +1,140 @@
+// Schema to exercise all C# code generation features
+namespace ComprehensiveTest;
+
+file_identifier "TEST";
+file_extension "fb";
+
+// Basic enum
+enum Color : byte { Red = 0, Green, Blue }
+
+// Enum with explicit values
+enum Status : int { 
+    Unknown = -1, 
+    Pending = 0, 
+    Active = 1, 
+    Inactive = 2 
+}
+
+// Union types
+union Equipment { Weapon, Armor }
+
+// Basic struct (fixed size)
+struct Vec3 {
+    x: float;
+    y: float;
+    z: float;
+}
+
+// Nested struct
+struct Transform {
+    position: Vec3;
+    rotation: Vec3;
+    scale: Vec3;
+}
+
+// Fixed-length array structs
+struct FixedStats {
+    values: [int:4];
+}
+
+struct PositionHistory {
+    positions: [Vec3:10];
+}
+
+// Table with nested flatbuffer
+table NestedData {
+    value: int;
+}
+
+// Complex table with all field types
+table Weapon {
+    name: string (required);
+    damage: int = 10;
+    durability: float = 100.0;
+    enchanted: bool = false;
+    
+    // Vector types
+    tags: [string];
+    damage_values: [int];
+    modifiers: [float];
+    
+    // Struct field
+    transform: Transform;
+    
+    // Vector of structs
+    hit_points: [Vec3];
+    
+    // Enum field
+    rarity: Color = Red;
+    
+    // Vector of enums
+    valid_colors: [Color];
+    
+    // Union field
+    weapon_type: Equipment;
+    weapon_equipment: Equipment;
+    
+    // Vector of unions
+    compatible_types: [Equipment];
+    compatible_items: [Equipment];
+    
+    // Nested flatbuffer
+    metadata: [ubyte] (nested_flatbuffer: "NestedData");
+    
+    // Fixed-length arrays (wrapped in structs)
+    fixed_stats: FixedStats;
+    position_history: PositionHistory;
+}
+
+table Armor {
+    name: string (required);
+    defense: int = 5;
+    weight: float = 1.0;
+    transform: Transform;
+}
+
+// Table with key field (for sorting/lookup)
+table Player {
+    id: int (key);
+    name: string (required);
+    level: int = 1;
+    experience: long = 0;
+    health: float = 100.0;
+    mana: float = 50.0;
+    
+    // Collections
+    inventory: [Equipment];
+    skills: [string];
+    stats: [int];
+    
+    // Struct
+    spawn_point: Vec3;
+    
+    // Enum
+    status: Status = Pending;
+    
+    // Union
+    equipped_type: Equipment;
+    equipped_item: Equipment;
+}
+
+// Table with deprecated field
+table GameSession {
+    session_id: string (required);
+    player_count: int = 0;
+    start_time: long;
+    
+    // Deprecated field
+    old_field: int (deprecated);
+    
+    players: [Player];
+}
+
+// Service definition (for gRPC generation)
+rpc_service GameService {
+    GetPlayer(Player): Player;
+    UpdatePlayer(Player): Player;
+    ListPlayers(GameSession): GameSession;
+}
+
+root_type GameSession;

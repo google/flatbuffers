@@ -221,6 +221,28 @@ jobs:
         cd tests\FlatBuffers.Test\bin\Release\net8.0
         .\FlatBuffers.Test.exe
 
+  build-dotnet-linux:
+    name: Build .NET Linux
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4.2.0
+      with:
+        dotnet-version: '10.0.x'
+    - name: Build
+      run: |
+        cd net/FlatSpanBuffers.Tests
+        dotnet new sln --force --name FlatSpanBuffers.Test
+        dotnet sln FlatSpanBuffers.Test.sln add FlatSpanBuffers.Tests.csproj
+        dotnet sln FlatSpanBuffers.Test.sln add ../FlatSpanBuffers/FlatSpanBuffers.csproj
+        dotnet sln FlatSpanBuffers.Test.sln add ../FlatSpanBuffers.GeneratedCode/FlatSpanBuffers.GeneratedCode.csproj
+        dotnet build -c Release FlatSpanBuffers.Test.sln
+    - name: Run net10.0
+      run: |
+        cd net/FlatSpanBuffers.Tests/bin/Release/net10.0
+        ./FlatSpanBuffers.Tests
+
   build-mac-intel:
     permissions:
       contents: write
