@@ -1298,7 +1298,7 @@ class PythonGenerator : public BaseGenerator {
     code += "):\n";
   }
 
-  // Recursively generate struct construction statements and instert manual
+  // Recursively generate struct construction statements and insert manual
   // padding.
   void StructBuilderBody(const StructDef& struct_def, const char* nameprefix,
                          std::string* code_ptr, size_t index = 0,
@@ -1326,7 +1326,7 @@ class PythonGenerator : public BaseGenerator {
         if (IsArray(field_type)) {
           code += indent + "    for " + index_var + " in range(";
           code += NumToString(field_type.fixed_length);
-          code += " , 0, -1):\n";
+          code += ", 0, -1):\n";
           in_array = true;
         }
         if (IsStruct(type)) {
@@ -2303,21 +2303,59 @@ class PythonGenerator : public BaseGenerator {
     code_base += "\n";
   }
 
+  void GenPackForStructBody(const StructDef &struct_def, const char *nameprefix,
+                            std::string *code_ptr, const size_t depth = 0) const {
+    auto &code = *code_ptr;
+    const std::string indent((depth + 2) * 4, ' ');
+    code +=
+        indent + "builder.Prep(" + NumToString(struct_def.minalign) + ", ";
+    code += NumToString(struct_def.bytesize) + ")\n";
+    for (auto it = struct_def.fields.vec.rbegin();
+         it != struct_def.fields.vec.rend(); ++it) {
+      auto& field = **it;
+      const auto& field_type = field.value.type;
+      if (field.padding) {
+        code +=
+            indent + "builder.Pad(" + NumToString(field.padding) + ")\n";
+      }
+      if (IsStruct(field_type)) {
+        GenPackForStructBody(
+          *field_type.struct_def,
+          (nameprefix + (namer_.Field(field) + ".")).c_str(),
+          code_ptr, depth);
+      } else {
+        std::string namesuffix;
+        if (IsArray(field_type)) {
+          const auto index_var = "_idx" + NumToString(depth);
+          code += indent + "for " + index_var + " in range(";
+          code += NumToString(field_type.fixed_length);
+          code += ", 0, -1):\n";
+          namesuffix = "[" + index_var + "-1]";
+        }
+        const auto& type =
+          IsArray(field_type) ? field_type.VectorType() : field_type;
+        if (IsStruct(type)) {
+          GenPackForStructBody(
+              *field_type.struct_def,
+              (nameprefix + namer_.Field(field) + namesuffix + ".").c_str(),
+              code_ptr, depth + 1);
+        } else {
+          code += IsArray(field_type) ? "    " : "";
+          code += indent + "builder.Prepend" + GenMethod(field) + "(";
+          code += nameprefix + namer_.Variable(field) + namesuffix;
+          code += ")\n";
+        }
+      }
+    }
+  }
+
   void GenPackForStruct(const StructDef& struct_def,
                         std::string* code_ptr) const {
     auto& code = *code_ptr;
-    const auto struct_fn = namer_.Function(struct_def);
-
     GenReceiverForObjectAPI(struct_def, code_ptr);
-    code += "Pack(self, builder):";
-    code += GenIndents(2) + "return Create" + struct_fn + "(builder";
-
-    StructBuilderArgs(struct_def,
-                      /* nameprefix = */ "self.",
-                      /* namesuffix = */ "",
-                      /* has_field_name = */ true,
-                      /* fieldname_suffix = */ ".", code_ptr);
-    code += ")\n";
+    code += "Pack(self, builder):\n";
+    GenPackForStructBody(struct_def, "self.", code_ptr);
+    code += "        return builder.Offset()\n";
   }
 
   void GenPackForStructVectorField(const StructDef& struct_def,
