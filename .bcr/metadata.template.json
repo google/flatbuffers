@@ -1,0 +1,21 @@
+{
+  "homepage": "https://github.com/google/flatbuffers",
+  "maintainers": [
+    {
+      "name": "Derek Bailey",
+      "github": "dbaileychess",
+      "github_user_id": 1477247
+    },
+    {
+      "name": "mering",
+      "github": "mering",
+      "github_user_id": 133344217
+    }
+  ],
+  "_comment": "maintainers will be emailed if a BCR release fails; add additional maintainers as needed",
+  "repository": [
+    "github:google/flatbuffers"
+  ],
+  "versions": [],
+  "yanked_versions": {}
+}
