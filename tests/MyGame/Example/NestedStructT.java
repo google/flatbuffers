@@ -26,7 +26,12 @@ public class NestedStructT {
 
   public int[] getA() { return a; }
 
-  public void setA(int[] a) { if (a != null && a.length == 2) this.a = a; }
+  public void setA(int[] a) {
+    if (a != null && a.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"a\" must have length 2.");
+    }
+    this.a = a;
+  }
 
   public byte getB() { return b; }
 
@@ -34,11 +39,21 @@ public class NestedStructT {
 
   public byte[] getC() { return c; }
 
-  public void setC(byte[] c) { if (c != null && c.length == 2) this.c = c; }
+  public void setC(byte[] c) {
+    if (c != null && c.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"c\" must have length 2.");
+    }
+    this.c = c;
+  }
 
   public long[] getD() { return d; }
 
-  public void setD(long[] d) { if (d != null && d.length == 2) this.d = d; }
+  public void setD(long[] d) {
+    if (d != null && d.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"d\" must have length 2.");
+    }
+    this.d = d;
+  }
 
 
   public NestedStructT() {
@@ -46,6 +61,22 @@ public class NestedStructT {
     this.b = 0;
     this.c = new byte[2];
     this.d = new long[2];
+  }
+
+  public NestedStructT(int[] a, byte b, byte[] c, long[] d) {
+    if (a != null && a.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"a\" must have length 2.");
+    }
+    this.a = a;
+    this.b = b;
+    if (c != null && c.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"c\" must have length 2.");
+    }
+    this.c = c;
+    if (d != null && d.length != 2) {
+      throw new IllegalArgumentException("FlatBuffers: fixed-size array \"d\" must have length 2.");
+    }
+    this.d = d;
   }
 }
 

@@ -1193,27 +1193,76 @@ class JavaGenerator : public BaseGenerator {
           auto vector_type = field.value.type.VectorType();
           auto alignment = InlineAlignment(vector_type);
           auto elem_size = InlineSize(vector_type);
-          if (!IsStruct(vector_type)) {
-            field_has_create_set.insert(&field);
-            // generate a method to create a vector from a java array.
-            if ((vector_type.base_type == BASE_TYPE_CHAR ||
-                 vector_type.base_type == BASE_TYPE_UCHAR)) {
-              // Handle byte[] and ByteBuffers separately for Java
-              code += "  public static " + GenVectorOffsetType() + " ";
-              code += namer_.Method("create", field);
-              code += "Vector(FlatBufferBuilder builder, byte[] data) ";
-              code += "{ return builder.createByteVector(data); }\n";
+          field_has_create_set.insert(&field);
 
-              code += "  public static " + GenVectorOffsetType() + " ";
-              code += namer_.Method("create", field);
-              code += "Vector(FlatBufferBuilder builder, ByteBuffer data) ";
-              code += "{ return builder.createByteVector(data); }\n";
+          // generate a method to create a vector from a java array.
+          if ((vector_type.base_type == BASE_TYPE_CHAR ||
+               vector_type.base_type == BASE_TYPE_UCHAR)) {
+            // Handle byte[] and ByteBuffers separately for Java
+            code += "  public static " + GenVectorOffsetType() + " ";
+            code += namer_.Method("create", field);
+            code += "Vector(FlatBufferBuilder builder, byte[] data) ";
+            code += "{ return builder.createByteVector(data); }\n";
+
+            code += "  public static " + GenVectorOffsetType() + " ";
+            code += namer_.Method("create", field);
+            code += "Vector(FlatBufferBuilder builder, ByteBuffer data) ";
+            code += "{ return builder.createByteVector(data); }\n";
+          } else {
+            bool is_struct_vector = vector_type.base_type == BASE_TYPE_STRUCT &&
+                                    vector_type.struct_def->fixed;
+            code += "  public static " + GenVectorOffsetType() + " ";
+            code += namer_.Method("create", field);
+            code += "Vector(FlatBufferBuilder builder, ";
+            std::string type_name;
+            if (is_struct_vector) {
+              type_name = GenTypeGet(vector_type);
+            } else if (IsScalar(vector_type.base_type)) {
+              type_name = GenTypeBasic(vector_type);
             } else {
-              code += "  public static " + GenVectorOffsetType() + " ";
-              code += namer_.Method("create", field);
-              code += "Vector(FlatBufferBuilder builder, ";
-              code += GenTypeBasic(DestinationType(vector_type, false)) +
-                      "[] data) ";
+              type_name = "int";
+            }
+            code += type_name + "[] data) ";
+
+            std::string helper_method = "";
+            switch (vector_type.base_type) {
+              case BASE_TYPE_BOOL:
+                helper_method = "createBooleanVector";
+                break;
+              case BASE_TYPE_SHORT:
+                helper_method = "createShortVector";
+                break;
+              case BASE_TYPE_INT:
+                helper_method = "createIntVector";
+                break;
+              case BASE_TYPE_LONG:
+              case BASE_TYPE_ULONG:
+                helper_method = "createLongVector";
+                break;
+              case BASE_TYPE_FLOAT:
+                helper_method = "createFloatVector";
+                break;
+              case BASE_TYPE_DOUBLE:
+                helper_method = "createDoubleVector";
+                break;
+              case BASE_TYPE_STRUCT:
+                if (is_struct_vector) {
+                  helper_method = "createStructVector";
+                }
+                break;
+              default:
+                break;
+            }
+
+            if (!helper_method.empty()) {
+              if (is_struct_vector) {
+                code += "{ return builder." + helper_method + "(data, " +
+                        NumToString(elem_size) + ", " + NumToString(alignment) +
+                        "); }\n";
+              } else {
+                code += "{ return builder." + helper_method + "(data); }\n";
+              }
+            } else {
               code += "{ builder.startVector(";
               code += NumToString(elem_size);
               code += ", data.length, ";
@@ -1229,6 +1278,23 @@ class JavaGenerator : public BaseGenerator {
               code += "builder.endVector(); }\n";
             }
           }
+
+          // Generate overload for Object API (POJO array) if enabled
+          if (parser_.opts.generate_object_based_api &&
+              vector_type.base_type == BASE_TYPE_STRUCT &&
+              vector_type.struct_def->fixed) {
+            code += "  public static " + GenVectorOffsetType() + " ";
+            code += namer_.Method("create", field);
+            code += "Vector(FlatBufferBuilder builder, ";
+            code += GenTypeGet_ObjectAPI(vector_type, true, true) + "[] data) ";
+            code += "{ builder.startVector(" + NumToString(elem_size) +
+                    ", data.length, " + NumToString(alignment) + "); ";
+            code += "for (int i = data.length - 1; i >= 0; i--) { ";
+            // Use pack to serialize the POJO struct
+            code += GenTypeGet(vector_type) + ".pack(builder, data[i]); } ";
+            code += "return builder.endVector(); }\n\n";
+          }
+
           // Generate a method to start a vector, data to be added manually
           // after.
           code += "  public static void " + namer_.Method("start", field);
@@ -1653,7 +1719,9 @@ class JavaGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_VECTOR: {
-          if (field_has_create.find(&field) != field_has_create.end()) {
+          if (field_has_create.find(&field) != field_has_create.end() &&
+              !(field.value.type.struct_def &&
+                field.value.type.struct_def->fixed)) {
             auto property_name = field_name;
             auto gen_for_loop = true;
             std::string array_name = "__" + field_name;
@@ -2157,15 +2225,26 @@ class JavaGenerator : public BaseGenerator {
 
       code += "  public " + type_name + " " + get_field + "() { return " +
               field_name + "; }\n\n";
-      std::string array_validation = "";
+
       if (field.value.type.base_type == BASE_TYPE_ARRAY) {
-        array_validation =
-            "if (" + field_name + " != null && " + field_name +
-            ".length == " + NumToString(field.value.type.fixed_length) + ") ";
+        code += "  public void " + namer_.Method("set", field) + "(" +
+                type_name + " " + field_name + ") {\n";
+        code += "    if (" + field_name + " != null && " + field_name +
+                ".length != " + NumToString(field.value.type.fixed_length) +
+                ") {\n";
+        code +=
+            "      throw new IllegalArgumentException(\"FlatBuffers: "
+            "fixed-size array \\\"" +
+            field_name + "\\\" must have length " +
+            NumToString(field.value.type.fixed_length) + ".\");\n";
+        code += "    }\n";
+        code += "    this." + field_name + " = " + field_name + ";\n";
+        code += "  }\n\n";
+      } else {
+        code += "  public void " + namer_.Method("set", field) + "(" +
+                type_name + " " + field_name + ") { this." + field_name +
+                " = " + field_name + "; }\n\n";
       }
-      code += "  public void " + namer_.Method("set", field) + "(" + type_name +
-              " " + field_name + ") { " + array_validation + "this." +
-              field_name + " = " + field_name + "; }\n\n";
     }
     // Generate Constructor
     code += "\n";
@@ -2210,8 +2289,53 @@ class JavaGenerator : public BaseGenerator {
       }
     }
     code += "  }\n";
+
+    // Generate parameterized constructor
+    if (!struct_def.fields.vec.empty()) {
+      code += "\n";
+      code += "  public " + class_name + "(";
+      bool first = true;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto& field = **it;
+        if (field.deprecated) continue;
+        if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+        if (field.value.type.element == BASE_TYPE_UTYPE) continue;
+        if (!first) code += ", ";
+        first = false;
+        auto type_name = GenTypeGet_ObjectAPI(field.value.type, false, true);
+        if (field.IsScalarOptional())
+          type_name = ConvertPrimitiveTypeToObjectWrapper_ObjectAPI(type_name);
+        code += type_name + " " + namer_.Field(field);
+      }
+      code += ") {\n";
+
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const auto& field = **it;
+        if (field.deprecated) continue;
+        if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+        if (field.value.type.element == BASE_TYPE_UTYPE) continue;
+        const auto field_name = namer_.Field(field);
+        if (field.value.type.base_type == BASE_TYPE_ARRAY) {
+          code += "    if (" + field_name + " != null && " + field_name +
+                  ".length != " + NumToString(field.value.type.fixed_length) +
+                  ") {\n";
+          code +=
+              "      throw new IllegalArgumentException(\"FlatBuffers: "
+              "fixed-size array \\\"" +
+              field_name + "\\\" must have length " +
+              NumToString(field.value.type.fixed_length) + ".\");\n";
+          code += "    }\n";
+        }
+        code += "    this." + field_name + " = " + field_name + ";\n";
+      }
+      code += "  }\n";
+    }
+
     if (parser_.root_struct_def_ == &struct_def) {
       const std::string struct_type = namer_.Type(struct_def);
+      code += "\n";
       code += "  public static " + class_name +
               " deserializeFromBinary(byte[] fbBuffer) {\n";
       code += "    return " + struct_type + "." +
