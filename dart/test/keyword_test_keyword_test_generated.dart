@@ -214,30 +214,25 @@ class KeywordsInTableBuilder {
 }
 
 class KeywordsInTableObjectBuilder extends fb.ObjectBuilder {
-  final Abc? _$is;
-  final Public? _private;
-  final int? _type;
-  final bool? _$default;
+  final Abc? $is;
+  final Public? private;
+  final int? type;
+  final bool? $default;
 
   KeywordsInTableObjectBuilder({
-    Abc? $is,
-    Public? private,
-    int? type,
-    bool? $default,
-  })
-      : _$is = $is,
-        _private = private,
-        _type = type,
-        _$default = $default;
-
+     this.$is,
+     this.private,
+     this.type,
+     this.$default,
+  });
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
     fbBuilder.startTable(4);
-    fbBuilder.addInt32(0, _$is?.value);
-    fbBuilder.addInt32(1, _private?.value);
-    fbBuilder.addInt32(2, _type);
-    fbBuilder.addBool(3, _$default);
+    fbBuilder.addInt32(0, $is?.value);
+    fbBuilder.addInt32(1, private?.value);
+    fbBuilder.addInt32(2, type);
+    fbBuilder.addBool(3, $default);
     return fbBuilder.endTable();
   }
 
@@ -340,22 +335,19 @@ class Table2Builder {
 }
 
 class Table2ObjectBuilder extends fb.ObjectBuilder {
-  final KeywordsInUnionTypeId? _typeType;
-  final dynamic _type;
+  final KeywordsInUnionTypeId? typeType;
+  final dynamic type;
 
   Table2ObjectBuilder({
-    KeywordsInUnionTypeId? typeType,
-    dynamic type,
-  })
-      : _typeType = typeType,
-        _type = type;
-
+     this.typeType,
+     this.type,
+  });
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? typeOffset = _type?.getOrCreateOffset(fbBuilder);
+    final int? typeOffset = type?.getOrCreateOffset(fbBuilder);
     fbBuilder.startTable(2);
-    fbBuilder.addUint8(0, _typeType?.value);
+    fbBuilder.addUint8(0, typeType?.value);
     fbBuilder.addOffset(1, typeOffset);
     return fbBuilder.endTable();
   }
