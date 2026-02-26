@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum StatOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum StatOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct Stat<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for Stat<'a> {
   type Inner = Stat<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -30,6 +32,7 @@ impl<'a> Stat<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     Stat { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -62,6 +65,7 @@ impl<'a> Stat<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)}
   }
+
   #[inline]
   pub fn val(&self) -> i64 {
     // Safety:
@@ -69,6 +73,7 @@ impl<'a> Stat<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn count(&self) -> u16 {
     // Safety:
@@ -76,6 +81,7 @@ impl<'a> Stat<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn key_compare_less_than(&self, o: &Stat) -> bool {
     self.count() < o.count()
@@ -101,11 +107,13 @@ impl ::flatbuffers::Verifiable for Stat<'_> {
     Ok(())
   }
 }
+
 pub struct StatArgs<'a> {
     pub id: Option<::flatbuffers::WIPOffset<&'a str>>,
     pub val: i64,
     pub count: u16,
 }
+
 impl<'a> Default for StatArgs<'a> {
   #[inline]
   fn default() -> Self {
@@ -121,19 +129,23 @@ pub struct StatBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> StatBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_id(&mut self, id: ::flatbuffers::WIPOffset<&'b  str>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Stat::VT_ID, id);
   }
+
   #[inline]
   pub fn add_val(&mut self, val: i64) {
     self.fbb_.push_slot::<i64>(Stat::VT_VAL, val, 0);
   }
+
   #[inline]
   pub fn add_count(&mut self, count: u16) {
     self.fbb_.push_slot::<u16>(Stat::VT_COUNT, count, 0);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> StatBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -142,6 +154,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> StatBuilder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<Stat<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -158,6 +171,7 @@ impl ::core::fmt::Debug for Stat<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct StatT {
@@ -165,6 +179,7 @@ pub struct StatT {
   pub val: i64,
   pub count: u16,
 }
+
 impl Default for StatT {
   fn default() -> Self {
     Self {
@@ -174,6 +189,7 @@ impl Default for StatT {
     }
   }
 }
+
 impl StatT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

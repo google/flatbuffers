@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum Table2Offset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum Table2Offset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct Table2<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for Table2<'a> {
   type Inner = Table2<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -29,6 +31,7 @@ impl<'a> Table2<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     Table2 { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -67,6 +70,7 @@ impl<'a> Table2<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<KeywordsInUnion>(Table2::VT_TYPE_TYPE, Some(KeywordsInUnion::NONE)).unwrap()}
   }
+
   #[inline]
   pub fn type_(&self) -> Option<::flatbuffers::Table<'a>> {
     // Safety:
@@ -74,6 +78,7 @@ impl<'a> Table2<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Table<'a>>>(Table2::VT_TYPE_, None)}
   }
+
   #[inline]
   #[allow(non_snake_case)]
   pub fn type__as_static_(&self) -> Option<KeywordsInTable<'a>> {
@@ -103,7 +108,6 @@ impl<'a> Table2<'a> {
       None
     }
   }
-
 }
 
 impl ::flatbuffers::Verifiable for Table2<'_> {
@@ -123,10 +127,12 @@ impl ::flatbuffers::Verifiable for Table2<'_> {
     Ok(())
   }
 }
+
 pub struct Table2Args {
     pub type_type: KeywordsInUnion,
     pub type_: Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>>,
 }
+
 impl<'a> Default for Table2Args {
   #[inline]
   fn default() -> Self {
@@ -141,15 +147,18 @@ pub struct Table2Builder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> Table2Builder<'a, 'b, A> {
   #[inline]
   pub fn add_type_type(&mut self, type_type: KeywordsInUnion) {
     self.fbb_.push_slot::<KeywordsInUnion>(Table2::VT_TYPE_TYPE, type_type, KeywordsInUnion::NONE);
   }
+
   #[inline]
   pub fn add_type_(&mut self, type_: ::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Table2::VT_TYPE_, type_);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> Table2Builder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -158,6 +167,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> Table2Builder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<Table2<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -192,11 +202,13 @@ impl ::core::fmt::Debug for Table2<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Table2T {
   pub type_: KeywordsInUnionT,
 }
+
 impl Default for Table2T {
   fn default() -> Self {
     Self {
@@ -204,6 +216,7 @@ impl Default for Table2T {
     }
   }
 }
+
 impl Table2T {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

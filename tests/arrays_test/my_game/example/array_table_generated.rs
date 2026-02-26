@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum ArrayTableOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum ArrayTableOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct ArrayTable<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for ArrayTable<'a> {
   type Inner = ArrayTable<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -28,6 +30,7 @@ impl<'a> ArrayTable<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     ArrayTable { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -67,9 +70,11 @@ impl ::flatbuffers::Verifiable for ArrayTable<'_> {
     Ok(())
   }
 }
+
 pub struct ArrayTableArgs<'a> {
     pub a: Option<&'a ArrayStruct>,
 }
+
 impl<'a> Default for ArrayTableArgs<'a> {
   #[inline]
   fn default() -> Self {
@@ -83,11 +88,13 @@ pub struct ArrayTableBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> ArrayTableBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_a(&mut self, a: &ArrayStruct) {
     self.fbb_.push_slot_always::<&ArrayStruct>(ArrayTable::VT_A, a);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> ArrayTableBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -96,6 +103,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> ArrayTableBuilder<'a, 'b, A> 
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<ArrayTable<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -110,11 +118,13 @@ impl ::core::fmt::Debug for ArrayTable<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ArrayTableT {
   pub a: Option<ArrayStructT>,
 }
+
 impl Default for ArrayTableT {
   fn default() -> Self {
     Self {
@@ -122,6 +132,7 @@ impl Default for ArrayTableT {
     }
   }
 }
+
 impl ArrayTableT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,
@@ -134,66 +145,73 @@ impl ArrayTableT {
     })
   }
 }
-#[inline]
+
 /// Verifies that a buffer of bytes contains a `ArrayTable`
 /// and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_array_table_unchecked`.
+#[inline]
 pub fn root_as_array_table(buf: &[u8]) -> Result<ArrayTable<'_>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::root::<ArrayTable>(buf)
 }
-#[inline]
+
 /// Verifies that a buffer of bytes contains a size prefixed
 /// `ArrayTable` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `size_prefixed_root_as_array_table_unchecked`.
+#[inline]
 pub fn size_prefixed_root_as_array_table(buf: &[u8]) -> Result<ArrayTable<'_>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::size_prefixed_root::<ArrayTable>(buf)
 }
-#[inline]
+
 /// Verifies, with the given options, that a buffer of bytes
 /// contains a `ArrayTable` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_array_table_unchecked`.
+#[inline]
 pub fn root_as_array_table_with_opts<'b, 'o>(
   opts: &'o ::flatbuffers::VerifierOptions,
   buf: &'b [u8],
 ) -> Result<ArrayTable<'b>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::root_with_opts::<ArrayTable<'b>>(opts, buf)
 }
-#[inline]
+
 /// Verifies, with the given verifier options, that a buffer of
 /// bytes contains a size prefixed `ArrayTable` and returns
 /// it. Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_array_table_unchecked`.
+#[inline]
 pub fn size_prefixed_root_as_array_table_with_opts<'b, 'o>(
   opts: &'o ::flatbuffers::VerifierOptions,
   buf: &'b [u8],
 ) -> Result<ArrayTable<'b>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::size_prefixed_root_with_opts::<ArrayTable<'b>>(opts, buf)
 }
-#[inline]
+
 /// Assumes, without verification, that a buffer of bytes contains a ArrayTable and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `ArrayTable`.
+#[inline]
 pub unsafe fn root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable<'_> {
   unsafe { ::flatbuffers::root_unchecked::<ArrayTable>(buf) }
 }
-#[inline]
+
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed ArrayTable and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `ArrayTable`.
+#[inline]
 pub unsafe fn size_prefixed_root_as_array_table_unchecked(buf: &[u8]) -> ArrayTable<'_> {
   unsafe { ::flatbuffers::size_prefixed_root_unchecked::<ArrayTable>(buf) }
 }
+
 pub const ARRAY_TABLE_IDENTIFIER: &str = "ARRT";
 
 #[inline]
