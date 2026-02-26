@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -36,14 +36,17 @@ let package = Package(
     .target(
       name: "FlatBuffers",
       dependencies: ["Common"],
-      path: "swift/Sources/FlatBuffers"),
+      path: "swift/Sources/FlatBuffers",
+      swiftSettings: .settings),
     .target(
       name: "FlexBuffers",
       dependencies: ["Common"],
-      path: "swift/Sources/FlexBuffers"),
+      path: "swift/Sources/FlexBuffers",
+      swiftSettings: .settings),
     .target(
       name: "Common",
-      path: "swift/Sources/Common"),
+      path: "swift/Sources/Common",
+      swiftSettings: .settings),
     .testTarget(
       name: "FlatbuffersTests",
       dependencies: .dependencies,
@@ -52,7 +55,14 @@ let package = Package(
       name: "FlexbuffersTests",
       dependencies: ["FlexBuffers"],
       path: "tests/swift/Tests/Flexbuffers"),
-  ])
+  ],
+  swiftLanguageModes: [.v6])
+
+extension Array where Element == SwiftSetting {
+  static var settings: [SwiftSetting] {
+    [.enableUpcomingFeature("ExistentialAny")]
+  }
+}
 
 extension Array where Element == Package.Dependency {
   static var dependencies: [Package.Dependency] {

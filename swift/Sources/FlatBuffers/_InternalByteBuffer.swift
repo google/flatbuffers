@@ -146,7 +146,7 @@ struct _InternalByteBuffer {
   #if !os(WASI)
   @inline(__always)
   @usableFromInline
-  mutating func push(bytes: ContiguousBytes) {
+  mutating func push(bytes: any ContiguousBytes) {
     bytes.withUnsafeBytes { ptr in
       ensureSpace(size: ptr.count)
       memcpy(

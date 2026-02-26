@@ -17,7 +17,7 @@
 import Foundation
 
 @usableFromInline
-enum BitWidth: UInt64, CaseIterable {
+enum BitWidth: UInt64, CaseIterable, Sendable {
   case w8 = 0
   case w16 = 1
   case w32 = 2
