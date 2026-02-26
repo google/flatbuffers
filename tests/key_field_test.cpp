@@ -12,6 +12,28 @@ namespace tests {
 
 using namespace keyfield::sample;
 
+void CallLookupByKeyOnString() {
+  flatbuffers::FlatBufferBuilder fbb;
+  const auto foo = keyfield::sample::CreateFooTable(
+      fbb, 1, 2, fbb.CreateString("TEST_STRING"));
+  fbb.Finish(foo);
+  uint8_t* buf = fbb.GetBufferPointer();
+  auto foo_table = GetFooTable(buf);
+
+  TEST_EQ(foo_table->KeyCompareWithValue("TEST_STRING"), 0);
+  TEST_NE(foo_table->KeyCompareWithValue("AAA"), 0);
+
+  // now compare with std::string
+  TEST_EQ(foo_table->KeyCompareWithValue(std::string{"TEST_STRING"}), 0);
+  TEST_NE(foo_table->KeyCompareWithValue(std::string{"AAA"}), 0);
+
+  // now compare with a mutable char*
+  char mutable_str[] = "TEST_STRING";
+  TEST_EQ(foo_table->KeyCompareWithValue(mutable_str), 0);
+  char mutable_str2[] = "AAA";
+  TEST_NE(foo_table->KeyCompareWithValue(mutable_str2), 0);
+}
+
 void FixedSizedScalarKeyInStructTest() {
   flatbuffers::FlatBufferBuilder fbb;
   std::vector<Baz> bazs;

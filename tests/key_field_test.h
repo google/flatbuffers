@@ -4,6 +4,7 @@
 namespace flatbuffers {
 namespace tests {
 
+void CallLookupByKeyOnString();
 void FixedSizedScalarKeyInStructTest();
 void StructKeyInStructTest();
 void NestedStructKeyInStructTest();
