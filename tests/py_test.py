@@ -55,6 +55,12 @@ import MyGame.Example.NestedUnion.Color  # refers to generated code
 import monster_test_generated  # the one-file version
 import optional_scalars
 import optional_scalars.ScalarStuff
+import union_vector
+import union_vector.Attacker
+import union_vector.Character
+import union_vector.Movie
+import union_vector.Rapunzel
+import union_vector.BookReader
 
 
 def create_namespace_shortcut(is_onefile):
@@ -302,6 +308,86 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertEqual(monster2.VectorOfEnumsAsNumpy(), 0)
     self.assertEqual(monster2.VectorOfEnumsLength(), 0)
     self.assertTrue(monster2.VectorOfEnumsIsNone())
+
+  def test_union_vectors_with_pack_and_unpack(self):
+    b = flatbuffers.Builder(0)
+
+    # Types of the characters
+    types = [
+      union_vector.Character.Character.MuLan,
+      union_vector.Character.Character.Rapunzel,
+      union_vector.Character.Character.Belle,
+      union_vector.Character.Character.BookFan,
+      union_vector.Character.Character.Other,
+      union_vector.Character.Character.Unused,
+    ]
+    # Pack the attacker manually
+    union_vector.Attacker.Start(b)
+    union_vector.Attacker.AddSwordAttackDamage(b, 1)
+    attacker_offset = union_vector.Attacker.End(b)
+    # Prepare the rest of the characters
+    characters = [
+      attacker_offset,
+      union_vector.Rapunzel.CreateRapunzel(b, 2),
+      union_vector.BookReader.CreateBookReader(b, 3),
+      union_vector.BookReader.CreateBookReader(b, 4),
+      b.CreateString("Other", "utf-8"),
+      b.CreateString("Unused", "utf-8")
+    ]
+
+    # Pack the types
+    union_vector.Movie.StartCharactersTypeVector(b, len(types))
+    for character_type in reversed(types):
+      b.PrependByte(character_type)
+    character_types_offset = b.EndVector()
+    # Pack the characters
+    union_vector.Movie.StartCharactersVector(b, len(characters))
+    for character in reversed(characters):
+      b.PrependUOffsetTRelative(character)
+    characters_offset = b.EndVector()
+
+    # Pack the movie object
+    union_vector.Movie.Start(b)
+    union_vector.Movie.AddMainCharacterType(b, 0)
+    union_vector.Movie.AddMainCharacter(b, 0)
+    union_vector.Movie.AddCharactersType(b, character_types_offset)
+    union_vector.Movie.AddCharacters(b, characters_offset)
+    movie_offset = union_vector.Movie.End(b)
+    b.Finish(movie_offset)
+
+    # Unpack the movie object
+    buf = b.Output()
+    movie = union_vector.Movie.Movie.GetRootAsMovie(buf, 0)
+
+    self.assertEqual(movie.CharactersType(0), union_vector.Character.Character.MuLan)
+    self.assertEqual(movie.CharactersType(1), union_vector.Character.Character.Rapunzel)
+    self.assertEqual(movie.CharactersType(2), union_vector.Character.Character.Belle)
+    self.assertEqual(movie.CharactersType(3), union_vector.Character.Character.BookFan)
+    self.assertEqual(movie.CharactersType(4), union_vector.Character.Character.Other)
+    self.assertEqual(movie.CharactersType(5), union_vector.Character.Character.Unused)
+
+    attacker = union_vector.Attacker.Attacker()
+    attacker.Init(movie.Characters(0).Bytes, movie.Characters(0).Pos)
+    self.assertEqual(attacker.SwordAttackDamage(), 1)
+    rapunzel = union_vector.Rapunzel.Rapunzel()
+    rapunzel.Init(movie.Characters(1).Bytes, movie.Characters(1).Pos)
+    self.assertEqual(rapunzel.HairLength(), 2)
+    book_reader = union_vector.BookReader.BookReader()
+    book_reader.Init(movie.Characters(2).Bytes, movie.Characters(2).Pos)
+    self.assertEqual(book_reader.BooksRead(), 3)
+    book_reader.Init(movie.Characters(3).Bytes, movie.Characters(3).Pos)
+    self.assertEqual(book_reader.BooksRead(), 4)
+
+    other = union_vector.Character.CharacterCreator(
+      union_vector.Character.Character.Other,
+      movie.Characters(4)
+    )
+    self.assertEqual(other.decode("utf-8"), "Other")
+    unused = union_vector.Character.CharacterCreator(
+      union_vector.Character.Character.Unused,
+      movie.Characters(5)
+    )
+    self.assertEqual(unused.decode("utf-8"), "Unused")
 
   def test_optional_scalars_with_pack_and_unpack(self):
     """Serializes and deserializes between a buffer with optional values (no
