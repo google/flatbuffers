@@ -47,15 +47,15 @@
 #include "key_field_test.h"
 #include "monster_test.h"
 #include "monster_test_generated.h"
-#include "native_inline_table_test_generated.h"
+#include "native_inline_table_test.fbs.h"
 #include "optional_scalars_test.h"
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
-#include "tests/union_vector/union_vector_generated.h"
-#include "union_underlying_type_test_generated.h"
+#include "tests/union_vector/union_vector.fbs.h"
+#include "union_underlying_type_test.fbs.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
-#include "tests/arrays_test_generated.h"
+#include "tests/arrays_test.fbs.h"
 #endif
 #if INCLUDE_64_BIT_TESTS
 #include "tests/64bit/offset64_test.h"
@@ -63,7 +63,7 @@
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
-#include "native_type_test_generated.h"
+#include "native_type_test.fbs.h"
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"

@@ -1,7 +1,7 @@
 #include "evolution_test.h"
 
-#include "evolution_test/evolution_v1_generated.h"
-#include "evolution_test/evolution_v2_generated.h"
+#include "evolution_test/evolution_v1.fbs.h"
+#include "evolution_test/evolution_v2.fbs.h"
 #include "flatbuffers/idl.h"
 #include "test_assert.h"
 

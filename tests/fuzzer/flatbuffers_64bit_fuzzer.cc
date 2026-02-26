@@ -2,8 +2,8 @@
 #include <filesystem>
 #include <type_traits>
 
-#include "64bit/test_64bit_bfbs_generated.h"
 #include "64bit/test_64bit_generated.h"
+#include "64bit/test_64bit_bfbs_generated.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/flatbuffers.h"
