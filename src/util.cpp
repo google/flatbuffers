@@ -54,6 +54,8 @@
 
 #include "flatbuffers/base.h"
 
+#include "dragonbox.h"
+
 namespace flatbuffers {
 
 namespace {
@@ -488,5 +490,56 @@ std::string ConvertCase(const std::string& input, Case output_case,
       return input;
   }
 }
+
+template <typename Float>
+std::string FloatToStringImpl(Float value) {
+  // handle special cases
+  switch (std::fpclassify(value)) {
+    case FP_INFINITE:
+      return std::signbit(value) ? "-inf" : "inf";
+    case FP_NAN:
+      return "nan";
+    case FP_ZERO:
+      return std::signbit(value) ? "-0.0" : "0.0";
+    default:
+      break;
+  }
+
+  const auto dec = jkj::dragonbox::to_decimal(value);
+
+  const std::string digits = std::to_string(dec.significand);
+  const int k = static_cast<int>(digits.size());
+  const int exp = dec.exponent;
+
+  std::string out;
+
+  if (dec.is_negative) {
+    out.push_back('-');
+  }
+
+  if (exp >= 0) {
+    out += digits;
+    out.append(exp, '0');
+  } else if (exp > -k) {
+    const int pos = k + exp;
+    out.append(digits, 0, pos);
+    out.push_back('.');
+    out.append(digits, pos, std::string::npos);
+  } else {
+    out += "0.";
+    out.append(-exp - k, '0');
+    out += digits;
+  }
+
+  if (out.find('.') == std::string::npos) {
+    out += ".0";
+  }
+
+  return out;
+}
+
+// explicit template declarations allow the definitions to exist in the cpp
+template std::string FloatToStringImpl<float>(float value);
+template std::string FloatToStringImpl<double>(double value);
 
 }  // namespace flatbuffers

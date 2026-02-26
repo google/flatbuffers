@@ -4194,7 +4194,7 @@ bool FieldDef::Deserialize(Parser& parser, const reflection::Field* field) {
   if (IsInteger(value.type.base_type)) {
     value.constant = NumToString(field->default_integer());
   } else if (IsFloat(value.type.base_type)) {
-    value.constant = FloatToString(field->default_real(), 17);
+    value.constant = NumToString(field->default_real());
   }
   presence = FieldDef::MakeFieldPresence(field->optional(), field->required());
   padding = field->padding();
