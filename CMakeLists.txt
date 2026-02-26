@@ -1,8 +1,10 @@
 # This is the legacy minimum version flatbuffers supported for a while.
-cmake_minimum_required(VERSION 3.8...3.25.2)
+cmake_minimum_required(VERSION 3.10...3.25.2)
+cmake_policy(VERSION 3.10)
 
 # Attempt to read the current version of flatbuffers by looking at the latest tag.
-include(CMake/Version.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
+include(FlatBuffersVersion)
 
 project(FlatBuffers
         VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
@@ -81,11 +83,19 @@ if(DEFINED FLATBUFFERS_COMPILATION_TIMINGS)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "time -f 'Wall: %E User: %U Sys: %S | %C' -q -a -o ${FLATBUFFERS_COMPILATION_TIMINGS}")
 endif()
 
-if(NOT FLATBUFFERS_BUILD_FLATC AND FLATBUFFERS_BUILD_TESTS)
+if(NOT FLATBUFFERS_BUILD_FLATC)
+  # If we aren't supposed to build flatc, see if we can find it.
+  find_package(FlatBuffers ${FLATBUFFERS_VERSION_NOCOMMIT} EXACT)
+  set(FLATBUFFERS_FLATC_COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE})
+
+  if(NOT FlatBuffers_FOUND AND FLATBUFFERS_BUILD_TESTS)
     message(WARNING
-    "Cannot build tests without building the compiler. Tests will be disabled.")
+      "Cannot build tests without building the compiler. Tests will be disabled.")
     set(FLATBUFFERS_BUILD_TESTS OFF)
+  endif()
 endif()
+
+include(BuildFlatBuffers)
 
 if(DEFINED FLATBUFFERS_MAX_PARSING_DEPTH)
   # Override the default recursion depth limit.
@@ -471,6 +481,7 @@ if(FLATBUFFERS_BUILD_FLATC)
   endif()
   if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
     set(FLATBUFFERS_FLATC_EXECUTABLE $<TARGET_FILE:flatc>)
+    set(FLATBUFFERS_FLATC_COMMAND flatc)
   endif()
   if(FLATBUFFERS_STATIC_FLATC AND NOT MSVC)
     target_link_libraries(flatc PRIVATE -static)
@@ -508,7 +519,7 @@ function(compile_schema SRC_FBS OPT SUFFIX OUT_GEN_FILE)
       --filename-suffix ${SUFFIX}
       -o "${SRC_FBS_DIR}"
       "${CMAKE_CURRENT_SOURCE_DIR}/${SRC_FBS}"
-    DEPENDS flatc ${SRC_FBS}
+    DEPENDS ${FLATBUFFERS_FLATC_COMMAND} ${SRC_FBS}
     COMMENT "flatc generation: `${SRC_FBS}` -> `${GEN_HEADER}`"
   )
   set(${OUT_GEN_FILE} ${GEN_HEADER} PARENT_SCOPE)
@@ -523,12 +534,6 @@ function(compile_schema_for_test_fbsh SRC_FBS OPT)
   compile_schema("${SRC_FBS}" "${OPT}" ".fbs" GEN_FILE)
   target_sources(flattests PRIVATE ${GEN_FILE})
 endfunction()
-
-function(compile_schema_for_samples SRC_FBS OPT)
-  compile_schema("${SRC_FBS}" "${OPT}" "_generated" GEN_FILE)
-  target_sources(flatsample PRIVATE ${GEN_FILE})
-endfunction()
-
 if(FLATBUFFERS_BUILD_TESTS)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
@@ -572,14 +577,11 @@ if(FLATBUFFERS_BUILD_TESTS)
 
   # Add a library so there is a single target that the generated samples can 
   # link too.
-  if(MSVC OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.0")
-    add_library(flatsample INTERFACE)
-  else()
-    add_library(flatsample STATIC)
-  endif()
-
-  # Since flatsample has no sources, we have to explicitly set the linker lang.
-  set_target_properties(flatsample PROPERTIES LINKER_LANGUAGE CXX)
+  flatbuffers_generate_headers(TARGET flatsample
+      SCHEMAS samples/monster.fbs
+      BINARY_SCHEMAS_DIR samples/
+      BINARY_SCHEMAS_FLAGS --bfbs-comments --bfbs-builtins
+      FLAGS ${FLATC_OPT_COMP})
 
   target_link_libraries(flatsamplebinary PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
   target_link_libraries(flatsampletext PRIVATE $<BUILD_INTERFACE:ProjectConfig> flatsample)
@@ -703,8 +705,6 @@ if(FLATBUFFERS_BUILD_TESTS)
     add_test(NAME grpctest COMMAND grpctest)
   endif()
 endif()
-
-include(CMake/BuildFlatBuffers.cmake)
 
 if(UNIX)
     # Use of CPack only supported on Linux systems.
