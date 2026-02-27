@@ -31,9 +31,9 @@ static TypedFloatConstantGenerator CSharpFloatGen("Double.", "Single.", "NaN",
                                                   "PositiveInfinity",
                                                   "NegativeInfinity");
 static CommentConfig comment_config = {
-  nullptr,
-  "///",
-  nullptr,
+    nullptr,
+    "///",
+    nullptr,
 };
 
 namespace csharpspanbufs {
@@ -148,7 +148,7 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       "volatile",
       "while",
       nullptr,
-      // clang-format on
+        // clang-format on
     };
 
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
@@ -277,7 +277,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
   // Used for Object API types which are shared between modes.
   std::string BaseNamespacedName(const StructDef &def) const {
     std::string ns = FullNamespace(".", *def.defined_namespace);
-    if (ns.empty()) { return Name(def); }
+    if (ns.empty()) {
+      return Name(def);
+    }
     return ns + "." + Name(def);
   }
 
@@ -286,7 +288,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
   // methods.
   std::string SpanBufNamespacedName(const StructDef &def) const {
     std::string ns = FullNamespace(".", *def.defined_namespace);
-    if (ns.empty()) { return spanbuf_namespace + "." + Name(def); }
+    if (ns.empty()) {
+      return spanbuf_namespace + "." + Name(def);
+    }
     return ns + "." + spanbuf_namespace + "." + Name(def);
   }
 
@@ -317,7 +321,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
     if (IsSpanMode()) {
       ns = ns.empty() ? NamespaceSuffix() : ns + "." + NamespaceSuffix();
     }
-    if (ns.empty()) { return Name(def); }
+    if (ns.empty()) {
+      return Name(def);
+    }
     return ns + "." + Name(def);
   }
 
@@ -364,7 +370,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       code += "using global::Google.FlatSpanBuffers.Vectors;\n";
     }
     code += classcode;
-    if (!complete_namespace.empty()) { code += "\n}\n"; }
+    if (!complete_namespace.empty()) {
+      code += "\n}\n";
+    }
 
     // For span mode, use a separate directory to avoid file conflicts
     std::string dir = NamespaceDir(ns);
@@ -373,7 +381,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       EnsureDirExists(dir);
     }
     auto filename = dir + defname;
-    if (options.one_file) { filename += options.filename_suffix; }
+    if (options.one_file) {
+      filename += options.filename_suffix;
+    }
     filename +=
         options.filename_extension.empty() ? ".cs" : options.filename_extension;
     return SaveFile(filename.c_str(), code, false);
@@ -408,11 +418,16 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
 
   std::string GenTypePointer(const Type &type) const {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "string";
-      case BASE_TYPE_VECTOR: return GenTypeGet(type.VectorType());
-      case BASE_TYPE_STRUCT: return NamespacedName(*type.struct_def);
-      case BASE_TYPE_UNION: return "TTable";
-      default: return "Table";
+      case BASE_TYPE_STRING:
+        return "string";
+      case BASE_TYPE_VECTOR:
+        return GenTypeGet(type.VectorType());
+      case BASE_TYPE_STRUCT:
+        return NamespacedName(*type.struct_def);
+      case BASE_TYPE_UNION:
+        return "TTable";
+      default:
+        return "Table";
     }
   }
 
@@ -478,7 +493,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
   std::string GenDefaultValue(const FieldDef &field,
                               bool enableLangOverrides) const {
     // If it is an optional scalar field, the default is null
-    if (field.IsScalarOptional()) { return "null"; }
+    if (field.IsScalarOptional()) {
+      return "null";
+    }
 
     auto &value = field.value;
     if (enableLangOverrides) {
@@ -491,10 +508,13 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
 
     auto longSuffix = "";
     switch (value.type.base_type) {
-      case BASE_TYPE_BOOL: return value.constant == "0" ? "false" : "true";
-      case BASE_TYPE_ULONG: return value.constant;
+      case BASE_TYPE_BOOL:
+        return value.constant == "0" ? "false" : "true";
+      case BASE_TYPE_ULONG:
+        return value.constant;
       case BASE_TYPE_UINT:
-      case BASE_TYPE_LONG: return value.constant + longSuffix;
+      case BASE_TYPE_LONG:
+        return value.constant + longSuffix;
       default:
         if (IsFloat(value.type.base_type))
           return CSharpFloatGen.GenFloatConstant(field);
@@ -513,12 +533,15 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
     if (!IsScalar(value.type.base_type)) {
       if (enableLangOverrides) {
         switch (value.type.base_type) {
-          case BASE_TYPE_STRING: return "default(StringOffset)";
+          case BASE_TYPE_STRING:
+            return "default(StringOffset)";
           case BASE_TYPE_STRUCT:
             return "default(Offset<" + NamespacedName(*value.type.struct_def) +
                    ">)";
-          case BASE_TYPE_VECTOR: return "default(VectorOffset)";
-          default: break;
+          case BASE_TYPE_VECTOR:
+            return "default(VectorOffset)";
+          default:
+            break;
         }
       }
       return "0";
@@ -575,14 +598,18 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       GenEnum_ObjectAPI(enum_def, code_ptr, opts);
     }
 
-    if (enum_def.is_union) { code += GenUnionVerify(enum_def.underlying_type); }
+    if (enum_def.is_union) {
+      code += GenUnionVerify(enum_def.underlying_type);
+    }
   }
 
   bool HasUnionStringValue(const EnumDef &enum_def) const {
     if (!enum_def.is_union) return false;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
       auto &val = **it;
-      if (IsString(val.union_type)) { return true; }
+      if (IsString(val.union_type)) {
+        return true;
+      }
     }
     return false;
   }
@@ -590,11 +617,16 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
   // Returns the function name that is able to read a value of the given type.
   std::string GenGetter(const Type &type) const {
     switch (type.base_type) {
-      case BASE_TYPE_STRING: return "__p.__string";
-      case BASE_TYPE_STRUCT: return "__p.__struct";
-      case BASE_TYPE_UNION: return "__p.__union";
-      case BASE_TYPE_VECTOR: return GenGetter(type.VectorType());
-      case BASE_TYPE_ARRAY: return GenGetter(type.VectorType());
+      case BASE_TYPE_STRING:
+        return "__p.__string";
+      case BASE_TYPE_STRUCT:
+        return "__p.__struct";
+      case BASE_TYPE_UNION:
+        return "__p.__union";
+      case BASE_TYPE_VECTOR:
+        return GenGetter(type.VectorType());
+      case BASE_TYPE_ARRAY:
+        return GenGetter(type.VectorType());
       default: {
         std::string getter = "__p.bb.Get<" + GenTypeBasic(type, false) + ">";
         return getter;
@@ -619,7 +651,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
     // Use the generated type directly, to properly handle default values that
     // might not be written to the buffer.
     auto name = Name(*key_field);
-    if (name == struct_def.name) { name += "_"; }
+    if (name == struct_def.name) {
+      name += "_";
+    }
     return GetObjectConstructor(struct_def, data_buffer, offset) + "." + name;
   }
 
@@ -665,7 +699,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       } else {
         code += ", ";
         code += GenTypeBasic(type);
-        if (field.IsScalarOptional()) { code += "?"; }
+        if (field.IsScalarOptional()) {
+          code += "?";
+        }
         if (array_cnt > 0) {
           code += "[";
           for (size_t i = 1; i < array_cnt; i++) code += ",";
@@ -733,7 +769,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
           }
           code += ");\n";
         }
-        if (IsArray(field_type)) { code += indent + "  }\n"; }
+        if (IsArray(field_type)) {
+          code += indent + "  }\n";
+        }
       }
     }
   }
@@ -985,7 +1023,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       code += "partial ";
     }
     // For span mode, use ref struct for compatibility with stackalloc
-    if (IsSpanMode()) { code += "ref "; }
+    if (IsSpanMode()) {
+      code += "ref ";
+    }
     code += "struct " + struct_def.name;
     code += " : " + FlatbufferObjectInterface();
     code += "\n{\n";
@@ -1090,12 +1130,16 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
           conditional_cast = "(" + type_name_dest + optional + ")";
         }
       }
-      if (field.IsScalarOptional()) { optional = "?"; }
+      if (field.IsScalarOptional()) {
+        optional = "?";
+      }
       std::string dest_mask = "";
       std::string dest_cast = DestinationCast(field.value.type);
       std::string src_cast = SourceCast(field.value.type);
       std::string field_name_camel = Name(field);
-      if (field_name_camel == struct_def.name) { field_name_camel += "_"; }
+      if (field_name_camel == struct_def.name) {
+        field_name_camel += "_";
+      }
       std::string return_type =
           use_ref_struct_nullable ? "RefStructNullable<" + type_name_dest + ">"
                                   : type_name_dest + optional;
@@ -1139,7 +1183,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
              field.value.type.element == BASE_TYPE_STRING ||
              IsScalar(field.value.type.element))));
 
-      if (!gen_span_getter) { code += method_start; }
+      if (!gen_span_getter) {
+        code += method_start;
+      }
       std::string default_cast = "";
       // only create default casts for c# scalars or vectors of scalars
       if ((IsScalar(field.value.type.base_type) ||
@@ -1215,7 +1261,8 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
             code += offset_prefix + getter + "(o + " + "__p.";
             code += "bb_pos) : null";
             break;
-          case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_ARRAY:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             auto vectortype = field.value.type.VectorType();
             // Skip vector element getters for struct/table/string/union
@@ -1242,7 +1289,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
               if (vectortype.base_type == BASE_TYPE_UNION) {
                 code +=
                     " where TTable : struct, " + FlatbufferObjectInterface();
-                if (IsSpanMode()) { code += ", allows ref struct"; }
+                if (IsSpanMode()) {
+                  code += ", allows ref struct";
+                }
                 code += body;
               } else {
                 code += body;
@@ -1311,7 +1360,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
               for (auto uit = field.value.type.enum_def->Vals().begin();
                    uit != field.value.type.enum_def->Vals().end(); ++uit) {
                 auto val = *uit;
-                if (val->union_type.base_type == BASE_TYPE_NONE) { continue; }
+                if (val->union_type.base_type == BASE_TYPE_NONE) {
+                  continue;
+                }
                 auto union_field_type_name = GenTypeGet(val->union_type);
                 code += member_suffix + "}\n";
                 if (val->union_type.base_type == BASE_TYPE_STRUCT &&
@@ -1332,7 +1383,8 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
               }
             }
             break;
-          default: FLATBUFFERS_ASSERT(0);
+          default:
+            FLATBUFFERS_ASSERT(0);
         }
       }
 
@@ -1346,7 +1398,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       if (IsSpanMode() && !struct_def.fixed) {
         if (field.value.type.base_type == BASE_TYPE_UNION) {
           std::string union_field_name = Name(field);
-          if (union_field_name == struct_def.name) { union_field_name += "_"; }
+          if (union_field_name == struct_def.name) {
+            union_field_name += "_";
+          }
           auto offset_str = NumToString(field.value.offset);
           auto getter = GenGetter(field.value.type);
 
@@ -1374,7 +1428,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
           for (auto uit = field.value.type.enum_def->Vals().begin();
                uit != field.value.type.enum_def->Vals().end(); ++uit) {
             auto val = *uit;
-            if (val->union_type.base_type == BASE_TYPE_NONE) { continue; }
+            if (val->union_type.base_type == BASE_TYPE_NONE) {
+              continue;
+            }
             auto union_type_name = GenTypeGet(val->union_type);
             // Use SpanBuf variant type for struct types
             if (val->union_type.base_type == BASE_TYPE_STRUCT) {
@@ -1396,7 +1452,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
               // for required, call generic directly; for optional, use .Value
               std::string accessor =
                   union_field_name + "<" + union_type_name + ">()";
-              if (!field.IsRequired()) { accessor += ".Value"; }
+              if (!field.IsRequired()) {
+                accessor += ".Value";
+              }
               code += union_type_name + " " + as_method;
               code += " { return " + accessor + "; }\n";
             }
@@ -1416,7 +1474,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
 
         if (!skip_length_property) {
           auto camel_name = Name(field);
-          if (camel_name == struct_def.name) { camel_name += "_"; }
+          if (camel_name == struct_def.name) {
+            camel_name += "_";
+          }
           code += "  public int " + camel_name;
           code += "Length";
           code += " { get";
@@ -1431,7 +1491,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
             vectortype.base_type == BASE_TYPE_STRUCT) {
           std::string elem_type_name = GenTypeGet(vectortype);
           std::string field_name = Name(field);
-          if (field_name == struct_def.name) { field_name += "_"; }
+          if (field_name == struct_def.name) {
+            field_name += "_";
+          }
           std::string element_size = NumToString(InlineSize(vectortype));
           auto offset_val = NumToString(field.value.offset);
 
@@ -1481,7 +1543,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
         if (!IsArray(field.value.type) &&
             vectortype.base_type == BASE_TYPE_STRING) {
           std::string field_name = Name(field);
-          if (field_name == struct_def.name) { field_name += "_"; }
+          if (field_name == struct_def.name) {
+            field_name += "_";
+          }
           auto offset_val = NumToString(field.value.offset);
 
           if (IsSpanMode()) {
@@ -1514,7 +1578,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
         if (!IsArray(field.value.type) &&
             vectortype.base_type == BASE_TYPE_UNION) {
           std::string field_name = Name(field);
-          if (field_name == struct_def.name) { field_name += "_"; }
+          if (field_name == struct_def.name) {
+            field_name += "_";
+          }
           auto value_offset_val = NumToString(field.value.offset);
           // The type vector is always the field right before the value vector
           // (offset - 2)
@@ -1636,7 +1702,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       if (IsArray(field.value.type) && struct_def.fixed &&
           IsScalar(field.value.type.VectorType().base_type)) {
         auto camel_name = Name(field);
-        if (camel_name == struct_def.name) { camel_name += "_"; }
+        if (camel_name == struct_def.name) {
+          camel_name += "_";
+        }
 
         // Generate Length constant
         code += "  public const int " + camel_name;
@@ -1750,8 +1818,7 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
                 : (struct_def.fixed
                        ? "__p.bb_pos + " + NumToString(field.value.offset)
                        : "o + __p.bb_pos");
-        if (IsScalar(underlying_type.base_type) &&
-            !IsUnion(field.value.type)) {
+        if (IsScalar(underlying_type.base_type) && !IsUnion(field.value.type)) {
           code += "  public ";
           code += struct_def.fixed ? "void " : "bool ";
           code += mutator_prefix + Name(field);
@@ -1839,7 +1906,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
             code += " = null";
           } else {
             code += GenTypeBasic(field.value.type);
-            if (field.IsScalarOptional()) { code += "?"; }
+            if (field.IsScalarOptional()) {
+              code += "?";
+            }
             code += " ";
             code += EscapeKeyword(field.name);
             if (!IsScalar(field.value.type.base_type)) code += "Offset";
@@ -1899,7 +1968,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
         code += GenTypeBasic(field.value.type);
         auto argname = ConvertCase(field.name, Case::kLowerCamel);
         if (!IsScalar(field.value.type.base_type)) argname += "Offset";
-        if (field.IsScalarOptional()) { code += "?"; }
+        if (field.IsScalarOptional()) {
+          code += "?";
+        }
         code += " " + EscapeKeyword(argname) + ") { ";
 
         if (IsStruct(field.value.type)) {
@@ -2012,7 +2083,7 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       }
       code += "    return " + GenOffsetConstruct(struct_def, "o") + ";\n  }\n";
       if (parser_.root_struct_def_ == &struct_def) {
-        std::string size_prefix[] = { "", "SizePrefixed" };
+        std::string size_prefix[] = {"", "SizePrefixed"};
         for (int i = 0; i < 2; ++i) {
           code += "  public static void ";
           code += "Finish" + size_prefix[i] + struct_def.name;
@@ -2032,7 +2103,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
     if (struct_def.has_key && !struct_def.fixed) {
       FLATBUFFERS_ASSERT(key_field);
       auto name = Name(*key_field);
-      if (name == struct_def.name) { name += "_"; }
+      if (name == struct_def.name) {
+        name += "_";
+      }
       code += "\n  public static VectorOffset ";
       code += "CreateSortedVectorOf" + struct_def.name;
       code += "(" + BuilderParam() + ", ";
@@ -2105,7 +2178,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
         for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
           const auto &ev = **it;
-          if (ev.IsZero()) { continue; }
+          if (ev.IsZero()) {
+            continue;
+          }
 
           ret += "      case " + Name(enum_def) + "." + Name(ev) + ":\n";
 
@@ -2154,7 +2229,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
     if (!enum_def.is_union) return;
     auto union_name = enum_def.name + "Union";
     auto class_member = std::string("Value");
-    if (class_member == enum_def.name) { class_member += "_"; };
+    if (class_member == enum_def.name) {
+      class_member += "_";
+    };
     // Add JsonConverter attribute to the class so it's used when in collections
     if (opts.cs_gen_json_serializer) {
       code += "[System.Text.Json.Serialization.JsonConverter(typeof(" +
@@ -2493,7 +2570,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       auto camel_name = Name(field);
-      if (camel_name == struct_def.name) { camel_name += "_"; }
+      if (camel_name == struct_def.name) {
+        camel_name += "_";
+      }
       auto camel_name_short = Name(field);
       auto start = "    _o." + camel_name + " = ";
       switch (field.value.type.base_type) {
@@ -2691,7 +2770,8 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
             }
           }
           break;
-        case BASE_TYPE_UTYPE: break;
+        case BASE_TYPE_UTYPE:
+          break;
         case BASE_TYPE_UNION: {
           GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
                                    camel_name, camel_name_short, false);
@@ -2714,7 +2794,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       auto &field = **it;
       if (field.deprecated) continue;
       auto camel_name = Name(field);
-      if (camel_name == struct_def.name) { camel_name += "_"; }
+      if (camel_name == struct_def.name) {
+        camel_name += "_";
+      }
       auto camel_name_short = Name(field);
       // pre
       switch (field.value.type.base_type) {
@@ -2728,8 +2810,8 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
           } else if (struct_def.fixed && struct_has_create) {
             std::vector<FieldArrayLength> array_lengths;
             FieldArrayLength tmp_array_length = {
-              field.name,
-              field.value.type.fixed_length,
+                field.name,
+                field.value.type.fixed_length,
             };
             array_lengths.push_back(tmp_array_length);
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
@@ -2786,7 +2868,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
                            property_name + "[_j])";
                 element_size = "4";
                 break;
-              default: gen_for_loop = false; break;
+              default:
+                gen_for_loop = false;
+                break;
             }
             code += "    var _" + field.name + " = default(VectorOffset);\n";
             code += "    if (_o." + property_name + " != null) {\n";
@@ -2849,8 +2933,8 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
           if (field.value.type.struct_def != nullptr) {
             std::vector<FieldArrayLength> array_lengths;
             FieldArrayLength tmp_array_length = {
-              field.name,
-              field.value.type.fixed_length,
+                field.name,
+                field.value.type.fixed_length,
             };
             array_lengths.push_back(tmp_array_length);
             GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
@@ -2873,7 +2957,8 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
               ".Pack(" + BuilderArg() + ", _o." + camel_name + ");\n";
           break;
         }
-        default: break;
+        default:
+          break;
       }
     }
     if (struct_has_create) {
@@ -2885,7 +2970,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
         auto &field = **it;
         if (field.deprecated) continue;
         auto camel_name = Name(field);
-        if (camel_name == struct_def.name) { camel_name += "_"; }
+        if (camel_name == struct_def.name) {
+          camel_name += "_";
+        }
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
@@ -2917,9 +3004,12 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
             }
             break;
           }
-          case BASE_TYPE_UNION: FLATBUFFERS_FALLTHROUGH();   // fall thru
-          case BASE_TYPE_UTYPE: FLATBUFFERS_FALLTHROUGH();   // fall thru
-          case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_UNION:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_UTYPE:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_STRING:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             code += ",\n";
             code += "      _" + field.name;
@@ -2952,14 +3042,17 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
             }
             break;
           }
-          case BASE_TYPE_STRING: FLATBUFFERS_FALLTHROUGH();  // fall thru
-          case BASE_TYPE_ARRAY: FLATBUFFERS_FALLTHROUGH();   // fall thru
+          case BASE_TYPE_STRING:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
+          case BASE_TYPE_ARRAY:
+            FLATBUFFERS_FALLTHROUGH();  // fall thru
           case BASE_TYPE_VECTOR: {
             code += "    Add" + camel_name + "(" + BuilderArg() + ", _" +
                     field.name + ");\n";
             break;
           }
-          case BASE_TYPE_UTYPE: break;
+          case BASE_TYPE_UTYPE:
+            break;
           case BASE_TYPE_UNION: {
             code += "    Add" + camel_name + "Type(" + BuilderArg() + ", _" +
                     field.name + "_type);\n";
@@ -2991,8 +3084,8 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       const auto &field_type =
           is_array ? field.value.type.VectorType() : field.value.type;
       FieldArrayLength tmp_array_length = {
-        field.name,
-        field_type.fixed_length,
+          field.name,
+          field_type.fixed_length,
       };
       array_lengths.push_back(tmp_array_length);
       if (field_type.struct_def != nullptr) {
@@ -3013,7 +3106,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
         if (array_only_lengths.size() > 0) {
           code += "new " + GenTypeBasic(field_type) + "[";
           for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-            if (i != 0) { code += ","; }
+            if (i != 0) {
+              code += ",";
+            }
             code += NumToString(array_only_lengths[i].length);
           }
           code += "];\n";
@@ -3126,7 +3221,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       }
       default: {
         // Scalars use underlying type, enums use enum type with base namespace
-        if (IsEnum(type)) { return BaseNamespacedEnumName(*type.enum_def); }
+        if (IsEnum(type)) {
+          return BaseNamespacedEnumName(*type.enum_def);
+        }
         return GenTypeBasic(type, false);
       }
     }
@@ -3157,7 +3254,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
       if (field.IsScalarOptional()) type_name += "?";
       auto camel_name = Name(field);
-      if (camel_name == struct_def.name) { camel_name += "_"; }
+      if (camel_name == struct_def.name) {
+        camel_name += "_";
+      }
       if (opts.cs_gen_json_serializer) {
         if (IsUnion(field.value.type)) {
           auto utype_name = NamespacedName(*field.value.type.enum_def);
@@ -3224,7 +3323,9 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
       auto camel_name = Name(field);
-      if (camel_name == struct_def.name) { camel_name += "_"; }
+      if (camel_name == struct_def.name) {
+        camel_name += "_";
+      }
       code += "    this." + camel_name + " = ";
       auto type_name = GenTypeGet_ObjectAPI(field.value.type, opts);
       if (IsScalar(field.value.type.base_type)) {
@@ -3308,7 +3409,9 @@ class CSharpSpanBufsCodeGenerator : public CodeGenerator {
  public:
   Status GenerateCode(const Parser &parser, const std::string &path,
                       const std::string &filename) override {
-    if (!GenerateCSharp(parser, path, filename)) { return Status::ERROR; }
+    if (!GenerateCSharp(parser, path, filename)) {
+      return Status::ERROR;
+    }
     return Status::OK;
   }
 

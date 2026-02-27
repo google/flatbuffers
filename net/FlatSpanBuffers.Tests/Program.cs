@@ -42,9 +42,7 @@ namespace Google.FlatSpanBuffers.Tests
                 {
                     try
                     {
-                        Console.WriteLine("Running {0}.{1}...", testClass.Name, method.Name);
                         method.Invoke(inst, new object[] { });
-                        Console.WriteLine("  PASSED");
                         testResults.Add(true);
                     }
                     catch (Exception ex)
