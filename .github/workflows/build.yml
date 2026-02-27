@@ -233,7 +233,7 @@ jobs:
     - name: Build
       run: |
         cd net/FlatSpanBuffers.Tests
-        dotnet new sln --force --name FlatSpanBuffers.Test
+        dotnet new sln --force --name FlatSpanBuffers.Test --format sln
         dotnet sln FlatSpanBuffers.Test.sln add FlatSpanBuffers.Tests.csproj
         dotnet sln FlatSpanBuffers.Test.sln add ../FlatSpanBuffers/FlatSpanBuffers.csproj
         dotnet sln FlatSpanBuffers.Test.sln add ../FlatSpanBuffers.GeneratedCode/FlatSpanBuffers.GeneratedCode.csproj
