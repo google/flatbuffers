@@ -1726,49 +1726,45 @@ class CSharpSpanBufsGenerator : public BaseGenerator {
       // Generate mutators for scalar fields or vectors of scalars.
       if (parser_.opts.mutable_buffer) {
         auto is_series = (IsSeries(field.value.type));
-        bool is_vector = is_series && !IsArray(field.value.type);
-
-        if (!is_vector) {
-          const auto &underlying_type =
-              is_series ? field.value.type.VectorType() : field.value.type;
-          // Boolean parameters have to be explicitly converted to byte
-          // representation.
-          auto setter_parameter =
-              underlying_type.base_type == BASE_TYPE_BOOL
-                  ? "(byte)(" + EscapeKeyword(field.name) + " ? 1 : 0)"
-                  : EscapeKeyword(field.name);
-          auto mutator_prefix = "Mutate";
-          // A vector mutator also needs the index of the vector element it
-          // should mutate.
-          auto mutator_params = (is_series ? "(int j, " : "(") +
-                                GenTypeGet(underlying_type) + " " +
-                                EscapeKeyword(field.name) + ") { ";
-          auto setter_index =
-              is_series
-                  ? "__p." +
-                        (IsArray(field.value.type)
-                             ? "bb_pos + " + NumToString(field.value.offset)
-                             : "__vector(o)") +
-                        +" + j * " + NumToString(InlineSize(underlying_type))
-                  : (struct_def.fixed
-                         ? "__p.bb_pos + " + NumToString(field.value.offset)
-                         : "o + __p.bb_pos");
-          if (IsScalar(underlying_type.base_type) &&
-              !IsUnion(field.value.type)) {
-            code += "  public ";
-            code += struct_def.fixed ? "void " : "bool ";
-            code += mutator_prefix + Name(field);
-            code += mutator_params;
-            if (struct_def.fixed) {
-              code += GenSetter(underlying_type) + "(" + setter_index + ", ";
-              code += src_cast + setter_parameter + "); }\n";
-            } else {
-              code += "int o = __p.__offset(";
-              code += NumToString(field.value.offset) + ");";
-              code += " if (o != 0) { " + GenSetter(underlying_type);
-              code += "(" + setter_index + ", " + src_cast + setter_parameter +
-                      "); return true; } else { return false; } }\n";
-            }
+        const auto &underlying_type =
+            is_series ? field.value.type.VectorType() : field.value.type;
+        // Boolean parameters have to be explicitly converted to byte
+        // representation.
+        auto setter_parameter =
+            underlying_type.base_type == BASE_TYPE_BOOL
+                ? "(byte)(" + EscapeKeyword(field.name) + " ? 1 : 0)"
+                : EscapeKeyword(field.name);
+        auto mutator_prefix = "Mutate";
+        // A vector mutator also needs the index of the vector element it
+        // should mutate.
+        auto mutator_params = (is_series ? "(int j, " : "(") +
+                              GenTypeGet(underlying_type) + " " +
+                              EscapeKeyword(field.name) + ") { ";
+        auto setter_index =
+            is_series
+                ? "__p." +
+                      (IsArray(field.value.type)
+                           ? "bb_pos + " + NumToString(field.value.offset)
+                           : "__vector(o)") +
+                      +" + j * " + NumToString(InlineSize(underlying_type))
+                : (struct_def.fixed
+                       ? "__p.bb_pos + " + NumToString(field.value.offset)
+                       : "o + __p.bb_pos");
+        if (IsScalar(underlying_type.base_type) &&
+            !IsUnion(field.value.type)) {
+          code += "  public ";
+          code += struct_def.fixed ? "void " : "bool ";
+          code += mutator_prefix + Name(field);
+          code += mutator_params;
+          if (struct_def.fixed) {
+            code += GenSetter(underlying_type) + "(" + setter_index + ", ";
+            code += src_cast + setter_parameter + "); }\n";
+          } else {
+            code += "int o = __p.__offset(";
+            code += NumToString(field.value.offset) + ");";
+            code += " if (o != 0) { " + GenSetter(underlying_type);
+            code += "(" + setter_index + ", " + src_cast + setter_parameter +
+                    "); return true; } else { return false; } }\n";
           }
         }
       }

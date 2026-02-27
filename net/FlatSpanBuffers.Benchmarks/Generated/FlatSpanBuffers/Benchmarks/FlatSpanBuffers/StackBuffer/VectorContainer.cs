@@ -25,16 +25,22 @@ public ref struct VectorContainer : IFlatbufferSpanObject
 
   public RefStructNullable<ReadOnlySpan<byte>> Bytes { get { int o = __p.__offset(4); return o != 0 ? new RefStructNullable<ReadOnlySpan<byte>>(__p.__vector_as_span<byte>(4)) : default; } }
   public RefStructNullable<Span<byte>> MutableBytes { get { int o = __p.__offset(4); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(4)) : default; } }
+  public bool MutateBytes(int j, byte bytes) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, bytes); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<short>> Shorts { get { int o = __p.__offset(6); return o != 0 ? new RefStructNullable<ReadOnlySpan<short>>(__p.__vector_as_span<short>(6)) : default; } }
   public RefStructNullable<Span<short>> MutableShorts { get { int o = __p.__offset(6); return o != 0 ? new RefStructNullable<Span<short>>(__p.__vector_as_span<short>(6)) : default; } }
+  public bool MutateShorts(int j, short shorts) { int o = __p.__offset(6); if (o != 0) { __p.bb.Put<short>(__p.__vector(o) + j * 2, shorts); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<int>> Ints { get { int o = __p.__offset(8); return o != 0 ? new RefStructNullable<ReadOnlySpan<int>>(__p.__vector_as_span<int>(8)) : default; } }
   public RefStructNullable<Span<int>> MutableInts { get { int o = __p.__offset(8); return o != 0 ? new RefStructNullable<Span<int>>(__p.__vector_as_span<int>(8)) : default; } }
+  public bool MutateInts(int j, int ints) { int o = __p.__offset(8); if (o != 0) { __p.bb.Put<int>(__p.__vector(o) + j * 4, ints); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<long>> Longs { get { int o = __p.__offset(10); return o != 0 ? new RefStructNullable<ReadOnlySpan<long>>(__p.__vector_as_span<long>(10)) : default; } }
   public RefStructNullable<Span<long>> MutableLongs { get { int o = __p.__offset(10); return o != 0 ? new RefStructNullable<Span<long>>(__p.__vector_as_span<long>(10)) : default; } }
+  public bool MutateLongs(int j, long longs) { int o = __p.__offset(10); if (o != 0) { __p.bb.Put<long>(__p.__vector(o) + j * 8, longs); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<float>> Floats { get { int o = __p.__offset(12); return o != 0 ? new RefStructNullable<ReadOnlySpan<float>>(__p.__vector_as_span<float>(12)) : default; } }
   public RefStructNullable<Span<float>> MutableFloats { get { int o = __p.__offset(12); return o != 0 ? new RefStructNullable<Span<float>>(__p.__vector_as_span<float>(12)) : default; } }
+  public bool MutateFloats(int j, float floats) { int o = __p.__offset(12); if (o != 0) { __p.bb.Put<float>(__p.__vector(o) + j * 4, floats); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<double>> Doubles { get { int o = __p.__offset(14); return o != 0 ? new RefStructNullable<ReadOnlySpan<double>>(__p.__vector_as_span<double>(14)) : default; } }
   public RefStructNullable<Span<double>> MutableDoubles { get { int o = __p.__offset(14); return o != 0 ? new RefStructNullable<Span<double>>(__p.__vector_as_span<double>(14)) : default; } }
+  public bool MutateDoubles(int j, double doubles) { int o = __p.__offset(14); if (o != 0) { __p.bb.Put<double>(__p.__vector(o) + j * 8, doubles); return true; } else { return false; } }
   public RefStructNullable<StringVectorSpan> Strings { get { int o = __p.__offset(16); return o != 0 ? new RefStructNullable<StringVectorSpan>(new StringVectorSpan(__p, o)) : default; } }
 
   public static Offset<Benchmarks.FlatSpanBuffers.StackBuffer.VectorContainer> CreateVectorContainer(ref FlatSpanBufferBuilder builder,

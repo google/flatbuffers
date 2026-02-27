@@ -45,8 +45,10 @@ public ref struct TypeAliases : IFlatbufferSpanObject
   public bool MutateF64(double f64) { int o = __p.__offset(22); if (o != 0) { __p.bb.Put<double>(o + __p.bb_pos, f64); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<sbyte>> V8 { get { int o = __p.__offset(24); return o != 0 ? new RefStructNullable<ReadOnlySpan<sbyte>>(__p.__vector_as_span<sbyte>(24)) : default; } }
   public RefStructNullable<Span<sbyte>> MutableV8 { get { int o = __p.__offset(24); return o != 0 ? new RefStructNullable<Span<sbyte>>(__p.__vector_as_span<sbyte>(24)) : default; } }
+  public bool MutateV8(int j, sbyte v8) { int o = __p.__offset(24); if (o != 0) { __p.bb.Put<sbyte>(__p.__vector(o) + j * 1, v8); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<double>> Vf64 { get { int o = __p.__offset(26); return o != 0 ? new RefStructNullable<ReadOnlySpan<double>>(__p.__vector_as_span<double>(26)) : default; } }
   public RefStructNullable<Span<double>> MutableVf64 { get { int o = __p.__offset(26); return o != 0 ? new RefStructNullable<Span<double>>(__p.__vector_as_span<double>(26)) : default; } }
+  public bool MutateVf64(int j, double vf64) { int o = __p.__offset(26); if (o != 0) { __p.bb.Put<double>(__p.__vector(o) + j * 8, vf64); return true; } else { return false; } }
 
   public static Offset<MyGame.Example.StackBuffer.TypeAliases> CreateTypeAliases(ref FlatSpanBufferBuilder builder,
       sbyte i8 = 0,

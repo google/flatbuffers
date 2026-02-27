@@ -36,6 +36,7 @@ public struct Monster : IFlatbufferObject
   public RefStructNullable<Span<byte>> MutableName { get { int o = __p.__offset(10); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(10)) : default; } }
   public RefStructNullable<ReadOnlySpan<byte>> Inventory { get { int o = __p.__offset(14); return o != 0 ? new RefStructNullable<ReadOnlySpan<byte>>(__p.__vector_as_span<byte>(14)) : default; } }
   public RefStructNullable<Span<byte>> MutableInventory { get { int o = __p.__offset(14); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(14)) : default; } }
+  public bool MutateInventory(int j, byte inventory) { int o = __p.__offset(14); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, inventory); return true; } else { return false; } }
   public MyGame.Example.Color Color { get { int o = __p.__offset(16); return o != 0 ? (MyGame.Example.Color)__p.bb.Get<byte>(o + __p.bb_pos) : MyGame.Example.Color.Blue; } }
   public bool MutateColor(MyGame.Example.Color color) { int o = __p.__offset(16); if (o != 0) { __p.bb.PutByte(o + __p.bb_pos, (byte)color); return true; } else { return false; } }
   public MyGame.Example.Any TestType { get { int o = __p.__offset(18); return o != 0 ? (MyGame.Example.Any)__p.bb.Get<byte>(o + __p.bb_pos) : MyGame.Example.Any.NONE; } }
@@ -53,6 +54,7 @@ public struct Monster : IFlatbufferObject
   public RefStructNullable<ReadOnlySpan<byte>> Testnestedflatbuffer { get { int o = __p.__offset(30); return o != 0 ? new RefStructNullable<ReadOnlySpan<byte>>(__p.__vector_as_span<byte>(30)) : default; } }
   public RefStructNullable<Span<byte>> MutableTestnestedflatbuffer { get { int o = __p.__offset(30); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(30)) : default; } }
   public MyGame.Example.Monster? GetTestnestedflatbufferAsMonster() { int o = __p.__offset(30); return o != 0 ? (MyGame.Example.Monster?)(new MyGame.Example.Monster()).__assign(__p.__indirect(__p.__vector(o)), __p.bb) : null; }
+  public bool MutateTestnestedflatbuffer(int j, byte testnestedflatbuffer) { int o = __p.__offset(30); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, testnestedflatbuffer); return true; } else { return false; } }
   public MyGame.Example.Stat? Testempty { get { int o = __p.__offset(32); return o != 0 ? (MyGame.Example.Stat?)(new MyGame.Example.Stat()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public bool Testbool { get { int o = __p.__offset(34); return o != 0 ? __p.bb.Get<bool>(o + __p.bb_pos) : (bool)false; } }
   public bool MutateTestbool(bool testbool) { int o = __p.__offset(34); if (o != 0) { __p.bb.PutByte(o + __p.bb_pos, (byte)(testbool ? 1 : 0)); return true; } else { return false; } }
@@ -74,6 +76,7 @@ public struct Monster : IFlatbufferObject
   public bool MutateTesthashu64Fnv1a(ulong testhashu64_fnv1a) { int o = __p.__offset(50); if (o != 0) { __p.bb.Put<ulong>(o + __p.bb_pos, testhashu64_fnv1a); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<bool>> Testarrayofbools { get { int o = __p.__offset(52); return o != 0 ? new RefStructNullable<ReadOnlySpan<bool>>(__p.__vector_as_span<bool>(52)) : default; } }
   public RefStructNullable<Span<bool>> MutableTestarrayofbools { get { int o = __p.__offset(52); return o != 0 ? new RefStructNullable<Span<bool>>(__p.__vector_as_span<bool>(52)) : default; } }
+  public bool MutateTestarrayofbools(int j, bool testarrayofbools) { int o = __p.__offset(52); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, (byte)(testarrayofbools ? 1 : 0)); return true; } else { return false; } }
   public float Testf { get { int o = __p.__offset(54); return o != 0 ? __p.bb.Get<float>(o + __p.bb_pos) : (float)3.14159f; } }
   public bool MutateTestf(float testf) { int o = __p.__offset(54); if (o != 0) { __p.bb.Put<float>(o + __p.bb_pos, testf); return true; } else { return false; } }
   public float Testf2 { get { int o = __p.__offset(56); return o != 0 ? __p.bb.Get<float>(o + __p.bb_pos) : (float)3.0f; } }
@@ -84,11 +87,14 @@ public struct Monster : IFlatbufferObject
   public StructVector<MyGame.Example.Ability>? Testarrayofsortedstruct { get { int o = __p.__offset(62); return o != 0 ? new StructVector<MyGame.Example.Ability>(__p, o, 8) : null; } }
   public RefStructNullable<ReadOnlySpan<byte>> Flex { get { int o = __p.__offset(64); return o != 0 ? new RefStructNullable<ReadOnlySpan<byte>>(__p.__vector_as_span<byte>(64)) : default; } }
   public RefStructNullable<Span<byte>> MutableFlex { get { int o = __p.__offset(64); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(64)) : default; } }
+  public bool MutateFlex(int j, byte flex) { int o = __p.__offset(64); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, flex); return true; } else { return false; } }
   public StructVector<MyGame.Example.Test>? Test5 { get { int o = __p.__offset(66); return o != 0 ? new StructVector<MyGame.Example.Test>(__p, o, 4) : null; } }
   public RefStructNullable<ReadOnlySpan<long>> VectorOfLongs { get { int o = __p.__offset(68); return o != 0 ? new RefStructNullable<ReadOnlySpan<long>>(__p.__vector_as_span<long>(68)) : default; } }
   public RefStructNullable<Span<long>> MutableVectorOfLongs { get { int o = __p.__offset(68); return o != 0 ? new RefStructNullable<Span<long>>(__p.__vector_as_span<long>(68)) : default; } }
+  public bool MutateVectorOfLongs(int j, long vector_of_longs) { int o = __p.__offset(68); if (o != 0) { __p.bb.Put<long>(__p.__vector(o) + j * 8, vector_of_longs); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<double>> VectorOfDoubles { get { int o = __p.__offset(70); return o != 0 ? new RefStructNullable<ReadOnlySpan<double>>(__p.__vector_as_span<double>(70)) : default; } }
   public RefStructNullable<Span<double>> MutableVectorOfDoubles { get { int o = __p.__offset(70); return o != 0 ? new RefStructNullable<Span<double>>(__p.__vector_as_span<double>(70)) : default; } }
+  public bool MutateVectorOfDoubles(int j, double vector_of_doubles) { int o = __p.__offset(70); if (o != 0) { __p.bb.Put<double>(__p.__vector(o) + j * 8, vector_of_doubles); return true; } else { return false; } }
   public MyGame.InParentNamespace? ParentNamespaceTest { get { int o = __p.__offset(72); return o != 0 ? (MyGame.InParentNamespace?)(new MyGame.InParentNamespace()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
   public TableVector<MyGame.Example.Referrable>? VectorOfReferrables { get { int o = __p.__offset(74); return o != 0 ? new TableVector<MyGame.Example.Referrable>(__p, o, 4) : null; } }
   public bool TryGetVectorOfReferrablesByKey(ulong key, out MyGame.Example.Referrable value) { int o = __p.__offset(74); if (o != 0) { return MyGame.Example.Referrable.TryGetByKey(__p.__vector(o), key, __p.bb, out value); } value = default; return false; }
@@ -96,16 +102,19 @@ public struct Monster : IFlatbufferObject
   public bool MutateSingleWeakReference(ulong single_weak_reference) { int o = __p.__offset(76); if (o != 0) { __p.bb.Put<ulong>(o + __p.bb_pos, single_weak_reference); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<ulong>> VectorOfWeakReferences { get { int o = __p.__offset(78); return o != 0 ? new RefStructNullable<ReadOnlySpan<ulong>>(__p.__vector_as_span<ulong>(78)) : default; } }
   public RefStructNullable<Span<ulong>> MutableVectorOfWeakReferences { get { int o = __p.__offset(78); return o != 0 ? new RefStructNullable<Span<ulong>>(__p.__vector_as_span<ulong>(78)) : default; } }
+  public bool MutateVectorOfWeakReferences(int j, ulong vector_of_weak_references) { int o = __p.__offset(78); if (o != 0) { __p.bb.Put<ulong>(__p.__vector(o) + j * 8, vector_of_weak_references); return true; } else { return false; } }
   public TableVector<MyGame.Example.Referrable>? VectorOfStrongReferrables { get { int o = __p.__offset(80); return o != 0 ? new TableVector<MyGame.Example.Referrable>(__p, o, 4) : null; } }
   public bool TryGetVectorOfStrongReferrablesByKey(ulong key, out MyGame.Example.Referrable value) { int o = __p.__offset(80); if (o != 0) { return MyGame.Example.Referrable.TryGetByKey(__p.__vector(o), key, __p.bb, out value); } value = default; return false; }
   public ulong CoOwningReference { get { int o = __p.__offset(82); return o != 0 ? __p.bb.Get<ulong>(o + __p.bb_pos) : (ulong)0; } }
   public bool MutateCoOwningReference(ulong co_owning_reference) { int o = __p.__offset(82); if (o != 0) { __p.bb.Put<ulong>(o + __p.bb_pos, co_owning_reference); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<ulong>> VectorOfCoOwningReferences { get { int o = __p.__offset(84); return o != 0 ? new RefStructNullable<ReadOnlySpan<ulong>>(__p.__vector_as_span<ulong>(84)) : default; } }
   public RefStructNullable<Span<ulong>> MutableVectorOfCoOwningReferences { get { int o = __p.__offset(84); return o != 0 ? new RefStructNullable<Span<ulong>>(__p.__vector_as_span<ulong>(84)) : default; } }
+  public bool MutateVectorOfCoOwningReferences(int j, ulong vector_of_co_owning_references) { int o = __p.__offset(84); if (o != 0) { __p.bb.Put<ulong>(__p.__vector(o) + j * 8, vector_of_co_owning_references); return true; } else { return false; } }
   public ulong NonOwningReference { get { int o = __p.__offset(86); return o != 0 ? __p.bb.Get<ulong>(o + __p.bb_pos) : (ulong)0; } }
   public bool MutateNonOwningReference(ulong non_owning_reference) { int o = __p.__offset(86); if (o != 0) { __p.bb.Put<ulong>(o + __p.bb_pos, non_owning_reference); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<ulong>> VectorOfNonOwningReferences { get { int o = __p.__offset(88); return o != 0 ? new RefStructNullable<ReadOnlySpan<ulong>>(__p.__vector_as_span<ulong>(88)) : default; } }
   public RefStructNullable<Span<ulong>> MutableVectorOfNonOwningReferences { get { int o = __p.__offset(88); return o != 0 ? new RefStructNullable<Span<ulong>>(__p.__vector_as_span<ulong>(88)) : default; } }
+  public bool MutateVectorOfNonOwningReferences(int j, ulong vector_of_non_owning_references) { int o = __p.__offset(88); if (o != 0) { __p.bb.Put<ulong>(__p.__vector(o) + j * 8, vector_of_non_owning_references); return true; } else { return false; } }
   public MyGame.Example.AnyUniqueAliases AnyUniqueType { get { int o = __p.__offset(90); return o != 0 ? (MyGame.Example.AnyUniqueAliases)__p.bb.Get<byte>(o + __p.bb_pos) : MyGame.Example.AnyUniqueAliases.NONE; } }
   public TTable? AnyUnique<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(92); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
   public MyGame.Example.Monster AnyUniqueAsM() { return AnyUnique<MyGame.Example.Monster>().Value; }
@@ -118,11 +127,13 @@ public struct Monster : IFlatbufferObject
   public MyGame.Example.Monster AnyAmbiguousAsM3() { return AnyAmbiguous<MyGame.Example.Monster>().Value; }
   public RefStructNullable<ReadOnlySpan<MyGame.Example.Color>> VectorOfEnums { get { int o = __p.__offset(98); return o != 0 ? new RefStructNullable<ReadOnlySpan<MyGame.Example.Color>>(__p.__vector_as_span<MyGame.Example.Color>(98)) : default; } }
   public RefStructNullable<Span<MyGame.Example.Color>> MutableVectorOfEnums { get { int o = __p.__offset(98); return o != 0 ? new RefStructNullable<Span<MyGame.Example.Color>>(__p.__vector_as_span<MyGame.Example.Color>(98)) : default; } }
+  public bool MutateVectorOfEnums(int j, MyGame.Example.Color vector_of_enums) { int o = __p.__offset(98); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, (byte)vector_of_enums); return true; } else { return false; } }
   public MyGame.Example.Race SignedEnum { get { int o = __p.__offset(100); return o != 0 ? (MyGame.Example.Race)__p.bb.Get<sbyte>(o + __p.bb_pos) : MyGame.Example.Race.None; } }
   public bool MutateSignedEnum(MyGame.Example.Race signed_enum) { int o = __p.__offset(100); if (o != 0) { __p.bb.Put<sbyte>(o + __p.bb_pos, (sbyte)signed_enum); return true; } else { return false; } }
   public RefStructNullable<ReadOnlySpan<byte>> Testrequirednestedflatbuffer { get { int o = __p.__offset(102); return o != 0 ? new RefStructNullable<ReadOnlySpan<byte>>(__p.__vector_as_span<byte>(102)) : default; } }
   public RefStructNullable<Span<byte>> MutableTestrequirednestedflatbuffer { get { int o = __p.__offset(102); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(102)) : default; } }
   public MyGame.Example.Monster? GetTestrequirednestedflatbufferAsMonster() { int o = __p.__offset(102); return o != 0 ? (MyGame.Example.Monster?)(new MyGame.Example.Monster()).__assign(__p.__indirect(__p.__vector(o)), __p.bb) : null; }
+  public bool MutateTestrequirednestedflatbuffer(int j, byte testrequirednestedflatbuffer) { int o = __p.__offset(102); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, testrequirednestedflatbuffer); return true; } else { return false; } }
   public TableVector<MyGame.Example.Stat>? ScalarKeySortedTables { get { int o = __p.__offset(104); return o != 0 ? new TableVector<MyGame.Example.Stat>(__p, o, 4) : null; } }
   public bool TryGetScalarKeySortedTablesByKey(ushort key, out MyGame.Example.Stat value) { int o = __p.__offset(104); if (o != 0) { return MyGame.Example.Stat.TryGetByKey(__p.__vector(o), key, __p.bb, out value); } value = default; return false; }
   public MyGame.Example.Test? NativeInline { get { int o = __p.__offset(106); return o != 0 ? (MyGame.Example.Test?)(new MyGame.Example.Test()).__assign(o + __p.bb_pos, __p.bb) : null; } }

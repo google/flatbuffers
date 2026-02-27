@@ -34,6 +34,7 @@ public ref struct Monster : IFlatbufferSpanObject
   public RefStructNullable<Span<byte>> MutableName { get { int o = __p.__offset(10); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(10)) : default; } }
   public RefStructNullable<ReadOnlySpan<byte>> Inventory { get { int o = __p.__offset(14); return o != 0 ? new RefStructNullable<ReadOnlySpan<byte>>(__p.__vector_as_span<byte>(14)) : default; } }
   public RefStructNullable<Span<byte>> MutableInventory { get { int o = __p.__offset(14); return o != 0 ? new RefStructNullable<Span<byte>>(__p.__vector_as_span<byte>(14)) : default; } }
+  public bool MutateInventory(int j, byte inventory) { int o = __p.__offset(14); if (o != 0) { __p.bb.PutByte(__p.__vector(o) + j * 1, inventory); return true; } else { return false; } }
   public MonsterTest.Color Color { get { int o = __p.__offset(16); return o != 0 ? (MonsterTest.Color)__p.bb.Get<sbyte>(o + __p.bb_pos) : MonsterTest.Color.Blue; } }
   public bool MutateColor(MonsterTest.Color color) { int o = __p.__offset(16); if (o != 0) { __p.bb.Put<sbyte>(o + __p.bb_pos, (sbyte)color); return true; } else { return false; } }
   public RefStructNullable<TableVectorSpan<MonsterTest.StackBuffer.Weapon>> Weapons { get { int o = __p.__offset(18); return o != 0 ? new RefStructNullable<TableVectorSpan<MonsterTest.StackBuffer.Weapon>>(new TableVectorSpan<MonsterTest.StackBuffer.Weapon>(__p, o, 4)) : default; } }

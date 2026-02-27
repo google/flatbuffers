@@ -325,7 +325,6 @@ namespace Google.FlatSpanBuffers.Tests
             Assert.AreEqual(99, monster.Hp);
 
             // Verify the stack buffer was modified
-            spanBuffer.Position = 0;
             var monster2 = MonsterTest.StackBuffer.Monster.GetRootAsMonster(spanBuffer);
             Assert.AreEqual(99, monster2.Hp);
         }
@@ -459,7 +458,6 @@ namespace Google.FlatSpanBuffers.Tests
             vec0.MutateY(20.0f);
             vec0.MutateZ(30.0f);
 
-            spanBuffer.Position = 0;
             var monster2 = MonsterTest.StackBuffer.Monster.GetRootAsMonster(spanBuffer);
             var path2 = monster2.Path;
             var vec0_2 = path2.Value[0];
@@ -527,13 +525,78 @@ namespace Google.FlatSpanBuffers.Tests
             pos.Value.MutateX(100.0f);
             pos.Value.MutateY(200.0f);
             pos.Value.MutateZ(300.0f);
-
-            spanBuffer.Position = 0;
+            
             var monster2 = MonsterTest.StackBuffer.Monster.GetRootAsMonster(spanBuffer);
             var pos2 = monster2.Pos;
             Assert.AreEqual(100.0f, pos2.Value.X, 3);
             Assert.AreEqual(200.0f, pos2.Value.Y, 3);
             Assert.AreEqual(300.0f, pos2.Value.Z, 3);
+        }
+
+        [FlatBuffersTestMethod]
+        public void ByteBuffer_TypeAliases_MutateMultiByteVectorElement_Success()
+        {
+            var builder = new FlatBufferBuilder(1024);
+            Span<double> vf64Data = stackalloc double[] { 1.1, 2.2, 3.3, 4.4 };
+            var vf64Vector = MyGame.Example.TypeAliases.CreateVf64VectorBlock(builder, vf64Data);
+
+            MyGame.Example.TypeAliases.StartTypeAliases(builder);
+            MyGame.Example.TypeAliases.AddVf64(builder, vf64Vector);
+            var offset = MyGame.Example.TypeAliases.EndTypeAliases(builder);
+            builder.Finish(offset.Value);
+
+            var buffer = builder.DataBuffer;
+            var ta = MyGame.Example.TypeAliases.GetRootAsTypeAliases(buffer);
+
+            var vf64 = ta.Vf64;
+            Assert.IsTrue(vf64.HasValue);
+            Assert.AreEqual(4, vf64.Value.Length);
+            Assert.AreEqual(1.1, vf64.Value[0], 6);
+            Assert.AreEqual(3.3, vf64.Value[2], 6);
+
+            Assert.IsTrue(ta.MutateVf64(0, 10.5));
+            Assert.IsTrue(ta.MutateVf64(2, 30.5));
+
+            var ta2 = MyGame.Example.TypeAliases.GetRootAsTypeAliases(buffer);
+            var vf64_2 = ta2.Vf64;
+            Assert.AreEqual(10.5, vf64_2.Value[0], 6);
+            Assert.AreEqual(2.2,  vf64_2.Value[1], 6);
+            Assert.AreEqual(30.5, vf64_2.Value[2], 6);
+            Assert.AreEqual(4.4,  vf64_2.Value[3], 6);
+        }
+
+        [FlatBuffersTestMethod]
+        public void StackBuffer_TypeAliases_MutateMultiByteVectorElement_Success()
+        {
+            var bb = new ByteSpanBuffer(new byte[1024]);
+            var fbb = new FlatSpanBufferBuilder(bb, vtableSpace: new int[16], vtableOffsetSpace: new int[16]);
+
+            Span<double> vf64Data = stackalloc double[] { 1.1, 2.2, 3.3, 4.4 };
+            var vf64Vector = MyGame.Example.StackBuffer.TypeAliases.CreateVf64VectorBlock(ref fbb, vf64Data);
+
+            MyGame.Example.StackBuffer.TypeAliases.StartTypeAliases(ref fbb);
+            MyGame.Example.StackBuffer.TypeAliases.AddVf64(ref fbb, vf64Vector);
+            var offset = MyGame.Example.StackBuffer.TypeAliases.EndTypeAliases(ref fbb);
+            fbb.Finish(offset.Value);
+
+            var spanBuffer = fbb.DataBuffer;
+            var ta = MyGame.Example.StackBuffer.TypeAliases.GetRootAsTypeAliases(spanBuffer);
+
+            var vf64 = ta.Vf64;
+            Assert.IsTrue(vf64.HasValue);
+            Assert.AreEqual(4, vf64.Value.Length);
+            Assert.AreEqual(1.1, vf64.Value[0], 6);
+            Assert.AreEqual(3.3, vf64.Value[2], 6);
+
+            Assert.IsTrue(ta.MutateVf64(0, 10.5));
+            Assert.IsTrue(ta.MutateVf64(2, 30.5));
+
+            var ta2 = MyGame.Example.StackBuffer.TypeAliases.GetRootAsTypeAliases(spanBuffer);
+            var vf64_2 = ta2.Vf64;
+            Assert.AreEqual(10.5, vf64_2.Value[0], 6);
+            Assert.AreEqual(2.2,  vf64_2.Value[1], 6);
+            Assert.AreEqual(30.5, vf64_2.Value[2], 6);
+            Assert.AreEqual(4.4,  vf64_2.Value[3], 6);
         }
     }
 }
