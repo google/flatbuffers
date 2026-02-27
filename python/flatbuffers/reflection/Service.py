@@ -141,7 +141,7 @@ def ServiceCreateCallsVector(builder, data):
     return builder.CreateVectorOfTables(data)
 
 def CreateCallsVector(builder, data):
-    ServiceCreateCallsVector(builder, data)
+    return ServiceCreateCallsVector(builder, data)
 
 def ServiceAddAttributes(builder, attributes):
     builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(attributes), 0)
@@ -159,7 +159,7 @@ def ServiceCreateAttributesVector(builder, data):
     return builder.CreateVectorOfTables(data)
 
 def CreateAttributesVector(builder, data):
-    ServiceCreateAttributesVector(builder, data)
+    return ServiceCreateAttributesVector(builder, data)
 
 def ServiceAddDocumentation(builder, documentation):
     builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
@@ -177,7 +177,7 @@ def ServiceCreateDocumentationVector(builder, data):
     return builder.CreateVectorOfTables(data)
 
 def CreateDocumentationVector(builder, data):
-    ServiceCreateDocumentationVector(builder, data)
+    return ServiceCreateDocumentationVector(builder, data)
 
 def ServiceAddDeclarationFile(builder, declarationFile):
     builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(declarationFile), 0)
