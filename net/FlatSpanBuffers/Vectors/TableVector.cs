@@ -27,20 +27,29 @@ namespace Google.FlatSpanBuffers.Vectors
         public bool IsEmpty => _data.IsEmpty;
         public int Length => _data.Length;
 
-        public TableVector(in Table p, int offset, int elementSize)
+        public TableVector(Table p, int offset, int elementSize)
         {
             _data = new VectorData(p, offset, elementSize);
         }
 
         public T this[int index]
+            => TableOperations.GetUnion<T>(_data.GetBufferIndex(index), _data.bb);
+
+        public Enumerator GetEnumerator() => new Enumerator(ref this);
+
+        public struct Enumerator
         {
-            get
+            private ByteBuffer _bb;
+            private VectorEnumeratorData _enumeratorData;
+
+            internal Enumerator(ref TableVector<T> vector)
             {
-                int pos = TableOperations.GetIndirect(_data.GetBufferIndex(index), _data.bb);
-                var element = new T();
-                element.__init(pos, _data.bb);
-                return element;
+                _bb = vector._data.bb;
+                _enumeratorData = new VectorEnumeratorData(ref vector._data);
             }
+
+            public bool MoveNext() => _enumeratorData.MoveNext();
+            public T Current => TableOperations.GetUnion<T>(_enumeratorData.Current, _bb);
         }
     }
 
@@ -58,14 +67,23 @@ namespace Google.FlatSpanBuffers.Vectors
         }
 
         public T this[int index]
+            => TableOperations.GetUnionSpan<T>(_data.GetBufferIndex(index), _data.bb);
+
+        public Enumerator GetEnumerator() => new Enumerator(ref this);
+
+        public ref struct Enumerator
         {
-            get
+            private ByteSpanBuffer _bb;
+            private VectorEnumeratorData _enumeratorData;
+
+            internal Enumerator(scoped ref TableVectorSpan<T> vector)
             {
-                int pos = TableOperations.GetIndirect(_data.GetBufferIndex(index), _data.bb);
-                var element = new T();
-                element.__init(pos, _data.bb);
-                return element;
+                _bb = vector._data.bb;
+                _enumeratorData = new VectorEnumeratorData(ref vector._data);
             }
+
+            public bool MoveNext() => _enumeratorData.MoveNext();
+            public T Current => TableOperations.GetUnionSpan<T>(_enumeratorData.Current, _bb);
         }
     }
 }

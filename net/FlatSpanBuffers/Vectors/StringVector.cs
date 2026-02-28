@@ -36,6 +36,23 @@ namespace Google.FlatSpanBuffers.Vectors
 
         public ReadOnlySpan<byte> GetBytes(int index)
             => TableOperations.GetStringBytes(_data.GetBufferIndex(index), _data.bb);
+
+        public Enumerator GetEnumerator() => new Enumerator(ref this);
+
+        public struct Enumerator
+        {
+            private ByteBuffer _bb;
+            private VectorEnumeratorData _enumeratorData;
+
+            internal Enumerator(ref StringVector vector)
+            {
+                _bb = vector._data.bb;
+                _enumeratorData = new VectorEnumeratorData(ref vector._data);
+            }
+
+            public bool MoveNext() => _enumeratorData.MoveNext();
+            public string Current => TableOperations.GetString(_enumeratorData.Current, _bb);
+        }
     }
 
     public ref struct StringVectorSpan
@@ -55,5 +72,22 @@ namespace Google.FlatSpanBuffers.Vectors
 
         public ReadOnlySpan<byte> GetBytes(int index)
             => TableOperations.GetStringBytes(_data.GetBufferIndex(index), _data.bb);
+
+        public Enumerator GetEnumerator() => new Enumerator(ref this);
+
+        public ref struct Enumerator
+        {
+            private ByteSpanBuffer _bb;
+            private VectorEnumeratorData _enumeratorData;
+
+            internal Enumerator(scoped ref StringVectorSpan vector)
+            {
+                _bb = vector._data.bb;
+                _enumeratorData = new VectorEnumeratorData(ref vector._data);
+            }
+
+            public bool MoveNext() => _enumeratorData.MoveNext();
+            public string Current => TableOperations.GetString(_enumeratorData.Current, _bb);
+        }
     }
 }

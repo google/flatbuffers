@@ -15,6 +15,7 @@
  */
 
 using System;
+using Google.FlatSpanBuffers.Operations;
 
 namespace Google.FlatSpanBuffers.Vectors
 {
@@ -31,15 +32,24 @@ namespace Google.FlatSpanBuffers.Vectors
             _data = new VectorData(p, offset, elementSize);
         }
 
-        public T this[int index]
+        public T this[int index] 
+            => TableOperations.GetStruct<T>(_data.GetBufferIndex(index), _data.bb);
+
+        public Enumerator GetEnumerator() => new Enumerator(ref this);
+
+        public struct Enumerator
         {
-            get
+            private ByteBuffer _bb;
+            private VectorEnumeratorData _enumeratorData;
+
+            internal Enumerator(ref StructVector<T> vector)
             {
-                int pos = _data.GetBufferIndex(index);
-                var element = new T();
-                element.__init(pos, _data.bb);
-                return element;
+                _bb = vector._data.bb;
+                _enumeratorData = new VectorEnumeratorData(ref vector._data);
             }
+
+            public bool MoveNext() => _enumeratorData.MoveNext();
+            public T Current => TableOperations.GetStruct<T>(_enumeratorData.Current, _bb);
         }
     }
 
@@ -57,14 +67,23 @@ namespace Google.FlatSpanBuffers.Vectors
         }
 
         public T this[int index]
+            => TableOperations.GetStructSpan<T>(_data.GetBufferIndex(index), _data.bb);
+
+        public Enumerator GetEnumerator() => new Enumerator(ref this);
+
+        public ref struct Enumerator
         {
-            get
+            private ByteSpanBuffer _bb;
+            private VectorEnumeratorData _enumeratorData;
+
+            internal Enumerator(scoped ref StructVectorSpan<T> vector)
             {
-                int pos = _data.GetBufferIndex(index);
-                var element = new T();
-                element.__init(pos, _data.bb);
-                return element;
+                _bb = vector._data.bb;
+                _enumeratorData = new VectorEnumeratorData(ref vector._data);
             }
+
+            public bool MoveNext() => _enumeratorData.MoveNext();
+            public T Current => TableOperations.GetStructSpan<T>(_enumeratorData.Current, _bb);
         }
     }
 }

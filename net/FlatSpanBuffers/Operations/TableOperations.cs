@@ -127,5 +127,21 @@ namespace Google.FlatSpanBuffers.Operations
             t.__init(GetIndirect(offset, buffer), buffer);
             return t;
         }
+
+        public static T GetStruct<T>(int offset, ByteBuffer buffer)
+            where T : struct, IFlatbufferObject
+        {
+            T t = new T();
+            t.__init(offset, buffer);
+            return t;
+        }
+
+        public static T GetStructSpan<T>(int offset, ByteSpanBuffer buffer)
+            where T : struct, IFlatbufferSpanObject, allows ref struct
+        {
+            T t = new T();
+            t.__init(offset, buffer);
+            return t;
+        }
     }
 }

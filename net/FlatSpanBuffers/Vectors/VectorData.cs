@@ -15,7 +15,6 @@
  */
 
 using System;
-using System.Dynamic;
 
 namespace Google.FlatSpanBuffers.Vectors
 {
@@ -80,6 +79,39 @@ namespace Google.FlatSpanBuffers.Vectors
             if ((uint)index >= (uint)length)
                 throw new IndexOutOfRangeException($"Flatbufffers: index out of range. index:{index} length: {length}");
             return start + index * elementSize;
+        }
+    }
+
+    public struct VectorEnumeratorData
+    {
+        private int _current;
+        private readonly int _end;
+        private readonly int _elementSize;
+
+        public int Current => _current;
+
+        public VectorEnumeratorData(ref VectorData data)
+        {
+            _elementSize = data.elementSize;
+            _current = data.start - data.elementSize;
+            _end = data.start + data.length * data.elementSize;
+        }
+
+        public VectorEnumeratorData(scoped ref VectorSpanData data)
+        {
+            _elementSize = data.elementSize;
+            _current = data.start - data.elementSize;
+            _end = data.start + data.length * data.elementSize;
+        }
+
+        public bool MoveNext()
+        {
+            int next = _current + _elementSize;
+            if (next >= _end)
+                return false;
+
+            _current = next;
+            return true;
         }
     }
 }
