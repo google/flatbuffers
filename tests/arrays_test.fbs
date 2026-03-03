@@ -18,6 +18,10 @@ struct ArrayStruct{
   f:[int64:2];
 }
 
+struct LargeArrayStruct {
+  d:[ubyte:64];
+}
+
 table ArrayTable{
   a:ArrayStruct;
 }
