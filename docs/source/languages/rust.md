@@ -97,6 +97,61 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
+## Fallible API and Custom Allocators
+
+Every `FlatBufferBuilder` method that may allocate has a `try_*` counterpart
+(e.g. `try_create_string`, `try_push`, `try_finish`) that returns
+`Result<T, A::Error>` instead of panicking. This is useful when allocation
+failures must be handled gracefully: for example in `no_std` environments or
+with fixed-capacity buffers.
+
+The existing panicking methods are unchanged and remain the simplest option
+when using the default allocator.
+
+#### Custom allocators
+
+Implement the `Allocator` trait and pass it to `FlatBufferBuilder::new_in()`:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    use flatbuffers::{Allocator, FlatBufferBuilder};
+
+    struct MyAllocator { /* ... */ }
+
+    unsafe impl Allocator for MyAllocator {
+        type Error = MyError;
+        fn grow_downwards(&mut self) -> Result<(), Self::Error> { /* ... */ }
+        fn len(&self) -> usize { /* ... */ }
+    }
+
+    let alloc = MyAllocator::new(/* ... */);
+    let mut builder = FlatBufferBuilder::new_in(alloc);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The built-in `DefaultAllocator` uses `Vec<u8>` and sets `Error = Infallible`,
+so the `try_*` methods on a default builder can never fail.
+
+#### Example: building a buffer with error propagation
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    fn build<A: flatbuffers::Allocator>(
+        builder: &mut FlatBufferBuilder<A>,
+    ) -> Result<(), A::Error> {
+        let name = builder.try_create_string("Orc")?;
+        let inventory = builder.try_create_vector(&[0u8, 1, 2, 3, 4])?;
+
+        let table_start = builder.start_table();
+        builder.try_push_slot_always(Monster::VT_NAME, name)?;
+        builder.try_push_slot_always(Monster::VT_INVENTORY, inventory)?;
+        builder.try_push_slot(Monster::VT_HP, 80i16, 100)?;
+        let root = builder.try_end_table(table_start)?;
+
+        builder.try_finish(root, None)?;
+        Ok(())
+    }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `FlatBufferBuilder` rustdoc for the full list of `try_*` methods.
+
 ## Direct memory access
 
 As you can see from the above examples, all elements in a buffer are
