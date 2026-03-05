@@ -296,8 +296,8 @@ public struct MyGame_Example_LargeArrayStruct: NativeStruct, FlatbuffersVectorIn
 
   public init() {
     _d = InlineArray(repeating: 0)
-    _e = InlineArray(repeating: 0)
-    _f = InlineArray(repeating: 0)
+    _e = InlineArray(repeating: 0.0)
+    _f = InlineArray(repeating: false)
   }
 
   public init(_ _t: borrowing MyGame_Example_LargeArrayStruct_Mutable) {

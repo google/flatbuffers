@@ -282,9 +282,16 @@ class SwiftGenerator : public BaseGenerator {
             NumToString(field.value.type.VectorType().fixed_length);
         code_.SetValue("FIXEDLENGTH", fixed_length);
 
-        const auto vector_base_type = IsStruct(field.value.type.VectorType())
-                                          ? (type + "()")
-                                          : SwiftConstant(field);
+        std::string vector_base_type;
+        if (IsStruct(field.value.type.VectorType())) {
+          vector_base_type = type + "()";
+        } else if (IsBool(field.value.type.VectorType().base_type)) {
+          vector_base_type = "false";
+        } else if (IsFloat(field.value.type.VectorType().base_type)) {
+          vector_base_type = "0.0";
+        } else {
+          vector_base_type = SwiftConstant(field);
+        }
         code_ += "private var _{{FIELDVAR}}: InlineArray<{{FIXEDLENGTH}}, " +
                  valueType + ">";
 
