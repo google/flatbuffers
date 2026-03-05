@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_FIELD_UNION: u8 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_FIELD_UNION: u8 = 1;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_FIELD_UNION: [FieldUnion; 2] = [
@@ -16,6 +19,7 @@ pub const ENUM_VALUES_FIELD_UNION: [FieldUnion; 2] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct FieldUnion(pub u8);
+
 #[allow(non_upper_case_globals)]
 impl FieldUnion {
   pub const NONE: Self = Self(0);
@@ -27,6 +31,7 @@ impl FieldUnion {
     Self::NONE,
     Self::f,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -36,6 +41,7 @@ impl FieldUnion {
     }
   }
 }
+
 impl ::core::fmt::Debug for FieldUnion {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -45,8 +51,10 @@ impl ::core::fmt::Debug for FieldUnion {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for FieldUnion {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
@@ -56,6 +64,7 @@ impl<'a> ::flatbuffers::Follow<'a> for FieldUnion {
 
 impl ::flatbuffers::Push for FieldUnion {
     type Output = FieldUnion;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u8>(dst, self.0) };
@@ -64,10 +73,12 @@ impl ::flatbuffers::Push for FieldUnion {
 
 impl ::flatbuffers::EndianScalar for FieldUnion {
   type Scalar = u8;
+
   #[inline]
   fn to_little_endian(self) -> u8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u8) -> Self {
@@ -86,6 +97,7 @@ impl<'a> ::flatbuffers::Verifiable for FieldUnion {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for FieldUnion {}
+
 pub struct FieldUnionUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
@@ -95,11 +107,13 @@ pub enum FieldUnionT {
   NONE,
   F(alloc::boxed::Box<FieldTableT>),
 }
+
 impl Default for FieldUnionT {
   fn default() -> Self {
     Self::NONE
   }
 }
+
 impl FieldUnionT {
   pub fn field_union_type(&self) -> FieldUnion {
     match self {
@@ -107,12 +121,14 @@ impl FieldUnionT {
       Self::F(_) => FieldUnion::f,
     }
   }
+
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
       Self::F(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
+
   /// If the union variant matches, return the owned FieldTableT, setting the union to NONE.
   pub fn take_f(&mut self) -> Option<alloc::boxed::Box<FieldTableT>> {
     if let Self::F(_) = self {
@@ -126,12 +142,15 @@ impl FieldUnionT {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the FieldTableT.
   pub fn as_f(&self) -> Option<&FieldTableT> {
     if let Self::F(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the FieldTableT.
   pub fn as_f_mut(&mut self) -> Option<&mut FieldTableT> {
     if let Self::F(v) = self { Some(v.as_mut()) } else { None }
   }
 }
+

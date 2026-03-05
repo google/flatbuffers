@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_PUBLIC: i32 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_PUBLIC: i32 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_PUBLIC: [public; 1] = [
@@ -15,6 +18,7 @@ pub const ENUM_VALUES_PUBLIC: [public; 1] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct public(pub i32);
+
 #[allow(non_upper_case_globals)]
 impl public {
   pub const NONE: Self = Self(0);
@@ -24,6 +28,7 @@ impl public {
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::NONE,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -32,6 +37,7 @@ impl public {
     }
   }
 }
+
 impl ::core::fmt::Debug for public {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -41,8 +47,10 @@ impl ::core::fmt::Debug for public {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for public {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<i32>(buf, loc) };
@@ -52,6 +60,7 @@ impl<'a> ::flatbuffers::Follow<'a> for public {
 
 impl ::flatbuffers::Push for public {
     type Output = public;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<i32>(dst, self.0) };
@@ -60,10 +69,12 @@ impl ::flatbuffers::Push for public {
 
 impl ::flatbuffers::EndianScalar for public {
   type Scalar = i32;
+
   #[inline]
   fn to_little_endian(self) -> i32 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: i32) -> Self {

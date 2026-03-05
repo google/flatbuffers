@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum WeaponOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum WeaponOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct Weapon<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for Weapon<'a> {
   type Inner = Weapon<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -29,6 +31,7 @@ impl<'a> Weapon<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     Weapon { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -58,6 +61,7 @@ impl<'a> Weapon<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<&str>>(Weapon::VT_NAME, None)}
   }
+
   #[inline]
   pub fn damage(&self) -> i16 {
     // Safety:
@@ -79,10 +83,12 @@ impl ::flatbuffers::Verifiable for Weapon<'_> {
     Ok(())
   }
 }
+
 pub struct WeaponArgs<'a> {
     pub name: Option<::flatbuffers::WIPOffset<&'a str>>,
     pub damage: i16,
 }
+
 impl<'a> Default for WeaponArgs<'a> {
   #[inline]
   fn default() -> Self {
@@ -97,15 +103,18 @@ pub struct WeaponBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> WeaponBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_name(&mut self, name: ::flatbuffers::WIPOffset<&'b  str>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Weapon::VT_NAME, name);
   }
+
   #[inline]
   pub fn add_damage(&mut self, damage: i16) {
     self.fbb_.push_slot::<i16>(Weapon::VT_DAMAGE, damage, 0);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> WeaponBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -114,6 +123,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> WeaponBuilder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<Weapon<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -129,12 +139,14 @@ impl ::core::fmt::Debug for Weapon<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct WeaponT {
   pub name: Option<alloc::string::String>,
   pub damage: i16,
 }
+
 impl Default for WeaponT {
   fn default() -> Self {
     Self {
@@ -143,6 +155,7 @@ impl Default for WeaponT {
     }
   }
 }
+
 impl WeaponT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

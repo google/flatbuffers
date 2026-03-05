@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_AB: i8 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_AB: i8 = 1;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_AB: [AB; 2] = [
@@ -16,6 +19,7 @@ pub const ENUM_VALUES_AB: [AB; 2] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub(crate) struct AB(pub i8);
+
 #[allow(non_upper_case_globals)]
 impl AB {
   pub const A: Self = Self(0);
@@ -27,6 +31,7 @@ impl AB {
     Self::A,
     Self::B,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -36,6 +41,7 @@ impl AB {
     }
   }
 }
+
 impl ::core::fmt::Debug for AB {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -45,8 +51,10 @@ impl ::core::fmt::Debug for AB {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for AB {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<i8>(buf, loc) };
@@ -56,6 +64,7 @@ impl<'a> ::flatbuffers::Follow<'a> for AB {
 
 impl ::flatbuffers::Push for AB {
     type Output = AB;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<i8>(dst, self.0) };
@@ -64,10 +73,12 @@ impl ::flatbuffers::Push for AB {
 
 impl ::flatbuffers::EndianScalar for AB {
   type Scalar = i8;
+
   #[inline]
   fn to_little_endian(self) -> i8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: i8) -> Self {

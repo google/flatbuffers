@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum TableInCOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum TableInCOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct TableInC<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for TableInC<'a> {
   type Inner = TableInC<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -29,6 +31,7 @@ impl<'a> TableInC<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     TableInC { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -60,6 +63,7 @@ impl<'a> TableInC<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, None)}
   }
+
   #[inline]
   pub fn refer_to_a2(&self) -> Option<super::namespace_a::SecondTableInA<'a>> {
     // Safety:
@@ -81,10 +85,12 @@ impl ::flatbuffers::Verifiable for TableInC<'_> {
     Ok(())
   }
 }
+
 pub struct TableInCArgs<'a> {
     pub refer_to_a1: Option<::flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'a>>>,
     pub refer_to_a2: Option<::flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'a>>>,
 }
+
 impl<'a> Default for TableInCArgs<'a> {
   #[inline]
   fn default() -> Self {
@@ -99,15 +105,18 @@ pub struct TableInCBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableInCBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_refer_to_a1(&mut self, refer_to_a1: ::flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS<'b >>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::namespace_a::TableInFirstNS>>(TableInC::VT_REFER_TO_A1, refer_to_a1);
   }
+
   #[inline]
   pub fn add_refer_to_a2(&mut self, refer_to_a2: ::flatbuffers::WIPOffset<super::namespace_a::SecondTableInA<'b >>) {
     self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::namespace_a::SecondTableInA>>(TableInC::VT_REFER_TO_A2, refer_to_a2);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> TableInCBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -116,6 +125,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableInCBuilder<'a, 'b, A> {
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<TableInC<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -131,12 +141,14 @@ impl ::core::fmt::Debug for TableInC<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableInCT {
   pub refer_to_a1: Option<alloc::boxed::Box<super::namespace_a::TableInFirstNST>>,
   pub refer_to_a2: Option<alloc::boxed::Box<super::namespace_a::SecondTableInAT>>,
 }
+
 impl Default for TableInCT {
   fn default() -> Self {
     Self {
@@ -145,6 +157,7 @@ impl Default for TableInCT {
     }
   }
 }
+
 impl TableInCT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

@@ -4,15 +4,17 @@ extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
 use super::*;
-pub enum TestSimpleTableWithEnumOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum TestSimpleTableWithEnumOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct TestSimpleTableWithEnum<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
   type Inner = TestSimpleTableWithEnum<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -30,6 +32,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     TestSimpleTableWithEnum { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -67,9 +70,11 @@ impl ::flatbuffers::Verifiable for TestSimpleTableWithEnum<'_> {
     Ok(())
   }
 }
+
 pub struct TestSimpleTableWithEnumArgs {
     pub color: Color,
 }
+
 impl<'a> Default for TestSimpleTableWithEnumArgs {
   #[inline]
   fn default() -> Self {
@@ -94,11 +99,13 @@ pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocato
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TestSimpleTableWithEnumBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_color(&mut self, color: Color) {
     self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::Green);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> TestSimpleTableWithEnumBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -107,6 +114,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TestSimpleTableWithEnumBuilde
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<TestSimpleTableWithEnum<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -121,11 +129,13 @@ impl ::core::fmt::Debug for TestSimpleTableWithEnum<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TestSimpleTableWithEnumT {
   pub color: Color,
 }
+
 impl Default for TestSimpleTableWithEnumT {
   fn default() -> Self {
     Self {
@@ -133,6 +143,7 @@ impl Default for TestSimpleTableWithEnumT {
     }
   }
 }
+
 impl TestSimpleTableWithEnumT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

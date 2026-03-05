@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum ScalarStuffOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum ScalarStuffOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct ScalarStuff<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for ScalarStuff<'a> {
   type Inner = ScalarStuff<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -63,6 +65,7 @@ impl<'a> ScalarStuff<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     ScalarStuff { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -192,6 +195,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i8>(ScalarStuff::VT_JUST_I8, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_i8(&self) -> Option<i8> {
     // Safety:
@@ -199,6 +203,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i8>(ScalarStuff::VT_MAYBE_I8, None)}
   }
+
   #[inline]
   pub fn default_i8(&self) -> i8 {
     // Safety:
@@ -206,6 +211,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i8>(ScalarStuff::VT_DEFAULT_I8, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_u8(&self) -> u8 {
     // Safety:
@@ -213,6 +219,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u8>(ScalarStuff::VT_JUST_U8, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_u8(&self) -> Option<u8> {
     // Safety:
@@ -220,6 +227,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u8>(ScalarStuff::VT_MAYBE_U8, None)}
   }
+
   #[inline]
   pub fn default_u8(&self) -> u8 {
     // Safety:
@@ -227,6 +235,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u8>(ScalarStuff::VT_DEFAULT_U8, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_i16(&self) -> i16 {
     // Safety:
@@ -234,6 +243,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(ScalarStuff::VT_JUST_I16, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_i16(&self) -> Option<i16> {
     // Safety:
@@ -241,6 +251,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(ScalarStuff::VT_MAYBE_I16, None)}
   }
+
   #[inline]
   pub fn default_i16(&self) -> i16 {
     // Safety:
@@ -248,6 +259,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i16>(ScalarStuff::VT_DEFAULT_I16, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_u16(&self) -> u16 {
     // Safety:
@@ -255,6 +267,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(ScalarStuff::VT_JUST_U16, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_u16(&self) -> Option<u16> {
     // Safety:
@@ -262,6 +275,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(ScalarStuff::VT_MAYBE_U16, None)}
   }
+
   #[inline]
   pub fn default_u16(&self) -> u16 {
     // Safety:
@@ -269,6 +283,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u16>(ScalarStuff::VT_DEFAULT_U16, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_i32(&self) -> i32 {
     // Safety:
@@ -276,6 +291,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(ScalarStuff::VT_JUST_I32, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_i32(&self) -> Option<i32> {
     // Safety:
@@ -283,6 +299,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(ScalarStuff::VT_MAYBE_I32, None)}
   }
+
   #[inline]
   pub fn default_i32(&self) -> i32 {
     // Safety:
@@ -290,6 +307,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i32>(ScalarStuff::VT_DEFAULT_I32, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_u32(&self) -> u32 {
     // Safety:
@@ -297,6 +315,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(ScalarStuff::VT_JUST_U32, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_u32(&self) -> Option<u32> {
     // Safety:
@@ -304,6 +323,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(ScalarStuff::VT_MAYBE_U32, None)}
   }
+
   #[inline]
   pub fn default_u32(&self) -> u32 {
     // Safety:
@@ -311,6 +331,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u32>(ScalarStuff::VT_DEFAULT_U32, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_i64(&self) -> i64 {
     // Safety:
@@ -318,6 +339,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(ScalarStuff::VT_JUST_I64, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_i64(&self) -> Option<i64> {
     // Safety:
@@ -325,6 +347,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(ScalarStuff::VT_MAYBE_I64, None)}
   }
+
   #[inline]
   pub fn default_i64(&self) -> i64 {
     // Safety:
@@ -332,6 +355,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<i64>(ScalarStuff::VT_DEFAULT_I64, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_u64(&self) -> u64 {
     // Safety:
@@ -339,6 +363,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(ScalarStuff::VT_JUST_U64, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_u64(&self) -> Option<u64> {
     // Safety:
@@ -346,6 +371,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(ScalarStuff::VT_MAYBE_U64, None)}
   }
+
   #[inline]
   pub fn default_u64(&self) -> u64 {
     // Safety:
@@ -353,6 +379,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(ScalarStuff::VT_DEFAULT_U64, Some(42)).unwrap()}
   }
+
   #[inline]
   pub fn just_f32(&self) -> f32 {
     // Safety:
@@ -360,6 +387,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(ScalarStuff::VT_JUST_F32, Some(0.0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_f32(&self) -> Option<f32> {
     // Safety:
@@ -367,6 +395,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(ScalarStuff::VT_MAYBE_F32, None)}
   }
+
   #[inline]
   pub fn default_f32(&self) -> f32 {
     // Safety:
@@ -374,6 +403,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<f32>(ScalarStuff::VT_DEFAULT_F32, Some(42.0)).unwrap()}
   }
+
   #[inline]
   pub fn just_f64(&self) -> f64 {
     // Safety:
@@ -381,6 +411,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<f64>(ScalarStuff::VT_JUST_F64, Some(0.0)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_f64(&self) -> Option<f64> {
     // Safety:
@@ -388,6 +419,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<f64>(ScalarStuff::VT_MAYBE_F64, None)}
   }
+
   #[inline]
   pub fn default_f64(&self) -> f64 {
     // Safety:
@@ -395,6 +427,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<f64>(ScalarStuff::VT_DEFAULT_F64, Some(42.0)).unwrap()}
   }
+
   #[inline]
   pub fn just_bool(&self) -> bool {
     // Safety:
@@ -402,6 +435,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(ScalarStuff::VT_JUST_BOOL, Some(false)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_bool(&self) -> Option<bool> {
     // Safety:
@@ -409,6 +443,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(ScalarStuff::VT_MAYBE_BOOL, None)}
   }
+
   #[inline]
   pub fn default_bool(&self) -> bool {
     // Safety:
@@ -416,6 +451,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<bool>(ScalarStuff::VT_DEFAULT_BOOL, Some(true)).unwrap()}
   }
+
   #[inline]
   pub fn just_enum(&self) -> OptionalByte {
     // Safety:
@@ -423,6 +459,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, Some(OptionalByte::None)).unwrap()}
   }
+
   #[inline]
   pub fn maybe_enum(&self) -> Option<OptionalByte> {
     // Safety:
@@ -430,6 +467,7 @@ impl<'a> ScalarStuff<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, None)}
   }
+
   #[inline]
   pub fn default_enum(&self) -> OptionalByte {
     // Safety:
@@ -485,6 +523,7 @@ impl ::flatbuffers::Verifiable for ScalarStuff<'_> {
     Ok(())
   }
 }
+
 pub struct ScalarStuffArgs {
     pub just_i8: i8,
     pub maybe_i8: Option<i8>,
@@ -523,6 +562,7 @@ pub struct ScalarStuffArgs {
     pub maybe_enum: Option<OptionalByte>,
     pub default_enum: OptionalByte,
 }
+
 impl<'a> Default for ScalarStuffArgs {
   #[inline]
   fn default() -> Self {
@@ -571,151 +611,188 @@ pub struct ScalarStuffBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> ScalarStuffBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_just_i8(&mut self, just_i8: i8) {
     self.fbb_.push_slot::<i8>(ScalarStuff::VT_JUST_I8, just_i8, 0);
   }
+
   #[inline]
   pub fn add_maybe_i8(&mut self, maybe_i8: i8) {
     self.fbb_.push_slot_always::<i8>(ScalarStuff::VT_MAYBE_I8, maybe_i8);
   }
+
   #[inline]
   pub fn add_default_i8(&mut self, default_i8: i8) {
     self.fbb_.push_slot::<i8>(ScalarStuff::VT_DEFAULT_I8, default_i8, 42);
   }
+
   #[inline]
   pub fn add_just_u8(&mut self, just_u8: u8) {
     self.fbb_.push_slot::<u8>(ScalarStuff::VT_JUST_U8, just_u8, 0);
   }
+
   #[inline]
   pub fn add_maybe_u8(&mut self, maybe_u8: u8) {
     self.fbb_.push_slot_always::<u8>(ScalarStuff::VT_MAYBE_U8, maybe_u8);
   }
+
   #[inline]
   pub fn add_default_u8(&mut self, default_u8: u8) {
     self.fbb_.push_slot::<u8>(ScalarStuff::VT_DEFAULT_U8, default_u8, 42);
   }
+
   #[inline]
   pub fn add_just_i16(&mut self, just_i16: i16) {
     self.fbb_.push_slot::<i16>(ScalarStuff::VT_JUST_I16, just_i16, 0);
   }
+
   #[inline]
   pub fn add_maybe_i16(&mut self, maybe_i16: i16) {
     self.fbb_.push_slot_always::<i16>(ScalarStuff::VT_MAYBE_I16, maybe_i16);
   }
+
   #[inline]
   pub fn add_default_i16(&mut self, default_i16: i16) {
     self.fbb_.push_slot::<i16>(ScalarStuff::VT_DEFAULT_I16, default_i16, 42);
   }
+
   #[inline]
   pub fn add_just_u16(&mut self, just_u16: u16) {
     self.fbb_.push_slot::<u16>(ScalarStuff::VT_JUST_U16, just_u16, 0);
   }
+
   #[inline]
   pub fn add_maybe_u16(&mut self, maybe_u16: u16) {
     self.fbb_.push_slot_always::<u16>(ScalarStuff::VT_MAYBE_U16, maybe_u16);
   }
+
   #[inline]
   pub fn add_default_u16(&mut self, default_u16: u16) {
     self.fbb_.push_slot::<u16>(ScalarStuff::VT_DEFAULT_U16, default_u16, 42);
   }
+
   #[inline]
   pub fn add_just_i32(&mut self, just_i32: i32) {
     self.fbb_.push_slot::<i32>(ScalarStuff::VT_JUST_I32, just_i32, 0);
   }
+
   #[inline]
   pub fn add_maybe_i32(&mut self, maybe_i32: i32) {
     self.fbb_.push_slot_always::<i32>(ScalarStuff::VT_MAYBE_I32, maybe_i32);
   }
+
   #[inline]
   pub fn add_default_i32(&mut self, default_i32: i32) {
     self.fbb_.push_slot::<i32>(ScalarStuff::VT_DEFAULT_I32, default_i32, 42);
   }
+
   #[inline]
   pub fn add_just_u32(&mut self, just_u32: u32) {
     self.fbb_.push_slot::<u32>(ScalarStuff::VT_JUST_U32, just_u32, 0);
   }
+
   #[inline]
   pub fn add_maybe_u32(&mut self, maybe_u32: u32) {
     self.fbb_.push_slot_always::<u32>(ScalarStuff::VT_MAYBE_U32, maybe_u32);
   }
+
   #[inline]
   pub fn add_default_u32(&mut self, default_u32: u32) {
     self.fbb_.push_slot::<u32>(ScalarStuff::VT_DEFAULT_U32, default_u32, 42);
   }
+
   #[inline]
   pub fn add_just_i64(&mut self, just_i64: i64) {
     self.fbb_.push_slot::<i64>(ScalarStuff::VT_JUST_I64, just_i64, 0);
   }
+
   #[inline]
   pub fn add_maybe_i64(&mut self, maybe_i64: i64) {
     self.fbb_.push_slot_always::<i64>(ScalarStuff::VT_MAYBE_I64, maybe_i64);
   }
+
   #[inline]
   pub fn add_default_i64(&mut self, default_i64: i64) {
     self.fbb_.push_slot::<i64>(ScalarStuff::VT_DEFAULT_I64, default_i64, 42);
   }
+
   #[inline]
   pub fn add_just_u64(&mut self, just_u64: u64) {
     self.fbb_.push_slot::<u64>(ScalarStuff::VT_JUST_U64, just_u64, 0);
   }
+
   #[inline]
   pub fn add_maybe_u64(&mut self, maybe_u64: u64) {
     self.fbb_.push_slot_always::<u64>(ScalarStuff::VT_MAYBE_U64, maybe_u64);
   }
+
   #[inline]
   pub fn add_default_u64(&mut self, default_u64: u64) {
     self.fbb_.push_slot::<u64>(ScalarStuff::VT_DEFAULT_U64, default_u64, 42);
   }
+
   #[inline]
   pub fn add_just_f32(&mut self, just_f32: f32) {
     self.fbb_.push_slot::<f32>(ScalarStuff::VT_JUST_F32, just_f32, 0.0);
   }
+
   #[inline]
   pub fn add_maybe_f32(&mut self, maybe_f32: f32) {
     self.fbb_.push_slot_always::<f32>(ScalarStuff::VT_MAYBE_F32, maybe_f32);
   }
+
   #[inline]
   pub fn add_default_f32(&mut self, default_f32: f32) {
     self.fbb_.push_slot::<f32>(ScalarStuff::VT_DEFAULT_F32, default_f32, 42.0);
   }
+
   #[inline]
   pub fn add_just_f64(&mut self, just_f64: f64) {
     self.fbb_.push_slot::<f64>(ScalarStuff::VT_JUST_F64, just_f64, 0.0);
   }
+
   #[inline]
   pub fn add_maybe_f64(&mut self, maybe_f64: f64) {
     self.fbb_.push_slot_always::<f64>(ScalarStuff::VT_MAYBE_F64, maybe_f64);
   }
+
   #[inline]
   pub fn add_default_f64(&mut self, default_f64: f64) {
     self.fbb_.push_slot::<f64>(ScalarStuff::VT_DEFAULT_F64, default_f64, 42.0);
   }
+
   #[inline]
   pub fn add_just_bool(&mut self, just_bool: bool) {
     self.fbb_.push_slot::<bool>(ScalarStuff::VT_JUST_BOOL, just_bool, false);
   }
+
   #[inline]
   pub fn add_maybe_bool(&mut self, maybe_bool: bool) {
     self.fbb_.push_slot_always::<bool>(ScalarStuff::VT_MAYBE_BOOL, maybe_bool);
   }
+
   #[inline]
   pub fn add_default_bool(&mut self, default_bool: bool) {
     self.fbb_.push_slot::<bool>(ScalarStuff::VT_DEFAULT_BOOL, default_bool, true);
   }
+
   #[inline]
   pub fn add_just_enum(&mut self, just_enum: OptionalByte) {
     self.fbb_.push_slot::<OptionalByte>(ScalarStuff::VT_JUST_ENUM, just_enum, OptionalByte::None);
   }
+
   #[inline]
   pub fn add_maybe_enum(&mut self, maybe_enum: OptionalByte) {
     self.fbb_.push_slot_always::<OptionalByte>(ScalarStuff::VT_MAYBE_ENUM, maybe_enum);
   }
+
   #[inline]
   pub fn add_default_enum(&mut self, default_enum: OptionalByte) {
     self.fbb_.push_slot::<OptionalByte>(ScalarStuff::VT_DEFAULT_ENUM, default_enum, OptionalByte::One);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> ScalarStuffBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -724,6 +801,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> ScalarStuffBuilder<'a, 'b, A>
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<ScalarStuff<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -773,6 +851,7 @@ impl ::core::fmt::Debug for ScalarStuff<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ScalarStuffT {
@@ -813,6 +892,7 @@ pub struct ScalarStuffT {
   pub maybe_enum: Option<OptionalByte>,
   pub default_enum: OptionalByte,
 }
+
 impl Default for ScalarStuffT {
   fn default() -> Self {
     Self {
@@ -855,6 +935,7 @@ impl Default for ScalarStuffT {
     }
   }
 }
+
 impl ScalarStuffT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,
@@ -936,66 +1017,73 @@ impl ScalarStuffT {
     })
   }
 }
-#[inline]
+
 /// Verifies that a buffer of bytes contains a `ScalarStuff`
 /// and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_scalar_stuff_unchecked`.
+#[inline]
 pub fn root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff<'_>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::root::<ScalarStuff>(buf)
 }
-#[inline]
+
 /// Verifies that a buffer of bytes contains a size prefixed
 /// `ScalarStuff` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `size_prefixed_root_as_scalar_stuff_unchecked`.
+#[inline]
 pub fn size_prefixed_root_as_scalar_stuff(buf: &[u8]) -> Result<ScalarStuff<'_>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::size_prefixed_root::<ScalarStuff>(buf)
 }
-#[inline]
+
 /// Verifies, with the given options, that a buffer of bytes
 /// contains a `ScalarStuff` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_scalar_stuff_unchecked`.
+#[inline]
 pub fn root_as_scalar_stuff_with_opts<'b, 'o>(
   opts: &'o ::flatbuffers::VerifierOptions,
   buf: &'b [u8],
 ) -> Result<ScalarStuff<'b>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::root_with_opts::<ScalarStuff<'b>>(opts, buf)
 }
-#[inline]
+
 /// Verifies, with the given verifier options, that a buffer of
 /// bytes contains a size prefixed `ScalarStuff` and returns
 /// it. Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
 /// `root_as_scalar_stuff_unchecked`.
+#[inline]
 pub fn size_prefixed_root_as_scalar_stuff_with_opts<'b, 'o>(
   opts: &'o ::flatbuffers::VerifierOptions,
   buf: &'b [u8],
 ) -> Result<ScalarStuff<'b>, ::flatbuffers::InvalidFlatbuffer> {
   ::flatbuffers::size_prefixed_root_with_opts::<ScalarStuff<'b>>(opts, buf)
 }
-#[inline]
+
 /// Assumes, without verification, that a buffer of bytes contains a ScalarStuff and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid `ScalarStuff`.
+#[inline]
 pub unsafe fn root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff<'_> {
   unsafe { ::flatbuffers::root_unchecked::<ScalarStuff>(buf) }
 }
-#[inline]
+
 /// Assumes, without verification, that a buffer of bytes contains a size prefixed ScalarStuff and returns it.
 /// # Safety
 /// Callers must trust the given bytes do indeed contain a valid size prefixed `ScalarStuff`.
+#[inline]
 pub unsafe fn size_prefixed_root_as_scalar_stuff_unchecked(buf: &[u8]) -> ScalarStuff<'_> {
   unsafe { ::flatbuffers::size_prefixed_root_unchecked::<ScalarStuff>(buf) }
 }
+
 pub const SCALAR_STUFF_IDENTIFIER: &str = "NULL";
 
 #[inline]

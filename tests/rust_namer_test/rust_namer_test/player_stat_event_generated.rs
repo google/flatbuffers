@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum PlayerStatEventOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum PlayerStatEventOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct PlayerStatEvent<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for PlayerStatEvent<'a> {
   type Inner = PlayerStatEvent<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -18,7 +20,6 @@ impl<'a> ::flatbuffers::Follow<'a> for PlayerStatEvent<'a> {
 }
 
 impl<'a> PlayerStatEvent<'a> {
-
   pub const fn get_fully_qualified_name() -> &'static str {
     "RustNamerTest.PlayerStatEvent"
   }
@@ -27,6 +28,7 @@ impl<'a> PlayerStatEvent<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     PlayerStatEvent { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -52,8 +54,10 @@ impl ::flatbuffers::Verifiable for PlayerStatEvent<'_> {
     Ok(())
   }
 }
+
 pub struct PlayerStatEventArgs {
 }
+
 impl<'a> Default for PlayerStatEventArgs {
   #[inline]
   fn default() -> Self {
@@ -66,6 +70,7 @@ pub struct PlayerStatEventBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> 
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> PlayerStatEventBuilder<'a, 'b, A> {
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> PlayerStatEventBuilder<'a, 'b, A> {
@@ -75,6 +80,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> PlayerStatEventBuilder<'a, 'b
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<PlayerStatEvent<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -88,16 +94,19 @@ impl ::core::fmt::Debug for PlayerStatEvent<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct PlayerStatEventT {
 }
+
 impl Default for PlayerStatEventT {
   fn default() -> Self {
     Self {
     }
   }
 }
+
 impl PlayerStatEventT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

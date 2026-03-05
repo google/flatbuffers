@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum TableInNestedNSOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum TableInNestedNSOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct TableInNestedNS<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for TableInNestedNS<'a> {
   type Inner = TableInNestedNS<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -28,6 +30,7 @@ impl<'a> TableInNestedNS<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     TableInNestedNS { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -65,9 +68,11 @@ impl ::flatbuffers::Verifiable for TableInNestedNS<'_> {
     Ok(())
   }
 }
+
 pub struct TableInNestedNSArgs {
     pub foo: i32,
 }
+
 impl<'a> Default for TableInNestedNSArgs {
   #[inline]
   fn default() -> Self {
@@ -81,11 +86,13 @@ pub struct TableInNestedNSBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> 
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableInNestedNSBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_foo(&mut self, foo: i32) {
     self.fbb_.push_slot::<i32>(TableInNestedNS::VT_FOO, foo, 0);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> TableInNestedNSBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -94,6 +101,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableInNestedNSBuilder<'a, 'b
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<TableInNestedNS<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -108,11 +116,13 @@ impl ::core::fmt::Debug for TableInNestedNS<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableInNestedNST {
   pub foo: i32,
 }
+
 impl Default for TableInNestedNST {
   fn default() -> Self {
     Self {
@@ -120,6 +130,7 @@ impl Default for TableInNestedNST {
     }
   }
 }
+
 impl TableInNestedNST {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,

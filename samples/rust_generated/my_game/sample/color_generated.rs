@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_COLOR: i8 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_COLOR: i8 = 2;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_COLOR: [Color; 3] = [
@@ -17,6 +20,7 @@ pub const ENUM_VALUES_COLOR: [Color; 3] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct Color(pub i8);
+
 #[allow(non_upper_case_globals)]
 impl Color {
   pub const Red: Self = Self(0);
@@ -30,6 +34,7 @@ impl Color {
     Self::Green,
     Self::Blue,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -40,6 +45,7 @@ impl Color {
     }
   }
 }
+
 impl ::core::fmt::Debug for Color {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -49,8 +55,10 @@ impl ::core::fmt::Debug for Color {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for Color {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<i8>(buf, loc) };
@@ -60,6 +68,7 @@ impl<'a> ::flatbuffers::Follow<'a> for Color {
 
 impl ::flatbuffers::Push for Color {
     type Output = Color;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<i8>(dst, self.0) };
@@ -68,10 +77,12 @@ impl ::flatbuffers::Push for Color {
 
 impl ::flatbuffers::EndianScalar for Color {
   type Scalar = i8;
+
   #[inline]
   fn to_little_endian(self) -> i8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: i8) -> Self {

@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub enum ReferrableOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub enum ReferrableOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub struct Referrable<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for Referrable<'a> {
   type Inner = Referrable<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -28,6 +30,7 @@ impl<'a> Referrable<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     Referrable { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -52,6 +55,7 @@ impl<'a> Referrable<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()}
   }
+
   #[inline]
   pub fn key_compare_less_than(&self, o: &Referrable) -> bool {
     self.id() < o.id()
@@ -75,9 +79,11 @@ impl ::flatbuffers::Verifiable for Referrable<'_> {
     Ok(())
   }
 }
+
 pub struct ReferrableArgs {
     pub id: u64,
 }
+
 impl<'a> Default for ReferrableArgs {
   #[inline]
   fn default() -> Self {
@@ -91,11 +97,13 @@ pub struct ReferrableBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> ReferrableBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_id(&mut self, id: u64) {
     self.fbb_.push_slot::<u64>(Referrable::VT_ID, id, 0);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> ReferrableBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -104,6 +112,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> ReferrableBuilder<'a, 'b, A> 
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<Referrable<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -118,11 +127,13 @@ impl ::core::fmt::Debug for Referrable<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReferrableT {
   pub id: u64,
 }
+
 impl Default for ReferrableT {
   fn default() -> Self {
     Self {
@@ -130,6 +141,7 @@ impl Default for ReferrableT {
     }
   }
 }
+
 impl ReferrableT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,
