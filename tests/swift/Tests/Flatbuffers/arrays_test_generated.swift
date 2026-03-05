@@ -276,6 +276,103 @@ public struct MyGame_Example_ArrayStruct_Mutable: FlatBufferStruct, FlatbuffersV
 }
 
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+public struct MyGame_Example_LargeArrayStruct: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
+
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
+
+  private var _d: InlineArray<64, UInt8>
+  private var _e: InlineArray<64, Float32>
+  private var _f: InlineArray<64, Bool>
+
+  public init(_ bb: ByteBuffer, o: Int32) {
+    self = bb.read(def: Self.self, position: Int(o))
+  }
+
+  public init(d: InlineArray<64, UInt8>, e: InlineArray<64, Float32>, f: InlineArray<64, Bool>) {
+    _d = d
+    _e = e
+    _f = f
+  }
+
+  public init() {
+    _d = InlineArray(repeating: 0)
+    _e = InlineArray(repeating: 0)
+    _f = InlineArray(repeating: 0)
+  }
+
+  public init(_ _t: borrowing MyGame_Example_LargeArrayStruct_Mutable) {
+    let _vd = _t.d
+    _d = InlineArray { _vd[$0] }
+    let _ve = _t.e
+    _e = InlineArray { _ve[$0] }
+    let _vf = _t.f
+    _f = InlineArray { _vf[$0] }
+  }
+
+  public var d: InlineArray<64, UInt8> { _d }
+  public var e: InlineArray<64, Float32> { _e }
+  public var f: InlineArray<64, Bool> { _f }
+
+  public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
+    try verifier.inBuffer(position: position, of: MyGame_Example_LargeArrayStruct.self)
+  }
+}
+
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+extension MyGame_Example_LargeArrayStruct: Encodable {
+  enum CodingKeys: String, CodingKey {
+    case d = "d"
+    case e = "e"
+    case f = "f"
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    var dContainer = container.nestedUnkeyedContainer(forKey: .d)
+    for index in d.startIndex..<d.endIndex {
+      try dContainer.encode(d[index])
+    }
+    var eContainer = container.nestedUnkeyedContainer(forKey: .e)
+    for index in e.startIndex..<e.endIndex {
+      try eContainer.encode(e[index])
+    }
+    var fContainer = container.nestedUnkeyedContainer(forKey: .f)
+    for index in f.startIndex..<f.endIndex {
+      try fContainer.encode(f[index])
+    }
+  }
+}
+
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+public struct MyGame_Example_LargeArrayStruct_Mutable: FlatBufferStruct, FlatbuffersVectorInitializable {
+
+  static func validateVersion() { FlatBuffersVersion_25_12_19() }
+  public var __buffer: ByteBuffer! { return _accessor.bb }
+  private var _accessor: Struct
+
+  public init(_ bb: ByteBuffer, o: Int32) { _accessor = Struct(bb: bb, position: o) }
+
+  public var d: FlatbufferVector<UInt8> { return _accessor.vector(at: 0, count: 64, size: 1) }
+  @discardableResult public func mutate(d: UInt8, at index: Int32) -> Bool { return _accessor.mutate(d, index: 0 + (index * 1)) }
+  public var e: FlatbufferVector<Float32> { return _accessor.vector(at: 64, count: 64, size: 4) }
+  @discardableResult public func mutate(e: Float32, at index: Int32) -> Bool { return _accessor.mutate(e, index: 64 + (index * 4)) }
+  public var f: FlatbufferVector<Bool> { return _accessor.vector(at: 320, count: 64, size: 1) }
+  @discardableResult public func mutate(f: Bool, at index: Int32) -> Bool { return _accessor.mutate(f, index: 320 + (index * 1)) }
+
+  public func unpack() -> MyGame_Example_LargeArrayStruct {
+    return MyGame_Example_LargeArrayStruct(self)
+  }
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_LargeArrayStruct?) -> Offset {
+    guard var obj = obj else { return Offset() }
+    return pack(&builder, obj: &obj)
+  }
+
+  public static func pack(_ builder: inout FlatBufferBuilder, obj: inout MyGame_Example_LargeArrayStruct) -> Offset {
+    return builder.create(struct: obj)
+  }
+}
+
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
 public struct MyGame_Example_ArrayTable: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }

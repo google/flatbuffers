@@ -59,6 +59,27 @@
       },
       "additionalProperties" : false
     },
+    "MyGame_Example_LargeArrayStruct" : {
+      "type" : "object",
+      "properties" : {
+        "d" : {
+                "type" : "array", "items" : {"type" : "integer", "minimum" : 0, "maximum" :255},
+                "minItems": 64,
+                "maxItems": 64
+              },
+        "e" : {
+                "type" : "array", "items" : {"type" : "number"},
+                "minItems": 64,
+                "maxItems": 64
+              },
+        "f" : {
+                "type" : "array", "items" : {"type" : "boolean"},
+                "minItems": 64,
+                "maxItems": 64
+              }
+      },
+      "additionalProperties" : false
+    },
     "MyGame_Example_ArrayTable" : {
       "type" : "object",
       "properties" : {

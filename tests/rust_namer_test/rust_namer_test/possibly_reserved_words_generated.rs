@@ -215,12 +215,22 @@ impl<'a> PossiblyReservedWords {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PossiblyReservedWordsT {
     pub follow_: f32,
     pub push_: f32,
     pub size: f32,
     pub alignment: f32,
+}
+impl Default for PossiblyReservedWordsT {
+    fn default() -> Self {
+        Self {
+            follow_: 0.0,
+            push_: 0.0,
+            size: 0.0,
+            alignment: 0.0,
+        }
+    }
 }
 
 impl PossiblyReservedWordsT {

@@ -149,10 +149,18 @@ impl<'a> Test {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TestT {
     pub a: i16,
     pub b: i8,
+}
+impl Default for TestT {
+    fn default() -> Self {
+        Self {
+            a: 0,
+            b: 0,
+        }
+    }
 }
 
 impl TestT {

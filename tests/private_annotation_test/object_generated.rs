@@ -116,9 +116,16 @@ impl<'a> Object {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ObjectT {
     pub value: i32,
+}
+impl Default for ObjectT {
+    fn default() -> Self {
+        Self {
+            value: 0,
+        }
+    }
 }
 
 impl ObjectT {
