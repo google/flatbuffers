@@ -10,38 +10,38 @@ use super::*;
 #[derive(Clone, Copy, PartialEq)]
 pub struct StructOfStructsOfStructs(pub [u8; 20]);
 
-impl Default for StructOfStructsOfStructs { 
-  fn default() -> Self { 
-    Self([0; 20])
-  }
+impl Default for StructOfStructsOfStructs {
+    fn default() -> Self {
+        Self([0; 20])
+    }
 }
 
 impl ::core::fmt::Debug for StructOfStructsOfStructs {
-  fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-    f.debug_struct("StructOfStructsOfStructs")
-      .field("a", &self.a())
-      .finish()
-  }
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        f.debug_struct("StructOfStructsOfStructs")
+            .field("a", &self.a())
+            .finish()
+    }
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for StructOfStructsOfStructs {}
 
 impl<'a> ::flatbuffers::Follow<'a> for StructOfStructsOfStructs {
-  type Inner = &'a StructOfStructsOfStructs;
+    type Inner = &'a StructOfStructsOfStructs;
 
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    unsafe { <&'a StructOfStructsOfStructs>::follow(buf, loc) }
-  }
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe { <&'a StructOfStructsOfStructs>::follow(buf, loc) }
+    }
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for &'a StructOfStructsOfStructs {
-  type Inner = &'a StructOfStructsOfStructs;
+    type Inner = &'a StructOfStructsOfStructs;
 
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    unsafe { ::flatbuffers::follow_cast_ref::<StructOfStructsOfStructs>(buf, loc) }
-  }
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe { ::flatbuffers::follow_cast_ref::<StructOfStructsOfStructs>(buf, loc) }
+    }
 }
 
 impl<'b> ::flatbuffers::Push for StructOfStructsOfStructs {
@@ -60,67 +60,67 @@ impl<'b> ::flatbuffers::Push for StructOfStructsOfStructs {
 }
 
 impl<'a> ::flatbuffers::Verifiable for StructOfStructsOfStructs {
-  #[inline]
-  fn run_verifier(
-    v: &mut ::flatbuffers::Verifier, pos: usize
-  ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
-    v.in_buffer::<Self>(pos)
-  }
+    #[inline]
+    fn run_verifier(
+        v: &mut ::flatbuffers::Verifier, pos: usize
+    ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
+        v.in_buffer::<Self>(pos)
+    }
 }
 
 impl Serialize for StructOfStructsOfStructs {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
     let mut s = serializer.serialize_struct("StructOfStructsOfStructs", 1)?;
-      s.serialize_field("a", &self.a())?;
-    s.end()
-  }
+        s.serialize_field("a", &self.a())?;
+        s.end()
+    }
 }
 
 impl<'a> StructOfStructsOfStructs {
-  #[allow(clippy::too_many_arguments)]
-  pub fn new(
-    a: &StructOfStructs,
-  ) -> Self {
-    let mut s = Self([0; 20]);
-    s.set_a(a);
-    s
-  }
-
-  pub const fn get_fully_qualified_name() -> &'static str {
-    "MyGame.Example.StructOfStructsOfStructs"
-  }
-
-  pub fn a(&self) -> &StructOfStructs {
-    // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid struct in this slot
-    unsafe { &*(self.0[0..].as_ptr() as *const StructOfStructs) }
-  }
-
-  #[allow(clippy::identity_op)]
-  pub fn set_a(&mut self, x: &StructOfStructs) {
-    self.0[0..0 + 20].copy_from_slice(&x.0)
-  }
-
-  pub fn unpack(&self) -> StructOfStructsOfStructsT {
-    StructOfStructsOfStructsT {
-      a: self.a().unpack(),
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        a: &StructOfStructs,
+    ) -> Self {
+        let mut s = Self([0; 20]);
+        s.set_a(a);
+        s
     }
-  }
+
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "MyGame.Example.StructOfStructsOfStructs"
+    }
+
+    pub fn a(&self) -> &StructOfStructs {
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid struct in this slot
+        unsafe { &*(self.0[0..].as_ptr() as *const StructOfStructs) }
+    }
+
+    #[allow(clippy::identity_op)]
+    pub fn set_a(&mut self, x: &StructOfStructs) {
+        self.0[0..0 + 20].copy_from_slice(&x.0)
+    }
+
+    pub fn unpack(&self) -> StructOfStructsOfStructsT {
+        StructOfStructsOfStructsT {
+            a: self.a().unpack(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct StructOfStructsOfStructsT {
-  pub a: StructOfStructsT,
+    pub a: StructOfStructsT,
 }
 
 impl StructOfStructsOfStructsT {
-  pub fn pack(&self) -> StructOfStructsOfStructs {
-    StructOfStructsOfStructs::new(
-      &self.a.pack(),
-    )
-  }
+    pub fn pack(&self) -> StructOfStructsOfStructs {
+        StructOfStructsOfStructs::new(
+            &self.a.pack(),
+        )
+    }
 }

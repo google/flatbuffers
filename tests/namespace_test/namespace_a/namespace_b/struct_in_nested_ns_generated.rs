@@ -8,39 +8,39 @@ use super::*;
 #[derive(Clone, Copy, PartialEq)]
 pub struct StructInNestedNS(pub [u8; 8]);
 
-impl Default for StructInNestedNS { 
-  fn default() -> Self { 
-    Self([0; 8])
-  }
+impl Default for StructInNestedNS {
+    fn default() -> Self {
+        Self([0; 8])
+    }
 }
 
 impl ::core::fmt::Debug for StructInNestedNS {
-  fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-    f.debug_struct("StructInNestedNS")
-      .field("a", &self.a())
-      .field("b", &self.b())
-      .finish()
-  }
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        f.debug_struct("StructInNestedNS")
+            .field("a", &self.a())
+            .field("b", &self.b())
+            .finish()
+    }
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for StructInNestedNS {}
 
 impl<'a> ::flatbuffers::Follow<'a> for StructInNestedNS {
-  type Inner = &'a StructInNestedNS;
+    type Inner = &'a StructInNestedNS;
 
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    unsafe { <&'a StructInNestedNS>::follow(buf, loc) }
-  }
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe { <&'a StructInNestedNS>::follow(buf, loc) }
+    }
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for &'a StructInNestedNS {
-  type Inner = &'a StructInNestedNS;
+    type Inner = &'a StructInNestedNS;
 
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    unsafe { ::flatbuffers::follow_cast_ref::<StructInNestedNS>(buf, loc) }
-  }
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe { ::flatbuffers::follow_cast_ref::<StructInNestedNS>(buf, loc) }
+    }
 }
 
 impl<'b> ::flatbuffers::Push for StructInNestedNS {
@@ -59,107 +59,107 @@ impl<'b> ::flatbuffers::Push for StructInNestedNS {
 }
 
 impl<'a> ::flatbuffers::Verifiable for StructInNestedNS {
-  #[inline]
-  fn run_verifier(
-    v: &mut ::flatbuffers::Verifier, pos: usize
-  ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
-    v.in_buffer::<Self>(pos)
-  }
+    #[inline]
+    fn run_verifier(
+        v: &mut ::flatbuffers::Verifier, pos: usize
+    ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
+        v.in_buffer::<Self>(pos)
+    }
 }
 
 impl<'a> StructInNestedNS {
-  #[allow(clippy::too_many_arguments)]
-  pub fn new(
-    a: i32,
-    b: i32,
-  ) -> Self {
-    let mut s = Self([0; 8]);
-    s.set_a(a);
-    s.set_b(b);
-    s
-  }
-
-  pub const fn get_fully_qualified_name() -> &'static str {
-    "NamespaceA.NamespaceB.StructInNestedNS"
-  }
-
-  pub fn a(&self) -> i32 {
-    let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
-    // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid value in this slot
-    ::flatbuffers::EndianScalar::from_little_endian(unsafe {
-      ::core::ptr::copy_nonoverlapping(
-        self.0[0..].as_ptr(),
-        mem.as_mut_ptr() as *mut u8,
-        ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
-      );
-      mem.assume_init()
-    })
-  }
-
-  pub fn set_a(&mut self, x: i32) {
-    let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
-    // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid value in this slot
-    unsafe {
-      ::core::ptr::copy_nonoverlapping(
-        &x_le as *const _ as *const u8,
-        self.0[0..].as_mut_ptr(),
-        ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
-      );
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        a: i32,
+        b: i32,
+    ) -> Self {
+        let mut s = Self([0; 8]);
+        s.set_a(a);
+        s.set_b(b);
+        s
     }
-  }
 
-  pub fn b(&self) -> i32 {
-    let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
-    // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid value in this slot
-    ::flatbuffers::EndianScalar::from_little_endian(unsafe {
-      ::core::ptr::copy_nonoverlapping(
-        self.0[4..].as_ptr(),
-        mem.as_mut_ptr() as *mut u8,
-        ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
-      );
-      mem.assume_init()
-    })
-  }
-
-  pub fn set_b(&mut self, x: i32) {
-    let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
-    // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid value in this slot
-    unsafe {
-      ::core::ptr::copy_nonoverlapping(
-        &x_le as *const _ as *const u8,
-        self.0[4..].as_mut_ptr(),
-        ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
-      );
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "NamespaceA.NamespaceB.StructInNestedNS"
     }
-  }
 
-  pub fn unpack(&self) -> StructInNestedNST {
-    StructInNestedNST {
-      a: self.a(),
-      b: self.b(),
+    pub fn a(&self) -> i32 {
+        let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid value in this slot
+        ::flatbuffers::EndianScalar::from_little_endian(unsafe {
+            ::core::ptr::copy_nonoverlapping(
+                self.0[0..].as_ptr(),
+                mem.as_mut_ptr() as *mut u8,
+                ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
+            );
+            mem.assume_init()
+        })
     }
-  }
+
+    pub fn set_a(&mut self, x: i32) {
+        let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid value in this slot
+        unsafe {
+            ::core::ptr::copy_nonoverlapping(
+                &x_le as *const _ as *const u8,
+                self.0[0..].as_mut_ptr(),
+                ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
+            );
+        }
+    }
+
+    pub fn b(&self) -> i32 {
+        let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid value in this slot
+        ::flatbuffers::EndianScalar::from_little_endian(unsafe {
+            ::core::ptr::copy_nonoverlapping(
+                self.0[4..].as_ptr(),
+                mem.as_mut_ptr() as *mut u8,
+                ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
+            );
+            mem.assume_init()
+        })
+    }
+
+    pub fn set_b(&mut self, x: i32) {
+        let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid value in this slot
+        unsafe {
+            ::core::ptr::copy_nonoverlapping(
+                &x_le as *const _ as *const u8,
+                self.0[4..].as_mut_ptr(),
+                ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
+            );
+        }
+    }
+
+    pub fn unpack(&self) -> StructInNestedNST {
+        StructInNestedNST {
+            a: self.a(),
+            b: self.b(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct StructInNestedNST {
-  pub a: i32,
-  pub b: i32,
+    pub a: i32,
+    pub b: i32,
 }
 
 impl StructInNestedNST {
-  pub fn pack(&self) -> StructInNestedNS {
-    StructInNestedNS::new(
-      self.a,
-      self.b,
-    )
-  }
+    pub fn pack(&self) -> StructInNestedNS {
+        StructInNestedNS::new(
+            self.a,
+            self.b,
+        )
+    }
 }
