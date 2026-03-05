@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 @file:Suppress("NOTHING_TO_INLINE")
+@file:OptIn(ExperimentalNativeApi::class)
 
 package com.google.flatbuffers.kotlin
+
+import kotlin.experimental.ExperimentalNativeApi
 
 /**
  * This implementation assumes that of native macOSX64 the byte order of the implementation is
