@@ -2,15 +2,18 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 // struct NestedStruct, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct NestedStruct(pub [u8; 32]);
+
 impl Default for NestedStruct { 
   fn default() -> Self { 
     Self([0; 32])
   }
 }
+
 impl ::core::fmt::Debug for NestedStruct {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("NestedStruct")
@@ -23,27 +26,34 @@ impl ::core::fmt::Debug for NestedStruct {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for NestedStruct {}
+
 impl<'a> ::flatbuffers::Follow<'a> for NestedStruct {
   type Inner = &'a NestedStruct;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a NestedStruct>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a NestedStruct {
   type Inner = &'a NestedStruct;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<NestedStruct>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for NestedStruct {
     type Output = NestedStruct;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(8)
@@ -176,6 +186,7 @@ pub struct NestedStructT {
   pub c: [TestEnum; 2],
   pub d: [i64; 2],
 }
+
 impl NestedStructT {
   pub fn pack(&self) -> NestedStruct {
     NestedStruct::new(
@@ -186,4 +197,3 @@ impl NestedStructT {
     )
   }
 }
-

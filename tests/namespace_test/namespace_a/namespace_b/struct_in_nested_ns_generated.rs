@@ -2,15 +2,18 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 // struct StructInNestedNS, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct StructInNestedNS(pub [u8; 8]);
+
 impl Default for StructInNestedNS { 
   fn default() -> Self { 
     Self([0; 8])
   }
 }
+
 impl ::core::fmt::Debug for StructInNestedNS {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("StructInNestedNS")
@@ -21,27 +24,34 @@ impl ::core::fmt::Debug for StructInNestedNS {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for StructInNestedNS {}
+
 impl<'a> ::flatbuffers::Follow<'a> for StructInNestedNS {
   type Inner = &'a StructInNestedNS;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a StructInNestedNS>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a StructInNestedNS {
   type Inner = &'a StructInNestedNS;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<StructInNestedNS>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for StructInNestedNS {
     type Output = StructInNestedNS;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const StructInNestedNS as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -144,6 +154,7 @@ pub struct StructInNestedNST {
   pub a: i32,
   pub b: i32,
 }
+
 impl StructInNestedNST {
   pub fn pack(&self) -> StructInNestedNS {
     StructInNestedNS::new(
@@ -152,4 +163,3 @@ impl StructInNestedNST {
     )
   }
 }
-

@@ -2,10 +2,13 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_UNION_IN_NESTED_NS: u8 = 0;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_UNION_IN_NESTED_NS: u8 = 1;
+
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_UNION_IN_NESTED_NS: [UnionInNestedNS; 2] = [
@@ -16,6 +19,7 @@ pub const ENUM_VALUES_UNION_IN_NESTED_NS: [UnionInNestedNS; 2] = [
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
 pub struct UnionInNestedNS(pub u8);
+
 #[allow(non_upper_case_globals)]
 impl UnionInNestedNS {
   pub const NONE: Self = Self(0);
@@ -27,6 +31,7 @@ impl UnionInNestedNS {
     Self::NONE,
     Self::TableInNestedNS,
   ];
+
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
@@ -36,6 +41,7 @@ impl UnionInNestedNS {
     }
   }
 }
+
 impl ::core::fmt::Debug for UnionInNestedNS {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     if let Some(name) = self.variant_name() {
@@ -45,8 +51,10 @@ impl ::core::fmt::Debug for UnionInNestedNS {
     }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for UnionInNestedNS {
   type Inner = Self;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     let b = unsafe { ::flatbuffers::read_scalar_at::<u8>(buf, loc) };
@@ -56,6 +64,7 @@ impl<'a> ::flatbuffers::Follow<'a> for UnionInNestedNS {
 
 impl ::flatbuffers::Push for UnionInNestedNS {
     type Output = UnionInNestedNS;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u8>(dst, self.0) };
@@ -64,10 +73,12 @@ impl ::flatbuffers::Push for UnionInNestedNS {
 
 impl ::flatbuffers::EndianScalar for UnionInNestedNS {
   type Scalar = u8;
+
   #[inline]
   fn to_little_endian(self) -> u8 {
     self.0.to_le()
   }
+
   #[inline]
   #[allow(clippy::wrong_self_convention)]
   fn from_little_endian(v: u8) -> Self {
@@ -86,6 +97,7 @@ impl<'a> ::flatbuffers::Verifiable for UnionInNestedNS {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for UnionInNestedNS {}
+
 pub struct UnionInNestedNSUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
@@ -95,11 +107,13 @@ pub enum UnionInNestedNST {
   NONE,
   TableInNestedNS(alloc::boxed::Box<TableInNestedNST>),
 }
+
 impl Default for UnionInNestedNST {
   fn default() -> Self {
     Self::NONE
   }
 }
+
 impl UnionInNestedNST {
   pub fn union_in_nested_ns_type(&self) -> UnionInNestedNS {
     match self {
@@ -107,12 +121,14 @@ impl UnionInNestedNST {
       Self::TableInNestedNS(_) => UnionInNestedNS::TableInNestedNS,
     }
   }
+
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
     match self {
       Self::NONE => None,
       Self::TableInNestedNS(v) => Some(v.pack(fbb).as_union_value()),
     }
   }
+
   /// If the union variant matches, return the owned TableInNestedNST, setting the union to NONE.
   pub fn take_table_in_nested_ns(&mut self) -> Option<alloc::boxed::Box<TableInNestedNST>> {
     if let Self::TableInNestedNS(_) = self {
@@ -126,12 +142,15 @@ impl UnionInNestedNST {
       None
     }
   }
+
   /// If the union variant matches, return a reference to the TableInNestedNST.
   pub fn as_table_in_nested_ns(&self) -> Option<&TableInNestedNST> {
     if let Self::TableInNestedNS(v) = self { Some(v.as_ref()) } else { None }
   }
+
   /// If the union variant matches, return a mutable reference to the TableInNestedNST.
   pub fn as_table_in_nested_ns_mut(&mut self) -> Option<&mut TableInNestedNST> {
     if let Self::TableInNestedNS(v) = self { Some(v.as_mut()) } else { None }
   }
 }
+

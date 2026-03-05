@@ -2,15 +2,17 @@
 // @generated
 extern crate alloc;
 use super::*;
-pub(crate) enum AnnotationsOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
+pub(crate) enum AnnotationsOffset {}
+
+#[derive(Copy, Clone, PartialEq)]
 pub(crate) struct Annotations<'a> {
   pub _tab: ::flatbuffers::Table<'a>,
 }
 
 impl<'a> ::flatbuffers::Follow<'a> for Annotations<'a> {
   type Inner = Annotations<'a>;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
@@ -28,6 +30,7 @@ impl<'a> Annotations<'a> {
   pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> Self {
     Annotations { _tab: table }
   }
+
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
     _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
@@ -65,9 +68,11 @@ impl ::flatbuffers::Verifiable for Annotations<'_> {
     Ok(())
   }
 }
+
 pub(crate) struct AnnotationsArgs {
     pub value: i32,
 }
+
 impl<'a> Default for AnnotationsArgs {
   #[inline]
   fn default() -> Self {
@@ -81,11 +86,13 @@ pub(crate) struct AnnotationsBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + '
   fbb_: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>,
   start_: ::flatbuffers::WIPOffset<::flatbuffers::TableUnfinishedWIPOffset>,
 }
+
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> AnnotationsBuilder<'a, 'b, A> {
   #[inline]
   pub fn add_value(&mut self, value: i32) {
     self.fbb_.push_slot::<i32>(Annotations::VT_VALUE, value, 0);
   }
+
   #[inline]
   pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) -> AnnotationsBuilder<'a, 'b, A> {
     let start = _fbb.start_table();
@@ -94,6 +101,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> AnnotationsBuilder<'a, 'b, A>
       start_: start,
     }
   }
+
   #[inline]
   pub fn finish(self) -> ::flatbuffers::WIPOffset<Annotations<'a>> {
     let o = self.fbb_.end_table(self.start_);
@@ -108,11 +116,13 @@ impl ::core::fmt::Debug for Annotations<'_> {
       ds.finish()
   }
 }
+
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct AnnotationsT {
   pub value: i32,
 }
+
 impl Default for AnnotationsT {
   fn default() -> Self {
     Self {
@@ -120,6 +130,7 @@ impl Default for AnnotationsT {
     }
   }
 }
+
 impl AnnotationsT {
   pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
     &self,
