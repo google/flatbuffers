@@ -362,11 +362,6 @@ inline ::flatbuffers::Offset<RootTable> CreateRootTable(
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<WrapperTable>>> many_vectors = 0,
     ::flatbuffers::Offset64<::flatbuffers::Vector64<uint8_t>> forced_aligned_vector = 0) {
   RootTableBuilder builder_(_fbb);
-  builder_.add_forced_aligned_vector(forced_aligned_vector);
-  builder_.add_big_struct_vector(big_struct_vector);
-  builder_.add_nested_root(nested_root);
-  builder_.add_big_vector(big_vector);
-  builder_.add_big_bool_vector(big_bool_vector);
   builder_.add_many_vectors(many_vectors);
   builder_.add_far_struct_vector(far_struct_vector);
   builder_.add_near_string(near_string);
