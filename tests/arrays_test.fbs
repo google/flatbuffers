@@ -22,6 +22,8 @@ struct LargeArrayStruct {
   d:[ubyte:64];
   e:[float:64];
   f:[bool:64];
+  g:[NestedStruct:64];
+  h:[TestEnum:64];
 }
 
 table ArrayTable{

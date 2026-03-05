@@ -283,21 +283,27 @@ public struct MyGame_Example_LargeArrayStruct: NativeStruct, FlatbuffersVectorIn
   private var _d: InlineArray<64, UInt8>
   private var _e: InlineArray<64, Float32>
   private var _f: InlineArray<64, Bool>
+  private var _g: InlineArray<64, MyGame_Example_NestedStruct>
+  private var _h: InlineArray<64, Int8>
 
   public init(_ bb: ByteBuffer, o: Int32) {
     self = bb.read(def: Self.self, position: Int(o))
   }
 
-  public init(d: InlineArray<64, UInt8>, e: InlineArray<64, Float32>, f: InlineArray<64, Bool>) {
+  public init(d: InlineArray<64, UInt8>, e: InlineArray<64, Float32>, f: InlineArray<64, Bool>, g: InlineArray<64, MyGame_Example_NestedStruct>, h: InlineArray<64, Int8>) {
     _d = d
     _e = e
     _f = f
+    _g = g
+    _h = h
   }
 
   public init() {
     _d = InlineArray(repeating: 0)
     _e = InlineArray(repeating: 0.0)
     _f = InlineArray(repeating: false)
+    _g = InlineArray(repeating: MyGame_Example_NestedStruct())
+    _h = InlineArray(repeating: 0)
   }
 
   public init(_ _t: borrowing MyGame_Example_LargeArrayStruct_Mutable) {
@@ -307,11 +313,17 @@ public struct MyGame_Example_LargeArrayStruct: NativeStruct, FlatbuffersVectorIn
     _e = InlineArray { _ve[$0] }
     let _vf = _t.f
     _f = InlineArray { _vf[$0] }
+    let _vg = _t.g
+    _g = InlineArray { _vg[$0].unpack() }
+    let _vh = _t.h
+    _h = InlineArray { _vh[$0].rawValue }
   }
 
   public var d: InlineArray<64, UInt8> { _d }
   public var e: InlineArray<64, Float32> { _e }
   public var f: InlineArray<64, Bool> { _f }
+  public var g: InlineArray<64, MyGame_Example_NestedStruct> { _g }
+  public var h: InlineArray<64, MyGame_Example_TestEnum> { InlineArray { MyGame_Example_TestEnum(rawValue: _h[$0])! } }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     try verifier.inBuffer(position: position, of: MyGame_Example_LargeArrayStruct.self)
@@ -324,6 +336,8 @@ extension MyGame_Example_LargeArrayStruct: Encodable {
     case d = "d"
     case e = "e"
     case f = "f"
+    case g = "g"
+    case h = "h"
   }
 
   public func encode(to encoder: Encoder) throws {
@@ -339,6 +353,14 @@ extension MyGame_Example_LargeArrayStruct: Encodable {
     var fContainer = container.nestedUnkeyedContainer(forKey: .f)
     for index in f.startIndex..<f.endIndex {
       try fContainer.encode(f[index])
+    }
+    var gContainer = container.nestedUnkeyedContainer(forKey: .g)
+    for index in g.startIndex..<g.endIndex {
+      try gContainer.encode(g[index])
+    }
+    var hContainer = container.nestedUnkeyedContainer(forKey: .h)
+    for index in h.startIndex..<h.endIndex {
+      try hContainer.encode(h[index])
     }
   }
 }
@@ -358,6 +380,9 @@ public struct MyGame_Example_LargeArrayStruct_Mutable: FlatBufferStruct, Flatbuf
   @discardableResult public func mutate(e: Float32, at index: Int32) -> Bool { return _accessor.mutate(e, index: 64 + (index * 4)) }
   public var f: FlatbufferVector<Bool> { return _accessor.vector(at: 320, count: 64, size: 1) }
   @discardableResult public func mutate(f: Bool, at index: Int32) -> Bool { return _accessor.mutate(f, index: 320 + (index * 1)) }
+  public var g: FlatbufferVector<MyGame_Example_NestedStruct_Mutable> { return _accessor.vector(at: 384, count: 64, size: 32) }
+  public var h: FlatbufferVector<MyGame_Example_TestEnum> { return _accessor.vector(at: 2432, count: 64, size: 1) }
+  @discardableResult public func mutate(h: MyGame_Example_TestEnum, at index: Int32) -> Bool { return _accessor.mutate(h.rawValue, index: 2432 + (index * 1)) }
 
   public func unpack() -> MyGame_Example_LargeArrayStruct {
     return MyGame_Example_LargeArrayStruct(self)

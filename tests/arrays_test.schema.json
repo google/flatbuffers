@@ -76,6 +76,16 @@
                 "type" : "array", "items" : {"type" : "boolean"},
                 "minItems": 64,
                 "maxItems": 64
+              },
+        "g" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_NestedStruct"},
+                "minItems": 64,
+                "maxItems": 64
+              },
+        "h" : {
+                "type" : "array", "items" : {"$ref" : "#/definitions/MyGame_Example_TestEnum"},
+                "minItems": 64,
+                "maxItems": 64
               }
       },
       "additionalProperties" : false

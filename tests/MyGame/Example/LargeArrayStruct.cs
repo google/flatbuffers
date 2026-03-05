@@ -40,9 +40,35 @@ public struct LargeArrayStruct : IFlatbufferObject
   public ArraySegment<byte>? GetFBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 320, 64);}
 #endif
   public void MutateF(int j, bool f) { __p.bb.Put(__p.bb_pos + 320 + j * 1, (byte)(f ? 1 : 0)); }
+  public MyGame.Example.NestedStruct G(int j) { return (new MyGame.Example.NestedStruct()).__assign(__p.bb_pos + 384 + j * 32, __p.bb); }
+  public MyGame.Example.TestEnum H(int j) { return (MyGame.Example.TestEnum)__p.bb.GetSbyte(__p.bb_pos + 2432 + j * 1); }
+  public const int HLength = 64;
+#if ENABLE_SPAN_T
+  public Span<MyGame.Example.TestEnum> GetHBytes() { return System.Runtime.InteropServices.MemoryMarshal.Cast<byte, MyGame.Example.TestEnum>(__p.bb.ToSpan(__p.bb_pos + 2432, 64)); }
+#else
+  public ArraySegment<byte>? GetHBytes() { return __p.bb.ToArraySegment(__p.bb_pos + 2432, 64);}
+#endif
+  public void MutateH(int j, MyGame.Example.TestEnum h) { __p.bb.PutSbyte(__p.bb_pos + 2432 + j * 1, (sbyte)h); }
 
-  public static Offset<MyGame.Example.LargeArrayStruct> CreateLargeArrayStruct(FlatBufferBuilder builder, byte[] D, float[] E, bool[] F) {
-    builder.Prep(4, 384);
+  public static Offset<MyGame.Example.LargeArrayStruct> CreateLargeArrayStruct(FlatBufferBuilder builder, byte[] D, float[] E, bool[] F, int[,] g_A, MyGame.Example.TestEnum[] g_B, MyGame.Example.TestEnum[,] g_C, long[,] g_D, MyGame.Example.TestEnum[] H) {
+    builder.Prep(8, 2496);
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutSbyte((sbyte)H[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.Prep(8, 32);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutLong(g_D[_idx0-1,_idx1-1]);
+      }
+      builder.Pad(5);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutSbyte((sbyte)g_C[_idx0-1,_idx1-1]);
+      }
+      builder.PutSbyte((sbyte)g_B[_idx0-1]);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutInt(g_A[_idx0-1,_idx1-1]);
+      }
+    }
     for (int _idx0 = 64; _idx0 > 0; _idx0--) {
       builder.PutBool(F[_idx0-1]);
     }
@@ -66,17 +92,35 @@ public struct LargeArrayStruct : IFlatbufferObject
     for (var _j = 0; _j < 64; ++_j) { _o.E[_j] = this.E(_j); }
     _o.F = new bool[64];
     for (var _j = 0; _j < 64; ++_j) { _o.F[_j] = this.F(_j); }
+    _o.G = new MyGame.Example.NestedStructT[64];
+    for (var _j = 0; _j < 64; ++_j) { _o.G[_j] = this.G(_j).UnPack(); }
+    _o.H = new MyGame.Example.TestEnum[64];
+    for (var _j = 0; _j < 64; ++_j) { _o.H[_j] = this.H(_j); }
   }
   public static Offset<MyGame.Example.LargeArrayStruct> Pack(FlatBufferBuilder builder, LargeArrayStructT _o) {
     if (_o == null) return default(Offset<MyGame.Example.LargeArrayStruct>);
     var _d = _o.D;
     var _e = _o.E;
     var _f = _o.F;
+    var _g_a = new int[64,2];
+    for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_a[idx0,idx1] = _o.G[idx0].A[idx1];}}
+    var _g_b = new MyGame.Example.TestEnum[64];
+    for (var idx0 = 0; idx0 < 64; ++idx0) {_g_b[idx0] = _o.G[idx0].B;}
+    var _g_c = new MyGame.Example.TestEnum[64,2];
+    for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_c[idx0,idx1] = _o.G[idx0].C[idx1];}}
+    var _g_d = new long[64,2];
+    for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_d[idx0,idx1] = _o.G[idx0].D[idx1];}}
+    var _h = _o.H;
     return CreateLargeArrayStruct(
       builder,
       _d,
       _e,
-      _f);
+      _f,
+      _g_a,
+      _g_b,
+      _g_c,
+      _g_d,
+      _h);
   }
 }
 
@@ -88,11 +132,17 @@ public class LargeArrayStructT
   public float[] E { get; set; }
   [Newtonsoft.Json.JsonProperty("f")]
   public bool[] F { get; set; }
+  [Newtonsoft.Json.JsonProperty("g")]
+  public MyGame.Example.NestedStructT[] G { get; set; }
+  [Newtonsoft.Json.JsonProperty("h")]
+  public MyGame.Example.TestEnum[] H { get; set; }
 
   public LargeArrayStructT() {
     this.D = new byte[64];
     this.E = new float[64];
     this.F = new bool[64];
+    this.G = new MyGame.Example.NestedStructT[64];
+    this.H = new MyGame.Example.TestEnum[64];
   }
 }
 

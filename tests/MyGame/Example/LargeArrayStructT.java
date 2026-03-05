@@ -22,6 +22,8 @@ public class LargeArrayStructT {
   private int[] d;
   private float[] e;
   private boolean[] f;
+  private MyGame.Example.NestedStructT[] g;
+  private byte[] h;
 
   public int[] getD() { return d; }
 
@@ -35,11 +37,21 @@ public class LargeArrayStructT {
 
   public void setF(boolean[] f) { if (f != null && f.length == 64) this.f = f; }
 
+  public MyGame.Example.NestedStructT[] getG() { return g; }
+
+  public void setG(MyGame.Example.NestedStructT[] g) { if (g != null && g.length == 64) this.g = g; }
+
+  public byte[] getH() { return h; }
+
+  public void setH(byte[] h) { if (h != null && h.length == 64) this.h = h; }
+
 
   public LargeArrayStructT() {
     this.d = new int[64];
     this.e = new float[64];
     this.f = new boolean[64];
+    this.g = new MyGame.Example.NestedStructT[64];
+    this.h = new byte[64];
   }
 }
 

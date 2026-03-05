@@ -29,9 +29,30 @@ public final class LargeArrayStruct extends Struct {
   public void mutateE(int j, float e) { bb.putFloat(bb_pos + 64 + j * 4, e); }
   public boolean f(int j) { return 0!=bb.get(bb_pos + 320 + j * 1); }
   public void mutateF(int j, boolean f) { bb.put(bb_pos + 320 + j * 1, (byte)(f ? 1 : 0)); }
+  public MyGame.Example.NestedStruct g(int j) { return g(new MyGame.Example.NestedStruct(), j); }
+  public MyGame.Example.NestedStruct g(MyGame.Example.NestedStruct obj, int j) { return obj.__assign(bb_pos + 384 + j * 32, bb); }
+  public byte h(int j) { return bb.get(bb_pos + 2432 + j * 1); }
+  public void mutateH(int j, byte h) { bb.put(bb_pos + 2432 + j * 1, h); }
 
-  public static int createLargeArrayStruct(FlatBufferBuilder builder, int[] d, float[] e, boolean[] f) {
-    builder.prep(4, 384);
+  public static int createLargeArrayStruct(FlatBufferBuilder builder, int[] d, float[] e, boolean[] f, int[][] g_a, byte[] g_b, byte[][] g_c, long[][] g_d, byte[] h) {
+    builder.prep(8, 2496);
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.putByte(h[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.prep(8, 32);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.putLong(g_d[_idx0-1][_idx1-1]);
+      }
+      builder.pad(5);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.putByte(g_c[_idx0-1][_idx1-1]);
+      }
+      builder.putByte(g_b[_idx0-1]);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.putInt(g_a[_idx0-1][_idx1-1]);
+      }
+    }
     for (int _idx0 = 64; _idx0 > 0; _idx0--) {
       builder.putBoolean(f[_idx0-1]);
     }
@@ -62,17 +83,35 @@ public final class LargeArrayStruct extends Struct {
     for (int _j = 0; _j < 64; ++_j) { _oE[_j] = e(_j); }
     boolean[] _oF = _o.getF();
     for (int _j = 0; _j < 64; ++_j) { _oF[_j] = f(_j); }
+    MyGame.Example.NestedStructT[] _oG = _o.getG();
+    for (int _j = 0; _j < 64; ++_j) { _oG[_j] = g(_j).unpack(); }
+    byte[] _oH = _o.getH();
+    for (int _j = 0; _j < 64; ++_j) { _oH[_j] = h(_j); }
   }
   public static int pack(FlatBufferBuilder builder, LargeArrayStructT _o) {
     if (_o == null) return 0;
     int[] _d = _o.getD();
     float[] _e = _o.getE();
     boolean[] _f = _o.getF();
+    int[][] _g_a = new int[64][2];
+    for (int idx0 = 0; idx0 < 64; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_g_a[idx0][idx1] = _o.getG()[idx0].getA()[idx1];}}
+    byte[] _g_b = new byte[64];
+    for (int idx0 = 0; idx0 < 64; ++idx0) {_g_b[idx0] = _o.getG()[idx0].getB();}
+    byte[][] _g_c = new byte[64][2];
+    for (int idx0 = 0; idx0 < 64; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_g_c[idx0][idx1] = _o.getG()[idx0].getC()[idx1];}}
+    long[][] _g_d = new long[64][2];
+    for (int idx0 = 0; idx0 < 64; ++idx0) {for (int idx1 = 0; idx1 < 2; ++idx1) {_g_d[idx0][idx1] = _o.getG()[idx0].getD()[idx1];}}
+    byte[] _h = _o.getH();
     return createLargeArrayStruct(
       builder,
       _d,
       _e,
-      _f);
+      _f,
+      _g_a,
+      _g_b,
+      _g_c,
+      _g_d,
+      _h);
   }
 }
 

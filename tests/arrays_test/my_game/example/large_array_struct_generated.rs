@@ -3,14 +3,14 @@
 extern crate alloc;
 use super::*;
 
-// struct LargeArrayStruct, aligned to 4
+// struct LargeArrayStruct, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct LargeArrayStruct(pub [u8; 384]);
+pub struct LargeArrayStruct(pub [u8; 2496]);
 
 impl Default for LargeArrayStruct {
     fn default() -> Self {
-        Self([0; 384])
+        Self([0; 2496])
     }
 }
 
@@ -20,6 +20,8 @@ impl ::core::fmt::Debug for LargeArrayStruct {
             .field("d", &self.d())
             .field("e", &self.e())
             .field("f", &self.f())
+            .field("g", &self.g())
+            .field("h", &self.h())
             .finish()
     }
 }
@@ -55,7 +57,7 @@ impl<'b> ::flatbuffers::Push for LargeArrayStruct {
 
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
-        ::flatbuffers::PushAlignment::new(4)
+        ::flatbuffers::PushAlignment::new(8)
     }
 }
 
@@ -74,11 +76,15 @@ impl<'a> LargeArrayStruct {
         d: &[u8; 64],
         e: &[f32; 64],
         f: &[bool; 64],
+        g: &[NestedStruct; 64],
+        h: &[TestEnum; 64],
     ) -> Self {
-        let mut s = Self([0; 384]);
+        let mut s = Self([0; 2496]);
         s.set_d(d);
         s.set_e(e);
         s.set_f(f);
+        s.set_g(g);
+        s.set_h(h);
         s
     }
 
@@ -131,11 +137,55 @@ impl<'a> LargeArrayStruct {
         unsafe { ::flatbuffers::emplace_scalar_array(&mut self.0, 320, items) };
     }
 
+    pub fn g(&'a self) -> ::flatbuffers::Array<'a, NestedStruct, 64> {
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid array in this slot
+        use ::flatbuffers::Follow;
+        unsafe { ::flatbuffers::Array::follow(&self.0, 384) }
+    }
+
+    pub fn set_g(&mut self, x: &[NestedStruct; 64]) {
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid array in this slot
+        unsafe {
+            ::core::ptr::copy(
+                x.as_ptr() as *const u8,
+                self.0.as_mut_ptr().add(384),
+                2048,
+            );
+        }
+    }
+
+    pub fn h(&'a self) -> ::flatbuffers::Array<'a, TestEnum, 64> {
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid array in this slot
+        use ::flatbuffers::Follow;
+        unsafe { ::flatbuffers::Array::follow(&self.0, 2432) }
+    }
+
+    pub fn set_h(&mut self, x: &[TestEnum; 64]) {
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid array in this slot
+        unsafe {
+            ::core::ptr::copy(
+                x.as_ptr() as *const u8,
+                self.0.as_mut_ptr().add(2432),
+                64,
+            );
+        }
+    }
+
     pub fn unpack(&self) -> LargeArrayStructT {
         LargeArrayStructT {
             d: self.d().into(),
             e: self.e().into(),
             f: self.f().into(),
+        g: { let g = self.g(); ::flatbuffers::array_init(|i| g.get(i).unpack()) },
+            h: self.h().into(),
         }
     }
 }
@@ -145,6 +195,8 @@ pub struct LargeArrayStructT {
     pub d: [u8; 64],
     pub e: [f32; 64],
     pub f: [bool; 64],
+    pub g: [NestedStructT; 64],
+    pub h: [TestEnum; 64],
 }
 impl Default for LargeArrayStructT {
     fn default() -> Self {
@@ -152,6 +204,8 @@ impl Default for LargeArrayStructT {
             d: [0; 64],
             e: [0.0; 64],
             f: [false; 64],
+            g: ::flatbuffers::array_init(|_| Default::default()),
+            h: ::flatbuffers::array_init(|_| Default::default()),
         }
     }
 }
@@ -162,6 +216,8 @@ impl LargeArrayStructT {
             &self.d,
             &self.e,
             &self.f,
+            &::flatbuffers::array_init(|i| self.g[i].pack()),
+            &self.h,
         )
     }
 }

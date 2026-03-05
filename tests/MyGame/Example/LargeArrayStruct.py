@@ -5,6 +5,7 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
+from MyGame.Example.NestedStruct import NestedStruct
 np = import_numpy()
 
 class LargeArrayStruct(object):
@@ -12,7 +13,7 @@ class LargeArrayStruct(object):
 
     @classmethod
     def SizeOf(cls) -> int:
-        return 384
+        return 2496
 
     # LargeArrayStruct
     def Init(self, buf: bytes, pos: int):
@@ -81,9 +82,56 @@ class LargeArrayStruct(object):
     def FIsNone(self) -> bool:
         return False
 
+    # LargeArrayStruct
+    def G(self, i: int) -> NestedStruct:
+        obj = NestedStruct()
+        obj.Init(self._tab.Bytes, self._tab.Pos + 384 + i * 32)
+        return obj
 
-def CreateLargeArrayStruct(builder, d, e, f):
-    builder.Prep(4, 384)
+    # LargeArrayStruct
+    def GLength(self) -> int:
+        return 64
+
+    # LargeArrayStruct
+    def GIsNone(self) -> bool:
+        return False
+
+    # LargeArrayStruct
+    def H(self, j = None):
+        if j is None:
+            return [self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(2432 + i * 1)) for i in range(self.HLength())]
+        elif j >= 0 and j < self.HLength():
+            return self._tab.Get(flatbuffers.number_types.Int8Flags, self._tab.Pos + flatbuffers.number_types.UOffsetTFlags.py_type(2432 + j * 1))
+        else:
+            return None
+
+    # LargeArrayStruct
+    def HAsNumpy(self):
+        return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int8Flags, self._tab.Pos + 2432, self.HLength())
+
+    # LargeArrayStruct
+    def HLength(self) -> int:
+        return 64
+
+    # LargeArrayStruct
+    def HIsNone(self) -> bool:
+        return False
+
+
+def CreateLargeArrayStruct(builder, d, e, f, g_a, g_b, g_c, g_d, h):
+    builder.Prep(8, 2496)
+    for _idx0 in range(64 , 0, -1):
+        builder.PrependInt8(h[_idx0-1])
+    for _idx0 in range(64 , 0, -1):
+        builder.Prep(8, 32)
+        for _idx1 in range(2 , 0, -1):
+            builder.PrependInt64(g_d[_idx0-1][_idx1-1])
+        builder.Pad(5)
+        for _idx1 in range(2 , 0, -1):
+            builder.PrependInt8(g_c[_idx0-1][_idx1-1])
+        builder.PrependInt8(g_b[_idx0-1])
+        for _idx1 in range(2 , 0, -1):
+            builder.PrependInt32(g_a[_idx0-1][_idx1-1])
     for _idx0 in range(64 , 0, -1):
         builder.PrependBool(f[_idx0-1])
     for _idx0 in range(64 , 0, -1):
@@ -92,6 +140,7 @@ def CreateLargeArrayStruct(builder, d, e, f):
         builder.PrependUint8(d[_idx0-1])
     return builder.Offset()
 
+import MyGame.Example.NestedStruct
 try:
     from typing import List
 except:
@@ -105,10 +154,14 @@ class LargeArrayStructT(object):
         d = None,
         e = None,
         f = None,
+        g = None,
+        h = None,
     ):
         self.d = d  # type: Optional[List[int]]
         self.e = e  # type: Optional[List[float]]
         self.f = f  # type: Optional[List[bool]]
+        self.g = g  # type: Optional[List[MyGame.Example.NestedStruct.NestedStructT]]
+        self.h = h  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -152,7 +205,22 @@ class LargeArrayStructT(object):
                     self.f.append(largeArrayStruct.F(i))
             else:
                 self.f = largeArrayStruct.FAsNumpy()
+        if not largeArrayStruct.GIsNone():
+            self.g = []
+            for i in range(largeArrayStruct.GLength()):
+                if largeArrayStruct.G(i) is None:
+                    self.g.append(None)
+                else:
+                    nestedStruct_ = MyGame.Example.NestedStruct.NestedStructT.InitFromObj(largeArrayStruct.G(i))
+                    self.g.append(nestedStruct_)
+        if not largeArrayStruct.HIsNone():
+            if np is None:
+                self.h = []
+                for i in range(largeArrayStruct.HLength()):
+                    self.h.append(largeArrayStruct.H(i))
+            else:
+                self.h = largeArrayStruct.HAsNumpy()
 
     # LargeArrayStructT
     def Pack(self, builder):
-        return CreateLargeArrayStruct(builder, self.d, self.e, self.f)
+        return CreateLargeArrayStruct(builder, self.d, self.e, self.f, self.g.a, self.g.b, self.g.c, self.g.d, self.h)
