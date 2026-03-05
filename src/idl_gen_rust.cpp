@@ -429,8 +429,7 @@ class RustGenerator : public BaseGenerator {
 
     // Generate imports for the global scope in case no namespace is used
     // in the schema file.
-    GenNamespaceImports(0);
-    code_ += "";
+    GenNamespaceImports();
 
     // Generate all code in their namespaces, once, because Rust does not
     // permit re-opening modules.
@@ -708,6 +707,8 @@ class RustGenerator : public BaseGenerator {
   // an enum match function,
   // and an enum array of values
   void GenEnum(const EnumDef& enum_def) {
+    code_ += "";
+
     const bool is_private = parser_.opts.no_leak_private_annotations &&
                             (enum_def.attributes.Lookup("private") != nullptr);
     code_.SetValue("ACCESS_TYPE", is_private ? "pub(crate)" : "pub");
@@ -739,6 +740,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "    }";
       code_ += "  }";
       code_ += "}";
+      code_ += "";
+
       code_ += "pub use self::bitflags_{{ENUM_NAMESPACE}}::{{ENUM_TY}};";
       code_ += "";
 
@@ -753,10 +756,14 @@ class RustGenerator : public BaseGenerator {
       code_ +=
           "pub const ENUM_MIN_{{ENUM_CONSTANT}}: {{BASE_TYPE}}"
           " = {{ENUM_MIN_BASE_VALUE}};";
+      code_ += "";
+
       code_ += deprecation_warning;
       code_ +=
           "pub const ENUM_MAX_{{ENUM_CONSTANT}}: {{BASE_TYPE}}"
           " = {{ENUM_MAX_BASE_VALUE}};";
+      code_ += "";
+
       auto num_fields = NumToString(enum_def.size());
       code_ += deprecation_warning;
       code_ += "#[allow(non_camel_case_types)]";
@@ -777,6 +784,8 @@ class RustGenerator : public BaseGenerator {
           "Default)]";
       code_ += "#[repr(transparent)]";
       code_ += "{{ACCESS_TYPE}} struct {{ENUM_TY}}(pub {{BASE_TYPE}});";
+      code_ += "";
+
       code_ += "#[allow(non_upper_case_globals)]";
       code_ += "impl {{ENUM_TY}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal& ev) {
@@ -790,6 +799,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "  pub const ENUM_VALUES: &'static [Self] = &[";
       ForAllEnumValues(enum_def, [&]() { code_ += "  Self::{{VARIANT}},"; });
       code_ += "  ];";
+      code_ += "";
+
       code_ += "  /// Returns the variant's name or \"\" if unknown.";
       code_ += "  pub fn variant_name(self) -> Option<&'static str> {";
       code_ += "    match self {";
@@ -800,6 +811,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "    }";
       code_ += "  }";
       code_ += "}";
+      code_ += "";
 
       // Generate Debug. Unknown variants are printed like "<UNKNOWN 42>".
       code_ += "impl ::core::fmt::Debug for {{ENUM_TY}} {";
@@ -813,6 +825,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "    }";
       code_ += "  }";
       code_ += "}";
+      code_ += "";
 
       code_.SetValue("INTO_BASE", "self.0");
     }
@@ -864,6 +877,7 @@ class RustGenerator : public BaseGenerator {
     // Generate Follow and Push so we can serialize and stuff.
     code_ += "impl<'a> ::flatbuffers::Follow<'a> for {{ENUM_TY}} {";
     code_ += "  type Inner = Self;";
+    code_ += "";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ +=
@@ -879,6 +893,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     code_ += "impl ::flatbuffers::Push for {{ENUM_TY}} {";
     code_ += "    type Output = {{ENUM_TY}};";
+    code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ +=
@@ -889,10 +904,12 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     code_ += "impl ::flatbuffers::EndianScalar for {{ENUM_TY}} {";
     code_ += "  type Scalar = {{BASE_TYPE}};";
+    code_ += "";
     code_ += "  #[inline]";
     code_ += "  fn to_little_endian(self) -> {{BASE_TYPE}} {";
     code_ += "    {{INTO_BASE}}.to_le()";
     code_ += "  }";
+    code_ += "";
     code_ += "  #[inline]";
     code_ += "  #[allow(clippy::wrong_self_convention)]";
     code_ += "  fn from_little_endian(v: {{BASE_TYPE}}) -> Self {";
@@ -922,8 +939,8 @@ class RustGenerator : public BaseGenerator {
     if (enum_def.is_union) {
       // Generate typesafe offset(s) for unions
       code_.SetValue("UNION_TYPE", namer_.Type(enum_def));
-      code_ += "{{ACCESS_TYPE}} struct {{UNION_TYPE}}UnionTableOffset {}";
       code_ += "";
+      code_ += "{{ACCESS_TYPE}} struct {{UNION_TYPE}}UnionTableOffset {}";
       if (parser_.opts.generate_object_based_api) {
         GenUnionObject(enum_def);
       }
@@ -955,6 +972,7 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("ENUM_OTY", namer_.ObjectType(enum_def));
 
     // Generate native union.
+    code_ += "";
     code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is
                                                        // intended.
     code_ += "#[non_exhaustive]";
@@ -966,12 +984,15 @@ class RustGenerator : public BaseGenerator {
           "{{NATIVE_VARIANT}}(alloc::boxed::Box<{{U_ELEMENT_TABLE_TYPE}}>),";
     });
     code_ += "}";
+    code_ += "";
+
     // Generate Default (NONE).
     code_ += "impl Default for {{ENUM_OTY}} {";
     code_ += "  fn default() -> Self {";
     code_ += "    Self::NONE";
     code_ += "  }";
     code_ += "}";
+    code_ += "";
 
     // Generate native union methods.
     code_ += "impl {{ENUM_OTY}} {";
@@ -988,6 +1009,8 @@ class RustGenerator : public BaseGenerator {
     });
     code_ += "    }";
     code_ += "  }";
+    code_ += "";
+
     // Pack flatbuffers union value
     code_ +=
         "  pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut "
@@ -1006,6 +1029,7 @@ class RustGenerator : public BaseGenerator {
     // Generate some accessors;
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
       // Move accessor.
+      code_ += "";
       code_ +=
           "/// If the union variant matches, return the owned "
           "{{U_ELEMENT_TABLE_TYPE}}, setting the union to NONE.";
@@ -1023,7 +1047,9 @@ class RustGenerator : public BaseGenerator {
       code_ += "    None";
       code_ += "  }";
       code_ += "}";
+
       // Immutable reference accessor.
+      code_ += "";
       code_ +=
           "/// If the union variant matches, return a reference to the "
           "{{U_ELEMENT_TABLE_TYPE}}.";
@@ -1034,7 +1060,9 @@ class RustGenerator : public BaseGenerator {
           "  if let Self::{{NATIVE_VARIANT}}(v) = self "
           "{ Some(v.as_ref()) } else { None }";
       code_ += "}";
+
       // Mutable reference accessor.
+      code_ += "";
       code_ +=
           "/// If the union variant matches, return a mutable reference"
           " to the {{U_ELEMENT_TABLE_TYPE}}.";
@@ -1046,7 +1074,9 @@ class RustGenerator : public BaseGenerator {
           "{ Some(v.as_mut()) } else { None }";
       code_ += "}";
     });
+
     code_ += "}";  // End union methods impl.
+    code_ += "";
   }
 
   enum DefaultContext { kBuilder, kAccessor, kObject };
@@ -1673,6 +1703,8 @@ class RustGenerator : public BaseGenerator {
   // Generate an accessor struct, builder struct, and create function for a
   // table.
   void GenTable(const StructDef& struct_def) {
+    code_ += "";
+
     const bool is_private =
         parser_.opts.no_leak_private_annotations &&
         (struct_def.attributes.Lookup("private") != nullptr);
@@ -1683,17 +1715,18 @@ class RustGenerator : public BaseGenerator {
     // Generate an offset type, the base type, the Follow impl, and the
     // init_from_table impl.
     code_ += "{{ACCESS_TYPE}} enum {{STRUCT_TY}}Offset {}";
-    code_ += "#[derive(Copy, Clone, PartialEq)]";
     code_ += "";
 
     GenComment(struct_def.doc_comment);
 
+    code_ += "#[derive(Copy, Clone, PartialEq)]";
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}<'a> {";
     code_ += "  pub _tab: ::flatbuffers::Table<'a>,";
     code_ += "}";
     code_ += "";
     code_ += "impl<'a> ::flatbuffers::Follow<'a> for {{STRUCT_TY}}<'a> {";
     code_ += "  type Inner = {{STRUCT_TY}}<'a>;";
+    code_ += "";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ +=
@@ -1710,7 +1743,8 @@ class RustGenerator : public BaseGenerator {
           "pub const {{OFFSET_NAME}}: ::flatbuffers::VOffsetT = "
           "{{OFFSET_VALUE}};";
     });
-    code_ += "";
+
+    if (struct_def.fields.vec.size() > 0) { code_ += ""; }
 
     if (parser_.opts.generate_name_strings) {
       GenFullyQualifiedNameGetter(struct_def, struct_def.name);
@@ -1722,6 +1756,7 @@ class RustGenerator : public BaseGenerator {
         "Self {";
     code_ += "    {{STRUCT_TY}} { _tab: table }";
     code_ += "  }";
+    code_ += "";
 
     // Generate a convenient create* function that uses the above builder
     // to create a table in one function call.
@@ -1759,6 +1794,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    builder.finish()";
     code_ += "  }";
     code_ += "";
+
     // Generate Object API Packer function.
     if (parser_.opts.generate_object_based_api) {
       // TODO(cneo): Replace more for loops with ForAllX stuff.
@@ -1858,6 +1894,7 @@ class RustGenerator : public BaseGenerator {
           code_ += "  };";
         }
       });
+
       code_ += "    {{STRUCT_OTY}} {";
       ForAllObjectTableFields(struct_def, [&](const FieldDef& field) {
         if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
@@ -1866,8 +1903,6 @@ class RustGenerator : public BaseGenerator {
       code_ += "    }";
       code_ += "  }";
     }
-
-    if (struct_def.fields.vec.size() > 0) code_ += "";
 
     // Generate the accessors. Each has one of two forms:
     //
@@ -1881,6 +1916,7 @@ class RustGenerator : public BaseGenerator {
     //     self._tab.get::<internal_type>(offset, defaultval).unwrap()
     //   }
     ForAllTableFields(struct_def, [&](const FieldDef& field) {
+      code_ += "";
       code_.SetValue("RETURN_TYPE",
                      GenTableAccessorFuncReturnType(field, "'a"));
 
@@ -1911,6 +1947,7 @@ class RustGenerator : public BaseGenerator {
         FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
 
         code_.SetValue("NESTED", WrapInNameSpace(*nested_root));
+        code_ += "";
         code_ += "pub fn {{FIELD}}_nested_flatbuffer(&'a self) -> \\";
         if (field.IsRequired()) {
           code_ += "{{NESTED}}<'a> {";
@@ -1944,6 +1981,7 @@ class RustGenerator : public BaseGenerator {
       ForAllUnionVariantsBesidesNone(
           *field.value.type.enum_def, [&](const EnumVal& unused) {
             (void)unused;
+            code_ += "";
             code_ += "#[inline]";
             code_ += "#[allow(non_snake_case)]";
             code_ +=
@@ -1987,7 +2025,6 @@ class RustGenerator : public BaseGenerator {
             code_ += "    None";
             code_ += "  }";
             code_ += "}";
-            code_ += "";
           });
     });
     code_ += "}";  // End of table impl.
@@ -2042,6 +2079,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    Ok(())";
     code_ += "  }";
     code_ += "}";
+    code_ += "";
 
     // Generate an args struct:
     code_.SetValue("MAYBE_LT",
@@ -2052,6 +2090,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "  pub {{FIELD}}: {{PARAM_TYPE}},";
     });
     code_ += "}";
+    code_ += "";
 
     // Generate an impl of Default for the *Args type:
     code_ += "impl<'a> Default for {{STRUCT_TY}}Args{{MAYBE_LT}} {";
@@ -2145,6 +2184,7 @@ class RustGenerator : public BaseGenerator {
         "  start_: ::flatbuffers::WIPOffset<"
         "::flatbuffers::TableUnfinishedWIPOffset>,";
     code_ += "}";
+    code_ += "";
 
     // Generate builder functions:
     code_ +=
@@ -2180,6 +2220,7 @@ class RustGenerator : public BaseGenerator {
         code_ += "  {{FUNC_BODY}}({{FIELD_OFFSET}}, {{FIELD}});";
       }
       code_ += "}";
+      code_ += "";
     });
 
     // Struct initializer (all fields required);
@@ -2195,6 +2236,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "      start_: start,";
     code_ += "    }";
     code_ += "  }";
+    code_ += "";
 
     // finish() function.
     code_ += "  #[inline]";
@@ -2258,6 +2300,8 @@ class RustGenerator : public BaseGenerator {
   }
 
   void GenTableObject(const StructDef& table) {
+    code_ += "";
+
     code_.SetValue("STRUCT_OTY", namer_.ObjectType(table));
     code_.SetValue("STRUCT_TY", namer_.Type(table));
 
@@ -2272,6 +2316,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "pub {{FIELD}}: {{FIELD_OTY}},";
     });
     code_ += "}";
+    code_ += "";
 
     code_ += "impl Default for {{STRUCT_OTY}} {";
     code_ += "  fn default() -> Self {";
@@ -2284,6 +2329,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "    }";
     code_ += "  }";
     code_ += "}";
+    code_ += "";
 
     // TODO(cneo): Generate defaults for Native tables. However, since structs
     // may be required, they, and therefore enums need defaults.
@@ -2430,6 +2476,8 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("KEY_TYPE", GenTableAccessorFuncReturnType(field, ""));
     code_.SetValue("REF", IsString(field.value.type) ? "" : "&");
 
+    code_ += "";
+
     code_ += "#[inline]";
     code_ +=
         "pub fn key_compare_less_than(&self, o: &{{STRUCT_TY}}) -> "
@@ -2437,6 +2485,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "  self.{{FIELD}}() < o.{{FIELD}}()";
     code_ += "}";
     code_ += "";
+
     code_ += "#[inline]";
     code_ +=
         "pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
@@ -2449,45 +2498,51 @@ class RustGenerator : public BaseGenerator {
   // Generate functions for accessing the root table object. This function
   // must only be called if the root table is defined.
   void GenRootTableFuncs(const StructDef& struct_def) {
+    code_ += "";
+
     FLATBUFFERS_ASSERT(parser_.root_struct_def_ && "root table not defined");
     code_.SetValue("STRUCT_TY", namer_.Type(struct_def));
     code_.SetValue("STRUCT_FN", namer_.Function(struct_def));
     code_.SetValue("STRUCT_CONST", namer_.Constant(struct_def.name));
 
     // Default verifier root fns.
-    code_ += "#[inline]";
     code_ += "/// Verifies that a buffer of bytes contains a `{{STRUCT_TY}}`";
     code_ += "/// and returns it.";
     code_ += "/// Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `root_as_{{STRUCT_FN}}_unchecked`.";
+    code_ += "#[inline]";
     code_ +=
         "pub fn root_as_{{STRUCT_FN}}(buf: &[u8]) "
         "-> Result<{{STRUCT_TY}}<'_>, ::flatbuffers::InvalidFlatbuffer> {";
     code_ += "  ::flatbuffers::root::<{{STRUCT_TY}}>(buf)";
     code_ += "}";
-    code_ += "#[inline]";
+    code_ += "";
+
     code_ += "/// Verifies that a buffer of bytes contains a size prefixed";
     code_ += "/// `{{STRUCT_TY}}` and returns it.";
     code_ += "/// Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `size_prefixed_root_as_{{STRUCT_FN}}_unchecked`.";
+    code_ += "#[inline]";
     code_ +=
         "pub fn size_prefixed_root_as_{{STRUCT_FN}}"
         "(buf: &[u8]) -> Result<{{STRUCT_TY}}<'_>, "
         "::flatbuffers::InvalidFlatbuffer> {";
     code_ += "  ::flatbuffers::size_prefixed_root::<{{STRUCT_TY}}>(buf)";
     code_ += "}";
+    code_ += "";
+
     // Verifier with options root fns.
-    code_ += "#[inline]";
     code_ += "/// Verifies, with the given options, that a buffer of bytes";
     code_ += "/// contains a `{{STRUCT_TY}}` and returns it.";
     code_ += "/// Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `root_as_{{STRUCT_FN}}_unchecked`.";
+    code_ += "#[inline]";
     code_ += "pub fn root_as_{{STRUCT_FN}}_with_opts<'b, 'o>(";
     code_ += "  opts: &'o ::flatbuffers::VerifierOptions,";
     code_ += "  buf: &'b [u8],";
@@ -2496,13 +2551,15 @@ class RustGenerator : public BaseGenerator {
         " {";
     code_ += "  ::flatbuffers::root_with_opts::<{{STRUCT_TY}}<'b>>(opts, buf)";
     code_ += "}";
-    code_ += "#[inline]";
+    code_ += "";
+
     code_ += "/// Verifies, with the given verifier options, that a buffer of";
     code_ += "/// bytes contains a size prefixed `{{STRUCT_TY}}` and returns";
     code_ += "/// it. Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `root_as_{{STRUCT_FN}}_unchecked`.";
+    code_ += "#[inline]";
     code_ +=
         "pub fn size_prefixed_root_as_{{STRUCT_FN}}_with_opts"
         "<'b, 'o>(";
@@ -2515,8 +2572,9 @@ class RustGenerator : public BaseGenerator {
         "  ::flatbuffers::size_prefixed_root_with_opts::<{{STRUCT_TY}}"
         "<'b>>(opts, buf)";
     code_ += "}";
+    code_ += "";
+
     // Unchecked root fns.
-    code_ += "#[inline]";
     code_ +=
         "/// Assumes, without verification, that a buffer of bytes "
         "contains a {{STRUCT_TY}} and returns it.";
@@ -2524,12 +2582,14 @@ class RustGenerator : public BaseGenerator {
     code_ +=
         "/// Callers must trust the given bytes do indeed contain a valid"
         " `{{STRUCT_TY}}`.";
+    code_ += "#[inline]";
     code_ +=
         "pub unsafe fn root_as_{{STRUCT_FN}}_unchecked"
         "(buf: &[u8]) -> {{STRUCT_TY}}<'_> {";
     code_ += "  unsafe { ::flatbuffers::root_unchecked::<{{STRUCT_TY}}>(buf) }";
     code_ += "}";
-    code_ += "#[inline]";
+    code_ += "";
+
     code_ +=
         "/// Assumes, without verification, that a buffer of bytes "
         "contains a size prefixed {{STRUCT_TY}} and returns it.";
@@ -2537,6 +2597,7 @@ class RustGenerator : public BaseGenerator {
     code_ +=
         "/// Callers must trust the given bytes do indeed contain a valid"
         " size prefixed `{{STRUCT_TY}}`.";
+    code_ += "#[inline]";
     code_ +=
         "pub unsafe fn size_prefixed_root_as_{{STRUCT_FN}}"
         "_unchecked(buf: &[u8]) -> {{STRUCT_TY}}<'_> {";
@@ -2545,6 +2606,7 @@ class RustGenerator : public BaseGenerator {
         "::flatbuffers::size_prefixed_root_unchecked::<{{STRUCT_TY}}>"
         "(buf) }";
     code_ += "}";
+    code_ += "";
 
     if (parser_.file_identifier_.length()) {
       // Declare the identifier
@@ -2652,6 +2714,8 @@ class RustGenerator : public BaseGenerator {
   }
   // Generate an accessor struct with constructor for a flatbuffers struct.
   void GenStruct(const StructDef& struct_def) {
+    code_ += "";
+
     const bool is_private =
         parser_.opts.no_leak_private_annotations &&
         (struct_def.attributes.Lookup("private") != nullptr);
@@ -2674,11 +2738,14 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[repr(transparent)]";
     code_ += "#[derive(Clone, Copy, PartialEq)]";
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}(pub [u8; {{STRUCT_SIZE}}]);";
+    code_ += "";
+
     code_ += "impl Default for {{STRUCT_TY}} { ";
     code_ += "  fn default() -> Self { ";
     code_ += "    Self([0; {{STRUCT_SIZE}}])";
     code_ += "  }";
     code_ += "}";
+    code_ += "";
 
     // Debug for structs.
     code_ += "impl ::core::fmt::Debug for {{STRUCT_TY}} {";
@@ -2699,15 +2766,21 @@ class RustGenerator : public BaseGenerator {
     // Follow for the value type, Follow for the reference type, Push for the
     // value type, and Push for the reference type.
     code_ += "impl ::flatbuffers::SimpleToVerifyInSlice for {{STRUCT_TY}} {}";
+    code_ += "";
+
     code_ += "impl<'a> ::flatbuffers::Follow<'a> for {{STRUCT_TY}} {";
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
+    code_ += "";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ += "    unsafe { <&'a {{STRUCT_TY}}>::follow(buf, loc) }";
     code_ += "  }";
     code_ += "}";
+    code_ += "";
+
     code_ += "impl<'a> ::flatbuffers::Follow<'a> for &'a {{STRUCT_TY}} {";
     code_ += "  type Inner = &'a {{STRUCT_TY}};";
+    code_ += "";
     code_ += "  #[inline]";
     code_ += "  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ +=
@@ -2715,8 +2788,11 @@ class RustGenerator : public BaseGenerator {
         "loc) }";
     code_ += "  }";
     code_ += "}";
+    code_ += "";
+
     code_ += "impl<'b> ::flatbuffers::Push for {{STRUCT_TY}} {";
     code_ += "    type Output = {{STRUCT_TY}};";
+    code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
     code_ +=
@@ -2725,6 +2801,8 @@ class RustGenerator : public BaseGenerator {
         "{{STRUCT_TY}} as *const u8, <Self as ::flatbuffers::Push>::size()) };";
     code_ += "        dst.copy_from_slice(src);";
     code_ += "    }";
+    code_ += "";
+
     code_ += "    #[inline]";
     code_ += "    fn alignment() -> ::flatbuffers::PushAlignment {";
     code_ += "        ::flatbuffers::PushAlignment::new({{ALIGN}})";
@@ -2934,11 +3012,11 @@ class RustGenerator : public BaseGenerator {
     }
 
     code_ += "}";  // End impl Struct methods.
-    code_ += "";
 
     // Generate Struct Object.
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
+      code_ += "";
       code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
       code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
@@ -2946,6 +3024,8 @@ class RustGenerator : public BaseGenerator {
         code_ += "pub {{FIELD}}: {{FIELD_OTY}},";
       });
       code_ += "}";
+      code_ += "";
+
       // The `pack` method that turns the native struct into its Flatbuffers
       // counterpart.
       code_ += "impl {{STRUCT_OTY}} {";
@@ -2969,16 +3049,13 @@ class RustGenerator : public BaseGenerator {
       code_ += "    )";
       code_ += "  }";
       code_ += "}";
-      code_ += "";
     }
   }
 
-  void GenNamespaceImports(const int white_spaces) {
+  void GenNamespaceImports() {
     // DO not use global attributes (i.e. #![...]) since it interferes
     // with users who include! generated files.
     // See: https://github.com/google/flatbuffers/issues/6261
-    std::string indent = std::string(white_spaces, ' ');
-    code_ += "";
     if (!parser_.opts.generate_all) {
       for (auto it = parser_.included_files_.begin();
            it != parser_.included_files_.end(); ++it) {
@@ -2987,23 +3064,22 @@ class RustGenerator : public BaseGenerator {
         auto basename = flatbuffers::StripPath(noext);
 
         if (parser_.opts.include_prefix.empty()) {
-          code_ += indent + "use crate::" + basename +
-                   parser_.opts.filename_suffix + "::*;";
+          code_ +=
+              "use crate::" + basename + parser_.opts.filename_suffix + "::*;";
         } else {
           auto prefix = parser_.opts.include_prefix;
           prefix.pop_back();
 
-          code_ += indent + "use crate::" + prefix + "::" + basename +
+          code_ += "use crate::" + prefix + "::" + basename +
                    parser_.opts.filename_suffix + "::*;";
         }
       }
     }
+
     if (parser_.opts.rust_serialize) {
-      code_ += indent + "extern crate serde;";
+      code_ += "extern crate serde;";
       code_ +=
-          indent +
           "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
-      code_ += "";
     }
     code_ += "extern crate alloc;";
   }
@@ -3036,22 +3112,18 @@ class RustGenerator : public BaseGenerator {
     // Close cur_name_space in reverse order to reach the common prefix.
     // In the previous example, D then C are closed.
     for (size_t j = old_size; j > common_prefix_size; --j) {
-      code_ += "}  // pub mod " + cur_name_space_->components[j - 1];
-    }
-    if (old_size != common_prefix_size) {
-      code_ += "";
+      code_.DecrementIdentLevel();
+      code_ += "} // pub mod " + cur_name_space_->components[j - 1];
     }
 
     // open namespace parts to reach the ns namespace
     // in the previous example, E, then F, then G are opened
     for (auto j = common_prefix_size; j != new_size; ++j) {
+      code_ += "";
       code_ += "#[allow(unused_imports, dead_code)]";
       code_ += "pub mod " + namer_.Namespace(ns->components[j]) + " {";
-      // Generate local namespace imports.
-      GenNamespaceImports(2);
-    }
-    if (new_size != common_prefix_size) {
-      code_ += "";
+      code_.IncrementIdentLevel();
+      GenNamespaceImports();
     }
 
     cur_name_space_ = ns;

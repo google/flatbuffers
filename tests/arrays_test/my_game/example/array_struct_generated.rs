@@ -2,15 +2,18 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 // struct ArrayStruct, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub struct ArrayStruct(pub [u8; 160]);
+
 impl Default for ArrayStruct { 
   fn default() -> Self { 
     Self([0; 160])
   }
 }
+
 impl ::core::fmt::Debug for ArrayStruct {
   fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
     f.debug_struct("ArrayStruct")
@@ -25,27 +28,34 @@ impl ::core::fmt::Debug for ArrayStruct {
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for ArrayStruct {}
+
 impl<'a> ::flatbuffers::Follow<'a> for ArrayStruct {
   type Inner = &'a ArrayStruct;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { <&'a ArrayStruct>::follow(buf, loc) }
   }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a ArrayStruct {
   type Inner = &'a ArrayStruct;
+
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     unsafe { ::flatbuffers::follow_cast_ref::<ArrayStruct>(buf, loc) }
   }
 }
+
 impl<'b> ::flatbuffers::Push for ArrayStruct {
     type Output = ArrayStruct;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const ArrayStruct as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(8)
@@ -244,6 +254,7 @@ pub struct ArrayStructT {
   pub e: i32,
   pub f: [i64; 2],
 }
+
 impl ArrayStructT {
   pub fn pack(&self) -> ArrayStruct {
     ArrayStruct::new(
@@ -256,4 +267,3 @@ impl ArrayStructT {
     )
   }
 }
-
