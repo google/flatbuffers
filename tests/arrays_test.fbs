@@ -20,6 +20,8 @@ struct ArrayStruct{
 
 struct LargeArrayStruct {
   d:[ubyte:64];
+  e:[float:64];
+  f:[bool:64];
 }
 
 table ArrayTable{
