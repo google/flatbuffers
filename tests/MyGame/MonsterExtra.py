@@ -214,7 +214,7 @@ def MonsterExtraCreateDvecVector(builder: flatbuffers.Builder, data: Iterable[An
     return builder.EndVector()
 
 def CreateDvecVector(builder: flatbuffers.Builder, data: Iterable[Any]) -> int:
-    MonsterExtraCreateDvecVector(builder, data)
+    return MonsterExtraCreateDvecVector(builder, data)
 
 def MonsterExtraAddFvec(builder: flatbuffers.Builder, fvec: int):
     builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(fvec), 0)
@@ -236,7 +236,7 @@ def MonsterExtraCreateFvecVector(builder: flatbuffers.Builder, data: Iterable[An
     return builder.EndVector()
 
 def CreateFvecVector(builder: flatbuffers.Builder, data: Iterable[Any]) -> int:
-    MonsterExtraCreateFvecVector(builder, data)
+    return MonsterExtraCreateFvecVector(builder, data)
 
 def MonsterExtraEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
