@@ -649,3 +649,106 @@ flatc_annotate(
 
 # Run the generate_grpc_examples script
 generate_grpc_examples.GenerateGRPCExamples()
+
+# FlatSpanBuffers Tests
+flatspanbuffers_fbs = "net/FlatSpanBuffers.GeneratedCode/fbs"
+flatspanbuffers_gen = "net/FlatSpanBuffers.GeneratedCode/Generated"
+
+CS_SPANBUF_OPTS = ["--csharp-spanbufs", "--gen-object-api"]
+
+flatc(
+    CS_SPANBUF_OPTS,
+    prefix=flatspanbuffers_gen + "/key_test",
+    schema=flatspanbuffers_fbs + "/key_test.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS,
+    prefix=flatspanbuffers_gen + "/optional_scalars",
+    schema=flatspanbuffers_fbs + "/optional_scalars.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS,
+    prefix=flatspanbuffers_gen + "/keyword_test",
+    schema=flatspanbuffers_fbs + "/keyword_test.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS,
+    prefix=flatspanbuffers_gen + "/comprehensive_test",
+    schema=flatspanbuffers_fbs + "/comprehensive_test.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS + ["--gen-mutable"],
+    prefix=flatspanbuffers_gen + "/monster_test",
+    schema=flatspanbuffers_fbs + "/monster_test.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS + ["--gen-mutable", "--cs-gen-json-serializer"],
+    prefix=flatspanbuffers_gen + "/mygame_example",
+    schema=flatspanbuffers_fbs + "/mygame_example.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS + ["--cs-gen-json-serializer"],
+    prefix=flatspanbuffers_gen + "/arrays_test",
+    schema=flatspanbuffers_fbs + "/arrays_test.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS + ["--cs-gen-json-serializer"],
+    prefix=flatspanbuffers_gen + "/json_test",
+    schema=flatspanbuffers_fbs + "/json_test.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    CS_SPANBUF_OPTS + ["--cs-gen-json-serializer"],
+    prefix=flatspanbuffers_gen + "/union_vector",
+    schema=flatspanbuffers_fbs + "/union_vector.fbs",
+    cwd=root_path,
+)
+
+# FlatSpanBuffers Benchmarks
+benchmark_fbs = "net/FlatSpanBuffers.Benchmarks/fbs"
+benchmark_gen = "net/FlatSpanBuffers.Benchmarks/Generated"
+
+flatc(
+    ["--csharp-spanbufs", "--gen-object-api", "--gen-mutable"],
+    prefix=benchmark_gen + "/FlatSpanBuffers",
+    schema=benchmark_fbs + "/benchmark.fbs",
+    cwd=root_path,
+)
+
+flatc(
+    ["--csharp", "--gen-object-api"],
+    prefix=benchmark_gen + "/OriginalFlatBuffers",
+    schema=benchmark_fbs + "/benchmark.fbs",
+    cwd=root_path,
+)
+
+# Benchmarks compare net/FlatBuffers (original) to net/FlatSpanBuffers.
+# To avoid naming collisions, rename the namespaces in the original files.
+original_benchmark_path = Path(root_path, benchmark_gen, "OriginalFlatBuffers")
+for cs_file in original_benchmark_path.rglob("*.cs"):
+    content = cs_file.read_text(encoding="utf-8")
+    updated = content.replace("Benchmarks.FlatSpanBuffers", "Benchmarks.OriginalFlatBuffers")
+    if updated != content:
+        cs_file.write_text(updated, encoding="utf-8")
+
+original_src = Path(original_benchmark_path, "Benchmarks", "FlatSpanBuffers")
+original_dst = Path(original_benchmark_path, "Benchmarks", "OriginalFlatBuffers")
+if original_src.exists():
+    if original_dst.exists():
+        shutil.rmtree(original_dst)
+    shutil.move(str(original_src), str(original_dst))

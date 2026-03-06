@@ -160,7 +160,10 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_binary.cpp
   src/idl_gen_text.cpp
   src/idl_gen_cpp.cpp
+  src/idl_gen_csharp.h
   src/idl_gen_csharp.cpp
+  src/idl_gen_csharp_spanbufs.h
+  src/idl_gen_csharp_spanbufs.cpp
   src/idl_gen_dart.cpp
   src/idl_gen_kotlin.cpp
   src/idl_gen_kotlin_kmp.cpp

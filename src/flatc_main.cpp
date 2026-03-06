@@ -26,6 +26,7 @@
 #include "idl_gen_binary.h"
 #include "idl_gen_cpp.h"
 #include "idl_gen_csharp.h"
+#include "idl_gen_csharp_spanbufs.h"
 #include "idl_gen_dart.h"
 #include "idl_gen_fbs.h"
 #include "idl_gen_go.h"
@@ -99,6 +100,11 @@ int main(int argc, const char* argv[]) {
       flatbuffers::FlatCOption{"n", "csharp", "",
                                "Generate C# classes for tables/structs"},
       flatbuffers::NewCSharpCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{"ns", "csharp-spanbufs", "",
+                               "Generate C# span friendly classes for tables/structs"},
+      flatbuffers::NewCSharpSpanBufsCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{"d", "dart", "",

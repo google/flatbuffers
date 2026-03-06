@@ -1,0 +1,14 @@
+namespace KeyTest;
+
+table KeyTestMonster {
+    name:string (key);
+    hp:int;
+}
+
+table KeyTestWeapon {
+    id:int (key);
+    name:string;
+    damage:int;
+}
+
+root_type KeyTestMonster;

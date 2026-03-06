@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlatSpanBuffers\FlatSpanBuffers.csproj" />
+    <ProjectReference Include="..\FlatSpanBuffers.GeneratedCode\FlatSpanBuffers.GeneratedCode.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="monsterdata_test.mon">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="monsterdata_test.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,59 @@
+// Benchmark schema for FlatBuffers performance testing
+// Based on the C++ bench.fbs schema.
+
+namespace Benchmarks.FlatSpanBuffers;
+
+enum Fruit : short { Apples = 0, Pears, Bananas }
+
+struct Foo {
+  id:ulong;
+  count:short;
+  prefix:byte;
+  length:uint;
+}
+
+struct Bar {
+  parent:Foo;
+  time:int;
+  ratio:float;
+  size:ushort;
+}
+
+table FooBar {
+  sibling:Bar;
+  name:string;
+  rating:double;
+  postfix:ubyte;
+}
+
+table FooBarContainer {
+  list:[FooBar];
+  initialized:bool;
+  fruit:Fruit;
+  location:string;
+}
+
+// Simple monster for basic tests
+table SimpleMonster {
+  name:string;
+  hp:short = 100;
+  mana:short = 150;
+  color:ubyte = 2;
+  testbool:bool = false;
+  testf:float = 3.14159;
+  testf2:float = 3.0;
+  testf3:float = 0.0;
+}
+
+// A table with various vector types for vector access benchmarks
+table VectorContainer {
+  bytes:[ubyte];
+  shorts:[short];
+  ints:[int];
+  longs:[long];
+  floats:[float];
+  doubles:[double];
+  strings:[string];
+}
+
+root_type FooBarContainer;
