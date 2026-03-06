@@ -116,9 +116,16 @@ impl<'a> Unused {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnusedT {
     pub a: i32,
+}
+impl Default for UnusedT {
+    fn default() -> Self {
+        Self {
+            a: 0,
+        }
+    }
 }
 
 impl UnusedT {
