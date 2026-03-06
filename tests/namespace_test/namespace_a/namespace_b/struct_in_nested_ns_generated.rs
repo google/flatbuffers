@@ -149,10 +149,18 @@ impl<'a> StructInNestedNS {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StructInNestedNST {
     pub a: i32,
     pub b: i32,
+}
+impl Default for StructInNestedNST {
+    fn default() -> Self {
+        Self {
+            a: 0,
+            b: 0,
+        }
+    }
 }
 
 impl StructInNestedNST {

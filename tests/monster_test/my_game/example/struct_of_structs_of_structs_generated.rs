@@ -99,9 +99,16 @@ impl<'a> StructOfStructsOfStructs {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StructOfStructsOfStructsT {
     pub a: StructOfStructsT,
+}
+impl Default for StructOfStructsOfStructsT {
+    fn default() -> Self {
+        Self {
+            a: Default::default(),
+        }
+    }
 }
 
 impl StructOfStructsOfStructsT {

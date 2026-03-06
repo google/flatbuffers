@@ -10,6 +10,8 @@ pub mod my_game {
         pub use self::nested_struct_generated::*;
         mod array_struct_generated;
         pub use self::array_struct_generated::*;
+        mod large_array_struct_generated;
+        pub use self::large_array_struct_generated::*;
         mod array_table_generated;
         pub use self::array_table_generated::*;
     } // example

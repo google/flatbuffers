@@ -3037,15 +3037,56 @@ class RustGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
       code_ += "";
-      code_ += "#[derive(Debug, Clone, PartialEq, Default)]";
+      code_ += "#[derive(Debug, Clone, PartialEq)]";
       code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
         (void)field;  // unused.
         code_ += "pub {{FIELD}}: {{FIELD_OTY}},";
       });
       code_ += "}";
+      // Manual impl Default to avoid issues with arrays > 32 elements
+      // where #[derive(Default)] fails on older Rust versions.
+      code_ += "impl Default for {{STRUCT_OTY}} {";
+      code_ += "    fn default() -> Self {";
+      code_ += "        Self {";
+      ForAllStructFields(struct_def, [&](const FieldDef& field) {
+        const auto full_type = GetFullType(field.value.type);
+        switch (full_type) {
+          case ftArrayOfBuiltin: {
+            // Use the correct zero literal for each element type:
+            // bool -> false, float/double -> 0.0, integers -> 0
+            const auto elem_type = field.value.type.VectorType().base_type;
+            std::string zero;
+            if (elem_type == BASE_TYPE_BOOL) {
+              zero = "false";
+            } else if (IsFloat(elem_type)) {
+              zero = "0.0";
+            } else {
+              zero = "0";
+            }
+            code_ += "        {{FIELD}}: [" + zero + "; " +
+                     NumToString(field.value.type.fixed_length) + "],";
+            break;
+          }
+          case ftArrayOfEnum:
+          case ftArrayOfStruct: {
+            code_ +=
+                "        {{FIELD}}: ::flatbuffers::array_init(|_| "
+                "Default::default()),";
+            break;
+          }
+          default: {
+            std::string default_value =
+                GetDefaultValue(field, kObject);
+            code_ += "        {{FIELD}}: " + default_value + ",";
+            break;
+          }
+        }
+      });
+      code_ += "        }";
+      code_ += "    }";
+      code_ += "}";
       code_ += "";
-
       // The `pack` method that turns the native struct into its Flatbuffers
       // counterpart.
       code_ += "impl {{STRUCT_OTY}} {";
