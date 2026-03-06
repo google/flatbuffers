@@ -3,8 +3,10 @@ use flatbuffers_reflection::{
     get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
     get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
-    get_field_struct_in_struct, get_field_table, get_field_vector, set_any_field_float,
-    set_any_field_integer, set_any_field_string, set_field, set_string, FlatbufferError,
+    get_field_struct_in_struct, get_field_table, get_field_vector,
+    get_field_vector_of_strings, get_field_vector_of_structs, get_field_vector_of_tables,
+    set_any_field_float, set_any_field_integer, set_any_field_string, set_field, set_string,
+    FlatbufferError,
 };
 use flatbuffers_reflection::{SafeBuffer, Struct};
 
@@ -347,6 +349,180 @@ fn test_buffer_vector_diff_type_fails() {
         value.unwrap_err(),
         FlatbufferError::FieldTypeMismatch(String::from("u8"), String::from("Float"))
     );
+}
+
+#[test]
+fn test_buffer_vector_of_tables_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let field = get_schema_field(&schema_buffer, "testarrayoftables");
+
+    let value = unsafe { get_field_vector_of_tables(&root_table, &field, &schema) };
+
+    assert!(value.is_ok());
+    let optional_vector = value.unwrap();
+    assert!(optional_vector.is_some());
+    let vector = optional_vector.unwrap();
+    assert_eq!(vector.len(), 2);
+
+    // Access the sub-tables and verify their contents via the reflection API.
+    let monster_obj = schema
+        .objects()
+        .lookup_by_key("MyGame.Example.Monster", |o, k| o.key_compare_with_value(k))
+        .unwrap();
+    let hp_field = monster_obj
+        .fields()
+        .lookup_by_key("hp", |f, k| f.key_compare_with_value(k))
+        .unwrap();
+
+    let table0 = vector.get(0);
+    let hp0 = unsafe { get_field_integer::<i16>(&table0, &hp_field) }.unwrap();
+    assert_eq!(hp0, Some(100));
+
+    let table1 = vector.get(1);
+    let hp1 = unsafe { get_field_integer::<i16>(&table1, &hp_field) }.unwrap();
+    assert_eq!(hp1, Some(200));
+}
+
+#[test]
+fn test_buffer_vector_of_tables_wrong_field_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let field = get_schema_field(&schema_buffer, "inventory"); // ubyte vector, not table vector
+
+    let value = unsafe { get_field_vector_of_tables(&root_table, &field, &schema) };
+
+    assert!(value.is_err());
+}
+
+#[test]
+fn test_buffer_vector_of_tables_rejects_struct_vector() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let field = get_schema_field(&schema_buffer, "test4"); // [Test] is a vector of structs
+
+    let value = unsafe { get_field_vector_of_tables(&root_table, &field, &schema) };
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err(),
+        FlatbufferError::FieldTypeMismatch(
+            String::from("Vector of Table"),
+            String::from("Vector of Struct"),
+        )
+    );
+}
+
+#[test]
+fn test_buffer_vector_of_structs_rejects_table_vector() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let field = get_schema_field(&schema_buffer, "testarrayoftables"); // [Monster] is a vector of tables
+
+    let value = unsafe { get_field_vector_of_structs(&root_table, &field, &schema) };
+
+    assert!(value.is_err());
+    assert_eq!(
+        value.unwrap_err(),
+        FlatbufferError::FieldTypeMismatch(
+            String::from("Vector of Struct"),
+            String::from("Vector of Table"),
+        )
+    );
+}
+
+#[test]
+fn test_buffer_vector_of_strings_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let field = get_schema_field(&schema, "testarrayofstring");
+
+    let value = unsafe { get_field_vector_of_strings(&root_table, &field) };
+
+    assert!(value.is_ok());
+    let optional_vector = value.unwrap();
+    assert!(optional_vector.is_some());
+    let vector = optional_vector.unwrap();
+    assert_eq!(vector.len(), 2);
+    assert_eq!(vector.get(0), "test1");
+    assert_eq!(vector.get(1), "test2");
+}
+
+#[test]
+fn test_buffer_vector_of_strings_wrong_field_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema = load_file_as_buffer("../monster_test.bfbs");
+    let field = get_schema_field(&schema, "inventory"); // ubyte vector, not string vector
+
+    let value = unsafe { get_field_vector_of_strings(&root_table, &field) };
+
+    assert!(value.is_err());
+}
+
+#[test]
+fn test_buffer_vector_of_structs_succeeds() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let field = get_schema_field(&schema_buffer, "test4");
+
+    let value = unsafe { get_field_vector_of_structs(&root_table, &field, &schema) };
+
+    assert!(value.is_ok());
+    let optional_vector = value.unwrap();
+    assert!(optional_vector.is_some());
+    let vector = optional_vector.unwrap();
+    assert_eq!(vector.len(), 2);
+
+    // Test struct has fields: a:short (offset 0), b:byte (offset 2)
+    let test_obj = schema
+        .objects()
+        .lookup_by_key("MyGame.Example.Test", |o, k| o.key_compare_with_value(k))
+        .unwrap();
+    let a_field = test_obj
+        .fields()
+        .lookup_by_key("a", |f, k| f.key_compare_with_value(k))
+        .unwrap();
+    let b_field = test_obj
+        .fields()
+        .lookup_by_key("b", |f, k| f.key_compare_with_value(k))
+        .unwrap();
+
+    let st0 = vector.get(0);
+    let a0 = unsafe { get_any_field_integer_in_struct(&st0, &a_field) }.unwrap();
+    let b0 = unsafe { get_any_field_integer_in_struct(&st0, &b_field) }.unwrap();
+    assert_eq!(a0, 10);
+    assert_eq!(b0, 20);
+
+    let st1 = vector.get(1);
+    let a1 = unsafe { get_any_field_integer_in_struct(&st1, &a_field) }.unwrap();
+    let b1 = unsafe { get_any_field_integer_in_struct(&st1, &b_field) }.unwrap();
+    assert_eq!(a1, 30);
+    assert_eq!(b1, 40);
+}
+
+#[test]
+fn test_buffer_vector_of_structs_wrong_field_fails() {
+    let buffer = create_test_buffer();
+    let root_table = unsafe { get_any_root(&buffer) };
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+    let field = get_schema_field(&schema_buffer, "inventory"); // ubyte vector, not struct vector
+
+    let value = unsafe { get_field_vector_of_structs(&root_table, &field, &schema) };
+
+    assert!(value.is_err());
 }
 
 #[test]
@@ -2009,6 +2185,26 @@ fn create_test_buffer() -> Vec<u8> {
             &my_game::example::Test::new(5i16, 6i8),
         );
 
+        let sub_mon1_name = builder.create_string("Sub1");
+        let sub_mon1 = my_game::example::Monster::create(
+            &mut builder,
+            &my_game::example::MonsterArgs {
+                name: Some(sub_mon1_name),
+                hp: 100,
+                ..Default::default()
+            },
+        );
+        let sub_mon2_name = builder.create_string("Sub2");
+        let sub_mon2 = my_game::example::Monster::create(
+            &mut builder,
+            &my_game::example::MonsterArgs {
+                name: Some(sub_mon2_name),
+                hp: 200,
+                ..Default::default()
+            },
+        );
+        let testarrayoftables = builder.create_vector(&[sub_mon1, sub_mon2]);
+
         let args = my_game::example::MonsterArgs {
             hp: 32767,
             testf: 3.14,
@@ -2033,6 +2229,7 @@ fn create_test_buffer() -> Vec<u8> {
                 my_game::example::Test::new(30, 40),
             ])),
             testarrayofstring: Some(builder.create_vector(&[s0, s1])),
+            testarrayoftables: Some(testarrayoftables),
             ..Default::default()
         };
         my_game::example::Monster::create(&mut builder, &args)
