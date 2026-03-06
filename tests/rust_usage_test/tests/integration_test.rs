@@ -3224,4 +3224,157 @@ fn test_shared_strings() {
     assert_eq!(string_vector.get(1), "foo");
 }
 
+#[test]
+fn lookup_index_by_key_returns_correct_index() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    // Abilities are sorted by id (the key field).
+    let v = b.create_vector(&[
+        my_game::example::Ability::new(1, 10),
+        my_game::example::Ability::new(3, 30),
+        my_game::example::Ability::new(5, 50),
+    ]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    // Lookup each element and verify the returned index.
+    assert_eq!(
+        abilities.lookup_index_by_key(1u32, |a, key| a.key_compare_with_value(*key)),
+        Some(0)
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(3u32, |a, key| a.key_compare_with_value(*key)),
+        Some(1)
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(5u32, |a, key| a.key_compare_with_value(*key)),
+        Some(2)
+    );
+}
+
+#[test]
+fn lookup_index_by_key_returns_none_for_missing_key() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector(&[
+        my_game::example::Ability::new(1, 10),
+        my_game::example::Ability::new(3, 30),
+        my_game::example::Ability::new(5, 50),
+    ]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    // Keys that do not exist in the vector.
+    assert_eq!(
+        abilities.lookup_index_by_key(0u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(2u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(99u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+}
+
+#[test]
+fn lookup_index_by_key_on_empty_vector() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector::<my_game::example::Ability>(&[]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    assert_eq!(
+        abilities.lookup_index_by_key(1u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+}
+
+#[test]
+fn lookup_index_by_key_single_element() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector(&[my_game::example::Ability::new(42, 100)]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    assert_eq!(
+        abilities.lookup_index_by_key(42u32, |a, key| a.key_compare_with_value(*key)),
+        Some(0)
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(1u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+}
+
+#[test]
+fn lookup_index_by_key_consistent_with_lookup_by_key() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector(&[
+        my_game::example::Ability::new(2, 20),
+        my_game::example::Ability::new(4, 40),
+        my_game::example::Ability::new(6, 60),
+        my_game::example::Ability::new(8, 80),
+        my_game::example::Ability::new(10, 100),
+    ]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    // For every key that exists, lookup_index_by_key should return an index
+    // whose element matches lookup_by_key.
+    for key in &[2u32, 4, 6, 8, 10] {
+        let obj = abilities.lookup_by_key(*key, |a, k| a.key_compare_with_value(*k));
+        let idx = abilities.lookup_index_by_key(*key, |a, k| a.key_compare_with_value(*k));
+        assert!(obj.is_some());
+        assert!(idx.is_some());
+        assert_eq!(abilities.get(idx.unwrap()).id(), obj.unwrap().id());
+    }
+
+    // For keys that don't exist, both should return None.
+    for key in &[0u32, 1, 3, 5, 7, 9, 11] {
+        assert!(abilities.lookup_by_key(*key, |a, k| a.key_compare_with_value(*k)).is_none());
+        assert!(abilities.lookup_index_by_key(*key, |a, k| a.key_compare_with_value(*k)).is_none());
+    }
+}
+
 }

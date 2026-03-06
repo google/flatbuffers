@@ -132,6 +132,42 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         None
     }
 
+    /// Binary search by key, returning the index of the matching element.
+    ///
+    /// This is similar to `lookup_by_key`, but returns the index of the found
+    /// element rather than the element itself. This is useful when you need
+    /// to reference elements by their position in the vector.
+    #[inline(always)]
+    pub fn lookup_index_by_key<K: Ord>(
+        &self,
+        key: K,
+        f: fn(&<T as Follow<'a>>::Inner, &K) -> Ordering,
+    ) -> Option<usize> {
+        if self.is_empty() {
+            return None;
+        }
+
+        let mut left: usize = 0;
+        let mut right = self.len() - 1;
+
+        while left <= right {
+            let mid = (left + right) / 2;
+            let value = self.get(mid);
+            match f(&value, &key) {
+                Ordering::Equal => return Some(mid),
+                Ordering::Less => left = mid + 1,
+                Ordering::Greater => {
+                    if mid == 0 {
+                        return None;
+                    }
+                    right = mid - 1;
+                }
+            }
+        }
+
+        None
+    }
+
     #[inline(always)]
     pub fn iter(&self) -> VectorIter<'a, T> {
         VectorIter::from_vector(*self)
