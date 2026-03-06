@@ -24,6 +24,9 @@ use core::marker::PhantomData;
 use core::ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
 use core::ptr::write_bytes;
 
+#[cfg(feature = "std")]
+use std::collections::HashMap;
+
 use crate::endian_scalar::emplace_scalar;
 use crate::primitives::*;
 use crate::push::{Push, PushAlignment};
@@ -139,6 +142,9 @@ pub struct FlatBufferBuilder<'fbb, A: Allocator = DefaultAllocator> {
 
     min_align: usize,
     force_defaults: bool,
+    #[cfg(feature = "std")]
+    strings_pool: HashMap<String, WIPOffset<&'fbb str>>,
+    #[cfg(not(feature = "std"))]
     strings_pool: Vec<WIPOffset<&'fbb str>>,
 
     _phantom: PhantomData<&'fbb ()>,
@@ -197,6 +203,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
             min_align: 0,
             force_defaults: false,
+            #[cfg(feature = "std")]
+            strings_pool: HashMap::new(),
+            #[cfg(not(feature = "std"))]
             strings_pool: Vec::new(),
 
             _phantom: PhantomData,
@@ -343,6 +352,31 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         WIPOffset::new(o.value())
     }
 
+    /// Create a utf8 string, and de-duplicate if already created.
+    ///
+    /// Uses a HashMap to track previously written strings, providing O(1)
+    /// amortized lookup and insertion.
+    #[cfg(feature = "std")]
+    #[inline]
+    pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
+        self.assert_not_nested(
+            "create_shared_string can not be called when a table or vector is under construction",
+        );
+
+        if let Some(&offset) = self.strings_pool.get(s) {
+            return offset;
+        }
+
+        let address = WIPOffset::new(self.create_byte_string(s.as_bytes()).value());
+        self.strings_pool.insert(s.to_owned(), address);
+        address
+    }
+
+    /// Create a utf8 string, and de-duplicate if already created.
+    ///
+    /// Uses a sorted Vec with binary search to track previously written
+    /// strings when in `no_std` mode.
+    #[cfg(not(feature = "std"))]
     #[inline]
     pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested(
