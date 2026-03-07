@@ -13,10 +13,10 @@ using namespace benchmarks_flatbuffers;
 namespace {
 
 struct FlatBufferBench : Bench {
-  explicit FlatBufferBench(int64_t initial_size, Allocator *allocator)
+  explicit FlatBufferBench(int64_t initial_size, Allocator* allocator)
       : fbb(initial_size, allocator, false) {}
 
-  uint8_t *Encode(void *, int64_t &len) override {
+  uint8_t* Encode(void*, int64_t& len) override {
     fbb.Clear();
 
     const int kVectorLength = 3;
@@ -40,7 +40,7 @@ struct FlatBufferBench : Bench {
     return fbb.GetBufferPointer();
   }
 
-  int64_t Use(void *decoded) override {
+  int64_t Use(void* decoded) override {
     sum = 0;
     auto foobarcontainer = GetFooBarContainer(decoded);
     sum = 0;
@@ -56,7 +56,7 @@ struct FlatBufferBench : Bench {
       Add(static_cast<int64_t>(bar->ratio()));
       Add(bar->size());
       Add(bar->time());
-      auto &foo = bar->parent();
+      auto& foo = bar->parent();
       Add(foo.count());
       Add(foo.id());
       Add(foo.length());
@@ -65,8 +65,8 @@ struct FlatBufferBench : Bench {
     return sum;
   }
 
-  void *Decode(void *buffer, int64_t) override { return buffer; }
-  void Dealloc(void *) override {};
+  void* Decode(void* buffer, int64_t) override { return buffer; }
+  void Dealloc(void*) override {};
 
   FlatBufferBuilder fbb;
 };
@@ -74,7 +74,7 @@ struct FlatBufferBench : Bench {
 }  // namespace
 
 std::unique_ptr<Bench> NewFlatBuffersBench(int64_t initial_size,
-                                           Allocator *allocator) {
+                                           Allocator* allocator) {
   return std::unique_ptr<FlatBufferBench>(
       new FlatBufferBench(initial_size, allocator));
 }

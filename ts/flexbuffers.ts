@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import {Builder} from './flexbuffers/builder.js';
 import {toReference} from './flexbuffers/reference.js';
 export {toReference} from './flexbuffers/reference.js';

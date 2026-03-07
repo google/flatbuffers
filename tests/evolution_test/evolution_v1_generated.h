@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace Evolution {
@@ -145,6 +145,10 @@ inline bool operator!=(const Struct &lhs, const Struct &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Struct &obj) {
+  return H::combine(std::move(h), obj.a(), obj.b());
+}
 
 struct TableA FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TableABuilder Builder;

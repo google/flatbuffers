@@ -427,9 +427,6 @@ Current understood attributes:
   it won't be accessible anymore by newer code. Note that if you deprecate a
   field that was previous required, old code may fail to validate new data (when
   using the optional verifier).
-
-### `required`
-
 - `required` (on a non-scalar table field): this field must always be set. By
   default, fields do not need to be present in the binary. This is desirable, as
   it helps with forwards/backwards compatibility, and flexibility of data

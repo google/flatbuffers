@@ -69,6 +69,7 @@ CS_OPTS = ["--csharp", "--cs-gen-json-serializer"]
 CPP_OPTS = [
     "--cpp",
     "--gen-compare",
+    "--gen-absl-hash",
 ] + (["--cpp-std", "c++0x"] if args.cpp_0x else [])
 
 CPP_17_OPTS = NO_INCL_OPTS + [
@@ -83,6 +84,11 @@ RUST_OPTS = BASE_OPTS + [
     "--gen-all",
     "--gen-name-strings",
     "--rust-module-root-file",
+]
+RUST_STANDALONE_OPTS = BASE_OPTS + [
+    "--rust",
+    "--gen-all",
+    "--gen-name-strings",
 ]
 RUST_SERIALIZE_OPTS = BASE_OPTS + [
     "--rust",
@@ -288,8 +294,20 @@ flatc(
 )
 
 flatc(
+    RUST_STANDALONE_OPTS,
+    include="include_test",
+    schema="include_test/include_test1.fbs",
+)
+
+flatc(
     RUST_OPTS,
     prefix="include_test2",
+    include="include_test",
+    schema="include_test/sub/include_test2.fbs",
+)
+
+flatc(
+    RUST_STANDALONE_OPTS,
     include="include_test",
     schema="include_test/sub/include_test2.fbs",
 )
@@ -399,6 +417,10 @@ flatc(
     schema="nested_union_test.fbs",
 )
 
+flatc(
+    NO_INCL_OPTS + CPP_OPTS,
+    schema="default_vectors_strings_test.fbs",
+)
 
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
@@ -493,6 +515,13 @@ flatc(
     SWIFT_OPTS_CODE_GEN + NO_INCL_OPTS + ["--grpc"],
     schema="test_no_include.fbs",
     cwd=swift_code_gen,
+)
+
+flatc(
+    SWIFT_OPTS_CODE_GEN + BASE_OPTS,
+    schema="empty_vtable.fbs",
+    cwd=swift_code_gen,
+    prefix="../../Tests/Flatbuffers/",
 )
 
 # Swift Wasm Tests

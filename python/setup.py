@@ -16,7 +16,7 @@ from setuptools import setup
 
 setup(
     name='flatbuffers',
-    version='25.9.23',
+    version='25.12.19',
     license='Apache 2.0',
     author='Derek Bailey',
     author_email='derekbailey@google.com',
@@ -32,10 +32,8 @@ setup(
     description='The FlatBuffers serialization format for Python',
     classifiers=[
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],

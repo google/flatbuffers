@@ -265,6 +265,9 @@ const static FlatCOption flatc_options[] = {
     {"", "python-gen-numpy", "", "Whether to generate numpy helpers."},
     {"", "ts-omit-entrypoint", "",
      "Omit emission of namespace entrypoint file"},
+    {"", "ts-undefined-for-optionals", "",
+     "Whether to generate undefined values instead of null values for missing "
+     "optional keys"},
     {"", "file-names-only", "",
      "Print out generated file names without writing to the files"},
     {"", "grpc-filename-suffix", "SUFFIX",
@@ -529,6 +532,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.generate_object_based_api = true;
       } else if (arg == "--gen-compare") {
         opts.gen_compare = true;
+      } else if (arg == "--gen-absl-hash") {
+        opts.gen_absl_hash = true;
       } else if (arg == "--cpp-include") {
         if (++argi >= argc) Error("missing include following: " + arg, true);
         opts.cpp_includes.push_back(argv[argi]);
@@ -708,6 +713,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.python_gen_numpy = false;
       } else if (arg == "--ts-omit-entrypoint") {
         opts.ts_omit_entrypoint = true;
+      } else if (arg == "--ts-undefined-for-optionals") {
+        opts.ts_undefined_for_optionals = true;
       } else if (arg == "--annotate-sparse-vectors") {
         options.annotate_include_vector_contents = false;
       } else if (arg == "--annotate") {
@@ -919,6 +926,9 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
           !options.conform_to_schema.empty()) {
         auto err = parser->ConformTo(conform_parser);
         if (!err.empty()) Error("schemas don\'t conform: " + err, false);
+      }
+      if (parser->HasCircularStructDependency()) {
+        Error("schema has circular struct dependencies: " + filename, false);
       }
       if (options.schema_binary || opts.binary_schema_gen_embed) {
         parser->Serialize();
