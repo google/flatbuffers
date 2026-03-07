@@ -150,7 +150,7 @@ namespace Google.FlatBuffers
 
             var pos = this.__vector(o);
             var len = this.__vector_len(o);
-            return bb.ToArray<T>(pos, len);
+            return bb.ToArray<T>(pos, len * ByteBuffer.SizeOf<T>());
         }
 
         // Initialize any Table-derived type to point to the union at the given offset.

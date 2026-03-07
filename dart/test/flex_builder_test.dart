@@ -318,6 +318,21 @@ void main() {
         1,
       ]);
     }
+    {
+      // Default buffer is 2048 bytes, add 2300 bytes of strings that force it
+      // to grow.
+      final s1 = 'A' * 1000;
+      final s2 = 'B' * 800;
+      final s3 = 'C' * 500;
+
+      var flx = Builder()
+        ..startVector()
+        ..addString(s1)
+        ..addString(s2)
+        ..addString(s3)
+        ..end();
+      expect(flx.finish().length, 2323);
+    }
   });
 
   test('build map', () {
