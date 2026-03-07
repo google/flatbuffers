@@ -1,3 +1,9 @@
+# Include guard
+if(DEFINED FLATBUFFERS_VERSION_CMAKE_INCLUDED)
+  return()
+endif()
+set(FLATBUFFERS_VERSION_CMAKE_INCLUDED TRUE)
+
 set(VERSION_MAJOR 25)
 set(VERSION_MINOR 12)
 set(VERSION_PATCH 19)
@@ -36,4 +42,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
   endif()
 endif()
 
-message(STATUS "Proceeding with version: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_COMMIT}")
+set(FLATBUFFERS_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_COMMIT}")
+message(STATUS "Proceeding with FlatBuffers version: ${FLATBUFFERS_VERSION}")
+
+# The version reported by flatc does not include the commit number, so we also need a constant to compare to.
+set(FLATBUFFERS_VERSION_NOCOMMIT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
