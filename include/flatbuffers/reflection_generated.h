@@ -1341,7 +1341,8 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_ROOT_TABLE = 12,
     VT_SERVICES = 14,
     VT_ADVANCED_FEATURES = 16,
-    VT_FBS_FILES = 18
+    VT_FBS_FILES = 18,
+    VT_RUST_MODULE = 20
   };
   const ::flatbuffers::Vector<::flatbuffers::Offset<reflection::Object>> *objects() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<reflection::Object>> *>(VT_OBJECTS);
@@ -1369,6 +1370,9 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<reflection::SchemaFile>> *fbs_files() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<reflection::SchemaFile>> *>(VT_FBS_FILES);
   }
+  const ::flatbuffers::String *rust_module() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_RUST_MODULE);
+  }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1391,6 +1395,8 @@ struct Schema FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyOffset(verifier, VT_FBS_FILES) &&
            verifier.VerifyVector(fbs_files()) &&
            verifier.VerifyVectorOfTables(fbs_files()) &&
+           VerifyOffset(verifier, VT_RUST_MODULE) &&
+           verifier.VerifyString(rust_module()) &&
            verifier.EndTable();
   }
 };
@@ -1423,6 +1429,9 @@ struct SchemaBuilder {
   void add_fbs_files(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<reflection::SchemaFile>>> fbs_files) {
     fbb_.AddOffset(Schema::VT_FBS_FILES, fbs_files);
   }
+  void add_rust_module(::flatbuffers::Offset<::flatbuffers::String> rust_module) {
+    fbb_.AddOffset(Schema::VT_RUST_MODULE, rust_module);
+  }
   explicit SchemaBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1445,9 +1454,11 @@ inline ::flatbuffers::Offset<Schema> CreateSchema(
     ::flatbuffers::Offset<reflection::Object> root_table = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<reflection::Service>>> services = 0,
     reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0),
-    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<reflection::SchemaFile>>> fbs_files = 0) {
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<reflection::SchemaFile>>> fbs_files = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> rust_module = 0) {
   SchemaBuilder builder_(_fbb);
   builder_.add_advanced_features(advanced_features);
+  builder_.add_rust_module(rust_module);
   builder_.add_fbs_files(fbs_files);
   builder_.add_services(services);
   builder_.add_root_table(root_table);
@@ -1467,13 +1478,15 @@ inline ::flatbuffers::Offset<Schema> CreateSchemaDirect(
     ::flatbuffers::Offset<reflection::Object> root_table = 0,
     std::vector<::flatbuffers::Offset<reflection::Service>> *services = nullptr,
     reflection::AdvancedFeatures advanced_features = static_cast<reflection::AdvancedFeatures>(0),
-    std::vector<::flatbuffers::Offset<reflection::SchemaFile>> *fbs_files = nullptr) {
+    std::vector<::flatbuffers::Offset<reflection::SchemaFile>> *fbs_files = nullptr,
+    const char *rust_module = nullptr) {
   auto objects__ = objects ? _fbb.CreateVectorOfSortedTables<reflection::Object>(objects) : 0;
   auto enums__ = enums ? _fbb.CreateVectorOfSortedTables<reflection::Enum>(enums) : 0;
   auto file_ident__ = file_ident ? _fbb.CreateString(file_ident) : 0;
   auto file_ext__ = file_ext ? _fbb.CreateString(file_ext) : 0;
   auto services__ = services ? _fbb.CreateVectorOfSortedTables<reflection::Service>(services) : 0;
   auto fbs_files__ = fbs_files ? _fbb.CreateVectorOfSortedTables<reflection::SchemaFile>(fbs_files) : 0;
+  auto rust_module__ = rust_module ? _fbb.CreateString(rust_module) : 0;
   return reflection::CreateSchema(
       _fbb,
       objects__,
@@ -1483,7 +1496,8 @@ inline ::flatbuffers::Offset<Schema> CreateSchemaDirect(
       root_table,
       services__,
       advanced_features,
-      fbs_files__);
+      fbs_files__,
+      rust_module__);
 }
 
 inline const reflection::Schema *GetSchema(const void *buf) {
