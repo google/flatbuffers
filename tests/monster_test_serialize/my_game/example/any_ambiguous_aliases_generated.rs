@@ -3,7 +3,6 @@
 extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
-use super::*;
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ANY_AMBIGUOUS_ALIASES: u8 = 0;
@@ -143,9 +142,9 @@ pub struct AnyAmbiguousAliasesUnionTableOffset {}
 #[derive(Debug, Clone, PartialEq)]
 pub enum AnyAmbiguousAliasesT {
     NONE,
-    M1(alloc::boxed::Box<MonsterT>),
-    M2(alloc::boxed::Box<MonsterT>),
-    M3(alloc::boxed::Box<MonsterT>),
+    M1(alloc::boxed::Box<super::MonsterT>),
+    M2(alloc::boxed::Box<super::MonsterT>),
+    M3(alloc::boxed::Box<super::MonsterT>),
 }
 
 impl Default for AnyAmbiguousAliasesT {
@@ -173,8 +172,8 @@ impl AnyAmbiguousAliasesT {
         }
     }
 
-    /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
-    pub fn take_m1(&mut self) -> Option<alloc::boxed::Box<MonsterT>> {
+    /// If the union variant matches, return the owned super::MonsterT, setting the union to NONE.
+    pub fn take_m1(&mut self) -> Option<alloc::boxed::Box<super::MonsterT>> {
         if let Self::M1(_) = self {
             let v = ::core::mem::replace(self, Self::NONE);
             if let Self::M1(w) = v {
@@ -187,18 +186,18 @@ impl AnyAmbiguousAliasesT {
         }
     }
 
-    /// If the union variant matches, return a reference to the MonsterT.
-    pub fn as_m1(&self) -> Option<&MonsterT> {
+    /// If the union variant matches, return a reference to the super::MonsterT.
+    pub fn as_m1(&self) -> Option<&super::MonsterT> {
         if let Self::M1(v) = self { Some(v.as_ref()) } else { None }
     }
 
-    /// If the union variant matches, return a mutable reference to the MonsterT.
-    pub fn as_m1_mut(&mut self) -> Option<&mut MonsterT> {
+    /// If the union variant matches, return a mutable reference to the super::MonsterT.
+    pub fn as_m1_mut(&mut self) -> Option<&mut super::MonsterT> {
         if let Self::M1(v) = self { Some(v.as_mut()) } else { None }
     }
 
-    /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
-    pub fn take_m2(&mut self) -> Option<alloc::boxed::Box<MonsterT>> {
+    /// If the union variant matches, return the owned super::MonsterT, setting the union to NONE.
+    pub fn take_m2(&mut self) -> Option<alloc::boxed::Box<super::MonsterT>> {
         if let Self::M2(_) = self {
             let v = ::core::mem::replace(self, Self::NONE);
             if let Self::M2(w) = v {
@@ -211,18 +210,18 @@ impl AnyAmbiguousAliasesT {
         }
     }
 
-    /// If the union variant matches, return a reference to the MonsterT.
-    pub fn as_m2(&self) -> Option<&MonsterT> {
+    /// If the union variant matches, return a reference to the super::MonsterT.
+    pub fn as_m2(&self) -> Option<&super::MonsterT> {
         if let Self::M2(v) = self { Some(v.as_ref()) } else { None }
     }
 
-    /// If the union variant matches, return a mutable reference to the MonsterT.
-    pub fn as_m2_mut(&mut self) -> Option<&mut MonsterT> {
+    /// If the union variant matches, return a mutable reference to the super::MonsterT.
+    pub fn as_m2_mut(&mut self) -> Option<&mut super::MonsterT> {
         if let Self::M2(v) = self { Some(v.as_mut()) } else { None }
     }
 
-    /// If the union variant matches, return the owned MonsterT, setting the union to NONE.
-    pub fn take_m3(&mut self) -> Option<alloc::boxed::Box<MonsterT>> {
+    /// If the union variant matches, return the owned super::MonsterT, setting the union to NONE.
+    pub fn take_m3(&mut self) -> Option<alloc::boxed::Box<super::MonsterT>> {
         if let Self::M3(_) = self {
             let v = ::core::mem::replace(self, Self::NONE);
             if let Self::M3(w) = v {
@@ -235,13 +234,13 @@ impl AnyAmbiguousAliasesT {
         }
     }
 
-    /// If the union variant matches, return a reference to the MonsterT.
-    pub fn as_m3(&self) -> Option<&MonsterT> {
+    /// If the union variant matches, return a reference to the super::MonsterT.
+    pub fn as_m3(&self) -> Option<&super::MonsterT> {
         if let Self::M3(v) = self { Some(v.as_ref()) } else { None }
     }
 
-    /// If the union variant matches, return a mutable reference to the MonsterT.
-    pub fn as_m3_mut(&mut self) -> Option<&mut MonsterT> {
+    /// If the union variant matches, return a mutable reference to the super::MonsterT.
+    pub fn as_m3_mut(&mut self) -> Option<&mut super::MonsterT> {
         if let Self::M3(v) = self { Some(v.as_mut()) } else { None }
     }
 }

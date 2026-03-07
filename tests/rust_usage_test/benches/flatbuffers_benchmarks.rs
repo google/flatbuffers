@@ -20,7 +20,7 @@ use flatbuffers;
 #[allow(dead_code, unused_imports)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
-pub use monster_test_generated::my_game;
+pub use monster_test_generated::*;
 
 fn traverse_canonical_buffer(bench: &mut Bencher) {
     let owned_data = {

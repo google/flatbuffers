@@ -3,7 +3,6 @@
 extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
-use super::*;
 
 pub enum TableAOffset {}
 
@@ -53,11 +52,11 @@ impl<'a> TableA<'a> {
     }
 
     #[inline]
-    pub fn b(&self) -> Option<my_game::other_name_space::TableB<'a>> {
+    pub fn b(&self) -> Option<crate::my_game::other_name_space::TableB<'a>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(TableA::VT_B, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<crate::my_game::other_name_space::TableB>>(TableA::VT_B, None)}
     }
 }
 
@@ -67,14 +66,14 @@ impl ::flatbuffers::Verifiable for TableA<'_> {
         v: &mut ::flatbuffers::Verifier, pos: usize
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>("b", Self::VT_B, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<crate::my_game::other_name_space::TableB>>("b", Self::VT_B, false)?
             .finish();
         Ok(())
     }
 }
 
 pub struct TableAArgs<'a> {
-    pub b: Option<::flatbuffers::WIPOffset<my_game::other_name_space::TableB<'a>>>,
+    pub b: Option<::flatbuffers::WIPOffset<crate::my_game::other_name_space::TableB<'a>>>,
 }
 
 impl<'a> Default for TableAArgs<'a> {
@@ -108,8 +107,8 @@ pub struct TableABuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
 
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableABuilder<'a, 'b, A> {
     #[inline]
-    pub fn add_b(&mut self, b: ::flatbuffers::WIPOffset<my_game::other_name_space::TableB<'b >>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<my_game::other_name_space::TableB>>(TableA::VT_B, b);
+    pub fn add_b(&mut self, b: ::flatbuffers::WIPOffset<crate::my_game::other_name_space::TableB<'b >>) {
+        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<crate::my_game::other_name_space::TableB>>(TableA::VT_B, b);
     }
 
     #[inline]
@@ -139,7 +138,7 @@ impl ::core::fmt::Debug for TableA<'_> {
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct TableAT {
-    pub b: Option<alloc::boxed::Box<my_game::other_name_space::TableBT>>,
+    pub b: Option<alloc::boxed::Box<crate::my_game::other_name_space::TableBT>>,
 }
 
 impl Default for TableAT {
