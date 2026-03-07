@@ -33,6 +33,8 @@ cc_test(
         "alignment_test.cpp",
         "alignment_test.h",
         "alignment_test_generated.h",
+        "default_vectors_strings_test.cpp",
+        "default_vectors_strings_test.h",
         "evolution_test.cpp",
         "evolution_test.h",
         "evolution_test/evolution_v1_generated.h",
@@ -73,6 +75,9 @@ cc_test(
         "union_vector/union_vector_generated.h",
         "util_test.cpp",
         "util_test.h",
+        "vector_table_naked_ptr/vector_table_naked_ptr_generated.h",
+        "vector_table_naked_ptr_test.h",
+        "vector_table_naked_ptr_test.cpp",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
@@ -131,6 +136,7 @@ cc_test(
     deps = [
         ":alignment_test_cc_fbs",
         ":arrays_test_cc_fbs",
+        ":default_vectors_strings_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
         ":native_type_test_cc_fbs",
@@ -210,6 +216,7 @@ flatbuffer_cc_library(
 include_test_args = [
     "--gen-object-api",
     "--gen-compare",
+    "--gen-absl-hash",
     "--gen-mutable",
     "--reflect-names",
     "--cpp-ptr-type flatbuffers::unique_ptr",
@@ -267,4 +274,17 @@ flatbuffer_cc_library(
 flatbuffer_cc_library(
     name = "alignment_test_cc_fbs",
     srcs = ["alignment_test.fbs"],
+)
+
+flatbuffer_cc_library(
+    name = "default_vectors_strings_test_cc_fbs",
+    srcs = ["default_vectors_strings_test.fbs"],
+    flatc_args = [
+        "--gen-compare",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--reflect-names",
+        "--filename-suffix .fbs",
+    ],
+    filename_suffix = ".fbs"
 )

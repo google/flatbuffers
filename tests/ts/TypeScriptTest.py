@@ -88,10 +88,43 @@ flatc(
 esbuild("monster_test.ts", "monster_test_generated.cjs")
 
 flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="../even_more_defaults.fbs",
+    include="../include_test",
+)
+
+flatc(
     options=["--gen-object-api", "-b"],
     schema="../monster_test.fbs",
     include="../include_test",
     data="../unicode_test.json",
+)
+
+flatc(
+    options=["--ts", "--gen-object-api"],
+    schema="../non_zero_enum.fbs",
+)
+
+flatc(
+    options=[
+        "--ts",
+        "--gen-object-api",
+        "--ts-undefined-for-optionals",
+    ],
+    schema="../optional_scalars.fbs",
+    prefix="ts-undefined-for-optionals",
+)
+esbuild(
+    "ts-undefined-for-optionals/optional_scalars.ts",
+    "ts-undefined-for-optionals/optional_scalars_generated.cjs",
 )
 
 flatc(
@@ -180,6 +213,20 @@ flatc(
 flatc(options=["--ts"], schema="../long_namespace.fbs")
 flatc(options=["--ts"], schema="../longer_namespace.fbs")
 
+
+flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="relative_imports/relative_imports.fbs",
+    prefix="relative_imports",
+)
+
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
 print(
@@ -196,6 +243,8 @@ check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
 check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
+check_call(NODE_CMD + ["JavaScriptRelativeImportPathTest"])
+check_call(NODE_CMD + ["JavaScriptUndefinedForOptionals"])
 
 print("Running old v1 TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])

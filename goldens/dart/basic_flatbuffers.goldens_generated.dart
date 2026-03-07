@@ -7,6 +7,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
+
 class Galaxy {
   Galaxy._(this._bc, this._bcOffset);
   factory Galaxy(List<int> bytes) {

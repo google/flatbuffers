@@ -5,7 +5,7 @@ import 'types.dart';
 
 /// The main builder class for creation of a FlexBuffer.
 class Builder {
-  final ByteData _buffer;
+  ByteData _buffer;
   List<_StackValue> _stack = [];
   List<_StackPointer> _stackPointers = [];
   int _offset = 0;
@@ -506,6 +506,7 @@ class Builder {
     if (prevSize < size) {
       final newBuf = ByteData(size);
       newBuf.buffer.asUint8List().setAll(0, _buffer.buffer.asUint8List());
+      _buffer = newBuf;
     }
     return newOffset;
   }

@@ -20,7 +20,7 @@ struct Vector3D {
     this->z = _z;
   }
 
-  bool operator==(const Vector3D &other) const {
+  bool operator==(const Vector3D& other) const {
     return (x == other.x) && (y == other.y) && (z == other.z);
   }
 };
@@ -38,7 +38,7 @@ struct Matrix {
     values.resize(_rows * _columns);
   }
 
-  bool operator==(const Matrix &other) const {
+  bool operator==(const Matrix& other) const {
     return (rows == other.rows) && (columns == other.columns) &&
            (values == other.values);
   }

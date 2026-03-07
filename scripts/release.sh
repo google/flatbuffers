@@ -91,7 +91,7 @@ sed -i \
 
 echo "Updating python/flatbuffers/_version.py..."
 sed -i \
-  -e "s/\(__version__ = u\).*/\1\"$version\"/" \
+  -e "s/\(__version__ = \).*/\1\"$version\"/" \
   python/flatbuffers/_version.py
 
 echo "Updating python/setup.py..."

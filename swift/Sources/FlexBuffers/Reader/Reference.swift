@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import Common
 import Foundation
 
 enum FlexBuffersErrors: Error {
@@ -23,6 +24,10 @@ enum FlexBuffersErrors: Error {
 
 @inline(__always)
 public func getRoot(buffer: ByteBuffer) throws -> Reference? {
+  assert(
+    isLitteEndian,
+    "Swift FlexBuffers currently only supports little-endian systems")
+
   let end = buffer.count
   if buffer.count < 3 {
     throw FlexBuffersErrors.sizeOfBufferIsTooSmall
