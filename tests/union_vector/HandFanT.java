@@ -27,5 +27,9 @@ public class HandFanT {
   public HandFanT() {
     this.length = 0;
   }
+
+  public HandFanT(int length) {
+    this.length = length;
+  }
 }
 
