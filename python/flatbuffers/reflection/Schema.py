@@ -162,8 +162,15 @@ class Schema(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         return o == 0
 
+    # Schema
+    def RustModule(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
 def SchemaStart(builder):
-    builder.StartObject(8)
+    builder.StartObject(9)
 
 def Start(builder):
     SchemaStart(builder)
@@ -263,6 +270,12 @@ def SchemaCreateFbsFilesVector(builder, data):
 
 def CreateFbsFilesVector(builder, data):
     return SchemaCreateFbsFilesVector(builder, data)
+
+def SchemaAddRustModule(builder, rustModule):
+    builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(rustModule), 0)
+
+def AddRustModule(builder, rustModule):
+    SchemaAddRustModule(builder, rustModule)
 
 def SchemaEnd(builder):
     return builder.EndObject()

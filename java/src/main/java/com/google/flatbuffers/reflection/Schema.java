@@ -68,6 +68,9 @@ public final class Schema extends com.google.flatbuffers.Table {
   public com.google.flatbuffers.reflection.SchemaFile fbsFilesByKey(com.google.flatbuffers.reflection.SchemaFile obj, String key) { int o = __offset(18); return o != 0 ? com.google.flatbuffers.reflection.SchemaFile.__lookup_by_key(obj, __vector(o), key, bb) : null; }
   public com.google.flatbuffers.reflection.SchemaFile.Vector fbsFilesVector() { return fbsFilesVector(new com.google.flatbuffers.reflection.SchemaFile.Vector()); }
   public com.google.flatbuffers.reflection.SchemaFile.Vector fbsFilesVector(com.google.flatbuffers.reflection.SchemaFile.Vector obj) { int o = __offset(18); return o != 0 ? obj.__assign(__vector(o), 4, bb) : null; }
+  public String rustModule() { int o = __offset(20); return o != 0 ? __string(o + bb_pos) : null; }
+  public ByteBuffer rustModuleAsByteBuffer() { return __vector_as_bytebuffer(20, 1); }
+  public ByteBuffer rustModuleInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 20, 1); }
 
   public static int createSchema(FlatBufferBuilder builder,
       int objectsOffset,
@@ -77,9 +80,11 @@ public final class Schema extends com.google.flatbuffers.Table {
       int rootTableOffset,
       int servicesOffset,
       long advancedFeatures,
-      int fbsFilesOffset) {
-    builder.startTable(8);
+      int fbsFilesOffset,
+      int rustModuleOffset) {
+    builder.startTable(9);
     Schema.addAdvancedFeatures(builder, advancedFeatures);
+    Schema.addRustModule(builder, rustModuleOffset);
     Schema.addFbsFiles(builder, fbsFilesOffset);
     Schema.addServices(builder, servicesOffset);
     Schema.addRootTable(builder, rootTableOffset);
@@ -90,7 +95,7 @@ public final class Schema extends com.google.flatbuffers.Table {
     return Schema.endSchema(builder);
   }
 
-  public static void startSchema(FlatBufferBuilder builder) { builder.startTable(8); }
+  public static void startSchema(FlatBufferBuilder builder) { builder.startTable(9); }
   public static void addObjects(FlatBufferBuilder builder, int objectsOffset) { builder.addOffset(0, objectsOffset, 0); }
   public static int createObjectsVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startObjectsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
@@ -107,6 +112,7 @@ public final class Schema extends com.google.flatbuffers.Table {
   public static void addFbsFiles(FlatBufferBuilder builder, int fbsFilesOffset) { builder.addOffset(7, fbsFilesOffset, 0); }
   public static int createFbsFilesVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startFbsFilesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addRustModule(FlatBufferBuilder builder, int rustModuleOffset) { builder.addOffset(8, rustModuleOffset, 0); }
   public static int endSchema(FlatBufferBuilder builder) {
     int o = builder.endTable();
     builder.required(o, 4);  // objects
