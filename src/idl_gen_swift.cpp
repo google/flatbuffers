@@ -859,7 +859,7 @@ class SwiftGenerator : public BaseGenerator {
         break;
 
       case BASE_TYPE_STRING: {
-        const auto default_string = "\"" + SwiftConstant(field) + "\"";
+        const auto default_string = "\"" + flatbuffers::EscapeCodeGenString(SwiftConstant(field)) + "\"";
         code_.SetValue("VALUETYPE", GenType(field.value.type));
         code_.SetValue("CONSTANT", field.IsDefault() ? default_string : "nil");
         code_ += GenReaderMainBody(is_required) + GenOffset() +
@@ -1650,13 +1650,13 @@ class SwiftGenerator : public BaseGenerator {
 
         if (field.IsRequired()) {
           std::string default_value =
-              field.IsDefault() ? SwiftConstant(field) : "";
+              field.IsDefault() ? flatbuffers::EscapeCodeGenString(SwiftConstant(field)) : "";
           base_constructor.push_back(field_var + " = \"" + default_value +
                                      "\"");
           break;
         }
         if (field.IsDefault() && !field.IsRequired()) {
-          std::string value = field.IsDefault() ? SwiftConstant(field) : "nil";
+          std::string value = field.IsDefault() ? flatbuffers::EscapeCodeGenString(SwiftConstant(field)) : "nil";
           base_constructor.push_back(field_var + " = \"" + value + "\"");
         }
         break;
