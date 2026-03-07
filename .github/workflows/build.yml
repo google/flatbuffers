@@ -42,7 +42,7 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
@@ -170,7 +170,7 @@ jobs:
     - name: test
       run: Release\flattests.exe
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Windows flatc binary
         path: Release\flatc.exe
@@ -246,7 +246,7 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Mac flatc binary Intel
         path: Release/flatc
@@ -289,7 +289,7 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Mac flatc binary Universal
         path: Release/flatc
@@ -373,7 +373,7 @@ jobs:
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Linux flatbenchmark results ${{matrix.cxx}}
         path: benchmarks/results_${{matrix.cxx}}

@@ -27,7 +27,7 @@ jobs:
        language: c++
        fuzz-seconds: 60
    - name: Upload Crash
-     uses: actions/upload-artifact@v6
+     uses: actions/upload-artifact@v7
      if: failure() && steps.build.outcome == 'success'
      with:
        name: artifacts
