@@ -708,6 +708,18 @@ inline bool EscapeString(const char* s, size_t length, std::string* _text,
   return true;
 }
 
+// Escape a string constant for safe embedding in generated source code.
+// Unlike EscapeString(), this does NOT add surrounding quotes.
+inline std::string EscapeCodeGenString(const std::string& s) {
+  std::string quoted;
+  EscapeString(s.c_str(), s.length(), &quoted, true, false);
+  // EscapeString adds surrounding quotes; strip them.
+  if (quoted.length() >= 2 && quoted.front() == '"' && quoted.back() == '"') {
+    return quoted.substr(1, quoted.length() - 2);
+  }
+  return quoted;
+}
+
 inline std::string BufferToHexText(const void* buffer, size_t buffer_size,
                                    size_t max_length,
                                    const std::string& wrapped_line_prefix,

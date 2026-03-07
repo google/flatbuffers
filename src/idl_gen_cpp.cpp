@@ -2779,15 +2779,14 @@ class CppGenerator : public BaseGenerator {
         get_call += ">(" + offset_str + ");";
         code_ += get_call;
       } else if (IsString(type) && field.value.constant != "0") {
-        // TODO: Add logic to always convert the string to a valid C++ string
-        // literal by handling string escapes.
+        const auto escaped = flatbuffers::EscapeCodeGenString(field.value.constant);
         code_ += "    auto* ptr = {{FIELD_VALUE}};";
         code_ += "    if (ptr) return ptr;";
         code_ += "    static const struct { uint32_t len; const char s[" +
                  NumToString(field.value.constant.length() + 1) +
                  "]; } bfbs_string = { " +
                  NumToString(field.value.constant.length()) + ", \"" +
-                 field.value.constant + "\" };";
+                 escaped + "\" };";
         code_ +=
             "    return reinterpret_cast<const ::flatbuffers::String "
             " *>(&bfbs_string);";
@@ -3421,7 +3420,7 @@ class CppGenerator : public BaseGenerator {
                 "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
                 "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : "
                 "_fbb.{{CREATE_STRING}}(\"" +
-                field->value.constant + "\");";
+                flatbuffers::EscapeCodeGenString(field->value.constant) + "\");";
           } else {
             code_ +=
                 "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "

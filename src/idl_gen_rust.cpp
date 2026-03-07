@@ -1138,9 +1138,8 @@ class RustGenerator : public BaseGenerator {
         // need one for Rust's Default trait so we use empty string. The usual
         // value of field.value.constant is `0`, which is non-sensical except
         // maybe to c++ (nullptr == 0).
-        // TODO: Escape strings?
         const std::string defval =
-            field.IsRequired() ? "\"\"" : "\"" + field.value.constant + "\"";
+            field.IsRequired() ? "\"\"" : "\"" + flatbuffers::EscapeCodeGenString(field.value.constant) + "\"";
         if (context == kObject) {
           return "alloc::string::ToString::to_string(" + defval + ")";
         }

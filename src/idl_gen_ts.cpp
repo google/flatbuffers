@@ -529,7 +529,7 @@ class TsGenerator : public BaseGenerator {
         if (value.constant == "0" || value.constant == "null") {
           return "null";
         } else {
-          return "\"" + value.constant + "\"";
+          return "\"" + flatbuffers::EscapeCodeGenString(value.constant) + "\"";
         }
       }
       case BASE_TYPE_UNION:
