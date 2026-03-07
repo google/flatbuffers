@@ -529,7 +529,11 @@ class TsGenerator : public BaseGenerator {
         if (value.constant == "0" || value.constant == "null") {
           return "null";
         } else {
-          return "\"" + value.constant + "\"";
+          std::string escaped;
+          flatbuffers::EscapeString(value.constant.c_str(),
+                                    value.constant.length(), &escaped,
+                                    true, false);
+          return escaped;
         }
       }
       case BASE_TYPE_UNION:

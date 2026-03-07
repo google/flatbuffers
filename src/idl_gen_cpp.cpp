@@ -2779,15 +2779,17 @@ class CppGenerator : public BaseGenerator {
         get_call += ">(" + offset_str + ");";
         code_ += get_call;
       } else if (IsString(type) && field.value.constant != "0") {
-        // TODO: Add logic to always convert the string to a valid C++ string
-        // literal by handling string escapes.
+        std::string escaped;
+        flatbuffers::EscapeString(field.value.constant.c_str(),
+                                  field.value.constant.length(), &escaped,
+                                  true, false);
         code_ += "    auto* ptr = {{FIELD_VALUE}};";
         code_ += "    if (ptr) return ptr;";
         code_ += "    static const struct { uint32_t len; const char s[" +
                  NumToString(field.value.constant.length() + 1) +
                  "]; } bfbs_string = { " +
-                 NumToString(field.value.constant.length()) + ", \"" +
-                 field.value.constant + "\" };";
+                 NumToString(field.value.constant.length()) + ", " +
+                 escaped + " };";
         code_ +=
             "    return reinterpret_cast<const ::flatbuffers::String "
             " *>(&bfbs_string);";
@@ -3417,11 +3419,15 @@ class CppGenerator : public BaseGenerator {
             code_.SetValue("CREATE_STRING", "CreateSharedString");
           }
           if (field->value.constant != "0") {
+            std::string escaped;
+            flatbuffers::EscapeString(field->value.constant.c_str(),
+                                      field->value.constant.length(), &escaped,
+                                      true, false);
             code_ +=
                 "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
                 "_fbb.{{CREATE_STRING}}({{FIELD_NAME}}) : "
-                "_fbb.{{CREATE_STRING}}(\"" +
-                field->value.constant + "\");";
+                "_fbb.{{CREATE_STRING}}(" +
+                escaped + ");";
           } else {
             code_ +=
                 "  auto {{FIELD_NAME}}__ = {{FIELD_NAME}} ? "
