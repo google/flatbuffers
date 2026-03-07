@@ -28,13 +28,10 @@ class RealFileSaver final : public FileSaver {
                 bool binary) final {
     std::ofstream ofs{name,
                       binary ? std::ofstream::binary : std::ofstream::out};
-
     if (!ofs.is_open()) {
       return false;
     }
-
     ofs.write(buf, len);
-
     return !ofs.bad();
   }
 };
