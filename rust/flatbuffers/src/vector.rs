@@ -21,6 +21,8 @@ use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
 use core::iter::TrustedLen;
 use core::marker::PhantomData;
 use core::mem::{align_of, size_of};
+#[cfg(feature = "serialize")]
+use core::result;
 use core::str::from_utf8_unchecked;
 
 use crate::endian_scalar::read_scalar_at;
@@ -323,7 +325,7 @@ where
     T: 'a + Follow<'a>,
     <T as Follow<'a>>::Inner: serde::ser::Serialize,
 {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
     {
