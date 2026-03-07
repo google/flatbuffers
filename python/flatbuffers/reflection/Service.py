@@ -42,7 +42,7 @@ class Service(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from reflection.RPCCall import RPCCall
+            from flatbuffers.reflection.RPCCall import RPCCall
             obj = RPCCall()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -67,7 +67,7 @@ class Service(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from reflection.KeyValue import KeyValue
+            from flatbuffers.reflection.KeyValue import KeyValue
             obj = KeyValue()
             obj.Init(self._tab.Bytes, x)
             return obj
