@@ -867,7 +867,7 @@ class PythonGenerator : public BaseGenerator {
     std::string getter = GenGetter(field.value.type);
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
-    code += "(self):";  // TODO: add typing
+    code += "(self):";
     code += OffsetPrefix(field);
     getter += "o + self._tab.Pos)";
     auto is_bool = IsBool(field.value.type.base_type);
