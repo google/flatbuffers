@@ -10,7 +10,7 @@
 #include "flatbuffers/registry.h"
 #include "flatbuffers/verifier.h"
 #include "is_quiet_nan.h"
-#include "monster_extra_generated.h"
+#include "monster_extra.fbs.h"
 #include "monster_test_generated.h"
 #include "test_assert.h"
 
