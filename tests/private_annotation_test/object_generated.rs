@@ -2,45 +2,55 @@
 // @generated
 extern crate alloc;
 use super::*;
+
 // struct Object, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) struct Object(pub [u8; 4]);
-impl Default for Object { 
-  fn default() -> Self { 
-    Self([0; 4])
-  }
+
+impl Default for Object {
+    fn default() -> Self {
+        Self([0; 4])
+    }
 }
+
 impl ::core::fmt::Debug for Object {
-  fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-    f.debug_struct("Object")
-      .field("value", &self.value())
-      .finish()
-  }
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        f.debug_struct("Object")
+            .field("value", &self.value())
+            .finish()
+    }
 }
 
 impl ::flatbuffers::SimpleToVerifyInSlice for Object {}
+
 impl<'a> ::flatbuffers::Follow<'a> for Object {
-  type Inner = &'a Object;
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    unsafe { <&'a Object>::follow(buf, loc) }
-  }
+    type Inner = &'a Object;
+
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe { <&'a Object>::follow(buf, loc) }
+    }
 }
+
 impl<'a> ::flatbuffers::Follow<'a> for &'a Object {
-  type Inner = &'a Object;
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    unsafe { ::flatbuffers::follow_cast_ref::<Object>(buf, loc) }
-  }
+    type Inner = &'a Object;
+
+    #[inline]
+    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+        unsafe { ::flatbuffers::follow_cast_ref::<Object>(buf, loc) }
+    }
 }
+
 impl<'b> ::flatbuffers::Push for Object {
     type Output = Object;
+
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         let src = unsafe { ::core::slice::from_raw_parts(self as *const Object as *const u8, <Self as ::flatbuffers::Push>::size()) };
         dst.copy_from_slice(src);
     }
+
     #[inline]
     fn alignment() -> ::flatbuffers::PushAlignment {
         ::flatbuffers::PushAlignment::new(4)
@@ -48,73 +58,80 @@ impl<'b> ::flatbuffers::Push for Object {
 }
 
 impl<'a> ::flatbuffers::Verifiable for Object {
-  #[inline]
-  fn run_verifier(
-    v: &mut ::flatbuffers::Verifier, pos: usize
-  ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
-    v.in_buffer::<Self>(pos)
-  }
+    #[inline]
+    fn run_verifier(
+        v: &mut ::flatbuffers::Verifier, pos: usize
+    ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
+        v.in_buffer::<Self>(pos)
+    }
 }
 
 impl<'a> Object {
-  #[allow(clippy::too_many_arguments)]
-  pub fn new(
-    value: i32,
-  ) -> Self {
-    let mut s = Self([0; 4]);
-    s.set_value(value);
-    s
-  }
-
-  pub const fn get_fully_qualified_name() -> &'static str {
-    "Object"
-  }
-
-  pub fn value(&self) -> i32 {
-    let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
-    // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid value in this slot
-    ::flatbuffers::EndianScalar::from_little_endian(unsafe {
-      ::core::ptr::copy_nonoverlapping(
-        self.0[0..].as_ptr(),
-        mem.as_mut_ptr() as *mut u8,
-        ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
-      );
-      mem.assume_init()
-    })
-  }
-
-  pub fn set_value(&mut self, x: i32) {
-    let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
-    // Safety:
-    // Created from a valid Table for this object
-    // Which contains a valid value in this slot
-    unsafe {
-      ::core::ptr::copy_nonoverlapping(
-        &x_le as *const _ as *const u8,
-        self.0[0..].as_mut_ptr(),
-        ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
-      );
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        value: i32,
+    ) -> Self {
+        let mut s = Self([0; 4]);
+        s.set_value(value);
+        s
     }
-  }
 
-  pub fn unpack(&self) -> ObjectT {
-    ObjectT {
-      value: self.value(),
+    pub const fn get_fully_qualified_name() -> &'static str {
+        "Object"
     }
-  }
+
+    pub fn value(&self) -> i32 {
+        let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid value in this slot
+        ::flatbuffers::EndianScalar::from_little_endian(unsafe {
+            ::core::ptr::copy_nonoverlapping(
+                self.0[0..].as_ptr(),
+                mem.as_mut_ptr() as *mut u8,
+                ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
+            );
+            mem.assume_init()
+        })
+    }
+
+    pub fn set_value(&mut self, x: i32) {
+        let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
+        // Safety:
+        // Created from a valid Table for this object
+        // Which contains a valid value in this slot
+        unsafe {
+            ::core::ptr::copy_nonoverlapping(
+                &x_le as *const _ as *const u8,
+                self.0[0..].as_mut_ptr(),
+                ::core::mem::size_of::<<i32 as ::flatbuffers::EndianScalar>::Scalar>(),
+            );
+        }
+    }
+
+    pub fn unpack(&self) -> ObjectT {
+        ObjectT {
+            value: self.value(),
+        }
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ObjectT {
-  pub value: i32,
+    pub value: i32,
 }
-impl ObjectT {
-  pub fn pack(&self) -> Object {
-    Object::new(
-      self.value,
-    )
-  }
+impl Default for ObjectT {
+    fn default() -> Self {
+        Self {
+            value: 0,
+        }
+    }
 }
 
+impl ObjectT {
+    pub fn pack(&self) -> Object {
+        Object::new(
+            self.value,
+        )
+    }
+}
