@@ -245,7 +245,7 @@ impl<'a> ArrayStruct {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ArrayStructT {
     pub a: f32,
     pub b: [i32; 15],
@@ -253,6 +253,18 @@ pub struct ArrayStructT {
     pub d: [NestedStructT; 2],
     pub e: i32,
     pub f: [i64; 2],
+}
+impl Default for ArrayStructT {
+    fn default() -> Self {
+        Self {
+            a: 0.0,
+            b: [0; 15],
+            c: 0,
+            d: ::flatbuffers::array_init(|_| Default::default()),
+            e: 0,
+            f: [0; 2],
+        }
+    }
 }
 
 impl ArrayStructT {
