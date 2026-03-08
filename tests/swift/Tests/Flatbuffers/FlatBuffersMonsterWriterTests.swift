@@ -331,7 +331,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
   func testCreateMessage() {
     let fbb = createMonster(withPrefix: false)
     let byteBuffer = fbb.buffer
-    let firstMessage = Message<Monster>(byteBuffer: byteBuffer)
+    let firstMessage = GRPCMessage<Monster>(byteBuffer: byteBuffer)
     firstMessage.withUnsafeReadableBytes { ptr in
       var bytes = ByteBuffer(contiguousBytes: ptr, count: ptr.count)
       var monster: Monster = getRoot(byteBuffer: &bytes)
@@ -339,7 +339,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     }
 
     let secondByteBuffer = fbb.sizedBuffer
-    let secondMessage = Message<Monster>(byteBuffer: secondByteBuffer)
+    let secondMessage = GRPCMessage<Monster>(byteBuffer: secondByteBuffer)
     secondMessage.withUnsafeReadableBytes { ptr in
       var bytes = ByteBuffer(contiguousBytes: ptr, count: ptr.count)
       var monster: Monster = getRoot(byteBuffer: &bytes)

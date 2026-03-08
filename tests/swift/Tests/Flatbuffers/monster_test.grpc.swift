@@ -6,205 +6,567 @@
 // swiftformat:disable all
 
 #if !os(Windows)
-import Foundation
-import GRPC
-import NIO
-import NIOHTTP1
 import FlatBuffers
+import Foundation
+import GRPCCore
+import GRPCNIOTransportCore
 
-public protocol GRPCFlatBufPayload: GRPCPayload, FlatBufferGRPCMessage {}
-public extension GRPCFlatBufPayload {
-  init(serializedByteBuffer: inout NIO.ByteBuffer) throws {
-    self.init(byteBuffer: FlatBuffers.ByteBuffer(contiguousBytes: serializedByteBuffer.readableBytesView, count: serializedByteBuffer.readableBytes))
-  }
-  func serialize(into buffer: inout NIO.ByteBuffer) throws {
-    withUnsafeReadableBytes { buffer.writeBytes($0) }
-  }
-}
-extension Message: GRPCFlatBufPayload {}
 
-/// Usage: instantiate MyGame_Example_MonsterStorageServiceClient, then call methods of this protocol to make API calls.
-public protocol MyGame_Example_MonsterStorageClientProtocol: GRPCClient {
-
-  var serviceName: String { get }
-
-  var interceptors: MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol? { get }
-
-  func Store(
-    _ request: Message<MyGame_Example_Monster>
-    , callOptions: CallOptions?
-  ) -> UnaryCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>
-
-  func Retrieve(
-    _ request: Message<MyGame_Example_Stat>
-    , callOptions: CallOptions?,
-    handler: @escaping (Message<MyGame_Example_Monster>) -> Void
-  ) -> ServerStreamingCall<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>>
-
-  func GetMaxHitPoint(
-    callOptions: CallOptions?
-  ) -> ClientStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>
-
-  func GetMinMaxHitPoints(
-    callOptions: CallOptions?,
-    handler: @escaping (Message<MyGame_Example_Stat> ) -> Void
-  ) -> BidirectionalStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>
-
-}
-
-extension MyGame_Example_MonsterStorageClientProtocol {
-
-  public var serviceName: String { "MyGame.Example.MonsterStorage" }
-
-  public func Store(
-    _ request: Message<MyGame_Example_Monster>
-    , callOptions: CallOptions? = nil
-  ) -> UnaryCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
-    return self.makeUnaryCall(
-      path: "/MyGame.Example.MonsterStorage/Store",
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStoreInterceptors() ?? []
-    )
-  }
-
-  public func Retrieve(
-    _ request: Message<MyGame_Example_Stat>
-    , callOptions: CallOptions? = nil,
-    handler: @escaping (Message<MyGame_Example_Monster>) -> Void
-  ) -> ServerStreamingCall<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>> {
-    return self.makeServerStreamingCall(
-      path: "/MyGame.Example.MonsterStorage/Retrieve",
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRetrieveInterceptors() ?? [],
-      handler: handler
-    )
-  }
-
-  public func GetMaxHitPoint(
-    callOptions: CallOptions? = nil
-  ) -> ClientStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
-    return self.makeClientStreamingCall(
-      path: "/MyGame.Example.MonsterStorage/GetMaxHitPoint",
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetMaxHitPointInterceptors() ?? []
-    )
-  }
-
-  public func GetMinMaxHitPoints(
-    callOptions: CallOptions? = nil,
-    handler: @escaping (Message<MyGame_Example_Stat> ) -> Void
-  ) -> BidirectionalStreamingCall<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>> {
-    return self.makeBidirectionalStreamingCall(
-      path: "/MyGame.Example.MonsterStorage/GetMinMaxHitPoints",
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetMinMaxHitPointsInterceptors() ?? [],
-      handler: handler
-    )
-  }
-}
-
-public protocol MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol {
-  /// - Returns: Interceptors to use when invoking 'Store'.
-  func makeStoreInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
-
-  /// - Returns: Interceptors to use when invoking 'Retrieve'.
-  func makeRetrieveInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>>]
-
-  /// - Returns: Interceptors to use when invoking 'GetMaxHitPoint'.
-  func makeGetMaxHitPointInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
-
-  /// - Returns: Interceptors to use when invoking 'GetMinMaxHitPoints'.
-  func makeGetMinMaxHitPointsInterceptors() -> [ClientInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
-
-}
-
-public final class MyGame_Example_MonsterStorageServiceClient: MyGame_Example_MonsterStorageClientProtocol {
-  public let channel: GRPCChannel
-  public var defaultCallOptions: CallOptions
-  public var interceptors: MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol?
-
-  public init(
-    channel: GRPCChannel,
-    defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: MyGame_Example_MonsterStorageClientInterceptorFactoryProtocol? = nil
-  ) {
-    self.channel = channel
-    self.defaultCallOptions = defaultCallOptions
-    self.interceptors = interceptors
-  }
-}
-
-public protocol MyGame_Example_MonsterStorageProvider: CallHandlerProvider {
-  var interceptors: MyGame_Example_MonsterStorageServerInterceptorFactoryProtocol? { get }
-  func Store(request: Message<MyGame_Example_Monster>, context: StatusOnlyCallContext) -> EventLoopFuture<Message<MyGame_Example_Stat>>
-  func Retrieve(request: Message<MyGame_Example_Stat>, context: StreamingResponseCallContext<Message<MyGame_Example_Monster>>) -> EventLoopFuture<GRPCStatus>
-  func GetMaxHitPoint(context: UnaryResponseCallContext<Message<MyGame_Example_Stat>>) -> EventLoopFuture<(StreamEvent<Message<MyGame_Example_Monster>>) -> Void>
-  func GetMinMaxHitPoints(context: StreamingResponseCallContext<Message<MyGame_Example_Stat>>) -> EventLoopFuture<(StreamEvent<Message<MyGame_Example_Monster>>) -> Void>
-}
-
-public extension MyGame_Example_MonsterStorageProvider {
-
-  var serviceName: Substring { return "MyGame.Example.MonsterStorage" }
-
-  func handle(method name: Substring, context: CallHandlerContext) -> GRPCServerHandlerProtocol? {
-    switch name {
-    case "Store":
-    return UnaryServerHandler(
-      context: context,
-      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Monster>>(),
-      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Stat>>(),
-      interceptors: self.interceptors?.makeStoreInterceptors() ?? [],
-      userFunction: self.Store(request:context:))
-
-    case "Retrieve":
-    return ServerStreamingServerHandler(
-      context: context,
-      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Stat>>(),
-      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Monster>>(),
-      interceptors: self.interceptors?.makeRetrieveInterceptors() ?? [],
-      userFunction: self.Retrieve(request:context:))
-
-    case "GetMaxHitPoint":
-    return ClientStreamingServerHandler(
-      context: context,
-      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Monster>>(),
-      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Stat>>(),
-      interceptors: self.interceptors?.makeGetMaxHitPointInterceptors() ?? [],
-      observerFactory: self.GetMaxHitPoint(context:))
-
-    case "GetMinMaxHitPoints":
-    return BidirectionalStreamingServerHandler(
-      context: context,
-      requestDeserializer: GRPCPayloadDeserializer<Message<MyGame_Example_Monster>>(),
-      responseSerializer: GRPCPayloadSerializer<Message<MyGame_Example_Stat>>(),
-      interceptors: self.interceptors?.makeGetMinMaxHitPointsInterceptors() ?? [],
-      observerFactory: self.GetMinMaxHitPoints(context:))
-
-    default: return nil;
+/// Usage: instantiate MyGame.Example.MonsterStorageServiceClient, then call methods of this protocol to make API calls.
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension FlatBuffersMessageSerializer: MessageSerializer {
+  public func serialize<Bytes>(_ message: Message) throws -> Bytes where Bytes : GRPCCore.GRPCContiguousBytes {
+    do {
+      return try self.serialize(message: message) { GRPCNIOTransportBytes($0) } as! Bytes
+    } catch let error {
+      throw RPCError(
+        code: .invalidArgument,
+        message: "Can't serialize message",
+        cause: error
+      )
     }
   }
-
 }
 
-public protocol MyGame_Example_MonsterStorageServerInterceptorFactoryProtocol {
-  /// - Returns: Interceptors to use when handling 'Store'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeStoreInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
-
-  /// - Returns: Interceptors to use when handling 'Retrieve'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRetrieveInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Stat>, Message<MyGame_Example_Monster>>]
-
-  /// - Returns: Interceptors to use when handling 'GetMaxHitPoint'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetMaxHitPointInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
-
-  /// - Returns: Interceptors to use when handling 'GetMinMaxHitPoints'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetMinMaxHitPointsInterceptors() -> [ServerInterceptor<Message<MyGame_Example_Monster>, Message<MyGame_Example_Stat>>]
-
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension FlatBuffersMessageDeserializer: MessageDeserializer {
+  public func deserialize<Bytes>(_ serializedMessageBytes: Bytes) throws -> Message where Bytes : GRPCCore.GRPCContiguousBytes {
+    do {
+      return try serializedMessageBytes.withUnsafeBytes {
+        try self.deserialize(pointer: $0)
+      }
+    } catch let error {
+      throw RPCError(
+        code: .invalidArgument,
+        message: "Can't Decode message of type \(Message.self)",
+        cause: error
+      )
+    }
+  }
 }
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+public enum MyGame_Example_MonsterStorage: Sendable {
+  public static let descriptor = GRPCCore.ServiceDescriptor(fullyQualifiedService: "MyGame.Example.MonsterStorage")
+  public enum Method: Sendable {
+    public enum Store: Sendable {
+      public typealias Input = FlatBufferBuilder
+      public typealias Output = MyGame_Example_Stat
+      public static let descriptor = GRPCCore.MethodDescriptor(
+        service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "MyGame.Example.MonsterStorage"),
+        method: "Store"
+      )
+    }
+    public enum Retrieve: Sendable {
+      public typealias Input = FlatBufferBuilder
+      public typealias Output = MyGame_Example_Monster
+      public static let descriptor = GRPCCore.MethodDescriptor(
+        service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "MyGame.Example.MonsterStorage"),
+        method: "Retrieve"
+      )
+    }
+    public enum GetMaxHitPoint: Sendable {
+      public typealias Input = FlatBufferBuilder
+      public typealias Output = MyGame_Example_Stat
+      public static let descriptor = GRPCCore.MethodDescriptor(
+        service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "MyGame.Example.MonsterStorage"),
+        method: "GetMaxHitPoint"
+      )
+    }
+    public enum GetMinMaxHitPoints: Sendable {
+      public typealias Input = FlatBufferBuilder
+      public typealias Output = MyGame_Example_Stat
+      public static let descriptor = GRPCCore.MethodDescriptor(
+        service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "MyGame.Example.MonsterStorage"),
+        method: "GetMinMaxHitPoints"
+      )
+    }
+    public static let descriptors: [GRPCCore.MethodDescriptor] = [
+      Store.descriptor,
+      Retrieve.descriptor,
+      GetMaxHitPoint.descriptor,
+      GetMinMaxHitPoints.descriptor,
+    ]
+  }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension GRPCCore.ServiceDescriptor {
+  public static let MyGame_Example_MonsterStorage = GRPCCore.ServiceDescriptor(fullyQualifiedService: "MyGame.Example.MonsterStorage")
+}
+
+// MARK: MyGame.Example.MonsterStorage Server
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage {
+  public protocol StreamingServiceProtocol: GRPCCore.RegistrableRPCService {
+    func Store(
+      request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>>
+    
+    func Retrieve(
+      request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Monster>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Monster>>
+    
+    func GetMaxHitPoint(
+      request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>>
+    
+    func GetMinMaxHitPoints(
+      request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>>
+    
+  }
+  
+  public protocol ServiceProtocol: MyGame_Example_MonsterStorage.StreamingServiceProtocol {
+    func Store(
+      request: GRPCCore.ServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<GRPCMessage<MyGame_Example_Stat>>
+    
+    func Retrieve(
+      request: GRPCCore.ServerRequest<GRPCMessage<MyGame_Example_Monster>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Monster>>
+    
+    func GetMaxHitPoint(
+      request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<GRPCMessage<MyGame_Example_Stat>>
+    
+    func GetMinMaxHitPoints(
+      request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>>
+    
+  }
+  
+  public protocol SimpleServiceProtocol: MyGame_Example_MonsterStorage.ServiceProtocol {
+    func Store(
+      request: GRPCMessage<MyGame_Example_Stat>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCMessage<MyGame_Example_Stat>
+    
+    func Retrieve(
+      request: GRPCMessage<MyGame_Example_Monster>,
+      response: GRPCCore.RPCWriter<GRPCMessage<MyGame_Example_Monster>>,
+      context: GRPCCore.ServerContext
+    ) async throws
+    
+    func GetMaxHitPoint(
+      request: GRPCCore.RPCAsyncSequence<GRPCMessage<MyGame_Example_Stat>, any Swift.Error>,
+      context: GRPCCore.ServerContext
+    ) async throws -> GRPCMessage<MyGame_Example_Stat>
+    
+    func GetMinMaxHitPoints(
+      request: GRPCCore.RPCAsyncSequence<GRPCMessage<MyGame_Example_Stat>, any Swift.Error>,
+      response: GRPCCore.RPCWriter<GRPCMessage<MyGame_Example_Stat>>,
+      context: GRPCCore.ServerContext
+    ) async throws
+    
+  }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage.StreamingServiceProtocol {
+  public func registerMethods<Transport>(with router: inout GRPCCore.RPCRouter<Transport>) where Transport: GRPCCore.ServerTransport {
+    router.registerHandler(
+      forMethod: MyGame_Example_MonsterStorage.Method.Store.descriptor,
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Stat>>(),
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Stat>>(),
+      handler: { request, context in
+        try await self.Store(
+          request: request,
+          context: context
+        )
+      }
+    )
+    router.registerHandler(
+      forMethod: MyGame_Example_MonsterStorage.Method.Retrieve.descriptor,
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Monster>>(),
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Monster>>(),
+      handler: { request, context in
+        try await self.Retrieve(
+          request: request,
+          context: context
+        )
+      }
+    )
+    router.registerHandler(
+      forMethod: MyGame_Example_MonsterStorage.Method.GetMaxHitPoint.descriptor,
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Stat>>(),
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Stat>>(),
+      handler: { request, context in
+        try await self.GetMaxHitPoint(
+          request: request,
+          context: context
+        )
+      }
+    )
+    router.registerHandler(
+      forMethod: MyGame_Example_MonsterStorage.Method.GetMinMaxHitPoints.descriptor,
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Stat>>(),
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Stat>>(),
+      handler: { request, context in
+        try await self.GetMinMaxHitPoints(
+          request: request,
+          context: context
+        )
+      }
+    )
+  }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage.ServiceProtocol {
+  public func Store(
+    request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+    context: GRPCCore.ServerContext
+  ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>> {
+    let response = try await self.Store(
+      request: GRPCCore.ServerRequest(stream: request),
+      context: context
+    )
+    return GRPCCore.StreamingServerResponse(single: response)
+  }
+  public func Retrieve(
+    request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Monster>>,
+    context: GRPCCore.ServerContext
+  ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Monster>> {
+    let response = try await self.Retrieve(
+      request: GRPCCore.ServerRequest(stream: request),
+      context: context
+    )
+    return response
+  }
+  public func GetMaxHitPoint(
+    request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+    context: GRPCCore.ServerContext
+  ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>> {
+    let response = try await self.GetMaxHitPoint(
+      request: request,
+      context: context
+    )
+    return GRPCCore.StreamingServerResponse(single: response)
+  }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage.SimpleServiceProtocol {
+  public func Store(
+    request: GRPCCore.ServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+    context: GRPCCore.ServerContext
+  ) async throws -> GRPCCore.ServerResponse<GRPCMessage<MyGame_Example_Stat>> {
+    return GRPCCore.ServerResponse<GRPCMessage<MyGame_Example_Stat>>(
+      message: try await self.Store(
+        request: request.message,
+        context: context
+      ),
+      metadata: [:]
+    )
+  }
+  public func Retrieve(
+    request: GRPCCore.ServerRequest<GRPCMessage<MyGame_Example_Monster>>,
+    context: GRPCCore.ServerContext
+  ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Monster>> {
+    return GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Monster>>(
+      metadata: [:],
+      producer: { writer in
+        try await self.Retrieve(
+          request: request.message,
+          response: writer,
+          context: context
+        )
+        return [:]
+      }
+    )
+  }
+  public func GetMaxHitPoint(
+    request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+    context: GRPCCore.ServerContext
+  ) async throws -> GRPCCore.ServerResponse<GRPCMessage<MyGame_Example_Stat>> {
+    return GRPCCore.ServerResponse<GRPCMessage<MyGame_Example_Stat>>(
+      message: try await self.GetMaxHitPoint(
+        request: request.messages,
+        context: context
+      ),
+      metadata: [:]
+    )
+  }
+  public func GetMinMaxHitPoints(
+    request: GRPCCore.StreamingServerRequest<GRPCMessage<MyGame_Example_Stat>>,
+    context: GRPCCore.ServerContext
+  ) async throws -> GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>> {
+    return GRPCCore.StreamingServerResponse<GRPCMessage<MyGame_Example_Stat>>(
+      metadata: [:],
+      producer: { writer in
+        try await self.GetMinMaxHitPoints(
+          request: request.messages,
+          response: writer,
+          context: context
+        )
+        return [:]
+      }
+    )
+  }
+}
+
+
+// MARK: MyGame.Example.MonsterStorage Client
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage {
+  public protocol ClientProtocol: Sendable {
+    func Store<Result>(
+      request: GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Stat>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Stat>>,
+      options: GRPCCore.CallOptions,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result
+    ) async throws -> Result where Result: Sendable
+    
+    func Retrieve<Result>(
+      request: GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Monster>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Monster>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Monster>>,
+      options: GRPCCore.CallOptions,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Monster>>) async throws -> Result
+    ) async throws -> Result where Result: Sendable
+    
+    func GetMaxHitPoint<Result>(
+      request: GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Stat>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Stat>>,
+      options: GRPCCore.CallOptions,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result
+    ) async throws -> Result where Result: Sendable
+    
+    func GetMinMaxHitPoints<Result>(
+      request: GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Stat>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Stat>>,
+      options: GRPCCore.CallOptions,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result
+    ) async throws -> Result where Result: Sendable
+    
+  }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage {
+  public struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
+    private let client: GRPCCore.GRPCClient<Transport>
+    
+    public init(wrapping client: GRPCCore.GRPCClient<Transport>) {
+      self.client = client
+    }
+    
+    public func Store<Result>(
+      request: GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Stat>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Stat>>,
+      options: GRPCCore.CallOptions = .defaults,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result = { response in try response.message }
+    ) async throws -> Result where Result: Sendable {
+      try await self.client.unary(
+        request: request,
+        descriptor: MyGame_Example_MonsterStorage.Method.Store.descriptor,
+        serializer: serializer,
+        deserializer: deserializer,
+        options: options,
+        onResponse: handleResponse
+      )
+    }
+    
+    public func Retrieve<Result>(
+      request: GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Monster>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Monster>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Monster>>,
+      options: GRPCCore.CallOptions = .defaults,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Monster>>) async throws -> Result
+    ) async throws -> Result where Result: Sendable {
+      try await self.client.serverStreaming(
+        request: request,
+        descriptor: MyGame_Example_MonsterStorage.Method.Retrieve.descriptor,
+        serializer: serializer,
+        deserializer: deserializer,
+        options: options,
+        onResponse: handleResponse
+      )
+    }
+    
+    public func GetMaxHitPoint<Result>(
+      request: GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Stat>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Stat>>,
+      options: GRPCCore.CallOptions = .defaults,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result = { response in try response.message }
+    ) async throws -> Result where Result: Sendable {
+      try await self.client.clientStreaming(
+        request: request,
+        descriptor: MyGame_Example_MonsterStorage.Method.GetMaxHitPoint.descriptor,
+        serializer: serializer,
+        deserializer: deserializer,
+        options: options,
+        onResponse: handleResponse
+      )
+    }
+    
+    public func GetMinMaxHitPoints<Result>(
+      request: GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+      serializer: some GRPCCore.MessageSerializer<GRPCMessage<MyGame_Example_Stat>>,
+      deserializer: some GRPCCore.MessageDeserializer<GRPCMessage<MyGame_Example_Stat>>,
+      options: GRPCCore.CallOptions = .defaults,
+      onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result
+    ) async throws -> Result where Result: Sendable {
+      try await self.client.bidirectionalStreaming(
+        request: request,
+        descriptor: MyGame_Example_MonsterStorage.Method.GetMinMaxHitPoints.descriptor,
+        serializer: serializer,
+        deserializer: deserializer,
+        options: options,
+        onResponse: handleResponse
+      )
+    }
+    
+  }
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage.ClientProtocol {
+  public func Store<Result>(
+    request: GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+    options: GRPCCore.CallOptions = .defaults,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result = { response in try response.message }
+  ) async throws -> Result where Result: Sendable {
+    try await self.Store(
+      request: request,
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Stat>>(),
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Stat>>(),
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+  public func Retrieve<Result>(
+    request: GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Monster>>,
+    options: GRPCCore.CallOptions = .defaults,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Monster>>) async throws -> Result
+  ) async throws -> Result where Result: Sendable {
+    try await self.Retrieve(
+      request: request,
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Monster>>(),
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Monster>>(),
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+  public func GetMaxHitPoint<Result>(
+    request: GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+    options: GRPCCore.CallOptions = .defaults,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result = { response in try response.message }
+  ) async throws -> Result where Result: Sendable {
+    try await self.GetMaxHitPoint(
+      request: request,
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Stat>>(),
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Stat>>(),
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+  public func GetMinMaxHitPoints<Result>(
+    request: GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>,
+    options: GRPCCore.CallOptions = .defaults,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result
+  ) async throws -> Result where Result: Sendable {
+    try await self.GetMinMaxHitPoints(
+      request: request,
+      serializer: FlatBuffersMessageSerializer<GRPCMessage<MyGame_Example_Stat>>(),
+      deserializer: FlatBuffersMessageDeserializer<GRPCMessage<MyGame_Example_Stat>>(),
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+}
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension MyGame_Example_MonsterStorage.ClientProtocol {
+  public func Store<Result>(
+    _ message: GRPCMessage<MyGame_Example_Stat>,
+    metadata: GRPCCore.Metadata = [:],
+    options: GRPCCore.CallOptions = .defaults,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result = { try $0.message }
+  ) async throws -> Result where Result: Sendable {
+    let request = GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Stat>>(
+      message: message,
+      metadata: metadata
+    )
+    return try await self.Store(
+      request: request,
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+  public func Retrieve<Result>(
+    _ message: GRPCMessage<MyGame_Example_Monster>,
+    metadata: GRPCCore.Metadata = [:],
+    options: GRPCCore.CallOptions = .defaults,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Monster>>) async throws -> Result
+  ) async throws -> Result where Result: Sendable {
+    let request = GRPCCore.ClientRequest<GRPCMessage<MyGame_Example_Monster>>(
+      message: message,
+      metadata: metadata
+    )
+    return try await self.Retrieve(
+      request: request,
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+  public func GetMaxHitPoint<Result>(
+    metadata: GRPCCore.Metadata = [:],
+    options: GRPCCore.CallOptions = .defaults,
+    requestProducer producer: @Sendable @escaping (GRPCCore.RPCWriter<GRPCMessage<MyGame_Example_Stat>>) async throws -> Void,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result = { try $0.message }
+  ) async throws -> Result where Result: Sendable {
+    let request = GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>(
+      metadata: metadata,
+      producer: producer
+    )
+    return try await self.GetMaxHitPoint(
+      request: request,
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+  public func GetMinMaxHitPoints<Result>(
+    metadata: GRPCCore.Metadata = [:],
+    options: GRPCCore.CallOptions = .defaults,
+    requestProducer producer: @Sendable @escaping (GRPCCore.RPCWriter<GRPCMessage<MyGame_Example_Stat>>) async throws -> Void,
+    onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<GRPCMessage<MyGame_Example_Stat>>) async throws -> Result
+  ) async throws -> Result where Result: Sendable {
+    let request = GRPCCore.StreamingClientRequest<GRPCMessage<MyGame_Example_Stat>>(
+      metadata: metadata,
+      producer: producer
+    )
+    return try await self.GetMinMaxHitPoints(
+      request: request,
+      options: options,
+      onResponse: handleResponse
+    )
+  }
+  
+}
+
 #endif
 

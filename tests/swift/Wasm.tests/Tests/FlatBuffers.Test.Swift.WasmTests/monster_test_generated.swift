@@ -662,7 +662,7 @@ public struct MyGame_Example_StructOfStructsOfStructs_Mutable: FlatBufferStruct,
   }
 }
 
-public struct MyGame_InParentNamespace: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_InParentNamespace: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -712,7 +712,7 @@ public class MyGame_InParentNamespaceT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_InParentNamespace.self) }
 
 }
-public struct MyGame_Example2_Monster: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Example2_Monster: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -762,7 +762,7 @@ public class MyGame_Example2_MonsterT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example2_Monster.self) }
 
 }
-internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+internal struct MyGame_Example_TestSimpleTableWithEnum: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
@@ -840,7 +840,7 @@ internal class MyGame_Example_TestSimpleTableWithEnumT: NativeObject {
   internal func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_TestSimpleTableWithEnum.self) }
 
 }
-public struct MyGame_Example_Stat: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Example_Stat: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -976,7 +976,7 @@ public class MyGame_Example_StatT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Stat.self) }
 
 }
-public struct MyGame_Example_Referrable: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Example_Referrable: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -1079,7 +1079,7 @@ public class MyGame_Example_ReferrableT: NativeObject {
 
 }
 ///  an example documentation comment: "monster object"
-public struct MyGame_Example_Monster: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Example_Monster: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -2213,7 +2213,7 @@ public class MyGame_Example_MonsterT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Example_Monster.self) }
 
 }
-public struct MyGame_Example_TypeAliases: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Example_TypeAliases: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }

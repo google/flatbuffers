@@ -8,7 +8,7 @@
 
 @_implementationOnly import FlatBuffers
 
-internal struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+internal struct Message: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }

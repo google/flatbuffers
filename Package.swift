@@ -60,7 +60,12 @@ extension Array where Element == Package.Dependency {
     []
     #else
     // Test only Dependency
-    [.package(url: "https://github.com/grpc/grpc-swift.git", from: "1.4.1")]
+    [
+      .package(url: "https://github.com/grpc/grpc-swift-2.git", from: "2.0.0"),
+      .package(
+        url: "https://github.com/grpc/grpc-swift-nio-transport.git",
+        from: "2.0.0"),
+    ]
     #endif
   }
 }
@@ -72,7 +77,10 @@ extension Array where Element == PackageDescription.Target.Dependency {
     #else
     // Test only Dependency
     [
-      .product(name: "GRPC", package: "grpc-swift"),
+      .product(name: "GRPCCore", package: "grpc-swift-2"),
+      .product(
+        name: "GRPCNIOTransportHTTP2",
+        package: "grpc-swift-nio-transport"),
       "FlatBuffers",
     ]
     #endif

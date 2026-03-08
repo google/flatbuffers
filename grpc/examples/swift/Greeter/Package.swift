@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.2
 /*
  * Copyright 2020 Google Inc. All rights reserved.
  *
@@ -20,39 +20,43 @@ import PackageDescription
 let package = Package(
   name: "Greeter",
   platforms: [
-    .iOS(.v12),
-    .macOS(.v10_14),
+    .iOS(.v18),
+    .macOS(.v15),
   ],
   dependencies: [
-    .package(path: "../../../../swift"),
-    .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
+    .package(path: "../../../.."),
+    .package(url: "https://github.com/grpc/grpc-swift-2.git", from: "2.0.0"),
+    .package(
+      url: "https://github.com/grpc/grpc-swift-nio-transport.git",
+      from: "2.0.0"),
+    .package(
+      url: "https://github.com/apple/swift-argument-parser.git",
+      from: "1.5.0"),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module or a test suite.
     // Targets can depend on other targets in this package, and on products in packages which this package depends on.
     .target(
-      name: "Model",
+      name: "Models",
       dependencies: [
-        "GRPC",
-        "FlatBuffers",
-      ],
-      path: "Sources/Model"),
+        .product(name: "FlatBuffers", package: "flatbuffers"),
+        .product(name: "GRPCCore", package: "grpc-swift-2"),
+        .product(
+          name: "GRPCNIOTransportHTTP2",
+          package: "grpc-swift-nio-transport"),
+      ]),
 
     // Client for the Greeter example
-    .target(
-      name: "Client",
+    .executableTarget(
+      name: "Commands",
       dependencies: [
-        "GRPC",
-        "Model",
-      ],
-      path: "Sources/client"),
-
-    // Server for the Greeter example
-    .target(
-      name: "Server",
-      dependencies: [
-        "GRPC",
-        "Model",
-      ],
-      path: "Sources/server"),
+        .product(name: "GRPCCore", package: "grpc-swift-2"),
+        .product(
+          name: "GRPCNIOTransportHTTP2",
+          package: "grpc-swift-nio-transport"),
+        .product(
+          name: "ArgumentParser",
+          package: "swift-argument-parser"),
+        "Models",
+      ]),
   ])
