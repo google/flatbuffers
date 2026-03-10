@@ -34,6 +34,7 @@
 #include "third_party/absl/container/flat_hash_set.h"
 #endif
 #include "alignment_test.h"
+#include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
@@ -54,7 +55,6 @@
 #include "reflection_test.h"
 #include "tests/union_vector/union_vector_generated.h"
 #include "union_underlying_type_test_generated.h"
-#include "cross_namespace_pack_test_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
 #include "tests/arrays_test_generated.h"
 #endif
@@ -1738,7 +1738,7 @@ void CrossNamespacePackTest() {
   flatbuffers::FlatBufferBuilder fbb;
   fbb.Finish(foo::Consumer::Pack(fbb, &consumer));
 
-  auto *packed = flatbuffers::GetRoot<foo::Consumer>(fbb.GetBufferPointer());
+  auto* packed = flatbuffers::GetRoot<foo::Consumer>(fbb.GetBufferPointer());
   auto unpacked = packed->UnPack();
   TEST_EQ(unpacked->c1->value, 42);
   TEST_EQ(unpacked->c2.size(), 1);
