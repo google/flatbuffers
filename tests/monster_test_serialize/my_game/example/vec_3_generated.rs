@@ -282,7 +282,7 @@ impl<'a> Vec3 {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Vec3T {
     pub x: f32,
     pub y: f32,

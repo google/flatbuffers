@@ -108,7 +108,7 @@ impl ::core::fmt::Debug for Monster<'_> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct MonsterT {
 }
 

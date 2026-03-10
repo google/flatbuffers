@@ -174,7 +174,7 @@ impl<'a> Ability {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct AbilityT {
     pub id: u32,
     pub distance: u32,

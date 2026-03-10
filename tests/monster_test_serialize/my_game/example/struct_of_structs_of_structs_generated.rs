@@ -112,7 +112,7 @@ impl<'a> StructOfStructsOfStructs {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct StructOfStructsOfStructsT {
     pub a: StructOfStructsT,
 }

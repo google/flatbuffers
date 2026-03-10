@@ -131,7 +131,7 @@ impl ::core::fmt::Debug for TestSimpleTableWithEnum<'_> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TestSimpleTableWithEnumT {
     pub color: Color,
 }
