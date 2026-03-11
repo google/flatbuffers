@@ -43,6 +43,23 @@ public struct NestedStruct : IFlatbufferObject
 #endif
   public void MutateD(int j, long d) { __p.bb.PutLong(__p.bb_pos + 16 + j * 8, d); }
 
+#if ENABLE_SPAN_T
+  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, Span<int> A, MyGame.Example.TestEnum B, Span<MyGame.Example.TestEnum> C, Span<long> D) {
+    builder.Prep(8, 32);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutLong(D[_idx0-1]);
+    }
+    builder.Pad(5);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutSbyte((sbyte)C[_idx0-1]);
+    }
+    builder.PutSbyte((sbyte)B);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutInt(A[_idx0-1]);
+    }
+    return new Offset<MyGame.Example.NestedStruct>(builder.Offset);
+  }
+#else
   public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C, long[] D) {
     builder.Prep(8, 32);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
@@ -58,6 +75,7 @@ public struct NestedStruct : IFlatbufferObject
     }
     return new Offset<MyGame.Example.NestedStruct>(builder.Offset);
   }
+#endif
   public NestedStructT UnPack() {
     var _o = new NestedStructT();
     this.UnPackTo(_o);

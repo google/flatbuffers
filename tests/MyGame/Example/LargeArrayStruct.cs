@@ -50,6 +50,38 @@ public struct LargeArrayStruct : IFlatbufferObject
 #endif
   public void MutateH(int j, MyGame.Example.TestEnum h) { __p.bb.PutSbyte(__p.bb_pos + 2432 + j * 1, (sbyte)h); }
 
+#if ENABLE_SPAN_T
+  public static Offset<MyGame.Example.LargeArrayStruct> CreateLargeArrayStruct(FlatBufferBuilder builder, Span<byte> D, Span<float> E, Span<bool> F, Span<int> g_A, Span<MyGame.Example.TestEnum> g_B, Span<MyGame.Example.TestEnum> g_C, Span<long> g_D, Span<MyGame.Example.TestEnum> H) {
+    builder.Prep(8, 2496);
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutSbyte((sbyte)H[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.Prep(8, 32);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutLong(g_D[(_idx0-1)*2 + (_idx1-1)]);
+      }
+      builder.Pad(5);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutSbyte((sbyte)g_C[(_idx0-1)*2 + (_idx1-1)]);
+      }
+      builder.PutSbyte((sbyte)g_B[_idx0-1]);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutInt(g_A[(_idx0-1)*2 + (_idx1-1)]);
+      }
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutBool(F[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutFloat(E[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutByte(D[_idx0-1]);
+    }
+    return new Offset<MyGame.Example.LargeArrayStruct>(builder.Offset);
+  }
+#else
   public static Offset<MyGame.Example.LargeArrayStruct> CreateLargeArrayStruct(FlatBufferBuilder builder, byte[] D, float[] E, bool[] F, int[,] g_A, MyGame.Example.TestEnum[] g_B, MyGame.Example.TestEnum[,] g_C, long[,] g_D, MyGame.Example.TestEnum[] H) {
     builder.Prep(8, 2496);
     for (int _idx0 = 64; _idx0 > 0; _idx0--) {
@@ -80,6 +112,7 @@ public struct LargeArrayStruct : IFlatbufferObject
     }
     return new Offset<MyGame.Example.LargeArrayStruct>(builder.Offset);
   }
+#endif
   public LargeArrayStructT UnPack() {
     var _o = new LargeArrayStructT();
     this.UnPackTo(_o);
@@ -102,14 +135,29 @@ public struct LargeArrayStruct : IFlatbufferObject
     var _d = _o.D;
     var _e = _o.E;
     var _f = _o.F;
+#if ENABLE_SPAN_T
+    var _g_a = new int[128];
+    for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_a[idx0*2 + idx1] = _o.G[idx0].A[idx1];}}
+#else
     var _g_a = new int[64,2];
     for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_a[idx0,idx1] = _o.G[idx0].A[idx1];}}
+#endif
     var _g_b = new MyGame.Example.TestEnum[64];
     for (var idx0 = 0; idx0 < 64; ++idx0) {_g_b[idx0] = _o.G[idx0].B;}
+#if ENABLE_SPAN_T
+    var _g_c = new MyGame.Example.TestEnum[128];
+    for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_c[idx0*2 + idx1] = _o.G[idx0].C[idx1];}}
+#else
     var _g_c = new MyGame.Example.TestEnum[64,2];
     for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_c[idx0,idx1] = _o.G[idx0].C[idx1];}}
+#endif
+#if ENABLE_SPAN_T
+    var _g_d = new long[128];
+    for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_d[idx0*2 + idx1] = _o.G[idx0].D[idx1];}}
+#else
     var _g_d = new long[64,2];
     for (var idx0 = 0; idx0 < 64; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_g_d[idx0,idx1] = _o.G[idx0].D[idx1];}}
+#endif
     var _h = _o.H;
     return CreateLargeArrayStruct(
       builder,
