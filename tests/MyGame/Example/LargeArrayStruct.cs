@@ -51,7 +51,7 @@ public struct LargeArrayStruct : IFlatbufferObject
   public void MutateH(int j, MyGame.Example.TestEnum h) { __p.bb.PutSbyte(__p.bb_pos + 2432 + j * 1, (sbyte)h); }
 
 #if ENABLE_SPAN_T
-  public static Offset<MyGame.Example.LargeArrayStruct> CreateLargeArrayStruct(FlatBufferBuilder builder, Span<byte> D, Span<float> E, Span<bool> F, Span<int> g_A, Span<MyGame.Example.TestEnum> g_B, Span<MyGame.Example.TestEnum> g_C, Span<long> g_D, Span<MyGame.Example.TestEnum> H) {
+  public static Offset<MyGame.Example.LargeArrayStruct> CreateLargeArrayStruct(FlatBufferBuilder builder, ReadOnlySpan<byte> D, ReadOnlySpan<float> E, ReadOnlySpan<bool> F, ReadOnlySpan<int> g_A, ReadOnlySpan<MyGame.Example.TestEnum> g_B, ReadOnlySpan<MyGame.Example.TestEnum> g_C, ReadOnlySpan<long> g_D, ReadOnlySpan<MyGame.Example.TestEnum> H) {
     builder.Prep(8, 2496);
     for (int _idx0 = 64; _idx0 > 0; _idx0--) {
       builder.PutSbyte((sbyte)H[_idx0-1]);

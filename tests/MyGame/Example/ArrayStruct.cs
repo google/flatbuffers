@@ -41,7 +41,7 @@ public struct ArrayStruct : IFlatbufferObject
   public void MutateF(int j, long f) { __p.bb.PutLong(__p.bb_pos + 144 + j * 8, f); }
 
 #if ENABLE_SPAN_T
-  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, Span<int> B, sbyte C, Span<int> d_A, Span<MyGame.Example.TestEnum> d_B, Span<MyGame.Example.TestEnum> d_C, Span<long> d_D, int E, Span<long> F) {
+  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, ReadOnlySpan<int> B, sbyte C, ReadOnlySpan<int> d_A, ReadOnlySpan<MyGame.Example.TestEnum> d_B, ReadOnlySpan<MyGame.Example.TestEnum> d_C, ReadOnlySpan<long> d_D, int E, ReadOnlySpan<long> F) {
     builder.Prep(8, 160);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.PutLong(F[_idx0-1]);

@@ -573,7 +573,7 @@ class CSharpGenerator : public BaseGenerator {
       } else {
         code += ", ";
         if (use_span && array_cnt > 0) {
-          code += "Span<" + GenTypeBasic(type) + ">";
+          code += "ReadOnlySpan<" + GenTypeBasic(type) + ">";
         } else {
           code += GenTypeBasic(type);
           if (field.IsScalarOptional()) {
