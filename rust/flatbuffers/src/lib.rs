@@ -63,5 +63,6 @@ pub use crate::verifier::{
 pub use crate::vtable::field_index_to_field_offset;
 pub use bitflags;
 pub use get_root::*;
+pub use ordered_float;
 
 // TODO(rw): Split fill ops in builder into fill_small, fill_big like in C++.
