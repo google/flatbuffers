@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #![allow(deprecated)]
+
+use serde_derive::{Deserialize, Serialize};
+
 /// Represents all the valid types in a flexbuffer.
 ///
 /// Flexbuffers supports
@@ -34,7 +37,6 @@
 /// * Indirect numbers are stored as an offset instead of inline. Using
 /// indirect numbers instead of their inline counterparts in maps and typed
 /// vectors can reduce the minimum element width and therefore bytes used.
-
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, num_enum::TryFromPrimitive)]
 pub enum FlexBufferType {
@@ -122,10 +124,7 @@ macro_rules! is_ty {
 impl FlexBufferType {
     /// Returns true for flexbuffer types that are stored inline.
     pub fn is_inline(self) -> bool {
-        match self {
-            Null | Int | UInt | Float | Bool => true,
-            _ => false,
-        }
+        matches!(self, Null | Int | UInt | Float | Bool)
     }
     /// Returns true for flexbuffer types that are stored by offset.
     pub fn is_reference(self) -> bool {
