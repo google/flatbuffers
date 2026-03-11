@@ -24,6 +24,9 @@ use core::marker::PhantomData;
 use core::ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
 use core::ptr::write_bytes;
 
+#[cfg(feature = "std")]
+use std::collections::HashMap;
+
 use crate::endian_scalar::emplace_scalar;
 use crate::primitives::*;
 use crate::push::{Push, PushAlignment};
@@ -139,6 +142,9 @@ pub struct FlatBufferBuilder<'fbb, A: Allocator = DefaultAllocator> {
 
     min_align: usize,
     force_defaults: bool,
+    #[cfg(feature = "std")]
+    strings_pool: HashMap<String, WIPOffset<&'fbb str>>,
+    #[cfg(not(feature = "std"))]
     strings_pool: Vec<WIPOffset<&'fbb str>>,
 
     _phantom: PhantomData<&'fbb ()>,
@@ -251,6 +257,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
             min_align: 0,
             force_defaults: false,
+            #[cfg(feature = "std")]
+            strings_pool: HashMap::new(),
+            #[cfg(not(feature = "std"))]
             strings_pool: Vec::new(),
 
             _phantom: PhantomData,
@@ -433,6 +442,31 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         WIPOffset::new(o.value())
     }
 
+    /// Create a utf8 string, and de-duplicate if already created.
+    ///
+    /// Uses a HashMap to track previously written strings, providing O(1)
+    /// amortized lookup and insertion.
+    #[cfg(feature = "std")]
+    #[inline]
+    pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
+        self.assert_not_nested(
+            "create_shared_string can not be called when a table or vector is under construction",
+        );
+
+        if let Some(&offset) = self.strings_pool.get(s) {
+            return offset;
+        }
+
+        let address = WIPOffset::new(self.create_byte_string(s.as_bytes()).value());
+        self.strings_pool.insert(s.to_owned(), address);
+        address
+    }
+
+    /// Create a utf8 string, and de-duplicate if already created.
+    ///
+    /// Uses a sorted Vec with binary search to track previously written
+    /// strings when in `no_std` mode.
+    #[cfg(not(feature = "std"))]
     #[inline]
     pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.assert_not_nested(
@@ -445,19 +479,15 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
         let found = self.strings_pool.binary_search_by(|offset| {
             let ptr = offset.value() as usize;
-            // Gets The pointer to the size of the string
             let str_memory = &buf[buf.len() - ptr..];
-            // Gets the size of the written string from buffer
-            let size =
-                u32::from_le_bytes([str_memory[0], str_memory[1], str_memory[2], str_memory[3]])
-                    as usize;
-            // Size of the string size
-            let string_size: usize = 4;
-            // Fetches actual string bytes from index of string after string size
-            // to the size of string plus string size
-            let iter = str_memory[string_size..size + string_size].iter();
-            // Compares bytes of fetched string and current writable string
-            iter.cloned().cmp(s.bytes())
+            let size = u32::from_le_bytes([
+                str_memory[0],
+                str_memory[1],
+                str_memory[2],
+                str_memory[3],
+            ]) as usize;
+            let stored = &str_memory[4..4 + size];
+            stored.cmp(s.as_bytes())
         });
 
         match found {
