@@ -3,7 +3,6 @@
 extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
-use super::*;
 
 // struct StructOfStructsOfStructs, aligned to 4
 #[repr(transparent)]
@@ -82,7 +81,7 @@ impl Serialize for StructOfStructsOfStructs {
 impl<'a> StructOfStructsOfStructs {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        a: &StructOfStructs,
+        a: &super::StructOfStructs,
     ) -> Self {
         let mut s = Self([0; 20]);
         s.set_a(a);
@@ -93,15 +92,15 @@ impl<'a> StructOfStructsOfStructs {
         "MyGame.Example.StructOfStructsOfStructs"
     }
 
-    pub fn a(&self) -> &StructOfStructs {
+    pub fn a(&self) -> &super::StructOfStructs {
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid struct in this slot
-        unsafe { &*(self.0[0..].as_ptr() as *const StructOfStructs) }
+        unsafe { &*(self.0[0..].as_ptr() as *const super::StructOfStructs) }
     }
 
     #[allow(clippy::identity_op)]
-    pub fn set_a(&mut self, x: &StructOfStructs) {
+    pub fn set_a(&mut self, x: &super::StructOfStructs) {
         self.0[0..0 + 20].copy_from_slice(&x.0)
     }
 
@@ -114,7 +113,7 @@ impl<'a> StructOfStructsOfStructs {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StructOfStructsOfStructsT {
-    pub a: StructOfStructsT,
+    pub a: super::StructOfStructsT,
 }
 impl Default for StructOfStructsOfStructsT {
     fn default() -> Self {

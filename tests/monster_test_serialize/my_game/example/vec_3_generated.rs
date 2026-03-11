@@ -3,7 +3,6 @@
 extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
-use super::*;
 
 // struct Vec3, aligned to 8
 #[repr(transparent)]
@@ -96,8 +95,8 @@ impl<'a> Vec3 {
         y: f32,
         z: f32,
         test1: f64,
-        test2: Color,
-        test3: &Test,
+        test2: super::Color,
+        test3: &super::Test,
     ) -> Self {
         let mut s = Self([0; 32]);
         s.set_x(x);
@@ -229,8 +228,8 @@ impl<'a> Vec3 {
         }
     }
 
-    pub fn test2(&self) -> Color {
-        let mut mem = ::core::mem::MaybeUninit::<<Color as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+    pub fn test2(&self) -> super::Color {
+        let mut mem = ::core::mem::MaybeUninit::<<super::Color as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -238,13 +237,13 @@ impl<'a> Vec3 {
             ::core::ptr::copy_nonoverlapping(
                 self.0[24..].as_ptr(),
                 mem.as_mut_ptr() as *mut u8,
-                ::core::mem::size_of::<<Color as ::flatbuffers::EndianScalar>::Scalar>(),
+                ::core::mem::size_of::<<super::Color as ::flatbuffers::EndianScalar>::Scalar>(),
             );
             mem.assume_init()
         })
     }
 
-    pub fn set_test2(&mut self, x: Color) {
+    pub fn set_test2(&mut self, x: super::Color) {
         let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
         // Safety:
         // Created from a valid Table for this object
@@ -253,20 +252,20 @@ impl<'a> Vec3 {
             ::core::ptr::copy_nonoverlapping(
                 &x_le as *const _ as *const u8,
                 self.0[24..].as_mut_ptr(),
-                ::core::mem::size_of::<<Color as ::flatbuffers::EndianScalar>::Scalar>(),
+                ::core::mem::size_of::<<super::Color as ::flatbuffers::EndianScalar>::Scalar>(),
             );
         }
     }
 
-    pub fn test3(&self) -> &Test {
+    pub fn test3(&self) -> &super::Test {
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid struct in this slot
-        unsafe { &*(self.0[26..].as_ptr() as *const Test) }
+        unsafe { &*(self.0[26..].as_ptr() as *const super::Test) }
     }
 
     #[allow(clippy::identity_op)]
-    pub fn set_test3(&mut self, x: &Test) {
+    pub fn set_test3(&mut self, x: &super::Test) {
         self.0[26..26 + 4].copy_from_slice(&x.0)
     }
 
@@ -288,8 +287,8 @@ pub struct Vec3T {
     pub y: f32,
     pub z: f32,
     pub test1: f64,
-    pub test2: Color,
-    pub test3: TestT,
+    pub test2: super::Color,
+    pub test3: super::TestT,
 }
 impl Default for Vec3T {
     fn default() -> Self {
