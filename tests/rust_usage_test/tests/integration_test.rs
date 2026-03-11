@@ -3447,4 +3447,5 @@ fn test_shared_strings_pool_deduplication() {
     assert_eq!(m.enemy().unwrap().name(), "goblin");
 }
 
+} // mod flatbuffers_tests
 }
