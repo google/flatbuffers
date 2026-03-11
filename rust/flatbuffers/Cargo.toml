@@ -18,6 +18,7 @@ serialize = ["serde"]
 
 [dependencies]
 bitflags = "2.8.0"
+ordered-float = { version = "5", features = ["serde"] }
 serde = { version = "1.0", optional = true }
 
 [build-dependencies]
