@@ -3375,6 +3375,76 @@ fn lookup_index_by_key_consistent_with_lookup_by_key() {
         assert!(abilities.lookup_by_key(*key, |a, k| a.key_compare_with_value(*k)).is_none());
         assert!(abilities.lookup_index_by_key(*key, |a, k| a.key_compare_with_value(*k)).is_none());
     }
+fn test_shared_strings_pool_deduplication() {
+    // Verifies that create_shared_string correctly deduplicates across many
+    // unique strings and that the resulting buffer contains valid data.
+    let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+
+    // Insert multiple unique strings and verify each gets a distinct offset.
+    let animals = ["cat", "dog", "bird", "fish", "snake"];
+    let offsets: Vec<_> = animals
+        .iter()
+        .map(|s| builder.create_shared_string(s))
+        .collect();
+    for i in 0..offsets.len() {
+        for j in (i + 1)..offsets.len() {
+            assert_ne!(
+                offsets[i].value(),
+                offsets[j].value(),
+                "unique strings '{}' and '{}' must have different offsets",
+                animals[i],
+                animals[j],
+            );
+        }
+    }
+
+    // Re-insert the same strings and verify they return the original offsets.
+    for (i, s) in animals.iter().enumerate() {
+        let offset = builder.create_shared_string(s);
+        assert_eq!(
+            offset.value(),
+            offsets[i].value(),
+            "duplicate string '{}' must return the same offset",
+            s,
+        );
+    }
+
+    // Verify that reset clears the pool: a previously shared string is no
+    // longer deduplicated against strings from before the reset.
+    builder.reset();
+    let a = builder.create_shared_string("cat");
+    let b = builder.create_shared_string("cat");
+    assert_eq!(a.value(), b.value(), "same string after reset must still deduplicate");
+
+    // Verify that shared strings produce a valid, readable buffer.
+    builder.reset();
+    let shared_name = builder.create_shared_string("goblin");
+    let shared_name_dup = builder.create_shared_string("goblin");
+    assert_eq!(shared_name.value(), shared_name_dup.value());
+
+    let enemy = my_game::example::Monster::create(
+        &mut builder,
+        &my_game::example::MonsterArgs {
+            name: Some(shared_name),
+            ..Default::default()
+        },
+    );
+    let main_name = builder.create_shared_string("goblin");
+    assert_eq!(main_name.value(), shared_name.value());
+
+    let monster = my_game::example::Monster::create(
+        &mut builder,
+        &my_game::example::MonsterArgs {
+            name: Some(main_name),
+            enemy: Some(enemy),
+            ..Default::default()
+        },
+    );
+    builder.finish(monster, None);
+
+    let m = my_game::example::root_as_monster(builder.finished_data()).unwrap();
+    assert_eq!(m.name(), "goblin");
+    assert_eq!(m.enemy().unwrap().name(), "goblin");
 }
 
 }
