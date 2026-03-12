@@ -25,12 +25,10 @@ path = "bin/monster_example.rs"
 [[bin]]
 name = "flatbuffers_alloc_check"
 path = "bin/flatbuffers_alloc_check.rs"
-test = true
 
 [[bin]]
 name = "flexbuffers_alloc_check"
 path = "bin/flexbuffers_alloc_check.rs"
-test = true
 
 [[bin]]
 name = "sample_flexbuffers"

@@ -294,6 +294,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
             min_align: 0,
             force_defaults: false,
+            #[cfg(feature = "std")]
+            strings_pool: HashMap::with_capacity(strings_pool_capacity),
+            #[cfg(not(feature = "std"))]
             strings_pool: Vec::with_capacity(strings_pool_capacity),
 
             _phantom: PhantomData,
