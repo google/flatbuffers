@@ -20,9 +20,18 @@ use std::error::Error;
 /// the other errors should not be producible by correct flatbuffers implementations.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ErrorTraceDetail {
-    VectorElement { index: usize, position: usize },
-    TableField { field_name: Cow<'static, str>, position: usize },
-    UnionVariant { variant: Cow<'static, str>, position: usize },
+    VectorElement {
+        index: usize,
+        position: usize,
+    },
+    TableField {
+        field_name: Cow<'static, str>,
+        position: usize,
+    },
+    UnionVariant {
+        variant: Cow<'static, str>,
+        position: usize,
+    },
 }
 
 #[derive(PartialEq, Eq, Default, Debug, Clone)]
@@ -91,18 +100,33 @@ impl Error for InvalidFlatbuffer {
 impl core::fmt::Display for InvalidFlatbuffer {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
-            InvalidFlatbuffer::MissingRequiredField { required, error_trace } => {
+            InvalidFlatbuffer::MissingRequiredField {
+                required,
+                error_trace,
+            } => {
                 writeln!(f, "Missing required field `{}`.\n{}", required, error_trace)?;
             }
-            InvalidFlatbuffer::InconsistentUnion { field, field_type, error_trace } => {
+            InvalidFlatbuffer::InconsistentUnion {
+                field,
+                field_type,
+                error_trace,
+            } => {
                 writeln!(
                     f,
                     "Exactly one of union discriminant (`{}`) and value (`{}`) are present.\n{}",
                     field_type, field, error_trace
                 )?;
             }
-            InvalidFlatbuffer::Utf8Error { error, range, error_trace } => {
-                writeln!(f, "Utf8 error for string in {:?}: {}\n{}", range, error, error_trace)?;
+            InvalidFlatbuffer::Utf8Error {
+                error,
+                range,
+                error_trace,
+            } => {
+                writeln!(
+                    f,
+                    "Utf8 error for string in {:?}: {}\n{}",
+                    range, error, error_trace
+                )?;
             }
             InvalidFlatbuffer::MissingNullTerminator { range, error_trace } => {
                 writeln!(
@@ -111,7 +135,11 @@ impl core::fmt::Display for InvalidFlatbuffer {
                     range.start, range.end, error_trace
                 )?;
             }
-            InvalidFlatbuffer::Unaligned { position, unaligned_type, error_trace } => {
+            InvalidFlatbuffer::Unaligned {
+                position,
+                unaligned_type,
+                error_trace,
+            } => {
                 writeln!(
                     f,
                     "Type `{}` at position {} is unaligned.\n{}",
@@ -125,7 +153,11 @@ impl core::fmt::Display for InvalidFlatbuffer {
                     range.start, range.end, error_trace
                 )?;
             }
-            InvalidFlatbuffer::SignedOffsetOutOfBounds { soffset, position, error_trace } => {
+            InvalidFlatbuffer::SignedOffsetOutOfBounds {
+                soffset,
+                position,
+                error_trace,
+            } => {
                 writeln!(
                     f,
                     "Signed offset at position {} has value {} which points out of bounds.\n{}",
@@ -158,7 +190,10 @@ impl core::fmt::Display for ErrorTrace {
                         index, position
                     )?;
                 }
-                TableField { field_name, position } => {
+                TableField {
+                    field_name,
+                    position,
+                } => {
                     writeln!(
                         f,
                         "\twhile verifying table field `{}` at position {:?}",
@@ -182,7 +217,10 @@ pub type Result<T> = core::result::Result<T, InvalidFlatbuffer>;
 
 impl InvalidFlatbuffer {
     fn new_range_oob<T>(start: usize, end: usize) -> Result<T> {
-        Err(Self::RangeOutOfBounds { range: Range { start, end }, error_trace: Default::default() })
+        Err(Self::RangeOutOfBounds {
+            range: Range { start, end },
+            error_trace: Default::default(),
+        })
     }
     pub fn new_inconsistent_union<T>(
         field: impl Into<Cow<'static, str>>,
@@ -222,7 +260,13 @@ fn append_trace<T>(mut res: Result<T>, d: ErrorTraceDetail) -> Result<T> {
 
 /// Adds a TableField trace detail if `res` is a data error.
 fn trace_field<T>(res: Result<T>, field_name: Cow<'static, str>, position: usize) -> Result<T> {
-    append_trace(res, ErrorTraceDetail::TableField { field_name, position })
+    append_trace(
+        res,
+        ErrorTraceDetail::TableField {
+            field_name,
+            position,
+        },
+    )
 }
 
 /// Adds a TableField trace detail if `res` is a data error.
@@ -271,7 +315,13 @@ pub struct Verifier<'opts, 'buf> {
 
 impl<'opts, 'buf> Verifier<'opts, 'buf> {
     pub fn new(opts: &'opts VerifierOptions, buffer: &'buf [u8]) -> Self {
-        Self { opts, buffer, depth: 0, num_tables: 0, apparent_size: 0 }
+        Self {
+            opts,
+            buffer,
+            depth: 0,
+            num_tables: 0,
+            apparent_size: 0,
+        }
     }
     /// Resets verifier internal state.
     #[inline]
@@ -385,7 +435,12 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
         if self.depth > self.opts.max_depth {
             return Err(InvalidFlatbuffer::DepthLimitReached);
         }
-        Ok(TableVerifier { pos: table_pos, vtable: vtable_pos, vtable_len, verifier: self })
+        Ok(TableVerifier {
+            pos: table_pos,
+            vtable: vtable_pos,
+            vtable_len,
+            verifier: self,
+        })
     }
 
     /// Runs the union variant's type's verifier assuming the variant is at the given position,
@@ -396,7 +451,13 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
         position: usize,
     ) -> Result<()> {
         let res = T::run_verifier(self, position);
-        append_trace(res, ErrorTraceDetail::UnionVariant { variant: variant.into(), position })
+        append_trace(
+            res,
+            ErrorTraceDetail::UnionVariant {
+                variant: variant.into(),
+                position,
+            },
+        )
     }
 }
 
@@ -440,7 +501,11 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
         required: bool,
     ) -> Result<Self> {
         if let Some(field_pos) = self.deref(field)? {
-            trace_field(T::run_verifier(self.verifier, field_pos), field_name.into(), field_pos)?;
+            trace_field(
+                T::run_verifier(self.verifier, field_pos),
+                field_name.into(),
+                field_pos,
+            )?;
             return Ok(self);
         }
         if required {
@@ -480,7 +545,11 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
                 }
             }
             (Some(k), Some(v)) => {
-                trace_field(Key::run_verifier(self.verifier, k), key_field_name.into(), k)?;
+                trace_field(
+                    Key::run_verifier(self.verifier, k),
+                    key_field_name.into(),
+                    k,
+                )?;
                 // Safety:
                 // Run verifier on `k` above
                 let discriminant = unsafe { Key::follow(self.verifier.buffer, k) };
@@ -576,7 +645,11 @@ impl<T: Verifiable> Verifiable for Vector<'_, ForwardsUOffset<T>> {
         let range = verify_vector_range::<ForwardsUOffset<T>>(v, pos)?;
         let size = core::mem::size_of::<ForwardsUOffset<T>>();
         for (i, element_pos) in range.step_by(size).enumerate() {
-            trace_elem(<ForwardsUOffset<T>>::run_verifier(v, element_pos), i, element_pos)?;
+            trace_elem(
+                <ForwardsUOffset<T>>::run_verifier(v, element_pos),
+                i,
+                element_pos,
+            )?;
         }
         Ok(())
     }
