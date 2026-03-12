@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::bitwidth::BitWidth::*;
+use serde_derive::{Deserialize, Serialize};
 use std::slice::Iter;
 
 /// Represents the size of Flexbuffers data.
@@ -68,13 +69,13 @@ macro_rules! impl_bitwidth_from {
         impl From<$from> for BitWidth {
             fn from(x: $from) -> BitWidth {
                 let x = x as $w64;
-                if x >= $w8::min_value() as $w64 && x <= $w8::max_value() as $w64 {
+                if x >= $w8::MIN as $w64 && x <= $w8::MAX as $w64 {
                     return W8;
                 }
-                if x >= $w16::min_value() as $w64 && x <= $w16::max_value() as $w64 {
+                if x >= $w16::MIN as $w64 && x <= $w16::MAX as $w64 {
                     return W16;
                 }
-                if x >= $w32::min_value() as $w64 && x <= $w32::max_value() as $w64 {
+                if x >= $w32::MIN as $w64 && x <= $w32::MAX as $w64 {
                     return W32;
                 }
                 W64
@@ -107,7 +108,7 @@ pub fn align(buffer: &mut Vec<u8>, width: BitWidth) {
     let bytes = 1 << width as u8;
     let alignment = (bytes - buffer.len() % bytes) % bytes;
     // Profiling reveals the loop is faster than Vec::resize.
-    for _ in 0..alignment as usize {
+    for _ in 0..alignment {
         buffer.push(0);
     }
 }
