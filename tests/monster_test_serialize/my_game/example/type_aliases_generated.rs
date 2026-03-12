@@ -385,7 +385,7 @@ impl ::core::fmt::Debug for TypeAliases<'_> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TypeAliasesT {
     pub i8_: i8,
     pub u8_: u8,
@@ -397,7 +397,9 @@ pub struct TypeAliasesT {
     pub u64_: u64,
     pub f32_: f32,
     pub f64_: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub v8: Option<alloc::vec::Vec<i8>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vf64: Option<alloc::vec::Vec<f64>>,
 }
 

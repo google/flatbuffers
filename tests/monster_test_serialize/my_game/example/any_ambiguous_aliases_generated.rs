@@ -140,7 +140,8 @@ pub struct AnyAmbiguousAliasesUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "type", content = "value")]
 pub enum AnyAmbiguousAliasesT {
     NONE,
     M1(alloc::boxed::Box<MonsterT>),

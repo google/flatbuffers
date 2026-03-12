@@ -137,8 +137,9 @@ impl ::core::fmt::Debug for TableA<'_> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TableAT {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub b: Option<alloc::boxed::Box<my_game::other_name_space::TableBT>>,
 }
 

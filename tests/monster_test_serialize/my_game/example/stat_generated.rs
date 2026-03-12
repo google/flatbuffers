@@ -192,8 +192,9 @@ impl ::core::fmt::Debug for Stat<'_> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct StatT {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<alloc::string::String>,
     pub val: i64,
     pub count: u16,

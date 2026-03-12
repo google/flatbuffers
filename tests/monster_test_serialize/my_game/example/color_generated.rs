@@ -32,6 +32,16 @@ impl Serialize for Color {
     }
 }
 
+impl<'de> serde::Deserialize<'de> for Color {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let bits = <u8 as serde::Deserialize>::deserialize(deserializer)?;
+        Ok(Self::from_bits_retain(bits as u8))
+    }
+}
+
 impl<'a> ::flatbuffers::Follow<'a> for Color {
     type Inner = Self;
 
