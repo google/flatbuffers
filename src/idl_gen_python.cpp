@@ -616,8 +616,6 @@ class PythonStubGenerator {
     stub << "class " << namer_.Type(*enum_def);
     imports->Export(ModuleFor(enum_def), namer_.Type(*enum_def));
 
-    imports->Import("typing", "Final");
-
     if (parser_.opts.python_typing) {
       if (enum_def->attributes.Lookup("bit_flags")) {
         imports->Import("enum", "IntFlag");
@@ -631,12 +629,17 @@ class PythonStubGenerator {
     }
 
     stub << ":\n";
-    for (const EnumVal* val : enum_def->Vals()) {
-      stub << "  " << namer_.Variant(*val) << ": Final["
-           << namer_.Type(*enum_def) << "]\n";
+    if (parser_.opts.python_typing) {
+      for (const EnumVal* val : enum_def->Vals()) {
+        stub << "  " << namer_.Variant(*val) << namer_.Type(*enum_def) << "\n";
+      }
+    } else {
+      imports->Import("typing", "cast");
+      for (const EnumVal* val : enum_def->Vals()) {
+        stub << "  " << namer_.Variant(*val) << " = cast("
+             << ScalarType(enum_def->underlying_type.base_type) << ", ...)\n";
+      }
     }
-    stub << "  def __new__(cls, value: int) -> " << namer_.Type(*enum_def)
-         << ": ...\n";
 
     if (parser_.opts.generate_object_based_api & enum_def->is_union) {
       imports->Import("flatbuffers", "table");
