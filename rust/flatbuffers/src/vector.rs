@@ -16,9 +16,9 @@
 
 use core::cmp::Ordering;
 use core::fmt::{Debug, Formatter, Result};
-use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
 #[cfg(nightly)]
 use core::iter::TrustedLen;
+use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
 use core::marker::PhantomData;
 use core::mem::{align_of, size_of};
 use core::str::from_utf8_unchecked;
@@ -33,7 +33,11 @@ impl<'a, T: 'a> Default for Vector<'a, T> {
     fn default() -> Self {
         // Static, length 0 vector.
         // Note that derived default causes UB due to issues in read_scalar_at /facepalm.
-        Self(&[0; core::mem::size_of::<UOffsetT>()], 0, Default::default())
+        Self(
+            &[0; core::mem::size_of::<UOffsetT>()],
+            0,
+            Default::default(),
+        )
     }
 }
 
@@ -207,7 +211,12 @@ impl<'a, T: 'a> VectorIter<'a, T> {
     ///
     #[inline]
     pub unsafe fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
-        VectorIter { buf, loc: 0, remaining: items_num, phantom: PhantomData }
+        VectorIter {
+            buf,
+            loc: 0,
+            remaining: items_num,
+            phantom: PhantomData,
+        }
     }
 }
 
