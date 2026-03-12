@@ -126,9 +126,7 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
 std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
   if (bfbs_ != nullptr && bfbs_length_ != 0) {
     flatbuffers::Verifier verifier(bfbs_, static_cast<size_t>(bfbs_length_));
-    if ((is_size_prefixed_ &&
-         !reflection::VerifySizePrefixedSchemaBuffer(verifier)) ||
-        !reflection::VerifySchemaBuffer(verifier)) {
+    if (!reflection::VerifySchemaBuffer(verifier)) {
       return {};
     }
   }
