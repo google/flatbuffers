@@ -3825,7 +3825,9 @@ class CppGenerator : public BaseGenerator {
               code += WrapInNameSpace(*vector_type.struct_def) + ">> ";
               code += "(" + value + ".size(), ";
               code += "[](size_t i, _VectorArgs *__va) { ";
-              code += "return Create" + vector_type.struct_def->name;
+              code += "return " +
+                      WrapInNameSpace(vector_type.struct_def->defined_namespace,
+                                      "Create" + vector_type.struct_def->name);
               code += "(*__va->__fbb, ";
               if (field.native_inline) {
                 code += "&(__va->_" + value + "[i])";
@@ -3938,8 +3940,10 @@ class CppGenerator : public BaseGenerator {
           }
         } else {
           // _o->field ? CreateT(_fbb, _o->field.get(), _rehasher);
-          const std::string& type = field.value.type.struct_def->name;
-          code += value + " ? Create" + type;
+          const auto& nested_struct = *field.value.type.struct_def;
+          code += value + " ? " +
+                  WrapInNameSpace(nested_struct.defined_namespace,
+                                  "Create" + nested_struct.name);
           code += "(_fbb, " + value;
           if (!field.native_inline) code += GenPtrGet(field);
           code += ", _rehasher) : 0";
