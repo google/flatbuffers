@@ -207,7 +207,6 @@ class PythonStubGenerator {
   }
 
   std::string EnumType(const EnumDef& enum_def, Imports* imports) const {
-    imports->Import("typing");
     std::ignore = imports->Import(ModuleFor(&enum_def), namer_.Type(enum_def));
 
     return namer_.Type(enum_def);
@@ -631,7 +630,8 @@ class PythonStubGenerator {
     stub << ":\n";
     if (parser_.opts.python_typing) {
       for (const EnumVal* val : enum_def->Vals()) {
-        stub << "  " << namer_.Variant(*val) << namer_.Type(*enum_def) << "\n";
+        stub << "  " << namer_.Variant(*val) << ": " << namer_.Type(*enum_def)
+             << "\n";
       }
     } else {
       imports->Import("typing", "cast");
