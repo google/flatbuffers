@@ -2,7 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' == '6.0'">net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' == '8.0'">net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(NETCoreAppMaximumVersion)' == '10.0'">net6.0;net8.0;net10.0</TargetFrameworks>
+    <OutputDir>$(SolutionDir).tmp</OutputDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,11 +22,11 @@
     <DefineConstants>$(DefineConstants);ENABLE_SPAN_T</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -198,6 +201,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <Target Name="CopyOutputToOutputDir" AfterTargets="Build" Condition="'$(TargetFramework)' == 'net$(NETCoreAppMaximumVersion)'">
+    <ItemGroup>
+      <OutputFiles Include="$(OutputPath)*.*"/>
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(OutputFiles)"
+      DestinationFolder="$(OutputDir)"
+      SkipUnchangedFiles="true"/>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

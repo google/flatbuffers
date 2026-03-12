@@ -20,6 +20,7 @@ using System.Threading;
 using MyGame.Example;
 using optional_scalars;
 using KeywordTest;
+using System;
 
 namespace Google.FlatBuffers.Test
 {
@@ -66,6 +67,9 @@ namespace Google.FlatBuffers.Test
             var str = fbb.CreateString("MyMonster");
             var test1 = fbb.CreateString("test1");
             var test2 = fbb.CreateString("test2");
+            var testArrayOfBoolsData = new bool[UInt16.MaxValue];
+
+            Array.Fill(testArrayOfBoolsData, true);
 
 
             Monster.StartInventoryVector(fbb, 5);
@@ -90,6 +94,7 @@ namespace Google.FlatBuffers.Test
             fbb.AddOffset(test1.Value);
             var testArrayOfString = fbb.EndVector();
 
+            var testArrayOfBools = Monster.CreateTestarrayofboolsVector(fbb, testArrayOfBoolsData);
             var longsVector = Monster.CreateVectorOfLongsVector(fbb, new long[] { 1, 100, 10000, 1000000, 100000000 });
             var doublesVector = Monster.CreateVectorOfDoublesVector(fbb, new double[] { -1.7976931348623157e+308, 0, 1.7976931348623157e+308 });
 
@@ -105,6 +110,7 @@ namespace Google.FlatBuffers.Test
             Monster.AddTestarrayofstring(fbb, testArrayOfString);
             Monster.AddTestbool(fbb, true);
             Monster.AddTestarrayoftables(fbb, sortMons);
+            Monster.AddTestarrayofbools(fbb, testArrayOfBools);
             Monster.AddVectorOfLongs(fbb, longsVector);
             Monster.AddVectorOfDoubles(fbb, doublesVector);
             var mon = Monster.EndMonster(fbb);
@@ -147,7 +153,7 @@ namespace Google.FlatBuffers.Test
             //Attempt to mutate Monster fields and check whether the buffer has been mutated properly
             // revert to original values after testing
             Monster monster = Monster.GetRootAsMonster(dataBuffer);
-            
+
 
             // mana is optional and does not exist in the buffer so the mutation should fail
             // the mana field should retain its default value
@@ -1150,8 +1156,8 @@ namespace Google.FlatBuffers.Test
             var offset = KeywordsInTable.CreateKeywordsInTable(
                 fbb, KeywordTest.ABC.@stackalloc, KeywordTest.@public.NONE);
             fbb.Finish(offset.Value);
- 
-            KeywordsInTable keywordsInTable = 
+
+            KeywordsInTable keywordsInTable =
                 KeywordsInTable.GetRootAsKeywordsInTable(fbb.DataBuffer);
 
             Assert.AreEqual(keywordsInTable.Is, KeywordTest.ABC.@stackalloc);
@@ -1166,7 +1172,7 @@ namespace Google.FlatBuffers.Test
           ScalarStuff.AddMaybeEnum(fbb, null);
           var offset = ScalarStuff.EndScalarStuff(fbb);
           ScalarStuff.FinishScalarStuffBuffer(fbb, offset);
-          
+
           ScalarStuff scalarStuff = ScalarStuff.GetRootAsScalarStuff(fbb.DataBuffer);
           Assert.AreEqual(null, scalarStuff.MaybeEnum);
         }
@@ -1179,7 +1185,7 @@ namespace Google.FlatBuffers.Test
             // test for https://github.com/google/flatbuffers/issues/7380.
             var fbb = new FlatBufferBuilder(1);
 
-            // Create a vector of Stat objects, with Count being the key. 
+            // Create a vector of Stat objects, with Count being the key.
             var stat_offsets = new Offset<Stat>[4];
             for(ushort i = 0; i < stat_offsets.Length; i++) {
                 Stat.StartStat(fbb);
