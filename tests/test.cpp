@@ -34,6 +34,7 @@
 #include "third_party/absl/container/flat_hash_set.h"
 #endif
 #include "alignment_test.h"
+#include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
@@ -1721,6 +1722,29 @@ static void Offset64Tests() {
 #endif
 }
 
+// Test that Pack() generates correctly namespace-qualified Create* calls
+// when referencing tables from different namespaces. (issue #8948)
+void CrossNamespacePackTest() {
+  // Build a Consumer with a cross-namespace TableWithNative reference.
+  foo::ConsumerT consumer;
+  consumer.c1 = std::make_unique<native::TableWithNativeT>();
+  consumer.c1->value = 42;
+
+  // Add a vector element too.
+  consumer.c2.push_back(std::make_unique<native::TableWithNativeT>());
+  consumer.c2[0]->value = 99;
+
+  // Pack and verify round-trip.
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(foo::Consumer::Pack(fbb, &consumer));
+
+  auto* packed = flatbuffers::GetRoot<foo::Consumer>(fbb.GetBufferPointer());
+  auto unpacked = packed->UnPack();
+  TEST_EQ(unpacked->c1->value, 42);
+  TEST_EQ(unpacked->c2.size(), 1);
+  TEST_EQ(unpacked->c2[0]->value, 99);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1838,6 +1862,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   UnionUnderlyingTypeTest();
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
+  CrossNamespacePackTest();
   return 0;
 }
 }  // namespace
