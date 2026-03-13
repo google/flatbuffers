@@ -742,6 +742,9 @@ struct IDLOptions {
   // Whether to generate numpy helpers.
   bool python_gen_numpy;
 
+  // Use snake-case for field names in the Python object API.
+  bool python_fields_snake_case;
+
   bool ts_omit_entrypoint;
   bool ts_undefined_for_optionals;
   ProtoIdGapAction proto_id_gap_action;
@@ -869,6 +872,7 @@ struct IDLOptions {
         python_no_type_prefix_suffix(false),
         python_typing(false),
         python_gen_numpy(true),
+        python_fields_snake_case(false),
         ts_omit_entrypoint(false),
         ts_undefined_for_optionals(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
