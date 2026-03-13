@@ -395,6 +395,11 @@ flatc(
 )
 
 flatc(
+    ["--cpp", "--gen-compare", "--gen-mutable", "--gen-object-api", "--reflect-names"],
+    schema="cross_namespace_pack_test.fbs",
+)
+
+flatc(
     RUST_OPTS,
     prefix="arrays_test",
     schema="arrays_test.fbs",
