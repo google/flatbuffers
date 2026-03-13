@@ -2608,6 +2608,12 @@ class CppGenerator : public BaseGenerator {
       code_ += "  int KeyCompareWithValue(const char *_{{FIELD_NAME}}) const {";
       code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
       code_ += "  }";
+      // Crate an explicit overload for char*.
+      code_ += "  int KeyCompareWithValue(char *_{{FIELD_NAME}}) const {";
+      code_ +=
+          "    return KeyCompareWithValue(static_cast<const char "
+          "*>(_{{FIELD_NAME}}));";
+      code_ += "  }";
       // Compares key against any string-like object (e.g. std::string_view or
       // std::string) that implements operator< comparison with const char*.
       code_ += "  template<typename StringType>";

@@ -1853,6 +1853,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   JsonUnsortedArrayTest();
   VectorSpanTest();
   NativeInlineTableVectorTest();
+  CallLookupByKeyOnString();
   FixedSizedScalarKeyInStructTest();
   StructKeyInStructTest();
   NestedStructKeyInStructTest();
