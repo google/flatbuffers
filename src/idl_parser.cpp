@@ -4132,7 +4132,13 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
   const auto& of = *(object->fields());
   auto indexes = std::vector<uoffset_t>(of.size());
-  for (uoffset_t i = 0; i < of.size(); i++) indexes[of.Get(i)->id()] = i;
+  for (uoffset_t i = 0; i < of.size(); i++) 
+  {
+    if (of.Get(i)->id() >= of.size()) {
+      return false;
+    }
+    indexes[of.Get(i)->id()] = i;
+  }
   size_t tmp_struct_size = 0;
   for (size_t i = 0; i < indexes.size(); i++) {
     auto field = of.Get(indexes[i]);
