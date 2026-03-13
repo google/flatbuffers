@@ -30,16 +30,16 @@ namespace flatbuffers {
 
 // ------------------------- GETTERS -------------------------
 
-inline bool IsScalar(reflection::BaseType t) {
+constexpr bool IsScalar(reflection::BaseType t) {
   return t >= reflection::UType && t <= reflection::Double;
 }
-inline bool IsInteger(reflection::BaseType t) {
+constexpr bool IsInteger(reflection::BaseType t) {
   return t >= reflection::UType && t <= reflection::ULong;
 }
-inline bool IsFloat(reflection::BaseType t) {
+constexpr bool IsFloat(reflection::BaseType t) {
   return t == reflection::Float || t == reflection::Double;
 }
-inline bool IsLong(reflection::BaseType t) {
+constexpr bool IsLong(reflection::BaseType t) {
   return t == reflection::Long || t == reflection::ULong;
 }
 
