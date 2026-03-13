@@ -21,7 +21,6 @@
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/stl_emulation.h"
-#include "flatbuffers/verifier.h"
 
 namespace flatbuffers {
 
@@ -219,79 +218,6 @@ const T* GetRoot(const void* buf) {
 template <typename T, typename SizeT = uoffset_t>
 const T* GetSizePrefixedRoot(const void* buf) {
   return GetRoot<T>(reinterpret_cast<const uint8_t*>(buf) + sizeof(SizeT));
-}
-
-// Checked variants of the root access helpers that first run the FlatBuffers
-// verifier on the provided buffer. These are intended as secure-by-default
-// helpers for callers that are dealing with untrusted input and want a single
-// API that combines verification with obtaining the typed root pointer.
-//
-// If verification fails, these functions return nullptr instead of a typed
-// pointer into the buffer.
-template <typename T>
-const T* GetRootChecked(const void* buf, size_t len,
-                        const Verifier::Options& opts = Verifier::Options()) {
-  if (!buf) return nullptr;
-  Verifier verifier(reinterpret_cast<const uint8_t*>(buf), len, opts);
-  if (!verifier.VerifyBuffer<T>()) return nullptr;
-  return GetRoot<T>(buf);
-}
-
-template <typename T>
-const T* GetRootChecked(const void* buf, size_t len, const char* identifier,
-                        const Verifier::Options& opts = Verifier::Options()) {
-  if (!buf) return nullptr;
-  Verifier verifier(reinterpret_cast<const uint8_t*>(buf), len, opts);
-  if (!verifier.VerifyBuffer<T>(identifier)) return nullptr;
-  return GetRoot<T>(buf);
-}
-
-template <typename T, typename SizeT = uoffset_t>
-const T* GetSizePrefixedRootChecked(
-    const void* buf, size_t len, const Verifier::Options& opts = Verifier::Options()) {
-  if (!buf) return nullptr;
-  Verifier verifier(reinterpret_cast<const uint8_t*>(buf), len, opts);
-  if (!verifier.VerifySizePrefixedBuffer<T, SizeT>(nullptr)) return nullptr;
-  return GetSizePrefixedRoot<T, SizeT>(buf);
-}
-
-template <typename T, typename SizeT = uoffset_t>
-const T* GetSizePrefixedRootChecked(
-    const void* buf, size_t len, const char* identifier,
-    const Verifier::Options& opts = Verifier::Options()) {
-  if (!buf) return nullptr;
-  Verifier verifier(reinterpret_cast<const uint8_t*>(buf), len, opts);
-  if (!verifier.VerifySizePrefixedBuffer<T, SizeT>(identifier)) return nullptr;
-  return GetSizePrefixedRoot<T, SizeT>(buf);
-}
-
-template <typename T>
-T* GetMutableRootChecked(void* buf, size_t len,
-                         const Verifier::Options& opts = Verifier::Options()) {
-  return const_cast<T*>(
-      GetRootChecked<T>(const_cast<const void*>(buf), len, opts));
-}
-
-template <typename T>
-T* GetMutableRootChecked(void* buf, size_t len, const char* identifier,
-                         const Verifier::Options& opts = Verifier::Options()) {
-  return const_cast<T*>(GetRootChecked<T>(const_cast<const void*>(buf), len,
-                                          identifier, opts));
-}
-
-template <typename T, typename SizeT = uoffset_t>
-T* GetMutableSizePrefixedRootChecked(
-    void* buf, size_t len, const Verifier::Options& opts = Verifier::Options()) {
-  return const_cast<T*>(GetSizePrefixedRootChecked<T, SizeT>(
-      const_cast<const void*>(buf), len, opts));
-}
-
-template <typename T, typename SizeT = uoffset_t>
-T* GetMutableSizePrefixedRootChecked(
-    void* buf, size_t len, const char* identifier,
-    const Verifier::Options& opts = Verifier::Options()) {
-  return const_cast<T*>(GetSizePrefixedRootChecked<T, SizeT>(
-      const_cast<const void*>(buf), len, identifier, opts));
 }
 
 }  // namespace flatbuffers
