@@ -2795,7 +2795,8 @@ bool Parser::SupportsOptionalScalars(const flatbuffers::IDLOptions& opts) {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
       IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kLobster |
       IDLOptions::kKotlin | IDLOptions::kKotlinKmp | IDLOptions::kCpp |
-      IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kTs |
+      IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kCSharpSpanBufs |
+      IDLOptions::kTs |
       IDLOptions::kBinary | IDLOptions::kGo | IDLOptions::kPython |
       IDLOptions::kJson | IDLOptions::kNim;
   unsigned long langs = opts.lang_to_generate;
@@ -2819,7 +2820,8 @@ bool Parser::SupportsAdvancedUnionFeatures() const {
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
             IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kNim |
-            IDLOptions::kJson | IDLOptions::kKotlinKmp)) == 0;
+            IDLOptions::kJson | IDLOptions::kKotlinKmp |
+            IDLOptions::kCSharpSpanBufs)) == 0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {
@@ -2827,7 +2829,7 @@ bool Parser::SupportsAdvancedArrayFeatures() const {
           ~(IDLOptions::kCpp | IDLOptions::kPython | IDLOptions::kJava |
             IDLOptions::kCSharp | IDLOptions::kJsonSchema | IDLOptions::kJson |
             IDLOptions::kBinary | IDLOptions::kRust | IDLOptions::kTs |
-            IDLOptions::kSwift)) == 0;
+            IDLOptions::kSwift | IDLOptions::kCSharpSpanBufs)) == 0;
 }
 
 bool Parser::Supports64BitOffsets() const {
