@@ -105,4 +105,17 @@ class Vec3T(object):
 
     # Vec3T
     def Pack(self, builder):
-        return CreateVec3(builder, self.x, self.y, self.z, self.test1, self.test2, self.test3.a, self.test3.b)
+        builder.Prep(8, 32)
+        builder.Pad(2)
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(self.test3.b)
+        builder.PrependInt16(self.test3.a)
+        builder.Pad(1)
+        builder.PrependUint8(self.test2)
+        builder.PrependFloat64(self.test1)
+        builder.Pad(4)
+        builder.PrependFloat32(self.z)
+        builder.PrependFloat32(self.y)
+        builder.PrependFloat32(self.x)
+        return builder.Offset()
