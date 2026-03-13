@@ -3172,8 +3172,10 @@ CheckedError Parser::ParseProtoFields(StructDef* struct_def, bool isextend,
             return Error("Protobuf has non positive number in reserved ids");
 
           if (range) {
-            for (voffset_t id = from + 1; id <= attribute; id++)
-              struct_def->reserved_ids.push_back(id);
+            for (uint32_t id = static_cast<uint32_t>(from) + 1;
+                 id <= static_cast<uint32_t>(attribute); id++) {
+              struct_def->reserved_ids.push_back(static_cast<voffset_t>(id));
+            }
 
             range = false;
           } else {

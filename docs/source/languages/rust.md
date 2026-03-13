@@ -205,6 +205,47 @@ And example of usage, for the time being, can be found in
 - Safe getters in [SafeBuffer](https://docs.rs/flatbuffers-reflection/latest/flatbuffers_reflection/struct.SafeBuffer.html),
  which does verification when constructed so you can use it for any data source
 
+## Buffer pre allocation in a latency-sensitive context
+
+In latency-sensitive applications, dynamic memory allocations can introduce unpredictable latency spikes. The `FlatBufferBuilder` internally uses several `Vec`s that may reallocate during serialization:
+
+- The backing buffer for the FlatBuffer data
+- `field_locs` for tracking field locations within tables
+- `written_vtable_revpos` for deduplicating vtables
+- `strings_pool` for shared string interning
+
+To avoid allocations during serialization, you can preallocate all internal vectors upfront using the `with_internal_capacity` constructor:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    // Preallocate: 1KB buffer, 8 field locations, 16 vtables, 32 shared strings
+    let mut builder = FlatBufferBuilder::with_internal_capacity(1024, 8, 16, 32);
+
+    // All subsequent operations will not allocate (if capacities are sufficient)
+    let name = builder.create_shared_string("MyMonster");
+    // ... build your FlatBuffer ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are three variants available:
+
+- `with_internal_capacity(size, field_locs, vtables, strings)` - Creates a new builder with all capacities preallocated
+- `from_vec_with_internal_capacity(buffer, field_locs, vtables, strings)` - Reuses an existing `Vec<u8>` as the backing buffer
+- `new_in_with_internal_capacity(allocator, field_locs, vtables, strings)` - Uses a custom `Allocator` with preallocated internal vecs
+
+When combined with `reset()`, you can reuse the same builder across multiple serializations without any allocations after the initial setup:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    let mut builder = FlatBufferBuilder::with_internal_capacity(1024, 8, 16, 32);
+
+    loop {
+        // Build a FlatBuffer (allocation-free if capacities are sufficient)
+        let data = build_message(&mut builder);
+        send(data);
+
+        // Reset for reuse - clears state but retains allocated capacity
+        builder.reset();
+    }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ## Useful tools created by others
 
 * [flatc-rust](https://github.com/frol/flatc-rust) - FlatBuffers compiler
