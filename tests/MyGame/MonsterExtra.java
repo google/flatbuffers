@@ -93,10 +93,10 @@ public final class MonsterExtra extends com.google.flatbuffers.Table {
   public static void addF2(FlatBufferBuilder builder, float f2) { builder.addFloat(6, f2, Float.POSITIVE_INFINITY); }
   public static void addF3(FlatBufferBuilder builder, float f3) { builder.addFloat(7, f3, Float.NEGATIVE_INFINITY); }
   public static void addDvec(FlatBufferBuilder builder, int dvecOffset) { builder.addOffset(8, dvecOffset, 0); }
-  public static int createDvecVector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
+  public static int createDvecVector(FlatBufferBuilder builder, double[] data) { return builder.createDoubleVector(data); }
   public static void startDvecVector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static void addFvec(FlatBufferBuilder builder, int fvecOffset) { builder.addOffset(9, fvecOffset, 0); }
-  public static int createFvecVector(FlatBufferBuilder builder, float[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addFloat(data[i]); return builder.endVector(); }
+  public static int createFvecVector(FlatBufferBuilder builder, float[] data) { return builder.createFloatVector(data); }
   public static void startFvecVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static int endMonsterExtra(FlatBufferBuilder builder) {
     int o = builder.endTable();

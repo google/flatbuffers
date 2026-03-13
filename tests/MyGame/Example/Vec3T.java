@@ -59,5 +59,14 @@ public class Vec3T {
     this.test2 = 0;
     this.test3 = new MyGame.Example.TestT();
   }
+
+  public Vec3T(float x, float y, float z, double test1, int test2, MyGame.Example.TestT test3) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.test1 = test1;
+    this.test2 = test2;
+    this.test3 = test3;
+  }
 }
 

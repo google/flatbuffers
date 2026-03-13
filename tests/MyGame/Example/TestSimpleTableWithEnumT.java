@@ -29,5 +29,9 @@ class TestSimpleTableWithEnumT {
   public TestSimpleTableWithEnumT() {
     this.color = 2;
   }
+
+  public TestSimpleTableWithEnumT(int color) {
+    this.color = color;
+  }
 }
 
