@@ -40,58 +40,54 @@ func (rcv *Vec3) UnPack() *Vec3T {
 }
 
 type Vec3 struct {
-	_tab flatbuffers.Struct
+	flatbuffers.Struct
 }
 
 func (rcv *Vec3) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *Vec3) Table() flatbuffers.Table {
-	return rcv._tab.Table
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func (rcv *Vec3) X() float32 {
-	return rcv._tab.GetFloat32(rcv._tab.Pos + flatbuffers.UOffsetT(0))
+	return rcv.GetFloat32(rcv.Pos + flatbuffers.UOffsetT(0))
 }
 func (rcv *Vec3) MutateX(n float32) bool {
-	return rcv._tab.MutateFloat32(rcv._tab.Pos+flatbuffers.UOffsetT(0), n)
+	return rcv.MutateFloat32(rcv.Pos+flatbuffers.UOffsetT(0), n)
 }
 
 func (rcv *Vec3) Y() float32 {
-	return rcv._tab.GetFloat32(rcv._tab.Pos + flatbuffers.UOffsetT(4))
+	return rcv.GetFloat32(rcv.Pos + flatbuffers.UOffsetT(4))
 }
 func (rcv *Vec3) MutateY(n float32) bool {
-	return rcv._tab.MutateFloat32(rcv._tab.Pos+flatbuffers.UOffsetT(4), n)
+	return rcv.MutateFloat32(rcv.Pos+flatbuffers.UOffsetT(4), n)
 }
 
 func (rcv *Vec3) Z() float32 {
-	return rcv._tab.GetFloat32(rcv._tab.Pos + flatbuffers.UOffsetT(8))
+	return rcv.GetFloat32(rcv.Pos + flatbuffers.UOffsetT(8))
 }
 func (rcv *Vec3) MutateZ(n float32) bool {
-	return rcv._tab.MutateFloat32(rcv._tab.Pos+flatbuffers.UOffsetT(8), n)
+	return rcv.MutateFloat32(rcv.Pos+flatbuffers.UOffsetT(8), n)
 }
 
 func (rcv *Vec3) Test1() float64 {
-	return rcv._tab.GetFloat64(rcv._tab.Pos + flatbuffers.UOffsetT(16))
+	return rcv.GetFloat64(rcv.Pos + flatbuffers.UOffsetT(16))
 }
 func (rcv *Vec3) MutateTest1(n float64) bool {
-	return rcv._tab.MutateFloat64(rcv._tab.Pos+flatbuffers.UOffsetT(16), n)
+	return rcv.MutateFloat64(rcv.Pos+flatbuffers.UOffsetT(16), n)
 }
 
 func (rcv *Vec3) Test2() Color {
-	return Color(rcv._tab.GetByte(rcv._tab.Pos + flatbuffers.UOffsetT(24)))
+	return Color(rcv.GetByte(rcv.Pos + flatbuffers.UOffsetT(24)))
 }
 func (rcv *Vec3) MutateTest2(n Color) bool {
-	return rcv._tab.MutateByte(rcv._tab.Pos+flatbuffers.UOffsetT(24), byte(n))
+	return rcv.MutateByte(rcv.Pos+flatbuffers.UOffsetT(24), byte(n))
 }
 
 func (rcv *Vec3) Test3(obj *Test) *Test {
 	if obj == nil {
 		obj = new(Test)
 	}
-	obj.Init(rcv._tab.Bytes, rcv._tab.Pos+26)
+	obj.Init(rcv.Bytes, rcv.Pos+26)
 	return obj
 }
 
