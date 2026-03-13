@@ -109,10 +109,11 @@ namespace Google.FlatBuffers.Test
             var intE = 999;
             var longArray = new long[] { 5000L, 6000L };
 
-            var nestedInts = new int[2, 2] { { 10, 20 }, { 30, 40 } };
+            // Flat arrays for Span<T> parameters
+            var nestedInts = new int[] { 10, 20, 30, 40 };
             var nestedEnumB = new TestEnum[] { TestEnum.A, TestEnum.B };
-            var nestedEnums = new TestEnum[2, 2] { { TestEnum.A, TestEnum.B }, { TestEnum.C, TestEnum.A } };
-            var nestedLongs = new long[2, 2] { { 100L, 200L }, { 300L, 400L } };
+            var nestedEnums = new TestEnum[] { TestEnum.A, TestEnum.B, TestEnum.C, TestEnum.A };
+            var nestedLongs = new long[] { 100L, 200L, 300L, 400L };
 
             var structOffset = ArrayStruct.CreateArrayStruct(builder, floatA, intArray, byteC,
                 nestedInts, nestedEnumB, nestedEnums, nestedLongs, intE, longArray);
@@ -132,28 +133,54 @@ namespace Google.FlatBuffers.Test
 
             Assert.IsTrue(arrayStruct.GetBBytes().SequenceEqual(intArray));
             Assert.IsTrue(arrayStruct.GetFBytes().SequenceEqual(longArray));
-            
-            // Test nested struct arrays
+
+            // Test nested struct arrays via individual element access
             for (int i = 0; i < 2; i++)
             {
                 var nestedStruct = arrayStruct.D(i);
-                
+
                 var nestedIntSpan = nestedStruct.GetABytes();
-                var expectedNestedInts = new int[] { nestedInts[i, 0], nestedInts[i, 1] };
+                var expectedNestedInts = new int[] { nestedInts[i * 2], nestedInts[i * 2 + 1] };
                 Assert.IsTrue(nestedIntSpan.SequenceEqual(expectedNestedInts));
-                
+
                 Assert.AreEqual(nestedEnumB[i], nestedStruct.B);
-                
+
                 var nestedEnumSpan = nestedStruct.GetCBytes();
-                var expectedNestedEnums = new TestEnum[] { nestedEnums[i, 0], nestedEnums[i, 1] };
+                var expectedNestedEnums = new TestEnum[] { nestedEnums[i * 2], nestedEnums[i * 2 + 1] };
                 Assert.IsTrue(nestedEnumSpan.SequenceEqual(expectedNestedEnums));
-                
+
                 var nestedLongSpan = nestedStruct.GetDBytes();
-                var expectedNestedLongs = new long[] { nestedLongs[i, 0], nestedLongs[i, 1] };
+                var expectedNestedLongs = new long[] { nestedLongs[i * 2], nestedLongs[i * 2 + 1] };
                 Assert.IsTrue(nestedLongSpan.SequenceEqual(expectedNestedLongs));
             }
         }
-#endif  
+
+        [FlatBuffersTestMethod]
+        public void FixedLengthArray_CreateWithStackalloc_ReturnTrue()
+        {
+            var builder = new FlatBufferBuilder(1024);
+
+            // Demonstrate zero-allocation struct creation with stackalloc
+            Span<int> a = stackalloc int[] { 7, 8 };
+            Span<TestEnum> c = stackalloc TestEnum[] { TestEnum.B, TestEnum.C };
+            Span<long> d = stackalloc long[] { 42L, 43L };
+
+            var structOffset = NestedStruct.CreateNestedStruct(builder, a, TestEnum.A, c, d);
+            builder.Finish(structOffset.Value);
+
+            var buffer = builder.DataBuffer;
+            var nestedStruct = new NestedStruct();
+            nestedStruct.__assign(buffer.Length - builder.Offset, buffer);
+
+            Assert.AreEqual(7, nestedStruct.A(0));
+            Assert.AreEqual(8, nestedStruct.A(1));
+            Assert.AreEqual(TestEnum.A, nestedStruct.B);
+            Assert.AreEqual(TestEnum.B, nestedStruct.C(0));
+            Assert.AreEqual(TestEnum.C, nestedStruct.C(1));
+            Assert.AreEqual(42L, nestedStruct.D(0));
+            Assert.AreEqual(43L, nestedStruct.D(1));
+        }
+#endif
 
 #if !ENABLE_SPAN_T
         [FlatBuffersTestMethod] 
