@@ -323,7 +323,15 @@ impl<B: Buffer> Reader<B> {
     /// Otherwise Returns error.
     pub fn get_bool(&self) -> Result<bool, Error> {
         self.expect_type(FlexBufferType::Bool)?;
-        Ok(self.buffer[self.address..self.address + self.width.n_bytes()].iter().any(|&b| b != 0))
+        let end = self
+            .address
+            .checked_add(self.width.n_bytes())
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        let slice = self
+            .buffer
+            .get(self.address..end)
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        Ok(slice.iter().any(|&b| b != 0))
     }
 
     /// Gets the length of the key if this type is a key.
@@ -332,7 +340,11 @@ impl<B: Buffer> Reader<B> {
     #[inline]
     fn get_key_len(&self) -> Result<usize, Error> {
         self.expect_type(FlexBufferType::Key)?;
-        let (length, _) = self.buffer[self.address..]
+        let tail = self
+            .buffer
+            .get(self.address..)
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        let (length, _) = tail
             .iter()
             .enumerate()
             .find(|(_, &b)| b == b'\0')
@@ -601,9 +613,9 @@ fn f64_from_le_bytes(bytes: [u8; 8]) -> f64 {
 }
 
 fn read_usize(buffer: &[u8], address: usize, width: BitWidth) -> usize {
-    let cursor = &buffer[address..];
+    let cursor = buffer.get(address..).unwrap_or_default();
     match width {
-        BitWidth::W8 => cursor[0] as usize,
+        BitWidth::W8 => cursor.first().copied().unwrap_or_default() as usize,
         BitWidth::W16 => cursor
             .get(0..2)
             .and_then(|s| s.try_into().ok())
@@ -626,4 +638,56 @@ fn unpack_type(ty: u8) -> Result<(FlexBufferType, BitWidth), Error> {
     let w = BitWidth::try_from(ty & 3u8).map_err(|_| Error::InvalidPackedType)?;
     let t = FlexBufferType::try_from(ty >> 2).map_err(|_| Error::InvalidPackedType)?;
     Ok((t, w))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Regression tests for panics triggered by crafted FlexBuffer input.
+    // Before the fix, read_usize used direct indexing (&buffer[address..] and cursor[0])
+    // which panicked when address was at or past the end of the buffer.
+    // See: https://github.com/google/flatbuffers/issues/8923
+
+    /// Crafted payload whose declared W8 length slot falls exactly at buffer end.
+    /// read_usize was called as: &buffer[address..] where address == buffer.len(),
+    /// yielding an empty cursor, then cursor[0] panicked.
+    #[test]
+    fn read_usize_w8_address_at_end_does_not_panic() {
+        // Byte layout (little-endian FlexBuffer):
+        //   [value_byte, type_byte, root_width_byte]
+        // Crafting a Bool with a width that pushes the length slot OOB.
+        let data: &[u8] = &[0x5d, 0x79, 0x6b, 0x02];
+        let reader = Reader::get_root(data).unwrap_or_default();
+        // Must not panic — should return false or an error gracefully.
+        let _ = reader.as_bool();
+    }
+
+    /// Crafted payload where the computed address for the length slot exceeds buffer length.
+    /// Before the fix, &buffer[address..] panicked immediately (address > len).
+    #[test]
+    fn read_usize_address_past_end_does_not_panic() {
+        // A minimal FlexBuffer whose internal offset arithmetic resolves to an address
+        // beyond the buffer bounds for a W8-width length field.
+        let data: &[u8] = &[0x00, 0x25, 0x01];
+        let reader = Reader::get_root(data).unwrap_or_default();
+        let _ = reader.length();
+    }
+
+    /// read_usize with W8 and address exactly at buffer end returns 0, not panic.
+    #[test]
+    fn read_usize_w8_returns_zero_on_oob() {
+        let buffer: &[u8] = &[0x01, 0x02];
+        // Address at len — empty cursor.
+        let result = read_usize(buffer, buffer.len(), BitWidth::W8);
+        assert_eq!(result, 0, "Expected 0 (safe default) for OOB W8 read");
+    }
+
+    /// read_usize with an address past the end returns 0, not panic.
+    #[test]
+    fn read_usize_past_end_returns_zero() {
+        let buffer: &[u8] = &[0xAB];
+        let result = read_usize(buffer, 999, BitWidth::W8);
+        assert_eq!(result, 0, "Expected 0 (safe default) for address past buffer end");
+    }
 }
