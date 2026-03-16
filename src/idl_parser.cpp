@@ -3049,6 +3049,31 @@ CheckedError Parser::ParseNamespace() {
   return NoError();
 }
 
+CheckedError Parser::ParseOption() {
+  NEXT();
+
+  auto key = attribute_;
+  EXPECT(kTokenIdentifier);
+
+  EXPECT('=');
+
+  auto value = attribute_;
+  EXPECT(kTokenStringConstant);
+
+  EXPECT(';');
+
+  if (key == "rust_module") {
+    rust_module_ = value;
+    if (!file_being_parsed_.empty()) {
+      rust_modules_by_file_[file_being_parsed_] = rust_module_;
+    }
+  } else {
+    return Error("unknown option: " + key);
+  }
+
+  return NoError();
+}
+
 // Best effort parsing of .proto declarations, with the aim to turn them
 // in the closest corresponding FlatBuffer equivalent.
 // We parse everything as identifiers instead of keywords, since we don't
@@ -3859,6 +3884,7 @@ CheckedError Parser::DoParse(const char* source, const char** include_paths,
         root_struct_def_ = nullptr;
         file_identifier_.clear();
         file_extension_.clear();
+        rust_module_.clear();
         // This is the easiest way to continue this file after an include:
         // instead of saving and restoring all the state, we simply start the
         // file anew. This will cause it to encounter the same include
@@ -3881,6 +3907,8 @@ CheckedError Parser::DoParse(const char* source, const char** include_paths,
       ECHECK(ParseProtoDecl());
     } else if (IsIdent("namespace")) {
       ECHECK(ParseNamespace());
+    } else if (IsIdent("option")) {
+      ECHECK(ParseOption());
     } else if (token_ == '{') {
       return NoError();
     } else if (IsIdent("enum")) {
@@ -4091,11 +4119,12 @@ void Parser::Serialize() {
   const auto fiid__ = builder_.CreateString(file_identifier_);
   const auto fext__ = builder_.CreateString(file_extension_);
   const auto serv__ = builder_.CreateVectorOfSortedTables(&service_offsets);
+  const auto rmod__ = builder_.CreateString(rust_module_);
   const auto schema_offset = reflection::CreateSchema(
       builder_, objs__, enum__, fiid__, fext__,
       (root_struct_def_ ? root_struct_def_->serialized_location : 0), serv__,
       static_cast<reflection::AdvancedFeatures>(advanced_features_),
-      schema_files__);
+      schema_files__, rmod__);
   if (opts.size_prefixed) {
     builder_.FinishSizePrefixed(schema_offset, reflection::SchemaIdentifier());
   } else {
@@ -4436,6 +4465,7 @@ bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
 bool Parser::Deserialize(const reflection::Schema* schema) {
   file_identifier_ = schema->file_ident() ? schema->file_ident()->str() : "";
   file_extension_ = schema->file_ext() ? schema->file_ext()->str() : "";
+  rust_module_ = schema->rust_module() ? schema->rust_module()->str() : "";
   std::map<std::string, Namespace*> namespaces_index;
 
   // Create defs without deserializing so references from fields to structs and
