@@ -25,11 +25,11 @@ table Vec3 {
   test3:Test;
 }
 
-union Any { Vec3, TestSimpleTableWithEnum }
+union Any_Data { Vec3, TestSimpleTableWithEnum }
 
 table NestedUnionTest {
   name:string;
-  data:Any;
+  data:Any_Data;
   id:short;
 }
 

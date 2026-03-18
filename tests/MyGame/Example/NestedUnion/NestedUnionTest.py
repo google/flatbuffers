@@ -93,7 +93,7 @@ def NestedUnionTestEnd(builder: flatbuffers.Builder) -> int:
 def End(builder: flatbuffers.Builder) -> int:
     return NestedUnionTestEnd(builder)
 
-import MyGame.Example.NestedUnion.Any
+import MyGame.Example.NestedUnion.Any_Data
 import MyGame.Example.NestedUnion.TestSimpleTableWithEnum
 import MyGame.Example.NestedUnion.Vec3
 try:
@@ -141,7 +141,7 @@ class NestedUnionTestT(object):
         if self.name is not None:
             self.name = self.name.decode('utf-8')
         self.dataType = nestedUnionTest.DataType()
-        self.data = MyGame.Example.NestedUnion.Any.AnyCreator(self.dataType, nestedUnionTest.Data())
+        self.data = MyGame.Example.NestedUnion.Any_Data.AnyDataCreator(self.dataType, nestedUnionTest.Data())
         self.id = nestedUnionTest.Id()
 
     # NestedUnionTestT
