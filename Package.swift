@@ -56,7 +56,7 @@ let package = Package(
 
 extension Array where Element == Package.Dependency {
   static var dependencies: [Package.Dependency] {
-    #if os(Windows)
+    #if os(Windows) && compiler(<6.0)
     []
     #else
     // Test only Dependency
@@ -72,7 +72,7 @@ extension Array where Element == Package.Dependency {
 
 extension Array where Element == PackageDescription.Target.Dependency {
   static var dependencies: [PackageDescription.Target.Dependency] {
-    #if os(Windows)
+    #if os(Windows) && compiler(<6.0)
     ["FlatBuffers"]
     #else
     // Test only Dependency

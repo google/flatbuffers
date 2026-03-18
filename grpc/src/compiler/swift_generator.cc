@@ -829,7 +829,7 @@ grpc::string GenerateHeader() {
   code += "// swiftlint:disable all\n";
   code += "// swiftformat:disable all\n";
   code += "\n";
-  code += "#if !os(Windows)\n";
+  code += "#if !os(Windows) && compiler(>=6.0)\n";
   code += "import FlatBuffers\n";
   code += "import Foundation\n";
   code += "import GRPCCore\n";

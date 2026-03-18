@@ -5,7 +5,7 @@
 // swiftlint:disable all
 // swiftformat:disable all
 
-#if !os(Windows)
+#if !os(Windows) && compiler(>=6.0)
 import FlatBuffers
 import Foundation
 import GRPCCore
