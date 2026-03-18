@@ -44,9 +44,9 @@ struct ClientCommand: AsyncParsableCommand {
 
       switch request {
       case .get: try await get(client: client)
-      case .expand: break
-      case .collect: break
-      case .update: break
+      case .expand: try await expand(client: client)
+      case .collect: try await collect(client: client)
+      case .update: try await update(client: client)
       }
     }
   }
@@ -55,8 +55,8 @@ struct ClientCommand: AsyncParsableCommand {
     client: models_Greeter
       .Client<HTTP2ClientTransport.Posix>) async throws
   {
-    for _ in 0 ..< 3 {
-      var builder = FlatBufferBuilder(initialSize: 128)
+    for _ in 0..<3 {
+      var builder = FlatBufferBuilder(initialSize: 64)
       let off = builder.create(string: name)
       let root = models_HelloRequest.createHelloRequest(
         &builder,
@@ -65,7 +65,76 @@ struct ClientCommand: AsyncParsableCommand {
 
       let response = try await client
         .Get(GRPCMessage(builder: &builder))
-      print("message: \(try? response.decode().message)")
+      let message = try? response.decode().message
+      print("get message: \(message ?? "nil")")
+    }
+  }
+
+  func expand(
+    client: models_Greeter
+      .Client<HTTP2ClientTransport.Posix>) async throws
+  {
+    for _ in 0..<3 {
+      var builder = FlatBufferBuilder(initialSize: 64)
+      let off = builder.create(string: name)
+      let root = models_HelloRequest.createHelloRequest(
+        &builder,
+        nameOffset: off)
+      builder.finish(offset: root)
+      try await client.Expand(GRPCMessage(builder: &builder)) { response in
+        for try await message in response.messages {
+          let message = try? message.decode().message
+          print("expand message: \(message ?? "nil")")
+        }
+      }
+    }
+  }
+
+  func collect(
+    client: models_Greeter
+      .Client<HTTP2ClientTransport.Posix>) async throws
+  {
+    for _ in 0..<3 {
+      let response = try await client.Collect { writer in
+        for part in name {
+          print("collect sending: \(part)")
+          var builder = FlatBufferBuilder(initialSize: 64)
+          let off = builder.create(string: String(part))
+          let root = models_HelloRequest.createHelloRequest(
+            &builder,
+            nameOffset: off)
+          builder.finish(offset: root)
+          try await writer.write(GRPCMessage(builder: &builder))
+        }
+      }
+
+      let message = try response.decode().message
+      print("collect message: \(message ?? "nil")")
+    }
+  }
+
+  func update(
+    client: models_Greeter
+      .Client<HTTP2ClientTransport.Posix>) async throws
+  {
+    for _ in 0..<3 {
+      try await client.Update { writer in
+        for part in name {
+          print("update sending: \(part)")
+          var builder = FlatBufferBuilder(initialSize: 64)
+          let off = builder.create(string: String(part))
+          let root = models_HelloRequest.createHelloRequest(
+            &builder,
+            nameOffset: off)
+          builder.finish(offset: root)
+          try await writer.write(GRPCMessage(builder: &builder))
+        }
+      } onResponse: { response in
+        for try await message in response.messages {
+          let message = try message.decode().message
+          print("collect message: \(message ?? "nil")")
+        }
+      }
     }
   }
 }
