@@ -20,7 +20,7 @@ import Foundation
 /// it allows users to write and read data directly from memory thus the use of its
 /// functions should be used
 @frozen
-public struct ByteBuffer {
+public struct ByteBuffer: @unchecked Sendable {
 
   /// Storage is a container that would hold the memory pointer to solve the issue of
   /// deallocating the memory that was held by (memory: UnsafeMutableRawPointer)

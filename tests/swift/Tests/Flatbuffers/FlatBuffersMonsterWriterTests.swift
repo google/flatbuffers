@@ -52,7 +52,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       #if os(macOS)
       // Gets the current path of this test file then
       // strips out the nested directories.
-      let filePath = URL(filePath: #file)
+      let filePath = URL(filePath: #filePath)
         .deletingLastPathComponent()
       return filePath.absoluteString
       #else
