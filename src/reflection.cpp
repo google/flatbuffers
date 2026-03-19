@@ -641,7 +641,10 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
                              const uint8_t* newbuf, size_t newlen) {
   // Align to sizeof(uoffset_t) past sizeof(largest_scalar_t) since we're
   // going to chop off the root offset.
+  if (!newbuf || newlen < sizeof(uoffset_t)) return nullptr;
   FLATBUFFERS_ASSERT(newlen >= sizeof(uoffset_t));
+  auto root = ReadScalar<uoffset_t>(newbuf);
+  if (root < sizeof(uoffset_t) || root >= newlen) return nullptr;
   while ((flatbuf.size() & (sizeof(uoffset_t) - 1)) ||
          !(flatbuf.size() & (sizeof(largest_scalar_t) - 1))) {
     flatbuf.push_back(0);
@@ -649,7 +652,7 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
   auto insertion_point = static_cast<uoffset_t>(flatbuf.size());
   // Insert the entire FlatBuffer minus the root pointer.
   flatbuf.insert(flatbuf.end(), newbuf + sizeof(uoffset_t), newbuf + newlen);
-  auto root_offset = ReadScalar<uoffset_t>(newbuf) - sizeof(uoffset_t);
+  auto root_offset = root - sizeof(uoffset_t);
   return flatbuf.data() + insertion_point + root_offset;
 }
 
