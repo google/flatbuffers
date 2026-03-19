@@ -17,6 +17,8 @@
 #ifndef FLATBUFFERS_MINIREFLECT_H_
 #define FLATBUFFERS_MINIREFLECT_H_
 
+#include <limits>
+
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/util.h"
 
@@ -125,89 +127,240 @@ const char* EnumName(T tval, const TypeTable* type_table) {
   return nullptr;
 }
 
+inline bool MiniReflectInBounds(const uint8_t* p, size_t size,
+                                const uint8_t* begin, const uint8_t* end) {
+  if (!begin || !end) return true;
+  if (!p || p < begin || p > end) return false;
+  return size <= static_cast<size_t>(end - p);
+}
+
+template <typename T>
+inline bool MiniReflectReadScalar(const uint8_t* p, const uint8_t* begin,
+                                  const uint8_t* end, T* val) {
+  if (!MiniReflectInBounds(p, sizeof(T), begin, end)) return false;
+  *val = ReadScalar<T>(p);
+  return true;
+}
+
+inline bool MiniReflectAdvance(const uint8_t* p, size_t offset,
+                               const uint8_t* begin, const uint8_t* end,
+                               const uint8_t** out) {
+  if (!p || !out) return false;
+  if (!begin || !end) {
+    *out = p + offset;
+    return true;
+  }
+  if (p > end || offset > static_cast<size_t>(end - p)) return false;
+  *out = p + offset;
+  return true;
+}
+
+inline const uint8_t* MiniReflectGetTableFieldAddress(const uint8_t* obj,
+                                                      voffset_t field,
+                                                      const uint8_t* begin,
+                                                      const uint8_t* end) {
+  if (!begin || !end) {
+    return reinterpret_cast<const Table*>(obj)->GetAddressOf(field);
+  }
+  soffset_t voff = 0;
+  if (!MiniReflectReadScalar(obj, begin, end, &voff)) return nullptr;
+  if (voff < 0 || static_cast<size_t>(voff) > static_cast<size_t>(obj - begin)) {
+    return nullptr;
+  }
+  const auto* vtable = obj - voff;
+  voffset_t vsize = 0;
+  voffset_t tsize = 0;
+  if (!MiniReflectReadScalar(vtable, begin, end, &vsize) ||
+      !MiniReflectReadScalar(vtable + sizeof(voffset_t), begin, end, &tsize) ||
+      field >= vsize) {
+    return nullptr;
+  }
+  voffset_t foff = 0;
+  if (!MiniReflectReadScalar(vtable + field, begin, end, &foff) ||
+      !foff || foff >= tsize) {
+    return nullptr;
+  }
+  const uint8_t* p = nullptr;
+  return MiniReflectAdvance(obj, foff, begin, end, &p) ? p : nullptr;
+}
+
 void IterateObject(const uint8_t* obj, const TypeTable* type_table,
-                   IterationVisitor* visitor);
+                   IterationVisitor* visitor, const uint8_t* begin = nullptr,
+                   const uint8_t* end = nullptr);
 
 inline void IterateValue(ElementaryType type, const uint8_t* val,
                          const TypeTable* type_table, const uint8_t* prev_val,
-                         soffset_t vector_index, IterationVisitor* visitor) {
+                         soffset_t vector_index, IterationVisitor* visitor,
+                         const uint8_t* begin = nullptr,
+                         const uint8_t* end = nullptr) {
   switch (type) {
     case ET_UTYPE: {
-      auto tval = ReadScalar<uint8_t>(val);
+      uint8_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
       visitor->UType(tval, EnumName(tval, type_table));
       break;
     }
     case ET_BOOL: {
-      visitor->Bool(ReadScalar<uint8_t>(val) != 0);
+      uint8_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
+      visitor->Bool(tval != 0);
       break;
     }
     case ET_CHAR: {
-      auto tval = ReadScalar<int8_t>(val);
+      int8_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
       visitor->Char(tval, EnumName(tval, type_table));
       break;
     }
     case ET_UCHAR: {
-      auto tval = ReadScalar<uint8_t>(val);
+      uint8_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
       visitor->UChar(tval, EnumName(tval, type_table));
       break;
     }
     case ET_SHORT: {
-      auto tval = ReadScalar<int16_t>(val);
+      int16_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
       visitor->Short(tval, EnumName(tval, type_table));
       break;
     }
     case ET_USHORT: {
-      auto tval = ReadScalar<uint16_t>(val);
+      uint16_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
       visitor->UShort(tval, EnumName(tval, type_table));
       break;
     }
     case ET_INT: {
-      auto tval = ReadScalar<int32_t>(val);
+      int32_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
       visitor->Int(tval, EnumName(tval, type_table));
       break;
     }
     case ET_UINT: {
-      auto tval = ReadScalar<uint32_t>(val);
+      uint32_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
       visitor->UInt(tval, EnumName(tval, type_table));
       break;
     }
     case ET_LONG: {
-      visitor->Long(ReadScalar<int64_t>(val));
+      int64_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
+      visitor->Long(tval);
       break;
     }
     case ET_ULONG: {
-      visitor->ULong(ReadScalar<uint64_t>(val));
+      uint64_t tval = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
+      visitor->ULong(tval);
       break;
     }
     case ET_FLOAT: {
-      visitor->Float(ReadScalar<float>(val));
+      float tval = 0.0f;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
+      visitor->Float(tval);
       break;
     }
     case ET_DOUBLE: {
-      visitor->Double(ReadScalar<double>(val));
+      double tval = 0.0;
+      if (!MiniReflectReadScalar(val, begin, end, &tval)) {
+        visitor->Unknown(val);
+        return;
+      }
+      visitor->Double(tval);
       break;
     }
     case ET_STRING: {
-      val += ReadScalar<uoffset_t>(val);
-      visitor->String(reinterpret_cast<const String*>(val));
+      uoffset_t off = 0;
+      const uint8_t* str = nullptr;
+      uoffset_t len = 0;
+      if (!MiniReflectReadScalar(val, begin, end, &off) ||
+          !MiniReflectAdvance(val, off, begin, end, &str) ||
+          !MiniReflectReadScalar(str, begin, end, &len) ||
+          !MiniReflectInBounds(str, sizeof(uoffset_t) + len + 1, begin, end)) {
+        visitor->Unknown(val);
+        return;
+      }
+      visitor->String(reinterpret_cast<const String*>(str));
       break;
     }
     case ET_SEQUENCE: {
       switch (type_table->st) {
-        case ST_TABLE:
-          val += ReadScalar<uoffset_t>(val);
-          IterateObject(val, type_table, visitor);
+        case ST_TABLE: {
+          uoffset_t off = 0;
+          const uint8_t* ptr = nullptr;
+          if (!MiniReflectReadScalar(val, begin, end, &off) ||
+              !MiniReflectAdvance(val, off, begin, end, &ptr)) {
+            visitor->Unknown(val);
+            return;
+          }
+          IterateObject(ptr, type_table, visitor, begin, end);
           break;
+        }
         case ST_STRUCT:
-          IterateObject(val, type_table, visitor);
+          IterateObject(val, type_table, visitor, begin, end);
           break;
         case ST_UNION: {
-          val += ReadScalar<uoffset_t>(val);
+          uoffset_t off = 0;
+          const uint8_t* ptr = nullptr;
+          if (!MiniReflectReadScalar(val, begin, end, &off) ||
+              !MiniReflectAdvance(val, off, begin, end, &ptr)) {
+            visitor->Unknown(val);
+            return;
+          }
           FLATBUFFERS_ASSERT(prev_val);
-          auto union_type = *prev_val;  // Always a uint8_t.
+          uint8_t union_type = 0;
+          if (!MiniReflectReadScalar(prev_val, begin, end, &union_type)) {
+            visitor->Unknown(val);
+            return;
+          }
           if (vector_index >= 0) {
-            auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(prev_val);
-            union_type = type_vec->Get(static_cast<uoffset_t>(vector_index));
+            uoffset_t type_vec_size = 0;
+            const uint8_t* type_vec_data = nullptr;
+            if (!MiniReflectReadScalar(prev_val, begin, end, &type_vec_size) ||
+                !MiniReflectAdvance(prev_val, sizeof(uoffset_t), begin, end,
+                                   &type_vec_data) ||
+                !MiniReflectInBounds(type_vec_data, type_vec_size, begin, end) ||
+                static_cast<uoffset_t>(vector_index) >= type_vec_size ||
+                !MiniReflectReadScalar(
+                  type_vec_data + static_cast<size_t>(vector_index), begin,
+                  end,
+                                       &union_type)) {
+              visitor->Unknown(val);
+              return;
+            }
           }
           auto type_code_idx =
               LookupEnum(union_type, type_table->values, type_table->num_elems);
@@ -217,17 +370,27 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
             switch (type_code.base_type) {
               case ET_SEQUENCE: {
                 auto ref = type_table->type_refs[type_code.sequence_ref]();
-                IterateObject(val, ref, visitor);
+                IterateObject(ptr, ref, visitor, begin, end);
                 break;
               }
               case ET_STRING:
-                visitor->String(reinterpret_cast<const String*>(val));
+                {
+                  uoffset_t len = 0;
+                  if (!MiniReflectReadScalar(ptr, begin, end, &len) ||
+                      !MiniReflectInBounds(ptr,
+                                           sizeof(uoffset_t) + len + 1,
+                                           begin, end)) {
+                    visitor->Unknown(ptr);
+                    return;
+                  }
+                  visitor->String(reinterpret_cast<const String*>(ptr));
+                }
                 break;
               default:
-                visitor->Unknown(val);
+                visitor->Unknown(ptr);
             }
           } else {
-            visitor->Unknown(val);
+            visitor->Unknown(ptr);
           }
           break;
         }
@@ -245,7 +408,8 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
 }
 
 inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
-                          IterationVisitor* visitor) {
+                          IterationVisitor* visitor, const uint8_t* begin,
+                          const uint8_t* end) {
   visitor->StartSequence();
   const uint8_t* prev_val = nullptr;
   size_t set_idx = 0;
@@ -262,10 +426,13 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
     auto name = type_table->names ? type_table->names[i] : nullptr;
     const uint8_t* val = nullptr;
     if (type_table->st == ST_TABLE) {
-      val = reinterpret_cast<const Table*>(obj)->GetAddressOf(
-          FieldIndexToOffset(static_cast<voffset_t>(i)));
+      val = MiniReflectGetTableFieldAddress(
+          obj, FieldIndexToOffset(static_cast<voffset_t>(i)), begin, end);
     } else {
-      val = obj + type_table->values[i];
+      if (!MiniReflectAdvance(obj, type_table->values[i], begin, end, &val)) {
+        visitor->Unknown(obj);
+        return;
+      }
     }
     visitor->Field(i, set_idx, type, is_repeating, ref, name, val);
     if (val) {
@@ -275,25 +442,51 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
         size_t size = 0;
         if (type_table->st == ST_TABLE) {
           // variable length vector
-          val += ReadScalar<uoffset_t>(val);
-          auto vec = reinterpret_cast<const Vector<uint8_t>*>(val);
-          elem_ptr = vec->Data();
-          size = vec->size();
+          uoffset_t off = 0;
+          uoffset_t vec_size = 0;
+          if (!MiniReflectReadScalar(val, begin, end, &off) ||
+              !MiniReflectAdvance(val, off, begin, end, &val) ||
+              !MiniReflectReadScalar(val, begin, end, &vec_size)) {
+            visitor->Unknown(val);
+            return;
+          }
+          if (!MiniReflectAdvance(val, sizeof(uoffset_t), begin, end,
+                                  &elem_ptr)) {
+            visitor->Unknown(val);
+            return;
+          }
+          size = vec_size;
+          const auto elem_size = InlineSize(type, ref);
+          if (size > (std::numeric_limits<size_t>::max)() / elem_size) {
+            visitor->Unknown(elem_ptr);
+            return;
+          }
+          const auto bytes = size * elem_size;
+          if (!MiniReflectInBounds(elem_ptr, bytes, begin, end)) {
+            visitor->Unknown(elem_ptr);
+            return;
+          }
         } else {
           // otherwise fixed size array
           size = type_table->array_sizes[array_idx];
           ++array_idx;
+          const auto elem_size = InlineSize(type, ref);
+          if (size > (std::numeric_limits<size_t>::max)() / elem_size ||
+              !MiniReflectInBounds(elem_ptr, size * elem_size, begin, end)) {
+            visitor->Unknown(elem_ptr);
+            return;
+          }
         }
         visitor->StartVector();
         for (size_t j = 0; j < size; j++) {
           visitor->Element(j, type, ref, elem_ptr);
           IterateValue(type, elem_ptr, ref, prev_val, static_cast<soffset_t>(j),
-                       visitor);
+                       visitor, begin, end);
           elem_ptr += InlineSize(type, ref);
         }
         visitor->EndVector();
       } else {
-        IterateValue(type, val, ref, prev_val, -1, visitor);
+        IterateValue(type, val, ref, prev_val, -1, visitor, begin, end);
       }
     }
     prev_val = val;
@@ -304,7 +497,23 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
 inline void IterateFlatBuffer(const uint8_t* buffer,
                               const TypeTable* type_table,
                               IterationVisitor* callback) {
-  IterateObject(GetRoot<uint8_t>(buffer), type_table, callback);
+  IterateObject(GetRoot<uint8_t>(buffer), type_table, callback, nullptr,
+                nullptr);
+}
+
+inline void IterateFlatBuffer(const uint8_t* buffer, size_t buffer_size,
+                              const TypeTable* type_table,
+                              IterationVisitor* callback) {
+  if (buffer_size < sizeof(uoffset_t)) return;
+  const auto* begin = buffer;
+  const auto* end = buffer + buffer_size;
+  uoffset_t root = 0;
+  const uint8_t* obj = nullptr;
+  if (!MiniReflectReadScalar(buffer, begin, end, &root) ||
+      !MiniReflectAdvance(buffer, root, begin, end, &obj)) {
+    return;
+  }
+  IterateObject(obj, type_table, callback, begin, end);
 }
 
 // Outputting a Flatbuffer to a string. Tries to conform as close to JSON /
@@ -423,6 +632,19 @@ struct ToStringVisitor : public IterationVisitor {
     }
   }
 };
+
+inline std::string FlatBufferToString(const uint8_t* buffer,
+                                      size_t buffer_size,
+                                      const TypeTable* type_table,
+                                      bool multi_line = false,
+                                      bool vector_delimited = true,
+                                      const std::string& indent = "",
+                                      bool quotes = false) {
+  ToStringVisitor tostring_visitor(multi_line ? "\n" : " ", quotes, indent,
+                                   vector_delimited);
+  IterateFlatBuffer(buffer, buffer_size, type_table, &tostring_visitor);
+  return tostring_visitor.s;
+}
 
 inline std::string FlatBufferToString(const uint8_t* buffer,
                                       const TypeTable* type_table,
