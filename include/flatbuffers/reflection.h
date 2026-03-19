@@ -68,7 +68,8 @@ constexpr size_t kBaseTypeSize[] = {
 
     0  // MaxBaseType. This must be kept the last entry in this array.
 };
-static_assert(sizeof(kBaseTypeSize) / sizeof(size_t) == reflection::MaxBaseType + 1,
+static_assert(sizeof(kBaseTypeSize) / sizeof(size_t) ==
+                  reflection::MaxBaseType + 1,
               "Size of sizes[] array does not match the count of BaseType "
               "enum values.");
 
