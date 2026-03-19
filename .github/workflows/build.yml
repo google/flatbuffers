@@ -191,7 +191,7 @@ jobs:
 
   build-dotnet-windows:
     name: Build .NET Windows
-    runs-on: windows-2022-64core
+    runs-on: windows-2022
     strategy:
       matrix:
         configuration: [
@@ -446,7 +446,7 @@ jobs:
 
   build-rust-windows:
     name: Build Rust Windows
-    runs-on: windows-2022-64core
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v6
     - name: test
