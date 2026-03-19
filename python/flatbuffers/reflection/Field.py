@@ -239,7 +239,7 @@ def FieldCreateAttributesVector(builder, data):
     return builder.CreateVectorOfTables(data)
 
 def CreateAttributesVector(builder, data):
-    FieldCreateAttributesVector(builder, data)
+    return FieldCreateAttributesVector(builder, data)
 
 def FieldAddDocumentation(builder, documentation):
     builder.PrependUOffsetTRelativeSlot(10, flatbuffers.number_types.UOffsetTFlags.py_type(documentation), 0)
@@ -257,7 +257,7 @@ def FieldCreateDocumentationVector(builder, data):
     return builder.CreateVectorOfTables(data)
 
 def CreateDocumentationVector(builder, data):
-    FieldCreateDocumentationVector(builder, data)
+    return FieldCreateDocumentationVector(builder, data)
 
 def FieldAddOptional(builder, optional):
     builder.PrependBoolSlot(11, optional, 0)

@@ -88,6 +88,20 @@ flatc(
 esbuild("monster_test.ts", "monster_test_generated.cjs")
 
 flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="../even_more_defaults.fbs",
+    include="../include_test",
+)
+
+flatc(
     options=["--gen-object-api", "-b"],
     schema="../monster_test.fbs",
     include="../include_test",
@@ -199,6 +213,20 @@ flatc(
 flatc(options=["--ts"], schema="../long_namespace.fbs")
 flatc(options=["--ts"], schema="../longer_namespace.fbs")
 
+
+flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="relative_imports/relative_imports.fbs",
+    prefix="relative_imports",
+)
+
 print("Running TypeScript Compiler...")
 check_call(["tsc"])
 print(
@@ -215,6 +243,7 @@ check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
 check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
+check_call(NODE_CMD + ["JavaScriptRelativeImportPathTest"])
 check_call(NODE_CMD + ["JavaScriptUndefinedForOptionals"])
 
 print("Running old v1 TypeScript Tests...")

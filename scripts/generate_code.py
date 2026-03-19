@@ -395,6 +395,11 @@ flatc(
 )
 
 flatc(
+    ["--cpp", "--gen-compare", "--gen-mutable", "--gen-object-api", "--reflect-names"],
+    schema="cross_namespace_pack_test.fbs",
+)
+
+flatc(
     RUST_OPTS,
     prefix="arrays_test",
     schema="arrays_test.fbs",
@@ -415,6 +420,11 @@ flatc(
 flatc(
     BASE_OPTS + PYTHON_OPTS,
     schema="nested_union_test.fbs",
+)
+
+flatc(
+    ["--python", "--gen-object-api"],
+    schema="union_name_test.fbs",
 )
 
 flatc(
@@ -515,6 +525,13 @@ flatc(
     SWIFT_OPTS_CODE_GEN + NO_INCL_OPTS + ["--grpc"],
     schema="test_no_include.fbs",
     cwd=swift_code_gen,
+)
+
+flatc(
+    SWIFT_OPTS_CODE_GEN + BASE_OPTS,
+    schema="empty_vtable.fbs",
+    cwd=swift_code_gen,
+    prefix="../../Tests/Flatbuffers/",
 )
 
 # Swift Wasm Tests
