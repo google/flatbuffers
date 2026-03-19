@@ -2815,10 +2815,14 @@ bool Parser::SupportsDefaultVectorsAndStrings() const {
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
+  // Advanced Union Features refers to the following features:
+  //    - Vectors of unions
+  //    - Strings in unions
+  //    - structs in unions
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
-            IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kNim |
+            IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kPython | IDLOptions::kNim |
             IDLOptions::kJson | IDLOptions::kKotlinKmp)) == 0;
 }
 

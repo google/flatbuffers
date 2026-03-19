@@ -55,6 +55,13 @@ class Table(object):
     length = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
     return bytes(self.Bytes[start : start + length])
 
+  def UnionString(self, off):
+    """String gets a string from data stored inside the flatbuffer."""
+    N.enforce_number(off, N.UOffsetTFlags)
+    start = off + N.UOffsetTFlags.bytewidth
+    length = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    return bytes(self.Bytes[start:start+length])
+
   def VectorLen(self, off):
     """VectorLen retrieves the length of the vector whose offset is stored
 
