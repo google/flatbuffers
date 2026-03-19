@@ -43,37 +43,38 @@ constexpr bool IsLong(reflection::BaseType t) {
   return t == reflection::Long || t == reflection::ULong;
 }
 
-// Size of a basic type, don't use with structs.
-inline size_t GetTypeSize(reflection::BaseType base_type) {
-  // This needs to correspond to the BaseType enum.
-  static size_t sizes[] = {
-      0,  // None
-      1,  // UType
-      1,  // Bool
-      1,  // Byte
-      1,  // UByte
-      2,  // Short
-      2,  // UShort
-      4,  // Int
-      4,  // UInt
-      8,  // Long
-      8,  // ULong
-      4,  // Float
-      8,  // Double
-      4,  // String
-      4,  // Vector
-      4,  // Obj
-      4,  // Union
-      0,  // Array. Only used in structs. 0 was chosen to prevent out-of-bounds
-          // errors.
-      8,  // Vector64
+// This needs to correspond to the BaseType enum.
+constexpr size_t kBaseTypeSize[] = {
+    0,  // None
+    1,  // UType
+    1,  // Bool
+    1,  // Byte
+    1,  // UByte
+    2,  // Short
+    2,  // UShort
+    4,  // Int
+    4,  // UInt
+    8,  // Long
+    8,  // ULong
+    4,  // Float
+    8,  // Double
+    4,  // String
+    4,  // Vector
+    4,  // Obj
+    4,  // Union
+    0,  // Array. Only used in structs. 0 was chosen to prevent out-of-bounds
+        // errors.
+    8,  // Vector64
 
-      0  // MaxBaseType. This must be kept the last entry in this array.
-  };
-  static_assert(sizeof(sizes) / sizeof(size_t) == reflection::MaxBaseType + 1,
-                "Size of sizes[] array does not match the count of BaseType "
-                "enum values.");
-  return sizes[base_type];
+    0  // MaxBaseType. This must be kept the last entry in this array.
+};
+static_assert(sizeof(kBaseTypeSize) / sizeof(size_t) == reflection::MaxBaseType + 1,
+              "Size of sizes[] array does not match the count of BaseType "
+              "enum values.");
+
+// Size of a basic type, don't use with structs.
+constexpr size_t GetTypeSize(reflection::BaseType base_type) {
+  return kBaseTypeSize[base_type];
 }
 
 // Same as above, but now correctly returns the size of a struct if
@@ -420,7 +421,7 @@ pointer_inside_vector<T, U> piv(T* ptr, std::vector<U>& vec) {
   return pointer_inside_vector<T, U>(ptr, vec);
 }
 
-inline const char* UnionTypeFieldSuffix() { return "_type"; }
+constexpr const char* UnionTypeFieldSuffix() { return "_type"; }
 
 // Helper to figure out the actual table type a union refers to.
 inline const reflection::Object& GetUnionType(
