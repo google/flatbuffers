@@ -423,6 +423,11 @@ flatc(
 )
 
 flatc(
+    ["--python", "--gen-object-api"],
+    schema="union_name_test.fbs",
+)
+
+flatc(
     NO_INCL_OPTS + CPP_OPTS,
     schema="default_vectors_strings_test.fbs",
 )
