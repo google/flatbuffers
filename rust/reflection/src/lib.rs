@@ -154,6 +154,10 @@ pub unsafe fn get_field_struct<'a>(
 
 /// Gets a Vector table field given its exact type. Returns empty vector if the field is not set. Returns error if the type doesn't match.
 ///
+/// This function works for vectors of scalar/primitive types (integers, floats, bools).
+/// For vectors of tables, use [`get_field_vector_of_tables`]. For vectors of strings, use
+/// [`get_field_vector_of_strings`]. For vectors of structs, use [`get_field_vector_of_structs`].
+///
 /// # Safety
 ///
 /// The value of the corresponding slot must have type Vector
@@ -171,6 +175,166 @@ pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
     }
 
     Ok(table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default())))
+}
+
+/// Gets a vector-of-tables field. Returns [None] if the field is not set.
+/// Returns error if the field is not a vector of tables (rejects vectors of structs).
+///
+/// Unlike [`get_field_vector`], this function works with vectors of tables where each
+/// element is stored as an offset (`ForwardsUOffset<Table>`) in the buffer.
+///
+/// Requires the [`Schema`] to distinguish tables from structs (both use `BaseType::Obj`).
+///
+/// # Safety
+///
+/// The value of the corresponding slot must be a vector of tables, and the schema must
+/// match the buffer.
+pub unsafe fn get_field_vector_of_tables<'a>(
+    table: &Table<'a>,
+    field: &Field,
+    schema: &Schema,
+) -> FlatbufferResult<Option<Vector<'a, ForwardsUOffset<Table<'a>>>>> {
+    if field.type_().base_type() != BaseType::Vector || field.type_().element() != BaseType::Obj {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Vector of Table"),
+            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+        ));
+    }
+
+    let type_index = field.type_().index();
+    if type_index < 0 || type_index as usize >= schema.objects().len() {
+        return Err(FlatbufferError::InvalidSchema);
+    }
+    let object = schema.objects().get(type_index as usize);
+    if object.is_struct() {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Vector of Table"),
+            String::from("Vector of Struct"),
+        ));
+    }
+
+    Ok(table.get::<ForwardsUOffset<Vector<ForwardsUOffset<Table<'a>>>>>(field.offset(), None))
+}
+
+/// Gets a vector-of-strings field. Returns [None] if the field is not set.
+/// Returns error if the field is not a vector or the element type is not `String`.
+///
+/// Unlike [`get_field_vector`], this function works with vectors of strings where each
+/// element is stored as an offset (`ForwardsUOffset<&str>`) in the buffer.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must be a vector of strings.
+pub unsafe fn get_field_vector_of_strings<'a>(
+    table: &Table<'a>,
+    field: &Field,
+) -> FlatbufferResult<Option<Vector<'a, ForwardsUOffset<&'a str>>>> {
+    if field.type_().base_type() != BaseType::Vector
+        || field.type_().element() != BaseType::String
+    {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Vector of String"),
+            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+        ));
+    }
+
+    Ok(table.get::<ForwardsUOffset<Vector<ForwardsUOffset<&'a str>>>>(field.offset(), None))
+}
+
+/// A vector of structs accessed through the reflection API.
+///
+/// Since struct elements are stored inline at their schema-defined byte size (which
+/// may differ from the Rust `Struct` type's size), this type provides indexed access
+/// using the correct element stride from the schema.
+#[derive(Debug)]
+pub struct StructVector<'a> {
+    buf: &'a [u8],
+    loc: usize,
+    len: usize,
+    element_size: usize,
+}
+
+impl<'a> StructVector<'a> {
+    /// Returns the number of elements in this vector.
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    /// Returns `true` if the vector has no elements.
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    /// Returns the struct at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `idx >= self.len()`.
+    pub fn get(&self, idx: usize) -> Struct<'a> {
+        assert!(idx < self.len);
+        let element_loc = self.loc + SIZE_UOFFSET + idx * self.element_size;
+        // SAFETY: the caller of `get_field_vector_of_structs` guaranteed the buffer
+        // contains a valid vector of structs matching the schema.
+        unsafe { Struct::new(self.buf, element_loc) }
+    }
+}
+
+/// Gets a vector-of-structs field. Returns [None] if the field is not set.
+/// Returns error if the field is not a vector of structs.
+///
+/// Requires the [Schema] to look up the struct's byte size for correct element indexing.
+///
+/// # Safety
+///
+/// The value of the corresponding slot must be a vector of structs, and the schema must
+/// match the buffer.
+pub unsafe fn get_field_vector_of_structs<'a>(
+    table: &Table<'a>,
+    field: &Field,
+    schema: &Schema,
+) -> FlatbufferResult<Option<StructVector<'a>>> {
+    if field.type_().base_type() != BaseType::Vector || field.type_().element() != BaseType::Obj {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Vector of Struct"),
+            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+        ));
+    }
+
+    let type_index = field.type_().index();
+    if type_index < 0 || type_index as usize >= schema.objects().len() {
+        return Err(FlatbufferError::InvalidSchema);
+    }
+    let object = schema.objects().get(type_index as usize);
+    if !object.is_struct() {
+        return Err(FlatbufferError::FieldTypeMismatch(
+            String::from("Vector of Struct"),
+            String::from("Vector of Table"),
+        ));
+    }
+
+    let element_size = object.bytesize() as usize;
+    if element_size == 0 {
+        return Err(FlatbufferError::InvalidSchema);
+    }
+
+    let field_offset = table.vtable().get(field.offset()) as usize;
+    if field_offset == 0 {
+        return Ok(None);
+    }
+
+    let vector_loc = {
+        let field_loc = table.loc() + field_offset;
+        let offset = read_scalar::<UOffsetT>(&table.buf()[field_loc..]) as usize;
+        field_loc + offset
+    };
+    let len = read_scalar::<UOffsetT>(&table.buf()[vector_loc..]) as usize;
+
+    Ok(Some(StructVector {
+        buf: table.buf(),
+        loc: vector_loc,
+        len,
+        element_size,
+    }))
 }
 
 /// Gets a Table table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.

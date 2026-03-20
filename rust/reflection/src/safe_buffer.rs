@@ -21,8 +21,9 @@ use crate::{
     get_any_field_float, get_any_field_float_in_struct, get_any_field_integer,
     get_any_field_integer_in_struct, get_any_field_string, get_any_field_string_in_struct,
     get_any_root, get_field_float, get_field_integer, get_field_string, get_field_struct,
-    get_field_struct_in_struct, get_field_table, get_field_vector, FlatbufferError,
-    FlatbufferResult, ForwardsUOffset,
+    get_field_struct_in_struct, get_field_table, get_field_vector,
+    get_field_vector_of_strings, get_field_vector_of_structs, get_field_vector_of_tables,
+    FlatbufferError, FlatbufferResult, ForwardsUOffset, StructVector,
 };
 use flatbuffers::{Follow, Table, Vector, VerifierOptions};
 use num_traits::float::Float;
@@ -162,6 +163,68 @@ impl<'a> SafeTable<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             unsafe { get_field_vector(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+        } else {
+            Err(FlatbufferError::FieldNotFound)
+        }
+    }
+
+    /// Gets a vector-of-tables field by name. Returns [None] if the field is not set. Returns error if
+    /// the table doesn't match the buffer or
+    /// the [field_name] doesn't match the table or
+    /// the field is not a vector of tables.
+    pub fn get_field_vector_of_tables(
+        &self,
+        field_name: &str,
+    ) -> FlatbufferResult<Option<Vector<'a, ForwardsUOffset<Table<'a>>>>> {
+        if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
+            // SAFETY: the buffer was verified during construction.
+            unsafe {
+                get_field_vector_of_tables(
+                    &Table::new(&self.safe_buf.buf, self.loc),
+                    &field,
+                    self.safe_buf.schema,
+                )
+            }
+        } else {
+            Err(FlatbufferError::FieldNotFound)
+        }
+    }
+
+    /// Gets a vector-of-strings field by name. Returns [None] if the field is not set. Returns error if
+    /// the table doesn't match the buffer or
+    /// the [field_name] doesn't match the table or
+    /// the field is not a vector of strings.
+    pub fn get_field_vector_of_strings(
+        &self,
+        field_name: &str,
+    ) -> FlatbufferResult<Option<Vector<'a, ForwardsUOffset<&'a str>>>> {
+        if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
+            // SAFETY: the buffer was verified during construction.
+            unsafe {
+                get_field_vector_of_strings(&Table::new(&self.safe_buf.buf, self.loc), &field)
+            }
+        } else {
+            Err(FlatbufferError::FieldNotFound)
+        }
+    }
+
+    /// Gets a vector-of-structs field by name. Returns [None] if the field is not set. Returns error if
+    /// the table doesn't match the buffer or
+    /// the [field_name] doesn't match the table or
+    /// the field is not a vector of structs.
+    pub fn get_field_vector_of_structs(
+        &self,
+        field_name: &str,
+    ) -> FlatbufferResult<Option<StructVector<'a>>> {
+        if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
+            // SAFETY: the buffer was verified during construction.
+            unsafe {
+                get_field_vector_of_structs(
+                    &Table::new(&self.safe_buf.buf, self.loc),
+                    &field,
+                    self.safe_buf.schema,
+                )
+            }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
