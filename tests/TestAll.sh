@@ -10,6 +10,10 @@ echo "************************ Go:"
 
 sh GoTest.sh
 
+echo "************************ Go Arrays:"
+
+sh GoArraysTest.sh
+
 echo "************************ Python:"
 
 sh PythonTest.sh
