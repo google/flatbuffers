@@ -4135,8 +4135,8 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
   for (uoffset_t i = 0; i < of.size(); i++) {
   uint16_t field_id = of.Get(i)->id();
   if (field_id >= of.size()) {
-    parser.error("Field ID " + std::to_string(field_id) + 
-                 " exceeds field count " + std::to_string(of.size()));
+    parser.error_ = "Field ID " + std::to_string(field_id) + 
+                    " exceeds field count " + std::to_string(of.size());
     return false;
   }
   indexes[field_id] = i;
