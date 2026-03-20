@@ -495,7 +495,7 @@ jobs:
     name: Test Swift Linux
     strategy:
       matrix:
-        swift: ["5.10", "6.1", "6.2"]
+        swift: ["6.0", "6.1", "6.2"]
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6

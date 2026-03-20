@@ -128,5 +128,9 @@ private struct TestNativeStructs: NativeStruct {
 }
 
 extension MyGame_Example_Color: CaseIterable {
-  public static var allCases: [MyGame_Example_Color] = [.red, .blue, .green]
+  nonisolated(unsafe) public static var allCases: [MyGame_Example_Color] = [
+    .red,
+    .blue,
+    .green,
+  ]
 }

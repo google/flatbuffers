@@ -320,7 +320,7 @@ public struct FallingTub_Mutable: FlatBufferStruct, FlatbuffersVectorInitializab
   }
 }
 
-public struct Attacker: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct Attacker: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -398,7 +398,7 @@ public class AttackerT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: Attacker.self) }
 
 }
-public struct HandFan: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct HandFan: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -476,7 +476,7 @@ public class HandFanT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: HandFan.self) }
 
 }
-public struct Movie: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct Movie: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }

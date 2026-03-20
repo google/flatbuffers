@@ -549,13 +549,14 @@ class SwiftGenerator : public BaseGenerator {
     code_.SetValue("SHORT_STRUCTNAME", namer_.Type(struct_def));
     code_.SetValue("STRUCTNAME", namer_.NamespacedType(struct_def));
     code_.SetValue("OBJECTTYPE", struct_def.fixed ? "Struct" : "Table");
+    code_.SetValue("PROTOCOL", struct_def.fixed ? "FlatBufferStruct"
+                                                : "FlatBufferVerifiableTable");
     code_.SetValue("MUTABLE", struct_def.fixed ? Mutable() : "");
 
     GenOSVersionChecks();
     code_ +=
         "{{ACCESS_TYPE}} struct {{STRUCTNAME}}{{MUTABLE}}: "
-        "FlatBuffer{{OBJECTTYPE}}, FlatbuffersVectorInitializable\\";
-    if (!struct_def.fixed) code_ += ", Verifiable\\";
+        "{{PROTOCOL}}, FlatbuffersVectorInitializable\\";
     if (!struct_def.fixed && parser_.opts.generate_object_based_api)
       code_ += ", ObjectAPIPacker\\";
     code_ += " {\n";
