@@ -374,7 +374,7 @@ flatc(
     + CS_OPTS
     + NO_INCL_OPTS
     + JAVA_OPTS
-    + ["--jsonschema", "--scoped-enums"],
+    + ["--jsonschema", "--scoped-enums", "--go", "--gen-object-api"],
     schema="arrays_test.fbs",
 )
 
