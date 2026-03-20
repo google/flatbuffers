@@ -202,7 +202,7 @@ pub unsafe fn get_field_vector_of_tables<'a>(
     }
 
     let type_index = field.type_().index();
-    if type_index < 0 {
+    if type_index < 0 || type_index as usize >= schema.objects().len() {
         return Err(FlatbufferError::InvalidSchema);
     }
     let object = schema.objects().get(type_index as usize);
@@ -273,7 +273,8 @@ impl<'a> StructVector<'a> {
     pub fn get(&self, idx: usize) -> Struct<'a> {
         assert!(idx < self.len);
         let element_loc = self.loc + SIZE_UOFFSET + idx * self.element_size;
-        // SAFETY: the buffer was verified to contain valid struct data during construction.
+        // SAFETY: the caller of `get_field_vector_of_structs` guaranteed the buffer
+        // contains a valid vector of structs matching the schema.
         unsafe { Struct::new(self.buf, element_loc) }
     }
 }
@@ -300,7 +301,7 @@ pub unsafe fn get_field_vector_of_structs<'a>(
     }
 
     let type_index = field.type_().index();
-    if type_index < 0 {
+    if type_index < 0 || type_index as usize >= schema.objects().len() {
         return Err(FlatbufferError::InvalidSchema);
     }
     let object = schema.objects().get(type_index as usize);
