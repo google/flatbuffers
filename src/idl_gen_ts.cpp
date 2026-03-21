@@ -1774,7 +1774,13 @@ class TsGenerator : public BaseGenerator {
     unpack_func += ");\n}";
     unpack_to_func += "}\n";
 
-    obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
+    std::string unpack_fields_func;
+    if (!struct_def.fixed) {
+      unpack_fields_func = "\n" + GenUnpackFieldsTS(struct_def, imports) + "\n";
+    }
+
+    obj_api_unpack_func =
+        unpack_func + "\n\n" + unpack_to_func + unpack_fields_func;
   }
 
   // Generates a clone() method for a *T Object API class.
@@ -1883,6 +1889,100 @@ class TsGenerator : public BaseGenerator {
     }
 
     ret += "  return true;\n}";
+    return ret;
+  }
+
+  // Generates an unpackFields(...fields: string[]) method for a *T Object API
+  // class.  Only the named fields are populated on the returned instance;
+  // all other fields are left at their constructor default values.  This
+  // avoids materialising the entire table tree when only a few fields are
+  // needed.
+  std::string GenUnpackFieldsTS(const StructDef& struct_def,
+                                import_set& imports) {
+    const auto class_name = GetTypeName(struct_def, /*object_api=*/true);
+    std::string ret = "\n\nunpackFields(...fields: string[]): " + class_name +
+                      " {\n";
+    ret += "  const t = new " + class_name + "();\n";
+    ret += "  const fieldSet = new Set(fields);\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto ff = namer_.Field(field);
+      const auto field_method = namer_.Method(field);
+      const auto base = field.value.type.base_type;
+      const auto is_string = IsString(field.value.type);
+
+      ret += "  if (fieldSet.has('" + field.name + "')) {\n";
+
+      if (IsScalar(base) || is_string) {
+        ret += "    t." + ff + " = this." + field_method + "();\n";
+      } else if (base == BASE_TYPE_STRUCT) {
+        const std::string field_accessor = "this." + field_method + "()";
+        ret += "    t." + ff + " = " +
+               GenNullCheckConditional(field_accessor,
+                                       field_accessor + "!.unpack()",
+                                       null_keyword_) +
+               ";\n";
+      } else if (base == BASE_TYPE_VECTOR || base == BASE_TYPE_ARRAY) {
+        auto vectortype = field.value.type.VectorType();
+        const std::string field_binded_method =
+            "this." + field_method + ".bind(this)";
+        if (vectortype.base_type == BASE_TYPE_STRUCT) {
+          const auto field_type_name =
+              GetTypeName(*vectortype.struct_def, /*object_api=*/true);
+          auto vectortypename =
+              GenTypeName(imports, struct_def, vectortype, false);
+          if (base == BASE_TYPE_ARRAY) {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createObjList<" + vectortypename + ", " + field_type_name +
+                   ">(" + field_binded_method + ", " +
+                   NumToString(field.value.type.fixed_length) + ");\n";
+          } else {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createObjList<" + vectortypename + ", " + field_type_name +
+                   ">(" + field_binded_method + ", this." +
+                   namer_.Method(field, "Length") + "());\n";
+          }
+        } else if (vectortype.base_type == BASE_TYPE_STRING) {
+          if (base == BASE_TYPE_ARRAY) {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<string>(" + field_binded_method + ", " +
+                   NumToString(field.value.type.fixed_length) + ");\n";
+          } else {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<string>(" + field_binded_method +
+                   ", this." + namer_.Field(field, "Length") + "());\n";
+          }
+        } else if (vectortype.base_type == BASE_TYPE_UNION) {
+          ret += "    t." + ff + " = this." + ff + ";\n";
+        } else {
+          auto vectortypename =
+              GenTypeName(imports, struct_def, vectortype, false);
+          if (base == BASE_TYPE_ARRAY) {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<" + vectortypename + ">(" +
+                   field_binded_method + ", " +
+                   NumToString(field.value.type.fixed_length) + ");\n";
+          } else {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<" + vectortypename + ">(" +
+                   field_binded_method + ", this." +
+                   namer_.Method(field, "Length") + "());\n";
+          }
+        }
+      } else if (base == BASE_TYPE_UNION) {
+        ret += "    t." + ff + " = this." + ff + ";\n";
+      } else {
+        ret += "    t." + ff + " = this." + field_method + "();\n";
+      }
+
+      ret += "  }\n";
+    }
+
+    ret += "  return t;\n}";
     return ret;
   }
 

@@ -203,6 +203,7 @@ class GoGenerator : public BaseGenerator {
     GenNativeUnion(enum_def, code_ptr);
     GenNativeUnionPack(enum_def, code_ptr);
     GenNativeUnionUnPack(enum_def, code_ptr);
+    GenUnionMatch(enum_def, code_ptr);
   }
 
   bool generateStructs(std::string* one_file_code) {
@@ -1261,6 +1262,7 @@ class GoGenerator : public BaseGenerator {
     if (!struct_def.fixed) {
       GenNativeTablePack(struct_def, code_ptr);
       GenNativeTableUnPack(struct_def, code_ptr);
+      GenSelectiveUnpack(struct_def, code_ptr);
     } else {
       GenNativeStructPack(struct_def, code_ptr);
       GenNativeStructUnPack(struct_def, code_ptr);
@@ -1327,6 +1329,40 @@ class GoGenerator : public BaseGenerator {
     }
     code += "\t}\n";
     code += "\treturn nil\n";
+    code += "}\n\n";
+  }
+
+  void GenUnionMatch(const EnumDef& enum_def, std::string* code_ptr) {
+    if (enum_def.generated) return;
+
+    std::string& code = *code_ptr;
+    const std::string native_name = NativeName(enum_def);
+
+    code += "// Match dispatches to the appropriate callback based on the union variant.\n";
+    code += "// Each callback receives the correctly typed value. If the variant is NONE\n";
+    code += "// or unrecognized, no callback is invoked.\n";
+    code += "func (u *" + native_name + ") Match(\n";
+    for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
+         ++it2) {
+      const EnumVal& ev = **it2;
+      if (ev.IsZero()) continue;
+      code += "\ton" + namer_.Variant(ev) + " func(" + NativeType(ev.union_type) +
+              "),\n";
+    }
+    code += ") {\n";
+    code += "\tif u == nil {\n\t\treturn\n\t}\n";
+    code += "\tswitch u.Type {\n";
+    for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
+         ++it2) {
+      const EnumVal& ev = **it2;
+      if (ev.IsZero()) continue;
+      code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
+      code += "\t\tif v, ok := u.Value.(" + NativeType(ev.union_type) +
+              "); ok {\n";
+      code += "\t\t\ton" + namer_.Variant(ev) + "(v)\n";
+      code += "\t\t}\n";
+    }
+    code += "\t}\n";
     code += "}\n\n";
   }
 
@@ -1532,6 +1568,95 @@ class GoGenerator : public BaseGenerator {
     code += "\tif rcv == nil {\n\t\treturn nil\n\t}\n";
     code += "\tt := &" + NativeName(struct_def) + "{}\n";
     code += "\trcv.UnPackTo(t)\n";
+    code += "\treturn t\n";
+    code += "}\n\n";
+  }
+
+  void GenSelectiveUnpack(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
+    const std::string struct_type = namer_.Type(struct_def);
+    const std::string native_type = NativeName(struct_def);
+
+    code += "// UnpackFields returns a partial *" + native_type +
+            " with only the named fields populated.\n";
+    code += "// Fields not in the list are left at their zero/default values.\n";
+    code += "// This avoids materializing the entire table tree.\n";
+    code += "func (rcv *" + struct_type + ") UnpackFields(fields ...string) *" +
+            native_type + " {\n";
+    code += "\tt := &" + native_type + "{}\n";
+    code += "\tfieldSet := make(map[string]bool, len(fields))\n";
+    code += "\tfor _, f := range fields {\n";
+    code += "\t\tfieldSet[f] = true\n";
+    code += "\t}\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef& field = **it;
+      if (field.deprecated) continue;
+      if (IsScalar(field.value.type.base_type) &&
+          field.value.type.enum_def != nullptr &&
+          field.value.type.enum_def->is_union)
+        continue;
+
+      const std::string field_field = namer_.Field(field);
+      const std::string field_var = namer_.Variable(field);
+      const std::string length = field_var + "Length";
+
+      code += "\tif fieldSet[\"" + field.name + "\"] {\n";
+
+      if (IsScalar(field.value.type.base_type)) {
+        code += "\t\tt." + field_field + " = rcv." + field_field + "()\n";
+      } else if (IsString(field.value.type)) {
+        code += "\t\tt." + field_field + " = string(rcv." + field_field +
+                "())\n";
+      } else if (IsVector(field.value.type) &&
+                 field.value.type.element == BASE_TYPE_UCHAR &&
+                 field.value.type.enum_def == nullptr) {
+        code += "\t\tt." + field_field + " = rcv." + field_field + "Bytes()\n";
+      } else if (IsVector(field.value.type)) {
+        code += "\t\t" + length + " := rcv." + field_field + "Length()\n";
+        code += "\t\tt." + field_field + " = make(" +
+                NativeType(field.value.type) + ", " + length + ")\n";
+        code += "\t\tfor j := 0; j < " + length + "; j++ {\n";
+        if (field.value.type.element == BASE_TYPE_STRUCT) {
+          code += "\t\t\tx := " +
+                  WrapInNameSpaceAndTrack(field.value.type.struct_def,
+                                          field.value.type.struct_def->name) +
+                  "{}\n";
+          code += "\t\t\trcv." + field_field + "(&x, j)\n";
+        }
+        code += "\t\t\tt." + field_field + "[j] = ";
+        if (IsScalar(field.value.type.element)) {
+          code += "rcv." + field_field + "(j)";
+        } else if (field.value.type.element == BASE_TYPE_STRING) {
+          code += "string(rcv." + field_field + "(j))";
+        } else if (field.value.type.element == BASE_TYPE_STRUCT) {
+          code += "x.UnPack()";
+        } else {
+          // TODO(iceboy): Support vector of unions.
+          FLATBUFFERS_ASSERT(0);
+        }
+        code += "\n";
+        code += "\t\t}\n";
+      } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+        code += "\t\tt." + field_field + " = rcv." + field_field +
+                "(nil).UnPack()\n";
+      } else if (field.value.type.base_type == BASE_TYPE_UNION) {
+        const std::string field_table = field_var + "Table";
+        code += "\t\t" + field_table + " := flatbuffers.Table{}\n";
+        code += "\t\tif rcv." + namer_.Method(field) + "(&" + field_table +
+                ") {\n";
+        code += "\t\t\tt." + field_field + " = rcv." +
+                namer_.Method(field.name + UnionTypeFieldSuffix()) +
+                "().UnPack(" + field_table + ")\n";
+        code += "\t\t}\n";
+      } else {
+        FLATBUFFERS_ASSERT(0);
+      }
+
+      code += "\t}\n";
+    }
+
     code += "\treturn t\n";
     code += "}\n\n";
   }

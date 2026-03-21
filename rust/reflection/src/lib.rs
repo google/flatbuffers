@@ -54,6 +54,7 @@
 //! All fallible operations return [`FlatbufferResult`], which is an alias for
 //! `Result<T, `[`FlatbufferError`]`>`.
 
+pub mod chunked_builder;
 mod reflection_generated;
 mod reflection_verifier;
 mod safe_buffer;

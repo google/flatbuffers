@@ -13,3 +13,4 @@ export {Builder} from './builder.js';
 export {ByteBuffer} from './byte-buffer.js';
 export {Encoding} from './encoding.js';
 export {Verifier, VerifierOptions, VerifyResult, VerificationError, ErrorKind, TraceKind, TraceDetail} from './verifier.js';
+export {computeSchemaHash, envelopeWrap, envelopeUnwrap, envelopePayload, envelopeSchemaHash, isEnvelope} from './envelope.js';
