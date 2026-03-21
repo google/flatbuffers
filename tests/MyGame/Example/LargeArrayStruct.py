@@ -120,23 +120,23 @@ class LargeArrayStruct(object):
 
 def CreateLargeArrayStruct(builder, d, e, f, g_a, g_b, g_c, g_d, h):
     builder.Prep(8, 2496)
-    for _idx0 in range(64 , 0, -1):
+    for _idx0 in range(64, 0, -1):
         builder.PrependInt8(h[_idx0-1])
-    for _idx0 in range(64 , 0, -1):
+    for _idx0 in range(64, 0, -1):
         builder.Prep(8, 32)
-        for _idx1 in range(2 , 0, -1):
+        for _idx1 in range(2, 0, -1):
             builder.PrependInt64(g_d[_idx0-1][_idx1-1])
         builder.Pad(5)
-        for _idx1 in range(2 , 0, -1):
+        for _idx1 in range(2, 0, -1):
             builder.PrependInt8(g_c[_idx0-1][_idx1-1])
         builder.PrependInt8(g_b[_idx0-1])
-        for _idx1 in range(2 , 0, -1):
+        for _idx1 in range(2, 0, -1):
             builder.PrependInt32(g_a[_idx0-1][_idx1-1])
-    for _idx0 in range(64 , 0, -1):
+    for _idx0 in range(64, 0, -1):
         builder.PrependBool(f[_idx0-1])
-    for _idx0 in range(64 , 0, -1):
+    for _idx0 in range(64, 0, -1):
         builder.PrependFloat32(e[_idx0-1])
-    for _idx0 in range(64 , 0, -1):
+    for _idx0 in range(64, 0, -1):
         builder.PrependUint8(d[_idx0-1])
     return builder.Offset()
 
@@ -223,4 +223,23 @@ class LargeArrayStructT(object):
 
     # LargeArrayStructT
     def Pack(self, builder):
-        return CreateLargeArrayStruct(builder, self.d, self.e, self.f, self.g.a, self.g.b, self.g.c, self.g.d, self.h)
+        builder.Prep(8, 2496)
+        for _idx0 in range(64, 0, -1):
+            builder.PrependInt8(self.h[_idx0-1])
+        for _idx0 in range(64, 0, -1):
+            builder.Prep(8, 32)
+            for _idx1 in range(2, 0, -1):
+                builder.PrependInt64(self.g[_idx0-1].d[_idx1-1])
+            builder.Pad(5)
+            for _idx1 in range(2, 0, -1):
+                builder.PrependInt8(self.g[_idx0-1].c[_idx1-1])
+            builder.PrependInt8(self.g[_idx0-1].b)
+            for _idx1 in range(2, 0, -1):
+                builder.PrependInt32(self.g[_idx0-1].a[_idx1-1])
+        for _idx0 in range(64, 0, -1):
+            builder.PrependBool(self.f[_idx0-1])
+        for _idx0 in range(64, 0, -1):
+            builder.PrependFloat32(self.e[_idx0-1])
+        for _idx0 in range(64, 0, -1):
+            builder.PrependUint8(self.d[_idx0-1])
+        return builder.Offset()
