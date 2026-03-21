@@ -122,7 +122,48 @@ class TsGenerator : public BaseGenerator {
     if (!parser_.opts.ts_omit_entrypoint) {
       generateEntry();
     }
+    if (parser_.opts.binary_schema_gen_embed) {
+      if (!generate_bfbs_embed()) return false;
+    }
     return true;
+  }
+
+  // Generates a TypeScript source file containing the binary schema (.bfbs)
+  // as an embedded Uint8Array, enabling runtime reflection without file I/O.
+  //
+  // Output file: {name}-bfbs.ts
+  // Contents:
+  //   export const bfbsData = new Uint8Array([0xAB, 0xCD, ...]);
+  bool generate_bfbs_embed() {
+    if (!parser_.root_struct_def_) return true;  // nothing to embed
+
+    auto& struct_def = *parser_.root_struct_def_;
+
+    std::string code;
+    code += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    code +=
+        "/* eslint-disable @typescript-eslint/no-unused-vars */\n\n";
+
+    auto binary_schema_hex_text =
+        BufferToHexText(parser_.builder_.GetBufferPointer(),
+                        parser_.builder_.GetSize(), 80, "  ", "");
+
+    code += "/**\n";
+    code += " * Embedded binary schema (.bfbs) for runtime reflection.\n";
+    code += " * Generated from the schema that produced this file.\n";
+    code += " * Use with `loadSchema(bfbsData)` from the reflection module.\n";
+    code += " */\n";
+    code += "export const bfbsData: Uint8Array = new Uint8Array([\n";
+    code += binary_schema_hex_text;
+    code += "]);\n";
+
+    auto dirs = namer_.Directories(*struct_def.defined_namespace);
+    EnsureDirExists(dirs);
+    auto basename = dirs +
+                    namer_.File(struct_def, SkipFile::SuffixAndExtension) +
+                    "-bfbs.ts";
+
+    return parser_.opts.file_saver->SaveFile(basename.c_str(), code, false);
   }
 
   std::string GetTypeName(const EnumDef& def, const bool = false,

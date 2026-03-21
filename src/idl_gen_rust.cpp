@@ -359,11 +359,69 @@ class RustGenerator : public BaseGenerator {
   }
 
   bool generate() {
+    bool ok;
     if (!parser_.opts.rust_module_root_file) {
-      return GenerateOneFile();
+      ok = GenerateOneFile();
     } else {
-      return GenerateIndividualFiles();
+      ok = GenerateIndividualFiles();
     }
+    if (ok && parser_.opts.binary_schema_gen_embed) {
+      ok = generate_bfbs_embed();
+    }
+    return ok;
+  }
+
+  // Generates a Rust source file containing the binary schema (.bfbs) as an
+  // embedded byte-slice constant, enabling runtime reflection without file I/O.
+  //
+  // Output file: {name}_bfbs_generated.rs
+  // Contents:
+  //   pub const {NAME}_BFBS: &[u8] = &[0xAB, 0xCD, ...];
+  //   pub fn {name}_bfbs() -> &'static [u8] { {NAME}_BFBS }
+  bool generate_bfbs_embed() {
+    code_.Clear();
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning());
+    code_ += "// @generated";
+    code_ += "";
+
+    if (!parser_.root_struct_def_) {
+      code_ += "// Binary schema not generated, no root struct found.";
+      const auto file_path =
+          GeneratedFileName(path_, file_name_ + "_bfbs", parser_.opts);
+      return parser_.opts.file_saver->SaveFile(file_path.c_str(),
+                                               code_.ToString(), false);
+    }
+
+    auto& struct_def = *parser_.root_struct_def_;
+    const auto name_upper =
+        ConvertCase(namer_.Type(struct_def), Case::kScreamingSnake,
+                    Case::kUpperCamel) +
+        "_BFBS";
+    const auto name_lower =
+        ConvertCase(namer_.Type(struct_def), Case::kSnake,
+                    Case::kUpperCamel) +
+        "_bfbs";
+
+    // Emit the byte-slice constant with the serialized schema data.
+    auto binary_schema_hex_text =
+        BufferToHexText(parser_.builder_.GetBufferPointer(),
+                        parser_.builder_.GetSize(), 80, "  ", "");
+
+    code_ += "/// Embedded binary schema (.bfbs) for runtime reflection.";
+    code_ += "pub const " + name_upper + ": &[u8] = &[";
+    code_ += binary_schema_hex_text;
+    code_ += "];";
+    code_ += "";
+    code_ += "/// Returns the embedded binary schema as a static byte slice.";
+    code_ += "#[inline]";
+    code_ += "pub fn " + name_lower + "() -> &'static [u8] {";
+    code_ += "  " + name_upper;
+    code_ += "}";
+
+    const auto file_path =
+        GeneratedFileName(path_, file_name_ + "_bfbs", parser_.opts);
+    return parser_.opts.file_saver->SaveFile(file_path.c_str(),
+                                             code_.ToString(), false);
   }
 
   template <typename T>
