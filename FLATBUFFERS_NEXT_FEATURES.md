@@ -3,6 +3,25 @@
 Council-debated priority ranking for 7 ecosystem improvements.
 flatc v25.12.21 on branch `rust-object-api-improvements`.
 
+## Decision: BFBS in Production Binaries (Always Embedded)
+
+The council initially considered restricting .bfbs to dev/tooling builds. This was **overridden** — bfbs belongs in production binaries because LN2 needs runtime reflection for:
+
+1. **CDO schema version detection** — VTS loads CDO files from disk at runtime and needs to determine which schema generation produced them
+2. **Generic reflection Pack/Unpack** — replaces LiftCloud's 200-line CDO packer switch/case in production
+3. **Dynamic field access for structured logging** — VTS uses SafeBuffer (reflection-based) for production telemetry
+4. **Legacy format detection** — three-tier verifier checks field layout to determine buffer generation at runtime
+5. **Wire protocol negotiation** — VTS/LiftCloud interrogate schemas to determine field availability across versions
+
+**Schema leakage mitigation**: field names and types are already exposed via Go struct tags, TS property names, Rust debug impls, and error messages. Access control on inspection APIs (don't expose "dump schema" endpoints publicly) is the correct mitigation, not stripping schemas.
+
+**Embedding approach (no feature flags, always present):**
+- **Rust VTS:** `include_bytes!("../bfbs/ln2_message.bfbs")` — compiled in unconditionally
+- **Go LiftCloud:** `//go:embed bfbs/*.bfbs` in a schemas package — available at runtime
+- **TS frontend:** Bundled as static assets via `--bfbs-gen-embed`, loaded at startup
+
+The `--bfbs-gen-embed` flag (already implemented in flatc v25.12.20) generates embedded schema constants for all three languages. Use it for every schema compilation.
+
 ## Phase 1 — Codegen Wins + Envelope (Ship First)
 
 ### 1.1 Union Ergonomics: Go Match Method
