@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+//! Safe, schema-aware wrappers around a verified FlatBuffer binary.
+//!
+//! The types in this module (`[`SafeBuffer`]`, [`SafeTable`], [`SafeStruct`])
+//! provide the recommended entry point for dynamic FlatBuffer access in the VTS
+//! (Vendor Translation Server) and related consumers.  Because the buffer is
+//! fully verified during [`SafeBuffer::new`] construction, all subsequent field
+//! access methods are free of `unsafe` at the call site.
+
 use crate::reflection_generated::reflection::{Field, Schema};
 use crate::reflection_verifier::verify_with_options;
 use crate::r#struct::Struct;
@@ -30,6 +38,43 @@ use num_traits::float::Float;
 use num_traits::int::PrimInt;
 use std::collections::HashMap;
 
+/// A verified FlatBuffer paired with its schema, enabling safe dynamic field access.
+///
+/// `SafeBuffer` wraps a raw byte slice and a [`Schema`] and validates the entire
+/// buffer structure on construction.  Successful construction guarantees that:
+///
+/// - The buffer root offset is reachable.
+/// - Every referenced table, struct, vector, array, and union value is within
+///   bounds.
+/// - Each table's object type is recorded in an internal position map so that
+///   field lookups via [`SafeTable`] and [`SafeStruct`] can resolve field
+///   schemas without additional unsafe operations.
+///
+/// Because verification happens once at construction time, all subsequent field
+/// accessors on [`SafeTable`] and [`SafeStruct`] are entirely safe — no `unsafe`
+/// blocks appear in their implementations.
+///
+/// # Lifetimes
+///
+/// Both `buf` and `schema` are borrowed for lifetime `'a`.  `SafeBuffer` does
+/// not copy the buffer contents.
+///
+/// # Example
+///
+/// ```no_run
+/// # use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+/// # use flatbuffers_reflection::reflection::Schema;
+/// # fn example(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+/// let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+/// let safe = SafeBuffer::new(message_bytes, &schema)?;
+/// let root = safe.get_root();
+/// // Access fields by name without any unsafe code:
+/// if let Some(id) = root.get_field_integer::<i32>("device_id")? {
+///     println!("device_id = {id}");
+/// }
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug)]
 pub struct SafeBuffer<'a> {
     buf: &'a [u8],
@@ -38,10 +83,29 @@ pub struct SafeBuffer<'a> {
 }
 
 impl<'a> SafeBuffer<'a> {
+    /// Constructs a `SafeBuffer` by verifying `buf` against `schema`.
+    ///
+    /// Uses default [`VerifierOptions`] (max depth 64, max tables 1 000 000).
+    /// Returns [`FlatbufferError::VerificationError`] if the buffer fails
+    /// structural validation, or [`FlatbufferError::InvalidSchema`] if the
+    /// schema has no root table.
+    ///
+    /// Prefer this constructor unless you need to tune the DoS-protection limits
+    /// described on [`SafeBuffer::new_with_options`].
     pub fn new(buf: &'a [u8], schema: &'a Schema) -> FlatbufferResult<Self> {
         Self::new_with_options(buf, schema, &VerifierOptions::default())
     }
 
+    /// Constructs a `SafeBuffer` using custom verification options.
+    ///
+    /// `opts` controls the depth and table-count limits used during traversal.
+    /// Tightening these limits is useful when processing untrusted input where
+    /// the expected schema complexity is well-understood.
+    ///
+    /// Returns an error if verification fails or if the schema has no root
+    /// table.  On success, the internal position map is populated and subsequent
+    /// field lookups on [`SafeTable`] / [`SafeStruct`] do not require unsafe
+    /// code.
     pub fn new_with_options(
         buf: &'a [u8],
         schema: &'a Schema,
@@ -55,7 +119,11 @@ impl<'a> SafeBuffer<'a> {
         })
     }
 
-    /// Gets the root table in the buffer.
+    /// Returns the root [`SafeTable`] of this buffer.
+    ///
+    /// The root is the entry point for all field traversal.  Because the buffer
+    /// was fully verified during construction, the returned [`SafeTable`] is
+    /// guaranteed to be within bounds.
     pub fn get_root(&self) -> SafeTable {
         // SAFETY: the buffer was verified during construction.
         let table = unsafe { get_any_root(self.buf) };
@@ -92,6 +160,14 @@ impl<'a> SafeBuffer<'a> {
     }
 }
 
+/// A handle to a FlatBuffer table whose position was validated by [`SafeBuffer`].
+///
+/// Obtained from [`SafeBuffer::get_root`] or [`SafeTable::get_field_table`].
+/// All field accessors look up schema information by name — there is no need to
+/// know vtable offsets or scalar sizes ahead of time.
+///
+/// Field lookup is O(log n) in the number of fields because the schema stores
+/// fields in a sorted vector that is searched with a binary comparison.
 #[derive(Debug)]
 pub struct SafeTable<'a> {
     safe_buf: &'a SafeBuffer<'a>,
@@ -99,10 +175,20 @@ pub struct SafeTable<'a> {
 }
 
 impl<'a> SafeTable<'a> {
-    /// Gets an integer table field given its exact type. Returns default integer value if the field is not set. Returns [None] if no default value is found. Returns error if
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// Returns the value of a typed integer field, identified by name.
+    ///
+    /// `T` must match the field's declared integer type exactly (e.g. `i32` for
+    /// a FlatBuffers `int` field).  Returns the schema default when the field is
+    /// absent from the vtable, or `None` if the default cannot be represented in
+    /// `T`.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — `size_of::<T>()` does not
+    ///   match the declared field size.
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — this table's buffer position
+    ///   was not registered during verification (should not occur in normal use).
     pub fn get_field_integer<T: for<'b> Follow<'b, Inner = T> + PrimInt + FromPrimitive>(
         &self,
         field_name: &str,
@@ -115,10 +201,17 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Gets a floating point table field given its exact type. Returns default float value if the field is not set. Returns [None] if no default value is found. Returns error if
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// Returns the value of a typed floating-point field, identified by name.
+    ///
+    /// `T` must match the field's declared float type exactly (`f32` or `f64`).
+    /// Returns the schema default when the field is absent, or `None` if the
+    /// default cannot be represented in `T`.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — `size_of::<T>()` does not match
+    ///   the declared field size (e.g. `f64` for an `f32` schema field).
     pub fn get_field_float<T: for<'b> Follow<'b, Inner = T> + Float>(
         &self,
         field_name: &str,
@@ -131,10 +224,17 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Gets a String table field given its exact type. Returns empty string if the field is not set. Returns [None] if no default value is found. Returns error if
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// Returns the value of a string field, identified by name.
+    ///
+    /// Returns `Some("")` (the FlatBuffers default for string fields) when the
+    /// field is absent from the vtable.
+    ///
+    /// The returned `&str` borrows from the underlying buffer for lifetime `'a`.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the field is not of type `String`.
     pub fn get_field_string(&self, field_name: &str) -> FlatbufferResult<Option<&str>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -144,10 +244,15 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Gets a [SafeStruct] table field given its exact type. Returns [None] if the field is not set. Returns error if
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// Returns a [`SafeStruct`] handle to an inline struct field, identified by name.
+    ///
+    /// Returns `None` when the field is absent from the vtable.  The returned
+    /// [`SafeStruct`] shares the lifetime of the parent buffer.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the field's `BaseType` is not `Obj`.
     pub fn get_field_struct(&self, field_name: &str) -> FlatbufferResult<Option<SafeStruct<'a>>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -162,10 +267,18 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Gets a Vector table field given its exact type. Returns empty vector if the field is not set. Returns error if
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// Returns a typed [`flatbuffers::Vector`] field, identified by name.
+    ///
+    /// Returns an empty vector default when the field is absent.  The element
+    /// type `T` must match the schema's declared element type exactly.
+    ///
+    /// The returned `Vector` borrows from the underlying buffer for lifetime `'a`.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — field is not a `Vector`, or
+    ///   `size_of::<T>()` does not match the element type size.
     pub fn get_field_vector<T: Follow<'a, Inner = T>>(
         &self,
         field_name: &str,
@@ -178,10 +291,16 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Gets a [SafeTable] table field given its exact type. Returns [None] if the field is not set. Returns error if
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table or
-    /// the field type doesn't match.
+    /// Returns a [`SafeTable`] handle to a nested table field, identified by name.
+    ///
+    /// Returns `None` when the field is absent.  The returned [`SafeTable`]
+    /// shares the lifetime of the parent buffer and has its own position entry
+    /// in the verification map, so its field accessors are also safe.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the field's `BaseType` is not `Obj`.
     pub fn get_field_table(&self, field_name: &str) -> FlatbufferResult<Option<SafeTable<'a>>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -196,11 +315,18 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Returns the value of any table field as a 64-bit int, regardless of what type it is. Returns default integer if the field is not set or error if
-    /// the value cannot be parsed as integer or
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table.
-    /// [num_traits](https://docs.rs/num-traits/latest/num_traits/cast/trait.NumCast.html) is used for number casting.
+    /// Returns any field's value coerced to `i64`, regardless of its declared type.
+    ///
+    /// Scalar types are cast using
+    /// [`num_traits::NumCast`](https://docs.rs/num-traits/latest/num_traits/cast/trait.NumCast.html).
+    /// String fields are parsed with [`str::parse`].  Returns the schema
+    /// default integer when the field is absent.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the value cannot be represented
+    ///   as `i64` (e.g. a table or vector field).
     pub fn get_any_field_integer(&self, field_name: &str) -> FlatbufferResult<i64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -210,10 +336,16 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Returns the value of any table field as a 64-bit floating point, regardless of what type it is. Returns default float if the field is not set or error if
-    /// the value cannot be parsed as float or
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table.
+    /// Returns any field's value coerced to `f64`, regardless of its declared type.
+    ///
+    /// Same promotion logic as [`get_any_field_integer`] but targets `f64`.
+    /// Returns the schema default real when the field is absent.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the value cannot be represented
+    ///   as `f64`.
     pub fn get_any_field_float(&self, field_name: &str) -> FlatbufferResult<f64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -223,9 +355,15 @@ impl<'a> SafeTable<'a> {
         }
     }
 
-    /// Returns the string representation of any table field value (e.g. integer 123 is returned as "123"), regardless of what type it is. Returns empty string if the field is not set. Returns error if
-    /// the table doesn't match the buffer or
-    /// the [field_name] doesn't match the table.
+    /// Returns any field's value as a human-readable string, regardless of its declared type.
+    ///
+    /// Numeric types are formatted as decimal.  String fields are returned
+    /// directly.  Object fields are formatted as `TypeName { field: value, ... }`.
+    /// Returns an empty string when the field is absent.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
     pub fn get_any_field_string(&self, field_name: &str) -> FlatbufferResult<String> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -242,6 +380,11 @@ impl<'a> SafeTable<'a> {
     }
 }
 
+/// A handle to an inline FlatBuffer struct whose position was validated by [`SafeBuffer`].
+///
+/// Obtained from [`SafeTable::get_field_struct`] or [`SafeStruct::get_field_struct`].
+/// Unlike tables, FlatBuffer structs store all fields inline without a vtable,
+/// so fields are always present — there is no "absent field" concept.
 #[derive(Debug)]
 pub struct SafeStruct<'a> {
     safe_buf: &'a SafeBuffer<'a>,
@@ -249,10 +392,14 @@ pub struct SafeStruct<'a> {
 }
 
 impl<'a> SafeStruct<'a> {
-    /// Gets a [SafeStruct] struct field given its exact type. Returns error if
-    /// the struct doesn't match the buffer or
-    /// the [field_name] doesn't match the struct or
-    /// the field type doesn't match.
+    /// Returns a [`SafeStruct`] handle to a nested inline struct field, identified by name.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the field's `BaseType` is not `Obj`.
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — the struct's buffer position
+    ///   was not registered during verification.
     pub fn get_field_struct(&self, field_name: &str) -> FlatbufferResult<SafeStruct<'a>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -268,10 +415,15 @@ impl<'a> SafeStruct<'a> {
         }
     }
 
-    /// Returns the value of any struct field as a 64-bit int, regardless of what type it is. Returns error if
-    /// the struct doesn't match the buffer or
-    /// the [field_name] doesn't match the struct or
-    /// the value cannot be parsed as integer.
+    /// Returns any struct field's value coerced to `i64`, regardless of its declared type.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the value cannot be represented
+    ///   as `i64` (e.g. a nested object field).
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — the struct's position was not
+    ///   registered during verification.
     pub fn get_any_field_integer(&self, field_name: &str) -> FlatbufferResult<i64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -283,10 +435,15 @@ impl<'a> SafeStruct<'a> {
         }
     }
 
-    /// Returns the value of any struct field as a 64-bit floating point, regardless of what type it is. Returns error if
-    /// the struct doesn't match the buffer or
-    /// the [field_name] doesn't match the struct or
-    /// the value cannot be parsed as float.
+    /// Returns any struct field's value coerced to `f64`, regardless of its declared type.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the value cannot be represented
+    ///   as `f64`.
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — the struct's position was not
+    ///   registered during verification.
     pub fn get_any_field_float(&self, field_name: &str) -> FlatbufferResult<f64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
@@ -298,9 +455,13 @@ impl<'a> SafeStruct<'a> {
         }
     }
 
-    /// Returns the string representation of any struct field value (e.g. integer 123 is returned as "123"), regardless of what type it is. Returns error if
-    /// the struct doesn't match the buffer or
-    /// the [field_name] doesn't match the struct.
+    /// Returns any struct field's value as a human-readable string, regardless of its declared type.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — the struct's position was not
+    ///   registered during verification.
     pub fn get_any_field_string(&self, field_name: &str) -> FlatbufferResult<String> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.

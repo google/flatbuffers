@@ -14,6 +14,27 @@
  * limitations under the License.
  */
 
+//! Schema-driven FlatBuffer verifier used internally by [`SafeBuffer`].
+//!
+//! This module is `pub(crate)`.  External callers should use [`SafeBuffer::new`]
+//! or [`SafeBuffer::new_with_options`], which call [`verify_with_options`] and
+//! wrap its output in a safe API.
+//!
+//! # DoS protections
+//!
+//! Maliciously crafted buffers can contain deeply nested tables or huge
+//! reference graphs.  The verifier defends against these with two limits
+//! supplied via [`VerifierOptions`]:
+//!
+//! - **`max_tables`** — The total number of distinct table positions that may be
+//!   visited.  The `HashSet` that tracks visited positions is pre-allocated with
+//!   `min(max_tables, 4096)` capacity to avoid large upfront allocations.
+//! - **Depth / vtable limits** — Enforced transparently by the underlying
+//!   [`flatbuffers::Verifier`]; [`VerifierOptions::max_depth`] and related fields
+//!   control these.
+//!
+//! [`SafeBuffer`]: crate::safe_buffer::SafeBuffer
+
 use crate::reflection_generated::reflection::{BaseType, Field, Object, Schema};
 use crate::{FlatbufferError, FlatbufferResult, get_type_size};
 use flatbuffers::{
@@ -22,10 +43,34 @@ use flatbuffers::{
 };
 use std::collections::{HashMap, HashSet};
 
-/// Verifies a buffer against its schema with custom verification options.
+/// Verifies `buffer` against `schema` and returns a position → object-index map.
 ///
-/// Returns a mapping from buffer positions to schema object indices,
-/// used internally by `SafeBuffer` for typed field access.
+/// The map associates every table/struct buffer position with its schema object
+/// index (`i32`).  The special sentinel value `-1` is used for the root table
+/// so that it can be looked up via [`Schema::root_table`] rather than through
+/// the objects vector.
+///
+/// This map is consumed by [`SafeBuffer`] to resolve field schemas during
+/// named field lookups on [`SafeTable`] and [`SafeStruct`].
+///
+/// # DoS protection
+///
+/// The `HashSet` used to track visited table positions is pre-allocated with
+/// `min(opts.max_tables, 4096)` capacity.  Once `max_tables` distinct positions
+/// have been visited, verification fails with
+/// [`FlatbufferError::VerificationError`]`(`[`InvalidFlatbuffer::TooManyTables`]`)`.
+///
+/// # Errors
+///
+/// - [`FlatbufferError::InvalidSchema`] — the schema has no root table, or the
+///   root offset cannot be read from the buffer.
+/// - [`FlatbufferError::VerificationError`] — the buffer fails structural
+///   validation (out-of-bounds read, too many tables, missing required field,
+///   etc.).
+///
+/// [`SafeBuffer`]: crate::safe_buffer::SafeBuffer
+/// [`SafeTable`]: crate::safe_buffer::SafeTable
+/// [`SafeStruct`]: crate::safe_buffer::SafeStruct
 pub(crate) fn verify_with_options(
     buffer: &[u8],
     schema: &Schema,
@@ -52,6 +97,15 @@ pub(crate) fn verify_with_options(
     Err(FlatbufferError::InvalidSchema)
 }
 
+/// Recursively verifies a table and all objects it references.
+///
+/// Short-circuits immediately when `table_pos` is already in `verified` so that
+/// shared sub-objects (e.g. two fields pointing to the same nested table) are not
+/// visited twice.
+///
+/// Inserts `table_pos` into `verified` after successfully processing all fields,
+/// and inserts every discovered child table/struct position into
+/// `buf_loc_to_obj_idx` keyed by its schema object index.
 fn verify_table(
     verifier: &mut Verifier,
     table_object: &Object,
@@ -202,6 +256,13 @@ fn verify_table(
     Ok(())
 }
 
+/// Verifies that a struct's byte range is within the buffer and recursively
+/// verifies any nested struct fields.
+///
+/// Unlike tables, structs have a fixed, known byte size (`struct_object.bytesize()`),
+/// so verification only needs to confirm that the entire range fits inside the
+/// buffer.  Nested struct fields are then visited recursively so their positions
+/// are recorded in `buf_loc_to_obj_idx`.
 fn verify_struct(
     verifier: &mut Verifier,
     struct_object: &Object,
@@ -274,6 +335,10 @@ fn verify_array(
     Ok(())
 }
 
+/// Verifies a 32-bit-length-prefixed vector field.
+///
+/// Scalar element types are handled by the underlying [`TableVerifier`] directly.
+/// Object element vectors are dispatched to [`verify_vector_of_objects`].
 fn verify_vector<'a, 'b, 'c>(
     mut table_verifier: TableVerifier<'a, 'b, 'c>,
     field: &Field,
@@ -536,6 +601,13 @@ fn verify_vector_of_objects(
     Ok(())
 }
 
+/// Verifies a union field by reading the companion type discriminant and
+/// dispatching to the appropriate string or object verifier.
+///
+/// The discriminant is stored one vtable slot before the union value (at
+/// `field.offset() - SIZE_VOFFSET`).  An absent or malformed discriminant
+/// returns [`FlatbufferError::VerificationError`] with an inconsistent-union
+/// error.
 fn verify_union<'a, 'b, 'c>(
     mut table_verifier: TableVerifier<'a, 'b, 'c>,
     field: &Field,

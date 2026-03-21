@@ -1,3 +1,32 @@
+// Package flatbuffers provides the Go runtime for reading, writing, and
+// verifying FlatBuffers-encoded data.
+//
+// # Buffer Verification
+//
+// The [Verifier] type validates the structural integrity of a raw FlatBuffer
+// byte slice before any data is read from it. Verification should be performed
+// on all untrusted input (e.g., data received over the network or read from
+// disk) to prevent memory corruption bugs, denial-of-service via depth bombs
+// or table bombs, and reads from out-of-bounds offsets.
+//
+// In normal usage callers do not construct a Verifier directly. The flatc
+// compiler emits a VerifyRootAs* function alongside every generated table type.
+// Use that generated function:
+//
+//	buf := receivedBytes  // untrusted wire data
+//	if err := myschema.VerifyRootAsMonster(buf); err != nil {
+//	    var ve *flatbuffers.VerificationError
+//	    if errors.As(err, &ve) {
+//	        log.Printf("verification failed: kind=%d offset=%d field=%q", ve.Kind, ve.Offset, ve.Field)
+//	    }
+//	    return err
+//	}
+//	monster := myschema.GetRootAsMonster(buf, 0)
+//	// safe to read from monster now
+//
+// When you need to tune verification limits (e.g., to allow deeper nesting for
+// a known-safe internal message), construct a [Verifier] explicitly via
+// [NewVerifier] and call the generated VerifyAs* method directly.
 package flatbuffers
 
 import (
@@ -5,30 +34,86 @@ import (
 	"unicode/utf8"
 )
 
-// VerifierOptions configures verification limits.
-// Zero values use sensible defaults.
+// VerifierOptions configures the safety limits enforced by a [Verifier].
+// All fields are optional; zero values are replaced with safe defaults by
+// [NewVerifier].
 type VerifierOptions struct {
-	MaxDepth             int // default: 64
-	MaxTables            int // default: 1000000
-	MaxApparentSize      int // default: 1073741824 (1 GB)
+	// MaxDepth is the maximum allowed nesting depth of tables and vectors.
+	// Exceeding this limit returns [ErrDepthLimitReached].
+	// Default: 64.
+	MaxDepth int
+
+	// MaxTables is the maximum total number of tables that may be visited
+	// across the entire verification pass.
+	// Exceeding this limit returns [ErrTooManyTables].
+	// Default: 1 000 000.
+	MaxTables int
+
+	// MaxApparentSize is the maximum number of bytes that any single
+	// range check may address within the buffer.
+	// Exceeding this limit returns [ErrApparentSizeTooLarge].
+	// Default: 1 073 741 824 (1 GiB).
+	MaxApparentSize int
+
+	// IgnoreNullTerminator skips the check that every FlatBuffers string ends
+	// with a zero byte. Set this only when interoperating with encoders that
+	// are known to omit null terminators.
+	// Default: false.
 	IgnoreNullTerminator bool
 }
 
-// ErrorKind categorizes verification failures.
+// ErrorKind categorizes the type of structural violation found during
+// verification. It is exposed as [VerificationError].Kind so callers can
+// switch on the failure reason without parsing the error string.
 type ErrorKind int
 
 const (
+	// ErrMissingRequiredField is returned when a field marked as required in
+	// the schema is absent from the vtable.
 	ErrMissingRequiredField ErrorKind = iota
+
+	// ErrRangeOutOfBounds is returned when an offset or length would address
+	// bytes outside the buffer slice.
 	ErrRangeOutOfBounds
+
+	// ErrDepthLimitReached is returned when recursive table/vector nesting
+	// exceeds [VerifierOptions].MaxDepth.
 	ErrDepthLimitReached
+
+	// ErrTooManyTables is returned when the total number of tables visited
+	// during verification exceeds [VerifierOptions].MaxTables.
 	ErrTooManyTables
+
+	// ErrApparentSizeTooLarge is returned when a range check would address
+	// more bytes than [VerifierOptions].MaxApparentSize allows.
 	ErrApparentSizeTooLarge
+
+	// ErrUtf8Error is returned when the byte content of a FlatBuffers string
+	// is not valid UTF-8.
 	ErrUtf8Error
+
+	// ErrMissingNullTerminator is returned when a FlatBuffers string does not
+	// end with a zero byte and [VerifierOptions].IgnoreNullTerminator is false.
 	ErrMissingNullTerminator
+
+	// ErrUnaligned is returned when a scalar or offset field is not naturally
+	// aligned within the buffer.
 	ErrUnaligned
+
+	// ErrInconsistentUnion is returned when a union type field and its
+	// corresponding value field are not both present or both absent.
 	ErrInconsistentUnion
+
+	// ErrInvalidVtable is returned when a vtable's size field is malformed,
+	// too small, or not a multiple of the VOffsetT size.
 	ErrInvalidVtable
+
+	// ErrInvalidVectorLength is returned when a vector's stored element count
+	// would overflow the buffer or produce a negative length.
 	ErrInvalidVectorLength
+
+	// ErrSignedOffsetOutOfBounds is returned when a signed offset (SOffsetT)
+	// used to locate a vtable resolves to a position outside the buffer.
 	ErrSignedOffsetOutOfBounds
 )
 
@@ -49,12 +134,44 @@ type TraceDetail struct {
 	Position int    // buffer offset
 }
 
-// VerificationError is a concrete error with location information.
+// VerificationError is the concrete error type returned by all Verifier
+// methods. It carries the failure category, the name of the offending field
+// (when applicable), and the byte offset within the buffer where the violation
+// was detected.
+//
+// The error message format produced by Error() is:
+//
+//	"<human description> at offset <N>"
+//	"missing required field <name> at offset <N>"   // ErrMissingRequiredField
+//	"inconsistent union field <name> at offset <N>" // ErrInconsistentUnion
+//
+// To inspect the failure programmatically, unwrap with errors.As:
+//
+//	var ve *flatbuffers.VerificationError
+//	if errors.As(err, &ve) {
+//	    switch ve.Kind {
+//	    case flatbuffers.ErrDepthLimitReached:
+//	        // increase MaxDepth or reject the message
+//	    case flatbuffers.ErrMissingRequiredField:
+//	        log.Printf("required field %q missing", ve.Field)
+//	    }
+//	}
 type VerificationError struct {
-	Kind   ErrorKind
-	Field  string
+	// Kind identifies the category of the verification failure.
+	Kind ErrorKind
+
+	// Field is the schema field name associated with the error, or empty when
+	// the failure is not field-specific (e.g., range or alignment errors).
+	Field string
+
+	// Offset is the byte offset within the buffer where the violation was
+	// detected.
 	Offset int
-	Trace  []TraceDetail
+
+	// Trace records the path through the buffer graph from the root to the
+	// failing location. It is populated only when the verifier is run via a
+	// generated VerifyAs* function that propagates trace context.
+	Trace []TraceDetail
 }
 
 func (e *VerificationError) Error() string {
@@ -88,7 +205,16 @@ func (e *VerificationError) Error() string {
 	}
 }
 
-// Verifier validates FlatBuffer structural integrity.
+// Verifier validates the structural integrity of a raw FlatBuffer byte slice.
+// It enforces configurable limits on nesting depth, total table count, and
+// apparent buffer size to guard against denial-of-service payloads.
+//
+// Verifier is not safe for concurrent use. Create one per goroutine or per
+// message that needs to be verified.
+//
+// In most cases callers should use the generated VerifyRootAs* functions
+// rather than constructing a Verifier directly. See the package-level
+// documentation for a complete usage example.
 type Verifier struct {
 	buf       []byte
 	opts      VerifierOptions
@@ -96,8 +222,11 @@ type Verifier struct {
 	numTables int
 }
 
-// NewVerifier creates a Verifier for the given buffer.
-// If opts is nil or any field is zero, sensible defaults are applied.
+// NewVerifier creates a Verifier for buf using the supplied options.
+// If opts is nil, or if any numeric field in opts is zero, the corresponding
+// default is applied (MaxDepth=64, MaxTables=1 000 000,
+// MaxApparentSize=1 073 741 824). The returned Verifier is ready to use and
+// holds no references to opts after this call returns.
 func NewVerifier(buf []byte, opts *VerifierOptions) *Verifier {
 	v := &Verifier{buf: buf}
 	if opts != nil {
@@ -120,7 +249,9 @@ func verifyErr(kind ErrorKind, field string, offset int) error {
 	return &VerificationError{Kind: kind, Field: field, Offset: offset}
 }
 
-// CheckAlignment verifies that pos is aligned to the given alignment.
+// CheckAlignment verifies that pos is aligned to align bytes within the
+// buffer. It returns [ErrUnaligned] if pos % align != 0. An alignment value
+// of 1 (or less) is always considered aligned and never produces an error.
 func (v *Verifier) CheckAlignment(pos int, align int) error {
 	if align > 1 && pos%align != 0 {
 		return verifyErr(ErrUnaligned, "", pos)
@@ -128,8 +259,12 @@ func (v *Verifier) CheckAlignment(pos int, align int) error {
 	return nil
 }
 
-// CheckRange verifies that [pos, pos+size) is within the buffer bounds
-// and within MaxApparentSize.
+// CheckRange verifies that the half-open byte range [pos, pos+size) is
+// entirely within the buffer and does not exceed [VerifierOptions].MaxApparentSize.
+// It returns [ErrRangeOutOfBounds] if the range extends past the end of the
+// buffer, or [ErrApparentSizeTooLarge] if the range exceeds the size limit.
+// Integer overflow is avoided by using subtraction rather than addition when
+// checking the upper bound.
 func (v *Verifier) CheckRange(pos int, size int) error {
 	if size < 0 || pos < 0 {
 		return verifyErr(ErrRangeOutOfBounds, "", pos)
@@ -144,8 +279,11 @@ func (v *Verifier) CheckRange(pos int, size int) error {
 	return nil
 }
 
-// CheckUOffsetT reads a 4-byte little-endian uint32 at pos, verifies that the
-// target address (pos + value) is also within the buffer, and returns the value.
+// CheckUOffsetT reads the 4-byte little-endian UOffsetT value at pos, verifies
+// that both the offset field itself and the target address (pos + value) lie
+// within the buffer, and returns the raw offset value. It returns
+// [ErrRangeOutOfBounds] if either the field bytes or the target address are
+// out of range.
 func (v *Verifier) CheckUOffsetT(pos int) (uint32, error) {
 	if err := v.CheckRange(pos, SizeUOffsetT); err != nil {
 		return 0, err
@@ -158,8 +296,11 @@ func (v *Verifier) CheckUOffsetT(pos int) (uint32, error) {
 	return val, nil
 }
 
-// CheckSOffsetT reads a 4-byte little-endian int32 at pos, verifies that the
-// signed-offset target is within buffer bounds, and returns the raw value.
+// CheckSOffsetT reads the 4-byte little-endian SOffsetT value at pos, verifies
+// that the signed-offset target address (pos + value) lies within the buffer,
+// and returns the raw signed value. Signed offsets are used to locate vtables
+// relative to their owning table. It returns [ErrSignedOffsetOutOfBounds] if
+// the target address is outside the buffer.
 func (v *Verifier) CheckSOffsetT(pos int) (int32, error) {
 	if err := v.CheckRange(pos, SizeSOffsetT); err != nil {
 		return 0, err
@@ -186,8 +327,11 @@ func (v *Verifier) vtablePos(tablePos int) (int, error) {
 	return vtable, nil
 }
 
-// CheckVtable verifies the vtable structure at the table located at tablePos.
-// It follows the SOffsetT backward to the vtable and validates the vtable size field.
+// CheckVtable verifies the vtable reachable from the table at tablePos.
+// It follows the SOffsetT stored at tablePos backward to the vtable and
+// validates that the vtable's size field is at least 4 bytes, is a multiple
+// of SizeVOffsetT, and that the entire vtable lies within the buffer. It
+// returns [ErrInvalidVtable] if any of these conditions are violated.
 func (v *Verifier) CheckVtable(tablePos int) error {
 	vt, err := v.vtablePos(tablePos)
 	if err != nil {
@@ -213,8 +357,10 @@ func (v *Verifier) CheckVtable(tablePos int) error {
 	return nil
 }
 
-// CheckTable verifies that the table at tablePos has a valid vtable and increments
-// the table counter.
+// CheckTable verifies the table at tablePos by incrementing the table counter
+// (returning [ErrTooManyTables] if the limit is exceeded) and then validating
+// the vtable structure via [Verifier.CheckVtable]. Generated VerifyAs* functions
+// call this method once per table they visit.
 func (v *Verifier) CheckTable(tablePos int) error {
 	if err := v.CountTable(); err != nil {
 		return err
@@ -222,8 +368,12 @@ func (v *Verifier) CheckTable(tablePos int) error {
 	return v.CheckVtable(tablePos)
 }
 
-// CheckString verifies the string at pos: follows the UOffsetT indirection,
-// validates UTF-8, and checks for the null terminator.
+// CheckString verifies the FlatBuffers string whose offset field is stored at
+// pos. It follows the UOffsetT indirection, reads the 4-byte length prefix,
+// confirms all bytes are valid UTF-8, and (unless
+// [VerifierOptions].IgnoreNullTerminator is set) checks that the byte
+// immediately after the string body is zero. Returns [ErrUtf8Error] or
+// [ErrMissingNullTerminator] on failure, in addition to range errors.
 func (v *Verifier) CheckString(pos int) error {
 	uoff, err := v.CheckUOffsetT(pos)
 	if err != nil {
@@ -250,8 +400,13 @@ func (v *Verifier) CheckString(pos int) error {
 	return nil
 }
 
-// CheckVector verifies the vector at pos and returns the element count.
-// elementSize is the size in bytes of each element.
+// CheckVector verifies the FlatBuffers vector whose offset field is stored at
+// pos. elementSize is the size in bytes of each inline element (e.g., 1 for
+// byte vectors, 4 for uint32 vectors). It follows the UOffsetT indirection,
+// reads the 4-byte element-count prefix, guards against integer overflow in
+// the total byte calculation, and confirms the entire element array lies within
+// the buffer. It returns the element count on success, or an error if any
+// check fails.
 func (v *Verifier) CheckVector(pos int, elementSize int) (int, error) {
 	uoff, err := v.CheckUOffsetT(pos)
 	if err != nil {
@@ -277,8 +432,12 @@ func (v *Verifier) CheckVector(pos int, elementSize int) (int, error) {
 	return vecLen, nil
 }
 
-// CheckVectorOfTables verifies a vector of tables at pos.
-// verifyElem is called for each element's table position.
+// CheckVectorOfTables verifies a FlatBuffers vector-of-tables whose offset
+// field is stored at pos. For each element, it follows the per-element
+// UOffsetT indirection, increments the depth counter via [Verifier.PushDepth],
+// and delegates per-table validation to verifyElem. verifyElem receives the
+// Verifier and the absolute buffer position of the element's table. It returns
+// the first error encountered, or nil if all elements are valid.
 func (v *Verifier) CheckVectorOfTables(pos int, verifyElem func(v *Verifier, pos int) error) error {
 	uoff, err := v.CheckUOffsetT(pos)
 	if err != nil {
@@ -312,8 +471,11 @@ func (v *Verifier) CheckVectorOfTables(pos int, verifyElem func(v *Verifier, pos
 	return nil
 }
 
-// CheckScalarField verifies that the scalar field at vtable slot vOffset is in bounds.
-// If the field is absent (vtable slot is zero), no error is returned (scalar default applies).
+// CheckScalarField verifies that the scalar field at vtable slot vOffset within
+// the table at tablePos is in bounds. size is the width of the scalar in bytes
+// (e.g., 1, 2, 4, or 8). If the vtable slot is zero (field absent), the method
+// returns nil because absent scalar fields take their default value without
+// occupying space in the buffer.
 func (v *Verifier) CheckScalarField(tablePos int, vOffset VOffsetT, size int) error {
 	fieldRelOff, err := v.vtableFieldOffset(tablePos, vOffset)
 	if err != nil {
@@ -325,8 +487,12 @@ func (v *Verifier) CheckScalarField(tablePos int, vOffset VOffsetT, size int) er
 	return v.CheckRange(tablePos+int(fieldRelOff), size)
 }
 
-// CheckOffsetField looks up the offset field at vtable slot vOffset and returns the
-// absolute buffer position of the referenced data, or 0 if the field is absent.
+// CheckOffsetField looks up the offset field at vtable slot vOffset within the
+// table at tablePos, follows the UOffsetT indirection, and returns the absolute
+// buffer position of the referenced data. If the vtable slot is zero (field
+// absent), it returns 0, nil. The returned position can be passed directly to
+// [Verifier.CheckString], [Verifier.CheckVector], or similar methods to verify
+// the pointed-to data structure.
 func (v *Verifier) CheckOffsetField(tablePos int, vOffset VOffsetT) (int, error) {
 	fieldRelOff, err := v.vtableFieldOffset(tablePos, vOffset)
 	if err != nil {
@@ -347,7 +513,11 @@ func (v *Verifier) CheckOffsetField(tablePos int, vOffset VOffsetT) (int, error)
 	return targetPos, nil
 }
 
-// CheckRequiredField returns an error if the field at vtable slot vOffset is absent.
+// CheckRequiredField returns [ErrMissingRequiredField] if the field at vtable
+// slot vOffset within the table at tablePos is absent (vtable entry is zero).
+// fieldName is included in the error message and in [VerificationError].Field
+// for diagnostics. This method is called by generated code for every field
+// that is annotated as required in the schema.
 func (v *Verifier) CheckRequiredField(tablePos int, vOffset VOffsetT, fieldName string) error {
 	fieldRelOff, err := v.vtableFieldOffset(tablePos, vOffset)
 	if err != nil {
@@ -359,8 +529,11 @@ func (v *Verifier) CheckRequiredField(tablePos int, vOffset VOffsetT, fieldName 
 	return nil
 }
 
-// PushDepth increments the nesting depth counter and returns an error if the
-// depth limit is exceeded.
+// PushDepth increments the nesting depth counter and returns
+// [ErrDepthLimitReached] if the counter exceeds [VerifierOptions].MaxDepth.
+// It must be paired with a corresponding [Verifier.PopDepth] call, even when
+// an error is returned. Generated code calls PushDepth before recursing into
+// a nested table or vector-of-tables.
 func (v *Verifier) PushDepth() error {
 	v.depth++
 	if v.depth > v.opts.MaxDepth {
@@ -369,14 +542,20 @@ func (v *Verifier) PushDepth() error {
 	return nil
 }
 
-// PopDepth decrements the nesting depth counter.
+// PopDepth decrements the nesting depth counter. It is the counterpart to
+// [Verifier.PushDepth] and must be called after returning from each recursive
+// table or vector-of-tables verification, regardless of whether verification
+// succeeded or failed.
 func (v *Verifier) PopDepth() {
 	if v.depth > 0 {
 		v.depth--
 	}
 }
 
-// CountTable increments the table counter and returns an error if the limit is exceeded.
+// CountTable increments the total table counter and returns
+// [ErrTooManyTables] if the count exceeds [VerifierOptions].MaxTables.
+// It is called once per table by [Verifier.CheckTable]. Callers that invoke
+// CheckTable directly do not need to call CountTable themselves.
 func (v *Verifier) CountTable() error {
 	v.numTables++
 	if v.numTables > v.opts.MaxTables {
