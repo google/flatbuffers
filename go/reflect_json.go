@@ -7,22 +7,9 @@ import (
 	"math"
 )
 
-// ── Enum reflection types ──────────────────────────────────────────────────
-// These supplement the existing ReflectionSchema / ReflectionObject API with
-// the ability to read enum and union-type descriptors from a binary schema.
-// They are needed by ReflectPack / ReflectUnpack for union dispatch.
+// ── ReflectPack / ReflectUnpack constants ─────────────────────────────────
 
-// Hardcoded vtable offsets for the Enum and EnumVal tables in reflection.fbs.
 const (
-	// Enum table vtable offsets.
-	enumVOffName    VOffsetT = 4 // name: string
-	enumVOffValues  VOffsetT = 6 // values: [EnumVal]
-	enumVOffIsUnion VOffsetT = 8 // is_union: bool
-
-	// EnumVal table vtable offsets.
-	enumValVOffName  VOffsetT = 4 // name: string
-	enumValVOffValue VOffsetT = 6 // value: long (int64)
-
 	// reflectBuilderInitialSize is the initial byte size for FlatBuffer builders
 	// created by ReflectPack.
 	reflectBuilderInitialSize = 1024
@@ -37,142 +24,24 @@ const (
 
 // Sentinel errors for static error messages used in ReflectUnpack and ReflectPack.
 var (
-	// errBufferTooShort is returned when the FlatBuffer is too short to contain a root offset.
-	errBufferTooShort = errors.New("flatbuffers: buffer too short")
-	// errVectorOffsetRange is returned when a vector field offset is out of bounds.
-	errVectorOffsetRange = errors.New("flatbuffers: vector offset out of range")
-	// errVectorStartRange is returned when the computed vector start position is out of bounds.
-	errVectorStartRange = errors.New("flatbuffers: vector start out of range")
-	// errNotIntegerType is returned when an integer read is attempted on a non-integer field.
-	errNotIntegerType = errors.New("flatbuffers: field is not an integer type")
-	// errNotFloatType is returned when a float read is attempted on a non-float field.
-	errNotFloatType = errors.New("flatbuffers: field is not a float type")
-	// errVectorObjBadIndex is returned when a vector of tables has an invalid object index.
-	errVectorObjBadIndex = errors.New("flatbuffers: vector Obj has invalid schema index")
-	// errVectorObjIndexRange is returned when the vector table index is out of range.
+	errBufferTooShort      = errors.New("flatbuffers: buffer too short")
+	errVectorOffsetRange   = errors.New("flatbuffers: vector offset out of range")
+	errVectorStartRange    = errors.New("flatbuffers: vector start out of range")
+	errNotIntegerType      = errors.New("flatbuffers: field is not an integer type")
+	errNotFloatType        = errors.New("flatbuffers: field is not a float type")
+	errVectorObjBadIndex   = errors.New("flatbuffers: vector Obj has invalid schema index")
 	errVectorObjIndexRange = errors.New("flatbuffers: vector Obj index out of range")
-	// errUnsupportedElemType is returned for unsupported vector element types.
 	errUnsupportedElemType = errors.New("flatbuffers: unsupported vector element type")
-	// errObjIndexNegative is returned when the object schema index is negative.
-	errObjIndexNegative = errors.New("flatbuffers: object index is negative")
-	// errObjIndexRange is returned when the object schema index is out of range.
-	errObjIndexRange = errors.New("flatbuffers: object index out of range")
-	// errTypeNotFound is returned when the requested type name is absent from the schema.
-	errTypeNotFound = errors.New("flatbuffers: type not found in schema")
-	// errUnionVariantNotFound is returned when the named union variant is absent from the schema.
+	errObjIndexNegative    = errors.New("flatbuffers: object index is negative")
+	errObjIndexRange       = errors.New("flatbuffers: object index out of range")
+	errTypeNotFound        = errors.New("flatbuffers: type not found in schema")
 	errUnionVariantNotFound = errors.New("flatbuffers: union variant not found in schema")
-	// errExpectedString is returned when a string value is required but not present.
-	errExpectedString = errors.New("flatbuffers: expected string value")
-	// errExpectedBool is returned when a bool value is required but not present.
-	errExpectedBool = errors.New("flatbuffers: expected bool value")
-	// errExpectedNumber is returned when a numeric value is required but not present.
-	errExpectedNumber = errors.New("flatbuffers: expected numeric value")
-	// errExpectedObject is returned when a JSON object is required but not present.
-	errExpectedObject = errors.New("flatbuffers: expected object value")
-	// errExpectedArray is returned when a JSON array is required but not present.
-	errExpectedArray = errors.New("flatbuffers: expected array value")
+	errExpectedString      = errors.New("flatbuffers: expected string value")
+	errExpectedBool        = errors.New("flatbuffers: expected bool value")
+	errExpectedNumber      = errors.New("flatbuffers: expected numeric value")
+	errExpectedObject      = errors.New("flatbuffers: expected object value")
+	errExpectedArray       = errors.New("flatbuffers: expected array value")
 )
-
-// ReflectionEnum wraps the reflection.Enum table from a binary schema (.bfbs).
-// It describes a FlatBuffers enum or union-type enumeration.
-//
-// Obtain instances via [ReflectionSchema.Enums].
-type ReflectionEnum struct {
-	schema *ReflectionSchema
-	tab    Table
-}
-
-// ReflectionEnumVal wraps one declared value within a [ReflectionEnum].
-//
-// For union-type enums, each value describes one variant; the Value() is the
-// integer discriminant placed in the companion "_type" field on the wire.
-type ReflectionEnumVal struct {
-	schema *ReflectionSchema
-	tab    Table
-}
-
-// Enums returns all enum definitions (including union-type enumerations) from
-// the schema, in the order flatc wrote them.
-func (s *ReflectionSchema) Enums() []*ReflectionEnum {
-	enumsOffset := s.tab.Offset(schemaVOffEnums)
-	if enumsOffset == 0 {
-		return nil
-	}
-	count := s.tab.VectorLen(UOffsetT(enumsOffset))
-	result := make([]*ReflectionEnum, count)
-	vec := s.tab.Vector(UOffsetT(enumsOffset))
-
-	for index := range count {
-		elem := vec + UOffsetT(index)*UOffsetT(SizeUOffsetT)
-		entry := &ReflectionEnum{
-			schema: s,
-			tab:    Table{Bytes: s.buf, Pos: 0},
-		}
-		entry.tab.Pos = s.tab.Indirect(elem)
-		result[index] = entry
-	}
-
-	return result
-}
-
-// Name returns the fully qualified name of this enum (e.g. "MyGame.Example.Equipment").
-// Returns an empty string if the name field is absent.
-func (e *ReflectionEnum) Name() string {
-	slot := e.tab.Offset(enumVOffName)
-	if slot == 0 {
-		return ""
-	}
-
-	return e.tab.String(e.tab.Pos + UOffsetT(slot))
-}
-
-// IsUnion returns true if this enum describes the discriminant of a union type
-// rather than a plain integer enum.
-func (e *ReflectionEnum) IsUnion() bool {
-	return e.tab.GetBoolSlot(enumVOffIsUnion, false)
-}
-
-// Values returns all declared values (or union variants) for this enum,
-// in declaration order.
-func (e *ReflectionEnum) Values() []*ReflectionEnumVal {
-	slot := e.tab.Offset(enumVOffValues)
-	if slot == 0 {
-		return nil
-	}
-
-	count := e.tab.VectorLen(UOffsetT(slot))
-	result := make([]*ReflectionEnumVal, count)
-	vec := e.tab.Vector(UOffsetT(slot))
-
-	for index := range count {
-		elem := vec + UOffsetT(index)*UOffsetT(SizeUOffsetT)
-		entry := &ReflectionEnumVal{
-			schema: e.schema,
-			tab:    Table{Bytes: e.schema.buf, Pos: 0},
-		}
-		entry.tab.Pos = e.tab.Indirect(elem)
-		result[index] = entry
-	}
-
-	return result
-}
-
-// Name returns the declared name of this enum value or union variant.
-// Returns an empty string if absent.
-func (ev *ReflectionEnumVal) Name() string {
-	slot := ev.tab.Offset(enumValVOffName)
-	if slot == 0 {
-		return ""
-	}
-
-	return ev.tab.String(ev.tab.Pos + UOffsetT(slot))
-}
-
-// Value returns the integer value assigned to this enum value or union discriminant.
-// Returns 0 if no explicit value was declared.
-func (ev *ReflectionEnumVal) Value() int64 {
-	return ev.tab.GetInt64Slot(enumValVOffValue, 0)
-}
 
 // ReflectUnpack deserializes a FlatBuffer byte slice into a map[string]any using
 // schema reflection from a .bfbs binary schema file.

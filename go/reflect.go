@@ -75,21 +75,27 @@ const (
 // second, and so on (VOffsetT values start at 4 because slots 0 and 2 are
 // reserved for vtable size and object size).
 const (
-	// Schema table vtable offsets.
-	schemaVOffObjects   VOffsetT = 4  // objects: [Object]
-	schemaVOffEnums     VOffsetT = 6  // enums: [Enum]
-	schemaVOffFileIdent VOffsetT = 8  // file_ident: string
-	schemaVOffFileExt   VOffsetT = 10 // file_ext: string
-	schemaVOffRootTable VOffsetT = 12 // root_table: Object
+	// Schema table vtable offsets (reflection.fbs: table Schema).
+	schemaVOffObjects          VOffsetT = 4  // objects: [Object]
+	schemaVOffEnums            VOffsetT = 6  // enums: [Enum]
+	schemaVOffFileIdent        VOffsetT = 8  // file_ident: string
+	schemaVOffFileExt          VOffsetT = 10 // file_ext: string
+	schemaVOffRootTable        VOffsetT = 12 // root_table: Object
+	schemaVOffServices         VOffsetT = 14 // services: [Service] (not yet exposed)
+	schemaVOffAdvancedFeatures VOffsetT = 16 // advanced_features: AdvancedFeatures (ulong)
+	schemaVOffFbsFiles         VOffsetT = 18 // fbs_files: [SchemaFile] (not yet exposed)
 
-	// Object table vtable offsets.
-	objectVOffName     VOffsetT = 4  // name: string
-	objectVOffFields   VOffsetT = 6  // fields: [Field] (sorted by field_id)
-	objectVOffIsStruct VOffsetT = 8  // is_struct: bool
-	objectVOffMinAlign VOffsetT = 10 // minalign: int
-	objectVOffByteSize VOffsetT = 12 // bytesize: int (structs only)
+	// Object table vtable offsets (reflection.fbs: table Object).
+	objectVOffName            VOffsetT = 4  // name: string
+	objectVOffFields          VOffsetT = 6  // fields: [Field] (sorted by field_id)
+	objectVOffIsStruct        VOffsetT = 8  // is_struct: bool
+	objectVOffMinAlign        VOffsetT = 10 // minalign: int
+	objectVOffByteSize        VOffsetT = 12 // bytesize: int (structs only)
+	objectVOffAttributes      VOffsetT = 14 // attributes: [KeyValue]
+	objectVOffDocumentation   VOffsetT = 16 // documentation: [string]
+	objectVOffDeclarationFile VOffsetT = 18 // declaration_file: string
 
-	// Field table vtable offsets.
+	// Field table vtable offsets (reflection.fbs: table Field).
 	fieldVOffName           VOffsetT = 4  // name: string
 	fieldVOffType           VOffsetT = 6  // type: Type
 	fieldVOffID             VOffsetT = 8  // id: ushort (field_id / vtable slot number)
@@ -98,11 +104,41 @@ const (
 	fieldVOffDefaultReal    VOffsetT = 14 // default_real: double
 	fieldVOffDeprecated     VOffsetT = 16 // deprecated: bool
 	fieldVOffRequired       VOffsetT = 18 // required: bool
+	fieldVOffKey            VOffsetT = 20 // key: bool
+	fieldVOffAttributes     VOffsetT = 22 // attributes: [KeyValue]
+	fieldVOffDocumentation  VOffsetT = 24 // documentation: [string]
+	fieldVOffOptional       VOffsetT = 26 // optional: bool
+	fieldVOffPadding        VOffsetT = 28 // padding: uint16
+	fieldVOffOffset64       VOffsetT = 30 // offset64: bool
 
-	// Type table vtable offsets.
-	typeVOffBaseType VOffsetT = 4 // base_type: BaseType
-	typeVOffElement  VOffsetT = 6 // element: BaseType (vector/array element type)
-	typeVOffIndex    VOffsetT = 8 // index: int (objects or enums vector index; -1 = none)
+	// Type table vtable offsets (reflection.fbs: table Type).
+	typeVOffBaseType    VOffsetT = 4  // base_type: BaseType
+	typeVOffElement     VOffsetT = 6  // element: BaseType (vector/array element type)
+	typeVOffIndex       VOffsetT = 8  // index: int (objects or enums vector index; -1 = none)
+	typeVOffFixedLength VOffsetT = 10 // fixed_length: uint16 (Array only)
+	typeVOffBaseSize    VOffsetT = 12 // base_size: uint32
+	typeVOffElementSize VOffsetT = 14 // element_size: uint32
+
+	// Enum table vtable offsets (reflection.fbs: table Enum).
+	enumVOffName            VOffsetT = 4  // name: string
+	enumVOffValues          VOffsetT = 6  // values: [EnumVal]
+	enumVOffIsUnion         VOffsetT = 8  // is_union: bool
+	enumVOffUnderlyingType  VOffsetT = 10 // underlying_type: Type
+	enumVOffAttributes      VOffsetT = 12 // attributes: [KeyValue]
+	enumVOffDocumentation   VOffsetT = 14 // documentation: [string]
+	enumVOffDeclarationFile VOffsetT = 16 // declaration_file: string
+
+	// EnumVal table vtable offsets (reflection.fbs: table EnumVal).
+	enumValVOffName          VOffsetT = 4  // name: string
+	enumValVOffValue         VOffsetT = 6  // value: int64
+	// enumValVOffObject     VOffsetT = 8  // object: Object (deprecated — skip)
+	enumValVOffUnionType     VOffsetT = 10 // union_type: Type
+	enumValVOffDocumentation VOffsetT = 12 // documentation: [string]
+	enumValVOffAttributes    VOffsetT = 14 // attributes: [KeyValue]
+
+	// KeyValue table vtable offsets (reflection.fbs: table KeyValue).
+	keyValueVOffKey   VOffsetT = 4 // key: string (required, key)
+	keyValueVOffValue VOffsetT = 6 // value: string
 )
 
 // ReflectionSchema wraps a parsed binary FlatBuffers schema (.bfbs file).
@@ -198,6 +234,218 @@ type ReflectionType struct {
 	tab    Table
 }
 
+// ReflectionEnum represents a single enum or union definition within a parsed
+// schema.  Both regular enums (with an underlying integer type) and union
+// descriptors are stored in the schema's enums vector; call [ReflectionEnum.IsUnion]
+// to distinguish between the two.
+//
+// For a regular enum, [ReflectionEnum.Values] returns the list of declared enum
+// constants.  For a union, each [ReflectionEnumVal] in the list represents one
+// variant of the union, and [ReflectionEnumVal.UnionType] gives the type of that
+// variant.
+//
+// ReflectionEnum values are obtained via [ReflectionSchema.Enums] or
+// [ReflectionSchema.EnumByName].  They remain valid as long as the parent
+// [ReflectionSchema]'s buffer is retained.
+type ReflectionEnum struct {
+	schema *ReflectionSchema
+	tab    Table
+}
+
+// ReflectionEnumVal represents a single named value within an enum or a single
+// named variant within a union.
+//
+// For enum values, [ReflectionEnumVal.Value] returns the declared integer
+// discriminant and [ReflectionEnumVal.UnionType] is nil.
+//
+// For union variants, [ReflectionEnumVal.UnionType] returns a [ReflectionType]
+// describing the table type for that variant; the [ReflectionEnumVal.Value] is
+// still available (it is the implicit UType discriminant byte written on the wire).
+//
+// ReflectionEnumVal values are obtained via [ReflectionEnum.Values] or
+// [ReflectionEnum.ValueByName].
+type ReflectionEnumVal struct {
+	schema *ReflectionSchema
+	tab    Table
+}
+
+// ReflectionKeyValue represents a single user-defined attribute (metadata
+// key/value pair) attached to a table, struct, enum, field, or other schema
+// element via the FlatBuffers attribute syntax.
+//
+// In a .fbs source file, attributes look like:
+//
+//	table MyTable (my_attr: "my_value") { ... }
+//	field: int (important, version: "2");
+//
+// ReflectionKeyValue instances are obtained via [ReflectionObject.Attributes],
+// [ReflectionField.Attributes], [ReflectionEnum.Attributes], or
+// [ReflectionEnumVal.Attributes].
+type ReflectionKeyValue struct {
+	schema *ReflectionSchema
+	tab    Table
+}
+
+// Name returns the fully qualified FlatBuffers name of this enum or union
+// (e.g. "MyNamespace.MyEnum").  Returns an empty string if the name field is
+// absent in the schema buffer.
+func (e *ReflectionEnum) Name() string {
+	slot := e.tab.Offset(enumVOffName)
+	if slot == 0 {
+		return ""
+	}
+	return e.tab.String(e.tab.Pos + UOffsetT(slot))
+}
+
+// IsUnion returns true if this schema entry is a union type descriptor rather
+// than a regular integer-backed enum.  Union variants are accessed the same
+// way as enum values via [ReflectionEnum.Values], but each variant's
+// [ReflectionEnumVal.UnionType] will be non-nil.
+func (e *ReflectionEnum) IsUnion() bool {
+	return e.tab.GetBoolSlot(enumVOffIsUnion, false)
+}
+
+// Values returns all declared enum constants or union variants in the order
+// they appear in the schema.  Returns nil if the enum or union has no values,
+// which should not occur in a well-formed schema.
+func (e *ReflectionEnum) Values() []*ReflectionEnumVal {
+	slot := e.tab.Offset(enumVOffValues)
+	if slot == 0 {
+		return nil
+	}
+	count := e.tab.VectorLen(UOffsetT(slot))
+	result := make([]*ReflectionEnumVal, count)
+	vec := e.tab.Vector(UOffsetT(slot))
+	for i := range count {
+		elem := vec + UOffsetT(i)*UOffsetT(SizeUOffsetT)
+		result[i] = e.schema.schemaEnumVal(elem)
+	}
+	return result
+}
+
+// ValueByName finds an enum constant or union variant by its exact name as
+// declared in the .fbs source.  The lookup is linear over [ReflectionEnum.Values];
+// for hot paths, cache the result.  Returns nil if no value with that name exists.
+func (e *ReflectionEnum) ValueByName(name string) *ReflectionEnumVal {
+	for _, v := range e.Values() {
+		if v.Name() == name {
+			return v
+		}
+	}
+	return nil
+}
+
+// UnderlyingType returns the [ReflectionType] that describes the integer type
+// used to represent this enum on the wire (e.g. byte, short, int).  For union
+// types the underlying type is always UType (a uint8 discriminant).
+// Returns nil if the underlying_type sub-table is absent in the schema buffer.
+func (e *ReflectionEnum) UnderlyingType() *ReflectionType {
+	slot := e.tab.Offset(enumVOffUnderlyingType)
+	if slot == 0 {
+		return nil
+	}
+	t := &ReflectionType{schema: e.schema}
+	t.tab.Bytes = e.schema.buf
+	t.tab.Pos = e.tab.Indirect(e.tab.Pos + UOffsetT(slot))
+	return t
+}
+
+// Name returns the declared name of this enum value or union variant
+// (e.g. "OverTemperature" or "FaultMessage").  Returns an empty string if the
+// name field is absent in the schema buffer.
+func (v *ReflectionEnumVal) Name() string {
+	slot := v.tab.Offset(enumValVOffName)
+	if slot == 0 {
+		return ""
+	}
+	return v.tab.String(v.tab.Pos + UOffsetT(slot))
+}
+
+// Value returns the integer discriminant for this enum constant or union
+// variant.  For regular enums this is the value declared in the .fbs source
+// (e.g. 0, 1, 2, …).  For union variants it is the implicit UType byte that
+// flatc writes on the wire for that variant.
+func (v *ReflectionEnumVal) Value() int64 {
+	return v.tab.GetInt64Slot(enumValVOffValue, 0)
+}
+
+// UnionType returns the [ReflectionType] for a union variant, describing the
+// table type associated with this variant.  Only meaningful when the parent
+// [ReflectionEnum.IsUnion] returns true.  Returns nil for regular enum values
+// or when the union_type sub-table is absent in the schema buffer.
+func (v *ReflectionEnumVal) UnionType() *ReflectionType {
+	slot := v.tab.Offset(enumValVOffUnionType)
+	if slot == 0 {
+		return nil
+	}
+	t := &ReflectionType{schema: v.schema}
+	t.tab.Bytes = v.schema.buf
+	t.tab.Pos = v.tab.Indirect(v.tab.Pos + UOffsetT(slot))
+	return t
+}
+
+// Documentation returns the doc-comment lines attached to this enum value, in
+// the order they appear in the .fbs source.  Each element is one line of
+// documentation text (without leading "///" markers).  Returns nil if no
+// documentation was recorded in the schema.
+func (v *ReflectionEnumVal) Documentation() []string {
+	return v.schema.readStringVector(v.tab, enumValVOffDocumentation)
+}
+
+// Attributes returns all user-defined key/value metadata pairs attached to
+// this enum value.  Returns nil if no attributes are present.
+func (v *ReflectionEnumVal) Attributes() []*ReflectionKeyValue {
+	return v.schema.readKeyValueVector(v.tab, enumValVOffAttributes)
+}
+
+// Attributes returns all user-defined key/value metadata pairs attached to
+// this enum or union (e.g. custom tooling annotations added in the .fbs
+// source).  Returns nil if no attributes are present.
+func (e *ReflectionEnum) Attributes() []*ReflectionKeyValue {
+	return e.schema.readKeyValueVector(e.tab, enumVOffAttributes)
+}
+
+// Documentation returns the doc-comment lines attached to this enum or union,
+// in the order they appear in the .fbs source.  Each element is one line of
+// documentation text (without leading "///" markers).  Returns nil if no
+// documentation was recorded in the schema.
+func (e *ReflectionEnum) Documentation() []string {
+	return e.schema.readStringVector(e.tab, enumVOffDocumentation)
+}
+
+// DeclarationFile returns the relative path of the .fbs source file in which
+// this enum or union is declared.  The path is relative to the root directory
+// passed to flatc at compile time.  Returns an empty string if the field is
+// absent (e.g. schemas compiled without file tracking).
+func (e *ReflectionEnum) DeclarationFile() string {
+	slot := e.tab.Offset(enumVOffDeclarationFile)
+	if slot == 0 {
+		return ""
+	}
+	return e.tab.String(e.tab.Pos + UOffsetT(slot))
+}
+
+// Key returns the metadata key string.  For attributes added without an
+// explicit value (e.g. "(deprecated)"), this is the full attribute token and
+// [ReflectionKeyValue.Value] returns an empty string.
+func (kv *ReflectionKeyValue) Key() string {
+	slot := kv.tab.Offset(keyValueVOffKey)
+	if slot == 0 {
+		return ""
+	}
+	return kv.tab.String(kv.tab.Pos + UOffsetT(slot))
+}
+
+// Value returns the metadata value string.  For boolean-style attributes that
+// have no explicit value (e.g. "(key)"), this returns an empty string.
+func (kv *ReflectionKeyValue) Value() string {
+	slot := kv.tab.Offset(keyValueVOffValue)
+	if slot == 0 {
+		return ""
+	}
+	return kv.tab.String(kv.tab.Pos + UOffsetT(slot))
+}
+
 // LoadReflectionSchema parses a binary FlatBuffers schema (.bfbs) buffer and
 // returns a [ReflectionSchema] that can be used to introspect table and field
 // definitions at runtime.
@@ -266,6 +514,44 @@ func (s *ReflectionSchema) RootTable() *ReflectionObject {
 	return s.schemaObject(s.tab.Pos + UOffsetT(o))
 }
 
+// FileIdent returns the four-character file identifier declared with
+// `file_identifier` in the .fbs source (e.g. "BFBS").  This identifier is
+// embedded in the first eight bytes of every FlatBuffer built with this
+// schema.  Returns an empty string if no file_identifier was declared.
+func (s *ReflectionSchema) FileIdent() string {
+	o := s.tab.Offset(schemaVOffFileIdent)
+	if o == 0 {
+		return ""
+	}
+	return s.tab.String(s.tab.Pos + UOffsetT(o))
+}
+
+// FileExt returns the file extension declared with `file_extension` in the
+// .fbs source (e.g. "bin").  Returns an empty string if no file_extension was
+// declared.
+func (s *ReflectionSchema) FileExt() string {
+	o := s.tab.Offset(schemaVOffFileExt)
+	if o == 0 {
+		return ""
+	}
+	return s.tab.String(s.tab.Pos + UOffsetT(o))
+}
+
+// AdvancedFeatures returns the bit-flag set indicating which advanced
+// FlatBuffers schema features are used in this schema.  Each bit corresponds
+// to a value in the AdvancedFeatures enum defined in reflection.fbs:
+//
+//   - bit 0 (1):  AdvancedArrayFeatures
+//   - bit 1 (2):  AdvancedUnionFeatures
+//   - bit 2 (4):  OptionalScalars
+//   - bit 3 (8):  DefaultVectorsAndStrings
+//
+// Returns 0 if the field is absent (schemas compiled without this feature
+// tracking, i.e. older flatc versions).
+func (s *ReflectionSchema) AdvancedFeatures() uint64 {
+	return s.tab.GetUint64Slot(schemaVOffAdvancedFeatures, 0)
+}
+
 // Objects returns all table and struct definitions declared in the schema, in
 // the order they appear in the schema's objects vector.  Returns nil if the
 // schema has no objects.
@@ -295,6 +581,123 @@ func (s *ReflectionSchema) ObjectByName(name string) *ReflectionObject {
 		}
 	}
 	return nil
+}
+
+// Enums returns all enum and union definitions declared in the schema, in the
+// order they appear in the schema's enums vector.  Both regular enums and union
+// type descriptors are stored in this vector; use [ReflectionEnum.IsUnion] to
+// distinguish them.  Returns nil if the schema has no enums or unions.
+func (s *ReflectionSchema) Enums() []*ReflectionEnum {
+	o := s.tab.Offset(schemaVOffEnums)
+	if o == 0 {
+		return nil
+	}
+	count := s.tab.VectorLen(UOffsetT(o))
+	result := make([]*ReflectionEnum, count)
+	vec := s.tab.Vector(UOffsetT(o))
+	for i := range count {
+		elem := vec + UOffsetT(i)*UOffsetT(SizeUOffsetT)
+		result[i] = s.schemaEnum(elem)
+	}
+	return result
+}
+
+// EnumByName finds an enum or union definition by its fully qualified
+// FlatBuffers name (e.g. "MyNamespace.MyEnum").  The name is case-sensitive
+// and must match exactly the qualified name flatc writes into the .bfbs file.
+// Returns nil if no matching enum or union is found.
+func (s *ReflectionSchema) EnumByName(name string) *ReflectionEnum {
+	for _, e := range s.Enums() {
+		if e.Name() == name {
+			return e
+		}
+	}
+	return nil
+}
+
+// EnumValueName is a convenience helper that maps a numeric enum value to its
+// declared string name.  Given the fully qualified enum name (e.g.
+// "MyNamespace.MyEnum") and an integer discriminant value, it returns the
+// matching EnumVal name string.  Returns an empty string if the enum is not
+// found or no value with that integer matches.
+//
+// This is particularly useful for logging and debugging — instead of printing
+// a raw integer, call EnumValueName to obtain a human-readable label.
+//
+//	label := schema.EnumValueName("Ln2.FaultCode", int64(code))
+//	fmt.Println("fault:", label) // e.g. "OverTemperature"
+func (s *ReflectionSchema) EnumValueName(enumName string, value int64) string {
+	e := s.EnumByName(enumName)
+	if e == nil {
+		return ""
+	}
+	for _, v := range e.Values() {
+		if v.Value() == value {
+			return v.Name()
+		}
+	}
+	return ""
+}
+
+// schemaEnum constructs a ReflectionEnum whose table resides at the indirect
+// offset located at pos in the schema buffer.
+func (s *ReflectionSchema) schemaEnum(pos UOffsetT) *ReflectionEnum {
+	e := &ReflectionEnum{schema: s}
+	e.tab.Bytes = s.buf
+	e.tab.Pos = s.tab.Indirect(pos)
+	return e
+}
+
+// schemaEnumVal constructs a ReflectionEnumVal whose table resides at the
+// indirect offset located at pos in the schema buffer.
+func (s *ReflectionSchema) schemaEnumVal(pos UOffsetT) *ReflectionEnumVal {
+	v := &ReflectionEnumVal{schema: s}
+	v.tab.Bytes = s.buf
+	v.tab.Pos = s.tab.Indirect(pos)
+	return v
+}
+
+// schemaKeyValue constructs a ReflectionKeyValue from the indirect offset at pos.
+func (s *ReflectionSchema) schemaKeyValue(pos UOffsetT) *ReflectionKeyValue {
+	kv := &ReflectionKeyValue{schema: s}
+	kv.tab.Bytes = s.buf
+	kv.tab.Pos = s.tab.Indirect(pos)
+	return kv
+}
+
+// readStringVector reads a [string] vector field from tab at the given vtable
+// slot and returns the decoded strings.  Returns nil if the field is absent.
+func (s *ReflectionSchema) readStringVector(tab Table, voff VOffsetT) []string {
+	slot := tab.Offset(voff)
+	if slot == 0 {
+		return nil
+	}
+	count := tab.VectorLen(UOffsetT(slot))
+	result := make([]string, count)
+	vec := tab.Vector(UOffsetT(slot))
+	for i := range count {
+		// Each element is an UOffset pointing to a string.
+		elemPos := vec + UOffsetT(i)*UOffsetT(SizeUOffsetT)
+		result[i] = tab.String(elemPos)
+	}
+	return result
+}
+
+// readKeyValueVector reads a [KeyValue] vector field from tab at the given
+// vtable slot.  Returns nil if the field is absent.
+func (s *ReflectionSchema) readKeyValueVector(tab Table, voff VOffsetT) []*ReflectionKeyValue {
+	slot := tab.Offset(voff)
+	if slot == 0 {
+		return nil
+	}
+	count := tab.VectorLen(UOffsetT(slot))
+	result := make([]*ReflectionKeyValue, count)
+	vec := tab.Vector(UOffsetT(slot))
+	for i := range count {
+		elem := vec + UOffsetT(i)*UOffsetT(SizeUOffsetT)
+		result[i] = s.schemaKeyValue(elem)
+	}
+	return result
 }
 
 // schemaObject constructs a ReflectionObject whose table resides at the
@@ -362,6 +765,42 @@ func (o *ReflectionObject) ByteSize() int {
 	return int(o.tab.GetInt32Slot(objectVOffByteSize, 0))
 }
 
+// MinAlign returns the minimum alignment (in bytes) required for this object
+// when it is embedded in a buffer.  For scalars and enums this is their
+// natural alignment; for structs it is the maximum alignment of all fields.
+// Returns 0 if the field is absent in the schema buffer.
+func (o *ReflectionObject) MinAlign() int {
+	return int(o.tab.GetInt32Slot(objectVOffMinAlign, 0))
+}
+
+// Attributes returns all user-defined key/value metadata pairs attached to
+// this table or struct (e.g. custom tooling annotations added in the .fbs
+// source with the `(attr: "value")` syntax).  Returns nil if no attributes
+// are present.
+func (o *ReflectionObject) Attributes() []*ReflectionKeyValue {
+	return o.schema.readKeyValueVector(o.tab, objectVOffAttributes)
+}
+
+// Documentation returns the doc-comment lines attached to this object (table
+// or struct), in the order they appear in the .fbs source.  Each element is
+// one line of documentation text (without leading "///" markers).  Returns
+// nil if no documentation was recorded in the schema.
+func (o *ReflectionObject) Documentation() []string {
+	return o.schema.readStringVector(o.tab, objectVOffDocumentation)
+}
+
+// DeclarationFile returns the relative path of the .fbs source file in which
+// this table or struct is declared.  The path is relative to the root
+// directory passed to flatc at compile time.  Returns an empty string if the
+// field is absent (e.g. schemas compiled without file tracking).
+func (o *ReflectionObject) DeclarationFile() string {
+	slot := o.tab.Offset(objectVOffDeclarationFile)
+	if slot == 0 {
+		return ""
+	}
+	return o.tab.String(o.tab.Pos + UOffsetT(slot))
+}
+
 // schemaField constructs a ReflectionField from the indirect offset at pos.
 func (s *ReflectionSchema) schemaField(pos UOffsetT) *ReflectionField {
 	f := &ReflectionField{schema: s}
@@ -394,6 +833,62 @@ func (f *ReflectionField) Offset() uint16 {
 // meaning its absence in a data buffer is a protocol error.
 func (f *ReflectionField) Required() bool {
 	return f.tab.GetBoolSlot(fieldVOffRequired, false)
+}
+
+// ID returns the field identifier (field_id) assigned by flatc.  For table
+// fields this is the sequential index used when generating vtable slots;
+// for struct fields it is zero-based declaration order.
+func (f *ReflectionField) ID() uint16 {
+	return uint16(f.tab.GetUint16Slot(fieldVOffID, 0))
+}
+
+// Deprecated returns true if this field is marked "(deprecated)" in the .fbs
+// source.  Deprecated fields should not be written by new code, but their
+// vtable slot is preserved for wire compatibility.
+func (f *ReflectionField) Deprecated() bool {
+	return f.tab.GetBoolSlot(fieldVOffDeprecated, false)
+}
+
+// Key returns true if this field is annotated with "(key)" in the .fbs source,
+// meaning it is used as the sort key for binary search in sorted vectors.
+func (f *ReflectionField) Key() bool {
+	return f.tab.GetBoolSlot(fieldVOffKey, false)
+}
+
+// Optional returns true if this field is marked "optional" in the .fbs source
+// (FlatBuffers feature for nullable scalars).  Optional scalar fields may be
+// absent from a buffer even when the table is otherwise complete.
+func (f *ReflectionField) Optional() bool {
+	return f.tab.GetBoolSlot(fieldVOffOptional, false)
+}
+
+// Padding returns the number of explicit padding bytes that flatc inserts
+// after this field within a struct.  This field is only meaningful for struct
+// fields (see [ReflectionObject.IsStruct]); for table fields it is always 0.
+func (f *ReflectionField) Padding() uint16 {
+	return uint16(f.tab.GetUint16Slot(fieldVOffPadding, 0))
+}
+
+// Offset64 returns true if this field uses a 64-bit offset (FlatBuffers64
+// extension for very large buffers).  When true, the data referenced by this
+// field uses 8-byte offsets instead of the standard 4-byte offsets.
+func (f *ReflectionField) Offset64() bool {
+	return f.tab.GetBoolSlot(fieldVOffOffset64, false)
+}
+
+// Attributes returns all user-defined key/value metadata pairs attached to
+// this field (e.g. "(version: "2")" or "(important)").  Returns nil if no
+// attributes are present.
+func (f *ReflectionField) Attributes() []*ReflectionKeyValue {
+	return f.schema.readKeyValueVector(f.tab, fieldVOffAttributes)
+}
+
+// Documentation returns the doc-comment lines attached to this field, in the
+// order they appear in the .fbs source.  Each element is one line of
+// documentation text (without leading "///" markers).  Returns nil if no
+// documentation was recorded in the schema.
+func (f *ReflectionField) Documentation() []string {
+	return f.schema.readStringVector(f.tab, fieldVOffDocumentation)
 }
 
 // Type returns the [ReflectionType] descriptor for this field, which carries
@@ -453,6 +948,32 @@ func (t *ReflectionType) Element() ReflectionBaseType {
 //   - For all other types: -1 (not applicable).
 func (t *ReflectionType) Index() int32 {
 	return t.tab.GetInt32Slot(typeVOffIndex, -1)
+}
+
+// FixedLength returns the declared element count for fixed-length Array fields.
+// This is only meaningful when [ReflectionType.BaseType] is
+// [ReflectionBaseTypeArray]; for all other base types it is 0.
+//
+// Example: a field declared as "[float:8]" has BaseType == Array,
+// Element == Float, and FixedLength == 8.
+func (t *ReflectionType) FixedLength() uint16 {
+	return uint16(t.tab.GetUint16Slot(typeVOffFixedLength, 0))
+}
+
+// BaseSize returns the byte size of the value described by [ReflectionType.BaseType].
+// For example, an Int field has BaseSize == 4, a Double field has BaseSize == 8.
+// Defaults to 4 if absent (the most common case: 4-byte offsets for tables and
+// strings).
+func (t *ReflectionType) BaseSize() uint32 {
+	return t.tab.GetUint32Slot(typeVOffBaseSize, 4)
+}
+
+// ElementSize returns the byte size of each element in a Vector or Array
+// field.  For scalar element types this matches the natural width of the
+// scalar; for table element types it is 4 (the size of a UOffset reference).
+// Returns 0 if absent or not applicable.
+func (t *ReflectionType) ElementSize() uint32 {
+	return t.tab.GetUint32Slot(typeVOffElementSize, 0)
 }
 
 // resolveVtableEntry looks up the vtable entry for fieldOffset in the data

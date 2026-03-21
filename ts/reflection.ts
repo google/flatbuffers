@@ -251,6 +251,51 @@ export class ReflectionType {
     if (entry === 0) return -1;
     return this.buf.getInt32(this.tablePos + entry, true);
   }
+
+  /**
+   * Returns the declared element count for fixed-length `Array` fields.
+   *
+   * Only meaningful when {@link baseType} is `ReflectionBaseType.Array`.  For
+   * example, a field declared as `[float:8]` has `baseType` == `Array`,
+   * `element` == `Float`, and `fixedLength` == `8`.
+   *
+   * @returns The element count, or `0` for non-array types or absent entries.
+   */
+  fixedLength(): number {
+    const entry = readVtableEntry(this.buf, this.tablePos, 10);
+    if (entry === 0) return 0;
+    return this.buf.getUint16(this.tablePos + entry, true);
+  }
+
+  /**
+   * Returns the byte size of the value described by {@link baseType}.
+   *
+   * For example, an `Int` field has `baseSize` == `4`, a `Double` field has
+   * `baseSize` == `8`.  Defaults to `4` when absent (the most common case:
+   * 4-byte offsets for tables and strings).
+   *
+   * @returns The base size in bytes, or `4` if absent.
+   */
+  baseSize(): number {
+    const entry = readVtableEntry(this.buf, this.tablePos, 12);
+    if (entry === 0) return 4;
+    return this.buf.getUint32(this.tablePos + entry, true);
+  }
+
+  /**
+   * Returns the byte size of each element in a `Vector` or `Array` field.
+   *
+   * For scalar element types this matches the natural width of the scalar; for
+   * table element types it is `4` (the size of a `UOffset` reference).
+   * Returns `0` if absent or not applicable.
+   *
+   * @returns The element size in bytes, or `0` if absent.
+   */
+  elementSize(): number {
+    const entry = readVtableEntry(this.buf, this.tablePos, 14);
+    if (entry === 0) return 0;
+    return this.buf.getUint32(this.tablePos + entry, true);
+  }
 }
 
 // ── ReflectionField ────────────────────────────────────────────────────────
@@ -386,6 +431,113 @@ export class ReflectionField {
     if (entry === 0) return false;
     return this.buf.getUint8(this.tablePos + entry) !== 0;
   }
+
+  /**
+   * Returns the field identifier (`id`) assigned by `flatc`.  For table
+   * fields this is the sequential index used to generate vtable slots; for
+   * struct fields it is the zero-based declaration order.
+   *
+   * @returns The field ID, or `0` if absent.
+   */
+  id(): number {
+    const entry = readVtableEntry(this.buf, this.tablePos, 8);
+    if (entry === 0) return 0;
+    return this.buf.getUint16(this.tablePos + entry, true);
+  }
+
+  /**
+   * Returns whether this field is marked `(deprecated)` in the `.fbs` source.
+   *
+   * Deprecated fields should not be written by new code, but their vtable slot
+   * is preserved for wire compatibility with older readers.
+   *
+   * @returns `true` if the field is deprecated, `false` otherwise.
+   */
+  deprecated(): boolean {
+    const entry = readVtableEntry(this.buf, this.tablePos, 16);
+    if (entry === 0) return false;
+    return this.buf.getUint8(this.tablePos + entry) !== 0;
+  }
+
+  /**
+   * Returns whether this field is annotated with `(key)` in the `.fbs` source,
+   * meaning it is used as the sort key for binary search in sorted vectors.
+   *
+   * @returns `true` if the field is a sort key, `false` otherwise.
+   */
+  key(): boolean {
+    const entry = readVtableEntry(this.buf, this.tablePos, 20);
+    if (entry === 0) return false;
+    return this.buf.getUint8(this.tablePos + entry) !== 0;
+  }
+
+  /**
+   * Returns whether this field is marked `optional` in the `.fbs` source
+   * (FlatBuffers feature for nullable scalars).
+   *
+   * Optional scalar fields may be absent from a buffer even when the table is
+   * otherwise complete.
+   *
+   * @returns `true` if the field is optional, `false` otherwise.
+   */
+  optional(): boolean {
+    const entry = readVtableEntry(this.buf, this.tablePos, 26);
+    if (entry === 0) return false;
+    return this.buf.getUint8(this.tablePos + entry) !== 0;
+  }
+
+  /**
+   * Returns the number of explicit padding bytes that `flatc` inserts after
+   * this field within a struct.
+   *
+   * Only meaningful for struct fields ({@link ReflectionObject.isStruct} is
+   * `true`); for table fields this is always `0`.
+   *
+   * @returns The padding byte count, or `0` if absent.
+   */
+  padding(): number {
+    const entry = readVtableEntry(this.buf, this.tablePos, 28);
+    if (entry === 0) return 0;
+    return this.buf.getUint16(this.tablePos + entry, true);
+  }
+
+  /**
+   * Returns whether this field uses 64-bit offsets (FlatBuffers64 extension
+   * for very large buffers).
+   *
+   * When `true`, the data referenced by this field uses 8-byte offsets instead
+   * of the standard 4-byte offsets.
+   *
+   * @returns `true` if the field uses 64-bit offsets, `false` otherwise.
+   */
+  offset64(): boolean {
+    const entry = readVtableEntry(this.buf, this.tablePos, 30);
+    if (entry === 0) return false;
+    return this.buf.getUint8(this.tablePos + entry) !== 0;
+  }
+
+  /**
+   * Returns all user-defined key/value metadata pairs attached to this field
+   * (e.g. `(version: "2")` or `(important)` from the `.fbs` source).
+   *
+   * @returns An array of {@link ReflectionKeyValue} instances (empty if none).
+   */
+  attributes(): ReflectionKeyValue[] {
+    return readTableVector(this.buf, this.tablePos, 22).map(
+      pos => new ReflectionKeyValue(this.buf, pos),
+    );
+  }
+
+  /**
+   * Returns the doc-comment lines attached to this field, in the order they
+   * appear in the `.fbs` source.  Each element is one line of documentation
+   * text (without leading `///` markers).
+   *
+   * @returns An array of documentation strings (empty if none recorded).
+   */
+  documentation(): string[] {
+    return readStringVector(this.buf, this.tablePos, 24);
+  }
 }
 
 // ── ReflectionObject ───────────────────────────────────────────────────────
@@ -509,6 +661,434 @@ export class ReflectionObject {
     if (entry === 0) return 0;
     return this.buf.getInt32(this.tablePos + entry, true);
   }
+
+  /**
+   * Returns the minimum alignment (in bytes) required for this object when
+   * embedded in a buffer.  For structs this is the maximum alignment of all
+   * fields; for tables it may be `0` (alignment is not tracked for tables).
+   *
+   * @returns The minimum alignment, or `0` if absent.
+   */
+  minAlign(): number {
+    const entry = readVtableEntry(this.buf, this.tablePos, 10);
+    if (entry === 0) return 0;
+    return this.buf.getInt32(this.tablePos + entry, true);
+  }
+
+  /**
+   * Returns all user-defined key/value metadata pairs attached to this table
+   * or struct (e.g. `(my_attr: "value")` annotations from the `.fbs` source).
+   *
+   * @returns An array of {@link ReflectionKeyValue} instances (empty if none).
+   */
+  attributes(): ReflectionKeyValue[] {
+    return readTableVector(this.buf, this.tablePos, 14).map(
+      pos => new ReflectionKeyValue(this.buf, pos),
+    );
+  }
+
+  /**
+   * Returns the doc-comment lines attached to this table or struct, in the
+   * order they appear in the `.fbs` source.  Each element is one line of
+   * documentation text (without leading `///` markers).
+   *
+   * @returns An array of documentation strings (empty if none recorded).
+   */
+  documentation(): string[] {
+    return readStringVector(this.buf, this.tablePos, 16);
+  }
+
+  /**
+   * Returns the relative path of the `.fbs` source file in which this table
+   * or struct is declared.  The path is relative to the root directory passed
+   * to `flatc` at compile time.
+   *
+   * @returns The declaration file path, or an empty string if absent.
+   */
+  declarationFile(): string {
+    const entry = readVtableEntry(this.buf, this.tablePos, 18);
+    if (entry === 0) return '';
+    return readString(this.buf, this.tablePos + entry);
+  }
+}
+
+// ── helper: read string vector / KeyValue vector ───────────────────────────
+
+/**
+ * Read a vector of FlatBuffers strings from the given field-level position.
+ * Each element is a UOffset pointing to a length-prefixed string.
+ */
+function readStringVector(buf: DataView, tablePos: number, voffset: number): string[] {
+  const entry = readVtableEntry(buf, tablePos, voffset);
+  if (entry === 0) return [];
+  const [count, dataStart] = readVector(buf, tablePos + entry);
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const elemPos = dataStart + i * 4;
+    result.push(readString(buf, elemPos));
+  }
+  return result;
+}
+
+/**
+ * Read a vector of table offsets and return absolute table positions for each
+ * element.  Used for [KeyValue] vectors (and any other table vector).
+ */
+function readTableVector(buf: DataView, tablePos: number, voffset: number): number[] {
+  const entry = readVtableEntry(buf, tablePos, voffset);
+  if (entry === 0) return [];
+  const [count, dataStart] = readVector(buf, tablePos + entry);
+  const positions: number[] = [];
+  for (let i = 0; i < count; i++) {
+    positions.push(readVectorTableElement(buf, dataStart, i));
+  }
+  return positions;
+}
+
+// ── ReflectionKeyValue ─────────────────────────────────────────────────────
+
+/**
+ * Represents a single user-defined attribute (key/value metadata pair)
+ * attached to a schema element.  Wraps the `reflection.KeyValue` table from
+ * `reflection.fbs`.
+ *
+ * In a `.fbs` source file, attributes look like:
+ * ```fbs
+ * table MyTable (my_attr: "my_value") { ... }
+ * field: int (important, version: "2");
+ * ```
+ *
+ * Obtain instances via {@link ReflectionObject.attributes},
+ * {@link ReflectionField.attributes}, {@link ReflectionEnum.attributes}, or
+ * {@link ReflectionEnumVal.attributes}.
+ *
+ * @example
+ * ```ts
+ * for (const attr of field.attributes()) {
+ *   console.log(attr.key(), '=', attr.value()); // e.g. "version" = "2"
+ * }
+ * ```
+ */
+export class ReflectionKeyValue {
+  private readonly buf: DataView;
+  private readonly tablePos: number;
+
+  /**
+   * @param buf      - `DataView` over the raw `.bfbs` schema bytes.
+   * @param tablePos - Absolute byte position of the `reflection.KeyValue`
+   *                   table within `buf`.
+   */
+  constructor(buf: DataView, tablePos: number) {
+    this.buf = buf;
+    this.tablePos = tablePos;
+  }
+
+  /**
+   * Returns the attribute key string (e.g. `"version"`, `"important"`).
+   *
+   * For boolean-style attributes (written without a value in the source), this
+   * is the attribute name and {@link value} returns an empty string.
+   *
+   * @returns The key string, or an empty string if absent (malformed schema).
+   */
+  key(): string {
+    const entry = readVtableEntry(this.buf, this.tablePos, 4);
+    if (entry === 0) return '';
+    return readString(this.buf, this.tablePos + entry);
+  }
+
+  /**
+   * Returns the attribute value string (e.g. `"2"` for `(version: "2")`).
+   *
+   * For boolean-style attributes that have no explicit value (e.g. `(key)` or
+   * `(required)`), this returns an empty string.
+   *
+   * @returns The value string, or an empty string if absent.
+   */
+  value(): string {
+    const entry = readVtableEntry(this.buf, this.tablePos, 6);
+    if (entry === 0) return '';
+    return readString(this.buf, this.tablePos + entry);
+  }
+}
+
+// ── ReflectionEnumVal ──────────────────────────────────────────────────────
+
+/**
+ * Describes a single named constant within an enum, or a single named variant
+ * within a union.  Wraps the `reflection.EnumVal` table from `reflection.fbs`.
+ *
+ * Obtain instances via {@link ReflectionEnum.values} or
+ * {@link ReflectionEnum.valueByName}.
+ *
+ * For **enum values**, {@link value} returns the declared integer discriminant
+ * and {@link unionType} returns `null`.
+ *
+ * For **union variants**, {@link unionType} returns a {@link ReflectionType}
+ * describing the table type for that variant, while {@link value} still
+ * provides the implicit UType discriminant byte used on the wire.
+ *
+ * @example
+ * ```ts
+ * const enumDef = schema.enumByName('Ln2.FaultCode');
+ * for (const v of enumDef?.values() ?? []) {
+ *   console.log(v.name(), '=', v.value()); // e.g. "OverTemperature" = 3n
+ * }
+ * ```
+ */
+export class ReflectionEnumVal {
+  private readonly buf: DataView;
+  private readonly tablePos: number;
+
+  /**
+   * @param buf      - `DataView` over the raw `.bfbs` schema bytes.
+   * @param tablePos - Absolute byte position of the `reflection.EnumVal`
+   *                   table within `buf`.
+   */
+  constructor(buf: DataView, tablePos: number) {
+    this.buf = buf;
+    this.tablePos = tablePos;
+  }
+
+  /**
+   * Returns the declared name of this enum constant or union variant
+   * (e.g. `"OverTemperature"` or `"FaultMessage"`).
+   *
+   * @returns The name string, or an empty string if absent (malformed schema).
+   */
+  name(): string {
+    const entry = readVtableEntry(this.buf, this.tablePos, 4);
+    if (entry === 0) return '';
+    return readString(this.buf, this.tablePos + entry);
+  }
+
+  /**
+   * Returns the integer discriminant for this enum constant or union variant.
+   *
+   * For regular enums this is the value declared in the `.fbs` source
+   * (e.g. `0n`, `1n`, `2n`, …).  For union variants it is the implicit
+   * UType byte that `flatc` writes on the wire to select this variant.
+   *
+   * The value is stored as a 64-bit signed integer in the schema and is
+   * returned as a `bigint` to preserve precision for large values.
+   *
+   * @returns The int64 discriminant, or `0n` if absent.
+   */
+  value(): bigint {
+    const entry = readVtableEntry(this.buf, this.tablePos, 6);
+    if (entry === 0) return 0n;
+    const fieldPos = this.tablePos + entry;
+    const lo = BigInt(this.buf.getUint32(fieldPos, true));
+    const hi = BigInt(this.buf.getInt32(fieldPos + 4, true));
+    return BigInt.asIntN(64, lo + (hi << 32n));
+  }
+
+  /**
+   * Returns the {@link ReflectionType} for a union variant.
+   *
+   * Only meaningful when the parent {@link ReflectionEnum.isUnion} returns
+   * `true`.  Describes the table type associated with this specific union
+   * variant (e.g. `Ln2.FaultMessage` for the `FaultMessage` variant).
+   *
+   * @returns A `ReflectionType` instance, or `null` for regular enum values
+   *          or when the `union_type` sub-table is absent.
+   */
+  unionType(): ReflectionType | null {
+    const entry = readVtableEntry(this.buf, this.tablePos, 10);
+    if (entry === 0) return null;
+    const typeTablePos = readTable(this.buf, this.tablePos + entry);
+    return new ReflectionType(this.buf, typeTablePos);
+  }
+
+  /**
+   * Returns the doc-comment lines attached to this enum value or union variant,
+   * in the order they appear in the `.fbs` source.  Each element is one line
+   * of documentation text (without leading `///` markers).
+   *
+   * @returns An array of documentation strings (empty if none recorded).
+   */
+  documentation(): string[] {
+    return readStringVector(this.buf, this.tablePos, 12);
+  }
+
+  /**
+   * Returns all user-defined key/value metadata pairs attached to this enum
+   * value or union variant (e.g. custom tooling annotations).
+   *
+   * @returns An array of {@link ReflectionKeyValue} instances (empty if none).
+   */
+  attributes(): ReflectionKeyValue[] {
+    return readTableVector(this.buf, this.tablePos, 14).map(
+      pos => new ReflectionKeyValue(this.buf, pos),
+    );
+  }
+}
+
+// ── ReflectionEnum ─────────────────────────────────────────────────────────
+
+/**
+ * Describes a FlatBuffers enum or union declared in the schema.
+ * Wraps the `reflection.Enum` table from `reflection.fbs`.
+ *
+ * Both regular integer-backed enums and union type descriptors are stored in
+ * the schema's `enums` vector.  Call {@link isUnion} to distinguish them.
+ *
+ * Obtain instances via {@link ReflectionSchema.enums} or
+ * {@link ReflectionSchema.enumByName}.
+ *
+ * @example
+ * ```ts
+ * // Look up an enum and print all its values.
+ * const faultCode = schema.enumByName('Ln2.FaultCode');
+ * if (faultCode) {
+ *   for (const v of faultCode.values()) {
+ *     console.log(v.name(), '->', Number(v.value()));
+ *   }
+ * }
+ *
+ * // Resolve a union discriminant to a variant name.
+ * const msgContent = schema.enumByName('Ln2.MessageContent');
+ * const variant = msgContent?.values().find(v => v.value() === discriminant);
+ * console.log('variant:', variant?.name());
+ * ```
+ */
+export class ReflectionEnum {
+  private readonly buf: DataView;
+  private readonly tablePos: number;
+
+  /**
+   * @param buf      - `DataView` over the raw `.bfbs` schema bytes.
+   * @param tablePos - Absolute byte position of the `reflection.Enum` table
+   *                   within `buf`.
+   */
+  constructor(buf: DataView, tablePos: number) {
+    this.buf = buf;
+    this.tablePos = tablePos;
+  }
+
+  /**
+   * Returns the fully qualified name of this enum or union
+   * (e.g. `"Ln2.FaultCode"` or `"Ln2.MessageContent"`).
+   *
+   * @returns The fully qualified name string, or an empty string if absent.
+   */
+  name(): string {
+    const entry = readVtableEntry(this.buf, this.tablePos, 4);
+    if (entry === 0) return '';
+    return readString(this.buf, this.tablePos + entry);
+  }
+
+  /**
+   * Returns whether this schema entry is a union type descriptor rather than
+   * a regular integer-backed enum.
+   *
+   * Union variants are accessed the same way as enum values via
+   * {@link values}, but each variant's {@link ReflectionEnumVal.unionType}
+   * will be non-null.
+   *
+   * @returns `true` for unions, `false` for regular enums.
+   */
+  isUnion(): boolean {
+    const entry = readVtableEntry(this.buf, this.tablePos, 8);
+    if (entry === 0) return false;
+    return this.buf.getUint8(this.tablePos + entry) !== 0;
+  }
+
+  /**
+   * Returns all declared enum constants or union variants in the order stored
+   * in the schema.
+   *
+   * For regular enums each element is a named integer constant.  For unions
+   * each element is a named variant; call
+   * {@link ReflectionEnumVal.unionType} on each to obtain its table type.
+   *
+   * @returns An array of {@link ReflectionEnumVal} instances (empty if the
+   *          enum has no values, which should not occur in practice).
+   */
+  values(): ReflectionEnumVal[] {
+    const entry = readVtableEntry(this.buf, this.tablePos, 6);
+    if (entry === 0) return [];
+    const [count, dataStart] = readVector(this.buf, this.tablePos + entry);
+    const result: ReflectionEnumVal[] = [];
+    for (let i = 0; i < count; i++) {
+      const valTablePos = readVectorTableElement(this.buf, dataStart, i);
+      result.push(new ReflectionEnumVal(this.buf, valTablePos));
+    }
+    return result;
+  }
+
+  /**
+   * Finds and returns a value or variant by its declared name.
+   *
+   * This performs a linear scan over {@link values}.  Cache the result for
+   * repeated lookups on hot paths.
+   *
+   * @param name - The value/variant name to search for (case-sensitive).
+   * @returns The matching {@link ReflectionEnumVal}, or `undefined` if not found.
+   *
+   * @example
+   * ```ts
+   * const val = schema.enumByName('Ln2.FaultCode')?.valueByName('OverTemperature');
+   * console.log(val?.value()); // e.g. 3n
+   * ```
+   */
+  valueByName(name: string): ReflectionEnumVal | undefined {
+    return this.values().find(v => v.name() === name);
+  }
+
+  /**
+   * Returns the {@link ReflectionType} that describes the underlying integer
+   * type used to represent this enum on the wire.
+   *
+   * For most enums this will be a byte, short, or int base type.  For union
+   * type descriptors the underlying type is always `UType` (a `uint8`
+   * discriminant).
+   *
+   * @returns A `ReflectionType` instance, or `null` if the sub-table is
+   *          absent in the schema.
+   */
+  underlyingType(): ReflectionType | null {
+    const entry = readVtableEntry(this.buf, this.tablePos, 10);
+    if (entry === 0) return null;
+    const typeTablePos = readTable(this.buf, this.tablePos + entry);
+    return new ReflectionType(this.buf, typeTablePos);
+  }
+
+  /**
+   * Returns all user-defined key/value metadata pairs attached to this enum
+   * or union (e.g. custom tooling annotations from the `.fbs` source).
+   *
+   * @returns An array of {@link ReflectionKeyValue} instances (empty if none).
+   */
+  attributes(): ReflectionKeyValue[] {
+    return readTableVector(this.buf, this.tablePos, 12).map(
+      pos => new ReflectionKeyValue(this.buf, pos),
+    );
+  }
+
+  /**
+   * Returns the doc-comment lines attached to this enum or union, in the
+   * order they appear in the `.fbs` source.  Each element is one line of
+   * documentation text (without leading `///` markers).
+   *
+   * @returns An array of documentation strings (empty if none recorded).
+   */
+  documentation(): string[] {
+    return readStringVector(this.buf, this.tablePos, 14);
+  }
+
+  /**
+   * Returns the relative path of the `.fbs` source file in which this enum or
+   * union is declared.  The path is relative to the root directory passed to
+   * `flatc` at compile time.
+   *
+   * @returns The declaration file path, or an empty string if absent.
+   */
+  declarationFile(): string {
+    const entry = readVtableEntry(this.buf, this.tablePos, 16);
+    if (entry === 0) return '';
+    return readString(this.buf, this.tablePos + entry);
+  }
 }
 
 // ── ReflectionSchema ───────────────────────────────────────────────────────
@@ -574,6 +1154,58 @@ export class ReflectionSchema {
   }
 
   /**
+   * Returns the four-character file identifier declared with `file_identifier`
+   * in the `.fbs` source (e.g. `"BFBS"`).
+   *
+   * This identifier is embedded in the first eight bytes of every FlatBuffer
+   * built with this schema.  Returns an empty string if no `file_identifier`
+   * was declared.
+   *
+   * @returns The file identifier string, or an empty string if absent.
+   */
+  fileIdent(): string {
+    const entry = readVtableEntry(this.buf, this.rootTablePos, 8);
+    if (entry === 0) return '';
+    return readString(this.buf, this.rootTablePos + entry);
+  }
+
+  /**
+   * Returns the file extension declared with `file_extension` in the `.fbs`
+   * source (e.g. `"bin"`).
+   *
+   * @returns The file extension string, or an empty string if absent.
+   */
+  fileExt(): string {
+    const entry = readVtableEntry(this.buf, this.rootTablePos, 10);
+    if (entry === 0) return '';
+    return readString(this.buf, this.rootTablePos + entry);
+  }
+
+  /**
+   * Returns the bit-flag set indicating which advanced FlatBuffers schema
+   * features are used in this schema.  Each bit corresponds to a value in
+   * the `AdvancedFeatures` enum from `reflection.fbs`:
+   *
+   * - bit 0 (`1n`): `AdvancedArrayFeatures`
+   * - bit 1 (`2n`): `AdvancedUnionFeatures`
+   * - bit 2 (`4n`): `OptionalScalars`
+   * - bit 3 (`8n`): `DefaultVectorsAndStrings`
+   *
+   * Returns `0n` if the field is absent (schemas compiled without this feature
+   * tracking, i.e. older `flatc` versions).
+   *
+   * @returns A `bigint` bit mask of the advanced features flags.
+   */
+  advancedFeatures(): bigint {
+    const entry = readVtableEntry(this.buf, this.rootTablePos, 16);
+    if (entry === 0) return 0n;
+    const fieldPos = this.rootTablePos + entry;
+    const lo = BigInt(this.buf.getUint32(fieldPos, true));
+    const hi = BigInt(this.buf.getUint32(fieldPos + 4, true));
+    return BigInt.asUintN(64, lo + (hi << 32n));
+  }
+
+  /**
    * Returns all table and struct objects declared in the schema, in the
    * sorted order stored by `flatc`.
    *
@@ -615,6 +1247,50 @@ export class ReflectionSchema {
    */
   objectByName(name: string): ReflectionObject | undefined {
     return this.objects().find(o => o.name() === name);
+  }
+
+  /**
+   * Returns all enum and union definitions declared in the schema, in the
+   * sorted order stored by `flatc`.
+   *
+   * Both regular integer-backed enums and union type descriptors are included.
+   * Use {@link ReflectionEnum.isUnion} to distinguish between the two.  To
+   * find a specific enum by its fully qualified name, prefer
+   * {@link enumByName}.
+   *
+   * @returns An array of {@link ReflectionEnum} instances (empty if the
+   *          schema declares no enums or unions).
+   */
+  enums(): ReflectionEnum[] {
+    const entry = readVtableEntry(this.buf, this.rootTablePos, 6);
+    if (entry === 0) return [];
+    const [count, dataStart] = readVector(this.buf, this.rootTablePos + entry);
+    const result: ReflectionEnum[] = [];
+    for (let i = 0; i < count; i++) {
+      const enumTablePos = readVectorTableElement(this.buf, dataStart, i);
+      result.push(new ReflectionEnum(this.buf, enumTablePos));
+    }
+    return result;
+  }
+
+  /**
+   * Finds and returns an enum or union by its fully qualified name.
+   *
+   * The name must include the namespace prefix as declared in the `.fbs`
+   * source (e.g. `"Ln2.FaultCode"`, not `"FaultCode"`).  This performs a
+   * linear scan; cache the result for repeated lookups.
+   *
+   * @param name - Fully qualified enum or union name to search for.
+   * @returns The matching {@link ReflectionEnum}, or `undefined` if not found.
+   *
+   * @example
+   * ```ts
+   * const faultCode = schema.enumByName('Ln2.FaultCode');
+   * const label = faultCode?.values().find(v => v.value() === BigInt(code))?.name();
+   * ```
+   */
+  enumByName(name: string): ReflectionEnum | undefined {
+    return this.enums().find(e => e.name() === name);
   }
 }
 
