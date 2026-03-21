@@ -60,7 +60,7 @@ mod reflection_verifier;
 mod safe_buffer;
 mod r#struct;
 pub use crate::reflection_generated::reflection;
-pub use crate::safe_buffer::{SafeBuffer, SafeStruct, SafeTable};
+pub use crate::safe_buffer::{FieldValue, SafeBuffer, SafeStruct, SafeTable};
 pub use crate::r#struct::Struct;
 
 use flatbuffers::{

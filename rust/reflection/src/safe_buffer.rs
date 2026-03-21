@@ -22,7 +22,7 @@
 //! fully verified during [`SafeBuffer::new`] construction, all subsequent field
 //! access methods are free of `unsafe` at the call site.
 
-use crate::reflection_generated::reflection::{Field, Schema};
+use crate::reflection_generated::reflection::{BaseType, Field, Schema};
 use crate::reflection_verifier::verify_with_options;
 use crate::r#struct::Struct;
 use crate::{
@@ -37,6 +37,105 @@ use num_traits::FromPrimitive;
 use num_traits::float::Float;
 use num_traits::int::PrimInt;
 use std::collections::HashMap;
+use std::fmt;
+
+/// A dynamically-typed field value for generic inspection and logging.
+///
+/// Returned by [`SafeTable::get_any_field`] to represent any field without
+/// committing to a concrete Rust type at compile time.  The [`Display`]
+/// implementation produces a human-readable representation suitable for
+/// logging.
+///
+/// [`Display`]: fmt::Display
+///
+/// # Examples
+///
+/// ```no_run
+/// use flatbuffers_reflection::{SafeBuffer, FieldValue, FlatbufferResult};
+/// use flatbuffers_reflection::reflection::Schema;
+///
+/// fn log_all_fields(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+///     let root = safe.get_root();
+///
+///     for field in root.fields()? {
+///         let val = root.get_any_field(field.name())?;
+///         println!("{} = {}", field.name(), val);
+///     }
+///     Ok(())
+/// }
+/// ```
+#[derive(Debug, Clone)]
+pub enum FieldValue<'a> {
+    /// A boolean field value.
+    Bool(bool),
+    /// An integer field value, widened to `i64`.
+    Integer(i64),
+    /// A floating-point field value, widened to `f64`.
+    Float(f64),
+    /// A string field value borrowed from the buffer.
+    String(&'a str),
+    /// A nested table field value.
+    Table(SafeTable<'a>),
+    /// An inline struct field value.
+    Struct(SafeStruct<'a>),
+    /// A vector of integers (all integer element types are widened to `i64`).
+    VecInteger(Vec<i64>),
+    /// A vector of floats (all float element types are widened to `f64`).
+    VecFloat(Vec<f64>),
+    /// A vector of strings.
+    VecString(Vec<&'a str>),
+    /// A union field with its discriminant byte and the nested table.
+    Union(u8, Box<SafeTable<'a>>),
+    /// The field is absent from the buffer (not present in the vtable).
+    Absent,
+}
+
+impl fmt::Display for FieldValue<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Bool(v) => write!(f, "{v}"),
+            Self::Integer(v) => write!(f, "{v}"),
+            Self::Float(v) => write!(f, "{v}"),
+            Self::String(v) => write!(f, "{v}"),
+            Self::Table(_) => write!(f, "<table>"),
+            Self::Struct(_) => write!(f, "<struct>"),
+            Self::VecInteger(v) => {
+                write!(f, "[")?;
+                for (i, n) in v.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{n}")?;
+                }
+                write!(f, "]")
+            }
+            Self::VecFloat(v) => {
+                write!(f, "[")?;
+                for (i, n) in v.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{n}")?;
+                }
+                write!(f, "]")
+            }
+            Self::VecString(v) => {
+                write!(f, "[")?;
+                for (i, s) in v.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{s}")?;
+                }
+                write!(f, "]")
+            }
+            Self::Union(discriminant, _) => write!(f, "<union type={discriminant}>"),
+            Self::Absent => write!(f, "<absent>"),
+        }
+    }
+}
 
 /// A verified FlatBuffer paired with its schema, enabling safe dynamic field access.
 ///
@@ -188,7 +287,7 @@ impl<'a> SafeBuffer<'a> {
     ///     Ok(())
     /// }
     /// ```
-    pub fn get_root(&self) -> SafeTable {
+    pub fn get_root(&self) -> SafeTable<'_> {
         // SAFETY: the buffer was verified during construction.
         let table = unsafe { get_any_root(self.buf) };
 
@@ -198,11 +297,197 @@ impl<'a> SafeBuffer<'a> {
         }
     }
 
+    /// Returns the schema's file identifier string, or `None` if absent.
+    ///
+    /// The file identifier is the four-character string declared with
+    /// `file_identifier` in the `.fbs` source (e.g. `"MONS"`).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn check_ident(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     if let Some(ident) = safe.file_ident() {
+    ///         println!("schema file identifier: {ident}");
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn file_ident(&self) -> Option<&str> {
+        self.schema.file_ident()
+    }
+
+    /// Returns the schema's file extension string, or `None` if absent.
+    ///
+    /// The file extension is declared with `file_extension` in the `.fbs`
+    /// source (e.g. `"mon"`).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn check_ext(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     if let Some(ext) = safe.file_ext() {
+    ///         println!("schema file extension: {ext}");
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn file_ext(&self) -> Option<&str> {
+        self.schema.file_ext()
+    }
+
+    /// Returns all enum and union definitions in the schema.
+    ///
+    /// The returned slice is in the order they appear in the compiled schema —
+    /// typically alphabetical by fully qualified name.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn list_enums(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     for e in safe.enums() {
+    ///         println!("enum: {}", e.name());
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn enums(&self) -> Vec<crate::reflection_generated::reflection::Enum<'a>> {
+        let v = self.schema.enums();
+        (0..v.len()).map(|i| v.get(i)).collect()
+    }
+
+    /// Finds an enum or union definition by its fully qualified name.
+    ///
+    /// Returns `None` if no enum with that name exists in the schema.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn find_color_enum(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     if let Some(color) = safe.enum_by_name("MyGame.Example.Color") {
+    ///         println!("found enum with {} values", color.values().len());
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn enum_by_name(
+        &self,
+        name: &str,
+    ) -> Option<crate::reflection_generated::reflection::Enum<'a>> {
+        self.schema
+            .enums()
+            .lookup_by_key(name, |e, key| e.key_compare_with_value(key))
+    }
+
+    /// Looks up the string name of an enum value by enum name and integer value.
+    ///
+    /// Returns `None` if the enum is not found or if no value with the given
+    /// integer is defined.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn color_name(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     if let Some(name) = safe.enum_value_name("MyGame.Example.Color", 2) {
+    ///         println!("color with value 2 is named: {name}");
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn enum_value_name(&self, enum_name: &str, value: i64) -> Option<&str> {
+        let en = self.enum_by_name(enum_name)?;
+        let vals = en.values();
+        for i in 0..vals.len() {
+            let v = vals.get(i);
+            if v.value() == value {
+                return Some(v.name());
+            }
+        }
+        None
+    }
+
+    /// Returns all object (table and struct) definitions in the schema.
+    ///
+    /// The returned `Vec` is in the order they appear in the compiled schema —
+    /// typically alphabetical by fully qualified name.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn list_objects(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     for obj in safe.objects() {
+    ///         println!("object: {}", obj.name());
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn objects(&self) -> Vec<crate::reflection_generated::reflection::Object<'a>> {
+        let v = self.schema.objects();
+        (0..v.len()).map(|i| v.get(i)).collect()
+    }
+
+    /// Finds an object definition by its fully qualified name.
+    ///
+    /// Returns `None` if no object with that name exists in the schema.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn find_monster(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     if let Some(obj) = safe.object_by_name("MyGame.Example.Monster") {
+    ///         println!("Monster has {} fields", obj.fields().len());
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn object_by_name(
+        &self,
+        name: &str,
+    ) -> Option<crate::reflection_generated::reflection::Object<'a>> {
+        self.schema
+            .objects()
+            .lookup_by_key(name, |o, key| o.key_compare_with_value(key))
+    }
+
     fn find_field_by_name(
         &self,
         buf_loc: usize,
         field_name: &str,
-    ) -> FlatbufferResult<Option<Field>> {
+    ) -> FlatbufferResult<Option<Field<'a>>> {
         Ok(self
             .get_all_fields(buf_loc)?
             .lookup_by_key(field_name, |field: &Field<'_>, key| {
@@ -210,7 +495,10 @@ impl<'a> SafeBuffer<'a> {
             }))
     }
 
-    fn get_all_fields(&self, buf_loc: usize) -> FlatbufferResult<Vector<ForwardsUOffset<Field>>> {
+    fn get_all_fields(
+        &self,
+        buf_loc: usize,
+    ) -> FlatbufferResult<Vector<'a, ForwardsUOffset<Field<'a>>>> {
         if let Some(&obj_idx) = self.buf_loc_to_obj_idx.get(&buf_loc) {
             let obj = if obj_idx == -1 {
                 self.schema.root_table().unwrap()
@@ -218,6 +506,22 @@ impl<'a> SafeBuffer<'a> {
                 self.schema.objects().get(obj_idx.try_into()?)
             };
             Ok(obj.fields())
+        } else {
+            Err(FlatbufferError::InvalidTableOrStruct)
+        }
+    }
+
+    fn get_object_for_loc(
+        &self,
+        buf_loc: usize,
+    ) -> FlatbufferResult<crate::reflection_generated::reflection::Object<'a>> {
+        if let Some(&obj_idx) = self.buf_loc_to_obj_idx.get(&buf_loc) {
+            let obj = if obj_idx == -1 {
+                self.schema.root_table().unwrap()
+            } else {
+                self.schema.objects().get(obj_idx.try_into()?)
+            };
+            Ok(obj)
         } else {
             Err(FlatbufferError::InvalidTableOrStruct)
         }
@@ -232,13 +536,256 @@ impl<'a> SafeBuffer<'a> {
 ///
 /// Field lookup is O(log n) in the number of fields because the schema stores
 /// fields in a sorted vector that is searched with a binary comparison.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SafeTable<'a> {
     safe_buf: &'a SafeBuffer<'a>,
     loc: usize,
 }
 
 impl<'a> SafeTable<'a> {
+    /// Returns the schema [`Object`] definition for this table.
+    ///
+    /// Useful for iterating over all declared fields or inspecting metadata
+    /// (e.g. `is_struct`, `name`, `declaration_file`).
+    ///
+    /// [`Object`]: crate::reflection_generated::reflection::Object
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — the table's buffer position
+    ///   was not registered during verification (should not occur in normal use).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn print_table_name(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     let root = safe.get_root();
+    ///     println!("root table type: {}", root.object()?.name());
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn object(&self) -> FlatbufferResult<crate::reflection_generated::reflection::Object<'a>> {
+        self.safe_buf.get_object_for_loc(self.loc)
+    }
+
+    /// Returns all field definitions for this table from the schema.
+    ///
+    /// The returned `Vec` is in alphabetical order (as stored in the compiled
+    /// schema).  Use this to iterate all fields without knowing their names in
+    /// advance.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — the table's buffer position
+    ///   was not registered during verification.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn list_field_names(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     let root = safe.get_root();
+    ///     for field in root.fields()? {
+    ///         println!("  field: {}", field.name());
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn fields(
+        &self,
+    ) -> FlatbufferResult<Vec<crate::reflection_generated::reflection::Field<'a>>> {
+        let all = self.safe_buf.get_all_fields(self.loc)?;
+        Ok((0..all.len()).map(|i| all.get(i)).collect())
+    }
+
+    /// Reads any field as a [`FieldValue`] for generic inspection.
+    ///
+    /// Dispatches on the field's `BaseType` from the schema to call the
+    /// appropriate typed accessor, then wraps the result in the [`FieldValue`]
+    /// enum.  This is the recommended entry point for generic logging,
+    /// serialisation, or protocol translation where the field type is not known
+    /// at compile time.
+    ///
+    /// Vector fields with numeric element types are returned as
+    /// [`FieldValue::VecInteger`] or [`FieldValue::VecFloat`].  Vector fields
+    /// with `String` elements are returned as [`FieldValue::VecString`].  All
+    /// other vector element types (nested tables, structs, etc.) return
+    /// [`FlatbufferError::TypeNotSupported`].
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::TypeNotSupported`] — the field's `BaseType` has no
+    ///   dynamic representation (e.g. `Array`, `Vector64`).
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — table position not registered.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FieldValue, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn inspect_field(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     let root = safe.get_root();
+    ///     match root.get_any_field("hp")? {
+    ///         FieldValue::Integer(n) => println!("hp = {n}"),
+    ///         FieldValue::Absent => println!("hp absent"),
+    ///         other => println!("unexpected: {other}"),
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn get_any_field(&self, field_name: &str) -> FlatbufferResult<FieldValue<'a>> {
+        let field = self
+            .safe_buf
+            .find_field_by_name(self.loc, field_name)?
+            .ok_or(FlatbufferError::FieldNotFound)?;
+
+        let base_type = field.type_().base_type();
+        match base_type {
+            BaseType::Bool => {
+                // SAFETY: the buffer was verified during construction.
+                let raw = unsafe {
+                    get_field_integer::<u8>(&Table::new(self.safe_buf.buf, self.loc), &field)
+                }?;
+                Ok(raw.map_or(FieldValue::Absent, |v| FieldValue::Bool(v != 0)))
+            }
+            BaseType::Byte
+            | BaseType::UByte
+            | BaseType::Short
+            | BaseType::UShort
+            | BaseType::Int
+            | BaseType::UInt
+            | BaseType::Long
+            | BaseType::ULong
+            | BaseType::UType => {
+                // SAFETY: the buffer was verified during construction.
+                let val = unsafe {
+                    get_any_field_integer(&Table::new(self.safe_buf.buf, self.loc), &field)
+                }?;
+                Ok(FieldValue::Integer(val))
+            }
+            BaseType::Float | BaseType::Double => {
+                // SAFETY: the buffer was verified during construction.
+                let val = unsafe {
+                    get_any_field_float(&Table::new(self.safe_buf.buf, self.loc), &field)
+                }?;
+                Ok(FieldValue::Float(val))
+            }
+            BaseType::String => {
+                // SAFETY: the buffer was verified during construction.
+                let opt =
+                    unsafe { get_field_string(&Table::new(self.safe_buf.buf, self.loc), &field) }?;
+                Ok(opt.map_or(FieldValue::Absent, FieldValue::String))
+            }
+            BaseType::Obj => {
+                // SAFETY: the buffer was verified during construction.
+                let opt =
+                    unsafe { get_field_table(&Table::new(self.safe_buf.buf, self.loc), &field) }?;
+                Ok(opt.map_or(FieldValue::Absent, |t| {
+                    FieldValue::Table(SafeTable {
+                        safe_buf: self.safe_buf,
+                        loc: t.loc(),
+                    })
+                }))
+            }
+            BaseType::Union => {
+                let result = self.get_field_union(field_name)?;
+                Ok(result.map_or(FieldValue::Absent, |(disc, tbl)| {
+                    FieldValue::Union(disc, Box::new(tbl))
+                }))
+            }
+            BaseType::Vector => {
+                let elem_type = field.type_().element();
+                self.read_vector_field(&field, elem_type)
+            }
+            _ => Err(FlatbufferError::TypeNotSupported(format!("{base_type:?}"))),
+        }
+    }
+
+    /// Reads a union field, returning the discriminant type byte and the nested table.
+    ///
+    /// FlatBuffer union fields are paired with a companion `{name}_type` field
+    /// that holds the discriminant (a `u8` enum value).  This method reads both
+    /// fields and returns them as a tuple, or `None` if the union is absent.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — table position not registered.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn read_union(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     let root = safe.get_root();
+    ///     if let Some((disc, tbl)) = root.get_field_union("test")? {
+    ///         println!("union type discriminant: {disc}");
+    ///         let _ = tbl; // tbl is a SafeTable for the active variant
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn get_field_union(
+        &self,
+        field_name: &str,
+    ) -> FlatbufferResult<Option<(u8, SafeTable<'a>)>> {
+        let type_field_name = format!("{field_name}_type");
+        let disc_field = self
+            .safe_buf
+            .find_field_by_name(self.loc, &type_field_name)?
+            .ok_or(FlatbufferError::FieldNotFound)?;
+
+        // SAFETY: the buffer was verified during construction.
+        let disc_opt = unsafe {
+            get_field_integer::<u8>(&Table::new(self.safe_buf.buf, self.loc), &disc_field)
+        }?;
+        let Some(disc) = disc_opt else {
+            return Ok(None);
+        };
+        if disc == 0 {
+            return Ok(None);
+        }
+
+        let value_field = self
+            .safe_buf
+            .find_field_by_name(self.loc, field_name)?
+            .ok_or(FlatbufferError::FieldNotFound)?;
+
+        // Union value fields have BaseType::Union — get_field_table only accepts
+        // BaseType::Obj, so we read the table offset directly from the vtable slot.
+        // SAFETY: the buffer was verified during construction.
+        let opt_tbl: Option<Table<'a>> = unsafe {
+            Table::new(self.safe_buf.buf, self.loc)
+                .get::<ForwardsUOffset<Table<'a>>>(value_field.offset(), None)
+        };
+        Ok(opt_tbl.map(|t| {
+            (
+                disc,
+                SafeTable {
+                    safe_buf: self.safe_buf,
+                    loc: t.loc(),
+                },
+            )
+        }))
+    }
+
     /// Returns the value of a typed integer field, identified by name.
     ///
     /// `T` must match the field's declared integer type exactly (e.g. `i32` for
@@ -285,7 +832,7 @@ impl<'a> SafeTable<'a> {
     ) -> FlatbufferResult<Option<T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_integer::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_integer::<T>(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -308,7 +855,7 @@ impl<'a> SafeTable<'a> {
     ) -> FlatbufferResult<Option<T>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_float::<T>(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_float::<T>(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -348,7 +895,47 @@ impl<'a> SafeTable<'a> {
     pub fn get_field_string(&self, field_name: &str) -> FlatbufferResult<Option<&str>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_string(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_string(&Table::new(self.safe_buf.buf, self.loc), &field) }
+        } else {
+            Err(FlatbufferError::FieldNotFound)
+        }
+    }
+
+    /// Returns the value of a boolean field, identified by name.
+    ///
+    /// FlatBuffers booleans are stored as a single byte; this method reads that
+    /// byte and returns `true` for any non-zero value.  Returns `None` when the
+    /// field is absent and the schema default cannot be determined.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the field is not of type `Bool`.
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — table position not registered.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn check_flag(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     let root = safe.get_root();
+    ///     if let Some(enabled) = root.get_field_bool("testbool")? {
+    ///         println!("testbool = {enabled}");
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn get_field_bool(&self, field_name: &str) -> FlatbufferResult<Option<bool>> {
+        if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
+            // SAFETY: the buffer was verified during construction.
+            let raw = unsafe {
+                get_field_integer::<u8>(&Table::new(self.safe_buf.buf, self.loc), &field)
+            }?;
+            Ok(raw.map(|v| v != 0))
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -367,7 +954,7 @@ impl<'a> SafeTable<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let optional_st =
-                unsafe { get_field_struct(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
+                unsafe { get_field_struct(&Table::new(self.safe_buf.buf, self.loc), &field)? };
             Ok(optional_st.map(|st| SafeStruct {
                 safe_buf: self.safe_buf,
                 loc: st.loc(),
@@ -395,7 +982,7 @@ impl<'a> SafeTable<'a> {
     ) -> FlatbufferResult<Option<Vector<'a, T>>> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_field_vector(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_field_vector(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -441,7 +1028,7 @@ impl<'a> SafeTable<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let optional_table =
-                unsafe { get_field_table(&Table::new(&self.safe_buf.buf, self.loc), &field)? };
+                unsafe { get_field_table(&Table::new(self.safe_buf.buf, self.loc), &field)? };
             Ok(optional_table.map(|t| SafeTable {
                 safe_buf: self.safe_buf,
                 loc: t.loc(),
@@ -466,7 +1053,7 @@ impl<'a> SafeTable<'a> {
     pub fn get_any_field_integer(&self, field_name: &str) -> FlatbufferResult<i64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_any_field_integer(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_any_field_integer(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -485,7 +1072,7 @@ impl<'a> SafeTable<'a> {
     pub fn get_any_field_float(&self, field_name: &str) -> FlatbufferResult<f64> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
-            unsafe { get_any_field_float(&Table::new(&self.safe_buf.buf, self.loc), &field) }
+            unsafe { get_any_field_float(&Table::new(self.safe_buf.buf, self.loc), &field) }
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -505,13 +1092,149 @@ impl<'a> SafeTable<'a> {
             // SAFETY: the buffer was verified during construction.
             unsafe {
                 Ok(get_any_field_string(
-                    &Table::new(&self.safe_buf.buf, self.loc),
+                    &Table::new(self.safe_buf.buf, self.loc),
                     &field,
                     self.safe_buf.schema,
                 ))
             }
         } else {
             Err(FlatbufferError::FieldNotFound)
+        }
+    }
+
+    /// Helper: read a `Vector` field and convert all elements to `FieldValue`.
+    fn read_vector_field(
+        &self,
+        field: &Field<'_>,
+        elem_type: BaseType,
+    ) -> FlatbufferResult<FieldValue<'a>> {
+        match elem_type {
+            BaseType::Bool
+            | BaseType::Byte
+            | BaseType::UByte
+            | BaseType::Short
+            | BaseType::UShort
+            | BaseType::Int
+            | BaseType::UInt
+            | BaseType::Long
+            | BaseType::ULong
+            | BaseType::UType => {
+                // Read as u8 vector and widen each element via get_any_field_integer per-element
+                // is not available; instead read the vector as raw bytes and do element reads.
+                // The simplest cross-size approach: use the existing get_field_vector for u8-sized
+                // variants, u16 for Short/UShort, etc.  Because we need a single code path,
+                // we read with get_any_field_integer which gives us the whole-field i64 value —
+                // but that only works for scalars, not vectors.
+                //
+                // For vectors we read the raw Vector and widen each element individually.
+                let result = self.read_integer_vec(field, elem_type)?;
+                Ok(FieldValue::VecInteger(result))
+            }
+            BaseType::Float => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<f32>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(FieldValue::VecFloat(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| f64::from(v.get(i))).collect()
+                })))
+            }
+            BaseType::Double => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<f64>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(FieldValue::VecFloat(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| v.get(i)).collect()
+                })))
+            }
+            BaseType::String => {
+                // SAFETY: buffer verified.  String vectors use ForwardsUOffset<&str>
+                // elements, which do not satisfy Follow::Inner = T, so we use
+                // table.get directly instead of get_field_vector.
+                let tbl = unsafe { Table::new(self.safe_buf.buf, self.loc) };
+                let opt: Option<Vector<'a, ForwardsUOffset<&'a str>>> = unsafe {
+                    tbl.get::<ForwardsUOffset<Vector<'a, ForwardsUOffset<&'a str>>>>(
+                        field.offset(),
+                        None,
+                    )
+                };
+                Ok(FieldValue::VecString(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| v.get(i)).collect()
+                })))
+            }
+            _ => Err(FlatbufferError::TypeNotSupported(format!("{elem_type:?}"))),
+        }
+    }
+
+    fn read_integer_vec(
+        &self,
+        field: &Field<'_>,
+        elem_type: BaseType,
+    ) -> FlatbufferResult<Vec<i64>> {
+        match elem_type {
+            BaseType::Bool | BaseType::Byte | BaseType::UByte | BaseType::UType => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<u8>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| i64::from(v.get(i))).collect()
+                }))
+            }
+            BaseType::Short => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<i16>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| i64::from(v.get(i))).collect()
+                }))
+            }
+            BaseType::UShort => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<u16>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| i64::from(v.get(i))).collect()
+                }))
+            }
+            BaseType::Int => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<i32>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| i64::from(v.get(i))).collect()
+                }))
+            }
+            BaseType::UInt => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<u32>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| i64::from(v.get(i))).collect()
+                }))
+            }
+            BaseType::Long => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<i64>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(opt.map_or_else(Vec::new, |v| (0..v.len()).map(|i| v.get(i)).collect()))
+            }
+            BaseType::ULong => {
+                // SAFETY: buffer verified.
+                let opt = unsafe {
+                    get_field_vector::<u64>(&Table::new(self.safe_buf.buf, self.loc), field)
+                }?;
+                Ok(opt.map_or_else(Vec::new, |v| {
+                    (0..v.len()).map(|i| v.get(i) as i64).collect()
+                }))
+            }
+            _ => Err(FlatbufferError::TypeNotSupported(format!("{elem_type:?}"))),
         }
     }
 }
@@ -521,7 +1244,7 @@ impl<'a> SafeTable<'a> {
 /// Obtained from [`SafeTable::get_field_struct`] or [`SafeStruct::get_field_struct`].
 /// Unlike tables, FlatBuffer structs store all fields inline without a vtable,
 /// so fields are always present — there is no "absent field" concept.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SafeStruct<'a> {
     safe_buf: &'a SafeBuffer<'a>,
     loc: usize,
@@ -540,12 +1263,51 @@ impl<'a> SafeStruct<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             let st = unsafe {
-                get_field_struct_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)?
+                get_field_struct_in_struct(&Struct::new(self.safe_buf.buf, self.loc), &field)?
             };
             Ok(SafeStruct {
                 safe_buf: self.safe_buf,
                 loc: st.loc(),
             })
+        } else {
+            Err(FlatbufferError::FieldNotFound)
+        }
+    }
+
+    /// Returns the value of a boolean field in this struct, identified by name.
+    ///
+    /// FlatBuffers booleans are stored as a single byte; this method reads that
+    /// byte and returns `true` for any non-zero value.
+    ///
+    /// # Errors
+    ///
+    /// - [`FlatbufferError::FieldNotFound`] — `field_name` is not in the schema.
+    /// - [`FlatbufferError::FieldTypeMismatch`] — the field is not of type `Bool`.
+    /// - [`FlatbufferError::InvalidTableOrStruct`] — struct position not registered.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+    /// use flatbuffers_reflection::reflection::Schema;
+    ///
+    /// fn check_struct_bool(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+    ///     let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+    ///     let safe = SafeBuffer::new(message_bytes, &schema)?;
+    ///     let root = safe.get_root();
+    ///     if let Some(pos) = root.get_field_struct("pos")? {
+    ///         println!("{}", pos.get_field_bool("some_bool_field")?);
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn get_field_bool(&self, field_name: &str) -> FlatbufferResult<bool> {
+        if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
+            // SAFETY: the buffer was verified during construction.
+            let raw = unsafe {
+                get_any_field_integer_in_struct(&Struct::new(self.safe_buf.buf, self.loc), &field)
+            }?;
+            Ok(raw != 0)
         } else {
             Err(FlatbufferError::FieldNotFound)
         }
@@ -564,7 +1326,7 @@ impl<'a> SafeStruct<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             unsafe {
-                get_any_field_integer_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)
+                get_any_field_integer_in_struct(&Struct::new(self.safe_buf.buf, self.loc), &field)
             }
         } else {
             Err(FlatbufferError::FieldNotFound)
@@ -584,7 +1346,7 @@ impl<'a> SafeStruct<'a> {
         if let Some(field) = self.safe_buf.find_field_by_name(self.loc, field_name)? {
             // SAFETY: the buffer was verified during construction.
             unsafe {
-                get_any_field_float_in_struct(&Struct::new(&self.safe_buf.buf, self.loc), &field)
+                get_any_field_float_in_struct(&Struct::new(self.safe_buf.buf, self.loc), &field)
             }
         } else {
             Err(FlatbufferError::FieldNotFound)
@@ -603,7 +1365,7 @@ impl<'a> SafeStruct<'a> {
             // SAFETY: the buffer was verified during construction.
             unsafe {
                 Ok(get_any_field_string_in_struct(
-                    &Struct::new(&self.safe_buf.buf, self.loc),
+                    &Struct::new(self.safe_buf.buf, self.loc),
                     &field,
                     self.safe_buf.schema,
                 ))
