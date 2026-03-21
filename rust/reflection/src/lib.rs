@@ -80,6 +80,40 @@ use thiserror::Error;
 /// mutating fields at runtime.  [`FlatbufferError::VerificationError`] wraps the
 /// upstream [`flatbuffers::InvalidFlatbuffer`] type so callers do not need to
 /// import it separately.
+///
+/// # Examples
+///
+/// Constructing and matching on error variants returned by field accessors:
+///
+/// ```
+/// use flatbuffers_reflection::FlatbufferError;
+///
+/// // Variants with no payload can be constructed directly.
+/// let err = FlatbufferError::FieldNotFound;
+/// assert_eq!(err.to_string(), "Field not found in the table schema");
+///
+/// // Pattern-match to distinguish failure modes.
+/// match err {
+///     FlatbufferError::FieldNotFound => println!("field missing from schema"),
+///     FlatbufferError::FieldTypeMismatch(rust_ty, schema_ty) => {
+///         println!("type mismatch: Rust {rust_ty} vs schema {schema_ty}");
+///     }
+///     FlatbufferError::InvalidSchema => println!("wrong schema for this buffer"),
+///     other => println!("other error: {other}"),
+/// }
+///
+/// // FieldTypeMismatch carries the Rust type name and the schema type name.
+/// let mismatch = FlatbufferError::FieldTypeMismatch(
+///     "i64".to_string(),
+///     "Int".to_string(),
+/// );
+/// assert!(mismatch.to_string().contains("i64"));
+/// assert!(mismatch.to_string().contains("Int"));
+///
+/// // Errors implement PartialEq for use in tests.
+/// assert_eq!(FlatbufferError::InvalidSchema, FlatbufferError::InvalidSchema);
+/// assert_ne!(FlatbufferError::FieldNotFound, FlatbufferError::InvalidSchema);
+/// ```
 #[derive(Error, Debug, PartialEq)]
 pub enum FlatbufferError {
     /// The buffer failed low-level FlatBuffers structural verification.
