@@ -15,34 +15,38 @@
  */
 
 use crate::reflection_generated::reflection::{BaseType, Field, Object, Schema};
-use crate::{FlatbufferError, FlatbufferResult};
+use crate::{FlatbufferError, FlatbufferResult, get_type_size};
 use flatbuffers::{
-    ForwardsUOffset, InvalidFlatbuffer, TableVerifier, UOffsetT, Vector, Verifiable, Verifier,
-    VerifierOptions, SIZE_UOFFSET, SIZE_VOFFSET,
+    ForwardsUOffset, InvalidFlatbuffer, SIZE_UOFFSET, SIZE_VOFFSET, TableVerifier, UOffsetT,
+    Vector, Verifiable, Verifier, VerifierOptions,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 /// Verifies a buffer against its schema with custom verification options.
-pub fn verify_with_options(
+///
+/// Returns a mapping from buffer positions to schema object indices,
+/// used internally by `SafeBuffer` for typed field access.
+pub(crate) fn verify_with_options(
     buffer: &[u8],
     schema: &Schema,
     opts: &VerifierOptions,
-    buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
-) -> FlatbufferResult<()> {
+) -> FlatbufferResult<HashMap<usize, i32>> {
     let mut verifier = Verifier::new(opts, buffer);
+    let mut buf_loc_to_obj_idx = HashMap::new();
     if let Some(table_object) = schema.root_table() {
         if let core::result::Result::Ok(table_pos) = verifier.get_uoffset(0) {
-            // Inserts -1 as object index for root table
             buf_loc_to_obj_idx.insert(table_pos.try_into()?, -1);
-            let mut verified = vec![false; buffer.len()];
-            return verify_table(
+            let mut verified = HashSet::with_capacity(opts.max_tables.min(4096));
+            verify_table(
                 &mut verifier,
                 &table_object,
                 table_pos.try_into()?,
                 schema,
                 &mut verified,
-                buf_loc_to_obj_idx,
-            );
+                &mut buf_loc_to_obj_idx,
+                opts.max_tables,
+            )?;
+            return Ok(buf_loc_to_obj_idx);
         }
     }
     Err(FlatbufferError::InvalidSchema)
@@ -53,11 +57,18 @@ fn verify_table(
     table_object: &Object,
     table_pos: usize,
     schema: &Schema,
-    verified: &mut [bool],
+    verified: &mut HashSet<usize>,
     buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    max_tables: usize,
 ) -> FlatbufferResult<()> {
-    if table_pos < verified.len() && verified[table_pos] {
+    if verified.contains(&table_pos) {
         return Ok(());
+    }
+
+    if verified.len() >= max_tables {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::TooManyTables,
+        ));
     }
 
     let mut table_verifier = verifier.visit_table(table_pos)?;
@@ -103,8 +114,25 @@ fn verify_table(
                 field.offset(),
                 field.required(),
             )?,
-            BaseType::Vector => {
-                verify_vector(table_verifier, &field, schema, verified, buf_loc_to_obj_idx)?
+            BaseType::Vector => verify_vector(
+                table_verifier,
+                &field,
+                schema,
+                verified,
+                buf_loc_to_obj_idx,
+                max_tables,
+            )?,
+            BaseType::Vector64 => verify_vector64(
+                table_verifier,
+                &field,
+                schema,
+                verified,
+                buf_loc_to_obj_idx,
+                max_tables,
+            )?,
+            BaseType::Array => {
+                verify_array(&mut table_verifier, &field, schema, buf_loc_to_obj_idx)?;
+                table_verifier
             }
             BaseType::Obj => {
                 if let Some(field_pos) = table_verifier.deref(field.offset())? {
@@ -118,7 +146,7 @@ fn verify_table(
                             field_pos,
                             schema,
                             buf_loc_to_obj_idx,
-                        )?
+                        )?;
                     } else {
                         let field_value = table_verifier.verifier().get_uoffset(field_pos)?;
                         let table_pos = field_pos.saturating_add(field_value.try_into()?);
@@ -130,6 +158,7 @@ fn verify_table(
                             schema,
                             verified,
                             buf_loc_to_obj_idx,
+                            max_tables,
                         )?;
                     }
                 } else if field.required() {
@@ -147,6 +176,7 @@ fn verify_table(
                         schema,
                         verified,
                         buf_loc_to_obj_idx,
+                        max_tables,
                     )?
                 } else if field.required() {
                     return InvalidFlatbuffer::new_missing_required(field.name().to_string())?;
@@ -156,14 +186,19 @@ fn verify_table(
             }
             _ => {
                 return Err(FlatbufferError::TypeNotSupported(
-                    field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+                    field
+                        .type_()
+                        .base_type()
+                        .variant_name()
+                        .unwrap_or_default()
+                        .to_string(),
                 ));
             }
         };
     }
 
     table_verifier.finish();
-    verified[table_pos] = true;
+    verified.insert(table_pos);
     Ok(())
 }
 
@@ -189,12 +224,63 @@ fn verify_struct(
     Ok(())
 }
 
+/// Verifies a fixed-length array field.
+///
+/// Arrays are inline in the table/struct — their total byte size is
+/// `element_size * fixed_length` and they must fit within the buffer.
+fn verify_array(
+    table_verifier: &mut TableVerifier,
+    field: &Field,
+    schema: &Schema,
+    buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+) -> FlatbufferResult<()> {
+    let field_type = field.type_();
+    let fixed_length: usize = field_type.fixed_length().into();
+    let element_base_type = field_type.element();
+
+    if let Some(field_pos) = table_verifier.deref(field.offset())? {
+        let element_size = if element_base_type == BaseType::Obj {
+            let child_obj = schema.objects().get(field_type.index().try_into()?);
+            usize::try_from(child_obj.bytesize())?
+        } else {
+            get_type_size(element_base_type)
+        };
+
+        let total_size = element_size.saturating_mul(fixed_length);
+        table_verifier
+            .verifier()
+            .range_in_buffer(field_pos, total_size)?;
+
+        if element_base_type == BaseType::Obj {
+            let child_obj_idx = field_type.index();
+            let child_obj = schema.objects().get(child_obj_idx.try_into()?);
+            if child_obj.is_struct() {
+                for i in 0..fixed_length {
+                    let elem_pos = field_pos.saturating_add(i.saturating_mul(element_size));
+                    buf_loc_to_obj_idx.insert(elem_pos, child_obj_idx);
+                    verify_struct(
+                        table_verifier.verifier(),
+                        &child_obj,
+                        elem_pos,
+                        schema,
+                        buf_loc_to_obj_idx,
+                    )?;
+                }
+            }
+        }
+    } else if field.required() {
+        return InvalidFlatbuffer::new_missing_required(field.name().to_string())?;
+    }
+    Ok(())
+}
+
 fn verify_vector<'a, 'b, 'c>(
     mut table_verifier: TableVerifier<'a, 'b, 'c>,
     field: &Field,
     schema: &Schema,
-    verified: &mut [bool],
+    verified: &mut HashSet<usize>,
     buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    max_tables: usize,
 ) -> FlatbufferResult<TableVerifier<'a, 'b, 'c>> {
     let field_name = field.name().to_owned();
     match field.type_().element() {
@@ -283,64 +369,171 @@ fn verify_vector<'a, 'b, 'c>(
             )
             .map_err(FlatbufferError::VerificationError),
         BaseType::Obj => {
-            if let Some(field_pos) = table_verifier.deref(field.offset())? {
-                let verifier = table_verifier.verifier();
-                let vector_offset = verifier.get_uoffset(field_pos)?;
-                let vector_pos = field_pos.saturating_add(vector_offset.try_into()?);
-                let vector_len = verifier.get_uoffset(vector_pos)?;
-                let vector_start = vector_pos.saturating_add(SIZE_UOFFSET);
-                let child_obj_idx = field.type_().index();
-                let child_obj = schema.objects().get(child_obj_idx.try_into()?);
-                if child_obj.is_struct() {
-                    let vector_size = vector_len.saturating_mul(child_obj.bytesize().try_into()?);
-                    verifier.range_in_buffer(vector_start, vector_size.try_into()?)?;
-                    let vector_range = core::ops::Range {
-                        start: vector_start,
-                        end: vector_start.saturating_add(vector_size.try_into()?),
-                    };
-                    for struct_pos in vector_range.step_by(child_obj.bytesize().try_into()?) {
-                        buf_loc_to_obj_idx.insert(struct_pos, child_obj_idx);
-                        verify_struct(
-                            verifier,
-                            &child_obj,
-                            struct_pos,
-                            schema,
-                            buf_loc_to_obj_idx,
-                        )?;
-                    }
-                } else {
-                    verifier.is_aligned::<UOffsetT>(vector_start)?;
-                    let vector_size = vector_len.saturating_mul(SIZE_UOFFSET.try_into()?);
-                    verifier.range_in_buffer(vector_start, vector_size.try_into()?)?;
-                    let vector_range = core::ops::Range {
-                        start: vector_start,
-                        end: vector_start.saturating_add(vector_size.try_into()?),
-                    };
-                    for element_pos in vector_range.step_by(SIZE_UOFFSET) {
-                        let table_pos = element_pos
-                            .saturating_add(verifier.get_uoffset(element_pos)?.try_into()?);
-                        buf_loc_to_obj_idx.insert(table_pos, child_obj_idx);
-                        verify_table(
-                            verifier,
-                            &child_obj,
-                            table_pos,
-                            schema,
-                            verified,
-                            buf_loc_to_obj_idx,
-                        )?;
-                    }
-                }
-            } else if field.required() {
-                return InvalidFlatbuffer::new_missing_required(field.name().to_string())?;
-            }
+            verify_vector_of_objects(
+                &mut table_verifier,
+                field,
+                schema,
+                verified,
+                buf_loc_to_obj_idx,
+                max_tables,
+                false,
+            )?;
             Ok(table_verifier)
         }
         _ => {
             return Err(FlatbufferError::TypeNotSupported(
-                field.type_().base_type().variant_name().unwrap_or_default().to_string(),
-            ))
+                field
+                    .type_()
+                    .element()
+                    .variant_name()
+                    .unwrap_or_default()
+                    .to_string(),
+            ));
         }
     }
+}
+
+/// Verifies a Vector64 field (64-bit length prefix instead of 32-bit).
+///
+/// Vector64 uses a 64-bit length prefix (`u64`) but the same element layout
+/// as regular vectors. We read the 64-bit length and verify the element range.
+fn verify_vector64<'a, 'b, 'c>(
+    mut table_verifier: TableVerifier<'a, 'b, 'c>,
+    field: &Field,
+    schema: &Schema,
+    verified: &mut HashSet<usize>,
+    buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    max_tables: usize,
+) -> FlatbufferResult<TableVerifier<'a, 'b, 'c>> {
+    if let Some(field_pos) = table_verifier.deref(field.offset())? {
+        let verifier = table_verifier.verifier();
+        let vector_offset = verifier.get_uoffset(field_pos)?;
+        let vector_pos = field_pos.saturating_add(vector_offset.try_into()?);
+
+        // Vector64 uses an 8-byte length prefix
+        const SIZE_U64: usize = 8;
+        verifier.range_in_buffer(vector_pos, SIZE_U64)?;
+        // Read the 64-bit length byte-by-byte since Verifier doesn't expose a get_u64
+        let mut len_bytes = [0u8; 8];
+        for (i, byte) in len_bytes.iter_mut().enumerate() {
+            *byte = verifier.get_u8(vector_pos + i)?;
+        }
+        let vector_len = u64::from_le_bytes(len_bytes);
+
+        let vector_start = vector_pos.saturating_add(SIZE_U64);
+        let element_base_type = field.type_().element();
+        let element_size = if element_base_type == BaseType::Obj {
+            let child_obj = schema.objects().get(field.type_().index().try_into()?);
+            if child_obj.is_struct() {
+                usize::try_from(child_obj.bytesize())?
+            } else {
+                SIZE_UOFFSET
+            }
+        } else {
+            get_type_size(element_base_type)
+        };
+
+        let vector_len_usize: usize = vector_len.try_into().map_err(|_| {
+            FlatbufferError::VerificationError(InvalidFlatbuffer::ApparentSizeTooLarge)
+        })?;
+        let total_size = element_size.saturating_mul(vector_len_usize);
+        verifier.range_in_buffer(vector_start, total_size)?;
+
+        if element_base_type == BaseType::Obj {
+            let child_obj_idx = field.type_().index();
+            let child_obj = schema.objects().get(child_obj_idx.try_into()?);
+            if child_obj.is_struct() {
+                let vector_end = vector_start.saturating_add(total_size);
+                let byte_size: usize = child_obj.bytesize().try_into()?;
+                let mut pos = vector_start;
+                while pos < vector_end {
+                    buf_loc_to_obj_idx.insert(pos, child_obj_idx);
+                    verify_struct(verifier, &child_obj, pos, schema, buf_loc_to_obj_idx)?;
+                    pos = pos.saturating_add(byte_size);
+                }
+            } else {
+                verifier.is_aligned::<UOffsetT>(vector_start)?;
+                let vector_end = vector_start.saturating_add(total_size);
+                let mut element_pos = vector_start;
+                while element_pos < vector_end {
+                    let table_pos =
+                        element_pos.saturating_add(verifier.get_uoffset(element_pos)?.try_into()?);
+                    buf_loc_to_obj_idx.insert(table_pos, child_obj_idx);
+                    verify_table(
+                        verifier,
+                        &child_obj,
+                        table_pos,
+                        schema,
+                        verified,
+                        buf_loc_to_obj_idx,
+                        max_tables,
+                    )?;
+                    element_pos = element_pos.saturating_add(SIZE_UOFFSET);
+                }
+            }
+        }
+    } else if field.required() {
+        return InvalidFlatbuffer::new_missing_required(field.name().to_string())?;
+    }
+    Ok(table_verifier)
+}
+
+/// Shared logic for verifying vectors of Obj elements (used by both Vector and Vector64).
+fn verify_vector_of_objects(
+    table_verifier: &mut TableVerifier,
+    field: &Field,
+    schema: &Schema,
+    verified: &mut HashSet<usize>,
+    buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    max_tables: usize,
+    _is_64bit: bool,
+) -> FlatbufferResult<()> {
+    if let Some(field_pos) = table_verifier.deref(field.offset())? {
+        let verifier = table_verifier.verifier();
+        let vector_offset = verifier.get_uoffset(field_pos)?;
+        let vector_pos = field_pos.saturating_add(vector_offset.try_into()?);
+        let vector_len = verifier.get_uoffset(vector_pos)?;
+        let vector_start = vector_pos.saturating_add(SIZE_UOFFSET);
+        let child_obj_idx = field.type_().index();
+        let child_obj = schema.objects().get(child_obj_idx.try_into()?);
+        if child_obj.is_struct() {
+            let vector_size = vector_len.saturating_mul(child_obj.bytesize().try_into()?);
+            verifier.range_in_buffer(vector_start, vector_size.try_into()?)?;
+            let vector_range = core::ops::Range {
+                start: vector_start,
+                end: vector_start.saturating_add(vector_size.try_into()?),
+            };
+            for struct_pos in vector_range.step_by(child_obj.bytesize().try_into()?) {
+                buf_loc_to_obj_idx.insert(struct_pos, child_obj_idx);
+                verify_struct(verifier, &child_obj, struct_pos, schema, buf_loc_to_obj_idx)?;
+            }
+        } else {
+            verifier.is_aligned::<UOffsetT>(vector_start)?;
+            let vector_size = vector_len.saturating_mul(SIZE_UOFFSET.try_into()?);
+            verifier.range_in_buffer(vector_start, vector_size.try_into()?)?;
+            let vector_range = core::ops::Range {
+                start: vector_start,
+                end: vector_start.saturating_add(vector_size.try_into()?),
+            };
+            for element_pos in vector_range.step_by(SIZE_UOFFSET) {
+                let table_pos =
+                    element_pos.saturating_add(verifier.get_uoffset(element_pos)?.try_into()?);
+                buf_loc_to_obj_idx.insert(table_pos, child_obj_idx);
+                verify_table(
+                    verifier,
+                    &child_obj,
+                    table_pos,
+                    schema,
+                    verified,
+                    buf_loc_to_obj_idx,
+                    max_tables,
+                )?;
+            }
+        }
+    } else if field.required() {
+        return InvalidFlatbuffer::new_missing_required(field.name().to_string())?;
+    }
+    Ok(())
 }
 
 fn verify_union<'a, 'b, 'c>(
@@ -348,8 +541,9 @@ fn verify_union<'a, 'b, 'c>(
     field: &Field,
     union_pos: usize,
     schema: &Schema,
-    verified: &mut [bool],
+    verified: &mut HashSet<usize>,
     buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    max_tables: usize,
 ) -> FlatbufferResult<TableVerifier<'a, 'b, 'c>> {
     let union_enum = schema.enums().get(field.type_().index().try_into()?);
     if union_enum.values().is_empty() {
@@ -377,7 +571,7 @@ fn verify_union<'a, 'b, 'c>(
                         union_pos,
                         schema,
                         buf_loc_to_obj_idx,
-                    )?
+                    )?;
                 } else {
                     verify_table(
                         table_verifier.verifier(),
@@ -386,13 +580,18 @@ fn verify_union<'a, 'b, 'c>(
                         schema,
                         verified,
                         buf_loc_to_obj_idx,
+                        max_tables,
                     )?;
                 }
             }
             _ => {
                 return Err(FlatbufferError::TypeNotSupported(
-                    enum_type.base_type().variant_name().unwrap_or_default().to_string(),
-                ))
+                    enum_type
+                        .base_type()
+                        .variant_name()
+                        .unwrap_or_default()
+                        .to_string(),
+                ));
             }
         }
     } else {
@@ -402,6 +601,6 @@ fn verify_union<'a, 'b, 'c>(
         )?;
     }
 
-    verified[union_pos] = true;
+    verified.insert(union_pos);
     Ok(table_verifier)
 }

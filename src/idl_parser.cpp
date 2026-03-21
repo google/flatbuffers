@@ -2487,6 +2487,12 @@ struct EnumValBuilder {
     return AcceptEnumerator(temp->name);
   }
 
+  // Discard the current enumerator without adding it to the enum.
+  void DiscardEnumerator() {
+    delete temp;
+    temp = nullptr;
+  }
+
   FLATBUFFERS_CHECKED_ERROR AssignEnumeratorValue(const std::string& value) {
     user_value = true;
     auto fit = false;
@@ -2623,6 +2629,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef** dest,
       auto full_name = ev.name;
       ev.doc_comment = doc_comment_;
       EXPECT(kTokenIdentifier);
+      bool flattened_union = false;
       if (is_union) {
         ECHECK(ParseNamespacing(&full_name, &ev.name));
         if (opts.union_value_namespacing) {
@@ -2638,32 +2645,62 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef** dest,
               ev.union_type.base_type != BASE_TYPE_STRING)
             return Error("union value type may only be table/struct/string");
         } else {
-          ev.union_type = Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
+          // Check if the name refers to another union — if so, flatten its
+          // members into this union (union-of-unions support).
+          auto inner_union = LookupEnum(full_name);
+          if (inner_union && inner_union->is_union) {
+            // Discard the placeholder enumerator for the union name itself.
+            evb.DiscardEnumerator();
+            // Flatten: copy each non-NONE member from the inner union.
+            for (auto inner_it = inner_union->Vals().begin();
+                 inner_it != inner_union->Vals().end(); ++inner_it) {
+              auto& inner_ev = **inner_it;
+              if (inner_ev.IsZero()) continue;  // skip NONE
+              auto* new_ev = evb.CreateEnumerator(inner_ev.name);
+              new_ev->union_type = inner_ev.union_type;
+              new_ev->doc_comment = inner_ev.doc_comment;
+              if (!enum_def->uses_multiple_type_instances) {
+                auto ins = union_types.insert(std::make_pair(
+                    new_ev->union_type.base_type,
+                    new_ev->union_type.struct_def));
+                enum_def->uses_multiple_type_instances = (false == ins.second);
+              }
+              ECHECK(evb.AcceptEnumerator());
+            }
+            flattened_union = true;
+          } else {
+            ev.union_type =
+                Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
+          }
         }
-        if (!enum_def->uses_multiple_type_instances) {
-          auto ins = union_types.insert(std::make_pair(
-              ev.union_type.base_type, ev.union_type.struct_def));
-          enum_def->uses_multiple_type_instances = (false == ins.second);
+        if (!flattened_union) {
+          if (!enum_def->uses_multiple_type_instances) {
+            auto ins = union_types.insert(std::make_pair(
+                ev.union_type.base_type, ev.union_type.struct_def));
+            enum_def->uses_multiple_type_instances = (false == ins.second);
+          }
         }
       }
 
-      if (Is('=')) {
-        NEXT();
-        ECHECK(evb.AssignEnumeratorValue(attribute_));
-        EXPECT(kTokenIntegerConstant);
-      }
+      if (!flattened_union) {
+        if (Is('=')) {
+          NEXT();
+          ECHECK(evb.AssignEnumeratorValue(attribute_));
+          EXPECT(kTokenIntegerConstant);
+        }
 
-      if (opts.proto_mode && Is('[')) {
-        NEXT();
-        // ignore attributes on enums.
-        while (token_ != ']') NEXT();
-        NEXT();
-      } else {
-        // parse attributes in fbs schema
-        ECHECK(ParseMetaData(&ev.attributes));
-      }
+        if (opts.proto_mode && Is('[')) {
+          NEXT();
+          // ignore attributes on enums.
+          while (token_ != ']') NEXT();
+          NEXT();
+        } else {
+          // parse attributes in fbs schema
+          ECHECK(ParseMetaData(&ev.attributes));
+        }
 
-      ECHECK(evb.AcceptEnumerator());
+        ECHECK(evb.AcceptEnumerator());
+      }
     }
     if (!Is(opts.proto_mode ? ';' : ',')) break;
     NEXT();

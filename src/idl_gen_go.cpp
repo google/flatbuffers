@@ -870,6 +870,177 @@ class GoGenerator : public BaseGenerator {
     }
   }
 
+  // Generate the root verifier entry point and per-table verifier function.
+  // Only called for non-fixed (table) types.
+  void GenVerifier(const StructDef& struct_def, std::string* code_ptr) {
+    std::string& code = *code_ptr;
+    const std::string struct_type = namer_.Type(struct_def);
+
+    // Public entry point: VerifyRootAs{Type}
+    code += "func VerifyRootAs" + struct_type +
+            "(buf []byte, opts *flatbuffers.VerifierOptions) error {\n";
+    code += "\tv := flatbuffers.NewVerifier(buf, opts)\n";
+    code += "\ttablePos, err := v.CheckUOffsetT(0)\n";
+    code += "\tif err != nil {\n";
+    code += "\t\treturn err\n";
+    code += "\t}\n";
+    code += "\treturn verify" + struct_type + "(v, int(tablePos))\n";
+    code += "}\n\n";
+
+    // Exported per-table verifier for cross-package callers: Verify{Type}
+    code += "func Verify" + struct_type +
+            "(v *flatbuffers.Verifier, tablePos int) error {\n";
+    code += "\treturn verify" + struct_type + "(v, tablePos)\n";
+    code += "}\n\n";
+
+    // Unexported per-table verifier: verify{Type}
+    code += "func verify" + struct_type +
+            "(v *flatbuffers.Verifier, tablePos int) error {\n";
+    code += "\tif err := v.CheckTable(tablePos); err != nil {\n";
+    code += "\t\treturn err\n";
+    code += "\t}\n";
+    code += "\tif err := v.CountTable(); err != nil {\n";
+    code += "\t\treturn err\n";
+    code += "\t}\n";
+    code += "\tif err := v.PushDepth(); err != nil {\n";
+    code += "\t\treturn err\n";
+    code += "\t}\n";
+    code += "\tdefer v.PopDepth()\n\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef& field = **it;
+      if (field.deprecated) continue;
+
+      const std::string voffset = NumToString(field.value.offset);
+      const std::string field_name = namer_.Field(field);
+
+      if (IsScalar(field.value.type.base_type)) {
+        // Scalar field (includes union type discriminant enum fields).
+        const std::string scalar_size =
+            NumToString(SizeOf(field.value.type.base_type));
+        code += "\tif err := v.CheckScalarField(tablePos, " + voffset + ", " +
+                scalar_size + "); err != nil {\n";
+        code += "\t\treturn err\n";
+        code += "\t}\n";
+      } else {
+        switch (field.value.type.base_type) {
+          case BASE_TYPE_STRING: {
+            code += "\tif pos, err := v.CheckOffsetField(tablePos, " + voffset +
+                    "); err != nil {\n";
+            code += "\t\treturn err\n";
+            code += "\t} else if pos != 0 {\n";
+            code += "\t\tif err := v.CheckString(pos); err != nil {\n";
+            code += "\t\t\treturn err\n";
+            code += "\t\t}\n";
+            code += "\t}\n";
+            break;
+          }
+          case BASE_TYPE_STRUCT: {
+            if (field.value.type.struct_def->fixed) {
+              // Inline fixed struct — treat like a scalar block.
+              const std::string struct_size =
+                  NumToString(field.value.type.struct_def->bytesize);
+              code += "\tif err := v.CheckScalarField(tablePos, " + voffset +
+                      ", " + struct_size + "); err != nil {\n";
+              code += "\t\treturn err\n";
+              code += "\t}\n";
+            } else {
+              // Nested table.
+              const std::string verify_call =
+                  VerifyFuncForTable(field.value.type.struct_def);
+              code += "\tif pos, err := v.CheckOffsetField(tablePos, " +
+                      voffset + "); err != nil {\n";
+              code += "\t\treturn err\n";
+              code += "\t} else if pos != 0 {\n";
+              code += "\t\tif err := " + verify_call + "(v, pos); err != nil {\n";
+              code += "\t\t\treturn err\n";
+              code += "\t\t}\n";
+              code += "\t}\n";
+            }
+            break;
+          }
+          case BASE_TYPE_VECTOR: {
+            const Type vector_type = field.value.type.VectorType();
+            code += "\tif pos, err := v.CheckOffsetField(tablePos, " + voffset +
+                    "); err != nil {\n";
+            code += "\t\treturn err\n";
+            code += "\t} else if pos != 0 {\n";
+            if (IsScalar(vector_type.base_type)) {
+              const std::string elem_size =
+                  NumToString(InlineSize(vector_type));
+              code += "\t\tif _, err := v.CheckVector(pos, " + elem_size +
+                      "); err != nil {\n";
+              code += "\t\t\treturn err\n";
+              code += "\t\t}\n";
+            } else if (vector_type.base_type == BASE_TYPE_STRING) {
+              // Vector of strings: each element is a UOffsetT (uint32, 4
+              // bytes) pointing to a string.
+              code += "\t\tif _, err := v.CheckVector(pos, " +
+                      NumToString(SizeOf(BASE_TYPE_UINT)) +
+                      "); err != nil {\n";
+              code += "\t\t\treturn err\n";
+              code += "\t\t}\n";
+            } else if (vector_type.base_type == BASE_TYPE_STRUCT) {
+              if (vector_type.struct_def->fixed) {
+                // Vector of fixed structs — inline, each element has known
+                // size.
+                const std::string elem_size =
+                    NumToString(vector_type.struct_def->bytesize);
+                code += "\t\tif _, err := v.CheckVector(pos, " + elem_size +
+                        "); err != nil {\n";
+                code += "\t\t\treturn err\n";
+                code += "\t\t}\n";
+              } else {
+                // Vector of tables.
+                const std::string verify_call =
+                    VerifyFuncForTable(vector_type.struct_def);
+                code += "\t\tif err := v.CheckVectorOfTables(pos, " +
+                        verify_call + "); err != nil {\n";
+                code += "\t\t\treturn err\n";
+                code += "\t\t}\n";
+              }
+            } else {
+              // Fallback: treat as opaque scalar elements of size 1.
+              code += "\t\tif _, err := v.CheckVector(pos, 1); err != nil {\n";
+              code += "\t\t\treturn err\n";
+              code += "\t\t}\n";
+            }
+            code += "\t}\n";
+            break;
+          }
+          case BASE_TYPE_UNION: {
+            // Union value field: verify via CheckOffsetField only.
+            // The companion _type scalar field is handled separately as a
+            // scalar field in the loop (it appears as BASE_TYPE_UTYPE).
+            code += "\tif pos, err := v.CheckOffsetField(tablePos, " + voffset +
+                    "); err != nil {\n";
+            code += "\t\treturn err\n";
+            code += "\t} else if pos != 0 {\n";
+            code += "\t\tif _, err := v.CheckVector(pos, 1); err != nil {\n";
+            code += "\t\t\treturn err\n";
+            code += "\t\t}\n";
+            code += "\t}\n";
+            break;
+          }
+          default:
+            break;
+        }
+      }
+
+      // Required field check (emitted after the content check for the field).
+      if (field.IsRequired()) {
+        code += "\tif err := v.CheckRequiredField(tablePos, " + voffset +
+                ", \"" + field.name + "\"); err != nil {\n";
+        code += "\t\treturn err\n";
+        code += "\t}\n";
+      }
+    }
+
+    code += "\treturn nil\n";
+    code += "}\n\n";
+  }
+
   // Generate table constructors, conditioned on its members' types.
   void GenTableBuilders(const StructDef& struct_def, std::string* code_ptr) {
     GetStartOfTable(struct_def, code_ptr);
@@ -904,6 +1075,8 @@ class GoGenerator : public BaseGenerator {
       // Generate a special accessor for the table that has been declared as
       // the root type.
       NewRootTypeFromBuffer(struct_def, code_ptr);
+      // Generate the root verifier entry point and per-table verifier.
+      GenVerifier(struct_def, code_ptr);
     }
     // Generate the Init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
@@ -1028,8 +1201,8 @@ class GoGenerator : public BaseGenerator {
       if (field.IsScalarOptional()) {
         code += "*";
       }
-      code += NativeType(field.value.type) + " `json:\"" + field.name + "\"`" +
-              "\n";
+      code += NativeType(field.value.type) + " `json:\"" + field.name +
+              ",omitempty\"`" + "\n";
     }
     code += "}\n\n";
 
@@ -1648,6 +1821,23 @@ class GoGenerator : public BaseGenerator {
 
   // Ensure that a type is prefixed with its go package import name if it is
   // used outside of its namespace.
+  // Returns the correct verifier function call for a referenced table type.
+  // Same namespace: "verify{Type}" (unexported, same file).
+  // Cross namespace: "{Pkg}.Verify{Type}" (exported, different package).
+  std::string VerifyFuncForTable(const StructDef* struct_def) {
+    const std::string type_name = namer_.Type(*struct_def);
+    if (CurrentNameSpace() == struct_def->defined_namespace) {
+      return "verify" + type_name;
+    }
+    tracked_imported_namespaces_.insert(struct_def);
+    std::string pkg;
+    if (struct_def->defined_namespace->components.empty())
+      pkg = struct_def->name;
+    else
+      pkg = NamespaceImportName(struct_def->defined_namespace);
+    return pkg + ".Verify" + type_name;
+  }
+
   std::string WrapInNameSpaceAndTrack(const Definition* def,
                                       const std::string& name) {
     if (CurrentNameSpace() == def->defined_namespace) return name;

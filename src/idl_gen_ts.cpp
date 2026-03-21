@@ -406,6 +406,9 @@ class TsGenerator : public BaseGenerator {
 
     if (enum_def.is_union) {
       code += GenUnionConvFunc(enum_def.underlying_type, imports);
+      if (parser_.opts.generate_object_based_api) {
+        code += GenDiscriminatedUnionTypeTS(imports, enum_def);
+      }
     }
 
     code += "\n";
@@ -1037,6 +1040,33 @@ class TsGenerator : public BaseGenerator {
     return import;
   }
 
+  // Ensure the verify{Type} function is included in the import for a struct.
+  // Call AFTER AddImport for the struct so the base import exists.
+  void AddVerifyImport(import_set& imports, const Definition& dependent,
+                       const StructDef& dependency) {
+    const std::string unique_name = GetTypeName(
+        dependency, /*object_api = */ false, /*force_ns_wrap=*/true);
+    auto it = imports.find(unique_name);
+    if (it == imports.end()) return;  // Should not happen.
+
+    const std::string verify_name = "verify" + it->second.name;
+    // Check if already added (avoid duplicates).
+    if (it->second.import_statement.find(verify_name) != std::string::npos)
+      return;
+    // Splice verify name into the import statement:
+    //   "import { Foo } from '...'" → "import { Foo, verifyFoo } from '...'"
+    const std::string search = " } from '";
+    auto pos = it->second.import_statement.find(search);
+    if (pos != std::string::npos) {
+      it->second.import_statement.insert(pos, ", " + verify_name);
+    }
+    // Same for export statement.
+    pos = it->second.export_statement.find(search);
+    if (pos != std::string::npos) {
+      it->second.export_statement.insert(pos, ", " + verify_name);
+    }
+  }
+
   void AddImport(import_set& imports, std::string import_name,
                  std::string fileName) {
     ImportDefinition import;
@@ -1079,6 +1109,46 @@ class TsGenerator : public BaseGenerator {
       ret += *it + ((totalPrinted == type_list.size()) ? "" : "|");
     }
 
+    return ret;
+  }
+
+  // Generates a TypeScript discriminated union type for a union enum when
+  // using the Object API.  Each variant becomes a tagged object with a
+  // `type` literal and a `value` holding the unpacked *T instance (or null
+  // for the NONE variant).
+  //
+  // Example output:
+  //   export type AnyUnionT =
+  //     | { type: 'Monster'; value: MonsterT }
+  //     | { type: 'Weapon'; value: WeaponT }
+  //     | { type: 'NONE'; value: null };
+  std::string GenDiscriminatedUnionTypeTS(import_set& imports,
+                                          const EnumDef& union_enum) {
+    const auto type_name = GetTypeName(union_enum) + "T";
+    std::string ret = "\n\nexport type " + type_name + " =\n";
+
+    // NONE variant is always present
+    ret += "  | { type: 'NONE'; value: null }";
+
+    for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+         ++it) {
+      const auto& ev = **it;
+      if (ev.IsZero()) continue;  // skip NONE — already emitted above
+
+      const auto variant_name = namer_.Variant(ev);
+      std::string value_type;
+      if (IsString(ev.union_type)) {
+        value_type = "string";
+      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        value_type =
+            AddImport(imports, union_enum, *ev.union_type.struct_def).object_name;
+      } else {
+        FLATBUFFERS_ASSERT(false);
+      }
+      ret += "\n  | { type: '" + variant_name + "'; value: " + value_type + " }";
+    }
+
+    ret += ";";
     return ret;
   }
 
@@ -1289,6 +1359,7 @@ class TsGenerator : public BaseGenerator {
     std::string pack_func_prototype =
         "\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
 
+    std::string pack_func_required_checks;
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
 
@@ -1319,6 +1390,18 @@ class TsGenerator : public BaseGenerator {
       const auto field_field = namer_.Field(field);
       const std::string field_binded_method =
           "this." + field_method + ".bind(this)";
+
+      // Collect required-field validation for pack().
+      // Union type fields use a companion _Type discriminant field; skip
+      // BASE_TYPE_UTYPE here because the union value field handles the check.
+      if (!struct_def.fixed && field.IsRequired() &&
+          field.value.type.base_type != BASE_TYPE_UTYPE) {
+        pack_func_required_checks +=
+            "  if (this." + namer_.Field(field) + " === null || this." +
+            namer_.Field(field) + " === undefined) {\n" +
+            "    throw new Error('Required field \"" + field.name +
+            "\" is not set');\n  }\n";
+      }
 
       std::string field_val;
       std::string field_type;
@@ -1640,8 +1723,10 @@ class TsGenerator : public BaseGenerator {
     obj_api_class += GetTypeName(struct_def, /*object_api=*/true);
     obj_api_class += " implements flatbuffers.IGeneratedObject {\n";
     obj_api_class += constructor_func;
-    obj_api_class += pack_func_prototype + pack_func_offset_decl +
-                     pack_func_create_call + "\n}";
+    obj_api_class += pack_func_prototype + pack_func_required_checks +
+                     pack_func_offset_decl + pack_func_create_call + "\n}";
+    obj_api_class += GenCloneMethodTS(struct_def);
+    obj_api_class += GenEqualsMethodTS(struct_def);
 
     obj_api_class += "\n}\n";
 
@@ -1649,6 +1734,115 @@ class TsGenerator : public BaseGenerator {
     unpack_to_func += "}\n";
 
     obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
+  }
+
+  // Generates a clone() method for a *T Object API class.
+  // Scalar and string fields are copied by value; nested *T objects are cloned
+  // recursively; vector fields are shallow-copied for scalars/strings and
+  // element-cloned for struct vectors.
+  std::string GenCloneMethodTS(const StructDef& struct_def) {
+    const auto class_name = GetTypeName(struct_def, /*object_api=*/true);
+    std::string ret = "\n\nclone(): " + class_name + " {\n";
+    ret += "  const obj = new " + class_name + "();\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto ff = namer_.Field(field);
+      const auto base = field.value.type.base_type;
+
+      if (IsScalar(base) || IsString(field.value.type)) {
+        // Scalars and strings: copy by value
+        ret += "  obj." + ff + " = this." + ff + ";\n";
+      } else if (base == BASE_TYPE_STRUCT) {
+        // Nested *T struct: recursive clone or null
+        ret += "  obj." + ff + " = this." + ff + " !== null ? this." + ff +
+               "!.clone() : null;\n";
+      } else if (base == BASE_TYPE_UNION) {
+        // Union value: handled as object that may have clone()
+        ret += "  obj." + ff + " = this." + ff + " !== null && " +
+               "typeof (this." + ff + " as any).clone === 'function'" +
+               " ? (this." + ff + " as any).clone() : this." + ff + ";\n";
+      } else if (base == BASE_TYPE_VECTOR || base == BASE_TYPE_ARRAY) {
+        auto vectortype = field.value.type.VectorType();
+        if (vectortype.base_type == BASE_TYPE_STRUCT) {
+          // Vector of *T objects: element-wise clone
+          ret += "  obj." + ff + " = this." + ff + " !== null ? this." + ff +
+                 "!.map(e => e !== null ? e.clone() : null) : null;\n";
+        } else {
+          // Vector of scalars/strings/unions: spread copy
+          ret += "  obj." + ff + " = this." + ff + " !== null ? [...this." + ff +
+                 "!] : null;\n";
+        }
+      } else {
+        ret += "  obj." + ff + " = this." + ff + ";\n";
+      }
+    }
+
+    ret += "  return obj;\n}";
+    return ret;
+  }
+
+  // Generates an equals() method for a *T Object API class.
+  // Scalar fields: ===; nested *T objects: recursive equals(); arrays: length
+  // + element comparison.
+  std::string GenEqualsMethodTS(const StructDef& struct_def) {
+    const auto class_name = GetTypeName(struct_def, /*object_api=*/true);
+    std::string ret = "\n\nequals(other: " + class_name + "): boolean {\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto ff = namer_.Field(field);
+      const auto base = field.value.type.base_type;
+
+      if (IsScalar(base) || IsString(field.value.type)) {
+        ret += "  if (this." + ff + " !== other." + ff + ") return false;\n";
+      } else if (base == BASE_TYPE_STRUCT) {
+        ret += "  if (this." + ff + " !== null && other." + ff + " !== null) {\n";
+        ret += "    if (!this." + ff + "!.equals(other." + ff + "!)) return false;\n";
+        ret += "  } else if (this." + ff + " !== other." + ff + ") return false;\n";
+      } else if (base == BASE_TYPE_UNION) {
+        // Compare union values: use equals() if available, else ===
+        ret += "  if (this." + ff + " !== null && other." + ff + " !== null) {\n";
+        ret += "    if (typeof (this." + ff +
+               " as any).equals === 'function') {\n";
+        ret += "      if (!(this." + ff + " as any).equals(other." + ff +
+               ")) return false;\n";
+        ret += "    } else if (this." + ff + " !== other." + ff +
+               ") return false;\n";
+        ret += "  } else if (this." + ff + " !== other." + ff + ") return false;\n";
+      } else if (base == BASE_TYPE_VECTOR || base == BASE_TYPE_ARRAY) {
+        auto vectortype = field.value.type.VectorType();
+        // Null check
+        ret += "  if (this." + ff + " !== null && other." + ff + " !== null) {\n";
+        ret += "    if (this." + ff + "!.length !== other." + ff +
+               "!.length) return false;\n";
+        if (vectortype.base_type == BASE_TYPE_STRUCT) {
+          ret += "    for (let i = 0; i < this." + ff + "!.length; i++) {\n";
+          ret += "      const a = this." + ff + "![i]; const b = other." + ff + "![i];\n";
+          ret += "      if (a !== null && b !== null) {\n";
+          ret += "        if (!a.equals(b)) return false;\n";
+          ret += "      } else if (a !== b) return false;\n";
+          ret += "    }\n";
+        } else {
+          ret += "    for (let i = 0; i < this." + ff + "!.length; i++) {\n";
+          ret += "      if (this." + ff + "![i] !== other." + ff +
+                 "![i]) return false;\n";
+          ret += "    }\n";
+        }
+        ret += "  } else if (this." + ff + " !== other." + ff + ") return false;\n";
+      } else {
+        ret += "  if (this." + ff + " !== other." + ff + ") return false;\n";
+      }
+    }
+
+    ret += "  return true;\n}";
+    return ret;
   }
 
   static bool CanCreateFactoryMethod(const StructDef& struct_def) {
@@ -2300,6 +2494,163 @@ class TsGenerator : public BaseGenerator {
 
       code += obj_api_unpack_func + "}\n" + obj_api_class;
     } else {
+      code += "}\n";
+    }
+
+    // Generate standalone verify function for table types (not fixed structs).
+    if (!struct_def.fixed) {
+      GenVerifier(struct_def, code_ptr, imports);
+    }
+  }
+
+  // Generate a standalone exported verify function for a table type.
+  void GenVerifier(StructDef& struct_def, std::string* code_ptr,
+                   import_set& imports) {
+    std::string& code = *code_ptr;
+    const std::string type_name = GetTypeName(struct_def);
+
+    // Emit: export function verify{Type}(verifier: flatbuffers.Verifier,
+    //   tablePos: number): void
+    code += "\nexport function verify" + type_name +
+            "(verifier: flatbuffers.Verifier, tablePos: number): void {\n";
+    code += "  verifier.checkTable(tablePos);\n";
+    code += "  try {\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto voffset = NumToString(field.value.offset);
+      const auto base_type = field.value.type.base_type;
+
+      if (base_type == BASE_TYPE_UTYPE) {
+        // Union type discriminant — treat as scalar (uint8).
+        code += "    verifier.checkScalarField(tablePos, " + voffset +
+                ", " + NumToString(SizeOf(BASE_TYPE_UTYPE)) + ");\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (IsScalar(base_type) && base_type != BASE_TYPE_UNION) {
+        // Plain scalar field.
+        const auto field_size = NumToString(SizeOf(base_type));
+        code += "    verifier.checkScalarField(tablePos, " + voffset +
+                ", " + field_size + ");\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (IsString(field.value.type)) {
+        // String field — check offset, then verify string contents.
+        code += "    {\n";
+        code += "      const pos = verifier.checkOffsetField(tablePos, " +
+                voffset + ");\n";
+        code += "      if (pos !== 0) {\n";
+        code += "        verifier.checkString(pos);\n";
+        code += "      }\n";
+        code += "    }\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (base_type == BASE_TYPE_STRUCT) {
+        const auto& child_def = *field.value.type.struct_def;
+        if (child_def.fixed) {
+          // Inline fixed struct — check as scalar block.
+          code += "    verifier.checkScalarField(tablePos, " + voffset +
+                  ", " + NumToString(child_def.bytesize) + ");\n";
+        } else {
+          // Nested table — recurse.
+          const std::string child_type =
+              AddImport(imports, struct_def, child_def).name;
+          AddVerifyImport(imports, struct_def, child_def);
+          code += "    {\n";
+          code += "      const pos = verifier.checkOffsetField(tablePos, " +
+                  voffset + ");\n";
+          code += "      if (pos !== 0) {\n";
+          code += "        verify" + child_type + "(verifier, pos);\n";
+          code += "      }\n";
+          code += "    }\n";
+        }
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (base_type == BASE_TYPE_VECTOR) {
+        const auto vectortype = field.value.type.VectorType();
+        const auto elem_base = vectortype.base_type;
+        code += "    {\n";
+        code += "      const pos = verifier.checkOffsetField(tablePos, " +
+                voffset + ");\n";
+        code += "      if (pos !== 0) {\n";
+        if (elem_base == BASE_TYPE_STRUCT && !vectortype.struct_def->fixed) {
+          // Vector of tables — use checkVectorOfTables with recursive verifier.
+          const std::string elem_type =
+              AddImport(imports, struct_def, *vectortype.struct_def).name;
+          AddVerifyImport(imports, struct_def, *vectortype.struct_def);
+          code += "        verifier.checkVectorOfTables(pos, verify" +
+                  elem_type + ");\n";
+        } else if (elem_base == BASE_TYPE_STRING) {
+          // Vector of strings — check bounds of the vector, then verify each
+          // string element. readInt32/readUint32 are the public accessor methods
+          // on Verifier that perform range checks as side effects.
+          code += "        const len = verifier.checkVector(pos, " +
+                  NumToString(SizeOf(BASE_TYPE_INT)) + ");\n";
+          code += "        if (len > 0) {\n";
+          code += "          const vecStart = pos + verifier.readInt32(pos);\n";
+          code += "          const dataStart = vecStart + " +
+                  NumToString(SizeOf(BASE_TYPE_INT)) + ";\n";
+          code += "          for (let i = 0; i < len; i++) {\n";
+          code += "            const strPos = dataStart + i * " +
+                  NumToString(SizeOf(BASE_TYPE_INT)) + ";\n";
+          code += "            verifier.checkString(strPos);\n";
+          code += "          }\n";
+          code += "        }\n";
+        } else {
+          // Vector of scalars or fixed structs.
+          const auto elem_size = NumToString(InlineSize(vectortype));
+          code +=
+              "        verifier.checkVector(pos, " + elem_size + ");\n";
+        }
+        code += "      }\n";
+        code += "    }\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (base_type == BASE_TYPE_UNION) {
+        // Union value — verify the offset field. Full per-variant dispatch
+        // requires the type enum from the preceding _type field; for now we
+        // validate that the offset itself is accessible.
+        code += "    {\n";
+        code += "      const pos = verifier.checkOffsetField(tablePos, " +
+                voffset + ");\n";
+        code += "      if (pos !== 0) {\n";
+        code += "        // Union value present — offset bounds checked.\n";
+        code += "      }\n";
+        code += "    }\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      }
+      // BASE_TYPE_ARRAY fields are only valid in fixed structs (which are
+      // excluded above), so no case needed here.
+    }
+
+    code += "  } finally {\n";
+    code += "    verifier.popDepth();\n";
+    code += "  }\n";
+    code += "}\n";
+
+    // For root types, also generate verifyRootAs{Type}.
+    if (parser_.root_struct_def_ == &struct_def) {
+      code += "\nexport function verifyRootAs" + type_name +
+              "(buf: DataView, opts?: flatbuffers.VerifierOptions): void {\n";
+      code += "  const verifier = new flatbuffers.Verifier(buf, opts);\n";
+      code += "  const tablePos = verifier.readUint32(0);\n";
+      code += "  verify" + type_name + "(verifier, tablePos);\n";
       code += "}\n";
     }
   }

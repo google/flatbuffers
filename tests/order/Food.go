@@ -9,8 +9,8 @@ import (
 )
 
 type FoodT struct {
-	Pizza     *Pizza.PizzaT `json:"pizza"`
-	PizzaTest *Pizza.PizzaT `json:"pizza_test"`
+	Pizza *Pizza.PizzaT `json:"pizza,omitempty"`
+	PizzaTest *Pizza.PizzaT `json:"pizza_test,omitempty"`
 }
 
 func (t *FoodT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -50,11 +50,57 @@ func GetRootAsFood(buf []byte, offset flatbuffers.UOffsetT) *Food {
 	return x
 }
 
+func FinishFoodBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.Finish(offset)
+}
+
 func GetSizePrefixedRootAsFood(buf []byte, offset flatbuffers.UOffsetT) *Food {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &Food{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
+}
+
+func FinishSizePrefixedFoodBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsFood(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyFood(v, int(tablePos))
+}
+
+func verifyFood(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if pos, err := v.CheckOffsetField(tablePos, 4); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := verifyPizza.Pizza(v, pos); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 6); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := verifyPizza.Pizza(v, pos); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (rcv *Food) Init(buf []byte, i flatbuffers.UOffsetT) {

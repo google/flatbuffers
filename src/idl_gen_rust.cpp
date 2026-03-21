@@ -2516,10 +2516,16 @@ class RustGenerator : public BaseGenerator {
                          namer_.Method(*field.value.type.enum_def));
           code_.SetValue("DISCRIMINANT",
                          namer_.LegacyRustUnionTypeMethod(field));
+          code_.SetValue("UNION_ENUM_TY",
+                         WrapInNameSpace(*field.value.type.enum_def));
           code_ +=
               "  let {{DISCRIMINANT}} = "
               "self.{{FIELD}}.{{ENUM_METHOD}}_type();";
           code_ += "  let {{FIELD}} = self.{{FIELD}}.pack(fbb);";
+          code_ +=
+              "  debug_assert!({{FIELD}}.is_some() || "
+              "{{DISCRIMINANT}} == {{UNION_ENUM_TY}}::NONE, "
+              "\"Union discriminant does not match packed value\");";
           return;
         }
         // The rest of the types require special casing around optionalness
@@ -3178,14 +3184,7 @@ class RustGenerator : public BaseGenerator {
     // Generate Struct Object.
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
-      {
-        std::string derives = "#[derive(Debug, Clone, PartialEq, Default";
-        if (TypeIsHashable(struct_def)) {
-          derives += ", Eq, Hash";
-        }
-        derives += ")]";
-        code_ += derives;
-      }
+      code_ += ObjectDerivesWithDefault(TypeIsHashable(struct_def));
       code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
         (void)field;  // unused.

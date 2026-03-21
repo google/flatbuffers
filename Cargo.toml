@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "rust/flatbuffers",
+    "rust/reflection",
+    "rust/flexbuffers",
+    "tests/rust_reflection_test",
+]
+resolver = "2"

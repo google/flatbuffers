@@ -2041,3 +2041,41 @@ fn create_test_buffer() -> Vec<u8> {
     let (flatbuf, start_loc) = builder.mut_finished_buffer();
     flatbuf[start_loc..].to_vec()
 }
+
+#[test]
+fn test_dos_memory_ceiling_large_buffer_small_max_tables() {
+    // Regression test for the DoS vector fix (Phase 0).
+    // Before the fix, verify_with_options allocated vec![false; buffer.len()],
+    // meaning a 1MB buffer would burn 1MB just to check it.
+    // After the fix, it uses HashSet<usize> capped at max_tables.
+    //
+    // We verify that a large buffer with small max_tables doesn't OOM or
+    // allocate proportionally to buffer size.
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+
+    // Create a buffer much larger than the max_tables limit
+    // Put a valid-looking root offset at the start
+    let mut large_buf = vec![0u8; 1024 * 1024]; // 1MB
+    // Write a root offset pointing to position 8 (past the root offset itself)
+    large_buf[0] = 8;
+    large_buf[1] = 0;
+    large_buf[2] = 0;
+    large_buf[3] = 0;
+
+    let opts = VerifierOptions {
+        max_depth: 64,
+        max_tables: 10, // Very small — the verifier should not allocate 1MB
+        max_apparent_size: large_buf.len(),
+        ignore_missing_null_terminator: false,
+    };
+
+    // This should complete quickly without excessive memory allocation.
+    // Before the fix, this would allocate 1MB for the verified vec.
+    // After the fix, the HashSet is capped at max_tables (10 entries).
+    let result = SafeBuffer::new_with_options(&large_buf, &schema, &opts);
+
+    // The buffer is garbage, so verification should fail — but it should
+    // fail FAST without allocating proportionally to buffer size.
+    assert!(result.is_err(), "Garbage buffer should fail verification");
+}

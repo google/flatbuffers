@@ -7,42 +7,42 @@ import (
 )
 
 type ScalarStuffT struct {
-	JustI8      int8          `json:"just_i8"`
-	MaybeI8     *int8         `json:"maybe_i8"`
-	DefaultI8   int8          `json:"default_i8"`
-	JustU8      byte          `json:"just_u8"`
-	MaybeU8     *byte         `json:"maybe_u8"`
-	DefaultU8   byte          `json:"default_u8"`
-	JustI16     int16         `json:"just_i16"`
-	MaybeI16    *int16        `json:"maybe_i16"`
-	DefaultI16  int16         `json:"default_i16"`
-	JustU16     uint16        `json:"just_u16"`
-	MaybeU16    *uint16       `json:"maybe_u16"`
-	DefaultU16  uint16        `json:"default_u16"`
-	JustI32     int32         `json:"just_i32"`
-	MaybeI32    *int32        `json:"maybe_i32"`
-	DefaultI32  int32         `json:"default_i32"`
-	JustU32     uint32        `json:"just_u32"`
-	MaybeU32    *uint32       `json:"maybe_u32"`
-	DefaultU32  uint32        `json:"default_u32"`
-	JustI64     int64         `json:"just_i64"`
-	MaybeI64    *int64        `json:"maybe_i64"`
-	DefaultI64  int64         `json:"default_i64"`
-	JustU64     uint64        `json:"just_u64"`
-	MaybeU64    *uint64       `json:"maybe_u64"`
-	DefaultU64  uint64        `json:"default_u64"`
-	JustF32     float32       `json:"just_f32"`
-	MaybeF32    *float32      `json:"maybe_f32"`
-	DefaultF32  float32       `json:"default_f32"`
-	JustF64     float64       `json:"just_f64"`
-	MaybeF64    *float64      `json:"maybe_f64"`
-	DefaultF64  float64       `json:"default_f64"`
-	JustBool    bool          `json:"just_bool"`
-	MaybeBool   *bool         `json:"maybe_bool"`
-	DefaultBool bool          `json:"default_bool"`
-	JustEnum    OptionalByte  `json:"just_enum"`
-	MaybeEnum   *OptionalByte `json:"maybe_enum"`
-	DefaultEnum OptionalByte  `json:"default_enum"`
+	JustI8 int8 `json:"just_i8,omitempty"`
+	MaybeI8 *int8 `json:"maybe_i8,omitempty"`
+	DefaultI8 int8 `json:"default_i8,omitempty"`
+	JustU8 byte `json:"just_u8,omitempty"`
+	MaybeU8 *byte `json:"maybe_u8,omitempty"`
+	DefaultU8 byte `json:"default_u8,omitempty"`
+	JustI16 int16 `json:"just_i16,omitempty"`
+	MaybeI16 *int16 `json:"maybe_i16,omitempty"`
+	DefaultI16 int16 `json:"default_i16,omitempty"`
+	JustU16 uint16 `json:"just_u16,omitempty"`
+	MaybeU16 *uint16 `json:"maybe_u16,omitempty"`
+	DefaultU16 uint16 `json:"default_u16,omitempty"`
+	JustI32 int32 `json:"just_i32,omitempty"`
+	MaybeI32 *int32 `json:"maybe_i32,omitempty"`
+	DefaultI32 int32 `json:"default_i32,omitempty"`
+	JustU32 uint32 `json:"just_u32,omitempty"`
+	MaybeU32 *uint32 `json:"maybe_u32,omitempty"`
+	DefaultU32 uint32 `json:"default_u32,omitempty"`
+	JustI64 int64 `json:"just_i64,omitempty"`
+	MaybeI64 *int64 `json:"maybe_i64,omitempty"`
+	DefaultI64 int64 `json:"default_i64,omitempty"`
+	JustU64 uint64 `json:"just_u64,omitempty"`
+	MaybeU64 *uint64 `json:"maybe_u64,omitempty"`
+	DefaultU64 uint64 `json:"default_u64,omitempty"`
+	JustF32 float32 `json:"just_f32,omitempty"`
+	MaybeF32 *float32 `json:"maybe_f32,omitempty"`
+	DefaultF32 float32 `json:"default_f32,omitempty"`
+	JustF64 float64 `json:"just_f64,omitempty"`
+	MaybeF64 *float64 `json:"maybe_f64,omitempty"`
+	DefaultF64 float64 `json:"default_f64,omitempty"`
+	JustBool bool `json:"just_bool,omitempty"`
+	MaybeBool *bool `json:"maybe_bool,omitempty"`
+	DefaultBool bool `json:"default_bool,omitempty"`
+	JustEnum OptionalByte `json:"just_enum,omitempty"`
+	MaybeEnum *OptionalByte `json:"maybe_enum,omitempty"`
+	DefaultEnum OptionalByte `json:"default_enum,omitempty"`
 }
 
 func (t *ScalarStuffT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -165,6 +165,8 @@ type ScalarStuff struct {
 	_tab flatbuffers.Table
 }
 
+const ScalarStuffIdentifier = "NULL"
+
 func GetRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *ScalarStuff {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
 	x := &ScalarStuff{}
@@ -172,11 +174,161 @@ func GetRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *ScalarStuff 
 	return x
 }
 
+func FinishScalarStuffBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	identifierBytes := []byte(ScalarStuffIdentifier)
+	builder.FinishWithFileIdentifier(offset, identifierBytes)
+}
+
+func ScalarStuffBufferHasIdentifier(buf []byte) bool {
+	return flatbuffers.BufferHasIdentifier(buf, ScalarStuffIdentifier)
+}
+
 func GetSizePrefixedRootAsScalarStuff(buf []byte, offset flatbuffers.UOffsetT) *ScalarStuff {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
 	x := &ScalarStuff{}
 	x.Init(buf, n+offset+flatbuffers.SizeUint32)
 	return x
+}
+
+func FinishSizePrefixedScalarStuffBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
+	identifierBytes := []byte(ScalarStuffIdentifier)
+	builder.FinishSizePrefixedWithFileIdentifier(offset, identifierBytes)
+}
+
+func SizePrefixedScalarStuffBufferHasIdentifier(buf []byte) bool {
+	return flatbuffers.SizePrefixedBufferHasIdentifier(buf, ScalarStuffIdentifier)
+}
+
+func VerifyRootAsScalarStuff(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyScalarStuff(v, int(tablePos))
+}
+
+func verifyScalarStuff(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 6, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 8, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 10, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 12, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 14, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 16, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 18, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 20, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 22, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 24, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 26, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 28, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 30, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 32, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 34, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 36, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 38, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 40, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 42, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 44, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 46, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 48, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 50, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 52, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 54, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 56, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 58, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 60, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 62, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 64, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 66, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 68, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 70, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 72, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 74, 1); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rcv *ScalarStuff) Init(buf []byte, i flatbuffers.UOffsetT) {

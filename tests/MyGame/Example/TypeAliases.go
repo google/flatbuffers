@@ -7,18 +7,18 @@ import (
 )
 
 type TypeAliasesT struct {
-	I8 int8 `json:"i8"`
-	U8 byte `json:"u8"`
-	I16 int16 `json:"i16"`
-	U16 uint16 `json:"u16"`
-	I32 int32 `json:"i32"`
-	U32 uint32 `json:"u32"`
-	I64 int64 `json:"i64"`
-	U64 uint64 `json:"u64"`
-	F32 float32 `json:"f32"`
-	F64 float64 `json:"f64"`
-	V8 []int8 `json:"v8"`
-	Vf64 []float64 `json:"vf64"`
+	I8 int8 `json:"i8,omitempty"`
+	U8 byte `json:"u8,omitempty"`
+	I16 int16 `json:"i16,omitempty"`
+	U16 uint16 `json:"u16,omitempty"`
+	I32 int32 `json:"i32,omitempty"`
+	U32 uint32 `json:"u32,omitempty"`
+	I64 int64 `json:"i64,omitempty"`
+	U64 uint64 `json:"u64,omitempty"`
+	F32 float32 `json:"f32,omitempty"`
+	F64 float64 `json:"f64,omitempty"`
+	V8 []int8 `json:"v8,omitempty"`
+	Vf64 []float64 `json:"vf64,omitempty"`
 }
 
 func (t *TypeAliasesT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -115,6 +115,74 @@ func GetSizePrefixedRootAsTypeAliases(buf []byte, offset flatbuffers.UOffsetT) *
 
 func FinishSizePrefixedTypeAliasesBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsTypeAliases(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyTypeAliases(v, int(tablePos))
+}
+
+func verifyTypeAliases(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 6, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 8, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 10, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 12, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 14, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 16, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 18, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 20, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 22, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 24); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 26); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (rcv *TypeAliases) Init(buf []byte, i flatbuffers.UOffsetT) {

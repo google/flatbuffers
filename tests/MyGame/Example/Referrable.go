@@ -7,7 +7,7 @@ import (
 )
 
 type ReferrableT struct {
-	Id uint64 `json:"id"`
+	Id uint64 `json:"id,omitempty"`
 }
 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -56,6 +56,33 @@ func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *R
 
 func FinishSizePrefixedReferrableBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsReferrable(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyReferrable(v, int(tablePos))
+}
+
+func verifyReferrable(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 8); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {

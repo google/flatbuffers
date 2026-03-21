@@ -12,64 +12,64 @@ import (
 
 /// an example documentation comment: "monster object"
 type MonsterT struct {
-	Pos *Vec3T `json:"pos"`
-	Mana int16 `json:"mana"`
-	Hp int16 `json:"hp"`
-	Name string `json:"name"`
-	Inventory []byte `json:"inventory"`
-	Color Color `json:"color"`
-	Test *AnyT `json:"test"`
-	Test4 []*TestT `json:"test4"`
-	Testarrayofstring []string `json:"testarrayofstring"`
-	Testarrayoftables []*MonsterT `json:"testarrayoftables"`
-	Enemy *MonsterT `json:"enemy"`
-	Testnestedflatbuffer []byte `json:"testnestedflatbuffer"`
-	Testempty *StatT `json:"testempty"`
-	Testbool bool `json:"testbool"`
-	Testhashs32Fnv1 int32 `json:"testhashs32_fnv1"`
-	Testhashu32Fnv1 uint32 `json:"testhashu32_fnv1"`
-	Testhashs64Fnv1 int64 `json:"testhashs64_fnv1"`
-	Testhashu64Fnv1 uint64 `json:"testhashu64_fnv1"`
-	Testhashs32Fnv1a int32 `json:"testhashs32_fnv1a"`
-	Testhashu32Fnv1a uint32 `json:"testhashu32_fnv1a"`
-	Testhashs64Fnv1a int64 `json:"testhashs64_fnv1a"`
-	Testhashu64Fnv1a uint64 `json:"testhashu64_fnv1a"`
-	Testarrayofbools []bool `json:"testarrayofbools"`
-	Testf float32 `json:"testf"`
-	Testf2 float32 `json:"testf2"`
-	Testf3 float32 `json:"testf3"`
-	Testarrayofstring2 []string `json:"testarrayofstring2"`
-	Testarrayofsortedstruct []*AbilityT `json:"testarrayofsortedstruct"`
-	Flex []byte `json:"flex"`
-	Test5 []*TestT `json:"test5"`
-	VectorOfLongs []int64 `json:"vector_of_longs"`
-	VectorOfDoubles []float64 `json:"vector_of_doubles"`
-	ParentNamespaceTest *MyGame.InParentNamespaceT `json:"parent_namespace_test"`
-	VectorOfReferrables []*ReferrableT `json:"vector_of_referrables"`
-	SingleWeakReference uint64 `json:"single_weak_reference"`
-	VectorOfWeakReferences []uint64 `json:"vector_of_weak_references"`
-	VectorOfStrongReferrables []*ReferrableT `json:"vector_of_strong_referrables"`
-	CoOwningReference uint64 `json:"co_owning_reference"`
-	VectorOfCoOwningReferences []uint64 `json:"vector_of_co_owning_references"`
-	NonOwningReference uint64 `json:"non_owning_reference"`
-	VectorOfNonOwningReferences []uint64 `json:"vector_of_non_owning_references"`
-	AnyUnique *AnyUniqueAliasesT `json:"any_unique"`
-	AnyAmbiguous *AnyAmbiguousAliasesT `json:"any_ambiguous"`
-	VectorOfEnums []Color `json:"vector_of_enums"`
-	SignedEnum Race `json:"signed_enum"`
-	Testrequirednestedflatbuffer []byte `json:"testrequirednestedflatbuffer"`
-	ScalarKeySortedTables []*StatT `json:"scalar_key_sorted_tables"`
-	NativeInline *TestT `json:"native_inline"`
-	LongEnumNonEnumDefault LongEnum `json:"long_enum_non_enum_default"`
-	LongEnumNormalDefault LongEnum `json:"long_enum_normal_default"`
-	NanDefault float32 `json:"nan_default"`
-	InfDefault float32 `json:"inf_default"`
-	PositiveInfDefault float32 `json:"positive_inf_default"`
-	InfinityDefault float32 `json:"infinity_default"`
-	PositiveInfinityDefault float32 `json:"positive_infinity_default"`
-	NegativeInfDefault float32 `json:"negative_inf_default"`
-	NegativeInfinityDefault float32 `json:"negative_infinity_default"`
-	DoubleInfDefault float64 `json:"double_inf_default"`
+	Pos *Vec3T `json:"pos,omitempty"`
+	Mana int16 `json:"mana,omitempty"`
+	Hp int16 `json:"hp,omitempty"`
+	Name string `json:"name,omitempty"`
+	Inventory []byte `json:"inventory,omitempty"`
+	Color Color `json:"color,omitempty"`
+	Test *AnyT `json:"test,omitempty"`
+	Test4 []*TestT `json:"test4,omitempty"`
+	Testarrayofstring []string `json:"testarrayofstring,omitempty"`
+	Testarrayoftables []*MonsterT `json:"testarrayoftables,omitempty"`
+	Enemy *MonsterT `json:"enemy,omitempty"`
+	Testnestedflatbuffer []byte `json:"testnestedflatbuffer,omitempty"`
+	Testempty *StatT `json:"testempty,omitempty"`
+	Testbool bool `json:"testbool,omitempty"`
+	Testhashs32Fnv1 int32 `json:"testhashs32_fnv1,omitempty"`
+	Testhashu32Fnv1 uint32 `json:"testhashu32_fnv1,omitempty"`
+	Testhashs64Fnv1 int64 `json:"testhashs64_fnv1,omitempty"`
+	Testhashu64Fnv1 uint64 `json:"testhashu64_fnv1,omitempty"`
+	Testhashs32Fnv1a int32 `json:"testhashs32_fnv1a,omitempty"`
+	Testhashu32Fnv1a uint32 `json:"testhashu32_fnv1a,omitempty"`
+	Testhashs64Fnv1a int64 `json:"testhashs64_fnv1a,omitempty"`
+	Testhashu64Fnv1a uint64 `json:"testhashu64_fnv1a,omitempty"`
+	Testarrayofbools []bool `json:"testarrayofbools,omitempty"`
+	Testf float32 `json:"testf,omitempty"`
+	Testf2 float32 `json:"testf2,omitempty"`
+	Testf3 float32 `json:"testf3,omitempty"`
+	Testarrayofstring2 []string `json:"testarrayofstring2,omitempty"`
+	Testarrayofsortedstruct []*AbilityT `json:"testarrayofsortedstruct,omitempty"`
+	Flex []byte `json:"flex,omitempty"`
+	Test5 []*TestT `json:"test5,omitempty"`
+	VectorOfLongs []int64 `json:"vector_of_longs,omitempty"`
+	VectorOfDoubles []float64 `json:"vector_of_doubles,omitempty"`
+	ParentNamespaceTest *MyGame.InParentNamespaceT `json:"parent_namespace_test,omitempty"`
+	VectorOfReferrables []*ReferrableT `json:"vector_of_referrables,omitempty"`
+	SingleWeakReference uint64 `json:"single_weak_reference,omitempty"`
+	VectorOfWeakReferences []uint64 `json:"vector_of_weak_references,omitempty"`
+	VectorOfStrongReferrables []*ReferrableT `json:"vector_of_strong_referrables,omitempty"`
+	CoOwningReference uint64 `json:"co_owning_reference,omitempty"`
+	VectorOfCoOwningReferences []uint64 `json:"vector_of_co_owning_references,omitempty"`
+	NonOwningReference uint64 `json:"non_owning_reference,omitempty"`
+	VectorOfNonOwningReferences []uint64 `json:"vector_of_non_owning_references,omitempty"`
+	AnyUnique *AnyUniqueAliasesT `json:"any_unique,omitempty"`
+	AnyAmbiguous *AnyAmbiguousAliasesT `json:"any_ambiguous,omitempty"`
+	VectorOfEnums []Color `json:"vector_of_enums,omitempty"`
+	SignedEnum Race `json:"signed_enum,omitempty"`
+	Testrequirednestedflatbuffer []byte `json:"testrequirednestedflatbuffer,omitempty"`
+	ScalarKeySortedTables []*StatT `json:"scalar_key_sorted_tables,omitempty"`
+	NativeInline *TestT `json:"native_inline,omitempty"`
+	LongEnumNonEnumDefault LongEnum `json:"long_enum_non_enum_default,omitempty"`
+	LongEnumNormalDefault LongEnum `json:"long_enum_normal_default,omitempty"`
+	NanDefault float32 `json:"nan_default,omitempty"`
+	InfDefault float32 `json:"inf_default,omitempty"`
+	PositiveInfDefault float32 `json:"positive_inf_default,omitempty"`
+	InfinityDefault float32 `json:"infinity_default,omitempty"`
+	PositiveInfinityDefault float32 `json:"positive_infinity_default,omitempty"`
+	NegativeInfDefault float32 `json:"negative_inf_default,omitempty"`
+	NegativeInfinityDefault float32 `json:"negative_infinity_default,omitempty"`
+	DoubleInfDefault float64 `json:"double_inf_default,omitempty"`
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -536,6 +536,324 @@ func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbu
 
 func SizePrefixedMonsterBufferHasIdentifier(buf []byte) bool {
 	return flatbuffers.SizePrefixedBufferHasIdentifier(buf, MonsterIdentifier)
+}
+
+func VerifyRootAsMonster(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyMonster(v, int(tablePos))
+}
+
+func verifyMonster(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 32); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 6, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 8, 2); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 10); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckString(pos); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckRequiredField(tablePos, 10, "name"); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 14); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 16, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 18, 1); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 20); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 22); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 4); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 24); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 4); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 26); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyMonster); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 28); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := verifyMonster(v, pos); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 30); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 32); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := verifyStat(v, pos); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 34, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 36, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 38, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 40, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 42, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 44, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 46, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 48, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 50, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 52); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 54, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 56, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 58, 4); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 60); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 4); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 62); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 64); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 66); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 4); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 68); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 70); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 72); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := verifyMyGame.InParentNamespace(v, pos); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 74); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyReferrable); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 76, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 78); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 80); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyReferrable); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 82, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 84); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 86, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 88); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 90, 1); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 92); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 94, 1); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 96); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 98); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 100, 1); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 102); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 104); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyStat); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 106, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 108, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 110, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 112, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 114, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 116, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 118, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 120, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 122, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 124, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 126, 8); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {

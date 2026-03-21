@@ -55,6 +55,30 @@ func FinishSizePrefixedInParentNamespaceBuffer(builder *flatbuffers.Builder, off
 	builder.FinishSizePrefixed(offset)
 }
 
+func VerifyRootAsInParentNamespace(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyInParentNamespace(v, int(tablePos))
+}
+
+func verifyInParentNamespace(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	return nil
+}
+
 func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
