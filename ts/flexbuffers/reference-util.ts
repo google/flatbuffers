@@ -86,8 +86,11 @@ export function indirect(
   offset: number,
   width: number,
 ): number {
-  const step = readUInt(dataView, offset, width) as number;
-  return offset - step;
+  const step = readUInt(dataView, offset, width);
+  // For 64-bit width, readUInt returns bigint. Convert to number for the
+  // offset arithmetic. Offsets beyond 2^53 would lose precision, but those
+  // imply a buffer larger than 9 petabytes, which is not a practical concern.
+  return offset - Number(step);
 }
 
 export function keyIndex(

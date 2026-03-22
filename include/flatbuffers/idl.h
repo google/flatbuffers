@@ -986,7 +986,8 @@ class Parser : public ParserState {
         advanced_features_(0),
         source_(nullptr),
         anonymous_counter_(0),
-        parse_depth_counter_(0) {
+        parse_depth_counter_(0),
+        union_type_scan_count_(0) {
     if (opts.force_defaults) {
       builder_.ForceDefaults(true);
     }
@@ -1267,6 +1268,7 @@ class Parser : public ParserState {
 
   int anonymous_counter_;
   int parse_depth_counter_;  // stack-overflow guard
+  size_t union_type_scan_count_;  // DoS guard for union lookahead scans
 };
 
 // Utility functions for multiple generators:

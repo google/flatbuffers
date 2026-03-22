@@ -322,8 +322,13 @@ static uint64_t EnumDistanceImpl(T e1, T e2) {
 }
 
 static bool compareFieldDefs(const FieldDef* a, const FieldDef* b) {
-  auto a_id = atoi(a->attributes.Lookup("id")->constant.c_str());
-  auto b_id = atoi(b->attributes.Lookup("id")->constant.c_str());
+  auto a_attr = a->attributes.Lookup("id");
+  auto b_attr = b->attributes.Lookup("id");
+  // Defensive: should always be set (enforced by ParseField), but guard to
+  // avoid a null deref inside std::sort which would be undefined behaviour.
+  if (!a_attr || !b_attr) return false;
+  auto a_id = atoi(a_attr->constant.c_str());
+  auto b_id = atoi(b_attr->constant.c_str());
   return a_id < b_id;
 }
 
@@ -1398,6 +1403,14 @@ CheckedError Parser::ParseAnyValue(Value& val, FieldDef* field,
         // value. So we scan past the value to find it, then come back here.
         // We currently don't do this for vectors of unions because the
         // scanning/serialization logic would get very complicated.
+        //
+        // Guard against O(N*M) DoS: each lookahead scan may re-parse large
+        // nested values. Limit the total number of such scans per parse call.
+        union_type_scan_count_++;
+        const size_t kMaxUnionTypeLookaheads =
+            static_cast<size_t>(opts.max_tables) * 4;
+        if (union_type_scan_count_ > kMaxUnionTypeLookaheads)
+          return Error("too many union type lookaheads; possible DoS input");
         auto type_name = field->name + UnionTypeFieldSuffix();
         FLATBUFFERS_ASSERT(parent_struct_def);
         auto type_field = parent_struct_def->fields.Lookup(type_name);
@@ -2040,42 +2053,48 @@ CheckedError Parser::ParseHash(Value& e, FieldDef* field) {
   switch (e.type.base_type) {
     case BASE_TYPE_SHORT: {
       auto hash = FindHashFunction16(hash_name->constant.c_str());
+      if (!hash) return Error("unknown hash function: " + hash_name->constant);
       int16_t hashed_value = static_cast<int16_t>(hash(attribute_.c_str()));
       e.constant = NumToString(hashed_value);
       break;
     }
     case BASE_TYPE_USHORT: {
       auto hash = FindHashFunction16(hash_name->constant.c_str());
+      if (!hash) return Error("unknown hash function: " + hash_name->constant);
       uint16_t hashed_value = hash(attribute_.c_str());
       e.constant = NumToString(hashed_value);
       break;
     }
     case BASE_TYPE_INT: {
       auto hash = FindHashFunction32(hash_name->constant.c_str());
+      if (!hash) return Error("unknown hash function: " + hash_name->constant);
       int32_t hashed_value = static_cast<int32_t>(hash(attribute_.c_str()));
       e.constant = NumToString(hashed_value);
       break;
     }
     case BASE_TYPE_UINT: {
       auto hash = FindHashFunction32(hash_name->constant.c_str());
+      if (!hash) return Error("unknown hash function: " + hash_name->constant);
       uint32_t hashed_value = hash(attribute_.c_str());
       e.constant = NumToString(hashed_value);
       break;
     }
     case BASE_TYPE_LONG: {
       auto hash = FindHashFunction64(hash_name->constant.c_str());
+      if (!hash) return Error("unknown hash function: " + hash_name->constant);
       int64_t hashed_value = static_cast<int64_t>(hash(attribute_.c_str()));
       e.constant = NumToString(hashed_value);
       break;
     }
     case BASE_TYPE_ULONG: {
       auto hash = FindHashFunction64(hash_name->constant.c_str());
+      if (!hash) return Error("unknown hash function: " + hash_name->constant);
       uint64_t hashed_value = hash(attribute_.c_str());
       e.constant = NumToString(hashed_value);
       break;
     }
     default:
-      FLATBUFFERS_ASSERT(0);
+      return Error("hash attribute on unsupported type");
   }
   NEXT();
   return NoError();
@@ -4132,7 +4151,12 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
   const auto& of = *(object->fields());
   auto indexes = std::vector<uoffset_t>(of.size());
-  for (uoffset_t i = 0; i < of.size(); i++) indexes[of.Get(i)->id()] = i;
+  for (uoffset_t i = 0; i < of.size(); i++) {
+    // Reject malformed binary schemas where a field id exceeds the field count.
+    // Without this check, a crafted .bfbs file causes an out-of-bounds write.
+    if (of.Get(i)->id() >= of.size()) return false;
+    indexes[of.Get(i)->id()] = i;
+  }
   size_t tmp_struct_size = 0;
   for (size_t i = 0; i < indexes.size(); i++) {
     auto field = of.Get(indexes[i]);
@@ -4238,6 +4262,9 @@ bool RPCCall::Deserialize(Parser& parser, const reflection::RPCCall* call) {
   name = call->name()->str();
   if (!DeserializeAttributes(parser, call->attributes())) return false;
   DeserializeDoc(doc_comment, call->documentation());
+  // Guard against malformed binary schemas where required fields are absent.
+  if (!call->request() || !call->request()->name()) return false;
+  if (!call->response() || !call->response()->name()) return false;
   request = parser.structs_.Lookup(call->request()->name()->str());
   response = parser.structs_.Lookup(call->response()->name()->str());
   if (!request || !response) {

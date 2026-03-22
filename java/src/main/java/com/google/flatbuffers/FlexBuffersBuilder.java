@@ -171,7 +171,7 @@ public class FlexBuffersBuilder {
    * @return `ByteBuffer` with finished message
    */
   public ReadWriteBuf getBuffer() {
-    assert (finished);
+    if (!finished) throw new IllegalStateException("flatbuffers: FlexBuffersBuilder.getBuffer() called before finish()");
     return bb;
   }
 
@@ -517,11 +517,10 @@ public class FlexBuffersBuilder {
    * @return `ByteBuffer` containing the FlexBuffer message
    */
   public ByteBuffer finish() {
-    // If you hit this assert, you likely have objects that were never included
-    // in a parent. You need to have exactly one root to finish a buffer.
+    // There must be exactly one root value on the stack.
     // Check your Start/End calls are matched, and all objects are inside
     // some other object.
-    assert (stack.size() == 1);
+    if (stack.size() != 1) throw new IllegalStateException("flatbuffers: FlexBuffersBuilder.finish() called with " + stack.size() + " values on stack (expected 1)");
     // Write root value.
     int byteWidth = align(stack.get(0).elemWidth(bb.writePosition(), 0));
     writeAny(stack.get(0), byteWidth);
@@ -572,13 +571,13 @@ public class FlexBuffersBuilder {
         } else {
           // If you get this assert, you are writing a typed vector with
           // elements that are not all the same type.
-          assert (vectorType == stack.get(i).type);
+          if (vectorType != stack.get(i).type) throw new IllegalStateException("flatbuffers: typed vector contains mixed types");
         }
       }
     }
-    // If you get this assert, your fixed types are not one of:
-    // Int / UInt / Float / Key.
-    assert (!fixed || FlexBuffers.isTypedVectorElementType(vectorType));
+    // Fixed-length typed vectors only support: Int / UInt / Float / Key.
+    if (fixed && !FlexBuffers.isTypedVectorElementType(vectorType))
+      throw new IllegalArgumentException("flatbuffers: fixed typed vector uses unsupported element type: " + vectorType);
 
     int byteWidth = align(bitWidth);
     // Write vector. First the keys width/offset if available, and size.
@@ -611,7 +610,8 @@ public class FlexBuffersBuilder {
 
   private void writeOffset(long val, int byteWidth) {
     int reloff = (int) (bb.writePosition() - val);
-    assert (byteWidth == 8 || reloff < 1L << (byteWidth * 8));
+    if (byteWidth != 8 && reloff >= 1L << (byteWidth * 8))
+      throw new IllegalStateException("flatbuffers: relative offset too large for byteWidth=" + byteWidth);
     writeInt(reloff, byteWidth);
   }
 
@@ -690,7 +690,7 @@ public class FlexBuffersBuilder {
     int vloc = bb.writePosition();
     for (int i = start; i < stack.size(); i++) {
       int pos = stack.get(i).key;
-      assert (pos != -1);
+      if (pos == -1) throw new IllegalStateException("flatbuffers: key offset is -1 (key was not written)");
       writeOffset(stack.get(i).key, byteWidth);
     }
     // Then the types.
@@ -824,8 +824,8 @@ public class FlexBuffersBuilder {
           int bitWidth = widthUInBits(offset);
           if (((1L) << bitWidth) == byteWidth) return bitWidth;
         }
-        assert (false); // Must match one of the sizes above.
-        return WIDTH_64;
+        throw new IllegalStateException("flatbuffers: Value.elemWidth() failed to find matching byte width");
+
       }
     }
 

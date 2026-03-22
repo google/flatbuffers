@@ -45,9 +45,18 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
   // Should correspond to what EndTable() below builds up.
   const voffset_t fixed_fields =
       2 * sizeof(voffset_t);  // Vtable size and Object Size.
-  size_t offset = fixed_fields + field_id * sizeof(voffset_t);
-  FLATBUFFERS_ASSERT(offset < std::numeric_limits<voffset_t>::max());
-  return static_cast<voffset_t>(offset);
+  // Prevent voffset_t overflow: the maximum valid field index is bounded by the
+  // uint16 range minus the two fixed header fields.
+  const voffset_t max_field_id =
+      (std::numeric_limits<voffset_t>::max() - fixed_fields) /
+      static_cast<voffset_t>(sizeof(voffset_t));
+  if (field_id > max_field_id) {
+    // Return 0, the conventional "field not present" sentinel, so callers that
+    // already guard on offset == 0 handle this gracefully.
+    return 0;
+  }
+  return static_cast<voffset_t>(fixed_fields +
+                                 field_id * sizeof(voffset_t));
 }
 
 template <typename T, typename Alloc = std::allocator<T>>

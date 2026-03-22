@@ -464,7 +464,7 @@ public class FlatBufferBuilder {
    */
   public void addOffset(int off) {
     prep(SIZEOF_INT, 0); // Ensure alignment is already done.
-    assert off <= offset();
+    if (off > offset()) throw new IllegalStateException("flatbuffers: invalid offset in addOffset()");
     off = offset() - off + SIZEOF_INT;
     putInt(off);
   }
