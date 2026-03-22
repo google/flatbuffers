@@ -85,7 +85,8 @@ class Table(object):
 
     the given offset.
     """
-    assert type(t2) is Table
+    if not isinstance(t2, Table):
+      raise TypeError("flatbuffers: Union() requires a Table argument")
     N.enforce_number(off, N.UOffsetTFlags)
 
     off += self.Pos
