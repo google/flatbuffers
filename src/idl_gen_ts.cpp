@@ -1083,7 +1083,7 @@ class TsGenerator : public BaseGenerator {
 
   // Ensure the verify{Type} function is included in the import for a struct.
   // Call AFTER AddImport for the struct so the base import exists.
-  void AddVerifyImport(import_set& imports, const Definition& dependent,
+  void AddVerifyImport(import_set& imports, const Definition& /*dependent*/,
                        const StructDef& dependency) {
     const std::string unique_name = GetTypeName(
         dependency, /*object_api = */ false, /*force_ns_wrap=*/true);
