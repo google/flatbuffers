@@ -398,32 +398,22 @@ namespace Google.FlatBuffers.Test
             float   a;
             int[]   b = new int[15];
             sbyte   c;
+            int[,]  d_a = new int[2, 2];
             TestEnum[]  d_b = new TestEnum[2];
+            TestEnum[,] d_c = new TestEnum[2, 2];
+            long[,]     d_d = new long[2, 2];
             int         e;
             long[]      f = new long[2];
 
             a = 0.5f;
             for (int i = 0; i < 15; i++) b[i] = i;
             c = 1;
-            d_b[0] = TestEnum.B;
-            d_b[1] = TestEnum.C;
-            e = 2;
-            f[0] = -1;
-            f[1] = 1;
-
-#if ENABLE_SPAN_T
-            // Flat arrays for Span<T> parameters
-            int[]      d_a = new int[] { 1, 2, 3, 4 };
-            TestEnum[] d_c = new TestEnum[] { TestEnum.A, TestEnum.B, TestEnum.C, TestEnum.B };
-            long[]     d_d = new long[] { -1, 1, -2, 2 };
-#else
-            int[,]  d_a = new int[2, 2];
-            TestEnum[,] d_c = new TestEnum[2, 2];
-            long[,]     d_d = new long[2, 2];
             d_a[0, 0] = 1;
             d_a[0, 1] = 2;
             d_a[1, 0] = 3;
             d_a[1, 1] = 4;
+            d_b[0] = TestEnum.B;
+            d_b[1] = TestEnum.C;
             d_c[0, 0] = TestEnum.A;
             d_c[0, 1] = TestEnum.B;
             d_c[1, 0] = TestEnum.C;
@@ -432,7 +422,9 @@ namespace Google.FlatBuffers.Test
             d_d[0, 1] = 1;
             d_d[1, 0] = -2;
             d_d[1, 1] = 2;
-#endif
+            e = 2;
+            f[0] = -1;
+            f[1] = 1;
 
             Offset<ArrayStruct> arrayOffset = ArrayStruct.CreateArrayStruct(
                 builder, a, b, c, d_a, d_b, d_c, d_d, e, f);

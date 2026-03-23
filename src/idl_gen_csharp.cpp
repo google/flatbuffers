@@ -1414,21 +1414,7 @@ class CSharpGenerator : public BaseGenerator {
     if (struct_def.fixed) {
       struct_has_create = true;
       const bool has_arrays = StructHasArrayFields(struct_def);
-      if (has_arrays) {
-        // Span version: array params become Span<T>, multi-dim uses flat index
-        code += "#if ENABLE_SPAN_T\n";
-        code += "  public static " + GenOffsetType(struct_def) + " ";
-        code += "Create";
-        code += struct_def.name + "(FlatBufferBuilder builder";
-        GenStructArgs(struct_def, code_ptr, "", 0, true);
-        code += ") {\n";
-        GenStructBody(struct_def, code_ptr, "", 0, false, true);
-        code += "    return ";
-        code += GenOffsetConstruct(struct_def, "builder.Offset");
-        code += ";\n  }\n";
-        code += "#else\n";
-      }
-      // Original version (also the only version when no arrays)
+      // Original version (always emitted for backward compatibility)
       code += "  public static " + GenOffsetType(struct_def) + " ";
       code += "Create";
       code += struct_def.name + "(FlatBufferBuilder builder";
@@ -1439,6 +1425,18 @@ class CSharpGenerator : public BaseGenerator {
       code += GenOffsetConstruct(struct_def, "builder.Offset");
       code += ";\n  }\n";
       if (has_arrays) {
+        // Span overload: array params become ReadOnlySpan<T> for
+        // zero-allocation struct creation via stackalloc.
+        code += "#if ENABLE_SPAN_T\n";
+        code += "  public static " + GenOffsetType(struct_def) + " ";
+        code += "Create";
+        code += struct_def.name + "(FlatBufferBuilder builder";
+        GenStructArgs(struct_def, code_ptr, "", 0, true);
+        code += ") {\n";
+        GenStructBody(struct_def, code_ptr, "", 0, false, true);
+        code += "    return ";
+        code += GenOffsetConstruct(struct_def, "builder.Offset");
+        code += ";\n  }\n";
         code += "#endif\n";
       }
     } else {
@@ -2422,73 +2420,6 @@ class CSharpGenerator : public BaseGenerator {
     code += "  }\n";
   }
 
-  // Generate one pack declaration: either flat (for Span) or multi-dim.
-  void GenPackDeclArray(std::string& code, const std::string& name,
-                        const Type& field_type,
-                        const std::vector<FieldArrayLength>& array_lengths,
-                        const std::vector<FieldArrayLength>& array_only_lengths,
-                        bool flat) const {
-    code += "    var " + name + " = ";
-    code += "new " + GenTypeBasic(field_type) + "[";
-    if (flat) {
-      int total = 1;
-      for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-        total *= array_only_lengths[i].length;
-      }
-      code += NumToString(total);
-    } else {
-      for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-        if (i != 0) code += ",";
-        code += NumToString(array_only_lengths[i].length);
-      }
-    }
-    code += "];\n";
-    code += "    ";
-    // initialize array
-    for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-      auto idx = "idx" + NumToString(i);
-      code += "for (var " + idx + " = 0; " + idx + " < " +
-              NumToString(array_only_lengths[i].length) + "; ++" + idx +
-              ") {";
-    }
-    if (flat) {
-      // flat indexing: name[idx0*d1 + idx1]
-      code += name + "[";
-      for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-        if (i > 0) code += " + ";
-        code += "idx" + NumToString(i);
-        int stride = 1;
-        for (size_t j = i + 1; j < array_only_lengths.size(); ++j) {
-          stride *= array_only_lengths[j].length;
-        }
-        if (stride > 1) code += "*" + NumToString(stride);
-      }
-      code += "]";
-    } else {
-      // multi-dim indexing: name[idx0,idx1]
-      for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-        auto idx = "idx" + NumToString(i);
-        if (i == 0) {
-          code += name + "[" + idx;
-        } else {
-          code += "," + idx;
-        }
-      }
-      code += "]";
-    }
-    code += " = _o";
-    for (size_t i = 0, j = 0; i < array_lengths.size(); ++i) {
-      code += "." + ConvertCase(array_lengths[i].name, Case::kUpperCamel);
-      if (array_lengths[i].length <= 0) continue;
-      code += "[idx" + NumToString(j++) + "]";
-    }
-    code += ";";
-    for (size_t i = 0; i < array_only_lengths.size(); ++i) {
-      code += "}";
-    }
-    code += "\n";
-  }
-
   void GenStructPackDecl_ObjectAPI(
       const StructDef& struct_def, std::string* code_ptr,
       std::vector<FieldArrayLength>& array_lengths) const {
@@ -2518,25 +2449,50 @@ class CSharpGenerator : public BaseGenerator {
         for (size_t i = 0; i < array_lengths.size(); ++i) {
           name += "_" + array_lengths[i].name;
         }
-        if (array_only_lengths.size() > 1) {
-          // Multi-dim case: needs flat arrays for Span, multi-dim for legacy
-          code += "#if ENABLE_SPAN_T\n";
-          GenPackDeclArray(code, name, field_type, array_lengths,
-                          array_only_lengths, true);
-          code += "#else\n";
-          GenPackDeclArray(code, name, field_type, array_lengths,
-                          array_only_lengths, false);
-          code += "#endif\n";
-        } else if (array_only_lengths.size() == 1) {
-          GenPackDeclArray(code, name, field_type, array_lengths,
-                          array_only_lengths, false);
+        code += "    var " + name + " = ";
+        if (array_only_lengths.size() > 0) {
+          code += "new " + GenTypeBasic(field_type) + "[";
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            if (i != 0) {
+              code += ",";
+            }
+            code += NumToString(array_only_lengths[i].length);
+          }
+          code += "];\n";
+          code += "    ";
+          // initialize array
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            auto idx = "idx" + NumToString(i);
+            code += "for (var " + idx + " = 0; " + idx + " < " +
+                    NumToString(array_only_lengths[i].length) + "; ++" + idx +
+                    ") {";
+          }
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            auto idx = "idx" + NumToString(i);
+            if (i == 0) {
+              code += name + "[" + idx;
+            } else {
+              code += "," + idx;
+            }
+          }
+          code += "] = _o";
+          for (size_t i = 0, j = 0; i < array_lengths.size(); ++i) {
+            code += "." + ConvertCase(array_lengths[i].name, Case::kUpperCamel);
+            if (array_lengths[i].length <= 0) continue;
+            code += "[idx" + NumToString(j++) + "]";
+          }
+          code += ";";
+          for (size_t i = 0; i < array_only_lengths.size(); ++i) {
+            code += "}";
+          }
         } else {
-          code += "    var " + name + " = _o";
+          code += "_o";
           for (size_t i = 0; i < array_lengths.size(); ++i) {
             code += "." + ConvertCase(array_lengths[i].name, Case::kUpperCamel);
           }
-          code += ";\n";
+          code += ";";
         }
+        code += "\n";
       }
       array_lengths.pop_back();
     }

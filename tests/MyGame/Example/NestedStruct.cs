@@ -43,8 +43,7 @@ public struct NestedStruct : IFlatbufferObject
 #endif
   public void MutateD(int j, long d) { __p.bb.PutLong(__p.bb_pos + 16 + j * 8, d); }
 
-#if ENABLE_SPAN_T
-  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, ReadOnlySpan<int> A, MyGame.Example.TestEnum B, ReadOnlySpan<MyGame.Example.TestEnum> C, ReadOnlySpan<long> D) {
+  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C, long[] D) {
     builder.Prep(8, 32);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.PutLong(D[_idx0-1]);
@@ -59,8 +58,8 @@ public struct NestedStruct : IFlatbufferObject
     }
     return new Offset<MyGame.Example.NestedStruct>(builder.Offset);
   }
-#else
-  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, int[] A, MyGame.Example.TestEnum B, MyGame.Example.TestEnum[] C, long[] D) {
+#if ENABLE_SPAN_T
+  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, ReadOnlySpan<int> A, MyGame.Example.TestEnum B, ReadOnlySpan<MyGame.Example.TestEnum> C, ReadOnlySpan<long> D) {
     builder.Prep(8, 32);
     for (int _idx0 = 2; _idx0 > 0; _idx0--) {
       builder.PutLong(D[_idx0-1]);

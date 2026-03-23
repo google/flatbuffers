@@ -40,6 +40,35 @@ public struct ArrayStruct : IFlatbufferObject
 #endif
   public void MutateF(int j, long f) { __p.bb.PutLong(__p.bb_pos + 144 + j * 8, f); }
 
+  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C, long[,] d_D, int E, long[] F) {
+    builder.Prep(8, 160);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutLong(F[_idx0-1]);
+    }
+    builder.Pad(4);
+    builder.PutInt(E);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.Prep(8, 32);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutLong(d_D[_idx0-1,_idx1-1]);
+      }
+      builder.Pad(5);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutSbyte((sbyte)d_C[_idx0-1,_idx1-1]);
+      }
+      builder.PutSbyte((sbyte)d_B[_idx0-1]);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutInt(d_A[_idx0-1,_idx1-1]);
+      }
+    }
+    builder.Pad(7);
+    builder.PutSbyte(C);
+    for (int _idx0 = 15; _idx0 > 0; _idx0--) {
+      builder.PutInt(B[_idx0-1]);
+    }
+    builder.PutFloat(A);
+    return new Offset<MyGame.Example.ArrayStruct>(builder.Offset);
+  }
 #if ENABLE_SPAN_T
   public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, ReadOnlySpan<int> B, sbyte C, ReadOnlySpan<int> d_A, ReadOnlySpan<MyGame.Example.TestEnum> d_B, ReadOnlySpan<MyGame.Example.TestEnum> d_C, ReadOnlySpan<long> d_D, int E, ReadOnlySpan<long> F) {
     builder.Prep(8, 160);
@@ -70,36 +99,6 @@ public struct ArrayStruct : IFlatbufferObject
     builder.PutFloat(A);
     return new Offset<MyGame.Example.ArrayStruct>(builder.Offset);
   }
-#else
-  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, int[] B, sbyte C, int[,] d_A, MyGame.Example.TestEnum[] d_B, MyGame.Example.TestEnum[,] d_C, long[,] d_D, int E, long[] F) {
-    builder.Prep(8, 160);
-    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
-      builder.PutLong(F[_idx0-1]);
-    }
-    builder.Pad(4);
-    builder.PutInt(E);
-    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
-      builder.Prep(8, 32);
-      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
-        builder.PutLong(d_D[_idx0-1,_idx1-1]);
-      }
-      builder.Pad(5);
-      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
-        builder.PutSbyte((sbyte)d_C[_idx0-1,_idx1-1]);
-      }
-      builder.PutSbyte((sbyte)d_B[_idx0-1]);
-      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
-        builder.PutInt(d_A[_idx0-1,_idx1-1]);
-      }
-    }
-    builder.Pad(7);
-    builder.PutSbyte(C);
-    for (int _idx0 = 15; _idx0 > 0; _idx0--) {
-      builder.PutInt(B[_idx0-1]);
-    }
-    builder.PutFloat(A);
-    return new Offset<MyGame.Example.ArrayStruct>(builder.Offset);
-  }
 #endif
   public ArrayStructT UnPack() {
     var _o = new ArrayStructT();
@@ -120,29 +119,14 @@ public struct ArrayStruct : IFlatbufferObject
   public static Offset<MyGame.Example.ArrayStruct> Pack(FlatBufferBuilder builder, ArrayStructT _o) {
     if (_o == null) return default(Offset<MyGame.Example.ArrayStruct>);
     var _b = _o.B;
-#if ENABLE_SPAN_T
-    var _d_a = new int[4];
-    for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_a[idx0*2 + idx1] = _o.D[idx0].A[idx1];}}
-#else
     var _d_a = new int[2,2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_a[idx0,idx1] = _o.D[idx0].A[idx1];}}
-#endif
     var _d_b = new MyGame.Example.TestEnum[2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {_d_b[idx0] = _o.D[idx0].B;}
-#if ENABLE_SPAN_T
-    var _d_c = new MyGame.Example.TestEnum[4];
-    for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_c[idx0*2 + idx1] = _o.D[idx0].C[idx1];}}
-#else
     var _d_c = new MyGame.Example.TestEnum[2,2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_c[idx0,idx1] = _o.D[idx0].C[idx1];}}
-#endif
-#if ENABLE_SPAN_T
-    var _d_d = new long[4];
-    for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_d[idx0*2 + idx1] = _o.D[idx0].D[idx1];}}
-#else
     var _d_d = new long[2,2];
     for (var idx0 = 0; idx0 < 2; ++idx0) {for (var idx1 = 0; idx1 < 2; ++idx1) {_d_d[idx0,idx1] = _o.D[idx0].D[idx1];}}
-#endif
     var _f = _o.F;
     return CreateArrayStruct(
       builder,
