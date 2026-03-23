@@ -146,7 +146,7 @@ impl<'a> StructOfStructs {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct StructOfStructsT {
     pub a: AbilityT,
     pub b: TestT,

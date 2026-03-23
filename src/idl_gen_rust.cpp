@@ -854,13 +854,18 @@ class RustGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
 
-      if (!IsBitFlagsEnum(enum_def)) {
-        code_ += "impl<'de> serde::Deserialize<'de> for {{ENUM_TY}} {";
+      code_ += "impl<'de> serde::Deserialize<'de> for {{ENUM_TY}} {";
+      code_ +=
+          "    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>";
+      code_ += "    where";
+      code_ += "        D: serde::Deserializer<'de>,";
+      code_ += "    {";
+      if (IsBitFlagsEnum(enum_def)) {
         code_ +=
-            "    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>";
-        code_ += "    where";
-        code_ += "        D: serde::Deserializer<'de>,";
-        code_ += "    {";
+            "        let bits = <{{BASE_TYPE}} as "
+            "serde::Deserialize>::deserialize(deserializer)?;";
+        code_ += "        Ok(Self::from_bits_retain(bits as {{BASE_TYPE}}))";
+      } else {
         code_ += "        let s = String::deserialize(deserializer)?;";
         code_ += "        for item in {{ENUM_TY}}::ENUM_VALUES {";
         code_ +=
@@ -874,10 +879,10 @@ class RustGenerator : public BaseGenerator {
         code_ += "        Err(serde::de::Error::custom(format!(";
         code_ += "            \"Unknown {{ENUM_TY}} variant: {s}\"";
         code_ += "        )))";
-        code_ += "    }";
-        code_ += "}";
-        code_ += "";
       }
+      code_ += "    }";
+      code_ += "}";
+      code_ += "";
     }
 
     // Generate Follow and Push so we can serialize and stuff.
@@ -982,7 +987,13 @@ class RustGenerator : public BaseGenerator {
     code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is
                                                        // intended.
     code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq)]";
+    if (parser_.opts.rust_serialize) {
+      code_ +=
+          "#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]";
+      code_ += "#[serde(tag = \"type\", content = \"value\")]";
+    } else {
+      code_ += "#[derive(Debug, Clone, PartialEq)]";
+    }
     code_ += "{{ACCESS_TYPE}} enum {{ENUM_OTY}} {";
     code_ += "    NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
@@ -2327,12 +2338,20 @@ class RustGenerator : public BaseGenerator {
 
     // Generate the native object.
     code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq)]";
+    if (parser_.opts.rust_serialize) {
+      code_ += "#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]";
+    } else {
+      code_ += "#[derive(Debug, Clone, PartialEq)]";
+    }
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
     ForAllObjectTableFields(table, [&](const FieldDef& field) {
       // Union objects combine both the union discriminant and value, so we
       // skip making a field for the discriminant.
       if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
+      if (parser_.opts.rust_serialize && field.IsOptional() &&
+          !IsUnion(field.value.type)) {
+        code_ += "#[serde(default, skip_serializing_if = \"Option::is_none\")]";
+      }
       code_ += "pub {{FIELD}}: {{FIELD_OTY}},";
     });
     code_ += "}";
@@ -3042,7 +3061,11 @@ class RustGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
       code_ += "";
-      code_ += "#[derive(Debug, Clone, PartialEq)]";
+      if (parser_.opts.rust_serialize) {
+        code_ += "#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]";
+      } else {
+        code_ += "#[derive(Debug, Clone, PartialEq)]";
+      }
       code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
         (void)field;  // unused.

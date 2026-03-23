@@ -163,7 +163,7 @@ impl<'a> Test {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct TestT {
     pub a: i16,
     pub b: i8,

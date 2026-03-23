@@ -14,7 +14,7 @@ rust-version = "1.51"
 [features]
 default = ["std"]
 std = []
-serialize = ["serde"]
+serialize = ["serde", "serde/derive"]
 
 [dependencies]
 bitflags = "2.8.0"

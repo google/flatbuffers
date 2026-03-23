@@ -1972,20 +1972,28 @@ impl ::core::fmt::Debug for Monster<'_> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct MonsterT {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pos: Option<Vec3T>,
     pub mana: i16,
     pub hp: i16,
     pub name: alloc::string::String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inventory: Option<alloc::vec::Vec<u8>>,
     pub color: Color,
     pub test: AnyT,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub test4: Option<alloc::vec::Vec<TestT>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testarrayofstring: Option<alloc::vec::Vec<alloc::string::String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testarrayoftables: Option<alloc::vec::Vec<MonsterT>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub enemy: Option<alloc::boxed::Box<MonsterT>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testnestedflatbuffer: Option<alloc::vec::Vec<u8>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testempty: Option<alloc::boxed::Box<StatT>>,
     pub testbool: bool,
     pub testhashs32_fnv1: i32,
@@ -1996,31 +2004,48 @@ pub struct MonsterT {
     pub testhashu32_fnv1a: u32,
     pub testhashs64_fnv1a: i64,
     pub testhashu64_fnv1a: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testarrayofbools: Option<alloc::vec::Vec<bool>>,
     pub testf: f32,
     pub testf2: f32,
     pub testf3: f32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testarrayofstring2: Option<alloc::vec::Vec<alloc::string::String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testarrayofsortedstruct: Option<alloc::vec::Vec<AbilityT>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flex: Option<alloc::vec::Vec<u8>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub test5: Option<alloc::vec::Vec<TestT>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_longs: Option<alloc::vec::Vec<i64>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_doubles: Option<alloc::vec::Vec<f64>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub parent_namespace_test: Option<alloc::boxed::Box<super::InParentNamespaceT>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_referrables: Option<alloc::vec::Vec<ReferrableT>>,
     pub single_weak_reference: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_weak_references: Option<alloc::vec::Vec<u64>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_strong_referrables: Option<alloc::vec::Vec<ReferrableT>>,
     pub co_owning_reference: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_co_owning_references: Option<alloc::vec::Vec<u64>>,
     pub non_owning_reference: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_non_owning_references: Option<alloc::vec::Vec<u64>>,
     pub any_unique: AnyUniqueAliasesT,
     pub any_ambiguous: AnyAmbiguousAliasesT,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vector_of_enums: Option<alloc::vec::Vec<Color>>,
     pub signed_enum: Race,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub testrequirednestedflatbuffer: Option<alloc::vec::Vec<u8>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scalar_key_sorted_tables: Option<alloc::vec::Vec<StatT>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub native_inline: Option<TestT>,
     pub long_enum_non_enum_default: LongEnum,
     pub long_enum_normal_default: LongEnum,

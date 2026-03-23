@@ -142,7 +142,7 @@ impl ::core::fmt::Debug for Referrable<'_> {
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ReferrableT {
     pub id: u64,
 }
