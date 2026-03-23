@@ -58,6 +58,23 @@ public struct NestedStruct : IFlatbufferObject
     }
     return new Offset<MyGame.Example.NestedStruct>(builder.Offset);
   }
+#if ENABLE_SPAN_T
+  public static Offset<MyGame.Example.NestedStruct> CreateNestedStruct(FlatBufferBuilder builder, ReadOnlySpan<int> A, MyGame.Example.TestEnum B, ReadOnlySpan<MyGame.Example.TestEnum> C, ReadOnlySpan<long> D) {
+    builder.Prep(8, 32);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutLong(D[_idx0-1]);
+    }
+    builder.Pad(5);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutSbyte((sbyte)C[_idx0-1]);
+    }
+    builder.PutSbyte((sbyte)B);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutInt(A[_idx0-1]);
+    }
+    return new Offset<MyGame.Example.NestedStruct>(builder.Offset);
+  }
+#endif
   public NestedStructT UnPack() {
     var _o = new NestedStructT();
     this.UnPackTo(_o);

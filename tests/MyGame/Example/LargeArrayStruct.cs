@@ -80,6 +80,38 @@ public struct LargeArrayStruct : IFlatbufferObject
     }
     return new Offset<MyGame.Example.LargeArrayStruct>(builder.Offset);
   }
+#if ENABLE_SPAN_T
+  public static Offset<MyGame.Example.LargeArrayStruct> CreateLargeArrayStruct(FlatBufferBuilder builder, ReadOnlySpan<byte> D, ReadOnlySpan<float> E, ReadOnlySpan<bool> F, ReadOnlySpan<int> g_A, ReadOnlySpan<MyGame.Example.TestEnum> g_B, ReadOnlySpan<MyGame.Example.TestEnum> g_C, ReadOnlySpan<long> g_D, ReadOnlySpan<MyGame.Example.TestEnum> H) {
+    builder.Prep(8, 2496);
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutSbyte((sbyte)H[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.Prep(8, 32);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutLong(g_D[(_idx0-1)*2 + (_idx1-1)]);
+      }
+      builder.Pad(5);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutSbyte((sbyte)g_C[(_idx0-1)*2 + (_idx1-1)]);
+      }
+      builder.PutSbyte((sbyte)g_B[_idx0-1]);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutInt(g_A[(_idx0-1)*2 + (_idx1-1)]);
+      }
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutBool(F[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutFloat(E[_idx0-1]);
+    }
+    for (int _idx0 = 64; _idx0 > 0; _idx0--) {
+      builder.PutByte(D[_idx0-1]);
+    }
+    return new Offset<MyGame.Example.LargeArrayStruct>(builder.Offset);
+  }
+#endif
   public LargeArrayStructT UnPack() {
     var _o = new LargeArrayStructT();
     this.UnPackTo(_o);

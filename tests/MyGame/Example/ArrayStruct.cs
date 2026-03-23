@@ -69,6 +69,37 @@ public struct ArrayStruct : IFlatbufferObject
     builder.PutFloat(A);
     return new Offset<MyGame.Example.ArrayStruct>(builder.Offset);
   }
+#if ENABLE_SPAN_T
+  public static Offset<MyGame.Example.ArrayStruct> CreateArrayStruct(FlatBufferBuilder builder, float A, ReadOnlySpan<int> B, sbyte C, ReadOnlySpan<int> d_A, ReadOnlySpan<MyGame.Example.TestEnum> d_B, ReadOnlySpan<MyGame.Example.TestEnum> d_C, ReadOnlySpan<long> d_D, int E, ReadOnlySpan<long> F) {
+    builder.Prep(8, 160);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.PutLong(F[_idx0-1]);
+    }
+    builder.Pad(4);
+    builder.PutInt(E);
+    for (int _idx0 = 2; _idx0 > 0; _idx0--) {
+      builder.Prep(8, 32);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutLong(d_D[(_idx0-1)*2 + (_idx1-1)]);
+      }
+      builder.Pad(5);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutSbyte((sbyte)d_C[(_idx0-1)*2 + (_idx1-1)]);
+      }
+      builder.PutSbyte((sbyte)d_B[_idx0-1]);
+      for (int _idx1 = 2; _idx1 > 0; _idx1--) {
+        builder.PutInt(d_A[(_idx0-1)*2 + (_idx1-1)]);
+      }
+    }
+    builder.Pad(7);
+    builder.PutSbyte(C);
+    for (int _idx0 = 15; _idx0 > 0; _idx0--) {
+      builder.PutInt(B[_idx0-1]);
+    }
+    builder.PutFloat(A);
+    return new Offset<MyGame.Example.ArrayStruct>(builder.Offset);
+  }
+#endif
   public ArrayStructT UnPack() {
     var _o = new ArrayStructT();
     this.UnPackTo(_o);

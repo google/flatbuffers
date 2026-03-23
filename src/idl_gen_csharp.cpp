@@ -43,6 +43,20 @@ class CSharpGenerator : public BaseGenerator {
     int length;
   };
 
+  // Check if a struct (or any of its nested structs) contains array fields.
+  // Used to decide whether Create/Pack methods need Span overloads.
+  bool StructHasArrayFields(const StructDef& struct_def) const {
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (IsArray(field.value.type)) return true;
+      if (IsStruct(field.value.type) &&
+          StructHasArrayFields(*field.value.type.struct_def))
+        return true;
+    }
+    return false;
+  }
+
  public:
   CSharpGenerator(const Parser& parser, const std::string& path,
                   const std::string& file_name)
@@ -536,9 +550,11 @@ class CSharpGenerator : public BaseGenerator {
   }
 
   // Recursively generate arguments for a constructor, to deal with nested
-  // structs.
+  // structs. When use_span is true, array parameters use Span<T> instead of
+  // T[] or T[,] for zero-allocation struct creation.
   void GenStructArgs(const StructDef& struct_def, std::string* code_ptr,
-                     const char* nameprefix, size_t array_count = 0) const {
+                     const char* nameprefix, size_t array_count = 0,
+                     bool use_span = false) const {
     std::string& code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -553,17 +569,21 @@ class CSharpGenerator : public BaseGenerator {
         // a nested struct, prefix the name with the field name.
         GenStructArgs(*field_type.struct_def, code_ptr,
                       (nameprefix + (EscapeKeyword(field.name) + "_")).c_str(),
-                      array_cnt);
+                      array_cnt, use_span);
       } else {
         code += ", ";
-        code += GenTypeBasic(type);
-        if (field.IsScalarOptional()) {
-          code += "?";
-        }
-        if (array_cnt > 0) {
-          code += "[";
-          for (size_t i = 1; i < array_cnt; i++) code += ",";
-          code += "]";
+        if (use_span && array_cnt > 0) {
+          code += "ReadOnlySpan<" + GenTypeBasic(type) + ">";
+        } else {
+          code += GenTypeBasic(type);
+          if (field.IsScalarOptional()) {
+            code += "?";
+          }
+          if (array_cnt > 0) {
+            code += "[";
+            for (size_t i = 1; i < array_cnt; i++) code += ",";
+            code += "]";
+          }
         }
         code += " ";
         code += nameprefix;
@@ -574,10 +594,12 @@ class CSharpGenerator : public BaseGenerator {
 
   // Recusively generate struct construction statements of the form:
   // builder.putType(name);
-  // and insert manual padding.
+  // and insert manual padding. When use_span is true, multi-dimensional array
+  // accesses use flat indexing (e.g. [i*N+j]) instead of [i,j].
   void GenStructBody(const StructDef& struct_def, std::string* code_ptr,
                      const char* nameprefix, size_t index = 0,
-                     bool in_array = false) const {
+                     bool in_array = false, bool use_span = false,
+                     std::vector<int> array_dims = {}) const {
     std::string& code = *code_ptr;
     std::string indent((index + 1) * 2, ' ');
     code += indent + "  builder.Prep(";
@@ -594,21 +616,23 @@ class CSharpGenerator : public BaseGenerator {
       if (IsStruct(field_type)) {
         GenStructBody(*field_type.struct_def, code_ptr,
                       (nameprefix + (field.name + "_")).c_str(), index,
-                      in_array);
+                      in_array, use_span, array_dims);
       } else {
         const auto& type =
             IsArray(field_type) ? field_type.VectorType() : field_type;
         const auto index_var = "_idx" + NumToString(index);
+        auto current_dims = array_dims;
         if (IsArray(field_type)) {
           code += indent + "  for (int " + index_var + " = ";
           code += NumToString(field_type.fixed_length);
           code += "; " + index_var + " > 0; " + index_var + "--) {\n";
           in_array = true;
+          current_dims.push_back(field_type.fixed_length);
         }
         if (IsStruct(type)) {
           GenStructBody(*field_type.struct_def, code_ptr,
                         (nameprefix + (field.name + "_")).c_str(), index + 1,
-                        in_array);
+                        in_array, use_span, current_dims);
         } else {
           code += IsArray(field_type) ? "  " : "";
           code += indent + "  builder.Put";
@@ -619,9 +643,24 @@ class CSharpGenerator : public BaseGenerator {
           size_t array_cnt = index + (IsArray(field_type) ? 1 : 0);
           if (array_cnt > 0) {
             code += "[";
-            for (size_t i = 0; in_array && i < array_cnt; i++) {
-              code += "_idx" + NumToString(i) + "-1";
-              if (i != (array_cnt - 1)) code += ",";
+            if (use_span && in_array && array_cnt > 1) {
+              // Flat indexing for Span<T>: [(_idx0-1)*stride + (_idx1-1)]
+              for (size_t i = 0; i < array_cnt; i++) {
+                if (i > 0) code += " + ";
+                code += "(_idx" + NumToString(i) + "-1)";
+                int stride = 1;
+                for (size_t j = i + 1; j < current_dims.size(); j++) {
+                  stride *= current_dims[j];
+                }
+                if (stride > 1) {
+                  code += "*" + NumToString(stride);
+                }
+              }
+            } else {
+              for (size_t i = 0; in_array && i < array_cnt; i++) {
+                code += "_idx" + NumToString(i) + "-1";
+                if (i != (array_cnt - 1)) code += ",";
+              }
             }
             code += "]";
           }
@@ -1374,7 +1413,8 @@ class CSharpGenerator : public BaseGenerator {
     flatbuffers::FieldDef* key_field = nullptr;
     if (struct_def.fixed) {
       struct_has_create = true;
-      // create a struct constructor function
+      const bool has_arrays = StructHasArrayFields(struct_def);
+      // Original version (always emitted for backward compatibility)
       code += "  public static " + GenOffsetType(struct_def) + " ";
       code += "Create";
       code += struct_def.name + "(FlatBufferBuilder builder";
@@ -1384,6 +1424,21 @@ class CSharpGenerator : public BaseGenerator {
       code += "    return ";
       code += GenOffsetConstruct(struct_def, "builder.Offset");
       code += ";\n  }\n";
+      if (has_arrays) {
+        // Span overload: array params become ReadOnlySpan<T> for
+        // zero-allocation struct creation via stackalloc.
+        code += "#if ENABLE_SPAN_T\n";
+        code += "  public static " + GenOffsetType(struct_def) + " ";
+        code += "Create";
+        code += struct_def.name + "(FlatBufferBuilder builder";
+        GenStructArgs(struct_def, code_ptr, "", 0, true);
+        code += ") {\n";
+        GenStructBody(struct_def, code_ptr, "", 0, false, true);
+        code += "    return ";
+        code += GenOffsetConstruct(struct_def, "builder.Offset");
+        code += ";\n  }\n";
+        code += "#endif\n";
+      }
     } else {
       // Generate a method that creates a table in one go. This is only possible
       // when the table has no struct fields, since those have to be created
