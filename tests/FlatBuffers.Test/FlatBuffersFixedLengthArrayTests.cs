@@ -54,7 +54,7 @@ namespace Google.FlatBuffers.Test
             
             var bb = builder.DataBuffer;
             var nestedStruct = new NestedStruct();
-            nestedStruct.__assign(bb.Length - builder.Offset, bb);
+            nestedStruct.__assign(bb.GetInt(bb.Position) + bb.Position, bb);
 
             Span<int> intSpan = nestedStruct.GetABytes();
             Span<TestEnum> enumSpan = nestedStruct.GetCBytes();
@@ -81,7 +81,7 @@ namespace Google.FlatBuffers.Test
 
             var buffer = builder.DataBuffer;
             var nestedStruct = new NestedStruct();
-            nestedStruct.__assign(buffer.Length - builder.Offset, buffer);
+            nestedStruct.__assign(buffer.GetInt(buffer.Position) + buffer.Position, buffer);
 
             Assert.IsTrue(nestedStruct.GetABytes().HasValue);
             Assert.IsTrue(nestedStruct.GetCBytes().HasValue);
@@ -170,7 +170,7 @@ namespace Google.FlatBuffers.Test
 
             var buffer = builder.DataBuffer;
             var nestedStruct = new NestedStruct();
-            nestedStruct.__assign(buffer.Length - builder.Offset, buffer);
+            nestedStruct.__assign(buffer.GetInt(buffer.Position) + buffer.Position, buffer);
 
             Assert.AreEqual(7, nestedStruct.A(0));
             Assert.AreEqual(8, nestedStruct.A(1));
