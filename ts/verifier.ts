@@ -395,6 +395,19 @@ export class Verifier {
   }
 
   /**
+   * Performs a range-checked `uint8` read at `pos`.
+   *
+   * @param pos - Byte offset to read from.
+   * @returns The unsigned 8-bit integer stored at `pos`.
+   * @throws {VerificationError} With `kind === ErrorKind.RangeOutOfBounds` when
+   *   the byte at `pos` exceeds the buffer bounds.
+   */
+  readUint8(pos: number): number {
+    this.checkRange(pos, 1);
+    return this.buf.getUint8(pos);
+  }
+
+  /**
    * Validates the vtable referenced by the table rooted at `tablePos`.
    *
    * A FlatBuffer table begins with a signed 32-bit `soffset`. The vtable is
@@ -671,6 +684,61 @@ export class Verifier {
         trace: [],
       } satisfies VerificationError;
     }
+  }
+
+  /**
+   * Asserts that a union's type and value fields are either both present or both
+   * absent in the vtable.
+   *
+   * FlatBuffer unions are encoded as a pair of fields: a `uint8` type discriminant
+   * and an offset to the union value table. If only one of these fields is present
+   * the buffer is malformed. This method reads both vtable slots and throws
+   * {@link ErrorKind.InconsistentUnion} when exactly one of them is populated.
+   *
+   * @param tablePos - Byte offset within the buffer where the owning table begins.
+   * @param typeVOffset - Vtable slot byte offset for the union type discriminant field.
+   * @param valueVOffset - Vtable slot byte offset for the union value offset field.
+   * @param fieldName - Schema name of the union field, included in the thrown
+   *   {@link VerificationError} to aid debugging.
+   * @throws {VerificationError} With `kind === ErrorKind.InconsistentUnion` when
+   *   exactly one of the two fields is present.
+   */
+  checkUnionConsistency(
+    tablePos: number,
+    typeVOffset: number,
+    valueVOffset: number,
+    fieldName: string,
+  ): void {
+    const typeFieldPos = this._resolveVtableField(tablePos, typeVOffset);
+    const valueFieldPos = this._resolveVtableField(tablePos, valueVOffset);
+    const typePresent = typeFieldPos !== 0;
+    const valuePresent = valueFieldPos !== 0;
+    if (typePresent !== valuePresent) {
+      throw {
+        kind: ErrorKind.InconsistentUnion,
+        field: fieldName,
+        offset: tablePos,
+        trace: [],
+      } satisfies VerificationError;
+    }
+  }
+
+  /**
+   * Reads a `uint8` value from the field at vtable slot `vOffset` within the
+   * table at `tablePos`. Returns `0` when the field is absent. Used by
+   * generated code to read union type discriminants for per-variant dispatch.
+   *
+   * @param tablePos - Byte offset within the buffer where the table begins.
+   * @param vOffset - Vtable slot byte offset for the target field.
+   * @returns The uint8 value at the field position, or `0` if absent.
+   */
+  readFieldUint8(tablePos: number, vOffset: number): number {
+    const fieldPos = this._resolveVtableField(tablePos, vOffset);
+    if (fieldPos === 0) {
+      return 0;
+    }
+    this.checkRange(fieldPos, 1);
+    return this.buf.getUint8(fieldPos);
   }
 
   /**

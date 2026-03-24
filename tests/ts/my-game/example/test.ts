@@ -4,9 +4,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-
-
-export class Test implements flatbuffers.IUnpackableObject<TestT> {
+export class Test {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Test {
@@ -19,22 +17,8 @@ a():number {
   return this.bb!.readInt16(this.bb_pos);
 }
 
-mutate_a(value:number):boolean {
-  this.bb!.writeInt16(this.bb_pos + 0, value);
-  return true;
-}
-
 b():number {
   return this.bb!.readInt8(this.bb_pos + 2);
-}
-
-mutate_b(value:number):boolean {
-  this.bb!.writeInt8(this.bb_pos + 2, value);
-  return true;
-}
-
-static getFullyQualifiedName(): "MyGame.Example.Test" {
-  return 'MyGame.Example.Test';
 }
 
 static sizeOf():number {
@@ -49,32 +33,4 @@ static createTest(builder:flatbuffers.Builder, a: number, b: number):flatbuffers
   return builder.offset();
 }
 
-
-unpack(): TestT {
-  return new TestT(
-    this.a(),
-    this.b()
-  );
-}
-
-
-unpackTo(_o: TestT): void {
-  _o.a = this.a();
-  _o.b = this.b();
-}
-}
-
-export class TestT implements flatbuffers.IGeneratedObject {
-constructor(
-  public a: number = 0,
-  public b: number = 0
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Test.createTest(builder,
-    this.a,
-    this.b
-  );
-}
 }

@@ -1027,11 +1027,8 @@ class GoGenerator : public BaseGenerator {
               code += "\t\t\treturn err\n";
               code += "\t\t}\n";
             } else if (vector_type.base_type == BASE_TYPE_STRING) {
-              // Vector of strings: each element is a UOffsetT (uint32, 4
-              // bytes) pointing to a string.
-              code += "\t\tif _, err := v.CheckVector(pos, " +
-                      NumToString(SizeOf(BASE_TYPE_UINT)) +
-                      "); err != nil {\n";
+              // Vector of strings: verify vector bounds AND each string.
+              code += "\t\tif err := v.CheckVectorOfStrings(pos); err != nil {\n";
               code += "\t\t\treturn err\n";
               code += "\t\t}\n";
             } else if (vector_type.base_type == BASE_TYPE_STRUCT) {
@@ -1063,17 +1060,68 @@ class GoGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION: {
-            // Union value field: verify via CheckOffsetField only.
-            // The companion _type scalar field is handled separately as a
-            // scalar field in the loop (it appears as BASE_TYPE_UTYPE).
-            code += "\tif pos, err := v.CheckOffsetField(tablePos, " + voffset +
-                    "); err != nil {\n";
+            // Find the companion _type field's voffset.
+            const EnumDef& union_enum = *field.value.type.enum_def;
+            std::string type_voffset;
+            for (auto fit = struct_def.fields.vec.begin();
+                 fit != struct_def.fields.vec.end(); ++fit) {
+              const FieldDef& f = **fit;
+              if (f.value.type.base_type == BASE_TYPE_UTYPE &&
+                  f.value.type.enum_def == &union_enum) {
+                type_voffset = NumToString(f.value.offset);
+                break;
+              }
+            }
+            // Verify type and value are both present or both absent.
+            code += "\tif err := v.CheckUnionConsistency(tablePos, " +
+                    type_voffset + ", " + voffset + ", \"" + field.name +
+                    "\"); err != nil {\n";
+            code += "\t\treturn err\n";
+            code += "\t}\n";
+            // Follow the value offset to get the union data position.
+            code += "\tif pos, err := v.CheckOffsetField(tablePos, " +
+                    voffset + "); err != nil {\n";
             code += "\t\treturn err\n";
             code += "\t} else if pos != 0 {\n";
-            code += "\t\tif _, err := v.CheckVector(pos, 1); err != nil {\n";
+            // Read the type discriminant byte.
+            code += "\t\tuType, err := v.ReadFieldByte(tablePos, " +
+                    type_voffset + ")\n";
+            code += "\t\tif err != nil {\n";
             code += "\t\t\treturn err\n";
             code += "\t\t}\n";
-            code += "\t}\n";
+            // Dispatch per-variant verification.
+            const std::string enum_type = GetEnumTypeName(union_enum);
+            code += "\t\tswitch " + enum_type + "(uType) {\n";
+            for (auto vit = union_enum.Vals().begin();
+                 vit != union_enum.Vals().end(); ++vit) {
+              const EnumVal& ev = **vit;
+              if (ev.IsZero()) continue;           // Skip NONE
+              if (ev.union_type.struct_def == nullptr) continue;
+              const std::string variant_name =
+                  namer_.EnumVariant(union_enum, ev);
+              if (ev.union_type.struct_def->fixed) {
+                // Fixed struct variant: check byte range.
+                const std::string struct_size =
+                    NumToString(ev.union_type.struct_def->bytesize);
+                code += "\t\tcase " + variant_name + ":\n";
+                code += "\t\t\tif err := v.CheckRange(pos, " +
+                        struct_size + "); err != nil {\n";
+                code += "\t\t\t\treturn err\n";
+                code += "\t\t\t}\n";
+              } else {
+                // Table variant: recurse into per-table verify.
+                const std::string verify_call =
+                    VerifyFuncForTable(ev.union_type.struct_def);
+                code += "\t\tcase " + variant_name + ":\n";
+                code += "\t\t\tif err := " + verify_call +
+                        "(v, pos); err != nil {\n";
+                code += "\t\t\t\treturn err\n";
+                code += "\t\t\t}\n";
+              }
+            }
+            // Unknown discriminant — tolerate for forward compatibility.
+            code += "\t\t}\n";  // end switch
+            code += "\t}\n";    // end if pos != 0
             break;
           }
           default:

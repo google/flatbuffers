@@ -6,7 +6,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
+export class Monster {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
@@ -22,10 +22,6 @@ static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
 static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getFullyQualifiedName(): "MyGame.Example2.Monster" {
-  return 'MyGame.Example2.Monster';
 }
 
 static startMonster(builder:flatbuffers.Builder) {
@@ -49,20 +45,12 @@ serialize():Uint8Array {
 static deserialize(buffer: Uint8Array):Monster {
   return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
 }
-
-unpack(): MonsterT {
-  return new MonsterT();
 }
 
-
-unpackTo(_o: MonsterT): void {}
-}
-
-export class MonsterT implements flatbuffers.IGeneratedObject {
-constructor(){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Monster.createMonster(builder);
-}
+export function verifyMonster(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+  } finally {
+    verifier.popDepth();
+  }
 }

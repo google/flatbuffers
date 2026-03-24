@@ -6,7 +6,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class InParentNamespace implements flatbuffers.IUnpackableObject<InParentNamespaceT> {
+export class InParentNamespace {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
@@ -22,10 +22,6 @@ static getRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamesp
 static getSizePrefixedRootAsInParentNamespace(bb:flatbuffers.ByteBuffer, obj?:InParentNamespace):InParentNamespace {
   bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
   return (obj || new InParentNamespace()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getFullyQualifiedName(): "MyGame.InParentNamespace" {
-  return 'MyGame.InParentNamespace';
 }
 
 static startInParentNamespace(builder:flatbuffers.Builder) {
@@ -49,20 +45,12 @@ serialize():Uint8Array {
 static deserialize(buffer: Uint8Array):InParentNamespace {
   return InParentNamespace.getRootAsInParentNamespace(new flatbuffers.ByteBuffer(buffer))
 }
-
-unpack(): InParentNamespaceT {
-  return new InParentNamespaceT();
 }
 
-
-unpackTo(_o: InParentNamespaceT): void {}
-}
-
-export class InParentNamespaceT implements flatbuffers.IGeneratedObject {
-constructor(){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return InParentNamespace.createInParentNamespace(builder);
-}
+export function verifyInParentNamespace(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+  } finally {
+    verifier.popDepth();
+  }
 }

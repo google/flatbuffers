@@ -4,10 +4,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { StructOfStructs, StructOfStructsT } from './struct-of-structs.js';
+import { StructOfStructs } from './struct-of-structs.js';
 
 
-export class StructOfStructsOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsOfStructsT> {
+export class StructOfStructsOfStructs {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructsOfStructs {
@@ -18,10 +18,6 @@ export class StructOfStructsOfStructs implements flatbuffers.IUnpackableObject<S
 
 a(obj?:StructOfStructs):StructOfStructs|null {
   return (obj || new StructOfStructs()).__init(this.bb_pos, this.bb!);
-}
-
-static getFullyQualifiedName(): "MyGame.Example.StructOfStructsOfStructs" {
-  return 'MyGame.Example.StructOfStructsOfStructs';
 }
 
 static sizeOf():number {
@@ -44,33 +40,4 @@ static createStructOfStructsOfStructs(builder:flatbuffers.Builder, a_a_id: numbe
   return builder.offset();
 }
 
-
-unpack(): StructOfStructsOfStructsT {
-  return new StructOfStructsOfStructsT(
-    (this.a() !== null ? this.a()!.unpack() : null)
-  );
-}
-
-
-unpackTo(_o: StructOfStructsOfStructsT): void {
-  _o.a = (this.a() !== null ? this.a()!.unpack() : null);
-}
-}
-
-export class StructOfStructsOfStructsT implements flatbuffers.IGeneratedObject {
-constructor(
-  public a: StructOfStructsT|null = null
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return StructOfStructsOfStructs.createStructOfStructsOfStructs(builder,
-    (this.a?.a?.id ?? 0),
-    (this.a?.a?.distance ?? 0),
-    (this.a?.b?.a ?? 0),
-    (this.a?.b?.b ?? 0),
-    (this.a?.c?.id ?? 0),
-    (this.a?.c?.distance ?? 0)
-  );
-}
 }

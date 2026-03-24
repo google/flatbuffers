@@ -347,6 +347,131 @@ func isVerificationError(err error, target **VerificationError) bool {
 	return ok
 }
 
+// --- CheckUnionConsistency tests ---
+
+// bufferWithVtableSlots builds a buffer where the vtable has specific field slots.
+// vtable: [vtable_size, table_size, field0_off, field1_off, ...]
+// table: [soffset_to_vtable, field_data...]
+func bufferWithVtableSlots(fieldOffsets ...uint16) []byte {
+	vtableSize := 4 + 2*len(fieldOffsets)   // 2 header shorts + N field shorts
+	tableSize := 4                          // just the soffset
+	totalSize := vtableSize + tableSize + 8 // extra padding
+
+	buf := make([]byte, totalSize)
+	vtablePos := 0
+	tablePos := vtableSize
+
+	// Write vtable
+	buf[vtablePos] = byte(vtableSize)
+	buf[vtablePos+1] = byte(vtableSize >> 8)
+	buf[vtablePos+2] = byte(tableSize)
+	buf[vtablePos+3] = byte(tableSize >> 8)
+	for i, off := range fieldOffsets {
+		pos := vtablePos + 4 + 2*i
+		buf[pos] = byte(off)
+		buf[pos+1] = byte(off >> 8)
+	}
+
+	// Write table: soffset pointing to vtable
+	soff := int32(tablePos - vtablePos)
+	buf[tablePos] = byte(soff)
+	buf[tablePos+1] = byte(soff >> 8)
+	buf[tablePos+2] = byte(soff >> 16)
+	buf[tablePos+3] = byte(soff >> 24)
+
+	return buf
+}
+
+func tablePosForSlots(fieldOffsets ...uint16) int {
+	vtableSize := 4 + 2*len(fieldOffsets)
+	return vtableSize
+}
+
+func TestCheckUnionConsistency_BothPresent(t *testing.T) {
+	// Both fields present (non-zero vtable offsets)
+	buf := bufferWithVtableSlots(4, 8) // field0 at offset 4, field1 at offset 8
+	v := NewVerifier(buf, nil)
+	tp := tablePosForSlots(4, 8)
+	err := v.CheckUnionConsistency(tp, 4, 6, "test_union")
+	if err != nil {
+		t.Fatalf("expected nil for both-present, got: %v", err)
+	}
+}
+
+func TestCheckUnionConsistency_BothAbsent(t *testing.T) {
+	// Both fields absent (zero vtable offsets)
+	buf := bufferWithVtableSlots(0, 0)
+	v := NewVerifier(buf, nil)
+	tp := tablePosForSlots(0, 0)
+	err := v.CheckUnionConsistency(tp, 4, 6, "test_union")
+	if err != nil {
+		t.Fatalf("expected nil for both-absent, got: %v", err)
+	}
+}
+
+func TestCheckUnionConsistency_TypePresentValueAbsent(t *testing.T) {
+	buf := bufferWithVtableSlots(4, 0) // type present, value absent
+	v := NewVerifier(buf, nil)
+	tp := tablePosForSlots(4, 0)
+	err := v.CheckUnionConsistency(tp, 4, 6, "test_union")
+	if err == nil {
+		t.Fatal("expected ErrInconsistentUnion for type-present/value-absent")
+	}
+	verr := err.(*VerificationError)
+	if verr.Kind != ErrInconsistentUnion {
+		t.Errorf("Kind = %v, want ErrInconsistentUnion", verr.Kind)
+	}
+	if verr.Field != "test_union" {
+		t.Errorf("Field = %q, want %q", verr.Field, "test_union")
+	}
+}
+
+func TestCheckUnionConsistency_TypeAbsentValuePresent(t *testing.T) {
+	buf := bufferWithVtableSlots(0, 8) // type absent, value present
+	v := NewVerifier(buf, nil)
+	tp := tablePosForSlots(0, 8)
+	err := v.CheckUnionConsistency(tp, 4, 6, "test_union")
+	if err == nil {
+		t.Fatal("expected ErrInconsistentUnion for type-absent/value-present")
+	}
+	verr := err.(*VerificationError)
+	if verr.Kind != ErrInconsistentUnion {
+		t.Errorf("Kind = %v, want ErrInconsistentUnion", verr.Kind)
+	}
+}
+
+func TestReadFieldByte_Present(t *testing.T) {
+	// Build a buffer where field 0 is present at relative offset 4 and holds byte 0x2A.
+	buf := bufferWithVtableSlots(4) // one field at relative offset 4
+	tp := tablePosForSlots(4)
+	// Write the byte value at tablePos + 4.
+	if tp+4 < len(buf) {
+		buf[tp+4] = 0x2A
+	}
+	v := NewVerifier(buf, nil)
+	b, err := v.ReadFieldByte(tp, 4)
+	if err != nil {
+		t.Fatalf("ReadFieldByte failed: %v", err)
+	}
+	if b != 0x2A {
+		t.Errorf("byte = 0x%02X, want 0x2A", b)
+	}
+}
+
+func TestReadFieldByte_Absent(t *testing.T) {
+	// Field absent (zero vtable offset).
+	buf := bufferWithVtableSlots(0)
+	tp := tablePosForSlots(0)
+	v := NewVerifier(buf, nil)
+	b, err := v.ReadFieldByte(tp, 4)
+	if err != nil {
+		t.Fatalf("ReadFieldByte failed: %v", err)
+	}
+	if b != 0 {
+		t.Errorf("byte = 0x%02X, want 0x00 for absent field", b)
+	}
+}
+
 func TestVerifierDefaultOptions(t *testing.T) {
 	buf := make([]byte, 100)
 	v := NewVerifier(buf, nil)

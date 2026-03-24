@@ -2761,15 +2761,55 @@ class TsGenerator : public BaseGenerator {
                   ", '" + field.name + "');\n";
         }
       } else if (base_type == BASE_TYPE_UNION) {
-        // Union value — verify the offset field. Full per-variant dispatch
-        // requires the type enum from the preceding _type field; for now we
-        // validate that the offset itself is accessible.
+        // Find the companion _type field's voffset.
+        const EnumDef& union_enum = *field.value.type.enum_def;
+        std::string type_voffset;
+        for (auto fit = struct_def.fields.vec.begin();
+             fit != struct_def.fields.vec.end(); ++fit) {
+          const FieldDef& f = **fit;
+          if (f.value.type.base_type == BASE_TYPE_UTYPE &&
+              f.value.type.enum_def == &union_enum) {
+            type_voffset = NumToString(f.value.offset);
+            break;
+          }
+        }
+        // Emit union consistency check.
+        code += "    verifier.checkUnionConsistency(tablePos, " +
+                type_voffset + ", " + voffset + ", '" + field.name + "');\n";
+        // Read type discriminant and dispatch to per-variant verify.
         code += "    {\n";
         code += "      const pos = verifier.checkOffsetField(tablePos, " +
                 voffset + ");\n";
         code += "      if (pos !== 0) {\n";
-        code += "        // Union value present — offset bounds checked.\n";
-        code += "      }\n";
+        code += "        const uType = verifier.readFieldUint8(tablePos, " +
+                type_voffset + ");\n";
+        code += "        switch (uType) {\n";
+        for (auto vit = union_enum.Vals().begin();
+             vit != union_enum.Vals().end(); ++vit) {
+          const EnumVal& ev = **vit;
+          if (ev.IsZero()) continue;  // Skip NONE
+          if (ev.union_type.struct_def == nullptr) continue;
+          const auto& variant_def = *ev.union_type.struct_def;
+          // Import the variant type and its verify function.
+          const std::string variant_type =
+              AddImport(imports, struct_def, variant_def).name;
+          AddVerifyImport(imports, struct_def, variant_def);
+          code += "          case " + NumToString(ev.GetAsInt64()) + ": // " +
+                  ev.name + "\n";
+          if (variant_def.fixed) {
+            // Fixed struct — just check bounds.
+            code += "            verifier.checkRange(pos, " +
+                    NumToString(variant_def.bytesize) + ");\n";
+          } else {
+            // Table — recurse into verify function.
+            code += "            verify" + variant_type +
+                    "(verifier, pos);\n";
+          }
+          code += "            break;\n";
+        }
+        // Unknown discriminant — forward compatibility: do nothing.
+        code += "        }\n";  // end switch
+        code += "      }\n";    // end if pos !== 0
         code += "    }\n";
         if (field.IsRequired()) {
           code += "    verifier.checkRequiredField(tablePos, " + voffset +

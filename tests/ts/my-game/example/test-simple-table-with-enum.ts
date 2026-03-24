@@ -7,7 +7,7 @@ import * as flatbuffers from 'flatbuffers';
 import { Color } from './color.js';
 
 
-export class TestSimpleTableWithEnum implements flatbuffers.IUnpackableObject<TestSimpleTableWithEnumT> {
+export class TestSimpleTableWithEnum {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
@@ -28,21 +28,6 @@ static getSizePrefixedRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, o
 color():Color {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Green;
-}
-
-mutate_color(value:Color):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-}
-
-static getFullyQualifiedName(): "MyGame.Example.TestSimpleTableWithEnum" {
-  return 'MyGame.Example.TestSimpleTableWithEnum';
 }
 
 static startTestSimpleTableWithEnum(builder:flatbuffers.Builder) {
@@ -71,28 +56,13 @@ serialize():Uint8Array {
 static deserialize(buffer: Uint8Array):TestSimpleTableWithEnum {
   return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
 }
-
-unpack(): TestSimpleTableWithEnumT {
-  return new TestSimpleTableWithEnumT(
-    this.color()
-  );
 }
 
-
-unpackTo(_o: TestSimpleTableWithEnumT): void {
-  _o.color = this.color();
-}
-}
-
-export class TestSimpleTableWithEnumT implements flatbuffers.IGeneratedObject {
-constructor(
-  public color: Color = Color.Green
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder,
-    this.color
-  );
-}
+export function verifyTestSimpleTableWithEnum(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 1);
+  } finally {
+    verifier.popDepth();
+  }
 }

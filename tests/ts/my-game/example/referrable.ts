@@ -6,7 +6,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Referrable implements flatbuffers.IUnpackableObject<ReferrableT> {
+export class Referrable {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
@@ -27,21 +27,6 @@ static getSizePrefixedRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrabl
 id():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_id(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-static getFullyQualifiedName(): "MyGame.Example.Referrable" {
-  return 'MyGame.Example.Referrable';
 }
 
 static startReferrable(builder:flatbuffers.Builder) {
@@ -70,28 +55,13 @@ serialize():Uint8Array {
 static deserialize(buffer: Uint8Array):Referrable {
   return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
 }
-
-unpack(): ReferrableT {
-  return new ReferrableT(
-    this.id()
-  );
 }
 
-
-unpackTo(_o: ReferrableT): void {
-  _o.id = this.id();
-}
-}
-
-export class ReferrableT implements flatbuffers.IGeneratedObject {
-constructor(
-  public id: bigint = BigInt('0')
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Referrable.createReferrable(builder,
-    this.id
-  );
-}
+export function verifyReferrable(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 8);
+  } finally {
+    verifier.popDepth();
+  }
 }

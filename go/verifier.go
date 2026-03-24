@@ -529,6 +529,75 @@ func (v *Verifier) CheckRequiredField(tablePos int, vOffset VOffsetT, fieldName 
 	return nil
 }
 
+// CheckUnionConsistency verifies that the union type field at vtable slot
+// typeVOffset and its corresponding value field at vtable slot valueVOffset are
+// either both present or both absent within the table at tablePos. If only one
+// is present, it returns [ErrInconsistentUnion]. fieldName is included in the
+// error for diagnostics. Generated code calls this method for every union field
+// pair.
+func (v *Verifier) CheckUnionConsistency(tablePos int, typeVOffset VOffsetT, valueVOffset VOffsetT, fieldName string) error {
+	typeOff, err := v.vtableFieldOffset(tablePos, typeVOffset)
+	if err != nil {
+		return err
+	}
+	valueOff, err := v.vtableFieldOffset(tablePos, valueVOffset)
+	if err != nil {
+		return err
+	}
+	typePresent := typeOff != 0
+	valuePresent := valueOff != 0
+	if typePresent != valuePresent {
+		return verifyErr(ErrInconsistentUnion, fieldName, tablePos)
+	}
+	return nil
+}
+
+// CheckVectorOfStrings verifies a vector-of-strings whose offset field is
+// stored at pos. It follows the vector indirection, confirms the vector bounds,
+// and then validates each element as a string (UTF-8, null terminator, bounds).
+// Returns an error if any element fails validation.
+func (v *Verifier) CheckVectorOfStrings(pos int) error {
+	uoff, err := v.CheckUOffsetT(pos)
+	if err != nil {
+		return err
+	}
+	vecStart := pos + int(uoff)
+	if err = v.CheckRange(vecStart, SizeUOffsetT); err != nil {
+		return err
+	}
+	vecLen := int(uint32(GetUOffsetT(v.buf[vecStart:])))
+	elemStart := vecStart + SizeUOffsetT
+	if err = v.CheckRange(elemStart, vecLen*SizeUOffsetT); err != nil {
+		return err
+	}
+	for i := 0; i < vecLen; i++ {
+		elemPos := elemStart + i*SizeUOffsetT
+		if err = v.CheckString(elemPos); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ReadFieldByte reads a single byte from the field at vtable slot vOffset
+// within the table at tablePos. If the field is absent (vtable entry is zero),
+// it returns 0, nil. This method is used by generated code to read union type
+// discriminants for per-variant verification dispatch.
+func (v *Verifier) ReadFieldByte(tablePos int, vOffset VOffsetT) (byte, error) {
+	fieldRelOff, err := v.vtableFieldOffset(tablePos, vOffset)
+	if err != nil {
+		return 0, err
+	}
+	if fieldRelOff == 0 {
+		return 0, nil
+	}
+	fieldPos := tablePos + int(fieldRelOff)
+	if err = v.CheckRange(fieldPos, 1); err != nil {
+		return 0, err
+	}
+	return v.buf[fieldPos], nil
+}
+
 // PushDepth increments the nesting depth counter and returns
 // [ErrDepthLimitReached] if the counter exceeds [VerifierOptions].MaxDepth.
 // It must be paired with a corresponding [Verifier.PopDepth] call, even when

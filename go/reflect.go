@@ -129,8 +129,8 @@ const (
 	enumVOffDeclarationFile VOffsetT = 16 // declaration_file: string
 
 	// EnumVal table vtable offsets (reflection.fbs: table EnumVal).
-	enumValVOffName          VOffsetT = 4  // name: string
-	enumValVOffValue         VOffsetT = 6  // value: int64
+	enumValVOffName  VOffsetT = 4 // name: string
+	enumValVOffValue VOffsetT = 6 // value: int64
 	// enumValVOffObject     VOffsetT = 8  // object: Object (deprecated — skip)
 	enumValVOffUnionType     VOffsetT = 10 // union_type: Type
 	enumValVOffDocumentation VOffsetT = 12 // documentation: [string]

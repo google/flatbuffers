@@ -6,7 +6,7 @@ import * as flatbuffers from 'flatbuffers';
 
 
 
-export class Stat implements flatbuffers.IUnpackableObject<StatT> {
+export class Stat {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Stat {
@@ -36,35 +36,9 @@ val():bigint {
   return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
 }
 
-mutate_val(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
-}
-
 count():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
-}
-
-mutate_count(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb!.writeUint16(this.bb_pos + offset, value);
-  return true;
-}
-
-static getFullyQualifiedName(): "MyGame.Example.Stat" {
-  return 'MyGame.Example.Stat';
 }
 
 static startStat(builder:flatbuffers.Builder) {
@@ -103,38 +77,20 @@ serialize():Uint8Array {
 static deserialize(buffer: Uint8Array):Stat {
   return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
 }
-
-unpack(): StatT {
-  return new StatT(
-    this.id(),
-    this.val(),
-    this.count()
-  );
 }
 
-
-unpackTo(_o: StatT): void {
-  _o.id = this.id();
-  _o.val = this.val();
-  _o.count = this.count();
-}
-}
-
-export class StatT implements flatbuffers.IGeneratedObject {
-constructor(
-  public id: string|Uint8Array|null = null,
-  public val: bigint = BigInt('0'),
-  public count: number = 0
-){}
-
-
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const id = (this.id !== null ? builder.createString(this.id!) : 0);
-
-  return Stat.createStat(builder,
-    id,
-    this.val,
-    this.count
-  );
-}
+export function verifyStat(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    {
+      const pos = verifier.checkOffsetField(tablePos, 4);
+      if (pos !== 0) {
+        verifier.checkString(pos);
+      }
+    }
+    verifier.checkScalarField(tablePos, 6, 8);
+    verifier.checkScalarField(tablePos, 8, 2);
+  } finally {
+    verifier.popDepth();
+  }
 }
