@@ -368,26 +368,23 @@ func (v *Verifier) CheckTable(tablePos int) error {
 	return v.CheckVtable(tablePos)
 }
 
-// CheckString verifies the FlatBuffers string whose offset field is stored at
-// pos. It follows the UOffsetT indirection, reads the 4-byte length prefix,
-// confirms all bytes are valid UTF-8, and (unless
-// [VerifierOptions].IgnoreNullTerminator is set) checks that the byte
-// immediately after the string body is zero. Returns [ErrUtf8Error] or
-// [ErrMissingNullTerminator] on failure, in addition to range errors.
+// CheckString verifies the FlatBuffers string at pos. pos must be the absolute
+// buffer position of the string's 4-byte length prefix — the target position
+// returned by [Verifier.CheckOffsetField]. It reads the length, confirms all
+// bytes are valid UTF-8, and (unless [VerifierOptions].IgnoreNullTerminator is
+// set) checks that the byte immediately after the string body is zero. Returns
+// [ErrUtf8Error] or [ErrMissingNullTerminator] on failure, in addition to
+// range errors.
 func (v *Verifier) CheckString(pos int) error {
-	uoff, err := v.CheckUOffsetT(pos)
-	if err != nil {
+	// Read the 4-byte string length directly at pos (no UOffsetT indirection:
+	// CheckOffsetField already dereferenced the table field's UOffsetT).
+	if err := v.CheckRange(pos, SizeUOffsetT); err != nil {
 		return err
 	}
-	strStart := pos + int(uoff)
-	// Read the 4-byte string length.
-	if err = v.CheckRange(strStart, SizeUOffsetT); err != nil {
-		return err
-	}
-	strLen := int(uint32(GetUOffsetT(v.buf[strStart:])))
-	bodyStart := strStart + SizeUOffsetT
+	strLen := int(uint32(GetUOffsetT(v.buf[pos:])))
+	bodyStart := pos + SizeUOffsetT
 	// Validate the body bytes plus the null terminator.
-	if err = v.CheckRange(bodyStart, strLen+1); err != nil {
+	if err := v.CheckRange(bodyStart, strLen+1); err != nil {
 		return err
 	}
 	body := v.buf[bodyStart : bodyStart+strLen]
@@ -400,56 +397,53 @@ func (v *Verifier) CheckString(pos int) error {
 	return nil
 }
 
-// CheckVector verifies the FlatBuffers vector whose offset field is stored at
-// pos. elementSize is the size in bytes of each inline element (e.g., 1 for
-// byte vectors, 4 for uint32 vectors). It follows the UOffsetT indirection,
-// reads the 4-byte element-count prefix, guards against integer overflow in
-// the total byte calculation, and confirms the entire element array lies within
-// the buffer. It returns the element count on success, or an error if any
-// check fails.
+// CheckVector verifies the FlatBuffers vector at pos. pos must be the absolute
+// buffer position of the vector's 4-byte element-count prefix — the target
+// position returned by [Verifier.CheckOffsetField]. elementSize is the size in
+// bytes of each inline element (e.g., 1 for byte vectors, 4 for uint32
+// vectors). It reads the element-count prefix, guards against integer overflow
+// in the total byte calculation, and confirms the entire element array lies
+// within the buffer. It returns the element count on success, or an error if
+// any check fails.
 func (v *Verifier) CheckVector(pos int, elementSize int) (int, error) {
-	uoff, err := v.CheckUOffsetT(pos)
-	if err != nil {
+	// Read the element count directly at pos (no UOffsetT indirection:
+	// CheckOffsetField already dereferenced the table field's UOffsetT).
+	if err := v.CheckRange(pos, SizeUOffsetT); err != nil {
 		return 0, err
 	}
-	vecStart := pos + int(uoff)
-	if err = v.CheckRange(vecStart, SizeUOffsetT); err != nil {
-		return 0, err
-	}
-	vecLen := int(uint32(GetUOffsetT(v.buf[vecStart:])))
+	vecLen := int(uint32(GetUOffsetT(v.buf[pos:])))
 	if vecLen < 0 {
-		return 0, verifyErr(ErrInvalidVectorLength, "", vecStart)
+		return 0, verifyErr(ErrInvalidVectorLength, "", pos)
 	}
-	elemStart := vecStart + SizeUOffsetT
+	elemStart := pos + SizeUOffsetT
 	totalBytes := vecLen * elementSize
 	if elementSize > 0 && totalBytes/elementSize != vecLen {
 		// Overflow check.
-		return 0, verifyErr(ErrInvalidVectorLength, "", vecStart)
+		return 0, verifyErr(ErrInvalidVectorLength, "", pos)
 	}
-	if err = v.CheckRange(elemStart, totalBytes); err != nil {
+	if err := v.CheckRange(elemStart, totalBytes); err != nil {
 		return 0, err
 	}
 	return vecLen, nil
 }
 
-// CheckVectorOfTables verifies a FlatBuffers vector-of-tables whose offset
-// field is stored at pos. For each element, it follows the per-element
-// UOffsetT indirection, increments the depth counter via [Verifier.PushDepth],
-// and delegates per-table validation to verifyElem. verifyElem receives the
-// Verifier and the absolute buffer position of the element's table. It returns
-// the first error encountered, or nil if all elements are valid.
+// CheckVectorOfTables verifies a FlatBuffers vector-of-tables at pos. pos must
+// be the absolute buffer position of the vector's element-count prefix — the
+// target position returned by [Verifier.CheckOffsetField]. For each element it
+// follows the per-element UOffsetT indirection, increments the depth counter
+// via [Verifier.PushDepth], and delegates per-table validation to verifyElem.
+// verifyElem receives the Verifier and the absolute buffer position of the
+// element's table. It returns the first error encountered, or nil if all
+// elements are valid.
 func (v *Verifier) CheckVectorOfTables(pos int, verifyElem func(v *Verifier, pos int) error) error {
-	uoff, err := v.CheckUOffsetT(pos)
-	if err != nil {
+	// Read the element count directly at pos (no UOffsetT indirection:
+	// CheckOffsetField already dereferenced the table field's UOffsetT).
+	if err := v.CheckRange(pos, SizeUOffsetT); err != nil {
 		return err
 	}
-	vecStart := pos + int(uoff)
-	if err = v.CheckRange(vecStart, SizeUOffsetT); err != nil {
-		return err
-	}
-	vecLen := int(uint32(GetUOffsetT(v.buf[vecStart:])))
-	elemStart := vecStart + SizeUOffsetT
-	if err = v.CheckRange(elemStart, vecLen*SizeUOffsetT); err != nil {
+	vecLen := int(uint32(GetUOffsetT(v.buf[pos:])))
+	elemStart := pos + SizeUOffsetT
+	if err := v.CheckRange(elemStart, vecLen*SizeUOffsetT); err != nil {
 		return err
 	}
 	for i := 0; i < vecLen; i++ {
@@ -459,10 +453,10 @@ func (v *Verifier) CheckVectorOfTables(pos int, verifyElem func(v *Verifier, pos
 			return uoffErr
 		}
 		tablePos := elemPos + int(elemUoff)
-		if err = v.PushDepth(); err != nil {
+		if err := v.PushDepth(); err != nil {
 			return err
 		}
-		if err = verifyElem(v, tablePos); err != nil {
+		if err := verifyElem(v, tablePos); err != nil {
 			v.PopDepth()
 			return err
 		}
@@ -489,10 +483,13 @@ func (v *Verifier) CheckScalarField(tablePos int, vOffset VOffsetT, size int) er
 
 // CheckOffsetField looks up the offset field at vtable slot vOffset within the
 // table at tablePos, follows the UOffsetT indirection, and returns the absolute
-// buffer position of the referenced data. If the vtable slot is zero (field
-// absent), it returns 0, nil. The returned position can be passed directly to
-// [Verifier.CheckString], [Verifier.CheckVector], or similar methods to verify
-// the pointed-to data structure.
+// buffer position of the referenced data object (e.g., the string length prefix
+// for string fields, or the element-count prefix for vector fields). If the
+// vtable slot is zero (field absent), it returns 0, nil. The returned position
+// is the target position and can be passed directly to [Verifier.CheckString],
+// [Verifier.CheckVector], [Verifier.CheckVectorOfStrings],
+// [Verifier.CheckVectorOfTables], or [Verifier.CheckTable] — none of which
+// perform an additional UOffsetT dereference.
 func (v *Verifier) CheckOffsetField(tablePos int, vOffset VOffsetT) (int, error) {
 	fieldRelOff, err := v.vtableFieldOffset(tablePos, vOffset)
 	if err != nil {
@@ -552,27 +549,32 @@ func (v *Verifier) CheckUnionConsistency(tablePos int, typeVOffset VOffsetT, val
 	return nil
 }
 
-// CheckVectorOfStrings verifies a vector-of-strings whose offset field is
-// stored at pos. It follows the vector indirection, confirms the vector bounds,
-// and then validates each element as a string (UTF-8, null terminator, bounds).
-// Returns an error if any element fails validation.
+// CheckVectorOfStrings verifies a vector-of-strings at pos. pos must be the
+// absolute buffer position of the vector's element-count prefix — the target
+// position returned by [Verifier.CheckOffsetField]. It confirms the vector
+// bounds, follows each element's UOffsetT indirection, and validates each
+// string (UTF-8, null terminator, bounds). Returns an error if any element
+// fails validation.
 func (v *Verifier) CheckVectorOfStrings(pos int) error {
-	uoff, err := v.CheckUOffsetT(pos)
-	if err != nil {
+	// Read the element count directly at pos (no UOffsetT indirection:
+	// CheckOffsetField already dereferenced the table field's UOffsetT).
+	if err := v.CheckRange(pos, SizeUOffsetT); err != nil {
 		return err
 	}
-	vecStart := pos + int(uoff)
-	if err = v.CheckRange(vecStart, SizeUOffsetT); err != nil {
-		return err
-	}
-	vecLen := int(uint32(GetUOffsetT(v.buf[vecStart:])))
-	elemStart := vecStart + SizeUOffsetT
-	if err = v.CheckRange(elemStart, vecLen*SizeUOffsetT); err != nil {
+	vecLen := int(uint32(GetUOffsetT(v.buf[pos:])))
+	elemStart := pos + SizeUOffsetT
+	if err := v.CheckRange(elemStart, vecLen*SizeUOffsetT); err != nil {
 		return err
 	}
 	for i := 0; i < vecLen; i++ {
 		elemPos := elemStart + i*SizeUOffsetT
-		if err = v.CheckString(elemPos); err != nil {
+		// Each element is a UOffsetT pointing to the string object.
+		elemUoff, err := v.CheckUOffsetT(elemPos)
+		if err != nil {
+			return err
+		}
+		strPos := elemPos + int(elemUoff)
+		if err = v.CheckString(strPos); err != nil {
 			return err
 		}
 	}
@@ -599,15 +601,15 @@ func (v *Verifier) ReadFieldByte(tablePos int, vOffset VOffsetT) (byte, error) {
 }
 
 // PushDepth increments the nesting depth counter and returns
-// [ErrDepthLimitReached] if the counter exceeds [VerifierOptions].MaxDepth.
-// It must be paired with a corresponding [Verifier.PopDepth] call, even when
-// an error is returned. Generated code calls PushDepth before recursing into
-// a nested table or vector-of-tables.
+// [ErrDepthLimitReached] if the counter would exceed [VerifierOptions].MaxDepth.
+// It must be paired with a corresponding [Verifier.PopDepth] call only when
+// PushDepth succeeds (returns nil). Generated code calls PushDepth before
+// recursing into a nested table or vector-of-tables.
 func (v *Verifier) PushDepth() error {
-	v.depth++
-	if v.depth > v.opts.MaxDepth {
+	if v.depth >= v.opts.MaxDepth {
 		return verifyErr(ErrDepthLimitReached, "", 0)
 	}
+	v.depth++
 	return nil
 }
 

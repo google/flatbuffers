@@ -18,10 +18,10 @@ func loadTestBfbs(t *testing.T) []byte {
 
 func loadTestData(t *testing.T) []byte {
 	t.Helper()
-	path := filepath.Join("..", "tests", "monsterdata_test.golden")
+	path := filepath.Join("..", "tests", "monsterdata_go_wire.mon")
 	data, err := os.ReadFile(path)
 	if err != nil {
-		t.Skipf("Golden data not found: %v", err)
+		t.Skipf("Binary wire data not found: %v", err)
 	}
 	return data
 }
