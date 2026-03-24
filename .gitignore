@@ -106,10 +106,9 @@ android/build/
 samples/android/.externalNativeBuild/
 samples/android/.gradle/
 samples/android/build/
-js/**/*.js
-js/**/*.d.ts
-mjs/**/*.js
-mjs/**/*.d.ts
+# js/ and mjs/ build output is committed so GitHub-based npm installs
+# (github:user/repo#branch) get the compiled files without needing a
+# prepublishOnly step.
 /bazel-bin
 /bazel-flatbuffers
 /bazel-genfiles
