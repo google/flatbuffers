@@ -1,0 +1,12 @@
+# npm packaging: include js/ mjs/ ts/ directories (override .gitignore)
+# .npmignore takes precedence over .gitignore for npm pack/install
+src/
+tests/
+build/
+rust/
+grpc/
+include/
+CMakeLists.txt
+*.cpp
+*.h
+*.cmake
