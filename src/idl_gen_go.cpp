@@ -1098,7 +1098,7 @@ class GoGenerator : public BaseGenerator {
               if (ev.IsZero()) continue;           // Skip NONE
               if (ev.union_type.struct_def == nullptr) continue;
               const std::string variant_name =
-                  namer_.EnumVariant(union_enum, ev);
+                  WrapInNameSpaceAndTrack(&union_enum, namer_.EnumVariant(union_enum, ev));
               if (ev.union_type.struct_def->fixed) {
                 // Fixed struct variant: check byte range.
                 const std::string struct_size =
