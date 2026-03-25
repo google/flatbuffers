@@ -5,7 +5,7 @@ import fs from 'fs'
 
 import {Any} from './my-game/example/any.js';
 import {Color} from './my-game/example/color.js';
-import {Monster, MonsterT} from './my-game/example/monster.js'
+import {Monster, MonsterT, verifyRootAsMonster} from './my-game/example/monster.js'
 import {Stat, StatT} from './my-game/example/stat.js'
 import {Test, TestT} from './my-game/example/test.js'
 import {Vec3, Vec3T} from './my-game/example/vec3.js'
@@ -50,6 +50,9 @@ function main() {
   testCreateByteVector();
   testObjApiCloneVectors();
   testObjApiEqualsVectors();
+  testObjApiUnpackFields();
+  testObjApiNaNEquality();
+  testObjApiVerify();
 
   console.log('FlatBuffers test: completed successfully');
 }
@@ -619,6 +622,107 @@ function testObjApiEqualsVectors() {
   var a = new MonsterT();
   var b = new MonsterT();
   assert.ok(a.equals(b));
+}
+
+// Test unpackFields: selective field unpacking should only populate
+// the requested fields, leaving others at constructor defaults.
+function testObjApiUnpackFields() {
+  var fbb = new flatbuffers.Builder(1);
+  createMonster(fbb);
+  var monster = Monster.getRootAsMonster(fbb.dataBuffer());
+
+  // Unpack only scalars
+  var partial = monster.unpackFields('hp', 'mana', 'name');
+  assert.strictEqual(partial.hp, 80);
+  assert.strictEqual(partial.mana, 150);
+  assert.strictEqual(partial.name, 'MyMonster');
+  // Unrequested fields should be at defaults
+  assert.strictEqual(partial.testbool, false);
+  assert.strictEqual(partial.inventory.length, 0);
+  assert.strictEqual(partial.testarrayofstring.length, 0);
+
+  // Unpack vectors
+  var vecs = monster.unpackFields('inventory', 'testarrayofstring', 'test4');
+  assert.strictEqual(vecs.inventory.length, 5);
+  assert.strictEqual(vecs.testarrayofstring.length, 2);
+  assert.strictEqual(vecs.testarrayofstring[0], 'test1');
+  assert.strictEqual(vecs.test4.length, 2);
+  assert.ok(vecs.test4[0] instanceof TestT);
+  assert.strictEqual(vecs.test4[0].a + vecs.test4[0].b + vecs.test4[1].a + vecs.test4[1].b, 100);
+
+  // Unpack struct field
+  var withPos = monster.unpackFields('pos');
+  assert.ok(withPos.pos !== null);
+  assert.strictEqual(withPos.pos.x, 1);
+  assert.strictEqual(withPos.pos.y, 2);
+  assert.strictEqual(withPos.pos.z, 3);
+
+  // Unpack nested table
+  var withEnemy = monster.unpackFields('test_type', 'test');
+  assert.strictEqual(withEnemy.testType, Any.Monster);
+  assert.ok(withEnemy.test !== null);
+  assert.ok(withEnemy.test instanceof MonsterT);
+  assert.strictEqual(withEnemy.test.name, 'Fred');
+
+  // Unpack no fields — should return defaults
+  var empty = monster.unpackFields();
+  assert.strictEqual(empty.hp, 100); // default
+  assert.strictEqual(empty.mana, 150); // default
+  assert.strictEqual(empty.name, null); // string default
+}
+
+// Test that Object.is() is used for float equality so NaN === NaN.
+function testObjApiNaNEquality() {
+  var a = new MonsterT();
+  var b = new MonsterT();
+
+  // MonsterT constructor defaults nanDefault to NaN.
+  // Without Object.is(), this would fail since NaN !== NaN in JS.
+  assert.ok(Number.isNaN(a.nanDefault), 'a.nanDefault should be NaN');
+  assert.ok(Number.isNaN(b.nanDefault), 'b.nanDefault should be NaN');
+
+  // Two default-constructed monsters must be equal despite NaN fields
+  assert.ok(a.equals(b), 'NaN fields should be equal via Object.is()');
+
+  // Mutate a float field — should break equality
+  b.nanDefault = 0;
+  assert.ok(!a.equals(b), 'NaN vs 0 should not be equal');
+
+  // Infinity fields should also compare correctly
+  b = new MonsterT();
+  assert.ok(a.equals(b));
+  b.infDefault = -Infinity;
+  assert.ok(!a.equals(b), 'Infinity vs -Infinity should not be equal');
+}
+
+// Test verifier on a known-good buffer.
+function testObjApiVerify() {
+  var fbb = new flatbuffers.Builder(1);
+  createMonster(fbb);
+
+  var bytes = fbb.asUint8Array();
+  var copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  var view = new DataView(copy.buffer);
+
+  // Should not throw for a valid buffer
+  verifyRootAsMonster(view);
+
+  // Corrupt the buffer and verify it throws
+  var corrupted = new Uint8Array(bytes.byteLength);
+  corrupted.set(bytes);
+  // Zero out bytes 4-8 (vtable region) to create an invalid vtable
+  for (var i = 4; i < Math.min(16, corrupted.byteLength); i++) {
+    corrupted[i] = 0;
+  }
+  var corruptedView = new DataView(corrupted.buffer);
+  var threw = false;
+  try {
+    verifyRootAsMonster(corruptedView);
+  } catch (e) {
+    threw = true;
+  }
+  assert.ok(threw, 'Corrupted buffer should fail verification');
 }
 
 main();

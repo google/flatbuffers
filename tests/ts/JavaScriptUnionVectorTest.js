@@ -4,6 +4,7 @@ import * as flatbuffers from 'flatbuffers'
 import {Attacker, AttackerT} from './union_vector/attacker.js'
 import {BookReader, BookReaderT} from './union_vector/book-reader.js'
 import {Character} from './union_vector/character.js'
+import {Rapunzel, RapunzelT} from './union_vector/rapunzel.js'
 import {Movie, MovieT} from './union_vector/movie.js'
 
 var charTypes =
@@ -96,7 +97,89 @@ function main() {
   var unpackBuf = new flatbuffers.ByteBuffer(fbb.asUint8Array());
   testMovieBuf(Movie.getRootAsMovie(unpackBuf));
 
+  testMovieClone();
+  testMovieEquals();
+  // Build a fresh buffer for unpackFields (the earlier fbb was reused).
+  var fbb2 = new flatbuffers.Builder();
+  createMovie(fbb2);
+  testMovieUnpackFields(new flatbuffers.ByteBuffer(fbb2.asUint8Array()));
+
   console.log('FlatBuffers union vector test: completed successfully');
+}
+
+// Test clone() for union and vector-of-union fields.
+function testMovieClone() {
+  var mt = new MovieT();
+  mt.mainCharacterType = Character.MuLan;
+  mt.mainCharacter = new AttackerT(10);
+  mt.charactersType = [Character.Belle, Character.Other, Character.Rapunzel];
+  mt.characters = [new BookReaderT(5), 'hello', new RapunzelT(42)];
+
+  var cloned = mt.clone();
+
+  // Scalar union: cloned, not same reference
+  assert.ok(cloned.mainCharacter instanceof AttackerT);
+  assert.strictEqual(cloned.mainCharacter.swordAttackDamage, 10);
+
+  // Vector-of-unions: types and values cloned
+  assert.strictEqual(cloned.charactersType.length, 3);
+  assert.strictEqual(cloned.charactersType[0], Character.Belle);
+  assert.strictEqual(cloned.charactersType[1], Character.Other);
+  assert.strictEqual(cloned.charactersType[2], Character.Rapunzel);
+  assert.strictEqual(cloned.characters.length, 3);
+  assert.ok(cloned.characters[0] instanceof BookReaderT);
+  assert.strictEqual(cloned.characters[0].booksRead, 5);
+  assert.strictEqual(cloned.characters[1], 'hello');
+  assert.ok(cloned.characters[2] instanceof RapunzelT);
+  assert.strictEqual(cloned.characters[2].hairLength, 42);
+
+  // Vectors should be new references
+  assert.notStrictEqual(cloned.characters, mt.characters);
+  assert.notStrictEqual(cloned.charactersType, mt.charactersType);
+}
+
+// Test equals() for union fields.
+function testMovieEquals() {
+  var a = new MovieT();
+  a.mainCharacterType = Character.MuLan;
+  a.mainCharacter = new AttackerT(10);
+
+  var b = new MovieT();
+  b.mainCharacterType = Character.MuLan;
+  b.mainCharacter = new AttackerT(10);
+
+  assert.ok(a.equals(b));
+
+  // Different union value
+  b.mainCharacter = new AttackerT(99);
+  assert.ok(!a.equals(b));
+
+  // Different union type
+  b.mainCharacterType = Character.Belle;
+  b.mainCharacter = new BookReaderT(10);
+  assert.ok(!a.equals(b));
+
+  // Empty movies should be equal
+  assert.ok(new MovieT().equals(new MovieT()));
+}
+
+// Test unpackFields with union and vector-of-union fields.
+function testMovieUnpackFields(buf) {
+  var movie = Movie.getRootAsMovie(buf);
+
+  // Unpack only the vector-of-unions
+  var partial = movie.unpackFields('characters_type', 'characters');
+  assert.strictEqual(partial.charactersType.length, charTypes.length);
+  assert.strictEqual(partial.characters.length, charTypes.length);
+  assert.ok(partial.characters[0] instanceof BookReaderT);
+  assert.strictEqual(partial.characters[0].booksRead, 7);
+  assert.ok(partial.characters[1] instanceof AttackerT);
+  assert.strictEqual(partial.characters[1].swordAttackDamage, 5);
+  assert.strictEqual(partial.characters[3], 'I am other');
+
+  // Unrequested field should be at default
+  assert.strictEqual(partial.mainCharacterType, Character.NONE);
+  assert.strictEqual(partial.mainCharacter, null);
 }
 
 main();

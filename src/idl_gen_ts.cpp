@@ -2815,10 +2815,12 @@ class TsGenerator : public BaseGenerator {
           if (ev.IsZero()) continue;  // Skip NONE
           if (ev.union_type.struct_def == nullptr) continue;
           const auto& variant_def = *ev.union_type.struct_def;
-          // Import the variant type and its verify function.
+          // Import the variant type (and verify function for tables only).
           const std::string variant_type =
               AddImport(imports, struct_def, variant_def).name;
-          AddVerifyImport(imports, struct_def, variant_def);
+          if (!variant_def.fixed) {
+            AddVerifyImport(imports, struct_def, variant_def);
+          }
           code += "          case " + NumToString(ev.GetAsInt64()) + ": // " +
                   ev.name + "\n";
           if (variant_def.fixed) {
@@ -2826,9 +2828,9 @@ class TsGenerator : public BaseGenerator {
             code += "            verifier.checkRange(pos, " +
                     NumToString(variant_def.bytesize) + ");\n";
           } else {
-            // Table — recurse into verify function.
-            code += "            verify" + variant_type +
-                    "(verifier, pos);\n";
+            // Table — dereference the relative offset, then recurse.
+            code += "            { const o = verifier.readInt32(pos); verify" +
+                    variant_type + "(verifier, pos + o); }\n";
           }
           code += "            break;\n";
         }
