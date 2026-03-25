@@ -8,7 +8,7 @@ import Common
 
 import FlatBuffers
 
-public struct Swift_Tests_NanInfTable: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
+public struct Swift_Tests_NanInfTable: FlatBufferVerifiableTable, FlatbuffersVectorInitializable {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
