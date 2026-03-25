@@ -1973,7 +1973,10 @@ class TsGenerator : public BaseGenerator {
                    ", this." + namer_.Field(field, "Length") + "());\n";
           }
         } else if (vectortype.base_type == BASE_TYPE_UNION) {
-          ret += "    t." + ff + " = this." + ff + ";\n";
+          ret += "    t." + ff + " = " +
+                 GenUnionValTS(imports, struct_def, field_method,
+                               vectortype, true) +
+                 ";\n";
         } else {
           auto vectortypename =
               GenTypeName(imports, struct_def, vectortype, false);
@@ -1990,7 +1993,10 @@ class TsGenerator : public BaseGenerator {
           }
         }
       } else if (base == BASE_TYPE_UNION) {
-        ret += "    t." + ff + " = this." + ff + ";\n";
+        ret += "    t." + ff + " = " +
+               GenUnionValTS(imports, struct_def, field_method,
+                             field.value.type) +
+               ";\n";
       } else {
         ret += "    t." + ff + " = this." + field_method + "();\n";
       }
