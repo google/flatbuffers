@@ -161,7 +161,7 @@ public struct MyGame_Sample_Vec3_Mutable: FlatBufferStruct, FlatbuffersVectorIni
   }
 }
 
-public struct MyGame_Sample_Monster: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Sample_Monster: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -400,7 +400,7 @@ public class MyGame_Sample_MonsterT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: MyGame_Sample_Monster.self) }
 
 }
-public struct MyGame_Sample_Weapon: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Sample_Weapon: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }

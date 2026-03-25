@@ -68,7 +68,7 @@ public struct FlatbufferVector<
 }
 
 extension FlatbufferVector: Encodable where Element: Encodable {
-  public func encode(to encoder: Encoder) throws {
+  public func encode(to encoder: any Encoder) throws {
     var container = encoder.unkeyedContainer()
     for element in self {
       try container.encode(element)
