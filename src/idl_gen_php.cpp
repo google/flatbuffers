@@ -798,7 +798,7 @@ class PhpGenerator : public BaseGenerator {
         code += Indent + "public static function " + struct_def.name;
         code += "Extension()\n";
         code += Indent + "{\n";
-        code += Indent + Indent + "return \"" + parser_.file_extension_;
+        code += Indent + Indent + "return \"" + flatbuffers::SanitizeStringForCodeGen(parser_.file_extension_);
         code += "\";\n";
         code += Indent + "}\n\n";
       }

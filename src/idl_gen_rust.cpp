@@ -2657,7 +2657,7 @@ class RustGenerator : public BaseGenerator {
     if (parser_.file_extension_.length()) {
       // Return the extension
       code_ += "pub const {{STRUCT_CONST}}_EXTENSION: &str = \\";
-      code_ += "\"" + parser_.file_extension_ + "\";";
+      code_ += "\"" + flatbuffers::SanitizeStringForCodeGen(parser_.file_extension_) + "\";";
       code_ += "";
     }
 
