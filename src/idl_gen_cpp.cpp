@@ -254,7 +254,7 @@ class CppGenerator : public BaseGenerator {
              std::to_string(FLATBUFFERS_VERSION_MAJOR) + " &&";
     code_ += "              FLATBUFFERS_VERSION_MINOR == " +
              std::to_string(FLATBUFFERS_VERSION_MINOR) + " &&";
-    code_ += "              FLATBUFFERS_VERSION_REVISION == " +
+    code_ += "              FLATBUFFERS_VERSION_REVISION >= " +
              std::to_string(FLATBUFFERS_VERSION_REVISION) + ",";
     code_ += "             \"Non-compatible flatbuffers version included\");";
   }

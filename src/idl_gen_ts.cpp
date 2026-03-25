@@ -1816,12 +1816,11 @@ class TsGenerator : public BaseGenerator {
         auto vectortype = field.value.type.VectorType();
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
           // Vector of *T objects: element-wise clone
-          ret += "  obj." + ff + " = this." + ff + " !== null ? this." + ff +
-                 "!.map(e => e !== null ? e.clone() : null) : null;\n";
+          ret += "  obj." + ff + " = this." + ff +
+                 ".map(e => e !== null ? e.clone() : null);\n";
         } else {
           // Vector of scalars/strings/unions: spread copy
-          ret += "  obj." + ff + " = this." + ff + " !== null ? [...this." + ff +
-                 "!] : null;\n";
+          ret += "  obj." + ff + " = [...this." + ff + "];\n";
         }
       } else {
         ret += "  obj." + ff + " = this." + ff + ";\n";
@@ -1865,24 +1864,21 @@ class TsGenerator : public BaseGenerator {
         ret += "  } else if (this." + ff + " !== other." + ff + ") return false;\n";
       } else if (base == BASE_TYPE_VECTOR || base == BASE_TYPE_ARRAY) {
         auto vectortype = field.value.type.VectorType();
-        // Null check
-        ret += "  if (this." + ff + " !== null && other." + ff + " !== null) {\n";
-        ret += "    if (this." + ff + "!.length !== other." + ff +
-               "!.length) return false;\n";
+        ret += "  if (this." + ff + ".length !== other." + ff +
+               ".length) return false;\n";
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
-          ret += "    for (let i = 0; i < this." + ff + "!.length; i++) {\n";
-          ret += "      const a = this." + ff + "![i]; const b = other." + ff + "![i];\n";
-          ret += "      if (a !== null && b !== null) {\n";
-          ret += "        if (!a.equals(b)) return false;\n";
-          ret += "      } else if (a !== b) return false;\n";
-          ret += "    }\n";
+          ret += "  for (let i = 0; i < this." + ff + ".length; i++) {\n";
+          ret += "    const a = this." + ff + "[i]; const b = other." + ff + "[i];\n";
+          ret += "    if (a !== null && b !== null) {\n";
+          ret += "      if (!a.equals(b)) return false;\n";
+          ret += "    } else if (a !== b) return false;\n";
+          ret += "  }\n";
         } else {
-          ret += "    for (let i = 0; i < this." + ff + "!.length; i++) {\n";
-          ret += "      if (this." + ff + "![i] !== other." + ff +
-                 "![i]) return false;\n";
-          ret += "    }\n";
+          ret += "  for (let i = 0; i < this." + ff + ".length; i++) {\n";
+          ret += "    if (this." + ff + "[i] !== other." + ff +
+                 "[i]) return false;\n";
+          ret += "  }\n";
         }
-        ret += "  } else if (this." + ff + " !== other." + ff + ") return false;\n";
       } else {
         ret += "  if (this." + ff + " !== other." + ff + ") return false;\n";
       }

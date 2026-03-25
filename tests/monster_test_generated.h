@@ -12,7 +12,7 @@
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
               FLATBUFFERS_VERSION_MINOR == 12 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_REVISION >= 23,
              "Non-compatible flatbuffers version included");
 
 // For access to the binary schema that produced this file.
