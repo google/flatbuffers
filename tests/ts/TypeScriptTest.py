@@ -61,9 +61,11 @@ def flatc(
 
 
 # Execute esbuild with the specified parameters
-def esbuild(input, output):
+def esbuild(input, output, platform=None):
   cmd = ["esbuild", input, "--outfile=" + output]
   cmd += ["--format=cjs", "--bundle", "--external:flatbuffers"]
+  if platform:
+    cmd += ["--platform=" + platform]
   check_call(cmd)
 
 
@@ -199,6 +201,26 @@ flatc(
 flatc(options=["--ts"], schema="../long_namespace.fbs")
 flatc(options=["--ts"], schema="../longer_namespace.fbs")
 
+# Cross-namespace verify import test: two schemas with the same table name
+# in different namespaces, forcing aliased imports for verify functions.
+flatc(
+    options=[
+        "--ts",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema=[
+        "../cross_ns_verify_outer.fbs",
+        "../cross_ns_verify_inner.fbs",
+    ],
+    prefix="cross_ns_verify",
+)
+esbuild(
+    "JavaScriptCrossNsVerifyTest.js",
+    "cross_ns_verify/cross_ns_verify_test_generated.cjs",
+    platform="node",
+)
 
 flatc(
     options=[
@@ -231,6 +253,7 @@ check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
 check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
 check_call(NODE_CMD + ["JavaScriptRelativeImportPathTest"])
 check_call(NODE_CMD + ["JavaScriptUndefinedForOptionals"])
+check_call(NODE_CMD + ["cross_ns_verify/cross_ns_verify_test_generated.cjs"])
 
 print("Running old v1 TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTestv1.cjs", "./monster_test_generated.cjs"])

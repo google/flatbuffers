@@ -1,0 +1,15 @@
+include "cross_ns_verify_inner.fbs";
+
+namespace Outer;
+
+// Deliberately name-clashes with Inner.Mapping to force namespaced import.
+table Mapping {
+  name: string;
+}
+
+table Container {
+  local_mapping: Outer.Mapping;
+  inner_mapping: Inner.Mapping;
+}
+
+root_type Container;

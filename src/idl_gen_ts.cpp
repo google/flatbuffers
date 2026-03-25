@@ -1090,21 +1090,35 @@ class TsGenerator : public BaseGenerator {
     auto it = imports.find(unique_name);
     if (it == imports.end()) return;  // Should not happen.
 
-    const std::string verify_name = "verify" + it->second.name;
+    // The verify function is always exported with the base type name
+    // (e.g. verifyMapping), but when there's a name clash the import
+    // alias is namespaced (e.g. Cga_Mapping). Mirror the aliasing so
+    // the imported symbol matches the call site.
+    const std::string base_name = GetTypeName(dependency);
+    const std::string verify_base = "verify" + base_name;
+    const std::string verify_alias = "verify" + it->second.name;
+
     // Check if already added (avoid duplicates).
-    if (it->second.import_statement.find(verify_name) != std::string::npos)
+    if (it->second.import_statement.find(verify_alias) != std::string::npos)
       return;
+
+    // Build the symbol expression, with "as" alias if names differ.
+    std::string verify_symbol = verify_base;
+    if (verify_base != verify_alias) {
+      verify_symbol += " as " + verify_alias;
+    }
+
     // Splice verify name into the import statement:
     //   "import { Foo } from '...'" → "import { Foo, verifyFoo } from '...'"
     const std::string search = " } from '";
     auto pos = it->second.import_statement.find(search);
     if (pos != std::string::npos) {
-      it->second.import_statement.insert(pos, ", " + verify_name);
+      it->second.import_statement.insert(pos, ", " + verify_symbol);
     }
-    // Same for export statement.
+    // Same for export statement (always use base name, no alias needed).
     pos = it->second.export_statement.find(search);
     if (pos != std::string::npos) {
-      it->second.export_statement.insert(pos, ", " + verify_name);
+      it->second.export_statement.insert(pos, ", " + verify_base);
     }
   }
 
@@ -1817,7 +1831,7 @@ class TsGenerator : public BaseGenerator {
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
           // Vector of *T objects: element-wise clone
           ret += "  obj." + ff + " = this." + ff +
-                 ".map(e => e !== null ? e.clone() : null);\n";
+                 ".map(e => e.clone());\n";
         } else {
           // Vector of scalars/strings/unions: spread copy
           ret += "  obj." + ff + " = [...this." + ff + "];\n";
@@ -1847,7 +1861,13 @@ class TsGenerator : public BaseGenerator {
       const auto base = field.value.type.base_type;
 
       if (IsScalar(base) || IsString(field.value.type)) {
-        ret += "  if (this." + ff + " !== other." + ff + ") return false;\n";
+        if (IsFloat(base)) {
+          // Use Object.is() for floats so NaN === NaN is true.
+          ret += "  if (!Object.is(this." + ff + ", other." + ff +
+                 ")) return false;\n";
+        } else {
+          ret += "  if (this." + ff + " !== other." + ff + ") return false;\n";
+        }
       } else if (base == BASE_TYPE_STRUCT) {
         ret += "  if (this." + ff + " !== null && other." + ff + " !== null) {\n";
         ret += "    if (!this." + ff + "!.equals(other." + ff + "!)) return false;\n";

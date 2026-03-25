@@ -414,7 +414,8 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     code_ += "/// Returns the embedded binary schema as a static byte slice.";
     code_ += "#[inline]";
-    code_ += "pub fn " + name_lower + "() -> &'static [u8] {";
+    code_ += "#[must_use]";
+    code_ += "pub const fn " + name_lower + "() -> &'static [u8] {";
     code_ += "  " + name_upper;
     code_ += "}";
 
@@ -670,10 +671,103 @@ class RustGenerator : public BaseGenerator {
     return stream.str();
   }
 
+  // Build set of all symbol names from the parsed schema. These are the
+  // words that should be backtick-wrapped in doc comments so that
+  // clippy::doc_markdown does not fire on generated code.
+  std::set<std::string> BuildSchemaSymbols() const {
+    std::set<std::string> syms;
+    // Enum names and variant names.
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      syms.insert((*it)->name);
+      for (auto vit = (*it)->Vals().begin(); vit != (*it)->Vals().end();
+           ++vit) {
+        syms.insert((*vit)->name);
+      }
+    }
+    // Struct/table names and field names.
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      syms.insert((*it)->name);
+      for (auto fit = (*it)->fields.vec.begin();
+           fit != (*it)->fields.vec.end(); ++fit) {
+        syms.insert((*fit)->name);
+      }
+    }
+    return syms;
+  }
+
+  // Wrap words that match schema symbols in backticks for
+  // clippy::doc_markdown. Only wraps words that are actual identifiers
+  // defined in the .fbs schema, not arbitrary prose.
+  std::string SanitizeDocComment(const std::string& line,
+                                 const std::set<std::string>& syms) const {
+    std::string result;
+    result.reserve(line.size());
+    bool in_backtick = false;
+    size_t i = 0;
+    while (i < line.size()) {
+      if (line[i] == '`') {
+        in_backtick = !in_backtick;
+        result += line[i++];
+        continue;
+      }
+      if (in_backtick) {
+        result += line[i++];
+        continue;
+      }
+      // Try to extract a word token (letters, digits, underscores, dots).
+      if (std::isalpha(static_cast<unsigned char>(line[i])) || line[i] == '_') {
+        size_t start = i;
+        while (i < line.size() &&
+               (std::isalnum(static_cast<unsigned char>(line[i])) ||
+                line[i] == '_' || line[i] == '.')) {
+          i++;
+        }
+        // Don't include trailing dots (sentence punctuation).
+        while (i > start && line[i - 1] == '.') { i--; }
+        std::string word = line.substr(start, i - start);
+        // Check if the whole token (possibly dotted like Table.field)
+        // or any dot-separated segment is a known schema symbol.
+        bool needs_backtick = false;
+        if (syms.count(word)) {
+          needs_backtick = true;
+        } else if (word.find('.') != std::string::npos) {
+          // Check segments: "ModbusReadEntry.data_type" → check both parts.
+          size_t pos = 0;
+          while (pos < word.size()) {
+            auto dot = word.find('.', pos);
+            auto seg = word.substr(pos, dot == std::string::npos
+                                            ? std::string::npos
+                                            : dot - pos);
+            if (syms.count(seg)) {
+              needs_backtick = true;
+              break;
+            }
+            if (dot == std::string::npos) break;
+            pos = dot + 1;
+          }
+        }
+        if (needs_backtick) {
+          result += '`';
+          result += word;
+          result += '`';
+        } else {
+          result += word;
+        }
+      } else {
+        result += line[i++];
+      }
+    }
+    return result;
+  }
+
   // Generate a comment from the schema.
   void GenComment(const std::vector<std::string>& dc, const char* prefix = "") {
+    if (dc.empty()) return;
+    auto syms = BuildSchemaSymbols();
     for (auto it = dc.begin(); it != dc.end(); it++) {
-      code_ += std::string(prefix) + "///" + *it;
+      code_ += std::string(prefix) + "///" + SanitizeDocComment(*it, syms);
     }
   }
 
