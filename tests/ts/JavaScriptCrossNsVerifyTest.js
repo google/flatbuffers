@@ -5,7 +5,7 @@
 import assert from 'assert'
 import * as flatbuffers from 'flatbuffers'
 
-import { Container, ContainerT, verifyRootAsContainer } from './cross_ns_verify/outer/container.js'
+import { Container, ContainerT, verifyContainer, verifyRootAsContainer } from './cross_ns_verify/outer/container.js'
 import { Mapping, MappingT } from './cross_ns_verify/outer/mapping.js'
 import { Mapping as Inner_Mapping, MappingT as Inner_MappingT } from './cross_ns_verify/inner/mapping.js'
 
@@ -61,13 +61,35 @@ function testCrossNsCloneEquals() {
 }
 
 function testCrossNsVerify() {
-  // The actual regression test is the static import of verifyRootAsContainer
-  // at the top of this file. If the import aliasing was broken (the generated
-  // code emitting verifyCga_Mapping instead of verifyMapping as
-  // verifyCga_Mapping), the esbuild bundle would fail or the function
-  // would be undefined at runtime.
-  assert.strictEqual(typeof verifyRootAsContainer, 'function',
-    'verifyRootAsContainer should be importable (cross-ns verify alias works)');
+  // Build a valid Container and run the cross-namespace verifier.
+  // This exercises:
+  // 1. The import aliasing fix (verifyMapping as verifyInner_Mapping)
+  // 2. The nested table offset dereference fix in generated verifier code
+  var fbb = new flatbuffers.Builder(256);
+
+  var innerKey = fbb.createString('k');
+  Inner_Mapping.startMapping(fbb);
+  Inner_Mapping.addKey(fbb, innerKey);
+  Inner_Mapping.addValue(fbb, 1);
+  var innerOffset = Inner_Mapping.endMapping(fbb);
+
+  var outerName = fbb.createString('n');
+  Mapping.startMapping(fbb);
+  Mapping.addName(fbb, outerName);
+  var outerOffset = Mapping.endMapping(fbb);
+
+  Container.startContainer(fbb);
+  Container.addLocalMapping(fbb, outerOffset);
+  Container.addInnerMapping(fbb, innerOffset);
+  Container.finishContainerBuffer(fbb, Container.endContainer(fbb));
+
+  // asUint8Array() returns the finished buffer as a subarray of the
+  // Builder's backing store. Copy into a fresh ArrayBuffer so offsets
+  // start at 0 for the verifier.
+  var bytes = fbb.asUint8Array();
+  var copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  verifyRootAsContainer(new DataView(copy.buffer));
 }
 
 main();

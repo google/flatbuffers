@@ -2718,15 +2718,18 @@ class TsGenerator : public BaseGenerator {
           code += "    verifier.checkScalarField(tablePos, " + voffset +
                   ", " + NumToString(child_def.bytesize) + ");\n";
         } else {
-          // Nested table — recurse.
+          // Nested table — dereference the relative offset to get the
+          // target table position, then recurse into the child verifier.
           const std::string child_type =
               AddImport(imports, struct_def, child_def).name;
           AddVerifyImport(imports, struct_def, child_def);
           code += "    {\n";
-          code += "      const pos = verifier.checkOffsetField(tablePos, " +
+          code += "      const fieldPos = verifier.checkOffsetField(tablePos, " +
                   voffset + ");\n";
-          code += "      if (pos !== 0) {\n";
-          code += "        verify" + child_type + "(verifier, pos);\n";
+          code += "      if (fieldPos !== 0) {\n";
+          code += "        const tableOffset = verifier.readInt32(fieldPos);\n";
+          code += "        verify" + child_type +
+                  "(verifier, fieldPos + tableOffset);\n";
           code += "      }\n";
           code += "    }\n";
         }
