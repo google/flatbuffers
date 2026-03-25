@@ -103,44 +103,46 @@ function readVectorMeta(buf, fieldPos) {
  * @param deltas    - Accumulator array; entries are pushed in-place.
  */
 function diffTable(bufA, tablePosA, bufB, tablePosB, obj, schema, prefix, deltas) {
-    for (const field of obj.fields()) {
+    const fields = obj.fields();
+    for (let i = 0; i < fields.length; i += 1) {
+        const field = fields[i];
         const fieldName = field.name();
         const path = prefix.length > 0 ? `${prefix}.${fieldName}` : fieldName;
         const ft = field.type();
-        if (ft === null)
-            continue;
-        switch (ft.baseType()) {
-            case ReflectionBaseType.Bool:
-                diffBoolField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
-                break;
-            case ReflectionBaseType.UType:
-            case ReflectionBaseType.Byte:
-            case ReflectionBaseType.UByte:
-            case ReflectionBaseType.Short:
-            case ReflectionBaseType.UShort:
-            case ReflectionBaseType.Int:
-            case ReflectionBaseType.UInt:
-            case ReflectionBaseType.Long:
-            case ReflectionBaseType.ULong:
-                diffIntField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
-                break;
-            case ReflectionBaseType.Float:
-            case ReflectionBaseType.Double:
-                diffFloatField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
-                break;
-            case ReflectionBaseType.String:
-                diffStringField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
-                break;
-            case ReflectionBaseType.Obj:
-                diffObjField(bufA, tablePosA, bufB, tablePosB, field, ft, schema, path, deltas);
-                break;
-            case ReflectionBaseType.Vector:
-            case ReflectionBaseType.Vector64:
-                diffVectorField(bufA, tablePosA, bufB, tablePosB, field, ft, schema, path, deltas);
-                break;
-            default:
-                // Union and Array types are not compared.
-                break;
+        if (ft !== null) {
+            switch (ft.baseType()) {
+                case ReflectionBaseType.Bool:
+                    diffBoolField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
+                    break;
+                case ReflectionBaseType.UType:
+                case ReflectionBaseType.Byte:
+                case ReflectionBaseType.UByte:
+                case ReflectionBaseType.Short:
+                case ReflectionBaseType.UShort:
+                case ReflectionBaseType.Int:
+                case ReflectionBaseType.UInt:
+                case ReflectionBaseType.Long:
+                case ReflectionBaseType.ULong:
+                    diffIntField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
+                    break;
+                case ReflectionBaseType.Float:
+                case ReflectionBaseType.Double:
+                    diffFloatField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
+                    break;
+                case ReflectionBaseType.String:
+                    diffStringField(bufA, tablePosA, bufB, tablePosB, field, path, deltas);
+                    break;
+                case ReflectionBaseType.Obj:
+                    diffObjField(bufA, tablePosA, bufB, tablePosB, field, ft, schema, path, deltas);
+                    break;
+                case ReflectionBaseType.Vector:
+                case ReflectionBaseType.Vector64:
+                    diffVectorField(bufA, tablePosA, bufB, tablePosB, field, ft, schema, path, deltas);
+                    break;
+                default:
+                    // Union and Array types are not compared.
+                    break;
+            }
         }
     }
 }
@@ -331,129 +333,131 @@ function diffStructInline(bufA, posA, bufB, posB, obj, prefix, deltas) {
         return;
     if (posA + byteSize > bufA.byteLength || posB + byteSize > bufB.byteLength)
         return;
-    for (const field of obj.fields()) {
+    const fields = obj.fields();
+    for (let i = 0; i < fields.length; i += 1) {
+        const field = fields[i];
         const ft = field.type();
-        if (ft === null)
-            continue;
-        const fieldOffset = field.offset();
-        if (fieldOffset === 0)
-            continue;
-        const fieldName = field.name();
-        const path = prefix.length > 0 ? `${prefix}.${fieldName}` : fieldName;
-        const absA = posA + fieldOffset;
-        const absB = posB + fieldOffset;
-        switch (ft.baseType()) {
-            case ReflectionBaseType.Bool: {
-                if (absA >= bufA.byteLength || absB >= bufB.byteLength)
-                    break;
-                const valA = bufA.getUint8(absA) !== 0;
-                const valB = bufB.getUint8(absB) !== 0;
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.Byte: {
-                if (absA >= bufA.byteLength || absB >= bufB.byteLength)
-                    break;
-                const valA = bufA.getInt8(absA);
-                const valB = bufB.getInt8(absB);
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.UByte: {
-                if (absA >= bufA.byteLength || absB >= bufB.byteLength)
-                    break;
-                const valA = bufA.getUint8(absA);
-                const valB = bufB.getUint8(absB);
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.Short: {
-                if (absA + 2 > bufA.byteLength || absB + 2 > bufB.byteLength)
-                    break;
-                const valA = bufA.getInt16(absA, true);
-                const valB = bufB.getInt16(absB, true);
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.UShort: {
-                if (absA + 2 > bufA.byteLength || absB + 2 > bufB.byteLength)
-                    break;
-                const valA = bufA.getUint16(absA, true);
-                const valB = bufB.getUint16(absB, true);
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.Int: {
-                if (absA + 4 > bufA.byteLength || absB + 4 > bufB.byteLength)
-                    break;
-                const valA = bufA.getInt32(absA, true);
-                const valB = bufB.getInt32(absB, true);
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.UInt: {
-                if (absA + 4 > bufA.byteLength || absB + 4 > bufB.byteLength)
-                    break;
-                const valA = bufA.getUint32(absA, true);
-                const valB = bufB.getUint32(absB, true);
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.Long: {
-                if (absA + 8 > bufA.byteLength || absB + 8 > bufB.byteLength)
-                    break;
-                const loA = BigInt(bufA.getUint32(absA, true));
-                const hiA = BigInt(bufA.getInt32(absA + 4, true));
-                const valA = BigInt.asIntN(64, loA + (hiA << 32n));
-                const loB = BigInt(bufB.getUint32(absB, true));
-                const hiB = BigInt(bufB.getInt32(absB + 4, true));
-                const valB = BigInt.asIntN(64, loB + (hiB << 32n));
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.ULong: {
-                if (absA + 8 > bufA.byteLength || absB + 8 > bufB.byteLength)
-                    break;
-                const loA = BigInt(bufA.getUint32(absA, true));
-                const hiA = BigInt(bufA.getUint32(absA + 4, true));
-                const valA = BigInt.asUintN(64, loA + (hiA << 32n));
-                const loB = BigInt(bufB.getUint32(absB, true));
-                const hiB = BigInt(bufB.getUint32(absB + 4, true));
-                const valB = BigInt.asUintN(64, loB + (hiB << 32n));
-                if (valA !== valB)
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                break;
-            }
-            case ReflectionBaseType.Float: {
-                if (absA + 4 > bufA.byteLength || absB + 4 > bufB.byteLength)
-                    break;
-                const valA = bufA.getFloat32(absA, true);
-                const valB = bufB.getFloat32(absB, true);
-                if (valA !== valB && !(Number.isNaN(valA) && Number.isNaN(valB))) {
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+        if (ft !== null) {
+            const fieldOffset = field.offset();
+            if (fieldOffset !== 0) {
+                const fieldName = field.name();
+                const path = prefix.length > 0 ? `${prefix}.${fieldName}` : fieldName;
+                const absA = posA + fieldOffset;
+                const absB = posB + fieldOffset;
+                switch (ft.baseType()) {
+                    case ReflectionBaseType.Bool: {
+                        if (absA >= bufA.byteLength || absB >= bufB.byteLength)
+                            break;
+                        const valA = bufA.getUint8(absA) !== 0;
+                        const valB = bufB.getUint8(absB) !== 0;
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.Byte: {
+                        if (absA >= bufA.byteLength || absB >= bufB.byteLength)
+                            break;
+                        const valA = bufA.getInt8(absA);
+                        const valB = bufB.getInt8(absB);
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.UByte: {
+                        if (absA >= bufA.byteLength || absB >= bufB.byteLength)
+                            break;
+                        const valA = bufA.getUint8(absA);
+                        const valB = bufB.getUint8(absB);
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.Short: {
+                        if (absA + 2 > bufA.byteLength || absB + 2 > bufB.byteLength)
+                            break;
+                        const valA = bufA.getInt16(absA, true);
+                        const valB = bufB.getInt16(absB, true);
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.UShort: {
+                        if (absA + 2 > bufA.byteLength || absB + 2 > bufB.byteLength)
+                            break;
+                        const valA = bufA.getUint16(absA, true);
+                        const valB = bufB.getUint16(absB, true);
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.Int: {
+                        if (absA + 4 > bufA.byteLength || absB + 4 > bufB.byteLength)
+                            break;
+                        const valA = bufA.getInt32(absA, true);
+                        const valB = bufB.getInt32(absB, true);
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.UInt: {
+                        if (absA + 4 > bufA.byteLength || absB + 4 > bufB.byteLength)
+                            break;
+                        const valA = bufA.getUint32(absA, true);
+                        const valB = bufB.getUint32(absB, true);
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.Long: {
+                        if (absA + 8 > bufA.byteLength || absB + 8 > bufB.byteLength)
+                            break;
+                        const loA = BigInt(bufA.getUint32(absA, true));
+                        const hiA = BigInt(bufA.getInt32(absA + 4, true));
+                        const valA = BigInt.asIntN(64, loA + (hiA * 0x100000000n));
+                        const loB = BigInt(bufB.getUint32(absB, true));
+                        const hiB = BigInt(bufB.getInt32(absB + 4, true));
+                        const valB = BigInt.asIntN(64, loB + (hiB * 0x100000000n));
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.ULong: {
+                        if (absA + 8 > bufA.byteLength || absB + 8 > bufB.byteLength)
+                            break;
+                        const loA = BigInt(bufA.getUint32(absA, true));
+                        const hiA = BigInt(bufA.getUint32(absA + 4, true));
+                        const valA = BigInt.asUintN(64, loA + (hiA * 0x100000000n));
+                        const loB = BigInt(bufB.getUint32(absB, true));
+                        const hiB = BigInt(bufB.getUint32(absB + 4, true));
+                        const valB = BigInt.asUintN(64, loB + (hiB * 0x100000000n));
+                        if (valA !== valB)
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        break;
+                    }
+                    case ReflectionBaseType.Float: {
+                        if (absA + 4 > bufA.byteLength || absB + 4 > bufB.byteLength)
+                            break;
+                        const valA = bufA.getFloat32(absA, true);
+                        const valB = bufB.getFloat32(absB, true);
+                        if (valA !== valB && !(Number.isNaN(valA) && Number.isNaN(valB))) {
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        }
+                        break;
+                    }
+                    case ReflectionBaseType.Double: {
+                        if (absA + 8 > bufA.byteLength || absB + 8 > bufB.byteLength)
+                            break;
+                        const valA = bufA.getFloat64(absA, true);
+                        const valB = bufB.getFloat64(absB, true);
+                        if (valA !== valB && !(Number.isNaN(valA) && Number.isNaN(valB))) {
+                            deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
+                        }
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                break;
             }
-            case ReflectionBaseType.Double: {
-                if (absA + 8 > bufA.byteLength || absB + 8 > bufB.byteLength)
-                    break;
-                const valA = bufA.getFloat64(absA, true);
-                const valB = bufB.getFloat64(absB, true);
-                if (valA !== valB && !(Number.isNaN(valA) && Number.isNaN(valB))) {
-                    deltas.push({ path, kind: 'changed', oldValue: valA, newValue: valB });
-                }
-                break;
-            }
-            default:
-                break;
         }
     }
 }
@@ -512,14 +516,14 @@ function readVectorScalar(buf, pos, elemType) {
                 return null;
             const lo = BigInt(buf.getUint32(pos, true));
             const hi = BigInt(buf.getInt32(pos + 4, true));
-            return BigInt.asIntN(64, lo + (hi << 32n));
+            return BigInt.asIntN(64, lo + (hi * 0x100000000n));
         }
         case ReflectionBaseType.ULong: {
             if (pos + 8 > buf.byteLength)
                 return null;
             const lo = BigInt(buf.getUint32(pos, true));
             const hi = BigInt(buf.getUint32(pos + 4, true));
-            return BigInt.asUintN(64, lo + (hi << 32n));
+            return BigInt.asUintN(64, lo + (hi * 0x100000000n));
         }
         case ReflectionBaseType.Float:
             if (pos + 4 > buf.byteLength)
@@ -590,19 +594,17 @@ function diffVectorField(bufA, tablePosA, bufB, tablePosB, field, ft, schema, pa
         if (idx >= allObjects.length)
             return;
         const nested = allObjects[idx];
-        for (let i = 0; i < minLen; i++) {
+        for (let i = 0; i < minLen; i += 1) {
             const elemPath = `${path}[${i}]`;
             const slotA = dataStartA + i * 4;
             const slotB = dataStartB + i * 4;
-            if (slotA + 4 > bufA.byteLength || slotB + 4 > bufB.byteLength)
-                continue;
-            const childPosA = slotA + bufA.getUint32(slotA, true);
-            const childPosB = slotB + bufB.getUint32(slotB, true);
-            if (childPosA < 0 || childPosA >= bufA.byteLength)
-                continue;
-            if (childPosB < 0 || childPosB >= bufB.byteLength)
-                continue;
-            diffTable(bufA, childPosA, bufB, childPosB, nested, schema, elemPath, deltas);
+            if (slotA + 4 <= bufA.byteLength && slotB + 4 <= bufB.byteLength) {
+                const childPosA = slotA + bufA.getUint32(slotA, true);
+                const childPosB = slotB + bufB.getUint32(slotB, true);
+                if (childPosA >= 0 && childPosA < bufA.byteLength && childPosB >= 0 && childPosB < bufB.byteLength) {
+                    diffTable(bufA, childPosA, bufB, childPosB, nested, schema, elemPath, deltas);
+                }
+            }
         }
     }
     else {
@@ -610,24 +612,24 @@ function diffVectorField(bufA, tablePosA, bufB, tablePosB, field, ft, schema, pa
         const stride = SCALAR_SIZE[elemType] ?? 0;
         if (stride === 0)
             return; // unsupported element type
-        for (let i = 0; i < minLen; i++) {
+        for (let i = 0; i < minLen; i += 1) {
             const elemPath = `${path}[${i}]`;
             const posA = dataStartA + i * stride;
             const posB = dataStartB + i * stride;
             const valA = readVectorScalar(bufA, posA, elemType);
             const valB = readVectorScalar(bufB, posB, elemType);
-            if (valA === null || valB === null)
-                continue;
-            if (!floatEqual(valA, valB)) {
-                deltas.push({ path: elemPath, kind: 'changed', oldValue: valA, newValue: valB });
+            if (valA !== null && valB !== null) {
+                if (!floatEqual(valA, valB)) {
+                    deltas.push({ path: elemPath, kind: 'changed', oldValue: valA, newValue: valB });
+                }
             }
         }
     }
     // Extra elements.
-    for (let i = minLen; i < lenA; i++) {
+    for (let i = minLen; i < lenA; i += 1) {
         deltas.push({ path: `${path}[${i}]`, kind: 'removed', oldValue: '<element>', newValue: null });
     }
-    for (let i = minLen; i < lenB; i++) {
+    for (let i = minLen; i < lenB; i += 1) {
         deltas.push({ path: `${path}[${i}]`, kind: 'added', oldValue: null, newValue: '<element>' });
     }
 }

@@ -440,7 +440,10 @@ class Verifier {
         const dataStart = vecStart + constants_js_1.SIZEOF_INT;
         for (let i = 0; i < length; i++) {
             const elemPos = dataStart + i * constants_js_1.SIZEOF_INT;
-            verifyElem(this, elemPos);
+            // Each element is a relative offset to the target table.
+            this.checkRange(elemPos, constants_js_1.SIZEOF_INT);
+            const tableOffset = this.buf.getInt32(elemPos, true);
+            verifyElem(this, elemPos + tableOffset);
         }
     }
     /**

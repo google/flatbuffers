@@ -191,6 +191,7 @@ function readVectorTableElement(buf: DataView, dataStart: number, index: number)
  */
 export class ReflectionType {
   private readonly buf: DataView;
+
   private readonly tablePos: number;
 
   /**
@@ -319,6 +320,7 @@ export class ReflectionType {
  */
 export class ReflectionField {
   private readonly buf: DataView;
+
   private readonly tablePos: number;
 
   /**
@@ -399,7 +401,7 @@ export class ReflectionField {
     const fieldPos = this.tablePos + entry;
     const lo = BigInt(this.buf.getUint32(fieldPos, true));
     const hi = BigInt(this.buf.getInt32(fieldPos + 4, true));
-    return BigInt.asIntN(64, lo + (hi << 32n));
+    return BigInt.asIntN(64, lo + (hi * 0x100000000n));
   }
 
   /**
@@ -560,6 +562,7 @@ export class ReflectionField {
  */
 export class ReflectionObject {
   private readonly buf: DataView;
+
   private readonly tablePos: number;
 
   /**
@@ -601,7 +604,7 @@ export class ReflectionObject {
     if (entry === 0) return [];
     const [count, dataStart] = readVector(this.buf, this.tablePos + entry);
     const result: ReflectionField[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i += 1) {
       const fieldTablePos = readVectorTableElement(this.buf, dataStart, i);
       result.push(new ReflectionField(this.buf, fieldTablePos));
     }
@@ -723,7 +726,7 @@ function readStringVector(buf: DataView, tablePos: number, voffset: number): str
   if (entry === 0) return [];
   const [count, dataStart] = readVector(buf, tablePos + entry);
   const result: string[] = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     const elemPos = dataStart + i * 4;
     result.push(readString(buf, elemPos));
   }
@@ -739,7 +742,7 @@ function readTableVector(buf: DataView, tablePos: number, voffset: number): numb
   if (entry === 0) return [];
   const [count, dataStart] = readVector(buf, tablePos + entry);
   const positions: number[] = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     positions.push(readVectorTableElement(buf, dataStart, i));
   }
   return positions;
@@ -771,6 +774,7 @@ function readTableVector(buf: DataView, tablePos: number, voffset: number): numb
  */
 export class ReflectionKeyValue {
   private readonly buf: DataView;
+
   private readonly tablePos: number;
 
   /**
@@ -838,6 +842,7 @@ export class ReflectionKeyValue {
  */
 export class ReflectionEnumVal {
   private readonly buf: DataView;
+
   private readonly tablePos: number;
 
   /**
@@ -880,7 +885,7 @@ export class ReflectionEnumVal {
     const fieldPos = this.tablePos + entry;
     const lo = BigInt(this.buf.getUint32(fieldPos, true));
     const hi = BigInt(this.buf.getInt32(fieldPos + 4, true));
-    return BigInt.asIntN(64, lo + (hi << 32n));
+    return BigInt.asIntN(64, lo + (hi * 0x100000000n));
   }
 
   /**
@@ -954,6 +959,7 @@ export class ReflectionEnumVal {
  */
 export class ReflectionEnum {
   private readonly buf: DataView;
+
   private readonly tablePos: number;
 
   /**
@@ -1010,7 +1016,7 @@ export class ReflectionEnum {
     if (entry === 0) return [];
     const [count, dataStart] = readVector(this.buf, this.tablePos + entry);
     const result: ReflectionEnumVal[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i += 1) {
       const valTablePos = readVectorTableElement(this.buf, dataStart, i);
       result.push(new ReflectionEnumVal(this.buf, valTablePos));
     }
@@ -1202,7 +1208,7 @@ export class ReflectionSchema {
     const fieldPos = this.rootTablePos + entry;
     const lo = BigInt(this.buf.getUint32(fieldPos, true));
     const hi = BigInt(this.buf.getUint32(fieldPos + 4, true));
-    return BigInt.asUintN(64, lo + (hi << 32n));
+    return BigInt.asUintN(64, lo + (hi * 0x100000000n));
   }
 
   /**
@@ -1221,7 +1227,7 @@ export class ReflectionSchema {
     if (entry === 0) return [];
     const [count, dataStart] = readVector(this.buf, this.rootTablePos + entry);
     const result: ReflectionObject[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i += 1) {
       const objTablePos = readVectorTableElement(this.buf, dataStart, i);
       result.push(new ReflectionObject(this.buf, objTablePos));
     }
@@ -1266,7 +1272,7 @@ export class ReflectionSchema {
     if (entry === 0) return [];
     const [count, dataStart] = readVector(this.buf, this.rootTablePos + entry);
     const result: ReflectionEnum[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i += 1) {
       const enumTablePos = readVectorTableElement(this.buf, dataStart, i);
       result.push(new ReflectionEnum(this.buf, enumTablePos));
     }
@@ -1397,12 +1403,12 @@ export function getFieldInt(
     case ReflectionBaseType.ULong: {
       const lo = BigInt(dataBuf.getUint32(fieldPos, true));
       const hi = BigInt(dataBuf.getUint32(fieldPos + 4, true));
-      return BigInt.asUintN(64, lo + (hi << 32n));
+      return BigInt.asUintN(64, lo + (hi * 0x100000000n));
     }
     case ReflectionBaseType.Long: {
       const lo = BigInt(dataBuf.getUint32(fieldPos, true));
       const hi = BigInt(dataBuf.getInt32(fieldPos + 4, true));
-      return BigInt.asIntN(64, lo + (hi << 32n));
+      return BigInt.asIntN(64, lo + (hi * 0x100000000n));
     }
     default:
       return dataBuf.getInt32(fieldPos, true);
