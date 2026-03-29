@@ -155,7 +155,6 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       if (!vec) return true;
       auto type_vec = table.GetPointer<Vector<uint8_t>*>(vec_field.offset() -
                                                          sizeof(voffset_t));
-      if (!type_vec) return false;
       if (!v.VerifyVector(type_vec)) return false;
       if (type_vec->size() != vec->size()) return false;
       for (uoffset_t j = 0; j < vec->size(); j++) {
@@ -379,18 +378,28 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
 
 void ForAllFields(const reflection::Object* object, bool reverse,
                   std::function<void(const reflection::Field*)> func) {
-  std::vector<uint32_t> field_to_id_map;
-  field_to_id_map.resize(object->fields()->size());
+  if (!object->fields()) return;
+
+  const auto kSentinel = static_cast<uint32_t>(-1);
+  std::vector<uint32_t> field_to_id_map(object->fields()->size(), kSentinel);
 
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+    const auto id = field->id();
+
+    if (id >= field_to_id_map.size()) continue;
+
+    field_to_id_map[id] = i;
   }
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-    func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - i + 1 : i]));
+    const auto idx =
+        field_to_id_map[reverse ? field_to_id_map.size() - i - 1 : i];
+
+    if (idx == kSentinel) continue;
+
+    func(object->fields()->Get(idx));
   }
 }
 
