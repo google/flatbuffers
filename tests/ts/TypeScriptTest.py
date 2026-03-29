@@ -70,7 +70,7 @@ def esbuild(input, output):
 print("Removing node_modules/ directory...")
 shutil.rmtree(Path(tests_path, "node_modules"), ignore_errors=True)
 
-check_call(["npm", "install", "--silent"])
+check_call(["pnpm", "i"])
 
 flatc(
     options=[
