@@ -45,7 +45,8 @@ class BitWidth(enum.IntEnum):
   @staticmethod
   def U(value):
     """Returns the minimum `BitWidth` to encode unsigned integer value."""
-    assert value >= 0
+    if value < 0:
+      raise ValueError("flatbuffers: BitWidth.U() requires a non-negative value")
 
     if value < (1 << 8):
       return BitWidth.W8
@@ -407,7 +408,8 @@ class Key(Object):
   __slots__ = ()
 
   def __init__(self, buf, byte_width):
-    assert byte_width == 1
+    if byte_width != 1:
+      raise ValueError("flatbuffers: TypedVector byte_width must be 1")
     super().__init__(buf, byte_width)
 
   @property
@@ -1100,7 +1102,8 @@ class Builder:
 
   def _WriteOffset(self, offset, byte_width):
     relative_offset = len(self._buf) - offset
-    assert byte_width == 8 or relative_offset < (1 << (8 * byte_width))
+    if byte_width != 8 and relative_offset >= (1 << (8 * byte_width)):
+      raise OverflowError("flatbuffers: relative offset too large for byte_width")
     self._Write(U, relative_offset, byte_width)
 
   def _WriteAny(self, value, byte_width):

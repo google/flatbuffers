@@ -20,10 +20,10 @@ use super::{Builder, Pushable, Value, VectorBuilder};
 /// When this is dropped, or `end_map` is called, the map is
 /// commited to the buffer. If this map is the root of the flexbuffer, then the
 /// root is written and the flexbuffer is complete.
-/// ## Panics:
-/// -  Duplicate keys will result in a panic in both debug and release mode.
-/// -  Keys with internal nulls results in a panic in debug mode and result in silent truncaction
-///    in release mode.
+/// ## Notes:
+/// -  Duplicate keys: when the same key is pushed more than once the last value
+///    wins and a `debug_assert!` fires (no panic in release mode).
+/// -  Keys with internal nulls results in silent truncation at the null byte.
 pub struct MapBuilder<'a> {
     pub(super) builder: &'a mut Builder,
     // If the root is this map then start == None. Otherwise start is the
@@ -100,8 +100,14 @@ pub(super) fn sort_map_by_keys(values: &mut [Value], buffer: &[u8]) {
                 let s2 = get_key(buffer, a2);
                 let ord = s1.cmp(s2);
                 if ord == std::cmp::Ordering::Equal {
-                    let dup: String = get_key(buffer, a1).map(|&b| b as char).collect();
-                    panic!("Duplicated key in map {:?}", dup);
+                    // Duplicate key: fire a debug assertion so tests catch the
+                    // problem, but do NOT panic in release mode to avoid a
+                    // process-terminating DoS when processing untrusted input.
+                    #[cfg(debug_assertions)]
+                    {
+                        let dup: String = get_key(buffer, a1).map(|&b| b as char).collect();
+                        debug_assert!(false, "Duplicated key in map {:?}", dup);
+                    }
                 }
                 return ord;
             }

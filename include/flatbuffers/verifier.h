@@ -44,7 +44,11 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   explicit VerifierTemplate(const uint8_t* const buf, const size_t buf_len,
                             const Options& opts)
       : buf_(buf), size_(buf_len), opts_(opts) {
-    FLATBUFFERS_ASSERT(size_ < opts.max_size);
+    // Do not assert here: the buffer size is user-controlled and ASSERT is
+    // stripped in release builds.  Instead record validity so that VerifyBuffer
+    // fails gracefully on oversized inputs.
+    valid_ = (size_ < opts.max_size);
+    FLATBUFFERS_ASSERT(valid_);
   }
 
   // Deprecated API, please construct with VerifierTemplate::Options.
@@ -196,7 +200,12 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
                           sizeof(voffset_t))))
       return false;
     const auto vsize = ReadScalar<voffset_t>(buf_ + vtableo);
-    return Check((vsize & 1) == 0) && Verify(vtableo, vsize);
+    // A valid vtable must hold at least its own size field and the object-size
+    // field (two voffset_t entries = 4 bytes). A zero or undersized vtable
+    // allows required fields to appear falsely present.
+    return Check((vsize & 1) == 0) &&
+           Check(vsize >= 2 * sizeof(voffset_t)) &&
+           Verify(vtableo, vsize);
   }
 
   template <typename T>
@@ -249,6 +258,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   template <typename T>
   bool VerifyBuffer(const char* const identifier) {
+    // Fail immediately if construction detected an oversized buffer.
+    if (!valid_) return false;
     return VerifyBufferFromStart<T>(identifier, 0);
   }
 
@@ -334,6 +345,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   uoffset_t depth_ = 0;
   uoffset_t num_tables_ = 0;
   std::vector<uint8_t>* flex_reuse_tracker_ = nullptr;
+  bool valid_ = true;
 };
 
 // Specialization for 64-bit offsets.

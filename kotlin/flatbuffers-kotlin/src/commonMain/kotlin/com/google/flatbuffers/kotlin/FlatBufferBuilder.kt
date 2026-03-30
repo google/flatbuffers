@@ -967,7 +967,9 @@ constructor(
   public fun required(table: Offset<*>, field: Int, fileName: String? = null) {
     val tableStart: Int = buffer.capacity - table
     val vtableStart: Int = tableStart - buffer.getInt(tableStart)
-    val ok = buffer.getShort(vtableStart + field).toInt() != 0
+    // Use unsigned conversion: vtable offsets are uint16, so getShort() values
+    // >= 32768 would appear negative with a plain .toInt() sign-extension.
+    val ok = buffer.getShort(vtableStart + field).toUShort().toInt() != 0
     // If this fails, the caller will show what field needs to be set.
     if (!ok) throw AssertionError("FlatBuffers: field ${fileName ?: field} must be set")
   }

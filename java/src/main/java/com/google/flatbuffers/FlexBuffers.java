@@ -152,7 +152,7 @@ public class FlexBuffers {
    * @return typed vector type
    */
   static int toTypedVector(int type, int fixedLength) {
-    assert (isTypedVectorElementType(type));
+    if (!isTypedVectorElementType(type)) throw new IllegalArgumentException("flatbuffers: not a typed vector element type: " + type);
     switch (fixedLength) {
       case 0:
         return type - FBT_INT + FBT_VECTOR_INT;
@@ -163,8 +163,7 @@ public class FlexBuffers {
       case 4:
         return type - FBT_INT + FBT_VECTOR_INT4;
       default:
-        assert (false);
-        return FBT_NULL;
+        throw new IllegalArgumentException("flatbuffers: unsupported fixedLength: " + fixedLength);
     }
   }
 
@@ -821,7 +820,7 @@ public class FlexBuffers {
      * @param pos position of the byte to be read
      */
     public byte get(int pos) {
-      assert pos >= 0 && pos <= size();
+      if (pos < 0 || pos > size()) throw new IndexOutOfBoundsException("flatbuffers: Blob.get() pos out of range: " + pos);
       return bb.get(end + pos);
     }
 
