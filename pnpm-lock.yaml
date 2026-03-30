@@ -33,6 +33,12 @@ importers:
         specifier: ^8.34.1
         version: 8.34.1(eslint@9.29.0)(typescript@5.8.3)
 
+  tests/ts:
+    dependencies:
+      flatbuffers:
+        specifier: workspace:*
+        version: link:../..
+
 packages:
 
   '@esbuild/aix-ppc64@0.25.5':
