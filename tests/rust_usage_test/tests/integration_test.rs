@@ -3224,4 +3224,474 @@ fn test_shared_strings() {
     assert_eq!(string_vector.get(1), "foo");
 }
 
+#[test]
+fn lookup_index_by_key_returns_correct_index() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    // Abilities are sorted by id (the key field).
+    let v = b.create_vector(&[
+        my_game::example::Ability::new(1, 10),
+        my_game::example::Ability::new(3, 30),
+        my_game::example::Ability::new(5, 50),
+    ]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    // Lookup each element and verify the returned index.
+    assert_eq!(
+        abilities.lookup_index_by_key(1u32, |a, key| a.key_compare_with_value(*key)),
+        Some(0)
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(3u32, |a, key| a.key_compare_with_value(*key)),
+        Some(1)
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(5u32, |a, key| a.key_compare_with_value(*key)),
+        Some(2)
+    );
+}
+
+#[test]
+fn lookup_index_by_key_returns_none_for_missing_key() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector(&[
+        my_game::example::Ability::new(1, 10),
+        my_game::example::Ability::new(3, 30),
+        my_game::example::Ability::new(5, 50),
+    ]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    // Keys that do not exist in the vector.
+    assert_eq!(
+        abilities.lookup_index_by_key(0u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(2u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(99u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+}
+
+#[test]
+fn lookup_index_by_key_on_empty_vector() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector::<my_game::example::Ability>(&[]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    assert_eq!(
+        abilities.lookup_index_by_key(1u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+}
+
+#[test]
+fn lookup_index_by_key_single_element() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector(&[my_game::example::Ability::new(42, 100)]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    assert_eq!(
+        abilities.lookup_index_by_key(42u32, |a, key| a.key_compare_with_value(*key)),
+        Some(0)
+    );
+    assert_eq!(
+        abilities.lookup_index_by_key(1u32, |a, key| a.key_compare_with_value(*key)),
+        None
+    );
+}
+
+#[test]
+fn lookup_index_by_key_consistent_with_lookup_by_key() {
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let v = b.create_vector(&[
+        my_game::example::Ability::new(2, 20),
+        my_game::example::Ability::new(4, 40),
+        my_game::example::Ability::new(6, 60),
+        my_game::example::Ability::new(8, 80),
+        my_game::example::Ability::new(10, 100),
+    ]);
+    let name = b.create_string("test");
+    let mon = my_game::example::Monster::create(b, &my_game::example::MonsterArgs {
+        name: Some(name),
+        testarrayofsortedstruct: Some(v),
+        ..Default::default()
+    });
+    my_game::example::finish_monster_buffer(b, mon);
+    let buf = b.finished_data();
+    let mon = my_game::example::root_as_monster(buf).unwrap();
+    let abilities = mon.testarrayofsortedstruct().unwrap();
+
+    // For every key that exists, lookup_index_by_key should return an index
+    // whose element matches lookup_by_key.
+    for key in &[2u32, 4, 6, 8, 10] {
+        let obj = abilities.lookup_by_key(*key, |a, k| a.key_compare_with_value(*k));
+        let idx = abilities.lookup_index_by_key(*key, |a, k| a.key_compare_with_value(*k));
+        assert!(obj.is_some());
+        assert!(idx.is_some());
+        assert_eq!(abilities.get(idx.unwrap()).id(), obj.unwrap().id());
+    }
+
+    // For keys that don't exist, both should return None.
+    for key in &[0u32, 1, 3, 5, 7, 9, 11] {
+        assert!(abilities.lookup_by_key(*key, |a, k| a.key_compare_with_value(*k)).is_none());
+        assert!(abilities.lookup_index_by_key(*key, |a, k| a.key_compare_with_value(*k)).is_none());
+    }
+fn test_shared_strings_pool_deduplication() {
+    // Verifies that create_shared_string correctly deduplicates across many
+    // unique strings and that the resulting buffer contains valid data.
+    let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+
+    // Insert multiple unique strings and verify each gets a distinct offset.
+    let animals = ["cat", "dog", "bird", "fish", "snake"];
+    let offsets: Vec<_> = animals
+        .iter()
+        .map(|s| builder.create_shared_string(s))
+        .collect();
+    for i in 0..offsets.len() {
+        for j in (i + 1)..offsets.len() {
+            assert_ne!(
+                offsets[i].value(),
+                offsets[j].value(),
+                "unique strings '{}' and '{}' must have different offsets",
+                animals[i],
+                animals[j],
+            );
+        }
+    }
+
+    // Re-insert the same strings and verify they return the original offsets.
+    for (i, s) in animals.iter().enumerate() {
+        let offset = builder.create_shared_string(s);
+        assert_eq!(
+            offset.value(),
+            offsets[i].value(),
+            "duplicate string '{}' must return the same offset",
+            s,
+        );
+    }
+
+    // Verify that reset clears the pool: a previously shared string is no
+    // longer deduplicated against strings from before the reset.
+    builder.reset();
+    let a = builder.create_shared_string("cat");
+    let b = builder.create_shared_string("cat");
+    assert_eq!(a.value(), b.value(), "same string after reset must still deduplicate");
+
+    // Verify that shared strings produce a valid, readable buffer.
+    builder.reset();
+    let shared_name = builder.create_shared_string("goblin");
+    let shared_name_dup = builder.create_shared_string("goblin");
+    assert_eq!(shared_name.value(), shared_name_dup.value());
+
+    let enemy = my_game::example::Monster::create(
+        &mut builder,
+        &my_game::example::MonsterArgs {
+            name: Some(shared_name),
+            ..Default::default()
+        },
+    );
+    let main_name = builder.create_shared_string("goblin");
+    assert_eq!(main_name.value(), shared_name.value());
+
+    let monster = my_game::example::Monster::create(
+        &mut builder,
+        &my_game::example::MonsterArgs {
+            name: Some(main_name),
+            enemy: Some(enemy),
+            ..Default::default()
+        },
+    );
+    builder.finish(monster, None);
+
+    let m = my_game::example::root_as_monster(builder.finished_data()).unwrap();
+    assert_eq!(m.name(), "goblin");
+    assert_eq!(m.enemy().unwrap().name(), "goblin");
+}
+
+} // mod flatbuffers_tests
+
+#[cfg(test)]
+mod try_api {
+    extern crate flatbuffers;
+
+    use alloc::vec::Vec;
+    use flatbuffers::Follow;
+    use super::my_game;
+    use super::serialized_example_is_accessible_and_correct;
+
+    #[test]
+    fn try_api_full_table_roundtrip() {
+        // Build a Monster using exclusively try_* API (mirrors library_code example).
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+
+        let nested_union_mon = {
+            let name = builder.try_create_string("Fred").unwrap();
+            let table_start = builder.start_table();
+            builder
+                .try_push_slot_always(my_game::example::Monster::VT_NAME, name)
+                .unwrap();
+            builder.try_end_table(table_start).unwrap()
+        };
+        let pos = my_game::example::Vec3::new(
+            1.0,
+            2.0,
+            3.0,
+            3.0,
+            my_game::example::Color::Green,
+            &my_game::example::Test::new(5i16, 6i8),
+        );
+        let inv = builder.try_create_vector(&[0u8, 1, 2, 3, 4]).unwrap();
+        let test4 = builder
+            .try_create_vector(
+                &[
+                    my_game::example::Test::new(10, 20),
+                    my_game::example::Test::new(30, 40),
+                ][..],
+            )
+            .unwrap();
+
+        let name = builder.try_create_string("MyMonster").unwrap();
+        let test1 = builder.try_create_string("test1").unwrap();
+        let test2 = builder.try_create_string("test2").unwrap();
+        let testarrayofstring = builder.try_create_vector(&[test1, test2]).unwrap();
+
+        let table_start = builder.start_table();
+        builder
+            .try_push_slot(my_game::example::Monster::VT_HP, 80i16, 100)
+            .unwrap();
+        builder
+            .try_push_slot_always(my_game::example::Monster::VT_NAME, name)
+            .unwrap();
+        builder
+            .try_push_slot_always(my_game::example::Monster::VT_POS, &pos)
+            .unwrap();
+        builder
+            .try_push_slot(
+                my_game::example::Monster::VT_TEST_TYPE,
+                my_game::example::Any::Monster,
+                my_game::example::Any::NONE,
+            )
+            .unwrap();
+        builder
+            .try_push_slot_always(my_game::example::Monster::VT_TEST, nested_union_mon)
+            .unwrap();
+        builder
+            .try_push_slot_always(my_game::example::Monster::VT_INVENTORY, inv)
+            .unwrap();
+        builder
+            .try_push_slot_always(my_game::example::Monster::VT_TEST4, test4)
+            .unwrap();
+        builder
+            .try_push_slot_always(
+                my_game::example::Monster::VT_TESTARRAYOFSTRING,
+                testarrayofstring,
+            )
+            .unwrap();
+        let root = builder.try_end_table(table_start).unwrap();
+        builder
+            .try_finish(root, Some(my_game::example::MONSTER_IDENTIFIER))
+            .unwrap();
+
+        let buf = builder.finished_data();
+        serialized_example_is_accessible_and_correct(buf, true, false).unwrap();
+    }
+
+    #[test]
+    fn try_shared_string_deduplication() {
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+        let offset1 = builder
+            .try_create_shared_string("welcome to flatbuffers!!")
+            .unwrap();
+        let offset2 = builder.try_create_shared_string("welcome").unwrap();
+        let offset3 = builder
+            .try_create_shared_string("welcome to flatbuffers!!")
+            .unwrap();
+        assert_ne!(offset2.value(), offset3.value());
+        assert_eq!(offset1.value(), offset3.value());
+
+        builder.reset();
+        let offset4 = builder.try_create_shared_string("welcome").unwrap();
+        let offset5 = builder
+            .try_create_shared_string("welcome to flatbuffers!!")
+            .unwrap();
+        assert_ne!(offset2.value(), offset4.value());
+        assert_ne!(offset5.value(), offset1.value());
+
+        builder.reset();
+        // Shared strings work with an object in between writes
+        let name = builder.try_create_shared_string("foo").unwrap();
+        let enemy =
+            my_game::example::Monster::create(&mut builder, &my_game::example::MonsterArgs {
+                name: Some(name),
+                ..Default::default()
+            });
+        let secondary_name = builder.try_create_shared_string("foo").unwrap();
+        assert_eq!(name.value(), secondary_name.value());
+
+        let args = my_game::example::MonsterArgs {
+            name: Some(secondary_name),
+            enemy: Some(enemy),
+            testarrayofstring: Some(builder.try_create_vector(&[name, secondary_name]).unwrap()),
+            ..Default::default()
+        };
+        let main_monster = my_game::example::Monster::create(&mut builder, &args);
+        builder.try_finish(main_monster, None).unwrap();
+        let monster =
+            my_game::example::root_as_monster(builder.finished_data()).unwrap();
+
+        assert_eq!(monster.enemy().unwrap().name(), "foo");
+        let string_vector = monster.testarrayofstring().unwrap();
+        assert_eq!(string_vector.get(0), "foo");
+        assert_eq!(string_vector.get(1), "foo");
+    }
+
+    #[test]
+    fn try_vector_manual_build_roundtrip() {
+        // Build a vector of scalars manually using try_start_vector / try_push / try_end_vector.
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+        let items: Vec<u32> = vec![10, 20, 30, 40, 50];
+
+        builder
+            .try_start_vector::<u32>(items.len())
+            .unwrap();
+        for &v in items.iter().rev() {
+            builder.try_push::<u32>(v).unwrap();
+        }
+        let vecend = builder.try_end_vector::<u32>(items.len()).unwrap();
+        builder.try_finish_minimal(vecend).unwrap();
+
+        let buf = builder.finished_data();
+        let got = unsafe {
+            <flatbuffers::ForwardsUOffset<flatbuffers::Vector<u32>>>::follow(&buf[..], 0)
+        };
+        let result: Vec<u32> = got.iter().collect();
+        assert_eq!(result, items);
+    }
+
+    #[test]
+    fn try_create_vector_roundtrip() {
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+        let items: Vec<i64> = vec![-1, 0, 1, i64::MIN, i64::MAX];
+        let offset = builder.try_create_vector(&items).unwrap();
+        builder.try_finish_minimal(offset).unwrap();
+
+        let buf = builder.finished_data();
+        let got = unsafe {
+            <flatbuffers::ForwardsUOffset<flatbuffers::Vector<i64>>>::follow(&buf[..], 0)
+        };
+        let result: Vec<i64> = got.iter().collect();
+        assert_eq!(result, items);
+    }
+
+    #[test]
+    fn try_create_vector_from_iter_roundtrip() {
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+        let items: Vec<f64> = vec![1.0, 2.5, -3.14, 0.0];
+        let offset = builder
+            .try_create_vector_from_iter(items.iter().copied())
+            .unwrap();
+        builder.try_finish_minimal(offset).unwrap();
+
+        let buf = builder.finished_data();
+        let got = unsafe {
+            <flatbuffers::ForwardsUOffset<flatbuffers::Vector<f64>>>::follow(&buf[..], 0)
+        };
+        let result: Vec<f64> = got.iter().collect();
+        assert_eq!(result, items);
+    }
+
+    #[test]
+    fn try_create_byte_string_roundtrip() {
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+        let data = b"hello bytes";
+        let offset = builder.try_create_byte_string(data).unwrap();
+        builder.try_finish_minimal(offset).unwrap();
+
+        let buf = builder.finished_data();
+        let got = unsafe {
+            <flatbuffers::ForwardsUOffset<&[u8]>>::follow(&buf[..], 0)
+        };
+        assert_eq!(got, data);
+    }
+
+    #[test]
+    fn try_finish_size_prefixed_roundtrip() {
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+        let args = &my_game::example::MonsterArgs {
+            mana: 200,
+            hp: 300,
+            name: Some(builder.try_create_string("bob").unwrap()),
+            ..Default::default()
+        };
+        let mon = my_game::example::Monster::create(&mut builder, &args);
+        builder.try_finish_size_prefixed(mon, None).unwrap();
+
+        let buf = builder.finished_data();
+        let m = flatbuffers::size_prefixed_root::<my_game::example::Monster>(buf).unwrap();
+        assert_eq!(m.mana(), 200);
+        assert_eq!(m.hp(), 300);
+        assert_eq!(m.name(), "bob");
+    }
+
+    #[test]
+    fn try_finish_with_file_identifier() {
+        let mut builder = flatbuffers::FlatBufferBuilder::new();
+        let name = builder.try_create_string("foo").unwrap();
+        let args = &my_game::example::MonsterArgs {
+            name: Some(name),
+            hp: 42,
+            ..Default::default()
+        };
+        let mon = my_game::example::Monster::create(&mut builder, &args);
+        builder
+            .try_finish(mon, Some(my_game::example::MONSTER_IDENTIFIER))
+            .unwrap();
+
+        let buf = builder.finished_data();
+        assert!(my_game::example::monster_buffer_has_identifier(buf));
+        let m = my_game::example::root_as_monster(buf).unwrap();
+        assert_eq!(m.name(), "foo");
+        assert_eq!(m.hp(), 42);
+    }
+}
+
 }

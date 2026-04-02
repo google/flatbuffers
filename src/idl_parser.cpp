@@ -3197,8 +3197,10 @@ CheckedError Parser::ParseProtoFields(StructDef* struct_def, bool isextend,
             return Error("Protobuf has non positive number in reserved ids");
 
           if (range) {
-            for (voffset_t id = from + 1; id <= attribute; id++)
-              struct_def->reserved_ids.push_back(id);
+            for (uint32_t id = static_cast<uint32_t>(from) + 1;
+                 id <= static_cast<uint32_t>(attribute); id++) {
+              struct_def->reserved_ids.push_back(static_cast<voffset_t>(id));
+            }
 
             range = false;
           } else {
@@ -4159,7 +4161,15 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
   const auto& of = *(object->fields());
   auto indexes = std::vector<uoffset_t>(of.size());
-  for (uoffset_t i = 0; i < of.size(); i++) indexes[of.Get(i)->id()] = i;
+  for (uoffset_t i = 0; i < of.size(); i++) {
+  uint16_t field_id = of.Get(i)->id();
+  if (field_id >= of.size()) {
+    parser.error_ = "Field ID " + std::to_string(field_id) + 
+                    " exceeds field count " + std::to_string(of.size());
+    return false;
+  }
+  indexes[field_id] = i;
+}
   size_t tmp_struct_size = 0;
   for (size_t i = 0; i < indexes.size(); i++) {
     auto field = of.Get(indexes[i]);
