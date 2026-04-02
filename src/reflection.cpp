@@ -378,18 +378,28 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
 
 void ForAllFields(const reflection::Object* object, bool reverse,
                   std::function<void(const reflection::Field*)> func) {
-  std::vector<uint32_t> field_to_id_map;
-  field_to_id_map.resize(object->fields()->size());
+  auto fields = object->fields();
+  if (!fields || fields->size() == 0) return;
+
+  std::vector<uint32_t> field_to_id_map(fields->size(), UINT32_MAX);
 
   // Create the mapping of field ID to the index into the vector.
-  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
-    auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+  for (uint32_t i = 0; i < fields->size(); ++i) {
+    auto field = fields->Get(i);
+    const auto id = field->id();
+
+    if (id >= field_to_id_map.size()) continue;
+
+    field_to_id_map[id] = i;
   }
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-    func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - i + 1 : i]));
+    const auto idx =
+        field_to_id_map[reverse ? field_to_id_map.size() - i - 1 : i];
+
+    if (idx == UINT32_MAX) continue;
+
+    func(fields->Get(idx));
   }
 }
 
