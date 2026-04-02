@@ -155,7 +155,7 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       if (!vec) return true;
       auto type_vec = table.GetPointer<Vector<uint8_t>*>(vec_field.offset() -
                                                          sizeof(voffset_t));
-      if (!type_vec) return true;
+      if (!type_vec) return false;
       if (!v.VerifyVector(type_vec)) return false;
       if (type_vec->size() != vec->size()) return false;
       for (uoffset_t j = 0; j < vec->size(); j++) {
