@@ -608,7 +608,7 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         else if (!strcmp(argv[argi], "warn"))
           opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::WARNING;
         else if (!strcmp(argv[argi], "error"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR_;
         else
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--schema") {

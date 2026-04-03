@@ -180,7 +180,7 @@ static bool ProtobufIdSanityCheck(const StructDef& struct_def,
         fprintf(stderr, "Fields in struct %s have gap between ids\n",
                 struct_def.name.c_str());
       }
-      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) {
+      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR_) {
         return false;
       }
     }
