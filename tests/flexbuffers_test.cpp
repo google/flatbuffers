@@ -187,6 +187,14 @@ void FlexBuffersReuseBugTest() {
           true);
 }
 
+void FlexBuffersInvalidKeyVerifierTest() {
+  const uint8_t invalid_key_root[] = { 0x01, 0x01, 0x12, 0x01 };
+  std::vector<uint8_t> reuse_tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(invalid_key_root, sizeof(invalid_key_root),
+                                    &reuse_tracker),
+          false);
+}
+
 void FlexBuffersFloatingPointTest() {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   flexbuffers::Builder slb(512,
