@@ -397,8 +397,8 @@ fn verify_union<'a, 'b, 'c>(
         }
     } else {
         return InvalidFlatbuffer::new_inconsistent_union(
-            format!("{}_type", field.name()),
             field.name().to_string(),
+            format!("{}_type", field.name()),
         )?;
     }
 
