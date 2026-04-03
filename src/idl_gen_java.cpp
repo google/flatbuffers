@@ -2258,7 +2258,7 @@ class JavaCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GenerateJava(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }
@@ -2277,7 +2277,7 @@ class JavaCodeGenerator : public CodeGenerator {
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
                           const std::string& filename) override {
     if (!GenerateJavaGRPC(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }

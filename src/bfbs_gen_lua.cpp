@@ -85,10 +85,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       FLATBUFFERS_OVERRIDE {
     options_ = options;
     if (!GenerateEnums(schema->enums())) {
-      return ERROR;
+      return ERROR_;
     }
     if (!GenerateObjects(schema->objects(), schema->root_table())) {
-      return ERROR;
+      return ERROR_;
     }
     return OK;
   }

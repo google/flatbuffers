@@ -998,7 +998,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         if (status == CodeGenerator::Status::NOT_IMPLEMENTED) {
           Warn("GRPC interface generator not implemented for " +
                code_generator->LanguageName());
-        } else if (status == CodeGenerator::Status::ERROR) {
+        } else if (status == CodeGenerator::Status::ERROR_) {
           Error("Unable to generate GRPC interface for " +
                 code_generator->LanguageName());
         }

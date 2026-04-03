@@ -2996,7 +2996,7 @@ class PythonCodeGenerator : public CodeGenerator {
     auto err = GeneratePython(parser, path, filename);
     if (err) {
       status_detail = " " + std::string(err);
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }
@@ -3019,7 +3019,7 @@ class PythonCodeGenerator : public CodeGenerator {
                           const std::string& filename) override {
     if (!GeneratePythonGRPC(parser, path,
                             filename)) {  // TODO add status GeneratePythonGRPC
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }

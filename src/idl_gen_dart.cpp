@@ -1187,7 +1187,7 @@ class DartCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GenerateDart(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }
