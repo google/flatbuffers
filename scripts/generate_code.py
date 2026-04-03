@@ -481,6 +481,9 @@ flatc(BASE_OPTS + DART_OPTS, prefix="../dart/test/", schema="keyword_test.fbs")
 dictionary_lookup_schema = "dictionary_lookup.fbs"
 flatc(["--java", "--kotlin"], schema=dictionary_lookup_schema)
 
+# Java ulong enum generation test
+flatc(["--java"], schema="java_ulong_enum_test.fbs")
+
 # Swift Tests
 swift_prefix = "swift/Tests/Flatbuffers"
 flatc(
