@@ -18,6 +18,7 @@
 #define FLATBUFFERS_BFBS_GEN_H_
 
 #include <cstdint>
+#include <map>
 
 #include "flatbuffers/code_generator.h"
 #include "flatbuffers/reflection_generated.h"
@@ -63,16 +64,12 @@ static void ForAllDocumentation(
   }
 }
 
-// Maps the field index into object->fields() to the field's ID (the ith element
-// in the return vector).
-static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
-  std::vector<uint32_t> field_index_by_id;
-  field_index_by_id.resize(object->fields()->size());
-
-  // Create the mapping of field ID to the index into the vector.
+// Maps field ID to the field's index in object->fields().
+static std::map<uint32_t, uint32_t> FieldIdToIndex(
+    const reflection::Object* object) {
+  std::map<uint32_t, uint32_t> field_index_by_id;
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
-    auto field = object->fields()->Get(i);
-    field_index_by_id[field->id()] = i;
+    field_index_by_id[object->fields()->Get(i)->id()] = i;
   }
 
   return field_index_by_id;
@@ -186,10 +183,15 @@ class BaseBfbsGenerator : public CodeGenerator {
 
   void ForAllFields(const reflection::Object* object, bool reverse,
                     std::function<void(const reflection::Field*)> func) const {
-    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
-    for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-      func(object->fields()->Get(
-          field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+    const auto field_to_id_map = FieldIdToIndex(object);
+    if (!reverse) {
+      for (auto it = field_to_id_map.begin(); it != field_to_id_map.end();
+           ++it)
+        func(object->fields()->Get(it->second));
+    } else {
+      for (auto it = field_to_id_map.rbegin(); it != field_to_id_map.rend();
+           ++it)
+        func(object->fields()->Get(it->second));
     }
   }
 
