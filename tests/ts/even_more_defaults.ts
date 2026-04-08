@@ -2,6 +2,6 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { ABC } from './abc.js';
-export { EvenMoreDefaults, EvenMoreDefaultsT } from './even-more-defaults.js';
-export { EvenMoreStruct, EvenMoreStructT } from './even-more-struct.js';
+export {ABC} from './abc.js';
+export {EvenMoreDefaults, EvenMoreDefaultsT} from './even-more-defaults.js';
+export {EvenMoreStruct, EvenMoreStructT} from './even-more-struct.js';

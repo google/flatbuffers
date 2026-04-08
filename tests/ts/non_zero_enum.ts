@@ -2,5 +2,5 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-export { NonZero } from './non-zero.js';
-export { NonZeroVectorTable, NonZeroVectorTableT } from './non-zero-vector-table.js';
+export {NonZero} from './non-zero.js';
+export {NonZeroVectorTable, NonZeroVectorTableT} from './non-zero-vector-table.js';

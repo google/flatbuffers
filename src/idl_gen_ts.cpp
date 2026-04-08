@@ -296,11 +296,11 @@ class TsGenerator : public BaseGenerator {
         auto fully_qualified_type_name =
             it.second.ns->GetFullyQualifiedName(type_name);
         auto is_struct = parser_.structs_.Lookup(fully_qualified_type_name);
-        code += "export { " + type_name;
+        code += "export {" + type_name;
         if (parser_.opts.generate_object_based_api && is_struct) {
           code += ", " + type_name + parser_.opts.object_suffix;
         }
-        code += " } from '";
+        code += "} from '";
         std::string import_extension =
             parser_.opts.ts_no_import_ext ? "" : ".js";
         code += base_name_rel + import_extension + "';\n";
@@ -1040,7 +1040,7 @@ class TsGenerator : public BaseGenerator {
     std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".js";
     import.import_statement = "import { " + symbols_expression + " } from '" +
                               rel_file_path + import_extension + "';";
-    import.export_statement = "export { " + symbols_expression + " } from '." +
+    import.export_statement = "export {" + symbols_expression + "} from '." +
                               bare_file_path + import_extension + "';";
     import.dependency = &dependency;
     import.dependent = &dependent;
