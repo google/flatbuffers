@@ -7,7 +7,9 @@
     "outDir": "./js",
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "isolatedDeclarations": true
   },
   "include": [
     "ts/**/*.ts"

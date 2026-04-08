@@ -228,6 +228,11 @@ print(
     " no_import_ext..."
 )
 check_call(["../../node_modules/.bin/tsc", "-p", "./tsconfig.node.json"])
+print(
+    "Running TypeScript Compiler with isolatedDeclarations and"
+    " isolatedModules..."
+)
+check_call(["../../node_modules/.bin/tsc", "-p", "./tsconfig.isolated.json"])
 
 NODE_CMD = ["node"]
 

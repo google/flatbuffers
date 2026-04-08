@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class Test implements flatbuffers.IUnpackableObject<TestT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Test {
   this.bb_pos = i;
   this.bb = bb;

@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class Attacker implements flatbuffers.IUnpackableObject<AttackerT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Attacker {
   this.bb_pos = i;
   this.bb = bb;
@@ -44,11 +44,11 @@ static getFullyQualifiedName(): "Attacker" {
   return 'Attacker';
 }
 
-static startAttacker(builder:flatbuffers.Builder) {
+static startAttacker(builder:flatbuffers.Builder):void {
   builder.startObject(1);
 }
 
-static addSwordAttackDamage(builder:flatbuffers.Builder, swordAttackDamage:number) {
+static addSwordAttackDamage(builder:flatbuffers.Builder, swordAttackDamage:number):void {
   builder.addFieldInt32(0, swordAttackDamage, 0);
 }
 

@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class InParentNamespace implements flatbuffers.IUnpackableObject<InParentNamespaceT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):InParentNamespace {
   this.bb_pos = i;
   this.bb = bb;
@@ -28,7 +28,7 @@ static getFullyQualifiedName(): "MyGame.InParentNamespace" {
   return 'MyGame.InParentNamespace';
 }
 
-static startInParentNamespace(builder:flatbuffers.Builder) {
+static startInParentNamespace(builder:flatbuffers.Builder):void {
   builder.startObject(0);
 }
 
