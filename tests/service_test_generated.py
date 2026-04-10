@@ -3,11 +3,12 @@
 # namespace: example
 
 import flatbuffers
+from typing import Any
 class HelloRequest(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = HelloRequest()
         x.Init(buf, n + offset)
@@ -18,13 +19,13 @@ class HelloRequest(object):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # HelloRequest
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-def HelloRequestStart(builder):
+def HelloRequestStart(builder: flatbuffers.Builder):
     builder.StartObject(0)
 
-def HelloRequestEnd(builder):
+def HelloRequestEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
@@ -33,7 +34,7 @@ class HelloResponse(object):
     __slots__ = ['_tab']
 
     @classmethod
-    def GetRootAs(cls, buf, offset=0):
+    def GetRootAs(cls, buf, offset: int = 0):
         n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
         x = HelloResponse()
         x.Init(buf, n + offset)
@@ -44,13 +45,13 @@ class HelloResponse(object):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
     # HelloResponse
-    def Init(self, buf, pos):
+    def Init(self, buf: bytes, pos: int):
         self._tab = flatbuffers.table.Table(buf, pos)
 
-def HelloResponseStart(builder):
+def HelloResponseStart(builder: flatbuffers.Builder):
     builder.StartObject(0)
 
-def HelloResponseEnd(builder):
+def HelloResponseEnd(builder: flatbuffers.Builder) -> int:
     return builder.EndObject()
 
 
