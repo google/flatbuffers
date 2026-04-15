@@ -143,7 +143,7 @@ static bool HasGapInProtoId(const std::vector<FieldDef*>& fields) {
 }
 
 static bool ProtobufIdSanityCheck(const StructDef& struct_def,
-                                  IDLOptions::ProtoIdGapAction gap_action,
+                                  IDLOptions::ProtoAction gap_action,
                                   bool no_log = false) {
   const auto& fields = struct_def.fields.vec;
   if (HasNonPositiveFieldId(fields)) {
@@ -173,14 +173,14 @@ static bool ProtobufIdSanityCheck(const StructDef& struct_def,
     return false;
   }
 
-  if (gap_action != IDLOptions::ProtoIdGapAction::NO_OP) {
+  if (gap_action != IDLOptions::ProtoAction::NO_OP) {
     if (HasGapInProtoId(fields)) {
       // TODO: Use LogCompilerWarn
       if (!no_log) {
         fprintf(stderr, "Fields in struct %s have gap between ids\n",
                 struct_def.name.c_str());
       }
-      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) {
+      if (gap_action == IDLOptions::ProtoAction::ERROR) {
         return false;
       }
     }
@@ -199,7 +199,7 @@ struct ProtobufToFbsIdMap {
 };
 
 static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
-    const StructDef& struct_def, IDLOptions::ProtoIdGapAction gap_action,
+    const StructDef& struct_def, IDLOptions::ProtoAction gap_action,
     bool no_log) {
   const auto& fields = struct_def.fields.vec;
 
