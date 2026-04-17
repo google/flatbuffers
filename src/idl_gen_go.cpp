@@ -328,8 +328,17 @@ class GoGenerator : public BaseGenerator {
       code += "*" + struct_type + "";
       code += " {\n";
       if (i == 0) {
+        code +=
+            "\tif int(offset)+flatbuffers.SizeUOffsetT > len(buf) {\n"
+            "\t\treturn nil\n"
+            "\t}\n";
         code += "\tn := flatbuffers.GetUOffsetT(buf[offset:])\n";
       } else {
+        code +=
+            "\tif int(offset)+flatbuffers.SizeUint32+"
+            "flatbuffers.SizeUOffsetT > len(buf) {\n"
+            "\t\treturn nil\n"
+            "\t}\n";
         code +=
             "\tn := "
             "flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])\n";
