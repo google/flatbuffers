@@ -304,7 +304,14 @@ impl<B: Buffer> Reader<B> {
         if self.bitwidth().n_bytes() != std::mem::size_of::<T>() {
             self.expect_bw(T::WIDTH)?;
         }
-        let end = self.address + self.length() * std::mem::size_of::<T>();
+        let byte_len = self
+            .length()
+            .checked_mul(std::mem::size_of::<T>())
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        let end = self
+            .address
+            .checked_add(byte_len)
+            .ok_or(Error::FlexbufferOutOfBounds)?;
         let slice: &[u8] =
             self.buffer.get(self.address..end).ok_or(Error::FlexbufferOutOfBounds)?;
 
@@ -323,7 +330,12 @@ impl<B: Buffer> Reader<B> {
     /// Otherwise Returns error.
     pub fn get_bool(&self) -> Result<bool, Error> {
         self.expect_type(FlexBufferType::Bool)?;
-        Ok(self.buffer[self.address..self.address + self.width.n_bytes()].iter().any(|&b| b != 0))
+        let end = self.address + self.width.n_bytes();
+        let slice = self
+            .buffer
+            .get(self.address..end)
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        Ok(slice.iter().any(|&b| b != 0))
     }
 
     /// Gets the length of the key if this type is a key.
@@ -332,7 +344,11 @@ impl<B: Buffer> Reader<B> {
     #[inline]
     fn get_key_len(&self) -> Result<usize, Error> {
         self.expect_type(FlexBufferType::Key)?;
-        let (length, _) = self.buffer[self.address..]
+        let tail = self
+            .buffer
+            .get(self.address..)
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        let (length, _) = tail
             .iter()
             .enumerate()
             .find(|(_, &b)| b == b'\0')
@@ -342,18 +358,27 @@ impl<B: Buffer> Reader<B> {
 
     /// Retrieves the string value up until the first `\0` character.
     pub fn get_key(&self) -> Result<B::BufferString, Error> {
+        let key_len = self.get_key_len()?;
+        let end = self
+            .address
+            .checked_add(key_len)
+            .ok_or(Error::FlexbufferOutOfBounds)?;
         let bytes = self
             .buffer
-            .slice(self.address..self.address + self.get_key_len()?)
+            .slice(self.address..end)
             .ok_or(Error::IndexOutOfBounds)?;
         Ok(bytes.buffer_str()?)
     }
 
     pub fn get_blob(&self) -> Result<Blob<B>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
+        let end = self
+            .address
+            .checked_add(self.length())
+            .ok_or(Error::FlexbufferOutOfBounds)?;
         Ok(Blob(
             self.buffer
-                .slice(self.address..self.address + self.length())
+                .slice(self.address..end)
                 .ok_or(Error::IndexOutOfBounds)?,
         ))
     }
@@ -366,7 +391,11 @@ impl<B: Buffer> Reader<B> {
     /// is out of bounds.
     pub fn get_str(&self) -> Result<B::BufferString, Error> {
         self.expect_type(FlexBufferType::String)?;
-        let bytes = self.buffer.slice(self.address..self.address + self.length());
+        let end = self
+            .address
+            .checked_add(self.length())
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        let bytes = self.buffer.slice(self.address..end);
         Ok(bytes.ok_or(Error::ReadUsizeOverflowed)?.buffer_str()?)
     }
 
@@ -601,9 +630,12 @@ fn f64_from_le_bytes(bytes: [u8; 8]) -> f64 {
 }
 
 fn read_usize(buffer: &[u8], address: usize, width: BitWidth) -> usize {
-    let cursor = &buffer[address..];
+    let cursor = match buffer.get(address..) {
+        Some(c) => c,
+        None => return 0,
+    };
     match width {
-        BitWidth::W8 => cursor[0] as usize,
+        BitWidth::W8 => cursor.first().copied().unwrap_or_default() as usize,
         BitWidth::W16 => cursor
             .get(0..2)
             .and_then(|s| s.try_into().ok())
