@@ -1693,7 +1693,7 @@ class CppGenerator : public BaseGenerator {
         code_ += "    }";
       }
     }
-    code_ += "    default: return true;";  // unknown values are OK.
+    code_ += "    default: return false;";  // Reject unknown union types.
     code_ += "  }";
     code_ += "}";
     code_ += "";
