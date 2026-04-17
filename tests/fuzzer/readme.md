@@ -13,6 +13,7 @@ To build and run these tests LLVM compiler (with clang frontend) and CMake shoul
 The fuzzer section include four tests:
 - `annotator_fuzzer` checks that inputs given to the flatc --annotate are always parsable;
 - `verifier_fuzzer` checks stability of deserialization engine for `Monster` schema;
+- `union_access_fuzzer` checks post-verification access to `Monster` union data, including mutable access;
 - `parser_fuzzer` checks stability of schema and json parser under various inputs;
 - `scalar_parser` focused on validation of the parser while parse numeric scalars in schema and/or json files;
 - `flexverifier_fuzzer` checks stability of deserialization engine for FlexBuffers only;
