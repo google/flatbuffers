@@ -150,3 +150,18 @@ jobs:
         with:
           path: ./rust/flexbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
+
+  publish-bcr:
+    name: Publish to BCR
+    # Run after all other publish jobs succeed to ensure we only publish to BCR
+    # if all package publications were successful
+    needs: [publish-npm, publish-pypi, publish-nuget, publish-maven, publish-maven-kotlin, publish-crates]
+    uses: ./.github/workflows/publish.yaml
+    with:
+      tag_name: ${{ github.event.release.tag_name }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    secrets:
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
