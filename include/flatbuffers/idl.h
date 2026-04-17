@@ -650,7 +650,7 @@ struct IDLOptions {
 
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
-  enum class ProtoIdGapAction { NO_OP, WARNING, ERROR };
+  enum class ProtoIdGapAction { NO_OP, WARNING, ERROR_ };
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
