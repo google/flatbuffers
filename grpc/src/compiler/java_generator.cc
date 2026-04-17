@@ -55,6 +55,7 @@ static void GenerateImports(grpc_generator::File* file,
   printer->Print(vars, "//source: $filename$.fbs\n\n");
   printer->Print(vars, "package $Package$;\n\n");
   vars["Package"] = vars["Package"] + ".";
+  vars["ServiceNamespace"] = vars["ServiceNamespace"] + ".";
   if (!file->additional_headers().empty()) {
     printer->Print(file->additional_headers().c_str());
     printer->Print("\n\n");
@@ -411,7 +412,7 @@ static void PrintMethodFields(Printer* p, VARS& vars,
         "$output_type$>newBuilder()\n"
         "            .setType($MethodType$.$method_type$)\n"
         "            .setFullMethodName(generateFullMethodName(\n"
-        "                \"$Package$$service_name$\", \"$method_name$\"))\n"
+        "                \"$ServiceNamespace$$service_name$\", \"$method_name$\"))\n"
         "            .setSampledToLocalTracing(true)\n"
         "            .setRequestMarshaller(FlatbuffersUtils.marshaller(\n"
         "                $input_type$.class, "
@@ -991,7 +992,7 @@ static void PrintService(Printer* p, VARS& vars,
 
   p->Print(vars,
            "public static final String SERVICE_NAME = "
-           "\"$Package$$service_name$\";\n\n");
+           "\"$ServiceNamespace$$service_name$\";\n\n");
 
   PrintMethodFields(p, vars, service);
 
@@ -1127,9 +1128,9 @@ grpc::string GenerateServiceSource(
           FLATBUFFERS_VERSION_MINOR) "." FLATBUFFERS_STRING(FLATBUFFERS_VERSION_REVISION));
 
   vars["file_name"] = file->filename();
-
-  if (!parameters->package_name.empty()) {
-    vars["Package"] = parameters->package_name;  // ServiceJavaPackage(service);
+  vars["ServiceNamespace"] = parameters->package_name;
+  if (!parameters->java_package_name.empty()) {
+    vars["Package"] = parameters->java_package_name;  // ServiceJavaPackage(service);
   }
   GenerateImports(file, &*printer, vars);
   GenerateService(service, &*printer, vars, false);
