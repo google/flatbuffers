@@ -57,7 +57,7 @@ a `char *` array, which you pass to `GetMonster()`.
 
 ```cpp
     #include "flatbuffers/flatbuffers.h"
-    #include "monster_test_generate.h"
+    #include "monster_test_generated.h"
     #include <iostream> // C++ header file for printing
     #include <fstream> // C++ header file for file access
 
