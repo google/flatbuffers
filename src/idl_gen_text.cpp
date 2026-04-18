@@ -182,9 +182,9 @@ struct JsonPrinter {
                           const uint8_t* prev_val, soffset_t vector_index) {
     switch (type.base_type) {
       case BASE_TYPE_UNION: {
-        // If this assert hits, you have an corrupt buffer, a union type field
+        // If this assert hits, you have a corrupt buffer, a union type field
         // was not present or was out of range.
-        FLATBUFFERS_ASSERT(prev_val);
+        if (!prev_val) { return "unknown enum value"; }
         auto union_type_byte = *prev_val;  // Always a uint8_t.
         if (vector_index >= 0) {
           auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(
