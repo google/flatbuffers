@@ -9,7 +9,7 @@ import { StructOfStructs, StructOfStructsT } from './struct-of-structs.js';
 
 export class StructOfStructsOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsOfStructsT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructsOfStructs {
   this.bb_pos = i;
   this.bb = bb;

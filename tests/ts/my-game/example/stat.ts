@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class Stat implements flatbuffers.IUnpackableObject<StatT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Stat {
   this.bb_pos = i;
   this.bb = bb;
@@ -67,19 +67,19 @@ static getFullyQualifiedName(): "MyGame.Example.Stat" {
   return 'MyGame.Example.Stat';
 }
 
-static startStat(builder:flatbuffers.Builder) {
+static startStat(builder:flatbuffers.Builder):void {
   builder.startObject(3);
 }
 
-static addId(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset) {
+static addId(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(0, idOffset, 0);
 }
 
-static addVal(builder:flatbuffers.Builder, val:bigint) {
+static addVal(builder:flatbuffers.Builder, val:bigint):void {
   builder.addFieldInt64(1, val, BigInt('0'));
 }
 
-static addCount(builder:flatbuffers.Builder, count:number) {
+static addCount(builder:flatbuffers.Builder, count:number):void {
   builder.addFieldInt16(2, count, 0);
 }
 

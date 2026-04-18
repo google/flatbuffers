@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class TypeAliases implements flatbuffers.IUnpackableObject<TypeAliasesT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):TypeAliases {
   this.bb_pos = i;
   this.bb = bb;
@@ -218,51 +218,51 @@ static getFullyQualifiedName(): "MyGame.Example.TypeAliases" {
   return 'MyGame.Example.TypeAliases';
 }
 
-static startTypeAliases(builder:flatbuffers.Builder) {
+static startTypeAliases(builder:flatbuffers.Builder):void {
   builder.startObject(12);
 }
 
-static addI8(builder:flatbuffers.Builder, i8:number) {
+static addI8(builder:flatbuffers.Builder, i8:number):void {
   builder.addFieldInt8(0, i8, 0);
 }
 
-static addU8(builder:flatbuffers.Builder, u8:number) {
+static addU8(builder:flatbuffers.Builder, u8:number):void {
   builder.addFieldInt8(1, u8, 0);
 }
 
-static addI16(builder:flatbuffers.Builder, i16:number) {
+static addI16(builder:flatbuffers.Builder, i16:number):void {
   builder.addFieldInt16(2, i16, 0);
 }
 
-static addU16(builder:flatbuffers.Builder, u16:number) {
+static addU16(builder:flatbuffers.Builder, u16:number):void {
   builder.addFieldInt16(3, u16, 0);
 }
 
-static addI32(builder:flatbuffers.Builder, i32:number) {
+static addI32(builder:flatbuffers.Builder, i32:number):void {
   builder.addFieldInt32(4, i32, 0);
 }
 
-static addU32(builder:flatbuffers.Builder, u32:number) {
+static addU32(builder:flatbuffers.Builder, u32:number):void {
   builder.addFieldInt32(5, u32, 0);
 }
 
-static addI64(builder:flatbuffers.Builder, i64:bigint) {
+static addI64(builder:flatbuffers.Builder, i64:bigint):void {
   builder.addFieldInt64(6, i64, BigInt('0'));
 }
 
-static addU64(builder:flatbuffers.Builder, u64:bigint) {
+static addU64(builder:flatbuffers.Builder, u64:bigint):void {
   builder.addFieldInt64(7, u64, BigInt('0'));
 }
 
-static addF32(builder:flatbuffers.Builder, f32:number) {
+static addF32(builder:flatbuffers.Builder, f32:number):void {
   builder.addFieldFloat32(8, f32, 0.0);
 }
 
-static addF64(builder:flatbuffers.Builder, f64:number) {
+static addF64(builder:flatbuffers.Builder, f64:number):void {
   builder.addFieldFloat64(9, f64, 0.0);
 }
 
-static addV8(builder:flatbuffers.Builder, v8Offset:flatbuffers.Offset) {
+static addV8(builder:flatbuffers.Builder, v8Offset:flatbuffers.Offset):void {
   builder.addFieldOffset(10, v8Offset, 0);
 }
 
@@ -279,11 +279,11 @@ static createV8Vector(builder:flatbuffers.Builder, data:number[]|Int8Array|Uint8
   return builder.endVector();
 }
 
-static startV8Vector(builder:flatbuffers.Builder, numElems:number) {
+static startV8Vector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addVf64(builder:flatbuffers.Builder, vf64Offset:flatbuffers.Offset) {
+static addVf64(builder:flatbuffers.Builder, vf64Offset:flatbuffers.Offset):void {
   builder.addFieldOffset(11, vf64Offset, 0);
 }
 
@@ -300,7 +300,7 @@ static createVf64Vector(builder:flatbuffers.Builder, data:number[]|Float64Array|
   return builder.endVector();
 }
 
-static startVf64Vector(builder:flatbuffers.Builder, numElems:number) {
+static startVf64Vector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(8, numElems, 8);
 }
 

@@ -10,7 +10,7 @@ import { Test, TestT } from './test.js';
 
 export class StructOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructs {
   this.bb_pos = i;
   this.bb = bb;

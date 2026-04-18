@@ -7,7 +7,9 @@
     ],
     "module": "NodeNext",
     "declaration": true,
-    "strict": true
+    "strict": true,
+    "isolatedModules": true,
+    "isolatedDeclarations": true
   },
   "include": [
     "monster_test.ts",
