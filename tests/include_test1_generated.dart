@@ -83,17 +83,15 @@ class TableABuilder {
 }
 
 class TableAObjectBuilder extends fb.ObjectBuilder {
-  final my_game_other_name_space.TableBObjectBuilder? _b;
+  final my_game_other_name_space.TableBObjectBuilder? b;
 
   TableAObjectBuilder({
-    my_game_other_name_space.TableBObjectBuilder? b,
-  })
-      : _b = b;
-
+     this.b,
+  });
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? bOffset = _b?.getOrCreateOffset(fbBuilder);
+    final int? bOffset = b?.getOrCreateOffset(fbBuilder);
     fbBuilder.startTable(1);
     fbBuilder.addOffset(0, bOffset);
     return fbBuilder.endTable();

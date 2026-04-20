@@ -107,17 +107,15 @@ class UnusedBuilder {
 }
 
 class UnusedObjectBuilder extends fb.ObjectBuilder {
-  final int _a;
+  final int a;
 
   UnusedObjectBuilder({
-    required int a,
-  })
-      : _a = a;
-
+    required  this.a,
+  });
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    fbBuilder.putInt32(_a);
+    fbBuilder.putInt32(a);
     return fbBuilder.offset;
   }
 
@@ -205,17 +203,15 @@ class TableBBuilder {
 }
 
 class TableBObjectBuilder extends fb.ObjectBuilder {
-  final TableAObjectBuilder? _a;
+  final TableAObjectBuilder? a;
 
   TableBObjectBuilder({
-    TableAObjectBuilder? a,
-  })
-      : _a = a;
-
+     this.a,
+  });
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? aOffset = _a?.getOrCreateOffset(fbBuilder);
+    final int? aOffset = a?.getOrCreateOffset(fbBuilder);
     fbBuilder.startTable(1);
     fbBuilder.addOffset(0, aOffset);
     return fbBuilder.endTable();
