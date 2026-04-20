@@ -87,6 +87,23 @@ public class JavaTest {
     assertThat(Any.name(Any.Monster)).isEqualTo("Monster");
   }
 
+  @org.junit.Test
+  public void TestUlongEnums() {
+    assertThat(Condition.Empty).isEqualTo(0L);
+    assertThat(Condition.GreaterThanEqual)
+        .isEqualTo(Long.parseUnsignedLong("34F605C97C571896", 16));
+    assertThat(Condition.LessThanEqual)
+        .isEqualTo(Long.parseUnsignedLong("488B1F9FBC949365", 16));
+    assertThat(Condition.NotEqual)
+        .isEqualTo(Long.parseUnsignedLong("88C99E99F1FC6C55", 16));
+    assertThat(Condition.Equal)
+        .isEqualTo(Long.parseUnsignedLong("B763CBE88B6F844F", 16));
+    assertThat(Condition.None)
+        .isEqualTo(Long.parseUnsignedLong("CBF29CE484222645", 16));
+    assertThat(Condition.Between)
+        .isEqualTo(Long.parseUnsignedLong("E5E34D77DC75E2EF", 16));
+  }
+
   static void TestBuffer(ByteBuffer bb) {
     assertThat(Monster.MonsterBufferHasIdentifier(bb)).isEqualTo(true);
 
