@@ -650,7 +650,9 @@ struct IDLOptions {
 
   // field case style options for C++
   enum CaseStyle { CaseStyle_Unchanged = 0, CaseStyle_Upper, CaseStyle_Lower };
-  enum class ProtoIdGapAction { NO_OP, WARNING, ERROR };
+  enum class ProtoAction { NO_OP, WARNING, ERROR };
+  static bool ParseProtoAction(const char* str, ProtoAction& action);
+
   bool gen_jvmstatic;
   // Use flexbuffers instead for binary and text generation
   bool use_flexbuffers;
@@ -744,7 +746,10 @@ struct IDLOptions {
 
   bool ts_omit_entrypoint;
   bool ts_undefined_for_optionals;
-  ProtoIdGapAction proto_id_gap_action;
+  ProtoAction proto_id_gap_action;
+  ProtoAction proto_option_action;
+  ProtoAction proto_service_action;
+  ProtoAction proto_extensions_action;
 
   // Possible options for the more general generator below.
   enum Language {
@@ -871,7 +876,10 @@ struct IDLOptions {
         python_gen_numpy(true),
         ts_omit_entrypoint(false),
         ts_undefined_for_optionals(false),
-        proto_id_gap_action(ProtoIdGapAction::WARNING),
+        proto_id_gap_action(ProtoAction::WARNING),
+        proto_option_action(ProtoAction::NO_OP),
+        proto_service_action(ProtoAction::NO_OP),
+        proto_extensions_action(ProtoAction::NO_OP),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
         rust_serialize(false),
@@ -1180,6 +1188,27 @@ class Parser : public ParserState {
                                       EnumDef** dest);
   FLATBUFFERS_CHECKED_ERROR ParseDecl(const char* filename);
   FLATBUFFERS_CHECKED_ERROR ParseService(const char* filename);
+  struct ProtoIgnoredInfo {
+    enum class Keyword : uint8_t {
+      kOption,
+      kService,
+      kExtensions,
+    };
+
+    enum class Scope : uint8_t {
+      kTopLevel,
+      kMessage,
+    };
+
+    static const char* KeywordName(Keyword keyword);
+    static const char* ScopeName(Scope scope);
+  };
+
+  FLATBUFFERS_CHECKED_ERROR HandleIgnoredProtoKeyword(
+      ProtoIgnoredInfo::Keyword keyword, ProtoIgnoredInfo::Scope scope);
+  IDLOptions::ProtoAction GetProtoIgnoredAction(
+      ProtoIgnoredInfo::Keyword keyword) const;
+
   FLATBUFFERS_CHECKED_ERROR ParseProtoFields(StructDef* struct_def,
                                              bool isextend, bool inside_oneof);
   FLATBUFFERS_CHECKED_ERROR ParseProtoMapField(StructDef* struct_def);
