@@ -263,6 +263,8 @@ const static FlatCOption flatc_options[] = {
     {"", "python-decode-obj-api-strings", "",
      "Decode bytes to strings for the Python Object API"},
     {"", "python-gen-numpy", "", "Whether to generate numpy helpers."},
+    {"", "python-fields-snake-case", "",
+      "Generate Python fields using snake_case naming convention."},
     {"", "ts-omit-entrypoint", "",
      "Omit emission of namespace entrypoint file"},
     {"", "ts-undefined-for-optionals", "",
@@ -711,6 +713,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-python-gen-numpy" ||
                  arg == "--python-gen-numpy=false") {
         opts.python_gen_numpy = false;
+      } else if (arg == "--python-fields-snake-case") {
+        opts.python_fields_snake_case = true;
       } else if (arg == "--ts-omit-entrypoint") {
         opts.ts_omit_entrypoint = true;
       } else if (arg == "--ts-undefined-for-optionals") {
