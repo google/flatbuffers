@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlatSpanBuffers\FlatSpanBuffers.csproj" />
+  </ItemGroup>
+  
+  <!-- Include all generated .cs files from the Generated directory and subdirectories -->
+  <ItemGroup>
+    <Compile Include="Generated\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Table2 is intentionally excluded. FlatBuffers.Test did not include KeywordTest/Table2.cs, 
+          presumably due to keyword handling issues. -->
+    <Compile Remove="Generated\keyword_test\KeywordTest\Table2.cs" />
+    <Compile Remove="Generated\keyword_test\KeywordTest\StackBuffer\Table2.cs" />
+  </ItemGroup>
+
+  <!-- Include schema files as content for reference -->
+  <ItemGroup>
+    <Content Include="fbs\*.fbs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
