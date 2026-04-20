@@ -2509,7 +2509,7 @@ class PythonGenerator : public BaseGenerator {
     } else {
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
       code_prefix += "(self." + field_field + "[i])";
-      code_prefix += GenIndents(4) + field_field + " = builder.EndVector()";
+      code_prefix += GenIndents(3) + field_field + " = builder.EndVector()";
     }
   }
 
