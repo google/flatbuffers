@@ -1007,9 +1007,14 @@ inline Reference Map::operator[](const std::string& key) const {
 inline Reference GetRoot(const uint8_t* buffer, size_t size) {
   // See Finish() below for the serialization counterpart of this.
   // The root starts at the end of the buffer, so we parse backwards from there.
+  // A valid FlexBuffer needs at minimum: 1 data byte + 1 packed_type byte +
+  // 1 byte_width byte = 3 bytes.
+  if (size < 3) return Reference();
   auto end = buffer + size;
   auto byte_width = *--end;
   auto packed_type = *--end;
+  // Guard: byte_width must not push 'end' before the start of the buffer.
+  if (byte_width > static_cast<size_t>(end - buffer)) return Reference();
   end -= byte_width;  // The root data item.
   return Reference(end, byte_width, packed_type);
 }
