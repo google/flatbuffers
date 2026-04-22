@@ -7,13 +7,12 @@ import (
 )
 
 type HelloRequest struct {
-	_tab flatbuffers.Table
+	flatbuffers.Table
 }
 
-func GetRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) *HelloRequest {
+func GetRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) (x HelloRequest) {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &HelloRequest{}
-	x.Init(buf, n+offset)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset}
 	return x
 }
 
@@ -21,10 +20,9 @@ func FinishHelloRequestBuffer(builder *flatbuffers.Builder, offset flatbuffers.U
 	builder.Finish(offset)
 }
 
-func GetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) *HelloRequest {
+func GetSizePrefixedRootAsHelloRequest(buf []byte, offset flatbuffers.UOffsetT) (x HelloRequest) {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &HelloRequest{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset+flatbuffers.SizeUint32}
 	return x
 }
 
@@ -33,18 +31,14 @@ func FinishSizePrefixedHelloRequestBuffer(builder *flatbuffers.Builder, offset f
 }
 
 func (rcv *HelloRequest) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *HelloRequest) Table() flatbuffers.Table {
-	return rcv._tab
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func (rcv *HelloRequest) Name() []byte {
-	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
+	o := flatbuffers.UOffsetT(rcv.Offset(4))
 	if o != 0 {
-		return rcv._tab.ByteVector(o + rcv._tab.Pos)
+		return rcv.ByteVector(o + rcv.Pos)
 	}
 	return nil
 }
