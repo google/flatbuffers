@@ -172,6 +172,7 @@ class StubGenerator : public BaseGenerator {
        << "  def __init__(self, channel: grpc.Channel) -> None: ...\n";
 
     for (const RPCCall* method : service->calls.vec) {
+      imports->Import("typing");
       std::string request = "bytes";
       std::string response = "bytes";
 
@@ -183,14 +184,22 @@ class StubGenerator : public BaseGenerator {
         imports->Import(ModuleFor(method->response), response);
       }
 
-      ss << "  def " << method->name << "(self, ";
+      ss << "  def " << method->name << "(\n";
+      ss << "      self,\n";
       if (ClientStreaming(method)) {
-        imports->Import("typing");
-        ss << "request_iterator: typing.Iterator[" << request << "]";
+        ss << "      request_iterator: typing.Iterator[" << request << "]\n";
       } else {
-        ss << "request: " << request;
+        ss << "      request: " << request << ",\n";
       }
-      ss << ") -> ";
+
+      ss << "      timeout: float | None = None,\n";
+      // https://github.com/python/typeshed/blob/ccf9411fb1f5bee2a8e3d278889de17a08f7bbe3/stubs/grpcio/grpc/__init__.pyi#L37
+      ss << "      metadata: typing.Sequence[tuple[str, typing.Union[str, bytes]]] | None = None,\n";
+      ss << "      credentials: grpc.CallCredentials | None = None,\n";
+      ss << "      wait_for_ready: bool | None = None,\n";
+      ss << "      compression: grpc.Compression | None = None\n";
+
+      ss << "  ) -> ";
       if (ServerStreaming(method)) {
         imports->Import("typing");
         ss << "typing.Iterator[" << response << "]";
