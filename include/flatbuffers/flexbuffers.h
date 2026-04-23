@@ -1976,7 +1976,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyKey(const uint8_t* p) {
     FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
     while (p < buf_ + size_)
-      if (*p++) return true;
+      if (*p++ == '\0') return true;
     return false;
   }
 
