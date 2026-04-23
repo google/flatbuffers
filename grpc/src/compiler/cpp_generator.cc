@@ -1122,16 +1122,12 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
   }
   printer->Print(" StreamedService;\n");
 
-  printer->Outdent();
-  printer->Print("};\n");
-  printer->Print(service->GetTrailingComments("//").c_str());
-
   // Optional CallbackService (modern async API)
   if ((*vars)["generate_callback_api"] == "1") {
     (*vars)["Service"] = service->name();
     printer->Print("\n#if defined(GRPC_CALLBACK_API_NONEXPERIMENTAL)\n");
     printer->Print(*vars,
-                   "class $Service$::CallbackService : public ::grpc::Service "
+                   "class CallbackService : public ::grpc::Service "
                    "{\n public:\n  CallbackService();\n  virtual "
                    "~CallbackService();\n");
     printer->Indent();
@@ -1167,6 +1163,10 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
         "};\n#else\n// Callback API requested but not available in this gRPC "
         "version.\n#endif // GRPC_CALLBACK_API_NONEXPERIMENTAL\n");
   }
+
+  printer->Outdent();
+  printer->Print("};\n");
+  printer->Print(service->GetTrailingComments("//").c_str());
 }
 
 }  // namespace
