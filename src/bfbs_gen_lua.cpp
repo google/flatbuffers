@@ -554,7 +554,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     if (IsScalar(base_type)) {
       return namer_.Type(GenerateType(base_type));
     }
-    if (IsStructOrTable(base_type)) {
+    if (base_type == r::Obj && GetObject(field->type())->is_struct()) {
       return "Struct";
     }
     return "UOffsetTRelative";
