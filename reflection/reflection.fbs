@@ -88,6 +88,7 @@ table Field {
     padding:uint16 = 0; 
     /// If the field uses 64-bit offsets.
     offset64:bool = false;
+    default_non_scalar:string;
 }
 
 table Object {  // Used for both tables and structs.
