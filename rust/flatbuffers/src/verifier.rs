@@ -497,6 +497,120 @@ impl<'ver, 'opts, 'buf> TableVerifier<'ver, 'opts, 'buf> {
             ),
         }
     }
+
+    /// Vector-of-union counterpart of [`visit_union`]. Verifies that the
+    /// paired discriminant and value vectors are both present (or both
+    /// absent), share a length, and that each element is a valid union
+    /// variant.
+    ///
+    /// Used by code generated for `[Union]` schema fields. Refs
+    /// <https://github.com/google/flatbuffers/issues/5024>.
+    #[inline]
+    pub fn visit_union_vector<Key, UnionVerifier>(
+        mut self,
+        key_field_name: impl Into<Cow<'static, str>>,
+        key_field_voff: VOffsetT,
+        val_field_name: impl Into<Cow<'static, str>>,
+        val_field_voff: VOffsetT,
+        required: bool,
+        verify_union: UnionVerifier,
+    ) -> Result<Self>
+    where
+        Key: 'buf + Follow<'buf> + Verifiable,
+        Vector<'buf, Key>: Verifiable,
+        UnionVerifier:
+            (Fn(<Key as Follow<'buf>>::Inner, &mut Verifier, usize) -> Result<()>),
+    {
+        let key_field_name = key_field_name.into();
+        let val_field_name = val_field_name.into();
+
+        // Resolve both vtable slots up front. Like `visit_union`, both must
+        // be present or both absent — anything else is an inconsistent union.
+        let key_pos = self.deref(key_field_voff)?;
+        let val_pos = self.deref(val_field_voff)?;
+        let (key_vec_pos, val_vec_pos) = match (key_pos, val_pos) {
+            (None, None) => {
+                if required {
+                    return InvalidFlatbuffer::new_missing_required(val_field_name);
+                }
+                return Ok(self);
+            }
+            (Some(k), Some(v)) => (k, v),
+            _ => {
+                return InvalidFlatbuffer::new_inconsistent_union(
+                    val_field_name,
+                    key_field_name,
+                );
+            }
+        };
+
+        // Verify the discriminant vector first. Vector<Key> implements
+        // Verifiable for the simple-scalar Key (the union discriminant
+        // is always a u8/u16/etc enum), so this gives us length + range
+        // checks for free.
+        trace_field(
+            <ForwardsUOffset<Vector<'_, Key>>>::run_verifier(self.verifier, key_vec_pos),
+            key_field_name.clone(),
+            key_vec_pos,
+        )?;
+
+        // Verify the value-offset vector by hand: the elements are
+        // `ForwardsUOffset<Table>`, and `Table` does not implement
+        // `Verifiable` directly (you need a discriminant to know what
+        // table type to verify against). We just check the vector range
+        // and size here; per-element verification happens below.
+        let val_vec_inner_pos = {
+            let off = self.verifier.get_uoffset(val_vec_pos)? as usize;
+            off.saturating_add(val_vec_pos)
+        };
+        let val_range = verify_vector_range::<ForwardsUOffset<crate::Table<'_>>>(
+            self.verifier,
+            val_vec_inner_pos,
+        )?;
+
+        // Safety: discriminant vector verified above, so its length and
+        // contents are in-bounds.
+        let buf = self.verifier.buffer;
+        let key_vec_start =
+            (unsafe { crate::read_scalar_at::<UOffsetT>(buf, key_vec_pos) } as usize)
+                .saturating_add(key_vec_pos);
+        let key_size = core::mem::size_of::<Key>();
+        let key_len =
+            unsafe { crate::read_scalar_at::<UOffsetT>(buf, key_vec_start) } as usize;
+
+        // Same-length invariant; matches the C++ verifier change in
+        // PR #8853 and the Swift visitUnionVector contract.
+        let val_size = core::mem::size_of::<ForwardsUOffset<crate::Table<'_>>>();
+        let val_len = (val_range.end - val_range.start) / val_size;
+        if key_len != val_len {
+            return InvalidFlatbuffer::new_inconsistent_union(
+                val_field_name,
+                key_field_name,
+            );
+        }
+
+        // Walk in lockstep: read discriminant, then dispatch the user-
+        // supplied verifier on the value at the corresponding index.
+        for i in 0..key_len {
+            let key_elem_pos =
+                key_vec_start.saturating_add(SIZE_UOFFSET).saturating_add(key_size * i);
+            // Safety: key vector range was verified above.
+            let discriminant = unsafe { Key::follow(buf, key_elem_pos) };
+
+            let val_elem_pos = val_range.start.saturating_add(val_size * i);
+            // Resolve the value offset to its absolute position before
+            // handing it to the per-variant verifier.
+            let val_offset = self.verifier.get_uoffset(val_elem_pos)? as usize;
+            let val_target = val_offset.saturating_add(val_elem_pos);
+            trace_elem(
+                verify_union(discriminant, self.verifier, val_target),
+                i,
+                val_target,
+            )?;
+        }
+        Ok(self)
+    }
+
     pub fn finish(self) -> &'ver mut Verifier<'opts, 'buf> {
         self.verifier.depth -= 1;
         self.verifier
