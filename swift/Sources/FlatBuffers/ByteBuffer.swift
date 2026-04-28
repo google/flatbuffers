@@ -27,7 +27,7 @@ public struct ByteBuffer {
   @usableFromInline
   final class Storage {
     @usableFromInline
-    enum Blob {
+    @frozen enum Blob: ~Copyable {
       #if !os(WASI)
       case data(Data)
       case bytes(ContiguousBytes)
@@ -36,6 +36,36 @@ public struct ByteBuffer {
       case byteBuffer(_InternalByteBuffer)
       case array([UInt8])
       case pointer(UnsafeMutableRawPointer)
+
+      init(_ other: borrowing Blob) {
+        switch other {
+        case .data(let data):
+          self = .data(data)
+        case .bytes(let contiguousBytes):
+          self = .bytes(contiguousBytes)
+        case .byteBuffer(let internalByteBuffer):
+          self = .byteBuffer(internalByteBuffer)
+        case .array(let array):
+          self = .array(array)
+        case .pointer(let unsafeMutableRawPointer):
+          self = .pointer(unsafeMutableRawPointer)
+        }
+      }
+
+      var description: String {
+        switch self {
+        case .data(let data):
+          "data: \(data)"
+        case .bytes(let contiguousBytes):
+          "bytes: \(contiguousBytes)"
+        case .byteBuffer(let internalByteBuffer):
+          "byteBuffer: \(internalByteBuffer)"
+        case .array(let array):
+          "array: \(array)"
+        case .pointer(let unsafeMutableRawPointer):
+          "pointer: \(unsafeMutableRawPointer)"
+        }
+      }
     }
 
     /// This storage doesn't own the memory, therefore, we won't deallocate on deinit.
@@ -44,7 +74,7 @@ public struct ByteBuffer {
     private let capacity: Int
     /// Retained blob of data that requires the storage to retain a pointer to.
     @usableFromInline
-    var retainedBlob: Blob
+    let retainedBlob: Blob
 
     @usableFromInline
     init(count: Int) {
@@ -57,9 +87,9 @@ public struct ByteBuffer {
     }
 
     @usableFromInline
-    init(blob: Blob, capacity count: Int) {
+    init(blob: borrowing Blob, capacity count: Int) {
       capacity = count
-      retainedBlob = blob
+      retainedBlob = .init(blob)
       isOwned = false
     }
 
@@ -150,6 +180,7 @@ public struct ByteBuffer {
 
     @discardableResult
     @inline(__always)
+    @inlinable
     func readWithUnsafeRawPointer<T>(
       position: Int,
       _ body: (UnsafeRawPointer) throws -> T) rethrows -> T
@@ -278,7 +309,7 @@ public struct ByteBuffer {
   ///   - removeBytes: Removes a number of bytes from the current size
   @inline(__always)
   init(
-    blob: Storage.Blob,
+    blob: borrowing Storage.Blob,
     count: Int,
     removing removeBytes: Int)
   {
@@ -318,7 +349,8 @@ public struct ByteBuffer {
   ///   - def: Type of the object
   ///   - position: the index of the object in the buffer
   @inline(__always)
-  public func read<T>(def: T.Type, position: Int) -> T {
+  @inlinable
+  public func read<T: BitwiseCopyable>(def: T.Type, position: Int) -> T {
     _storage.readWithUnsafeRawPointer(position: position) {
       $0.bindMemory(to: T.self, capacity: 1)
         .pointee
@@ -412,7 +444,7 @@ public struct ByteBuffer {
   /// - Parameter removeBytes: the amount of bytes to remove from the current Size
   @inline(__always)
   public func duplicate(removing removeBytes: Int = 0) -> ByteBuffer {
-    assert(removeBytes > 0, "Can NOT remove negative bytes")
+    assert(removeBytes >= 0, "Can NOT remove negative bytes")
     assert(
       removeBytes < capacity,
       "Can NOT remove more bytes than the ones allocated")
@@ -464,8 +496,9 @@ public struct ByteBuffer {
 extension ByteBuffer: CustomDebugStringConvertible {
 
   public var debugDescription: String {
-    """
-    buffer located at: \(_storage.retainedBlob), 
+    let blobDescription = _storage.retainedBlob.description
+    return """
+    buffer located at: \(blobDescription), 
     with capacity of \(capacity),
     { writtenSize: \(_readerIndex), readerSize: \(reader), 
     size: \(size) }
