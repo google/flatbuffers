@@ -85,6 +85,31 @@ static bool IsVectorOfPointers(const FieldDef& field) {
          !vector_type.struct_def->fixed && !field.native_inline;
 }
 
+// Validate that a string is safe to embed as a C++ type name or type
+// expression (used for native_type, cpp_type, cpp_ptr_type_get attributes).
+// Allowed characters: alphanumerics, '_', ':', '<', '>', '*', '&', ' ', ',',
+// '.', '(', ')'.  Characters like '"', '{', '}', ';', '#', '\n', '\r' can
+// break out of a type context and inject arbitrary code.
+static bool IsValidCppTypeExpression(const std::string& s) {
+  for (char c : s) {
+    if (!is_alnum(c) && c != '_' && c != ':' && c != '<' && c != '>' &&
+        c != '*' && c != '&' && c != ' ' && c != ',' && c != '.' &&
+        c != '(' && c != ')') {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Validate that a string is safe to embed inside an #include "..." directive.
+// Newlines and double-quotes would allow injection beyond the string literal.
+static bool IsValidIncludePath(const std::string& s) {
+  for (char c : s) {
+    if (c == '"' || c == '\n' || c == '\r') { return false; }
+  }
+  return true;
+}
+
 static bool IsPointer(const FieldDef& field) {
   return field.value.type.base_type == BASE_TYPE_STRUCT &&
          !IsStruct(field.value.type);
@@ -263,6 +288,13 @@ class CppGenerator : public BaseGenerator {
     if (opts_.generate_object_based_api) {
       for (const std::string& native_included_file :
            parser_.native_included_files_) {
+        if (!IsValidIncludePath(native_included_file)) {
+          LogCompilerError(
+              "native_include path contains characters that are unsafe to "
+              "embed in a #include directive: \"" +
+              native_included_file + "\"");
+          continue;
+        }
         code_ += "#include \"" + native_included_file + "\"";
       }
     }
@@ -437,9 +469,57 @@ class CppGenerator : public BaseGenerator {
                                              false);
   }
 
+  // Validate attribute values that are embedded verbatim into generated C++
+  // source as type names or include paths.  Malicious .fbs files could inject
+  // arbitrary code if these values are not checked before code emission.
+  // Returns false (after logging an error) if any unsafe value is found.
+  bool ValidateAttributeSafety() {
+    // Validate native_type and cpp_type attributes on struct/table definitions.
+    for (const auto& struct_def : parser_.structs_.vec) {
+      const auto native_type = struct_def->attributes.Lookup("native_type");
+      if (native_type && !IsValidCppTypeExpression(native_type->constant)) {
+        LogCompilerError(
+            "native_type attribute on '" + Name(*struct_def) +
+            "' contains characters that are unsafe to embed as a C++ type "
+            "name: \"" +
+            native_type->constant + "\"");
+        return false;
+      }
+      for (const auto& field_it : struct_def->fields.vec) {
+        const auto& field = *field_it;
+        const auto cpp_type = field.attributes.Lookup("cpp_type");
+        if (cpp_type && !IsValidCppTypeExpression(cpp_type->constant)) {
+          LogCompilerError(
+              "cpp_type attribute on field '" + Name(*struct_def) + "." +
+              Name(field) +
+              "' contains characters that are unsafe to embed as a C++ type "
+              "name: \"" +
+              cpp_type->constant + "\"");
+          return false;
+        }
+        const auto cpp_ptr_type_get =
+            field.attributes.Lookup("cpp_ptr_type_get");
+        if (cpp_ptr_type_get &&
+            !IsValidCppTypeExpression(cpp_ptr_type_get->constant)) {
+          LogCompilerError(
+              "cpp_ptr_type_get attribute on field '" + Name(*struct_def) +
+              "." + Name(field) +
+              "' contains characters that are unsafe to embed as a C++ "
+              "expression: \"" +
+              cpp_ptr_type_get->constant + "\"");
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   // Iterate through all definitions we haven't generate code for (enums,
   // structs, and tables) and output them to a single file.
   bool generate() {
+    // Validate attribute values before emitting any code.
+    if (!ValidateAttributeSafety()) { return false; }
+
     // Check if we require a 64-bit flatbuffer builder.
     MarkIf64BitBuilderIsNeeded();
 
