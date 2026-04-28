@@ -23,7 +23,7 @@ import Common
 /// Enum is a protocol that all flatbuffers enums should conform to
 /// Since it allows us to get the actual `ByteSize` and `Value` from
 /// a swift enum.
-public protocol Enum {
+public protocol Enum: Sendable {
   /// associatedtype that the type of the enum should conform to
   associatedtype T: Scalar & Verifiable
   /// Size of the current associatedtype in the enum

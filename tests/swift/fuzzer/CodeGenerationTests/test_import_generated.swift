@@ -3,12 +3,12 @@
 // swiftformat:disable all
 
 #if canImport(Common)
-@_implementationOnly import Common
+internal import Common
 #endif
 
-@_implementationOnly import FlatBuffers
+internal import FlatBuffers
 
-internal struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+internal struct Message: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   internal var __buffer: ByteBuffer! { return _accessor.bb }
