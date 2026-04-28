@@ -293,7 +293,7 @@ class CppGenerator : public BaseGenerator {
               "native_include path contains characters that are unsafe to "
               "embed in a #include directive: \"" +
               native_included_file + "\"");
-          FLATBUFFERS_ASSERT(true);
+          continue;
         }
         code_ += "#include \"" + native_included_file + "\"";
       }
