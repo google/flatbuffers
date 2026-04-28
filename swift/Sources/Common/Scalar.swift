@@ -28,10 +28,17 @@ public let FileIdLength = 4
 /// Protocol that All Scalars should conform to
 ///
 /// Scalar is used to conform all the numbers that can be represented in a FlatBuffer. It's used to write/read from the buffer.
+#if compiler(>=6.0)
+public protocol Scalar: Equatable, BitwiseCopyable {
+  associatedtype NumericValue
+  var convertedEndian: NumericValue { get }
+}
+#else
 public protocol Scalar: Equatable {
   associatedtype NumericValue
   var convertedEndian: NumericValue { get }
 }
+#endif
 
 extension Scalar where Self: FixedWidthInteger {
   /// Converts the value from BigEndian to LittleEndian

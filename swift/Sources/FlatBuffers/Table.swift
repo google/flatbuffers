@@ -82,9 +82,15 @@ public struct Table {
   /// - Parameters:
   ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
+  #if compiler(>=6.0)
+  public func readBuffer<T: BitwiseCopyable>(of type: T.Type, at o: Int32) -> T {
+    bb.read(def: T.self, position: Int(o &+ position))
+  }
+  #else
   public func readBuffer<T>(of type: T.Type, at o: Int32) -> T {
     bb.read(def: T.self, position: Int(o &+ position))
   }
+  #endif
 
   /// Returns that current `Union` object at a specific offset
   /// by adding offset to the current position of table
