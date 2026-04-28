@@ -840,11 +840,19 @@ public struct FlatBufferBuilder {
     return _bb.size
   }
 
+  #if compiler(>=6.0)
   @inline(__always)
   @inlinable
   public func read<T: BitwiseCopyable>(def: T.Type, position: Int) -> T {
     _bb.read(def: def, position: position)
   }
+  #else
+  @inline(__always)
+  @inlinable
+  public func read<T>(def: T.Type, position: Int) -> T {
+    _bb.read(def: def, position: position)
+  }
+  #endif
 }
 
 extension FlatBufferBuilder: CustomDebugStringConvertible {

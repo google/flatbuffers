@@ -163,10 +163,17 @@ public struct Verifier {
   /// - Parameter position: Current position to be read
   /// - Throws: `inBuffer` errors
   /// - Returns: a value of type `T` usually a `VTable` or a table offset
+  #if compiler(>=6.0)
   internal func getValue<T: BitwiseCopyable>(at position: Int) throws -> T {
     try inBuffer(position: position, of: T.self)
     return _buffer.read(def: T.self, position: position)
   }
+  #else
+  internal func getValue<T>(at position: Int) throws -> T {
+    try inBuffer(position: position, of: T.self)
+    return _buffer.read(def: T.self, position: position)
+  }
+  #endif
 
   /// derefrences an offset within a vtable to get the position of the field
   /// in the bytebuffer
