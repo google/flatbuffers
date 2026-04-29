@@ -1,0 +1,29 @@
+[package]
+name = "flexbuffers-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.flexbuffers]
+path = ".."
+
+# Prevent this from interfering with workspace
+[workspace]
+
+[[bin]]
+name = "fuzz_reader"
+path = "fuzz_targets/fuzz_reader.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_roundtrip"
+path = "fuzz_targets/fuzz_roundtrip.rs"
+test = false
+doc = false
