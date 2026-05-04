@@ -37,7 +37,7 @@ class CodeGenerator {
 
   enum Status {
     OK = 0,
-    ERROR = 1,
+    ERROR_ = 1,
     FAILED_VERIFICATION = 2,
     NOT_IMPLEMENTED = 3
   };
