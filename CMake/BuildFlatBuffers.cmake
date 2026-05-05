@@ -174,6 +174,12 @@ endfunction()
 #       the directories that need to be searched).
 #   INCLUDE_PREFIX: Optional. The directory in which to place the generated
 #       files. Use this instead of the --include-prefix option.
+#   FILENAME_SUFFIX: Optional. The suffix appended to the generated file names
+#       Use this instead of the --filename-suffix option.
+#   NO_FILENAME_SUFFIX: Optional. Appends a empty "" suffix to the generated
+#       file names. Use this instead of the --filename-suffix option.
+#   FILENAME_EXT: Optional. The extension appended to the generated file names.
+#       Use this instead of the --filename-ext option.
 #   FLAGS: Optional. A list of any additional flags that you would like to pass
 #       to flatc.
 #
@@ -194,11 +200,14 @@ endfunction()
 #     add_dependencies(app GENERATE_my_generated_headers_target)
 function(flatbuffers_generate_headers)
   # Parse function arguments.
-  set(options)
+  set(options
+    "NO_FILENAME_SUFFIX")
   set(one_value_args
     "TARGET"
     "INCLUDE_PREFIX"
-    "BINARY_SCHEMAS_DIR")
+    "BINARY_SCHEMAS_DIR"
+    "FILENAME_SUFFIX"
+    "FILENAME_EXT")
   set(multi_value_args
     "SCHEMAS"
     "INCLUDE"
@@ -223,6 +232,31 @@ function(flatbuffers_generate_headers)
   endif()
 
   set(working_dir "${CMAKE_CURRENT_SOURCE_DIR}")
+  
+  if(NOT "${FLATBUFFERS_GENERATE_HEADERS_FILENAME_SUFFIX}" STREQUAL "")
+    set(filename_suffix "${FLATBUFFERS_GENERATE_HEADERS_FILENAME_SUFFIX}")
+    list(APPEND FLATBUFFERS_GENERATE_HEADERS_FLAGS
+      "--filename-suffix" ${filename_suffix})
+  else()
+    set(filename_suffix "_generated")
+  endif()
+
+  if (FLATBUFFERS_GENERATE_HEADERS_NO_FILENAME_SUFFIX)
+    if (NOT "${FLATBUFFERS_GENERATE_HEADERS_FILENAME_SUFFIX}" STREQUAL "")
+      message(FATAL_ERROR "Only one of NO_FILENAME_SUFFIX or FILENAME_SUFFIX can be used.")
+    endif()
+    set(filename_suffix "")
+    list(APPEND FLATBUFFERS_GENERATE_HEADERS_FLAGS
+      "--filename-suffix" \"\")
+  endif()
+
+  if(NOT "${FLATBUFFERS_GENERATE_HEADERS_FILENAME_EXT}" STREQUAL "")
+    set(filename_ext ${FLATBUFFERS_GENERATE_HEADERS_FILENAME_EXT})
+    list(APPEND FLATBUFFERS_GENERATE_HEADERS_FLAGS
+      "--filename-ext" ${FLATBUFFERS_GENERATE_HEADERS_FILENAME_EXT})
+  else()
+    set(filename_ext "h")
+  endif()
 
   # Generate the include files parameters.
   set(include_params "")
@@ -244,7 +278,7 @@ function(flatbuffers_generate_headers)
   # Create rules to generate the code for each schema.
   foreach(schema ${FLATBUFFERS_GENERATE_HEADERS_SCHEMAS})
     get_filename_component(filename ${schema} NAME_WE)
-    set(generated_include "${generated_include_dir}/${filename}_generated.h")
+    set(generated_include "${generated_include_dir}/${filename}${filename_suffix}.${filename_ext}")
 
     # Generate files for grpc if needed
     set(generated_source_file)
