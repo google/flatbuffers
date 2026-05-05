@@ -45,19 +45,19 @@ static std::string StreamingServerResponse() {
 
 static std::string QualifiedName(const std::vector<std::string>& components,
                                  const grpc::string& name,
-                                 const std::string separator = "_") {
+                                 const std::string& separator = "_") {
   std::string qualified_name;
   for (auto it = components.begin(); it != components.end(); ++it)
     qualified_name += *it + separator;
   return qualified_name + name;
 }
 
-static std::string GenerateGRPCMessage(const std::string name) {
+static std::string GenerateGRPCMessage(const std::string& name) {
   return "GRPCMessage<" + name + ">";
 }
 
-static std::string GenerateType(const std::string name,
-                                const std::string wrapper) {
+static std::string GenerateType(const std::string& name,
+                                const std::string& wrapper) {
   return wrapper + "<" + GenerateGRPCMessage(name) + ">";
 }
 
@@ -105,9 +105,9 @@ void EnforceOSVersion(grpc_generator::Printer* printer) {
       "*)\n");
 }
 
-void Method(grpc_generator::Printer* printer,
-            std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+void GenerateMethodDescriptor(grpc_generator::Printer* printer,
+                              std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   printer->Print(vars, "$ACCESS$ enum $MethodName$: Sendable {\n");
   printer->Indent();
   printer->Print(vars, "$ACCESS$ typealias Input = FlatBufferBuilder\n");
@@ -192,8 +192,8 @@ void GenerateCoders(grpc_generator::Printer* printer) {
 
 void GenerateSharedContent(const grpc_generator::Service* service,
                            grpc_generator::Printer* printer,
-                           std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+                           std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   EnforceOSVersion(printer);
   printer->Print(vars,
                  "$ACCESS$ enum $SwiftServiceQualifiedName$: Sendable {\n");
@@ -215,7 +215,7 @@ void GenerateSharedContent(const grpc_generator::Service* service,
     auto name = method->name();
     vars["MethodName"] = name;
     descriptors.push_back(name);
-    Method(printer, &vars);
+    GenerateMethodDescriptor(printer, &vars);
   }
 
   printer->Print(
@@ -248,8 +248,8 @@ void GenerateSharedContent(const grpc_generator::Service* service,
 // Service Generation
 
 void GenerateFunction(grpc_generator::Printer* printer,
-                      std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+                      std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   printer->Print(vars, "func $MethodName$(\n");
   printer->Indent();
 
@@ -262,8 +262,8 @@ void GenerateFunction(grpc_generator::Printer* printer,
 
 void GenerateServiceProtocols(const grpc_generator::Service* service,
                               grpc_generator::Printer* printer,
-                              std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+                              std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   EnforceOSVersion(printer);
   printer->Print(vars, "extension $SwiftServiceQualifiedName$ {\n");
   printer->Indent();
@@ -421,8 +421,8 @@ void GenerateServiceProtocols(const grpc_generator::Service* service,
 
 void CreateServiceProtocolFunctionsImplementations(
     grpc_generator::Printer* printer,
-    std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+    std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   printer->Print(vars, "$ACCESS$ func $MethodName$(\n");
   printer->Indent();
   printer->Print(vars, "request: $Input$,\n");
@@ -455,8 +455,8 @@ std::string GenerateOutputResponse(const grpc_generator::Method* method) {
 
 void GenerateServiceDefaultImplementation(
     const grpc_generator::Service* service, grpc_generator::Printer* printer,
-    std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+    std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   EnforceOSVersion(printer);
   printer->Print(vars,
                  "extension $SwiftServiceQualifiedName$.ServiceProtocol {\n");
@@ -491,8 +491,8 @@ void GenerateServiceDefaultImplementation(
 
 void GenerateSimpleServiceImplemetation(
     const grpc_generator::Service* service, grpc_generator::Printer* printer,
-    std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+    std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   EnforceOSVersion(printer);
   printer->Print(
       vars, "extension $SwiftServiceQualifiedName$.SimpleServiceProtocol {\n");
@@ -560,18 +560,18 @@ void GenerateSimpleServiceImplemetation(
 
 void GenerateService(const grpc_generator::Service* service,
                      grpc_generator::Printer* printer,
-                     std::map<grpc::string, grpc::string>* dictonary) {
-  GenerateServiceProtocols(service, printer, dictonary);
-  GenerateServiceDefaultImplementation(service, printer, dictonary);
-  GenerateSimpleServiceImplemetation(service, printer, dictonary);
+                     std::map<grpc::string, grpc::string>* dictionary) {
+  GenerateServiceProtocols(service, printer, dictionary);
+  GenerateServiceDefaultImplementation(service, printer, dictionary);
+  GenerateSimpleServiceImplemetation(service, printer, dictionary);
 }
 
 // Client Generation
 
 void GenerateClientProtocols(const grpc_generator::Service* service,
                              grpc_generator::Printer* printer,
-                             std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+                             std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   EnforceOSVersion(printer);
   printer->Print(vars, "extension $SwiftServiceQualifiedName$ {\n");
   printer->Indent();
@@ -639,8 +639,8 @@ void GenerateClientProtocols(const grpc_generator::Service* service,
 
 void GenerateClientStruct(const grpc_generator::Service* service,
                           grpc_generator::Printer* printer,
-                          std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+                          std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   EnforceOSVersion(printer);
   printer->Print(vars, "extension $SwiftServiceQualifiedName$ {\n");
   printer->Indent();
@@ -737,8 +737,8 @@ void GenerateClientStruct(const grpc_generator::Service* service,
 
 void GenerateClientDefaultImplementation(
     const grpc_generator::Service* service, grpc_generator::Printer* printer,
-    std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+    std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
   EnforceOSVersion(printer);
   printer->Print(vars,
                  "extension $SwiftServiceQualifiedName$.ClientProtocol {\n");
@@ -814,8 +814,8 @@ void GenerateClientDefaultImplementation(
 
 void GenerateClientHelperMethods(
     const grpc_generator::Service* service, grpc_generator::Printer* printer,
-    std::map<grpc::string, grpc::string>* dictonary) {
-  auto vars = *dictonary;
+    std::map<grpc::string, grpc::string>* dictionary) {
+  auto vars = *dictionary;
 
   EnforceOSVersion(printer);
   printer->Print(vars,
@@ -921,11 +921,11 @@ void GenerateClientHelperMethods(
 
 void GenerateClient(const grpc_generator::Service* service,
                     grpc_generator::Printer* printer,
-                    std::map<grpc::string, grpc::string>* dictonary) {
-  GenerateClientProtocols(service, printer, dictonary);
-  GenerateClientStruct(service, printer, dictonary);
-  GenerateClientDefaultImplementation(service, printer, dictonary);
-  GenerateClientHelperMethods(service, printer, dictonary);
+                    std::map<grpc::string, grpc::string>* dictionary) {
+  GenerateClientProtocols(service, printer, dictionary);
+  GenerateClientStruct(service, printer, dictionary);
+  GenerateClientDefaultImplementation(service, printer, dictionary);
+  GenerateClientHelperMethods(service, printer, dictionary);
 }
 
 }  // namespace
