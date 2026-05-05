@@ -2095,12 +2095,12 @@ class PythonGenerator : public BaseGenerator {
     const auto field_method = namer_.Method(field);
     const auto struct_var = namer_.Variable(struct_def);
     const EnumDef& enum_def = *field.value.type.enum_def;
-    auto union_type = namer_.Type(enum_def);
+    auto union_fn = namer_.Function(enum_def);
 
     if (parser_.opts.include_dependence_headers) {
-      union_type = namer_.NamespacedType(enum_def) + "." + union_type;
+      union_fn = namer_.NamespacedType(enum_def) + "." + union_fn;
     }
-    code += GenIndents(2) + "self." + field_field + " = " + union_type +
+    code += GenIndents(2) + "self." + field_field + " = " + union_fn +
             "Creator(" + "self." + field_field + "Type, " + struct_var + "." +
             field_method + "())";
   }
@@ -2471,7 +2471,7 @@ class PythonGenerator : public BaseGenerator {
     } else {
       GenPackForScalarVectorFieldHelper(struct_def, field, code_prefix_ptr, 3);
       code_prefix += "(self." + field_field + "[i])";
-      code_prefix += GenIndents(4) + field_field + " = builder.EndVector()";
+      code_prefix += GenIndents(3) + field_field + " = builder.EndVector()";
     }
   }
 

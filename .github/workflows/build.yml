@@ -42,7 +42,7 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
@@ -170,7 +170,7 @@ jobs:
     - name: test
       run: Release\flattests.exe
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Windows flatc binary
         path: Release\flatc.exe
@@ -191,7 +191,7 @@ jobs:
 
   build-dotnet-windows:
     name: Build .NET Windows
-    runs-on: windows-2022-64core
+    runs-on: windows-2022
     strategy:
       matrix:
         configuration: [
@@ -246,7 +246,7 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Mac flatc binary Intel
         path: Release/flatc
@@ -289,7 +289,7 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Mac flatc binary Universal
         path: Release/flatc
@@ -373,7 +373,7 @@ jobs:
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: Linux flatbenchmark results ${{matrix.cxx}}
         path: benchmarks/results_${{matrix.cxx}}
@@ -446,7 +446,7 @@ jobs:
 
   build-rust-windows:
     name: Build Rust Windows
-    runs-on: windows-2022-64core
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v6
     - name: test
@@ -545,7 +545,7 @@ jobs:
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
     - name: pnpm
-      run: npm install -g pnpm esbuild
+      run: npm install -g pnpm
     - name: deps
       run: pnpm i
     - name: compile
