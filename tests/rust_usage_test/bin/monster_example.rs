@@ -4,7 +4,7 @@ extern crate flatbuffers;
 #[allow(dead_code, unused_imports, clippy::approx_constant)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
-pub use monster_test_generated::my_game;
+pub use monster_test_generated::*;
 
 use std::io::Read;
 

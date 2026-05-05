@@ -19,7 +19,7 @@ use assert_approx_eq::assert_approx_eq;
 #[allow(dead_code, unused_imports)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
-pub use monster_test_generated::my_game;
+pub use monster_test_generated::*;
 
 #[test]
 fn test_schema_correct_root_table() {
