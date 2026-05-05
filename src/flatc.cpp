@@ -201,6 +201,8 @@ const static FlatCOption flatc_options[] = {
      "Add builtin attributes to the binary schema files."},
     {"", "bfbs-gen-embed", "",
      "Generate code to embed the bfbs schema to the source."},
+    {"", "bfbs-gen-embed-constexpr", "",
+     "Generate file-scope constexpr array to embed the bfbs schema."},
     {"", "conform", "FILE",
      "Specify a schema the following schemas should be an evolution of. Gives "
      "errors if not."},
@@ -629,6 +631,9 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.binary_schema_builtins = true;
       } else if (arg == "--bfbs-gen-embed") {
         opts.binary_schema_gen_embed = true;
+      } else if (arg == "--bfbs-gen-embed-constexpr") {
+        opts.binary_schema_gen_embed = true;
+        opts.binary_schema_gen_embed_constexpr = true;
       } else if (arg == "--bfbs-absolute-paths") {
         opts.binary_schema_absolute_paths = true;
       } else if (arg == "--reflect-types") {
