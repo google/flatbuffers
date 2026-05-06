@@ -30,13 +30,12 @@ func (rcv *Monster) UnPack() *MonsterT {
 }
 
 type Monster struct {
-	_tab flatbuffers.Table
+	flatbuffers.Table
 }
 
-func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
+func GetRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (x Monster) {
 	n := flatbuffers.GetUOffsetT(buf[offset:])
-	x := &Monster{}
-	x.Init(buf, n+offset)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset}
 	return x
 }
 
@@ -44,10 +43,9 @@ func FinishMonsterBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffse
 	builder.Finish(offset)
 }
 
-func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Monster {
+func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) (x Monster) {
 	n := flatbuffers.GetUOffsetT(buf[offset+flatbuffers.SizeUint32:])
-	x := &Monster{}
-	x.Init(buf, n+offset+flatbuffers.SizeUint32)
+	x.Table = flatbuffers.Table{Bytes: buf, Pos: n+offset+flatbuffers.SizeUint32}
 	return x
 }
 
@@ -56,12 +54,8 @@ func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbu
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {
-	rcv._tab.Bytes = buf
-	rcv._tab.Pos = i
-}
-
-func (rcv *Monster) Table() flatbuffers.Table {
-	return rcv._tab
+	rcv.Bytes = buf
+	rcv.Pos = i
 }
 
 func MonsterStart(builder *flatbuffers.Builder) {
