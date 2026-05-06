@@ -534,7 +534,7 @@ jobs:
          run: |
            swift sdk list
            swift build --build-tests --swift-sdk swift-6.2.1-RELEASE_wasm
-           wasmtime --dir . .build/wasm32-unknown-wasip1/debug/FlatBuffers.Test.Swift.WasmPackageTests.xctest
+           wasmtime --dir . .build/wasm32-unknown-wasip1/debug/FlatBuffers.Test.Swift.WasmPackageTests.xctest --testing-library swift-testing
 
   build-ts:
     name: Build TS
