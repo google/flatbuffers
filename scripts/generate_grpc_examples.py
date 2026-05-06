@@ -20,6 +20,7 @@ from util import flatc, root_path
 grpc_examples_path = Path(root_path, "grpc/examples")
 
 greeter_schema = str(Path(grpc_examples_path, "greeter.fbs"))
+greeter_schema_v2 = str(Path(grpc_examples_path, "greeter_v2.fbs"))
 
 COMMON_ARGS = [
     "--grpc",
@@ -54,8 +55,8 @@ def GenerateGRPCExamples():
           "--swift",
           "--gen-json-emit",
       ],
-      schema=greeter_schema,
-      cwd=Path(grpc_examples_path, "swift/Greeter/Sources/Model"),
+      schema=greeter_schema_v2,
+      cwd=Path(grpc_examples_path, "swift/Greeter/Sources/Models"),
   )
 
   flatc(

@@ -977,6 +977,9 @@ fileprivate struct Stack: RandomAccessCollection {
   mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
     count = 0
     if !keepCapacity {
+      let ptr = storage.memory
+      defer { ptr.deallocate() }
+
       capacity = Self.initialCapacity
       storage.memory = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,

@@ -398,7 +398,7 @@ public struct MyGame_Example_LargeArrayStruct_Mutable: FlatBufferStruct, Flatbuf
 }
 
 @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
-public struct MyGame_Example_ArrayTable: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct MyGame_Example_ArrayTable: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }

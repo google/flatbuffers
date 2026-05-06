@@ -8,7 +8,7 @@ import Common
 
 import FlatBuffers
 
-public struct DataModel_A: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct DataModel_A: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
