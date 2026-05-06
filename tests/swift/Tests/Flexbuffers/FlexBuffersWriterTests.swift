@@ -16,9 +16,10 @@
 
 import Common
 import FlexBuffers
-import XCTest
+import Testing
 
-final class FlexBuffersWriterTests: XCTestCase {
+struct FlexBuffersWriterTests {
+  @Test
   func testDeallocation() {
     let buf: ByteBuffer = {
       var fbx = FlexBuffersWriter()
@@ -28,12 +29,13 @@ final class FlexBuffersWriterTests: XCTestCase {
     }()
 
     buf.withUnsafeBytes {
-      XCTAssertEqual(
-        Array($0),
-        [5, 72, 101, 108, 108, 111, 0, 6, 20, 1])
+      #expect(
+        Array($0) ==
+          [5, 72, 101, 108, 108, 111, 0, 6, 20, 1])
     }
   }
 
+  @Test
   func testAddingVectorOfScalars() {
     var fbx = FlexBuffersWriter()
     fbx.vector {
@@ -45,8 +47,8 @@ final class FlexBuffersWriterTests: XCTestCase {
 
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         [
           10, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0, 7, 0,
           0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 20, 0, 0, 0, 1, 41, 46, 2, 40, 1,
@@ -55,6 +57,7 @@ final class FlexBuffersWriterTests: XCTestCase {
     }
   }
 
+  @Test
   func testAddingVectorOfUnsignedScalars() {
     var fbx = FlexBuffersWriter()
     fbx.vector {
@@ -66,8 +69,8 @@ final class FlexBuffersWriterTests: XCTestCase {
 
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         [
           10, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
           0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0,
@@ -78,6 +81,7 @@ final class FlexBuffersWriterTests: XCTestCase {
     }
   }
 
+  @Test
   func testAddingVectorOfBools() {
     var fbx = FlexBuffersWriter()
     fbx.vector {
@@ -89,13 +93,14 @@ final class FlexBuffersWriterTests: XCTestCase {
 
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         [4, 1, 0, 1, 0, 1, 5, 144, 2, 40, 1])
       // swiftformat:enable all
     }
   }
 
+  @Test
   func testSortingWithinMap() {
     var fbx = FlexBuffersWriter()
     fbx.map {
@@ -106,8 +111,8 @@ final class FlexBuffersWriterTests: XCTestCase {
     let buf: ByteBuffer = fbx.sizedByteBuffer
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         [
           98, 111, 111, 108, 50, 0, 98, 111, 111, 108, 49, 0, 2, 7, 14, 2, 1, 2, 1, 0, 104, 104, 4,
           36, 1,
@@ -117,6 +122,7 @@ final class FlexBuffersWriterTests: XCTestCase {
     }
   }
 
+  @Test
   func testSharingKeyWithinMap() {
     var fbx = FlexBuffersWriter(initialSize: 1000, flags: .shareKeysAndStrings)
     fbx.map {
@@ -128,8 +134,8 @@ final class FlexBuffersWriterTests: XCTestCase {
     let buf: ByteBuffer = fbx.sizedByteBuffer
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         [
           119, 101, 108, 99, 111, 109, 101, 0, 7, 119, 101, 108, 99, 111, 109, 101, 0, 3, 18, 19,
           20, 3, 1, 3, 15, 16, 17, 20, 20, 20, 6, 36, 1,
@@ -139,19 +145,21 @@ final class FlexBuffersWriterTests: XCTestCase {
     }
   }
 
+  @Test
   func testNestingVectorInMap() {
     let buf: ByteBuffer = createSizedBuffer()
 
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         flexbufferGolden
       )
       // swiftformat:enable all
     }
   }
 
+  @Test
   func testAddingNil() {
     var fbx = FlexBuffersWriter(
       initialSize: 8,
@@ -165,14 +173,15 @@ final class FlexBuffersWriterTests: XCTestCase {
     let buf: ByteBuffer = fbx.sizedByteBuffer
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         [118, 0, 1, 3, 1, 1, 1, 0, 0, 2, 36, 1]
       )
       // swiftformat:enable all
     }
   }
 
+  @Test
   func testAddingManually() {
     var fbx = FlexBuffersWriter(
       initialSize: 8,
@@ -209,14 +218,15 @@ final class FlexBuffersWriterTests: XCTestCase {
     let buf: ByteBuffer = fbx.sizedByteBuffer
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         flexbufferGolden
       )
       // swiftformat:enable all
     }
   }
 
+  @Test
   func testEncodingAllTypes() {
     var fbx = FlexBuffersWriter()
     fbx.vector {
@@ -240,8 +250,8 @@ final class FlexBuffersWriterTests: XCTestCase {
 
     buf.withUnsafeBytes {
       // swiftformat:disable all
-      XCTAssertEqual(
-        Array($0),
+      #expect(
+        Array($0) ==
         allTypesGolden)
       // swiftformat:enable all
     }
