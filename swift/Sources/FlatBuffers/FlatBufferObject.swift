@@ -18,7 +18,11 @@ import Foundation
 
 /// NativeStruct is a protocol that indicates if the struct is a native `swift` struct
 /// since now we will be serializing native structs into the buffer.
+#if compiler(>=6.0)
+public protocol NativeStruct: BitwiseCopyable {}
+#else
 public protocol NativeStruct {}
+#endif
 
 public protocol FlatBufferVerifiableNativeStruct: NativeStruct, Verifiable {}
 

@@ -47,7 +47,8 @@ public struct FlatBufferBuilder {
   /// A check to see if finish(::) was ever called to retreive data object
   private(set) var finished = false
   /// A check to see if the buffer should serialize Default values
-  private var serializeDefaults: Bool
+  @usableFromInline
+  var serializeDefaults: Bool
 
   /// Current alignment for the buffer
   var _minAlignment: Int = 0 {
@@ -756,6 +757,7 @@ public struct FlatBufferBuilder {
   ///   - offset: ``Offset`` of another object to be written
   ///   - position: The predefined position of the object
   @inline(__always)
+  @inlinable
   mutating public func add(offset: Offset, at position: VOffset) {
     if offset.isEmpty { return }
     add(element: refer(to: offset.o), def: 0, at: position)
@@ -794,6 +796,7 @@ public struct FlatBufferBuilder {
   ///   - def: Default value for that element
   ///   - position: The predefined position of the element
   @inline(__always)
+  @inlinable
   mutating public func add<T: Scalar>(
     element: T,
     def: T,
@@ -813,6 +816,7 @@ public struct FlatBufferBuilder {
   ///   - element: Optional element of type scalar
   ///   - position: The predefined position of the element
   @inline(__always)
+  @inlinable
   mutating public func add<T: Scalar>(element: T?, at position: VOffset) {
     guard let element = element else { return }
     track(offset: push(element: element), at: position)
@@ -825,6 +829,7 @@ public struct FlatBufferBuilder {
   /// - Parameter element: Element to insert
   /// - returns: position of the Element
   @inline(__always)
+  @inlinable
   @discardableResult
   mutating public func push<T: Scalar>(element: T) -> UOffset {
     let size = MemoryLayout<T>.size
@@ -835,10 +840,19 @@ public struct FlatBufferBuilder {
     return _bb.size
   }
 
+  #if compiler(>=6.0)
   @inline(__always)
+  @inlinable
+  public func read<T: BitwiseCopyable>(def: T.Type, position: Int) -> T {
+    _bb.read(def: def, position: position)
+  }
+  #else
+  @inline(__always)
+  @inlinable
   public func read<T>(def: T.Type, position: Int) -> T {
     _bb.read(def: def, position: position)
   }
+  #endif
 }
 
 extension FlatBufferBuilder: CustomDebugStringConvertible {
