@@ -26,6 +26,7 @@ final class FlatBuffersArraysTests: XCTestCase {
   func testStructSizes() {
     XCTAssertEqual(MemoryLayout<MyGame_Example_NestedStruct>.size, 32)
     XCTAssertEqual(MemoryLayout<MyGame_Example_ArrayStruct>.size, 160)
+    XCTAssertEqual(MemoryLayout<MyGame_Example_LargeArrayStruct>.size, 2496)
   }
 
   func testGoldenData() {
@@ -233,4 +234,3 @@ extension InlineArray: @retroactive Equatable where Element: Equatable {
 }
 
 #endif
-

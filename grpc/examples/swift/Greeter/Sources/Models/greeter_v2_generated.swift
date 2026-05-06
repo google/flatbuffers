@@ -8,7 +8,7 @@ import Common
 
 import FlatBuffers
 
-public struct models_HelloReply: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
+public struct models_HelloResponse: FlatBufferVerifiableTable, FlatbuffersVectorInitializable {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -23,16 +23,16 @@ public struct models_HelloReply: FlatBufferTable, FlatbuffersVectorInitializable
 
   public var message: String? { let o = _accessor.offset(VT.message); return o == 0 ? nil : _accessor.string(at: o) }
   public var messageSegmentArray: [UInt8]? { return _accessor.getVector(at: VT.message) }
-  public static func startHelloReply(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
+  public static func startHelloResponse(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
   public static func add(message: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: message, at: VT.message) }
-  public static func endHelloReply(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
-  public static func createHelloReply(
+  public static func endHelloResponse(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
+  public static func createHelloResponse(
     _ fbb: inout FlatBufferBuilder,
     messageOffset message: Offset = Offset()
   ) -> Offset {
-    let __start = models_HelloReply.startHelloReply(&fbb)
-    models_HelloReply.add(message: message, &fbb)
-    return models_HelloReply.endHelloReply(&fbb, start: __start)
+    let __start = models_HelloResponse.startHelloResponse(&fbb)
+    models_HelloResponse.add(message: message, &fbb)
+    return models_HelloResponse.endHelloResponse(&fbb, start: __start)
   }
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
@@ -42,7 +42,7 @@ public struct models_HelloReply: FlatBufferTable, FlatbuffersVectorInitializable
   }
 }
 
-extension models_HelloReply: Encodable {
+extension models_HelloResponse: Encodable {
   enum CodingKeys: String, CodingKey {
     case message = "message"
   }
@@ -53,7 +53,7 @@ extension models_HelloReply: Encodable {
   }
 }
 
-public struct models_HelloRequest: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable {
+public struct models_HelloRequest: FlatBufferVerifiableTable, FlatbuffersVectorInitializable {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
