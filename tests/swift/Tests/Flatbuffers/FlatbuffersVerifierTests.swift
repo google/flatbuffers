@@ -411,6 +411,27 @@ final class FlatbuffersVerifierTests {
     }
   }
 
+  @Test(.bug("https://github.com/google/flatbuffers/issues/9082"))
+  func testRejectsTruncatedScalarVector() {
+    // swiftformat:disable all
+    var byteBuffer = ByteBuffer(bytes: [
+      16, 0, 0, 0,
+      6, 0, 8, 0,
+      4, 0, 0, 0,
+      0, 0, 0, 0,
+      12, 0, 0, 0,
+      8, 0, 0, 0,
+      0, 0, 0, 0,
+      2, 0, 0, 0,
+      65, 66,
+    ])
+    // swiftformat:enable all
+
+    #expect(throws: FlatbuffersErrors.self) {
+      try getCheckedRoot(byteBuffer: &byteBuffer) as Swift_Tests_Vectors
+    }
+  }
+
   @Test
   func testValidUnionBuffer() {
     let string = "Awesome \\\\t\t\nstring!"
