@@ -1739,7 +1739,7 @@ void CrossNamespacePackTest() {
   fbb.Finish(foo::Consumer::Pack(fbb, &consumer));
 
   auto* packed = flatbuffers::GetRoot<foo::Consumer>(fbb.GetBufferPointer());
-  auto unpacked = packed->UnPack();
+  std::unique_ptr<foo::ConsumerT> unpacked(packed->UnPack());
   TEST_EQ(unpacked->c1->value, 42);
   TEST_EQ(unpacked->c2.size(), 1);
   TEST_EQ(unpacked->c2[0]->value, 99);
