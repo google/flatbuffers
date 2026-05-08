@@ -16,19 +16,22 @@
 
 #if compiler(>=6.2)
 
-import XCTest
+import Testing
 
 @testable import FlatBuffers
 
-@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
-final class FlatBuffersArraysTests: XCTestCase {
+struct FlatBuffersArraysTests {
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+  @Test
   func testStructSizes() {
-    XCTAssertEqual(MemoryLayout<MyGame_Example_NestedStruct>.size, 32)
-    XCTAssertEqual(MemoryLayout<MyGame_Example_ArrayStruct>.size, 160)
-    XCTAssertEqual(MemoryLayout<MyGame_Example_LargeArrayStruct>.size, 2496)
+    #expect(MemoryLayout<MyGame_Example_NestedStruct>.size == 32)
+    #expect(MemoryLayout<MyGame_Example_ArrayStruct>.size == 160)
+    #expect((MemoryLayout<MyGame_Example_LargeArrayStruct>.size == 2496))
   }
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+  @Test
   func testGoldenData() {
     // swiftformat:disable all
     let data: [UInt8] = [
@@ -45,9 +48,11 @@ final class FlatBuffersArraysTests: XCTestCase {
     ]
     // swiftformat:enable all
 
-    XCTAssertEqual(data, createArrayTable())
+    #expect(data == createArrayTable())
   }
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+  @Test
   func testData() throws {
     var buf = ByteBuffer(bytes: createArrayTable())
     let table: MyGame_Example_ArrayTable = try getCheckedRoot(
@@ -58,6 +63,8 @@ final class FlatBuffersArraysTests: XCTestCase {
     verifyNativeStruct(a: table.a)
   }
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+  @Test
   func testObjectAPI() throws {
     var buf = ByteBuffer(bytes: createArrayTable())
     let table: MyGame_Example_ArrayTable = try getCheckedRoot(
@@ -66,105 +73,110 @@ final class FlatBuffersArraysTests: XCTestCase {
     verifyNativeStruct(a: table.unpack().a)
   }
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
+  @Test
   func testDefaults() {
-    XCTAssertEqual(
-      MyGame_Example_NestedStruct(),
-      MyGame_Example_NestedStruct(
-        a: [0, 0],
-        b: .a,
-        c: [0, 0],
-        d: [0, 0]))
+    #expect(
+      MyGame_Example_NestedStruct() ==
+        MyGame_Example_NestedStruct(
+          a: [0, 0],
+          b: .a,
+          c: [0, 0],
+          d: [0, 0]))
   }
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
   func verifyNativeStruct(a: MyGame_Example_ArrayStruct?) {
     let a = a!
-    XCTAssertEqual(a.a, 12.34)
-    XCTAssertEqual(a.b.count, 15)
+    #expect(a.a == 12.34)
+    #expect(a.b.count == 15)
     var sum: Int32 = 0
     for i in a.b.startIndex..<a.b.endIndex {
       sum += a.b[i]
     }
-    XCTAssertEqual(sum, 120)
-    XCTAssertEqual(a.c, -127)
-    XCTAssertEqual(a.d.count, 2)
+    #expect(sum == 120)
+    #expect(a.c == -127)
+    #expect(a.d.count == 2)
     let nestedStruct1 = a.d[0]
-    XCTAssertEqual(nestedStruct1.a.toArray(), [-1, 2])
-    XCTAssertEqual(nestedStruct1.b, .a)
-    XCTAssertEqual(nestedStruct1.c.toArray(), [.c, .b])
-    XCTAssertEqual(
-      nestedStruct1.d.toArray(),
-      [0x1122334455667788, -0x1122334455667788])
+    #expect(nestedStruct1.a.toArray() == [-1, 2])
+    #expect(nestedStruct1.b == .a)
+    #expect(nestedStruct1.c.toArray() == [.c, .b])
+    #expect(
+      nestedStruct1.d.toArray() ==
+        [0x1122334455667788, -0x1122334455667788])
 
     let nestedStruct2 = a.d[1]
-    XCTAssertEqual(nestedStruct2.a.toArray(), [3, -4])
-    XCTAssertEqual(nestedStruct2.b, .b)
-    XCTAssertEqual(nestedStruct2.c.toArray(), [.b, .a])
-    XCTAssertEqual(
-      nestedStruct2.d.toArray(),
-      [-0x1122334455667788, 0x1122334455667788])
+    #expect(nestedStruct2.a.toArray() == [3, -4])
+    #expect(nestedStruct2.b == .b)
+    #expect(nestedStruct2.c.toArray() == [.b, .a])
+    #expect(
+      nestedStruct2.d.toArray() ==
+        [-0x1122334455667788, 0x1122334455667788])
 
-    XCTAssertEqual(a.e, 1)
-    XCTAssertEqual(a.f.count, 2)
+    #expect(a.e == 1)
+    #expect(a.f.count == 2)
   }
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
   func verifyMutations(in table: MyGame_Example_ArrayTable) {
     let a = table.mutableA!
-    XCTAssertEqual(a.a, 12.34)
-    XCTAssertEqual(a.b.count, 15)
+    #expect(a.a == 12.34)
+    #expect(a.b.count == 15)
     var sum: Int32 = 0
     for i in a.b.startIndex..<a.b.endIndex {
       sum += a.b[i]
     }
-    XCTAssertEqual(sum, 120)
-    XCTAssertEqual(a.c, -127)
-    XCTAssertEqual(a.d.count, 2)
+    #expect(sum == 120)
+    #expect(a.c == -127)
+    #expect(a.d.count == 2)
     let nestedStruct1 = a.d[0]
 
-    XCTAssertEqual(nestedStruct1.a.reduce(0) { $0 + $1 }, 1)
-    XCTAssertEqual(nestedStruct1.b, .a)
-    XCTAssertEqual(nestedStruct1.c[0], .c)
-    XCTAssertEqual(nestedStruct1.c[1], .b)
+    #expect(nestedStruct1.a.reduce(0) { $0 + $1 } == 1)
+    #expect(nestedStruct1.b == .a)
+    #expect(nestedStruct1.c[0] == .c)
+    #expect(nestedStruct1.c[1] == .b)
 
     let nestedStruct2 = a.d[1]
-    XCTAssertEqual(nestedStruct2.a.reduce(0) { $0 + $1 }, -1)
-    XCTAssertEqual(nestedStruct2.b, .b)
-    XCTAssertEqual(nestedStruct2.c[0], .b)
-    XCTAssertEqual(nestedStruct2.c[1], .a)
-    XCTAssertEqual(nestedStruct2.d[0], -0x1122334455667788)
-    XCTAssertEqual(nestedStruct2.d[1], 0x1122334455667788)
+    #expect(nestedStruct2.a.reduce(0) { $0 + $1 } == -1)
+    #expect(nestedStruct2.b == .b)
+    #expect(nestedStruct2.c[0] == .b)
+    #expect(nestedStruct2.c[1] == .a)
+    #expect(nestedStruct2.d[0] == -0x1122334455667788)
+    #expect(nestedStruct2.d[1] == 0x1122334455667788)
 
-    XCTAssertTrue(a.mutate(b: 1000, at: 0))
-    XCTAssertTrue(a.mutate(b: 2000, at: 1))
+    #expect(a.mutate(b: 1000, at: 0) == true)
+    #expect(a.mutate(b: 2000, at: 1) == true)
 
-    XCTAssertTrue(nestedStruct2.mutate(c: .a, at: 0))
-    XCTAssertTrue(nestedStruct2.mutate(c: .b, at: 1))
+    #expect(nestedStruct2.mutate(c: .a, at: 0) == true)
+    #expect(nestedStruct2.mutate(c: .b, at: 1) == true)
 
-    XCTAssertEqual(nestedStruct2.c[0], .a)
-    XCTAssertEqual(nestedStruct2.c[1], .b)
+    #expect(nestedStruct2.c[0] == .a)
+    #expect(nestedStruct2.c[1] == .b)
 
-    XCTAssertTrue(nestedStruct2.mutate(d: 0, at: 0))
-    XCTAssertTrue(nestedStruct2.mutate(d: 0, at: 1))
+    #expect(nestedStruct2.mutate(d: 0, at: 0) == true)
+    #expect(nestedStruct2.mutate(d: 0, at: 1) == true)
 
-    XCTAssertEqual(nestedStruct2.d.reduce(0) { $0 + $1 }, 0)
+    #expect(nestedStruct2.d.reduce(0) { $0 + $1 } == 0)
 
     let nativeStruct = table.a?.d[1]
 
-    XCTAssertEqual(nativeStruct?.c[0], .a)
-    XCTAssertEqual(nativeStruct?.c[1], .b)
+    #expect(nativeStruct?.c[0] == .a)
+    #expect(nativeStruct?.c[1] == .b)
 
-    XCTAssertEqual(nativeStruct?.d[0], 0)
-    XCTAssertEqual(nativeStruct?.d[1], 0)
+    #expect(nativeStruct?.d[0] == 0)
+    #expect(nativeStruct?.d[1] == 0)
 
-    XCTAssertTrue(a.mutate(b: 1, at: 0))
-    XCTAssertTrue(a.mutate(b: 2, at: 1))
+    #expect(a.mutate(b: 1, at: 0) == true)
+    #expect(a.mutate(b: 2, at: 1) == true)
 
-    XCTAssertTrue(nestedStruct2.mutate(c: .b, at: 0))
-    XCTAssertTrue(nestedStruct2.mutate(c: .a, at: 1))
+    #expect(nestedStruct2.mutate(c: .b, at: 0) == true)
+    #expect(nestedStruct2.mutate(c: .a, at: 1) == true)
 
-    XCTAssertTrue(nestedStruct2.mutate(d: -0x1122334455667788, at: 0))
-    XCTAssertTrue(nestedStruct2.mutate(d: 0x1122334455667788, at: 1))
+    #expect(nestedStruct2.mutate(d: -0x1122334455667788, at: 0) == true)
+    #expect(nestedStruct2.mutate(d: 0x1122334455667788, at: 1) == true)
   }
 
+  @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, *)
   private func createArrayTable() -> [UInt8] {
     var builder = FlatBufferBuilder(initialSize: 1024)
 

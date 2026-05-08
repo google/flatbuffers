@@ -14,51 +14,58 @@
  * limitations under the License.
  */
 
-import XCTest
+import Foundation
+import Testing
 
 @testable import FlatBuffers
 
-final class ByteBufferTests: XCTestCase {
+struct ByteBufferTests {
+
+  @Test
   func testCopyingMemory() {
     let count = 100
     let ptr = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: 1)
     let byteBuffer = ByteBuffer(copyingMemoryBound: ptr, capacity: count)
     byteBuffer.withUnsafeBytes { memory in
-      XCTAssertNotEqual(memory.baseAddress, ptr)
+      #expect(memory.baseAddress! != ptr)
     }
   }
 
+  @Test
   func testSamePointer() {
     let count = 100
     let ptr = UnsafeMutableRawPointer.allocate(byteCount: count, alignment: 1)
     let byteBuffer = ByteBuffer(assumingMemoryBound: ptr, capacity: count)
     byteBuffer.withUnsafeBytes { memory in
-      XCTAssertEqual(memory.baseAddress!, ptr)
+      #expect(memory.baseAddress! == ptr)
     }
   }
 
+  @Test
   func testSameDataPtr() {
     let count = 100
     let ptr = Data(repeating: 0, count: count)
     let byteBuffer = ByteBuffer(data: ptr)
     byteBuffer.withUnsafeBytes { memory in
       ptr.withUnsafeBytes { ptr in
-        XCTAssertEqual(memory.baseAddress!, ptr.baseAddress!)
+        #expect(memory.baseAddress! == ptr.baseAddress!)
       }
     }
   }
 
+  @Test
   func testSameArrayPtr() {
     let count = 100
     let ptr: [UInt8] = Array(repeating: 0, count: count)
     let byteBuffer = ByteBuffer(bytes: ptr)
     ptr.withUnsafeBytes { ptr in
       byteBuffer.withUnsafeBytes { memory in
-        XCTAssertEqual(memory.baseAddress, ptr.baseAddress)
+        #expect(memory.baseAddress == ptr.baseAddress)
       }
     }
   }
 
+  @Test
   func testReadingDoubleBuffer() {
     let count = 8
     let array: [Double] = Array(repeating: 8.8, count: count)
@@ -69,15 +76,16 @@ final class ByteBufferTests: XCTestCase {
     }
     let byteBuffer = ByteBuffer(bytes: bytes)
     byteBuffer.withUnsafePointerToSlice(index: 0, count: count) { ptr in
-      XCTAssertEqual(ptr.count, count)
+      #expect(ptr.count == count)
       bytes.withUnsafeBufferPointer {
-        XCTAssertEqual(
-          UnsafeRawPointer($0.baseAddress),
-          UnsafeRawPointer(ptr.baseAddress))
+        #expect(
+          UnsafeRawPointer($0.baseAddress) ==
+            UnsafeRawPointer(ptr.baseAddress))
       }
     }
   }
 
+  @Test
   func testReadingNativeStructs() {
     let array = [
       MyGame_Example_Vec3(
@@ -111,11 +119,11 @@ final class ByteBufferTests: XCTestCase {
     let byteBuffer = ByteBuffer(bytes: bytes)
     byteBuffer
       .withUnsafePointerToSlice(index: 0, count: count) { bufferPointer in
-        XCTAssertEqual(bufferPointer.count, count)
+        #expect(bufferPointer.count == count)
         bytes.withUnsafeBufferPointer { ptr in
-          XCTAssertEqual(
-            UnsafeRawPointer(ptr.baseAddress),
-            UnsafeRawPointer(bufferPointer.baseAddress))
+          #expect(
+            UnsafeRawPointer(ptr.baseAddress) ==
+              UnsafeRawPointer(bufferPointer.baseAddress))
         }
       }
   }
@@ -125,12 +133,4 @@ private struct TestNativeStructs: NativeStruct {
   let x: Double
   let y: Double
   let z: Int
-}
-
-extension MyGame_Example_Color: CaseIterable {
-  public static let allCases: [MyGame_Example_Color] = [
-    .red,
-    .blue,
-    .green,
-  ]
 }
