@@ -314,5 +314,37 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+// Regression: VerifyBuffer must reject an FBT_STRING whose terminator byte
+// is non-zero. Before VerifyTerminator() was hardened to check the
+// terminator's *content* (not just its in-buffer position), this passed
+// verification and a downstream strlen() on c_str() read OOB.
+//
+// Layout (1-byte width throughout, total 10 bytes):
+//   [0] 0x05               size prefix = 5
+//   [1..5] 'h','e','l','l','o'   string bytes
+//   [6] 'X'                terminator slot — INTENTIONALLY non-zero
+//   [7] 0x06               root offset: (7) - 6 = byte [1], string data start
+//   [8] (FBT_STRING<<2)|0  packed_type = FBT_STRING with BIT_WIDTH_8
+//   [9] 0x01               root byte_width
+void FlexBuffersVerifyStringTerminatorTest() {
+  const uint8_t buf[] = {
+      0x05,
+      'h', 'e', 'l', 'l', 'o',
+      'X',                                // non-zero terminator
+      0x06,
+      static_cast<uint8_t>((flexbuffers::FBT_STRING << 2) |
+                           flexbuffers::BIT_WIDTH_8),
+      0x01,
+  };
+  // Sanity: the buffer parses to an FBT_STRING root of length 5.
+  auto root = flexbuffers::GetRoot(buf, sizeof(buf));
+  TEST_EQ(root.IsString(), true);
+  TEST_EQ(root.AsString().size(), 5);
+  // Verifier must reject the buffer because byte [6] is not 0x00.
+  TEST_EQ(flexbuffers::VerifyBuffer(buf, sizeof(buf), nullptr), false);
+  std::vector<uint8_t> reuse_tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf, sizeof(buf), &reuse_tracker), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

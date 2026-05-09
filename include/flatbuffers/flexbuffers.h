@@ -1983,8 +1983,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 #undef FLEX_CHECK_VERIFIED
 
   bool VerifyTerminator(const String& s) {
-    return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
-                             s.size() + 1);
+    const uint8_t* p = reinterpret_cast<const uint8_t*>(s.c_str());
+    // First make sure the terminator byte is in-buffer, then check it is 0.
+    // Mirrors the non-flex VerifyString() in verifier.h.
+    return VerifyFromPointer(p, s.size() + 1) && p[s.size()] == 0;
   }
 
   bool VerifyRef(Reference r) {
