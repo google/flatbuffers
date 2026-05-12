@@ -562,9 +562,11 @@ class DartGenerator : public BaseGenerator {
 
       const std::string field_name = namer_.Field(field);
       const std::string defaultValue = getDefaultValue(field.value);
+      const bool isNullable =
+          (defaultValue.empty() && !struct_def.fixed) || defaultValue == "null";
       const std::string type_name =
           GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
-                          defaultValue.empty() && !struct_def.fixed, "T");
+                          isNullable, "T");
 
       GenDocComment(field.doc_comment, "  ", code);
       code += "  " + type_name + " " + field_name + ";\n";
@@ -573,7 +575,8 @@ class DartGenerator : public BaseGenerator {
       constructor_args += "      ";
       constructor_args += (struct_def.fixed ? "required " : "");
       constructor_args += "this." + field_name;
-      if (!struct_def.fixed && !defaultValue.empty()) {
+      if (!struct_def.fixed && !defaultValue.empty() &&
+          defaultValue != "null") {
         if (IsEnum(field.value.type)) {
           auto& enum_def = *field.value.type.enum_def;
           if (auto val = enum_def.FindByValue(defaultValue)) {
@@ -694,7 +697,8 @@ class DartGenerator : public BaseGenerator {
 
       const std::string field_name = namer_.Field(field);
       const std::string defaultValue = getDefaultValue(field.value);
-      const bool isNullable = defaultValue.empty() && !struct_def.fixed;
+      const bool isNullable =
+          (defaultValue.empty() && !struct_def.fixed) || defaultValue == "null";
       const std::string type_name =
           GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
                           isNullable, "");
@@ -1138,7 +1142,9 @@ class DartGenerator : public BaseGenerator {
         code += "    fbBuilder.add" + GenType(field.value.type) + "(" +
                 NumToString(offset) + ", " + field_var;
         if (field.value.type.enum_def) {
-          bool isNullable = getDefaultValue(field.value).empty();
+          const std::string defaultValue = getDefaultValue(field.value);
+          bool isNullable = (defaultValue.empty() && !struct_def.fixed) ||
+                            defaultValue == "null";
           code += (isNullable || !pack) ? "?.value" : ".value";
         }
         code += ");\n";
