@@ -18,6 +18,7 @@
 #define FLATBUFFERS_TABLE_H_
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/vector.h"
 #include "flatbuffers/verifier.h"
 
 namespace flatbuffers {
@@ -68,6 +69,32 @@ class Table {
   template <typename P>
   P GetPointer64(voffset_t field) const {
     return GetPointer<P, uoffset64_t>(field);
+  }
+
+  template <typename P, typename SizeT = uoffset_t,
+            typename OffsetSize = uoffset_t>
+  const Vector<P, SizeT>* GetVectorPointerOrEmpty(voffset_t field) const {
+    auto* ptr = GetPointer<const Vector<P, SizeT>*, OffsetSize>(field);
+    return ptr ? ptr : EmptyVector<P, SizeT>();
+  }
+
+  template <typename P, typename SizeT = uoffset_t>
+  const Vector<P, SizeT>* GetVectorPointer64OrEmpty(voffset_t field) const {
+    return GetVectorPointerOrEmpty<P, SizeT, uoffset64_t>(field);
+  }
+
+  template <typename P, typename SizeT = uoffset_t,
+            typename OffsetSize = uoffset_t>
+  Vector<P, SizeT>* GetMutableVectorPointerOrEmpty(voffset_t field) {
+    auto* ptr = GetPointer<Vector<P, SizeT>*, OffsetSize>(field);
+    // This is a const_cast, but safe, since all mutable operations on an
+    // empty vector are NOPs.
+    return ptr ? ptr : const_cast<Vector<P, SizeT>*>(EmptyVector<P, SizeT>());
+  }
+
+  template <typename P, typename SizeT = uoffset_t>
+  Vector<P, SizeT>* GetMutableVectorPointer64OrEmpty(voffset_t field) {
+    return GetMutableVectorPointerOrEmpty<P, SizeT, uoffset64_t>(field);
   }
 
   template <typename P>
@@ -175,6 +202,39 @@ class Table {
   bool VerifyOffset64Required(const VerifierTemplate<B>& verifier,
                               voffset_t field) const {
     return VerifyOffsetRequired<uoffset64_t>(verifier, field);
+  }
+
+  // Verify a string that may have a default value.
+  template <typename OffsetT = uoffset_t>
+  bool VerifyStringWithDefault(const Verifier& verifier,
+                               voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return field_offset == 0 ||
+           verifier.VerifyString(GetPointer<const String*, OffsetT>(field));
+  }
+
+  // Verify a vector that has a default empty value.
+  template <typename P, typename SizeT = uoffset_t,
+            typename OffsetSize = uoffset_t>
+  bool VerifyVectorWithDefault(const Verifier& verifier,
+                               voffset_t field) const {
+    auto field_offset = GetOptionalFieldOffset(field);
+    return field_offset == 0 ||
+           verifier.VerifyVector(
+               GetPointer<const Vector<P, SizeT>*, OffsetSize>(field));
+  }
+
+  template <typename P, typename SizeT = uoffset_t>
+  bool VerifyVector64WithDefault(const Verifier& verifier,
+                                 voffset_t field) const {
+    return VerifyVectorWithDefault<P, SizeT, uoffset64_t>(verifier, field);
+  }
+
+ protected:
+  template <typename T, typename SizeT = uoffset_t>
+  static const Vector<T, SizeT>* EmptyVector() {
+    static const SizeT empty_vector_length = 0;
+    return reinterpret_cast<const Vector<T, SizeT>*>(&empty_vector_length);
   }
 
  private:

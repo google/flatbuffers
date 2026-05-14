@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+#include "flatbuffers/file_manager.h"
+
 #include <fstream>
 #include <set>
 #include <string>
-
-#include "flatbuffers/file_manager.h"
 
 namespace flatbuffers {
 

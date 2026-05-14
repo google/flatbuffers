@@ -1,0 +1,21 @@
+// Test for union creator naming consistency (issue #8843).
+// Uses non-UpperCamel union name to verify that Function() naming
+// is used consistently for both definition and call site.
+
+namespace union_name_test;
+
+table Foo {
+  val: int;
+}
+
+table Bar {
+  name: string;
+}
+
+union my_test_union { Foo, Bar }
+
+table Container {
+  u: my_test_union;
+}
+
+root_type Container;

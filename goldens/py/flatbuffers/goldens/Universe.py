@@ -80,6 +80,12 @@ def UniverseStartGalaxiesVector(builder, numElems):
 def StartGalaxiesVector(builder, numElems):
     return UniverseStartGalaxiesVector(builder, numElems)
 
+def UniverseCreateGalaxiesVector(builder, data):
+    return builder.CreateVectorOfTables(data)
+
+def CreateGalaxiesVector(builder, data):
+    UniverseCreateGalaxiesVector(builder, data)
+
 def UniverseEnd(builder):
     return builder.EndObject()
 

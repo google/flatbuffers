@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 struct Attacker;
@@ -384,6 +384,10 @@ inline bool operator!=(const Rapunzel &lhs, const Rapunzel &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Rapunzel &obj) {
+  return H::combine(std::move(h), obj.hair_length());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) BookReader FLATBUFFERS_FINAL_CLASS {
  private:
@@ -417,6 +421,10 @@ inline bool operator!=(const BookReader &lhs, const BookReader &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const BookReader &obj) {
+  return H::combine(std::move(h), obj.books_read());
+}
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) FallingTub FLATBUFFERS_FINAL_CLASS {
  private:
@@ -450,6 +458,10 @@ inline bool operator!=(const FallingTub &lhs, const FallingTub &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const FallingTub &obj) {
+  return H::combine(std::move(h), obj.weight());
+}
 
 struct AttackerT : public ::flatbuffers::NativeTable {
   typedef Attacker TableType;
@@ -610,6 +622,24 @@ struct Movie FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   const ::flatbuffers::String *main_character_as_Unused() const {
     return main_character_type() == Character_Unused ? static_cast<const ::flatbuffers::String *>(main_character()) : nullptr;
+  }
+  Attacker *mutable_main_character_as_MuLan() {
+    return main_character_type() == Character_MuLan ? static_cast<Attacker *>(mutable_main_character()) : nullptr;
+  }
+  Rapunzel *mutable_main_character_as_Rapunzel() {
+    return main_character_type() == Character_Rapunzel ? static_cast<Rapunzel *>(mutable_main_character()) : nullptr;
+  }
+  BookReader *mutable_main_character_as_Belle() {
+    return main_character_type() == Character_Belle ? static_cast<BookReader *>(mutable_main_character()) : nullptr;
+  }
+  BookReader *mutable_main_character_as_BookFan() {
+    return main_character_type() == Character_BookFan ? static_cast<BookReader *>(mutable_main_character()) : nullptr;
+  }
+  ::flatbuffers::String *mutable_main_character_as_Other() {
+    return main_character_type() == Character_Other ? static_cast<::flatbuffers::String *>(mutable_main_character()) : nullptr;
+  }
+  ::flatbuffers::String *mutable_main_character_as_Unused() {
+    return main_character_type() == Character_Unused ? static_cast<::flatbuffers::String *>(mutable_main_character()) : nullptr;
   }
   void *mutable_main_character() {
     return GetPointer<void *>(VT_MAIN_CHARACTER);

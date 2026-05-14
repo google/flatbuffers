@@ -46,6 +46,7 @@ static Namer::Config JavaDefaultConfig() {
       /*object_suffix=*/"T",
       /*keyword_prefix=*/"",
       /*keyword_suffix=*/"_",
+      /*keywords_casing=*/Namer::Config::KeywordsCasing::CaseSensitive,
       /*filenames=*/Case::kKeep,
       /*directories=*/Case::kKeep,
       /*output_path=*/"",
@@ -56,16 +57,16 @@ static Namer::Config JavaDefaultConfig() {
 
 static std::set<std::string> JavaKeywords() {
   return {
-      "abstract", "assert",   "boolean",    "break",     "byte",
-      "case",     "catch",    "char",       "class",     "const",
-      "continue", "default",  "do",         "double",    "else",
-      "enum",     "extends",  "final",      "finally",   "float",
-      "for",      "goto",     "if",         "implements","import",
-      "instanceof","int",     "interface",  "long",      "native",
-      "new",      "notify",   "package",    "private",   "protected",
-      "public",   "return",   "short",      "static",    "strictfp",
-      "super",    "switch",   "synchronized","this",     "throw",
-      "throws",   "transient","try",        "void",      "volatile",
+      "abstract",   "assert",    "boolean",      "break",      "byte",
+      "case",       "catch",     "char",         "class",      "const",
+      "continue",   "default",   "do",           "double",     "else",
+      "enum",       "extends",   "final",        "finally",    "float",
+      "for",        "goto",      "if",           "implements", "import",
+      "instanceof", "int",       "interface",    "long",       "native",
+      "new",        "notify",    "package",      "private",    "protected",
+      "public",     "return",    "short",        "static",     "strictfp",
+      "super",      "switch",    "synchronized", "this",       "throw",
+      "throws",     "transient", "try",          "void",       "volatile",
       "while",
   };
 }
@@ -725,7 +726,7 @@ class JavaGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " Constants.";
-      code += "FLATBUFFERS_25_9_23(); ";
+      code += "FLATBUFFERS_25_12_19(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1468,7 +1469,8 @@ class JavaGenerator : public BaseGenerator {
             " " + variable_name + "Type = " + field_name + "Type(" +
             type_params + ");\n";
     code += indent + variable_name + ".setType(" + variable_name + "Type);\n";
-    code += indent + "com.google.flatbuffers.Table " + variable_name + "Value;\n";
+    code +=
+        indent + "com.google.flatbuffers.Table " + variable_name + "Value;\n";
     code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {

@@ -60,4 +60,4 @@ extension UInt32: Verifiable, FlatbuffersVectorInitializable {}
 
 extension UInt64: Verifiable, FlatbuffersVectorInitializable {}
 
-public func FlatBuffersVersion_25_9_23() {}
+public func FlatBuffersVersion_25_12_19() {}

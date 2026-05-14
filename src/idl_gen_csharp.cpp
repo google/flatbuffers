@@ -652,19 +652,23 @@ class CSharpGenerator : public BaseGenerator {
     // Get the getter for the key of the struct.
     if (IsString(key_field->value.type)) {
       return "string.CompareOrdinal(" +
-         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer", 
-           "builder.DataBuffer.Length - o1.Value") +
-         ", " +
-         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
-           "builder.DataBuffer.Length - o2.Value") + 
-         ")";
+             GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o1.Value") +
+             ", " +
+             GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o2.Value") +
+             ")";
     } else {
-      return GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer",
-                     "builder.DataBuffer.Length - o1.Value") +
-         ".CompareTo(" +
-         GenGetterForLookupByKey(struct_def, key_field, "builder.DataBuffer", 
-                     "builder.DataBuffer.Length - o2.Value") +
-         ")";
+      return GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o1.Value") +
+             ".CompareTo(" +
+             GenGetterForLookupByKey(struct_def, key_field,
+                                     "builder.DataBuffer",
+                                     "builder.DataBuffer.Length - o2.Value") +
+             ")";
     }
   }
 
@@ -890,7 +894,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_25_9_23(); ";
+      code += "FLATBUFFERS_25_12_19(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -1239,6 +1243,58 @@ class CSharpGenerator : public BaseGenerator {
         }
         code += " }\n";
       }
+      
+      // Generate Length property and ByteBuffer accessor for arrays in structs.
+      if (IsArray(field.value.type) && struct_def.fixed &&
+          IsScalar(field.value.type.VectorType().base_type)) {
+        auto camel_name = Name(field);
+        if (camel_name == struct_def.name) { camel_name += "_"; }
+        
+        // Generate Length constant
+        code += "  public const int " + camel_name;
+        code += "Length = ";
+        code += NumToString(field.value.type.fixed_length);
+        code += ";\n";
+        
+        // Generate GetBytes methods for scalar arrays (similar to vector pattern)
+        code += "#if ENABLE_SPAN_T\n";
+        code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
+                "> Get";
+        code += camel_name;
+        code += "Bytes() { return ";
+        
+        // For byte arrays, we can return the span directly
+        if (field.value.type.VectorType().base_type == BASE_TYPE_UCHAR) {
+          code += "__p.bb.ToSpan(__p.bb_pos + ";
+          code += NumToString(field.value.offset);
+          code += ", ";
+          code += NumToString(field.value.type.fixed_length *
+                             SizeOf(field.value.type.VectorType().base_type));
+          code += ")";
+        } else {
+          // For other types, we need to cast the byte span
+          code += "System.Runtime.InteropServices.MemoryMarshal.Cast<byte, " +
+                  GenTypeBasic(field.value.type.VectorType()) + ">(__p.bb.ToSpan(__p.bb_pos + ";
+          code += NumToString(field.value.offset);
+          code += ", ";
+          code += NumToString(field.value.type.fixed_length *
+                             SizeOf(field.value.type.VectorType().base_type));
+          code += "))";
+        }
+        code += "; }\n";
+        code += "#else\n";
+        code += "  public ArraySegment<byte>? Get";
+        code += camel_name;
+        code += "Bytes() { return ";
+        code += "__p.bb.ToArraySegment(__p.bb_pos + ";
+        code += NumToString(field.value.offset);
+        code += ", ";
+        code += NumToString(field.value.type.fixed_length *
+                           SizeOf(field.value.type.VectorType().base_type));
+        code += ");}\n";
+        code += "#endif\n";
+      }
+      
       // generate object accessors if is nested_flatbuffer
       if (field.nested_flatbuffer) {
         auto nested_type_name = NamespacedName(*field.nested_flatbuffer);
@@ -1596,7 +1652,8 @@ class CSharpGenerator : public BaseGenerator {
 
       code += "      obj_.__assign(tableOffset, bb);\n";
       if (IsString(key_field->value.type)) {
-        code += "      int comp = string.CompareOrdinal(obj_." + name + ", key);\n";
+        code +=
+            "      int comp = string.CompareOrdinal(obj_." + name + ", key);\n";
       } else {
         code += "      int comp = obj_." + name + ".CompareTo(key);\n";
       }

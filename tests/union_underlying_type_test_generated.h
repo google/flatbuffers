@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace UnionUnderlyingType {
@@ -420,6 +420,16 @@ struct D FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const UnionUnderlyingType::C *test_union_as_C() const {
     return test_union_type() == UnionUnderlyingType::ABC::C ? static_cast<const UnionUnderlyingType::C *>(test_union()) : nullptr;
   }
+  template<typename T> T *mutable_test_union_as();
+  UnionUnderlyingType::A *mutable_test_union_as_A() {
+    return test_union_type() == UnionUnderlyingType::ABC::A ? static_cast<UnionUnderlyingType::A *>(mutable_test_union()) : nullptr;
+  }
+  UnionUnderlyingType::B *mutable_test_union_as_B() {
+    return test_union_type() == UnionUnderlyingType::ABC::B ? static_cast<UnionUnderlyingType::B *>(mutable_test_union()) : nullptr;
+  }
+  UnionUnderlyingType::C *mutable_test_union_as_C() {
+    return test_union_type() == UnionUnderlyingType::ABC::C ? static_cast<UnionUnderlyingType::C *>(mutable_test_union()) : nullptr;
+  }
   void *mutable_test_union() {
     return GetPointer<void *>(VT_TEST_UNION);
   }
@@ -457,12 +467,24 @@ template<> inline const UnionUnderlyingType::A *D::test_union_as<UnionUnderlying
   return test_union_as_A();
 }
 
+template<> inline UnionUnderlyingType::A *D::mutable_test_union_as<UnionUnderlyingType::A>() {
+  return mutable_test_union_as_A();
+}
+
 template<> inline const UnionUnderlyingType::B *D::test_union_as<UnionUnderlyingType::B>() const {
   return test_union_as_B();
 }
 
+template<> inline UnionUnderlyingType::B *D::mutable_test_union_as<UnionUnderlyingType::B>() {
+  return mutable_test_union_as_B();
+}
+
 template<> inline const UnionUnderlyingType::C *D::test_union_as<UnionUnderlyingType::C>() const {
   return test_union_as_C();
+}
+
+template<> inline UnionUnderlyingType::C *D::mutable_test_union_as<UnionUnderlyingType::C>() {
+  return mutable_test_union_as_C();
 }
 
 struct DBuilder {

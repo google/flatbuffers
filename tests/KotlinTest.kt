@@ -80,6 +80,7 @@ class KotlinTest {
       TestSharedStringPool()
       TestScalarOptional()
       TestDictionaryLookup()
+      TestNullFields()
       println("FlatBuffers test: completed successfully")
     }
 
@@ -142,7 +143,7 @@ class KotlinTest {
       assert(invsum == 10u)
 
       // Alternative way of accessing a vector:
-      val ibb = monster.inventoryAsByteBuffer
+      val ibb = monster.inventoryAsByteBuffer!!
       invsum = 0u
       while (ibb.position() < ibb.limit()) invsum += ibb.get().toUInt()
       assert(invsum == 10u)
@@ -614,6 +615,38 @@ class KotlinTest {
       assert(scalarStuff.justEnum == OptionalByte.Two)
       assert(scalarStuff.maybeEnum == OptionalByte.Two)
       assert(scalarStuff.defaultEnum == OptionalByte.Two)
+    }
+
+    fun TestNullFields() {
+      val fbb = FlatBufferBuilder(1)
+      val nameOffset = fbb.createString("name")
+      Monster.startMonster(fbb)
+      Monster.addName(fbb, nameOffset)
+      Monster.finishMonsterBuffer(fbb, Monster.endMonster(fbb))
+
+      val monsterBb = fbb.dataBuffer()
+      val monster = Monster.getRootAsMonster(monsterBb.duplicate())
+      assert(monster.pos == null) // struct
+      assert(monster.enemy == null) // table
+      assert(monster.test(Monster()) == null) // union
+      assert(monster.testType == Any_.NONE)
+      assert(monster.inventoryLength == 0) // vector of scalars
+      assert(monster.inventoryAsByteBuffer == null)
+      assert(monster.inventoryInByteBuffer(monsterBb) == null)
+      assert(monster.testarrayofsortedstructLength == 0) // vector of structs
+      assert(monster.testarrayofstringLength == 0) // vector of strings
+      assert(monster.testarrayoftablesLength == 0) // vector of tables
+
+
+      val fbb2 = FlatBufferBuilder(1)
+      val offset = Stat.createStat(fbb2, 0, 10, 10.toUShort())
+      fbb2.finish(offset)
+
+      val statBb = fbb2.dataBuffer()
+      val stat = Stat.getRootAsStat(statBb.duplicate())
+      assert(stat.id == null) // string
+      assert(stat.idAsByteBuffer == null)
+      assert(stat.idInByteBuffer(statBb) == null)
     }
   }
 }

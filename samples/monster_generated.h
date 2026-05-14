@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -236,6 +236,10 @@ inline bool operator!=(const Vec3 &lhs, const Vec3 &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Vec3 &obj) {
+  return H::combine(std::move(h), obj.x(), obj.y(), obj.z());
+}
 
 struct MonsterT : public ::flatbuffers::NativeTable {
   typedef Monster TableType;
@@ -324,6 +328,10 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Sample::Weapon *equipped_as_Weapon() const {
     return equipped_type() == MyGame::Sample::Equipment_Weapon ? static_cast<const MyGame::Sample::Weapon *>(equipped()) : nullptr;
   }
+  template<typename T> T *mutable_equipped_as();
+  MyGame::Sample::Weapon *mutable_equipped_as_Weapon() {
+    return equipped_type() == MyGame::Sample::Equipment_Weapon ? static_cast<MyGame::Sample::Weapon *>(mutable_equipped()) : nullptr;
+  }
   void *mutable_equipped() {
     return GetPointer<void *>(VT_EQUIPPED);
   }
@@ -361,6 +369,10 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 
 template<> inline const MyGame::Sample::Weapon *Monster::equipped_as<MyGame::Sample::Weapon>() const {
   return equipped_as_Weapon();
+}
+
+template<> inline MyGame::Sample::Weapon *Monster::mutable_equipped_as<MyGame::Sample::Weapon>() {
+  return mutable_equipped_as_Weapon();
 }
 
 struct MonsterBuilder {
@@ -631,7 +643,7 @@ inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBui
   auto _name = _o->name.empty() ? 0 : _fbb.CreateString(_o->name);
   auto _inventory = _o->inventory.size() ? _fbb.CreateVector(_o->inventory) : 0;
   auto _color = _o->color;
-  auto _weapons = _o->weapons.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Sample::Weapon>> (_o->weapons.size(), [](size_t i, _VectorArgs *__va) { return CreateWeapon(*__va->__fbb, __va->__o->weapons[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _weapons = _o->weapons.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Sample::Weapon>> (_o->weapons.size(), [](size_t i, _VectorArgs *__va) { return MyGame::Sample::CreateWeapon(*__va->__fbb, __va->__o->weapons[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _equipped_type = _o->equipped.type;
   auto _equipped = _o->equipped.Pack(_fbb);
   auto _path = _o->path.size() ? _fbb.CreateVectorOfStructs(_o->path) : 0;

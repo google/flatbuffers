@@ -11,8 +11,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace MyGame {
@@ -1481,6 +1481,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *test_as_MyGame_Example2_Monster() const {
     return test_type() == MyGame::Example::Any::MyGame_Example2_Monster ? static_cast<const MyGame::Example2::Monster *>(test()) : nullptr;
   }
+  template<typename T> T *mutable_test_as();
+  MyGame::Example::Monster *mutable_test_as_Monster() {
+    return test_type() == MyGame::Example::Any::Monster ? static_cast<MyGame::Example::Monster *>(mutable_test()) : nullptr;
+  }
+  MyGame::Example::TestSimpleTableWithEnum *mutable_test_as_TestSimpleTableWithEnum() {
+    return test_type() == MyGame::Example::Any::TestSimpleTableWithEnum ? static_cast<MyGame::Example::TestSimpleTableWithEnum *>(mutable_test()) : nullptr;
+  }
+  MyGame::Example2::Monster *mutable_test_as_MyGame_Example2_Monster() {
+    return test_type() == MyGame::Example::Any::MyGame_Example2_Monster ? static_cast<MyGame::Example2::Monster *>(mutable_test()) : nullptr;
+  }
   void *mutable_test() {
     return GetPointer<void *>(VT_TEST);
   }
@@ -1716,6 +1726,16 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const MyGame::Example2::Monster *any_unique_as_M2() const {
     return any_unique_type() == MyGame::Example::AnyUniqueAliases::M2 ? static_cast<const MyGame::Example2::Monster *>(any_unique()) : nullptr;
   }
+  template<typename T> T *mutable_any_unique_as();
+  MyGame::Example::Monster *mutable_any_unique_as_M() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases::M ? static_cast<MyGame::Example::Monster *>(mutable_any_unique()) : nullptr;
+  }
+  MyGame::Example::TestSimpleTableWithEnum *mutable_any_unique_as_TS() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases::TS ? static_cast<MyGame::Example::TestSimpleTableWithEnum *>(mutable_any_unique()) : nullptr;
+  }
+  MyGame::Example2::Monster *mutable_any_unique_as_M2() {
+    return any_unique_type() == MyGame::Example::AnyUniqueAliases::M2 ? static_cast<MyGame::Example2::Monster *>(mutable_any_unique()) : nullptr;
+  }
   void *mutable_any_unique() {
     return GetPointer<void *>(VT_ANY_UNIQUE);
   }
@@ -1733,6 +1753,15 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   const MyGame::Example::Monster *any_ambiguous_as_M3() const {
     return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M3 ? static_cast<const MyGame::Example::Monster *>(any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M1() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M1 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M2() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M2 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
+  }
+  MyGame::Example::Monster *mutable_any_ambiguous_as_M3() {
+    return any_ambiguous_type() == MyGame::Example::AnyAmbiguousAliases::M3 ? static_cast<MyGame::Example::Monster *>(mutable_any_ambiguous()) : nullptr;
   }
   void *mutable_any_ambiguous() {
     return GetPointer<void *>(VT_ANY_AMBIGUOUS);
@@ -2008,24 +2037,48 @@ template<> inline const MyGame::Example::Monster *Monster::test_as<MyGame::Examp
   return test_as_Monster();
 }
 
+template<> inline MyGame::Example::Monster *Monster::mutable_test_as<MyGame::Example::Monster>() {
+  return mutable_test_as_Monster();
+}
+
 template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::test_as<MyGame::Example::TestSimpleTableWithEnum>() const {
   return test_as_TestSimpleTableWithEnum();
+}
+
+template<> inline MyGame::Example::TestSimpleTableWithEnum *Monster::mutable_test_as<MyGame::Example::TestSimpleTableWithEnum>() {
+  return mutable_test_as_TestSimpleTableWithEnum();
 }
 
 template<> inline const MyGame::Example2::Monster *Monster::test_as<MyGame::Example2::Monster>() const {
   return test_as_MyGame_Example2_Monster();
 }
 
+template<> inline MyGame::Example2::Monster *Monster::mutable_test_as<MyGame::Example2::Monster>() {
+  return mutable_test_as_MyGame_Example2_Monster();
+}
+
 template<> inline const MyGame::Example::Monster *Monster::any_unique_as<MyGame::Example::Monster>() const {
   return any_unique_as_M();
+}
+
+template<> inline MyGame::Example::Monster *Monster::mutable_any_unique_as<MyGame::Example::Monster>() {
+  return mutable_any_unique_as_M();
 }
 
 template<> inline const MyGame::Example::TestSimpleTableWithEnum *Monster::any_unique_as<MyGame::Example::TestSimpleTableWithEnum>() const {
   return any_unique_as_TS();
 }
 
+template<> inline MyGame::Example::TestSimpleTableWithEnum *Monster::mutable_any_unique_as<MyGame::Example::TestSimpleTableWithEnum>() {
+  return mutable_any_unique_as_TS();
+}
+
 template<> inline const MyGame::Example2::Monster *Monster::any_unique_as<MyGame::Example2::Monster>() const {
   return any_unique_as_M2();
+}
+
+template<> inline MyGame::Example2::Monster *Monster::mutable_any_unique_as<MyGame::Example2::Monster>() {
+  return mutable_any_unique_as_M2();
 }
 
 struct MonsterBuilder {
@@ -3223,10 +3276,10 @@ inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBui
   auto _test = _o->test.Pack(_fbb);
   auto _test4 = _o->test4.size() ? _fbb.CreateVectorOfStructs(_o->test4) : 0;
   auto _testarrayofstring = _o->testarrayofstring.size() ? _fbb.CreateVectorOfStrings(_o->testarrayofstring) : 0;
-  auto _testarrayoftables = _o->testarrayoftables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Monster>> (_o->testarrayoftables.size(), [](size_t i, _VectorArgs *__va) { return CreateMonster(*__va->__fbb, __va->__o->testarrayoftables[i].get(), __va->__rehasher); }, &_va ) : 0;
-  auto _enemy = _o->enemy ? CreateMonster(_fbb, _o->enemy.get(), _rehasher) : 0;
+  auto _testarrayoftables = _o->testarrayoftables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Monster>> (_o->testarrayoftables.size(), [](size_t i, _VectorArgs *__va) { return MyGame::Example::CreateMonster(*__va->__fbb, __va->__o->testarrayoftables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _enemy = _o->enemy ? MyGame::Example::CreateMonster(_fbb, _o->enemy.get(), _rehasher) : 0;
   auto _testnestedflatbuffer = _o->testnestedflatbuffer.size() ? _fbb.CreateVector(_o->testnestedflatbuffer) : 0;
-  auto _testempty = _o->testempty ? CreateStat(_fbb, _o->testempty.get(), _rehasher) : 0;
+  auto _testempty = _o->testempty ? MyGame::Example::CreateStat(_fbb, _o->testempty.get(), _rehasher) : 0;
   auto _testbool = _o->testbool;
   auto _testhashs32_fnv1 = _o->testhashs32_fnv1;
   auto _testhashu32_fnv1 = _o->testhashu32_fnv1;
@@ -3246,11 +3299,11 @@ inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBui
   auto _test5 = _o->test5.size() ? _fbb.CreateVectorOfStructs(_o->test5) : 0;
   auto _vector_of_longs = _o->vector_of_longs.size() ? _fbb.CreateVector(_o->vector_of_longs) : 0;
   auto _vector_of_doubles = _o->vector_of_doubles.size() ? _fbb.CreateVector(_o->vector_of_doubles) : 0;
-  auto _parent_namespace_test = _o->parent_namespace_test ? CreateInParentNamespace(_fbb, _o->parent_namespace_test.get(), _rehasher) : 0;
-  auto _vector_of_referrables = _o->vector_of_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Referrable>> (_o->vector_of_referrables.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _parent_namespace_test = _o->parent_namespace_test ? MyGame::CreateInParentNamespace(_fbb, _o->parent_namespace_test.get(), _rehasher) : 0;
+  auto _vector_of_referrables = _o->vector_of_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Referrable>> (_o->vector_of_referrables.size(), [](size_t i, _VectorArgs *__va) { return MyGame::Example::CreateReferrable(*__va->__fbb, __va->__o->vector_of_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _single_weak_reference = _rehasher ? static_cast<uint64_t>((*_rehasher)(_o->single_weak_reference)) : 0;
   auto _vector_of_weak_references = _o->vector_of_weak_references.size() ? _fbb.CreateVector<uint64_t>(_o->vector_of_weak_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vector_of_weak_references[i])) : 0; }, &_va ) : 0;
-  auto _vector_of_strong_referrables = _o->vector_of_strong_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Referrable>> (_o->vector_of_strong_referrables.size(), [](size_t i, _VectorArgs *__va) { return CreateReferrable(*__va->__fbb, __va->__o->vector_of_strong_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _vector_of_strong_referrables = _o->vector_of_strong_referrables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Referrable>> (_o->vector_of_strong_referrables.size(), [](size_t i, _VectorArgs *__va) { return MyGame::Example::CreateReferrable(*__va->__fbb, __va->__o->vector_of_strong_referrables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _co_owning_reference = _rehasher ? static_cast<uint64_t>((*_rehasher)(_o->co_owning_reference)) : 0;
   auto _vector_of_co_owning_references = _o->vector_of_co_owning_references.size() ? _fbb.CreateVector<uint64_t>(_o->vector_of_co_owning_references.size(), [](size_t i, _VectorArgs *__va) { return __va->__rehasher ? static_cast<uint64_t>((*__va->__rehasher)(__va->__o->vector_of_co_owning_references[i].get())) : 0; }, &_va ) : 0;
   auto _non_owning_reference = _rehasher ? static_cast<uint64_t>((*_rehasher)(_o->non_owning_reference)) : 0;
@@ -3262,7 +3315,7 @@ inline ::flatbuffers::Offset<Monster> Monster::Pack(::flatbuffers::FlatBufferBui
   auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVector(_o->vector_of_enums) : 0;
   auto _signed_enum = _o->signed_enum;
   auto _testrequirednestedflatbuffer = _o->testrequirednestedflatbuffer.size() ? _fbb.CreateVector(_o->testrequirednestedflatbuffer) : 0;
-  auto _scalar_key_sorted_tables = _o->scalar_key_sorted_tables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Stat>> (_o->scalar_key_sorted_tables.size(), [](size_t i, _VectorArgs *__va) { return CreateStat(*__va->__fbb, __va->__o->scalar_key_sorted_tables[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _scalar_key_sorted_tables = _o->scalar_key_sorted_tables.size() ? _fbb.CreateVector<::flatbuffers::Offset<MyGame::Example::Stat>> (_o->scalar_key_sorted_tables.size(), [](size_t i, _VectorArgs *__va) { return MyGame::Example::CreateStat(*__va->__fbb, __va->__o->scalar_key_sorted_tables[i].get(), __va->__rehasher); }, &_va ) : 0;
   auto _native_inline = &_o->native_inline;
   auto _long_enum_non_enum_default = _o->long_enum_non_enum_default;
   auto _long_enum_normal_default = _o->long_enum_normal_default;

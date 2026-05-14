@@ -60,7 +60,7 @@ struct _InternalByteBuffer {
       let newData = UnsafeMutableRawPointer.allocate(
         byteCount: capacity,
         alignment: alignment)
-      memset(newData, 0, capacity &- writerSize)
+      memset(newData, 0, capacity)
       memcpy(
         newData,
         memory,

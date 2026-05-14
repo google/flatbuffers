@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace NamespaceA {
@@ -117,6 +117,10 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const NamespaceA::NamespaceB::TableInNestedNS *foo_union_as_TableInNestedNS() const {
     return foo_union_type() == NamespaceA::NamespaceB::UnionInNestedNS_TableInNestedNS ? static_cast<const NamespaceA::NamespaceB::TableInNestedNS *>(foo_union()) : nullptr;
   }
+  template<typename T> T *mutable_foo_union_as();
+  NamespaceA::NamespaceB::TableInNestedNS *mutable_foo_union_as_TableInNestedNS() {
+    return foo_union_type() == NamespaceA::NamespaceB::UnionInNestedNS_TableInNestedNS ? static_cast<NamespaceA::NamespaceB::TableInNestedNS *>(mutable_foo_union()) : nullptr;
+  }
   void *mutable_foo_union() {
     return GetPointer<void *>(VT_FOO_UNION);
   }
@@ -145,6 +149,10 @@ struct TableInFirstNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
 
 template<> inline const NamespaceA::NamespaceB::TableInNestedNS *TableInFirstNS::foo_union_as<NamespaceA::NamespaceB::TableInNestedNS>() const {
   return foo_union_as_TableInNestedNS();
+}
+
+template<> inline NamespaceA::NamespaceB::TableInNestedNS *TableInFirstNS::mutable_foo_union_as<NamespaceA::NamespaceB::TableInNestedNS>() {
+  return mutable_foo_union_as_TableInNestedNS();
 }
 
 struct TableInFirstNSBuilder {
@@ -411,7 +419,7 @@ inline ::flatbuffers::Offset<TableInFirstNS> TableInFirstNS::Pack(::flatbuffers:
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TableInFirstNST* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _foo_table = _o->foo_table ? CreateTableInNestedNS(_fbb, _o->foo_table.get(), _rehasher) : 0;
+  auto _foo_table = _o->foo_table ? NamespaceA::NamespaceB::CreateTableInNestedNS(_fbb, _o->foo_table.get(), _rehasher) : 0;
   auto _foo_enum = _o->foo_enum;
   auto _foo_union_type = _o->foo_union.type;
   auto _foo_union = _o->foo_union.Pack(_fbb);
@@ -473,8 +481,8 @@ inline ::flatbuffers::Offset<TableInC> TableInC::Pack(::flatbuffers::FlatBufferB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TableInCT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _refer_to_a1 = _o->refer_to_a1 ? CreateTableInFirstNS(_fbb, _o->refer_to_a1.get(), _rehasher) : 0;
-  auto _refer_to_a2 = _o->refer_to_a2 ? CreateSecondTableInA(_fbb, _o->refer_to_a2.get(), _rehasher) : 0;
+  auto _refer_to_a1 = _o->refer_to_a1 ? NamespaceA::CreateTableInFirstNS(_fbb, _o->refer_to_a1.get(), _rehasher) : 0;
+  auto _refer_to_a2 = _o->refer_to_a2 ? NamespaceA::CreateSecondTableInA(_fbb, _o->refer_to_a2.get(), _rehasher) : 0;
   return NamespaceC::CreateTableInC(
       _fbb,
       _refer_to_a1,
@@ -525,7 +533,7 @@ inline ::flatbuffers::Offset<SecondTableInA> SecondTableInA::Pack(::flatbuffers:
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const SecondTableInAT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _refer_to_c = _o->refer_to_c ? CreateTableInC(_fbb, _o->refer_to_c.get(), _rehasher) : 0;
+  auto _refer_to_c = _o->refer_to_c ? NamespaceC::CreateTableInC(_fbb, _o->refer_to_c.get(), _rehasher) : 0;
   return NamespaceA::CreateSecondTableInA(
       _fbb,
       _refer_to_c);

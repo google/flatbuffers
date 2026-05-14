@@ -410,7 +410,6 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_structs_span(
 
 #endif
 
-
 // Represent a vector much like the template above, but in this case we
 // don't know what the element types are (used with reflection.h).
 class VectorOfAny {
