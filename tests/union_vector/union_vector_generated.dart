@@ -5,6 +5,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 
+
 enum CharacterTypeId {
   NONE(0),
   MuLan(1),
