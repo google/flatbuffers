@@ -1181,7 +1181,7 @@ class Monster {
   String? get name =>
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 10);
   List<int>? get inventory =>
-      const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 14);
+      const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 14);
   Color get color =>
       Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId? get testType => AnyTypeId._createOrNull(
@@ -1202,7 +1202,7 @@ class Monster {
       ).vTableGetNullable(_bc, _bcOffset, 26);
   Monster? get enemy => Monster.reader.vTableGetNullable(_bc, _bcOffset, 28);
   List<int>? get testnestedflatbuffer =>
-      const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 30);
+      const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 30);
   Stat? get testempty => Stat.reader.vTableGetNullable(_bc, _bcOffset, 32);
   bool get testbool =>
       const fb.BoolReader().vTableGet(_bc, _bcOffset, 34, false);
@@ -1238,7 +1238,7 @@ class Monster {
         Ability.reader,
       ).vTableGetNullable(_bc, _bcOffset, 62);
   List<int>? get flex =>
-      const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 64);
+      const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 64);
   List<Test>? get test5 => const fb.ListReader<Test>(
         Test.reader,
       ).vTableGetNullable(_bc, _bcOffset, 66);
@@ -1287,7 +1287,7 @@ class Monster {
       ).vTableGetNullable(_bc, _bcOffset, 98);
   Race get signedEnum =>
       Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
-  List<int>? get testrequirednestedflatbuffer => const fb.ListReader<int>(fb.Uint8Reader()).vTableGetNullable(_bc, _bcOffset, 102);
+  List<int>? get testrequirednestedflatbuffer => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 102);
   List<Stat>? get scalarKeySortedTables => const fb.ListReader<Stat>(
         Stat.reader,
       ).vTableGetNullable(_bc, _bcOffset, 104);
@@ -2408,7 +2408,7 @@ class TypeAliases {
   int get u64 => const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 18, 0);
   double get f32 => const fb.Float32Reader().vTableGet(_bc, _bcOffset, 20, 0.0);
   double get f64 => const fb.Float64Reader().vTableGet(_bc, _bcOffset, 22, 0.0);
-  List<int>? get v8 => const fb.ListReader<int>(fb.Int8Reader()).vTableGetNullable(_bc, _bcOffset, 24);
+  List<int>? get v8 => const fb.Int8ListReader().vTableGetNullable(_bc, _bcOffset, 24);
   List<double>? get vf64 => const fb.ListReader<double>(
         fb.Float64Reader(),
       ).vTableGetNullable(_bc, _bcOffset, 26);

@@ -400,16 +400,24 @@ class DartGenerator : public BaseGenerator {
     std::string prefix = (constConstruct ? "const " : "") + _kFb;
     if (IsVector(type)) {
       std::string code = prefix + ".";
-      if (type.VectorType().base_type == BASE_TYPE_UNION) {
-        code = _kFb + ".UnionListReader";
+      Type vector_type = type.VectorType();
+      BaseType base_type = vector_type.base_type;
+      if ((base_type == BASE_TYPE_CHAR || base_type == BASE_TYPE_UCHAR) &&
+          !vector_type.enum_def) {
+        code += base_type == BASE_TYPE_CHAR ? "Int8" : "Uint8";
+        code += "ListReader(";
+        if (!lazy) code += "lazy: false";
       } else {
-        code += "ListReader<" +
-                GenDartTypeName(type.VectorType(), current_namespace, def) +
-                ">";
+        if (base_type == BASE_TYPE_UNION) {
+          code = _kFb + ".UnionListReader";
+        } else {
+          code += "ListReader<" +
+                  GenDartTypeName(vector_type, current_namespace, def) + ">";
+        }
+        code += "(" + GenReaderTypeName(vector_type, current_namespace, def,
+                                        true, true, false);
+        if (!lazy) code += ", lazy: false";
       }
-      code += "(" + GenReaderTypeName(type.VectorType(), current_namespace, def,
-                                      true, true, false);
-      if (!lazy) code += ", lazy: false";
       return code + ")";
     } else if (type.base_type == BASE_TYPE_UNION) {
       return "(index) => _" + type.enum_def->name + "Reader(" + def.name +
