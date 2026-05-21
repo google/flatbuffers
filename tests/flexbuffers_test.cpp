@@ -185,6 +185,34 @@ void FlexBuffersReuseBugTest() {
   TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
                                     slb.GetBuffer().size(), &reuse_tracker),
           true);
+
+  slb.Clear();
+  const std::string shared_string(1, 'A');
+  slb.Vector([&]() {
+    for (int i = 0; i < 100; ++i) slb.String(shared_string);
+  });
+  slb.Finish();
+  reuse_tracker.clear();
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
+
+  // A vector that contains a reference to itself must not become valid just
+  // because the reuse tracker is enabled.
+  const uint8_t vector_type =
+      static_cast<uint8_t>(flexbuffers::BIT_WIDTH_8 |
+                           (flexbuffers::FBT_VECTOR << 2));
+  const uint8_t cyclic_vector[] = {1, 0, vector_type, 2, vector_type, 1};
+  reuse_tracker.clear();
+  TEST_EQ(flexbuffers::VerifyBuffer(cyclic_vector, sizeof(cyclic_vector),
+                                    nullptr),
+          false);
+  TEST_EQ(flexbuffers::VerifyBuffer(cyclic_vector, sizeof(cyclic_vector),
+                                    &reuse_tracker),
+          false);
 }
 
 void FlexBuffersFloatingPointTest() {
