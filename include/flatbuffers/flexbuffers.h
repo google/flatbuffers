@@ -1207,11 +1207,20 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     String(str);
   }
 
+  size_t AlignedBlob(const void* data, size_t len, BitWidth alignment) {
+    // The requested alignment must not be smaller than the one required to
+    // store the length.
+    return CreateAlignedBlob(data, len, 0, FBT_BLOB,
+                             std::max(alignment, WidthU(len)));
+  }
+  size_t AlignedBlob(const std::vector<uint8_t>& v, BitWidth alignment) {
+    return AlignedBlob(v.data(), v.size(), alignment);
+  }
   size_t Blob(const void* data, size_t len) {
     return CreateBlob(data, len, 0, FBT_BLOB);
   }
   size_t Blob(const std::vector<uint8_t>& v) {
-    return CreateBlob(v.data(), v.size(), 0, FBT_BLOB);
+    return Blob(v.data(), v.size());
   }
 
   void Blob(const char* key, const void* data, size_t len) {
@@ -1693,11 +1702,16 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   size_t CreateBlob(const void* data, size_t len, size_t trailing, Type type) {
     auto bit_width = WidthU(len);
-    auto byte_width = Align(bit_width);
+    return CreateAlignedBlob(data, len, trailing, type, bit_width);
+  }
+
+  size_t CreateAlignedBlob(const void* data, size_t len, size_t trailing,
+                           Type type, BitWidth alignment) {
+    auto byte_width = Align(alignment);
     Write<uint64_t>(len, byte_width);
     auto sloc = buf_.size();
     WriteBytes(data, len + trailing);
-    stack_.push_back(Value(static_cast<uint64_t>(sloc), type, bit_width));
+    stack_.push_back(Value(static_cast<uint64_t>(sloc), type, alignment));
     return sloc;
   }
 
@@ -1962,7 +1976,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyKey(const uint8_t* p) {
     FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
     while (p < buf_ + size_)
-      if (*p++) return true;
+      if (!*p++) return true;
     return false;
   }
 

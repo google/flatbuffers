@@ -1,0 +1,18 @@
+// Test for cross-namespace Pack() code generation (issue #8948).
+// Verifies that Create* calls in Pack() are properly namespace-qualified
+// when referencing tables from different namespaces.
+
+namespace native;
+
+table TableWithNative {
+  value: int;
+}
+
+namespace foo;
+
+table Consumer {
+  c1: native.TableWithNative;
+  c2: [native.TableWithNative];
+}
+
+root_type Consumer;

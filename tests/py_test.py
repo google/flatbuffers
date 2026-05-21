@@ -55,6 +55,10 @@ import MyGame.Example.NestedUnion.Color  # refers to generated code
 import monster_test_generated  # the one-file version
 import optional_scalars
 import optional_scalars.ScalarStuff
+import union_name_test.Container  # refers to generated code
+import union_name_test.Foo  # refers to generated code
+import union_name_test.Bar  # refers to generated code
+import union_name_test.my_test_union  # refers to generated code
 
 
 def create_namespace_shortcut(is_onefile):
@@ -3018,6 +3022,50 @@ class TestNestedUnionTables(unittest.TestCase):
     self.assertEqual(
         nestUnionDecodeTFromBuf2.data.test3.b, nestUnion.data.test3.b
     )
+
+
+class TestUnionCreatorNaming(unittest.TestCase):
+  """Tests that union creator functions use consistent naming (issue #8843).
+
+  Uses a schema with a snake_case union name (my_test_union) to verify that
+  the generated creator function name matches between definition and call site.
+  """
+
+  def test_union_creator_pack_unpack(self):
+    """Pack and UnPack a table with a non-UpperCamel union name."""
+    containerT = union_name_test.Container.ContainerT()
+    containerT.uType = union_name_test.my_test_union.my_test_union.Foo
+    containerT.u = union_name_test.Foo.FooT()
+    containerT.u.val = 42
+
+    b = flatbuffers.Builder(0)
+    b.Finish(containerT.Pack(b))
+
+    container = union_name_test.Container.Container.GetRootAs(
+        b.Bytes, b.Head()
+    )
+    containerT2 = union_name_test.Container.ContainerT.InitFromObj(container)
+
+    self.assertEqual(containerT2.uType, union_name_test.my_test_union.my_test_union.Foo)
+    self.assertEqual(containerT2.u.val, 42)
+
+  def test_union_creator_with_bar(self):
+    """Test the other union variant to ensure all branches work."""
+    containerT = union_name_test.Container.ContainerT()
+    containerT.uType = union_name_test.my_test_union.my_test_union.Bar
+    containerT.u = union_name_test.Bar.BarT()
+    containerT.u.name = "hello"
+
+    b = flatbuffers.Builder(0)
+    b.Finish(containerT.Pack(b))
+
+    container = union_name_test.Container.Container.GetRootAs(
+        b.Bytes, b.Head()
+    )
+    containerT2 = union_name_test.Container.ContainerT.InitFromObj(container)
+
+    self.assertEqual(containerT2.uType, union_name_test.my_test_union.my_test_union.Bar)
+    self.assertEqual(containerT2.u.name, b"hello")
 
 
 class TestBuilderClear(unittest.TestCase):

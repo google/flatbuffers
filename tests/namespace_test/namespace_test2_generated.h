@@ -419,7 +419,7 @@ inline ::flatbuffers::Offset<TableInFirstNS> TableInFirstNS::Pack(::flatbuffers:
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TableInFirstNST* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _foo_table = _o->foo_table ? CreateTableInNestedNS(_fbb, _o->foo_table.get(), _rehasher) : 0;
+  auto _foo_table = _o->foo_table ? NamespaceA::NamespaceB::CreateTableInNestedNS(_fbb, _o->foo_table.get(), _rehasher) : 0;
   auto _foo_enum = _o->foo_enum;
   auto _foo_union_type = _o->foo_union.type;
   auto _foo_union = _o->foo_union.Pack(_fbb);
@@ -481,8 +481,8 @@ inline ::flatbuffers::Offset<TableInC> TableInC::Pack(::flatbuffers::FlatBufferB
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const TableInCT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _refer_to_a1 = _o->refer_to_a1 ? CreateTableInFirstNS(_fbb, _o->refer_to_a1.get(), _rehasher) : 0;
-  auto _refer_to_a2 = _o->refer_to_a2 ? CreateSecondTableInA(_fbb, _o->refer_to_a2.get(), _rehasher) : 0;
+  auto _refer_to_a1 = _o->refer_to_a1 ? NamespaceA::CreateTableInFirstNS(_fbb, _o->refer_to_a1.get(), _rehasher) : 0;
+  auto _refer_to_a2 = _o->refer_to_a2 ? NamespaceA::CreateSecondTableInA(_fbb, _o->refer_to_a2.get(), _rehasher) : 0;
   return NamespaceC::CreateTableInC(
       _fbb,
       _refer_to_a1,
@@ -533,7 +533,7 @@ inline ::flatbuffers::Offset<SecondTableInA> SecondTableInA::Pack(::flatbuffers:
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const SecondTableInAT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _refer_to_c = _o->refer_to_c ? CreateTableInC(_fbb, _o->refer_to_c.get(), _rehasher) : 0;
+  auto _refer_to_c = _o->refer_to_c ? NamespaceC::CreateTableInC(_fbb, _o->refer_to_c.get(), _rehasher) : 0;
   return NamespaceA::CreateSecondTableInA(
       _fbb,
       _refer_to_c);

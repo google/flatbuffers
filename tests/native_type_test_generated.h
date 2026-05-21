@@ -449,8 +449,8 @@ inline ::flatbuffers::Offset<ApplicationData> ApplicationData::Pack(::flatbuffer
   auto _vectors_alt = _o->vectors_alt.size() ? _fbb.CreateVectorOfNativeStructs<Geometry::Vector3DAlt, Native::Vector3D>(_o->vectors_alt, ::flatbuffers::PackVector3DAlt) : 0;
   auto _position = Geometry::Vector3D{}; if (_o->position) _position = ::flatbuffers::Pack(*_o->position);
   auto _position_inline = ::flatbuffers::Pack(_o->position_inline);
-  auto _matrix = _o->matrix ? CreateMatrix(_fbb, _o->matrix.get(), _rehasher) : 0;
-  auto _matrices = _o->matrices.size() ? _fbb.CreateVector<::flatbuffers::Offset<Geometry::Matrix>> (_o->matrices.size(), [](size_t i, _VectorArgs *__va) { return CreateMatrix(*__va->__fbb, __va->__o->matrices[i].get(), __va->__rehasher); }, &_va ) : 0;
+  auto _matrix = _o->matrix ? Geometry::CreateMatrix(_fbb, _o->matrix.get(), _rehasher) : 0;
+  auto _matrices = _o->matrices.size() ? _fbb.CreateVector<::flatbuffers::Offset<Geometry::Matrix>> (_o->matrices.size(), [](size_t i, _VectorArgs *__va) { return Geometry::CreateMatrix(*__va->__fbb, __va->__o->matrices[i].get(), __va->__rehasher); }, &_va ) : 0;
   return Geometry::CreateApplicationData(
       _fbb,
       _vectors,

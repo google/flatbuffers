@@ -88,7 +88,7 @@ def SchemaFileCreateIncludedFilenamesVector(builder, data):
     return builder.CreateVectorOfTables(data)
 
 def CreateIncludedFilenamesVector(builder, data):
-    SchemaFileCreateIncludedFilenamesVector(builder, data)
+    return SchemaFileCreateIncludedFilenamesVector(builder, data)
 
 def SchemaFileEnd(builder):
     return builder.EndObject()

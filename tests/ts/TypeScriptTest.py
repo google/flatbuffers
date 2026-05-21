@@ -62,15 +62,9 @@ def flatc(
 
 # Execute esbuild with the specified parameters
 def esbuild(input, output):
-  cmd = ["esbuild", input, "--outfile=" + output]
+  cmd = ["../../node_modules/.bin/esbuild", input, "--outfile=" + output]
   cmd += ["--format=cjs", "--bundle", "--external:flatbuffers"]
   check_call(cmd)
-
-
-print("Removing node_modules/ directory...")
-shutil.rmtree(Path(tests_path, "node_modules"), ignore_errors=True)
-
-check_call(["npm", "install", "--silent"])
 
 flatc(
     options=[
@@ -86,6 +80,20 @@ flatc(
     include="../include_test",
 )
 esbuild("monster_test.ts", "monster_test_generated.cjs")
+
+flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-mutable",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="../even_more_defaults.fbs",
+    include="../include_test",
+)
 
 flatc(
     options=["--gen-object-api", "-b"],
@@ -199,13 +207,27 @@ flatc(
 flatc(options=["--ts"], schema="../long_namespace.fbs")
 flatc(options=["--ts"], schema="../longer_namespace.fbs")
 
+
+flatc(
+    options=[
+        "--ts",
+        "--reflect-names",
+        "--gen-name-strings",
+        "--gen-object-api",
+        "--ts-entry-points",
+        "--ts-flat-files",
+    ],
+    schema="relative_imports/relative_imports.fbs",
+    prefix="relative_imports",
+)
+
 print("Running TypeScript Compiler...")
-check_call(["tsc"])
+check_call(["../../node_modules/.bin/tsc"])
 print(
     "Running TypeScript Compiler in old node resolution mode for"
     " no_import_ext..."
 )
-check_call(["tsc", "-p", "./tsconfig.node.json"])
+check_call(["../../node_modules/.bin/tsc", "-p", "./tsconfig.node.json"])
 
 NODE_CMD = ["node"]
 
@@ -215,6 +237,7 @@ check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
 check_call(NODE_CMD + ["JavaScriptUnionUnderlyingTypeTest"])
+check_call(NODE_CMD + ["JavaScriptRelativeImportPathTest"])
 check_call(NODE_CMD + ["JavaScriptUndefinedForOptionals"])
 
 print("Running old v1 TypeScript Tests...")

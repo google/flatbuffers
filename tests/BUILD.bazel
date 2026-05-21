@@ -52,6 +52,7 @@ cc_test(
         "monster_test.cpp",
         "monster_test.h",
         "monster_test_bfbs_generated.h",
+        "cross_namespace_pack_test_generated.h",
         "namespace_test/namespace_test1_generated.h",
         "namespace_test/namespace_test2_generated.h",
         "native_inline_table_test_generated.h",
@@ -136,6 +137,7 @@ cc_test(
     deps = [
         ":alignment_test_cc_fbs",
         ":arrays_test_cc_fbs",
+        ":cross_namespace_pack_test_cc_fbs",
         ":default_vectors_strings_test_cc_fbs",
         ":monster_extra_cc_fbs",
         ":monster_test_cc_fbs",
@@ -258,6 +260,17 @@ flatbuffer_cc_library(
         "--reflect-names",
         "--cpp-ptr-type flatbuffers::unique_ptr",
         "--scoped-enums",
+    ],
+)
+
+flatbuffer_cc_library(
+    name = "cross_namespace_pack_test_cc_fbs",
+    srcs = ["cross_namespace_pack_test.fbs"],
+    flatc_args = [
+        "--gen-object-api",
+        "--gen-mutable",
+        "--gen-compare",
+        "--reflect-names",
     ],
 )
 
