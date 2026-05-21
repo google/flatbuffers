@@ -1171,6 +1171,24 @@ void TestEmbeddedBinarySchema(const std::string& tests_data_path) {
 }
 #endif
 
+void TestDeserializeRejectsShortBinarySchemaBuffers() {
+  flatbuffers::Parser null_parser;
+  TEST_EQ(false, null_parser.Deserialize(nullptr, 0));
+  TEST_EQ(false,
+          null_parser.Deserialize(
+              nullptr, sizeof(flatbuffers::uoffset_t) +
+                           flatbuffers::kFileIdentifierLength));
+
+  const size_t size_prefixed_identifier_size =
+      2 * sizeof(flatbuffers::uoffset_t) + flatbuffers::kFileIdentifierLength;
+  for (size_t size = 1; size < size_prefixed_identifier_size; size++) {
+    std::string buf(size, 'x');
+    flatbuffers::Parser parser;
+    TEST_EQ(false, parser.Deserialize(
+                       reinterpret_cast<const uint8_t*>(buf.data()), size));
+  }
+}
+
 template <typename T>
 void EmbeddedSchemaAccessByType() {
   // Get the binary schema from the Type itself.
@@ -1765,6 +1783,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   MiniReflectFixedLengthArrayTest();
 
   SizePrefixedTest();
+  TestDeserializeRejectsShortBinarySchemaBuffers();
 
   AlignmentTest();
 
