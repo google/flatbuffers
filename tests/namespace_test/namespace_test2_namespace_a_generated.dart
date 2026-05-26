@@ -23,14 +23,9 @@ class TableInFirstNs {
   final int _bcOffset;
 
   namespace_a_namespace_b.TableInNestedNs? get fooTable => namespace_a_namespace_b.TableInNestedNs.reader.vTableGetNullable(_bc, _bcOffset, 4);
-  namespace_a.namespace_b.EnumInNestedNs get fooEnum => namespace_a.namespace_b.EnumInNestedNs.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0));
-  UnionInNestedNsTypeId? get fooUnionType => UnionInNestedNsTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 8));
-  dynamic get fooUnion {
-    switch (fooUnionType?.value) {
-      case 1: return TableInNestedNs.reader.vTableGetNullable(_bc, _bcOffset, 10);
-      default: return null;
-    }
-  }
+  namespace_a_namespace_b.EnumInNestedNs get fooEnum => namespace_a_namespace_b.EnumInNestedNs.reader.vTableGet(_bc, _bcOffset, 6, namespace_a_namespace_b.EnumInNestedNs.A);
+  namespace_a_namespace_b.UnionInNestedNsTypeId? get fooUnionType => namespace_a_namespace_b.UnionInNestedNsTypeId.reader.vTableGetNullable(_bc, _bcOffset, 8);
+  dynamic get fooUnion => fooUnionType?.valueReader?.vTableGetNullable(_bc, _bcOffset, 10);
   namespace_a_namespace_b.StructInNestedNs? get fooStruct => namespace_a_namespace_b.StructInNestedNs.reader.vTableGetNullable(_bc, _bcOffset, 12);
 
   @override
@@ -60,11 +55,11 @@ class TableInFirstNsBuilder {
     fbBuilder.addOffset(0, offset);
     return fbBuilder.offset;
   }
-  int addFooEnum(namespace_a.namespace_b.EnumInNestedNs? fooEnum) {
+  int addFooEnum(namespace_a_namespace_b.EnumInNestedNs? fooEnum) {
     fbBuilder.addInt8(1, fooEnum?.value);
     return fbBuilder.offset;
   }
-  int addFooUnionType(UnionInNestedNsTypeId? fooUnionType) {
+  int addFooUnionType(namespace_a_namespace_b.UnionInNestedNsTypeId? fooUnionType) {
     fbBuilder.addUint8(2, fooUnionType?.value);
     return fbBuilder.offset;
   }
@@ -84,15 +79,15 @@ class TableInFirstNsBuilder {
 
 class TableInFirstNsObjectBuilder extends fb.ObjectBuilder {
   final namespace_a_namespace_b.TableInNestedNsObjectBuilder? _fooTable;
-  final namespace_a.namespace_b.EnumInNestedNs? _fooEnum;
-  final UnionInNestedNsTypeId? _fooUnionType;
+  final namespace_a_namespace_b.EnumInNestedNs? _fooEnum;
+  final namespace_a_namespace_b.UnionInNestedNsTypeId? _fooUnionType;
   final dynamic _fooUnion;
   final namespace_a_namespace_b.StructInNestedNsObjectBuilder? _fooStruct;
 
   TableInFirstNsObjectBuilder({
     namespace_a_namespace_b.TableInNestedNsObjectBuilder? fooTable,
-    namespace_a.namespace_b.EnumInNestedNs? fooEnum,
-    UnionInNestedNsTypeId? fooUnionType,
+    namespace_a_namespace_b.EnumInNestedNs? fooEnum,
+    namespace_a_namespace_b.UnionInNestedNsTypeId? fooUnionType,
     dynamic fooUnion,
     namespace_a_namespace_b.StructInNestedNsObjectBuilder? fooStruct,
   })

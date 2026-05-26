@@ -261,24 +261,53 @@ class DartGenerator : public BaseGenerator {
     code += "    }\n";
     code += "  }\n\n";
 
-    code += "  static " + enum_type + "? _createOrNull(int? value) =>\n";
-    code +=
-        "      value == null ? null : " + enum_type + ".fromValue(value);\n\n";
-
     // This is meaningless for bit_flags, however, note that unlike "regular"
     // dart enums this enum can still have holes.
     if (!is_bit_flags) {
       code += "  static const int minValue = " +
               enum_def.ToString(*enum_def.MinValue()) + ";\n";
       code += "  static const int maxValue = " +
-              enum_def.ToString(*enum_def.MaxValue()) + ";\n";
+              enum_def.ToString(*enum_def.MaxValue()) + ";\n\n";
     }
 
     code += "  static const " + _kFb + ".Reader<" + enum_type + "> reader = _" +
             enum_type + "Reader();\n";
+
+    if (enum_def.is_union) {
+      code += "  " + _kFb + ".Reader? get valueReader => _get" + enum_type +
+              "Reader(this);\n";
+    }
     code += "}\n\n";
 
+    if (enum_def.is_union) {
+      GenEnumValueReader(enum_def, enum_type, code);
+    }
     GenEnumReader(enum_def, enum_type, code);
+  }
+
+  void GenEnumValueReader(EnumDef& enum_def, const std::string& enum_type,
+                          std::string& code) {
+    code +=
+        _kFb + ".Reader? _get" + enum_type + "Reader(" + enum_type + " id) {\n";
+    code += "  switch (id.value) {\n";
+    for (auto en_it = enum_def.Vals().begin() + 1;
+         en_it != enum_def.Vals().end(); ++en_it) {
+      const auto& ev = **en_it;
+
+      code += "      case " + enum_def.ToString(ev) + ": return ";
+      if (ev.union_type.struct_def) {
+        code += NamespaceAliasFromUnionType(enum_def.defined_namespace,
+                                            ev.union_type) +
+                ".reader";
+      } else {
+        assert(0);
+        code += "null";
+      }
+      code += ";\n";
+    }
+    code += "    default: return null;\n";
+    code += "  }\n";
+    code += "}\n\n";
   }
 
   void GenEnumReader(EnumDef& enum_def, const std::string& enum_type,
@@ -358,8 +387,7 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string GenReaderTypeName(const Type& type, Namespace* current_namespace,
-                                const FieldDef& def,
-                                bool parent_is_vector = false, bool lazy = true,
+                                const FieldDef& def, bool lazy = true,
                                 bool constConstruct = true) {
     std::string prefix = (constConstruct ? "const " : "") + _kFb;
     if (type.base_type == BASE_TYPE_BOOL) {
@@ -376,15 +404,11 @@ class DartGenerator : public BaseGenerator {
       return prefix + ".ListReader<" +
              GenDartTypeName(type.VectorType(), current_namespace, def) + ">(" +
              GenReaderTypeName(type.VectorType(), current_namespace, def, true,
-                               true, false) +
+                               false) +
              (lazy ? ")" : ", lazy: false)");
     } else if (IsString(type)) {
       return prefix + ".StringReader()";
-    }
-    if (IsScalar(type.base_type)) {
-      if (type.enum_def && parent_is_vector) {
-        return GenDartTypeName(type, current_namespace, def) + ".reader";
-      }
+    } else if (IsScalar(type.base_type) && !IsEnum(type)) {
       return prefix + "." + GenType(type) + "Reader()";
     } else {
       return GenDartTypeName(type, current_namespace, def) + ".reader";
@@ -394,21 +418,23 @@ class DartGenerator : public BaseGenerator {
   std::string GenDartTypeName(const Type& type, Namespace* current_namespace,
                               const FieldDef& def,
                               std::string struct_type_suffix = "") {
+    if (IsVector(type)) {
+      return "List<" +
+             GenDartTypeName(type.VectorType(), current_namespace, def,
+                             struct_type_suffix) +
+             ">";
+    }
+
     if (type.enum_def) {
-      if (type.enum_def->is_union && type.base_type != BASE_TYPE_UNION) {
-        return namer_.Type(*type.enum_def) + "TypeId";
-      } else if (type.enum_def->is_union) {
+      if (type.enum_def->is_union && type.base_type == BASE_TYPE_UNION) {
         return "dynamic";
-      } else if (type.base_type != BASE_TYPE_VECTOR) {
-        const std::string cur_namespace = namer_.Namespace(*current_namespace);
-        std::string enum_namespace =
-            namer_.Namespace(*type.enum_def->defined_namespace);
-        std::string typeName = namer_.Type(*type.enum_def);
-        if (enum_namespace != "" && enum_namespace != cur_namespace) {
-          typeName = enum_namespace + "." + typeName;
-        }
-        return typeName;
       }
+
+      std::string typeName = namer_.Type(*type.enum_def);
+      if (type.enum_def->is_union) {
+        typeName += "TypeId";
+      }
+      return MaybeWrapNamespace(typeName, current_namespace, def);
     }
 
     switch (type.base_type) {
@@ -432,11 +458,6 @@ class DartGenerator : public BaseGenerator {
         return MaybeWrapNamespace(
             namer_.Type(*type.struct_def) + struct_type_suffix,
             current_namespace, def);
-      case BASE_TYPE_VECTOR:
-        return "List<" +
-               GenDartTypeName(type.VectorType(), current_namespace, def,
-                               struct_type_suffix) +
-               ">";
       default:
         assert(0);
         return "dynamic";
@@ -674,7 +695,7 @@ class DartGenerator : public BaseGenerator {
       const FieldDef& field = *it->second;
 
       const std::string field_name = namer_.Field(field);
-      const std::string defaultValue = getDefaultValue(field.value);
+      std::string defaultValue = getDefaultValue(field.value);
       const bool isNullable = defaultValue.empty() && !struct_def.fixed;
       const std::string type_name =
           GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
@@ -683,51 +704,42 @@ class DartGenerator : public BaseGenerator {
       GenDocComment(field.doc_comment, "  ", code);
 
       code += "  " + type_name + " get " + field_name;
-      if (field.value.type.base_type == BASE_TYPE_UNION) {
-        code += " {\n";
-        code += "    switch (" + field_name + "Type?.value) {\n";
-        const auto& enum_def = *field.value.type.enum_def;
-        for (auto en_it = enum_def.Vals().begin() + 1;
-             en_it != enum_def.Vals().end(); ++en_it) {
-          const auto& ev = **en_it;
-          const auto enum_name = NamespaceAliasFromUnionType(
-              enum_def.defined_namespace, ev.union_type);
-          code += "      case " + enum_def.ToString(ev) + ": return " +
-                  enum_name + ".reader.vTableGetNullable(_bc, _bcOffset, " +
-                  NumToString(field.value.offset) + ");\n";
-        }
-        code += "      default: return null;\n";
-        code += "    }\n";
-        code += "  }\n";
-      } else {
-        code += " => ";
-        if (field.value.type.enum_def &&
-            field.value.type.base_type != BASE_TYPE_VECTOR) {
-          code += GenDartTypeName(field.value.type,
-                                  struct_def.defined_namespace, field) +
-                  (isNullable ? "._createOrNull(" : ".fromValue(");
-        }
+      code += " => ";
 
+      if (IsUnion(field.value.type) && !IsEnum(field.value.type)) {
+        code += field_name + "Type?.valueReader?";
+      } else {
         code += GenReaderTypeName(field.value.type,
                                   struct_def.defined_namespace, field);
-        if (struct_def.fixed) {
-          code +=
-              ".read(_bc, _bcOffset + " + NumToString(field.value.offset) + ")";
-        } else {
-          code += ".vTableGet";
-          std::string offset = NumToString(field.value.offset);
-          if (isNullable) {
-            code += "Nullable(_bc, _bcOffset, " + offset + ")";
-          } else {
-            code += "(_bc, _bcOffset, " + offset + ", " + defaultValue + ")";
-          }
-        }
-        if (field.value.type.enum_def &&
-            field.value.type.base_type != BASE_TYPE_VECTOR) {
-          code += ")";
-        }
-        code += ";\n";
       }
+
+      if (struct_def.fixed) {
+        code +=
+            ".read(_bc, _bcOffset + " + NumToString(field.value.offset) + ")";
+      } else {
+        code += ".vTableGet";
+        std::string offset = NumToString(field.value.offset);
+        if (isNullable) {
+          code += "Nullable(_bc, _bcOffset, " + offset + ")";
+        } else {
+          if (IsEnum(field.value.type)) {
+            auto& enum_def = *field.value.type.enum_def;
+            auto val = enum_def.FindByValue(defaultValue);
+            if (val) {
+              defaultValue =
+                  MaybeWrapNamespace(namer_.EnumVariant(enum_def, *val),
+                                     struct_def.defined_namespace, field);
+            } else {
+              defaultValue =
+                  namer_.Type(*field.value.type.enum_def) + "._default";
+              defaultValue = MaybeWrapNamespace(
+                  defaultValue, struct_def.defined_namespace, field);
+            }
+          }
+          code += "(_bc, _bcOffset, " + offset + ", " + defaultValue + ")";
+        }
+      }
+      code += ";\n";
     }
 
     code += "\n";

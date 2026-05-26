@@ -23,12 +23,18 @@ enum UnionInNestedNsTypeId {
     }
   }
 
-  static UnionInNestedNsTypeId? _createOrNull(int? value) =>
-      value == null ? null : UnionInNestedNsTypeId.fromValue(value);
-
   static const int minValue = 0;
   static const int maxValue = 1;
+
   static const fb.Reader<UnionInNestedNsTypeId> reader = _UnionInNestedNsTypeIdReader();
+  fb.Reader? get valueReader => _getUnionInNestedNsTypeIdReader(this);
+}
+
+fb.Reader? _getUnionInNestedNsTypeIdReader(UnionInNestedNsTypeId id) {
+  switch (id.value) {
+      case 1: return TableInNestedNs.reader;
+    default: return null;
+  }
 }
 
 class _UnionInNestedNsTypeIdReader extends fb.Reader<UnionInNestedNsTypeId> {
@@ -59,11 +65,9 @@ enum EnumInNestedNs {
     }
   }
 
-  static EnumInNestedNs? _createOrNull(int? value) =>
-      value == null ? null : EnumInNestedNs.fromValue(value);
-
   static const int minValue = 0;
   static const int maxValue = 2;
+
   static const fb.Reader<EnumInNestedNs> reader = _EnumInNestedNsReader();
 }
 
