@@ -443,9 +443,15 @@ inline const reflection::Object& GetUnionType(
   auto enumval = enumdef->values()->LookupByKey(union_type);
   // enumval is null when the data contains a union type value that is not
   // present in the schema (e.g. data produced by a newer schema version).
-  // Dereferencing a null pointer here would be undefined behaviour and
-  // typically a crash, so assert explicitly instead.
+  // Generated VerifyAny functions use `default: return true` for
+  // forward-compatibility, so such data passes Verify() without error.
+  // A null dereference here is undefined behaviour and typically a crash.
+  //
+  // FLATBUFFERS_ASSERT fires in debug builds (NDEBUG not defined).  The
+  // explicit abort() below ensures the process terminates predictably in
+  // release builds too, rather than silently corrupting memory.
   FLATBUFFERS_ASSERT(enumval != nullptr);
+  if (!enumval) { std::abort(); }
   return *schema.objects()->Get(enumval->union_type()->index());
 }
 
