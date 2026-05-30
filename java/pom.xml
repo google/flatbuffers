@@ -85,6 +85,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.3.0</version>
         <configuration>
+          <release>8</release>
           <additionalparam>-Xdoclint:none</additionalparam>
           <additionalOptions>-Xdoclint:none</additionalOptions>
         </configuration>
@@ -102,6 +103,11 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <version>5.1.2</version>
         <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Multi-Release>true</Multi-Release>
+          </instructions>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
@@ -157,14 +163,43 @@
         <plugins>
           <plugin>
             <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <release>8</release>
-              <testExcludes>
-                <testExclude>MyGame/Example/MonsterStorageGrpc.java</testExclude>
-                <testExclude>MyGame/OtherNameSpace/TableBT.java</testExclude>
-              </testExcludes>
-            </configuration>
             <version>3.8.1</version>
+            <executions>
+              <execution>
+                <id>default-compile</id>
+                <configuration>
+                  <release>8</release>
+                  <testExcludes>
+                    <testExclude>MyGame/Example/MonsterStorageGrpc.java</testExclude>
+                    <testExclude>MyGame/OtherNameSpace/TableBT.java</testExclude>
+                  </testExcludes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>default-testCompile</id>
+                <configuration>
+                  <release>8</release>
+                  <testExcludes>
+                    <testExclude>MyGame/Example/MonsterStorageGrpc.java</testExclude>
+                    <testExclude>MyGame/OtherNameSpace/TableBT.java</testExclude>
+                  </testExcludes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>compile-java9</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>compile</goal>
+                </goals>
+                <configuration>
+                  <release>9</release>
+                  <compileSourceRoots>
+                    <compileSourceRoot>${project.basedir}/src/main/java9</compileSourceRoot>
+                  </compileSourceRoots>
+                  <multiReleaseOutput>true</multiReleaseOutput>
+                </configuration>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
