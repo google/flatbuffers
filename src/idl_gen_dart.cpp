@@ -804,7 +804,7 @@ class DartGenerator : public BaseGenerator {
     }
     code += "  @override\n";
     code += "  " + struct_type +
-            " createObject(fb.BufferContext bc, int offset) => \n    " +
+            " createObject(fb.BufferContext bc, int offset) =>\n    " +
             struct_type + "._(bc, offset);\n";
     code += "}\n\n";
   }
@@ -852,6 +852,8 @@ class DartGenerator : public BaseGenerator {
       }
     }
     code += ") {\n";
+    code += "    fbBuilder.prepStruct(" + NumToString(struct_def.minalign) +
+            ", " + NumToString(struct_def.bytesize) + ");\n";
 
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
@@ -1053,8 +1055,8 @@ class DartGenerator : public BaseGenerator {
     }
 
     if (struct_def.fixed) {
-      code += StructObjectBuilderBody(non_deprecated_fields, prependUnderscore,
-                                      pack);
+      code += StructObjectBuilderBody(struct_def, non_deprecated_fields,
+                                      prependUnderscore, pack);
     } else {
       code += TableObjectBuilderBody(struct_def, non_deprecated_fields,
                                      prependUnderscore, pack);
@@ -1063,9 +1065,12 @@ class DartGenerator : public BaseGenerator {
   }
 
   std::string StructObjectBuilderBody(
+      const StructDef& struct_def,
       const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
     std::string code;
+    code += "    fbBuilder.prepStruct(" + NumToString(struct_def.minalign) +
+            ", " + NumToString(struct_def.bytesize) + ");\n";
 
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
