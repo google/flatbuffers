@@ -17,6 +17,8 @@
 use core::cmp::Ordering;
 use core::fmt::{Debug, Formatter, Result};
 use core::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator};
+#[cfg(nightly)]
+use core::iter::TrustedLen;
 use core::marker::PhantomData;
 use core::mem::{align_of, size_of};
 use core::str::from_utf8_unchecked;
@@ -105,6 +107,20 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
         key: K,
         f: fn(&<T as Follow<'a>>::Inner, &K) -> Ordering,
     ) -> Option<T::Inner> {
+        self.lookup_index_by_key(key, f).map(|idx| self.get(idx))
+    }
+
+    /// Binary search by key, returning the index of the matching element.
+    ///
+    /// This is similar to `lookup_by_key`, but returns the index of the found
+    /// element rather than the element itself. This is useful when you need
+    /// to reference elements by their position in the vector.
+    #[inline(always)]
+    pub fn lookup_index_by_key<K: Ord>(
+        &self,
+        key: K,
+        f: fn(&<T as Follow<'a>>::Inner, &K) -> Ordering,
+    ) -> Option<usize> {
         if self.is_empty() {
             return None;
         }
@@ -116,7 +132,7 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
             let mid = (left + right) / 2;
             let value = self.get(mid);
             match f(&value, &key) {
-                Ordering::Equal => return Some(value),
+                Ordering::Equal => return Some(mid),
                 Ordering::Less => left = mid + 1,
                 Ordering::Greater => {
                     if mid == 0 {
@@ -292,6 +308,9 @@ impl<'a, T: 'a + Follow<'a>> ExactSizeIterator for VectorIter<'a, T> {
         self.remaining
     }
 }
+
+#[cfg(nightly)]
+unsafe impl<'a, T: Follow<'a> + 'a> TrustedLen for VectorIter<'a, T> {}
 
 impl<'a, T: 'a + Follow<'a>> FusedIterator for VectorIter<'a, T> {}
 

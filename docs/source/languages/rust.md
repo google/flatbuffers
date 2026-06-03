@@ -97,6 +97,61 @@ convenient accessors for all fields, e.g. `hp()`, `mana()`, etc:
 
 *Note: That we never stored a `mana` value, so it will return the default.*
 
+## Fallible API and Custom Allocators
+
+Every `FlatBufferBuilder` method that may allocate has a `try_*` counterpart
+(e.g. `try_create_string`, `try_push`, `try_finish`) that returns
+`Result<T, A::Error>` instead of panicking. This is useful when allocation
+failures must be handled gracefully: for example in `no_std` environments or
+with fixed-capacity buffers.
+
+The existing panicking methods are unchanged and remain the simplest option
+when using the default allocator.
+
+#### Custom allocators
+
+Implement the `Allocator` trait and pass it to `FlatBufferBuilder::new_in()`:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    use flatbuffers::{Allocator, FlatBufferBuilder};
+
+    struct MyAllocator { /* ... */ }
+
+    unsafe impl Allocator for MyAllocator {
+        type Error = MyError;
+        fn grow_downwards(&mut self) -> Result<(), Self::Error> { /* ... */ }
+        fn len(&self) -> usize { /* ... */ }
+    }
+
+    let alloc = MyAllocator::new(/* ... */);
+    let mut builder = FlatBufferBuilder::new_in(alloc);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The built-in `DefaultAllocator` uses `Vec<u8>` and sets `Error = Infallible`,
+so the `try_*` methods on a default builder can never fail.
+
+#### Example: building a buffer with error propagation
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    fn build<A: flatbuffers::Allocator>(
+        builder: &mut FlatBufferBuilder<A>,
+    ) -> Result<(), A::Error> {
+        let name = builder.try_create_string("Orc")?;
+        let inventory = builder.try_create_vector(&[0u8, 1, 2, 3, 4])?;
+
+        let table_start = builder.start_table();
+        builder.try_push_slot_always(Monster::VT_NAME, name)?;
+        builder.try_push_slot_always(Monster::VT_INVENTORY, inventory)?;
+        builder.try_push_slot(Monster::VT_HP, 80i16, 100)?;
+        let root = builder.try_end_table(table_start)?;
+
+        builder.try_finish(root, None)?;
+        Ok(())
+    }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `FlatBufferBuilder` rustdoc for the full list of `try_*` methods.
+
 ## Direct memory access
 
 As you can see from the above examples, all elements in a buffer are
@@ -204,6 +259,47 @@ And example of usage, for the time being, can be found in
 
 - Safe getters in [SafeBuffer](https://docs.rs/flatbuffers-reflection/latest/flatbuffers_reflection/struct.SafeBuffer.html),
  which does verification when constructed so you can use it for any data source
+
+## Buffer pre allocation in a latency-sensitive context
+
+In latency-sensitive applications, dynamic memory allocations can introduce unpredictable latency spikes. The `FlatBufferBuilder` internally uses several `Vec`s that may reallocate during serialization:
+
+- The backing buffer for the FlatBuffer data
+- `field_locs` for tracking field locations within tables
+- `written_vtable_revpos` for deduplicating vtables
+- `strings_pool` for shared string interning
+
+To avoid allocations during serialization, you can preallocate all internal vectors upfront using the `with_internal_capacity` constructor:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    // Preallocate: 1KB buffer, 8 field locations, 16 vtables, 32 shared strings
+    let mut builder = FlatBufferBuilder::with_internal_capacity(1024, 8, 16, 32);
+
+    // All subsequent operations will not allocate (if capacities are sufficient)
+    let name = builder.create_shared_string("MyMonster");
+    // ... build your FlatBuffer ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are three variants available:
+
+- `with_internal_capacity(size, field_locs, vtables, strings)` - Creates a new builder with all capacities preallocated
+- `from_vec_with_internal_capacity(buffer, field_locs, vtables, strings)` - Reuses an existing `Vec<u8>` as the backing buffer
+- `new_in_with_internal_capacity(allocator, field_locs, vtables, strings)` - Uses a custom `Allocator` with preallocated internal vecs
+
+When combined with `reset()`, you can reuse the same builder across multiple serializations without any allocations after the initial setup:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.rs}
+    let mut builder = FlatBufferBuilder::with_internal_capacity(1024, 8, 16, 32);
+
+    loop {
+        // Build a FlatBuffer (allocation-free if capacities are sufficient)
+        let data = build_message(&mut builder);
+        send(data);
+
+        // Reset for reuse - clears state but retains allocated capacity
+        builder.reset();
+    }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Useful tools created by others
 

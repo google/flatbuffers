@@ -65,11 +65,7 @@ namespace Google.FlatBuffers
         // Create a .NET String from UTF-8 data stored inside the flatbuffer.
         public string __string(int offset)
         {
-            int stringOffset = bb.GetInt(offset);
-            if (stringOffset == 0)
-                return null;
-
-            offset += stringOffset;
+            offset += bb.GetInt(offset);
             var len = bb.GetInt(offset);
             var startPos = offset + sizeof(int);
             return bb.GetStringUTF8(startPos, len);
@@ -150,7 +146,7 @@ namespace Google.FlatBuffers
 
             var pos = this.__vector(o);
             var len = this.__vector_len(o);
-            return bb.ToArray<T>(pos, len);
+            return bb.ToArray<T>(pos, len * ByteBuffer.SizeOf<T>());
         }
 
         // Initialize any Table-derived type to point to the union at the given offset.

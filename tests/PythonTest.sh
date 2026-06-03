@@ -28,6 +28,7 @@ ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test monster_extra.fbs --
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test arrays_test.fbs --gen-object-api --python-typing
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test nested_union_test.fbs --gen-object-api --python-typing --python-decode-obj-api-strings
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test service_test.fbs --grpc --grpc-python-typed-handlers --python-typing --no-python-gen-numpy --gen-onefile
+${test_dir}/../flatc -p -o ${gen_code_path} union_name_test.fbs --gen-object-api
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>

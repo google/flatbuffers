@@ -248,6 +248,93 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
           true);
 }
 
+// Test that ForAllFields with reverse=true iterates fields in descending
+// ID order. This exercises a fix for an operator precedence bug where the
+// expression `size() - i + 1` was evaluated as `(size() - i) + 1` instead
+// of the correct `size() - (i + 1)`, causing an out-of-bounds read.
+void ForAllFieldsReverseTest(const std::string& tests_data_path) {
+  // Load the binary schema.
+  std::string bfbsfile;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
+                                true, &bfbsfile),
+          true);
+
+  // Verify the schema.
+  flatbuffers::Verifier verifier(
+      reinterpret_cast<const uint8_t*>(bfbsfile.c_str()), bfbsfile.length());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+
+  auto& schema = *reflection::GetSchema(bfbsfile.c_str());
+
+  // Use the Stat table which has 3 fields with sequential IDs:
+  //   id:string   (id: 0)
+  //   val:long     (id: 1)
+  //   count:ushort (id: 2)
+  auto stat_object = schema.objects()->LookupByKey("MyGame.Example.Stat");
+  TEST_NOTNULL(stat_object);
+  TEST_EQ(stat_object->fields()->size(), 3u);
+
+  // Test forward iteration: fields should come in ascending ID order (0,1,2).
+  {
+    std::vector<uint16_t> forward_ids;
+    flatbuffers::ForAllFields(
+        stat_object, /*reverse=*/false,
+        [&forward_ids](const reflection::Field* field) {
+          forward_ids.push_back(field->id());
+        });
+    TEST_EQ(forward_ids.size(), 3u);
+    TEST_EQ(forward_ids[0], 0);  // id
+    TEST_EQ(forward_ids[1], 1);  // val
+    TEST_EQ(forward_ids[2], 2);  // count
+  }
+
+  // Test reverse iteration: fields should come in descending ID order (2,1,0).
+  // With the old buggy code `size() - i + 1`, at i=0 this would compute
+  // index 3 - 0 + 1 = 4, which is out of bounds for a size-3 vector.
+  {
+    std::vector<uint16_t> reverse_ids;
+    flatbuffers::ForAllFields(
+        stat_object, /*reverse=*/true,
+        [&reverse_ids](const reflection::Field* field) {
+          reverse_ids.push_back(field->id());
+        });
+    TEST_EQ(reverse_ids.size(), 3u);
+    TEST_EQ(reverse_ids[0], 2);  // count (highest ID first)
+    TEST_EQ(reverse_ids[1], 1);  // val
+    TEST_EQ(reverse_ids[2], 0);  // id (lowest ID last)
+  }
+
+  // Also test with the root Monster table which has many fields and
+  // non-sequential definition order vs. ID order (e.g., pos=id:0, hp=id:2,
+  // mana=id:1). This ensures the ID-to-index mapping works correctly.
+  auto root_table = schema.root_table();
+  TEST_NOTNULL(root_table);
+  {
+    std::vector<uint16_t> forward_ids;
+    flatbuffers::ForAllFields(
+        root_table, /*reverse=*/false,
+        [&forward_ids](const reflection::Field* field) {
+          forward_ids.push_back(field->id());
+        });
+    // Verify ascending order.
+    for (size_t i = 1; i < forward_ids.size(); ++i) {
+      TEST_ASSERT(forward_ids[i - 1] < forward_ids[i]);
+    }
+  }
+  {
+    std::vector<uint16_t> reverse_ids;
+    flatbuffers::ForAllFields(
+        root_table, /*reverse=*/true,
+        [&reverse_ids](const reflection::Field* field) {
+          reverse_ids.push_back(field->id());
+        });
+    // Verify descending order.
+    for (size_t i = 1; i < reverse_ids.size(); ++i) {
+      TEST_ASSERT(reverse_ids[i - 1] > reverse_ids[i]);
+    }
+  }
+}
+
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
   auto s =
       flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());

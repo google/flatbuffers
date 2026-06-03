@@ -62,6 +62,7 @@ static Namer::Config KotlinDefaultConfig() {
           /*object_suffix=*/"T",
           /*keyword_prefix=*/"",
           /*keyword_suffix=*/"E",
+          /*keywords_casing=*/Namer::Config::KeywordsCasing::CaseSensitive,
           /*filenames=*/Case::kUpperCamel,
           /*directories=*/Case::kLowerCamel,
           /*output_path=*/"",
@@ -161,7 +162,7 @@ class KotlinKMPGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
-    return SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
   static bool IsEnum(const Type& type) {

@@ -49,7 +49,7 @@ public struct Table {
   /// the vtable
   /// - Parameter o: current offset
   /// - Returns: offset of field within buffer
-  public func offset(_ o: Int32) -> Int32 {
+  public func offset(_ o: VOffset) -> Int32 {
     let vtable = position &- bb.read(def: Int32.self, position: Int(position))
     return o
       < bb
@@ -57,7 +57,7 @@ public struct Table {
       ? Int32(
         bb.read(
           def: Int16.self,
-          position: Int(vtable &+ o))) : 0
+          position: Int(vtable &+ Int32(o)))) : 0
   }
 
   /// Gets the indirect offset of the current stored object
@@ -106,13 +106,13 @@ public struct Table {
   /// This should only be used by `Scalars`
   /// - Parameter off: Readable offset
   /// - Returns: Returns a vector of type [T]
-  public func getVector<T>(at off: Int32) -> [T]? {
+  public func getVector<T>(at off: VOffset) -> [T]? {
     let o = offset(off)
     guard o != 0 else { return nil }
     return bb.readSlice(index: Int(vector(at: o)), count: Int(vector(count: o)))
   }
 
-  public func vector<T>(at off: Int32, byteSize: Int) -> FlatbufferVector<T> {
+  public func vector<T>(at off: VOffset, byteSize: Int) -> FlatbufferVector<T> {
     let off = offset(off)
     return FlatbufferVector(
       bb: bb,
@@ -122,7 +122,7 @@ public struct Table {
   }
 
   public func unionVector(
-    at off: Int32,
+    at off: VOffset,
     byteSize: Int) -> UnionFlatbufferVector
   {
     let off = offset(off)
@@ -137,7 +137,6 @@ public struct Table {
     if offset == 0 {
       return 0
     }
-
     return vector(count: offset)
   }
 
@@ -147,7 +146,7 @@ public struct Table {
   /// - Returns: Returns a pointer to the underlying data
   @inline(__always)
   public func withUnsafePointerToSlice<T>(
-    at off: Int32,
+    at off: VOffset,
     body: (UnsafeRawBufferPointer, Int) throws -> T) rethrows -> T?
   {
     let o = offset(off)

@@ -9,4 +9,3 @@ edition = "2021"
 flatbuffers = { path = "../../rust/flatbuffers", features=["serialize"] }
 serde = "1.0"
 serde_json = "1.0"
-

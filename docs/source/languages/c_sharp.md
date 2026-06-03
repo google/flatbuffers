@@ -23,7 +23,7 @@ FlatBuffers).
 
 ## Building the FlatBuffers C# library
 
-The `FlatBuffers.csproj` project contains multitargeting for .NET Standard 2.1,
+The `FlatBuffers.csproj` project contains multitargeting for .NET Standard 2.0, 2.1,
 .NET 6 and .NET 8.
 
 You can build for a specific framework target when using the cross-platform

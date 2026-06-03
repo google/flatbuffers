@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace keyfield {
@@ -634,7 +634,8 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<const keyfield::sample::Grain *> *mutable_h() {
     return GetPointer<::flatbuffers::Vector<const keyfield::sample::Grain *> *>(VT_H);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            VerifyField<int32_t>(verifier, VT_B, 4) &&
@@ -990,14 +991,16 @@ inline keyfield::sample::FooTable *GetMutableSizePrefixedFooTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<keyfield::sample::FooTable>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyFooTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<keyfield::sample::FooTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<keyfield::sample::FooTable>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedFooTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<keyfield::sample::FooTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<keyfield::sample::FooTable>(nullptr);
 }
 
 inline void FinishFooTableBuffer(

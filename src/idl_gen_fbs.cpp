@@ -368,7 +368,17 @@ static std::string GenerateFBS(const Parser& parser,
       if (field.value.type.base_type != BASE_TYPE_UTYPE) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");
         schema += "  " + field.name + ":" + GenType(field.value.type);
-        if (field.value.constant != "0") schema += " = " + field.value.constant;
+        if (field.value.constant != "0") {
+          if (IsString(field.value.type)) {
+            std::string escaped;
+            flatbuffers::EscapeString(field.value.constant.c_str(),
+                                      field.value.constant.length(), &escaped,
+                                      true, false);
+            schema += " = " + escaped;
+          } else {
+            schema += " = " + field.value.constant;
+          }
+        }
         std::vector<std::string> attributes;
         if (field.IsRequired()) attributes.push_back("required");
         if (field.key) attributes.push_back("key");
@@ -409,7 +419,8 @@ static bool GenerateFBS(const Parser& parser, const std::string& path,
             "When you use --proto, that you should check for conformity "
             "yourself, using the existing --conform");
   }
-  return SaveFile((path + file_name + ".fbs").c_str(), fbs, false);
+  return parser.opts.file_saver->SaveFile((path + file_name + ".fbs").c_str(),
+                                          fbs, false);
 }
 
 class FBSCodeGenerator : public CodeGenerator {

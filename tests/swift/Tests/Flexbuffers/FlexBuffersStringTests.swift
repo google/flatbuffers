@@ -16,10 +16,12 @@
 
 import Common
 import FlexBuffers
-import XCTest
+import Foundation
+import Testing
 
-final class FlexBuffersStringTests: XCTestCase {
+struct FlexBuffersStringTests {
 
+  @Test
   func testEncodingUnicodeString() {
     let text = "プ画をみて✋"
 
@@ -38,6 +40,6 @@ final class FlexBuffersStringTests: XCTestCase {
       return String(data: data, encoding: .unicode)
     }
 
-    XCTAssertEqual(builtString, text)
+    #expect(builtString == text)
   }
 }

@@ -91,8 +91,8 @@ class Monster : Table() {
         get() {
             val o = __offset(14); return if (o != 0) __vector_len(o) else 0
         }
-    val inventoryAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(14, 1)
-    fun inventoryInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 14, 1)
+    val inventoryAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(14, 1)
+    fun inventoryInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 14, 1)
     fun mutateInventory(j: Int, inventory: UByte) : Boolean {
         val o = __offset(14)
         return if (o != 0) {
@@ -212,8 +212,8 @@ class Monster : Table() {
         get() {
             val o = __offset(30); return if (o != 0) __vector_len(o) else 0
         }
-    val testnestedflatbufferAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(30, 1)
-    fun testnestedflatbufferInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 30, 1)
+    val testnestedflatbufferAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(30, 1)
+    fun testnestedflatbufferInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 30, 1)
     val testnestedflatbufferAsMonster : MyGame.Example.Monster? get() = testnestedflatbufferAsMonster(MyGame.Example.Monster())
     fun testnestedflatbufferAsMonster(obj: MyGame.Example.Monster) : MyGame.Example.Monster? {
         val o = __offset(30)
@@ -379,8 +379,8 @@ class Monster : Table() {
         get() {
             val o = __offset(52); return if (o != 0) __vector_len(o) else 0
         }
-    val testarrayofboolsAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(52, 1)
-    fun testarrayofboolsInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 52, 1)
+    val testarrayofboolsAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(52, 1)
+    fun testarrayofboolsInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 52, 1)
     fun mutateTestarrayofbools(j: Int, testarrayofbools: Boolean) : Boolean {
         val o = __offset(52)
         return if (o != 0) {
@@ -469,8 +469,8 @@ class Monster : Table() {
         get() {
             val o = __offset(64); return if (o != 0) __vector_len(o) else 0
         }
-    val flexAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(64, 1)
-    fun flexInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 64, 1)
+    val flexAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(64, 1)
+    fun flexInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 64, 1)
     fun mutateFlex(j: Int, flex: UByte) : Boolean {
         val o = __offset(64)
         return if (o != 0) {
@@ -505,8 +505,8 @@ class Monster : Table() {
         get() {
             val o = __offset(68); return if (o != 0) __vector_len(o) else 0
         }
-    val vectorOfLongsAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(68, 8)
-    fun vectorOfLongsInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 68, 8)
+    val vectorOfLongsAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(68, 8)
+    fun vectorOfLongsInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 68, 8)
     fun mutateVectorOfLongs(j: Int, vectorOfLongs: Long) : Boolean {
         val o = __offset(68)
         return if (o != 0) {
@@ -528,8 +528,8 @@ class Monster : Table() {
         get() {
             val o = __offset(70); return if (o != 0) __vector_len(o) else 0
         }
-    val vectorOfDoublesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(70, 8)
-    fun vectorOfDoublesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 70, 8)
+    val vectorOfDoublesAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(70, 8)
+    fun vectorOfDoublesInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 70, 8)
     fun mutateVectorOfDoubles(j: Int, vectorOfDoubles: Double) : Boolean {
         val o = __offset(70)
         return if (o != 0) {
@@ -603,8 +603,8 @@ class Monster : Table() {
         get() {
             val o = __offset(78); return if (o != 0) __vector_len(o) else 0
         }
-    val vectorOfWeakReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(78, 8)
-    fun vectorOfWeakReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 78, 8)
+    val vectorOfWeakReferencesAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(78, 8)
+    fun vectorOfWeakReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 78, 8)
     fun mutateVectorOfWeakReferences(j: Int, vectorOfWeakReferences: ULong) : Boolean {
         val o = __offset(78)
         return if (o != 0) {
@@ -669,8 +669,8 @@ class Monster : Table() {
         get() {
             val o = __offset(84); return if (o != 0) __vector_len(o) else 0
         }
-    val vectorOfCoOwningReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(84, 8)
-    fun vectorOfCoOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 84, 8)
+    val vectorOfCoOwningReferencesAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(84, 8)
+    fun vectorOfCoOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 84, 8)
     fun mutateVectorOfCoOwningReferences(j: Int, vectorOfCoOwningReferences: ULong) : Boolean {
         val o = __offset(84)
         return if (o != 0) {
@@ -706,8 +706,8 @@ class Monster : Table() {
         get() {
             val o = __offset(88); return if (o != 0) __vector_len(o) else 0
         }
-    val vectorOfNonOwningReferencesAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(88, 8)
-    fun vectorOfNonOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 88, 8)
+    val vectorOfNonOwningReferencesAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(88, 8)
+    fun vectorOfNonOwningReferencesInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 88, 8)
     fun mutateVectorOfNonOwningReferences(j: Int, vectorOfNonOwningReferences: ULong) : Boolean {
         val o = __offset(88)
         return if (o != 0) {
@@ -763,8 +763,8 @@ class Monster : Table() {
         get() {
             val o = __offset(98); return if (o != 0) __vector_len(o) else 0
         }
-    val vectorOfEnumsAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(98, 1)
-    fun vectorOfEnumsInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 98, 1)
+    val vectorOfEnumsAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(98, 1)
+    fun vectorOfEnumsInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 98, 1)
     fun mutateVectorOfEnums(j: Int, vectorOfEnums: UByte) : Boolean {
         val o = __offset(98)
         return if (o != 0) {
@@ -800,8 +800,8 @@ class Monster : Table() {
         get() {
             val o = __offset(102); return if (o != 0) __vector_len(o) else 0
         }
-    val testrequirednestedflatbufferAsByteBuffer : ByteBuffer get() = __vector_as_bytebuffer(102, 1)
-    fun testrequirednestedflatbufferInByteBuffer(_bb: ByteBuffer) : ByteBuffer = __vector_in_bytebuffer(_bb, 102, 1)
+    val testrequirednestedflatbufferAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(102, 1)
+    fun testrequirednestedflatbufferInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 102, 1)
     val testrequirednestedflatbufferAsMonster : MyGame.Example.Monster? get() = testrequirednestedflatbufferAsMonster(MyGame.Example.Monster())
     fun testrequirednestedflatbufferAsMonster(obj: MyGame.Example.Monster) : MyGame.Example.Monster? {
         val o = __offset(102)
@@ -1002,7 +1002,7 @@ class Monster : Table() {
          return compareStrings(__offset(10, o1, _bb), __offset(10, o2, _bb), _bb)
     }
     companion object {
-        fun validateVersion() = Constants.FLATBUFFERS_25_9_23()
+        fun validateVersion() = Constants.FLATBUFFERS_25_12_19()
         fun getRootAsMonster(_bb: ByteBuffer): Monster = getRootAsMonster(_bb, Monster())
         fun getRootAsMonster(_bb: ByteBuffer, obj: Monster): Monster {
             _bb.order(ByteOrder.LITTLE_ENDIAN)

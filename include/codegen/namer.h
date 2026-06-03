@@ -91,6 +91,14 @@ class Namer {
     std::string keyword_prefix;
     // Suffix used to escape keywords. It is usually "_".
     std::string keyword_suffix;
+    // The casing used for keywords when escaping. For most languages, keywords
+    // are case sensitive. PHP is an instance where some keywords are case
+    // insensitive.
+    enum class KeywordsCasing {
+      CaseSensitive,
+      CaseInsensitive,
+    };
+    KeywordsCasing keywords_casing;
 
     // Files.
 
@@ -204,8 +212,16 @@ class Namer {
     return result;
   }
 
+  virtual std::string NormalizeKeywordCase(const std::string& name) const {
+    if (config_.keywords_casing == Config::KeywordsCasing::CaseInsensitive) {
+      return ConvertCase(name, Case::kAllLower);
+    } else {
+      return name;
+    }
+  }
+
   virtual std::string EscapeKeyword(const std::string& name) const {
-    if (keywords_.find(name) == keywords_.end()) {
+    if (keywords_.find(NormalizeKeywordCase(name)) == keywords_.end()) {
       return name;
     } else {
       return config_.keyword_prefix + name + config_.keyword_suffix;

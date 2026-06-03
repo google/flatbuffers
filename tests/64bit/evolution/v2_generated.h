@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace v2 {
@@ -60,7 +60,8 @@ struct RootTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector64<uint8_t> *mutable_big_vector() {
     return GetPointer64<::flatbuffers::Vector64<uint8_t> *>(VT_BIG_VECTOR);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_A, 4) &&
            VerifyOffset(verifier, VT_B) &&
@@ -204,14 +205,16 @@ inline v2::RootTable *GetMutableSizePrefixedRootTable(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<v2::RootTable,::flatbuffers::uoffset64_t>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyRootTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<v2::RootTable>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<v2::RootTable>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedRootTableBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<v2::RootTable,::flatbuffers::uoffset64_t>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<v2::RootTable,::flatbuffers::uoffset64_t>(nullptr);
 }
 
 inline void FinishRootTableBuffer(

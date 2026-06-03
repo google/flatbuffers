@@ -14,11 +14,59 @@
  * limitations under the License.
  */
 
-import XCTest
+import Foundation
+import Testing
 
 @testable import FlatBuffers
 
-final class FlatBuffersNanInfTests: XCTestCase {
+struct FlatBuffersNanInfTests {
+
+  @Test
+  func testInfNanBinary() {
+    let fbb = createTestTable()
+    let data = fbb.sizedByteArray
+
+    var buffer = ByteBuffer(bytes: data)
+    let table: Swift_Tests_NanInfTable = getRoot(byteBuffer: &buffer)
+    #expect(table.defaultNan.isNaN)
+    #expect(table.defaultInf == .infinity)
+    #expect(table.defaultNinf == -.infinity)
+    #expect(table.valueNan.isNaN)
+    #expect(table.valueInf == .infinity)
+    #expect(table.valueNinf == -.infinity)
+    #expect(table.value == 100.0)
+  }
+
+  @Test
+  func testInfNanJSON() throws {
+    let fbb = createTestTable()
+    var bb = fbb.sizedBuffer
+    struct Test: Decodable {
+      let valueInf: Double
+      let value: Int
+      let valueNan: Double
+      let valueNinf: Double
+    }
+    let reader: Swift_Tests_NanInfTable = try getCheckedRoot(byteBuffer: &bb)
+    let encoder = JSONEncoder()
+    encoder.keyEncodingStrategy = .convertToSnakeCase
+    encoder.nonConformingFloatEncodingStrategy =
+      .convertToString(
+        positiveInfinity: "inf",
+        negativeInfinity: "-inf",
+        nan: "nan")
+    let data = try encoder.encode(reader)
+    let decoder = JSONDecoder()
+    decoder.nonConformingFloatDecodingStrategy = .convertFromString(
+      positiveInfinity: "inf",
+      negativeInfinity: "-inf",
+      nan: "nan")
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let value = try decoder.decode(Test.self, from: data)
+    #expect(value.value == 100)
+    #expect(value.valueInf == .infinity)
+    #expect(value.valueNinf == -.infinity)
+  }
 
   func createTestTable() -> FlatBufferBuilder {
     var fbb = FlatBufferBuilder()
@@ -31,54 +79,4 @@ final class FlatBuffersNanInfTests: XCTestCase {
     fbb.finish(offset: msg)
     return fbb
   }
-
-  func testInfNanBinary() {
-    let fbb = createTestTable()
-    let data = fbb.sizedByteArray
-
-    var buffer = ByteBuffer(bytes: data)
-    let table: Swift_Tests_NanInfTable = getRoot(byteBuffer: &buffer)
-    XCTAssert(table.defaultNan.isNaN)
-    XCTAssertEqual(table.defaultInf, .infinity)
-    XCTAssertEqual(table.defaultNinf, -.infinity)
-    XCTAssert(table.valueNan.isNaN)
-    XCTAssertEqual(table.valueInf, .infinity)
-    XCTAssertEqual(table.valueNinf, -.infinity)
-    XCTAssertEqual(table.value, 100.0)
-  }
-
-  func testInfNanJSON() {
-    let fbb = createTestTable()
-    var bb = fbb.sizedBuffer
-    do {
-      struct Test: Decodable {
-        let valueInf: Double
-        let value: Int
-        let valueNan: Double
-        let valueNinf: Double
-      }
-      let reader: Swift_Tests_NanInfTable = try getCheckedRoot(byteBuffer: &bb)
-      let encoder = JSONEncoder()
-      encoder.keyEncodingStrategy = .convertToSnakeCase
-      encoder.nonConformingFloatEncodingStrategy =
-        .convertToString(
-          positiveInfinity: "inf",
-          negativeInfinity: "-inf",
-          nan: "nan")
-      let data = try encoder.encode(reader)
-      let decoder = JSONDecoder()
-      decoder.nonConformingFloatDecodingStrategy = .convertFromString(
-        positiveInfinity: "inf",
-        negativeInfinity: "-inf",
-        nan: "nan")
-      decoder.keyDecodingStrategy = .convertFromSnakeCase
-      let value = try decoder.decode(Test.self, from: data)
-      XCTAssertEqual(value.value, 100)
-      XCTAssertEqual(value.valueInf, .infinity)
-      XCTAssertEqual(value.valueNinf, -.infinity)
-    } catch {
-      XCTFail(error.localizedDescription)
-    }
-  }
-
 }

@@ -440,8 +440,9 @@ const char* GenTextFile(const Parser& parser, const std::string& path,
   if (parser.opts.use_flexbuffers) {
     std::string json;
     parser.flex_root_.ToString(true, parser.opts.strict_json, json);
-    return flatbuffers::SaveFile(TextFileName(path, file_name).c_str(),
-                                 json.c_str(), json.size(), true)
+    return parser.opts.file_saver->SaveFile(
+               TextFileName(path, file_name).c_str(), json.c_str(), json.size(),
+               true)
                ? nullptr
                : "SaveFile failed";
   }
@@ -449,8 +450,8 @@ const char* GenTextFile(const Parser& parser, const std::string& path,
   std::string text;
   auto err = GenText(parser, parser.builder_.GetBufferPointer(), &text);
   if (err) return err;
-  return flatbuffers::SaveFile(TextFileName(path, file_name).c_str(), text,
-                               false)
+  return parser.opts.file_saver->SaveFile(TextFileName(path, file_name).c_str(),
+                                          text, false)
              ? nullptr
              : "SaveFile failed";
 }

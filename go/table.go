@@ -31,10 +31,25 @@ func (t *Table) String(off UOffsetT) string {
 }
 
 // ByteVector gets a byte slice from data stored inside the flatbuffer.
+// If the offset is invalid or out of bounds, returns nil to prevent crashes.
 func (t *Table) ByteVector(off UOffsetT) []byte {
+	n := UOffsetT(len(t.Bytes))
+	// Need at least SizeUOffsetT bytes to read the relative vector offset.
+	u := UOffsetT(SizeUOffsetT)
+	if n < u || off > n-u {
+		return nil
+	}
 	off += GetUOffsetT(t.Bytes[off:])
+	// Need at least SizeUOffsetT bytes to read the vector length.
+	if n < u || off > n-u {
+		return nil
+	}
 	start := off + UOffsetT(SizeUOffsetT)
 	length := GetUOffsetT(t.Bytes[off:])
+	// Avoid overflow by checking the length against the remaining buffer space.
+	if length > n-start {
+		return nil
+	}
 	return t.Bytes[start : start+length]
 }
 

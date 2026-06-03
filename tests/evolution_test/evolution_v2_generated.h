@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace Evolution {
@@ -118,8 +118,10 @@ template<> struct UnionTraits<Evolution::V2::TableC> {
   static const Union enum_value = Union::TableC;
 };
 
-bool VerifyUnion(::flatbuffers::Verifier &verifier, const void *obj, Union type);
-bool VerifyUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types);
+template <bool B = false>
+bool VerifyUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Union type);
+template <bool B = false>
+bool VerifyUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Struct FLATBUFFERS_FINAL_CLASS {
  private:
@@ -159,6 +161,10 @@ inline bool operator!=(const Struct &lhs, const Struct &rhs) {
     return !(lhs == rhs);
 }
 
+template <typename H>
+inline H AbslHashValue(H h, const Struct &obj) {
+  return H::combine(std::move(h), obj.a(), obj.b());
+}
 
 struct TableA FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TableABuilder Builder;
@@ -176,7 +182,8 @@ struct TableA FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *c() const {
     return GetPointer<const ::flatbuffers::String *>(VT_C);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_A, 4) &&
            VerifyField<int32_t>(verifier, VT_B, 4) &&
@@ -243,7 +250,8 @@ struct TableB FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            verifier.EndTable();
@@ -288,7 +296,8 @@ struct TableC FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *b() const {
     return GetPointer<const ::flatbuffers::String *>(VT_B);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_A, 8) &&
            VerifyOffset(verifier, VT_B) &&
@@ -397,7 +406,8 @@ struct Root FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   uint8_t l() const {
     return GetField<uint8_t>(VT_L, 56);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_B, 1) &&
            VerifyField<uint8_t>(verifier, VT_C_TYPE, 1) &&
@@ -538,7 +548,8 @@ inline ::flatbuffers::Offset<Root> CreateRootDirect(
       l);
 }
 
-inline bool VerifyUnion(::flatbuffers::Verifier &verifier, const void *obj, Union type) {
+template <bool B>
+inline bool VerifyUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Union type) {
   switch (type) {
     case Union::NONE: {
       return true;
@@ -559,7 +570,8 @@ inline bool VerifyUnion(::flatbuffers::Verifier &verifier, const void *obj, Unio
   }
 }
 
-inline bool VerifyUnionVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types) {
+template <bool B>
+inline bool VerifyUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -579,14 +591,16 @@ inline const Evolution::V2::Root *GetSizePrefixedRoot(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<Evolution::V2::Root>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyRootBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<Evolution::V2::Root>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<Evolution::V2::Root>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedRootBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<Evolution::V2::Root>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<Evolution::V2::Root>(nullptr);
 }
 
 inline void FinishRootBuffer(

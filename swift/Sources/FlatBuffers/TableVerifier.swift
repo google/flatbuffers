@@ -115,7 +115,7 @@ public struct TableVerifier {
     unionKeyName: String,
     fieldName: String,
     required: Bool,
-    completion: @escaping (inout Verifier, T, Int) throws -> Void) throws
+    completion: (inout Verifier, T, Int) throws -> Void) throws
     where T: UnionEnum
   {
     let keyPos = try dereference(key)

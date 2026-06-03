@@ -30,7 +30,7 @@ public struct ByteBuffer {
     enum Blob {
       #if !os(WASI)
       case data(Data)
-      case bytes(ContiguousBytes)
+      case bytes(any ContiguousBytes)
       #endif
 
       case byteBuffer(_InternalByteBuffer)

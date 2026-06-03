@@ -51,7 +51,7 @@ public class Constants {
    * and generated code are modified in sync. Changes to the Java implementation need to be sure to
    * change the version here and in the code generator on every possible incompatible change
    */
-  public static void FLATBUFFERS_25_9_23() {}
+  public static void FLATBUFFERS_25_12_19() {}
 }
 
 /// @endcond

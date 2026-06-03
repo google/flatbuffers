@@ -23,6 +23,7 @@ go_src=${go_path}/src
 ../flatc -g --gen-object-api -I include_test -o ${go_src} monster_test.fbs optional_scalars.fbs
 ../flatc -g --gen-object-api -I include_test/sub -o ${go_src} include_test/order.fbs
 ../flatc -g --gen-object-api -o ${go_src}/Pizza include_test/sub/no_namespace.fbs
+../flatc -g --gen-object-api -o ${go_src} required_strings.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the

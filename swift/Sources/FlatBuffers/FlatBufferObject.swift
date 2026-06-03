@@ -20,6 +20,8 @@ import Foundation
 /// since now we will be serializing native structs into the buffer.
 public protocol NativeStruct {}
 
+public protocol FlatBufferVerifiableNativeStruct: NativeStruct, Verifiable {}
+
 /// FlatbuffersInitializable is a protocol that allows any object to be
 /// Initialized from a ByteBuffer
 public protocol FlatbuffersInitializable {
@@ -34,6 +36,8 @@ public protocol FlatBufferTable: FlatbuffersInitializable,
 {
   var __buffer: ByteBuffer! { get }
 }
+
+public protocol FlatBufferVerifiableTable: FlatBufferTable, Verifiable {}
 
 /// FlatbufferStruct structures all the Flatbuffers structs
 public protocol FlatBufferStruct: FlatbuffersInitializable,
@@ -69,5 +73,5 @@ public protocol ObjectAPIPacker {
   static func pack(_ builder: inout FlatBufferBuilder, obj: inout T) -> Offset
 
   /// ``unpack()`` unpacks a ``FlatBuffers`` object into a Native swift object.
-  mutating func unpack() -> T
+  func unpack() -> T
 }

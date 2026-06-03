@@ -1,5 +1,6 @@
 #include "flexbuffers_test.h"
 
+#include <memory>
 #include <limits>
 
 #include "flatbuffers/flexbuffers.h"
@@ -12,6 +13,13 @@ namespace tests {
 
 // Shortcuts for the infinity.
 static const auto infinity_d = std::numeric_limits<double>::infinity();
+
+static bool IsAligned(const void* ptr, std::size_t alignment) {
+  void* p = const_cast<void*>(ptr);
+  std::size_t space = 2 * alignment;
+  void* q = std::align(alignment, alignment, p, space);
+  return q != nullptr && p == ptr && space == 2 * alignment;
+}
 
 void FlexBuffersTest() {
   flexbuffers::Builder slb(512,
@@ -29,7 +37,10 @@ void FlexBuffersTest() {
       slb.IndirectFloat(4.0f);
       auto i_f = slb.LastValue();
       uint8_t blob[] = {77};
-      slb.Blob(blob, 1);
+      uint32_t aligned_blob[] = {88, 99};
+      slb.Blob(blob, sizeof blob);
+      slb.AlignedBlob(aligned_blob, sizeof aligned_blob,
+                      flexbuffers::BIT_WIDTH_32);
       slb += false;
       slb.ReuseValue(i_f);
     });
@@ -62,7 +73,7 @@ void FlexBuffersTest() {
   auto map = flexbuffers::GetRoot(slb.GetBuffer()).AsMap();
   TEST_EQ(map.size(), 7);
   auto vec = map["vec"].AsVector();
-  TEST_EQ(vec.size(), 6);
+  TEST_EQ(vec.size(), 7);
   TEST_EQ(vec[0].AsInt64(), -100);
   TEST_EQ_STR(vec[1].AsString().c_str(), "Fred");
   TEST_EQ(vec[1].AsInt64(), 0);  // Number parsing failed.
@@ -80,9 +91,15 @@ void FlexBuffersTest() {
   auto blob = vec[3].AsBlob();
   TEST_EQ(blob.size(), 1);
   TEST_EQ(blob.data()[0], 77);
-  TEST_EQ(vec[4].IsBool(), true);   // Check if type is a bool
-  TEST_EQ(vec[4].AsBool(), false);  // Check if value is false
-  TEST_EQ(vec[5].AsDouble(), 4.0);  // This is shared with vec[2] !
+  TEST_EQ(vec[4].IsBlob(), true);
+  auto aligned_blob = vec[4].AsBlob();
+  TEST_EQ(aligned_blob.size(), 8);
+  TEST_EQ(reinterpret_cast<const uint32_t*>(aligned_blob.data())[0], 88);
+  TEST_EQ(reinterpret_cast<const uint32_t*>(aligned_blob.data())[1], 99);
+  TEST_EQ(IsAligned(aligned_blob.data(), 4), true);
+  TEST_EQ(vec[5].IsBool(), true);   // Check if type is a bool
+  TEST_EQ(vec[5].AsBool(), false);  // Check if value is false
+  TEST_EQ(vec[6].AsDouble(), 4.0);  // This is shared with vec[2] !
   auto tvec = map["bar"].AsTypedVector();
   TEST_EQ(tvec.size(), 3);
   TEST_EQ(tvec[2].AsInt8(), 3);
@@ -107,9 +124,9 @@ void FlexBuffersTest() {
   TEST_EQ(vec[2].MutateFloat(2.0f), true);
   TEST_EQ(vec[2].AsFloat(), 2.0f);
   TEST_EQ(vec[2].MutateFloat(3.14159), false);  // Double does not fit in float.
-  TEST_EQ(vec[4].AsBool(), false);              // Is false before change
-  TEST_EQ(vec[4].MutateBool(true), true);       // Can change a bool
-  TEST_EQ(vec[4].AsBool(), true);               // Changed bool is now true
+  TEST_EQ(vec[5].AsBool(), false);              // Is false before change
+  TEST_EQ(vec[5].MutateBool(true), true);       // Can change a bool
+  TEST_EQ(vec[5].AsBool(), true);               // Changed bool is now true
 
   // Parse from JSON:
   flatbuffers::Parser parser;

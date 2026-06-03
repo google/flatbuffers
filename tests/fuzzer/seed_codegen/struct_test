@@ -1,0 +1,11 @@
+struct Vec2 {
+  x:float;
+  y:float;
+}
+
+table Object {
+  position:Vec2;
+  id:int;
+}
+
+root_type Object;

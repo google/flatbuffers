@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import XCTest
+import Testing
 
 @testable import FlatBuffers
 
-final class FlatBuffersStructsTests: XCTestCase {
+struct FlatBuffersStructsTests {
 
+  @Test
   func testWritingAndMutatingBools() {
     var fbb = FlatBufferBuilder()
     let start = TestMutatingBool.startTestMutatingBool(&fbb)
@@ -30,11 +31,11 @@ final class FlatBuffersStructsTests: XCTestCase {
     var buffer = fbb.sizedBuffer
     let testMutatingBool: TestMutatingBool = getRoot(byteBuffer: &buffer)
     let property = testMutatingBool.mutableB
-    XCTAssertEqual(property?.property, false)
+    #expect(property?.property == false)
     property?.mutate(property: false)
-    XCTAssertEqual(property?.property, false)
+    #expect(property?.property == false)
     property?.mutate(property: true)
-    XCTAssertEqual(property?.property, true)
+    #expect(property?.property == true)
   }
 
 }

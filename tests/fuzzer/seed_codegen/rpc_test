@@ -1,0 +1,14 @@
+table Request {
+  id:int;
+  message:string;
+}
+
+table Response {
+  result:string;
+}
+
+rpc_service MyService {
+  DoSomething(Request):Response;
+}
+
+root_type Request;

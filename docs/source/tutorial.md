@@ -1134,12 +1134,8 @@ The Builder provides multiple ways to create `vectors`.
 === "Python"
 
     ```py
-    # Create a FlatBuffer vector and prepend the weapons.
-    # Note: Since we prepend the data, prepend them in reverse order.
-    MyGame.Sample.Monster.StartWeaponsVector(builder, 2)
-    builder.PrependUOffsetTRelative(axe)
-    builder.PrependUOffsetTRelative(sword)
-    weapons = builder.EndVector()
+    # Use the generated helper to create the weapons vector from offsets.
+    weapons = MyGame.Sample.Monster.CreateWeaponsVector(builder, [sword, axe])
     ```
 
 === "Rust"
@@ -1352,16 +1348,13 @@ bit more directly.
     ```py
     # Create a `vector` representing the inventory of the Orc. Each number
     # could correspond to an item that can be claimed after he is slain.
-    # Note: Since we prepend the bytes, this loop iterates in reverse.
-    MyGame.Sample.Monster.StartInventoryVector(builder, 10)
-    for i in reversed(range(0, 10)):
-        builder.PrependByte(i)
-    inv = builder.EndVector()
+    inv = MyGame.Sample.Monster.CreateInventoryVector(builder, range(0, 10))
 
-    MyGame.Sample.Monster.StartPathVector(builder, 2)
-    MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
-    MyGame.Sample.Vec3.CreateVec3(builder, 4.0, 5.0, 6.0)
-    path = builder.EndVector()
+    path_points = [
+        MyGame.Sample.Vec3T(x=1.0, y=2.0, z=3.0),
+        MyGame.Sample.Vec3T(x=4.0, y=5.0, z=6.0),
+    ]
+    path = MyGame.Sample.Monster.CreatePathVector(builder, path_points)
     ```
 
 === "Rust"

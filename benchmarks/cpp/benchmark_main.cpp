@@ -5,8 +5,8 @@
 #include "benchmarks/cpp/flatbuffers/fb_bench.h"
 #include "benchmarks/cpp/raw/raw_bench.h"
 
-static inline void Encode(benchmark::State &state,
-                          std::unique_ptr<Bench> &bench, uint8_t *buffer) {
+static inline void Encode(benchmark::State& state,
+                          std::unique_ptr<Bench>& bench, uint8_t* buffer) {
   int64_t length;
   for (auto _ : state) {
     bench->Encode(buffer, length);
@@ -14,31 +14,33 @@ static inline void Encode(benchmark::State &state,
   }
 }
 
-static inline void Decode(benchmark::State &state,
-                          std::unique_ptr<Bench> &bench, uint8_t *buffer) {
+static inline void Decode(benchmark::State& state,
+                          std::unique_ptr<Bench>& bench, uint8_t* buffer) {
   int64_t length;
-  uint8_t *encoded = bench->Encode(buffer, length);
+  uint8_t* encoded = bench->Encode(buffer, length);
 
   for (auto _ : state) {
-    void *decoded = bench->Decode(encoded, length);
+    void* decoded = bench->Decode(encoded, length);
     benchmark::DoNotOptimize(decoded);
   }
 }
 
-static inline void Use(benchmark::State &state, std::unique_ptr<Bench> &bench,
-                       uint8_t *buffer, int64_t check_sum) {
+static inline void Use(benchmark::State& state, std::unique_ptr<Bench>& bench,
+                       uint8_t* buffer, int64_t check_sum) {
   int64_t length;
-  uint8_t *encoded = bench->Encode(buffer, length);
-  void *decoded = bench->Decode(encoded, length);
+  uint8_t* encoded = bench->Encode(buffer, length);
+  void* decoded = bench->Decode(encoded, length);
 
   int64_t sum = 0;
 
-  for (auto _ : state) { sum = bench->Use(decoded); }
+  for (auto _ : state) {
+    sum = bench->Use(decoded);
+  }
 
   EXPECT_EQ(sum, check_sum);
 }
 
-static void BM_Flatbuffers_Encode(benchmark::State &state) {
+static void BM_Flatbuffers_Encode(benchmark::State& state) {
   const int64_t kBufferLength = 1024;
   uint8_t buffer[kBufferLength];
 
@@ -48,7 +50,7 @@ static void BM_Flatbuffers_Encode(benchmark::State &state) {
 }
 BENCHMARK(BM_Flatbuffers_Encode);
 
-static void BM_Flatbuffers_Decode(benchmark::State &state) {
+static void BM_Flatbuffers_Decode(benchmark::State& state) {
   const int64_t kBufferLength = 1024;
   uint8_t buffer[kBufferLength];
 
@@ -58,7 +60,7 @@ static void BM_Flatbuffers_Decode(benchmark::State &state) {
 }
 BENCHMARK(BM_Flatbuffers_Decode);
 
-static void BM_Flatbuffers_Use(benchmark::State &state) {
+static void BM_Flatbuffers_Use(benchmark::State& state) {
   const int64_t kBufferLength = 1024;
   uint8_t buffer[kBufferLength];
 
@@ -68,7 +70,7 @@ static void BM_Flatbuffers_Use(benchmark::State &state) {
 }
 BENCHMARK(BM_Flatbuffers_Use);
 
-static void BM_Raw_Encode(benchmark::State &state) {
+static void BM_Raw_Encode(benchmark::State& state) {
   const int64_t kBufferLength = 1024;
   uint8_t buffer[kBufferLength];
 
@@ -77,7 +79,7 @@ static void BM_Raw_Encode(benchmark::State &state) {
 }
 BENCHMARK(BM_Raw_Encode);
 
-static void BM_Raw_Decode(benchmark::State &state) {
+static void BM_Raw_Decode(benchmark::State& state) {
   const int64_t kBufferLength = 1024;
   uint8_t buffer[kBufferLength];
 
@@ -86,7 +88,7 @@ static void BM_Raw_Decode(benchmark::State &state) {
 }
 BENCHMARK(BM_Raw_Decode);
 
-static void BM_Raw_Use(benchmark::State &state) {
+static void BM_Raw_Use(benchmark::State& state) {
   const int64_t kBufferLength = 1024;
   uint8_t buffer[kBufferLength];
 

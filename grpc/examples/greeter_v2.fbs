@@ -1,0 +1,16 @@
+namespace models;
+
+table HelloResponse {
+  message:string;
+}
+
+table HelloRequest {
+  name:string;
+}
+
+rpc_service Greeter {
+  Get(HelloRequest):HelloResponse;
+  Collect(HelloRequest):HelloResponse (streaming: "client");
+  Expand(HelloRequest):HelloResponse (streaming: "server");
+  Update(HelloRequest):HelloResponse (streaming: "bidi");
+}

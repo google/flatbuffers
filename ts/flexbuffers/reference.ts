@@ -26,14 +26,29 @@ export function toReference(buffer: ArrayBuffer): Reference {
   const len = buffer.byteLength;
 
   if (len < 3) {
-    throw 'Buffer needs to be bigger than 3';
+    throw new Error('Buffer needs to be bigger than 3 bytes');
   }
 
   const dataView = new DataView(buffer);
-  const byteWidth = dataView.getUint8(len - 1);
+  const rootByteWidth = dataView.getUint8(len - 1);
   const packedType = dataView.getUint8(len - 2);
-  const parentWidth = fromByteWidth(byteWidth);
-  const offset = len - byteWidth - 2;
+
+  let parentWidth = fromByteWidth(rootByteWidth);
+  let offset = len - rootByteWidth - 2;
+
+  const rootValueType = packedType >> 2;
+  if (
+    rootValueType === ValueType.VECTOR ||
+    rootValueType === ValueType.MAP ||
+    rootValueType === ValueType.BLOB ||
+    rootValueType === ValueType.STRING
+  ) {
+    // Ensure parent width is wide enough to address the buffer
+    let w = 1;
+    while ((1 << (w * 8)) <= len && w < 8) w <<= 1;
+    parentWidth = fromByteWidth(w);
+    offset = len - w - 2; // no extra hacks
+  }
 
   return new Reference(dataView, offset, parentWidth, packedType, '/');
 }
@@ -182,20 +197,31 @@ export class Reference {
     const length = this.length();
     if (Number.isInteger(key) && isAVector(this.valueType)) {
       if (key >= length || key < 0) {
-        throw `Key: [${key}] is not applicable on ${this.path} of ${this.valueType} length: ${length}`;
+        throw new Error(`Key: [${key}] is not applicable on ${this.path} of ${this.valueType} length: ${length}`);
       }
       const _indirect = indirect(this.dataView, this.offset, this.parentWidth);
       const elementOffset = _indirect + key * this.byteWidth;
-      let _packedType = this.dataView.getUint8(
-        _indirect + length * this.byteWidth + key,
-      );
+
+      let _packedType: ValueType;
+
       if (isTypedVector(this.valueType)) {
-        const _valueType = typedVectorElementType(this.valueType);
-        _packedType = packedType(_valueType, BitWidth.WIDTH8);
-      } else if (isFixedTypedVector(this.valueType)) {
-        const _valueType = fixedTypedVectorElementType(this.valueType);
-        _packedType = packedType(_valueType, BitWidth.WIDTH8);
+      // Root typed vector: derive type instead of reading from buffer
+      const _valueType = typedVectorElementType(this.valueType);
+      _packedType = packedType(_valueType, BitWidth.WIDTH8);
+    } else if (isFixedTypedVector(this.valueType)) {
+      const _valueType = fixedTypedVectorElementType(this.valueType);
+      _packedType = packedType(_valueType, BitWidth.WIDTH8);
+    } else {
+      // Only read packed type from buffer if it exists
+      const typeOffset = _indirect + length * this.byteWidth + key;
+      if (typeOffset < this.dataView.byteLength) {
+        _packedType = this.dataView.getUint8(typeOffset);
+      } else {
+        // fallback for edge cases (e.g., root vectors)
+        _packedType = this.packedType;
       }
+      }
+
       return new Reference(
         this.dataView,
         elementOffset,
@@ -204,6 +230,7 @@ export class Reference {
         `${this.path}[${key}]`,
       );
     }
+
     if (typeof key === 'string') {
       const index = keyIndex(
         key,
@@ -226,7 +253,8 @@ export class Reference {
         );
       }
     }
-    throw `Key [${key}] is not applicable on ${this.path} of ${this.valueType}`;
+
+    throw new Error(`Key [${key}] is not applicable on ${this.path} of ${this.valueType}`);
   }
 
   length(): number {

@@ -1,0 +1,20 @@
+namespace Test;
+
+union Shape {
+  Circle,
+  Square,
+}
+
+table Circle {
+  radius: float;
+}
+
+table Square {
+  side: float;
+}
+
+table Root {
+  shape: Shape;
+}
+
+root_type Root;

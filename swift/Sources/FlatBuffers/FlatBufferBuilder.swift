@@ -45,7 +45,7 @@ public struct FlatBufferBuilder {
   /// Dictonary that stores a map of all the strings that were written to the buffer
   private var stringOffsetMap: [String: Offset] = [:]
   /// A check to see if finish(::) was ever called to retreive data object
-  private var finished = false
+  private(set) var finished = false
   /// A check to see if the buffer should serialize Default values
   private var serializeDefaults: Bool
 
@@ -207,7 +207,9 @@ public struct FlatBufferBuilder {
       len: size &+ (prefix ? size : 0) &+ FileIdLength,
       alignment: _minAlignment)
     assert(fileId.count == FileIdLength, "Flatbuffers requires file id to be 4")
-    _bb.push(string: fileId, len: 4)
+    fileId.withCString { ptr in
+      _bb.writeBytes(ptr, len: 4)
+    }
     finish(offset: offset, addPrefix: prefix)
   }
 
@@ -478,7 +480,7 @@ public struct FlatBufferBuilder {
     return endVector(len: size)
   }
 
-  #if swift(>=5.0) && !os(WASI)
+  #if !os(WASI)
   @inline(__always)
   /// Creates a vector of bytes in the buffer.
   ///
@@ -486,7 +488,7 @@ public struct FlatBufferBuilder {
   ///
   /// - Parameter bytes: bytes to be written into the buffer
   /// - Returns: ``Offset`` of the vector
-  mutating public func createVector(bytes: ContiguousBytes) -> Offset {
+  mutating public func createVector(bytes: any ContiguousBytes) -> Offset {
     bytes.withUnsafeBytes {
       startVector($0.count, elementSize: MemoryLayout<UInt8>.size)
       _bb.push(bytes: $0)
@@ -706,8 +708,9 @@ public struct FlatBufferBuilder {
     let len = str.utf8.count
     notNested()
     preAlign(len: len &+ 1, type: UOffset.self)
-    _bb.fill(padding: 1)
-    _bb.push(string: str, len: len)
+    str.withCString { ptr in
+      _bb.writeBytes(ptr, len: len &+ 1)
+    }
     push(element: UOffset(len))
     return Offset(offset: _bb.size)
   }
