@@ -1,5 +1,8 @@
 #include "reflection_test.h"
 
+#include <cstring>
+#include <vector>
+
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
@@ -407,6 +410,102 @@ void MiniReflectFixedLengthArrayTest() {
       "}",
       s.c_str());
 #endif
+}
+
+// Builds a reflection schema with a union U { T }, a table T { dummy:int }, and
+// a root table holding either a vector of unions (Root { f_type:[ubyte]; f:[U];
+// }) or a scalar union (Root { u_type:ubyte; u:U; }).
+static std::vector<uint8_t> BuildUnionSchema(bool as_vector) {
+  FlatBufferBuilder fbb;
+  auto none_type = reflection::CreateType(fbb, reflection::None);
+  auto ev_none = reflection::CreateEnumValDirect(fbb, "NONE", 0, none_type);
+  auto t_type = reflection::CreateType(fbb, reflection::Obj, reflection::None, 0);
+  auto ev_t = reflection::CreateEnumValDirect(fbb, "T", 1, t_type);
+  std::vector<Offset<reflection::EnumVal>> evs{ ev_none, ev_t };
+  auto underlying = reflection::CreateType(fbb, reflection::UByte);
+  auto enum_u = reflection::CreateEnumDirect(fbb, "U", &evs, true, underlying);
+  std::vector<Offset<reflection::Enum>> enums{ enum_u };
+
+  auto dummy_type = reflection::CreateType(fbb, reflection::Int);
+  auto dummy = reflection::CreateFieldDirect(fbb, "dummy", dummy_type, 0, 4);
+  std::vector<Offset<reflection::Field>> t_fields{ dummy };
+  auto obj_t = reflection::CreateObjectDirect(fbb, "T", &t_fields, false);
+
+  auto type_field_type =
+      as_vector
+          ? reflection::CreateType(fbb, reflection::Vector, reflection::UType)
+          : reflection::CreateType(fbb, reflection::UType);
+  auto type_field = reflection::CreateFieldDirect(
+      fbb, as_vector ? "f_type" : "u_type", type_field_type, 0, 4);
+  auto value_field_type =
+      as_vector
+          ? reflection::CreateType(fbb, reflection::Vector, reflection::Union, 0)
+          : reflection::CreateType(fbb, reflection::Union, reflection::None, 0);
+  auto value_field = reflection::CreateFieldDirect(
+      fbb, as_vector ? "f" : "u", value_field_type, 1, 6);
+  std::vector<Offset<reflection::Field>> r_fields{ type_field, value_field };
+  auto obj_root = reflection::CreateObjectDirect(fbb, "Root", &r_fields, false);
+
+  std::vector<Offset<reflection::Object>> objects{ obj_t, obj_root };
+  auto schema = reflection::CreateSchemaDirect(fbb, &objects, &enums, nullptr,
+                                               nullptr, obj_root);
+  fbb.Finish(schema);
+  return { fbb.GetBufferPointer(), fbb.GetBufferPointer() + fbb.GetSize() };
+}
+
+// Regression test: the reflection verifier must reject a malformed buffer that
+// poisons the union type slot's vtable offset instead of dereferencing it. The
+// union value field sorts before its hidden type field, so the verifier reaches
+// the type slot (the union type vector in VerifyVector, the scalar union type
+// byte in VerifyObject) before it is otherwise validated. Without a VerifyField
+// bounds check, Verify read an attacker-controlled voffset up to ~64 KB past the
+// buffer.
+void ReflectionVerifyUnionBoundsTest() {
+  auto verify_malformed = [](bool as_vector, const std::vector<uint8_t>& data) {
+    auto schema_buf = BuildUnionSchema(as_vector);
+    const auto& schema = *reflection::GetSchema(schema_buf.data());
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), data.data(),
+                                data.size()),
+            false);
+  };
+  auto w16 = [](std::vector<uint8_t>& d, size_t o, uint16_t v) {
+    std::memcpy(&d[o], &v, sizeof(v));
+  };
+  auto w32 = [](std::vector<uint8_t>& d, size_t o, uint32_t v) {
+    std::memcpy(&d[o], &v, sizeof(v));
+  };
+  const uint32_t kVtable = 8, kRoot = 16;
+  const int32_t soffset =
+      static_cast<int32_t>(kRoot) - static_cast<int32_t>(kVtable);
+
+  // Vector of unions: poison the f_type vector slot (vtable offset 4). The read
+  // happens in VerifyVector's union branch.
+  {
+    std::vector<uint8_t> d(28, 0);
+    const uint32_t kEmptyVec = 24;
+    w32(d, 0, kRoot);
+    std::memcpy(&d[kRoot], &soffset, sizeof(soffset));
+    w32(d, kRoot + 4, kEmptyVec - (kRoot + 4));  // union value vector (empty)
+    w16(d, kVtable + 0, 8);                       // vtable size
+    w16(d, kVtable + 2, 8);                       // table size
+    w16(d, kVtable + 4, 0x4000);                  // f_type slot: poisoned voffset
+    w16(d, kVtable + 6, 4);                        // f slot
+    w32(d, kEmptyVec, 0);                          // empty vector length
+    verify_malformed(true, d);
+  }
+
+  // Scalar union: poison the u_type slot (vtable offset 4). The read happens in
+  // VerifyObject's union branch.
+  {
+    std::vector<uint8_t> d(24, 0);
+    w32(d, 0, kRoot);
+    std::memcpy(&d[kRoot], &soffset, sizeof(soffset));
+    w16(d, kVtable + 0, 8);       // vtable size
+    w16(d, kVtable + 2, 8);       // table size
+    w16(d, kVtable + 4, 0x4000);  // u_type slot: poisoned voffset
+    w16(d, kVtable + 6, 0);       // u slot: absent
+    verify_malformed(false, d);
+  }
 }
 
 }  // namespace tests
