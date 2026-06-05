@@ -207,7 +207,15 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
           auto union_type = *prev_val;  // Always a uint8_t.
           if (vector_index >= 0) {
             auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(prev_val);
-            union_type = type_vec->Get(static_cast<uoffset_t>(vector_index));
+            // FIX: Bounds check to prevent OOB read when union data vector
+            // size is desynchronized from union type vector size.
+            if (type_vec && static_cast<size_t>(vector_index) < type_vec->size()) {
+              union_type = type_vec->Get(static_cast<uoffset_t>(vector_index));
+            } else {
+              // Out of bounds: mark as unknown to prevent crash
+              visitor->Unknown(val);
+              break;
+            }
           }
           auto type_code_idx =
               LookupEnum(union_type, type_table->values, type_table->num_elems);
