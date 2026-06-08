@@ -754,7 +754,8 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
     switch (field->type()->base_type()) {
       case reflection::BaseType::Obj: {
         const reflection::Object* next_object =
-            schema_->objects()->Get(field->type()->index());
+            GetObjectByIndex(field->type()->index());
+        if (!next_object) break;
 
         if (next_object->is_struct()) {
           // Structs are stored inline.
@@ -911,9 +912,11 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
       offset += type_size;
     } else if (field->type()->base_type() == reflection::BaseType::Obj) {
       // Structs are stored inline, even when nested.
+      const auto* nested_obj = GetObjectByIndex(field->type()->index());
+      if (!nested_obj) return;
       offset = BuildStruct(offset, regions,
                            referring_field_name + "." + field->name()->str(),
-                           schema_->objects()->Get(field->type()->index()));
+                           nested_obj);
     } else if (field->type()->base_type() == reflection::BaseType::Array) {
       const bool is_scalar = IsScalar(field->type()->element());
       const uint64_t type_size = GetTypeSize(field->type()->element());
@@ -961,10 +964,13 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
           // TODO(dbaileychess): This works, but the comments on the fields lose
           // some context. Need to figure a way how to plumb the nested arrays
           // comments together that isn't too confusing.
-          offset =
-              BuildStruct(offset, regions,
-                          referring_field_name + "." + field->name()->str(),
-                          schema_->objects()->Get(field->type()->index()));
+          const auto* arr_obj = GetObjectByIndex(field->type()->index());
+          if (arr_obj) {
+            offset =
+                BuildStruct(offset, regions,
+                            referring_field_name + "." + field->name()->str(),
+                            arr_obj);
+          }
         }
       }
     }
@@ -1132,7 +1138,8 @@ void BinaryAnnotator::BuildVector(
   switch (field->type()->element()) {
     case reflection::BaseType::Obj: {
       const reflection::Object* object =
-          schema_->objects()->Get(field->type()->index());
+          GetObjectByIndex(field->type()->index());
+      if (!object) break;
 
       if (object->is_struct()) {
         // Vector of structs
@@ -1409,7 +1416,8 @@ std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
                                         const uint8_t realized_type,
                                         const reflection::Field* const field) {
   const reflection::Enum* next_enum =
-      schema_->enums()->Get(field->type()->index());
+      GetEnumByIndex(field->type()->index());
+  if (!next_enum) return "";
 
   const reflection::EnumVal* enum_val = next_enum->values()->Get(realized_type);
 
@@ -1421,7 +1429,8 @@ std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
 
   if (union_type->base_type() == reflection::BaseType::Obj) {
     const reflection::Object* object =
-        schema_->objects()->Get(union_type->index());
+        GetObjectByIndex(union_type->index());
+    if (!object) return "";
 
     if (object->is_struct()) {
       // Union of vectors point to a new Binary section
