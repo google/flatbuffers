@@ -216,6 +216,9 @@ target_link_libraries(flexverifier_fuzzer PRIVATE flatbuffers_fuzzed)
 add_executable(monster_fuzzer flatbuffers_monster_fuzzer.cc)
 target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)
 
+add_executable(minireflect_fuzzer flatbuffers_minireflect_fuzzer.cc)
+target_link_libraries(minireflect_fuzzer PRIVATE flatbuffers_fuzzed)
+
 add_executable(codegen_fuzzer flatbuffers_codegen_fuzzer.cc ${FlatBuffers_Compiler_SRCS})
 target_link_libraries(codegen_fuzzer PRIVATE flatbuffers_fuzzed)
 target_compile_definitions(codegen_fuzzer PRIVATE assert=fuzzer_assert_impl)
