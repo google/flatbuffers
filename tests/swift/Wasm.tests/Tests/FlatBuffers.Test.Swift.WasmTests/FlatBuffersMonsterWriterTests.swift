@@ -15,7 +15,7 @@
  */
 
 import Foundation
-import XCTest
+import Testing
 
 @testable import FlatBuffers
 
@@ -24,8 +24,9 @@ typealias Monster = MyGame_Example_Monster
 typealias Vec3 = MyGame_Example_Vec3
 typealias Stat = MyGame_Example_Stat
 
-class FlatBuffersMonsterWriterTests: XCTestCase {
+struct FlatBuffersMonsterWriterTests {
 
+  @Test
   func testData() {
     // swiftformat:disable all
     let data: [UInt8] = [
@@ -47,11 +48,12 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     readVerifiedMonster(fb: _data)
   }
 
+  @Test
   func testCreateMonster() {
     let bytes = createMonster(withPrefix: false)
     // swiftformat:disable all
-    XCTAssertEqual(
-      bytes.sizedByteArray,
+    #expect(
+      bytes.sizedByteArray ==
       [
         48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28,
         0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0,
@@ -75,11 +77,12 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     readMonster(monster: monster)
   }
 
+  @Test
   func testCreateMonsterResizedBuffer() {
     let bytes = createMonster(withPrefix: false)
     // swiftformat:disable all
-    XCTAssertEqual(
-      bytes.sizedByteArray,
+    #expect(
+      bytes.sizedByteArray ==
       [
         48, 0, 0, 0, 77, 79, 78, 83, 0, 0, 0, 0, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28,
         0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0,
@@ -98,11 +101,12 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     readVerifiedMonster(fb: bytes.sizedBuffer)
   }
 
+  @Test
   func testCreateMonsterPrefixed() {
     let bytes = createMonster(withPrefix: true)
     // swiftformat:disable all
-    XCTAssertEqual(
-      bytes.sizedByteArray,
+    #expect(
+      bytes.sizedByteArray ==
       [
         44, 1, 0, 0, 44, 0, 0, 0, 77, 79, 78, 83, 36, 0, 72, 0, 40, 0, 0, 0, 38, 0, 32, 0, 0, 0, 28,
         0, 0, 0, 27, 0, 20, 0, 16, 0, 12, 0, 4, 0, 0, 0, 0, 0, 0, 0, 11, 0, 36, 0, 0, 0, 164, 0, 0,
@@ -123,6 +127,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     readMonster(monster: getPrefixedSizeRoot(byteBuffer: &buffer))
   }
 
+  @Test
   func testCreateMonsterUsingCreateMonsterMethodWithNilPos() {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let name = fbb.create(string: "Frodo")
@@ -132,10 +137,11 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     fbb.finish(offset: root)
     var buffer = fbb.sizedBuffer
     let newMonster: Monster = getRoot(byteBuffer: &buffer)
-    XCTAssertNil(newMonster.pos)
-    XCTAssertEqual(newMonster.name, "Frodo")
+    #expect(newMonster.pos == nil)
+    #expect(newMonster.name == "Frodo")
   }
 
+  @Test
   func testCreateMonsterUsingCreateMonsterMethodWithPosX() {
     var fbb = FlatBufferBuilder(initialSize: 1)
     let name = fbb.create(string: "Barney")
@@ -155,10 +161,11 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
 
     var buffer = fbb.sizedBuffer
     let newMonster: Monster = getRoot(byteBuffer: &buffer)
-    XCTAssertEqual(newMonster.pos!.x, 10)
-    XCTAssertEqual(newMonster.name, "Barney")
+    #expect(newMonster.pos!.x == 10)
+    #expect(newMonster.name == "Barney")
   }
 
+  @Test
   func testReadMonsterFromUnsafePointerWithoutCopying() {
     // swiftformat:disable all
     var array: [UInt8] = [
@@ -190,6 +197,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     readObjectApi(monster: unpacked)
   }
 
+  @Test
   func testArrayOfBools() {
     let boolArray = [false, true, false, true, false, true, false]
     var fbb = FlatBufferBuilder(initialSize: 1)
@@ -205,37 +213,41 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     let monster: Monster = getRoot(byteBuffer: &buffer)
     let values = monster.testarrayofbools
 
-    XCTAssertEqual(boolArray.count, values.count)
+    #expect(boolArray.count == values.count)
 
     for (index, bool) in monster.testarrayofbools.enumerated() {
-      XCTAssertEqual(bool, boolArray[index])
+      #expect(bool == boolArray[index])
     }
   }
 
   func readVerifiedMonster(fb: ByteBuffer) {
     var byteBuffer = fb
-    XCTAssertNoThrow(
+    do {
       try readMonster(
         monster: getCheckedRoot(
-          byteBuffer: &byteBuffer) as MyGame_Example_Monster))
+          byteBuffer: &byteBuffer) as MyGame_Example_Monster)
+    } catch {
+      Issue.record(error)
+    }
   }
 
+  @Test(.bug("https://github.com/google/flatbuffers/issues/8133"))
   func testUnalignedRead() {
     // Aligned read
     let fbb = createMonster(withPrefix: false)
     let testAligned: () -> Bool = {
       var buffer = fbb.sizedBuffer
       var monster: Monster = getRoot(byteBuffer: &buffer)
-      self.readFlatbufferMonster(monster: &monster)
+      readFlatbufferMonster(monster: &monster)
       return true
     }
-    XCTAssertEqual(testAligned(), true)
+    #expect(testAligned() == true)
     let testUnaligned: () -> Bool = {
       var bytes: [UInt8] = [0x00]
       bytes.append(contentsOf: fbb.sizedByteArray)
       return bytes.withUnsafeMutableBytes { ptr in
         guard var baseAddress = ptr.baseAddress else {
-          XCTFail("Base pointer is not defined")
+          Issue.record("Base pointer is not defined")
           return false
         }
         baseAddress = baseAddress.advanced(by: 1)
@@ -244,13 +256,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
           assumingMemoryBound: unlignedPtr,
           capacity: ptr.count - 1)
         var monster: Monster = getRoot(byteBuffer: &bytes)
-        self.readFlatbufferMonster(monster: &monster)
+        readFlatbufferMonster(monster: &monster)
         return true
       }
     }
-    XCTAssertEqual(testUnaligned(), true)
+    #expect(testUnaligned() == true)
   }
 
+  @Test
   func testReadingRemovedSizeUnalignedBuffer() {
     // Aligned read
     let fbb = createMonster(withPrefix: true)
@@ -259,7 +272,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
       bytes.append(contentsOf: fbb.sizedByteArray)
       return bytes.withUnsafeMutableBytes { ptr in
         guard var baseAddress = ptr.baseAddress else {
-          XCTFail("Base pointer is not defined")
+          Issue.record("Base pointer is not defined")
           return false
         }
         baseAddress = baseAddress.advanced(by: 1)
@@ -269,13 +282,14 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
           capacity: ptr.count - 1)
         var newBuf = FlatBuffersUtils.removeSizePrefix(bb: bytes)
         var monster: Monster = getRoot(byteBuffer: &newBuf)
-        self.readFlatbufferMonster(monster: &monster)
+        readFlatbufferMonster(monster: &monster)
         return true
       }
     }
-    XCTAssertEqual(testUnaligned(), true)
+    #expect(testUnaligned() == true)
   }
 
+  @Test
   func testForceRetainedObject() {
     let byteBuffer = {
       // swiftformat:disable all
@@ -381,95 +395,95 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     var fb = fb
 
     let monster: Monster = getRoot(byteBuffer: &fb)
-    XCTAssertFalse(monster.mutate(mana: 10))
-    XCTAssertEqual(monster.testarrayoftables[0].name, "Barney")
-    XCTAssertEqual(monster.testarrayoftables[1].name, "Frodo")
-    XCTAssertEqual(monster.testarrayoftables[2].name, "Wilma")
+    #expect(monster.mutate(mana: 10) == false)
+    #expect(monster.testarrayoftables[0].name == "Barney")
+    #expect(monster.testarrayoftables[1].name == "Frodo")
+    #expect(monster.testarrayoftables[2].name == "Wilma")
 
     // Example of searching for a table by the key
-    XCTAssertNotNil(monster.testarrayoftablesBy(key: "Frodo"))
-    XCTAssertNotNil(monster.testarrayoftablesBy(key: "Barney"))
-    XCTAssertNotNil(monster.testarrayoftablesBy(key: "Wilma"))
+    #expect(monster.testarrayoftablesBy(key: "Frodo") != nil)
+    #expect(monster.testarrayoftablesBy(key: "Barney") != nil)
+    #expect(monster.testarrayoftablesBy(key: "Wilma") != nil)
 
-    XCTAssertEqual(monster.testType, .monster)
+    #expect(monster.testType == .monster)
 
-    XCTAssertEqual(monster.mutate(inventory: 1, at: 0), true)
-    XCTAssertEqual(monster.mutate(inventory: 2, at: 1), true)
-    XCTAssertEqual(monster.mutate(inventory: 3, at: 2), true)
-    XCTAssertEqual(monster.mutate(inventory: 4, at: 3), true)
-    XCTAssertEqual(monster.mutate(inventory: 5, at: 4), true)
+    #expect(monster.mutate(inventory: 1, at: 0) == true)
+    #expect(monster.mutate(inventory: 2, at: 1) == true)
+    #expect(monster.mutate(inventory: 3, at: 2) == true)
+    #expect(monster.mutate(inventory: 4, at: 3) == true)
+    #expect(monster.mutate(inventory: 5, at: 4) == true)
 
     for i in 0..<monster.inventory.count {
-      XCTAssertEqual(monster.inventory[i], Byte(i + 1))
+      #expect(monster.inventory[i] == Byte(i + 1))
     }
 
-    XCTAssertEqual(monster.mutate(inventory: 0, at: 0), true)
-    XCTAssertEqual(monster.mutate(inventory: 1, at: 1), true)
-    XCTAssertEqual(monster.mutate(inventory: 2, at: 2), true)
-    XCTAssertEqual(monster.mutate(inventory: 3, at: 3), true)
-    XCTAssertEqual(monster.mutate(inventory: 4, at: 4), true)
+    #expect(monster.mutate(inventory: 0, at: 0) == true)
+    #expect(monster.mutate(inventory: 1, at: 1) == true)
+    #expect(monster.mutate(inventory: 2, at: 2) == true)
+    #expect(monster.mutate(inventory: 3, at: 3) == true)
+    #expect(monster.mutate(inventory: 4, at: 4) == true)
 
     let vec = monster.mutablePos
-    XCTAssertEqual(vec?.x, 1)
-    XCTAssertTrue(vec?.mutate(x: 55.0) ?? false)
-    XCTAssertTrue(vec?.mutate(test1: 55) ?? false)
-    XCTAssertEqual(vec?.x, 55.0)
-    XCTAssertEqual(vec?.test1, 55.0)
-    XCTAssertTrue(vec?.mutate(x: 1) ?? false)
-    XCTAssertEqual(vec?.x, 1)
-    XCTAssertTrue(vec?.mutate(test1: 3) ?? false)
+    #expect(vec?.x == 1)
+    #expect(vec?.mutate(x: 55.0) == true)
+    #expect(vec?.mutate(test1: 55) == true)
+    #expect(vec?.x == 55.0)
+    #expect(vec?.test1 == 55.0)
+    #expect(vec?.mutate(x: 1) == true)
+    #expect(vec?.x == 1)
+    #expect(vec?.mutate(test1: 3) == true)
 
     let mutableTest4 = monster.mutableTest4
     let orignalValues = mutableTest4[0].a
-    XCTAssertEqual(mutableTest4[0].mutate(a: 100), true)
-    XCTAssertNotEqual(monster.test4[0].a, orignalValues)
-    XCTAssertEqual(monster.test4[0].a, 100)
-    XCTAssertEqual(mutableTest4[0].mutate(a: orignalValues), true)
+    #expect(mutableTest4[0].mutate(a: 100) == true)
+    #expect(monster.test4[0].a != orignalValues)
+    #expect(monster.test4[0].a == 100)
+    #expect(mutableTest4[0].mutate(a: orignalValues) == true)
   }
 
   func readFlatbufferMonster(monster: inout MyGame_Example_Monster) {
-    XCTAssertEqual(monster.hp, 80)
-    XCTAssertEqual(monster.mana, 150)
-    XCTAssertEqual(monster.name, "MyMonster")
+    #expect(monster.hp == 80)
+    #expect(monster.mana == 150)
+    #expect(monster.name == "MyMonster")
     let pos = monster.pos
-    XCTAssertEqual(pos?.x, 1)
-    XCTAssertEqual(pos?.y, 2)
-    XCTAssertEqual(pos?.z, 3)
-    XCTAssertEqual(pos?.test1, 3)
-    XCTAssertEqual(pos?.test2, .green)
+    #expect(pos?.x == 1)
+    #expect(pos?.y == 2)
+    #expect(pos?.z == 3)
+    #expect(pos?.test1 == 3)
+    #expect(pos?.test2 == .green)
     let test = pos?.test3
-    XCTAssertEqual(test?.a, 5)
-    XCTAssertEqual(test?.b, 6)
-    XCTAssertEqual(monster.testType, .monster)
+    #expect(test?.a == 5)
+    #expect(test?.b == 6)
+    #expect(monster.testType == .monster)
     let monster2 = monster.test(type: Monster.self)
-    XCTAssertEqual(monster2?.name, "Fred")
+    #expect(monster2?.name == "Fred")
 
-    XCTAssertEqual(monster.mutate(mana: 10), false)
+    #expect(monster.mutate(mana: 10) == false)
 
-    XCTAssertEqual(monster.mana, 150)
-    XCTAssertEqual(monster.inventory.count, 5)
+    #expect(monster.mana == 150)
+    #expect(monster.inventory.count == 5)
     var sum: Byte = 0
     for inventory in monster.inventory {
       sum += inventory
     }
-    XCTAssertEqual(sum, 10)
+    #expect(sum == 10)
 
     monster.withUnsafePointerToInventory { ptr, count in
       var sum: UInt8 = 0
       for pointee in ptr.startIndex..<ptr.endIndex {
         sum += ptr[pointee]
       }
-      XCTAssertEqual(sum, 10)
+      #expect(sum == 10)
     }
 
-    XCTAssertEqual(monster.test4.count, 2)
+    #expect(monster.test4.count == 2)
 
     let test4 = monster.test4
     var sum0 = 0
     for test0 in test4 {
       sum0 += Int(test0.a) + Int(test0.b)
     }
-    XCTAssertEqual(sum0, 100)
+    #expect(sum0 == 100)
 
     monster.withUnsafePointerToTest4 { ptr, count in
       guard let ptr = ptr.baseAddress else { return }
@@ -485,7 +499,7 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
         pointerSum += Int(bindedMemory[pointee].a) +
           Int(bindedMemory[pointee].b)
       }
-      XCTAssertEqual(pointerSum, 100)
+      #expect(pointerSum == 100)
     }
 
     let mutableTest4 = monster.mutableTest4
@@ -493,87 +507,84 @@ class FlatBuffersMonsterWriterTests: XCTestCase {
     for test0 in mutableTest4 {
       sum2 += Int(test0.a) + Int(test0.b)
     }
-    XCTAssertEqual(sum2, 100)
+    #expect(sum2 == 100)
 
     let stringArray = monster.testarrayofstring
-    XCTAssertEqual(stringArray.count, 2)
-    XCTAssertEqual(stringArray[0], "test1")
-    XCTAssertEqual(stringArray[1], "test2")
-    XCTAssertEqual(monster.testbool, true)
+    #expect(stringArray.count == 2)
+    #expect(stringArray[0] == "test1")
+    #expect(stringArray[1] == "test2")
+    #expect(monster.testbool == true)
 
     let array = monster.nameSegmentArray
-    XCTAssertEqual(String(bytes: array ?? [], encoding: .utf8), "MyMonster")
+    #expect(String(bytes: array ?? [], encoding: .utf8) == "MyMonster")
 
     if 0 == monster.testarrayofbools.count {
-      XCTAssertEqual(monster.testarrayofbools.isEmpty, true)
+      #expect(monster.testarrayofbools.isEmpty == true)
     } else {
-      XCTAssertEqual(monster.testarrayofbools.isEmpty, false)
+      #expect(monster.testarrayofbools.isEmpty == false)
     }
   }
 
   func readObjectApi(monster: MyGame_Example_MonsterT) {
-    XCTAssertEqual(monster.hp, 80)
-    XCTAssertEqual(monster.mana, 150)
-    XCTAssertEqual(monster.name, "MyMonster")
+    #expect(monster.hp == 80)
+    #expect(monster.mana == 150)
+    #expect(monster.name == "MyMonster")
     let pos = monster.pos
-    XCTAssertEqual(pos?.x, 1)
-    XCTAssertEqual(pos?.y, 2)
-    XCTAssertEqual(pos?.z, 3)
-    XCTAssertEqual(pos?.test1, 3)
-    XCTAssertEqual(pos?.test2, .green)
+    #expect(pos?.x == 1)
+    #expect(pos?.y == 2)
+    #expect(pos?.z == 3)
+    #expect(pos?.test1 == 3)
+    #expect(pos?.test2 == .green)
     let test = pos?.test3
-    XCTAssertEqual(test?.a, 5)
-    XCTAssertEqual(test?.b, 6)
+    #expect(test?.a == 5)
+    #expect(test?.b == 6)
     let monster2 = monster.test?.value as? MyGame_Example_MonsterT
-    XCTAssertEqual(monster2?.name, "Fred")
-    XCTAssertEqual(monster.mana, 150)
+    #expect(monster2?.name == "Fred")
+    #expect(monster.mana == 150)
     monster.mana = 10
-    XCTAssertEqual(monster.mana, 10)
+    #expect(monster.mana == 10)
     monster.mana = 150
-    XCTAssertEqual(monster.mana, 150)
+    #expect(monster.mana == 150)
 
-    XCTAssertEqual(monster.inventory.count, 5)
+    #expect(monster.inventory.count == 5)
     var sum: Byte = 0
     for i in monster.inventory {
       sum += i
     }
-    XCTAssertEqual(sum, 10)
-    XCTAssertEqual(monster.test4.count, 2)
+    #expect(sum == 10)
+    #expect(monster.test4.count == 2)
     var sum0 = 0
     for test in monster.test4 {
       sum0 += Int(test.a) + Int(test.b)
     }
-    XCTAssertEqual(sum0, 100)
-    XCTAssertEqual(monster.testbool, true)
+    #expect(sum0 == 100)
+    #expect(monster.testbool == true)
   }
 
-  func testEncoding() {
+  @Test
+  func testEncoding() throws {
     let fbb = createMonster(withPrefix: false)
     var sizedBuffer = fbb.sizedBuffer
-    do {
-      struct Test: Decodable {
-        struct Pos: Decodable {
-          let x, y, z: Int
-        }
-        let hp: Int
-        let inventory: [UInt8]
-        let name: String
-        let pos: Pos
+    struct Test: Decodable {
+      struct Pos: Decodable {
+        let x, y, z: Int
       }
-      let reader: Monster = try getCheckedRoot(byteBuffer: &sizedBuffer)
-      let encoder = JSONEncoder()
-      encoder.keyEncodingStrategy = .convertToSnakeCase
-      let data = try encoder.encode(reader)
-      let decoder = JSONDecoder()
-      decoder.keyDecodingStrategy = .convertFromSnakeCase
-      let value = try decoder.decode(Test.self, from: data)
-      XCTAssertEqual(value.name, "MyMonster")
-      XCTAssertEqual(value.pos.x, 1)
-      XCTAssertEqual(value.pos.y, 2)
-      XCTAssertEqual(value.pos.z, 3)
-    } catch {
-      XCTFail(error.localizedDescription)
+      let hp: Int
+      let inventory: [UInt8]
+      let name: String
+      let pos: Pos
     }
+    let reader: Monster = try getCheckedRoot(byteBuffer: &sizedBuffer)
+    let encoder = JSONEncoder()
+    encoder.keyEncodingStrategy = .convertToSnakeCase
+    let data = try encoder.encode(reader)
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let value = try decoder.decode(Test.self, from: data)
+    #expect(value.name == "MyMonster")
+    #expect(value.pos.x == 1)
+    #expect(value.pos.y == 2)
+    #expect(value.pos.z == 3)
   }
 
   var jsonData: String {

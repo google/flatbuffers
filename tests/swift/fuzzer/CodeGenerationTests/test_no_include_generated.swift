@@ -68,7 +68,7 @@ public struct BytesCount_Mutable: FlatBufferStruct, FlatbuffersVectorInitializab
   }
 }
 
-public struct InternalMessage: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct InternalMessage: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
@@ -148,7 +148,7 @@ public class InternalMessageT: NativeObject {
   public func serialize() -> ByteBuffer { return serialize(type: InternalMessage.self) }
 
 }
-public struct Message: FlatBufferTable, FlatbuffersVectorInitializable, Verifiable, ObjectAPIPacker {
+public struct Message: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, ObjectAPIPacker {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
   public var __buffer: ByteBuffer! { return _accessor.bb }
