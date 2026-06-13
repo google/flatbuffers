@@ -895,13 +895,32 @@ class ObjectAPITest {
 
     final monster2 = example.Monster(data); // Monster (reader)
     expect(
-        // map Monster => MonsterT, Vec3 => Vec3T, ...
-        monster2.toString().replaceAllMapped(
-            RegExp('([a-zA-z0-9]+){'), (match) => match.group(1)! + 'T{'),
-        monster.toString());
+      // map Monster => MonsterT, Vec3 => Vec3T, ...
+      monster2.toString().replaceAllMapped(
+        RegExp('([a-zA-z0-9]+){'),
+        (match) => match.group(1)! + 'T{',
+      ),
+      monster.toString(),
+    );
 
     final monster3 = monster2.unpack(); // MonsterT
     expect(monster3.toString(), monster.toString());
+  }
+
+  void test_bitFlagsEnumCombination() {
+    final color = example.Color.fromValue(
+      example.Color.Red.value | example.Color.Green.value,
+    );
+    final monster = example.MonsterT(color: color);
+
+    final fbBuilder = Builder();
+    fbBuilder.finish(monster.pack(fbBuilder));
+
+    final monster2 = example.Monster(fbBuilder.buffer);
+    expect(monster2.color, color);
+    expect(monster2.color.value, color.value);
+    expect(monster2.color.toString(), 'Color(3)');
+    expect(monster2.unpack().color, color);
   }
 
   void test_Lists() {
