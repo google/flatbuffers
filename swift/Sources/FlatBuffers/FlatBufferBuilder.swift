@@ -48,7 +48,7 @@ public struct FlatBufferBuilder {
   private(set) var finished = false
   /// A check to see if the buffer should serialize Default values
   @usableFromInline
-  var serializeDefaults: Bool
+  let serializeDefaults: Bool
 
   /// Current alignment for the buffer
   var _minAlignment: Int = 0 {

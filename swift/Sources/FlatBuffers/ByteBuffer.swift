@@ -39,10 +39,12 @@ public struct ByteBuffer: @unchecked Sendable {
 
       init(_ other: borrowing Blob) {
         switch other {
+        #if !os(WASI)
         case .data(let data):
           self = .data(data)
         case .bytes(let contiguousBytes):
           self = .bytes(contiguousBytes)
+        #endif
         case .byteBuffer(let internalByteBuffer):
           self = .byteBuffer(internalByteBuffer)
         case .array(let array):
@@ -54,10 +56,12 @@ public struct ByteBuffer: @unchecked Sendable {
 
       var description: String {
         switch self {
+        #if !os(WASI)
         case .data(let data):
           "data: \(data)"
         case .bytes(let contiguousBytes):
           "bytes: \(contiguousBytes)"
+        #endif
         case .byteBuffer(let internalByteBuffer):
           "byteBuffer: \(internalByteBuffer)"
         case .array(let array):
