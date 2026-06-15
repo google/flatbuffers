@@ -15,22 +15,26 @@
  */
 
 import Common
-import XCTest
+import Foundation
+import Testing
 
 @testable import FlexBuffers
 
-final class FlexBuffersReaderTests: XCTestCase {
+struct FlexBuffersReaderTests {
 
+  @Test
   func testReadingProperBuffer() throws {
     let buf: ByteBuffer = createProperBuffer().byteBuffer
     try validate(buffer: buf)
   }
 
+  @Test
   func testReadingSizedBuffer() throws {
     let buf: ByteBuffer = createSizedBuffer()
     try validate(buffer: buf)
   }
 
+  @Test(.bug("https://github.com/google/flatbuffers/issues/8642"))
   func testReset() throws {
     var fbx = FlexBuffersWriter(
       initialSize: 8,
@@ -38,87 +42,87 @@ final class FlexBuffersReaderTests: XCTestCase {
     write(fbx: &fbx)
 
     try validate(buffer: ByteBuffer(bytes: fbx.sizedByteArray))
-    XCTAssertEqual(fbx.capacity, 512)
+    #expect(fbx.capacity == 512)
     fbx.reset()
-    XCTAssertEqual(fbx.writerIndex, 0)
-    XCTAssertEqual(fbx.capacity, 8)
+    #expect(fbx.writerIndex == 0)
+    #expect(fbx.capacity == 8)
 
     write(fbx: &fbx)
     try validate(buffer: ByteBuffer(bytes: fbx.sizedByteArray))
     fbx.reset(keepingCapacity: true)
-    XCTAssertEqual(fbx.writerIndex, 0)
-    XCTAssertEqual(fbx.capacity, 512)
+    #expect(fbx.writerIndex == 0)
+    #expect(fbx.capacity == 512)
 
     write(fbx: &fbx)
     try validate(buffer: ByteBuffer(bytes: fbx.sizedByteArray))
-    XCTAssertEqual(fbx.capacity, 512)
+    #expect(fbx.capacity == 512)
   }
 
   private func validate(buffer buf: ByteBuffer) throws {
     let reference = try getRoot(buffer: buf)!
-    XCTAssertEqual(reference.type, .map)
+    #expect(reference.type == .map)
     let map = reference.map!
-    XCTAssertEqual(map.count, 7)
+    #expect(map.count == 7)
     let vecRef = map["vec"]!
-    XCTAssertEqual(vecRef.type, .vector)
+    #expect(vecRef.type == .vector)
     let vec = vecRef.vector!
-    XCTAssertEqual(vec.count, 6)
-    XCTAssertEqual(vec[0]?.type, .int)
-    XCTAssertEqual(vec[0]?.int, -100)
-    XCTAssertEqual(vec[1]?.type, .string)
-    XCTAssertEqual(vec[1]?.cString, "Fred")
-    XCTAssertNil(vec[1]?.int)
-    XCTAssertEqual(vec[2]?.double, 4.0)
-    XCTAssertTrue(vec[3]?.type == .blob)
+    #expect(vec.count == 6)
+    #expect(vec[0]?.type == .int)
+    #expect(vec[0]?.int == -100)
+    #expect(vec[1]?.type == .string)
+    #expect(vec[1]?.cString == "Fred")
+    #expect(vec[1]?.int == nil)
+    #expect(vec[2]?.double == 4.0)
+    #expect(vec[3]?.type == .blob)
 
     let blob = vec[3]!.blob { pointer in
       Array(pointer)
     }
 
-    XCTAssertEqual(blob?.count, 1)
-    XCTAssertEqual(blob?[0], 77)
-    XCTAssertEqual(vec[4]?.type, .bool)
-    XCTAssertEqual(vec[4]?.bool, false)
-    XCTAssertEqual(vec[5]?.double, 4.0)  // Shared with vec[2]
+    #expect(blob?.count == 1)
+    #expect(blob?[0] == 77)
+    #expect(vec[4]?.type == .bool)
+    #expect(vec[4]?.bool == false)
+    #expect(vec[5]?.double == 4.0)  // Shared with vec[2]
 
     let barVec = map["bar"]!.typedVector!
-    XCTAssertEqual(barVec.count, 3)
-    XCTAssertEqual(barVec[2]?.int, 3)
-    XCTAssertEqual(barVec[2]?.asInt(), UInt8(3))
+    #expect(barVec.count == 3)
+    #expect(barVec[2]?.int == 3)
+    #expect(barVec[2]?.asInt() == UInt8(3))
 
     let fixedVec = map["bar3"]!.fixedTypedVector!
-    XCTAssertEqual(fixedVec.count, 3)
-    XCTAssertEqual(fixedVec[2]?.int, 3)
-    XCTAssertEqual(fixedVec[2]?.asInt(), UInt8(3))
-    XCTAssertEqual(map["bool"]?.bool, true)
+    #expect(fixedVec.count == 3)
+    #expect(fixedVec[2]?.int == 3)
+    #expect(fixedVec[2]?.asInt() == UInt8(3))
+    #expect(map["bool"]?.bool == true)
 
     let boolsVector = map["bools"]!.typedVector!
-    XCTAssertEqual(boolsVector.type, .bool)
-    XCTAssertEqual(boolsVector[0]?.bool, true)
-    XCTAssertEqual(boolsVector[1]?.bool, false)
+    #expect(boolsVector.type == .bool)
+    #expect(boolsVector[0]?.bool == true)
+    #expect(boolsVector[1]?.bool == false)
 
     let bools = [true, false, true, false]
     boolsVector.withUnsafeRawBufferPointer { buff in
       for i in 0..<boolsVector.count {
-        XCTAssertEqual(buff.load(fromByteOffset: i, as: Bool.self), bools[i])
+        #expect(buff.load(fromByteOffset: i, as: Bool.self) == bools[i])
       }
     }
-    XCTAssertEqual(map["foo"]?.double, 100)
-    XCTAssertNil(map["unknown"])
+    #expect(map["foo"]?.double == 100)
+    #expect(map["unknown"] == nil)
     let mymap = map["mymap"]?.map
 
     // Check if both addresses used are the same for keys and strings
-    XCTAssertEqual(mymap?.keys[0]?.cString, map.keys[4]?.cString)
+    #expect(mymap?.keys[0]?.cString == map.keys[4]?.cString)
     map.keys[4]?.withUnsafeRawPointer { pointer in
       mymap?.keys[0]?.withUnsafeRawPointer { mymapPointer in
-        XCTAssertEqual(pointer, mymapPointer)
+        #expect(pointer == mymapPointer)
       }
     }
 
-    XCTAssertEqual(mymap?.values[0]?.cString, vec[1]?.cString)
+    #expect(mymap?.values[0]?.cString == vec[1]?.cString)
     vec[1]?.withUnsafeRawPointer { pointer in
       mymap?.values[0]?.withUnsafeRawPointer { mymapPointer in
-        XCTAssertEqual(pointer, mymapPointer)
+        #expect(pointer == mymapPointer)
       }
     }
   }
@@ -127,7 +131,7 @@ final class FlexBuffersReaderTests: XCTestCase {
     #if os(macOS)
     // Gets the current path of this test file then
     // strips out the nested directories.
-    let filePath = URL(filePath: #file)
+    let filePath = URL(filePath: #filePath)
       .deletingLastPathComponent()
       .deletingLastPathComponent()
       .deletingLastPathComponent()

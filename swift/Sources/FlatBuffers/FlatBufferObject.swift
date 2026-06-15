@@ -24,6 +24,8 @@ public protocol NativeStruct: BitwiseCopyable {}
 public protocol NativeStruct {}
 #endif
 
+public protocol FlatBufferVerifiableNativeStruct: NativeStruct, Verifiable {}
+
 /// FlatbuffersInitializable is a protocol that allows any object to be
 /// Initialized from a ByteBuffer
 public protocol FlatbuffersInitializable {
@@ -38,6 +40,8 @@ public protocol FlatBufferTable: FlatbuffersInitializable,
 {
   var __buffer: ByteBuffer! { get }
 }
+
+public protocol FlatBufferVerifiableTable: FlatBufferTable, Verifiable {}
 
 /// FlatbufferStruct structures all the Flatbuffers structs
 public protocol FlatBufferStruct: FlatbuffersInitializable,

@@ -14,44 +14,49 @@
  * limitations under the License.
  */
 
-import XCTest
+import Testing
 
 @testable import Common
 @testable import FlatBuffers
 
-final class FlatBuffersTests: XCTestCase {
+struct FlatBuffersTests {
 
   let country = "Norway"
 
-  func testEndian() { XCTAssertEqual(isLitteEndian, true) }
+  @Test
+  func testEndian() { #expect(isLitteEndian == true) }
 
+  @Test
   func testOffset() {
     let o = Offset()
     let b = Offset(offset: 1)
-    XCTAssertEqual(o.isEmpty, true)
-    XCTAssertEqual(b.isEmpty, false)
+    #expect(o.isEmpty == true)
+    #expect(b.isEmpty == false)
   }
 
+  @Test
   func testCreateString() {
     let helloWorld = "Hello, world!"
     var b = FlatBufferBuilder(initialSize: 16)
-    XCTAssertEqual(b.create(string: country).o, 12)
-    XCTAssertEqual(b.create(string: helloWorld).o, 32)
+    #expect(b.create(string: country).o == 12)
+    #expect(b.create(string: helloWorld).o == 32)
     b.clear()
-    XCTAssertEqual(b.create(string: helloWorld).o, 20)
-    XCTAssertEqual(b.create(string: country).o, 32)
+    #expect(b.create(string: helloWorld).o == 20)
+    #expect(b.create(string: country).o == 32)
     b.clear()
-    XCTAssertEqual(b.create(string: String(repeating: "a", count: 257)).o, 264)
+    #expect(b.create(string: String(repeating: "a", count: 257)).o == 264)
   }
 
+  @Test
   func testStartTable() {
     var b = FlatBufferBuilder(initialSize: 16)
-    XCTAssertNoThrow(b.startTable(with: 0))
+    _ = b.startTable(with: 0)
     b.clear()
-    XCTAssertEqual(b.create(string: country).o, 12)
-    XCTAssertEqual(b.startTable(with: 0), 12)
+    #expect(b.create(string: country).o == 12)
+    #expect(b.startTable(with: 0) == 12)
   }
 
+  @Test
   func testCreateFinish() {
     var b = FlatBufferBuilder(initialSize: 16)
     let countryOff = Country.createCountry(
@@ -66,9 +71,10 @@ final class FlatBuffersTests: XCTestCase {
       200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0,
     ]
     // swiftformat:enable all
-    XCTAssertEqual(b.sizedByteArray, v)
+    #expect(b.sizedByteArray == v)
   }
 
+  @Test
   func testCreateFinishWithPrefix() {
     var b = FlatBufferBuilder(initialSize: 16)
     let countryOff = Country.createCountry(
@@ -83,9 +89,10 @@ final class FlatBuffersTests: XCTestCase {
       100, 0, 0, 0, 200, 0, 0, 0, 6, 0, 0, 0, 78, 111, 114, 119, 97, 121, 0, 0,
     ]
     // swiftformat:enable all
-    XCTAssertEqual(b.sizedByteArray, v)
+    #expect(b.sizedByteArray == v)
   }
 
+  @Test
   func testReadCountry() {
     // swiftformat:disable all
     let v: [UInt8] = [
@@ -95,18 +102,20 @@ final class FlatBuffersTests: XCTestCase {
     // swiftformat:enable all
     let buffer = ByteBuffer(bytes: v)
     let c = Country.getRootAsCountry(buffer)
-    XCTAssertEqual(c.lan, 100)
-    XCTAssertEqual(c.log, 200)
-    XCTAssertEqual(c.nameVector, [78, 111, 114, 119, 97, 121])
-    XCTAssertEqual(c.name, country)
+    #expect(c.lan == 100)
+    #expect(c.log == 200)
+    #expect(c.nameVector == [78, 111, 114, 119, 97, 121])
+    #expect(c.name == country)
   }
 
+  @Test
   func testWriteNullableStrings() {
     var b = FlatBufferBuilder()
-    XCTAssertTrue(b.create(string: nil).isEmpty)
-    XCTAssertTrue(b.createShared(string: nil).isEmpty)
+    #expect(b.create(string: nil).isEmpty)
+    #expect(b.createShared(string: nil).isEmpty)
   }
 
+  @Test
   func testWriteOptionalValues() {
     var b = FlatBufferBuilder()
     let root = optional_scalars_ScalarStuff.createScalarStuff(
@@ -121,16 +130,17 @@ final class FlatBuffersTests: XCTestCase {
     b.finish(offset: root)
     var buffer = b.sizedBuffer
     let scalarTable: optional_scalars_ScalarStuff = getRoot(byteBuffer: &buffer)
-    XCTAssertEqual(scalarTable.justI8, 80)
-    XCTAssertNil(scalarTable.maybeI8)
-    XCTAssertEqual(scalarTable.maybeBool, true)
-    XCTAssertEqual(scalarTable.defaultI8, 42)
-    XCTAssertEqual(scalarTable.justU8, 100)
-    XCTAssertEqual(scalarTable.maybeU8, 10)
-    XCTAssertEqual(scalarTable.justEnum, .one)
-    XCTAssertNil(scalarTable.maybeEnum)
+    #expect(scalarTable.justI8 == 80)
+    #expect(scalarTable.maybeI8 == nil)
+    #expect(scalarTable.maybeBool == true)
+    #expect(scalarTable.defaultI8 == 42)
+    #expect(scalarTable.justU8 == 100)
+    #expect(scalarTable.maybeU8 == 10)
+    #expect(scalarTable.justEnum == .one)
+    #expect(scalarTable.maybeEnum == nil)
   }
 
+  @Test
   func testAlignmentCrash() {
     var builder = FlatBufferBuilder(initialSize: 256)
 
