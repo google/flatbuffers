@@ -1,5 +1,6 @@
 name: Release
-permissions: read-all
+permissions:
+  contents: read
 
 on:
   # For manual tests.
@@ -134,19 +135,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
           
       - name: Publish Flatbuffers
-        uses: katyo/publish-crates@v2
-        with:
-          path: ./rust/flatbuffers
-          registry-token: ${{ secrets.CARGO_TOKEN }}
+        run: cargo publish --manifest-path ./rust/flatbuffers/Cargo.toml
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
 
       - name: Publish Flexbuffers
-        uses: katyo/publish-crates@v2
-        with:
-          path: ./rust/flexbuffers
-          registry-token: ${{ secrets.CARGO_TOKEN }}
+        run: cargo publish --manifest-path ./rust/flexbuffers/Cargo.toml
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_TOKEN }}
