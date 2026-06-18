@@ -1,2 +1,5 @@
 packages:
   - tests/ts
+
+allowBuilds:
+  esbuild: false
