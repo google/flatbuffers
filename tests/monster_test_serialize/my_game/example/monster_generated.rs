@@ -3,7 +3,6 @@
 extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
-use super::*;
 
 pub enum MonsterOffset {}
 
@@ -179,23 +178,23 @@ impl<'a> Monster<'a> {
         });
         let color = self.color();
         let test = match self.test_type() {
-            Any::NONE => AnyT::NONE,
-            Any::Monster => AnyT::Monster(alloc::boxed::Box::new(
+            super::Any::NONE => super::AnyT::NONE,
+            super::Any::Monster => super::AnyT::Monster(alloc::boxed::Box::new(
                 self.test_as_monster()
-                    .expect("Invalid union table, expected `Any::Monster`.")
+                    .expect("Invalid union table, expected `super::Any::Monster`.")
                     .unpack()
             )),
-            Any::TestSimpleTableWithEnum => AnyT::TestSimpleTableWithEnum(alloc::boxed::Box::new(
+            super::Any::TestSimpleTableWithEnum => super::AnyT::TestSimpleTableWithEnum(alloc::boxed::Box::new(
                 self.test_as_test_simple_table_with_enum()
-                    .expect("Invalid union table, expected `Any::TestSimpleTableWithEnum`.")
+                    .expect("Invalid union table, expected `super::Any::TestSimpleTableWithEnum`.")
                     .unpack()
             )),
-            Any::MyGame_Example2_Monster => AnyT::MyGameExample2Monster(alloc::boxed::Box::new(
+            super::Any::MyGame_Example2_Monster => super::AnyT::MyGameExample2Monster(alloc::boxed::Box::new(
                 self.test_as_my_game_example_2_monster()
-                    .expect("Invalid union table, expected `Any::MyGame_Example2_Monster`.")
+                    .expect("Invalid union table, expected `super::Any::MyGame_Example2_Monster`.")
                     .unpack()
             )),
-            _ => AnyT::NONE,
+            _ => super::AnyT::NONE,
         };
         let test4 = self.test4().map(|x| {
             x.iter().map(|t| t.unpack()).collect()
@@ -270,42 +269,42 @@ impl<'a> Monster<'a> {
             x.into_iter().collect()
         });
         let any_unique = match self.any_unique_type() {
-            AnyUniqueAliases::NONE => AnyUniqueAliasesT::NONE,
-            AnyUniqueAliases::M => AnyUniqueAliasesT::M(alloc::boxed::Box::new(
+            super::AnyUniqueAliases::NONE => super::AnyUniqueAliasesT::NONE,
+            super::AnyUniqueAliases::M => super::AnyUniqueAliasesT::M(alloc::boxed::Box::new(
                 self.any_unique_as_m()
-                    .expect("Invalid union table, expected `AnyUniqueAliases::M`.")
+                    .expect("Invalid union table, expected `super::AnyUniqueAliases::M`.")
                     .unpack()
             )),
-            AnyUniqueAliases::TS => AnyUniqueAliasesT::TS(alloc::boxed::Box::new(
+            super::AnyUniqueAliases::TS => super::AnyUniqueAliasesT::TS(alloc::boxed::Box::new(
                 self.any_unique_as_ts()
-                    .expect("Invalid union table, expected `AnyUniqueAliases::TS`.")
+                    .expect("Invalid union table, expected `super::AnyUniqueAliases::TS`.")
                     .unpack()
             )),
-            AnyUniqueAliases::M2 => AnyUniqueAliasesT::M2(alloc::boxed::Box::new(
+            super::AnyUniqueAliases::M2 => super::AnyUniqueAliasesT::M2(alloc::boxed::Box::new(
                 self.any_unique_as_m2()
-                    .expect("Invalid union table, expected `AnyUniqueAliases::M2`.")
+                    .expect("Invalid union table, expected `super::AnyUniqueAliases::M2`.")
                     .unpack()
             )),
-            _ => AnyUniqueAliasesT::NONE,
+            _ => super::AnyUniqueAliasesT::NONE,
         };
         let any_ambiguous = match self.any_ambiguous_type() {
-            AnyAmbiguousAliases::NONE => AnyAmbiguousAliasesT::NONE,
-            AnyAmbiguousAliases::M1 => AnyAmbiguousAliasesT::M1(alloc::boxed::Box::new(
+            super::AnyAmbiguousAliases::NONE => super::AnyAmbiguousAliasesT::NONE,
+            super::AnyAmbiguousAliases::M1 => super::AnyAmbiguousAliasesT::M1(alloc::boxed::Box::new(
                 self.any_ambiguous_as_m1()
-                    .expect("Invalid union table, expected `AnyAmbiguousAliases::M1`.")
+                    .expect("Invalid union table, expected `super::AnyAmbiguousAliases::M1`.")
                     .unpack()
             )),
-            AnyAmbiguousAliases::M2 => AnyAmbiguousAliasesT::M2(alloc::boxed::Box::new(
+            super::AnyAmbiguousAliases::M2 => super::AnyAmbiguousAliasesT::M2(alloc::boxed::Box::new(
                 self.any_ambiguous_as_m2()
-                    .expect("Invalid union table, expected `AnyAmbiguousAliases::M2`.")
+                    .expect("Invalid union table, expected `super::AnyAmbiguousAliases::M2`.")
                     .unpack()
             )),
-            AnyAmbiguousAliases::M3 => AnyAmbiguousAliasesT::M3(alloc::boxed::Box::new(
+            super::AnyAmbiguousAliases::M3 => super::AnyAmbiguousAliasesT::M3(alloc::boxed::Box::new(
                 self.any_ambiguous_as_m3()
-                    .expect("Invalid union table, expected `AnyAmbiguousAliases::M3`.")
+                    .expect("Invalid union table, expected `super::AnyAmbiguousAliases::M3`.")
                     .unpack()
             )),
-            _ => AnyAmbiguousAliasesT::NONE,
+            _ => super::AnyAmbiguousAliasesT::NONE,
         };
         let vector_of_enums = self.vector_of_enums().map(|x| {
             x.into_iter().collect()
@@ -393,11 +392,11 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn pos(&self) -> Option<&'a Vec3> {
+    pub fn pos(&self) -> Option<&'a super::Vec3> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<Vec3>(Monster::VT_POS, None)}
+        unsafe { self._tab.get::<super::Vec3>(Monster::VT_POS, None)}
     }
 
     #[inline]
@@ -444,19 +443,19 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn color(&self) -> Color {
+    pub fn color(&self) -> super::Color {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<Color>(Monster::VT_COLOR, Some(Color::Blue)).unwrap()}
+        unsafe { self._tab.get::<super::Color>(Monster::VT_COLOR, Some(super::Color::Blue)).unwrap()}
     }
 
     #[inline]
-    pub fn test_type(&self) -> Any {
+    pub fn test_type(&self) -> super::Any {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<Any>(Monster::VT_TEST_TYPE, Some(Any::NONE)).unwrap()}
+        unsafe { self._tab.get::<super::Any>(Monster::VT_TEST_TYPE, Some(super::Any::NONE)).unwrap()}
     }
 
     #[inline]
@@ -468,11 +467,11 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn test4(&self) -> Option<::flatbuffers::Vector<'a, Test>> {
+    pub fn test4(&self) -> Option<::flatbuffers::Vector<'a, super::Test>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST4, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, super::Test>>>(Monster::VT_TEST4, None)}
     }
 
     #[inline]
@@ -486,19 +485,19 @@ impl<'a> Monster<'a> {
     /// an example documentation comment: this will end up in the generated code
     /// multiline too
     #[inline]
-    pub fn testarrayoftables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Monster<'a>>>> {
+    pub fn testarrayoftables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Monster<'a>>>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Monster>>>>(Monster::VT_TESTARRAYOFTABLES, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Monster>>>>(Monster::VT_TESTARRAYOFTABLES, None)}
     }
 
     #[inline]
-    pub fn enemy(&self) -> Option<Monster<'a>> {
+    pub fn enemy(&self) -> Option<super::Monster<'a>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<Monster>>(Monster::VT_ENEMY, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<super::Monster>>(Monster::VT_ENEMY, None)}
     }
 
     #[inline]
@@ -509,22 +508,22 @@ impl<'a> Monster<'a> {
         unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTNESTEDFLATBUFFER, None)}
     }
 
-    pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
+    pub fn testnestedflatbuffer_nested_flatbuffer(&'a self) -> Option<super::Monster<'a>> {
         self.testnestedflatbuffer().map(|data| {
             use ::flatbuffers::Follow;
             // Safety:
             // Created from a valid Table for this object
             // Which contains a valid flatbuffer in this slot
-            unsafe { <::flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.bytes(), 0) }
+            unsafe { <::flatbuffers::ForwardsUOffset<super::Monster<'a>>>::follow(data.bytes(), 0) }
         })
     }
 
     #[inline]
-    pub fn testempty(&self) -> Option<Stat<'a>> {
+    pub fn testempty(&self) -> Option<super::Stat<'a>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<Stat>>(Monster::VT_TESTEMPTY, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<super::Stat>>(Monster::VT_TESTEMPTY, None)}
     }
 
     #[inline]
@@ -640,11 +639,11 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn testarrayofsortedstruct(&self) -> Option<::flatbuffers::Vector<'a, Ability>> {
+    pub fn testarrayofsortedstruct(&self) -> Option<::flatbuffers::Vector<'a, super::Ability>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, super::Ability>>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, None)}
     }
 
     #[inline]
@@ -656,11 +655,11 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn test5(&self) -> Option<::flatbuffers::Vector<'a, Test>> {
+    pub fn test5(&self) -> Option<::flatbuffers::Vector<'a, super::Test>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, Test>>>(Monster::VT_TEST5, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, super::Test>>>(Monster::VT_TEST5, None)}
     }
 
     #[inline]
@@ -680,19 +679,19 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn parent_namespace_test(&self) -> Option<super::InParentNamespace<'a>> {
+    pub fn parent_namespace_test(&self) -> Option<super::super::InParentNamespace<'a>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<super::InParentNamespace>>(Monster::VT_PARENT_NAMESPACE_TEST, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<super::super::InParentNamespace>>(Monster::VT_PARENT_NAMESPACE_TEST, None)}
     }
 
     #[inline]
-    pub fn vector_of_referrables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+    pub fn vector_of_referrables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Referrable<'a>>>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Referrable>>>>(Monster::VT_VECTOR_OF_REFERRABLES, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Referrable>>>>(Monster::VT_VECTOR_OF_REFERRABLES, None)}
     }
 
     #[inline]
@@ -712,11 +711,11 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn vector_of_strong_referrables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Referrable<'a>>>> {
+    pub fn vector_of_strong_referrables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Referrable<'a>>>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Referrable>>>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Referrable>>>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, None)}
     }
 
     #[inline]
@@ -752,11 +751,11 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn any_unique_type(&self) -> AnyUniqueAliases {
+    pub fn any_unique_type(&self) -> super::AnyUniqueAliases {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, Some(AnyUniqueAliases::NONE)).unwrap()}
+        unsafe { self._tab.get::<super::AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, Some(super::AnyUniqueAliases::NONE)).unwrap()}
     }
 
     #[inline]
@@ -768,11 +767,11 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn any_ambiguous_type(&self) -> AnyAmbiguousAliases {
+    pub fn any_ambiguous_type(&self) -> super::AnyAmbiguousAliases {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, Some(AnyAmbiguousAliases::NONE)).unwrap()}
+        unsafe { self._tab.get::<super::AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, Some(super::AnyAmbiguousAliases::NONE)).unwrap()}
     }
 
     #[inline]
@@ -784,19 +783,19 @@ impl<'a> Monster<'a> {
     }
 
     #[inline]
-    pub fn vector_of_enums(&self) -> Option<::flatbuffers::Vector<'a, Color>> {
+    pub fn vector_of_enums(&self) -> Option<::flatbuffers::Vector<'a, super::Color>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, super::Color>>>(Monster::VT_VECTOR_OF_ENUMS, None)}
     }
 
     #[inline]
-    pub fn signed_enum(&self) -> Race {
+    pub fn signed_enum(&self) -> super::Race {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<Race>(Monster::VT_SIGNED_ENUM, Some(Race::None)).unwrap()}
+        unsafe { self._tab.get::<super::Race>(Monster::VT_SIGNED_ENUM, Some(super::Race::None)).unwrap()}
     }
 
     #[inline]
@@ -807,46 +806,46 @@ impl<'a> Monster<'a> {
         unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, u8>>>(Monster::VT_TESTREQUIREDNESTEDFLATBUFFER, None)}
     }
 
-    pub fn testrequirednestedflatbuffer_nested_flatbuffer(&'a self) -> Option<Monster<'a>> {
+    pub fn testrequirednestedflatbuffer_nested_flatbuffer(&'a self) -> Option<super::Monster<'a>> {
         self.testrequirednestedflatbuffer().map(|data| {
             use ::flatbuffers::Follow;
             // Safety:
             // Created from a valid Table for this object
             // Which contains a valid flatbuffer in this slot
-            unsafe { <::flatbuffers::ForwardsUOffset<Monster<'a>>>::follow(data.bytes(), 0) }
+            unsafe { <::flatbuffers::ForwardsUOffset<super::Monster<'a>>>::follow(data.bytes(), 0) }
         })
     }
 
     #[inline]
-    pub fn scalar_key_sorted_tables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Stat<'a>>>> {
+    pub fn scalar_key_sorted_tables(&self) -> Option<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Stat<'a>>>> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Stat>>>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, None)}
+        unsafe { self._tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Stat>>>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, None)}
     }
 
     #[inline]
-    pub fn native_inline(&self) -> Option<&'a Test> {
+    pub fn native_inline(&self) -> Option<&'a super::Test> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<Test>(Monster::VT_NATIVE_INLINE, None)}
+        unsafe { self._tab.get::<super::Test>(Monster::VT_NATIVE_INLINE, None)}
     }
 
     #[inline]
-    pub fn long_enum_non_enum_default(&self) -> LongEnum {
+    pub fn long_enum_non_enum_default(&self) -> super::LongEnum {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<LongEnum>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, Some(Default::default())).unwrap()}
+        unsafe { self._tab.get::<super::LongEnum>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, Some(Default::default())).unwrap()}
     }
 
     #[inline]
-    pub fn long_enum_normal_default(&self) -> LongEnum {
+    pub fn long_enum_normal_default(&self) -> super::LongEnum {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self._tab.get::<LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, Some(LongEnum::LongOne)).unwrap()}
+        unsafe { self._tab.get::<super::LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, Some(super::LongEnum::LongOne)).unwrap()}
     }
 
     #[inline]
@@ -915,13 +914,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn test_as_monster(&self) -> Option<Monster<'a>> {
-        if self.test_type() == Any::Monster {
+    pub fn test_as_monster(&self) -> Option<super::Monster<'a>> {
+        if self.test_type() == super::Any::Monster {
             self.test().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { Monster::init_from_table(t) }
+                unsafe { super::Monster::init_from_table(t) }
             })
         } else {
             None
@@ -930,13 +929,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn test_as_test_simple_table_with_enum(&self) -> Option<TestSimpleTableWithEnum<'a>> {
-        if self.test_type() == Any::TestSimpleTableWithEnum {
+    pub fn test_as_test_simple_table_with_enum(&self) -> Option<super::TestSimpleTableWithEnum<'a>> {
+        if self.test_type() == super::Any::TestSimpleTableWithEnum {
             self.test().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { TestSimpleTableWithEnum::init_from_table(t) }
+                unsafe { super::TestSimpleTableWithEnum::init_from_table(t) }
             })
         } else {
             None
@@ -945,13 +944,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn test_as_my_game_example_2_monster(&self) -> Option<super::example_2::Monster<'a>> {
-        if self.test_type() == Any::MyGame_Example2_Monster {
+    pub fn test_as_my_game_example_2_monster(&self) -> Option<super::super::example_2::Monster<'a>> {
+        if self.test_type() == super::Any::MyGame_Example2_Monster {
             self.test().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { super::example_2::Monster::init_from_table(t) }
+                unsafe { super::super::example_2::Monster::init_from_table(t) }
             })
         } else {
             None
@@ -960,13 +959,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn any_unique_as_m(&self) -> Option<Monster<'a>> {
-        if self.any_unique_type() == AnyUniqueAliases::M {
+    pub fn any_unique_as_m(&self) -> Option<super::Monster<'a>> {
+        if self.any_unique_type() == super::AnyUniqueAliases::M {
             self.any_unique().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { Monster::init_from_table(t) }
+                unsafe { super::Monster::init_from_table(t) }
             })
         } else {
             None
@@ -975,13 +974,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn any_unique_as_ts(&self) -> Option<TestSimpleTableWithEnum<'a>> {
-        if self.any_unique_type() == AnyUniqueAliases::TS {
+    pub fn any_unique_as_ts(&self) -> Option<super::TestSimpleTableWithEnum<'a>> {
+        if self.any_unique_type() == super::AnyUniqueAliases::TS {
             self.any_unique().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { TestSimpleTableWithEnum::init_from_table(t) }
+                unsafe { super::TestSimpleTableWithEnum::init_from_table(t) }
             })
         } else {
             None
@@ -990,13 +989,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn any_unique_as_m2(&self) -> Option<super::example_2::Monster<'a>> {
-        if self.any_unique_type() == AnyUniqueAliases::M2 {
+    pub fn any_unique_as_m2(&self) -> Option<super::super::example_2::Monster<'a>> {
+        if self.any_unique_type() == super::AnyUniqueAliases::M2 {
             self.any_unique().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { super::example_2::Monster::init_from_table(t) }
+                unsafe { super::super::example_2::Monster::init_from_table(t) }
             })
         } else {
             None
@@ -1005,13 +1004,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn any_ambiguous_as_m1(&self) -> Option<Monster<'a>> {
-        if self.any_ambiguous_type() == AnyAmbiguousAliases::M1 {
+    pub fn any_ambiguous_as_m1(&self) -> Option<super::Monster<'a>> {
+        if self.any_ambiguous_type() == super::AnyAmbiguousAliases::M1 {
             self.any_ambiguous().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { Monster::init_from_table(t) }
+                unsafe { super::Monster::init_from_table(t) }
             })
         } else {
             None
@@ -1020,13 +1019,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn any_ambiguous_as_m2(&self) -> Option<Monster<'a>> {
-        if self.any_ambiguous_type() == AnyAmbiguousAliases::M2 {
+    pub fn any_ambiguous_as_m2(&self) -> Option<super::Monster<'a>> {
+        if self.any_ambiguous_type() == super::AnyAmbiguousAliases::M2 {
             self.any_ambiguous().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { Monster::init_from_table(t) }
+                unsafe { super::Monster::init_from_table(t) }
             })
         } else {
             None
@@ -1035,13 +1034,13 @@ impl<'a> Monster<'a> {
 
     #[inline]
     #[allow(non_snake_case)]
-    pub fn any_ambiguous_as_m3(&self) -> Option<Monster<'a>> {
-        if self.any_ambiguous_type() == AnyAmbiguousAliases::M3 {
+    pub fn any_ambiguous_as_m3(&self) -> Option<super::Monster<'a>> {
+        if self.any_ambiguous_type() == super::AnyAmbiguousAliases::M3 {
             self.any_ambiguous().map(|t| {
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid union in this slot
-                unsafe { Monster::init_from_table(t) }
+                unsafe { super::Monster::init_from_table(t) }
             })
         } else {
             None
@@ -1055,26 +1054,26 @@ impl ::flatbuffers::Verifiable for Monster<'_> {
         v: &mut ::flatbuffers::Verifier, pos: usize
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
-            .visit_field::<Vec3>("pos", Self::VT_POS, false)?
+            .visit_field::<super::Vec3>("pos", Self::VT_POS, false)?
             .visit_field::<i16>("mana", Self::VT_MANA, false)?
             .visit_field::<i16>("hp", Self::VT_HP, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<&str>>("name", Self::VT_NAME, true)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u8>>>("inventory", Self::VT_INVENTORY, false)?
-            .visit_field::<Color>("color", Self::VT_COLOR, false)?
-            .visit_union::<Any, _>("test_type", Self::VT_TEST_TYPE, "test", Self::VT_TEST, false, |key, v, pos| {
+            .visit_field::<super::Color>("color", Self::VT_COLOR, false)?
+            .visit_union::<super::Any, _>("test_type", Self::VT_TEST_TYPE, "test", Self::VT_TEST, false, |key, v, pos| {
                 match key {
-                    Any::Monster => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<Monster>>("Any::Monster", pos),
-                    Any::TestSimpleTableWithEnum => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<TestSimpleTableWithEnum>>("Any::TestSimpleTableWithEnum", pos),
-                    Any::MyGame_Example2_Monster => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::example_2::Monster>>("Any::MyGame_Example2_Monster", pos),
+                    super::Any::Monster => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::Monster>>("super::Any::Monster", pos),
+                    super::Any::TestSimpleTableWithEnum => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::TestSimpleTableWithEnum>>("super::Any::TestSimpleTableWithEnum", pos),
+                    super::Any::MyGame_Example2_Monster => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::super::example_2::Monster>>("super::Any::MyGame_Example2_Monster", pos),
                     _ => Ok(()),
                 }
             })?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, Test>>>("test4", Self::VT_TEST4, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, super::Test>>>("test4", Self::VT_TEST4, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<&'_ str>>>>("testarrayofstring", Self::VT_TESTARRAYOFSTRING, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<Monster>>>>("testarrayoftables", Self::VT_TESTARRAYOFTABLES, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<Monster>>("enemy", Self::VT_ENEMY, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<super::Monster>>>>("testarrayoftables", Self::VT_TESTARRAYOFTABLES, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<super::Monster>>("enemy", Self::VT_ENEMY, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u8>>>("testnestedflatbuffer", Self::VT_TESTNESTEDFLATBUFFER, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<Stat>>("testempty", Self::VT_TESTEMPTY, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<super::Stat>>("testempty", Self::VT_TESTEMPTY, false)?
             .visit_field::<bool>("testbool", Self::VT_TESTBOOL, false)?
             .visit_field::<i32>("testhashs32_fnv1", Self::VT_TESTHASHS32_FNV1, false)?
             .visit_field::<u32>("testhashu32_fnv1", Self::VT_TESTHASHU32_FNV1, false)?
@@ -1089,43 +1088,43 @@ impl ::flatbuffers::Verifiable for Monster<'_> {
             .visit_field::<f32>("testf2", Self::VT_TESTF2, false)?
             .visit_field::<f32>("testf3", Self::VT_TESTF3, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<&'_ str>>>>("testarrayofstring2", Self::VT_TESTARRAYOFSTRING2, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, Ability>>>("testarrayofsortedstruct", Self::VT_TESTARRAYOFSORTEDSTRUCT, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, super::Ability>>>("testarrayofsortedstruct", Self::VT_TESTARRAYOFSORTEDSTRUCT, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u8>>>("flex", Self::VT_FLEX, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, Test>>>("test5", Self::VT_TEST5, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, super::Test>>>("test5", Self::VT_TEST5, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, i64>>>("vector_of_longs", Self::VT_VECTOR_OF_LONGS, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, f64>>>("vector_of_doubles", Self::VT_VECTOR_OF_DOUBLES, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<super::InParentNamespace>>("parent_namespace_test", Self::VT_PARENT_NAMESPACE_TEST, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<Referrable>>>>("vector_of_referrables", Self::VT_VECTOR_OF_REFERRABLES, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<super::super::InParentNamespace>>("parent_namespace_test", Self::VT_PARENT_NAMESPACE_TEST, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<super::Referrable>>>>("vector_of_referrables", Self::VT_VECTOR_OF_REFERRABLES, false)?
             .visit_field::<u64>("single_weak_reference", Self::VT_SINGLE_WEAK_REFERENCE, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u64>>>("vector_of_weak_references", Self::VT_VECTOR_OF_WEAK_REFERENCES, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<Referrable>>>>("vector_of_strong_referrables", Self::VT_VECTOR_OF_STRONG_REFERRABLES, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<super::Referrable>>>>("vector_of_strong_referrables", Self::VT_VECTOR_OF_STRONG_REFERRABLES, false)?
             .visit_field::<u64>("co_owning_reference", Self::VT_CO_OWNING_REFERENCE, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u64>>>("vector_of_co_owning_references", Self::VT_VECTOR_OF_CO_OWNING_REFERENCES, false)?
             .visit_field::<u64>("non_owning_reference", Self::VT_NON_OWNING_REFERENCE, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u64>>>("vector_of_non_owning_references", Self::VT_VECTOR_OF_NON_OWNING_REFERENCES, false)?
-            .visit_union::<AnyUniqueAliases, _>("any_unique_type", Self::VT_ANY_UNIQUE_TYPE, "any_unique", Self::VT_ANY_UNIQUE, false, |key, v, pos| {
+            .visit_union::<super::AnyUniqueAliases, _>("any_unique_type", Self::VT_ANY_UNIQUE_TYPE, "any_unique", Self::VT_ANY_UNIQUE, false, |key, v, pos| {
                 match key {
-                    AnyUniqueAliases::M => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<Monster>>("AnyUniqueAliases::M", pos),
-                    AnyUniqueAliases::TS => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<TestSimpleTableWithEnum>>("AnyUniqueAliases::TS", pos),
-                    AnyUniqueAliases::M2 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::example_2::Monster>>("AnyUniqueAliases::M2", pos),
+                    super::AnyUniqueAliases::M => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::Monster>>("super::AnyUniqueAliases::M", pos),
+                    super::AnyUniqueAliases::TS => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::TestSimpleTableWithEnum>>("super::AnyUniqueAliases::TS", pos),
+                    super::AnyUniqueAliases::M2 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::super::example_2::Monster>>("super::AnyUniqueAliases::M2", pos),
                     _ => Ok(()),
                 }
             })?
-            .visit_union::<AnyAmbiguousAliases, _>("any_ambiguous_type", Self::VT_ANY_AMBIGUOUS_TYPE, "any_ambiguous", Self::VT_ANY_AMBIGUOUS, false, |key, v, pos| {
+            .visit_union::<super::AnyAmbiguousAliases, _>("any_ambiguous_type", Self::VT_ANY_AMBIGUOUS_TYPE, "any_ambiguous", Self::VT_ANY_AMBIGUOUS, false, |key, v, pos| {
                 match key {
-                    AnyAmbiguousAliases::M1 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<Monster>>("AnyAmbiguousAliases::M1", pos),
-                    AnyAmbiguousAliases::M2 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<Monster>>("AnyAmbiguousAliases::M2", pos),
-                    AnyAmbiguousAliases::M3 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<Monster>>("AnyAmbiguousAliases::M3", pos),
+                    super::AnyAmbiguousAliases::M1 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::Monster>>("super::AnyAmbiguousAliases::M1", pos),
+                    super::AnyAmbiguousAliases::M2 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::Monster>>("super::AnyAmbiguousAliases::M2", pos),
+                    super::AnyAmbiguousAliases::M3 => v.verify_union_variant::<::flatbuffers::ForwardsUOffset<super::Monster>>("super::AnyAmbiguousAliases::M3", pos),
                     _ => Ok(()),
                 }
             })?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, Color>>>("vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
-            .visit_field::<Race>("signed_enum", Self::VT_SIGNED_ENUM, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, super::Color>>>("vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
+            .visit_field::<super::Race>("signed_enum", Self::VT_SIGNED_ENUM, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u8>>>("testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<Stat>>>>("scalar_key_sorted_tables", Self::VT_SCALAR_KEY_SORTED_TABLES, false)?
-            .visit_field::<Test>("native_inline", Self::VT_NATIVE_INLINE, false)?
-            .visit_field::<LongEnum>("long_enum_non_enum_default", Self::VT_LONG_ENUM_NON_ENUM_DEFAULT, false)?
-            .visit_field::<LongEnum>("long_enum_normal_default", Self::VT_LONG_ENUM_NORMAL_DEFAULT, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<super::Stat>>>>("scalar_key_sorted_tables", Self::VT_SCALAR_KEY_SORTED_TABLES, false)?
+            .visit_field::<super::Test>("native_inline", Self::VT_NATIVE_INLINE, false)?
+            .visit_field::<super::LongEnum>("long_enum_non_enum_default", Self::VT_LONG_ENUM_NON_ENUM_DEFAULT, false)?
+            .visit_field::<super::LongEnum>("long_enum_normal_default", Self::VT_LONG_ENUM_NORMAL_DEFAULT, false)?
             .visit_field::<f32>("nan_default", Self::VT_NAN_DEFAULT, false)?
             .visit_field::<f32>("inf_default", Self::VT_INF_DEFAULT, false)?
             .visit_field::<f32>("positive_inf_default", Self::VT_POSITIVE_INF_DEFAULT, false)?
@@ -1140,20 +1139,20 @@ impl ::flatbuffers::Verifiable for Monster<'_> {
 }
 
 pub struct MonsterArgs<'a> {
-    pub pos: Option<&'a Vec3>,
+    pub pos: Option<&'a super::Vec3>,
     pub mana: i16,
     pub hp: i16,
     pub name: Option<::flatbuffers::WIPOffset<&'a str>>,
     pub inventory: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, u8>>>,
-    pub color: Color,
-    pub test_type: Any,
+    pub color: super::Color,
+    pub test_type: super::Any,
     pub test: Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>>,
-    pub test4: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, Test>>>,
+    pub test4: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, super::Test>>>,
     pub testarrayofstring: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<&'a str>>>>,
-    pub testarrayoftables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Monster<'a>>>>>,
-    pub enemy: Option<::flatbuffers::WIPOffset<Monster<'a>>>,
+    pub testarrayoftables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Monster<'a>>>>>,
+    pub enemy: Option<::flatbuffers::WIPOffset<super::Monster<'a>>>,
     pub testnestedflatbuffer: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, u8>>>,
-    pub testempty: Option<::flatbuffers::WIPOffset<Stat<'a>>>,
+    pub testempty: Option<::flatbuffers::WIPOffset<super::Stat<'a>>>,
     pub testbool: bool,
     pub testhashs32_fnv1: i32,
     pub testhashu32_fnv1: u32,
@@ -1168,31 +1167,31 @@ pub struct MonsterArgs<'a> {
     pub testf2: f32,
     pub testf3: f32,
     pub testarrayofstring2: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<&'a str>>>>,
-    pub testarrayofsortedstruct: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, Ability>>>,
+    pub testarrayofsortedstruct: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, super::Ability>>>,
     pub flex: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, u8>>>,
-    pub test5: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, Test>>>,
+    pub test5: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, super::Test>>>,
     pub vector_of_longs: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, i64>>>,
     pub vector_of_doubles: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, f64>>>,
-    pub parent_namespace_test: Option<::flatbuffers::WIPOffset<super::InParentNamespace<'a>>>,
-    pub vector_of_referrables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Referrable<'a>>>>>,
+    pub parent_namespace_test: Option<::flatbuffers::WIPOffset<super::super::InParentNamespace<'a>>>,
+    pub vector_of_referrables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Referrable<'a>>>>>,
     pub single_weak_reference: u64,
     pub vector_of_weak_references: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, u64>>>,
-    pub vector_of_strong_referrables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Referrable<'a>>>>>,
+    pub vector_of_strong_referrables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Referrable<'a>>>>>,
     pub co_owning_reference: u64,
     pub vector_of_co_owning_references: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, u64>>>,
     pub non_owning_reference: u64,
     pub vector_of_non_owning_references: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, u64>>>,
-    pub any_unique_type: AnyUniqueAliases,
+    pub any_unique_type: super::AnyUniqueAliases,
     pub any_unique: Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>>,
-    pub any_ambiguous_type: AnyAmbiguousAliases,
+    pub any_ambiguous_type: super::AnyAmbiguousAliases,
     pub any_ambiguous: Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>>,
-    pub vector_of_enums: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, Color>>>,
-    pub signed_enum: Race,
+    pub vector_of_enums: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, super::Color>>>,
+    pub signed_enum: super::Race,
     pub testrequirednestedflatbuffer: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, u8>>>,
-    pub scalar_key_sorted_tables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<Stat<'a>>>>>,
-    pub native_inline: Option<&'a Test>,
-    pub long_enum_non_enum_default: LongEnum,
-    pub long_enum_normal_default: LongEnum,
+    pub scalar_key_sorted_tables: Option<::flatbuffers::WIPOffset<::flatbuffers::Vector<'a, ::flatbuffers::ForwardsUOffset<super::Stat<'a>>>>>,
+    pub native_inline: Option<&'a super::Test>,
+    pub long_enum_non_enum_default: super::LongEnum,
+    pub long_enum_normal_default: super::LongEnum,
     pub nan_default: f32,
     pub inf_default: f32,
     pub positive_inf_default: f32,
@@ -1212,8 +1211,8 @@ impl<'a> Default for MonsterArgs<'a> {
             hp: 100,
             name: None, // required field
             inventory: None,
-            color: Color::Blue,
-            test_type: Any::NONE,
+            color: super::Color::Blue,
+            test_type: super::Any::NONE,
             test: None,
             test4: None,
             testarrayofstring: None,
@@ -1249,17 +1248,17 @@ impl<'a> Default for MonsterArgs<'a> {
             vector_of_co_owning_references: None,
             non_owning_reference: 0,
             vector_of_non_owning_references: None,
-            any_unique_type: AnyUniqueAliases::NONE,
+            any_unique_type: super::AnyUniqueAliases::NONE,
             any_unique: None,
-            any_ambiguous_type: AnyAmbiguousAliases::NONE,
+            any_ambiguous_type: super::AnyAmbiguousAliases::NONE,
             any_ambiguous: None,
             vector_of_enums: None,
-            signed_enum: Race::None,
+            signed_enum: super::Race::None,
             testrequirednestedflatbuffer: None,
             scalar_key_sorted_tables: None,
             native_inline: None,
             long_enum_non_enum_default: Default::default(),
-            long_enum_normal_default: LongEnum::LongOne,
+            long_enum_normal_default: super::LongEnum::LongOne,
             nan_default: f32::NAN,
             inf_default: f32::INFINITY,
             positive_inf_default: f32::INFINITY,
@@ -1294,20 +1293,20 @@ impl Serialize for Monster<'_> {
         s.serialize_field("color", &self.color())?;
         s.serialize_field("test_type", &self.test_type())?;
         match self.test_type() {
-            Any::NONE => (),
-                Any::Monster => {
+            super::Any::NONE => (),
+                super::Any::Monster => {
                     let f = self.test_as_monster()
-                        .expect("Invalid union table, expected `Any::Monster`.");
+                        .expect("Invalid union table, expected `super::Any::Monster`.");
                     s.serialize_field("test", &f)?;
                 }
-                Any::TestSimpleTableWithEnum => {
+                super::Any::TestSimpleTableWithEnum => {
                     let f = self.test_as_test_simple_table_with_enum()
-                        .expect("Invalid union table, expected `Any::TestSimpleTableWithEnum`.");
+                        .expect("Invalid union table, expected `super::Any::TestSimpleTableWithEnum`.");
                     s.serialize_field("test", &f)?;
                 }
-                Any::MyGame_Example2_Monster => {
+                super::Any::MyGame_Example2_Monster => {
                     let f = self.test_as_my_game_example_2_monster()
-                        .expect("Invalid union table, expected `Any::MyGame_Example2_Monster`.");
+                        .expect("Invalid union table, expected `super::Any::MyGame_Example2_Monster`.");
                     s.serialize_field("test", &f)?;
                 }
             _ => unimplemented!(),
@@ -1424,40 +1423,40 @@ impl Serialize for Monster<'_> {
         }
         s.serialize_field("any_unique_type", &self.any_unique_type())?;
         match self.any_unique_type() {
-            AnyUniqueAliases::NONE => (),
-                AnyUniqueAliases::M => {
+            super::AnyUniqueAliases::NONE => (),
+                super::AnyUniqueAliases::M => {
                     let f = self.any_unique_as_m()
-                        .expect("Invalid union table, expected `AnyUniqueAliases::M`.");
+                        .expect("Invalid union table, expected `super::AnyUniqueAliases::M`.");
                     s.serialize_field("any_unique", &f)?;
                 }
-                AnyUniqueAliases::TS => {
+                super::AnyUniqueAliases::TS => {
                     let f = self.any_unique_as_ts()
-                        .expect("Invalid union table, expected `AnyUniqueAliases::TS`.");
+                        .expect("Invalid union table, expected `super::AnyUniqueAliases::TS`.");
                     s.serialize_field("any_unique", &f)?;
                 }
-                AnyUniqueAliases::M2 => {
+                super::AnyUniqueAliases::M2 => {
                     let f = self.any_unique_as_m2()
-                        .expect("Invalid union table, expected `AnyUniqueAliases::M2`.");
+                        .expect("Invalid union table, expected `super::AnyUniqueAliases::M2`.");
                     s.serialize_field("any_unique", &f)?;
                 }
             _ => unimplemented!(),
         }
         s.serialize_field("any_ambiguous_type", &self.any_ambiguous_type())?;
         match self.any_ambiguous_type() {
-            AnyAmbiguousAliases::NONE => (),
-                AnyAmbiguousAliases::M1 => {
+            super::AnyAmbiguousAliases::NONE => (),
+                super::AnyAmbiguousAliases::M1 => {
                     let f = self.any_ambiguous_as_m1()
-                        .expect("Invalid union table, expected `AnyAmbiguousAliases::M1`.");
+                        .expect("Invalid union table, expected `super::AnyAmbiguousAliases::M1`.");
                     s.serialize_field("any_ambiguous", &f)?;
                 }
-                AnyAmbiguousAliases::M2 => {
+                super::AnyAmbiguousAliases::M2 => {
                     let f = self.any_ambiguous_as_m2()
-                        .expect("Invalid union table, expected `AnyAmbiguousAliases::M2`.");
+                        .expect("Invalid union table, expected `super::AnyAmbiguousAliases::M2`.");
                     s.serialize_field("any_ambiguous", &f)?;
                 }
-                AnyAmbiguousAliases::M3 => {
+                super::AnyAmbiguousAliases::M3 => {
                     let f = self.any_ambiguous_as_m3()
-                        .expect("Invalid union table, expected `AnyAmbiguousAliases::M3`.");
+                        .expect("Invalid union table, expected `super::AnyAmbiguousAliases::M3`.");
                     s.serialize_field("any_ambiguous", &f)?;
                 }
             _ => unimplemented!(),
@@ -1504,8 +1503,8 @@ pub struct MonsterBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
 
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     #[inline]
-    pub fn add_pos(&mut self, pos: &Vec3) {
-        self.fbb_.push_slot_always::<&Vec3>(Monster::VT_POS, pos);
+    pub fn add_pos(&mut self, pos: &super::Vec3) {
+        self.fbb_.push_slot_always::<&super::Vec3>(Monster::VT_POS, pos);
     }
 
     #[inline]
@@ -1529,13 +1528,13 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_color(&mut self, color: Color) {
-        self.fbb_.push_slot::<Color>(Monster::VT_COLOR, color, Color::Blue);
+    pub fn add_color(&mut self, color: super::Color) {
+        self.fbb_.push_slot::<super::Color>(Monster::VT_COLOR, color, super::Color::Blue);
     }
 
     #[inline]
-    pub fn add_test_type(&mut self, test_type: Any) {
-        self.fbb_.push_slot::<Any>(Monster::VT_TEST_TYPE, test_type, Any::NONE);
+    pub fn add_test_type(&mut self, test_type: super::Any) {
+        self.fbb_.push_slot::<super::Any>(Monster::VT_TEST_TYPE, test_type, super::Any::NONE);
     }
 
     #[inline]
@@ -1544,7 +1543,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_test4(&mut self, test4: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , Test>>) {
+    pub fn add_test4(&mut self, test4: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , super::Test>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_TEST4, test4);
     }
 
@@ -1554,13 +1553,13 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_testarrayoftables(&mut self, testarrayoftables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<Monster<'b >>>>) {
+    pub fn add_testarrayoftables(&mut self, testarrayoftables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<super::Monster<'b >>>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_TESTARRAYOFTABLES, testarrayoftables);
     }
 
     #[inline]
-    pub fn add_enemy(&mut self, enemy: ::flatbuffers::WIPOffset<Monster<'b >>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<Monster>>(Monster::VT_ENEMY, enemy);
+    pub fn add_enemy(&mut self, enemy: ::flatbuffers::WIPOffset<super::Monster<'b >>) {
+        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::Monster>>(Monster::VT_ENEMY, enemy);
     }
 
     #[inline]
@@ -1569,8 +1568,8 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_testempty(&mut self, testempty: ::flatbuffers::WIPOffset<Stat<'b >>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<Stat>>(Monster::VT_TESTEMPTY, testempty);
+    pub fn add_testempty(&mut self, testempty: ::flatbuffers::WIPOffset<super::Stat<'b >>) {
+        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::Stat>>(Monster::VT_TESTEMPTY, testempty);
     }
 
     #[inline]
@@ -1644,7 +1643,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_testarrayofsortedstruct(&mut self, testarrayofsortedstruct: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , Ability>>) {
+    pub fn add_testarrayofsortedstruct(&mut self, testarrayofsortedstruct: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , super::Ability>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_TESTARRAYOFSORTEDSTRUCT, testarrayofsortedstruct);
     }
 
@@ -1654,7 +1653,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_test5(&mut self, test5: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , Test>>) {
+    pub fn add_test5(&mut self, test5: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , super::Test>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_TEST5, test5);
     }
 
@@ -1669,12 +1668,12 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_parent_namespace_test(&mut self, parent_namespace_test: ::flatbuffers::WIPOffset<super::InParentNamespace<'b >>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::InParentNamespace>>(Monster::VT_PARENT_NAMESPACE_TEST, parent_namespace_test);
+    pub fn add_parent_namespace_test(&mut self, parent_namespace_test: ::flatbuffers::WIPOffset<super::super::InParentNamespace<'b >>) {
+        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::super::InParentNamespace>>(Monster::VT_PARENT_NAMESPACE_TEST, parent_namespace_test);
     }
 
     #[inline]
-    pub fn add_vector_of_referrables(&mut self, vector_of_referrables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<Referrable<'b >>>>) {
+    pub fn add_vector_of_referrables(&mut self, vector_of_referrables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<super::Referrable<'b >>>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_REFERRABLES, vector_of_referrables);
     }
 
@@ -1689,7 +1688,7 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_vector_of_strong_referrables(&mut self, vector_of_strong_referrables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<Referrable<'b >>>>) {
+    pub fn add_vector_of_strong_referrables(&mut self, vector_of_strong_referrables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<super::Referrable<'b >>>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_STRONG_REFERRABLES, vector_of_strong_referrables);
     }
 
@@ -1714,8 +1713,8 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_any_unique_type(&mut self, any_unique_type: AnyUniqueAliases) {
-        self.fbb_.push_slot::<AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, any_unique_type, AnyUniqueAliases::NONE);
+    pub fn add_any_unique_type(&mut self, any_unique_type: super::AnyUniqueAliases) {
+        self.fbb_.push_slot::<super::AnyUniqueAliases>(Monster::VT_ANY_UNIQUE_TYPE, any_unique_type, super::AnyUniqueAliases::NONE);
     }
 
     #[inline]
@@ -1724,8 +1723,8 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_any_ambiguous_type(&mut self, any_ambiguous_type: AnyAmbiguousAliases) {
-        self.fbb_.push_slot::<AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, any_ambiguous_type, AnyAmbiguousAliases::NONE);
+    pub fn add_any_ambiguous_type(&mut self, any_ambiguous_type: super::AnyAmbiguousAliases) {
+        self.fbb_.push_slot::<super::AnyAmbiguousAliases>(Monster::VT_ANY_AMBIGUOUS_TYPE, any_ambiguous_type, super::AnyAmbiguousAliases::NONE);
     }
 
     #[inline]
@@ -1734,13 +1733,13 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_vector_of_enums(&mut self, vector_of_enums: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , Color>>) {
+    pub fn add_vector_of_enums(&mut self, vector_of_enums: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , super::Color>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
     }
 
     #[inline]
-    pub fn add_signed_enum(&mut self, signed_enum: Race) {
-        self.fbb_.push_slot::<Race>(Monster::VT_SIGNED_ENUM, signed_enum, Race::None);
+    pub fn add_signed_enum(&mut self, signed_enum: super::Race) {
+        self.fbb_.push_slot::<super::Race>(Monster::VT_SIGNED_ENUM, signed_enum, super::Race::None);
     }
 
     #[inline]
@@ -1749,23 +1748,23 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> MonsterBuilder<'a, 'b, A> {
     }
 
     #[inline]
-    pub fn add_scalar_key_sorted_tables(&mut self, scalar_key_sorted_tables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<Stat<'b >>>>) {
+    pub fn add_scalar_key_sorted_tables(&mut self, scalar_key_sorted_tables: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , ::flatbuffers::ForwardsUOffset<super::Stat<'b >>>>) {
         self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Monster::VT_SCALAR_KEY_SORTED_TABLES, scalar_key_sorted_tables);
     }
 
     #[inline]
-    pub fn add_native_inline(&mut self, native_inline: &Test) {
-        self.fbb_.push_slot_always::<&Test>(Monster::VT_NATIVE_INLINE, native_inline);
+    pub fn add_native_inline(&mut self, native_inline: &super::Test) {
+        self.fbb_.push_slot_always::<&super::Test>(Monster::VT_NATIVE_INLINE, native_inline);
     }
 
     #[inline]
-    pub fn add_long_enum_non_enum_default(&mut self, long_enum_non_enum_default: LongEnum) {
-        self.fbb_.push_slot::<LongEnum>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, long_enum_non_enum_default, Default::default());
+    pub fn add_long_enum_non_enum_default(&mut self, long_enum_non_enum_default: super::LongEnum) {
+        self.fbb_.push_slot::<super::LongEnum>(Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT, long_enum_non_enum_default, Default::default());
     }
 
     #[inline]
-    pub fn add_long_enum_normal_default(&mut self, long_enum_normal_default: LongEnum) {
-        self.fbb_.push_slot::<LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, long_enum_normal_default, LongEnum::LongOne);
+    pub fn add_long_enum_normal_default(&mut self, long_enum_normal_default: super::LongEnum) {
+        self.fbb_.push_slot::<super::LongEnum>(Monster::VT_LONG_ENUM_NORMAL_DEFAULT, long_enum_normal_default, super::LongEnum::LongOne);
     }
 
     #[inline]
@@ -1836,21 +1835,21 @@ impl ::core::fmt::Debug for Monster<'_> {
         ds.field("color", &self.color());
         ds.field("test_type", &self.test_type());
         match self.test_type() {
-            Any::Monster => {
+            super::Any::Monster => {
                 if let Some(x) = self.test_as_monster() {
                     ds.field("test", &x)
                 } else {
                     ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
                 }
             },
-            Any::TestSimpleTableWithEnum => {
+            super::Any::TestSimpleTableWithEnum => {
                 if let Some(x) = self.test_as_test_simple_table_with_enum() {
                     ds.field("test", &x)
                 } else {
                     ds.field("test", &"InvalidFlatbuffer: Union discriminant does not match value.")
                 }
             },
-            Any::MyGame_Example2_Monster => {
+            super::Any::MyGame_Example2_Monster => {
                 if let Some(x) = self.test_as_my_game_example_2_monster() {
                     ds.field("test", &x)
                 } else {
@@ -1898,21 +1897,21 @@ impl ::core::fmt::Debug for Monster<'_> {
         ds.field("vector_of_non_owning_references", &self.vector_of_non_owning_references());
         ds.field("any_unique_type", &self.any_unique_type());
         match self.any_unique_type() {
-            AnyUniqueAliases::M => {
+            super::AnyUniqueAliases::M => {
                 if let Some(x) = self.any_unique_as_m() {
                     ds.field("any_unique", &x)
                 } else {
                     ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
                 }
             },
-            AnyUniqueAliases::TS => {
+            super::AnyUniqueAliases::TS => {
                 if let Some(x) = self.any_unique_as_ts() {
                     ds.field("any_unique", &x)
                 } else {
                     ds.field("any_unique", &"InvalidFlatbuffer: Union discriminant does not match value.")
                 }
             },
-            AnyUniqueAliases::M2 => {
+            super::AnyUniqueAliases::M2 => {
                 if let Some(x) = self.any_unique_as_m2() {
                     ds.field("any_unique", &x)
                 } else {
@@ -1926,21 +1925,21 @@ impl ::core::fmt::Debug for Monster<'_> {
         };
         ds.field("any_ambiguous_type", &self.any_ambiguous_type());
         match self.any_ambiguous_type() {
-            AnyAmbiguousAliases::M1 => {
+            super::AnyAmbiguousAliases::M1 => {
                 if let Some(x) = self.any_ambiguous_as_m1() {
                     ds.field("any_ambiguous", &x)
                 } else {
                     ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
                 }
             },
-            AnyAmbiguousAliases::M2 => {
+            super::AnyAmbiguousAliases::M2 => {
                 if let Some(x) = self.any_ambiguous_as_m2() {
                     ds.field("any_ambiguous", &x)
                 } else {
                     ds.field("any_ambiguous", &"InvalidFlatbuffer: Union discriminant does not match value.")
                 }
             },
-            AnyAmbiguousAliases::M3 => {
+            super::AnyAmbiguousAliases::M3 => {
                 if let Some(x) = self.any_ambiguous_as_m3() {
                     ds.field("any_ambiguous", &x)
                 } else {
@@ -1974,19 +1973,19 @@ impl ::core::fmt::Debug for Monster<'_> {
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
-    pub pos: Option<Vec3T>,
+    pub pos: Option<super::Vec3T>,
     pub mana: i16,
     pub hp: i16,
     pub name: alloc::string::String,
     pub inventory: Option<alloc::vec::Vec<u8>>,
-    pub color: Color,
-    pub test: AnyT,
-    pub test4: Option<alloc::vec::Vec<TestT>>,
+    pub color: super::Color,
+    pub test: super::AnyT,
+    pub test4: Option<alloc::vec::Vec<super::TestT>>,
     pub testarrayofstring: Option<alloc::vec::Vec<alloc::string::String>>,
-    pub testarrayoftables: Option<alloc::vec::Vec<MonsterT>>,
-    pub enemy: Option<alloc::boxed::Box<MonsterT>>,
+    pub testarrayoftables: Option<alloc::vec::Vec<super::MonsterT>>,
+    pub enemy: Option<alloc::boxed::Box<super::MonsterT>>,
     pub testnestedflatbuffer: Option<alloc::vec::Vec<u8>>,
-    pub testempty: Option<alloc::boxed::Box<StatT>>,
+    pub testempty: Option<alloc::boxed::Box<super::StatT>>,
     pub testbool: bool,
     pub testhashs32_fnv1: i32,
     pub testhashu32_fnv1: u32,
@@ -2001,29 +2000,29 @@ pub struct MonsterT {
     pub testf2: f32,
     pub testf3: f32,
     pub testarrayofstring2: Option<alloc::vec::Vec<alloc::string::String>>,
-    pub testarrayofsortedstruct: Option<alloc::vec::Vec<AbilityT>>,
+    pub testarrayofsortedstruct: Option<alloc::vec::Vec<super::AbilityT>>,
     pub flex: Option<alloc::vec::Vec<u8>>,
-    pub test5: Option<alloc::vec::Vec<TestT>>,
+    pub test5: Option<alloc::vec::Vec<super::TestT>>,
     pub vector_of_longs: Option<alloc::vec::Vec<i64>>,
     pub vector_of_doubles: Option<alloc::vec::Vec<f64>>,
-    pub parent_namespace_test: Option<alloc::boxed::Box<super::InParentNamespaceT>>,
-    pub vector_of_referrables: Option<alloc::vec::Vec<ReferrableT>>,
+    pub parent_namespace_test: Option<alloc::boxed::Box<super::super::InParentNamespaceT>>,
+    pub vector_of_referrables: Option<alloc::vec::Vec<super::ReferrableT>>,
     pub single_weak_reference: u64,
     pub vector_of_weak_references: Option<alloc::vec::Vec<u64>>,
-    pub vector_of_strong_referrables: Option<alloc::vec::Vec<ReferrableT>>,
+    pub vector_of_strong_referrables: Option<alloc::vec::Vec<super::ReferrableT>>,
     pub co_owning_reference: u64,
     pub vector_of_co_owning_references: Option<alloc::vec::Vec<u64>>,
     pub non_owning_reference: u64,
     pub vector_of_non_owning_references: Option<alloc::vec::Vec<u64>>,
-    pub any_unique: AnyUniqueAliasesT,
-    pub any_ambiguous: AnyAmbiguousAliasesT,
-    pub vector_of_enums: Option<alloc::vec::Vec<Color>>,
-    pub signed_enum: Race,
+    pub any_unique: super::AnyUniqueAliasesT,
+    pub any_ambiguous: super::AnyAmbiguousAliasesT,
+    pub vector_of_enums: Option<alloc::vec::Vec<super::Color>>,
+    pub signed_enum: super::Race,
     pub testrequirednestedflatbuffer: Option<alloc::vec::Vec<u8>>,
-    pub scalar_key_sorted_tables: Option<alloc::vec::Vec<StatT>>,
-    pub native_inline: Option<TestT>,
-    pub long_enum_non_enum_default: LongEnum,
-    pub long_enum_normal_default: LongEnum,
+    pub scalar_key_sorted_tables: Option<alloc::vec::Vec<super::StatT>>,
+    pub native_inline: Option<super::TestT>,
+    pub long_enum_non_enum_default: super::LongEnum,
+    pub long_enum_normal_default: super::LongEnum,
     pub nan_default: f32,
     pub inf_default: f32,
     pub positive_inf_default: f32,
@@ -2042,8 +2041,8 @@ impl Default for MonsterT {
             hp: 100,
             name: alloc::string::ToString::to_string(""),
             inventory: None,
-            color: Color::Blue,
-            test: AnyT::NONE,
+            color: super::Color::Blue,
+            test: super::AnyT::NONE,
             test4: None,
             testarrayofstring: None,
             testarrayoftables: None,
@@ -2078,15 +2077,15 @@ impl Default for MonsterT {
             vector_of_co_owning_references: None,
             non_owning_reference: 0,
             vector_of_non_owning_references: None,
-            any_unique: AnyUniqueAliasesT::NONE,
-            any_ambiguous: AnyAmbiguousAliasesT::NONE,
+            any_unique: super::AnyUniqueAliasesT::NONE,
+            any_ambiguous: super::AnyAmbiguousAliasesT::NONE,
             vector_of_enums: None,
-            signed_enum: Race::None,
+            signed_enum: super::Race::None,
             testrequirednestedflatbuffer: None,
             scalar_key_sorted_tables: None,
             native_inline: None,
             long_enum_non_enum_default: Default::default(),
-            long_enum_normal_default: LongEnum::LongOne,
+            long_enum_normal_default: super::LongEnum::LongOne,
             nan_default: f32::NAN,
             inf_default: f32::INFINITY,
             positive_inf_default: f32::INFINITY,

@@ -1,7 +1,7 @@
 #[allow(dead_code, unused_imports)]
 #[path = "../../monster_test_serialize/mod.rs"]
 mod monster_test_serialize_generated;
-pub use monster_test_serialize_generated::my_game;
+pub use monster_test_serialize_generated::*;
 
 use crate::my_game::example::AnyAmbiguousAliases;
 use std::collections::HashMap;
