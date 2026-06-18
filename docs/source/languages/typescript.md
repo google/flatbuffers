@@ -17,7 +17,7 @@ documentation to build `flatc` and should be familiar with
 ## FlatBuffers TypeScript library code location
 
 The code for the FlatBuffers TypeScript library can be found at
-https://www.npmjs.com/package/flatbuffers.
+<https://www.npmjs.com/package/flatbuffers>.
 
 ## Testing the FlatBuffers TypeScript library
 
