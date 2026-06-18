@@ -79,8 +79,11 @@ impl<B: Buffer> MapReader<B> {
     // Using &CStr will eagerly compute the length of the key. &str needs length info AND utf8
     // validation. This version is faster than both.
     fn lazy_strcmp(&self, key_addr: usize, key: &str) -> Ordering {
-        // TODO: Can we know this won't OOB and panic?
-        let k = self.buffer[key_addr..].iter().take_while(|&&b| b != b'\0');
+        let tail = match self.buffer.get(key_addr..) {
+            Some(s) => s,
+            None => return Ordering::Less,
+        };
+        let k = tail.iter().take_while(|&&b| b != b'\0');
         k.cmp(key.as_bytes().iter())
     }
 
@@ -89,7 +92,9 @@ impl<B: Buffer> MapReader<B> {
         let (mut low, mut high) = (0, self.length);
         while low < high {
             let i = (low + high) / 2;
-            let key_offset_address = self.keys_address + i * self.keys_width.n_bytes();
+            let key_offset_address = i
+                .checked_mul(self.keys_width.n_bytes())
+                .and_then(|offset| self.keys_address.checked_add(offset))?;
             let key_address =
                 deref_offset(&self.buffer, key_offset_address, self.keys_width).ok()?;
             match self.lazy_strcmp(key_address, key) {
@@ -115,8 +120,19 @@ impl<B: Buffer> MapReader<B> {
         if i >= self.length {
             return Err(Error::IndexOutOfBounds);
         }
-        let data_address = self.values_address + self.values_width.n_bytes() * i;
-        let type_address = self.values_address + self.values_width.n_bytes() * self.length + i;
+        let data_address = self
+            .values_width
+            .n_bytes()
+            .checked_mul(i)
+            .and_then(|offset| self.values_address.checked_add(offset))
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        let type_address = self
+            .values_width
+            .n_bytes()
+            .checked_mul(self.length)
+            .and_then(|offset| self.values_address.checked_add(offset))
+            .and_then(|addr| addr.checked_add(i))
+            .ok_or(Error::FlexbufferOutOfBounds)?;
         let (fxb_type, width) = self
             .buffer
             .get(type_address)
