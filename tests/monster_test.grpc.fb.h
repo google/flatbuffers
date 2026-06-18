@@ -84,8 +84,8 @@ class MonsterStorage final {
     virtual ::grpc::ClientReaderWriterInterface< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* GetMinMaxHitPointsRaw(::grpc::ClientContext* context) = 0;
     virtual ::grpc::ClientAsyncReaderWriterInterface< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* AsyncGetMinMaxHitPointsRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncReaderWriterInterface< flatbuffers::grpc::Message<Monster>, flatbuffers::grpc::Message<Stat>>* PrepareAsyncGetMinMaxHitPointsRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
-  class CallbackService;
   };
+  class CallbackService;
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
