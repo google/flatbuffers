@@ -763,7 +763,11 @@ class JavaGenerator : public BaseGenerator {
           code += "\"); }\n";
         }
       }
+    } else {
+      // Generate the static final field 'BYTES' for struct
+      code += "  public static final int BYTES = " + std::to_string(struct_def.bytesize) + ";\n";
     }
+
     // Generate the __init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
     code += "  public void __init(int _i, ByteBuffer _bb) ";
