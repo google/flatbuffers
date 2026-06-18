@@ -468,6 +468,17 @@ class ResizeContext {
     auto mask = static_cast<int>(sizeof(largest_scalar_t) - 1);
     delta_ = (delta_ + mask) & ~mask;
     if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
+    // Bounds-check the resize range BEFORE rewriting any offsets, so that a
+    // refusal leaves the buffer untouched (never partially mutated). When
+    // shrinking (delta_ < 0) the first erased index is `start + delta_`; if it
+    // underflows below 0, std::vector::erase would memmove to a destination
+    // before the allocation -> out-of-bounds write (CWE-787). This is reachable
+    // from SetString() when a string is longer than its own byte offset + 4.
+    // Reject such a request instead of corrupting the heap.
+    if (static_cast<size_t>(start) > buf_.size() ||
+        (delta_ < 0 && static_cast<int64_t>(start) + delta_ < 0)) {
+      return;
+    }
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(buf_.data());
     Straddle<uoffset_t, 1>(buf_.data(), root, buf_.data());
