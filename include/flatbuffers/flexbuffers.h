@@ -1910,15 +1910,30 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return Check((o & (size - 1)) == 0 || !check_alignment_);
   }
 
-// Macro, since we want to escape from parent function & use lazy args.
-#define FLEX_CHECK_VERIFIED(P, PACKED_TYPE)                     \
-  if (reuse_tracker_) {                                         \
-    auto packed_type = PACKED_TYPE;                             \
-    auto existing = (*reuse_tracker_)[P - buf_];                \
-    if (existing == packed_type) return true;                   \
-    /* Fail verification if already set with different type! */ \
-    if (!Check(existing == 0)) return false;                    \
-    (*reuse_tracker_)[P - buf_] = packed_type;                  \
+  enum class ReuseCheck {
+    Verify,
+    AlreadyVerified,
+    Failed,
+  };
+
+  ReuseCheck StartVerifyReuse(const uint8_t* p, uint8_t packed_type) {
+    if (!reuse_tracker_) return ReuseCheck::Verify;
+
+    auto& existing = (*reuse_tracker_)[p - buf_];
+    if (existing == packed_type) return ReuseCheck::AlreadyVerified;
+    // Fail verification if this location is currently being verified, or if
+    // it was already verified as a different type.
+    if (!Check(existing == 0)) return ReuseCheck::Failed;
+    existing = kReuseTrackerInProgress;
+    return ReuseCheck::Verify;
+  }
+
+  void EndVerifyReuse(const uint8_t* p, uint8_t packed_type) {
+    if (reuse_tracker_) (*reuse_tracker_)[p - buf_] = packed_type;
+  }
+
+  void ResetVerifyReuse(const uint8_t* p) {
+    if (reuse_tracker_) (*reuse_tracker_)[p - buf_] = 0;
   }
 
   bool VerifyVector(Reference r, const uint8_t* p, Type elem_type) {
@@ -1926,37 +1941,77 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // here, both with simple nesting checks, and the reuse tracker if on.
     depth_++;
     num_vectors_++;
-    if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_))
+    if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_)) {
+      depth_--;
       return false;
+    }
     auto size_byte_width = r.byte_width_;
-    if (!VerifyBeforePointer(p, size_byte_width)) return false;
-    FLEX_CHECK_VERIFIED(p - size_byte_width,
-                        PackedType(Builder::WidthB(size_byte_width), r.type_));
+    if (!VerifyBeforePointer(p, size_byte_width)) {
+      depth_--;
+      return false;
+    }
+    auto reuse_position = p - size_byte_width;
+    auto packed_type = PackedType(Builder::WidthB(size_byte_width), r.type_);
+    switch (StartVerifyReuse(reuse_position, packed_type)) {
+      case ReuseCheck::AlreadyVerified:
+        depth_--;
+        return true;
+      case ReuseCheck::Failed:
+        depth_--;
+        return false;
+      case ReuseCheck::Verify:
+        break;
+    }
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
                                ? uint8_t(1)
                                : r.byte_width_;
     auto max_elems = SIZE_MAX / elem_byte_width;
-    if (!Check(num_elems < max_elems))
+    if (!Check(num_elems < max_elems)) {
+      ResetVerifyReuse(reuse_position);
+      depth_--;
       return false;  // Protect against byte_size overflowing.
+    }
     auto byte_size = num_elems * elem_byte_width;
-    if (!VerifyFromPointer(p, byte_size)) return false;
+    if (!VerifyFromPointer(p, byte_size)) {
+      ResetVerifyReuse(reuse_position);
+      depth_--;
+      return false;
+    }
+    bool ok = true;
     if (elem_type == FBT_NULL) {
       // Verify type bytes after the vector.
-      if (!VerifyFromPointer(p + byte_size, num_elems)) return false;
+      if (!VerifyFromPointer(p + byte_size, num_elems)) {
+        ResetVerifyReuse(reuse_position);
+        depth_--;
+        return false;
+      }
       auto v = Vector(p, size_byte_width);
-      for (size_t i = 0; i < num_elems; i++)
-        if (!VerifyRef(v[i])) return false;
+      for (size_t i = 0; i < num_elems; i++) {
+        if (!VerifyRef(v[i])) {
+          ok = false;
+          break;
+        }
+      }
     } else if (elem_type == FBT_KEY) {
       auto v = TypedVector(p, elem_byte_width, FBT_KEY);
-      for (size_t i = 0; i < num_elems; i++)
-        if (!VerifyRef(v[i])) return false;
+      for (size_t i = 0; i < num_elems; i++) {
+        if (!VerifyRef(v[i])) {
+          ok = false;
+          break;
+        }
+      }
     } else {
       FLATBUFFERS_ASSERT(IsInline(elem_type));
     }
+    if (ok) {
+      EndVerifyReuse(reuse_position, packed_type);
+    } else {
+      ResetVerifyReuse(reuse_position);
+    }
     depth_--;
-    return true;
+    return ok;
   }
 
   bool VerifyKeys(const uint8_t* p, uint8_t byte_width) {
@@ -1974,13 +2029,25 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyKey(const uint8_t* p) {
-    FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
-    while (p < buf_ + size_)
-      if (!*p++) return true;
+    auto packed_type = PackedType(BIT_WIDTH_8, FBT_KEY);
+    auto reuse_position = p;
+    switch (StartVerifyReuse(reuse_position, packed_type)) {
+      case ReuseCheck::AlreadyVerified:
+        return true;
+      case ReuseCheck::Failed:
+        return false;
+      case ReuseCheck::Verify:
+        break;
+    }
+    while (p < buf_ + size_) {
+      if (!*p++) {
+        EndVerifyReuse(reuse_position, packed_type);
+        return true;
+      }
+    }
+    ResetVerifyReuse(reuse_position);
     return false;
   }
-
-#undef FLEX_CHECK_VERIFIED
 
   bool VerifyTerminator(const String& s) {
     return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
@@ -2067,6 +2134,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   const size_t max_vectors_;
   bool check_alignment_;
   std::vector<uint8_t>* reuse_tracker_;
+
+  static const uint8_t kReuseTrackerInProgress = 0xFF;
 };
 
 // Utility function that constructs the Verifier for you, see above for
