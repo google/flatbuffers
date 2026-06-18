@@ -3126,8 +3126,10 @@ CheckedError Parser::StartEnum(const std::string& name, bool is_union,
   enum_def.is_union = is_union;
   enum_def.defined_namespace = current_namespace_;
   const auto qualified_name = current_namespace_->GetFullyQualifiedName(name);
-  if (enums_.Add(qualified_name, &enum_def))
+  if (enums_.Add(qualified_name, &enum_def)) {
+    delete &enum_def;
     return Error("enum already exists: " + qualified_name);
+  }
   enum_def.underlying_type.base_type =
       is_union ? BASE_TYPE_UTYPE : BASE_TYPE_INT;
   enum_def.underlying_type.enum_def = &enum_def;
