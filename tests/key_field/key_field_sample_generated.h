@@ -598,6 +598,9 @@ struct FooTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int KeyCompareWithValue(const char *_c) const {
     return strcmp(c()->c_str(), _c);
   }
+  int KeyCompareWithValue(char *_c) const {
+    return KeyCompareWithValue(static_cast<const char *>(_c));
+  }
   template<typename StringType>
   int KeyCompareWithValue(const StringType& _c) const {
     if (c()->c_str() < _c) return -1;
