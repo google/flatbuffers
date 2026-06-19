@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -692,6 +692,10 @@ class FlatBufferBuilderImpl {
   void StartVector(size_t len, size_t elemsize, size_t alignment) {
     NotNested();
     nested = true;
+    if (len > 0 && elemsize > (static_cast<size_t>(-1) / len)) {
+      FLATBUFFERS_ASSERT(false && "Integer overflow");
+      return;
+    }
     // Align to the Length type of the vector (either 32-bit or 64-bit), so
     // that the length of the buffer can be added without padding.
     PreAlign<LenT>(len * elemsize);
@@ -713,6 +717,10 @@ class FlatBufferBuilderImpl {
                             const size_t alignment) {
     if (len == 0) return;
     FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
+    if (len > 0 && elemsize > (static_cast<size_t>(-1) / len)) {
+      FLATBUFFERS_ASSERT(false && "Integer overflow");
+      return;
+    }
     PreAlign(len * elemsize, alignment);
   }
 
@@ -733,6 +741,10 @@ class FlatBufferBuilderImpl {
   // Similar to ForceVectorAlignment but for String fields.
   void ForceStringAlignment(size_t len, size_t alignment) {
     if (len == 0) return;
+    if (len == static_cast<size_t>(-1)) {
+      FLATBUFFERS_ASSERT(false && "Integer overflow in ForceStringAlignment");
+      return;
+    }
     FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
     PreAlign((len + 1) * sizeof(char), alignment);
   }
@@ -906,6 +918,10 @@ class FlatBufferBuilderImpl {
     auto distance = std::distance(begin, end);
     FLATBUFFERS_ASSERT(distance >= 0);
     auto size = static_cast<size_t>(distance);
+    if (size > 0 && sizeof(Offset<String>) > (static_cast<size_t>(-1) / size)) {
+      FLATBUFFERS_ASSERT(false && "Integer overflow");
+      return 0;
+    }
     auto scratch_buffer_usage = size * sizeof(Offset<String>);
     // If there is not enough space to store the offsets, there definitely won't
     // be enough space to store all the strings. So ensuring space for the
@@ -1196,8 +1212,13 @@ class FlatBufferBuilderImpl {
   uoffset_t CreateUninitializedVector(size_t len, size_t elemsize,
                                       size_t alignment, uint8_t** buf) {
     NotNested();
+    if (len > 0 && elemsize > (static_cast<size_t>(-1) / len)) {
+      FLATBUFFERS_ASSERT(false && "Integer overflow");
+      return 0;
+    }
+    size_t total_size = len * elemsize;
     StartVector(len, elemsize, alignment);
-    buf_.make_space(len * elemsize);
+    buf_.make_space(total_size);
     const uoffset_t vec_start = GetSizeRelative32BitRegion();
     auto vec_end = EndVector(len);
     *buf = buf_.data_at(vec_start);
@@ -1342,10 +1363,10 @@ class FlatBufferBuilderImpl {
   //
   // [    Complete FlatBuffer     ]
   // [32-bit region][64-bit region]
-  //               ^              ^
-  //               |              Tail of the buffer.
-  //               |
-  //               Tail of the 32-bit region of the buffer.
+  //                ^             ^
+  //                |             Tail of the buffer.
+  //                |
+  //                Tail of the 32-bit region of the buffer.
   //
   // This keeps track of the size of the 64-bit region so that the tail of the
   // 32-bit region can be calculated as `GetSize() - length_of_64_bit_region_`.
@@ -1421,8 +1442,13 @@ class FlatBufferBuilderImpl {
   // Must be completed with EndVectorOfStructs().
   template <typename T, template <typename> class OffsetT = Offset>
   T* StartVectorOfStructs(size_t vector_size) {
+    if (vector_size > 0 && sizeof(T) > (static_cast<size_t>(-1) / vector_size)) {
+      FLATBUFFERS_ASSERT(false && "Integer overflow");
+      return nullptr;
+    }
+    size_t total_size = vector_size * sizeof(T);
     StartVector<OffsetT>(vector_size, sizeof(T), AlignOf<T>());
-    return reinterpret_cast<T*>(buf_.make_space(vector_size * sizeof(T)));
+    return reinterpret_cast<T*>(buf_.make_space(total_size));
   }
 
   // End the vector of structures in the flatbuffers.
