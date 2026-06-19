@@ -24,6 +24,16 @@ namespace flatbuffers {
 
 namespace {
 
+// Returns nullptr if the index is out of range.
+static const reflection::Object* GetObjectByIndex(
+    const reflection::Schema& schema, int32_t index) {
+  if (index < 0 ||
+      static_cast<uint32_t>(index) >= schema.objects()->size()) {
+    return nullptr;
+  }
+  return schema.objects()->Get(static_cast<uint32_t>(index));
+}
+
 static void CopyInline(FlatBufferBuilder& fbb,
                        const reflection::Field& fielddef, const Table& table,
                        size_t align, size_t size) {
@@ -677,9 +687,9 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         break;
       }
       case reflection::Obj: {
-        auto& subobjectdef = *schema.objects()->Get(fielddef.type()->index());
-        if (!subobjectdef.is_struct()) {
-          offset = CopyTable(fbb, schema, subobjectdef,
+        auto* subobjectdef = GetObjectByIndex(schema, fielddef.type()->index());
+        if (subobjectdef && !subobjectdef->is_struct()) {
+          offset = CopyTable(fbb, schema, *subobjectdef,
                              *GetFieldT(table, fielddef), use_string_pooling)
                        .o;
         }
@@ -698,7 +708,7 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         auto element_base_type = fielddef.type()->element();
         auto elemobjectdef =
             element_base_type == reflection::Obj
-                ? schema.objects()->Get(fielddef.type()->index())
+                ? GetObjectByIndex(schema, fielddef.type()->index())
                 : nullptr;
         switch (element_base_type) {
           case reflection::String: {
@@ -754,10 +764,10 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
     auto base_type = fielddef.type()->base_type();
     switch (base_type) {
       case reflection::Obj: {
-        auto& subobjectdef = *schema.objects()->Get(fielddef.type()->index());
-        if (subobjectdef.is_struct()) {
-          CopyInline(fbb, fielddef, table, subobjectdef.minalign(),
-                     subobjectdef.bytesize());
+        auto* subobjectdef = GetObjectByIndex(schema, fielddef.type()->index());
+        if (subobjectdef && subobjectdef->is_struct()) {
+          CopyInline(fbb, fielddef, table, subobjectdef->minalign(),
+                     subobjectdef->bytesize());
           break;
         }
       }
