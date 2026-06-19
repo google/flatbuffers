@@ -4421,14 +4421,24 @@ bool Definition::DeserializeAttributes(
 /* DESERIALIZATION                                                      */
 /************************************************************************/
 bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
+  if (!buf) return false;
+
   flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(buf), size);
+  const size_t file_identifier_offset = sizeof(flatbuffers::uoffset_t);
+  const size_t size_prefixed_file_identifier_offset =
+      2 * sizeof(flatbuffers::uoffset_t);
+  const bool has_schema_identifier =
+      size >= file_identifier_offset + flatbuffers::kFileIdentifierLength &&
+      reflection::SchemaBufferHasIdentifier(buf);
+  const bool has_size_prefixed_schema_identifier =
+      size >= size_prefixed_file_identifier_offset +
+                  flatbuffers::kFileIdentifierLength &&
+      flatbuffers::BufferHasIdentifier(buf, reflection::SchemaIdentifier(),
+                                       true);
   bool size_prefixed = false;
-  if (!reflection::SchemaBufferHasIdentifier(buf)) {
-    if (!flatbuffers::BufferHasIdentifier(buf, reflection::SchemaIdentifier(),
-                                          true))
-      return false;
-    else
-      size_prefixed = true;
+  if (!has_schema_identifier) {
+    if (!has_size_prefixed_schema_identifier) return false;
+    size_prefixed = true;
   }
   auto verify_fn = size_prefixed
                        ? &reflection::VerifySizePrefixedSchemaBuffer<false>
