@@ -1197,7 +1197,12 @@ class FlatBufferBuilderImpl {
                                       size_t alignment, uint8_t** buf) {
     NotNested();
     StartVector(len, elemsize, alignment);
-    buf_.make_space(len * elemsize);
+    size_t total_size = 0;
+    if (__builtin_mul_overflow(len, elemsize, &total_size)) {
+        FLATBUFFERS_ASSERT(false && "Integer overflow");
+        return 0;
+    }
+    buf_.make_space(total_size);
     const uoffset_t vec_start = GetSizeRelative32BitRegion();
     auto vec_end = EndVector(len);
     *buf = buf_.data_at(vec_start);
@@ -1422,7 +1427,12 @@ class FlatBufferBuilderImpl {
   template <typename T, template <typename> class OffsetT = Offset>
   T* StartVectorOfStructs(size_t vector_size) {
     StartVector<OffsetT>(vector_size, sizeof(T), AlignOf<T>());
-    return reinterpret_cast<T*>(buf_.make_space(vector_size * sizeof(T)));
+    size_t total_size = 0;
+    if (__builtin_mul_overflow(vector_size, sizeof(T), &total_size)) {
+        FLATBUFFERS_ASSERT(false && "Integer overflow");
+        return nullptr;
+    }
+    return reinterpret_cast<T*>(buf_.make_space(total_size));
   }
 
   // End the vector of structures in the flatbuffers.
