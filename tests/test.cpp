@@ -1290,6 +1290,25 @@ void NestedVerifierTest() {
   }
 }
 
+struct AlwaysValidRoot {
+  bool Verify(flatbuffers::Verifier&) const { return true; }
+};
+
+void SizePrefixedLengthOverflowTest() {
+  // Craft a 64-bit size-prefixed buffer whose length field overflows when
+  // adding sizeof(SizeT), which must not be accepted.
+  const uint8_t crafted[] = {
+      0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  // size prefix
+      0x01, 0x00, 0x00, 0x00,                          // non-zero root offset
+  };
+
+  flatbuffers::Verifier verifier(crafted, sizeof(crafted));
+  const bool verified =
+      verifier.VerifySizePrefixedBuffer<AlwaysValidRoot,
+                                        flatbuffers::uoffset64_t>(nullptr);
+  TEST_EQ(verified, false);
+}
+
 void SizeVerifierTest() {
   // Create a monster.
   flatbuffers::FlatBufferBuilder builder;
@@ -1849,6 +1868,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersIteratorsTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
+  SizePrefixedLengthOverflowTest();
   SizeVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
