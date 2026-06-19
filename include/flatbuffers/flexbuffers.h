@@ -598,6 +598,7 @@ class Reference {
   void ToString(bool strings_quoted, bool keys_quoted, std::string& s,
                 bool indented, int cur_indent, const char* indent_string,
                 bool natural_utf8 = false) const {
+    static constexpr int kToStringMaxDepth = 64;
     if (type_ == FBT_STRING) {
       String str(Indirect(), byte_width_);
       if (strings_quoted) {
@@ -623,6 +624,10 @@ class Reference {
       s += "null";
     } else if (IsBool()) {
       s += AsBool() ? "true" : "false";
+    } else if ((IsMap() || IsVector() || IsTypedVector() ||
+                IsFixedTypedVector()) &&
+               cur_indent >= kToStringMaxDepth) {
+      s += "...";
     } else if (IsMap()) {
       s += "{";
       s += indented ? "\n" : " ";
