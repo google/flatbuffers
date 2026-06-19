@@ -110,13 +110,27 @@ export class Builder {
   }
 
   private writeBlob(arrayBuffer: ArrayBuffer) {
-    const length = arrayBuffer.byteLength;
+    this.writeBlobBytes(new Uint8Array(arrayBuffer));
+  }
+
+  private writeBlobView(arrayBufferView: ArrayBufferView) {
+    this.writeBlobBytes(
+      new Uint8Array(
+        arrayBufferView.buffer,
+        arrayBufferView.byteOffset,
+        arrayBufferView.byteLength,
+      ),
+    );
+  }
+
+  private writeBlobBytes(bytes: Uint8Array) {
+    const length = bytes.byteLength;
     const bitWidth = uwidth(length);
     const byteWidth = this.align(bitWidth);
     this.writeUInt(length, byteWidth);
     const blobOffset = this.offset;
     const newOffset = this.computeOffset(length);
-    new Uint8Array(this.buffer).set(new Uint8Array(arrayBuffer), blobOffset);
+    new Uint8Array(this.buffer).set(bytes, blobOffset);
     this.stack.push(
       this.offsetStackValue(blobOffset, ValueType.BLOB, bitWidth),
     );
@@ -524,7 +538,7 @@ export class Builder {
         this.stack.push(this.floatStackValue(value));
       }
     } else if (ArrayBuffer.isView(value)) {
-      this.writeBlob(value.buffer);
+      this.writeBlobView(value);
     } else if (typeof value === 'string' || value instanceof String) {
       this.writeString(value as string);
     } else if (Array.isArray(value)) {
