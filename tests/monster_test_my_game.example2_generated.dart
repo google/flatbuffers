@@ -48,6 +48,13 @@ class MonsterT implements fb.Packable {
   String toString() {
     return 'MonsterT{}';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is MonsterT;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
 }
 
 class _MonsterReader extends fb.TableReader<Monster> {

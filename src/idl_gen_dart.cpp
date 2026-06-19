@@ -595,7 +595,70 @@ class DartGenerator : public BaseGenerator {
     code += "\n";
     code += GenToString(object_type, non_deprecated_fields);
 
+    if (parser_.opts.gen_compare) {
+      code += GenCompareOperator(object_type, non_deprecated_fields);
+    }
+
     code += "}\n\n";
+    return code;
+  }
+
+  std::string GenCompareOperator(
+      const std::string& object_type,
+      const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields) {
+    std::string code;
+    const size_t num_fields = non_deprecated_fields.size();
+    code += "\n";
+    code += "  @override\n";
+
+    if (num_fields == 0) {
+      code += "  bool operator ==(Object other) =>\n";
+      code += "      identical(this, other) || other is " + object_type + ";\n";
+    } else {
+      code += "  bool operator ==(Object other) {\n";
+      code += "    if (identical(this, other)) return true;\n";
+      code += "    if (other is! " + object_type + ") return false;\n";
+      auto eq_it = non_deprecated_fields.begin();
+      code += "    return " + namer_.Field(*eq_it->second) + " == other." +
+              namer_.Field(*eq_it->second);
+      for (++eq_it; eq_it != non_deprecated_fields.end(); ++eq_it) {
+        const std::string field_name = namer_.Field(*eq_it->second);
+        code += " &&\n        " + field_name + " == other." + field_name;
+      }
+      code += ";\n";
+      code += "  }\n";
+    }
+
+    code += "\n";
+    code += "  @override\n";
+
+    if (num_fields == 0) {
+      code += "  int get hashCode => runtimeType.hashCode;\n";
+    } else if (num_fields == 1) {
+      const std::string field_name =
+          namer_.Field(*non_deprecated_fields[0].second);
+      code += "  int get hashCode => " + field_name + ".hashCode;\n";
+    } else if (num_fields <= 20) {
+      code += "  int get hashCode => Object.hash(\n";
+      for (auto it = non_deprecated_fields.begin();
+           it != non_deprecated_fields.end(); ++it) {
+        const std::string field_name = namer_.Field(*it->second);
+        code += "      " + field_name;
+        if (std::next(it) != non_deprecated_fields.end()) code += ",";
+        code += "\n";
+      }
+      code += "  );\n";
+    } else {
+      code += "  int get hashCode => Object.hashAll([\n";
+      for (auto it = non_deprecated_fields.begin();
+           it != non_deprecated_fields.end(); ++it) {
+        const std::string field_name = namer_.Field(*it->second);
+        code += "      " + field_name;
+        if (std::next(it) != non_deprecated_fields.end()) code += ",";
+        code += "\n";
+      }
+      code += "  ]);\n";
+    }
     return code;
   }
 

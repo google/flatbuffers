@@ -282,6 +282,20 @@ class TestT implements fb.Packable {
   String toString() {
     return 'TestT{a: ${a}, b: ${b}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! TestT) return false;
+    return a == other.a &&
+        b == other.b;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      a,
+      b
+  );
 }
 
 class _TestReader extends fb.StructReader<Test> {
@@ -382,6 +396,16 @@ class TestSimpleTableWithEnumT implements fb.Packable {
   String toString() {
     return 'TestSimpleTableWithEnumT{color: ${color}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! TestSimpleTableWithEnumT) return false;
+    return color == other.color;
+  }
+
+  @override
+  int get hashCode => color.hashCode;
 }
 
 class _TestSimpleTableWithEnumReader extends fb.TableReader<TestSimpleTableWithEnum> {
@@ -503,6 +527,28 @@ class Vec3T implements fb.Packable {
   String toString() {
     return 'Vec3T{x: ${x}, y: ${y}, z: ${z}, test1: ${test1}, test2: ${test2}, test3: ${test3}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Vec3T) return false;
+    return x == other.x &&
+        y == other.y &&
+        z == other.z &&
+        test1 == other.test1 &&
+        test2 == other.test2 &&
+        test3 == other.test3;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      x,
+      y,
+      z,
+      test1,
+      test2,
+      test3
+  );
 }
 
 class _Vec3Reader extends fb.StructReader<Vec3> {
@@ -627,6 +673,20 @@ class AbilityT implements fb.Packable {
   String toString() {
     return 'AbilityT{id: ${id}, distance: ${distance}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AbilityT) return false;
+    return id == other.id &&
+        distance == other.distance;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      distance
+  );
 }
 
 class _AbilityReader extends fb.StructReader<Ability> {
@@ -730,6 +790,22 @@ class StructOfStructsT implements fb.Packable {
   String toString() {
     return 'StructOfStructsT{a: ${a}, b: ${b}, c: ${c}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! StructOfStructsT) return false;
+    return a == other.a &&
+        b == other.b &&
+        c == other.c;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      a,
+      b,
+      c
+  );
 }
 
 class _StructOfStructsReader extends fb.StructReader<StructOfStructs> {
@@ -828,6 +904,16 @@ class StructOfStructsOfStructsT implements fb.Packable {
   String toString() {
     return 'StructOfStructsOfStructsT{a: ${a}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! StructOfStructsOfStructsT) return false;
+    return a == other.a;
+  }
+
+  @override
+  int get hashCode => a.hashCode;
 }
 
 class _StructOfStructsOfStructsReader extends fb.StructReader<StructOfStructsOfStructs> {
@@ -933,6 +1019,22 @@ class StatT implements fb.Packable {
   String toString() {
     return 'StatT{id: ${id}, val: ${val}, count: ${count}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! StatT) return false;
+    return id == other.id &&
+        val == other.val &&
+        count == other.count;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      val,
+      count
+  );
 }
 
 class _StatReader extends fb.TableReader<Stat> {
@@ -1049,6 +1151,16 @@ class ReferrableT implements fb.Packable {
   String toString() {
     return 'ReferrableT{id: ${id}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ReferrableT) return false;
+    return id == other.id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 class _ReferrableReader extends fb.TableReader<Referrable> {
@@ -1535,6 +1647,138 @@ class MonsterT implements fb.Packable {
   String toString() {
     return 'MonsterT{pos: ${pos}, mana: ${mana}, hp: ${hp}, name: ${name}, inventory: ${inventory}, color: ${color}, testType: ${testType}, test: ${test}, test4: ${test4}, testarrayofstring: ${testarrayofstring}, testarrayoftables: ${testarrayoftables}, enemy: ${enemy}, testnestedflatbuffer: ${testnestedflatbuffer}, testempty: ${testempty}, testbool: ${testbool}, testhashs32Fnv1: ${testhashs32Fnv1}, testhashu32Fnv1: ${testhashu32Fnv1}, testhashs64Fnv1: ${testhashs64Fnv1}, testhashu64Fnv1: ${testhashu64Fnv1}, testhashs32Fnv1a: ${testhashs32Fnv1a}, testhashu32Fnv1a: ${testhashu32Fnv1a}, testhashs64Fnv1a: ${testhashs64Fnv1a}, testhashu64Fnv1a: ${testhashu64Fnv1a}, testarrayofbools: ${testarrayofbools}, testf: ${testf}, testf2: ${testf2}, testf3: ${testf3}, testarrayofstring2: ${testarrayofstring2}, testarrayofsortedstruct: ${testarrayofsortedstruct}, flex: ${flex}, test5: ${test5}, vectorOfLongs: ${vectorOfLongs}, vectorOfDoubles: ${vectorOfDoubles}, parentNamespaceTest: ${parentNamespaceTest}, vectorOfReferrables: ${vectorOfReferrables}, singleWeakReference: ${singleWeakReference}, vectorOfWeakReferences: ${vectorOfWeakReferences}, vectorOfStrongReferrables: ${vectorOfStrongReferrables}, coOwningReference: ${coOwningReference}, vectorOfCoOwningReferences: ${vectorOfCoOwningReferences}, nonOwningReference: ${nonOwningReference}, vectorOfNonOwningReferences: ${vectorOfNonOwningReferences}, anyUniqueType: ${anyUniqueType}, anyUnique: ${anyUnique}, anyAmbiguousType: ${anyAmbiguousType}, anyAmbiguous: ${anyAmbiguous}, vectorOfEnums: ${vectorOfEnums}, signedEnum: ${signedEnum}, testrequirednestedflatbuffer: ${testrequirednestedflatbuffer}, scalarKeySortedTables: ${scalarKeySortedTables}, nativeInline: ${nativeInline}, longEnumNonEnumDefault: ${longEnumNonEnumDefault}, longEnumNormalDefault: ${longEnumNormalDefault}, nanDefault: ${nanDefault}, infDefault: ${infDefault}, positiveInfDefault: ${positiveInfDefault}, infinityDefault: ${infinityDefault}, positiveInfinityDefault: ${positiveInfinityDefault}, negativeInfDefault: ${negativeInfDefault}, negativeInfinityDefault: ${negativeInfinityDefault}, doubleInfDefault: ${doubleInfDefault}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! MonsterT) return false;
+    return pos == other.pos &&
+        mana == other.mana &&
+        hp == other.hp &&
+        name == other.name &&
+        inventory == other.inventory &&
+        color == other.color &&
+        testType == other.testType &&
+        test == other.test &&
+        test4 == other.test4 &&
+        testarrayofstring == other.testarrayofstring &&
+        testarrayoftables == other.testarrayoftables &&
+        enemy == other.enemy &&
+        testnestedflatbuffer == other.testnestedflatbuffer &&
+        testempty == other.testempty &&
+        testbool == other.testbool &&
+        testhashs32Fnv1 == other.testhashs32Fnv1 &&
+        testhashu32Fnv1 == other.testhashu32Fnv1 &&
+        testhashs64Fnv1 == other.testhashs64Fnv1 &&
+        testhashu64Fnv1 == other.testhashu64Fnv1 &&
+        testhashs32Fnv1a == other.testhashs32Fnv1a &&
+        testhashu32Fnv1a == other.testhashu32Fnv1a &&
+        testhashs64Fnv1a == other.testhashs64Fnv1a &&
+        testhashu64Fnv1a == other.testhashu64Fnv1a &&
+        testarrayofbools == other.testarrayofbools &&
+        testf == other.testf &&
+        testf2 == other.testf2 &&
+        testf3 == other.testf3 &&
+        testarrayofstring2 == other.testarrayofstring2 &&
+        testarrayofsortedstruct == other.testarrayofsortedstruct &&
+        flex == other.flex &&
+        test5 == other.test5 &&
+        vectorOfLongs == other.vectorOfLongs &&
+        vectorOfDoubles == other.vectorOfDoubles &&
+        parentNamespaceTest == other.parentNamespaceTest &&
+        vectorOfReferrables == other.vectorOfReferrables &&
+        singleWeakReference == other.singleWeakReference &&
+        vectorOfWeakReferences == other.vectorOfWeakReferences &&
+        vectorOfStrongReferrables == other.vectorOfStrongReferrables &&
+        coOwningReference == other.coOwningReference &&
+        vectorOfCoOwningReferences == other.vectorOfCoOwningReferences &&
+        nonOwningReference == other.nonOwningReference &&
+        vectorOfNonOwningReferences == other.vectorOfNonOwningReferences &&
+        anyUniqueType == other.anyUniqueType &&
+        anyUnique == other.anyUnique &&
+        anyAmbiguousType == other.anyAmbiguousType &&
+        anyAmbiguous == other.anyAmbiguous &&
+        vectorOfEnums == other.vectorOfEnums &&
+        signedEnum == other.signedEnum &&
+        testrequirednestedflatbuffer == other.testrequirednestedflatbuffer &&
+        scalarKeySortedTables == other.scalarKeySortedTables &&
+        nativeInline == other.nativeInline &&
+        longEnumNonEnumDefault == other.longEnumNonEnumDefault &&
+        longEnumNormalDefault == other.longEnumNormalDefault &&
+        nanDefault == other.nanDefault &&
+        infDefault == other.infDefault &&
+        positiveInfDefault == other.positiveInfDefault &&
+        infinityDefault == other.infinityDefault &&
+        positiveInfinityDefault == other.positiveInfinityDefault &&
+        negativeInfDefault == other.negativeInfDefault &&
+        negativeInfinityDefault == other.negativeInfinityDefault &&
+        doubleInfDefault == other.doubleInfDefault;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+      pos,
+      mana,
+      hp,
+      name,
+      inventory,
+      color,
+      testType,
+      test,
+      test4,
+      testarrayofstring,
+      testarrayoftables,
+      enemy,
+      testnestedflatbuffer,
+      testempty,
+      testbool,
+      testhashs32Fnv1,
+      testhashu32Fnv1,
+      testhashs64Fnv1,
+      testhashu64Fnv1,
+      testhashs32Fnv1a,
+      testhashu32Fnv1a,
+      testhashs64Fnv1a,
+      testhashu64Fnv1a,
+      testarrayofbools,
+      testf,
+      testf2,
+      testf3,
+      testarrayofstring2,
+      testarrayofsortedstruct,
+      flex,
+      test5,
+      vectorOfLongs,
+      vectorOfDoubles,
+      parentNamespaceTest,
+      vectorOfReferrables,
+      singleWeakReference,
+      vectorOfWeakReferences,
+      vectorOfStrongReferrables,
+      coOwningReference,
+      vectorOfCoOwningReferences,
+      nonOwningReference,
+      vectorOfNonOwningReferences,
+      anyUniqueType,
+      anyUnique,
+      anyAmbiguousType,
+      anyAmbiguous,
+      vectorOfEnums,
+      signedEnum,
+      testrequirednestedflatbuffer,
+      scalarKeySortedTables,
+      nativeInline,
+      longEnumNonEnumDefault,
+      longEnumNormalDefault,
+      nanDefault,
+      infDefault,
+      positiveInfDefault,
+      infinityDefault,
+      positiveInfinityDefault,
+      negativeInfDefault,
+      negativeInfinityDefault,
+      doubleInfDefault
+  ]);
 }
 
 class _MonsterReader extends fb.TableReader<Monster> {
@@ -2224,6 +2468,40 @@ class TypeAliasesT implements fb.Packable {
   String toString() {
     return 'TypeAliasesT{i8: ${i8}, u8: ${u8}, i16: ${i16}, u16: ${u16}, i32: ${i32}, u32: ${u32}, i64: ${i64}, u64: ${u64}, f32: ${f32}, f64: ${f64}, v8: ${v8}, vf64: ${vf64}}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! TypeAliasesT) return false;
+    return i8 == other.i8 &&
+        u8 == other.u8 &&
+        i16 == other.i16 &&
+        u16 == other.u16 &&
+        i32 == other.i32 &&
+        u32 == other.u32 &&
+        i64 == other.i64 &&
+        u64 == other.u64 &&
+        f32 == other.f32 &&
+        f64 == other.f64 &&
+        v8 == other.v8 &&
+        vf64 == other.vf64;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      i8,
+      u8,
+      i16,
+      u16,
+      i32,
+      u32,
+      i64,
+      u64,
+      f32,
+      f64,
+      v8,
+      vf64
+  );
 }
 
 class _TypeAliasesReader extends fb.TableReader<TypeAliases> {
