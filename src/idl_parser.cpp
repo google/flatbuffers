@@ -2815,11 +2815,15 @@ bool Parser::SupportsDefaultVectorsAndStrings() const {
 }
 
 bool Parser::SupportsAdvancedUnionFeatures() const {
+  // NOTE: kRust added as part of #5024 (vectors of unions). The Rust
+  // generator now emits read-side accessors for `[Union]` fields and
+  // scaffolds the write side; see RUST_VECTORS_OF_UNIONS_DESIGN.md.
   return (opts.lang_to_generate &
           ~(IDLOptions::kCpp | IDLOptions::kTs | IDLOptions::kPhp |
             IDLOptions::kJava | IDLOptions::kCSharp | IDLOptions::kKotlin |
             IDLOptions::kBinary | IDLOptions::kSwift | IDLOptions::kNim |
-            IDLOptions::kJson | IDLOptions::kKotlinKmp)) == 0;
+            IDLOptions::kJson | IDLOptions::kKotlinKmp | IDLOptions::kRust)) ==
+         0;
 }
 
 bool Parser::SupportsAdvancedArrayFeatures() const {

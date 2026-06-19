@@ -211,10 +211,16 @@ static FullType GetFullType(const Type& type) {
       case ftEnumKey: {
         return ftVectorOfEnumKey;
       }
-      case ftUnionKey:
+      case ftUnionKey: {
+        // [Union] schema fields cause the parser to auto-generate a
+        // parallel `<field>_type` vector-of-discriminants. Treat its
+        // element as a regular enum key so existing `Vec<EnumKey>`
+        // code paths handle it (the type vector is a plain Vec<u8>
+        // tagged with the union's enum_def).
+        return ftVectorOfEnumKey;
+      }
       case ftUnionValue: {
-        FLATBUFFERS_ASSERT(false && "vectors of unions are unsupported");
-        break;
+        return ftVectorOfUnionValue;
       }
       default: {
         FLATBUFFERS_ASSERT(false && "vector of vectors are unsupported");
@@ -1327,8 +1333,13 @@ class RustGenerator : public BaseGenerator {
         break;
       }
       case ftVectorOfUnionValue: {
-        FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
-        return "INVALID_CODE_GENERATION";  // OH NO!
+        // Native object type: a `Vec` of the owned-object union enum.
+        // The `<EnumName>T` type already exists for single-union
+        // fields; we reuse it. Pack/unpack is currently a TODO stub
+        // (see #5024 / RUST_VECTORS_OF_UNIONS_DESIGN.md).
+        ty = "alloc::vec::Vec<" +
+             NamespacedNativeName(*type.VectorType().enum_def) + ">";
+        break;
       }
       case ftArrayOfEnum: {
         ty = "[" + WrapInNameSpace(*type.VectorType().enum_def) + "; " +
@@ -1547,10 +1558,15 @@ class RustGenerator : public BaseGenerator {
                           " str>>");
       }
       case ftVectorOfUnionValue: {
-        FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
-        // TODO(rw): when we do support these, we should consider using the
-        //           Into trait to convert tables to typesafe union values.
-        return "INVALID_CODE_GENERATION";  // for return analysis
+        // Read accessor returns the raw value vector. Per-variant
+        // typed access is generated separately as
+        // `<field>_as_<variant>(i)` further below; the per-element
+        // discriminant comes from the auto-generated `<field>_type()`
+        // accessor that the parser created for us. See #5024.
+        return WrapOption("::flatbuffers::Vector<" + lifetime +
+                          ", ::flatbuffers::ForwardsUOffset<"
+                          "::flatbuffers::Table<" +
+                          lifetime + ">>>");
       }
       case ftArrayOfEnum:
       case ftArrayOfStruct:
@@ -1621,8 +1637,12 @@ class RustGenerator : public BaseGenerator {
             WrapVector(WrapForwardsUOffset("&" + lifetime + " str")));
       }
       case ftVectorOfUnionValue: {
-        FLATBUFFERS_ASSERT(false && "vectors of unions are not yet supported");
-        return "INVALID_CODE_GENERATION";  // for return analysis
+        // Vectors of unions are stored on the wire as a vector of
+        // ForwardsUOffset<Table>; the per-element discriminant lives in
+        // the parallel `<field>_type` vector emitted automatically by
+        // the parser. See #5024 / RUST_VECTORS_OF_UNIONS_DESIGN.md.
+        return WrapForwardsUOffset(WrapVector(WrapForwardsUOffset(
+            "::flatbuffers::Table<" + lifetime + ">")));
       }
       case ftArrayOfEnum: {
         const auto typname = WrapInNameSpace(*type.VectorType().enum_def);
@@ -1885,8 +1905,17 @@ class RustGenerator : public BaseGenerator {
             break;
           }
           case ftVectorOfUnionValue: {
-            FLATBUFFERS_ASSERT(false && "vectors of unions not yet supported");
-            return;
+            // TODO(#5024): write-side native unpack. The owned object
+            // path for `Vec<UnionT>` requires the new
+            // `create_vector_of_unions` helper. For now we emit a stub
+            // that yields an empty vector so the surrounding `unpack`
+            // body continues to type-check. Reads via the borrowed
+            // `<field>_iter()` accessor still work.
+            code_.SetValue("EXPR",
+                           "{ let _unused = x; "
+                           "::core::unimplemented!(\"vector-of-unions "
+                           "object unpack: see #5024\") }");
+            break;
           }
           case ftArrayOfEnum:
           case ftArrayOfStruct:
@@ -2044,6 +2073,49 @@ class RustGenerator : public BaseGenerator {
             code_ += "}";
           });
     });
+
+    // Per-variant accessors for vector-of-unions fields. Mirrors the
+    // single-union `<field>_as_<variant>(&self)` accessor above, but
+    // takes an index. Unknown discriminants return `None`. See #5024.
+    ForAllTableFields(struct_def, [&](const FieldDef& field) {
+      if (!IsVector(field.value.type) ||
+          field.value.type.element != BASE_TYPE_UNION) {
+        return;
+      }
+      const EnumDef& enum_def = *field.value.type.enum_def;
+      // Build a {{DISCRIMINANT_VEC}} pointing at the auto-generated
+      // sibling type vector accessor.
+      code_.SetValue(
+          "DISCRIMINANT_VEC",
+          namer_.LegacyRustUnionTypeMethod(field));
+      ForAllUnionVariantsBesidesNone(enum_def, [&](const EnumVal& unused) {
+        (void)unused;
+        code_ += "";
+        code_ += "#[inline]";
+        code_ += "#[allow(non_snake_case)]";
+        code_ +=
+            "pub fn {{FIELD}}_as_{{U_ELEMENT_NAME}}(&self, idx: usize) -> "
+            "Option<{{U_ELEMENT_TABLE_TYPE}}<'a>> {";
+        code_ +=
+            "    if self.{{DISCRIMINANT_VEC}}().map(|d| d.get(idx))";
+        code_ += "        == Some({{U_ELEMENT_ENUM_TYPE}})";
+        code_ += "    {";
+        code_ += "        self.{{FIELD}}().map(|v| {";
+        code_ += "            // Safety:";
+        code_ +=
+            "            // Discriminant matches; verifier ensures the";
+        code_ +=
+            "            // value at idx is a valid {{U_ELEMENT_TABLE_TYPE}}.";
+        code_ +=
+            "            unsafe { "
+            "{{U_ELEMENT_TABLE_TYPE}}::init_from_table(v.get(idx)) }";
+        code_ += "        })";
+        code_ += "    } else {";
+        code_ += "        None";
+        code_ += "    }";
+        code_ += "}";
+      });
+    });
     code_ += "}";  // End of table impl.
     code_ += "";
 
@@ -2057,10 +2129,19 @@ class RustGenerator : public BaseGenerator {
     // Escape newline and insert it onthe next line so we can end the builder
     // with a nice semicolon.
     ForAllTableFields(struct_def, [&](const FieldDef& field) {
-      if (GetFullType(field.value.type) == ftUnionKey) return;
+      const FullType ft = GetFullType(field.value.type);
+      // Skip the auto-generated type/discriminant fields — they're
+      // verified together with their sibling value field below.
+      if (ft == ftUnionKey) return;
+      // For `[Union]`, skip the auto-generated `_type` vector field for
+      // the same reason; the sibling value field handles both vectors.
+      if (IsVector(field.value.type) &&
+          field.value.type.element == BASE_TYPE_UTYPE) {
+        return;
+      }
 
       code_.SetValue("IS_REQ", field.IsRequired() ? "true" : "false");
-      if (GetFullType(field.value.type) != ftUnionValue) {
+      if (ft != ftUnionValue && ft != ftVectorOfUnionValue) {
         // All types besides unions.
         code_.SetValue("TY", FollowType(field.value.type, "'_"));
         code_ +=
@@ -2068,15 +2149,17 @@ class RustGenerator : public BaseGenerator {
             "Self::{{OFFSET_NAME}}, {{IS_REQ}})?";
         return;
       }
-      // Unions.
+      // Unions and vectors of unions.
       const EnumDef& union_def = *field.value.type.enum_def;
       code_.SetValue("UNION_TYPE", WrapInNameSpace(union_def));
       code_.SetValue("UNION_TYPE_OFFSET_NAME",
                      namer_.LegacyRustUnionTypeOffsetName(field));
       code_.SetValue("UNION_TYPE_METHOD",
                      namer_.LegacyRustUnionTypeMethod(field));
+      const std::string visit_fn =
+          ft == ftVectorOfUnionValue ? "visit_union_vector" : "visit_union";
       code_ +=
-          "        .visit_union::<{{UNION_TYPE}}, _>("
+          "        ." + visit_fn + "::<{{UNION_TYPE}}, _>("
           "\"{{UNION_TYPE_METHOD}}\", Self::{{UNION_TYPE_OFFSET_NAME}}, "
           "\"{{FIELD}}\", Self::{{OFFSET_NAME}}, {{IS_REQ}}, "
           "|key, v, pos| {";
@@ -2146,7 +2229,22 @@ class RustGenerator : public BaseGenerator {
       }
       ForAllTableFields(struct_def, [&](const FieldDef& field) {
         const Type& type = field.value.type;
+        // Skip the auto-generated `_type` discriminant field for both
+        // single-union and `[Union]` cases — the value field's branch
+        // serializes it inline as part of each variant.
+        if (type.base_type == BASE_TYPE_UTYPE) return;
+        if (IsVector(type) && type.element == BASE_TYPE_UTYPE) return;
         if (IsUnion(type)) {
+          // TODO(#5024): rust-serialize for [Union] fields. For now we
+          // emit a placeholder array so the serialize impl compiles;
+          // proper per-element variant tagging is part of the write-
+          // side follow-up. See RUST_VECTORS_OF_UNIONS_DESIGN.md.
+          if (IsVector(type)) {
+            code_ +=
+                "    s.skip_field(\"{{FIELD}}\")?;  // TODO(#5024) "
+                "vector-of-unions serde";
+            return;
+          }
           if (type.base_type == BASE_TYPE_UNION) {
             const auto& enum_def = *type.enum_def;
             code_.SetValue("ENUM_TY", WrapInNameSpace(enum_def));
@@ -2440,7 +2538,11 @@ class RustGenerator : public BaseGenerator {
           return;
         }
         case ftVectorOfUnionValue: {
-          FLATBUFFERS_ASSERT(false && "vectors of unions not yet supported");
+          // TODO(#5024): write-side pack. See design doc.
+          MapNativeTableField(field,
+                              "{ let _unused = x; "
+                              "::core::unimplemented!(\"vector-of-unions "
+                              "object pack: see #5024\") }");
           return;
         }
         case ftArrayOfEnum:
