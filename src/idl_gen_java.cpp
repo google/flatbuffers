@@ -419,6 +419,15 @@ class JavaGenerator : public BaseGenerator {
     return GenDefaultValue(field);
   }
 
+  std::string GenEnumValue(const EnumDef& enum_def, const EnumVal& enum_val) const {
+    auto value = enum_def.ToString(enum_val);
+    if (enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
+      const uint64_t unsigned_value = StringToUInt(value.c_str());
+      return NumToString(static_cast<int64_t>(unsigned_value));
+    }
+    return value;
+  }
+
   void GenEnum(EnumDef& enum_def, std::string& code) const {
     if (enum_def.generated) return;
 
@@ -445,7 +454,7 @@ class JavaGenerator : public BaseGenerator {
       code += GenTypeBasic(DestinationType(enum_def.underlying_type, false));
       code += " ";
       code += namer_.Variant(ev) + " = ";
-      code += enum_def.ToString(ev);
+      code += GenEnumValue(enum_def, ev);
       if (enum_def.underlying_type.base_type == BASE_TYPE_UINT ||
           enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
           enum_def.underlying_type.base_type == BASE_TYPE_ULONG) {
