@@ -317,6 +317,26 @@ local function testAccessByteVectorAsString()
     end
 end
 
+local function testLuaNestedTablePack()
+    local sale = assert(require("Sale"))
+    local customer = assert(require("Customer"))
+    local builder = flatbuffers.Builder(0)
+
+    local name = builder:CreateString("Alice")
+    customer.Start(builder)
+    customer.AddName(builder, name)
+    customer.AddAge(builder, 33)
+    local customerOffset = customer.End(builder)
+
+    sale.Start(builder)
+    sale.AddAmount(builder, 125)
+    sale.AddCustomer(builder, customerOffset)
+    local saleOffset = sale.End(builder)
+    builder:Finish(saleOffset)
+
+    assert(#builder:Output() > 0)
+end
+
 local tests = 
 { 
     {   
@@ -343,6 +363,10 @@ local tests =
     {
         f = testAccessByteVectorAsString,
         d = "Access byte vector as string"
+    },
+    {
+        f = testLuaNestedTablePack,
+        d = "Lua nested table fields pack with UOffset slots"
     },
 }
 

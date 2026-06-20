@@ -1,0 +1,11 @@
+table Customer {
+  name:string;
+  age:int;
+}
+
+table Sale {
+  amount:int;
+  customer:Customer;
+}
+
+root_type Sale;
