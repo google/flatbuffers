@@ -57,7 +57,15 @@ func (t *Table) ByteVector(off UOffsetT) []byte {
 // "off" in this object.
 func (t *Table) VectorLen(off UOffsetT) int {
 	off += t.Pos
+	n := UOffsetT(len(t.Bytes))
+	u := UOffsetT(SizeUOffsetT)
+	if n < u || off > n-u {
+		return 0
+	}
 	off += GetUOffsetT(t.Bytes[off:])
+	if n < u || off > n-u {
+		return 0
+	}
 	return int(GetUOffsetT(t.Bytes[off:]))
 }
 
