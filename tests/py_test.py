@@ -55,6 +55,8 @@ import MyGame.Example.NestedUnion.Color  # refers to generated code
 import monster_test_generated  # the one-file version
 import optional_scalars
 import optional_scalars.ScalarStuff
+import TableBoo
+import TableFoo
 import union_name_test.Container  # refers to generated code
 import union_name_test.Foo  # refers to generated code
 import union_name_test.Bar  # refers to generated code
@@ -339,6 +341,23 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertTrue(optsT2.justU16 == 0)
     self.assertTrue(optsT2.maybeEnum is None)
     self.assertTrue(optsT2.defaultU64 == 42)
+
+  def test_python_no_type_prefix_suffix_with_pack(self):
+    fooT = TableFoo.TableFooT()
+    fooT.field1 = 7
+    fooT.field2 = 'hello'
+
+    booT = TableBoo.TableBooT()
+    booT.table1 = fooT
+
+    builder = flatbuffers.Builder(0)
+    builder.Finish(booT.Pack(builder))
+
+    boo = TableBoo.TableBoo.GetRootAs(builder.Bytes, builder.Head())
+    foo = boo.Table1()
+
+    self.assertEqual(foo.Field1(), 7)
+    self.assertEqual(foo.Field2().decode('utf-8'), 'hello')
 
 
 class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):

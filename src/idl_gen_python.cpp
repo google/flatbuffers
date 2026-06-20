@@ -2320,6 +2320,33 @@ class PythonGenerator : public BaseGenerator {
     code += ")\n";
   }
 
+  std::string TableStartFunctionName(const StructDef& struct_def) const {
+    return parser_.opts.python_no_type_prefix_suffix
+               ? "Start"
+               : namer_.Type(struct_def) + "Start";
+  }
+
+  std::string TableAddFunctionName(const StructDef& struct_def,
+                                   const FieldDef& field) const {
+    return parser_.opts.python_no_type_prefix_suffix
+               ? "Add" + namer_.Method(field)
+               : namer_.Type(struct_def) + "Add" + namer_.Method(field);
+  }
+
+  std::string TableStartVectorFunctionName(const StructDef& struct_def,
+                                           const FieldDef& field) const {
+    return parser_.opts.python_no_type_prefix_suffix
+               ? "Start" + namer_.Method(field) + "Vector"
+               : namer_.Type(struct_def) + "Start" + namer_.Method(field) +
+                     "Vector";
+  }
+
+  std::string TableEndFunctionName(const StructDef& struct_def) const {
+    return parser_.opts.python_no_type_prefix_suffix
+               ? "End"
+               : namer_.Type(struct_def) + "End";
+  }
+
   void GenPackForStructVectorField(const StructDef& struct_def,
                                    const FieldDef& field,
                                    std::string* code_prefix_ptr,
@@ -2327,14 +2354,14 @@ class PythonGenerator : public BaseGenerator {
     auto& code_prefix = *code_prefix_ptr;
     auto& code = *code_ptr;
     const auto field_field = namer_.Field(field);
-    const auto struct_type = namer_.Type(struct_def);
-    const auto field_method = namer_.Method(field);
+    const auto start_vector = TableStartVectorFunctionName(struct_def, field);
+    const auto add_field = TableAddFunctionName(struct_def, field);
 
     // Creates the field.
     code_prefix += GenIndents(2) + "if self." + field_field + " is not None:";
     if (field.value.type.struct_def->fixed) {
-      code_prefix += GenIndents(3) + struct_type + "Start" + field_method +
-                     "Vector(builder, len(self." + field_field + "))";
+      code_prefix += GenIndents(3) + start_vector + "(builder, len(self." +
+                     field_field + "))";
       code_prefix += GenIndents(3) + "for i in reversed(range(len(self." +
                      field_field + "))):";
       code_prefix +=
@@ -2349,8 +2376,8 @@ class PythonGenerator : public BaseGenerator {
       code_prefix += GenIndents(4) + field_field + "list.append(self." +
                      field_field + "[i].Pack(builder))";
 
-      code_prefix += GenIndents(3) + struct_type + "Start" + field_method +
-                     "Vector(builder, len(self." + field_field + "))";
+      code_prefix += GenIndents(3) + start_vector + "(builder, len(self." +
+                     field_field + "))";
       code_prefix += GenIndents(3) + "for i in reversed(range(len(self." +
                      field_field + "))):";
       code_prefix += GenIndents(4) + "builder.PrependUOffsetTRelative" + "(" +
@@ -2360,8 +2387,7 @@ class PythonGenerator : public BaseGenerator {
 
     // Adds the field into the struct.
     code += GenIndents(2) + "if self." + field_field + " is not None:";
-    code += GenIndents(3) + struct_type + "Add" + field_method + "(builder, " +
-            field_field + ")";
+    code += GenIndents(3) + add_field + "(builder, " + field_field + ")";
   }
 
   void GenPackForScalarVectorFieldHelper(const StructDef& struct_def,
@@ -2370,12 +2396,11 @@ class PythonGenerator : public BaseGenerator {
                                          int indents) const {
     auto& code = *code_ptr;
     const auto field_field = namer_.Field(field);
-    const auto field_method = namer_.Method(field);
-    const auto struct_type = namer_.Type(struct_def);
+    const auto start_vector = TableStartVectorFunctionName(struct_def, field);
     const auto vectortype = field.value.type.VectorType();
 
-    code += GenIndents(indents) + struct_type + "Start" + field_method +
-            "Vector(builder, len(self." + field_field + "))";
+    code += GenIndents(indents) + start_vector + "(builder, len(self." +
+            field_field + "))";
     code += GenIndents(indents) + "for i in reversed(range(len(self." +
             field_field + "))):";
     code += GenIndents(indents + 1) + "builder.Prepend";
@@ -2433,12 +2458,11 @@ class PythonGenerator : public BaseGenerator {
     auto& code_prefix = *code_prefix_ptr;
     const auto field_field = namer_.Field(field);
     const auto field_method = namer_.Method(field);
-    const auto struct_type = namer_.Type(struct_def);
+    const auto add_field = TableAddFunctionName(struct_def, field);
 
     // Adds the field into the struct.
     code += GenIndents(2) + "if self." + field_field + " is not None:";
-    code += GenIndents(3) + struct_type + "Add" + field_method + "(builder, " +
-            field_field + ")";
+    code += GenIndents(3) + add_field + "(builder, " + field_field + ")";
 
     // Creates the field.
     code_prefix += GenIndents(2) + "if self." + field_field + " is not None:";
@@ -2481,8 +2505,7 @@ class PythonGenerator : public BaseGenerator {
     auto& code_prefix = *code_prefix_ptr;
     auto& code = *code_ptr;
     const auto field_field = namer_.Field(field);
-    const auto field_method = namer_.Method(field);
-    const auto struct_type = namer_.Type(struct_def);
+    const auto add_field = TableAddFunctionName(struct_def, field);
 
     if (field.value.type.struct_def->fixed) {
       // Pure struct fields need to be created along with their parent
@@ -2498,8 +2521,7 @@ class PythonGenerator : public BaseGenerator {
       code += GenIndents(2) + "if self." + field_field + " is not None:";
     }
 
-    code += GenIndents(3) + struct_type + "Add" + field_method + "(builder, " +
-            field_field + ")";
+    code += GenIndents(3) + add_field + "(builder, " + field_field + ")";
   }
 
   void GenPackForUnionField(const StructDef& struct_def, const FieldDef& field,
@@ -2508,16 +2530,14 @@ class PythonGenerator : public BaseGenerator {
     auto& code_prefix = *code_prefix_ptr;
     auto& code = *code_ptr;
     const auto field_field = namer_.Field(field);
-    const auto field_method = namer_.Method(field);
-    const auto struct_type = namer_.Type(struct_def);
+    const auto add_field = TableAddFunctionName(struct_def, field);
 
     // TODO(luwa): TypeT should be moved under the None check as well.
     code_prefix += GenIndents(2) + "if self." + field_field + " is not None:";
     code_prefix += GenIndents(3) + field_field + " = self." + field_field +
                    ".Pack(builder)";
     code += GenIndents(2) + "if self." + field_field + " is not None:";
-    code += GenIndents(3) + struct_type + "Add" + field_method + "(builder, " +
-            field_field + ")";
+    code += GenIndents(3) + add_field + "(builder, " + field_field + ")";
   }
 
   void GenPackForTable(const StructDef& struct_def,
@@ -2525,11 +2545,12 @@ class PythonGenerator : public BaseGenerator {
     auto& code_base = *code_ptr;
     std::string code, code_prefix;
     const auto struct_var = namer_.Variable(struct_def);
-    const auto struct_type = namer_.Type(struct_def);
+    const auto start_table = TableStartFunctionName(struct_def);
+    const auto end_table = TableEndFunctionName(struct_def);
 
     GenReceiverForObjectAPI(struct_def, code_ptr);
     code_base += "Pack(self, builder):";
-    code += GenIndents(2) + struct_type + "Start(builder)";
+    code += GenIndents(2) + start_table + "(builder)";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       auto& field = **it;
@@ -2558,26 +2579,26 @@ class PythonGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_STRING: {
+          const auto add_field = TableAddFunctionName(struct_def, field);
           code_prefix +=
               GenIndents(2) + "if self." + field_field + " is not None:";
           code_prefix += GenIndents(3) + field_field +
                          " = builder.CreateString(self." + field_field + ")";
           code += GenIndents(2) + "if self." + field_field + " is not None:";
-          code += GenIndents(3) + struct_type + "Add" + field_method +
-                  "(builder, " + field_field + ")";
+          code += GenIndents(3) + add_field + "(builder, " + field_field + ")";
           break;
         }
         default:
           // Generates code for scalar values. If the value equals to the
           // default value, builder will automatically ignore it. So we don't
           // need to check the value ahead.
-          code += GenIndents(2) + struct_type + "Add" + field_method +
+          code += GenIndents(2) + TableAddFunctionName(struct_def, field) +
                   "(builder, self." + field_field + ")";
           break;
       }
     }
 
-    code += GenIndents(2) + struct_var + " = " + struct_type + "End(builder)";
+    code += GenIndents(2) + struct_var + " = " + end_table + "(builder)";
     code += GenIndents(2) + "return " + struct_var;
 
     code_base += code_prefix + code;

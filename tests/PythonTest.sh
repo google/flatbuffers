@@ -29,6 +29,7 @@ ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test arrays_test.fbs --ge
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test nested_union_test.fbs --gen-object-api --python-typing --python-decode-obj-api-strings
 ${test_dir}/../flatc -p -o ${gen_code_path} -I include_test service_test.fbs --grpc --grpc-python-typed-handlers --python-typing --no-python-gen-numpy --gen-onefile
 ${test_dir}/../flatc -p -o ${gen_code_path} union_name_test.fbs --gen-object-api
+${test_dir}/../flatc -p -o ${gen_code_path} python_no_type_prefix_suffix_test.fbs --gen-object-api --python-no-type-prefix-suffix
 
 # Syntax: run_tests <interpreter> <benchmark vtable dedupes>
 #                   <benchmark read count> <benchmark build count>

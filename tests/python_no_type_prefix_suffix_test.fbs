@@ -1,0 +1,10 @@
+table TableFoo {
+  field1:uint8;
+  field2:string;
+}
+
+table TableBoo {
+  table1:TableFoo;
+}
+
+root_type TableBoo;
