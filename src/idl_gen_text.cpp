@@ -479,7 +479,7 @@ class TextCodeGenerator : public CodeGenerator {
     auto err = GenTextFile(parser, path, filename);
     if (err) {
       status_detail = " (" + std::string(err) + ")";
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }

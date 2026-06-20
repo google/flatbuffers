@@ -1683,7 +1683,7 @@ class GoCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GenerateGo(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }
@@ -1705,7 +1705,7 @@ class GoCodeGenerator : public CodeGenerator {
   Status GenerateGrpcCode(const Parser& parser, const std::string& path,
                           const std::string& filename) override {
     if (!GenerateGoGRPC(parser, path, filename)) {
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }

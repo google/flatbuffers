@@ -180,7 +180,7 @@ static bool ProtobufIdSanityCheck(const StructDef& struct_def,
         fprintf(stderr, "Fields in struct %s have gap between ids\n",
                 struct_def.name.c_str());
       }
-      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR) {
+      if (gap_action == IDLOptions::ProtoIdGapAction::ERROR_) {
         return false;
       }
     }
@@ -430,7 +430,7 @@ class FBSCodeGenerator : public CodeGenerator {
   Status GenerateCode(const Parser& parser, const std::string& path,
                       const std::string& filename) override {
     if (!GenerateFBS(parser, path, filename, no_log_)) {
-      return Status::ERROR;
+      return Status::ERROR_;
     }
     return Status::OK;
   }

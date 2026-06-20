@@ -608,7 +608,7 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         else if (!strcmp(argv[argi], "warn"))
           opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::WARNING;
         else if (!strcmp(argv[argi], "error"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR_;
         else
           Error("unknown case style: " + std::string(argv[argi]), true);
       } else if (arg == "--schema") {
@@ -998,7 +998,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         if (status == CodeGenerator::Status::NOT_IMPLEMENTED) {
           Warn("GRPC interface generator not implemented for " +
                code_generator->LanguageName());
-        } else if (status == CodeGenerator::Status::ERROR) {
+        } else if (status == CodeGenerator::Status::ERROR_) {
           Error("Unable to generate GRPC interface for " +
                 code_generator->LanguageName());
         }
