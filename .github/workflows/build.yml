@@ -464,6 +464,15 @@ jobs:
     - name: test
       working-directory: tests
       run: bash PythonTest.sh
+    - name: build python package
+      working-directory: python
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install build twine
+        python3 -m build .
+        python3 -m twine check dist/*
+        test -n "$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+        test -n "$(find dist -maxdepth 1 -name '*.tar.gz' -print -quit)"
 
   build-go:
     name: Build Go

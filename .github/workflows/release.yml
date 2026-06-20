@@ -42,6 +42,9 @@ jobs:
       - name: Build
         run: |
           python3 -m build .
+          python3 -m twine check dist/*
+          test -n "$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$(find dist -maxdepth 1 -name '*.tar.gz' -print -quit)"
 
       - name: Upload to PyPi
         run: |
