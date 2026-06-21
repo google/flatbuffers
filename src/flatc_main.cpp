@@ -187,9 +187,9 @@ int main(int argc, const char* argv[]) {
   // this exists here to ensure file_saver outlives the compilation process
   std::unique_ptr<flatbuffers::FileSaver> file_saver;
   if (options.file_names_only) {
-    file_saver.reset(new flatbuffers::FileNameSaver{});
+    file_saver = flatbuffers::CreateFileNameCollector();
   } else {
-    file_saver.reset(new flatbuffers::RealFileSaver{});
+    file_saver = flatbuffers::CreateFileSaver();
   }
 
   options.opts.file_saver = file_saver.get();
