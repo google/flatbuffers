@@ -52,7 +52,7 @@ void proto_test(const std::string& proto_path, const std::string& proto_file) {
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   // load the .proto and the golden file from disk
   std::string golden_file;
@@ -69,7 +69,7 @@ void proto_test_id(const std::string& proto_path,
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   // load the .proto and the golden file from disk
   std::string golden_file;
@@ -87,7 +87,7 @@ void proto_test_union(const std::string& proto_path,
   opts.include_dependence_headers = false;
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile((proto_path + "test_union.golden.fbs").c_str(),
@@ -104,7 +104,7 @@ void proto_test_union_id(const std::string& proto_path,
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(
@@ -121,7 +121,7 @@ void proto_test_union_suffix(const std::string& proto_path,
   opts.proto_mode = true;
   opts.proto_namespace_suffix = "test_namespace_suffix";
   opts.proto_oneof_union = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -139,7 +139,7 @@ void proto_test_union_suffix_id(const std::string& proto_path,
   opts.proto_namespace_suffix = "test_namespace_suffix";
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -155,7 +155,7 @@ void proto_test_include(const std::string& proto_path,
   flatbuffers::IDLOptions opts;
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(
@@ -173,7 +173,7 @@ void proto_test_include_id(const std::string& proto_path,
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(
@@ -191,7 +191,7 @@ void proto_test_include_union(const std::string& proto_path,
   opts.include_dependence_headers = true;
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -210,7 +210,7 @@ void proto_test_include_union_id(const std::string& proto_path,
   opts.proto_mode = true;
   opts.proto_oneof_union = true;
   opts.keep_proto_id = true;
-  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+  opts.proto_id_gap_action = IDLOptions::ProtoAction::NO_OP;
 
   std::string golden_file;
   TEST_EQ(flatbuffers::LoadFile(
@@ -269,7 +269,7 @@ void ParseCorruptedProto(const std::string& proto_path) {
 
   // Parse proto with error on gap.
   {
-    opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
+    opts.proto_id_gap_action = IDLOptions::ProtoAction::ERROR;
     flatbuffers::Parser parser(opts);
     TEST_EQ(flatbuffers::LoadFile((proto_path + "test.proto").c_str(), false,
                                   &proto_file),
