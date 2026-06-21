@@ -499,7 +499,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
-    - uses: swift-actions/setup-swift@v2
+    - uses: swift-actions/setup-swift@v3
       with:
         swift-version: ${{ matrix.swift }}
     - name: Get swift version
@@ -523,7 +523,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
        - uses: actions/checkout@v6
-       - uses: swift-actions/setup-swift@v2
+       - uses: swift-actions/setup-swift@v3
          with:
            swift-version: 6.2.1
        - uses: bytecodealliance/actions/wasmtime/setup@v1
