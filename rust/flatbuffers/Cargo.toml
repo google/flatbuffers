@@ -18,6 +18,7 @@ serialize = ["serde"]
 
 [dependencies]
 bitflags = "2.8.0"
+hashbrown = "0.16"
 serde = { version = "1.0", optional = true }
 
 [build-dependencies]
