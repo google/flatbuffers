@@ -212,7 +212,14 @@ void GenComment(const std::vector<std::string>& dc, std::string* code_ptr,
            ? config->content_line_prefix
            : "///");
   for (auto it = dc.begin(); it != dc.end(); ++it) {
-    code += line_prefix + *it + "\n";
+    std::string sanitized = *it;
+    // Sanitize comment content: escape block comment closing sequence
+    // to prevent code injection via premature comment termination.
+    for (size_t pos = sanitized.find("*/"); pos != std::string::npos;
+         pos = sanitized.find("*/", pos + 2)) {
+      sanitized.replace(pos, 2, "* /");
+    }
+    code += line_prefix + sanitized + "\n";
   }
   if (config != nullptr && config->last_line != nullptr) {
     code += std::string(prefix) + std::string(config->last_line) + "\n";
