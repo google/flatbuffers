@@ -8,3 +8,14 @@ struct foo_properties
     a : bool;
     b : bool;
 }
+
+// Test for #9099
+struct Header {
+  time: ulong;
+  ident: ushort;
+}
+
+table Message {
+  prefix: ushort;
+  header: Header;
+}
