@@ -5,6 +5,7 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
+from MyGame.Example.TestEnum import TestEnum
 np = import_numpy()
 
 class NestedStruct(object):

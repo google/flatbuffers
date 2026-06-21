@@ -5,6 +5,7 @@
 import flatbuffers
 from flatbuffers.compat import import_numpy
 from typing import Any
+from MyGame.Example.NestedUnion.Any import Any
 from flatbuffers.table import Table
 from typing import Optional
 np = import_numpy()
