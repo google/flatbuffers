@@ -4383,23 +4383,24 @@ bool Type::Deserialize(const Parser& parser, const reflection::Type* type) {
   base_type = static_cast<BaseType>(type->base_type());
   element = static_cast<BaseType>(type->element());
   fixed_length = type->fixed_length();
-  if (type->index() >= 0) {
-    bool is_series = type->base_type() == reflection::Vector ||
-                     type->base_type() == reflection::Array;
-    if (type->base_type() == reflection::Obj ||
-        (is_series && type->element() == reflection::Obj)) {
-      if (static_cast<size_t>(type->index()) < parser.structs_.vec.size()) {
-        struct_def = parser.structs_.vec[type->index()];
-        struct_def->refcount++;
-      } else {
-        return false;
-      }
+  bool is_series = type->base_type() == reflection::Vector ||
+                   type->base_type() == reflection::Array;
+  bool is_object_type =
+      type->base_type() == reflection::Obj ||
+      (is_series && type->element() == reflection::Obj);
+  if (is_object_type) {
+    if (type->index() < 0) return false;
+    if (static_cast<size_t>(type->index()) < parser.structs_.vec.size()) {
+      struct_def = parser.structs_.vec[type->index()];
+      struct_def->refcount++;
     } else {
-      if (static_cast<size_t>(type->index()) < parser.enums_.vec.size()) {
-        enum_def = parser.enums_.vec[type->index()];
-      } else {
-        return false;
-      }
+      return false;
+    }
+  } else if (type->index() >= 0) {
+    if (static_cast<size_t>(type->index()) < parser.enums_.vec.size()) {
+      enum_def = parser.enums_.vec[type->index()];
+    } else {
+      return false;
     }
   }
   return true;
