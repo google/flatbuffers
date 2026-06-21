@@ -440,25 +440,26 @@ bool GenerateJavaGRPC(const Parser& parser, const std::string& path,
   return JavaGRPCGenerator(parser, path, file_name).generate();
 }
 
-bool GeneratePythonGRPC(const Parser& parser, const std::string& path,
-                        const std::string& /*file_name*/) {
+const char* GeneratePythonGRPC(const Parser& parser, const std::string& path,
+                               const std::string& /*file_name*/) {
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
     if (!(*it)->generated) nservices++;
   }
-  if (!nservices) return true;
+  if (!nservices) return nullptr;
 
   flatbuffers::python::Version version{parser.opts.python_version};
-  if (!version.IsValid()) return false;
+  if (!version.IsValid()) return "The provided Python version is not valid";
 
-  if (!flatbuffers::python::grpc::Generate(parser, path, version)) {
-    return false;
-  }
+  auto error = flatbuffers::python::grpc::Generate(parser, path, version);
+  if (error) return error;
+
   if (parser.opts.python_typing) {
-    return flatbuffers::python::grpc::GenerateStub(parser, path, version);
+    auto error = flatbuffers::python::grpc::GenerateStub(parser, path, version);
+    if (error) return error;
   }
-  return true;
+  return nullptr;
 }
 
 class SwiftGRPCGenerator : public flatbuffers::BaseGenerator {
