@@ -74,6 +74,8 @@ struct Parameters {
 
   // Package name for the service
   grpc::string package_name;
+
+  grpc::string java_package_name;
 };
 
 // Return the source of the generated service file.
