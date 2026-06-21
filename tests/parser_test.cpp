@@ -66,6 +66,10 @@ void ErrorTest() {
   TestError("table Y {} table X { Y:int; }", "same as table");
   TestError("struct X { Y:string; }", "only scalar");
   TestError("struct X { a:uint = 42; }", "default values");
+  TestError("table X { Y:int (required); }",
+            "only non-scalar fields in tables may be 'required'");
+  TestError("struct X { Y:int (required); }",
+            "struct fields are always required");
   TestError("enum Y:byte { Z = 1 } table X { y:Y; }", "not part of enum");
   TestError("struct X { Y:int (deprecated); }", "deprecate");
   TestError("union Z { X } table X { Y:Z; } root_type X; { Y: {}, A:1 }",
@@ -107,6 +111,10 @@ void ErrorTest() {
   TestError("union Z { X } struct X { Y:int; }", "only tables");
   TestError("table X { Y:[int]; YLength:int; }", "clash");
   TestError("table X { Y:byte; } root_type X; { Y:1, Y:2 }", "more than once");
+  TestError("table X { Y:string (required); } root_type X; { }",
+            "required field is missing: Y in X");
+  TestError("table Y { } table X { Z:Y (required); } root_type X; { }",
+            "required field is missing: Z in X");
   // float to integer conversion is forbidden
   TestError("table X { Y:int; } root_type X; { Y:1.0 }", "float");
   TestError("table X { Y:bool; } root_type X; { Y:1.0 }", "float");
