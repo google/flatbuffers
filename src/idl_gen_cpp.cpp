@@ -263,7 +263,7 @@ class CppGenerator : public BaseGenerator {
     if (opts_.generate_object_based_api) {
       for (const std::string& native_included_file :
            parser_.native_included_files_) {
-        code_ += "#include \"" + native_included_file + "\"";
+        code_ += "#include \"" + flatbuffers::SanitizeStringForCodeGen(native_included_file) + "\"";
       }
     }
 
@@ -702,7 +702,7 @@ class CppGenerator : public BaseGenerator {
       if (parser_.file_extension_.length()) {
         // Return the extension
         code_ += "inline const char *{{STRUCT_NAME}}Extension() {";
-        code_ += "  return \"" + parser_.file_extension_ + "\";";
+        code_ += "  return \"" + flatbuffers::SanitizeStringForCodeGen(parser_.file_extension_) + "\";";
         code_ += "}";
         code_ += "";
       }

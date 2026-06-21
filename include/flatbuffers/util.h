@@ -708,6 +708,27 @@ inline bool EscapeString(const char* s, size_t length, std::string* _text,
   return true;
 }
 
+// Sanitize a string for safe embedding in generated source code string
+// literals. Escapes backslashes, quotes, and newlines to prevent code
+// injection via crafted .fbs schema fields (file_extension, native_include,
+// native_type).
+inline std::string SanitizeStringForCodeGen(const std::string& s) {
+  std::string result;
+  result.reserve(s.size());
+  for (char c : s) {
+    switch (c) {
+      case '\\': result += "\\\\"; break;
+      case '"':  result += "\\\""; break;
+      case '\n': result += "\\n"; break;
+      case '\r': result += "\\r"; break;
+      case '\t': result += "\\t"; break;
+      case '\0': result += "\\0"; break;
+      default:   result += c; break;
+    }
+  }
+  return result;
+}
+
 inline std::string BufferToHexText(const void* buffer, size_t buffer_size,
                                    size_t max_length,
                                    const std::string& wrapped_line_prefix,
