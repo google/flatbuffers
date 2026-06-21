@@ -254,11 +254,12 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   template <typename T, typename SizeT = uoffset_t>
   bool VerifySizePrefixedBuffer(const char* const identifier) {
-    return Verify<SizeT>(0U) &&
-           // Ensure the prefixed size is within the bounds of the provided
-           // length.
-           Check(ReadScalar<SizeT>(buf_) + sizeof(SizeT) <= size_) &&
-           VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
+    if (!Verify<SizeT>(0U)) return false;
+    // Ensure the prefixed size is within the bounds of the provided length.
+    const auto prefixed_size = static_cast<uint64_t>(ReadScalar<SizeT>(buf_));
+    const auto max_payload_size = static_cast<uint64_t>(size_ - sizeof(SizeT));
+    if (!Check(prefixed_size <= max_payload_size)) return false;
+    return VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 
   template <typename OffsetT = uoffset_t, typename SOffsetT = soffset_t>
