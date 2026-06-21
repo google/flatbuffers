@@ -447,6 +447,24 @@ const char* GenTextFile(const Parser& parser, const std::string& path,
                : "SaveFile failed";
   }
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return nullptr;
+  // Validate the root offset and vtable bounds before generating text to
+  // prevent crashes on malformed buffers (e.g. attacker-controlled offsets).
+  {
+    const uint8_t* buf = parser.builder_.GetBufferPointer();
+    const size_t buf_size = parser.builder_.GetSize();
+    if (buf_size < FLATBUFFERS_MIN_BUFFER_SIZE)
+      return "flatbuffer too small to be valid";
+    // For size-prefixed buffers, the root object starts after the size field.
+    const size_t root_start =
+        parser.opts.size_prefixed ? sizeof(uoffset_t) : 0;
+    Verifier verifier(buf, buf_size);
+    const auto root_off = verifier.VerifyOffset<uoffset_t>(root_start);
+    if (!root_off) return "root offset in flatbuffer is out of bounds";
+    const auto* root_table =
+        reinterpret_cast<const Table*>(buf + root_start + root_off);
+    if (!root_table->VerifyTableStart(verifier))
+      return "vtable of root table in flatbuffer is invalid";
+  }
   std::string text;
   auto err = GenText(parser, parser.builder_.GetBufferPointer(), &text);
   if (err) return err;
