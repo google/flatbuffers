@@ -81,6 +81,20 @@ inline SizeT GetPrefixedSize(const uint8_t* buf) {
   return ReadScalar<SizeT>(buf);
 }
 
+// Computes the total length of a size-prefixed FlatBuffer and returns false
+// if the addition would overflow SizeT.
+template <typename SizeT = uoffset_t>
+inline bool TryGetSizePrefixedBufferLength(const uint8_t* const buf,
+                                           SizeT* const length) {
+  const auto prefix = ReadScalar<SizeT>(buf);
+  const auto prefix_field_size = static_cast<SizeT>(sizeof(SizeT));
+  if (prefix > (std::numeric_limits<SizeT>::max)() - prefix_field_size) {
+    return false;
+  }
+  *length = static_cast<SizeT>(prefix + prefix_field_size);
+  return true;
+}
+
 // Gets the total length of the buffer given a sized prefixed FlatBuffer.
 //
 // This includes the size of the prefix as well as the buffer:
@@ -89,7 +103,12 @@ inline SizeT GetPrefixedSize(const uint8_t* buf) {
 //  |---------length--------|
 template <typename SizeT = uoffset_t>
 inline SizeT GetSizePrefixedBufferLength(const uint8_t* const buf) {
-  return ReadScalar<SizeT>(buf) + sizeof(SizeT);
+  SizeT length = 0;
+  if (!TryGetSizePrefixedBufferLength<SizeT>(buf, &length)) {
+    FLATBUFFERS_ASSERT(false);
+    return 0;
+  }
+  return length;
 }
 
 // Base class for native objects (FlatBuffer data de-serialized into native

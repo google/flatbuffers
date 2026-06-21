@@ -1290,6 +1290,39 @@ void NestedVerifierTest() {
   }
 }
 
+void SizePrefixedBufferLengthOverflowTest() {
+  const uint8_t crafted[] = {
+      0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  // size prefix
+      0x00, 0x00, 0x00, 0x00,
+  };
+
+  const auto prefix = (std::numeric_limits<flatbuffers::uoffset64_t>::max)();
+  const auto prefix_size =
+      static_cast<flatbuffers::uoffset64_t>(sizeof(flatbuffers::uoffset64_t));
+  const auto legacy_wrapped =
+      static_cast<flatbuffers::uoffset64_t>(prefix + prefix_size);
+  TEST_OUTPUT_LINE(
+      "Overflow proof (legacy math): prefix=%llu + sizeof=%llu => wrapped=%llu",
+      static_cast<unsigned long long>(prefix),
+      static_cast<unsigned long long>(prefix_size),
+      static_cast<unsigned long long>(legacy_wrapped));
+  TEST_EQ(legacy_wrapped, static_cast<flatbuffers::uoffset64_t>(7));
+
+  flatbuffers::uoffset64_t length = 123;
+  const bool ok = flatbuffers::TryGetSizePrefixedBufferLength<
+      flatbuffers::uoffset64_t>(crafted, &length);
+  TEST_OUTPUT_LINE(
+      "Overflow proof (checked API): ok=%d, out_length=%llu (input preserved on failure)",
+      ok ? 1 : 0, static_cast<unsigned long long>(length));
+  TEST_EQ(ok, false);
+  TEST_EQ(length, static_cast<flatbuffers::uoffset64_t>(123));
+
+  // Legacy helper now safely returns 0 on overflow in non-assert builds.
+  TEST_EQ(flatbuffers::GetSizePrefixedBufferLength<flatbuffers::uoffset64_t>(
+              crafted),
+          static_cast<flatbuffers::uoffset64_t>(0));
+}
+
 void SizeVerifierTest() {
   // Create a monster.
   flatbuffers::FlatBufferBuilder builder;
@@ -1849,6 +1882,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersIteratorsTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
+  SizePrefixedBufferLengthOverflowTest();
   SizeVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
