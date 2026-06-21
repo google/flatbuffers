@@ -531,15 +531,18 @@ inline bool IsString(const Type& type) {
 }
 
 inline bool IsStruct(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         type.struct_def->fixed;
 }
 
 inline bool IsIncompleteStruct(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->predecl;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         type.struct_def->predecl;
 }
 
 inline bool IsTable(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && !type.struct_def->fixed;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         !type.struct_def->fixed;
 }
 
 inline bool IsUnion(const Type& type) {

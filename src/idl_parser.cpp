@@ -4176,6 +4176,17 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
       has_key = true;
     }
     if (fixed) {
+      // Validate that struct-typed fields have resolved struct_def
+      // references before computing layout. A malformed bfbs schema may
+      // declare BASE_TYPE_STRUCT without a valid cross-reference, which
+      // would cause a null-pointer dereference in InlineSize/IsStruct.
+      if (field_def->value.type.base_type == BASE_TYPE_STRUCT &&
+          field_def->value.type.struct_def == nullptr) {
+        parser.error_ = "unresolved struct reference in field '" +
+                         field_def->name + "'";
+        delete field_def;
+        return false;
+      }
       // Recompute padding since that's currently not serialized.
       auto size = InlineSize(field_def->value.type);
       auto next_field =
