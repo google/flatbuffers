@@ -397,29 +397,41 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("STRUCT_NAME", name);
 
       // Create code to return the binary schema data.
-      auto binary_schema_hex_text =
-          BufferToHexText(parser_.builder_.GetBufferPointer(),
-                          parser_.builder_.GetSize(), 105, "      ", "");
-
-      code_ += "struct {{STRUCT_NAME}}BinarySchema {";
-      code_ += "  static const uint8_t *data() {";
-      code_ += "    // Buffer containing the binary schema.";
-      code_ += "    static const uint8_t bfbsData[" +
-               NumToString(parser_.builder_.GetSize()) + "] = {";
-      code_ += binary_schema_hex_text;
-      code_ += "    };";
-      code_ += "    return bfbsData;";
-      code_ += "  }";
-      code_ += "  static size_t size() {";
-      code_ += "    return " + NumToString(parser_.builder_.GetSize()) + ";";
-      code_ += "  }";
-      code_ += "  const uint8_t *begin() {";
-      code_ += "    return data();";
-      code_ += "  }";
-      code_ += "  const uint8_t *end() {";
-      code_ += "    return data() + size();";
-      code_ += "  }";
-      code_ += "};";
+      if (parser_.opts.binary_schema_gen_embed_constexpr) {
+        // File-scope constexpr array, usable in constant expressions.
+        auto binary_schema_hex_text =
+            BufferToHexText(parser_.builder_.GetBufferPointer(),
+                            parser_.builder_.GetSize(), 105, "  ", "");
+        code_ += "inline constexpr uint8_t {{STRUCT_NAME}}BinarySchema[] = {";
+        code_ += binary_schema_hex_text;
+        code_ += "};";
+        code_ += "inline constexpr size_t {{STRUCT_NAME}}BinarySchemaSize = " +
+                 NumToString(parser_.builder_.GetSize()) + ";";
+      } else {
+        // Struct wrapper with function-local static.
+        auto binary_schema_hex_text =
+            BufferToHexText(parser_.builder_.GetBufferPointer(),
+                            parser_.builder_.GetSize(), 105, "      ", "");
+        code_ += "struct {{STRUCT_NAME}}BinarySchema {";
+        code_ += "  static const uint8_t *data() {";
+        code_ += "    // Buffer containing the binary schema.";
+        code_ += "    static const uint8_t bfbsData[" +
+                 NumToString(parser_.builder_.GetSize()) + "] = {";
+        code_ += binary_schema_hex_text;
+        code_ += "    };";
+        code_ += "    return bfbsData;";
+        code_ += "  }";
+        code_ += "  static size_t size() {";
+        code_ += "    return " + NumToString(parser_.builder_.GetSize()) + ";";
+        code_ += "  }";
+        code_ += "  const uint8_t *begin() {";
+        code_ += "    return data();";
+        code_ += "  }";
+        code_ += "  const uint8_t *end() {";
+        code_ += "    return data() + size();";
+        code_ += "  }";
+        code_ += "};";
+      }
       code_ += "";
 
       if (cur_name_space_) SetNameSpace(nullptr);
@@ -2378,9 +2390,11 @@ class CppGenerator : public BaseGenerator {
   }
 
   // Adds a typedef to the binary schema type so one could get the bfbs based
-  // on the type at runtime.
+  // on the type at runtime. Skipped in constexpr mode because the schema is a
+  // file-scope array, not a struct with data()/size() methods.
   void GenBinarySchemaTypeDef(const StructDef* struct_def) {
-    if (struct_def && opts_.binary_schema_gen_embed) {
+    if (struct_def && opts_.binary_schema_gen_embed &&
+        !opts_.binary_schema_gen_embed_constexpr) {
       code_ += "  typedef " + WrapInNameSpace(*struct_def) +
                "BinarySchema BinarySchema;";
     }
