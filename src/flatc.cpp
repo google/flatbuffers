@@ -242,6 +242,9 @@ const static FlatCOption flatc_options[] = {
     {"", "cs-global-alias", "",
      "Prepend \"global::\" to all user generated csharp classes and "
      "structs."},
+    {"", "csharp-spanbufs", "",
+     "Generate a span friendly variant of the C# code using the "
+     "Google.FlatSpanBuffers library."},
     {"", "cs-gen-json-serializer", "",
      "Allows (de)serialization of JSON text in the Object API. (requires "
      "--gen-object-api)."},

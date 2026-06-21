@@ -1,0 +1,75 @@
+// Schema specifically for testing System.Text.Json serialization
+// This schema is generated with --cs-gen-json-serializer flag
+
+namespace JsonTest;
+
+enum Status : byte {
+  Unknown = 0,
+  Active = 1,
+  Inactive = 2,
+  Suspended = 3
+}
+
+enum Priority : ubyte (bit_flags) {
+  Low = 0,
+  Medium = 1,
+  High = 2,
+  Critical = 3
+}
+
+struct Vec2 {
+  x: float;
+  y: float;
+}
+
+struct Color {
+  r: ubyte;
+  g: ubyte;
+  b: ubyte;
+  a: ubyte;
+}
+
+table Item {
+  id: int (key);
+  name: string;
+  value: float;
+}
+
+table Weapon {
+  name: string;
+  damage: int;
+}
+
+table Armor {
+  name: string;
+  defense: int;
+}
+
+union Equipment { Weapon, Armor }
+
+table Player {
+  id: long;
+  name: string (key);
+  level: int = 1;
+  health: float = 100.0;
+  position: Vec2;
+  status: Status = Active;
+  priorities: Priority;
+  inventory: [Item];
+  equipped: Equipment;
+  tags: [string];
+  scores: [int];
+  color: Color;
+}
+
+table GameState {
+  version: string;
+  players: [Player];
+  active_player_id: long;
+  timestamp: long;
+}
+
+root_type GameState;
+
+file_identifier "JSON";
+file_extension "json";
