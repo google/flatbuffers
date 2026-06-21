@@ -35,5 +35,10 @@ public class AbilityT {
     this.id = 0L;
     this.distance = 0L;
   }
+
+  public AbilityT(long id, long distance) {
+    this.id = id;
+    this.distance = distance;
+  }
 }
 
