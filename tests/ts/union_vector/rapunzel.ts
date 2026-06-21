@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class Rapunzel implements flatbuffers.IUnpackableObject<RapunzelT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Rapunzel {
   this.bb_pos = i;
   this.bb = bb;

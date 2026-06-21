@@ -4,82 +4,86 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+
+
 export class A implements flatbuffers.IUnpackableObject<AT> {
-  bb: flatbuffers.ByteBuffer | null = null;
-  bb_pos = 0;
-  __init(i: number, bb: flatbuffers.ByteBuffer): A {
-    this.bb_pos = i;
-    this.bb = bb;
-    return this;
+  bb: flatbuffers.ByteBuffer|null = null;
+  bb_pos: number = 0;
+  __init(i:number, bb:flatbuffers.ByteBuffer):A {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+}
+
+static getRootAsA(bb:flatbuffers.ByteBuffer, obj?:A):A {
+  return (obj || new A()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+static getSizePrefixedRootAsA(bb:flatbuffers.ByteBuffer, obj?:A):A {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new A()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+}
+
+a():number {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+}
+
+mutate_a(value:number):boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+
+  if (offset === 0) {
+    return false;
   }
 
-  static getRootAsA(bb: flatbuffers.ByteBuffer, obj?: A): A {
-    return (obj || new A()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb,
-    );
-  }
+  this.bb!.writeInt32(this.bb_pos + offset, value);
+  return true;
+}
 
-  static getSizePrefixedRootAsA(bb: flatbuffers.ByteBuffer, obj?: A): A {
-    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-    return (obj || new A()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb,
-    );
-  }
+static getFullyQualifiedName(): "UnionUnderlyingType.A" {
+  return 'UnionUnderlyingType.A';
+}
 
-  a(): number {
-    const offset = this.bb!.__offset(this.bb_pos, 4);
-    return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
-  }
+static startA(builder:flatbuffers.Builder):void {
+  builder.startObject(1);
+}
 
-  mutate_a(value: number): boolean {
-    const offset = this.bb!.__offset(this.bb_pos, 4);
+static addA(builder:flatbuffers.Builder, a:number):void {
+  builder.addFieldInt32(0, a, 0);
+}
 
-    if (offset === 0) {
-      return false;
-    }
+static endA(builder:flatbuffers.Builder):flatbuffers.Offset {
+  const offset = builder.endObject();
+  return offset;
+}
 
-    this.bb!.writeInt32(this.bb_pos + offset, value);
-    return true;
-  }
+static createA(builder:flatbuffers.Builder, a:number):flatbuffers.Offset {
+  A.startA(builder);
+  A.addA(builder, a);
+  return A.endA(builder);
+}
 
-  static getFullyQualifiedName(): string {
-    return 'UnionUnderlyingType.A';
-  }
+unpack(): AT {
+  return new AT(
+    this.a()
+  );
+}
 
-  static startA(builder: flatbuffers.Builder) {
-    builder.startObject(1);
-  }
 
-  static addA(builder: flatbuffers.Builder, a: number) {
-    builder.addFieldInt32(0, a, 0);
-  }
-
-  static endA(builder: flatbuffers.Builder): flatbuffers.Offset {
-    const offset = builder.endObject();
-    return offset;
-  }
-
-  static createA(builder: flatbuffers.Builder, a: number): flatbuffers.Offset {
-    A.startA(builder);
-    A.addA(builder, a);
-    return A.endA(builder);
-  }
-
-  unpack(): AT {
-    return new AT(this.a());
-  }
-
-  unpackTo(_o: AT): void {
-    _o.a = this.a();
-  }
+unpackTo(_o: AT): void {
+  _o.a = this.a();
+}
 }
 
 export class AT implements flatbuffers.IGeneratedObject {
-  constructor(public a: number = 0) {}
+constructor(
+  public a: number = 0
+){}
 
-  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
-    return A.createA(builder, this.a);
-  }
+
+pack(builder:flatbuffers.Builder): flatbuffers.Offset {
+  return A.createA(builder,
+    this.a
+  );
+}
 }

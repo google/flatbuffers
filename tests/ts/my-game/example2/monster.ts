@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
@@ -28,7 +28,7 @@ static getFullyQualifiedName(): "MyGame.Example2.Monster" {
   return 'MyGame.Example2.Monster';
 }
 
-static startMonster(builder:flatbuffers.Builder) {
+static startMonster(builder:flatbuffers.Builder):void {
   builder.startObject(0);
 }
 

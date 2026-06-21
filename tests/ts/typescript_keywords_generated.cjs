@@ -135,7 +135,7 @@ var KeyValue = class _KeyValue {
   }
   key(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   value(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -365,7 +365,7 @@ var EnumVal = class _EnumVal {
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   value() {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -499,7 +499,7 @@ var Enum = class _Enum {
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   values(index, obj) {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -672,7 +672,7 @@ var Field = class _Field {
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   type(obj) {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -976,7 +976,7 @@ var Object_ = class _Object_ {
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   fields(index, obj) {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -1176,7 +1176,7 @@ var RPCCall = class _RPCCall {
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   request(obj) {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -1309,7 +1309,7 @@ var SchemaFile = class _SchemaFile {
   }
   filename(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   includedFilenames(index, optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -1393,7 +1393,7 @@ var Service = class _Service {
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   calls(index, obj) {
     const offset = this.bb.__offset(this.bb_pos, 6);

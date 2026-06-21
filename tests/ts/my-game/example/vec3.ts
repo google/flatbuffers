@@ -10,7 +10,7 @@ import { Test, TestT } from './test.js';
 
 export class Vec3 implements flatbuffers.IUnpackableObject<Vec3T> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
   this.bb_pos = i;
   this.bb = bb;

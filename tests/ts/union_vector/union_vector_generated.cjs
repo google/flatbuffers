@@ -47,7 +47,7 @@ __export(union_vector_exports, {
 });
 module.exports = __toCommonJS(union_vector_exports);
 
-// union_vector/attacker.js
+// union_vector/attacker.ts
 var flatbuffers = __toESM(require("flatbuffers"), 1);
 var Attacker = class _Attacker {
   constructor() {
@@ -97,7 +97,9 @@ var Attacker = class _Attacker {
     return _Attacker.endAttacker(builder);
   }
   unpack() {
-    return new AttackerT(this.swordAttackDamage());
+    return new AttackerT(
+      this.swordAttackDamage()
+    );
   }
   unpackTo(_o) {
     _o.swordAttackDamage = this.swordAttackDamage();
@@ -108,11 +110,14 @@ var AttackerT = class {
     this.swordAttackDamage = swordAttackDamage;
   }
   pack(builder) {
-    return Attacker.createAttacker(builder, this.swordAttackDamage);
+    return Attacker.createAttacker(
+      builder,
+      this.swordAttackDamage
+    );
   }
 };
 
-// union_vector/book-reader.js
+// union_vector/book-reader.ts
 var BookReader = class {
   constructor() {
     this.bb = null;
@@ -142,7 +147,9 @@ var BookReader = class {
     return builder.offset();
   }
   unpack() {
-    return new BookReaderT(this.booksRead());
+    return new BookReaderT(
+      this.booksRead()
+    );
   }
   unpackTo(_o) {
     _o.booksRead = this.booksRead();
@@ -153,11 +160,14 @@ var BookReaderT = class {
     this.booksRead = booksRead;
   }
   pack(builder) {
-    return BookReader.createBookReader(builder, this.booksRead);
+    return BookReader.createBookReader(
+      builder,
+      this.booksRead
+    );
   }
 };
 
-// union_vector/rapunzel.js
+// union_vector/rapunzel.ts
 var Rapunzel = class {
   constructor() {
     this.bb = null;
@@ -187,7 +197,9 @@ var Rapunzel = class {
     return builder.offset();
   }
   unpack() {
-    return new RapunzelT(this.hairLength());
+    return new RapunzelT(
+      this.hairLength()
+    );
   }
   unpackTo(_o) {
     _o.hairLength = this.hairLength();
@@ -198,13 +210,15 @@ var RapunzelT = class {
     this.hairLength = hairLength;
   }
   pack(builder) {
-    return Rapunzel.createRapunzel(builder, this.hairLength);
+    return Rapunzel.createRapunzel(
+      builder,
+      this.hairLength
+    );
   }
 };
 
-// union_vector/character.js
-var Character;
-(function(Character2) {
+// union_vector/character.ts
+var Character = /* @__PURE__ */ ((Character2) => {
   Character2[Character2["NONE"] = 0] = "NONE";
   Character2[Character2["MuLan"] = 1] = "MuLan";
   Character2[Character2["Rapunzel"] = 2] = "Rapunzel";
@@ -212,7 +226,8 @@ var Character;
   Character2[Character2["BookFan"] = 4] = "BookFan";
   Character2[Character2["Other"] = 5] = "Other";
   Character2[Character2["Unused"] = 6] = "Unused";
-})(Character || (Character = {}));
+  return Character2;
+})(Character || {});
 function unionToCharacter(type, accessor) {
   switch (Character[type]) {
     case "NONE":
@@ -254,7 +269,7 @@ function unionListToCharacter(type, accessor, index) {
   }
 }
 
-// union_vector/falling-tub.js
+// union_vector/falling-tub.ts
 var FallingTub = class {
   constructor() {
     this.bb = null;
@@ -284,7 +299,9 @@ var FallingTub = class {
     return builder.offset();
   }
   unpack() {
-    return new FallingTubT(this.weight());
+    return new FallingTubT(
+      this.weight()
+    );
   }
   unpackTo(_o) {
     _o.weight = this.weight();
@@ -295,11 +312,14 @@ var FallingTubT = class {
     this.weight = weight;
   }
   pack(builder) {
-    return FallingTub.createFallingTub(builder, this.weight);
+    return FallingTub.createFallingTub(
+      builder,
+      this.weight
+    );
   }
 };
 
-// union_vector/hand-fan.js
+// union_vector/hand-fan.ts
 var flatbuffers2 = __toESM(require("flatbuffers"), 1);
 var HandFan = class _HandFan {
   constructor() {
@@ -349,7 +369,9 @@ var HandFan = class _HandFan {
     return _HandFan.endHandFan(builder);
   }
   unpack() {
-    return new HandFanT(this.length());
+    return new HandFanT(
+      this.length()
+    );
   }
   unpackTo(_o) {
     _o.length = this.length();
@@ -360,19 +382,22 @@ var HandFanT = class {
     this.length = length;
   }
   pack(builder) {
-    return HandFan.createHandFan(builder, this.length);
+    return HandFan.createHandFan(
+      builder,
+      this.length
+    );
   }
 };
 
-// union_vector/gadget.js
-var Gadget;
-(function(Gadget2) {
+// union_vector/gadget.ts
+var Gadget = /* @__PURE__ */ ((Gadget2) => {
   Gadget2[Gadget2["NONE"] = 0] = "NONE";
   Gadget2[Gadget2["FallingTub"] = 1] = "FallingTub";
   Gadget2[Gadget2["HandFan"] = 2] = "HandFan";
-})(Gadget || (Gadget = {}));
+  return Gadget2;
+})(Gadget || {});
 
-// union_vector/movie.js
+// union_vector/movie.ts
 var flatbuffers3 = __toESM(require("flatbuffers"), 1);
 var Movie = class _Movie {
   constructor() {
@@ -396,7 +421,7 @@ var Movie = class _Movie {
   }
   mainCharacterType() {
     const offset = this.bb.__offset(this.bb_pos, 4);
-    return offset ? this.bb.readUint8(this.bb_pos + offset) : Character.NONE;
+    return offset ? this.bb.readUint8(this.bb_pos + offset) : 0 /* NONE */;
   }
   mainCharacter(obj) {
     const offset = this.bb.__offset(this.bb_pos, 6);
@@ -404,7 +429,7 @@ var Movie = class _Movie {
   }
   charactersType(index) {
     const offset = this.bb.__offset(this.bb_pos, 8);
-    return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+    return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : null;
   }
   charactersTypeLength() {
     const offset = this.bb.__offset(this.bb_pos, 8);
@@ -429,7 +454,7 @@ var Movie = class _Movie {
     builder.startObject(4);
   }
   static addMainCharacterType(builder, mainCharacterType) {
-    builder.addFieldInt8(0, mainCharacterType, Character.NONE);
+    builder.addFieldInt8(0, mainCharacterType, 0 /* NONE */);
   }
   static addMainCharacter(builder, mainCharacterOffset) {
     builder.addFieldOffset(1, mainCharacterOffset, 0);
@@ -479,34 +504,39 @@ var Movie = class _Movie {
     return _Movie.endMovie(builder);
   }
   unpack() {
-    return new MovieT(this.mainCharacterType(), (() => {
-      const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
-      if (temp === null) {
-        return null;
-      }
-      if (typeof temp === "string") {
-        return temp;
-      }
-      return temp.unpack();
-    })(), this.bb.createScalarList(this.charactersType.bind(this), this.charactersTypeLength()), (() => {
-      const ret = [];
-      for (let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
-        const targetEnum = this.charactersType(targetEnumIndex);
-        if (targetEnum === null || Character[targetEnum] === "NONE") {
-          continue;
-        }
-        const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+    return new MovieT(
+      this.mainCharacterType(),
+      (() => {
+        const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
         if (temp === null) {
-          continue;
+          return null;
         }
         if (typeof temp === "string") {
-          ret.push(temp);
-          continue;
+          return temp;
         }
-        ret.push(temp.unpack());
-      }
-      return ret;
-    })());
+        return temp.unpack();
+      })(),
+      this.bb.createScalarList(this.charactersType.bind(this), this.charactersTypeLength()),
+      (() => {
+        const ret = [];
+        for (let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
+          const targetEnum = this.charactersType(targetEnumIndex);
+          if (targetEnum === null || Character[targetEnum] === "NONE") {
+            continue;
+          }
+          const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+          if (temp === null) {
+            continue;
+          }
+          if (typeof temp === "string") {
+            ret.push(temp);
+            continue;
+          }
+          ret.push(temp.unpack());
+        }
+        return ret;
+      })()
+    );
   }
   unpackTo(_o) {
     _o.mainCharacterType = this.mainCharacterType();
@@ -543,7 +573,7 @@ var Movie = class _Movie {
   }
 };
 var MovieT = class {
-  constructor(mainCharacterType = Character.NONE, mainCharacter = null, charactersType = [], characters = []) {
+  constructor(mainCharacterType = 0 /* NONE */, mainCharacter = null, charactersType = [], characters = []) {
     this.mainCharacterType = mainCharacterType;
     this.mainCharacter = mainCharacter;
     this.charactersType = charactersType;
@@ -553,6 +583,12 @@ var MovieT = class {
     const mainCharacter = builder.createObjectOffset(this.mainCharacter);
     const charactersType = Movie.createCharactersTypeVector(builder, this.charactersType);
     const characters = Movie.createCharactersVector(builder, builder.createObjectOffsetList(this.characters));
-    return Movie.createMovie(builder, this.mainCharacterType, mainCharacter, charactersType, characters);
+    return Movie.createMovie(
+      builder,
+      this.mainCharacterType,
+      mainCharacter,
+      charactersType,
+      characters
+    );
   }
 };

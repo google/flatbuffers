@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class HelloRequest {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):HelloRequest {
   this.bb_pos = i;
   this.bb = bb;
@@ -31,11 +31,11 @@ name(optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-static startHelloRequest(builder:flatbuffers.Builder) {
+static startHelloRequest(builder:flatbuffers.Builder):void {
   builder.startObject(1);
 }
 
-static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
+static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(0, nameOffset, 0);
 }
 

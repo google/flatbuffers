@@ -59,11 +59,11 @@ export class StackValue {
     this.offset = newOffset;
   }
 
-  storedWidth(width = BitWidth.WIDTH8): BitWidth {
+  storedWidth(width: BitWidth = BitWidth.WIDTH8): BitWidth {
     return isInline(this.type) ? Math.max(width, this.width) : this.width;
   }
 
-  storedPackedType(width = BitWidth.WIDTH8): ValueType {
+  storedPackedType(width: BitWidth = BitWidth.WIDTH8): ValueType {
     return packedType(this.type, this.storedWidth(width));
   }
 
