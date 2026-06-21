@@ -421,6 +421,27 @@ void AccessFlatBufferTest(const uint8_t* flatbuf, size_t length, bool pooled) {
   TEST_EQ(GetBufferStartFromRootPointer(monster), flatbuf);
 }
 
+// Basic coverage for the checked root helper APIs that combine verification
+// with obtaining the typed root pointer.
+void CheckedRootApiTest(const uint8_t* flatbuf, size_t length) {
+  // Valid buffer should round-trip through the checked helpers.
+  auto monster_checked =
+      flatbuffers::GetRootChecked<Monster>(flatbuf, length, MonsterIdentifier());
+  TEST_NOTNULL(monster_checked);
+  TEST_EQ(monster_checked->hp(), 80);
+  TEST_EQ(monster_checked->mana(), 150);
+
+  // Mutating the size downward should cause verification to fail and return
+  // nullptr from the checked helpers, while the unchecked helpers remain
+  // undefined for such input.
+  if (length > 4) {
+    const size_t truncated = length - 4;
+    auto truncated_checked =
+        flatbuffers::GetRootChecked<Monster>(flatbuf, truncated, MonsterIdentifier());
+    TEST_EQ(truncated_checked == nullptr, true);
+  }
+}
+
 // Change a FlatBuffer in-place, after it has been constructed.
 void MutateFlatBuffersTest(uint8_t* flatbuf, std::size_t length) {
   // Get non-const pointer to root.
