@@ -337,7 +337,7 @@ where
     T: 'a + Follow<'a>,
     <T as Follow<'a>>::Inner: serde::ser::Serialize,
 {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
     {
