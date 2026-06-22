@@ -425,6 +425,12 @@ pointer_inside_vector<T, U> piv(T* ptr, std::vector<U>& vec) {
 constexpr const char* UnionTypeFieldSuffix() { return "_type"; }
 
 // Helper to figure out the actual table type a union refers to.
+// Precondition: `table` must have been verified and the union type field must
+// correspond to a known enum value in the schema.  Generated verifiers use
+// `default: return true` for forward-compatibility, so they pass unknown union
+// type values — callers must validate that the union type is known before
+// calling this function, or the LookupByKey call below will return nullptr and
+// cause undefined behaviour.
 inline const reflection::Object& GetUnionType(
     const reflection::Schema& schema, const reflection::Object& parent,
     const reflection::Field& unionfield, const Table& table) {
@@ -435,6 +441,17 @@ inline const reflection::Object& GetUnionType(
   FLATBUFFERS_ASSERT(type_field);
   auto union_type = GetFieldI<uint8_t>(table, *type_field);
   auto enumval = enumdef->values()->LookupByKey(union_type);
+  // enumval is null when the data contains a union type value that is not
+  // present in the schema (e.g. data produced by a newer schema version).
+  // Generated VerifyAny functions use `default: return true` for
+  // forward-compatibility, so such data passes Verify() without error.
+  // A null dereference here is undefined behaviour and typically a crash.
+  //
+  // FLATBUFFERS_ASSERT fires in debug builds (NDEBUG not defined).  The
+  // explicit abort() below ensures the process terminates predictably in
+  // release builds too, rather than silently corrupting memory.
+  FLATBUFFERS_ASSERT(enumval != nullptr);
+  if (!enumval) { std::abort(); }
   return *schema.objects()->Get(enumval->union_type()->index());
 }
 
