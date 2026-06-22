@@ -30,7 +30,7 @@ jobs:
         cxx: [g++-13, clang++-18]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_STATIC_FLATC=ON .
     - name: build
@@ -68,7 +68,7 @@ jobs:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: cmake
       run: CXX=clang++-18 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
@@ -80,7 +80,7 @@ jobs:
     name: Build Linux with out-of-source build location
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: make build directory
       run: mkdir build
     - name: cmake
@@ -112,7 +112,7 @@ jobs:
             std: 23
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: cmake
       run: >
         CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles"
@@ -135,7 +135,7 @@ jobs:
         std: [11, 14, 17, 20, 23]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
     - name: cmake
@@ -160,7 +160,7 @@ jobs:
     name: Build Windows 2022
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
     - name: cmake
@@ -200,7 +200,7 @@ jobs:
           '-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v5
       with:
@@ -229,7 +229,7 @@ jobs:
     name: Build Mac (for Intel)
     runs-on: macos-15-intel
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: cmake
       run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -272,7 +272,7 @@ jobs:
     name: Build Mac (universal build)
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: cmake
       run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -312,7 +312,7 @@ jobs:
    if: false #disabled due to continual failure
    runs-on: ubuntu-24.04
    steps:
-   - uses: actions/checkout@v6
+   - uses: actions/checkout@v7
    - name: set up Java
      uses: actions/setup-java@v5
      with:
@@ -336,7 +336,7 @@ jobs:
       matrix:
         cxx: [g++-13, clang++-18]
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Generate
@@ -348,7 +348,7 @@ jobs:
     name: Check Generated Code on Windows
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
     - name: cmake
@@ -367,7 +367,7 @@ jobs:
       matrix:
         cxx: [g++-13]
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Run benchmarks
@@ -382,7 +382,7 @@ jobs:
     name: Build Java
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: test
       working-directory: java
       run: mvn test
@@ -392,7 +392,7 @@ jobs:
     runs-on: macos-15
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: set up Java
       uses: actions/setup-java@v5
       with:
@@ -415,7 +415,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: set up Java
       uses: actions/setup-java@v5
       with:
@@ -439,7 +439,7 @@ jobs:
     name: Build Rust Linux
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: test
       working-directory: tests
       run: bash RustTest.sh
@@ -448,7 +448,7 @@ jobs:
     name: Build Rust Windows
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: test
       working-directory: tests
       run: ./RustTest.bat
@@ -457,7 +457,7 @@ jobs:
     name: Build Python
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -469,7 +469,7 @@ jobs:
     name: Build Go
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -481,7 +481,7 @@ jobs:
    name: Build PHP
    runs-on: ubuntu-24.04
    steps:
-   - uses: actions/checkout@v6
+   - uses: actions/checkout@v7
    - name: flatc
      # FIXME: make test script not rely on flatc
      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -498,7 +498,7 @@ jobs:
         swift: ["6.0", "6.1", "6.2"]
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: swift-actions/setup-swift@v2
       with:
         swift-version: ${{ matrix.swift }}
@@ -511,7 +511,7 @@ jobs:
     name: Test swift windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: SwiftyLab/setup-swift@latest
         with:
           swift-version: '6.1'
@@ -522,7 +522,7 @@ jobs:
     name: Test Swift Wasm
     runs-on: ubuntu-24.04
     steps:
-       - uses: actions/checkout@v6
+       - uses: actions/checkout@v7
        - uses: swift-actions/setup-swift@v2
          with:
            swift-version: 6.2.1
@@ -540,7 +540,7 @@ jobs:
     name: Build TS
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
@@ -559,7 +559,7 @@ jobs:
     name: Build Dart
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
@@ -574,7 +574,7 @@ jobs:
     name: Build Nim
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
@@ -590,7 +590,7 @@ jobs:
     name: Bazel
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Explicitly use 8.5.1 until we can update or https://github.com/actions/runner-images/issues/13564 is fixed.
       - name: Set env
         run: >
