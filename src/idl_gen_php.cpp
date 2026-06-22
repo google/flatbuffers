@@ -673,8 +673,13 @@ class PhpGenerator : public BaseGenerator {
       code += Indent + "{\n";
       code += Indent + Indent + "$builder->finish($offset";
 
-      if (parser_.file_identifier_.length())
-        code += ", \"" + parser_.file_identifier_ + "\"";
+      if (parser_.file_identifier_.length()) {
+        std::string escaped_ident;
+        flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                  parser_.file_identifier_.length(),
+                                  &escaped_ident, true, false);
+        code += ", " + escaped_ident;
+      }
       code += ");\n";
       code += Indent + "}\n";
     }
@@ -779,8 +784,12 @@ class PhpGenerator : public BaseGenerator {
         code += Indent + "public static function " + struct_def.name;
         code += "Identifier()\n";
         code += Indent + "{\n";
-        code += Indent + Indent + "return \"";
-        code += parser_.file_identifier_ + "\";\n";
+        std::string escaped_ident;
+        flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                  parser_.file_identifier_.length(),
+                                  &escaped_ident, true, false);
+        code += Indent + Indent + "return ";
+        code += escaped_ident + ";\n";
         code += Indent + "}\n\n";
 
         // Check if a buffer has the identifier.

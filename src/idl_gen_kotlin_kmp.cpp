@@ -820,7 +820,13 @@ class KotlinKMPGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      std::string escaped_ident;
+      flatbuffers::EscapeString(identifier.c_str(), identifier.length(),
+                                &escaped_ident, true, false);
+      id = ", " + escaped_ident;
+    }
     auto gen_type = "Offset<" + namer_.Type(struct_def.name) + ">";
     auto params = "builder: FlatBufferBuilder, offset: " + gen_type;
     auto method_name =
@@ -834,7 +840,13 @@ class KotlinKMPGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      std::string escaped_ident;
+      flatbuffers::EscapeString(identifier.c_str(), identifier.length(),
+                                &escaped_ident, true, false);
+      id = ", " + escaped_ident;
+    }
     auto gen_type = "Offset<" + namer_.Type(struct_def.name) + ">";
     auto params = "builder: FlatBufferBuilder, offset: " + gen_type;
     auto method_name =
@@ -1056,12 +1068,16 @@ class KotlinKMPGenerator : public BaseGenerator {
     // Check if a buffer has the identifier.
     if (parser_.root_struct_def_ != &struct_def || !file_identifier.length())
       return;
+    std::string escaped_ident;
+    flatbuffers::EscapeString(file_identifier.c_str(),
+                              file_identifier.length(),
+                              &escaped_ident, true, false);
     auto name = namer_.Function(struct_def);
     GenerateFunOneLine(
         writer, name + "BufferHasIdentifier", "buffer: ReadWriteBuffer",
         "Boolean",
         [&]() {
-          writer += "hasIdentifier(buffer, \"" + file_identifier + "\")";
+          writer += "hasIdentifier(buffer, " + escaped_ident + ")";
         },
         options.gen_jvmstatic);
   }

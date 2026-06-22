@@ -669,7 +669,13 @@ class KotlinGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      std::string escaped_ident;
+      flatbuffers::EscapeString(identifier.c_str(), identifier.length(),
+                                &escaped_ident, true, false);
+      id = ", " + escaped_ident;
+    }
     auto params = "builder: FlatBufferBuilder, offset: Int";
     auto method_name =
         namer_.LegacyJavaMethod2("finishSizePrefixed", struct_def, "Buffer");
@@ -682,7 +688,13 @@ class KotlinGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      std::string escaped_ident;
+      flatbuffers::EscapeString(identifier.c_str(), identifier.length(),
+                                &escaped_ident, true, false);
+      id = ", " + escaped_ident;
+    }
     auto params = "builder: FlatBufferBuilder, offset: Int";
     auto method_name =
         namer_.LegacyKotlinMethod("finish", struct_def, "Buffer");
@@ -940,11 +952,15 @@ class KotlinGenerator : public BaseGenerator {
     // Check if a buffer has the identifier.
     if (parser_.root_struct_def_ != &struct_def || !file_identifier.length())
       return;
+    std::string escaped_ident;
+    flatbuffers::EscapeString(file_identifier.c_str(),
+                              file_identifier.length(),
+                              &escaped_ident, true, false);
     auto name = namer_.Function(struct_def);
     GenerateFunOneLine(
         writer, name + "BufferHasIdentifier", "_bb: ByteBuffer", "Boolean",
         [&]() {
-          writer += "__has_identifier(_bb, \"" + file_identifier + "\")";
+          writer += "__has_identifier(_bb, " + escaped_ident + ")";
         },
         options.gen_jvmstatic);
   }

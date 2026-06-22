@@ -2634,7 +2634,11 @@ class RustGenerator : public BaseGenerator {
       // Declare the identifier
       // (no lifetime needed as constants have static lifetimes by default)
       code_ += "pub const {{STRUCT_CONST}}_IDENTIFIER: &str\\";
-      code_ += " = \"" + parser_.file_identifier_ + "\";";
+      std::string escaped_ident;
+      flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                parser_.file_identifier_.length(),
+                                &escaped_ident, true, false);
+      code_ += " = " + escaped_ident + ";";
       code_ += "";
 
       // Check if a buffer has the identifier.

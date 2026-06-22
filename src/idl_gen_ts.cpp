@@ -821,7 +821,11 @@ class TsGenerator : public BaseGenerator {
       code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
       code += "  builder.finish(offset";
       if (!parser_.file_identifier_.empty()) {
-        code += ", '" + parser_.file_identifier_ + "'";
+        std::string escaped_ident;
+        flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                  parser_.file_identifier_.length(),
+                                  &escaped_ident, true, false);
+        code += ", " + escaped_ident;
       }
       if (size_prefixed) {
         if (parser_.file_identifier_.empty()) {
@@ -1726,8 +1730,12 @@ class TsGenerator : public BaseGenerator {
       code +=
           "static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean "
           "{\n";
-      code += "  return bb.__has_identifier('" + parser_.file_identifier_;
-      code += "');\n}\n\n";
+      std::string escaped_ident;
+      flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                parser_.file_identifier_.length(),
+                                &escaped_ident, true, false);
+      code += "  return bb.__has_identifier(" + escaped_ident;
+      code += ");\n}\n\n";
     }
 
     // Emit field accessors
