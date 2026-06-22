@@ -1,1 +1,18 @@
 {% extends "base.html" %}
+
+{% block scripts %}
+  {{ super() }}
+
+  <script>
+    window.addEventListener("load", function () {
+      const copyright =
+        document.querySelector(".md-copyright__highlight");
+
+      if (copyright) {
+        copyright.innerHTML =
+          `Copyright &copy; ${new Date().getFullYear()} Google`;
+      }
+    });
+  </script>
+
+{% endblock %}
