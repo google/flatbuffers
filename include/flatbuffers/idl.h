@@ -1280,6 +1280,12 @@ class Parser : public ParserState {
 // These functions return nullptr on success, or an error string,
 // which may happen if the flatbuffer cannot be encoded in JSON (e.g.,
 // it contains non-UTF-8 byte arrays in String values).
+//
+// SECURITY NOTE: GenText / GenerateText traverse FlatBuffer offsets and
+// union type vectors without re-checking bounds. Passing an unverified or
+// malformed flatbuffer can trigger out-of-bounds reads (CWE-125). Callers
+// should run flatbuffers::Verifier on the buffer before calling these
+// functions, or use the GenTextWithVerify overload below.
 extern bool GenerateTextFromTable(const Parser& parser, const void* table,
                                   const std::string& tablename,
                                   std::string* text);
@@ -1296,6 +1302,14 @@ extern const char* GenText(const Parser& parser, const void* flatbuffer,
                            std::string* text);
 extern const char* GenTextFile(const Parser& parser, const std::string& path,
                                const std::string& file_name);
+
+// Safe overload: runs a structural Verifier on the buffer before generating
+// text. Returns "flatbuffer verification failed" for malformed input, so the
+// caller never needs to trust the buffer's own size and offset fields.
+extern const char* GenTextWithVerify(const Parser& parser,
+                                     const void* flatbuffer,
+                                     size_t flatbuffer_size,
+                                     std::string* text);
 
 // Generate GRPC Cpp interfaces.
 // See idl_gen_grpc.cpp.
