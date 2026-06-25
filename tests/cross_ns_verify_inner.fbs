@@ -1,0 +1,6 @@
+namespace Inner;
+
+table Mapping {
+  key: string;
+  value: int;
+}

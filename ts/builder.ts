@@ -1,11 +1,11 @@
-import {ByteBuffer} from './byte-buffer.js';
+import { ByteBuffer } from "./byte-buffer.js";
 import {
   FILE_IDENTIFIER_LENGTH,
   SIZE_PREFIX_LENGTH,
   SIZEOF_INT,
   SIZEOF_SHORT,
-} from './constants.js';
-import {IGeneratedObject, Offset} from './types.js';
+} from "./constants.js";
+import { IGeneratedObject, Offset } from "./types.js";
 
 export class Builder {
   private bb: ByteBuffer;
@@ -299,7 +299,7 @@ export class Builder {
    */
   nested(obj: Offset): void {
     if (obj != this.offset()) {
-      throw new TypeError('FlatBuffers: struct must be serialized inline.');
+      throw new TypeError("FlatBuffers: struct must be serialized inline.");
     }
   }
 
@@ -310,7 +310,7 @@ export class Builder {
   notNested(): void {
     if (this.isNested) {
       throw new TypeError(
-        'FlatBuffers: object serialization must not be nested.',
+        "FlatBuffers: object serialization must not be nested.",
       );
     }
   }
@@ -346,7 +346,7 @@ export class Builder {
 
     // Ensure we don't grow beyond what fits in an int.
     if (old_buf_size & 0xc0000000) {
-      throw new Error('FlatBuffers: cannot grow buffer beyond 2 gigabytes.');
+      throw new Error("FlatBuffers: cannot grow buffer beyond 2 gigabytes.");
     }
 
     const new_buf_size = old_buf_size << 1;
@@ -391,7 +391,7 @@ export class Builder {
    */
   endObject(): Offset {
     if (this.vtable == null || !this.isNested) {
-      throw new Error('FlatBuffers: endObject called without startObject');
+      throw new Error("FlatBuffers: endObject called without startObject");
     }
 
     this.addInt32(0);
@@ -470,7 +470,7 @@ export class Builder {
       );
       if (file_identifier.length != FILE_IDENTIFIER_LENGTH) {
         throw new TypeError(
-          'FlatBuffers: file identifier must be length ' +
+          "FlatBuffers: file identifier must be length " +
             FILE_IDENTIFIER_LENGTH,
         );
       }
@@ -510,7 +510,7 @@ export class Builder {
 
     // If this fails, the caller will show what field needs to be set.
     if (!ok) {
-      throw new TypeError('FlatBuffers: field ' + field + ' must be set');
+      throw new TypeError("FlatBuffers: field " + field + " must be set");
     }
   }
 
@@ -614,12 +614,14 @@ export class Builder {
    *
    * @returns offset of obj
    */
-  createObjectOffset(obj: string | IGeneratedObject | null | undefined): Offset {
+  createObjectOffset(
+    obj: string | IGeneratedObject | null | undefined,
+  ): Offset {
     if (obj === null || obj === undefined) {
       return 0;
     }
 
-    if (typeof obj === 'string') {
+    if (typeof obj === "string") {
       return this.createString(obj);
     } else {
       return obj.pack(this);
@@ -641,7 +643,7 @@ export class Builder {
         ret.push(this.createObjectOffset(val));
       } else {
         throw new TypeError(
-          'FlatBuffers: Argument for createObjectOffsetList cannot contain null or undefined.',
+          "FlatBuffers: Argument for createObjectOffsetList cannot contain null or undefined.",
         );
       }
     }

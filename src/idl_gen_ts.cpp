@@ -122,7 +122,48 @@ class TsGenerator : public BaseGenerator {
     if (!parser_.opts.ts_omit_entrypoint) {
       generateEntry();
     }
+    if (parser_.opts.binary_schema_gen_embed) {
+      if (!generate_bfbs_embed()) return false;
+    }
     return true;
+  }
+
+  // Generates a TypeScript source file containing the binary schema (.bfbs)
+  // as an embedded Uint8Array, enabling runtime reflection without file I/O.
+  //
+  // Output file: {name}-bfbs.ts
+  // Contents:
+  //   export const bfbsData = new Uint8Array([0xAB, 0xCD, ...]);
+  bool generate_bfbs_embed() {
+    if (!parser_.root_struct_def_) return true;  // nothing to embed
+
+    auto& struct_def = *parser_.root_struct_def_;
+
+    std::string code;
+    code += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
+    code +=
+        "/* eslint-disable @typescript-eslint/no-unused-vars */\n\n";
+
+    auto binary_schema_hex_text =
+        BufferToHexText(parser_.builder_.GetBufferPointer(),
+                        parser_.builder_.GetSize(), 80, "  ", "");
+
+    code += "/**\n";
+    code += " * Embedded binary schema (.bfbs) for runtime reflection.\n";
+    code += " * Generated from the schema that produced this file.\n";
+    code += " * Use with `loadSchema(bfbsData)` from the reflection module.\n";
+    code += " */\n";
+    code += "export const bfbsData: Uint8Array = new Uint8Array([\n";
+    code += binary_schema_hex_text;
+    code += "]);\n";
+
+    auto dirs = namer_.Directories(*struct_def.defined_namespace);
+    EnsureDirExists(dirs);
+    auto basename = dirs +
+                    namer_.File(struct_def, SkipFile::SuffixAndExtension) +
+                    "-bfbs.ts";
+
+    return parser_.opts.file_saver->SaveFile(basename.c_str(), code, false);
   }
 
   std::string GetTypeName(const EnumDef& def, const bool = false,
@@ -406,6 +447,9 @@ class TsGenerator : public BaseGenerator {
 
     if (enum_def.is_union) {
       code += GenUnionConvFunc(enum_def.underlying_type, imports);
+      if (parser_.opts.generate_object_based_api) {
+        code += GenDiscriminatedUnionTypeTS(imports, enum_def);
+      }
     }
 
     code += "\n";
@@ -542,7 +586,11 @@ class TsGenerator : public BaseGenerator {
       }
 
       case BASE_TYPE_ARRAY:
+        return "[]";
+
       case BASE_TYPE_VECTOR:
+        if (IsMapField(field)) return "new Map()";
+        if (IsSetField(field)) return "new Set()";
         return "[]";
 
       case BASE_TYPE_LONG:
@@ -1050,6 +1098,47 @@ class TsGenerator : public BaseGenerator {
     return import;
   }
 
+  // Ensure the verify{Type} function is included in the import for a struct.
+  // Call AFTER AddImport for the struct so the base import exists.
+  void AddVerifyImport(import_set& imports, const Definition& /*dependent*/,
+                       const StructDef& dependency) {
+    const std::string unique_name = GetTypeName(
+        dependency, /*object_api = */ false, /*force_ns_wrap=*/true);
+    auto it = imports.find(unique_name);
+    if (it == imports.end()) return;  // Should not happen.
+
+    // The verify function is always exported with the base type name
+    // (e.g. verifyMapping), but when there's a name clash the import
+    // alias is namespaced (e.g. Cga_Mapping). Mirror the aliasing so
+    // the imported symbol matches the call site.
+    const std::string base_name = GetTypeName(dependency);
+    const std::string verify_base = "verify" + base_name;
+    const std::string verify_alias = "verify" + it->second.name;
+
+    // Check if already added (avoid duplicates).
+    if (it->second.import_statement.find(verify_alias) != std::string::npos)
+      return;
+
+    // Build the symbol expression, with "as" alias if names differ.
+    std::string verify_symbol = verify_base;
+    if (verify_base != verify_alias) {
+      verify_symbol += " as " + verify_alias;
+    }
+
+    // Splice verify name into the import statement:
+    //   "import { Foo } from '...'" → "import { Foo, verifyFoo } from '...'"
+    const std::string search = " } from '";
+    auto pos = it->second.import_statement.find(search);
+    if (pos != std::string::npos) {
+      it->second.import_statement.insert(pos, ", " + verify_symbol);
+    }
+    // Same for export statement (always use base name, no alias needed).
+    pos = it->second.export_statement.find(search);
+    if (pos != std::string::npos) {
+      it->second.export_statement.insert(pos, ", " + verify_base);
+    }
+  }
+
   void AddImport(import_set& imports, std::string import_name,
                  std::string fileName) {
     ImportDefinition import;
@@ -1092,6 +1181,46 @@ class TsGenerator : public BaseGenerator {
       ret += *it + ((totalPrinted == type_list.size()) ? "" : "|");
     }
 
+    return ret;
+  }
+
+  // Generates a TypeScript discriminated union type for a union enum when
+  // using the Object API.  Each variant becomes a tagged object with a
+  // `type` literal and a `value` holding the unpacked *T instance (or null
+  // for the NONE variant).
+  //
+  // Example output:
+  //   export type AnyUnionT =
+  //     | { type: 'Monster'; value: MonsterT }
+  //     | { type: 'Weapon'; value: WeaponT }
+  //     | { type: 'NONE'; value: null };
+  std::string GenDiscriminatedUnionTypeTS(import_set& imports,
+                                          const EnumDef& union_enum) {
+    const auto type_name = GetTypeName(union_enum) + "T";
+    std::string ret = "\n\nexport type " + type_name + " =\n";
+
+    // NONE variant is always present
+    ret += "  | { type: 'NONE'; value: null }";
+
+    for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
+         ++it) {
+      const auto& ev = **it;
+      if (ev.IsZero()) continue;  // skip NONE — already emitted above
+
+      const auto variant_name = namer_.Variant(ev);
+      std::string value_type;
+      if (IsString(ev.union_type)) {
+        value_type = "string";
+      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+        value_type =
+            AddImport(imports, union_enum, *ev.union_type.struct_def).object_name;
+      } else {
+        FLATBUFFERS_ASSERT(false);
+      }
+      ret += "\n  | { type: '" + variant_name + "'; value: " + value_type + " }";
+    }
+
+    ret += ";";
     return ret;
   }
 
@@ -1282,6 +1411,59 @@ class TsGenerator : public BaseGenerator {
     return ret;
   }
 
+  // ---------------------------------------------------------------------------
+  // Map/Set field helpers — used by Object API codegen (TypeScript).
+  // Map fields: BASE_TYPE_VECTOR of struct with "map_entry" attribute.
+  // Set fields: BASE_TYPE_VECTOR of struct with "set_entry" attribute.
+  // ---------------------------------------------------------------------------
+  static bool IsMapField(const FieldDef &field) {
+    return field.attributes.Lookup("map_entry") != nullptr;
+  }
+  static bool IsSetField(const FieldDef &field) {
+    return field.attributes.Lookup("set_entry") != nullptr;
+  }
+  static const FieldDef *GetEntryKeyField(const StructDef &entry) {
+    for (auto *f : entry.fields.vec) {
+      if (f->key) return f;
+    }
+    return nullptr;
+  }
+  static const FieldDef *GetEntryValueField(const StructDef &entry) {
+    return entry.fields.Lookup("value");
+  }
+
+  // Returns the TypeScript type string for a map key type.
+  // Keys must be primitives (string, number, bigint, boolean) or enums.
+  std::string TsKeyType(import_set &imports, const Definition &owner,
+                        const Type &type) {
+    if (IsString(type)) return "string";
+    if (type.base_type == BASE_TYPE_BOOL) return "boolean";
+    if (type.base_type == BASE_TYPE_LONG || type.base_type == BASE_TYPE_ULONG)
+      return "bigint";
+    if (type.enum_def) {
+      return AddImport(imports, owner, *type.enum_def).name;
+    }
+    if (IsScalar(type.base_type)) return "number";
+    return "string";
+  }
+
+  // Returns the TypeScript type string for a map value or set element type.
+  std::string TsValueType(import_set &imports, const Definition &owner,
+                          const Type &type) {
+    if (IsString(type)) return "string";
+    if (type.base_type == BASE_TYPE_BOOL) return "boolean";
+    if (type.base_type == BASE_TYPE_LONG || type.base_type == BASE_TYPE_ULONG)
+      return "bigint";
+    if (type.base_type == BASE_TYPE_STRUCT) {
+      return AddImport(imports, owner, *type.struct_def).object_name;
+    }
+    if (type.enum_def) {
+      return AddImport(imports, owner, *type.enum_def).name;
+    }
+    if (IsScalar(type.base_type)) return "number";
+    return "unknown";
+  }
+
   void GenObjApi(const Parser& parser, StructDef& struct_def,
                  std::string& obj_api_unpack_func, std::string& obj_api_class,
                  import_set& imports) {
@@ -1302,6 +1484,7 @@ class TsGenerator : public BaseGenerator {
     std::string pack_func_prototype =
         "\npack(builder:flatbuffers.Builder): flatbuffers.Offset {\n";
 
+    std::string pack_func_required_checks;
     std::string pack_func_offset_decl;
     std::string pack_func_create_call;
 
@@ -1332,6 +1515,18 @@ class TsGenerator : public BaseGenerator {
       const auto field_field = namer_.Field(field);
       const std::string field_binded_method =
           "this." + field_method + ".bind(this)";
+
+      // Collect required-field validation for pack().
+      // Union type fields use a companion _Type discriminant field; skip
+      // BASE_TYPE_UTYPE here because the union value field handles the check.
+      if (!struct_def.fixed && field.IsRequired() &&
+          field.value.type.base_type != BASE_TYPE_UTYPE) {
+        pack_func_required_checks +=
+            "  if (this." + namer_.Field(field) + " === null || this." +
+            namer_.Field(field) + " === undefined) {\n" +
+            "    throw new Error('Required field \"" + field.name +
+            "\" is not set');\n  }\n";
+      }
 
       std::string field_val;
       std::string field_type;
@@ -1486,6 +1681,199 @@ class TsGenerator : public BaseGenerator {
             switch (vectortype.base_type) {
               case BASE_TYPE_STRUCT: {
                 const auto& sd = *field.value.type.struct_def;
+
+                // -------------------------------------------------------
+                // Map / Set field handling
+                // -------------------------------------------------------
+                if (IsMapField(field) || IsSetField(field)) {
+                  const FieldDef *kf = GetEntryKeyField(sd);
+                  FLATBUFFERS_ASSERT(kf && "map/set entry struct missing key field");
+                  const std::string key_ts =
+                      TsKeyType(imports, struct_def, kf->value.type);
+                  const std::string key_method = namer_.Method(*kf);
+                  const std::string len_method =
+                      namer_.Method(field, "Length");
+                  const std::string entry_accessor = namer_.Method(field);
+                  const std::string parent_name =
+                      AddImport(imports, struct_def, struct_def).name;
+
+                  if (IsMapField(field)) {
+                    const FieldDef *vf = GetEntryValueField(sd);
+                    FLATBUFFERS_ASSERT(vf && "map entry struct missing value field");
+                    const std::string val_ts =
+                        TsValueType(imports, struct_def, vf->value.type);
+                    const std::string val_method = namer_.Method(*vf);
+
+                    // T-class field type: Map<K, V>
+                    field_type = "Map<" + key_ts + ", " + val_ts + ">";
+
+                    // Unpack: IIFE that iterates vector and builds the Map.
+                    // Handles table value (needs .unpack()) vs scalar value.
+                    const bool val_is_struct =
+                        vf->value.type.base_type == BASE_TYPE_STRUCT;
+                    const bool val_is_string = IsString(vf->value.type);
+                    std::string val_expr;
+                    if (val_is_struct) {
+                      val_expr = "e." + val_method + "()!.unpack()";
+                    } else if (val_is_string) {
+                      val_expr = "e." + val_method + "()!";
+                    } else {
+                      val_expr = "e." + val_method + "()";
+                    }
+
+                    field_val = "(() => {\n";
+                    field_val += "    const m = new Map<" + key_ts + ", " +
+                                 val_ts + ">();\n";
+                    field_val += "    for (let i = 0; i < this." + len_method +
+                                 "(); i++) {\n";
+                    field_val += "      const e = this." + entry_accessor +
+                                 "(i)!;\n";
+                    field_val +=
+                        "      m.set(e." + key_method + "()!, " + val_expr +
+                        ");\n";
+                    field_val += "    }\n";
+                    field_val += "    return m;\n";
+                    field_val += "  })()";
+
+                    // Pack: sort entries, build offsets, create vector.
+                    // Determine sort comparator based on key type.
+                    const std::string sort_cmp =
+                        (key_ts == "string")
+                            ? "(a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0"
+                            : "(a, b) => Number(a[0]) - Number(b[0])";
+                    const std::string entry_class_name =
+                        AddImport(imports, struct_def, sd).name;
+                    const std::string add_key_method =
+                        namer_.Method("add", *kf);
+                    const std::string add_val_method =
+                        namer_.Method("add", *vf);
+                    const std::string start_method = "start" + sd.name;
+                    const std::string end_method = "end" + sd.name;
+                    const std::string create_vec_method =
+                        namer_.Method("create", field, "Vector");
+
+                    // Build key offset line (only for string keys).
+                    std::string key_offset_line;
+                    std::string add_key_arg;
+                    if (key_ts == "string") {
+                      key_offset_line =
+                          "    const kOff = builder.createString(k);\n";
+                      add_key_arg = "kOff";
+                    } else {
+                      key_offset_line = "";
+                      add_key_arg = "k";
+                    }
+
+                    // Build value offset/arg (string value needs createString).
+                    std::string val_offset_line;
+                    std::string add_val_arg;
+                    if (val_is_struct) {
+                      val_offset_line = "    const vOff = v.pack(builder);\n";
+                      add_val_arg = "vOff";
+                    } else if (val_is_string) {
+                      val_offset_line =
+                          "    const vOff = builder.createString(v);\n";
+                      add_val_arg = "vOff";
+                    } else {
+                      val_offset_line = "";
+                      add_val_arg = "v";
+                    }
+
+                    pack_func_offset_decl +=
+                        "  const " + field_field + "Entries = Array.from(this." +
+                        field_field + ".entries())\n" +
+                        "    .sort(" + sort_cmp + ");\n" +
+                        "  const " + field_field + "Offsets = " + field_field +
+                        "Entries.map(([k, v]) => {\n" +
+                        key_offset_line +
+                        val_offset_line +
+                        "    " + entry_class_name + "." + start_method +
+                        "(builder);\n" +
+                        "    " + entry_class_name + "." + add_key_method +
+                        "(builder, " + add_key_arg + ");\n" +
+                        "    " + entry_class_name + "." + add_val_method +
+                        "(builder, " + add_val_arg + ");\n" +
+                        "    return " + entry_class_name + "." + end_method +
+                        "(builder);\n" +
+                        "  });\n" +
+                        "  const " + field_field + " = " + parent_name + "." +
+                        create_vec_method +
+                        "(builder, " + field_field + "Offsets);\n";
+
+                    field_offset_val = field_field;
+                    field_offset_decl = "";  // already appended above
+
+                  } else {
+                    // Set field
+                    field_type = "Set<" + key_ts + ">";
+
+                    field_val = "(() => {\n";
+                    field_val += "    const s = new Set<" + key_ts + ">();\n";
+                    field_val += "    for (let i = 0; i < this." + len_method +
+                                 "(); i++) {\n";
+                    field_val += "      const e = this." + entry_accessor +
+                                 "(i)!;\n";
+                    field_val += "      s.add(e." + key_method + "()!);\n";
+                    field_val += "    }\n";
+                    field_val += "    return s;\n";
+                    field_val += "  })()";
+
+                    const std::string sort_cmp =
+                        (key_ts == "string")
+                            ? "(a, b) => a < b ? -1 : a > b ? 1 : 0"
+                            : "(a, b) => Number(a) - Number(b)";
+                    const std::string entry_class_name =
+                        AddImport(imports, struct_def, sd).name;
+                    const std::string add_key_method =
+                        namer_.Method("add", *kf);
+                    const std::string start_method = "start" + sd.name;
+                    const std::string end_method = "end" + sd.name;
+                    const std::string create_vec_method =
+                        namer_.Method("create", field, "Vector");
+
+                    std::string key_offset_line;
+                    std::string add_key_arg;
+                    if (key_ts == "string") {
+                      key_offset_line =
+                          "    const kOff = builder.createString(k);\n";
+                      add_key_arg = "kOff";
+                    } else {
+                      key_offset_line = "";
+                      add_key_arg = "k";
+                    }
+
+                    pack_func_offset_decl +=
+                        "  const " + field_field + "Sorted = Array.from(this." +
+                        field_field + ".values())\n" +
+                        "    .sort(" + sort_cmp + ");\n" +
+                        "  const " + field_field + "Offsets = " + field_field +
+                        "Sorted.map(k => {\n" +
+                        key_offset_line +
+                        "    " + entry_class_name + "." + start_method +
+                        "(builder);\n" +
+                        "    " + entry_class_name + "." + add_key_method +
+                        "(builder, " + add_key_arg + ");\n" +
+                        "    return " + entry_class_name + "." + end_method +
+                        "(builder);\n" +
+                        "  });\n" +
+                        "  const " + field_field + " = " + parent_name + "." +
+                        create_vec_method +
+                        "(builder, " + field_field + "Offsets);\n";
+
+                    field_offset_val = field_field;
+                    field_offset_decl = "";  // already appended above
+                  }
+
+                  // field_offset_decl is empty; field_offset_val holds the var name.
+                  // field_type is already "Map<K,V>" or "Set<K>".
+                  // Keep is_vector = true so the "|null" suffix is NOT appended.
+                  is_vector = true;
+                  break;
+                }
+                // -------------------------------------------------------
+                // Normal vector-of-struct handling (not map/set)
+                // -------------------------------------------------------
+
                 const auto field_type_name =
                     GetTypeName(sd, /*object_api=*/true);
                 field_type += field_type_name;
@@ -1652,15 +2040,299 @@ class TsGenerator : public BaseGenerator {
     obj_api_class += GetTypeName(struct_def, /*object_api=*/true);
     obj_api_class += " implements flatbuffers.IGeneratedObject {\n";
     obj_api_class += constructor_func;
-    obj_api_class += pack_func_prototype + pack_func_offset_decl +
-                     pack_func_create_call + "\n}";
+    obj_api_class += pack_func_prototype + pack_func_required_checks +
+                     pack_func_offset_decl + pack_func_create_call + "\n}";
+    obj_api_class += GenCloneMethodTS(struct_def);
+    obj_api_class += GenEqualsMethodTS(struct_def);
 
     obj_api_class += "\n}\n";
 
     unpack_func += ");\n}";
     unpack_to_func += "}\n";
 
-    obj_api_unpack_func = unpack_func + "\n\n" + unpack_to_func;
+    std::string unpack_fields_func;
+    if (!struct_def.fixed) {
+      unpack_fields_func = "\n" + GenUnpackFieldsTS(struct_def, imports) + "\n";
+    }
+
+    obj_api_unpack_func =
+        unpack_func + "\n\n" + unpack_to_func + unpack_fields_func;
+  }
+
+  // Generates a clone() method for a *T Object API class.
+  // Scalar and string fields are copied by value; nested *T objects are cloned
+  // recursively; vector fields are shallow-copied for scalars/strings and
+  // element-cloned for struct vectors.
+  std::string GenCloneMethodTS(const StructDef& struct_def) {
+    const auto class_name = GetTypeName(struct_def, /*object_api=*/true);
+    std::string ret = "\n\nclone(): " + class_name + " {\n";
+    ret += "  const obj = new " + class_name + "();\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto ff = namer_.Field(field);
+      const auto base = field.value.type.base_type;
+
+      if (IsScalar(base) || IsString(field.value.type)) {
+        // Scalars and strings: copy by value
+        ret += "  obj." + ff + " = this." + ff + ";\n";
+      } else if (base == BASE_TYPE_STRUCT) {
+        // Nested *T struct: recursive clone or null
+        ret += "  obj." + ff + " = this." + ff + " !== null ? this." + ff +
+               "!.clone() : null;\n";
+      } else if (base == BASE_TYPE_UNION) {
+        // Union value: handled as object that may have clone()
+        ret += "  obj." + ff + " = this." + ff + " !== null && " +
+               "typeof (this." + ff + " as any).clone === 'function'" +
+               " ? (this." + ff + " as any).clone() : this." + ff + ";\n";
+      } else if (base == BASE_TYPE_VECTOR || base == BASE_TYPE_ARRAY) {
+        if (IsMapField(field)) {
+          // Map: shallow copy via new Map(this.field)
+          ret += "  obj." + ff + " = new Map(this." + ff + ");\n";
+        } else if (IsSetField(field)) {
+          // Set: shallow copy via new Set(this.field)
+          ret += "  obj." + ff + " = new Set(this." + ff + ");\n";
+        } else {
+          auto vectortype = field.value.type.VectorType();
+          if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            // Vector of *T objects: element-wise clone
+            ret += "  obj." + ff + " = this." + ff +
+                   ".map(e => e.clone());\n";
+          } else {
+            // Vector of scalars/strings/unions: spread copy
+            ret += "  obj." + ff + " = [...this." + ff + "];\n";
+          }
+        }
+      } else {
+        ret += "  obj." + ff + " = this." + ff + ";\n";
+      }
+    }
+
+    ret += "  return obj;\n}";
+    return ret;
+  }
+
+  // Generates an equals() method for a *T Object API class.
+  // Scalar fields: ===; nested *T objects: recursive equals(); arrays: length
+  // + element comparison.
+  std::string GenEqualsMethodTS(const StructDef& struct_def) {
+    const auto class_name = GetTypeName(struct_def, /*object_api=*/true);
+    std::string ret = "\n\nequals(other: " + class_name + "): boolean {\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto ff = namer_.Field(field);
+      const auto base = field.value.type.base_type;
+
+      if (IsScalar(base) || IsString(field.value.type)) {
+        if (IsFloat(base)) {
+          // Use Object.is() for floats so NaN === NaN is true.
+          ret += "  if (!Object.is(this." + ff + ", other." + ff +
+                 ")) return false;\n";
+        } else {
+          ret += "  if (this." + ff + " !== other." + ff + ") return false;\n";
+        }
+      } else if (base == BASE_TYPE_STRUCT) {
+        ret += "  if (this." + ff + " !== null && other." + ff + " !== null) {\n";
+        ret += "    if (!this." + ff + "!.equals(other." + ff + "!)) return false;\n";
+        ret += "  } else if (this." + ff + " !== other." + ff + ") return false;\n";
+      } else if (base == BASE_TYPE_UNION) {
+        // Compare union values: use equals() if available, else ===
+        ret += "  if (this." + ff + " !== null && other." + ff + " !== null) {\n";
+        ret += "    if (typeof (this." + ff +
+               " as any).equals === 'function') {\n";
+        ret += "      if (!(this." + ff + " as any).equals(other." + ff +
+               ")) return false;\n";
+        ret += "    } else if (this." + ff + " !== other." + ff +
+               ") return false;\n";
+        ret += "  } else if (this." + ff + " !== other." + ff + ") return false;\n";
+      } else if (base == BASE_TYPE_VECTOR || base == BASE_TYPE_ARRAY) {
+        if (IsMapField(field)) {
+          // Map: compare size then check each key/value pair.
+          ret += "  if (this." + ff + ".size !== other." + ff +
+                 ".size) return false;\n";
+          ret += "  for (const [k, v] of this." + ff + ") {\n";
+          ret += "    if (!other." + ff + ".has(k) || other." + ff +
+                 ".get(k) !== v) return false;\n";
+          ret += "  }\n";
+        } else if (IsSetField(field)) {
+          // Set: compare size then check each element.
+          ret += "  if (this." + ff + ".size !== other." + ff +
+                 ".size) return false;\n";
+          ret += "  for (const v of this." + ff + ") {\n";
+          ret += "    if (!other." + ff + ".has(v)) return false;\n";
+          ret += "  }\n";
+        } else {
+          auto vectortype = field.value.type.VectorType();
+          ret += "  if (this." + ff + ".length !== other." + ff +
+                 ".length) return false;\n";
+          if (vectortype.base_type == BASE_TYPE_STRUCT) {
+            ret += "  for (let i = 0; i < this." + ff + ".length; i++) {\n";
+            ret += "    const a = this." + ff + "[i]; const b = other." + ff + "[i];\n";
+            ret += "    if (a !== null && b !== null) {\n";
+            ret += "      if (!a.equals(b)) return false;\n";
+            ret += "    } else if (a !== b) return false;\n";
+            ret += "  }\n";
+          } else {
+            ret += "  for (let i = 0; i < this." + ff + ".length; i++) {\n";
+            ret += "    if (this." + ff + "[i] !== other." + ff +
+                   "[i]) return false;\n";
+            ret += "  }\n";
+          }
+        }
+      } else {
+        ret += "  if (this." + ff + " !== other." + ff + ") return false;\n";
+      }
+    }
+
+    ret += "  return true;\n}";
+    return ret;
+  }
+
+  // Generates an unpackFields(...fields: string[]) method for a *T Object API
+  // class.  Only the named fields are populated on the returned instance;
+  // all other fields are left at their constructor default values.  This
+  // avoids materialising the entire table tree when only a few fields are
+  // needed.
+  std::string GenUnpackFieldsTS(const StructDef& struct_def,
+                                import_set& imports) {
+    const auto class_name = GetTypeName(struct_def, /*object_api=*/true);
+    std::string ret = "\n\nunpackFields(...fields: string[]): " + class_name +
+                      " {\n";
+    ret += "  const t = new " + class_name + "();\n";
+    ret += "  const fieldSet = new Set(fields);\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto ff = namer_.Field(field);
+      const auto field_method = namer_.Method(field);
+      const auto base = field.value.type.base_type;
+      const auto is_string = IsString(field.value.type);
+
+      ret += "  if (fieldSet.has('" + field.name + "')) {\n";
+
+      if (IsScalar(base) || is_string) {
+        ret += "    t." + ff + " = this." + field_method + "();\n";
+      } else if (base == BASE_TYPE_STRUCT) {
+        const std::string field_accessor = "this." + field_method + "()";
+        ret += "    t." + ff + " = " +
+               GenNullCheckConditional(field_accessor,
+                                       field_accessor + "!.unpack()",
+                                       null_keyword_) +
+               ";\n";
+      } else if (base == BASE_TYPE_VECTOR || base == BASE_TYPE_ARRAY) {
+        auto vectortype = field.value.type.VectorType();
+        const std::string field_binded_method =
+            "this." + field_method + ".bind(this)";
+        if (IsMapField(field)) {
+          // Map field: build a Map via loop over the FlatBuffer vector.
+          const StructDef &entry_sd = *vectortype.struct_def;
+          const FieldDef *kf = GetEntryKeyField(entry_sd);
+          const FieldDef *vf = GetEntryValueField(entry_sd);
+          FLATBUFFERS_ASSERT(kf && vf && "map entry struct missing key or value field");
+          const std::string key_method = namer_.Method(*kf);
+          const std::string val_method = namer_.Method(*vf);
+          const std::string len_method = namer_.Method(field, "Length");
+          const std::string entry_acc = namer_.Method(field);
+          const bool val_is_struct =
+              vf->value.type.base_type == BASE_TYPE_STRUCT;
+          const bool val_is_string = IsString(vf->value.type);
+          std::string val_expr;
+          if (val_is_struct) {
+            val_expr = "e." + val_method + "()!.unpack()";
+          } else if (val_is_string) {
+            val_expr = "e." + val_method + "()!";
+          } else {
+            val_expr = "e." + val_method + "()";
+          }
+          ret += "    t." + ff + " = new Map();\n";
+          ret += "    for (let i = 0; i < this." + len_method + "(); i++) {\n";
+          ret += "      const e = this." + entry_acc + "(i)!;\n";
+          ret += "      t." + ff + ".set(e." + key_method + "()!, " +
+                 val_expr + ");\n";
+          ret += "    }\n";
+        } else if (IsSetField(field)) {
+          // Set field: build a Set via loop over the FlatBuffer vector.
+          const StructDef &entry_sd = *vectortype.struct_def;
+          const FieldDef *kf = GetEntryKeyField(entry_sd);
+          FLATBUFFERS_ASSERT(kf && "set entry struct missing key field");
+          const std::string key_method = namer_.Method(*kf);
+          const std::string len_method = namer_.Method(field, "Length");
+          const std::string entry_acc = namer_.Method(field);
+          ret += "    t." + ff + " = new Set();\n";
+          ret += "    for (let i = 0; i < this." + len_method + "(); i++) {\n";
+          ret += "      const e = this." + entry_acc + "(i)!;\n";
+          ret += "      t." + ff + ".add(e." + key_method + "()!);\n";
+          ret += "    }\n";
+        } else if (vectortype.base_type == BASE_TYPE_STRUCT) {
+          const auto field_type_name =
+              GetTypeName(*vectortype.struct_def, /*object_api=*/true);
+          auto vectortypename =
+              GenTypeName(imports, struct_def, vectortype, false);
+          if (base == BASE_TYPE_ARRAY) {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createObjList<" + vectortypename + ", " + field_type_name +
+                   ">(" + field_binded_method + ", " +
+                   NumToString(field.value.type.fixed_length) + ");\n";
+          } else {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createObjList<" + vectortypename + ", " + field_type_name +
+                   ">(" + field_binded_method + ", this." +
+                   namer_.Method(field, "Length") + "());\n";
+          }
+        } else if (vectortype.base_type == BASE_TYPE_STRING) {
+          if (base == BASE_TYPE_ARRAY) {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<string>(" + field_binded_method + ", " +
+                   NumToString(field.value.type.fixed_length) + ");\n";
+          } else {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<string>(" + field_binded_method +
+                   ", this." + namer_.Field(field, "Length") + "());\n";
+          }
+        } else if (vectortype.base_type == BASE_TYPE_UNION) {
+          ret += "    t." + ff + " = " +
+                 GenUnionValTS(imports, struct_def, field_method,
+                               vectortype, true) +
+                 ";\n";
+        } else {
+          auto vectortypename =
+              GenTypeName(imports, struct_def, vectortype, false);
+          if (base == BASE_TYPE_ARRAY) {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<" + vectortypename + ">(" +
+                   field_binded_method + ", " +
+                   NumToString(field.value.type.fixed_length) + ");\n";
+          } else {
+            ret += "    t." + ff + " = " + GenBBAccess() +
+                   ".createScalarList<" + vectortypename + ">(" +
+                   field_binded_method + ", this." +
+                   namer_.Method(field, "Length") + "());\n";
+          }
+        }
+      } else if (base == BASE_TYPE_UNION) {
+        ret += "    t." + ff + " = " +
+               GenUnionValTS(imports, struct_def, field_method,
+                             field.value.type) +
+               ";\n";
+      } else {
+        ret += "    t." + ff + " = this." + field_method + "();\n";
+      }
+
+      ret += "  }\n";
+    }
+
+    ret += "  return t;\n}";
+    return ret;
   }
 
   static bool CanCreateFactoryMethod(const StructDef& struct_def) {
@@ -2336,6 +3008,208 @@ class TsGenerator : public BaseGenerator {
 
       code += obj_api_unpack_func + "}\n" + obj_api_class;
     } else {
+      code += "}\n";
+    }
+
+    // Generate standalone verify function for table types (not fixed structs).
+    if (!struct_def.fixed) {
+      GenVerifier(struct_def, code_ptr, imports);
+    }
+  }
+
+  // Generate a standalone exported verify function for a table type.
+  void GenVerifier(StructDef& struct_def, std::string* code_ptr,
+                   import_set& imports) {
+    std::string& code = *code_ptr;
+    const std::string type_name = GetTypeName(struct_def);
+
+    // Emit: export function verify{Type}(verifier: flatbuffers.Verifier,
+    //   tablePos: number): void
+    code += "\nexport function verify" + type_name +
+            "(verifier: flatbuffers.Verifier, tablePos: number): void {\n";
+    code += "  verifier.checkTable(tablePos);\n";
+    code += "  try {\n";
+
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      auto& field = **it;
+      if (field.deprecated) continue;
+
+      const auto voffset = NumToString(field.value.offset);
+      const auto base_type = field.value.type.base_type;
+
+      if (base_type == BASE_TYPE_UTYPE) {
+        // Union type discriminant — treat as scalar (uint8).
+        code += "    verifier.checkScalarField(tablePos, " + voffset +
+                ", " + NumToString(SizeOf(BASE_TYPE_UTYPE)) + ");\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (IsScalar(base_type) && base_type != BASE_TYPE_UNION) {
+        // Plain scalar field.
+        const auto field_size = NumToString(SizeOf(base_type));
+        code += "    verifier.checkScalarField(tablePos, " + voffset +
+                ", " + field_size + ");\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (IsString(field.value.type)) {
+        // String field — check offset, then verify string contents.
+        code += "    {\n";
+        code += "      const pos = verifier.checkOffsetField(tablePos, " +
+                voffset + ");\n";
+        code += "      if (pos !== 0) {\n";
+        code += "        verifier.checkString(pos);\n";
+        code += "      }\n";
+        code += "    }\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (base_type == BASE_TYPE_STRUCT) {
+        const auto& child_def = *field.value.type.struct_def;
+        if (child_def.fixed) {
+          // Inline fixed struct — check as scalar block.
+          code += "    verifier.checkScalarField(tablePos, " + voffset +
+                  ", " + NumToString(child_def.bytesize) + ");\n";
+        } else {
+          // Nested table — dereference the relative offset to get the
+          // target table position, then recurse into the child verifier.
+          const std::string child_type =
+              AddImport(imports, struct_def, child_def).name;
+          AddVerifyImport(imports, struct_def, child_def);
+          code += "    {\n";
+          code += "      const fieldPos = verifier.checkOffsetField(tablePos, " +
+                  voffset + ");\n";
+          code += "      if (fieldPos !== 0) {\n";
+          code += "        const tableOffset = verifier.readInt32(fieldPos);\n";
+          code += "        verify" + child_type +
+                  "(verifier, fieldPos + tableOffset);\n";
+          code += "      }\n";
+          code += "    }\n";
+        }
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (base_type == BASE_TYPE_VECTOR) {
+        const auto vectortype = field.value.type.VectorType();
+        const auto elem_base = vectortype.base_type;
+        code += "    {\n";
+        code += "      const pos = verifier.checkOffsetField(tablePos, " +
+                voffset + ");\n";
+        code += "      if (pos !== 0) {\n";
+        if (elem_base == BASE_TYPE_STRUCT && !vectortype.struct_def->fixed) {
+          // Vector of tables — use checkVectorOfTables with recursive verifier.
+          const std::string elem_type =
+              AddImport(imports, struct_def, *vectortype.struct_def).name;
+          AddVerifyImport(imports, struct_def, *vectortype.struct_def);
+          code += "        verifier.checkVectorOfTables(pos, verify" +
+                  elem_type + ");\n";
+        } else if (elem_base == BASE_TYPE_STRING) {
+          // Vector of strings — check bounds of the vector, then verify each
+          // string element. readInt32/readUint32 are the public accessor methods
+          // on Verifier that perform range checks as side effects.
+          code += "        const len = verifier.checkVector(pos, " +
+                  NumToString(SizeOf(BASE_TYPE_INT)) + ");\n";
+          code += "        if (len > 0) {\n";
+          code += "          const vecStart = pos + verifier.readInt32(pos);\n";
+          code += "          const dataStart = vecStart + " +
+                  NumToString(SizeOf(BASE_TYPE_INT)) + ";\n";
+          code += "          for (let i = 0; i < len; i++) {\n";
+          code += "            const strPos = dataStart + i * " +
+                  NumToString(SizeOf(BASE_TYPE_INT)) + ";\n";
+          code += "            verifier.checkString(strPos);\n";
+          code += "          }\n";
+          code += "        }\n";
+        } else {
+          // Vector of scalars or fixed structs.
+          const auto elem_size = NumToString(InlineSize(vectortype));
+          code +=
+              "        verifier.checkVector(pos, " + elem_size + ");\n";
+        }
+        code += "      }\n";
+        code += "    }\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      } else if (base_type == BASE_TYPE_UNION) {
+        // Find the companion _type field's voffset.
+        const EnumDef& union_enum = *field.value.type.enum_def;
+        std::string type_voffset;
+        for (auto fit = struct_def.fields.vec.begin();
+             fit != struct_def.fields.vec.end(); ++fit) {
+          const FieldDef& f = **fit;
+          if (f.value.type.base_type == BASE_TYPE_UTYPE &&
+              f.value.type.enum_def == &union_enum) {
+            type_voffset = NumToString(f.value.offset);
+            break;
+          }
+        }
+        // Emit union consistency check.
+        code += "    verifier.checkUnionConsistency(tablePos, " +
+                type_voffset + ", " + voffset + ", '" + field.name + "');\n";
+        // Read type discriminant and dispatch to per-variant verify.
+        code += "    {\n";
+        code += "      const pos = verifier.checkOffsetField(tablePos, " +
+                voffset + ");\n";
+        code += "      if (pos !== 0) {\n";
+        code += "        const uType = verifier.readFieldUint8(tablePos, " +
+                type_voffset + ");\n";
+        code += "        switch (uType) {\n";
+        for (auto vit = union_enum.Vals().begin();
+             vit != union_enum.Vals().end(); ++vit) {
+          const EnumVal& ev = **vit;
+          if (ev.IsZero()) continue;  // Skip NONE
+          if (ev.union_type.struct_def == nullptr) continue;
+          const auto& variant_def = *ev.union_type.struct_def;
+          // Import the variant type (and verify function for tables only).
+          const std::string variant_type =
+              AddImport(imports, struct_def, variant_def).name;
+          if (!variant_def.fixed) {
+            AddVerifyImport(imports, struct_def, variant_def);
+          }
+          code += "          case " + NumToString(ev.GetAsInt64()) + ": // " +
+                  ev.name + "\n";
+          if (variant_def.fixed) {
+            // Fixed struct — just check bounds.
+            code += "            verifier.checkRange(pos, " +
+                    NumToString(variant_def.bytesize) + ");\n";
+          } else {
+            // Table — dereference the relative offset, then recurse.
+            code += "            { const o = verifier.readInt32(pos); verify" +
+                    variant_type + "(verifier, pos + o); }\n";
+          }
+          code += "            break;\n";
+        }
+        // Unknown discriminant — forward compatibility: do nothing.
+        code += "        }\n";  // end switch
+        code += "      }\n";    // end if pos !== 0
+        code += "    }\n";
+        if (field.IsRequired()) {
+          code += "    verifier.checkRequiredField(tablePos, " + voffset +
+                  ", '" + field.name + "');\n";
+        }
+      }
+      // BASE_TYPE_ARRAY fields are only valid in fixed structs (which are
+      // excluded above), so no case needed here.
+    }
+
+    code += "  } finally {\n";
+    code += "    verifier.popDepth();\n";
+    code += "  }\n";
+    code += "}\n";
+
+    // For root types, also generate verifyRootAs{Type}.
+    if (parser_.root_struct_def_ == &struct_def) {
+      code += "\nexport function verifyRootAs" + type_name +
+              "(buf: DataView, opts?: flatbuffers.VerifierOptions): void {\n";
+      code += "  const verifier = new flatbuffers.Verifier(buf, opts);\n";
+      code += "  const tablePos = verifier.readUint32(0);\n";
+      code += "  verify" + type_name + "(verifier, tablePos);\n";
       code += "}\n";
     }
   }

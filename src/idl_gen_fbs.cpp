@@ -30,6 +30,19 @@
 namespace flatbuffers {
 namespace {
 
+// Returns the key field (marked with .key == true) from a map/set entry struct.
+static const FieldDef *GetEntryKeyField(const StructDef &entry) {
+  for (auto *f : entry.fields.vec) {
+    if (f->key) return f;
+  }
+  return nullptr;
+}
+
+// Returns the value field (named "value") from a map entry struct.
+static const FieldDef *GetEntryValueField(const StructDef &entry) {
+  return entry.fields.Lookup("value");
+}
+
 static std::string GenType(const Type& type, bool underlying = false) {
   switch (type.base_type) {
     case BASE_TYPE_STRUCT:
@@ -359,6 +372,12 @@ static std::string GenerateFBS(const Parser& parser,
       continue;
     }
 
+    // Skip auto-generated entry tables created by map<K,V> / set<V> syntax.
+    if (struct_def.name.compare(0, 6, "__Map_") == 0 ||
+        struct_def.name.compare(0, 6, "__Set_") == 0) {
+      continue;
+    }
+
     GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
@@ -367,7 +386,22 @@ static std::string GenerateFBS(const Parser& parser,
       auto& field = **field_it;
       if (field.value.type.base_type != BASE_TYPE_UTYPE) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");
-        schema += "  " + field.name + ":" + GenType(field.value.type);
+        if (field.attributes.Lookup("map_entry")) {
+          // Re-emit as map<K, V> instead of [__Map_K_V_Entry].
+          const auto &entry = *field.value.type.struct_def;
+          const auto *kf = GetEntryKeyField(entry);
+          const auto *vf = GetEntryValueField(entry);
+          schema += "  " + field.name + ":map<" + GenType(kf->value.type) +
+                    ", " + GenType(vf->value.type) + ">";
+        } else if (field.attributes.Lookup("set_entry")) {
+          // Re-emit as set<V> instead of [__Set_V_Entry].
+          const auto &entry = *field.value.type.struct_def;
+          const auto *kf = GetEntryKeyField(entry);
+          schema +=
+              "  " + field.name + ":set<" + GenType(kf->value.type) + ">";
+        } else {
+          schema += "  " + field.name + ":" + GenType(field.value.type);
+        }
         if (field.value.constant != "0") {
           if (IsString(field.value.type)) {
             std::string escaped;

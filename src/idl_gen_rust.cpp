@@ -309,6 +309,7 @@ static bool GenerateRustModuleRootFile(const Parser& parser,
       for (auto it = sub_modules.begin(); it != sub_modules.end(); it++) {
         code += "pub mod " + it->first + " {";
         code.IncrementIdentLevel();
+        code += "#[allow(clippy::wildcard_imports)]";
         code += "use super::*;";
         it->second.GenerateImports(code);
         code.DecrementIdentLevel();
@@ -358,11 +359,70 @@ class RustGenerator : public BaseGenerator {
   }
 
   bool generate() {
+    bool ok;
     if (!parser_.opts.rust_module_root_file) {
-      return GenerateOneFile();
+      ok = GenerateOneFile();
     } else {
-      return GenerateIndividualFiles();
+      ok = GenerateIndividualFiles();
     }
+    if (ok && parser_.opts.binary_schema_gen_embed) {
+      ok = generate_bfbs_embed();
+    }
+    return ok;
+  }
+
+  // Generates a Rust source file containing the binary schema (.bfbs) as an
+  // embedded byte-slice constant, enabling runtime reflection without file I/O.
+  //
+  // Output file: {name}_bfbs_generated.rs
+  // Contents:
+  //   pub const {NAME}_BFBS: &[u8] = &[0xAB, 0xCD, ...];
+  //   pub fn {name}_bfbs() -> &'static [u8] { {NAME}_BFBS }
+  bool generate_bfbs_embed() {
+    code_.Clear();
+    code_ += "// " + std::string(FlatBuffersGeneratedWarning());
+    code_ += "// @generated";
+    code_ += "";
+
+    if (!parser_.root_struct_def_) {
+      code_ += "// Binary schema not generated, no root struct found.";
+      const auto file_path =
+          GeneratedFileName(path_, file_name_ + "_bfbs", parser_.opts);
+      return parser_.opts.file_saver->SaveFile(file_path.c_str(),
+                                               code_.ToString(), false);
+    }
+
+    auto& struct_def = *parser_.root_struct_def_;
+    const auto name_upper =
+        ConvertCase(namer_.Type(struct_def), Case::kScreamingSnake,
+                    Case::kUpperCamel) +
+        "_BFBS";
+    const auto name_lower =
+        ConvertCase(namer_.Type(struct_def), Case::kSnake,
+                    Case::kUpperCamel) +
+        "_bfbs";
+
+    // Emit the byte-slice constant with the serialized schema data.
+    auto binary_schema_hex_text =
+        BufferToHexText(parser_.builder_.GetBufferPointer(),
+                        parser_.builder_.GetSize(), 80, "  ", "");
+
+    code_ += "/// Embedded binary schema (.bfbs) for runtime reflection.";
+    code_ += "pub const " + name_upper + ": &[u8] = &[";
+    code_ += binary_schema_hex_text;
+    code_ += "];";
+    code_ += "";
+    code_ += "/// Returns the embedded binary schema as a static byte slice.";
+    code_ += "#[inline]";
+    code_ += "#[must_use]";
+    code_ += "pub const fn " + name_lower + "() -> &'static [u8] {";
+    code_ += "  " + name_upper;
+    code_ += "}";
+
+    const auto file_path =
+        GeneratedFileName(path_, file_name_ + "_bfbs", parser_.opts);
+    return parser_.opts.file_saver->SaveFile(file_path.c_str(),
+                                             code_.ToString(), false);
   }
 
   template <typename T>
@@ -375,11 +435,24 @@ class RustGenerator : public BaseGenerator {
       code_ += "// " + std::string(FlatBuffersGeneratedWarning());
       code_ += "// @generated";
       code_ += "extern crate alloc;";
+      if (parser_.opts.generate_object_based_api) {
+        code_ += "#[allow(unused_imports)]";
+        code_ += "use alloc::vec::Vec;";
+        if (!AnyNamespaceHasStringTable()) {
+          code_ += "#[allow(unused_imports)]";
+          code_ += "use alloc::string::String;";
+        }
+        code_ += "#[allow(unused_imports)]";
+        code_ += "use alloc::boxed::Box;";
+        code_ += "#[allow(unused_imports)]";
+        code_ += "use alloc::string::ToString;";
+      }
       if (parser_.opts.rust_serialize) {
         code_ += "extern crate serde;";
         code_ +=
             "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
       }
+      code_ += "#[allow(clippy::wildcard_imports)]";
       code_ += "use super::*;";
       cur_name_space_ = symbol.defined_namespace;
       gen_symbol(symbol);
@@ -549,9 +622,19 @@ class RustGenerator : public BaseGenerator {
     return WrapInNameSpace(def.defined_namespace,
                            namer_.EscapeKeyword(def.name));
   }
+  // Returns true if `name` is a Rust prelude type that would shadow a
+  // FlatBuffer table with the same name if used unqualified.
+  static bool IsRustPreludeType(const std::string& name) {
+    return name == "String" || name == "Vec" || name == "Box" ||
+           name == "Option" || name == "Result";
+  }
+
   std::string WrapInNameSpace(const Namespace* ns,
                               const std::string& name) const {
-    if (CurrentNameSpace() == ns) return name;
+    if (CurrentNameSpace() == ns) {
+      if (IsRustPreludeType(name)) return "self::" + name;
+      return name;
+    }
     std::string prefix = GetRelativeNamespaceTraversal(CurrentNameSpace(), ns);
     return prefix + name;
   }
@@ -587,10 +670,103 @@ class RustGenerator : public BaseGenerator {
     return stream.str();
   }
 
+  // Build set of all symbol names from the parsed schema. These are the
+  // words that should be backtick-wrapped in doc comments so that
+  // clippy::doc_markdown does not fire on generated code.
+  std::set<std::string> BuildSchemaSymbols() const {
+    std::set<std::string> syms;
+    // Enum names and variant names.
+    for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
+         ++it) {
+      syms.insert((*it)->name);
+      for (auto vit = (*it)->Vals().begin(); vit != (*it)->Vals().end();
+           ++vit) {
+        syms.insert((*vit)->name);
+      }
+    }
+    // Struct/table names and field names.
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      syms.insert((*it)->name);
+      for (auto fit = (*it)->fields.vec.begin();
+           fit != (*it)->fields.vec.end(); ++fit) {
+        syms.insert((*fit)->name);
+      }
+    }
+    return syms;
+  }
+
+  // Wrap words that match schema symbols in backticks for
+  // clippy::doc_markdown. Only wraps words that are actual identifiers
+  // defined in the .fbs schema, not arbitrary prose.
+  std::string SanitizeDocComment(const std::string& line,
+                                 const std::set<std::string>& syms) const {
+    std::string result;
+    result.reserve(line.size());
+    bool in_backtick = false;
+    size_t i = 0;
+    while (i < line.size()) {
+      if (line[i] == '`') {
+        in_backtick = !in_backtick;
+        result += line[i++];
+        continue;
+      }
+      if (in_backtick) {
+        result += line[i++];
+        continue;
+      }
+      // Try to extract a word token (letters, digits, underscores, dots).
+      if (std::isalpha(static_cast<unsigned char>(line[i])) || line[i] == '_') {
+        size_t start = i;
+        while (i < line.size() &&
+               (std::isalnum(static_cast<unsigned char>(line[i])) ||
+                line[i] == '_' || line[i] == '.')) {
+          i++;
+        }
+        // Don't include trailing dots (sentence punctuation).
+        while (i > start && line[i - 1] == '.') { i--; }
+        std::string word = line.substr(start, i - start);
+        // Check if the whole token (possibly dotted like Table.field)
+        // or any dot-separated segment is a known schema symbol.
+        bool needs_backtick = false;
+        if (syms.count(word)) {
+          needs_backtick = true;
+        } else if (word.find('.') != std::string::npos) {
+          // Check segments: "ModbusReadEntry.data_type" → check both parts.
+          size_t pos = 0;
+          while (pos < word.size()) {
+            auto dot = word.find('.', pos);
+            auto seg = word.substr(pos, dot == std::string::npos
+                                            ? std::string::npos
+                                            : dot - pos);
+            if (syms.count(seg)) {
+              needs_backtick = true;
+              break;
+            }
+            if (dot == std::string::npos) break;
+            pos = dot + 1;
+          }
+        }
+        if (needs_backtick) {
+          result += '`';
+          result += word;
+          result += '`';
+        } else {
+          result += word;
+        }
+      } else {
+        result += line[i++];
+      }
+    }
+    return result;
+  }
+
   // Generate a comment from the schema.
   void GenComment(const std::vector<std::string>& dc, const char* prefix = "") {
+    if (dc.empty()) return;
+    auto syms = BuildSchemaSymbols();
     for (auto it = dc.begin(); it != dc.end(); it++) {
-      code_ += std::string(prefix) + "///" + *it;
+      code_ += std::string(prefix) + "///" + SanitizeDocComment(*it, syms);
     }
   }
 
@@ -623,6 +799,60 @@ class RustGenerator : public BaseGenerator {
       return WrapInNameSpace(*type.enum_def);
     }
     return ctypename[type.base_type];
+  }
+
+  // Map/set field helpers — used by Object API codegen.
+  static bool IsMapField(const FieldDef& field) {
+    return field.attributes.Lookup("map_entry") != nullptr;
+  }
+  static bool IsSetField(const FieldDef& field) {
+    return field.attributes.Lookup("set_entry") != nullptr;
+  }
+  static const FieldDef* GetEntryKeyField(const StructDef& entry) {
+    for (auto* f : entry.fields.vec) {
+      if (f->key) return f;
+    }
+    return nullptr;
+  }
+  static const FieldDef* GetEntryValueField(const StructDef& entry) {
+    return entry.fields.Lookup("value");
+  }
+
+  // Produce the Rust type string for a map key (must be Hash + Eq + Clone).
+  // Keys may be strings, scalars, or enums.
+  std::string RustKeyType(const Type& type) const {
+    if (IsString(type)) return "String";
+    if (type.enum_def) return WrapInNameSpace(*type.enum_def);
+    // Scalar: delegate to GetTypeBasic which reads from FLATBUFFERS_GEN_TYPES.
+    return GetTypeBasic(type);
+  }
+
+  // Produce the Rust native type string for a map value.
+  // Values may be strings, scalars, enums, structs, or tables.
+  std::string RustValueType(const Type& type) {
+    if (IsString(type)) return "String";
+    if (type.base_type == BASE_TYPE_STRUCT) {
+      if (type.struct_def->fixed) {
+        // Inline struct — use native name directly.
+        return NamespacedNativeName(*type.struct_def);
+      }
+      // Table — Box to avoid infinite types.
+      return "Box<" + NamespacedNativeName(*type.struct_def) + ">";
+    }
+    if (type.enum_def) return WrapInNameSpace(*type.enum_def);
+    if (type.base_type == BASE_TYPE_FLOAT ||
+        type.base_type == BASE_TYPE_DOUBLE) {
+      return ObjectFloatType(type);
+    }
+    return GetTypeBasic(type);
+  }
+
+  // Return the OrderedFloat-wrapped Rust type for Object API float fields.
+  std::string ObjectFloatType(const Type& type) const {
+    if (type.base_type == BASE_TYPE_FLOAT) {
+      return "::flatbuffers::ordered_float::OrderedFloat<f32>";
+    }
+    return "::flatbuffers::ordered_float::OrderedFloat<f64>";
   }
 
   // Look up the native type for an enum. This will always be an integer like
@@ -731,7 +961,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "mod bitflags_{{ENUM_NAMESPACE}} {";
       code_ += "    ::flatbuffers::bitflags::bitflags! {";
       GenComment(enum_def.doc_comment, "        ");
-      code_ += "        #[derive(Default, Debug, Clone, Copy, PartialEq)]";
+      code_ += "        #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]";
       code_ += "        {{ACCESS_TYPE}} struct {{ENUM_TY}}: {{BASE_TYPE}} {";
       ForAllEnumValues1(enum_def, [&](const EnumVal& ev) {
         this->GenComment(ev.doc_comment, "        ");
@@ -804,7 +1034,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "";
 
       code_ += "    /// Returns the variant's name or \"\" if unknown.";
-      code_ += "    pub fn variant_name(self) -> Option<&'static str> {";
+      code_ += "    #[must_use]";
+      code_ += "    pub const fn variant_name(self) -> Option<&'static str> {";
       code_ += "        match self {";
       ForAllEnumValues(enum_def, [&]() {
         code_ += "        Self::{{VARIANT}} => Some(\"{{VARIANT}}\"),";
@@ -843,12 +1074,11 @@ class RustGenerator : public BaseGenerator {
       code_ += "        S: Serializer,";
       code_ += "    {";
       if (IsBitFlagsEnum(enum_def)) {
-        code_ += "        serializer.serialize_u32(self.bits() as u32)";
+        code_ += "        serializer.serialize_u32(u32::from(self.bits()))";
       } else {
         code_ +=
-            "        serializer.serialize_unit_variant(\"{{ENUM_TY}}\", self.0 "
-            "as "
-            "u32, self.variant_name().unwrap())";
+            "        serializer.serialize_unit_variant(\"{{ENUM_TY}}\", "
+            "u32::from(self.0), self.variant_name().unwrap())";
       }
       code_ += "    }";
       code_ += "}";
@@ -861,14 +1091,10 @@ class RustGenerator : public BaseGenerator {
         code_ += "    where";
         code_ += "        D: serde::Deserializer<'de>,";
         code_ += "    {";
-        code_ += "        let s = String::deserialize(deserializer)?;";
-        code_ += "        for item in {{ENUM_TY}}::ENUM_VALUES {";
-        code_ +=
-            "            if let Some(item_name) = "
-            "item.variant_name() {";
-        code_ += "                if item_name == s {";
-        code_ += "                    return Ok(item.clone());";
-        code_ += "                }";
+        code_ += "        let s = <std::string::String as serde::Deserialize>::deserialize(deserializer)?;";
+        code_ += "        for item in Self::ENUM_VALUES {";
+        code_ += "            if item.variant_name() == Some(s.as_str()) {";
+        code_ += "                return Ok(*item);";
         code_ += "            }";
         code_ += "        }";
         code_ += "        Err(serde::de::Error::custom(format!(";
@@ -898,7 +1124,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
     code_ += "impl ::flatbuffers::Push for {{ENUM_TY}} {";
-    code_ += "    type Output = {{ENUM_TY}};";
+    code_ += "    type Output = Self;";
     code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
@@ -930,7 +1156,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate verifier - deferring to the base type.
-    code_ += "impl<'a> ::flatbuffers::Verifiable for {{ENUM_TY}} {";
+    code_ += "impl ::flatbuffers::Verifiable for {{ENUM_TY}} {";
     code_ += "    #[inline]";
     code_ += "    fn run_verifier(";
     code_ += "        v: &mut ::flatbuffers::Verifier, pos: usize";
@@ -981,13 +1207,12 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     code_ += "#[allow(clippy::upper_case_acronyms)]";  // NONE's spelling is
                                                        // intended.
-    code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq)]";
+    code_ += ObjectDerives(UnionIsHashable(enum_def));
     code_ += "{{ACCESS_TYPE}} enum {{ENUM_OTY}} {";
     code_ += "    NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
       code_ +=
-          "{{NATIVE_VARIANT}}(alloc::boxed::Box<{{U_ELEMENT_TABLE_TYPE}}>),";
+          "{{NATIVE_VARIANT}}(Box<{{U_ELEMENT_TABLE_TYPE}}>),";
     });
     code_ += "}";
     code_ += "";
@@ -1005,7 +1230,8 @@ class RustGenerator : public BaseGenerator {
 
     // Get flatbuffers union key.
     // TODO(cneo): add docstrings?
-    code_ += "    pub fn {{ENUM_FN}}_type(&self) -> {{ENUM_TY}} {";
+    code_ += "    #[must_use]";
+    code_ += "    pub const fn {{ENUM_FN}}_type(&self) -> {{ENUM_TY}} {";
     code_ += "        match self {";
     code_ += "            Self::NONE => {{ENUM_TY}}::NONE,";
     ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
@@ -1018,6 +1244,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Pack flatbuffers union value
+    code_ += "  #[must_use]";
     code_ +=
         "    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: "
         "&mut "
@@ -1039,10 +1266,11 @@ class RustGenerator : public BaseGenerator {
       code_ += "";
       code_ +=
           "/// If the union variant matches, return the owned "
-          "{{U_ELEMENT_TABLE_TYPE}}, setting the union to NONE.";
+          "`{{U_ELEMENT_TABLE_TYPE}}`, setting the union to NONE.";
+      code_ += "#[must_use]";
       code_ +=
           "pub fn take_{{U_ELEMENT_NAME}}(&mut self) -> "
-          "Option<alloc::boxed::Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
+          "Option<Box<{{U_ELEMENT_TABLE_TYPE}}>> {";
       code_ += "    if let Self::{{NATIVE_VARIANT}}(_) = self {";
       code_ += "        let v = ::core::mem::replace(self, Self::NONE);";
       code_ += "        if let Self::{{NATIVE_VARIANT}}(w) = v {";
@@ -1059,7 +1287,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "";
       code_ +=
           "/// If the union variant matches, return a reference to the "
-          "{{U_ELEMENT_TABLE_TYPE}}.";
+          "`{{U_ELEMENT_TABLE_TYPE}}`.";
+      code_ += "#[must_use]";
       code_ +=
           "pub fn as_{{U_ELEMENT_NAME}}(&self) -> "
           "Option<&{{U_ELEMENT_TABLE_TYPE}}> {";
@@ -1072,7 +1301,8 @@ class RustGenerator : public BaseGenerator {
       code_ += "";
       code_ +=
           "/// If the union variant matches, return a mutable reference"
-          " to the {{U_ELEMENT_TABLE_TYPE}}.";
+          " to the `{{U_ELEMENT_TABLE_TYPE}}`.";
+      code_ += "#[must_use]";
       code_ +=
           "pub fn as_{{U_ELEMENT_NAME}}_mut(&mut self) -> "
           "Option<&mut {{U_ELEMENT_TABLE_TYPE}}> {";
@@ -1084,6 +1314,60 @@ class RustGenerator : public BaseGenerator {
 
     code_ += "}";  // End union methods impl.
     code_ += "";
+  }
+
+  // Check if all object table fields have their type's natural default value,
+  // meaning we can derive Default instead of writing a manual impl.
+  bool AllFieldsHaveNaturalDefault(const StructDef& table) {
+    for (auto it = table.fields.vec.begin(); it != table.fields.vec.end();
+         ++it) {
+      const FieldDef& field = **it;
+      if (field.deprecated) continue;
+      if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
+      // Optional fields default to None, which is the natural default.
+      if (field.IsOptional() && !IsUnion(field.value.type)) continue;
+      switch (GetFullType(field.value.type)) {
+        case ftInteger: {
+          if (field.value.constant != "0") return false;
+          break;
+        }
+        case ftFloat: {
+          if (field.value.constant != "0.0" && field.value.constant != "0")
+            return false;
+          break;
+        }
+        case ftBool: {
+          if (field.value.constant != "0") return false;
+          break;
+        }
+        case ftEnumKey:
+        case ftUnionKey: {
+          // Check if the default is the 0-value variant (which is what
+          // Default::default() gives for the derived Default).
+          if (field.value.constant != "0") return false;
+          break;
+        }
+        case ftUnionValue:
+        case ftString:
+        case ftVectorOfBool:
+        case ftVectorOfFloat:
+        case ftVectorOfInteger:
+        case ftVectorOfString:
+        case ftVectorOfStruct:
+        case ftVectorOfTable:
+        case ftVectorOfEnumKey:
+        case ftVectorOfUnionValue:
+        case ftStruct:
+        case ftTable: {
+          // These all produce their natural defaults (NONE, String::new(),
+          // Vec::new(), Default::default(), Box::default()).
+          break;
+        }
+        default:
+          return false;
+      }
+    }
+    return true;
   }
 
   enum DefaultContext { kBuilder, kAccessor, kObject };
@@ -1110,14 +1394,20 @@ class RustGenerator : public BaseGenerator {
       case ftFloat: {
         const std::string float_prefix =
             (field.value.type.base_type == BASE_TYPE_FLOAT) ? "f32::" : "f64::";
+        std::string raw_value;
         if (StringIsFlatbufferNan(field.value.constant)) {
-          return float_prefix + "NAN";
+          raw_value = float_prefix + "NAN";
         } else if (StringIsFlatbufferPositiveInfinity(field.value.constant)) {
-          return float_prefix + "INFINITY";
+          raw_value = float_prefix + "INFINITY";
         } else if (StringIsFlatbufferNegativeInfinity(field.value.constant)) {
-          return float_prefix + "NEG_INFINITY";
+          raw_value = float_prefix + "NEG_INFINITY";
+        } else {
+          raw_value = field.value.constant;
         }
-        return field.value.constant;
+        if (context == kObject) {
+          return "::flatbuffers::ordered_float::OrderedFloat(" + raw_value + ")";
+        }
+        return raw_value;
       }
       case ftBool: {
         return field.value.constant == "0" ? "false" : "true";
@@ -1147,26 +1437,42 @@ class RustGenerator : public BaseGenerator {
                                     true, false);
         }
         if (context == kObject) {
-          return "alloc::string::ToString::to_string(" + defval + ")";
+          if (field.IsRequired() || field.value.constant.empty()) {
+            return "String::new()";
+          }
+          return defval + ".to_string()";
         }
         if (context == kAccessor) return "&" + defval;
         FLATBUFFERS_ASSERT(false);
         return "INVALID_CODE_GENERATION";
       }
 
-      case ftArrayOfStruct:
-      case ftArrayOfEnum:
-      case ftArrayOfBuiltin:
       case ftVectorOfBool:
       case ftVectorOfFloat:
       case ftVectorOfInteger:
       case ftVectorOfString:
-      case ftVectorOfStruct:
-      case ftVectorOfTable:
       case ftVectorOfEnumKey:
-      case ftVectorOfUnionValue:
-      case ftStruct:
+      case ftVectorOfUnionValue: {
+        if (context == kObject) return "Vec::new()";
+        return "Default::default()";
+      }
+      case ftVectorOfStruct:
+      case ftVectorOfTable: {
+        if (context == kObject) {
+          if (IsMapField(field)) return "Default::default()";
+          if (IsSetField(field)) return "Default::default()";
+          return "Vec::new()";
+        }
+        return "Default::default()";
+      }
       case ftTable: {
+        if (context == kObject) return "Box::default()";
+        return "Default::default()";
+      }
+      case ftArrayOfStruct:
+      case ftArrayOfEnum:
+      case ftArrayOfBuiltin:
+      case ftStruct: {
         // We only support empty vectors which matches the defaults for
         // &[T] and Vec<T> anyway.
         //
@@ -1266,18 +1572,22 @@ class RustGenerator : public BaseGenerator {
     return "INVALID_CODE_GENERATION";  // for return analysis
   }
 
-  std::string ObjectFieldType(const FieldDef& field, bool in_a_table) {
+  std::string ObjectFieldType(const FieldDef& field, bool in_a_table,
+                              const StructDef* parent_struct = nullptr) {
     const Type& type = field.value.type;
     std::string ty;
     switch (GetFullType(type)) {
       case ftInteger:
-      case ftBool:
-      case ftFloat: {
+      case ftBool: {
         ty = GetTypeBasic(type);
         break;
       }
+      case ftFloat: {
+        ty = ObjectFloatType(type);
+        break;
+      }
       case ftString: {
-        ty = "alloc::string::String";
+        ty = parent_struct ? ObjectStringType(*parent_struct) : "String";
         break;
       }
       case ftStruct: {
@@ -1288,7 +1598,7 @@ class RustGenerator : public BaseGenerator {
         // Since Tables can contain themselves, Box is required to avoid
         // infinite types.
         ty =
-            "alloc::boxed::Box<" + NamespacedNativeName(*type.struct_def) + ">";
+            "Box<" + NamespacedNativeName(*type.struct_def) + ">";
         break;
       }
       case ftUnionKey: {
@@ -1306,24 +1616,43 @@ class RustGenerator : public BaseGenerator {
       }
       // Vectors are in tables and are optional
       case ftVectorOfEnumKey: {
-        ty = "alloc::vec::Vec<" + WrapInNameSpace(*type.VectorType().enum_def) +
+        ty = "Vec<" + WrapInNameSpace(*type.VectorType().enum_def) +
              ">";
         break;
       }
       case ftVectorOfInteger:
-      case ftVectorOfBool:
+      case ftVectorOfBool: {
+        ty = "Vec<" + GetTypeBasic(type.VectorType()) + ">";
+        break;
+      }
       case ftVectorOfFloat: {
-        ty = "alloc::vec::Vec<" + GetTypeBasic(type.VectorType()) + ">";
+        ty = "Vec<" + ObjectFloatType(type.VectorType()) + ">";
         break;
       }
       case ftVectorOfString: {
-        ty = "alloc::vec::Vec<alloc::string::String>";
+        ty = "Vec<" + (parent_struct ? ObjectStringType(*parent_struct) : std::string("String")) + ">";
         break;
       }
       case ftVectorOfTable:
       case ftVectorOfStruct: {
-        ty = NamespacedNativeName(*type.VectorType().struct_def);
-        ty = "alloc::vec::Vec<" + ty + ">";
+        if (IsMapField(field)) {
+          const StructDef& entry = *type.VectorType().struct_def;
+          const FieldDef* kf = GetEntryKeyField(entry);
+          const FieldDef* vf = GetEntryValueField(entry);
+          FLATBUFFERS_ASSERT(kf && vf && "map entry struct missing key or value field");
+          ty = "std::collections::HashMap<" + RustKeyType(kf->value.type) +
+               ", " + RustValueType(vf->value.type) +
+               ", ::std::hash::BuildHasherDefault<ahash::AHasher>>";
+        } else if (IsSetField(field)) {
+          const StructDef& entry = *type.VectorType().struct_def;
+          const FieldDef* kf = GetEntryKeyField(entry);
+          FLATBUFFERS_ASSERT(kf && "set entry struct missing key field");
+          ty = "std::collections::HashSet<" + RustKeyType(kf->value.type) +
+               ", ::std::hash::BuildHasherDefault<ahash::AHasher>>";
+        } else {
+          ty = NamespacedNativeName(*type.VectorType().struct_def);
+          ty = "Vec<" + ty + ">";
+        }
         break;
       }
       case ftVectorOfUnionValue: {
@@ -1341,7 +1670,13 @@ class RustGenerator : public BaseGenerator {
         break;
       }
       case ftArrayOfBuiltin: {
-        ty = "[" + GetTypeBasic(type.VectorType()) + "; " +
+        std::string elem_ty;
+        if (IsFloat(type.VectorType().base_type)) {
+          elem_ty = ObjectFloatType(type.VectorType());
+        } else {
+          elem_ty = GetTypeBasic(type.VectorType());
+        }
+        ty = "[" + elem_ty + "; " +
              NumToString(type.fixed_length) + "]";
         break;
       }
@@ -1651,7 +1986,7 @@ class RustGenerator : public BaseGenerator {
             : "None";
     const std::string unwrap = field.IsOptional() ? "" : ".unwrap()";
 
-    return "unsafe { self._tab.get::<" + typname +
+    return "unsafe { self.tab.get::<" + typname +
            ">({{STRUCT_TY}}::" + vt_offset + ", " + default_value + ")" +
            unwrap + "}";
   }
@@ -1661,6 +1996,7 @@ class RustGenerator : public BaseGenerator {
                                    const std::string& name) {
     const std::string fully_qualified_name =
         struct_def.defined_namespace->GetFullyQualifiedName(name);
+    code_ += "    #[must_use]";
     code_ += "    pub const fn get_fully_qualified_name() -> &'static str {";
     code_ += "        \"" + fully_qualified_name + "\"";
     code_ += "    }";
@@ -1731,18 +2067,18 @@ class RustGenerator : public BaseGenerator {
 
     GenComment(struct_def.doc_comment);
 
-    code_ += "#[derive(Copy, Clone, PartialEq)]";
+    code_ += "#[derive(Copy, Clone, PartialEq, Eq)]";
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}<'a> {";
-    code_ += "    pub _tab: ::flatbuffers::Table<'a>,";
+    code_ += "    pub tab: ::flatbuffers::Table<'a>,";
     code_ += "}";
     code_ += "";
     code_ += "impl<'a> ::flatbuffers::Follow<'a> for {{STRUCT_TY}}<'a> {";
-    code_ += "    type Inner = {{STRUCT_TY}}<'a>;";
+    code_ += "    type Inner = Self;";
     code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
     code_ +=
-        "        Self { _tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }";
+        "        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }";
     code_ += "    }";
     code_ += "}";
     code_ += "";
@@ -1762,11 +2098,14 @@ class RustGenerator : public BaseGenerator {
       GenFullyQualifiedNameGetter(struct_def, struct_def.name);
     }
 
+    code_ += "    /// # Safety";
+    code_ += "    /// Caller must ensure `table` is a valid flatbuffer table for this type.";
     code_ += "    #[inline]";
+    code_ += "    #[must_use]";
     code_ +=
-        "    pub unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> "
+        "    pub const unsafe fn init_from_table(table: ::flatbuffers::Table<'a>) -> "
         "Self {";
-    code_ += "        {{STRUCT_TY}} { _tab: table }";
+    code_ += "        Self { tab: table }";
     code_ += "    }";
     code_ += "";
 
@@ -1776,16 +2115,17 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("MAYBE_LT",
                    TableBuilderArgsNeedsLifetime(struct_def) ? "<'args>" : "");
     code_ += "    #[allow(unused_mut)]";
+    code_ += "    #[must_use]";
     code_ +=
         "    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: "
         "::flatbuffers::Allocator + 'bldr>(";
     code_ +=
-        "        _fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, "
+        "        fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, "
         "A>,";
     code_ += "        {{MAYBE_US}}args: &'args {{STRUCT_TY}}Args{{MAYBE_LT}}";
     code_ += "    ) -> ::flatbuffers::WIPOffset<{{STRUCT_TY}}<'bldr>> {";
 
-    code_ += "        let mut builder = {{STRUCT_TY}}Builder::new(_fbb);";
+    code_ += "        let mut builder = {{STRUCT_TY}}Builder::new(fbb);";
     for (size_t size = struct_def.sortbysize ? sizeof(largest_scalar_t) : 1;
          size; size /= 2) {
       ForAllTableFields(
@@ -1813,15 +2153,37 @@ class RustGenerator : public BaseGenerator {
       // TODO(cneo): Replace more for loops with ForAllX stuff.
       // TODO(cneo): Manage indentation with IncrementIdentLevel?
       code_.SetValue("STRUCT_OTY", namer_.ObjectType(struct_def));
-      code_ += "    pub fn unpack(&self) -> {{STRUCT_OTY}} {";
+      // Check if the table has any non-deprecated fields (for const eligibility).
+      bool has_fields = false;
+      bool has_union_fields = false;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        if (!(*it)->deprecated) {
+          has_fields = true;
+          if (GetFullType((*it)->value.type) == ftUnionValue) {
+            has_union_fields = true;
+          }
+        }
+      }
+      if (has_union_fields) {
+        code_ += "    ///";
+        code_ += "    /// # Panics";
+        code_ += "    /// Panics if a union field has an unexpected variant.";
+      }
+      code_ += "    #[must_use]";
+      code_ += std::string("    pub ") + (has_fields ? "" : "const ") +
+               "fn unpack(&self) -> {{STRUCT_OTY}} {";
       ForAllObjectTableFields(struct_def, [&](const FieldDef& field) {
         const Type& type = field.value.type;
         switch (GetFullType(type)) {
           case ftInteger:
           case ftBool:
-          case ftFloat:
           case ftEnumKey: {
             code_ += "    let {{FIELD}} = self.{{FIELD}}();";
+            return;
+          }
+          case ftFloat: {
+            code_ += "  let {{FIELD}} = self.{{FIELD}}().into();";
             return;
           }
           case ftUnionKey:
@@ -1834,11 +2196,10 @@ class RustGenerator : public BaseGenerator {
                            namer_.LegacyRustUnionTypeMethod(field));
 
             code_ += "    let {{FIELD}} = match self.{{UNION_TYPE_METHOD}}() {";
-            code_ += "        {{ENUM_TY}}::NONE => {{NATIVE_ENUM_NAME}}::NONE,";
             ForAllUnionObjectVariantsBesidesNone(enum_def, [&] {
               code_ +=
                   "    {{ENUM_TY}}::{{VARIANT_NAME}} => "
-                  "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(alloc::boxed::Box::"
+                  "{{NATIVE_ENUM_NAME}}::{{NATIVE_VARIANT}}(Box::"
                   "new(";
               code_ += "        self.{{FIELD}}_as_{{U_ELEMENT_NAME}}()";
               code_ +=
@@ -1855,33 +2216,87 @@ class RustGenerator : public BaseGenerator {
           // The rest of the types need special handling based on if the field
           // is optional or not.
           case ftString: {
-            code_.SetValue("EXPR", "alloc::string::ToString::to_string(x)");
-            break;
+            if (field.IsOptional()) {
+              code_ += "  let {{FIELD}} = self.{{FIELD}}().map(ToString::to_string);";
+            } else {
+              code_ += "  let {{FIELD}} = self.{{FIELD}}().to_string();";
+            }
+            return;
           }
           case ftStruct: {
             code_.SetValue("EXPR", "x.unpack()");
             break;
           }
           case ftTable: {
-            code_.SetValue("EXPR", "alloc::boxed::Box::new(x.unpack())");
+            code_.SetValue("EXPR", "Box::new(x.unpack())");
             break;
           }
           case ftVectorOfInteger:
           case ftVectorOfBool:
-          case ftVectorOfFloat:
           case ftVectorOfEnumKey: {
             code_.SetValue("EXPR", "x.into_iter().collect()");
             break;
           }
+          case ftVectorOfFloat: {
+            code_.SetValue("EXPR",
+                           "x.iter().map(|v| "
+                           "::flatbuffers::ordered_float::OrderedFloat(*v))"
+                           ".collect()");
+            break;
+          }
           case ftVectorOfString: {
             code_.SetValue("EXPR",
-                           "x.iter().map(|s| "
-                           "alloc::string::ToString::to_string(s)).collect()");
+                           "x.iter().map(ToString::to_string).collect()");
             break;
           }
           case ftVectorOfStruct:
           case ftVectorOfTable: {
-            code_.SetValue("EXPR", "x.iter().map(|t| t.unpack()).collect()");
+            if (IsMapField(field)) {
+              const StructDef& entry = *type.VectorType().struct_def;
+              const FieldDef* kf = GetEntryKeyField(entry);
+              const FieldDef* vf = GetEntryValueField(entry);
+              FLATBUFFERS_ASSERT(kf && vf && "map entry struct missing key or value field");
+              // Build key unpack expression.
+              const std::string key_expr =
+                  IsString(kf->value.type)
+                      ? "entry.key().unwrap_or(\"\").to_owned()"
+                      : "entry.key()";
+              // Build value unpack expression.
+              std::string val_expr;
+              if (IsString(vf->value.type)) {
+                val_expr = "entry.value().unwrap_or(\"\").to_owned()";
+              } else if (vf->value.type.base_type == BASE_TYPE_STRUCT &&
+                         !vf->value.type.struct_def->fixed) {
+                // Table value: accessor returns Option<Table>
+                val_expr =
+                    "entry.value().map(|t| Box::new(t.unpack()))"
+                    ".unwrap_or_default()";
+              } else if (vf->value.type.base_type == BASE_TYPE_STRUCT &&
+                         vf->value.type.struct_def->fixed) {
+                // Inline struct value
+                val_expr = "entry.value().map(|s| s.unpack()).unwrap_or_default()";
+              } else {
+                val_expr = "entry.value()";
+              }
+              code_.SetValue(
+                  "EXPR",
+                  "x.iter().map(|entry| (" + key_expr + ", " + val_expr +
+                      ")).collect()");
+            } else if (IsSetField(field)) {
+              const StructDef& entry = *type.VectorType().struct_def;
+              const FieldDef* kf = GetEntryKeyField(entry);
+              FLATBUFFERS_ASSERT(kf && "set entry struct missing key field");
+              const std::string key_expr =
+                  IsString(kf->value.type)
+                      ? "entry.key().unwrap_or(\"\").to_owned()"
+                      : "entry.key()";
+              code_.SetValue(
+                  "EXPR",
+                  "x.iter().map(|entry| " + key_expr + ").collect()");
+            } else {
+              code_.SetValue("EXPR",
+                             "x.iter().map(|t| t.unpack()).collect()");
+            }
             break;
           }
           case ftVectorOfUnionValue: {
@@ -1934,7 +2349,13 @@ class RustGenerator : public BaseGenerator {
                      GenTableAccessorFuncReturnType(field, "'a"));
 
       this->GenComment(field.doc_comment);
+      if (!field.IsOptional()) {
+        code_ += "///";
+        code_ += "/// # Panics";
+        code_ += "/// Panics if the field is not present. This should not happen for validated flatbuffers.";
+      }
       code_ += "#[inline]";
+      code_ += "#[must_use]";
       code_ += "pub fn {{FIELD}}(&self) -> {{RETURN_TYPE}} {";
       code_ += "    // Safety:";
       code_ += "    // Created from valid Table for this object";
@@ -1997,6 +2418,7 @@ class RustGenerator : public BaseGenerator {
             (void)unused;
             code_ += "";
             code_ += "#[inline]";
+            code_ += "#[must_use]";
             code_ += "#[allow(non_snake_case)]";
             code_ +=
                 "pub fn {{FIELD}}_as_{{U_ELEMENT_NAME}}(&self) -> "
@@ -2111,10 +2533,12 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Generate an impl of Default for the *Args type:
-    code_ += "impl<'a> Default for {{STRUCT_TY}}Args{{MAYBE_LT}} {";
+    code_.SetValue("MAYBE_LT_ELIDED",
+                   TableBuilderArgsNeedsLifetime(struct_def) ? "<'_>" : "");
+    code_ += "impl Default for {{STRUCT_TY}}Args{{MAYBE_LT_ELIDED}} {";
     code_ += "    #[inline]";
     code_ += "    fn default() -> Self {";
-    code_ += "        {{STRUCT_TY}}Args {";
+    code_ += "        Self {";
     ForAllTableFields(struct_def, [&](const FieldDef& field) {
       code_ += "        {{FIELD}}: {{BLDR_DEF_VAL}},\\";
       code_ += field.IsRequired() ? " // required field" : "";
@@ -2245,14 +2669,14 @@ class RustGenerator : public BaseGenerator {
 
     // Struct initializer (all fields required);
     code_ += "    #[inline]";
+    code_ += "    #[must_use]";
     code_ +=
-        "    pub fn new(_fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) "
-        "-> "
-        "{{STRUCT_TY}}Builder<'a, 'b, A> {";
+        "    pub fn new(fbb: &'b mut ::flatbuffers::FlatBufferBuilder<'a, A>) "
+        "-> Self {";
     code_.SetValue("NUM_FIELDS", NumToString(struct_def.fields.vec.size()));
-    code_ += "        let start = _fbb.start_table();";
+    code_ += "        let start = fbb.start_table();";
     code_ += "        {{STRUCT_TY}}Builder {";
-    code_ += "            fbb_: _fbb,";
+    code_ += "            fbb_: fbb,";
     code_ += "            start_: start,";
     code_ += "        }";
     code_ += "    }";
@@ -2260,6 +2684,7 @@ class RustGenerator : public BaseGenerator {
 
     // finish() function.
     code_ += "    #[inline]";
+    code_ += "    #[must_use]";
     code_ +=
         "    pub fn finish(self) -> "
         "::flatbuffers::WIPOffset<{{STRUCT_TY}}<'a>> {";
@@ -2289,26 +2714,57 @@ class RustGenerator : public BaseGenerator {
                        "&\"InvalidFlatbuffer: Union discriminant"
                        " does not match value.\"");
 
-        code_ += "    match self.{{DISCRIMINANT}}() {";
-        ForAllUnionVariantsBesidesNone(
-            *field.value.type.enum_def, [&](const EnumVal& unused) {
-              (void)unused;
-              code_ += "        {{U_ELEMENT_ENUM_TYPE}} => {";
-              code_ +=
-                  "            if let Some(x) = "
-                  "self.{{FIELD}}_as_"
-                  "{{U_ELEMENT_NAME}}() {";
-              code_ += "                ds.field(\"{{FIELD}}\", &x)";
-              code_ += "            } else {";
-              code_ += "                ds.field(\"{{FIELD}}\", {{UNION_ERR}})";
-              code_ += "            }";
-              code_ += "        },";
-            });
-        code_ += "        _ => {";
-        code_ += "            let x: Option<()> = None;";
-        code_ += "            ds.field(\"{{FIELD}}\", &x)";
-        code_ += "        },";
-        code_ += "    };";
+        // Count non-NONE variants to decide between match and if-let.
+        const auto& union_def = *field.value.type.enum_def;
+        size_t variant_count = 0;
+        for (auto it = union_def.Vals().begin();
+             it != union_def.Vals().end(); ++it) {
+          if ((*it)->union_type.base_type != BASE_TYPE_NONE) variant_count++;
+        }
+
+        if (variant_count == 1) {
+          // Use if-let to avoid single_match_else warning.
+          ForAllUnionVariantsBesidesNone(
+              union_def, [&](const EnumVal& unused) {
+                (void)unused;
+                code_ +=
+                    "    if self.{{DISCRIMINANT}}() == "
+                    "{{U_ELEMENT_ENUM_TYPE}} {";
+                code_ +=
+                    "      if let Some(x) = "
+                    "self.{{FIELD}}_as_"
+                    "{{U_ELEMENT_NAME}}() {";
+                code_ += "        ds.field(\"{{FIELD}}\", &x);";
+                code_ += "      } else {";
+                code_ += "        ds.field(\"{{FIELD}}\", {{UNION_ERR}});";
+                code_ += "      }";
+                code_ += "    } else {";
+                code_ += "      let x: Option<()> = None;";
+                code_ += "      ds.field(\"{{FIELD}}\", &x);";
+                code_ += "    }";
+              });
+        } else {
+          code_ += "    match self.{{DISCRIMINANT}}() {";
+          ForAllUnionVariantsBesidesNone(
+              union_def, [&](const EnumVal& unused) {
+                (void)unused;
+                code_ += "      {{U_ELEMENT_ENUM_TYPE}} => {";
+                code_ +=
+                    "        if let Some(x) = "
+                    "self.{{FIELD}}_as_"
+                    "{{U_ELEMENT_NAME}}() {";
+                code_ += "          ds.field(\"{{FIELD}}\", &x)";
+                code_ += "        } else {";
+                code_ += "          ds.field(\"{{FIELD}}\", {{UNION_ERR}})";
+                code_ += "        }";
+                code_ += "      },";
+              });
+          code_ += "      _ => {";
+          code_ += "        let x: Option<()> = None;";
+          code_ += "        ds.field(\"{{FIELD}}\", &x)";
+          code_ += "      },";
+          code_ += "    };";
+        }
       } else {
         // Most fields.
         code_ += "    ds.field(\"{{FIELD}}\", &self.{{FIELD}}());";
@@ -2325,9 +2781,14 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_OTY", namer_.ObjectType(table));
     code_.SetValue("STRUCT_TY", namer_.Type(table));
 
+    const bool can_derive_default = AllFieldsHaveNaturalDefault(table);
+
     // Generate the native object.
-    code_ += "#[non_exhaustive]";
-    code_ += "#[derive(Debug, Clone, PartialEq)]";
+    if (can_derive_default) {
+      code_ += ObjectDerivesWithDefault(TypeIsHashable(table));
+    } else {
+      code_ += ObjectDerives(TypeIsHashable(table));
+    }
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
     ForAllObjectTableFields(table, [&](const FieldDef& field) {
       // Union objects combine both the union discriminant and value, so we
@@ -2338,27 +2799,30 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    code_ += "impl Default for {{STRUCT_OTY}} {";
-    code_ += "    fn default() -> Self {";
-    code_ += "        Self {";
-    ForAllObjectTableFields(table, [&](const FieldDef& field) {
-      if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
-      std::string default_value = GetDefaultValue(field, kObject);
-      code_ += "        {{FIELD}}: " + default_value + ",";
-    });
-    code_ += "        }";
-    code_ += "    }";
-    code_ += "}";
-    code_ += "";
+    if (!can_derive_default) {
+      code_ += "impl Default for {{STRUCT_OTY}} {";
+      code_ += "    fn default() -> Self {";
+      code_ += "        Self {";
+      ForAllObjectTableFields(table, [&](const FieldDef& field) {
+        if (field.value.type.base_type == BASE_TYPE_UTYPE) return;
+        std::string default_value = GetDefaultValue(field, kObject);
+        code_ += "        {{FIELD}}: " + default_value + ",";
+      });
+      code_ += "        }";
+      code_ += "    }";
+      code_ += "}";
+      code_ += "";
+    }
 
     // TODO(cneo): Generate defaults for Native tables. However, since structs
     // may be required, they, and therefore enums need defaults.
 
     // Generate pack function.
     code_ += "impl {{STRUCT_OTY}} {";
+    code_ += "    #[must_use]";
     code_ += "    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(";
     code_ += "        &self,";
-    code_ += "        _fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>";
+    code_ += "        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>";
     code_ += "    ) -> ::flatbuffers::WIPOffset<{{STRUCT_TY}}<'b>> {";
     // First we generate variables for each field and then later assemble them
     // using "StructArgs" to more easily manage ownership of the builder.
@@ -2367,9 +2831,12 @@ class RustGenerator : public BaseGenerator {
       switch (GetFullType(type)) {
         case ftInteger:
         case ftBool:
-        case ftFloat:
         case ftEnumKey: {
           code_ += "    let {{FIELD}} = self.{{FIELD}};";
+          return;
+        }
+        case ftFloat: {
+          code_ += "  let {{FIELD}} = self.{{FIELD}}.into_inner();";
           return;
         }
         case ftUnionKey:
@@ -2379,16 +2846,22 @@ class RustGenerator : public BaseGenerator {
                          namer_.Method(*field.value.type.enum_def));
           code_.SetValue("DISCRIMINANT",
                          namer_.LegacyRustUnionTypeMethod(field));
+          code_.SetValue("UNION_ENUM_TY",
+                         WrapInNameSpace(*field.value.type.enum_def));
           code_ +=
               "    let {{DISCRIMINANT}} = "
               "self.{{FIELD}}.{{ENUM_METHOD}}_type();";
-          code_ += "    let {{FIELD}} = self.{{FIELD}}.pack(_fbb);";
+          code_ += "    let {{FIELD}} = self.{{FIELD}}.pack(fbb);";
+          code_ +=
+              "    debug_assert!({{FIELD}}.is_some() || "
+              "{{DISCRIMINANT}} == {{UNION_ENUM_TY}}::NONE, "
+              "\"Union discriminant does not match packed value\");";
           return;
         }
         // The rest of the types require special casing around optionalness
         // due to "required" annotation.
         case ftString: {
-          MapNativeTableField(field, "_fbb.create_string(x)");
+          MapNativeTableField(field, "fbb.create_string(x)");
           return;
         }
         case ftStruct: {
@@ -2405,21 +2878,47 @@ class RustGenerator : public BaseGenerator {
           return;
         }
         case ftTable: {
-          MapNativeTableField(field, "x.pack(_fbb)");
+          MapNativeTableField(field, "x.pack(fbb)");
           return;
         }
         case ftVectorOfEnumKey:
         case ftVectorOfInteger:
-        case ftVectorOfBool:
+        case ftVectorOfBool: {
+          MapNativeTableField(field, "fbb.create_vector(x)");
+          return;
+        }
         case ftVectorOfFloat: {
-          MapNativeTableField(field, "_fbb.create_vector(x)");
+          MapNativeTableField(field,
+                              "let w: Vec<_> = x.iter().map(|v| "
+                              "v.into_inner()).collect();"
+                              "fbb.create_vector(&w)");
           return;
         }
         case ftVectorOfStruct: {
-          MapNativeTableField(field,
-                              "let w: alloc::vec::Vec<_> = x.iter().map(|t| "
-                              "t.pack()).collect();"
-                              "_fbb.create_vector(&w)");
+          if (IsSetField(field)) {
+            // Set field backed by inline struct entries — sort by key then pack.
+            const StructDef& entry = *type.VectorType().struct_def;
+            const FieldDef* kf = GetEntryKeyField(entry);
+            FLATBUFFERS_ASSERT(kf && "set entry struct missing key field");
+            const std::string entry_oty =
+                NamespacedNativeName(*type.VectorType().struct_def);
+            const std::string key_field = namer_.Field(*kf);
+            MapNativeTableField(
+                field,
+                "{ let mut e: Vec<_> = x.iter().map(|k| " + entry_oty +
+                    " { " + key_field + ": k.clone(), ..Default::default() }"
+                    ").collect();"
+                    " e.sort_by(|a, b| a." + key_field +
+                    ".partial_cmp(&b." + key_field +
+                    ").unwrap_or(::std::cmp::Ordering::Equal));"
+                    " let w: Vec<_> = e.iter().map(|t| t.pack()).collect();"
+                    " fbb.create_vector(&w) }");
+          } else {
+            MapNativeTableField(field,
+                                "let w: Vec<_> = x.iter().map(|t| "
+                                "t.pack()).collect();"
+                                "fbb.create_vector(&w)");
+          }
           return;
         }
         case ftVectorOfString: {
@@ -2427,16 +2926,57 @@ class RustGenerator : public BaseGenerator {
           // allocations.
 
           MapNativeTableField(field,
-                              "let w: alloc::vec::Vec<_> = x.iter().map(|s| "
-                              "_fbb.create_string(s)).collect();"
-                              "_fbb.create_vector(&w)");
+                              "let w: Vec<_> = x.iter().map(|s| "
+                              "fbb.create_string(s)).collect();"
+                              "fbb.create_vector(&w)");
           return;
         }
         case ftVectorOfTable: {
-          MapNativeTableField(field,
-                              "let w: alloc::vec::Vec<_> = x.iter().map(|t| "
-                              "t.pack(_fbb)).collect();"
-                              "_fbb.create_vector(&w)");
+          if (IsMapField(field)) {
+            // Map field backed by table entries — collect, sort by key, pack.
+            const StructDef& entry = *type.VectorType().struct_def;
+            const FieldDef* kf = GetEntryKeyField(entry);
+            const FieldDef* vf = GetEntryValueField(entry);
+            FLATBUFFERS_ASSERT(kf && vf && "map entry struct missing key or value field");
+            const std::string entry_oty =
+                NamespacedNativeName(*type.VectorType().struct_def);
+            const std::string key_field = namer_.Field(*kf);
+            const std::string val_field = namer_.Field(*vf);
+            MapNativeTableField(
+                field,
+                "{ let mut e: Vec<_> = x.iter().map(|(k, v)| " + entry_oty +
+                    " { " + key_field + ": k.clone(), " + val_field +
+                    ": v.clone(), ..Default::default() }"
+                    ").collect();"
+                    " e.sort_by(|a, b| a." + key_field +
+                    ".partial_cmp(&b." + key_field +
+                    ").unwrap_or(::std::cmp::Ordering::Equal));"
+                    " let w: Vec<_> = e.iter().map(|t| t.pack(fbb)).collect();"
+                    " fbb.create_vector(&w) }");
+          } else if (IsSetField(field)) {
+            // Set field backed by table entries — sort by key then pack.
+            const StructDef& entry = *type.VectorType().struct_def;
+            const FieldDef* kf = GetEntryKeyField(entry);
+            FLATBUFFERS_ASSERT(kf && "set entry struct missing key field");
+            const std::string entry_oty =
+                NamespacedNativeName(*type.VectorType().struct_def);
+            const std::string key_field = namer_.Field(*kf);
+            MapNativeTableField(
+                field,
+                "{ let mut e: Vec<_> = x.iter().map(|k| " + entry_oty +
+                    " { " + key_field + ": k.clone(), ..Default::default() }"
+                    ").collect();"
+                    " e.sort_by(|a, b| a." + key_field +
+                    ".partial_cmp(&b." + key_field +
+                    ").unwrap_or(::std::cmp::Ordering::Equal));"
+                    " let w: Vec<_> = e.iter().map(|t| t.pack(fbb)).collect();"
+                    " fbb.create_vector(&w) }");
+          } else {
+            MapNativeTableField(field,
+                                "let w: Vec<_> = x.iter().map(|t| "
+                                "t.pack(fbb)).collect();"
+                                "fbb.create_vector(&w)");
+          }
           return;
         }
         case ftVectorOfUnionValue: {
@@ -2451,7 +2991,7 @@ class RustGenerator : public BaseGenerator {
         }
       }
     });
-    code_ += "        {{STRUCT_TY}}::create(_fbb, &{{STRUCT_TY}}Args{";
+    code_ += "        {{STRUCT_TY}}::create(fbb, &{{STRUCT_TY}}Args{";
     ForAllObjectTableFields(table, [&](const FieldDef& field) {
       (void)field;  // Unused.
       code_ += "        {{FIELD}},";
@@ -2467,7 +3007,7 @@ class RustGenerator : public BaseGenerator {
       const FieldDef& field = **it;
       if (field.deprecated) continue;
       code_.SetValue("FIELD", namer_.Field(field));
-      code_.SetValue("FIELD_OTY", ObjectFieldType(field, true));
+      code_.SetValue("FIELD_OTY", ObjectFieldType(field, true, &table));
       code_.IncrementIdentLevel();
       cb(field);
       code_.DecrementIdentLevel();
@@ -2499,6 +3039,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "#[inline]";
+    code_ += "#[must_use]";
     code_ +=
         "pub fn key_compare_less_than(&self, o: &{{STRUCT_TY}}) -> "
         "bool {";
@@ -2507,6 +3048,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "#[inline]";
+    code_ += "#[must_use]";
     code_ +=
         "pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
         "::core::cmp::Ordering {";
@@ -2526,13 +3068,16 @@ class RustGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_CONST", namer_.Constant(struct_def.name));
 
     // Default verifier root fns.
-    code_ += "/// Verifies that a buffer of bytes contains a `{{STRUCT_TY}}`";
-    code_ += "/// and returns it.";
+    code_ += "#[inline]";
+    code_ += "/// Verifies that a buffer of bytes contains a `{{STRUCT_TY}}` and returns it.";
+    code_ += "///";
     code_ += "/// Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `root_as_{{STRUCT_FN}}_unchecked`.";
-    code_ += "#[inline]";
+    code_ += "///";
+    code_ += "/// # Errors";
+    code_ += "/// Returns `InvalidFlatbuffer` if the buffer does not contain a valid flatbuffer.";
     code_ +=
         "pub fn root_as_{{STRUCT_FN}}(buf: &[u8]) "
         "-> Result<{{STRUCT_TY}}<'_>, ::flatbuffers::InvalidFlatbuffer> {";
@@ -2540,13 +3085,16 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    code_ += "/// Verifies that a buffer of bytes contains a size prefixed";
-    code_ += "/// `{{STRUCT_TY}}` and returns it.";
+    code_ += "#[inline]";
+    code_ += "/// Verifies that a buffer of bytes contains a size prefixed `{{STRUCT_TY}}` and returns it.";
+    code_ += "///";
     code_ += "/// Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `size_prefixed_root_as_{{STRUCT_FN}}_unchecked`.";
-    code_ += "#[inline]";
+    code_ += "///";
+    code_ += "/// # Errors";
+    code_ += "/// Returns `InvalidFlatbuffer` if the buffer does not contain a valid flatbuffer.";
     code_ +=
         "pub fn size_prefixed_root_as_{{STRUCT_FN}}"
         "(buf: &[u8]) -> Result<{{STRUCT_TY}}<'_>, "
@@ -2556,13 +3104,16 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Verifier with options root fns.
-    code_ += "/// Verifies, with the given options, that a buffer of bytes";
-    code_ += "/// contains a `{{STRUCT_TY}}` and returns it.";
+    code_ += "#[inline]";
+    code_ += "/// Verifies, with the given options, that a buffer of bytes contains a `{{STRUCT_TY}}` and returns it.";
+    code_ += "///";
     code_ += "/// Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `root_as_{{STRUCT_FN}}_unchecked`.";
-    code_ += "#[inline]";
+    code_ += "///";
+    code_ += "/// # Errors";
+    code_ += "/// Returns `InvalidFlatbuffer` if the buffer does not contain a valid flatbuffer.";
     code_ += "pub fn root_as_{{STRUCT_FN}}_with_opts<'b, 'o>(";
     code_ += "    opts: &'o ::flatbuffers::VerifierOptions,";
     code_ += "    buf: &'b [u8],";
@@ -2574,13 +3125,16 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
-    code_ += "/// Verifies, with the given verifier options, that a buffer of";
-    code_ += "/// bytes contains a size prefixed `{{STRUCT_TY}}` and returns";
-    code_ += "/// it. Note that verification is still experimental and may not";
+    code_ += "#[inline]";
+    code_ += "/// Verifies, with the given verifier options, that a buffer of bytes contains a size prefixed `{{STRUCT_TY}}` and returns it.";
+    code_ += "///";
+    code_ += "/// Note that verification is still experimental and may not";
     code_ += "/// catch every error, or be maximally performant. For the";
     code_ += "/// previous, unchecked, behavior use";
     code_ += "/// `root_as_{{STRUCT_FN}}_unchecked`.";
-    code_ += "#[inline]";
+    code_ += "///";
+    code_ += "/// # Errors";
+    code_ += "/// Returns `InvalidFlatbuffer` if the buffer does not contain a valid flatbuffer.";
     code_ +=
         "pub fn size_prefixed_root_as_{{STRUCT_FN}}_with_opts"
         "<'b, 'o>(";
@@ -2596,9 +3150,11 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     // Unchecked root fns.
+    code_ += "#[must_use]";
     code_ +=
         "/// Assumes, without verification, that a buffer of bytes "
-        "contains a {{STRUCT_TY}} and returns it.";
+        "contains a `{{STRUCT_TY}}` and returns it.";
+    code_ += "///";
     code_ += "/// # Safety";
     code_ +=
         "/// Callers must trust the given bytes do indeed contain a valid"
@@ -2612,9 +3168,11 @@ class RustGenerator : public BaseGenerator {
     code_ += "}";
     code_ += "";
 
+    code_ += "#[must_use]";
     code_ +=
         "/// Assumes, without verification, that a buffer of bytes "
-        "contains a size prefixed {{STRUCT_TY}} and returns it.";
+        "contains a size prefixed `{{STRUCT_TY}}` and returns it.";
+    code_ += "///";
     code_ += "/// # Safety";
     code_ +=
         "/// Callers must trust the given bytes do indeed contain a valid"
@@ -2639,6 +3197,7 @@ class RustGenerator : public BaseGenerator {
 
       // Check if a buffer has the identifier.
       code_ += "#[inline]";
+      code_ += "#[must_use]";
       code_ += "pub fn {{STRUCT_FN}}_buffer_has_identifier\\";
       code_ += "(buf: &[u8]) -> bool {";
       code_ += "    ::flatbuffers::buffer_has_identifier(buf, \\";
@@ -2646,6 +3205,7 @@ class RustGenerator : public BaseGenerator {
       code_ += "}";
       code_ += "";
       code_ += "#[inline]";
+      code_ += "#[must_use]";
       code_ += "pub fn {{STRUCT_FN}}_size_prefixed\\";
       code_ += "_buffer_has_identifier(buf: &[u8]) -> bool {";
       code_ += "    ::flatbuffers::buffer_has_identifier(buf, \\";
@@ -2723,7 +3283,7 @@ class RustGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const auto& field = **it;
       code_.SetValue("FIELD_TYPE", GetTypeGet(field.value.type));
-      code_.SetValue("FIELD_OTY", ObjectFieldType(field, false));
+      code_.SetValue("FIELD_OTY", ObjectFieldType(field, false, &struct_def));
       code_.SetValue("FIELD", namer_.Field(field));
       code_.SetValue("FIELD_OFFSET", NumToString(offset_to_field));
       code_.SetValue(
@@ -2760,7 +3320,7 @@ class RustGenerator : public BaseGenerator {
     // hold for PartialOrd/Ord.
     code_ += "// struct {{STRUCT_TY}}, aligned to {{ALIGN}}";
     code_ += "#[repr(transparent)]";
-    code_ += "#[derive(Clone, Copy, PartialEq)]";
+    code_ += "#[derive(Clone, Copy, PartialEq, Eq)]";
     code_ += "{{ACCESS_TYPE}} struct {{STRUCT_TY}}(pub [u8; {{STRUCT_SIZE}}]);";
     code_ += "";
 
@@ -2793,7 +3353,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "impl<'a> ::flatbuffers::Follow<'a> for {{STRUCT_TY}} {";
-    code_ += "    type Inner = &'a {{STRUCT_TY}};";
+    code_ += "    type Inner = &'a Self;";
     code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
@@ -2803,7 +3363,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "impl<'a> ::flatbuffers::Follow<'a> for &'a {{STRUCT_TY}} {";
-    code_ += "    type Inner = &'a {{STRUCT_TY}};";
+    code_ += "    type Inner = Self;";
     code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {";
@@ -2815,7 +3375,7 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
 
     code_ += "impl<'b> ::flatbuffers::Push for {{STRUCT_TY}} {";
-    code_ += "    type Output = {{STRUCT_TY}};";
+    code_ += "    type Output = Self;";
     code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
@@ -2836,7 +3396,7 @@ class RustGenerator : public BaseGenerator {
 
     // Generate verifier: Structs are simple so presence and alignment are
     // all that need to be checked.
-    code_ += "impl<'a> ::flatbuffers::Verifiable for {{STRUCT_TY}} {";
+    code_ += "impl ::flatbuffers::Verifiable for {{STRUCT_TY}} {";
     code_ += "    #[inline]";
     code_ += "    fn run_verifier(";
     code_ += "        v: &mut ::flatbuffers::Verifier, pos: usize";
@@ -2880,6 +3440,7 @@ class RustGenerator : public BaseGenerator {
     // Generate a constructor that takes all fields as arguments.
     code_ += "impl<'a> {{STRUCT_TY}} {";
     code_ += "    #[allow(clippy::too_many_arguments)]";
+    code_ += "    #[must_use]";
     code_ += "    pub fn new(";
     ForAllStructFields(struct_def, [&](const FieldDef& unused) {
       (void)unused;
@@ -2902,6 +3463,7 @@ class RustGenerator : public BaseGenerator {
     // Generate accessor methods for the struct.
     ForAllStructFields(struct_def, [&](const FieldDef& field) {
       this->GenComment(field.doc_comment);
+      code_ += "#[must_use]";
       // Getter.
       if (IsStruct(field.value.type)) {
         code_ += "pub fn {{FIELD}}(&self) -> &{{FIELD_TYPE}} {";
@@ -3015,6 +3577,7 @@ class RustGenerator : public BaseGenerator {
     // Generate Object API unpack method.
     if (parser_.opts.generate_object_based_api) {
       code_.SetValue("STRUCT_OTY", namer_.ObjectType(struct_def));
+      code_ += "    #[must_use]";
       code_ += "    pub fn unpack(&self) -> {{STRUCT_OTY}} {";
       code_ += "        {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
@@ -3024,9 +3587,16 @@ class RustGenerator : public BaseGenerator {
                 "    {{FIELD}}: { let {{FIELD}} = "
                 "self.{{FIELD}}(); ::flatbuffers::array_init(|i| "
                 "{{FIELD}}.get(i).unpack()) },";
+          } else if (IsFloat(field.value.type.VectorType().base_type)) {
+            code_ +=
+                "    {{FIELD}}: { let {{FIELD}} = "
+                "self.{{FIELD}}(); ::flatbuffers::array_init(|i| "
+                "{{FIELD}}[i].into()) },";
           } else {
             code_ += "        {{FIELD}}: self.{{FIELD}}().into(),";
           }
+        } else if (IsFloat(field.value.type.base_type)) {
+          code_ += "    {{FIELD}}: self.{{FIELD}}().into(),";
         } else {
           std::string unpack = IsStruct(field.value.type) ? ".unpack()" : "";
           code_ += "        {{FIELD}}: self.{{FIELD}}()" + unpack + ",";
@@ -3042,7 +3612,7 @@ class RustGenerator : public BaseGenerator {
     if (parser_.opts.generate_object_based_api) {
       // Struct declaration
       code_ += "";
-      code_ += "#[derive(Debug, Clone, PartialEq)]";
+      code_ += ObjectDerives(TypeIsHashable(struct_def));
       code_ += "{{ACCESS_TYPE}} struct {{STRUCT_OTY}} {";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
         (void)field;  // unused.
@@ -3095,6 +3665,7 @@ class RustGenerator : public BaseGenerator {
       // The `pack` method that turns the native struct into its Flatbuffers
       // counterpart.
       code_ += "impl {{STRUCT_OTY}} {";
+      code_ += "    #[must_use]";
       code_ += "    pub fn pack(&self) -> {{STRUCT_TY}} {";
       code_ += "        {{STRUCT_TY}}::new(";
       ForAllStructFields(struct_def, [&](const FieldDef& field) {
@@ -3105,9 +3676,15 @@ class RustGenerator : public BaseGenerator {
             code_ +=
                 "        &::flatbuffers::array_init(|i| "
                 "self.{{FIELD}}[i].pack()),";
+          } else if (IsFloat(field.value.type.VectorType().base_type)) {
+            code_ +=
+                "    &::flatbuffers::array_init(|i| "
+                "self.{{FIELD}}[i].into_inner()),";
           } else {
             code_ += "        &self.{{FIELD}},";
           }
+        } else if (IsFloat(field.value.type.base_type)) {
+          code_ += "    self.{{FIELD}}.into_inner(),";
         } else {
           code_ += "        self.{{FIELD}},";
         }
@@ -3122,6 +3699,7 @@ class RustGenerator : public BaseGenerator {
     // DO not use global attributes (i.e. #![...]) since it interferes
     // with users who include! generated files.
     // See: https://github.com/google/flatbuffers/issues/6261
+    const std::string indent;
     if (!parser_.opts.generate_all) {
       for (auto it = parser_.included_files_.begin();
            it != parser_.included_files_.end(); ++it) {
@@ -3130,24 +3708,39 @@ class RustGenerator : public BaseGenerator {
         auto basename = flatbuffers::StripPath(noext);
 
         if (parser_.opts.include_prefix.empty()) {
-          code_ +=
-              "use crate::" + basename + parser_.opts.filename_suffix + "::*;";
+          code_ += indent + "#[allow(unused_imports, clippy::wildcard_imports)]";
+          code_ += indent + "use crate::" + basename +
+                   parser_.opts.filename_suffix + "::*;";
         } else {
           auto prefix = parser_.opts.include_prefix;
           prefix.pop_back();
 
-          code_ += "use crate::" + prefix + "::" + basename +
+          code_ += indent + "#[allow(unused_imports, clippy::wildcard_imports)]";
+          code_ += indent + "use crate::" + prefix + "::" + basename +
                    parser_.opts.filename_suffix + "::*;";
         }
       }
     }
 
     if (parser_.opts.rust_serialize) {
-      code_ += "extern crate serde;";
+      code_ += indent + "extern crate serde;";
+      code_ += indent + "#[allow(unused_imports)]";
       code_ +=
           "use self::serde::ser::{Serialize, Serializer, SerializeStruct};";
     }
-    code_ += "extern crate alloc;";
+    code_ += indent + "extern crate alloc;";
+    if (parser_.opts.generate_object_based_api) {
+      code_ += indent + "#[allow(unused_imports)]";
+      code_ += indent + "use alloc::vec::Vec;";
+      if (!AnyNamespaceHasStringTable()) {
+        code_ += indent + "#[allow(unused_imports)]";
+        code_ += indent + "use alloc::string::String;";
+      }
+      code_ += indent + "#[allow(unused_imports)]";
+      code_ += indent + "use alloc::boxed::Box;";
+      code_ += indent + "#[allow(unused_imports)]";
+      code_ += indent + "use alloc::string::ToString;";
+    }
   }
 
   // Set up the correct namespace. This opens a namespace if the current
@@ -3193,6 +3786,83 @@ class RustGenerator : public BaseGenerator {
     }
 
     cur_name_space_ = ns;
+  }
+
+  // Check if a type transitively contains f32/f64 fields.
+  // Object API float fields use OrderedFloat, so most types are hashable.
+  // However, HashMap and HashSet do not implement Hash or Eq, so any struct
+  // that contains a map_entry or set_entry vector field is not hashable.
+  bool TypeIsHashable(const StructDef& struct_def) const {
+    for (auto* field : struct_def.fields.vec) {
+      if (field->deprecated) continue;
+      if (IsMapField(*field) || IsSetField(*field)) return false;
+    }
+    return true;
+  }
+
+  bool UnionIsHashable(const EnumDef& /*enum_def*/) const {
+    return true;
+  }
+
+  // Build the derive string for Object API *T types.
+  std::string ObjectDerives(bool hashable) const {
+    std::string derives = "#[derive(Debug, Clone, PartialEq";
+    if (hashable) {
+      derives += ", Eq, Hash";
+    }
+    if (parser_.opts.rust_serialize) {
+      derives += ", serde::Serialize, serde::Deserialize";
+    }
+    derives += ")]";
+    return derives;
+  }
+
+  // Build derive string including Default for types where all fields
+  // have their natural default values.
+  std::string ObjectDerivesWithDefault(bool hashable) const {
+    std::string derives = "#[derive(Debug, Clone, PartialEq, Default";
+    if (hashable) {
+      derives += ", Eq, Hash";
+    }
+    if (parser_.opts.rust_serialize) {
+      derives += ", serde::Serialize, serde::Deserialize";
+    }
+    derives += ")]";
+    return derives;
+  }
+
+  // Check if any namespace in the schema defines a table named "String".
+  // When true, we must not emit `use alloc::string::String;` because it
+  // would shadow the FlatBuffer String table type in generated code.
+  bool AnyNamespaceHasStringTable() const {
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      const StructDef& other = **it;
+      if (other.name == "String") return true;
+    }
+    return false;
+  }
+
+  // Check if a namespace defines a table named "String" which would shadow
+  // std::string::String in Rust Object API types.
+  bool NamespaceShadowsString(const StructDef& struct_def) const {
+    if (!struct_def.defined_namespace) return false;
+    for (auto it = parser_.structs_.vec.begin();
+         it != parser_.structs_.vec.end(); ++it) {
+      const StructDef& other = **it;
+      if (other.defined_namespace == struct_def.defined_namespace &&
+          other.name == "String")
+        return true;
+    }
+    return false;
+  }
+
+  // Return the Rust type for a String field in Object API, qualified if needed.
+  std::string ObjectStringType(const StructDef& struct_def) const {
+    if (NamespaceShadowsString(struct_def)) {
+      return "std::string::String";
+    }
+    return "String";
   }
 
  private:

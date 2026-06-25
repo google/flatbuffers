@@ -78,6 +78,28 @@ static std::string GenIncludeGuard(const std::string& file_name,
   return guard;
 }
 
+static bool IsMapField(const FieldDef& field) {
+  return field.attributes.Lookup("map_entry") != nullptr;
+}
+
+static bool IsSetField(const FieldDef& field) {
+  return field.attributes.Lookup("set_entry") != nullptr;
+}
+
+static const FieldDef* GetEntryKeyField(const StructDef& entry) {
+  for (auto it = entry.fields.vec.begin(); it != entry.fields.vec.end(); ++it) {
+    if ((*it)->key) return *it;
+  }
+  return nullptr;
+}
+
+static const FieldDef* GetEntryValueField(const StructDef& entry) {
+  for (auto it = entry.fields.vec.begin(); it != entry.fields.vec.end(); ++it) {
+    if ((*it)->name == "value") return *it;
+  }
+  return nullptr;
+}
+
 static bool IsVectorOfPointers(const FieldDef& field) {
   const auto& type = field.value.type;
   const auto& vector_type = type.VectorType();
@@ -254,7 +276,7 @@ class CppGenerator : public BaseGenerator {
              std::to_string(FLATBUFFERS_VERSION_MAJOR) + " &&";
     code_ += "              FLATBUFFERS_VERSION_MINOR == " +
              std::to_string(FLATBUFFERS_VERSION_MINOR) + " &&";
-    code_ += "              FLATBUFFERS_VERSION_REVISION == " +
+    code_ += "              FLATBUFFERS_VERSION_REVISION >= " +
              std::to_string(FLATBUFFERS_VERSION_REVISION) + ",";
     code_ += "             \"Non-compatible flatbuffers version included\");";
   }
@@ -460,6 +482,24 @@ class CppGenerator : public BaseGenerator {
     if (parser_.uses_flexbuffers_) {
       code_ += "#include \"flatbuffers/flexbuffers.h\"";
       code_ += "#include \"flatbuffers/flex_flat_util.h\"";
+    }
+    // Include unordered containers when map/set fields are present.
+    if (opts_.generate_object_based_api) {
+      bool needs_unordered = false;
+      for (const auto& sd : parser_.structs_.vec) {
+        for (const auto& f : sd->fields.vec) {
+          if (IsMapField(*f) || IsSetField(*f)) {
+            needs_unordered = true;
+            break;
+          }
+        }
+        if (needs_unordered) break;
+      }
+      if (needs_unordered) {
+        code_ += "#include <algorithm>";
+        code_ += "#include <unordered_map>";
+        code_ += "#include <unordered_set>";
+      }
     }
     code_ += "";
     GenFlatbuffersVersionCheck();
@@ -973,6 +1013,35 @@ class CppGenerator : public BaseGenerator {
       }
       case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
+        // Map/set fields emit unordered_map/unordered_set instead of vector.
+        if (IsMapField(field) || IsSetField(field)) {
+          const auto& entry = *type.VectorType().struct_def;
+          const auto* kf = GetEntryKeyField(entry);
+          FLATBUFFERS_ASSERT(kf);
+          std::string key_type =
+              IsString(kf->value.type) ? NativeString(&field)
+                                       : GenTypeBasic(kf->value.type, true);
+          if (IsSetField(field)) {
+            return "std::unordered_set<" + key_type + ">";
+          }
+          const auto* vf = GetEntryValueField(entry);
+          FLATBUFFERS_ASSERT(vf);
+          std::string val_type;
+          if (IsString(vf->value.type)) {
+            val_type = NativeString(&field);
+          } else if (vf->value.type.base_type == BASE_TYPE_STRUCT) {
+            if (IsStruct(vf->value.type)) {
+              val_type = WrapInNameSpace(*vf->value.type.struct_def);
+            } else {
+              val_type = GenTypeNativePtr(
+                  WrapNativeNameInNameSpace(*vf->value.type.struct_def, opts_),
+                  &field, false);
+            }
+          } else {
+            val_type = GenTypeBasic(vf->value.type, true);
+          }
+          return "std::unordered_map<" + key_type + ", " + val_type + ">";
+        }
         const auto type_name = GenTypeNative(type.VectorType(), true, field);
         if (type.struct_def &&
             type.struct_def->attributes.Lookup("native_custom_alloc")) {
@@ -2154,6 +2223,39 @@ class CppGenerator : public BaseGenerator {
       } else if (IsVector(type)) {
         const auto vec_type = type.VectorType();
         if (vec_type.base_type == BASE_TYPE_UTYPE) continue;
+        // Map/set fields: check if value type needs deep copy (unique_ptr).
+        if (IsMapField(*field) || IsSetField(*field)) {
+          const auto& entry = *type.VectorType().struct_def;
+          const auto* vf = GetEntryValueField(entry);
+          bool has_ptr_value = IsMapField(*field) && vf &&
+              vf->value.type.base_type == BASE_TYPE_STRUCT &&
+              !IsStruct(vf->value.type);
+          if (has_ptr_value) {
+            // Map with pointer values — deep copy in loop.
+            CodeWriter cw("  ");
+            cw.IncrementIdentLevel();
+            cw.SetValue("FIELD", Name(*field));
+            cw.SetValue("TYPE", WrapNativeNameInNameSpace(
+                *vf->value.type.struct_def, opts_));
+            cw += "for (const auto &_kv : o.{{FIELD}}) { "
+                  "{{FIELD}}[_kv.first] = _kv.second ? " +
+                  GenTypeNativePtr(
+                      WrapNativeNameInNameSpace(
+                          *vf->value.type.struct_def, opts_),
+                      field, true) +
+                  "(new {{TYPE}}(*_kv.second)) : nullptr; }";
+            vector_copies += cw.ToString();
+          } else {
+            // Map/set with copyable values — use copy constructor.
+            if (!initializer_list.empty()) {
+              initializer_list += ",\n        ";
+            }
+            CodeWriter cw;
+            cw.SetValue("FIELD", Name(*field));
+            cw += "{{FIELD}}(o.{{FIELD}})\\";
+            initializer_list += cw.ToString();
+          }
+        } else {
         const auto cpp_type = field->attributes.Lookup("cpp_type");
         const auto cpp_ptr_type = field->attributes.Lookup("cpp_ptr_type");
         const std::string& type_name =
@@ -2185,6 +2287,7 @@ class CppGenerator : public BaseGenerator {
           cw += "{{FIELD}}(o.{{FIELD}})\\";
           initializer_list += cw.ToString();
         }
+        } // end !IsMapField && !IsSetField
       } else {
         if (!initializer_list.empty()) {
           initializer_list += ",\n        ";
@@ -2255,7 +2358,10 @@ class CppGenerator : public BaseGenerator {
           // If the field is a vector of tables, the table need to be compared
           // by value, instead of by the default unique_ptr == operator which
           // compares by address.
-          if (IsVectorOfPointers(field)) {
+          if (IsMapField(field) || IsSetField(field)) {
+            // Map/set fields: use direct == comparison.
+            compare_op += "(" + lhs_accessor + " == " + rhs_accessor + ")";
+          } else if (IsVectorOfPointers(field)) {
             const auto type =
                 GenTypeNative(field.value.type.VectorType(), true, field);
             const auto equal_length =
@@ -3575,6 +3681,54 @@ class CppGenerator : public BaseGenerator {
         if (field.value.type.element == BASE_TYPE_UTYPE) {
           name = StripUnionType(Name(field));
         }
+        // Map/set fields: populate unordered_map/unordered_set instead of vector.
+        if (IsMapField(field) || IsSetField(field)) {
+          const auto& entry = *field.value.type.VectorType().struct_def;
+          const auto* kf = GetEntryKeyField(entry);
+          FLATBUFFERS_ASSERT(kf);
+          const std::string vector_field = "_o->" + name;
+          std::string key_expr;
+          if (IsString(kf->value.type)) {
+            key_expr = "_e->Get(_i)->key()->str()";
+          } else if (kf->value.type.enum_def) {
+            key_expr = "static_cast<" +
+                       WrapInNameSpace(*kf->value.type.enum_def) + ">(" +
+                       "_e->Get(_i)->key())";
+          } else {
+            key_expr = "_e->Get(_i)->key()";
+          }
+          code += "{ " + vector_field + ".clear(); ";
+          code += "for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { ";
+          if (IsSetField(field)) {
+            code += vector_field + ".insert(" + key_expr + "); ";
+          } else {
+            const auto* vf = GetEntryValueField(entry);
+            FLATBUFFERS_ASSERT(vf);
+            std::string val_expr;
+            if (IsString(vf->value.type)) {
+              val_expr = "_e->Get(_i)->value() ? "
+                         "_e->Get(_i)->value()->str() : \"\"";
+            } else if (vf->value.type.base_type == BASE_TYPE_STRUCT &&
+                       !IsStruct(vf->value.type)) {
+              // Table value — unpack via UnPack().
+              val_expr = GenTypeNativePtr(
+                  WrapNativeNameInNameSpace(*vf->value.type.struct_def, opts_),
+                  &field, true) +
+                  "(_e->Get(_i)->value() ? "
+                  "_e->Get(_i)->value()->UnPack(_resolver) : nullptr)";
+            } else if (vf->value.type.base_type == BASE_TYPE_STRUCT &&
+                       IsStruct(vf->value.type)) {
+              val_expr = "_e->Get(_i)->value() ? "
+                         "*_e->Get(_i)->value() : " +
+                         WrapInNameSpace(*vf->value.type.struct_def) + "()";
+            } else {
+              val_expr = "_e->Get(_i)->value()";
+            }
+            code += vector_field + "[" + key_expr + "] = " + val_expr + "; ";
+          }
+          code += "} }";
+          break;
+        }
         const std::string vector_field = "_o->" + name;
         code += "{ " + vector_field + ".resize(_e->size()); ";
         if (!field.value.type.enum_def && !IsBool(field.value.type.element) &&
@@ -3778,6 +3932,63 @@ class CppGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR64:
       case BASE_TYPE_VECTOR: {
         auto vector_type = field.value.type.VectorType();
+        // Map/set fields: build sorted entry table vector from the native map/set.
+        if (IsMapField(field) || IsSetField(field)) {
+          const auto& entry = *vector_type.struct_def;
+          const auto entry_type = WrapInNameSpace(entry);
+          const auto entry_native =
+              WrapNativeNameInNameSpace(entry, opts_);
+          if (IsSetField(field)) {
+            // Build sorted vector of set entry tables from unordered_set.
+            code += "[&_fbb, &_o, &_rehasher]() { ";
+            code += "std::vector<" + entry_native + "> _entries; ";
+            code += "_entries.reserve(_o->" + Name(field) + ".size()); ";
+            code += "for (const auto& _k : _o->" + Name(field) + ") { ";
+            code += entry_native + " _entry; _entry.key = _k; ";
+            code += "_entries.push_back(std::move(_entry)); } ";
+            code += "std::sort(_entries.begin(), _entries.end(), ";
+            code += "[](const " + entry_native + "& a, const " + entry_native +
+                    "& b) { return a.key < b.key; }); ";
+            code += "std::vector<::flatbuffers::Offset<" + entry_type + ">> _v; ";
+            code += "_v.reserve(_entries.size()); ";
+            code += "for (const auto& _e : _entries) { ";
+            code += "_v.push_back(Create" + entry.name +
+                    "(_fbb, &_e, _rehasher)); } ";
+            code += "return _fbb.CreateVector(_v); }()";
+          } else {
+            const auto* kf = GetEntryKeyField(entry);
+            const auto* vf = GetEntryValueField(entry);
+            FLATBUFFERS_ASSERT(kf && vf);
+            bool has_ptr_value = vf->value.type.base_type == BASE_TYPE_STRUCT &&
+                                 !IsStruct(vf->value.type);
+            // Build sorted vector of map entry tables from unordered_map.
+            code += "[&_fbb, &_o, &_rehasher]() { ";
+            code += "std::vector<" + entry_native + "> _entries; ";
+            code += "_entries.reserve(_o->" + Name(field) + ".size()); ";
+            code += "for (const auto& _kv : _o->" + Name(field) + ") { ";
+            code += entry_native + " _entry; _entry.key = _kv.first; ";
+            if (has_ptr_value) {
+              const auto val_type_name =
+                  WrapNativeNameInNameSpace(*vf->value.type.struct_def, opts_);
+              code += "_entry.value = _kv.second ? " +
+                  GenTypeNativePtr(val_type_name, &field, true) +
+                  "(new " + val_type_name + "(*_kv.second)) : nullptr; ";
+            } else {
+              code += "_entry.value = _kv.second; ";
+            }
+            code += "_entries.push_back(std::move(_entry)); } ";
+            code += "std::sort(_entries.begin(), _entries.end(), ";
+            code += "[](const " + entry_native + "& a, const " + entry_native +
+                    "& b) { return a.key < b.key; }); ";
+            code += "std::vector<::flatbuffers::Offset<" + entry_type + ">> _v; ";
+            code += "_v.reserve(_entries.size()); ";
+            code += "for (const auto& _e : _entries) { ";
+            code += "_v.push_back(Create" + entry.name +
+                    "(_fbb, &_e, _rehasher)); } ";
+            code += "return _fbb.CreateVector(_v); }()";
+          }
+          break;
+        }
         switch (vector_type.base_type) {
           case BASE_TYPE_STRING: {
             if (NativeString(&field) == "std::string") {
