@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -27,9 +27,7 @@ impl Default for Unused {
 
 impl ::core::fmt::Debug for Unused {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        f.debug_struct("Unused")
-            .field("a", &self.a())
-            .finish()
+        f.debug_struct("Unused").field("a", &self.a()).finish()
     }
 }
 
@@ -58,7 +56,12 @@ impl<'b> ::flatbuffers::Push for Unused {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const Unused as *const u8, <Self as ::flatbuffers::Push>::size()) };
+        let src = unsafe {
+            ::core::slice::from_raw_parts(
+                self as *const Unused as *const u8,
+                <Self as ::flatbuffers::Push>::size(),
+            )
+        };
         dst.copy_from_slice(src);
     }
 
@@ -71,7 +74,8 @@ impl<'b> ::flatbuffers::Push for Unused {
 impl ::flatbuffers::Verifiable for Unused {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.in_buffer::<Self>(pos)
     }
@@ -82,7 +86,7 @@ impl Serialize for Unused {
     where
         S: Serializer,
     {
-    let mut s = serializer.serialize_struct("Unused", 1)?;
+        let mut s = serializer.serialize_struct("Unused", 1)?;
         s.serialize_field("a", &self.a())?;
         s.end()
     }
@@ -91,9 +95,7 @@ impl Serialize for Unused {
 impl<'a> Unused {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
-    pub fn new(
-        a: i32,
-    ) -> Self {
+    pub fn new(a: i32) -> Self {
         let mut s = Self([0; 4]);
         s.set_a(a);
         s
@@ -106,7 +108,8 @@ impl<'a> Unused {
 
     #[must_use]
     pub fn a(&self) -> i32 {
-        let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -136,9 +139,7 @@ impl<'a> Unused {
 
     #[must_use]
     pub fn unpack(&self) -> UnusedT {
-        UnusedT {
-            a: self.a(),
-        }
+        UnusedT { a: self.a() }
     }
 }
 
@@ -148,17 +149,13 @@ pub struct UnusedT {
 }
 impl Default for UnusedT {
     fn default() -> Self {
-        Self {
-            a: 0,
-        }
+        Self { a: 0 }
     }
 }
 
 impl UnusedT {
     #[must_use]
     pub fn pack(&self) -> Unused {
-        Unused::new(
-            self.a,
-        )
+        Unused::new(self.a)
     }
 }

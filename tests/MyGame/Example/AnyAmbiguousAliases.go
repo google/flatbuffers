@@ -38,7 +38,7 @@ func (v AnyAmbiguousAliases) String() string {
 }
 
 type AnyAmbiguousAliasesT struct {
-	Type AnyAmbiguousAliases
+	Type  AnyAmbiguousAliases
 	Value interface{}
 }
 

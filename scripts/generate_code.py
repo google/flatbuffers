@@ -659,3 +659,74 @@ flatc_annotate(
 
 # Run the generate_grpc_examples script
 generate_grpc_examples.GenerateGRPCExamples()
+
+
+# Post-generation formatting: run each language's canonical formatter over the
+# generated corpus so committed code is consistently formatted. This keeps
+# regenerations idempotent and eliminates whitespace-only churn that otherwise
+# shows up as noise (or conflicts) on every codegen change. Each formatter is
+# optional: if the tool isn't installed the step is skipped with a note, so the
+# script still works in minimal environments.
+def format_generated_code():
+  import shutil
+
+  def have(tool):
+    return shutil.which(tool) is not None
+
+  def run_chunked(cmd, files, chunk=400):
+    # Process in chunks to stay under argv length limits on large corpora.
+    for i in range(0, len(files), chunk):
+      subprocess.run(cmd + files[i : i + chunk], check=False)
+
+  tests = Path(tests_path)
+
+  # C++ generated headers (.clang-format lives at the repo root).
+  if have("clang-format"):
+    cpp = glob(tests, "**/*_generated.h") + glob(tests, "**/*_generated.hpp")
+    if cpp:
+      run_chunked(["clang-format", "-i"], cpp)
+    print(f"[format] clang-format: {len(cpp)} C++ files")
+  else:
+    print("[format] clang-format not found; skipping C++")
+
+  # Rust generated modules.
+  if have("rustfmt"):
+    rs = glob(tests, "**/*_generated.rs")
+    if rs:
+      run_chunked(["rustfmt", "--edition", "2018"], rs)
+    print(f"[format] rustfmt: {len(rs)} Rust files")
+  else:
+    print("[format] rustfmt not found; skipping Rust")
+
+  # Go generated code (no _generated suffix; gofmt is idempotent and safe).
+  if have("gofmt"):
+    go = glob(tests, "**/*.go")
+    if go:
+      run_chunked(["gofmt", "-w"], go)
+    print(f"[format] gofmt: {len(go)} Go files")
+  else:
+    print("[format] gofmt not found; skipping Go")
+
+  # TypeScript generated code (prettier via npx).
+  if have("npx"):
+    ts = glob(Path(tests, "ts"), "**/*.ts")
+    if ts:
+      run_chunked(
+          ["npx", "--no-install", "prettier", "--write", "--log-level", "warn"],
+          ts,
+      )
+    print(f"[format] prettier: {len(ts)} TS files")
+  else:
+    print("[format] npx not found; skipping TypeScript")
+
+  # Python generated code (optional).
+  if have("black"):
+    py = glob(tests, "**/*.py")
+    if py:
+      run_chunked(["black", "-q"], py)
+    print(f"[format] black: {len(py)} Python files")
+  else:
+    print("[format] black not found; skipping Python")
+
+
+format_generated_code()

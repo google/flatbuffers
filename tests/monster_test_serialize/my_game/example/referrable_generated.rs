@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -26,7 +26,9 @@ impl<'a> ::flatbuffers::Follow<'a> for Referrable<'a> {
 
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+        Self {
+            tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+        }
     }
 }
 
@@ -48,9 +50,14 @@ impl<'a> Referrable<'a> {
 
     #[allow(unused_mut)]
     #[must_use]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+    pub fn create<
+        'bldr: 'args,
+        'args: 'mut_bldr,
+        'mut_bldr,
+        A: ::flatbuffers::Allocator + 'bldr,
+    >(
         fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-        args: &'args ReferrableArgs
+        args: &'args ReferrableArgs,
     ) -> ::flatbuffers::WIPOffset<Referrable<'bldr>> {
         let mut builder = ReferrableBuilder::new(fbb);
         builder.add_id(args.id);
@@ -60,9 +67,7 @@ impl<'a> Referrable<'a> {
     #[must_use]
     pub fn unpack(&self) -> ReferrableT {
         let id = self.id();
-        ReferrableT {
-            id,
-        }
+        ReferrableT { id }
     }
 
     ///
@@ -74,7 +79,7 @@ impl<'a> Referrable<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap()}
+        unsafe { self.tab.get::<u64>(Referrable::VT_ID, Some(0)).unwrap() }
     }
 
     #[inline]
@@ -94,7 +99,8 @@ impl<'a> Referrable<'a> {
 impl ::flatbuffers::Verifiable for Referrable<'_> {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
             .visit_field::<u64>("id", Self::VT_ID, false)?
@@ -110,9 +116,7 @@ pub struct ReferrableArgs {
 impl Default for ReferrableArgs {
     #[inline]
     fn default() -> Self {
-        Self {
-            id: 0,
-        }
+        Self { id: 0 }
     }
 }
 
@@ -173,11 +177,9 @@ impl ReferrableT {
     #[must_use]
     pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
         &self,
-        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
     ) -> ::flatbuffers::WIPOffset<Referrable<'b>> {
         let id = self.id;
-        Referrable::create(fbb, &ReferrableArgs{
-            id,
-        })
+        Referrable::create(fbb, &ReferrableArgs { id })
     }
 }

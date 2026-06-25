@@ -2,75 +2,67 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
-
-
+import * as flatbuffers from "flatbuffers";
 
 export class BookReader implements flatbuffers.IUnpackableObject<BookReaderT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):BookReader {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
+  __init(i: number, bb: flatbuffers.ByteBuffer): BookReader {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
 
-booksRead():number {
-  return this.bb!.readInt32(this.bb_pos);
-}
+  booksRead(): number {
+    return this.bb!.readInt32(this.bb_pos);
+  }
 
-mutate_books_read(value:number):boolean {
-  this.bb!.writeInt32(this.bb_pos + 0, value);
-  return true;
-}
+  mutate_books_read(value: number): boolean {
+    this.bb!.writeInt32(this.bb_pos + 0, value);
+    return true;
+  }
 
-static getFullyQualifiedName(): "BookReader" {
-  return 'BookReader';
-}
+  static getFullyQualifiedName(): "BookReader" {
+    return "BookReader";
+  }
 
-static sizeOf():number {
-  return 4;
-}
+  static sizeOf(): number {
+    return 4;
+  }
 
-static createBookReader(builder:flatbuffers.Builder, books_read: number):flatbuffers.Offset {
-  builder.prep(4, 4);
-  builder.writeInt32(books_read);
-  return builder.offset();
-}
+  static createBookReader(
+    builder: flatbuffers.Builder,
+    books_read: number,
+  ): flatbuffers.Offset {
+    builder.prep(4, 4);
+    builder.writeInt32(books_read);
+    return builder.offset();
+  }
 
+  unpack(): BookReaderT {
+    return new BookReaderT(this.booksRead());
+  }
 
-unpack(): BookReaderT {
-  return new BookReaderT(
-    this.booksRead()
-  );
-}
-
-
-unpackTo(_o: BookReaderT): void {
-  _o.booksRead = this.booksRead();
-}
+  unpackTo(_o: BookReaderT): void {
+    _o.booksRead = this.booksRead();
+  }
 }
 
 export class BookReaderT implements flatbuffers.IGeneratedObject {
-constructor(
-  public booksRead: number = 0
-){}
+  constructor(public booksRead: number = 0) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return BookReader.createBookReader(builder, this.booksRead);
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return BookReader.createBookReader(builder,
-    this.booksRead
-  );
-}
+  clone(): BookReaderT {
+    const obj = new BookReaderT();
+    obj.booksRead = this.booksRead;
+    return obj;
+  }
 
-clone(): BookReaderT {
-  const obj = new BookReaderT();
-  obj.booksRead = this.booksRead;
-  return obj;
-}
-
-equals(other: BookReaderT): boolean {
-  if (this.booksRead !== other.booksRead) return false;
-  return true;
-}
+  equals(other: BookReaderT): boolean {
+    if (this.booksRead !== other.booksRead) return false;
+    return true;
+  }
 }

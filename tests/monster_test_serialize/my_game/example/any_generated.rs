@@ -2,25 +2,34 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MIN_ANY: u8 = 0;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MAX_ANY: u8 = 3;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY: [Any; 4] = [
     Any::NONE,
@@ -136,7 +145,8 @@ impl ::flatbuffers::EndianScalar for Any {
 impl ::flatbuffers::Verifiable for Any {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         u8::run_verifier(v, pos)
     }
@@ -172,8 +182,11 @@ impl AnyT {
         }
     }
 
-  #[must_use]
-    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
+    #[must_use]
+    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
+        &self,
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
+    ) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
         match self {
             Self::NONE => None,
             Self::Monster(v) => Some(v.pack(fbb).as_union_value()),
@@ -200,13 +213,21 @@ impl AnyT {
     /// If the union variant matches, return a reference to the `MonsterT`.
     #[must_use]
     pub fn as_monster(&self) -> Option<&MonsterT> {
-        if let Self::Monster(v) = self { Some(v.as_ref()) } else { None }
+        if let Self::Monster(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return a mutable reference to the `MonsterT`.
     #[must_use]
     pub fn as_monster_mut(&mut self) -> Option<&mut MonsterT> {
-        if let Self::Monster(v) = self { Some(v.as_mut()) } else { None }
+        if let Self::Monster(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return the owned `TestSimpleTableWithEnumT`, setting the union to NONE.
@@ -227,13 +248,21 @@ impl AnyT {
     /// If the union variant matches, return a reference to the `TestSimpleTableWithEnumT`.
     #[must_use]
     pub fn as_test_simple_table_with_enum(&self) -> Option<&TestSimpleTableWithEnumT> {
-        if let Self::TestSimpleTableWithEnum(v) = self { Some(v.as_ref()) } else { None }
+        if let Self::TestSimpleTableWithEnum(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return a mutable reference to the `TestSimpleTableWithEnumT`.
     #[must_use]
     pub fn as_test_simple_table_with_enum_mut(&mut self) -> Option<&mut TestSimpleTableWithEnumT> {
-        if let Self::TestSimpleTableWithEnum(v) = self { Some(v.as_mut()) } else { None }
+        if let Self::TestSimpleTableWithEnum(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return the owned `super::example_2::MonsterT`, setting the union to NONE.
@@ -254,13 +283,20 @@ impl AnyT {
     /// If the union variant matches, return a reference to the `super::example_2::MonsterT`.
     #[must_use]
     pub fn as_my_game_example_2_monster(&self) -> Option<&super::example_2::MonsterT> {
-        if let Self::MyGameExample2Monster(v) = self { Some(v.as_ref()) } else { None }
+        if let Self::MyGameExample2Monster(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return a mutable reference to the `super::example_2::MonsterT`.
     #[must_use]
     pub fn as_my_game_example_2_monster_mut(&mut self) -> Option<&mut super::example_2::MonsterT> {
-        if let Self::MyGameExample2Monster(v) = self { Some(v.as_mut()) } else { None }
+        if let Self::MyGameExample2Monster(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
     }
 }
-

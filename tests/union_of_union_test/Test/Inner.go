@@ -3,8 +3,8 @@
 package Test
 
 import (
-	flatbuffers "union_of_union_test/flatbuffers"
 	"strconv"
+	flatbuffers "union_of_union_test/flatbuffers"
 )
 
 type Inner byte
@@ -35,7 +35,7 @@ func (v Inner) String() string {
 }
 
 type InnerT struct {
-	Type Inner
+	Type  Inner
 	Value interface{}
 }
 

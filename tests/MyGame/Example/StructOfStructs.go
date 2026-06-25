@@ -8,7 +8,7 @@ import (
 
 type StructOfStructsT struct {
 	A *AbilityT `json:"a,omitempty"`
-	B *TestT `json:"b,omitempty"`
+	B *TestT    `json:"b,omitempty"`
 	C *AbilityT `json:"c,omitempty"`
 }
 

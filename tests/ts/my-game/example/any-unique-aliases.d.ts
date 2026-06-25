@@ -1,6 +1,6 @@
-import {Monster} from '../../my-game/example/monster.js';
-import {TestSimpleTableWithEnum} from '../../my-game/example/test-simple-table-with-enum.js';
-import {Monster as MyGame_Example2_Monster} from '../../my-game/example2/monster.js';
+import { Monster } from "../../my-game/example/monster.js";
+import { TestSimpleTableWithEnum } from "../../my-game/example/test-simple-table-with-enum.js";
+import { Monster as MyGame_Example2_Monster } from "../../my-game/example2/monster.js";
 export declare enum AnyUniqueAliases {
   NONE = 0,
   M = 1,

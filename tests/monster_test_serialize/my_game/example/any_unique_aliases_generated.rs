@@ -2,25 +2,34 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MIN_ANY_UNIQUE_ALIASES: u8 = 0;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MAX_ANY_UNIQUE_ALIASES: u8 = 3;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 #[allow(non_camel_case_types)]
 pub const ENUM_VALUES_ANY_UNIQUE_ALIASES: [AnyUniqueAliases; 4] = [
     AnyUniqueAliases::NONE,
@@ -42,12 +51,7 @@ impl AnyUniqueAliases {
 
     pub const ENUM_MIN: u8 = 0;
     pub const ENUM_MAX: u8 = 3;
-    pub const ENUM_VALUES: &'static [Self] = &[
-        Self::NONE,
-        Self::M,
-        Self::TS,
-        Self::M2,
-    ];
+    pub const ENUM_VALUES: &'static [Self] = &[Self::NONE, Self::M, Self::TS, Self::M2];
 
     /// Returns the variant's name or "" if unknown.
     #[must_use]
@@ -77,7 +81,11 @@ impl Serialize for AnyUniqueAliases {
     where
         S: Serializer,
     {
-        serializer.serialize_unit_variant("AnyUniqueAliases", u32::from(self.0), self.variant_name().unwrap())
+        serializer.serialize_unit_variant(
+            "AnyUniqueAliases",
+            u32::from(self.0),
+            self.variant_name().unwrap(),
+        )
     }
 }
 
@@ -136,7 +144,8 @@ impl ::flatbuffers::EndianScalar for AnyUniqueAliases {
 impl ::flatbuffers::Verifiable for AnyUniqueAliases {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         u8::run_verifier(v, pos)
     }
@@ -172,8 +181,11 @@ impl AnyUniqueAliasesT {
         }
     }
 
-  #[must_use]
-    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(&self, fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
+    #[must_use]
+    pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
+        &self,
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
+    ) -> Option<::flatbuffers::WIPOffset<::flatbuffers::UnionWIPOffset>> {
         match self {
             Self::NONE => None,
             Self::M(v) => Some(v.pack(fbb).as_union_value()),
@@ -200,13 +212,21 @@ impl AnyUniqueAliasesT {
     /// If the union variant matches, return a reference to the `MonsterT`.
     #[must_use]
     pub fn as_m(&self) -> Option<&MonsterT> {
-        if let Self::M(v) = self { Some(v.as_ref()) } else { None }
+        if let Self::M(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return a mutable reference to the `MonsterT`.
     #[must_use]
     pub fn as_m_mut(&mut self) -> Option<&mut MonsterT> {
-        if let Self::M(v) = self { Some(v.as_mut()) } else { None }
+        if let Self::M(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return the owned `TestSimpleTableWithEnumT`, setting the union to NONE.
@@ -227,13 +247,21 @@ impl AnyUniqueAliasesT {
     /// If the union variant matches, return a reference to the `TestSimpleTableWithEnumT`.
     #[must_use]
     pub fn as_ts(&self) -> Option<&TestSimpleTableWithEnumT> {
-        if let Self::TS(v) = self { Some(v.as_ref()) } else { None }
+        if let Self::TS(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return a mutable reference to the `TestSimpleTableWithEnumT`.
     #[must_use]
     pub fn as_ts_mut(&mut self) -> Option<&mut TestSimpleTableWithEnumT> {
-        if let Self::TS(v) = self { Some(v.as_mut()) } else { None }
+        if let Self::TS(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return the owned `super::example_2::MonsterT`, setting the union to NONE.
@@ -254,13 +282,20 @@ impl AnyUniqueAliasesT {
     /// If the union variant matches, return a reference to the `super::example_2::MonsterT`.
     #[must_use]
     pub fn as_m2(&self) -> Option<&super::example_2::MonsterT> {
-        if let Self::M2(v) = self { Some(v.as_ref()) } else { None }
+        if let Self::M2(v) = self {
+            Some(v.as_ref())
+        } else {
+            None
+        }
     }
 
     /// If the union variant matches, return a mutable reference to the `super::example_2::MonsterT`.
     #[must_use]
     pub fn as_m2_mut(&mut self) -> Option<&mut super::example_2::MonsterT> {
-        if let Self::M2(v) = self { Some(v.as_mut()) } else { None }
+        if let Self::M2(v) = self {
+            Some(v.as_mut())
+        } else {
+            None
+        }
     }
 }
-

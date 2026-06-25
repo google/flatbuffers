@@ -17,5 +17,5 @@ export enum Color {
   /**
    * \brief color Blue (1u << 3)
    */
-  Blue = 8
+  Blue = 8,
 }

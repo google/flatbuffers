@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -63,7 +63,12 @@ impl<'b> ::flatbuffers::Push for Vec3 {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, <Self as ::flatbuffers::Push>::size()) };
+        let src = unsafe {
+            ::core::slice::from_raw_parts(
+                self as *const Vec3 as *const u8,
+                <Self as ::flatbuffers::Push>::size(),
+            )
+        };
         dst.copy_from_slice(src);
     }
 
@@ -76,7 +81,8 @@ impl<'b> ::flatbuffers::Push for Vec3 {
 impl ::flatbuffers::Verifiable for Vec3 {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.in_buffer::<Self>(pos)
     }
@@ -87,7 +93,7 @@ impl Serialize for Vec3 {
     where
         S: Serializer,
     {
-    let mut s = serializer.serialize_struct("Vec3", 6)?;
+        let mut s = serializer.serialize_struct("Vec3", 6)?;
         s.serialize_field("x", &self.x())?;
         s.serialize_field("y", &self.y())?;
         s.serialize_field("z", &self.z())?;
@@ -101,14 +107,7 @@ impl Serialize for Vec3 {
 impl<'a> Vec3 {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
-    pub fn new(
-        x: f32,
-        y: f32,
-        z: f32,
-        test1: f64,
-        test2: Color,
-        test3: &Test,
-    ) -> Self {
+    pub fn new(x: f32, y: f32, z: f32, test1: f64, test2: Color, test3: &Test) -> Self {
         let mut s = Self([0; 32]);
         s.set_x(x);
         s.set_y(y);
@@ -126,7 +125,8 @@ impl<'a> Vec3 {
 
     #[must_use]
     pub fn x(&self) -> f32 {
-        let mut mem = ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -156,7 +156,8 @@ impl<'a> Vec3 {
 
     #[must_use]
     pub fn y(&self) -> f32 {
-        let mut mem = ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -186,7 +187,8 @@ impl<'a> Vec3 {
 
     #[must_use]
     pub fn z(&self) -> f32 {
-        let mut mem = ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -216,7 +218,8 @@ impl<'a> Vec3 {
 
     #[must_use]
     pub fn test1(&self) -> f64 {
-        let mut mem = ::core::mem::MaybeUninit::<<f64 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<f64 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -246,7 +249,8 @@ impl<'a> Vec3 {
 
     #[must_use]
     pub fn test2(&self) -> Color {
-        let mut mem = ::core::mem::MaybeUninit::<<Color as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<Color as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -290,10 +294,10 @@ impl<'a> Vec3 {
     #[must_use]
     pub fn unpack(&self) -> Vec3T {
         Vec3T {
-        x: self.x().into(),
-        y: self.y().into(),
-        z: self.z().into(),
-        test1: self.test1().into(),
+            x: self.x().into(),
+            y: self.y().into(),
+            z: self.z().into(),
+            test1: self.test1().into(),
             test2: self.test2(),
             test3: self.test3().unpack(),
         }

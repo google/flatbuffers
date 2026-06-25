@@ -11,66 +11,66 @@ import (
 	MyGame__Example2 "MyGame/Example2"
 )
 
-/// an example documentation comment: "monster object"
+// / an example documentation comment: "monster object"
 type MonsterT struct {
-	Pos *Vec3T `json:"pos,omitempty"`
-	Mana int16 `json:"mana,omitempty"`
-	Hp int16 `json:"hp,omitempty"`
-	Name string `json:"name,omitempty"`
-	Inventory []byte `json:"inventory,omitempty"`
-	Color Color `json:"color,omitempty"`
-	Test *AnyT `json:"test,omitempty"`
-	Test4 []*TestT `json:"test4,omitempty"`
-	Testarrayofstring []string `json:"testarrayofstring,omitempty"`
-	Testarrayoftables []*MonsterT `json:"testarrayoftables,omitempty"`
-	Enemy *MonsterT `json:"enemy,omitempty"`
-	Testnestedflatbuffer []byte `json:"testnestedflatbuffer,omitempty"`
-	Testempty *StatT `json:"testempty,omitempty"`
-	Testbool bool `json:"testbool,omitempty"`
-	Testhashs32Fnv1 int32 `json:"testhashs32_fnv1,omitempty"`
-	Testhashu32Fnv1 uint32 `json:"testhashu32_fnv1,omitempty"`
-	Testhashs64Fnv1 int64 `json:"testhashs64_fnv1,omitempty"`
-	Testhashu64Fnv1 uint64 `json:"testhashu64_fnv1,omitempty"`
-	Testhashs32Fnv1a int32 `json:"testhashs32_fnv1a,omitempty"`
-	Testhashu32Fnv1a uint32 `json:"testhashu32_fnv1a,omitempty"`
-	Testhashs64Fnv1a int64 `json:"testhashs64_fnv1a,omitempty"`
-	Testhashu64Fnv1a uint64 `json:"testhashu64_fnv1a,omitempty"`
-	Testarrayofbools []bool `json:"testarrayofbools,omitempty"`
-	Testf float32 `json:"testf,omitempty"`
-	Testf2 float32 `json:"testf2,omitempty"`
-	Testf3 float32 `json:"testf3,omitempty"`
-	Testarrayofstring2 []string `json:"testarrayofstring2,omitempty"`
-	Testarrayofsortedstruct []*AbilityT `json:"testarrayofsortedstruct,omitempty"`
-	Flex []byte `json:"flex,omitempty"`
-	Test5 []*TestT `json:"test5,omitempty"`
-	VectorOfLongs []int64 `json:"vector_of_longs,omitempty"`
-	VectorOfDoubles []float64 `json:"vector_of_doubles,omitempty"`
-	ParentNamespaceTest *MyGame.InParentNamespaceT `json:"parent_namespace_test,omitempty"`
-	VectorOfReferrables []*ReferrableT `json:"vector_of_referrables,omitempty"`
-	SingleWeakReference uint64 `json:"single_weak_reference,omitempty"`
-	VectorOfWeakReferences []uint64 `json:"vector_of_weak_references,omitempty"`
-	VectorOfStrongReferrables []*ReferrableT `json:"vector_of_strong_referrables,omitempty"`
-	CoOwningReference uint64 `json:"co_owning_reference,omitempty"`
-	VectorOfCoOwningReferences []uint64 `json:"vector_of_co_owning_references,omitempty"`
-	NonOwningReference uint64 `json:"non_owning_reference,omitempty"`
-	VectorOfNonOwningReferences []uint64 `json:"vector_of_non_owning_references,omitempty"`
-	AnyUnique *AnyUniqueAliasesT `json:"any_unique,omitempty"`
-	AnyAmbiguous *AnyAmbiguousAliasesT `json:"any_ambiguous,omitempty"`
-	VectorOfEnums []Color `json:"vector_of_enums,omitempty"`
-	SignedEnum Race `json:"signed_enum,omitempty"`
-	Testrequirednestedflatbuffer []byte `json:"testrequirednestedflatbuffer,omitempty"`
-	ScalarKeySortedTables []*StatT `json:"scalar_key_sorted_tables,omitempty"`
-	NativeInline *TestT `json:"native_inline,omitempty"`
-	LongEnumNonEnumDefault LongEnum `json:"long_enum_non_enum_default,omitempty"`
-	LongEnumNormalDefault LongEnum `json:"long_enum_normal_default,omitempty"`
-	NanDefault float32 `json:"nan_default,omitempty"`
-	InfDefault float32 `json:"inf_default,omitempty"`
-	PositiveInfDefault float32 `json:"positive_inf_default,omitempty"`
-	InfinityDefault float32 `json:"infinity_default,omitempty"`
-	PositiveInfinityDefault float32 `json:"positive_infinity_default,omitempty"`
-	NegativeInfDefault float32 `json:"negative_inf_default,omitempty"`
-	NegativeInfinityDefault float32 `json:"negative_infinity_default,omitempty"`
-	DoubleInfDefault float64 `json:"double_inf_default,omitempty"`
+	Pos                          *Vec3T                     `json:"pos,omitempty"`
+	Mana                         int16                      `json:"mana,omitempty"`
+	Hp                           int16                      `json:"hp,omitempty"`
+	Name                         string                     `json:"name,omitempty"`
+	Inventory                    []byte                     `json:"inventory,omitempty"`
+	Color                        Color                      `json:"color,omitempty"`
+	Test                         *AnyT                      `json:"test,omitempty"`
+	Test4                        []*TestT                   `json:"test4,omitempty"`
+	Testarrayofstring            []string                   `json:"testarrayofstring,omitempty"`
+	Testarrayoftables            []*MonsterT                `json:"testarrayoftables,omitempty"`
+	Enemy                        *MonsterT                  `json:"enemy,omitempty"`
+	Testnestedflatbuffer         []byte                     `json:"testnestedflatbuffer,omitempty"`
+	Testempty                    *StatT                     `json:"testempty,omitempty"`
+	Testbool                     bool                       `json:"testbool,omitempty"`
+	Testhashs32Fnv1              int32                      `json:"testhashs32_fnv1,omitempty"`
+	Testhashu32Fnv1              uint32                     `json:"testhashu32_fnv1,omitempty"`
+	Testhashs64Fnv1              int64                      `json:"testhashs64_fnv1,omitempty"`
+	Testhashu64Fnv1              uint64                     `json:"testhashu64_fnv1,omitempty"`
+	Testhashs32Fnv1a             int32                      `json:"testhashs32_fnv1a,omitempty"`
+	Testhashu32Fnv1a             uint32                     `json:"testhashu32_fnv1a,omitempty"`
+	Testhashs64Fnv1a             int64                      `json:"testhashs64_fnv1a,omitempty"`
+	Testhashu64Fnv1a             uint64                     `json:"testhashu64_fnv1a,omitempty"`
+	Testarrayofbools             []bool                     `json:"testarrayofbools,omitempty"`
+	Testf                        float32                    `json:"testf,omitempty"`
+	Testf2                       float32                    `json:"testf2,omitempty"`
+	Testf3                       float32                    `json:"testf3,omitempty"`
+	Testarrayofstring2           []string                   `json:"testarrayofstring2,omitempty"`
+	Testarrayofsortedstruct      []*AbilityT                `json:"testarrayofsortedstruct,omitempty"`
+	Flex                         []byte                     `json:"flex,omitempty"`
+	Test5                        []*TestT                   `json:"test5,omitempty"`
+	VectorOfLongs                []int64                    `json:"vector_of_longs,omitempty"`
+	VectorOfDoubles              []float64                  `json:"vector_of_doubles,omitempty"`
+	ParentNamespaceTest          *MyGame.InParentNamespaceT `json:"parent_namespace_test,omitempty"`
+	VectorOfReferrables          []*ReferrableT             `json:"vector_of_referrables,omitempty"`
+	SingleWeakReference          uint64                     `json:"single_weak_reference,omitempty"`
+	VectorOfWeakReferences       []uint64                   `json:"vector_of_weak_references,omitempty"`
+	VectorOfStrongReferrables    []*ReferrableT             `json:"vector_of_strong_referrables,omitempty"`
+	CoOwningReference            uint64                     `json:"co_owning_reference,omitempty"`
+	VectorOfCoOwningReferences   []uint64                   `json:"vector_of_co_owning_references,omitempty"`
+	NonOwningReference           uint64                     `json:"non_owning_reference,omitempty"`
+	VectorOfNonOwningReferences  []uint64                   `json:"vector_of_non_owning_references,omitempty"`
+	AnyUnique                    *AnyUniqueAliasesT         `json:"any_unique,omitempty"`
+	AnyAmbiguous                 *AnyAmbiguousAliasesT      `json:"any_ambiguous,omitempty"`
+	VectorOfEnums                []Color                    `json:"vector_of_enums,omitempty"`
+	SignedEnum                   Race                       `json:"signed_enum,omitempty"`
+	Testrequirednestedflatbuffer []byte                     `json:"testrequirednestedflatbuffer,omitempty"`
+	ScalarKeySortedTables        []*StatT                   `json:"scalar_key_sorted_tables,omitempty"`
+	NativeInline                 *TestT                     `json:"native_inline,omitempty"`
+	LongEnumNonEnumDefault       LongEnum                   `json:"long_enum_non_enum_default,omitempty"`
+	LongEnumNormalDefault        LongEnum                   `json:"long_enum_normal_default,omitempty"`
+	NanDefault                   float32                    `json:"nan_default,omitempty"`
+	InfDefault                   float32                    `json:"inf_default,omitempty"`
+	PositiveInfDefault           float32                    `json:"positive_inf_default,omitempty"`
+	InfinityDefault              float32                    `json:"infinity_default,omitempty"`
+	PositiveInfinityDefault      float32                    `json:"positive_infinity_default,omitempty"`
+	NegativeInfDefault           float32                    `json:"negative_inf_default,omitempty"`
+	NegativeInfinityDefault      float32                    `json:"negative_infinity_default,omitempty"`
+	DoubleInfDefault             float64                    `json:"double_inf_default,omitempty"`
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -1377,8 +1377,8 @@ func (rcv *Monster) TestarrayofstringLength() int {
 	return 0
 }
 
-/// an example documentation comment: this will end up in the generated code
-/// multiline too
+// / an example documentation comment: this will end up in the generated code
+// / multiline too
 func (rcv *Monster) Testarrayoftables(obj *Monster, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(26))
 	if o != 0 {
@@ -1408,8 +1408,8 @@ func (rcv *Monster) TestarrayoftablesLength() int {
 	return 0
 }
 
-/// an example documentation comment: this will end up in the generated code
-/// multiline too
+// / an example documentation comment: this will end up in the generated code
+// / multiline too
 func (rcv *Monster) Enemy(obj *Monster) *Monster {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(28))
 	if o != 0 {

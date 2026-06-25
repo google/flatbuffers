@@ -2,110 +2,115 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import { Ability, AbilityT } from './ability.js';
-import { Test, TestT } from './test.js';
-
+import { Ability, AbilityT } from "./ability.js";
+import { Test, TestT } from "./test.js";
 
 export class StructOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):StructOfStructs {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
+  __init(i: number, bb: flatbuffers.ByteBuffer): StructOfStructs {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
 
-a(obj?:Ability):Ability|null {
-  return (obj || new Ability()).__init(this.bb_pos, this.bb!);
-}
+  a(obj?: Ability): Ability | null {
+    return (obj || new Ability()).__init(this.bb_pos, this.bb!);
+  }
 
-b(obj?:Test):Test|null {
-  return (obj || new Test()).__init(this.bb_pos + 8, this.bb!);
-}
+  b(obj?: Test): Test | null {
+    return (obj || new Test()).__init(this.bb_pos + 8, this.bb!);
+  }
 
-c(obj?:Ability):Ability|null {
-  return (obj || new Ability()).__init(this.bb_pos + 12, this.bb!);
-}
+  c(obj?: Ability): Ability | null {
+    return (obj || new Ability()).__init(this.bb_pos + 12, this.bb!);
+  }
 
-static getFullyQualifiedName(): "MyGame.Example.StructOfStructs" {
-  return 'MyGame.Example.StructOfStructs';
-}
+  static getFullyQualifiedName(): "MyGame.Example.StructOfStructs" {
+    return "MyGame.Example.StructOfStructs";
+  }
 
-static sizeOf():number {
-  return 20;
-}
+  static sizeOf(): number {
+    return 20;
+  }
 
-static createStructOfStructs(builder:flatbuffers.Builder, a_id: number, a_distance: number, b_a: number, b_b: number, c_id: number, c_distance: number):flatbuffers.Offset {
-  builder.prep(4, 20);
-  builder.prep(4, 8);
-  builder.writeInt32(c_distance);
-  builder.writeInt32(c_id);
-  builder.prep(2, 4);
-  builder.pad(1);
-  builder.writeInt8(b_b);
-  builder.writeInt16(b_a);
-  builder.prep(4, 8);
-  builder.writeInt32(a_distance);
-  builder.writeInt32(a_id);
-  return builder.offset();
-}
+  static createStructOfStructs(
+    builder: flatbuffers.Builder,
+    a_id: number,
+    a_distance: number,
+    b_a: number,
+    b_b: number,
+    c_id: number,
+    c_distance: number,
+  ): flatbuffers.Offset {
+    builder.prep(4, 20);
+    builder.prep(4, 8);
+    builder.writeInt32(c_distance);
+    builder.writeInt32(c_id);
+    builder.prep(2, 4);
+    builder.pad(1);
+    builder.writeInt8(b_b);
+    builder.writeInt16(b_a);
+    builder.prep(4, 8);
+    builder.writeInt32(a_distance);
+    builder.writeInt32(a_id);
+    return builder.offset();
+  }
 
+  unpack(): StructOfStructsT {
+    return new StructOfStructsT(
+      this.a() !== null ? this.a()!.unpack() : null,
+      this.b() !== null ? this.b()!.unpack() : null,
+      this.c() !== null ? this.c()!.unpack() : null,
+    );
+  }
 
-unpack(): StructOfStructsT {
-  return new StructOfStructsT(
-    (this.a() !== null ? this.a()!.unpack() : null),
-    (this.b() !== null ? this.b()!.unpack() : null),
-    (this.c() !== null ? this.c()!.unpack() : null)
-  );
-}
-
-
-unpackTo(_o: StructOfStructsT): void {
-  _o.a = (this.a() !== null ? this.a()!.unpack() : null);
-  _o.b = (this.b() !== null ? this.b()!.unpack() : null);
-  _o.c = (this.c() !== null ? this.c()!.unpack() : null);
-}
+  unpackTo(_o: StructOfStructsT): void {
+    _o.a = this.a() !== null ? this.a()!.unpack() : null;
+    _o.b = this.b() !== null ? this.b()!.unpack() : null;
+    _o.c = this.c() !== null ? this.c()!.unpack() : null;
+  }
 }
 
 export class StructOfStructsT implements flatbuffers.IGeneratedObject {
-constructor(
-  public a: AbilityT|null = null,
-  public b: TestT|null = null,
-  public c: AbilityT|null = null
-){}
+  constructor(
+    public a: AbilityT | null = null,
+    public b: TestT | null = null,
+    public c: AbilityT | null = null,
+  ) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return StructOfStructs.createStructOfStructs(
+      builder,
+      this.a?.id ?? 0,
+      this.a?.distance ?? 0,
+      this.b?.a ?? 0,
+      this.b?.b ?? 0,
+      this.c?.id ?? 0,
+      this.c?.distance ?? 0,
+    );
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return StructOfStructs.createStructOfStructs(builder,
-    (this.a?.id ?? 0),
-    (this.a?.distance ?? 0),
-    (this.b?.a ?? 0),
-    (this.b?.b ?? 0),
-    (this.c?.id ?? 0),
-    (this.c?.distance ?? 0)
-  );
-}
+  clone(): StructOfStructsT {
+    const obj = new StructOfStructsT();
+    obj.a = this.a !== null ? this.a!.clone() : null;
+    obj.b = this.b !== null ? this.b!.clone() : null;
+    obj.c = this.c !== null ? this.c!.clone() : null;
+    return obj;
+  }
 
-clone(): StructOfStructsT {
-  const obj = new StructOfStructsT();
-  obj.a = this.a !== null ? this.a!.clone() : null;
-  obj.b = this.b !== null ? this.b!.clone() : null;
-  obj.c = this.c !== null ? this.c!.clone() : null;
-  return obj;
-}
-
-equals(other: StructOfStructsT): boolean {
-  if (this.a !== null && other.a !== null) {
-    if (!this.a!.equals(other.a!)) return false;
-  } else if (this.a !== other.a) return false;
-  if (this.b !== null && other.b !== null) {
-    if (!this.b!.equals(other.b!)) return false;
-  } else if (this.b !== other.b) return false;
-  if (this.c !== null && other.c !== null) {
-    if (!this.c!.equals(other.c!)) return false;
-  } else if (this.c !== other.c) return false;
-  return true;
-}
+  equals(other: StructOfStructsT): boolean {
+    if (this.a !== null && other.a !== null) {
+      if (!this.a!.equals(other.a!)) return false;
+    } else if (this.a !== other.a) return false;
+    if (this.b !== null && other.b !== null) {
+      if (!this.b!.equals(other.b!)) return false;
+    } else if (this.b !== other.b) return false;
+    if (this.c !== null && other.c !== null) {
+      if (!this.c!.equals(other.c!)) return false;
+    } else if (this.c !== other.c) return false;
+    return true;
+  }
 }

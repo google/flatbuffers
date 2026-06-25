@@ -16,9 +16,9 @@ func FuzzVerifier(f *testing.F) {
 	}
 
 	// Seed with known-bad patterns
-	f.Add([]byte{}) // empty
-	f.Add([]byte{0x00, 0x00, 0x00, 0x00}) // zero root offset
-	f.Add([]byte{0xFF, 0xFF, 0xFF, 0xFF}) // max root offset
+	f.Add([]byte{})                                               // empty
+	f.Add([]byte{0x00, 0x00, 0x00, 0x00})                         // zero root offset
+	f.Add([]byte{0xFF, 0xFF, 0xFF, 0xFF})                         // max root offset
 	f.Add([]byte{0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) // minimal valid-ish
 
 	// Seed with corpus files if available

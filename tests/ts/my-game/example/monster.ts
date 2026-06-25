@@ -2,2072 +2,2906 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import { Monster as MyGame_Example2_Monster, MonsterT as MyGame_Example2_MonsterT, verifyMonster as verifyMyGame_Example2_Monster } from '../example2/monster.js';
-import { Ability, AbilityT } from './ability.js';
-import { Any, unionToAny, unionListToAny } from './any.js';
-import { AnyAmbiguousAliases, unionToAnyAmbiguousAliases, unionListToAnyAmbiguousAliases } from './any-ambiguous-aliases.js';
-import { AnyUniqueAliases, unionToAnyUniqueAliases, unionListToAnyUniqueAliases } from './any-unique-aliases.js';
-import { Color } from './color.js';
-import { Race } from './race.js';
-import { Referrable, ReferrableT, verifyReferrable } from './referrable.js';
-import { Stat, StatT, verifyStat } from './stat.js';
-import { Test, TestT } from './test.js';
-import { TestSimpleTableWithEnum, TestSimpleTableWithEnumT, verifyTestSimpleTableWithEnum } from './test-simple-table-with-enum.js';
-import { Vec3, Vec3T } from './vec3.js';
-import { InParentNamespace, InParentNamespaceT, verifyInParentNamespace } from '../in-parent-namespace.js';
-
+import {
+  Monster as MyGame_Example2_Monster,
+  MonsterT as MyGame_Example2_MonsterT,
+  verifyMonster as verifyMyGame_Example2_Monster,
+} from "../example2/monster.js";
+import { Ability, AbilityT } from "./ability.js";
+import { Any, unionToAny, unionListToAny } from "./any.js";
+import {
+  AnyAmbiguousAliases,
+  unionToAnyAmbiguousAliases,
+  unionListToAnyAmbiguousAliases,
+} from "./any-ambiguous-aliases.js";
+import {
+  AnyUniqueAliases,
+  unionToAnyUniqueAliases,
+  unionListToAnyUniqueAliases,
+} from "./any-unique-aliases.js";
+import { Color } from "./color.js";
+import { Race } from "./race.js";
+import { Referrable, ReferrableT, verifyReferrable } from "./referrable.js";
+import { Stat, StatT, verifyStat } from "./stat.js";
+import { Test, TestT } from "./test.js";
+import {
+  TestSimpleTableWithEnum,
+  TestSimpleTableWithEnumT,
+  verifyTestSimpleTableWithEnum,
+} from "./test-simple-table-with-enum.js";
+import { Vec3, Vec3T } from "./vec3.js";
+import {
+  InParentNamespace,
+  InParentNamespaceT,
+  verifyInParentNamespace,
+} from "../in-parent-namespace.js";
 
 /**
  * an example documentation comment: "monster object"
  */
 export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
-  return bb.__has_identifier('MONS');
-}
-
-pos(obj?:Vec3):Vec3|null {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new Vec3()).__init(this.bb_pos + offset, this.bb!) : null;
-}
-
-mana():number {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.readInt16(this.bb_pos + offset) : 150;
-}
-
-mutate_mana(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-
-  if (offset === 0) {
-    return false;
+  __init(i: number, bb: flatbuffers.ByteBuffer): Monster {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
   }
 
-  this.bb!.writeInt16(this.bb_pos + offset, value);
-  return true;
-}
-
-hp():number {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.readInt16(this.bb_pos + offset) : 100;
-}
-
-mutate_hp(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
+  static getRootAsMonster(bb: flatbuffers.ByteBuffer, obj?: Monster): Monster {
+    return (obj || new Monster()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
   }
 
-  this.bb!.writeInt16(this.bb_pos + offset, value);
-  return true;
-}
-
-name():string
-name(optionalEncoding:flatbuffers.Encoding):string|Uint8Array
-name(optionalEncoding?:any):string|Uint8Array {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
-  return this.bb!.__string(this.bb_pos + offset, optionalEncoding);
-}
-
-inventory(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 14);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
-}
-
-inventoryLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 14);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-inventoryArray():Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 14);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-color():Color {
-  const offset = this.bb!.__offset(this.bb_pos, 16);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Blue;
-}
-
-mutate_color(value:Color):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 16);
-
-  if (offset === 0) {
-    return false;
+  static getSizePrefixedRootAsMonster(
+    bb: flatbuffers.ByteBuffer,
+    obj?: Monster,
+  ): Monster {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new Monster()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
   }
 
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-}
-
-testType():Any {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Any.NONE;
-}
-
-test<T extends flatbuffers.Table>(obj:any):any|null {
-  const offset = this.bb!.__offset(this.bb_pos, 20);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
-}
-
-test4(index: number, obj?:Test):Test|null {
-  const offset = this.bb!.__offset(this.bb_pos, 22);
-  return offset ? (obj || new Test()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
-}
-
-test4Length():number {
-  const offset = this.bb!.__offset(this.bb_pos, 22);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-testarrayofstring(index: number):string
-testarrayofstring(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
-testarrayofstring(index: number,optionalEncoding?:any):string|Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 24);
-  return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
-}
-
-testarrayofstringLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 24);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-/**
- * an example documentation comment: this will end up in the generated code
- * multiline too
- */
-testarrayoftables(index: number, obj?:Monster):Monster|null {
-  const offset = this.bb!.__offset(this.bb_pos, 26);
-  return offset ? (obj || new Monster()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
-}
-
-testarrayoftablesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 26);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-enemy(obj?:Monster):Monster|null {
-  const offset = this.bb!.__offset(this.bb_pos, 28);
-  return offset ? (obj || new Monster()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
-}
-
-testnestedflatbuffer(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 30);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
-}
-
-testnestedflatbufferLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 30);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-testnestedflatbufferArray():Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 30);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-testempty(obj?:Stat):Stat|null {
-  const offset = this.bb!.__offset(this.bb_pos, 32);
-  return offset ? (obj || new Stat()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
-}
-
-testbool():boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 34);
-  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
-}
-
-mutate_testbool(value:boolean):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 34);
-
-  if (offset === 0) {
-    return false;
+  static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
+    return bb.__has_identifier("MONS");
   }
 
-  this.bb!.writeInt8(this.bb_pos + offset, +value);
-  return true;
-}
-
-testhashs32Fnv1():number {
-  const offset = this.bb!.__offset(this.bb_pos, 36);
-  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
-}
-
-mutate_testhashs32_fnv1(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 36);
-
-  if (offset === 0) {
-    return false;
+  pos(obj?: Vec3): Vec3 | null {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
+    return offset
+      ? (obj || new Vec3()).__init(this.bb_pos + offset, this.bb!)
+      : null;
   }
 
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
-}
-
-testhashu32Fnv1():number {
-  const offset = this.bb!.__offset(this.bb_pos, 38);
-  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
-}
-
-mutate_testhashu32_fnv1(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 38);
-
-  if (offset === 0) {
-    return false;
+  mana(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 6);
+    return offset ? this.bb!.readInt16(this.bb_pos + offset) : 150;
   }
 
-  this.bb!.writeUint32(this.bb_pos + offset, value);
-  return true;
-}
+  mutate_mana(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 6);
 
-testhashs64Fnv1():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 40);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
-}
+    if (offset === 0) {
+      return false;
+    }
 
-mutate_testhashs64_fnv1(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 40);
-
-  if (offset === 0) {
-    return false;
+    this.bb!.writeInt16(this.bb_pos + offset, value);
+    return true;
   }
 
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
-}
-
-testhashu64Fnv1():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 42);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_testhashu64_fnv1(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 42);
-
-  if (offset === 0) {
-    return false;
+  hp(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 8);
+    return offset ? this.bb!.readInt16(this.bb_pos + offset) : 100;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
+  mutate_hp(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 8);
 
-testhashs32Fnv1a():number {
-  const offset = this.bb!.__offset(this.bb_pos, 44);
-  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
-}
+    if (offset === 0) {
+      return false;
+    }
 
-mutate_testhashs32_fnv1a(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 44);
-
-  if (offset === 0) {
-    return false;
+    this.bb!.writeInt16(this.bb_pos + offset, value);
+    return true;
   }
 
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
-}
-
-testhashu32Fnv1a():number {
-  const offset = this.bb!.__offset(this.bb_pos, 46);
-  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
-}
-
-mutate_testhashu32_fnv1a(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 46);
-
-  if (offset === 0) {
-    return false;
+  name(): string;
+  name(optionalEncoding: flatbuffers.Encoding): string | Uint8Array;
+  name(optionalEncoding?: any): string | Uint8Array {
+    const offset = this.bb!.__offset(this.bb_pos, 10);
+    return this.bb!.__string(this.bb_pos + offset, optionalEncoding);
   }
 
-  this.bb!.writeUint32(this.bb_pos + offset, value);
-  return true;
-}
-
-testhashs64Fnv1a():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 48);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_testhashs64_fnv1a(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 48);
-
-  if (offset === 0) {
-    return false;
+  inventory(index: number): number | null {
+    const offset = this.bb!.__offset(this.bb_pos, 14);
+    return offset
+      ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)
+      : 0;
   }
 
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
-}
-
-testhashu64Fnv1a():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 50);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_testhashu64_fnv1a(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 50);
-
-  if (offset === 0) {
-    return false;
+  inventoryLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 14);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-testarrayofbools(index: number):boolean|null {
-  const offset = this.bb!.__offset(this.bb_pos, 52);
-  return offset ? !!this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index) : false;
-}
-
-testarrayofboolsLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 52);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-testarrayofboolsArray():Int8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 52);
-  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-testf():number {
-  const offset = this.bb!.__offset(this.bb_pos, 54);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.14159;
-}
-
-mutate_testf(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 54);
-
-  if (offset === 0) {
-    return false;
+  inventoryArray(): Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 14);
+    return offset
+      ? new Uint8Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-testf2():number {
-  const offset = this.bb!.__offset(this.bb_pos, 56);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.0;
-}
-
-mutate_testf2(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 56);
-
-  if (offset === 0) {
-    return false;
+  color(): Color {
+    const offset = this.bb!.__offset(this.bb_pos, 16);
+    return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Blue;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
+  mutate_color(value: Color): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 16);
 
-testf3():number {
-  const offset = this.bb!.__offset(this.bb_pos, 58);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
-}
+    if (offset === 0) {
+      return false;
+    }
 
-mutate_testf3(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 58);
-
-  if (offset === 0) {
-    return false;
+    this.bb!.writeUint8(this.bb_pos + offset, value);
+    return true;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-testarrayofstring2(index: number):string
-testarrayofstring2(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
-testarrayofstring2(index: number,optionalEncoding?:any):string|Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 60);
-  return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
-}
-
-testarrayofstring2Length():number {
-  const offset = this.bb!.__offset(this.bb_pos, 60);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-testarrayofsortedstruct(index: number, obj?:Ability):Ability|null {
-  const offset = this.bb!.__offset(this.bb_pos, 62);
-  return offset ? (obj || new Ability()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 8, this.bb!) : null;
-}
-
-testarrayofsortedstructLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 62);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-flex(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 64);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
-}
-
-flexLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 64);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-flexArray():Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 64);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-test5(index: number, obj?:Test):Test|null {
-  const offset = this.bb!.__offset(this.bb_pos, 66);
-  return offset ? (obj || new Test()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 4, this.bb!) : null;
-}
-
-test5Length():number {
-  const offset = this.bb!.__offset(this.bb_pos, 66);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-vectorOfLongs(index: number):bigint|null {
-  const offset = this.bb!.__offset(this.bb_pos, 68);
-  return offset ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
-}
-
-vectorOfLongsLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 68);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-vectorOfDoubles(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 70);
-  return offset ? this.bb!.readFloat64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : 0;
-}
-
-vectorOfDoublesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 70);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-vectorOfDoublesArray():Float64Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 70);
-  return offset ? new Float64Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-parentNamespaceTest(obj?:InParentNamespace):InParentNamespace|null {
-  const offset = this.bb!.__offset(this.bb_pos, 72);
-  return offset ? (obj || new InParentNamespace()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
-}
-
-vectorOfReferrables(index: number, obj?:Referrable):Referrable|null {
-  const offset = this.bb!.__offset(this.bb_pos, 74);
-  return offset ? (obj || new Referrable()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
-}
-
-vectorOfReferrablesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 74);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-singleWeakReference():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 76);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_single_weak_reference(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 76);
-
-  if (offset === 0) {
-    return false;
+  testType(): Any {
+    const offset = this.bb!.__offset(this.bb_pos, 18);
+    return offset ? this.bb!.readUint8(this.bb_pos + offset) : Any.NONE;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-vectorOfWeakReferences(index: number):bigint|null {
-  const offset = this.bb!.__offset(this.bb_pos, 78);
-  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
-}
-
-vectorOfWeakReferencesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 78);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-vectorOfStrongReferrables(index: number, obj?:Referrable):Referrable|null {
-  const offset = this.bb!.__offset(this.bb_pos, 80);
-  return offset ? (obj || new Referrable()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
-}
-
-vectorOfStrongReferrablesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 80);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-coOwningReference():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 82);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_co_owning_reference(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 82);
-
-  if (offset === 0) {
-    return false;
+  test<T extends flatbuffers.Table>(obj: any): any | null {
+    const offset = this.bb!.__offset(this.bb_pos, 20);
+    return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-vectorOfCoOwningReferences(index: number):bigint|null {
-  const offset = this.bb!.__offset(this.bb_pos, 84);
-  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
-}
-
-vectorOfCoOwningReferencesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 84);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-nonOwningReference():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 86);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_non_owning_reference(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 86);
-
-  if (offset === 0) {
-    return false;
+  test4(index: number, obj?: Test): Test | null {
+    const offset = this.bb!.__offset(this.bb_pos, 22);
+    return offset
+      ? (obj || new Test()).__init(
+          this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          this.bb!,
+        )
+      : null;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-vectorOfNonOwningReferences(index: number):bigint|null {
-  const offset = this.bb!.__offset(this.bb_pos, 88);
-  return offset ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8) : BigInt(0);
-}
-
-vectorOfNonOwningReferencesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 88);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-anyUniqueType():AnyUniqueAliases {
-  const offset = this.bb!.__offset(this.bb_pos, 90);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : AnyUniqueAliases.NONE;
-}
-
-anyUnique<T extends flatbuffers.Table>(obj:any):any|null {
-  const offset = this.bb!.__offset(this.bb_pos, 92);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
-}
-
-anyAmbiguousType():AnyAmbiguousAliases {
-  const offset = this.bb!.__offset(this.bb_pos, 94);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : AnyAmbiguousAliases.NONE;
-}
-
-anyAmbiguous<T extends flatbuffers.Table>(obj:any):any|null {
-  const offset = this.bb!.__offset(this.bb_pos, 96);
-  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
-}
-
-vectorOfEnums(index: number):Color|null {
-  const offset = this.bb!.__offset(this.bb_pos, 98);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : null;
-}
-
-vectorOfEnumsLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 98);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-vectorOfEnumsArray():Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 98);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-signedEnum():Race {
-  const offset = this.bb!.__offset(this.bb_pos, 100);
-  return offset ? this.bb!.readInt8(this.bb_pos + offset) : Race.None;
-}
-
-mutate_signed_enum(value:Race):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 100);
-
-  if (offset === 0) {
-    return false;
+  test4Length(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 22);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
   }
 
-  this.bb!.writeInt8(this.bb_pos + offset, value);
-  return true;
-}
-
-testrequirednestedflatbuffer(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 102);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
-}
-
-testrequirednestedflatbufferLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 102);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-testrequirednestedflatbufferArray():Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 102);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-scalarKeySortedTables(index: number, obj?:Stat):Stat|null {
-  const offset = this.bb!.__offset(this.bb_pos, 104);
-  return offset ? (obj || new Stat()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
-}
-
-scalarKeySortedTablesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 104);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-nativeInline(obj?:Test):Test|null {
-  const offset = this.bb!.__offset(this.bb_pos, 106);
-  return offset ? (obj || new Test()).__init(this.bb_pos + offset, this.bb!) : null;
-}
-
-longEnumNonEnumDefault():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 108);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_long_enum_non_enum_default(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 108);
-
-  if (offset === 0) {
-    return false;
+  testarrayofstring(index: number): string;
+  testarrayofstring(
+    index: number,
+    optionalEncoding: flatbuffers.Encoding,
+  ): string | Uint8Array;
+  testarrayofstring(
+    index: number,
+    optionalEncoding?: any,
+  ): string | Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 24);
+    return offset
+      ? this.bb!.__string(
+          this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          optionalEncoding,
+        )
+      : null;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-longEnumNormalDefault():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 110);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('2');
-}
-
-mutate_long_enum_normal_default(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 110);
-
-  if (offset === 0) {
-    return false;
+  testarrayofstringLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 24);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
-
-nanDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 112);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : NaN;
-}
-
-mutate_nan_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 112);
-
-  if (offset === 0) {
-    return false;
+  /**
+   * an example documentation comment: this will end up in the generated code
+   * multiline too
+   */
+  testarrayoftables(index: number, obj?: Monster): Monster | null {
+    const offset = this.bb!.__offset(this.bb_pos, 26);
+    return offset
+      ? (obj || new Monster()).__init(
+          this.bb!.__indirect(
+            this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          ),
+          this.bb!,
+        )
+      : null;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-infDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 114);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
-}
-
-mutate_inf_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 114);
-
-  if (offset === 0) {
-    return false;
+  testarrayoftablesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 26);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-positiveInfDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 116);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
-}
-
-mutate_positive_inf_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 116);
-
-  if (offset === 0) {
-    return false;
+  enemy(obj?: Monster): Monster | null {
+    const offset = this.bb!.__offset(this.bb_pos, 28);
+    return offset
+      ? (obj || new Monster()).__init(
+          this.bb!.__indirect(this.bb_pos + offset),
+          this.bb!,
+        )
+      : null;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-infinityDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 118);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
-}
-
-mutate_infinity_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 118);
-
-  if (offset === 0) {
-    return false;
+  testnestedflatbuffer(index: number): number | null {
+    const offset = this.bb!.__offset(this.bb_pos, 30);
+    return offset
+      ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)
+      : 0;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-positiveInfinityDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 120);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
-}
-
-mutate_positive_infinity_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 120);
-
-  if (offset === 0) {
-    return false;
+  testnestedflatbufferLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 30);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-negativeInfDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 122);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
-}
-
-mutate_negative_inf_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 122);
-
-  if (offset === 0) {
-    return false;
+  testnestedflatbufferArray(): Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 30);
+    return offset
+      ? new Uint8Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-negativeInfinityDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 124);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
-}
-
-mutate_negative_infinity_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 124);
-
-  if (offset === 0) {
-    return false;
+  testempty(obj?: Stat): Stat | null {
+    const offset = this.bb!.__offset(this.bb_pos, 32);
+    return offset
+      ? (obj || new Stat()).__init(
+          this.bb!.__indirect(this.bb_pos + offset),
+          this.bb!,
+        )
+      : null;
   }
 
-  this.bb!.writeFloat32(this.bb_pos + offset, value);
-  return true;
-}
-
-doubleInfDefault():number {
-  const offset = this.bb!.__offset(this.bb_pos, 126);
-  return offset ? this.bb!.readFloat64(this.bb_pos + offset) : Infinity;
-}
-
-mutate_double_inf_default(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 126);
-
-  if (offset === 0) {
-    return false;
+  testbool(): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 34);
+    return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
   }
 
-  this.bb!.writeFloat64(this.bb_pos + offset, value);
-  return true;
-}
+  mutate_testbool(value: boolean): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 34);
 
-static getFullyQualifiedName(): "MyGame.Example.Monster" {
-  return 'MyGame.Example.Monster';
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(62);
-}
-
-static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
-  builder.addFieldStruct(0, posOffset, 0);
-}
-
-static addMana(builder:flatbuffers.Builder, mana:number) {
-  builder.addFieldInt16(1, mana, 150);
-}
-
-static addHp(builder:flatbuffers.Builder, hp:number) {
-  builder.addFieldInt16(2, hp, 100);
-}
-
-static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, nameOffset, 0);
-}
-
-static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(5, inventoryOffset, 0);
-}
-
-static createInventoryVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
+    this.bb!.writeInt8(this.bb_pos + offset, +value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startInventoryVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
-}
-
-static addColor(builder:flatbuffers.Builder, color:Color) {
-  builder.addFieldInt8(6, color, Color.Blue);
-}
-
-static addTestType(builder:flatbuffers.Builder, testType:Any) {
-  builder.addFieldInt8(7, testType, Any.NONE);
-}
-
-static addTest(builder:flatbuffers.Builder, testOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(8, testOffset, 0);
-}
-
-static addTest4(builder:flatbuffers.Builder, test4Offset:flatbuffers.Offset) {
-  builder.addFieldOffset(9, test4Offset, 0);
-}
-
-static startTest4Vector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 2);
-}
-
-static addTestarrayofstring(builder:flatbuffers.Builder, testarrayofstringOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(10, testarrayofstringOffset, 0);
-}
-
-static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
-  builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addOffset(data[i]!);
+  testhashs32Fnv1(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 36);
+    return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
   }
-  return builder.endVector();
-}
 
-static startTestarrayofstringVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 4);
-}
+  mutate_testhashs32_fnv1(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 36);
 
-static addTestarrayoftables(builder:flatbuffers.Builder, testarrayoftablesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(11, testarrayoftablesOffset, 0);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
-  builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addOffset(data[i]!);
+    this.bb!.writeInt32(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startTestarrayoftablesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 4);
-}
-
-static addEnemy(builder:flatbuffers.Builder, enemyOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(12, enemyOffset, 0);
-}
-
-static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbufferOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(13, testnestedflatbufferOffset, 0);
-}
-
-static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
+  testhashu32Fnv1(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 38);
+    return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
   }
-  return builder.endVector();
-}
 
-static startTestnestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
-}
+  mutate_testhashu32_fnv1(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 38);
 
-static addTestempty(builder:flatbuffers.Builder, testemptyOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(14, testemptyOffset, 0);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static addTestbool(builder:flatbuffers.Builder, testbool:boolean) {
-  builder.addFieldInt8(15, +testbool, +false);
-}
-
-static addTesthashs32Fnv1(builder:flatbuffers.Builder, testhashs32Fnv1:number) {
-  builder.addFieldInt32(16, testhashs32Fnv1, 0);
-}
-
-static addTesthashu32Fnv1(builder:flatbuffers.Builder, testhashu32Fnv1:number) {
-  builder.addFieldInt32(17, testhashu32Fnv1, 0);
-}
-
-static addTesthashs64Fnv1(builder:flatbuffers.Builder, testhashs64Fnv1:bigint) {
-  builder.addFieldInt64(18, testhashs64Fnv1, BigInt('0'));
-}
-
-static addTesthashu64Fnv1(builder:flatbuffers.Builder, testhashu64Fnv1:bigint) {
-  builder.addFieldInt64(19, testhashu64Fnv1, BigInt('0'));
-}
-
-static addTesthashs32Fnv1a(builder:flatbuffers.Builder, testhashs32Fnv1a:number) {
-  builder.addFieldInt32(20, testhashs32Fnv1a, 0);
-}
-
-static addTesthashu32Fnv1a(builder:flatbuffers.Builder, testhashu32Fnv1a:number) {
-  builder.addFieldInt32(21, testhashu32Fnv1a, 0);
-}
-
-static addTesthashs64Fnv1a(builder:flatbuffers.Builder, testhashs64Fnv1a:bigint) {
-  builder.addFieldInt64(22, testhashs64Fnv1a, BigInt('0'));
-}
-
-static addTesthashu64Fnv1a(builder:flatbuffers.Builder, testhashu64Fnv1a:bigint) {
-  builder.addFieldInt64(23, testhashu64Fnv1a, BigInt('0'));
-}
-
-static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(24, testarrayofboolsOffset, 0);
-}
-
-static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[]):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(+data[i]!);
+    this.bb!.writeUint32(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startTestarrayofboolsVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
-}
-
-static addTestf(builder:flatbuffers.Builder, testf:number) {
-  builder.addFieldFloat32(25, testf, 3.14159);
-}
-
-static addTestf2(builder:flatbuffers.Builder, testf2:number) {
-  builder.addFieldFloat32(26, testf2, 3.0);
-}
-
-static addTestf3(builder:flatbuffers.Builder, testf3:number) {
-  builder.addFieldFloat32(27, testf3, 0.0);
-}
-
-static addTestarrayofstring2(builder:flatbuffers.Builder, testarrayofstring2Offset:flatbuffers.Offset) {
-  builder.addFieldOffset(28, testarrayofstring2Offset, 0);
-}
-
-static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
-  builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addOffset(data[i]!);
+  testhashs64Fnv1(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 40);
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
   }
-  return builder.endVector();
-}
 
-static startTestarrayofstring2Vector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 4);
-}
+  mutate_testhashs64_fnv1(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 40);
 
-static addTestarrayofsortedstruct(builder:flatbuffers.Builder, testarrayofsortedstructOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(29, testarrayofsortedstructOffset, 0);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static startTestarrayofsortedstructVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(8, numElems, 4);
-}
-
-static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(30, flexOffset, 0);
-}
-
-static createFlexVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
+    this.bb!.writeInt64(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startFlexVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
-}
-
-static addTest5(builder:flatbuffers.Builder, test5Offset:flatbuffers.Offset) {
-  builder.addFieldOffset(31, test5Offset, 0);
-}
-
-static startTest5Vector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 2);
-}
-
-static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(32, vectorOfLongsOffset, 0);
-}
-
-static createVectorOfLongsVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt64(data[i]!);
+  testhashu64Fnv1(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 42);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
   }
-  return builder.endVector();
-}
 
-static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(8, numElems, 8);
-}
+  mutate_testhashu64_fnv1(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 42);
 
-static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array):flatbuffers.Offset;
-/**
- * @deprecated This Uint8Array overload will be removed in the future.
- */
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
-static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Float64Array|Uint8Array):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addFloat64(data[i]!);
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(8, numElems, 8);
-}
-
-static addParentNamespaceTest(builder:flatbuffers.Builder, parentNamespaceTestOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
-}
-
-static addVectorOfReferrables(builder:flatbuffers.Builder, vectorOfReferrablesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(35, vectorOfReferrablesOffset, 0);
-}
-
-static createVectorOfReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
-  builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addOffset(data[i]!);
+  testhashs32Fnv1a(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 44);
+    return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
   }
-  return builder.endVector();
-}
 
-static startVectorOfReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 4);
-}
+  mutate_testhashs32_fnv1a(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 44);
 
-static addSingleWeakReference(builder:flatbuffers.Builder, singleWeakReference:bigint) {
-  builder.addFieldInt64(36, singleWeakReference, BigInt('0'));
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static addVectorOfWeakReferences(builder:flatbuffers.Builder, vectorOfWeakReferencesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(37, vectorOfWeakReferencesOffset, 0);
-}
-
-static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt64(data[i]!);
+    this.bb!.writeInt32(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startVectorOfWeakReferencesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(8, numElems, 8);
-}
-
-static addVectorOfStrongReferrables(builder:flatbuffers.Builder, vectorOfStrongReferrablesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(38, vectorOfStrongReferrablesOffset, 0);
-}
-
-static createVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
-  builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addOffset(data[i]!);
+  testhashu32Fnv1a(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 46);
+    return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
   }
-  return builder.endVector();
-}
 
-static startVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 4);
-}
+  mutate_testhashu32_fnv1a(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 46);
 
-static addCoOwningReference(builder:flatbuffers.Builder, coOwningReference:bigint) {
-  builder.addFieldInt64(39, coOwningReference, BigInt('0'));
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static addVectorOfCoOwningReferences(builder:flatbuffers.Builder, vectorOfCoOwningReferencesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(40, vectorOfCoOwningReferencesOffset, 0);
-}
-
-static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt64(data[i]!);
+    this.bb!.writeUint32(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(8, numElems, 8);
-}
-
-static addNonOwningReference(builder:flatbuffers.Builder, nonOwningReference:bigint) {
-  builder.addFieldInt64(41, nonOwningReference, BigInt('0'));
-}
-
-static addVectorOfNonOwningReferences(builder:flatbuffers.Builder, vectorOfNonOwningReferencesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(42, vectorOfNonOwningReferencesOffset, 0);
-}
-
-static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data:bigint[]):flatbuffers.Offset {
-  builder.startVector(8, data.length, 8);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt64(data[i]!);
+  testhashs64Fnv1a(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 48);
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
   }
-  return builder.endVector();
-}
 
-static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(8, numElems, 8);
-}
+  mutate_testhashs64_fnv1a(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 48);
 
-static addAnyUniqueType(builder:flatbuffers.Builder, anyUniqueType:AnyUniqueAliases) {
-  builder.addFieldInt8(43, anyUniqueType, AnyUniqueAliases.NONE);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static addAnyUnique(builder:flatbuffers.Builder, anyUniqueOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(44, anyUniqueOffset, 0);
-}
-
-static addAnyAmbiguousType(builder:flatbuffers.Builder, anyAmbiguousType:AnyAmbiguousAliases) {
-  builder.addFieldInt8(45, anyAmbiguousType, AnyAmbiguousAliases.NONE);
-}
-
-static addAnyAmbiguous(builder:flatbuffers.Builder, anyAmbiguousOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(46, anyAmbiguousOffset, 0);
-}
-
-static addVectorOfEnums(builder:flatbuffers.Builder, vectorOfEnumsOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(47, vectorOfEnumsOffset, 0);
-}
-
-static createVectorOfEnumsVector(builder:flatbuffers.Builder, data:Color[]):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
+    this.bb!.writeInt64(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
-}
-
-static addSignedEnum(builder:flatbuffers.Builder, signedEnum:Race) {
-  builder.addFieldInt8(48, signedEnum, Race.None);
-}
-
-static addTestrequirednestedflatbuffer(builder:flatbuffers.Builder, testrequirednestedflatbufferOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(49, testrequirednestedflatbufferOffset, 0);
-}
-
-static createTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
+  testhashu64Fnv1a(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 50);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
   }
-  return builder.endVector();
-}
 
-static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
-}
+  mutate_testhashu64_fnv1a(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 50);
 
-static addScalarKeySortedTables(builder:flatbuffers.Builder, scalarKeySortedTablesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(50, scalarKeySortedTablesOffset, 0);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static createScalarKeySortedTablesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
-  builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addOffset(data[i]!);
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
   }
-  return builder.endVector();
-}
 
-static startScalarKeySortedTablesVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 4);
-}
+  testarrayofbools(index: number): boolean | null {
+    const offset = this.bb!.__offset(this.bb_pos, 52);
+    return offset
+      ? !!this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index)
+      : false;
+  }
 
-static addNativeInline(builder:flatbuffers.Builder, nativeInlineOffset:flatbuffers.Offset) {
-  builder.addFieldStruct(51, nativeInlineOffset, 0);
-}
+  testarrayofboolsLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 52);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
 
-static addLongEnumNonEnumDefault(builder:flatbuffers.Builder, longEnumNonEnumDefault:bigint) {
-  builder.addFieldInt64(52, longEnumNonEnumDefault, BigInt('0'));
-}
+  testarrayofboolsArray(): Int8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 52);
+    return offset
+      ? new Int8Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
+  }
 
-static addLongEnumNormalDefault(builder:flatbuffers.Builder, longEnumNormalDefault:bigint) {
-  builder.addFieldInt64(53, longEnumNormalDefault, BigInt('2'));
-}
+  testf(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 54);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.14159;
+  }
 
-static addNanDefault(builder:flatbuffers.Builder, nanDefault:number) {
-  builder.addFieldFloat32(54, nanDefault, NaN);
-}
+  mutate_testf(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 54);
 
-static addInfDefault(builder:flatbuffers.Builder, infDefault:number) {
-  builder.addFieldFloat32(55, infDefault, Infinity);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static addPositiveInfDefault(builder:flatbuffers.Builder, positiveInfDefault:number) {
-  builder.addFieldFloat32(56, positiveInfDefault, Infinity);
-}
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
 
-static addInfinityDefault(builder:flatbuffers.Builder, infinityDefault:number) {
-  builder.addFieldFloat32(57, infinityDefault, Infinity);
-}
+  testf2(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 56);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 3.0;
+  }
 
-static addPositiveInfinityDefault(builder:flatbuffers.Builder, positiveInfinityDefault:number) {
-  builder.addFieldFloat32(58, positiveInfinityDefault, Infinity);
-}
+  mutate_testf2(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 56);
 
-static addNegativeInfDefault(builder:flatbuffers.Builder, negativeInfDefault:number) {
-  builder.addFieldFloat32(59, negativeInfDefault, -Infinity);
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static addNegativeInfinityDefault(builder:flatbuffers.Builder, negativeInfinityDefault:number) {
-  builder.addFieldFloat32(60, negativeInfinityDefault, -Infinity);
-}
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
 
-static addDoubleInfDefault(builder:flatbuffers.Builder, doubleInfDefault:number) {
-  builder.addFieldFloat64(61, doubleInfDefault, Infinity);
-}
+  testf3(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 58);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
+  }
 
-static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
-  const offset = builder.endObject();
-  builder.requiredField(offset, 10) // name
-  return offset;
-}
+  mutate_testf3(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 58);
 
-static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MONS');
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MONS', true);
-}
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
 
+  testarrayofstring2(index: number): string;
+  testarrayofstring2(
+    index: number,
+    optionalEncoding: flatbuffers.Encoding,
+  ): string | Uint8Array;
+  testarrayofstring2(
+    index: number,
+    optionalEncoding?: any,
+  ): string | Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 60);
+    return offset
+      ? this.bb!.__string(
+          this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          optionalEncoding,
+        )
+      : null;
+  }
 
-serialize():Uint8Array {
-  return this.bb!.bytes();
-}
+  testarrayofstring2Length(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 60);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
 
-static deserialize(buffer: Uint8Array):Monster {
-  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
-}
+  testarrayofsortedstruct(index: number, obj?: Ability): Ability | null {
+    const offset = this.bb!.__offset(this.bb_pos, 62);
+    return offset
+      ? (obj || new Ability()).__init(
+          this.bb!.__vector(this.bb_pos + offset) + index * 8,
+          this.bb!,
+        )
+      : null;
+  }
 
-unpack(): MonsterT {
-  return new MonsterT(
-    (this.pos() !== null ? this.pos()!.unpack() : null),
-    this.mana(),
-    this.hp(),
-    this.name(),
-    this.bb!.createScalarList<number>(this.inventory.bind(this), this.inventoryLength()),
-    this.color(),
-    this.testType(),
-    (() => {
+  testarrayofsortedstructLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 62);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  flex(index: number): number | null {
+    const offset = this.bb!.__offset(this.bb_pos, 64);
+    return offset
+      ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)
+      : 0;
+  }
+
+  flexLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 64);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  flexArray(): Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 64);
+    return offset
+      ? new Uint8Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
+  }
+
+  test5(index: number, obj?: Test): Test | null {
+    const offset = this.bb!.__offset(this.bb_pos, 66);
+    return offset
+      ? (obj || new Test()).__init(
+          this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          this.bb!,
+        )
+      : null;
+  }
+
+  test5Length(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 66);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  vectorOfLongs(index: number): bigint | null {
+    const offset = this.bb!.__offset(this.bb_pos, 68);
+    return offset
+      ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
+      : BigInt(0);
+  }
+
+  vectorOfLongsLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 68);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  vectorOfDoubles(index: number): number | null {
+    const offset = this.bb!.__offset(this.bb_pos, 70);
+    return offset
+      ? this.bb!.readFloat64(
+          this.bb!.__vector(this.bb_pos + offset) + index * 8,
+        )
+      : 0;
+  }
+
+  vectorOfDoublesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 70);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  vectorOfDoublesArray(): Float64Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 70);
+    return offset
+      ? new Float64Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
+  }
+
+  parentNamespaceTest(obj?: InParentNamespace): InParentNamespace | null {
+    const offset = this.bb!.__offset(this.bb_pos, 72);
+    return offset
+      ? (obj || new InParentNamespace()).__init(
+          this.bb!.__indirect(this.bb_pos + offset),
+          this.bb!,
+        )
+      : null;
+  }
+
+  vectorOfReferrables(index: number, obj?: Referrable): Referrable | null {
+    const offset = this.bb!.__offset(this.bb_pos, 74);
+    return offset
+      ? (obj || new Referrable()).__init(
+          this.bb!.__indirect(
+            this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          ),
+          this.bb!,
+        )
+      : null;
+  }
+
+  vectorOfReferrablesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 74);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  singleWeakReference(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 76);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+  }
+
+  mutate_single_weak_reference(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 76);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
+  }
+
+  vectorOfWeakReferences(index: number): bigint | null {
+    const offset = this.bb!.__offset(this.bb_pos, 78);
+    return offset
+      ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
+      : BigInt(0);
+  }
+
+  vectorOfWeakReferencesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 78);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  vectorOfStrongReferrables(
+    index: number,
+    obj?: Referrable,
+  ): Referrable | null {
+    const offset = this.bb!.__offset(this.bb_pos, 80);
+    return offset
+      ? (obj || new Referrable()).__init(
+          this.bb!.__indirect(
+            this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          ),
+          this.bb!,
+        )
+      : null;
+  }
+
+  vectorOfStrongReferrablesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 80);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  coOwningReference(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 82);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+  }
+
+  mutate_co_owning_reference(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 82);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
+  }
+
+  vectorOfCoOwningReferences(index: number): bigint | null {
+    const offset = this.bb!.__offset(this.bb_pos, 84);
+    return offset
+      ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
+      : BigInt(0);
+  }
+
+  vectorOfCoOwningReferencesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 84);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  nonOwningReference(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 86);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+  }
+
+  mutate_non_owning_reference(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 86);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
+  }
+
+  vectorOfNonOwningReferences(index: number): bigint | null {
+    const offset = this.bb!.__offset(this.bb_pos, 88);
+    return offset
+      ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
+      : BigInt(0);
+  }
+
+  vectorOfNonOwningReferencesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 88);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  anyUniqueType(): AnyUniqueAliases {
+    const offset = this.bb!.__offset(this.bb_pos, 90);
+    return offset
+      ? this.bb!.readUint8(this.bb_pos + offset)
+      : AnyUniqueAliases.NONE;
+  }
+
+  anyUnique<T extends flatbuffers.Table>(obj: any): any | null {
+    const offset = this.bb!.__offset(this.bb_pos, 92);
+    return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+  }
+
+  anyAmbiguousType(): AnyAmbiguousAliases {
+    const offset = this.bb!.__offset(this.bb_pos, 94);
+    return offset
+      ? this.bb!.readUint8(this.bb_pos + offset)
+      : AnyAmbiguousAliases.NONE;
+  }
+
+  anyAmbiguous<T extends flatbuffers.Table>(obj: any): any | null {
+    const offset = this.bb!.__offset(this.bb_pos, 96);
+    return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+  }
+
+  vectorOfEnums(index: number): Color | null {
+    const offset = this.bb!.__offset(this.bb_pos, 98);
+    return offset
+      ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)
+      : null;
+  }
+
+  vectorOfEnumsLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 98);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  vectorOfEnumsArray(): Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 98);
+    return offset
+      ? new Uint8Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
+  }
+
+  signedEnum(): Race {
+    const offset = this.bb!.__offset(this.bb_pos, 100);
+    return offset ? this.bb!.readInt8(this.bb_pos + offset) : Race.None;
+  }
+
+  mutate_signed_enum(value: Race): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 100);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeInt8(this.bb_pos + offset, value);
+    return true;
+  }
+
+  testrequirednestedflatbuffer(index: number): number | null {
+    const offset = this.bb!.__offset(this.bb_pos, 102);
+    return offset
+      ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)
+      : 0;
+  }
+
+  testrequirednestedflatbufferLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 102);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  testrequirednestedflatbufferArray(): Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 102);
+    return offset
+      ? new Uint8Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
+  }
+
+  scalarKeySortedTables(index: number, obj?: Stat): Stat | null {
+    const offset = this.bb!.__offset(this.bb_pos, 104);
+    return offset
+      ? (obj || new Stat()).__init(
+          this.bb!.__indirect(
+            this.bb!.__vector(this.bb_pos + offset) + index * 4,
+          ),
+          this.bb!,
+        )
+      : null;
+  }
+
+  scalarKeySortedTablesLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 104);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  nativeInline(obj?: Test): Test | null {
+    const offset = this.bb!.__offset(this.bb_pos, 106);
+    return offset
+      ? (obj || new Test()).__init(this.bb_pos + offset, this.bb!)
+      : null;
+  }
+
+  longEnumNonEnumDefault(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 108);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+  }
+
+  mutate_long_enum_non_enum_default(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 108);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
+  }
+
+  longEnumNormalDefault(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 110);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("2");
+  }
+
+  mutate_long_enum_normal_default(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 110);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
+  }
+
+  nanDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 112);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : NaN;
+  }
+
+  mutate_nan_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 112);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
+
+  infDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 114);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+  }
+
+  mutate_inf_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 114);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
+
+  positiveInfDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 116);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+  }
+
+  mutate_positive_inf_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 116);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
+
+  infinityDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 118);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+  }
+
+  mutate_infinity_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 118);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
+
+  positiveInfinityDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 120);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : Infinity;
+  }
+
+  mutate_positive_infinity_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 120);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
+
+  negativeInfDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 122);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
+  }
+
+  mutate_negative_inf_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 122);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
+
+  negativeInfinityDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 124);
+    return offset ? this.bb!.readFloat32(this.bb_pos + offset) : -Infinity;
+  }
+
+  mutate_negative_infinity_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 124);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat32(this.bb_pos + offset, value);
+    return true;
+  }
+
+  doubleInfDefault(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 126);
+    return offset ? this.bb!.readFloat64(this.bb_pos + offset) : Infinity;
+  }
+
+  mutate_double_inf_default(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 126);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeFloat64(this.bb_pos + offset, value);
+    return true;
+  }
+
+  static getFullyQualifiedName(): "MyGame.Example.Monster" {
+    return "MyGame.Example.Monster";
+  }
+
+  static startMonster(builder: flatbuffers.Builder) {
+    builder.startObject(62);
+  }
+
+  static addPos(builder: flatbuffers.Builder, posOffset: flatbuffers.Offset) {
+    builder.addFieldStruct(0, posOffset, 0);
+  }
+
+  static addMana(builder: flatbuffers.Builder, mana: number) {
+    builder.addFieldInt16(1, mana, 150);
+  }
+
+  static addHp(builder: flatbuffers.Builder, hp: number) {
+    builder.addFieldInt16(2, hp, 100);
+  }
+
+  static addName(builder: flatbuffers.Builder, nameOffset: flatbuffers.Offset) {
+    builder.addFieldOffset(3, nameOffset, 0);
+  }
+
+  static addInventory(
+    builder: flatbuffers.Builder,
+    inventoryOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(5, inventoryOffset, 0);
+  }
+
+  static createInventoryVector(
+    builder: flatbuffers.Builder,
+    data: number[] | Uint8Array,
+  ): flatbuffers.Offset {
+    builder.startVector(1, data.length, 1);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt8(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startInventoryVector(builder: flatbuffers.Builder, numElems: number) {
+    builder.startVector(1, numElems, 1);
+  }
+
+  static addColor(builder: flatbuffers.Builder, color: Color) {
+    builder.addFieldInt8(6, color, Color.Blue);
+  }
+
+  static addTestType(builder: flatbuffers.Builder, testType: Any) {
+    builder.addFieldInt8(7, testType, Any.NONE);
+  }
+
+  static addTest(builder: flatbuffers.Builder, testOffset: flatbuffers.Offset) {
+    builder.addFieldOffset(8, testOffset, 0);
+  }
+
+  static addTest4(
+    builder: flatbuffers.Builder,
+    test4Offset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(9, test4Offset, 0);
+  }
+
+  static startTest4Vector(builder: flatbuffers.Builder, numElems: number) {
+    builder.startVector(4, numElems, 2);
+  }
+
+  static addTestarrayofstring(
+    builder: flatbuffers.Builder,
+    testarrayofstringOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(10, testarrayofstringOffset, 0);
+  }
+
+  static createTestarrayofstringVector(
+    builder: flatbuffers.Builder,
+    data: flatbuffers.Offset[],
+  ): flatbuffers.Offset {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startTestarrayofstringVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(4, numElems, 4);
+  }
+
+  static addTestarrayoftables(
+    builder: flatbuffers.Builder,
+    testarrayoftablesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(11, testarrayoftablesOffset, 0);
+  }
+
+  static createTestarrayoftablesVector(
+    builder: flatbuffers.Builder,
+    data: flatbuffers.Offset[],
+  ): flatbuffers.Offset {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startTestarrayoftablesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(4, numElems, 4);
+  }
+
+  static addEnemy(
+    builder: flatbuffers.Builder,
+    enemyOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(12, enemyOffset, 0);
+  }
+
+  static addTestnestedflatbuffer(
+    builder: flatbuffers.Builder,
+    testnestedflatbufferOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(13, testnestedflatbufferOffset, 0);
+  }
+
+  static createTestnestedflatbufferVector(
+    builder: flatbuffers.Builder,
+    data: number[] | Uint8Array,
+  ): flatbuffers.Offset {
+    builder.startVector(1, data.length, 1);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt8(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startTestnestedflatbufferVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(1, numElems, 1);
+  }
+
+  static addTestempty(
+    builder: flatbuffers.Builder,
+    testemptyOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(14, testemptyOffset, 0);
+  }
+
+  static addTestbool(builder: flatbuffers.Builder, testbool: boolean) {
+    builder.addFieldInt8(15, +testbool, +false);
+  }
+
+  static addTesthashs32Fnv1(
+    builder: flatbuffers.Builder,
+    testhashs32Fnv1: number,
+  ) {
+    builder.addFieldInt32(16, testhashs32Fnv1, 0);
+  }
+
+  static addTesthashu32Fnv1(
+    builder: flatbuffers.Builder,
+    testhashu32Fnv1: number,
+  ) {
+    builder.addFieldInt32(17, testhashu32Fnv1, 0);
+  }
+
+  static addTesthashs64Fnv1(
+    builder: flatbuffers.Builder,
+    testhashs64Fnv1: bigint,
+  ) {
+    builder.addFieldInt64(18, testhashs64Fnv1, BigInt("0"));
+  }
+
+  static addTesthashu64Fnv1(
+    builder: flatbuffers.Builder,
+    testhashu64Fnv1: bigint,
+  ) {
+    builder.addFieldInt64(19, testhashu64Fnv1, BigInt("0"));
+  }
+
+  static addTesthashs32Fnv1a(
+    builder: flatbuffers.Builder,
+    testhashs32Fnv1a: number,
+  ) {
+    builder.addFieldInt32(20, testhashs32Fnv1a, 0);
+  }
+
+  static addTesthashu32Fnv1a(
+    builder: flatbuffers.Builder,
+    testhashu32Fnv1a: number,
+  ) {
+    builder.addFieldInt32(21, testhashu32Fnv1a, 0);
+  }
+
+  static addTesthashs64Fnv1a(
+    builder: flatbuffers.Builder,
+    testhashs64Fnv1a: bigint,
+  ) {
+    builder.addFieldInt64(22, testhashs64Fnv1a, BigInt("0"));
+  }
+
+  static addTesthashu64Fnv1a(
+    builder: flatbuffers.Builder,
+    testhashu64Fnv1a: bigint,
+  ) {
+    builder.addFieldInt64(23, testhashu64Fnv1a, BigInt("0"));
+  }
+
+  static addTestarrayofbools(
+    builder: flatbuffers.Builder,
+    testarrayofboolsOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(24, testarrayofboolsOffset, 0);
+  }
+
+  static createTestarrayofboolsVector(
+    builder: flatbuffers.Builder,
+    data: boolean[],
+  ): flatbuffers.Offset {
+    builder.startVector(1, data.length, 1);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt8(+data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startTestarrayofboolsVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(1, numElems, 1);
+  }
+
+  static addTestf(builder: flatbuffers.Builder, testf: number) {
+    builder.addFieldFloat32(25, testf, 3.14159);
+  }
+
+  static addTestf2(builder: flatbuffers.Builder, testf2: number) {
+    builder.addFieldFloat32(26, testf2, 3.0);
+  }
+
+  static addTestf3(builder: flatbuffers.Builder, testf3: number) {
+    builder.addFieldFloat32(27, testf3, 0.0);
+  }
+
+  static addTestarrayofstring2(
+    builder: flatbuffers.Builder,
+    testarrayofstring2Offset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(28, testarrayofstring2Offset, 0);
+  }
+
+  static createTestarrayofstring2Vector(
+    builder: flatbuffers.Builder,
+    data: flatbuffers.Offset[],
+  ): flatbuffers.Offset {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startTestarrayofstring2Vector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(4, numElems, 4);
+  }
+
+  static addTestarrayofsortedstruct(
+    builder: flatbuffers.Builder,
+    testarrayofsortedstructOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(29, testarrayofsortedstructOffset, 0);
+  }
+
+  static startTestarrayofsortedstructVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(8, numElems, 4);
+  }
+
+  static addFlex(builder: flatbuffers.Builder, flexOffset: flatbuffers.Offset) {
+    builder.addFieldOffset(30, flexOffset, 0);
+  }
+
+  static createFlexVector(
+    builder: flatbuffers.Builder,
+    data: number[] | Uint8Array,
+  ): flatbuffers.Offset {
+    builder.startVector(1, data.length, 1);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt8(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startFlexVector(builder: flatbuffers.Builder, numElems: number) {
+    builder.startVector(1, numElems, 1);
+  }
+
+  static addTest5(
+    builder: flatbuffers.Builder,
+    test5Offset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(31, test5Offset, 0);
+  }
+
+  static startTest5Vector(builder: flatbuffers.Builder, numElems: number) {
+    builder.startVector(4, numElems, 2);
+  }
+
+  static addVectorOfLongs(
+    builder: flatbuffers.Builder,
+    vectorOfLongsOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(32, vectorOfLongsOffset, 0);
+  }
+
+  static createVectorOfLongsVector(
+    builder: flatbuffers.Builder,
+    data: bigint[],
+  ): flatbuffers.Offset {
+    builder.startVector(8, data.length, 8);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt64(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfLongsVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(8, numElems, 8);
+  }
+
+  static addVectorOfDoubles(
+    builder: flatbuffers.Builder,
+    vectorOfDoublesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
+  }
+
+  static createVectorOfDoublesVector(
+    builder: flatbuffers.Builder,
+    data: number[] | Float64Array,
+  ): flatbuffers.Offset;
+  /**
+   * @deprecated This Uint8Array overload will be removed in the future.
+   */
+  static createVectorOfDoublesVector(
+    builder: flatbuffers.Builder,
+    data: number[] | Uint8Array,
+  ): flatbuffers.Offset;
+  static createVectorOfDoublesVector(
+    builder: flatbuffers.Builder,
+    data: number[] | Float64Array | Uint8Array,
+  ): flatbuffers.Offset {
+    builder.startVector(8, data.length, 8);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addFloat64(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfDoublesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(8, numElems, 8);
+  }
+
+  static addParentNamespaceTest(
+    builder: flatbuffers.Builder,
+    parentNamespaceTestOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
+  }
+
+  static addVectorOfReferrables(
+    builder: flatbuffers.Builder,
+    vectorOfReferrablesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(35, vectorOfReferrablesOffset, 0);
+  }
+
+  static createVectorOfReferrablesVector(
+    builder: flatbuffers.Builder,
+    data: flatbuffers.Offset[],
+  ): flatbuffers.Offset {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfReferrablesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(4, numElems, 4);
+  }
+
+  static addSingleWeakReference(
+    builder: flatbuffers.Builder,
+    singleWeakReference: bigint,
+  ) {
+    builder.addFieldInt64(36, singleWeakReference, BigInt("0"));
+  }
+
+  static addVectorOfWeakReferences(
+    builder: flatbuffers.Builder,
+    vectorOfWeakReferencesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(37, vectorOfWeakReferencesOffset, 0);
+  }
+
+  static createVectorOfWeakReferencesVector(
+    builder: flatbuffers.Builder,
+    data: bigint[],
+  ): flatbuffers.Offset {
+    builder.startVector(8, data.length, 8);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt64(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfWeakReferencesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(8, numElems, 8);
+  }
+
+  static addVectorOfStrongReferrables(
+    builder: flatbuffers.Builder,
+    vectorOfStrongReferrablesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(38, vectorOfStrongReferrablesOffset, 0);
+  }
+
+  static createVectorOfStrongReferrablesVector(
+    builder: flatbuffers.Builder,
+    data: flatbuffers.Offset[],
+  ): flatbuffers.Offset {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfStrongReferrablesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(4, numElems, 4);
+  }
+
+  static addCoOwningReference(
+    builder: flatbuffers.Builder,
+    coOwningReference: bigint,
+  ) {
+    builder.addFieldInt64(39, coOwningReference, BigInt("0"));
+  }
+
+  static addVectorOfCoOwningReferences(
+    builder: flatbuffers.Builder,
+    vectorOfCoOwningReferencesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(40, vectorOfCoOwningReferencesOffset, 0);
+  }
+
+  static createVectorOfCoOwningReferencesVector(
+    builder: flatbuffers.Builder,
+    data: bigint[],
+  ): flatbuffers.Offset {
+    builder.startVector(8, data.length, 8);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt64(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfCoOwningReferencesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(8, numElems, 8);
+  }
+
+  static addNonOwningReference(
+    builder: flatbuffers.Builder,
+    nonOwningReference: bigint,
+  ) {
+    builder.addFieldInt64(41, nonOwningReference, BigInt("0"));
+  }
+
+  static addVectorOfNonOwningReferences(
+    builder: flatbuffers.Builder,
+    vectorOfNonOwningReferencesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(42, vectorOfNonOwningReferencesOffset, 0);
+  }
+
+  static createVectorOfNonOwningReferencesVector(
+    builder: flatbuffers.Builder,
+    data: bigint[],
+  ): flatbuffers.Offset {
+    builder.startVector(8, data.length, 8);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt64(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfNonOwningReferencesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(8, numElems, 8);
+  }
+
+  static addAnyUniqueType(
+    builder: flatbuffers.Builder,
+    anyUniqueType: AnyUniqueAliases,
+  ) {
+    builder.addFieldInt8(43, anyUniqueType, AnyUniqueAliases.NONE);
+  }
+
+  static addAnyUnique(
+    builder: flatbuffers.Builder,
+    anyUniqueOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(44, anyUniqueOffset, 0);
+  }
+
+  static addAnyAmbiguousType(
+    builder: flatbuffers.Builder,
+    anyAmbiguousType: AnyAmbiguousAliases,
+  ) {
+    builder.addFieldInt8(45, anyAmbiguousType, AnyAmbiguousAliases.NONE);
+  }
+
+  static addAnyAmbiguous(
+    builder: flatbuffers.Builder,
+    anyAmbiguousOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(46, anyAmbiguousOffset, 0);
+  }
+
+  static addVectorOfEnums(
+    builder: flatbuffers.Builder,
+    vectorOfEnumsOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(47, vectorOfEnumsOffset, 0);
+  }
+
+  static createVectorOfEnumsVector(
+    builder: flatbuffers.Builder,
+    data: Color[],
+  ): flatbuffers.Offset {
+    builder.startVector(1, data.length, 1);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt8(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startVectorOfEnumsVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(1, numElems, 1);
+  }
+
+  static addSignedEnum(builder: flatbuffers.Builder, signedEnum: Race) {
+    builder.addFieldInt8(48, signedEnum, Race.None);
+  }
+
+  static addTestrequirednestedflatbuffer(
+    builder: flatbuffers.Builder,
+    testrequirednestedflatbufferOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(49, testrequirednestedflatbufferOffset, 0);
+  }
+
+  static createTestrequirednestedflatbufferVector(
+    builder: flatbuffers.Builder,
+    data: number[] | Uint8Array,
+  ): flatbuffers.Offset {
+    builder.startVector(1, data.length, 1);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt8(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startTestrequirednestedflatbufferVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(1, numElems, 1);
+  }
+
+  static addScalarKeySortedTables(
+    builder: flatbuffers.Builder,
+    scalarKeySortedTablesOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(50, scalarKeySortedTablesOffset, 0);
+  }
+
+  static createScalarKeySortedTablesVector(
+    builder: flatbuffers.Builder,
+    data: flatbuffers.Offset[],
+  ): flatbuffers.Offset {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]!);
+    }
+    return builder.endVector();
+  }
+
+  static startScalarKeySortedTablesVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(4, numElems, 4);
+  }
+
+  static addNativeInline(
+    builder: flatbuffers.Builder,
+    nativeInlineOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldStruct(51, nativeInlineOffset, 0);
+  }
+
+  static addLongEnumNonEnumDefault(
+    builder: flatbuffers.Builder,
+    longEnumNonEnumDefault: bigint,
+  ) {
+    builder.addFieldInt64(52, longEnumNonEnumDefault, BigInt("0"));
+  }
+
+  static addLongEnumNormalDefault(
+    builder: flatbuffers.Builder,
+    longEnumNormalDefault: bigint,
+  ) {
+    builder.addFieldInt64(53, longEnumNormalDefault, BigInt("2"));
+  }
+
+  static addNanDefault(builder: flatbuffers.Builder, nanDefault: number) {
+    builder.addFieldFloat32(54, nanDefault, NaN);
+  }
+
+  static addInfDefault(builder: flatbuffers.Builder, infDefault: number) {
+    builder.addFieldFloat32(55, infDefault, Infinity);
+  }
+
+  static addPositiveInfDefault(
+    builder: flatbuffers.Builder,
+    positiveInfDefault: number,
+  ) {
+    builder.addFieldFloat32(56, positiveInfDefault, Infinity);
+  }
+
+  static addInfinityDefault(
+    builder: flatbuffers.Builder,
+    infinityDefault: number,
+  ) {
+    builder.addFieldFloat32(57, infinityDefault, Infinity);
+  }
+
+  static addPositiveInfinityDefault(
+    builder: flatbuffers.Builder,
+    positiveInfinityDefault: number,
+  ) {
+    builder.addFieldFloat32(58, positiveInfinityDefault, Infinity);
+  }
+
+  static addNegativeInfDefault(
+    builder: flatbuffers.Builder,
+    negativeInfDefault: number,
+  ) {
+    builder.addFieldFloat32(59, negativeInfDefault, -Infinity);
+  }
+
+  static addNegativeInfinityDefault(
+    builder: flatbuffers.Builder,
+    negativeInfinityDefault: number,
+  ) {
+    builder.addFieldFloat32(60, negativeInfinityDefault, -Infinity);
+  }
+
+  static addDoubleInfDefault(
+    builder: flatbuffers.Builder,
+    doubleInfDefault: number,
+  ) {
+    builder.addFieldFloat64(61, doubleInfDefault, Infinity);
+  }
+
+  static endMonster(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const offset = builder.endObject();
+    builder.requiredField(offset, 10); // name
+    return offset;
+  }
+
+  static finishMonsterBuffer(
+    builder: flatbuffers.Builder,
+    offset: flatbuffers.Offset,
+  ) {
+    builder.finish(offset, "MONS");
+  }
+
+  static finishSizePrefixedMonsterBuffer(
+    builder: flatbuffers.Builder,
+    offset: flatbuffers.Offset,
+  ) {
+    builder.finish(offset, "MONS", true);
+  }
+
+  serialize(): Uint8Array {
+    return this.bb!.bytes();
+  }
+
+  static deserialize(buffer: Uint8Array): Monster {
+    return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer));
+  }
+
+  unpack(): MonsterT {
+    return new MonsterT(
+      this.pos() !== null ? this.pos()!.unpack() : null,
+      this.mana(),
+      this.hp(),
+      this.name(),
+      this.bb!.createScalarList<number>(
+        this.inventory.bind(this),
+        this.inventoryLength(),
+      ),
+      this.color(),
+      this.testType(),
+      (() => {
+        const temp = unionToAny(this.testType(), this.test.bind(this));
+        if (temp === null) {
+          return null;
+        }
+        return temp.unpack();
+      })(),
+      this.bb!.createObjList<Test, TestT>(
+        this.test4.bind(this),
+        this.test4Length(),
+      ),
+      this.bb!.createScalarList<string>(
+        this.testarrayofstring.bind(this),
+        this.testarrayofstringLength(),
+      ),
+      this.bb!.createObjList<Monster, MonsterT>(
+        this.testarrayoftables.bind(this),
+        this.testarrayoftablesLength(),
+      ),
+      this.enemy() !== null ? this.enemy()!.unpack() : null,
+      this.bb!.createScalarList<number>(
+        this.testnestedflatbuffer.bind(this),
+        this.testnestedflatbufferLength(),
+      ),
+      this.testempty() !== null ? this.testempty()!.unpack() : null,
+      this.testbool(),
+      this.testhashs32Fnv1(),
+      this.testhashu32Fnv1(),
+      this.testhashs64Fnv1(),
+      this.testhashu64Fnv1(),
+      this.testhashs32Fnv1a(),
+      this.testhashu32Fnv1a(),
+      this.testhashs64Fnv1a(),
+      this.testhashu64Fnv1a(),
+      this.bb!.createScalarList<boolean>(
+        this.testarrayofbools.bind(this),
+        this.testarrayofboolsLength(),
+      ),
+      this.testf(),
+      this.testf2(),
+      this.testf3(),
+      this.bb!.createScalarList<string>(
+        this.testarrayofstring2.bind(this),
+        this.testarrayofstring2Length(),
+      ),
+      this.bb!.createObjList<Ability, AbilityT>(
+        this.testarrayofsortedstruct.bind(this),
+        this.testarrayofsortedstructLength(),
+      ),
+      this.bb!.createScalarList<number>(
+        this.flex.bind(this),
+        this.flexLength(),
+      ),
+      this.bb!.createObjList<Test, TestT>(
+        this.test5.bind(this),
+        this.test5Length(),
+      ),
+      this.bb!.createScalarList<bigint>(
+        this.vectorOfLongs.bind(this),
+        this.vectorOfLongsLength(),
+      ),
+      this.bb!.createScalarList<number>(
+        this.vectorOfDoubles.bind(this),
+        this.vectorOfDoublesLength(),
+      ),
+      this.parentNamespaceTest() !== null
+        ? this.parentNamespaceTest()!.unpack()
+        : null,
+      this.bb!.createObjList<Referrable, ReferrableT>(
+        this.vectorOfReferrables.bind(this),
+        this.vectorOfReferrablesLength(),
+      ),
+      this.singleWeakReference(),
+      this.bb!.createScalarList<bigint>(
+        this.vectorOfWeakReferences.bind(this),
+        this.vectorOfWeakReferencesLength(),
+      ),
+      this.bb!.createObjList<Referrable, ReferrableT>(
+        this.vectorOfStrongReferrables.bind(this),
+        this.vectorOfStrongReferrablesLength(),
+      ),
+      this.coOwningReference(),
+      this.bb!.createScalarList<bigint>(
+        this.vectorOfCoOwningReferences.bind(this),
+        this.vectorOfCoOwningReferencesLength(),
+      ),
+      this.nonOwningReference(),
+      this.bb!.createScalarList<bigint>(
+        this.vectorOfNonOwningReferences.bind(this),
+        this.vectorOfNonOwningReferencesLength(),
+      ),
+      this.anyUniqueType(),
+      (() => {
+        const temp = unionToAnyUniqueAliases(
+          this.anyUniqueType(),
+          this.anyUnique.bind(this),
+        );
+        if (temp === null) {
+          return null;
+        }
+        return temp.unpack();
+      })(),
+      this.anyAmbiguousType(),
+      (() => {
+        const temp = unionToAnyAmbiguousAliases(
+          this.anyAmbiguousType(),
+          this.anyAmbiguous.bind(this),
+        );
+        if (temp === null) {
+          return null;
+        }
+        return temp.unpack();
+      })(),
+      this.bb!.createScalarList<Color>(
+        this.vectorOfEnums.bind(this),
+        this.vectorOfEnumsLength(),
+      ),
+      this.signedEnum(),
+      this.bb!.createScalarList<number>(
+        this.testrequirednestedflatbuffer.bind(this),
+        this.testrequirednestedflatbufferLength(),
+      ),
+      this.bb!.createObjList<Stat, StatT>(
+        this.scalarKeySortedTables.bind(this),
+        this.scalarKeySortedTablesLength(),
+      ),
+      this.nativeInline() !== null ? this.nativeInline()!.unpack() : null,
+      this.longEnumNonEnumDefault(),
+      this.longEnumNormalDefault(),
+      this.nanDefault(),
+      this.infDefault(),
+      this.positiveInfDefault(),
+      this.infinityDefault(),
+      this.positiveInfinityDefault(),
+      this.negativeInfDefault(),
+      this.negativeInfinityDefault(),
+      this.doubleInfDefault(),
+    );
+  }
+
+  unpackTo(_o: MonsterT): void {
+    _o.pos = this.pos() !== null ? this.pos()!.unpack() : null;
+    _o.mana = this.mana();
+    _o.hp = this.hp();
+    _o.name = this.name();
+    _o.inventory = this.bb!.createScalarList<number>(
+      this.inventory.bind(this),
+      this.inventoryLength(),
+    );
+    _o.color = this.color();
+    _o.testType = this.testType();
+    _o.test = (() => {
       const temp = unionToAny(this.testType(), this.test.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })(),
-    this.bb!.createObjList<Test, TestT>(this.test4.bind(this), this.test4Length()),
-    this.bb!.createScalarList<string>(this.testarrayofstring.bind(this), this.testarrayofstringLength()),
-    this.bb!.createObjList<Monster, MonsterT>(this.testarrayoftables.bind(this), this.testarrayoftablesLength()),
-    (this.enemy() !== null ? this.enemy()!.unpack() : null),
-    this.bb!.createScalarList<number>(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength()),
-    (this.testempty() !== null ? this.testempty()!.unpack() : null),
-    this.testbool(),
-    this.testhashs32Fnv1(),
-    this.testhashu32Fnv1(),
-    this.testhashs64Fnv1(),
-    this.testhashu64Fnv1(),
-    this.testhashs32Fnv1a(),
-    this.testhashu32Fnv1a(),
-    this.testhashs64Fnv1a(),
-    this.testhashu64Fnv1a(),
-    this.bb!.createScalarList<boolean>(this.testarrayofbools.bind(this), this.testarrayofboolsLength()),
-    this.testf(),
-    this.testf2(),
-    this.testf3(),
-    this.bb!.createScalarList<string>(this.testarrayofstring2.bind(this), this.testarrayofstring2Length()),
-    this.bb!.createObjList<Ability, AbilityT>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength()),
-    this.bb!.createScalarList<number>(this.flex.bind(this), this.flexLength()),
-    this.bb!.createObjList<Test, TestT>(this.test5.bind(this), this.test5Length()),
-    this.bb!.createScalarList<bigint>(this.vectorOfLongs.bind(this), this.vectorOfLongsLength()),
-    this.bb!.createScalarList<number>(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength()),
-    (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null),
-    this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength()),
-    this.singleWeakReference(),
-    this.bb!.createScalarList<bigint>(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength()),
-    this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength()),
-    this.coOwningReference(),
-    this.bb!.createScalarList<bigint>(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength()),
-    this.nonOwningReference(),
-    this.bb!.createScalarList<bigint>(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength()),
-    this.anyUniqueType(),
-    (() => {
-      const temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })(),
-    this.anyAmbiguousType(),
-    (() => {
-      const temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })(),
-    this.bb!.createScalarList<Color>(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength()),
-    this.signedEnum(),
-    this.bb!.createScalarList<number>(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength()),
-    this.bb!.createObjList<Stat, StatT>(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength()),
-    (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null),
-    this.longEnumNonEnumDefault(),
-    this.longEnumNormalDefault(),
-    this.nanDefault(),
-    this.infDefault(),
-    this.positiveInfDefault(),
-    this.infinityDefault(),
-    this.positiveInfinityDefault(),
-    this.negativeInfDefault(),
-    this.negativeInfinityDefault(),
-    this.doubleInfDefault()
-  );
-}
+      if (temp === null) {
+        return null;
+      }
+      return temp.unpack();
+    })();
+    _o.test4 = this.bb!.createObjList<Test, TestT>(
+      this.test4.bind(this),
+      this.test4Length(),
+    );
+    _o.testarrayofstring = this.bb!.createScalarList<string>(
+      this.testarrayofstring.bind(this),
+      this.testarrayofstringLength(),
+    );
+    _o.testarrayoftables = this.bb!.createObjList<Monster, MonsterT>(
+      this.testarrayoftables.bind(this),
+      this.testarrayoftablesLength(),
+    );
+    _o.enemy = this.enemy() !== null ? this.enemy()!.unpack() : null;
+    _o.testnestedflatbuffer = this.bb!.createScalarList<number>(
+      this.testnestedflatbuffer.bind(this),
+      this.testnestedflatbufferLength(),
+    );
+    _o.testempty =
+      this.testempty() !== null ? this.testempty()!.unpack() : null;
+    _o.testbool = this.testbool();
+    _o.testhashs32Fnv1 = this.testhashs32Fnv1();
+    _o.testhashu32Fnv1 = this.testhashu32Fnv1();
+    _o.testhashs64Fnv1 = this.testhashs64Fnv1();
+    _o.testhashu64Fnv1 = this.testhashu64Fnv1();
+    _o.testhashs32Fnv1a = this.testhashs32Fnv1a();
+    _o.testhashu32Fnv1a = this.testhashu32Fnv1a();
+    _o.testhashs64Fnv1a = this.testhashs64Fnv1a();
+    _o.testhashu64Fnv1a = this.testhashu64Fnv1a();
+    _o.testarrayofbools = this.bb!.createScalarList<boolean>(
+      this.testarrayofbools.bind(this),
+      this.testarrayofboolsLength(),
+    );
+    _o.testf = this.testf();
+    _o.testf2 = this.testf2();
+    _o.testf3 = this.testf3();
+    _o.testarrayofstring2 = this.bb!.createScalarList<string>(
+      this.testarrayofstring2.bind(this),
+      this.testarrayofstring2Length(),
+    );
+    _o.testarrayofsortedstruct = this.bb!.createObjList<Ability, AbilityT>(
+      this.testarrayofsortedstruct.bind(this),
+      this.testarrayofsortedstructLength(),
+    );
+    _o.flex = this.bb!.createScalarList<number>(
+      this.flex.bind(this),
+      this.flexLength(),
+    );
+    _o.test5 = this.bb!.createObjList<Test, TestT>(
+      this.test5.bind(this),
+      this.test5Length(),
+    );
+    _o.vectorOfLongs = this.bb!.createScalarList<bigint>(
+      this.vectorOfLongs.bind(this),
+      this.vectorOfLongsLength(),
+    );
+    _o.vectorOfDoubles = this.bb!.createScalarList<number>(
+      this.vectorOfDoubles.bind(this),
+      this.vectorOfDoublesLength(),
+    );
+    _o.parentNamespaceTest =
+      this.parentNamespaceTest() !== null
+        ? this.parentNamespaceTest()!.unpack()
+        : null;
+    _o.vectorOfReferrables = this.bb!.createObjList<Referrable, ReferrableT>(
+      this.vectorOfReferrables.bind(this),
+      this.vectorOfReferrablesLength(),
+    );
+    _o.singleWeakReference = this.singleWeakReference();
+    _o.vectorOfWeakReferences = this.bb!.createScalarList<bigint>(
+      this.vectorOfWeakReferences.bind(this),
+      this.vectorOfWeakReferencesLength(),
+    );
+    _o.vectorOfStrongReferrables = this.bb!.createObjList<
+      Referrable,
+      ReferrableT
+    >(
+      this.vectorOfStrongReferrables.bind(this),
+      this.vectorOfStrongReferrablesLength(),
+    );
+    _o.coOwningReference = this.coOwningReference();
+    _o.vectorOfCoOwningReferences = this.bb!.createScalarList<bigint>(
+      this.vectorOfCoOwningReferences.bind(this),
+      this.vectorOfCoOwningReferencesLength(),
+    );
+    _o.nonOwningReference = this.nonOwningReference();
+    _o.vectorOfNonOwningReferences = this.bb!.createScalarList<bigint>(
+      this.vectorOfNonOwningReferences.bind(this),
+      this.vectorOfNonOwningReferencesLength(),
+    );
+    _o.anyUniqueType = this.anyUniqueType();
+    _o.anyUnique = (() => {
+      const temp = unionToAnyUniqueAliases(
+        this.anyUniqueType(),
+        this.anyUnique.bind(this),
+      );
+      if (temp === null) {
+        return null;
+      }
+      return temp.unpack();
+    })();
+    _o.anyAmbiguousType = this.anyAmbiguousType();
+    _o.anyAmbiguous = (() => {
+      const temp = unionToAnyAmbiguousAliases(
+        this.anyAmbiguousType(),
+        this.anyAmbiguous.bind(this),
+      );
+      if (temp === null) {
+        return null;
+      }
+      return temp.unpack();
+    })();
+    _o.vectorOfEnums = this.bb!.createScalarList<Color>(
+      this.vectorOfEnums.bind(this),
+      this.vectorOfEnumsLength(),
+    );
+    _o.signedEnum = this.signedEnum();
+    _o.testrequirednestedflatbuffer = this.bb!.createScalarList<number>(
+      this.testrequirednestedflatbuffer.bind(this),
+      this.testrequirednestedflatbufferLength(),
+    );
+    _o.scalarKeySortedTables = this.bb!.createObjList<Stat, StatT>(
+      this.scalarKeySortedTables.bind(this),
+      this.scalarKeySortedTablesLength(),
+    );
+    _o.nativeInline =
+      this.nativeInline() !== null ? this.nativeInline()!.unpack() : null;
+    _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
+    _o.longEnumNormalDefault = this.longEnumNormalDefault();
+    _o.nanDefault = this.nanDefault();
+    _o.infDefault = this.infDefault();
+    _o.positiveInfDefault = this.positiveInfDefault();
+    _o.infinityDefault = this.infinityDefault();
+    _o.positiveInfinityDefault = this.positiveInfinityDefault();
+    _o.negativeInfDefault = this.negativeInfDefault();
+    _o.negativeInfinityDefault = this.negativeInfinityDefault();
+    _o.doubleInfDefault = this.doubleInfDefault();
+  }
 
-
-unpackTo(_o: MonsterT): void {
-  _o.pos = (this.pos() !== null ? this.pos()!.unpack() : null);
-  _o.mana = this.mana();
-  _o.hp = this.hp();
-  _o.name = this.name();
-  _o.inventory = this.bb!.createScalarList<number>(this.inventory.bind(this), this.inventoryLength());
-  _o.color = this.color();
-  _o.testType = this.testType();
-  _o.test = (() => {
-      const temp = unionToAny(this.testType(), this.test.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  _o.test4 = this.bb!.createObjList<Test, TestT>(this.test4.bind(this), this.test4Length());
-  _o.testarrayofstring = this.bb!.createScalarList<string>(this.testarrayofstring.bind(this), this.testarrayofstringLength());
-  _o.testarrayoftables = this.bb!.createObjList<Monster, MonsterT>(this.testarrayoftables.bind(this), this.testarrayoftablesLength());
-  _o.enemy = (this.enemy() !== null ? this.enemy()!.unpack() : null);
-  _o.testnestedflatbuffer = this.bb!.createScalarList<number>(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength());
-  _o.testempty = (this.testempty() !== null ? this.testempty()!.unpack() : null);
-  _o.testbool = this.testbool();
-  _o.testhashs32Fnv1 = this.testhashs32Fnv1();
-  _o.testhashu32Fnv1 = this.testhashu32Fnv1();
-  _o.testhashs64Fnv1 = this.testhashs64Fnv1();
-  _o.testhashu64Fnv1 = this.testhashu64Fnv1();
-  _o.testhashs32Fnv1a = this.testhashs32Fnv1a();
-  _o.testhashu32Fnv1a = this.testhashu32Fnv1a();
-  _o.testhashs64Fnv1a = this.testhashs64Fnv1a();
-  _o.testhashu64Fnv1a = this.testhashu64Fnv1a();
-  _o.testarrayofbools = this.bb!.createScalarList<boolean>(this.testarrayofbools.bind(this), this.testarrayofboolsLength());
-  _o.testf = this.testf();
-  _o.testf2 = this.testf2();
-  _o.testf3 = this.testf3();
-  _o.testarrayofstring2 = this.bb!.createScalarList<string>(this.testarrayofstring2.bind(this), this.testarrayofstring2Length());
-  _o.testarrayofsortedstruct = this.bb!.createObjList<Ability, AbilityT>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength());
-  _o.flex = this.bb!.createScalarList<number>(this.flex.bind(this), this.flexLength());
-  _o.test5 = this.bb!.createObjList<Test, TestT>(this.test5.bind(this), this.test5Length());
-  _o.vectorOfLongs = this.bb!.createScalarList<bigint>(this.vectorOfLongs.bind(this), this.vectorOfLongsLength());
-  _o.vectorOfDoubles = this.bb!.createScalarList<number>(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength());
-  _o.parentNamespaceTest = (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null);
-  _o.vectorOfReferrables = this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength());
-  _o.singleWeakReference = this.singleWeakReference();
-  _o.vectorOfWeakReferences = this.bb!.createScalarList<bigint>(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength());
-  _o.vectorOfStrongReferrables = this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength());
-  _o.coOwningReference = this.coOwningReference();
-  _o.vectorOfCoOwningReferences = this.bb!.createScalarList<bigint>(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength());
-  _o.nonOwningReference = this.nonOwningReference();
-  _o.vectorOfNonOwningReferences = this.bb!.createScalarList<bigint>(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
-  _o.anyUniqueType = this.anyUniqueType();
-  _o.anyUnique = (() => {
-      const temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  _o.anyAmbiguousType = this.anyAmbiguousType();
-  _o.anyAmbiguous = (() => {
-      const temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  _o.vectorOfEnums = this.bb!.createScalarList<Color>(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
-  _o.signedEnum = this.signedEnum();
-  _o.testrequirednestedflatbuffer = this.bb!.createScalarList<number>(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
-  _o.scalarKeySortedTables = this.bb!.createObjList<Stat, StatT>(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
-  _o.nativeInline = (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null);
-  _o.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
-  _o.longEnumNormalDefault = this.longEnumNormalDefault();
-  _o.nanDefault = this.nanDefault();
-  _o.infDefault = this.infDefault();
-  _o.positiveInfDefault = this.positiveInfDefault();
-  _o.infinityDefault = this.infinityDefault();
-  _o.positiveInfinityDefault = this.positiveInfinityDefault();
-  _o.negativeInfDefault = this.negativeInfDefault();
-  _o.negativeInfinityDefault = this.negativeInfinityDefault();
-  _o.doubleInfDefault = this.doubleInfDefault();
-}
-
-
-
-unpackFields(...fields: string[]): MonsterT {
-  const t = new MonsterT();
-  const fieldSet = new Set(fields);
-  if (fieldSet.has('pos')) {
-    t.pos = (this.pos() !== null ? this.pos()!.unpack() : null);
+  unpackFields(...fields: string[]): MonsterT {
+    const t = new MonsterT();
+    const fieldSet = new Set(fields);
+    if (fieldSet.has("pos")) {
+      t.pos = this.pos() !== null ? this.pos()!.unpack() : null;
+    }
+    if (fieldSet.has("mana")) {
+      t.mana = this.mana();
+    }
+    if (fieldSet.has("hp")) {
+      t.hp = this.hp();
+    }
+    if (fieldSet.has("name")) {
+      t.name = this.name();
+    }
+    if (fieldSet.has("inventory")) {
+      t.inventory = this.bb!.createScalarList<number>(
+        this.inventory.bind(this),
+        this.inventoryLength(),
+      );
+    }
+    if (fieldSet.has("color")) {
+      t.color = this.color();
+    }
+    if (fieldSet.has("test_type")) {
+      t.testType = this.testType();
+    }
+    if (fieldSet.has("test")) {
+      t.test = (() => {
+        const temp = unionToAny(this.testType(), this.test.bind(this));
+        if (temp === null) {
+          return null;
+        }
+        return temp.unpack();
+      })();
+    }
+    if (fieldSet.has("test4")) {
+      t.test4 = this.bb!.createObjList<Test, TestT>(
+        this.test4.bind(this),
+        this.test4Length(),
+      );
+    }
+    if (fieldSet.has("testarrayofstring")) {
+      t.testarrayofstring = this.bb!.createScalarList<string>(
+        this.testarrayofstring.bind(this),
+        this.testarrayofstringLength(),
+      );
+    }
+    if (fieldSet.has("testarrayoftables")) {
+      t.testarrayoftables = this.bb!.createObjList<Monster, MonsterT>(
+        this.testarrayoftables.bind(this),
+        this.testarrayoftablesLength(),
+      );
+    }
+    if (fieldSet.has("enemy")) {
+      t.enemy = this.enemy() !== null ? this.enemy()!.unpack() : null;
+    }
+    if (fieldSet.has("testnestedflatbuffer")) {
+      t.testnestedflatbuffer = this.bb!.createScalarList<number>(
+        this.testnestedflatbuffer.bind(this),
+        this.testnestedflatbufferLength(),
+      );
+    }
+    if (fieldSet.has("testempty")) {
+      t.testempty =
+        this.testempty() !== null ? this.testempty()!.unpack() : null;
+    }
+    if (fieldSet.has("testbool")) {
+      t.testbool = this.testbool();
+    }
+    if (fieldSet.has("testhashs32_fnv1")) {
+      t.testhashs32Fnv1 = this.testhashs32Fnv1();
+    }
+    if (fieldSet.has("testhashu32_fnv1")) {
+      t.testhashu32Fnv1 = this.testhashu32Fnv1();
+    }
+    if (fieldSet.has("testhashs64_fnv1")) {
+      t.testhashs64Fnv1 = this.testhashs64Fnv1();
+    }
+    if (fieldSet.has("testhashu64_fnv1")) {
+      t.testhashu64Fnv1 = this.testhashu64Fnv1();
+    }
+    if (fieldSet.has("testhashs32_fnv1a")) {
+      t.testhashs32Fnv1a = this.testhashs32Fnv1a();
+    }
+    if (fieldSet.has("testhashu32_fnv1a")) {
+      t.testhashu32Fnv1a = this.testhashu32Fnv1a();
+    }
+    if (fieldSet.has("testhashs64_fnv1a")) {
+      t.testhashs64Fnv1a = this.testhashs64Fnv1a();
+    }
+    if (fieldSet.has("testhashu64_fnv1a")) {
+      t.testhashu64Fnv1a = this.testhashu64Fnv1a();
+    }
+    if (fieldSet.has("testarrayofbools")) {
+      t.testarrayofbools = this.bb!.createScalarList<boolean>(
+        this.testarrayofbools.bind(this),
+        this.testarrayofboolsLength(),
+      );
+    }
+    if (fieldSet.has("testf")) {
+      t.testf = this.testf();
+    }
+    if (fieldSet.has("testf2")) {
+      t.testf2 = this.testf2();
+    }
+    if (fieldSet.has("testf3")) {
+      t.testf3 = this.testf3();
+    }
+    if (fieldSet.has("testarrayofstring2")) {
+      t.testarrayofstring2 = this.bb!.createScalarList<string>(
+        this.testarrayofstring2.bind(this),
+        this.testarrayofstring2Length(),
+      );
+    }
+    if (fieldSet.has("testarrayofsortedstruct")) {
+      t.testarrayofsortedstruct = this.bb!.createObjList<Ability, AbilityT>(
+        this.testarrayofsortedstruct.bind(this),
+        this.testarrayofsortedstructLength(),
+      );
+    }
+    if (fieldSet.has("flex")) {
+      t.flex = this.bb!.createScalarList<number>(
+        this.flex.bind(this),
+        this.flexLength(),
+      );
+    }
+    if (fieldSet.has("test5")) {
+      t.test5 = this.bb!.createObjList<Test, TestT>(
+        this.test5.bind(this),
+        this.test5Length(),
+      );
+    }
+    if (fieldSet.has("vector_of_longs")) {
+      t.vectorOfLongs = this.bb!.createScalarList<bigint>(
+        this.vectorOfLongs.bind(this),
+        this.vectorOfLongsLength(),
+      );
+    }
+    if (fieldSet.has("vector_of_doubles")) {
+      t.vectorOfDoubles = this.bb!.createScalarList<number>(
+        this.vectorOfDoubles.bind(this),
+        this.vectorOfDoublesLength(),
+      );
+    }
+    if (fieldSet.has("parent_namespace_test")) {
+      t.parentNamespaceTest =
+        this.parentNamespaceTest() !== null
+          ? this.parentNamespaceTest()!.unpack()
+          : null;
+    }
+    if (fieldSet.has("vector_of_referrables")) {
+      t.vectorOfReferrables = this.bb!.createObjList<Referrable, ReferrableT>(
+        this.vectorOfReferrables.bind(this),
+        this.vectorOfReferrablesLength(),
+      );
+    }
+    if (fieldSet.has("single_weak_reference")) {
+      t.singleWeakReference = this.singleWeakReference();
+    }
+    if (fieldSet.has("vector_of_weak_references")) {
+      t.vectorOfWeakReferences = this.bb!.createScalarList<bigint>(
+        this.vectorOfWeakReferences.bind(this),
+        this.vectorOfWeakReferencesLength(),
+      );
+    }
+    if (fieldSet.has("vector_of_strong_referrables")) {
+      t.vectorOfStrongReferrables = this.bb!.createObjList<
+        Referrable,
+        ReferrableT
+      >(
+        this.vectorOfStrongReferrables.bind(this),
+        this.vectorOfStrongReferrablesLength(),
+      );
+    }
+    if (fieldSet.has("co_owning_reference")) {
+      t.coOwningReference = this.coOwningReference();
+    }
+    if (fieldSet.has("vector_of_co_owning_references")) {
+      t.vectorOfCoOwningReferences = this.bb!.createScalarList<bigint>(
+        this.vectorOfCoOwningReferences.bind(this),
+        this.vectorOfCoOwningReferencesLength(),
+      );
+    }
+    if (fieldSet.has("non_owning_reference")) {
+      t.nonOwningReference = this.nonOwningReference();
+    }
+    if (fieldSet.has("vector_of_non_owning_references")) {
+      t.vectorOfNonOwningReferences = this.bb!.createScalarList<bigint>(
+        this.vectorOfNonOwningReferences.bind(this),
+        this.vectorOfNonOwningReferencesLength(),
+      );
+    }
+    if (fieldSet.has("any_unique_type")) {
+      t.anyUniqueType = this.anyUniqueType();
+    }
+    if (fieldSet.has("any_unique")) {
+      t.anyUnique = (() => {
+        const temp = unionToAnyUniqueAliases(
+          this.anyUniqueType(),
+          this.anyUnique.bind(this),
+        );
+        if (temp === null) {
+          return null;
+        }
+        return temp.unpack();
+      })();
+    }
+    if (fieldSet.has("any_ambiguous_type")) {
+      t.anyAmbiguousType = this.anyAmbiguousType();
+    }
+    if (fieldSet.has("any_ambiguous")) {
+      t.anyAmbiguous = (() => {
+        const temp = unionToAnyAmbiguousAliases(
+          this.anyAmbiguousType(),
+          this.anyAmbiguous.bind(this),
+        );
+        if (temp === null) {
+          return null;
+        }
+        return temp.unpack();
+      })();
+    }
+    if (fieldSet.has("vector_of_enums")) {
+      t.vectorOfEnums = this.bb!.createScalarList<Color>(
+        this.vectorOfEnums.bind(this),
+        this.vectorOfEnumsLength(),
+      );
+    }
+    if (fieldSet.has("signed_enum")) {
+      t.signedEnum = this.signedEnum();
+    }
+    if (fieldSet.has("testrequirednestedflatbuffer")) {
+      t.testrequirednestedflatbuffer = this.bb!.createScalarList<number>(
+        this.testrequirednestedflatbuffer.bind(this),
+        this.testrequirednestedflatbufferLength(),
+      );
+    }
+    if (fieldSet.has("scalar_key_sorted_tables")) {
+      t.scalarKeySortedTables = this.bb!.createObjList<Stat, StatT>(
+        this.scalarKeySortedTables.bind(this),
+        this.scalarKeySortedTablesLength(),
+      );
+    }
+    if (fieldSet.has("native_inline")) {
+      t.nativeInline =
+        this.nativeInline() !== null ? this.nativeInline()!.unpack() : null;
+    }
+    if (fieldSet.has("long_enum_non_enum_default")) {
+      t.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
+    }
+    if (fieldSet.has("long_enum_normal_default")) {
+      t.longEnumNormalDefault = this.longEnumNormalDefault();
+    }
+    if (fieldSet.has("nan_default")) {
+      t.nanDefault = this.nanDefault();
+    }
+    if (fieldSet.has("inf_default")) {
+      t.infDefault = this.infDefault();
+    }
+    if (fieldSet.has("positive_inf_default")) {
+      t.positiveInfDefault = this.positiveInfDefault();
+    }
+    if (fieldSet.has("infinity_default")) {
+      t.infinityDefault = this.infinityDefault();
+    }
+    if (fieldSet.has("positive_infinity_default")) {
+      t.positiveInfinityDefault = this.positiveInfinityDefault();
+    }
+    if (fieldSet.has("negative_inf_default")) {
+      t.negativeInfDefault = this.negativeInfDefault();
+    }
+    if (fieldSet.has("negative_infinity_default")) {
+      t.negativeInfinityDefault = this.negativeInfinityDefault();
+    }
+    if (fieldSet.has("double_inf_default")) {
+      t.doubleInfDefault = this.doubleInfDefault();
+    }
+    return t;
   }
-  if (fieldSet.has('mana')) {
-    t.mana = this.mana();
-  }
-  if (fieldSet.has('hp')) {
-    t.hp = this.hp();
-  }
-  if (fieldSet.has('name')) {
-    t.name = this.name();
-  }
-  if (fieldSet.has('inventory')) {
-    t.inventory = this.bb!.createScalarList<number>(this.inventory.bind(this), this.inventoryLength());
-  }
-  if (fieldSet.has('color')) {
-    t.color = this.color();
-  }
-  if (fieldSet.has('test_type')) {
-    t.testType = this.testType();
-  }
-  if (fieldSet.has('test')) {
-    t.test = (() => {
-      const temp = unionToAny(this.testType(), this.test.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  }
-  if (fieldSet.has('test4')) {
-    t.test4 = this.bb!.createObjList<Test, TestT>(this.test4.bind(this), this.test4Length());
-  }
-  if (fieldSet.has('testarrayofstring')) {
-    t.testarrayofstring = this.bb!.createScalarList<string>(this.testarrayofstring.bind(this), this.testarrayofstringLength());
-  }
-  if (fieldSet.has('testarrayoftables')) {
-    t.testarrayoftables = this.bb!.createObjList<Monster, MonsterT>(this.testarrayoftables.bind(this), this.testarrayoftablesLength());
-  }
-  if (fieldSet.has('enemy')) {
-    t.enemy = (this.enemy() !== null ? this.enemy()!.unpack() : null);
-  }
-  if (fieldSet.has('testnestedflatbuffer')) {
-    t.testnestedflatbuffer = this.bb!.createScalarList<number>(this.testnestedflatbuffer.bind(this), this.testnestedflatbufferLength());
-  }
-  if (fieldSet.has('testempty')) {
-    t.testempty = (this.testempty() !== null ? this.testempty()!.unpack() : null);
-  }
-  if (fieldSet.has('testbool')) {
-    t.testbool = this.testbool();
-  }
-  if (fieldSet.has('testhashs32_fnv1')) {
-    t.testhashs32Fnv1 = this.testhashs32Fnv1();
-  }
-  if (fieldSet.has('testhashu32_fnv1')) {
-    t.testhashu32Fnv1 = this.testhashu32Fnv1();
-  }
-  if (fieldSet.has('testhashs64_fnv1')) {
-    t.testhashs64Fnv1 = this.testhashs64Fnv1();
-  }
-  if (fieldSet.has('testhashu64_fnv1')) {
-    t.testhashu64Fnv1 = this.testhashu64Fnv1();
-  }
-  if (fieldSet.has('testhashs32_fnv1a')) {
-    t.testhashs32Fnv1a = this.testhashs32Fnv1a();
-  }
-  if (fieldSet.has('testhashu32_fnv1a')) {
-    t.testhashu32Fnv1a = this.testhashu32Fnv1a();
-  }
-  if (fieldSet.has('testhashs64_fnv1a')) {
-    t.testhashs64Fnv1a = this.testhashs64Fnv1a();
-  }
-  if (fieldSet.has('testhashu64_fnv1a')) {
-    t.testhashu64Fnv1a = this.testhashu64Fnv1a();
-  }
-  if (fieldSet.has('testarrayofbools')) {
-    t.testarrayofbools = this.bb!.createScalarList<boolean>(this.testarrayofbools.bind(this), this.testarrayofboolsLength());
-  }
-  if (fieldSet.has('testf')) {
-    t.testf = this.testf();
-  }
-  if (fieldSet.has('testf2')) {
-    t.testf2 = this.testf2();
-  }
-  if (fieldSet.has('testf3')) {
-    t.testf3 = this.testf3();
-  }
-  if (fieldSet.has('testarrayofstring2')) {
-    t.testarrayofstring2 = this.bb!.createScalarList<string>(this.testarrayofstring2.bind(this), this.testarrayofstring2Length());
-  }
-  if (fieldSet.has('testarrayofsortedstruct')) {
-    t.testarrayofsortedstruct = this.bb!.createObjList<Ability, AbilityT>(this.testarrayofsortedstruct.bind(this), this.testarrayofsortedstructLength());
-  }
-  if (fieldSet.has('flex')) {
-    t.flex = this.bb!.createScalarList<number>(this.flex.bind(this), this.flexLength());
-  }
-  if (fieldSet.has('test5')) {
-    t.test5 = this.bb!.createObjList<Test, TestT>(this.test5.bind(this), this.test5Length());
-  }
-  if (fieldSet.has('vector_of_longs')) {
-    t.vectorOfLongs = this.bb!.createScalarList<bigint>(this.vectorOfLongs.bind(this), this.vectorOfLongsLength());
-  }
-  if (fieldSet.has('vector_of_doubles')) {
-    t.vectorOfDoubles = this.bb!.createScalarList<number>(this.vectorOfDoubles.bind(this), this.vectorOfDoublesLength());
-  }
-  if (fieldSet.has('parent_namespace_test')) {
-    t.parentNamespaceTest = (this.parentNamespaceTest() !== null ? this.parentNamespaceTest()!.unpack() : null);
-  }
-  if (fieldSet.has('vector_of_referrables')) {
-    t.vectorOfReferrables = this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfReferrables.bind(this), this.vectorOfReferrablesLength());
-  }
-  if (fieldSet.has('single_weak_reference')) {
-    t.singleWeakReference = this.singleWeakReference();
-  }
-  if (fieldSet.has('vector_of_weak_references')) {
-    t.vectorOfWeakReferences = this.bb!.createScalarList<bigint>(this.vectorOfWeakReferences.bind(this), this.vectorOfWeakReferencesLength());
-  }
-  if (fieldSet.has('vector_of_strong_referrables')) {
-    t.vectorOfStrongReferrables = this.bb!.createObjList<Referrable, ReferrableT>(this.vectorOfStrongReferrables.bind(this), this.vectorOfStrongReferrablesLength());
-  }
-  if (fieldSet.has('co_owning_reference')) {
-    t.coOwningReference = this.coOwningReference();
-  }
-  if (fieldSet.has('vector_of_co_owning_references')) {
-    t.vectorOfCoOwningReferences = this.bb!.createScalarList<bigint>(this.vectorOfCoOwningReferences.bind(this), this.vectorOfCoOwningReferencesLength());
-  }
-  if (fieldSet.has('non_owning_reference')) {
-    t.nonOwningReference = this.nonOwningReference();
-  }
-  if (fieldSet.has('vector_of_non_owning_references')) {
-    t.vectorOfNonOwningReferences = this.bb!.createScalarList<bigint>(this.vectorOfNonOwningReferences.bind(this), this.vectorOfNonOwningReferencesLength());
-  }
-  if (fieldSet.has('any_unique_type')) {
-    t.anyUniqueType = this.anyUniqueType();
-  }
-  if (fieldSet.has('any_unique')) {
-    t.anyUnique = (() => {
-      const temp = unionToAnyUniqueAliases(this.anyUniqueType(), this.anyUnique.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  }
-  if (fieldSet.has('any_ambiguous_type')) {
-    t.anyAmbiguousType = this.anyAmbiguousType();
-  }
-  if (fieldSet.has('any_ambiguous')) {
-    t.anyAmbiguous = (() => {
-      const temp = unionToAnyAmbiguousAliases(this.anyAmbiguousType(), this.anyAmbiguous.bind(this));
-      if(temp === null) { return null; }
-      return temp.unpack()
-  })();
-  }
-  if (fieldSet.has('vector_of_enums')) {
-    t.vectorOfEnums = this.bb!.createScalarList<Color>(this.vectorOfEnums.bind(this), this.vectorOfEnumsLength());
-  }
-  if (fieldSet.has('signed_enum')) {
-    t.signedEnum = this.signedEnum();
-  }
-  if (fieldSet.has('testrequirednestedflatbuffer')) {
-    t.testrequirednestedflatbuffer = this.bb!.createScalarList<number>(this.testrequirednestedflatbuffer.bind(this), this.testrequirednestedflatbufferLength());
-  }
-  if (fieldSet.has('scalar_key_sorted_tables')) {
-    t.scalarKeySortedTables = this.bb!.createObjList<Stat, StatT>(this.scalarKeySortedTables.bind(this), this.scalarKeySortedTablesLength());
-  }
-  if (fieldSet.has('native_inline')) {
-    t.nativeInline = (this.nativeInline() !== null ? this.nativeInline()!.unpack() : null);
-  }
-  if (fieldSet.has('long_enum_non_enum_default')) {
-    t.longEnumNonEnumDefault = this.longEnumNonEnumDefault();
-  }
-  if (fieldSet.has('long_enum_normal_default')) {
-    t.longEnumNormalDefault = this.longEnumNormalDefault();
-  }
-  if (fieldSet.has('nan_default')) {
-    t.nanDefault = this.nanDefault();
-  }
-  if (fieldSet.has('inf_default')) {
-    t.infDefault = this.infDefault();
-  }
-  if (fieldSet.has('positive_inf_default')) {
-    t.positiveInfDefault = this.positiveInfDefault();
-  }
-  if (fieldSet.has('infinity_default')) {
-    t.infinityDefault = this.infinityDefault();
-  }
-  if (fieldSet.has('positive_infinity_default')) {
-    t.positiveInfinityDefault = this.positiveInfinityDefault();
-  }
-  if (fieldSet.has('negative_inf_default')) {
-    t.negativeInfDefault = this.negativeInfDefault();
-  }
-  if (fieldSet.has('negative_infinity_default')) {
-    t.negativeInfinityDefault = this.negativeInfinityDefault();
-  }
-  if (fieldSet.has('double_inf_default')) {
-    t.doubleInfDefault = this.doubleInfDefault();
-  }
-  return t;
-}
 }
 
 export class MonsterT implements flatbuffers.IGeneratedObject {
-constructor(
-  public pos: Vec3T|null = null,
-  public mana: number = 150,
-  public hp: number = 100,
-  public name: string|Uint8Array|null = null,
-  public inventory: (number)[] = [],
-  public color: Color = Color.Blue,
-  public testType: Any = Any.NONE,
-  public test: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
-  public test4: (TestT)[] = [],
-  public testarrayofstring: (string)[] = [],
-  public testarrayoftables: (MonsterT)[] = [],
-  public enemy: MonsterT|null = null,
-  public testnestedflatbuffer: (number)[] = [],
-  public testempty: StatT|null = null,
-  public testbool: boolean = false,
-  public testhashs32Fnv1: number = 0,
-  public testhashu32Fnv1: number = 0,
-  public testhashs64Fnv1: bigint = BigInt('0'),
-  public testhashu64Fnv1: bigint = BigInt('0'),
-  public testhashs32Fnv1a: number = 0,
-  public testhashu32Fnv1a: number = 0,
-  public testhashs64Fnv1a: bigint = BigInt('0'),
-  public testhashu64Fnv1a: bigint = BigInt('0'),
-  public testarrayofbools: (boolean)[] = [],
-  public testf: number = 3.14159,
-  public testf2: number = 3.0,
-  public testf3: number = 0.0,
-  public testarrayofstring2: (string)[] = [],
-  public testarrayofsortedstruct: (AbilityT)[] = [],
-  public flex: (number)[] = [],
-  public test5: (TestT)[] = [],
-  public vectorOfLongs: (bigint)[] = [],
-  public vectorOfDoubles: (number)[] = [],
-  public parentNamespaceTest: InParentNamespaceT|null = null,
-  public vectorOfReferrables: (ReferrableT)[] = [],
-  public singleWeakReference: bigint = BigInt('0'),
-  public vectorOfWeakReferences: (bigint)[] = [],
-  public vectorOfStrongReferrables: (ReferrableT)[] = [],
-  public coOwningReference: bigint = BigInt('0'),
-  public vectorOfCoOwningReferences: (bigint)[] = [],
-  public nonOwningReference: bigint = BigInt('0'),
-  public vectorOfNonOwningReferences: (bigint)[] = [],
-  public anyUniqueType: AnyUniqueAliases = AnyUniqueAliases.NONE,
-  public anyUnique: MonsterT|MyGame_Example2_MonsterT|TestSimpleTableWithEnumT|null = null,
-  public anyAmbiguousType: AnyAmbiguousAliases = AnyAmbiguousAliases.NONE,
-  public anyAmbiguous: MonsterT|null = null,
-  public vectorOfEnums: (Color)[] = [],
-  public signedEnum: Race = Race.None,
-  public testrequirednestedflatbuffer: (number)[] = [],
-  public scalarKeySortedTables: (StatT)[] = [],
-  public nativeInline: TestT|null = null,
-  public longEnumNonEnumDefault: bigint = BigInt('0'),
-  public longEnumNormalDefault: bigint = BigInt('2'),
-  public nanDefault: number = NaN,
-  public infDefault: number = Infinity,
-  public positiveInfDefault: number = Infinity,
-  public infinityDefault: number = Infinity,
-  public positiveInfinityDefault: number = Infinity,
-  public negativeInfDefault: number = -Infinity,
-  public negativeInfinityDefault: number = -Infinity,
-  public doubleInfDefault: number = Infinity
-){}
+  constructor(
+    public pos: Vec3T | null = null,
+    public mana: number = 150,
+    public hp: number = 100,
+    public name: string | Uint8Array | null = null,
+    public inventory: number[] = [],
+    public color: Color = Color.Blue,
+    public testType: Any = Any.NONE,
+    public test:
+      | MonsterT
+      | MyGame_Example2_MonsterT
+      | TestSimpleTableWithEnumT
+      | null = null,
+    public test4: TestT[] = [],
+    public testarrayofstring: string[] = [],
+    public testarrayoftables: MonsterT[] = [],
+    public enemy: MonsterT | null = null,
+    public testnestedflatbuffer: number[] = [],
+    public testempty: StatT | null = null,
+    public testbool: boolean = false,
+    public testhashs32Fnv1: number = 0,
+    public testhashu32Fnv1: number = 0,
+    public testhashs64Fnv1: bigint = BigInt("0"),
+    public testhashu64Fnv1: bigint = BigInt("0"),
+    public testhashs32Fnv1a: number = 0,
+    public testhashu32Fnv1a: number = 0,
+    public testhashs64Fnv1a: bigint = BigInt("0"),
+    public testhashu64Fnv1a: bigint = BigInt("0"),
+    public testarrayofbools: boolean[] = [],
+    public testf: number = 3.14159,
+    public testf2: number = 3.0,
+    public testf3: number = 0.0,
+    public testarrayofstring2: string[] = [],
+    public testarrayofsortedstruct: AbilityT[] = [],
+    public flex: number[] = [],
+    public test5: TestT[] = [],
+    public vectorOfLongs: bigint[] = [],
+    public vectorOfDoubles: number[] = [],
+    public parentNamespaceTest: InParentNamespaceT | null = null,
+    public vectorOfReferrables: ReferrableT[] = [],
+    public singleWeakReference: bigint = BigInt("0"),
+    public vectorOfWeakReferences: bigint[] = [],
+    public vectorOfStrongReferrables: ReferrableT[] = [],
+    public coOwningReference: bigint = BigInt("0"),
+    public vectorOfCoOwningReferences: bigint[] = [],
+    public nonOwningReference: bigint = BigInt("0"),
+    public vectorOfNonOwningReferences: bigint[] = [],
+    public anyUniqueType: AnyUniqueAliases = AnyUniqueAliases.NONE,
+    public anyUnique:
+      | MonsterT
+      | MyGame_Example2_MonsterT
+      | TestSimpleTableWithEnumT
+      | null = null,
+    public anyAmbiguousType: AnyAmbiguousAliases = AnyAmbiguousAliases.NONE,
+    public anyAmbiguous: MonsterT | null = null,
+    public vectorOfEnums: Color[] = [],
+    public signedEnum: Race = Race.None,
+    public testrequirednestedflatbuffer: number[] = [],
+    public scalarKeySortedTables: StatT[] = [],
+    public nativeInline: TestT | null = null,
+    public longEnumNonEnumDefault: bigint = BigInt("0"),
+    public longEnumNormalDefault: bigint = BigInt("2"),
+    public nanDefault: number = NaN,
+    public infDefault: number = Infinity,
+    public positiveInfDefault: number = Infinity,
+    public infinityDefault: number = Infinity,
+    public positiveInfinityDefault: number = Infinity,
+    public negativeInfDefault: number = -Infinity,
+    public negativeInfinityDefault: number = -Infinity,
+    public doubleInfDefault: number = Infinity,
+  ) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    if (this.name === null || this.name === undefined) {
+      throw new Error('Required field "name" is not set');
+    }
+    const name = this.name !== null ? builder.createString(this.name!) : 0;
+    const inventory = Monster.createInventoryVector(builder, this.inventory);
+    const test = builder.createObjectOffset(this.test);
+    const test4 = builder.createStructOffsetList(
+      this.test4,
+      Monster.startTest4Vector,
+    );
+    const testarrayofstring = Monster.createTestarrayofstringVector(
+      builder,
+      builder.createObjectOffsetList(this.testarrayofstring),
+    );
+    const testarrayoftables = Monster.createTestarrayoftablesVector(
+      builder,
+      builder.createObjectOffsetList(this.testarrayoftables),
+    );
+    const enemy = this.enemy !== null ? this.enemy!.pack(builder) : 0;
+    const testnestedflatbuffer = Monster.createTestnestedflatbufferVector(
+      builder,
+      this.testnestedflatbuffer,
+    );
+    const testempty =
+      this.testempty !== null ? this.testempty!.pack(builder) : 0;
+    const testarrayofbools = Monster.createTestarrayofboolsVector(
+      builder,
+      this.testarrayofbools,
+    );
+    const testarrayofstring2 = Monster.createTestarrayofstring2Vector(
+      builder,
+      builder.createObjectOffsetList(this.testarrayofstring2),
+    );
+    const testarrayofsortedstruct = builder.createStructOffsetList(
+      this.testarrayofsortedstruct,
+      Monster.startTestarrayofsortedstructVector,
+    );
+    const flex = Monster.createFlexVector(builder, this.flex);
+    const test5 = builder.createStructOffsetList(
+      this.test5,
+      Monster.startTest5Vector,
+    );
+    const vectorOfLongs = Monster.createVectorOfLongsVector(
+      builder,
+      this.vectorOfLongs,
+    );
+    const vectorOfDoubles = Monster.createVectorOfDoublesVector(
+      builder,
+      this.vectorOfDoubles,
+    );
+    const parentNamespaceTest =
+      this.parentNamespaceTest !== null
+        ? this.parentNamespaceTest!.pack(builder)
+        : 0;
+    const vectorOfReferrables = Monster.createVectorOfReferrablesVector(
+      builder,
+      builder.createObjectOffsetList(this.vectorOfReferrables),
+    );
+    const vectorOfWeakReferences = Monster.createVectorOfWeakReferencesVector(
+      builder,
+      this.vectorOfWeakReferences,
+    );
+    const vectorOfStrongReferrables =
+      Monster.createVectorOfStrongReferrablesVector(
+        builder,
+        builder.createObjectOffsetList(this.vectorOfStrongReferrables),
+      );
+    const vectorOfCoOwningReferences =
+      Monster.createVectorOfCoOwningReferencesVector(
+        builder,
+        this.vectorOfCoOwningReferences,
+      );
+    const vectorOfNonOwningReferences =
+      Monster.createVectorOfNonOwningReferencesVector(
+        builder,
+        this.vectorOfNonOwningReferences,
+      );
+    const anyUnique = builder.createObjectOffset(this.anyUnique);
+    const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
+    const vectorOfEnums = Monster.createVectorOfEnumsVector(
+      builder,
+      this.vectorOfEnums,
+    );
+    const testrequirednestedflatbuffer =
+      Monster.createTestrequirednestedflatbufferVector(
+        builder,
+        this.testrequirednestedflatbuffer,
+      );
+    const scalarKeySortedTables = Monster.createScalarKeySortedTablesVector(
+      builder,
+      builder.createObjectOffsetList(this.scalarKeySortedTables),
+    );
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  if (this.name === null || this.name === undefined) {
-    throw new Error('Required field "name" is not set');
+    Monster.startMonster(builder);
+    Monster.addPos(builder, this.pos !== null ? this.pos!.pack(builder) : 0);
+    Monster.addMana(builder, this.mana);
+    Monster.addHp(builder, this.hp);
+    Monster.addName(builder, name);
+    Monster.addInventory(builder, inventory);
+    Monster.addColor(builder, this.color);
+    Monster.addTestType(builder, this.testType);
+    Monster.addTest(builder, test);
+    Monster.addTest4(builder, test4);
+    Monster.addTestarrayofstring(builder, testarrayofstring);
+    Monster.addTestarrayoftables(builder, testarrayoftables);
+    Monster.addEnemy(builder, enemy);
+    Monster.addTestnestedflatbuffer(builder, testnestedflatbuffer);
+    Monster.addTestempty(builder, testempty);
+    Monster.addTestbool(builder, this.testbool);
+    Monster.addTesthashs32Fnv1(builder, this.testhashs32Fnv1);
+    Monster.addTesthashu32Fnv1(builder, this.testhashu32Fnv1);
+    Monster.addTesthashs64Fnv1(builder, this.testhashs64Fnv1);
+    Monster.addTesthashu64Fnv1(builder, this.testhashu64Fnv1);
+    Monster.addTesthashs32Fnv1a(builder, this.testhashs32Fnv1a);
+    Monster.addTesthashu32Fnv1a(builder, this.testhashu32Fnv1a);
+    Monster.addTesthashs64Fnv1a(builder, this.testhashs64Fnv1a);
+    Monster.addTesthashu64Fnv1a(builder, this.testhashu64Fnv1a);
+    Monster.addTestarrayofbools(builder, testarrayofbools);
+    Monster.addTestf(builder, this.testf);
+    Monster.addTestf2(builder, this.testf2);
+    Monster.addTestf3(builder, this.testf3);
+    Monster.addTestarrayofstring2(builder, testarrayofstring2);
+    Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstruct);
+    Monster.addFlex(builder, flex);
+    Monster.addTest5(builder, test5);
+    Monster.addVectorOfLongs(builder, vectorOfLongs);
+    Monster.addVectorOfDoubles(builder, vectorOfDoubles);
+    Monster.addParentNamespaceTest(builder, parentNamespaceTest);
+    Monster.addVectorOfReferrables(builder, vectorOfReferrables);
+    Monster.addSingleWeakReference(builder, this.singleWeakReference);
+    Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferences);
+    Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrables);
+    Monster.addCoOwningReference(builder, this.coOwningReference);
+    Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferences);
+    Monster.addNonOwningReference(builder, this.nonOwningReference);
+    Monster.addVectorOfNonOwningReferences(
+      builder,
+      vectorOfNonOwningReferences,
+    );
+    Monster.addAnyUniqueType(builder, this.anyUniqueType);
+    Monster.addAnyUnique(builder, anyUnique);
+    Monster.addAnyAmbiguousType(builder, this.anyAmbiguousType);
+    Monster.addAnyAmbiguous(builder, anyAmbiguous);
+    Monster.addVectorOfEnums(builder, vectorOfEnums);
+    Monster.addSignedEnum(builder, this.signedEnum);
+    Monster.addTestrequirednestedflatbuffer(
+      builder,
+      testrequirednestedflatbuffer,
+    );
+    Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
+    Monster.addNativeInline(
+      builder,
+      this.nativeInline !== null ? this.nativeInline!.pack(builder) : 0,
+    );
+    Monster.addLongEnumNonEnumDefault(builder, this.longEnumNonEnumDefault);
+    Monster.addLongEnumNormalDefault(builder, this.longEnumNormalDefault);
+    Monster.addNanDefault(builder, this.nanDefault);
+    Monster.addInfDefault(builder, this.infDefault);
+    Monster.addPositiveInfDefault(builder, this.positiveInfDefault);
+    Monster.addInfinityDefault(builder, this.infinityDefault);
+    Monster.addPositiveInfinityDefault(builder, this.positiveInfinityDefault);
+    Monster.addNegativeInfDefault(builder, this.negativeInfDefault);
+    Monster.addNegativeInfinityDefault(builder, this.negativeInfinityDefault);
+    Monster.addDoubleInfDefault(builder, this.doubleInfDefault);
+
+    return Monster.endMonster(builder);
   }
-  const name = (this.name !== null ? builder.createString(this.name!) : 0);
-  const inventory = Monster.createInventoryVector(builder, this.inventory);
-  const test = builder.createObjectOffset(this.test);
-  const test4 = builder.createStructOffsetList(this.test4, Monster.startTest4Vector);
-  const testarrayofstring = Monster.createTestarrayofstringVector(builder, builder.createObjectOffsetList(this.testarrayofstring));
-  const testarrayoftables = Monster.createTestarrayoftablesVector(builder, builder.createObjectOffsetList(this.testarrayoftables));
-  const enemy = (this.enemy !== null ? this.enemy!.pack(builder) : 0);
-  const testnestedflatbuffer = Monster.createTestnestedflatbufferVector(builder, this.testnestedflatbuffer);
-  const testempty = (this.testempty !== null ? this.testempty!.pack(builder) : 0);
-  const testarrayofbools = Monster.createTestarrayofboolsVector(builder, this.testarrayofbools);
-  const testarrayofstring2 = Monster.createTestarrayofstring2Vector(builder, builder.createObjectOffsetList(this.testarrayofstring2));
-  const testarrayofsortedstruct = builder.createStructOffsetList(this.testarrayofsortedstruct, Monster.startTestarrayofsortedstructVector);
-  const flex = Monster.createFlexVector(builder, this.flex);
-  const test5 = builder.createStructOffsetList(this.test5, Monster.startTest5Vector);
-  const vectorOfLongs = Monster.createVectorOfLongsVector(builder, this.vectorOfLongs);
-  const vectorOfDoubles = Monster.createVectorOfDoublesVector(builder, this.vectorOfDoubles);
-  const parentNamespaceTest = (this.parentNamespaceTest !== null ? this.parentNamespaceTest!.pack(builder) : 0);
-  const vectorOfReferrables = Monster.createVectorOfReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfReferrables));
-  const vectorOfWeakReferences = Monster.createVectorOfWeakReferencesVector(builder, this.vectorOfWeakReferences);
-  const vectorOfStrongReferrables = Monster.createVectorOfStrongReferrablesVector(builder, builder.createObjectOffsetList(this.vectorOfStrongReferrables));
-  const vectorOfCoOwningReferences = Monster.createVectorOfCoOwningReferencesVector(builder, this.vectorOfCoOwningReferences);
-  const vectorOfNonOwningReferences = Monster.createVectorOfNonOwningReferencesVector(builder, this.vectorOfNonOwningReferences);
-  const anyUnique = builder.createObjectOffset(this.anyUnique);
-  const anyAmbiguous = builder.createObjectOffset(this.anyAmbiguous);
-  const vectorOfEnums = Monster.createVectorOfEnumsVector(builder, this.vectorOfEnums);
-  const testrequirednestedflatbuffer = Monster.createTestrequirednestedflatbufferVector(builder, this.testrequirednestedflatbuffer);
-  const scalarKeySortedTables = Monster.createScalarKeySortedTablesVector(builder, builder.createObjectOffsetList(this.scalarKeySortedTables));
 
-  Monster.startMonster(builder);
-  Monster.addPos(builder, (this.pos !== null ? this.pos!.pack(builder) : 0));
-  Monster.addMana(builder, this.mana);
-  Monster.addHp(builder, this.hp);
-  Monster.addName(builder, name);
-  Monster.addInventory(builder, inventory);
-  Monster.addColor(builder, this.color);
-  Monster.addTestType(builder, this.testType);
-  Monster.addTest(builder, test);
-  Monster.addTest4(builder, test4);
-  Monster.addTestarrayofstring(builder, testarrayofstring);
-  Monster.addTestarrayoftables(builder, testarrayoftables);
-  Monster.addEnemy(builder, enemy);
-  Monster.addTestnestedflatbuffer(builder, testnestedflatbuffer);
-  Monster.addTestempty(builder, testempty);
-  Monster.addTestbool(builder, this.testbool);
-  Monster.addTesthashs32Fnv1(builder, this.testhashs32Fnv1);
-  Monster.addTesthashu32Fnv1(builder, this.testhashu32Fnv1);
-  Monster.addTesthashs64Fnv1(builder, this.testhashs64Fnv1);
-  Monster.addTesthashu64Fnv1(builder, this.testhashu64Fnv1);
-  Monster.addTesthashs32Fnv1a(builder, this.testhashs32Fnv1a);
-  Monster.addTesthashu32Fnv1a(builder, this.testhashu32Fnv1a);
-  Monster.addTesthashs64Fnv1a(builder, this.testhashs64Fnv1a);
-  Monster.addTesthashu64Fnv1a(builder, this.testhashu64Fnv1a);
-  Monster.addTestarrayofbools(builder, testarrayofbools);
-  Monster.addTestf(builder, this.testf);
-  Monster.addTestf2(builder, this.testf2);
-  Monster.addTestf3(builder, this.testf3);
-  Monster.addTestarrayofstring2(builder, testarrayofstring2);
-  Monster.addTestarrayofsortedstruct(builder, testarrayofsortedstruct);
-  Monster.addFlex(builder, flex);
-  Monster.addTest5(builder, test5);
-  Monster.addVectorOfLongs(builder, vectorOfLongs);
-  Monster.addVectorOfDoubles(builder, vectorOfDoubles);
-  Monster.addParentNamespaceTest(builder, parentNamespaceTest);
-  Monster.addVectorOfReferrables(builder, vectorOfReferrables);
-  Monster.addSingleWeakReference(builder, this.singleWeakReference);
-  Monster.addVectorOfWeakReferences(builder, vectorOfWeakReferences);
-  Monster.addVectorOfStrongReferrables(builder, vectorOfStrongReferrables);
-  Monster.addCoOwningReference(builder, this.coOwningReference);
-  Monster.addVectorOfCoOwningReferences(builder, vectorOfCoOwningReferences);
-  Monster.addNonOwningReference(builder, this.nonOwningReference);
-  Monster.addVectorOfNonOwningReferences(builder, vectorOfNonOwningReferences);
-  Monster.addAnyUniqueType(builder, this.anyUniqueType);
-  Monster.addAnyUnique(builder, anyUnique);
-  Monster.addAnyAmbiguousType(builder, this.anyAmbiguousType);
-  Monster.addAnyAmbiguous(builder, anyAmbiguous);
-  Monster.addVectorOfEnums(builder, vectorOfEnums);
-  Monster.addSignedEnum(builder, this.signedEnum);
-  Monster.addTestrequirednestedflatbuffer(builder, testrequirednestedflatbuffer);
-  Monster.addScalarKeySortedTables(builder, scalarKeySortedTables);
-  Monster.addNativeInline(builder, (this.nativeInline !== null ? this.nativeInline!.pack(builder) : 0));
-  Monster.addLongEnumNonEnumDefault(builder, this.longEnumNonEnumDefault);
-  Monster.addLongEnumNormalDefault(builder, this.longEnumNormalDefault);
-  Monster.addNanDefault(builder, this.nanDefault);
-  Monster.addInfDefault(builder, this.infDefault);
-  Monster.addPositiveInfDefault(builder, this.positiveInfDefault);
-  Monster.addInfinityDefault(builder, this.infinityDefault);
-  Monster.addPositiveInfinityDefault(builder, this.positiveInfinityDefault);
-  Monster.addNegativeInfDefault(builder, this.negativeInfDefault);
-  Monster.addNegativeInfinityDefault(builder, this.negativeInfinityDefault);
-  Monster.addDoubleInfDefault(builder, this.doubleInfDefault);
-
-  return Monster.endMonster(builder);
-}
-
-clone(): MonsterT {
-  const obj = new MonsterT();
-  obj.pos = this.pos !== null ? this.pos!.clone() : null;
-  obj.mana = this.mana;
-  obj.hp = this.hp;
-  obj.name = this.name;
-  obj.inventory = [...this.inventory];
-  obj.color = this.color;
-  obj.testType = this.testType;
-  obj.test = this.test !== null && typeof (this.test as any).clone === 'function' ? (this.test as any).clone() : this.test;
-  obj.test4 = this.test4.map(e => e.clone());
-  obj.testarrayofstring = [...this.testarrayofstring];
-  obj.testarrayoftables = this.testarrayoftables.map(e => e.clone());
-  obj.enemy = this.enemy !== null ? this.enemy!.clone() : null;
-  obj.testnestedflatbuffer = [...this.testnestedflatbuffer];
-  obj.testempty = this.testempty !== null ? this.testempty!.clone() : null;
-  obj.testbool = this.testbool;
-  obj.testhashs32Fnv1 = this.testhashs32Fnv1;
-  obj.testhashu32Fnv1 = this.testhashu32Fnv1;
-  obj.testhashs64Fnv1 = this.testhashs64Fnv1;
-  obj.testhashu64Fnv1 = this.testhashu64Fnv1;
-  obj.testhashs32Fnv1a = this.testhashs32Fnv1a;
-  obj.testhashu32Fnv1a = this.testhashu32Fnv1a;
-  obj.testhashs64Fnv1a = this.testhashs64Fnv1a;
-  obj.testhashu64Fnv1a = this.testhashu64Fnv1a;
-  obj.testarrayofbools = [...this.testarrayofbools];
-  obj.testf = this.testf;
-  obj.testf2 = this.testf2;
-  obj.testf3 = this.testf3;
-  obj.testarrayofstring2 = [...this.testarrayofstring2];
-  obj.testarrayofsortedstruct = this.testarrayofsortedstruct.map(e => e.clone());
-  obj.flex = [...this.flex];
-  obj.test5 = this.test5.map(e => e.clone());
-  obj.vectorOfLongs = [...this.vectorOfLongs];
-  obj.vectorOfDoubles = [...this.vectorOfDoubles];
-  obj.parentNamespaceTest = this.parentNamespaceTest !== null ? this.parentNamespaceTest!.clone() : null;
-  obj.vectorOfReferrables = this.vectorOfReferrables.map(e => e.clone());
-  obj.singleWeakReference = this.singleWeakReference;
-  obj.vectorOfWeakReferences = [...this.vectorOfWeakReferences];
-  obj.vectorOfStrongReferrables = this.vectorOfStrongReferrables.map(e => e.clone());
-  obj.coOwningReference = this.coOwningReference;
-  obj.vectorOfCoOwningReferences = [...this.vectorOfCoOwningReferences];
-  obj.nonOwningReference = this.nonOwningReference;
-  obj.vectorOfNonOwningReferences = [...this.vectorOfNonOwningReferences];
-  obj.anyUniqueType = this.anyUniqueType;
-  obj.anyUnique = this.anyUnique !== null && typeof (this.anyUnique as any).clone === 'function' ? (this.anyUnique as any).clone() : this.anyUnique;
-  obj.anyAmbiguousType = this.anyAmbiguousType;
-  obj.anyAmbiguous = this.anyAmbiguous !== null && typeof (this.anyAmbiguous as any).clone === 'function' ? (this.anyAmbiguous as any).clone() : this.anyAmbiguous;
-  obj.vectorOfEnums = [...this.vectorOfEnums];
-  obj.signedEnum = this.signedEnum;
-  obj.testrequirednestedflatbuffer = [...this.testrequirednestedflatbuffer];
-  obj.scalarKeySortedTables = this.scalarKeySortedTables.map(e => e.clone());
-  obj.nativeInline = this.nativeInline !== null ? this.nativeInline!.clone() : null;
-  obj.longEnumNonEnumDefault = this.longEnumNonEnumDefault;
-  obj.longEnumNormalDefault = this.longEnumNormalDefault;
-  obj.nanDefault = this.nanDefault;
-  obj.infDefault = this.infDefault;
-  obj.positiveInfDefault = this.positiveInfDefault;
-  obj.infinityDefault = this.infinityDefault;
-  obj.positiveInfinityDefault = this.positiveInfinityDefault;
-  obj.negativeInfDefault = this.negativeInfDefault;
-  obj.negativeInfinityDefault = this.negativeInfinityDefault;
-  obj.doubleInfDefault = this.doubleInfDefault;
-  return obj;
-}
-
-equals(other: MonsterT): boolean {
-  if (this.pos !== null && other.pos !== null) {
-    if (!this.pos!.equals(other.pos!)) return false;
-  } else if (this.pos !== other.pos) return false;
-  if (this.mana !== other.mana) return false;
-  if (this.hp !== other.hp) return false;
-  if (this.name !== other.name) return false;
-  if (this.inventory.length !== other.inventory.length) return false;
-  for (let i = 0; i < this.inventory.length; i++) {
-    if (this.inventory[i] !== other.inventory[i]) return false;
+  clone(): MonsterT {
+    const obj = new MonsterT();
+    obj.pos = this.pos !== null ? this.pos!.clone() : null;
+    obj.mana = this.mana;
+    obj.hp = this.hp;
+    obj.name = this.name;
+    obj.inventory = [...this.inventory];
+    obj.color = this.color;
+    obj.testType = this.testType;
+    obj.test =
+      this.test !== null && typeof (this.test as any).clone === "function"
+        ? (this.test as any).clone()
+        : this.test;
+    obj.test4 = this.test4.map((e) => e.clone());
+    obj.testarrayofstring = [...this.testarrayofstring];
+    obj.testarrayoftables = this.testarrayoftables.map((e) => e.clone());
+    obj.enemy = this.enemy !== null ? this.enemy!.clone() : null;
+    obj.testnestedflatbuffer = [...this.testnestedflatbuffer];
+    obj.testempty = this.testempty !== null ? this.testempty!.clone() : null;
+    obj.testbool = this.testbool;
+    obj.testhashs32Fnv1 = this.testhashs32Fnv1;
+    obj.testhashu32Fnv1 = this.testhashu32Fnv1;
+    obj.testhashs64Fnv1 = this.testhashs64Fnv1;
+    obj.testhashu64Fnv1 = this.testhashu64Fnv1;
+    obj.testhashs32Fnv1a = this.testhashs32Fnv1a;
+    obj.testhashu32Fnv1a = this.testhashu32Fnv1a;
+    obj.testhashs64Fnv1a = this.testhashs64Fnv1a;
+    obj.testhashu64Fnv1a = this.testhashu64Fnv1a;
+    obj.testarrayofbools = [...this.testarrayofbools];
+    obj.testf = this.testf;
+    obj.testf2 = this.testf2;
+    obj.testf3 = this.testf3;
+    obj.testarrayofstring2 = [...this.testarrayofstring2];
+    obj.testarrayofsortedstruct = this.testarrayofsortedstruct.map((e) =>
+      e.clone(),
+    );
+    obj.flex = [...this.flex];
+    obj.test5 = this.test5.map((e) => e.clone());
+    obj.vectorOfLongs = [...this.vectorOfLongs];
+    obj.vectorOfDoubles = [...this.vectorOfDoubles];
+    obj.parentNamespaceTest =
+      this.parentNamespaceTest !== null
+        ? this.parentNamespaceTest!.clone()
+        : null;
+    obj.vectorOfReferrables = this.vectorOfReferrables.map((e) => e.clone());
+    obj.singleWeakReference = this.singleWeakReference;
+    obj.vectorOfWeakReferences = [...this.vectorOfWeakReferences];
+    obj.vectorOfStrongReferrables = this.vectorOfStrongReferrables.map((e) =>
+      e.clone(),
+    );
+    obj.coOwningReference = this.coOwningReference;
+    obj.vectorOfCoOwningReferences = [...this.vectorOfCoOwningReferences];
+    obj.nonOwningReference = this.nonOwningReference;
+    obj.vectorOfNonOwningReferences = [...this.vectorOfNonOwningReferences];
+    obj.anyUniqueType = this.anyUniqueType;
+    obj.anyUnique =
+      this.anyUnique !== null &&
+      typeof (this.anyUnique as any).clone === "function"
+        ? (this.anyUnique as any).clone()
+        : this.anyUnique;
+    obj.anyAmbiguousType = this.anyAmbiguousType;
+    obj.anyAmbiguous =
+      this.anyAmbiguous !== null &&
+      typeof (this.anyAmbiguous as any).clone === "function"
+        ? (this.anyAmbiguous as any).clone()
+        : this.anyAmbiguous;
+    obj.vectorOfEnums = [...this.vectorOfEnums];
+    obj.signedEnum = this.signedEnum;
+    obj.testrequirednestedflatbuffer = [...this.testrequirednestedflatbuffer];
+    obj.scalarKeySortedTables = this.scalarKeySortedTables.map((e) =>
+      e.clone(),
+    );
+    obj.nativeInline =
+      this.nativeInline !== null ? this.nativeInline!.clone() : null;
+    obj.longEnumNonEnumDefault = this.longEnumNonEnumDefault;
+    obj.longEnumNormalDefault = this.longEnumNormalDefault;
+    obj.nanDefault = this.nanDefault;
+    obj.infDefault = this.infDefault;
+    obj.positiveInfDefault = this.positiveInfDefault;
+    obj.infinityDefault = this.infinityDefault;
+    obj.positiveInfinityDefault = this.positiveInfinityDefault;
+    obj.negativeInfDefault = this.negativeInfDefault;
+    obj.negativeInfinityDefault = this.negativeInfinityDefault;
+    obj.doubleInfDefault = this.doubleInfDefault;
+    return obj;
   }
-  if (this.color !== other.color) return false;
-  if (this.testType !== other.testType) return false;
-  if (this.test !== null && other.test !== null) {
-    if (typeof (this.test as any).equals === 'function') {
-      if (!(this.test as any).equals(other.test)) return false;
+
+  equals(other: MonsterT): boolean {
+    if (this.pos !== null && other.pos !== null) {
+      if (!this.pos!.equals(other.pos!)) return false;
+    } else if (this.pos !== other.pos) return false;
+    if (this.mana !== other.mana) return false;
+    if (this.hp !== other.hp) return false;
+    if (this.name !== other.name) return false;
+    if (this.inventory.length !== other.inventory.length) return false;
+    for (let i = 0; i < this.inventory.length; i++) {
+      if (this.inventory[i] !== other.inventory[i]) return false;
+    }
+    if (this.color !== other.color) return false;
+    if (this.testType !== other.testType) return false;
+    if (this.test !== null && other.test !== null) {
+      if (typeof (this.test as any).equals === "function") {
+        if (!(this.test as any).equals(other.test)) return false;
+      } else if (this.test !== other.test) return false;
     } else if (this.test !== other.test) return false;
-  } else if (this.test !== other.test) return false;
-  if (this.test4.length !== other.test4.length) return false;
-  for (let i = 0; i < this.test4.length; i++) {
-    const a = this.test4[i]; const b = other.test4[i];
-    if (a !== null && b !== null) {
-      if (!a.equals(b)) return false;
-    } else if (a !== b) return false;
-  }
-  if (this.testarrayofstring.length !== other.testarrayofstring.length) return false;
-  for (let i = 0; i < this.testarrayofstring.length; i++) {
-    if (this.testarrayofstring[i] !== other.testarrayofstring[i]) return false;
-  }
-  if (this.testarrayoftables.length !== other.testarrayoftables.length) return false;
-  for (let i = 0; i < this.testarrayoftables.length; i++) {
-    const a = this.testarrayoftables[i]; const b = other.testarrayoftables[i];
-    if (a !== null && b !== null) {
-      if (!a.equals(b)) return false;
-    } else if (a !== b) return false;
-  }
-  if (this.enemy !== null && other.enemy !== null) {
-    if (!this.enemy!.equals(other.enemy!)) return false;
-  } else if (this.enemy !== other.enemy) return false;
-  if (this.testnestedflatbuffer.length !== other.testnestedflatbuffer.length) return false;
-  for (let i = 0; i < this.testnestedflatbuffer.length; i++) {
-    if (this.testnestedflatbuffer[i] !== other.testnestedflatbuffer[i]) return false;
-  }
-  if (this.testempty !== null && other.testempty !== null) {
-    if (!this.testempty!.equals(other.testempty!)) return false;
-  } else if (this.testempty !== other.testempty) return false;
-  if (this.testbool !== other.testbool) return false;
-  if (this.testhashs32Fnv1 !== other.testhashs32Fnv1) return false;
-  if (this.testhashu32Fnv1 !== other.testhashu32Fnv1) return false;
-  if (this.testhashs64Fnv1 !== other.testhashs64Fnv1) return false;
-  if (this.testhashu64Fnv1 !== other.testhashu64Fnv1) return false;
-  if (this.testhashs32Fnv1a !== other.testhashs32Fnv1a) return false;
-  if (this.testhashu32Fnv1a !== other.testhashu32Fnv1a) return false;
-  if (this.testhashs64Fnv1a !== other.testhashs64Fnv1a) return false;
-  if (this.testhashu64Fnv1a !== other.testhashu64Fnv1a) return false;
-  if (this.testarrayofbools.length !== other.testarrayofbools.length) return false;
-  for (let i = 0; i < this.testarrayofbools.length; i++) {
-    if (this.testarrayofbools[i] !== other.testarrayofbools[i]) return false;
-  }
-  if (!Object.is(this.testf, other.testf)) return false;
-  if (!Object.is(this.testf2, other.testf2)) return false;
-  if (!Object.is(this.testf3, other.testf3)) return false;
-  if (this.testarrayofstring2.length !== other.testarrayofstring2.length) return false;
-  for (let i = 0; i < this.testarrayofstring2.length; i++) {
-    if (this.testarrayofstring2[i] !== other.testarrayofstring2[i]) return false;
-  }
-  if (this.testarrayofsortedstruct.length !== other.testarrayofsortedstruct.length) return false;
-  for (let i = 0; i < this.testarrayofsortedstruct.length; i++) {
-    const a = this.testarrayofsortedstruct[i]; const b = other.testarrayofsortedstruct[i];
-    if (a !== null && b !== null) {
-      if (!a.equals(b)) return false;
-    } else if (a !== b) return false;
-  }
-  if (this.flex.length !== other.flex.length) return false;
-  for (let i = 0; i < this.flex.length; i++) {
-    if (this.flex[i] !== other.flex[i]) return false;
-  }
-  if (this.test5.length !== other.test5.length) return false;
-  for (let i = 0; i < this.test5.length; i++) {
-    const a = this.test5[i]; const b = other.test5[i];
-    if (a !== null && b !== null) {
-      if (!a.equals(b)) return false;
-    } else if (a !== b) return false;
-  }
-  if (this.vectorOfLongs.length !== other.vectorOfLongs.length) return false;
-  for (let i = 0; i < this.vectorOfLongs.length; i++) {
-    if (this.vectorOfLongs[i] !== other.vectorOfLongs[i]) return false;
-  }
-  if (this.vectorOfDoubles.length !== other.vectorOfDoubles.length) return false;
-  for (let i = 0; i < this.vectorOfDoubles.length; i++) {
-    if (this.vectorOfDoubles[i] !== other.vectorOfDoubles[i]) return false;
-  }
-  if (this.parentNamespaceTest !== null && other.parentNamespaceTest !== null) {
-    if (!this.parentNamespaceTest!.equals(other.parentNamespaceTest!)) return false;
-  } else if (this.parentNamespaceTest !== other.parentNamespaceTest) return false;
-  if (this.vectorOfReferrables.length !== other.vectorOfReferrables.length) return false;
-  for (let i = 0; i < this.vectorOfReferrables.length; i++) {
-    const a = this.vectorOfReferrables[i]; const b = other.vectorOfReferrables[i];
-    if (a !== null && b !== null) {
-      if (!a.equals(b)) return false;
-    } else if (a !== b) return false;
-  }
-  if (this.singleWeakReference !== other.singleWeakReference) return false;
-  if (this.vectorOfWeakReferences.length !== other.vectorOfWeakReferences.length) return false;
-  for (let i = 0; i < this.vectorOfWeakReferences.length; i++) {
-    if (this.vectorOfWeakReferences[i] !== other.vectorOfWeakReferences[i]) return false;
-  }
-  if (this.vectorOfStrongReferrables.length !== other.vectorOfStrongReferrables.length) return false;
-  for (let i = 0; i < this.vectorOfStrongReferrables.length; i++) {
-    const a = this.vectorOfStrongReferrables[i]; const b = other.vectorOfStrongReferrables[i];
-    if (a !== null && b !== null) {
-      if (!a.equals(b)) return false;
-    } else if (a !== b) return false;
-  }
-  if (this.coOwningReference !== other.coOwningReference) return false;
-  if (this.vectorOfCoOwningReferences.length !== other.vectorOfCoOwningReferences.length) return false;
-  for (let i = 0; i < this.vectorOfCoOwningReferences.length; i++) {
-    if (this.vectorOfCoOwningReferences[i] !== other.vectorOfCoOwningReferences[i]) return false;
-  }
-  if (this.nonOwningReference !== other.nonOwningReference) return false;
-  if (this.vectorOfNonOwningReferences.length !== other.vectorOfNonOwningReferences.length) return false;
-  for (let i = 0; i < this.vectorOfNonOwningReferences.length; i++) {
-    if (this.vectorOfNonOwningReferences[i] !== other.vectorOfNonOwningReferences[i]) return false;
-  }
-  if (this.anyUniqueType !== other.anyUniqueType) return false;
-  if (this.anyUnique !== null && other.anyUnique !== null) {
-    if (typeof (this.anyUnique as any).equals === 'function') {
-      if (!(this.anyUnique as any).equals(other.anyUnique)) return false;
+    if (this.test4.length !== other.test4.length) return false;
+    for (let i = 0; i < this.test4.length; i++) {
+      const a = this.test4[i];
+      const b = other.test4[i];
+      if (a !== null && b !== null) {
+        if (!a.equals(b)) return false;
+      } else if (a !== b) return false;
+    }
+    if (this.testarrayofstring.length !== other.testarrayofstring.length)
+      return false;
+    for (let i = 0; i < this.testarrayofstring.length; i++) {
+      if (this.testarrayofstring[i] !== other.testarrayofstring[i])
+        return false;
+    }
+    if (this.testarrayoftables.length !== other.testarrayoftables.length)
+      return false;
+    for (let i = 0; i < this.testarrayoftables.length; i++) {
+      const a = this.testarrayoftables[i];
+      const b = other.testarrayoftables[i];
+      if (a !== null && b !== null) {
+        if (!a.equals(b)) return false;
+      } else if (a !== b) return false;
+    }
+    if (this.enemy !== null && other.enemy !== null) {
+      if (!this.enemy!.equals(other.enemy!)) return false;
+    } else if (this.enemy !== other.enemy) return false;
+    if (this.testnestedflatbuffer.length !== other.testnestedflatbuffer.length)
+      return false;
+    for (let i = 0; i < this.testnestedflatbuffer.length; i++) {
+      if (this.testnestedflatbuffer[i] !== other.testnestedflatbuffer[i])
+        return false;
+    }
+    if (this.testempty !== null && other.testempty !== null) {
+      if (!this.testempty!.equals(other.testempty!)) return false;
+    } else if (this.testempty !== other.testempty) return false;
+    if (this.testbool !== other.testbool) return false;
+    if (this.testhashs32Fnv1 !== other.testhashs32Fnv1) return false;
+    if (this.testhashu32Fnv1 !== other.testhashu32Fnv1) return false;
+    if (this.testhashs64Fnv1 !== other.testhashs64Fnv1) return false;
+    if (this.testhashu64Fnv1 !== other.testhashu64Fnv1) return false;
+    if (this.testhashs32Fnv1a !== other.testhashs32Fnv1a) return false;
+    if (this.testhashu32Fnv1a !== other.testhashu32Fnv1a) return false;
+    if (this.testhashs64Fnv1a !== other.testhashs64Fnv1a) return false;
+    if (this.testhashu64Fnv1a !== other.testhashu64Fnv1a) return false;
+    if (this.testarrayofbools.length !== other.testarrayofbools.length)
+      return false;
+    for (let i = 0; i < this.testarrayofbools.length; i++) {
+      if (this.testarrayofbools[i] !== other.testarrayofbools[i]) return false;
+    }
+    if (!Object.is(this.testf, other.testf)) return false;
+    if (!Object.is(this.testf2, other.testf2)) return false;
+    if (!Object.is(this.testf3, other.testf3)) return false;
+    if (this.testarrayofstring2.length !== other.testarrayofstring2.length)
+      return false;
+    for (let i = 0; i < this.testarrayofstring2.length; i++) {
+      if (this.testarrayofstring2[i] !== other.testarrayofstring2[i])
+        return false;
+    }
+    if (
+      this.testarrayofsortedstruct.length !==
+      other.testarrayofsortedstruct.length
+    )
+      return false;
+    for (let i = 0; i < this.testarrayofsortedstruct.length; i++) {
+      const a = this.testarrayofsortedstruct[i];
+      const b = other.testarrayofsortedstruct[i];
+      if (a !== null && b !== null) {
+        if (!a.equals(b)) return false;
+      } else if (a !== b) return false;
+    }
+    if (this.flex.length !== other.flex.length) return false;
+    for (let i = 0; i < this.flex.length; i++) {
+      if (this.flex[i] !== other.flex[i]) return false;
+    }
+    if (this.test5.length !== other.test5.length) return false;
+    for (let i = 0; i < this.test5.length; i++) {
+      const a = this.test5[i];
+      const b = other.test5[i];
+      if (a !== null && b !== null) {
+        if (!a.equals(b)) return false;
+      } else if (a !== b) return false;
+    }
+    if (this.vectorOfLongs.length !== other.vectorOfLongs.length) return false;
+    for (let i = 0; i < this.vectorOfLongs.length; i++) {
+      if (this.vectorOfLongs[i] !== other.vectorOfLongs[i]) return false;
+    }
+    if (this.vectorOfDoubles.length !== other.vectorOfDoubles.length)
+      return false;
+    for (let i = 0; i < this.vectorOfDoubles.length; i++) {
+      if (this.vectorOfDoubles[i] !== other.vectorOfDoubles[i]) return false;
+    }
+    if (
+      this.parentNamespaceTest !== null &&
+      other.parentNamespaceTest !== null
+    ) {
+      if (!this.parentNamespaceTest!.equals(other.parentNamespaceTest!))
+        return false;
+    } else if (this.parentNamespaceTest !== other.parentNamespaceTest)
+      return false;
+    if (this.vectorOfReferrables.length !== other.vectorOfReferrables.length)
+      return false;
+    for (let i = 0; i < this.vectorOfReferrables.length; i++) {
+      const a = this.vectorOfReferrables[i];
+      const b = other.vectorOfReferrables[i];
+      if (a !== null && b !== null) {
+        if (!a.equals(b)) return false;
+      } else if (a !== b) return false;
+    }
+    if (this.singleWeakReference !== other.singleWeakReference) return false;
+    if (
+      this.vectorOfWeakReferences.length !== other.vectorOfWeakReferences.length
+    )
+      return false;
+    for (let i = 0; i < this.vectorOfWeakReferences.length; i++) {
+      if (this.vectorOfWeakReferences[i] !== other.vectorOfWeakReferences[i])
+        return false;
+    }
+    if (
+      this.vectorOfStrongReferrables.length !==
+      other.vectorOfStrongReferrables.length
+    )
+      return false;
+    for (let i = 0; i < this.vectorOfStrongReferrables.length; i++) {
+      const a = this.vectorOfStrongReferrables[i];
+      const b = other.vectorOfStrongReferrables[i];
+      if (a !== null && b !== null) {
+        if (!a.equals(b)) return false;
+      } else if (a !== b) return false;
+    }
+    if (this.coOwningReference !== other.coOwningReference) return false;
+    if (
+      this.vectorOfCoOwningReferences.length !==
+      other.vectorOfCoOwningReferences.length
+    )
+      return false;
+    for (let i = 0; i < this.vectorOfCoOwningReferences.length; i++) {
+      if (
+        this.vectorOfCoOwningReferences[i] !==
+        other.vectorOfCoOwningReferences[i]
+      )
+        return false;
+    }
+    if (this.nonOwningReference !== other.nonOwningReference) return false;
+    if (
+      this.vectorOfNonOwningReferences.length !==
+      other.vectorOfNonOwningReferences.length
+    )
+      return false;
+    for (let i = 0; i < this.vectorOfNonOwningReferences.length; i++) {
+      if (
+        this.vectorOfNonOwningReferences[i] !==
+        other.vectorOfNonOwningReferences[i]
+      )
+        return false;
+    }
+    if (this.anyUniqueType !== other.anyUniqueType) return false;
+    if (this.anyUnique !== null && other.anyUnique !== null) {
+      if (typeof (this.anyUnique as any).equals === "function") {
+        if (!(this.anyUnique as any).equals(other.anyUnique)) return false;
+      } else if (this.anyUnique !== other.anyUnique) return false;
     } else if (this.anyUnique !== other.anyUnique) return false;
-  } else if (this.anyUnique !== other.anyUnique) return false;
-  if (this.anyAmbiguousType !== other.anyAmbiguousType) return false;
-  if (this.anyAmbiguous !== null && other.anyAmbiguous !== null) {
-    if (typeof (this.anyAmbiguous as any).equals === 'function') {
-      if (!(this.anyAmbiguous as any).equals(other.anyAmbiguous)) return false;
+    if (this.anyAmbiguousType !== other.anyAmbiguousType) return false;
+    if (this.anyAmbiguous !== null && other.anyAmbiguous !== null) {
+      if (typeof (this.anyAmbiguous as any).equals === "function") {
+        if (!(this.anyAmbiguous as any).equals(other.anyAmbiguous))
+          return false;
+      } else if (this.anyAmbiguous !== other.anyAmbiguous) return false;
     } else if (this.anyAmbiguous !== other.anyAmbiguous) return false;
-  } else if (this.anyAmbiguous !== other.anyAmbiguous) return false;
-  if (this.vectorOfEnums.length !== other.vectorOfEnums.length) return false;
-  for (let i = 0; i < this.vectorOfEnums.length; i++) {
-    if (this.vectorOfEnums[i] !== other.vectorOfEnums[i]) return false;
+    if (this.vectorOfEnums.length !== other.vectorOfEnums.length) return false;
+    for (let i = 0; i < this.vectorOfEnums.length; i++) {
+      if (this.vectorOfEnums[i] !== other.vectorOfEnums[i]) return false;
+    }
+    if (this.signedEnum !== other.signedEnum) return false;
+    if (
+      this.testrequirednestedflatbuffer.length !==
+      other.testrequirednestedflatbuffer.length
+    )
+      return false;
+    for (let i = 0; i < this.testrequirednestedflatbuffer.length; i++) {
+      if (
+        this.testrequirednestedflatbuffer[i] !==
+        other.testrequirednestedflatbuffer[i]
+      )
+        return false;
+    }
+    if (
+      this.scalarKeySortedTables.length !== other.scalarKeySortedTables.length
+    )
+      return false;
+    for (let i = 0; i < this.scalarKeySortedTables.length; i++) {
+      const a = this.scalarKeySortedTables[i];
+      const b = other.scalarKeySortedTables[i];
+      if (a !== null && b !== null) {
+        if (!a.equals(b)) return false;
+      } else if (a !== b) return false;
+    }
+    if (this.nativeInline !== null && other.nativeInline !== null) {
+      if (!this.nativeInline!.equals(other.nativeInline!)) return false;
+    } else if (this.nativeInline !== other.nativeInline) return false;
+    if (this.longEnumNonEnumDefault !== other.longEnumNonEnumDefault)
+      return false;
+    if (this.longEnumNormalDefault !== other.longEnumNormalDefault)
+      return false;
+    if (!Object.is(this.nanDefault, other.nanDefault)) return false;
+    if (!Object.is(this.infDefault, other.infDefault)) return false;
+    if (!Object.is(this.positiveInfDefault, other.positiveInfDefault))
+      return false;
+    if (!Object.is(this.infinityDefault, other.infinityDefault)) return false;
+    if (!Object.is(this.positiveInfinityDefault, other.positiveInfinityDefault))
+      return false;
+    if (!Object.is(this.negativeInfDefault, other.negativeInfDefault))
+      return false;
+    if (!Object.is(this.negativeInfinityDefault, other.negativeInfinityDefault))
+      return false;
+    if (!Object.is(this.doubleInfDefault, other.doubleInfDefault)) return false;
+    return true;
   }
-  if (this.signedEnum !== other.signedEnum) return false;
-  if (this.testrequirednestedflatbuffer.length !== other.testrequirednestedflatbuffer.length) return false;
-  for (let i = 0; i < this.testrequirednestedflatbuffer.length; i++) {
-    if (this.testrequirednestedflatbuffer[i] !== other.testrequirednestedflatbuffer[i]) return false;
-  }
-  if (this.scalarKeySortedTables.length !== other.scalarKeySortedTables.length) return false;
-  for (let i = 0; i < this.scalarKeySortedTables.length; i++) {
-    const a = this.scalarKeySortedTables[i]; const b = other.scalarKeySortedTables[i];
-    if (a !== null && b !== null) {
-      if (!a.equals(b)) return false;
-    } else if (a !== b) return false;
-  }
-  if (this.nativeInline !== null && other.nativeInline !== null) {
-    if (!this.nativeInline!.equals(other.nativeInline!)) return false;
-  } else if (this.nativeInline !== other.nativeInline) return false;
-  if (this.longEnumNonEnumDefault !== other.longEnumNonEnumDefault) return false;
-  if (this.longEnumNormalDefault !== other.longEnumNormalDefault) return false;
-  if (!Object.is(this.nanDefault, other.nanDefault)) return false;
-  if (!Object.is(this.infDefault, other.infDefault)) return false;
-  if (!Object.is(this.positiveInfDefault, other.positiveInfDefault)) return false;
-  if (!Object.is(this.infinityDefault, other.infinityDefault)) return false;
-  if (!Object.is(this.positiveInfinityDefault, other.positiveInfinityDefault)) return false;
-  if (!Object.is(this.negativeInfDefault, other.negativeInfDefault)) return false;
-  if (!Object.is(this.negativeInfinityDefault, other.negativeInfinityDefault)) return false;
-  if (!Object.is(this.doubleInfDefault, other.doubleInfDefault)) return false;
-  return true;
-}
 }
 
-export function verifyMonster(verifier: flatbuffers.Verifier, tablePos: number): void {
+export function verifyMonster(
+  verifier: flatbuffers.Verifier,
+  tablePos: number,
+): void {
   verifier.checkTable(tablePos);
   try {
     verifier.checkScalarField(tablePos, 4, 32);
@@ -2079,7 +2913,7 @@ export function verifyMonster(verifier: flatbuffers.Verifier, tablePos: number):
         verifier.checkString(pos);
       }
     }
-    verifier.checkRequiredField(tablePos, 10, 'name');
+    verifier.checkRequiredField(tablePos, 10, "name");
     {
       const pos = verifier.checkOffsetField(tablePos, 14);
       if (pos !== 0) {
@@ -2088,20 +2922,29 @@ export function verifyMonster(verifier: flatbuffers.Verifier, tablePos: number):
     }
     verifier.checkScalarField(tablePos, 16, 1);
     verifier.checkScalarField(tablePos, 18, 1);
-    verifier.checkUnionConsistency(tablePos, 18, 20, 'test');
+    verifier.checkUnionConsistency(tablePos, 18, 20, "test");
     {
       const pos = verifier.checkOffsetField(tablePos, 20);
       if (pos !== 0) {
         const uType = verifier.readFieldUint8(tablePos, 18);
         switch (uType) {
           case 1: // Monster
-            { const o = verifier.readInt32(pos); verifyMonster(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyMonster(verifier, pos + o);
+            }
             break;
           case 2: // TestSimpleTableWithEnum
-            { const o = verifier.readInt32(pos); verifyTestSimpleTableWithEnum(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyTestSimpleTableWithEnum(verifier, pos + o);
+            }
             break;
           case 3: // MyGame_Example2_Monster
-            { const o = verifier.readInt32(pos); verifyMyGame_Example2_Monster(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyMyGame_Example2_Monster(verifier, pos + o);
+            }
             break;
         }
       }
@@ -2255,39 +3098,57 @@ export function verifyMonster(verifier: flatbuffers.Verifier, tablePos: number):
       }
     }
     verifier.checkScalarField(tablePos, 90, 1);
-    verifier.checkUnionConsistency(tablePos, 90, 92, 'any_unique');
+    verifier.checkUnionConsistency(tablePos, 90, 92, "any_unique");
     {
       const pos = verifier.checkOffsetField(tablePos, 92);
       if (pos !== 0) {
         const uType = verifier.readFieldUint8(tablePos, 90);
         switch (uType) {
           case 1: // M
-            { const o = verifier.readInt32(pos); verifyMonster(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyMonster(verifier, pos + o);
+            }
             break;
           case 2: // TS
-            { const o = verifier.readInt32(pos); verifyTestSimpleTableWithEnum(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyTestSimpleTableWithEnum(verifier, pos + o);
+            }
             break;
           case 3: // M2
-            { const o = verifier.readInt32(pos); verifyMyGame_Example2_Monster(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyMyGame_Example2_Monster(verifier, pos + o);
+            }
             break;
         }
       }
     }
     verifier.checkScalarField(tablePos, 94, 1);
-    verifier.checkUnionConsistency(tablePos, 94, 96, 'any_ambiguous');
+    verifier.checkUnionConsistency(tablePos, 94, 96, "any_ambiguous");
     {
       const pos = verifier.checkOffsetField(tablePos, 96);
       if (pos !== 0) {
         const uType = verifier.readFieldUint8(tablePos, 94);
         switch (uType) {
           case 1: // M1
-            { const o = verifier.readInt32(pos); verifyMonster(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyMonster(verifier, pos + o);
+            }
             break;
           case 2: // M2
-            { const o = verifier.readInt32(pos); verifyMonster(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyMonster(verifier, pos + o);
+            }
             break;
           case 3: // M3
-            { const o = verifier.readInt32(pos); verifyMonster(verifier, pos + o); }
+            {
+              const o = verifier.readInt32(pos);
+              verifyMonster(verifier, pos + o);
+            }
             break;
         }
       }
@@ -2327,7 +3188,10 @@ export function verifyMonster(verifier: flatbuffers.Verifier, tablePos: number):
   }
 }
 
-export function verifyRootAsMonster(buf: DataView, opts?: flatbuffers.VerifierOptions): void {
+export function verifyRootAsMonster(
+  buf: DataView,
+  opts?: flatbuffers.VerifierOptions,
+): void {
   const verifier = new flatbuffers.Verifier(buf, opts);
   const tablePos = verifier.readUint32(0);
   verifyMonster(verifier, tablePos);

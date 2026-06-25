@@ -1,8 +1,6 @@
-import * as flatbuffers from 'flatbuffers';
-import {Color} from '../../my-game/example/color.js';
-export declare class TestSimpleTableWithEnum
-  implements flatbuffers.IUnpackableObject<TestSimpleTableWithEnumT>
-{
+import * as flatbuffers from "flatbuffers";
+import { Color } from "../../my-game/example/color.js";
+export declare class TestSimpleTableWithEnum implements flatbuffers.IUnpackableObject<TestSimpleTableWithEnumT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): TestSimpleTableWithEnum;

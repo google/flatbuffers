@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -26,7 +26,9 @@ impl<'a> ::flatbuffers::Follow<'a> for Stat<'a> {
 
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+        Self {
+            tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+        }
     }
 }
 
@@ -50,27 +52,30 @@ impl<'a> Stat<'a> {
 
     #[allow(unused_mut)]
     #[must_use]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+    pub fn create<
+        'bldr: 'args,
+        'args: 'mut_bldr,
+        'mut_bldr,
+        A: ::flatbuffers::Allocator + 'bldr,
+    >(
         fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-        args: &'args StatArgs<'args>
+        args: &'args StatArgs<'args>,
     ) -> ::flatbuffers::WIPOffset<Stat<'bldr>> {
         let mut builder = StatBuilder::new(fbb);
         builder.add_val(args.val);
-        if let Some(x) = args.id { builder.add_id(x); }
+        if let Some(x) = args.id {
+            builder.add_id(x);
+        }
         builder.add_count(args.count);
         builder.finish()
     }
 
     #[must_use]
     pub fn unpack(&self) -> StatT {
-      let id = self.id().map(ToString::to_string);
+        let id = self.id().map(ToString::to_string);
         let val = self.val();
         let count = self.count();
-        StatT {
-            id,
-            val,
-            count,
-        }
+        StatT { id, val, count }
     }
 
     #[inline]
@@ -79,7 +84,10 @@ impl<'a> Stat<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<::flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)}
+        unsafe {
+            self.tab
+                .get::<::flatbuffers::ForwardsUOffset<&str>>(Stat::VT_ID, None)
+        }
     }
 
     ///
@@ -91,7 +99,7 @@ impl<'a> Stat<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap()}
+        unsafe { self.tab.get::<i64>(Stat::VT_VAL, Some(0)).unwrap() }
     }
 
     ///
@@ -103,7 +111,7 @@ impl<'a> Stat<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap()}
+        unsafe { self.tab.get::<u16>(Stat::VT_COUNT, Some(0)).unwrap() }
     }
 
     #[inline]
@@ -123,7 +131,8 @@ impl<'a> Stat<'a> {
 impl ::flatbuffers::Verifiable for Stat<'_> {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
             .visit_field::<::flatbuffers::ForwardsUOffset<&str>>("id", Self::VT_ID, false)?
@@ -175,8 +184,9 @@ pub struct StatBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
 
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> StatBuilder<'a, 'b, A> {
     #[inline]
-    pub fn add_id(&mut self, id: ::flatbuffers::WIPOffset<&'b  str>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(Stat::VT_ID, id);
+    pub fn add_id(&mut self, id: ::flatbuffers::WIPOffset<&'b str>) {
+        self.fbb_
+            .push_slot_always::<::flatbuffers::WIPOffset<_>>(Stat::VT_ID, id);
     }
 
     #[inline]
@@ -228,17 +238,11 @@ impl StatT {
     #[must_use]
     pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
         &self,
-        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
     ) -> ::flatbuffers::WIPOffset<Stat<'b>> {
-        let id = self.id.as_ref().map(|x|{
-            fbb.create_string(x)
-        });
+        let id = self.id.as_ref().map(|x| fbb.create_string(x));
         let val = self.val;
         let count = self.count;
-        Stat::create(fbb, &StatArgs{
-            id,
-            val,
-            count,
-        })
+        Stat::create(fbb, &StatArgs { id, val, count })
     }
 }

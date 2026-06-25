@@ -40,7 +40,7 @@ func (v AnyUniqueAliases) String() string {
 }
 
 type AnyUniqueAliasesT struct {
-	Type AnyUniqueAliases
+	Type  AnyUniqueAliases
 	Value interface{}
 }
 

@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -59,7 +59,12 @@ impl<'b> ::flatbuffers::Push for Ability {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const Ability as *const u8, <Self as ::flatbuffers::Push>::size()) };
+        let src = unsafe {
+            ::core::slice::from_raw_parts(
+                self as *const Ability as *const u8,
+                <Self as ::flatbuffers::Push>::size(),
+            )
+        };
         dst.copy_from_slice(src);
     }
 
@@ -72,7 +77,8 @@ impl<'b> ::flatbuffers::Push for Ability {
 impl ::flatbuffers::Verifiable for Ability {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.in_buffer::<Self>(pos)
     }
@@ -83,7 +89,7 @@ impl Serialize for Ability {
     where
         S: Serializer,
     {
-    let mut s = serializer.serialize_struct("Ability", 2)?;
+        let mut s = serializer.serialize_struct("Ability", 2)?;
         s.serialize_field("id", &self.id())?;
         s.serialize_field("distance", &self.distance())?;
         s.end()
@@ -93,10 +99,7 @@ impl Serialize for Ability {
 impl<'a> Ability {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
-    pub fn new(
-        id: u32,
-        distance: u32,
-    ) -> Self {
+    pub fn new(id: u32, distance: u32) -> Self {
         let mut s = Self([0; 8]);
         s.set_id(id);
         s.set_distance(distance);
@@ -110,7 +113,8 @@ impl<'a> Ability {
 
     #[must_use]
     pub fn id(&self) -> u32 {
-        let mut mem = ::core::mem::MaybeUninit::<<u32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<u32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -138,7 +142,6 @@ impl<'a> Ability {
         }
     }
 
-
     #[inline]
     #[must_use]
     pub fn key_compare_less_than(&self, o: &Ability) -> bool {
@@ -153,7 +156,8 @@ impl<'a> Ability {
     }
     #[must_use]
     pub fn distance(&self) -> u32 {
-        let mut mem = ::core::mem::MaybeUninit::<<u32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<u32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -197,19 +201,13 @@ pub struct AbilityT {
 }
 impl Default for AbilityT {
     fn default() -> Self {
-        Self {
-            id: 0,
-            distance: 0,
-        }
+        Self { id: 0, distance: 0 }
     }
 }
 
 impl AbilityT {
     #[must_use]
     pub fn pack(&self) -> Ability {
-        Ability::new(
-            self.id,
-            self.distance,
-        )
+        Ability::new(self.id, self.distance)
     }
 }

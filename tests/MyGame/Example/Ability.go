@@ -7,7 +7,7 @@ import (
 )
 
 type AbilityT struct {
-	Id uint32 `json:"id,omitempty"`
+	Id       uint32 `json:"id,omitempty"`
 	Distance uint32 `json:"distance,omitempty"`
 }
 

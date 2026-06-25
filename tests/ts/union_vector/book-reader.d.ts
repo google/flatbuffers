@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class BookReader
-  implements flatbuffers.IUnpackableObject<BookReaderT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class BookReader implements flatbuffers.IUnpackableObject<BookReaderT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): BookReader;

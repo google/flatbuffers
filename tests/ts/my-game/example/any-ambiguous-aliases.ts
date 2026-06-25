@@ -2,45 +2,54 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import { Monster, MonsterT } from './monster.js';
-
+import { Monster, MonsterT } from "./monster.js";
 
 export enum AnyAmbiguousAliases {
   NONE = 0,
   M1 = 1,
   M2 = 2,
-  M3 = 3
+  M3 = 3,
 }
 
 export function unionToAnyAmbiguousAliases(
   type: AnyAmbiguousAliases,
-  accessor: (obj:Monster) => Monster|null
-): Monster|null {
-  switch(AnyAmbiguousAliases[type]) {
-    case 'NONE': return null; 
-    case 'M1': return accessor(new Monster())! as Monster;
-    case 'M2': return accessor(new Monster())! as Monster;
-    case 'M3': return accessor(new Monster())! as Monster;
-    default: return null;
+  accessor: (obj: Monster) => Monster | null,
+): Monster | null {
+  switch (AnyAmbiguousAliases[type]) {
+    case "NONE":
+      return null;
+    case "M1":
+      return accessor(new Monster())! as Monster;
+    case "M2":
+      return accessor(new Monster())! as Monster;
+    case "M3":
+      return accessor(new Monster())! as Monster;
+    default:
+      return null;
   }
 }
 
 export function unionListToAnyAmbiguousAliases(
-  type: AnyAmbiguousAliases, 
-  accessor: (index: number, obj:Monster) => Monster|null, 
-  index: number
-): Monster|null {
-  switch(AnyAmbiguousAliases[type]) {
-    case 'NONE': return null; 
-    case 'M1': return accessor(index, new Monster())! as Monster;
-    case 'M2': return accessor(index, new Monster())! as Monster;
-    case 'M3': return accessor(index, new Monster())! as Monster;
-    default: return null;
+  type: AnyAmbiguousAliases,
+  accessor: (index: number, obj: Monster) => Monster | null,
+  index: number,
+): Monster | null {
+  switch (AnyAmbiguousAliases[type]) {
+    case "NONE":
+      return null;
+    case "M1":
+      return accessor(index, new Monster())! as Monster;
+    case "M2":
+      return accessor(index, new Monster())! as Monster;
+    case "M3":
+      return accessor(index, new Monster())! as Monster;
+    default:
+      return null;
   }
 }
 
 export type AnyAmbiguousAliasesT =
-  | { type: 'NONE'; value: null }
-  | { type: 'M1'; value: MonsterT }
-  | { type: 'M2'; value: MonsterT }
-  | { type: 'M3'; value: MonsterT };
+  | { type: "NONE"; value: null }
+  | { type: "M1"; value: MonsterT }
+  | { type: "M2"; value: MonsterT }
+  | { type: "M3"; value: MonsterT };

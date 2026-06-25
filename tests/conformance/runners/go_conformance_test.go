@@ -27,8 +27,8 @@ type result struct {
 
 func runConformance(corpusDir string) (map[string]result, error) {
 	opts := &flatbuffers.VerifierOptions{
-		MaxDepth:       64,
-		MaxTables:      1_000_000,
+		MaxDepth:        64,
+		MaxTables:       1_000_000,
 		MaxApparentSize: 1_073_741_824,
 	}
 

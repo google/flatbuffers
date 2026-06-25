@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -26,7 +26,9 @@ impl<'a> ::flatbuffers::Follow<'a> for TableB<'a> {
 
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+        Self {
+            tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+        }
     }
 }
 
@@ -48,23 +50,26 @@ impl<'a> TableB<'a> {
 
     #[allow(unused_mut)]
     #[must_use]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+    pub fn create<
+        'bldr: 'args,
+        'args: 'mut_bldr,
+        'mut_bldr,
+        A: ::flatbuffers::Allocator + 'bldr,
+    >(
         fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-        args: &'args TableBArgs<'args>
+        args: &'args TableBArgs<'args>,
     ) -> ::flatbuffers::WIPOffset<TableB<'bldr>> {
         let mut builder = TableBBuilder::new(fbb);
-        if let Some(x) = args.a { builder.add_a(x); }
+        if let Some(x) = args.a {
+            builder.add_a(x);
+        }
         builder.finish()
     }
 
     #[must_use]
     pub fn unpack(&self) -> TableBT {
-        let a = self.a().map(|x| {
-            Box::new(x.unpack())
-        });
-        TableBT {
-            a,
-        }
+        let a = self.a().map(|x| Box::new(x.unpack()));
+        TableBT { a }
     }
 
     #[inline]
@@ -73,17 +78,25 @@ impl<'a> TableB<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<::flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)}
+        unsafe {
+            self.tab
+                .get::<::flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)
+        }
     }
 }
 
 impl ::flatbuffers::Verifiable for TableB<'_> {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<super::super::TableA>>("a", Self::VT_A, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<super::super::TableA>>(
+                "a",
+                Self::VT_A,
+                false,
+            )?
             .finish();
         Ok(())
     }
@@ -96,9 +109,7 @@ pub struct TableBArgs<'a> {
 impl Default for TableBArgs<'_> {
     #[inline]
     fn default() -> Self {
-        Self {
-            a: None,
-        }
+        Self { a: None }
     }
 }
 
@@ -124,8 +135,9 @@ pub struct TableBBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
 
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableBBuilder<'a, 'b, A> {
     #[inline]
-    pub fn add_a(&mut self, a: ::flatbuffers::WIPOffset<super::super::TableA<'b >>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::super::TableA>>(TableB::VT_A, a);
+    pub fn add_a(&mut self, a: ::flatbuffers::WIPOffset<super::super::TableA<'b>>) {
+        self.fbb_
+            .push_slot_always::<::flatbuffers::WIPOffset<super::super::TableA>>(TableB::VT_A, a);
     }
 
     #[inline]
@@ -163,13 +175,9 @@ impl TableBT {
     #[must_use]
     pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
         &self,
-        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
     ) -> ::flatbuffers::WIPOffset<TableB<'b>> {
-        let a = self.a.as_ref().map(|x|{
-            x.pack(fbb)
-        });
-        TableB::create(fbb, &TableBArgs{
-            a,
-        })
+        let a = self.a.as_ref().map(|x| x.pack(fbb));
+        TableB::create(fbb, &TableBArgs { a })
     }
 }

@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -26,7 +26,9 @@ impl<'a> ::flatbuffers::Follow<'a> for TypeAliases<'a> {
 
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+        Self {
+            tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+        }
     }
 }
 
@@ -59,16 +61,25 @@ impl<'a> TypeAliases<'a> {
 
     #[allow(unused_mut)]
     #[must_use]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+    pub fn create<
+        'bldr: 'args,
+        'args: 'mut_bldr,
+        'mut_bldr,
+        A: ::flatbuffers::Allocator + 'bldr,
+    >(
         fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-        args: &'args TypeAliasesArgs<'args>
+        args: &'args TypeAliasesArgs<'args>,
     ) -> ::flatbuffers::WIPOffset<TypeAliases<'bldr>> {
         let mut builder = TypeAliasesBuilder::new(fbb);
         builder.add_f64_(args.f64_);
         builder.add_u64_(args.u64_);
         builder.add_i64_(args.i64_);
-        if let Some(x) = args.vf64 { builder.add_vf64(x); }
-        if let Some(x) = args.v8 { builder.add_v8(x); }
+        if let Some(x) = args.vf64 {
+            builder.add_vf64(x);
+        }
+        if let Some(x) = args.v8 {
+            builder.add_v8(x);
+        }
         builder.add_f32_(args.f32_);
         builder.add_u32_(args.u32_);
         builder.add_i32_(args.i32_);
@@ -89,14 +100,10 @@ impl<'a> TypeAliases<'a> {
         let u32_ = self.u32_();
         let i64_ = self.i64_();
         let u64_ = self.u64_();
-      let f32_ = self.f32_().into();
-      let f64_ = self.f64_().into();
-        let v8 = self.v8().map(|x| {
-            x.into_iter().collect()
-        });
-        let vf64 = self.vf64().map(|x| {
-            x.into_iter().collect()
-        });
+        let f32_ = self.f32_().into();
+        let f64_ = self.f64_().into();
+        let v8 = self.v8().map(|x| x.into_iter().collect());
+        let vf64 = self.vf64().map(|x| x.into_iter().collect());
         TypeAliasesT {
             i8_,
             u8_,
@@ -122,7 +129,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<i8>(TypeAliases::VT_I8_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<i8>(TypeAliases::VT_I8_, Some(0)).unwrap() }
     }
 
     ///
@@ -134,7 +141,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<u8>(TypeAliases::VT_U8_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<u8>(TypeAliases::VT_U8_, Some(0)).unwrap() }
     }
 
     ///
@@ -146,7 +153,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<i16>(TypeAliases::VT_I16_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<i16>(TypeAliases::VT_I16_, Some(0)).unwrap() }
     }
 
     ///
@@ -158,7 +165,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<u16>(TypeAliases::VT_U16_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<u16>(TypeAliases::VT_U16_, Some(0)).unwrap() }
     }
 
     ///
@@ -170,7 +177,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<i32>(TypeAliases::VT_I32_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<i32>(TypeAliases::VT_I32_, Some(0)).unwrap() }
     }
 
     ///
@@ -182,7 +189,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<u32>(TypeAliases::VT_U32_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<u32>(TypeAliases::VT_U32_, Some(0)).unwrap() }
     }
 
     ///
@@ -194,7 +201,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<i64>(TypeAliases::VT_I64_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<i64>(TypeAliases::VT_I64_, Some(0)).unwrap() }
     }
 
     ///
@@ -206,7 +213,7 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<u64>(TypeAliases::VT_U64_, Some(0)).unwrap()}
+        unsafe { self.tab.get::<u64>(TypeAliases::VT_U64_, Some(0)).unwrap() }
     }
 
     ///
@@ -218,7 +225,11 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<f32>(TypeAliases::VT_F32_, Some(0.0)).unwrap()}
+        unsafe {
+            self.tab
+                .get::<f32>(TypeAliases::VT_F32_, Some(0.0))
+                .unwrap()
+        }
     }
 
     ///
@@ -230,7 +241,11 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<f64>(TypeAliases::VT_F64_, Some(0.0)).unwrap()}
+        unsafe {
+            self.tab
+                .get::<f64>(TypeAliases::VT_F64_, Some(0.0))
+                .unwrap()
+        }
     }
 
     #[inline]
@@ -239,7 +254,13 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, i8>>>(TypeAliases::VT_V8, None)}
+        unsafe {
+            self.tab
+                .get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, i8>>>(
+                    TypeAliases::VT_V8,
+                    None,
+                )
+        }
     }
 
     #[inline]
@@ -248,14 +269,21 @@ impl<'a> TypeAliases<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, f64>>>(TypeAliases::VT_VF64, None)}
+        unsafe {
+            self.tab
+                .get::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'a, f64>>>(
+                    TypeAliases::VT_VF64,
+                    None,
+                )
+        }
     }
 }
 
 impl ::flatbuffers::Verifiable for TypeAliases<'_> {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
             .visit_field::<i8>("i8_", Self::VT_I8_, false)?
@@ -268,8 +296,16 @@ impl ::flatbuffers::Verifiable for TypeAliases<'_> {
             .visit_field::<u64>("u64_", Self::VT_U64_, false)?
             .visit_field::<f32>("f32_", Self::VT_F32_, false)?
             .visit_field::<f64>("f64_", Self::VT_F64_, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, i8>>>("v8", Self::VT_V8, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, f64>>>("vf64", Self::VT_VF64, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, i8>>>(
+                "v8",
+                Self::VT_V8,
+                false,
+            )?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, f64>>>(
+                "vf64",
+                Self::VT_VF64,
+                false,
+            )?
             .finish();
         Ok(())
     }
@@ -397,13 +433,15 @@ impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TypeAliasesBuilder<'a, 'b, A>
     }
 
     #[inline]
-    pub fn add_v8(&mut self, v8: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , i8>>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(TypeAliases::VT_V8, v8);
+    pub fn add_v8(&mut self, v8: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b, i8>>) {
+        self.fbb_
+            .push_slot_always::<::flatbuffers::WIPOffset<_>>(TypeAliases::VT_V8, v8);
     }
 
     #[inline]
-    pub fn add_vf64(&mut self, vf64: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b , f64>>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<_>>(TypeAliases::VT_VF64, vf64);
+    pub fn add_vf64(&mut self, vf64: ::flatbuffers::WIPOffset<::flatbuffers::Vector<'b, f64>>) {
+        self.fbb_
+            .push_slot_always::<::flatbuffers::WIPOffset<_>>(TypeAliases::VT_VF64, vf64);
     }
 
     #[inline]
@@ -463,7 +501,7 @@ impl TypeAliasesT {
     #[must_use]
     pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
         &self,
-        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
     ) -> ::flatbuffers::WIPOffset<TypeAliases<'b>> {
         let i8_ = self.i8_;
         let u8_ = self.u8_;
@@ -473,27 +511,26 @@ impl TypeAliasesT {
         let u32_ = self.u32_;
         let i64_ = self.i64_;
         let u64_ = self.u64_;
-      let f32_ = self.f32_;
-      let f64_ = self.f64_;
-        let v8 = self.v8.as_ref().map(|x|{
-            fbb.create_vector(x)
-        });
-        let vf64 = self.vf64.as_ref().map(|x|{
-            fbb.create_vector(x)
-        });
-        TypeAliases::create(fbb, &TypeAliasesArgs{
-            i8_,
-            u8_,
-            i16_,
-            u16_,
-            i32_,
-            u32_,
-            i64_,
-            u64_,
-            f32_,
-            f64_,
-            v8,
-            vf64,
-        })
+        let f32_ = self.f32_;
+        let f64_ = self.f64_;
+        let v8 = self.v8.as_ref().map(|x| fbb.create_vector(x));
+        let vf64 = self.vf64.as_ref().map(|x| fbb.create_vector(x));
+        TypeAliases::create(
+            fbb,
+            &TypeAliasesArgs {
+                i8_,
+                u8_,
+                i16_,
+                u16_,
+                i32_,
+                u32_,
+                i64_,
+                u64_,
+                f32_,
+                f64_,
+                v8,
+                vf64,
+            },
+        )
     }
 }

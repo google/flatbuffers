@@ -1,5 +1,5 @@
-import {FallingTub} from './falling-tub.js';
-import {HandFan} from './hand-fan.js';
+import { FallingTub } from "./falling-tub.js";
+import { HandFan } from "./hand-fan.js";
 export declare enum Gadget {
   NONE = 0,
   FallingTub = 1,

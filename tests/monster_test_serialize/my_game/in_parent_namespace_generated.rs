@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -26,7 +26,9 @@ impl<'a> ::flatbuffers::Follow<'a> for InParentNamespace<'a> {
 
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+        Self {
+            tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+        }
     }
 }
 
@@ -46,9 +48,14 @@ impl<'a> InParentNamespace<'a> {
 
     #[allow(unused_mut)]
     #[must_use]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+    pub fn create<
+        'bldr: 'args,
+        'args: 'mut_bldr,
+        'mut_bldr,
+        A: ::flatbuffers::Allocator + 'bldr,
+    >(
         fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-        _args: &'args InParentNamespaceArgs
+        _args: &'args InParentNamespaceArgs,
     ) -> ::flatbuffers::WIPOffset<InParentNamespace<'bldr>> {
         let mut builder = InParentNamespaceBuilder::new(fbb);
         builder.finish()
@@ -56,30 +63,27 @@ impl<'a> InParentNamespace<'a> {
 
     #[must_use]
     pub const fn unpack(&self) -> InParentNamespaceT {
-        InParentNamespaceT {
-        }
+        InParentNamespaceT {}
     }
 }
 
 impl ::flatbuffers::Verifiable for InParentNamespace<'_> {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
-        v.visit_table(pos)?
-            .finish();
+        v.visit_table(pos)?.finish();
         Ok(())
     }
 }
 
-pub struct InParentNamespaceArgs {
-}
+pub struct InParentNamespaceArgs {}
 
 impl Default for InParentNamespaceArgs {
     #[inline]
     fn default() -> Self {
-        Self {
-        }
+        Self {}
     }
 }
 
@@ -125,16 +129,14 @@ impl ::core::fmt::Debug for InParentNamespace<'_> {
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Eq, Hash, serde::Serialize, serde::Deserialize)]
-pub struct InParentNamespaceT {
-}
+pub struct InParentNamespaceT {}
 
 impl InParentNamespaceT {
     #[must_use]
     pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
         &self,
-        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
     ) -> ::flatbuffers::WIPOffset<InParentNamespace<'b>> {
-        InParentNamespace::create(fbb, &InParentNamespaceArgs{
-        })
+        InParentNamespace::create(fbb, &InParentNamespaceArgs {})
     }
 }

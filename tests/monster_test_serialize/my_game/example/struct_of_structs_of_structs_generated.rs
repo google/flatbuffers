@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -58,7 +58,12 @@ impl<'b> ::flatbuffers::Push for StructOfStructsOfStructs {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const StructOfStructsOfStructs as *const u8, <Self as ::flatbuffers::Push>::size()) };
+        let src = unsafe {
+            ::core::slice::from_raw_parts(
+                self as *const StructOfStructsOfStructs as *const u8,
+                <Self as ::flatbuffers::Push>::size(),
+            )
+        };
         dst.copy_from_slice(src);
     }
 
@@ -71,7 +76,8 @@ impl<'b> ::flatbuffers::Push for StructOfStructsOfStructs {
 impl ::flatbuffers::Verifiable for StructOfStructsOfStructs {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.in_buffer::<Self>(pos)
     }
@@ -82,7 +88,7 @@ impl Serialize for StructOfStructsOfStructs {
     where
         S: Serializer,
     {
-    let mut s = serializer.serialize_struct("StructOfStructsOfStructs", 1)?;
+        let mut s = serializer.serialize_struct("StructOfStructsOfStructs", 1)?;
         s.serialize_field("a", &self.a())?;
         s.end()
     }
@@ -91,9 +97,7 @@ impl Serialize for StructOfStructsOfStructs {
 impl<'a> StructOfStructsOfStructs {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
-    pub fn new(
-        a: &StructOfStructs,
-    ) -> Self {
+    pub fn new(a: &StructOfStructs) -> Self {
         let mut s = Self([0; 20]);
         s.set_a(a);
         s
@@ -140,8 +144,6 @@ impl Default for StructOfStructsOfStructsT {
 impl StructOfStructsOfStructsT {
     #[must_use]
     pub fn pack(&self) -> StructOfStructsOfStructs {
-        StructOfStructsOfStructs::new(
-            &self.a.pack(),
-        )
+        StructOfStructsOfStructs::new(&self.a.pack())
     }
 }

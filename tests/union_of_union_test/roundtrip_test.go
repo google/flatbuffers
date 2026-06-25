@@ -3,8 +3,8 @@ package union_of_union_test
 import (
 	"testing"
 
-	flatbuffers "union_of_union_test/flatbuffers"
 	"union_of_union_test/Test"
+	flatbuffers "union_of_union_test/flatbuffers"
 )
 
 func TestUnionOfUnionRoundTrip_TableA(t *testing.T) {

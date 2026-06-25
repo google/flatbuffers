@@ -1,12 +1,10 @@
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 /**
  * File specific information.
  * Symbols declared within a file may be recovered by iterating over all
  * symbols and examining the `declaration_file` field.
  */
-export declare class SchemaFile
-  implements flatbuffers.IUnpackableObject<SchemaFileT>
-{
+export declare class SchemaFile implements flatbuffers.IUnpackableObject<SchemaFileT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): SchemaFile;

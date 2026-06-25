@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -59,7 +59,12 @@ impl<'b> ::flatbuffers::Push for Test {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const Test as *const u8, <Self as ::flatbuffers::Push>::size()) };
+        let src = unsafe {
+            ::core::slice::from_raw_parts(
+                self as *const Test as *const u8,
+                <Self as ::flatbuffers::Push>::size(),
+            )
+        };
         dst.copy_from_slice(src);
     }
 
@@ -72,7 +77,8 @@ impl<'b> ::flatbuffers::Push for Test {
 impl ::flatbuffers::Verifiable for Test {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.in_buffer::<Self>(pos)
     }
@@ -83,7 +89,7 @@ impl Serialize for Test {
     where
         S: Serializer,
     {
-    let mut s = serializer.serialize_struct("Test", 2)?;
+        let mut s = serializer.serialize_struct("Test", 2)?;
         s.serialize_field("a", &self.a())?;
         s.serialize_field("b", &self.b())?;
         s.end()
@@ -93,10 +99,7 @@ impl Serialize for Test {
 impl<'a> Test {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
-    pub fn new(
-        a: i16,
-        b: i8,
-    ) -> Self {
+    pub fn new(a: i16, b: i8) -> Self {
         let mut s = Self([0; 4]);
         s.set_a(a);
         s.set_b(b);
@@ -110,7 +113,8 @@ impl<'a> Test {
 
     #[must_use]
     pub fn a(&self) -> i16 {
-        let mut mem = ::core::mem::MaybeUninit::<<i16 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<i16 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -140,7 +144,8 @@ impl<'a> Test {
 
     #[must_use]
     pub fn b(&self) -> i8 {
-        let mut mem = ::core::mem::MaybeUninit::<<i8 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+        let mut mem =
+            ::core::mem::MaybeUninit::<<i8 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
         // Safety:
         // Created from a valid Table for this object
         // Which contains a valid value in this slot
@@ -184,19 +189,13 @@ pub struct TestT {
 }
 impl Default for TestT {
     fn default() -> Self {
-        Self {
-            a: 0,
-            b: 0,
-        }
+        Self { a: 0, b: 0 }
     }
 }
 
 impl TestT {
     #[must_use]
     pub fn pack(&self) -> Test {
-        Test::new(
-            self.a,
-            self.b,
-        )
+        Test::new(self.a, self.b)
     }
 }

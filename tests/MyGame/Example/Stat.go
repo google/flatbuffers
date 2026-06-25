@@ -7,8 +7,8 @@ import (
 )
 
 type StatT struct {
-	Id string `json:"id,omitempty"`
-	Val int64 `json:"val,omitempty"`
+	Id    string `json:"id,omitempty"`
+	Val   int64  `json:"val,omitempty"`
 	Count uint16 `json:"count,omitempty"`
 }
 

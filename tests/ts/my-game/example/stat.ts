@@ -2,176 +2,181 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
-
-
+import * as flatbuffers from "flatbuffers";
 
 export class Stat implements flatbuffers.IUnpackableObject<StatT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Stat {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-static getRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
-  return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getSizePrefixedRootAsStat(bb:flatbuffers.ByteBuffer, obj?:Stat):Stat {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Stat()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-id():string|null
-id(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-id(optionalEncoding?:any):string|Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
-}
-
-val():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_val(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-
-  if (offset === 0) {
-    return false;
+  __init(i: number, bb: flatbuffers.ByteBuffer): Stat {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
   }
 
-  this.bb!.writeInt64(this.bb_pos + offset, value);
-  return true;
-}
-
-count():number {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
-}
-
-mutate_count(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-
-  if (offset === 0) {
-    return false;
+  static getRootAsStat(bb: flatbuffers.ByteBuffer, obj?: Stat): Stat {
+    return (obj || new Stat()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
   }
 
-  this.bb!.writeUint16(this.bb_pos + offset, value);
-  return true;
-}
-
-static getFullyQualifiedName(): "MyGame.Example.Stat" {
-  return 'MyGame.Example.Stat';
-}
-
-static startStat(builder:flatbuffers.Builder) {
-  builder.startObject(3);
-}
-
-static addId(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, idOffset, 0);
-}
-
-static addVal(builder:flatbuffers.Builder, val:bigint) {
-  builder.addFieldInt64(1, val, BigInt('0'));
-}
-
-static addCount(builder:flatbuffers.Builder, count:number) {
-  builder.addFieldInt16(2, count, 0);
-}
-
-static endStat(builder:flatbuffers.Builder):flatbuffers.Offset {
-  const offset = builder.endObject();
-  return offset;
-}
-
-static createStat(builder:flatbuffers.Builder, idOffset:flatbuffers.Offset, val:bigint, count:number):flatbuffers.Offset {
-  Stat.startStat(builder);
-  Stat.addId(builder, idOffset);
-  Stat.addVal(builder, val);
-  Stat.addCount(builder, count);
-  return Stat.endStat(builder);
-}
-
-serialize():Uint8Array {
-  return this.bb!.bytes();
-}
-
-static deserialize(buffer: Uint8Array):Stat {
-  return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer))
-}
-
-unpack(): StatT {
-  return new StatT(
-    this.id(),
-    this.val(),
-    this.count()
-  );
-}
-
-
-unpackTo(_o: StatT): void {
-  _o.id = this.id();
-  _o.val = this.val();
-  _o.count = this.count();
-}
-
-
-
-unpackFields(...fields: string[]): StatT {
-  const t = new StatT();
-  const fieldSet = new Set(fields);
-  if (fieldSet.has('id')) {
-    t.id = this.id();
+  static getSizePrefixedRootAsStat(
+    bb: flatbuffers.ByteBuffer,
+    obj?: Stat,
+  ): Stat {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new Stat()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
   }
-  if (fieldSet.has('val')) {
-    t.val = this.val();
+
+  id(): string | null;
+  id(optionalEncoding: flatbuffers.Encoding): string | Uint8Array | null;
+  id(optionalEncoding?: any): string | Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
+    return offset
+      ? this.bb!.__string(this.bb_pos + offset, optionalEncoding)
+      : null;
   }
-  if (fieldSet.has('count')) {
-    t.count = this.count();
+
+  val(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 6);
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
   }
-  return t;
-}
+
+  mutate_val(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 6);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeInt64(this.bb_pos + offset, value);
+    return true;
+  }
+
+  count(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 8);
+    return offset ? this.bb!.readUint16(this.bb_pos + offset) : 0;
+  }
+
+  mutate_count(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 8);
+
+    if (offset === 0) {
+      return false;
+    }
+
+    this.bb!.writeUint16(this.bb_pos + offset, value);
+    return true;
+  }
+
+  static getFullyQualifiedName(): "MyGame.Example.Stat" {
+    return "MyGame.Example.Stat";
+  }
+
+  static startStat(builder: flatbuffers.Builder) {
+    builder.startObject(3);
+  }
+
+  static addId(builder: flatbuffers.Builder, idOffset: flatbuffers.Offset) {
+    builder.addFieldOffset(0, idOffset, 0);
+  }
+
+  static addVal(builder: flatbuffers.Builder, val: bigint) {
+    builder.addFieldInt64(1, val, BigInt("0"));
+  }
+
+  static addCount(builder: flatbuffers.Builder, count: number) {
+    builder.addFieldInt16(2, count, 0);
+  }
+
+  static endStat(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const offset = builder.endObject();
+    return offset;
+  }
+
+  static createStat(
+    builder: flatbuffers.Builder,
+    idOffset: flatbuffers.Offset,
+    val: bigint,
+    count: number,
+  ): flatbuffers.Offset {
+    Stat.startStat(builder);
+    Stat.addId(builder, idOffset);
+    Stat.addVal(builder, val);
+    Stat.addCount(builder, count);
+    return Stat.endStat(builder);
+  }
+
+  serialize(): Uint8Array {
+    return this.bb!.bytes();
+  }
+
+  static deserialize(buffer: Uint8Array): Stat {
+    return Stat.getRootAsStat(new flatbuffers.ByteBuffer(buffer));
+  }
+
+  unpack(): StatT {
+    return new StatT(this.id(), this.val(), this.count());
+  }
+
+  unpackTo(_o: StatT): void {
+    _o.id = this.id();
+    _o.val = this.val();
+    _o.count = this.count();
+  }
+
+  unpackFields(...fields: string[]): StatT {
+    const t = new StatT();
+    const fieldSet = new Set(fields);
+    if (fieldSet.has("id")) {
+      t.id = this.id();
+    }
+    if (fieldSet.has("val")) {
+      t.val = this.val();
+    }
+    if (fieldSet.has("count")) {
+      t.count = this.count();
+    }
+    return t;
+  }
 }
 
 export class StatT implements flatbuffers.IGeneratedObject {
-constructor(
-  public id: string|Uint8Array|null = null,
-  public val: bigint = BigInt('0'),
-  public count: number = 0
-){}
+  constructor(
+    public id: string | Uint8Array | null = null,
+    public val: bigint = BigInt("0"),
+    public count: number = 0,
+  ) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const id = this.id !== null ? builder.createString(this.id!) : 0;
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const id = (this.id !== null ? builder.createString(this.id!) : 0);
+    return Stat.createStat(builder, id, this.val, this.count);
+  }
 
-  return Stat.createStat(builder,
-    id,
-    this.val,
-    this.count
-  );
+  clone(): StatT {
+    const obj = new StatT();
+    obj.id = this.id;
+    obj.val = this.val;
+    obj.count = this.count;
+    return obj;
+  }
+
+  equals(other: StatT): boolean {
+    if (this.id !== other.id) return false;
+    if (this.val !== other.val) return false;
+    if (this.count !== other.count) return false;
+    return true;
+  }
 }
 
-clone(): StatT {
-  const obj = new StatT();
-  obj.id = this.id;
-  obj.val = this.val;
-  obj.count = this.count;
-  return obj;
-}
-
-equals(other: StatT): boolean {
-  if (this.id !== other.id) return false;
-  if (this.val !== other.val) return false;
-  if (this.count !== other.count) return false;
-  return true;
-}
-}
-
-export function verifyStat(verifier: flatbuffers.Verifier, tablePos: number): void {
+export function verifyStat(
+  verifier: flatbuffers.Verifier,
+  tablePos: number,
+): void {
   verifier.checkTable(tablePos);
   try {
     {

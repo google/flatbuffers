@@ -7,17 +7,17 @@ import (
 )
 
 type TypeAliasesT struct {
-	I8 int8 `json:"i8,omitempty"`
-	U8 byte `json:"u8,omitempty"`
-	I16 int16 `json:"i16,omitempty"`
-	U16 uint16 `json:"u16,omitempty"`
-	I32 int32 `json:"i32,omitempty"`
-	U32 uint32 `json:"u32,omitempty"`
-	I64 int64 `json:"i64,omitempty"`
-	U64 uint64 `json:"u64,omitempty"`
-	F32 float32 `json:"f32,omitempty"`
-	F64 float64 `json:"f64,omitempty"`
-	V8 []int8 `json:"v8,omitempty"`
+	I8   int8      `json:"i8,omitempty"`
+	U8   byte      `json:"u8,omitempty"`
+	I16  int16     `json:"i16,omitempty"`
+	U16  uint16    `json:"u16,omitempty"`
+	I32  int32     `json:"i32,omitempty"`
+	U32  uint32    `json:"u32,omitempty"`
+	I64  int64     `json:"i64,omitempty"`
+	U64  uint64    `json:"u64,omitempty"`
+	F32  float32   `json:"f32,omitempty"`
+	F64  float64   `json:"f64,omitempty"`
+	V8   []int8    `json:"v8,omitempty"`
 	Vf64 []float64 `json:"vf64,omitempty"`
 }
 

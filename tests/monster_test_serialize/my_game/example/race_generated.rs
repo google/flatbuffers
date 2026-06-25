@@ -2,32 +2,36 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MIN_RACE: i8 = -1;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MAX_RACE: i8 = 2;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_RACE: [Race; 4] = [
-    Race::None,
-    Race::Human,
-    Race::Dwarf,
-    Race::Elf,
-];
+pub const ENUM_VALUES_RACE: [Race; 4] = [Race::None, Race::Human, Race::Dwarf, Race::Elf];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
@@ -42,12 +46,7 @@ impl Race {
 
     pub const ENUM_MIN: i8 = -1;
     pub const ENUM_MAX: i8 = 2;
-    pub const ENUM_VALUES: &'static [Self] = &[
-        Self::None,
-        Self::Human,
-        Self::Dwarf,
-        Self::Elf,
-    ];
+    pub const ENUM_VALUES: &'static [Self] = &[Self::None, Self::Human, Self::Dwarf, Self::Elf];
 
     /// Returns the variant's name or "" if unknown.
     #[must_use]
@@ -136,7 +135,8 @@ impl ::flatbuffers::EndianScalar for Race {
 impl ::flatbuffers::Verifiable for Race {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         i8::run_verifier(v, pos)
     }

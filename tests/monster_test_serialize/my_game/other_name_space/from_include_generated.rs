@@ -2,29 +2,36 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
 
-#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[deprecated(
+    since = "2.0.0",
+    note = "Use associated constants instead. This will no longer be generated in 2021."
+)]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
-    FromInclude::IncludeVal,
-];
+pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [FromInclude::IncludeVal];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
@@ -36,9 +43,7 @@ impl FromInclude {
 
     pub const ENUM_MIN: i64 = 0;
     pub const ENUM_MAX: i64 = 0;
-    pub const ENUM_VALUES: &'static [Self] = &[
-        Self::IncludeVal,
-    ];
+    pub const ENUM_VALUES: &'static [Self] = &[Self::IncludeVal];
 
     /// Returns the variant's name or "" if unknown.
     #[must_use]
@@ -65,7 +70,11 @@ impl Serialize for FromInclude {
     where
         S: Serializer,
     {
-        serializer.serialize_unit_variant("FromInclude", u32::from(self.0), self.variant_name().unwrap())
+        serializer.serialize_unit_variant(
+            "FromInclude",
+            u32::from(self.0),
+            self.variant_name().unwrap(),
+        )
     }
 }
 
@@ -124,7 +133,8 @@ impl ::flatbuffers::EndianScalar for FromInclude {
 impl ::flatbuffers::Verifiable for FromInclude {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         i64::run_verifier(v, pos)
     }

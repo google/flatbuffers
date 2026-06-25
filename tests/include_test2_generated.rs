@@ -2,13 +2,13 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 
 pub enum TableAOffset {}
 
@@ -22,7 +22,9 @@ impl<'a> ::flatbuffers::Follow<'a> for TableA<'a> {
 
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+        Self {
+            tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+        }
     }
 }
 
@@ -44,23 +46,26 @@ impl<'a> TableA<'a> {
 
     #[allow(unused_mut)]
     #[must_use]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+    pub fn create<
+        'bldr: 'args,
+        'args: 'mut_bldr,
+        'mut_bldr,
+        A: ::flatbuffers::Allocator + 'bldr,
+    >(
         fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-        args: &'args TableAArgs<'args>
+        args: &'args TableAArgs<'args>,
     ) -> ::flatbuffers::WIPOffset<TableA<'bldr>> {
         let mut builder = TableABuilder::new(fbb);
-        if let Some(x) = args.b { builder.add_b(x); }
+        if let Some(x) = args.b {
+            builder.add_b(x);
+        }
         builder.finish()
     }
 
     #[must_use]
     pub fn unpack(&self) -> TableAT {
-        let b = self.b().map(|x| {
-            Box::new(x.unpack())
-        });
-        TableAT {
-            b,
-        }
+        let b = self.b().map(|x| Box::new(x.unpack()));
+        TableAT { b }
     }
 
     #[inline]
@@ -69,17 +74,28 @@ impl<'a> TableA<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<::flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(TableA::VT_B, None)}
+        unsafe {
+            self.tab
+                .get::<::flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(
+                    TableA::VT_B,
+                    None,
+                )
+        }
     }
 }
 
 impl ::flatbuffers::Verifiable for TableA<'_> {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>("b", Self::VT_B, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<my_game::other_name_space::TableB>>(
+                "b",
+                Self::VT_B,
+                false,
+            )?
             .finish();
         Ok(())
     }
@@ -92,9 +108,7 @@ pub struct TableAArgs<'a> {
 impl Default for TableAArgs<'_> {
     #[inline]
     fn default() -> Self {
-        Self {
-            b: None,
-        }
+        Self { b: None }
     }
 }
 
@@ -105,8 +119,12 @@ pub struct TableABuilder<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> {
 
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableABuilder<'a, 'b, A> {
     #[inline]
-    pub fn add_b(&mut self, b: ::flatbuffers::WIPOffset<my_game::other_name_space::TableB<'b >>) {
-        self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<my_game::other_name_space::TableB>>(TableA::VT_B, b);
+    pub fn add_b(&mut self, b: ::flatbuffers::WIPOffset<my_game::other_name_space::TableB<'b>>) {
+        self.fbb_
+            .push_slot_always::<::flatbuffers::WIPOffset<my_game::other_name_space::TableB>>(
+                TableA::VT_B,
+                b,
+            );
     }
 
     #[inline]
@@ -144,14 +162,10 @@ impl TableAT {
     #[must_use]
     pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
         &self,
-        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
     ) -> ::flatbuffers::WIPOffset<TableA<'b>> {
-        let b = self.b.as_ref().map(|x|{
-            x.pack(fbb)
-        });
-        TableA::create(fbb, &TableAArgs{
-            b,
-        })
+        let b = self.b.as_ref().map(|x| x.pack(fbb));
+        TableA::create(fbb, &TableAArgs { b })
     }
 }
 
@@ -159,37 +173,44 @@ impl TableAT {
 pub mod my_game {
     extern crate alloc;
     #[allow(unused_imports)]
-    use alloc::vec::Vec;
+    use alloc::boxed::Box;
     #[allow(unused_imports)]
     use alloc::string::String;
     #[allow(unused_imports)]
-    use alloc::boxed::Box;
-    #[allow(unused_imports)]
     use alloc::string::ToString;
+    #[allow(unused_imports)]
+    use alloc::vec::Vec;
 
     #[allow(unused_imports, dead_code)]
     pub mod other_name_space {
         extern crate alloc;
         #[allow(unused_imports)]
-        use alloc::vec::Vec;
+        use alloc::boxed::Box;
         #[allow(unused_imports)]
         use alloc::string::String;
         #[allow(unused_imports)]
-        use alloc::boxed::Box;
-        #[allow(unused_imports)]
         use alloc::string::ToString;
+        #[allow(unused_imports)]
+        use alloc::vec::Vec;
 
-        #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+        #[deprecated(
+            since = "2.0.0",
+            note = "Use associated constants instead. This will no longer be generated in 2021."
+        )]
         pub const ENUM_MIN_FROM_INCLUDE: i64 = 0;
 
-        #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+        #[deprecated(
+            since = "2.0.0",
+            note = "Use associated constants instead. This will no longer be generated in 2021."
+        )]
         pub const ENUM_MAX_FROM_INCLUDE: i64 = 0;
 
-        #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+        #[deprecated(
+            since = "2.0.0",
+            note = "Use associated constants instead. This will no longer be generated in 2021."
+        )]
         #[allow(non_camel_case_types)]
-        pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [
-            FromInclude::IncludeVal,
-        ];
+        pub const ENUM_VALUES_FROM_INCLUDE: [FromInclude; 1] = [FromInclude::IncludeVal];
 
         #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
         #[repr(transparent)]
@@ -201,9 +222,7 @@ pub mod my_game {
 
             pub const ENUM_MIN: i64 = 0;
             pub const ENUM_MAX: i64 = 0;
-            pub const ENUM_VALUES: &'static [Self] = &[
-                Self::IncludeVal,
-            ];
+            pub const ENUM_VALUES: &'static [Self] = &[Self::IncludeVal];
 
             /// Returns the variant's name or "" if unknown.
             #[must_use]
@@ -263,7 +282,8 @@ pub mod my_game {
         impl ::flatbuffers::Verifiable for FromInclude {
             #[inline]
             fn run_verifier(
-                v: &mut ::flatbuffers::Verifier, pos: usize
+                v: &mut ::flatbuffers::Verifier,
+                pos: usize,
             ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
                 i64::run_verifier(v, pos)
             }
@@ -284,9 +304,7 @@ pub mod my_game {
 
         impl ::core::fmt::Debug for Unused {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                f.debug_struct("Unused")
-                    .field("a", &self.a())
-                    .finish()
+                f.debug_struct("Unused").field("a", &self.a()).finish()
             }
         }
 
@@ -315,7 +333,12 @@ pub mod my_game {
 
             #[inline]
             unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-                let src = unsafe { ::core::slice::from_raw_parts(self as *const Unused as *const u8, <Self as ::flatbuffers::Push>::size()) };
+                let src = unsafe {
+                    ::core::slice::from_raw_parts(
+                        self as *const Unused as *const u8,
+                        <Self as ::flatbuffers::Push>::size(),
+                    )
+                };
                 dst.copy_from_slice(src);
             }
 
@@ -328,7 +351,8 @@ pub mod my_game {
         impl ::flatbuffers::Verifiable for Unused {
             #[inline]
             fn run_verifier(
-                v: &mut ::flatbuffers::Verifier, pos: usize
+                v: &mut ::flatbuffers::Verifier,
+                pos: usize,
             ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
                 v.in_buffer::<Self>(pos)
             }
@@ -337,9 +361,7 @@ pub mod my_game {
         impl<'a> Unused {
             #[allow(clippy::too_many_arguments)]
             #[must_use]
-            pub fn new(
-                a: i32,
-            ) -> Self {
+            pub fn new(a: i32) -> Self {
                 let mut s = Self([0; 4]);
                 s.set_a(a);
                 s
@@ -352,7 +374,9 @@ pub mod my_game {
 
             #[must_use]
             pub fn a(&self) -> i32 {
-                let mut mem = ::core::mem::MaybeUninit::<<i32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
+                let mut mem = ::core::mem::MaybeUninit::<
+                    <i32 as ::flatbuffers::EndianScalar>::Scalar,
+                >::uninit();
                 // Safety:
                 // Created from a valid Table for this object
                 // Which contains a valid value in this slot
@@ -382,9 +406,7 @@ pub mod my_game {
 
             #[must_use]
             pub fn unpack(&self) -> UnusedT {
-                UnusedT {
-                    a: self.a(),
-                }
+                UnusedT { a: self.a() }
             }
         }
 
@@ -394,18 +416,14 @@ pub mod my_game {
         }
         impl Default for UnusedT {
             fn default() -> Self {
-                Self {
-                    a: 0,
-                }
+                Self { a: 0 }
             }
         }
 
         impl UnusedT {
             #[must_use]
             pub fn pack(&self) -> Unused {
-                Unused::new(
-                    self.a,
-                )
+                Unused::new(self.a)
             }
         }
 
@@ -421,7 +439,9 @@ pub mod my_game {
 
             #[inline]
             unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+                Self {
+                    tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+                }
             }
         }
 
@@ -443,23 +463,26 @@ pub mod my_game {
 
             #[allow(unused_mut)]
             #[must_use]
-            pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+            pub fn create<
+                'bldr: 'args,
+                'args: 'mut_bldr,
+                'mut_bldr,
+                A: ::flatbuffers::Allocator + 'bldr,
+            >(
                 fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-                args: &'args TableBArgs<'args>
+                args: &'args TableBArgs<'args>,
             ) -> ::flatbuffers::WIPOffset<TableB<'bldr>> {
                 let mut builder = TableBBuilder::new(fbb);
-                if let Some(x) = args.a { builder.add_a(x); }
+                if let Some(x) = args.a {
+                    builder.add_a(x);
+                }
                 builder.finish()
             }
 
             #[must_use]
             pub fn unpack(&self) -> TableBT {
-                let a = self.a().map(|x| {
-                    Box::new(x.unpack())
-                });
-                TableBT {
-                    a,
-                }
+                let a = self.a().map(|x| Box::new(x.unpack()));
+                TableBT { a }
             }
 
             #[inline]
@@ -468,17 +491,28 @@ pub mod my_game {
                 // Safety:
                 // Created from valid Table for this object
                 // which contains a valid value in this slot
-                unsafe { self.tab.get::<::flatbuffers::ForwardsUOffset<super::super::TableA>>(TableB::VT_A, None)}
+                unsafe {
+                    self.tab
+                        .get::<::flatbuffers::ForwardsUOffset<super::super::TableA>>(
+                            TableB::VT_A,
+                            None,
+                        )
+                }
             }
         }
 
         impl ::flatbuffers::Verifiable for TableB<'_> {
             #[inline]
             fn run_verifier(
-                v: &mut ::flatbuffers::Verifier, pos: usize
+                v: &mut ::flatbuffers::Verifier,
+                pos: usize,
             ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
                 v.visit_table(pos)?
-                    .visit_field::<::flatbuffers::ForwardsUOffset<super::super::TableA>>("a", Self::VT_A, false)?
+                    .visit_field::<::flatbuffers::ForwardsUOffset<super::super::TableA>>(
+                        "a",
+                        Self::VT_A,
+                        false,
+                    )?
                     .finish();
                 Ok(())
             }
@@ -491,9 +525,7 @@ pub mod my_game {
         impl Default for TableBArgs<'_> {
             #[inline]
             fn default() -> Self {
-                Self {
-                    a: None,
-                }
+                Self { a: None }
             }
         }
 
@@ -504,8 +536,12 @@ pub mod my_game {
 
         impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TableBBuilder<'a, 'b, A> {
             #[inline]
-            pub fn add_a(&mut self, a: ::flatbuffers::WIPOffset<super::super::TableA<'b >>) {
-                self.fbb_.push_slot_always::<::flatbuffers::WIPOffset<super::super::TableA>>(TableB::VT_A, a);
+            pub fn add_a(&mut self, a: ::flatbuffers::WIPOffset<super::super::TableA<'b>>) {
+                self.fbb_
+                    .push_slot_always::<::flatbuffers::WIPOffset<super::super::TableA>>(
+                        TableB::VT_A,
+                        a,
+                    );
             }
 
             #[inline]
@@ -543,14 +579,10 @@ pub mod my_game {
             #[must_use]
             pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
                 &self,
-                fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+                fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
             ) -> ::flatbuffers::WIPOffset<TableB<'b>> {
-                let a = self.a.as_ref().map(|x|{
-                    x.pack(fbb)
-                });
-                TableB::create(fbb, &TableBArgs{
-                    a,
-                })
+                let a = self.a.as_ref().map(|x| x.pack(fbb));
+                TableB::create(fbb, &TableBArgs { a })
             }
         }
     } // pub mod OtherNameSpace

@@ -3,8 +3,8 @@
 package Test
 
 import (
-	flatbuffers "union_of_union_test/flatbuffers"
 	"strconv"
+	flatbuffers "union_of_union_test/flatbuffers"
 )
 
 type Outer byte
@@ -38,7 +38,7 @@ func (v Outer) String() string {
 }
 
 type OuterT struct {
-	Type Outer
+	Type  Outer
 	Value interface{}
 }
 

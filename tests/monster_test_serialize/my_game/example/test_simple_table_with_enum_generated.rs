@@ -2,15 +2,15 @@
 // @generated
 extern crate alloc;
 #[allow(unused_imports)]
-use alloc::vec::Vec;
+use alloc::boxed::Box;
 #[allow(unused_imports)]
 use alloc::string::String;
 #[allow(unused_imports)]
-use alloc::boxed::Box;
-#[allow(unused_imports)]
 use alloc::string::ToString;
+#[allow(unused_imports)]
+use alloc::vec::Vec;
 extern crate serde;
-use self::serde::ser::{Serialize, Serializer, SerializeStruct};
+use self::serde::ser::{Serialize, SerializeStruct, Serializer};
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
@@ -26,7 +26,9 @@ impl<'a> ::flatbuffers::Follow<'a> for TestSimpleTableWithEnum<'a> {
 
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Self { tab: unsafe { ::flatbuffers::Table::new(buf, loc) } }
+        Self {
+            tab: unsafe { ::flatbuffers::Table::new(buf, loc) },
+        }
     }
 }
 
@@ -48,9 +50,14 @@ impl<'a> TestSimpleTableWithEnum<'a> {
 
     #[allow(unused_mut)]
     #[must_use]
-    pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr, A: ::flatbuffers::Allocator + 'bldr>(
+    pub fn create<
+        'bldr: 'args,
+        'args: 'mut_bldr,
+        'mut_bldr,
+        A: ::flatbuffers::Allocator + 'bldr,
+    >(
         fbb: &'mut_bldr mut ::flatbuffers::FlatBufferBuilder<'bldr, A>,
-        args: &'args TestSimpleTableWithEnumArgs
+        args: &'args TestSimpleTableWithEnumArgs,
     ) -> ::flatbuffers::WIPOffset<TestSimpleTableWithEnum<'bldr>> {
         let mut builder = TestSimpleTableWithEnumBuilder::new(fbb);
         builder.add_color(args.color);
@@ -60,9 +67,7 @@ impl<'a> TestSimpleTableWithEnum<'a> {
     #[must_use]
     pub fn unpack(&self) -> TestSimpleTableWithEnumT {
         let color = self.color();
-        TestSimpleTableWithEnumT {
-            color,
-        }
+        TestSimpleTableWithEnumT { color }
     }
 
     ///
@@ -74,14 +79,19 @@ impl<'a> TestSimpleTableWithEnum<'a> {
         // Safety:
         // Created from valid Table for this object
         // which contains a valid value in this slot
-        unsafe { self.tab.get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green)).unwrap()}
+        unsafe {
+            self.tab
+                .get::<Color>(TestSimpleTableWithEnum::VT_COLOR, Some(Color::Green))
+                .unwrap()
+        }
     }
 }
 
 impl ::flatbuffers::Verifiable for TestSimpleTableWithEnum<'_> {
     #[inline]
     fn run_verifier(
-        v: &mut ::flatbuffers::Verifier, pos: usize
+        v: &mut ::flatbuffers::Verifier,
+        pos: usize,
     ) -> Result<(), ::flatbuffers::InvalidFlatbuffer> {
         v.visit_table(pos)?
             .visit_field::<Color>("color", Self::VT_COLOR, false)?
@@ -122,7 +132,8 @@ pub struct TestSimpleTableWithEnumBuilder<'a: 'b, 'b, A: ::flatbuffers::Allocato
 impl<'a: 'b, 'b, A: ::flatbuffers::Allocator + 'a> TestSimpleTableWithEnumBuilder<'a, 'b, A> {
     #[inline]
     pub fn add_color(&mut self, color: Color) {
-        self.fbb_.push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::Green);
+        self.fbb_
+            .push_slot::<Color>(TestSimpleTableWithEnum::VT_COLOR, color, Color::Green);
     }
 
     #[inline]
@@ -168,11 +179,9 @@ impl TestSimpleTableWithEnumT {
     #[must_use]
     pub fn pack<'b, A: ::flatbuffers::Allocator + 'b>(
         &self,
-        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>
+        fbb: &mut ::flatbuffers::FlatBufferBuilder<'b, A>,
     ) -> ::flatbuffers::WIPOffset<TestSimpleTableWithEnum<'b>> {
         let color = self.color;
-        TestSimpleTableWithEnum::create(fbb, &TestSimpleTableWithEnumArgs{
-            color,
-        })
+        TestSimpleTableWithEnum::create(fbb, &TestSimpleTableWithEnumArgs { color })
     }
 }

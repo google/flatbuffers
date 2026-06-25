@@ -40,7 +40,7 @@ func (v Any) String() string {
 }
 
 type AnyT struct {
-	Type Any
+	Type  Any
 	Value interface{}
 }
 
