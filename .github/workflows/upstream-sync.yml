@@ -1,0 +1,98 @@
+name: Upstream Sync
+
+# Periodically merges the latest google/flatbuffers `master` into this fork so the
+# branch never drifts far from upstream. (This fork previously diverged all the way
+# back to a 2016 merge-base, which made a normal merge produce thousands of phantom
+# conflicts.) A small monthly merge keeps each sync trivial.
+#
+# Runs on the 1st of every month, and can be triggered manually from the Actions tab.
+# It opens a PR rather than pushing to the default branch directly, so CI (build +
+# the regen-diff gate) runs and a human approves the merge.
+
+on:
+  schedule:
+    - cron: '0 6 1 * *' # 06:00 UTC, first of each month
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: 'Upstream ref to sync from'
+        default: 'master'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Merge upstream into a sync branch and open a PR
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/google/flatbuffers.git
+          git fetch --no-tags upstream "${UPSTREAM_REF}"
+        env:
+          UPSTREAM_REF: ${{ github.event.inputs.upstream_ref || 'master' }}
+
+      - name: Check how far behind upstream we are
+        id: check
+        run: |
+          BEHIND=$(git rev-list --count "HEAD..upstream/${UPSTREAM_REF}")
+          echo "behind=$BEHIND" >> "$GITHUB_OUTPUT"
+          echo "This fork is $BEHIND commits behind upstream/${UPSTREAM_REF}."
+        env:
+          UPSTREAM_REF: ${{ github.event.inputs.upstream_ref || 'master' }}
+
+      - name: Merge upstream into a dated sync branch
+        if: steps.check.outputs.behind != '0'
+        id: merge
+        run: |
+          BRANCH="upstream-sync/$(date +%Y-%m-%d)"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          git switch -c "$BRANCH"
+          if git merge --no-edit "upstream/${UPSTREAM_REF}"; then
+            echo "conflicts=false" >> "$GITHUB_OUTPUT"
+            echo "Merged upstream cleanly."
+          else
+            echo "conflicts=true" >> "$GITHUB_OUTPUT"
+            echo "Merge has conflicts; committing with markers for manual resolution."
+            git add -A
+            git commit --no-edit -m "Merge upstream/${UPSTREAM_REF} (CONFLICTS — needs manual resolution)"
+          fi
+          git push origin "$BRANCH"
+        env:
+          UPSTREAM_REF: ${{ github.event.inputs.upstream_ref || 'master' }}
+
+      - name: Open pull request
+        if: steps.check.outputs.behind != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Upstream sync: merge google/flatbuffers ${UPSTREAM_REF} ($(date +%Y-%m-%d))"
+          if [ "${{ steps.merge.outputs.conflicts }}" = "true" ]; then
+            BODY=$'Automated monthly upstream sync.\n\n⚠️ This merge has **conflicts** that must be resolved manually before merging. Resolve them on the `${{ steps.merge.outputs.branch }}` branch, then re-run CI.'
+            DRAFT="--draft"
+          else
+            BODY=$'Automated monthly upstream sync. Merged cleanly — review CI (build + Check Generated Code) before merging.'
+            DRAFT=""
+          fi
+          gh pr create \
+            --base "${{ github.ref_name }}" \
+            --head "${{ steps.merge.outputs.branch }}" \
+            --title "$TITLE" \
+            --body "$BODY" $DRAFT
+        # github.ref_name on a scheduled run is the repository default branch.
+
+      - name: Report up to date
+        if: steps.check.outputs.behind == '0'
+        run: echo "Already up to date with upstream — nothing to sync."
