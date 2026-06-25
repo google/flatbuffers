@@ -819,6 +819,22 @@ class RustGenerator : public BaseGenerator {
     return entry.fields.Lookup("value");
   }
 
+  // Sort comparator for map/set entries by key. FlatBuffers sorted vectors rely
+  // on a total order for binary search. Plain float keys must use `total_cmp`,
+  // otherwise NaN keys compare as `None` and silently corrupt the sort order.
+  // Every other key type (ints, strings, and OrderedFloat-wrapped floats under
+  // --rust-object-api-hashable-floats) keeps the existing PartialOrd path.
+  std::string MapSetEntrySortBy(const std::string& key_field,
+                                const FieldDef& kf) const {
+    if (IsFloat(kf.value.type.base_type) &&
+        !parser_.opts.rust_object_api_hashable_floats) {
+      return " e.sort_by(|a, b| a." + key_field + ".total_cmp(&b." + key_field +
+             "));";
+    }
+    return " e.sort_by(|a, b| a." + key_field + ".partial_cmp(&b." + key_field +
+           ").unwrap_or(::std::cmp::Ordering::Equal));";
+  }
+
   // Produce the Rust type string for a map key (must be Hash + Eq + Clone).
   // Keys may be strings, scalars, or enums.
   std::string RustKeyType(const Type& type) const {
@@ -1081,11 +1097,22 @@ class RustGenerator : public BaseGenerator {
       code_ += "        S: Serializer,";
       code_ += "    {";
       if (IsBitFlagsEnum(enum_def)) {
-        code_ += "        serializer.serialize_u32(u32::from(self.bits()))";
+        // Serialize as u64 so this is correct for every bit-flags underlying
+        // width (u8..u64). `u32::from(self.bits())` failed to compile for
+        // `long`-backed flags, and serialize_u32 would truncate them.
+        code_ += "        serializer.serialize_u64(self.bits() as u64)";
       } else {
+        // A value not present in the schema (e.g. written by a newer peer) has
+        // no variant name; serialize it as its numeric discriminant rather than
+        // panicking, preserving forward compatibility. `self.0 as u32` (rather
+        // than `u32::from`) keeps this compiling for signed and 64-bit enum
+        // underlying types (e.g. `byte`/`long`), which `From` does not cover.
+        code_ += "        match self.variant_name() {";
         code_ +=
-            "        serializer.serialize_unit_variant(\"{{ENUM_TY}}\", "
-            "u32::from(self.0), self.variant_name().unwrap())";
+            "            Some(name) => serializer.serialize_unit_variant("
+            "\"{{ENUM_TY}}\", self.0 as u32, name),";
+        code_ += "            None => serializer.serialize_u32(self.0 as u32),";
+        code_ += "        }";
       }
       code_ += "    }";
       code_ += "}";
@@ -1107,6 +1134,24 @@ class RustGenerator : public BaseGenerator {
         code_ += "        Err(serde::de::Error::custom(format!(";
         code_ += "            \"Unknown {{ENUM_TY}} variant: {s}\"";
         code_ += "        )))";
+        code_ += "    }";
+        code_ += "}";
+        code_ += "";
+      } else {
+        // Bit-flags enums serialize as their numeric value (see the Serialize
+        // impl above), so they deserialize from a u32 and reconstruct via
+        // `from_bits_retain`. Without this, `*T` structs containing a bit-flags
+        // field cannot derive `serde::Deserialize`.
+        code_ += "impl<'de> serde::Deserialize<'de> for {{ENUM_TY}} {";
+        code_ +=
+            "    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>";
+        code_ += "    where";
+        code_ += "        D: serde::Deserializer<'de>,";
+        code_ += "    {";
+        code_ +=
+            "        let bits = <u64 as "
+            "serde::Deserialize>::deserialize(deserializer)?;";
+        code_ += "        Ok(Self::from_bits_retain(bits as {{BASE_TYPE}}))";
         code_ += "    }";
         code_ += "}";
         code_ += "";
@@ -2621,7 +2666,9 @@ class RustGenerator : public BaseGenerator {
               code_ += "            s.serialize_field(\"{{FIELD}}\", &f)?;";
               code_ += "        }";
             });
-            code_ += "        _ => unimplemented!(),";
+            // Unknown union variant (e.g. from a newer peer): skip it rather
+            // than panicking, preserving forward compatibility.
+            code_ += "        _ => (),";
             code_ += "    }";
           } else {
             code_ +=
@@ -2949,10 +2996,8 @@ class RustGenerator : public BaseGenerator {
                 field,
                 "{ let mut e: Vec<_> = x.iter().map(|k| " + entry_oty +
                     " { " + key_field + ": k.clone(), ..Default::default() }"
-                    ").collect();"
-                    " e.sort_by(|a, b| a." + key_field +
-                    ".partial_cmp(&b." + key_field +
-                    ").unwrap_or(::std::cmp::Ordering::Equal));"
+                    ").collect();" +
+                    MapSetEntrySortBy(key_field, *kf) +
                     " let w: Vec<_> = e.iter().map(|t| t.pack()).collect();"
                     " fbb.create_vector(&w) }");
           } else {
@@ -2989,10 +3034,8 @@ class RustGenerator : public BaseGenerator {
                 "{ let mut e: Vec<_> = x.iter().map(|(k, v)| " + entry_oty +
                     " { " + key_field + ": k.clone(), " + val_field +
                     ": v.clone(), ..Default::default() }"
-                    ").collect();"
-                    " e.sort_by(|a, b| a." + key_field +
-                    ".partial_cmp(&b." + key_field +
-                    ").unwrap_or(::std::cmp::Ordering::Equal));"
+                    ").collect();" +
+                    MapSetEntrySortBy(key_field, *kf) +
                     " let w: Vec<_> = e.iter().map(|t| t.pack(fbb)).collect();"
                     " fbb.create_vector(&w) }");
           } else if (IsSetField(field)) {
@@ -3007,10 +3050,8 @@ class RustGenerator : public BaseGenerator {
                 field,
                 "{ let mut e: Vec<_> = x.iter().map(|k| " + entry_oty +
                     " { " + key_field + ": k.clone(), ..Default::default() }"
-                    ").collect();"
-                    " e.sort_by(|a, b| a." + key_field +
-                    ".partial_cmp(&b." + key_field +
-                    ").unwrap_or(::std::cmp::Ordering::Equal));"
+                    ").collect();" +
+                    MapSetEntrySortBy(key_field, *kf) +
                     " let w: Vec<_> = e.iter().map(|t| t.pack(fbb)).collect();"
                     " fbb.create_vector(&w) }");
           } else {

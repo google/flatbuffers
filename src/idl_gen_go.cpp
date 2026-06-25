@@ -1993,6 +1993,7 @@ class GoGenerator : public BaseGenerator {
     code += "func (t *" + NativeName(struct_def) +
             ") Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {\n";
     code += "\tif t == nil {\n\t\treturn 0\n\t}\n";
+    StructPackGuards(struct_def, "", code_ptr);
     code += "\treturn Create" + namer_.Type(struct_def) + "(builder";
     StructPackArgs(struct_def, "", code_ptr);
     code += ")\n";
@@ -2011,6 +2012,31 @@ class GoGenerator : public BaseGenerator {
                        code_ptr);
       } else {
         code += std::string(", t.") + nameprefix + namer_.Field(field);
+      }
+    }
+  }
+
+  // Emits nil-guards for nested struct fields before they are flattened into the
+  // CreateX(...) call. Nested structs are mandatory inline members in the binary
+  // layout, but the Object API represents them as pointers; a hand-built *T that
+  // leaves one nil would otherwise dereference nil in Pack. Substituting the zero
+  // value matches what the field would occupy in the buffer.
+  void StructPackGuards(const StructDef& struct_def, const std::string& nameprefix,
+                        std::string* code_ptr) {
+    std::string& code = *code_ptr;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const FieldDef& field = **it;
+      if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+        const std::string path = nameprefix + namer_.Field(field);
+        code += "\tif t." + path + " == nil {\n";
+        code += "\t\tt." + path + " = &" +
+                WrapInNameSpaceAndTrack(
+                    field.value.type.struct_def,
+                    NativeName(*field.value.type.struct_def)) +
+                "{}\n";
+        code += "\t}\n";
+        StructPackGuards(*field.value.type.struct_def, path + ".", code_ptr);
       }
     }
   }

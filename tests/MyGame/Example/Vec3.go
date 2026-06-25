@@ -19,6 +19,9 @@ func (t *Vec3T) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
 	}
+	if t.Test3 == nil {
+		t.Test3 = &TestT{}
+	}
 	return CreateVec3(builder, t.X, t.Y, t.Z, t.Test1, t.Test2, t.Test3.A, t.Test3.B)
 }
 func (rcv *Vec3) UnPackTo(t *Vec3T) {

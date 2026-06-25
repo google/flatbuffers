@@ -328,7 +328,7 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     pub fn reset(&mut self) {
         self.depth = 0;
         self.num_tables = 0;
-        self.num_tables = 0;
+        self.apparent_size = 0;
     }
     /// Checks `pos` is aligned to T's alignment. This does not mean `buffer[pos]` is aligned w.r.t
     /// memory since `buffer: &[u8]` has alignment 1.

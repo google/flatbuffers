@@ -81,11 +81,12 @@ impl Serialize for AnyAmbiguousAliases {
     where
         S: Serializer,
     {
-        serializer.serialize_unit_variant(
-            "AnyAmbiguousAliases",
-            u32::from(self.0),
-            self.variant_name().unwrap(),
-        )
+        match self.variant_name() {
+            Some(name) => {
+                serializer.serialize_unit_variant("AnyAmbiguousAliases", self.0 as u32, name)
+            }
+            None => serializer.serialize_u32(self.0 as u32),
+        }
     }
 }
 

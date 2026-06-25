@@ -1736,11 +1736,13 @@ class TsGenerator : public BaseGenerator {
                     field_val += "  })()";
 
                     // Pack: sort entries, build offsets, create vector.
-                    // Determine sort comparator based on key type.
+                    // A relational comparator yields the correct total order for
+                    // every key type (number, bigint, string) — unlike
+                    // `Number(a[0]) - Number(b[0])`, which silently loses
+                    // precision for bigint keys above 2^53 and corrupts the
+                    // sorted-vector binary-search invariant.
                     const std::string sort_cmp =
-                        (key_ts == "string")
-                            ? "(a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0"
-                            : "(a, b) => Number(a[0]) - Number(b[0])";
+                        "(a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0";
                     const std::string entry_class_name =
                         AddImport(imports, struct_def, sd).name;
                     const std::string add_key_method =
@@ -1818,10 +1820,10 @@ class TsGenerator : public BaseGenerator {
                     field_val += "    return s;\n";
                     field_val += "  })()";
 
+                    // Relational comparator: correct total order for number,
+                    // bigint, and string keys (avoids bigint precision loss).
                     const std::string sort_cmp =
-                        (key_ts == "string")
-                            ? "(a, b) => a < b ? -1 : a > b ? 1 : 0"
-                            : "(a, b) => Number(a) - Number(b)";
+                        "(a, b) => a < b ? -1 : a > b ? 1 : 0";
                     const std::string entry_class_name =
                         AddImport(imports, struct_def, sd).name;
                     const std::string add_key_method =

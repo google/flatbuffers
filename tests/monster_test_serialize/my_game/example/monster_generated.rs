@@ -1840,7 +1840,7 @@ impl Serialize for Monster<'_> {
                     .expect("Invalid union table, expected `Any::MyGame_Example2_Monster`.");
                 s.serialize_field("test", &f)?;
             }
-            _ => unimplemented!(),
+            _ => (),
         }
         if let Some(f) = self.test4() {
             s.serialize_field("test4", &f)?;
@@ -1973,7 +1973,7 @@ impl Serialize for Monster<'_> {
                     .expect("Invalid union table, expected `AnyUniqueAliases::M2`.");
                 s.serialize_field("any_unique", &f)?;
             }
-            _ => unimplemented!(),
+            _ => (),
         }
         s.serialize_field("any_ambiguous_type", &self.any_ambiguous_type())?;
         match self.any_ambiguous_type() {
@@ -1996,7 +1996,7 @@ impl Serialize for Monster<'_> {
                     .expect("Invalid union table, expected `AnyAmbiguousAliases::M3`.");
                 s.serialize_field("any_ambiguous", &f)?;
             }
-            _ => unimplemented!(),
+            _ => (),
         }
         if let Some(f) = self.vector_of_enums() {
             s.serialize_field("vector_of_enums", &f)?;

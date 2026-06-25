@@ -37,7 +37,17 @@ impl Serialize for Color {
     where
         S: Serializer,
     {
-        serializer.serialize_u32(u32::from(self.bits()))
+        serializer.serialize_u64(self.bits() as u64)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Color {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let bits = <u64 as serde::Deserialize>::deserialize(deserializer)?;
+        Ok(Self::from_bits_retain(bits as u8))
     }
 }
 

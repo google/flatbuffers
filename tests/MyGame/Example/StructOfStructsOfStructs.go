@@ -14,6 +14,18 @@ func (t *StructOfStructsOfStructsT) Pack(builder *flatbuffers.Builder) flatbuffe
 	if t == nil {
 		return 0
 	}
+	if t.A == nil {
+		t.A = &StructOfStructsT{}
+	}
+	if t.A.A == nil {
+		t.A.A = &AbilityT{}
+	}
+	if t.A.B == nil {
+		t.A.B = &TestT{}
+	}
+	if t.A.C == nil {
+		t.A.C = &AbilityT{}
+	}
 	return CreateStructOfStructsOfStructs(builder, t.A.A.Id, t.A.A.Distance, t.A.B.A, t.A.B.B, t.A.C.Id, t.A.C.Distance)
 }
 func (rcv *StructOfStructsOfStructs) UnPackTo(t *StructOfStructsOfStructsT) {
