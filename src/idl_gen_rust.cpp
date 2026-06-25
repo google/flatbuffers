@@ -1347,8 +1347,16 @@ class RustGenerator : public BaseGenerator {
           if (field.value.constant != "0") return false;
           break;
         }
+        case ftString: {
+          // A string only has its natural default (empty `String`) when it is
+          // required (no schema default) or its schema default is empty. A
+          // non-empty schema default (e.g. `= "some"`) must be reproduced by a
+          // manual Default impl, so it is not naturally derivable. This mirrors
+          // the condition in GetDefaultValue's ftString case.
+          if (!field.IsRequired() && !field.value.constant.empty()) return false;
+          break;
+        }
         case ftUnionValue:
-        case ftString:
         case ftVectorOfBool:
         case ftVectorOfFloat:
         case ftVectorOfInteger:
@@ -2183,7 +2191,13 @@ class RustGenerator : public BaseGenerator {
             return;
           }
           case ftFloat: {
-            code_ += "  let {{FIELD}} = self.{{FIELD}}().into();";
+            if (field.IsOptional()) {
+              code_ +=
+                  "  let {{FIELD}} = self.{{FIELD}}()"
+                  ".map(::flatbuffers::ordered_float::OrderedFloat);";
+            } else {
+              code_ += "  let {{FIELD}} = self.{{FIELD}}().into();";
+            }
             return;
           }
           case ftUnionKey:
@@ -2240,7 +2254,7 @@ class RustGenerator : public BaseGenerator {
           case ftVectorOfFloat: {
             code_.SetValue("EXPR",
                            "x.iter().map(|v| "
-                           "::flatbuffers::ordered_float::OrderedFloat(*v))"
+                           "::flatbuffers::ordered_float::OrderedFloat(v))"
                            ".collect()");
             break;
           }
@@ -2836,7 +2850,12 @@ class RustGenerator : public BaseGenerator {
           return;
         }
         case ftFloat: {
-          code_ += "  let {{FIELD}} = self.{{FIELD}}.into_inner();";
+          if (field.IsOptional()) {
+            code_ +=
+                "  let {{FIELD}} = self.{{FIELD}}.map(|v| v.into_inner());";
+          } else {
+            code_ += "  let {{FIELD}} = self.{{FIELD}}.into_inner();";
+          }
           return;
         }
         case ftUnionKey:
@@ -3591,7 +3610,8 @@ class RustGenerator : public BaseGenerator {
             code_ +=
                 "    {{FIELD}}: { let {{FIELD}} = "
                 "self.{{FIELD}}(); ::flatbuffers::array_init(|i| "
-                "{{FIELD}}[i].into()) },";
+                "::flatbuffers::ordered_float::OrderedFloat({{FIELD}}.get(i))) "
+                "},";
           } else {
             code_ += "        {{FIELD}}: self.{{FIELD}}().into(),";
           }
@@ -3635,7 +3655,7 @@ class RustGenerator : public BaseGenerator {
             if (elem_type == BASE_TYPE_BOOL) {
               zero = "false";
             } else if (IsFloat(elem_type)) {
-              zero = "0.0";
+              zero = "::flatbuffers::ordered_float::OrderedFloat(0.0)";
             } else {
               zero = "0";
             }

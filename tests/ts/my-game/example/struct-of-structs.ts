@@ -87,4 +87,25 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     (this.c?.distance ?? 0)
   );
 }
+
+clone(): StructOfStructsT {
+  const obj = new StructOfStructsT();
+  obj.a = this.a !== null ? this.a!.clone() : null;
+  obj.b = this.b !== null ? this.b!.clone() : null;
+  obj.c = this.c !== null ? this.c!.clone() : null;
+  return obj;
+}
+
+equals(other: StructOfStructsT): boolean {
+  if (this.a !== null && other.a !== null) {
+    if (!this.a!.equals(other.a!)) return false;
+  } else if (this.a !== other.a) return false;
+  if (this.b !== null && other.b !== null) {
+    if (!this.b!.equals(other.b!)) return false;
+  } else if (this.b !== other.b) return false;
+  if (this.c !== null && other.c !== null) {
+    if (!this.c!.equals(other.c!)) return false;
+  } else if (this.c !== other.c) return false;
+  return true;
+}
 }

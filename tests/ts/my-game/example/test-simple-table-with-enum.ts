@@ -82,6 +82,17 @@ unpack(): TestSimpleTableWithEnumT {
 unpackTo(_o: TestSimpleTableWithEnumT): void {
   _o.color = this.color();
 }
+
+
+
+unpackFields(...fields: string[]): TestSimpleTableWithEnumT {
+  const t = new TestSimpleTableWithEnumT();
+  const fieldSet = new Set(fields);
+  if (fieldSet.has('color')) {
+    t.color = this.color();
+  }
+  return t;
+}
 }
 
 export class TestSimpleTableWithEnumT implements flatbuffers.IGeneratedObject {
@@ -95,4 +106,24 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.color
   );
 }
+
+clone(): TestSimpleTableWithEnumT {
+  const obj = new TestSimpleTableWithEnumT();
+  obj.color = this.color;
+  return obj;
+}
+
+equals(other: TestSimpleTableWithEnumT): boolean {
+  if (this.color !== other.color) return false;
+  return true;
+}
+}
+
+export function verifyTestSimpleTableWithEnum(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 1);
+  } finally {
+    verifier.popDepth();
+  }
 }

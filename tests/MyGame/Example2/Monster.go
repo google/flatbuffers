@@ -29,6 +29,18 @@ func (rcv *Monster) UnPack() *MonsterT {
 	return t
 }
 
+// UnpackFields returns a partial *MonsterT with only the named fields populated.
+// Fields not in the list are left at their zero/default values.
+// This avoids materializing the entire table tree.
+func (rcv *Monster) UnpackFields(fields ...string) *MonsterT {
+	t := &MonsterT{}
+	fieldSet := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		fieldSet[f] = true
+	}
+	return t
+}
+
 type Monster struct {
 	_tab flatbuffers.Table
 }
@@ -53,6 +65,34 @@ func GetSizePrefixedRootAsMonster(buf []byte, offset flatbuffers.UOffsetT) *Mons
 
 func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsMonster(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyMonster(v, int(tablePos))
+}
+
+func VerifyMonster(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyMonster(v, tablePos)
+}
+
+func verifyMonster(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	return nil
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {

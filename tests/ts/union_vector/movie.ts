@@ -4,7 +4,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Attacker, AttackerT } from './attacker.js';
+import { Attacker, AttackerT, verifyAttacker } from './attacker.js';
 import { BookReader, BookReaderT } from './book-reader.js';
 import { Character, unionToCharacter, unionListToCharacter } from './character.js';
 import { Rapunzel, RapunzelT } from './rapunzel.js';
@@ -187,6 +187,43 @@ unpackTo(_o: MovieT): void {
     return ret;
   })();
 }
+
+
+
+unpackFields(...fields: string[]): MovieT {
+  const t = new MovieT();
+  const fieldSet = new Set(fields);
+  if (fieldSet.has('main_character_type')) {
+    t.mainCharacterType = this.mainCharacterType();
+  }
+  if (fieldSet.has('main_character')) {
+    t.mainCharacter = (() => {
+      const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
+      if(temp === null) { return null; }
+      if(typeof temp === 'string') { return temp; }
+      return temp.unpack()
+  })();
+  }
+  if (fieldSet.has('characters_type')) {
+    t.charactersType = this.bb!.createScalarList<Character>(this.charactersType.bind(this), this.charactersTypeLength());
+  }
+  if (fieldSet.has('characters')) {
+    t.characters = (() => {
+    const ret: (AttackerT|BookReaderT|RapunzelT|string)[] = [];
+    for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
+      const targetEnum = this.charactersType(targetEnumIndex);
+      if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
+
+      const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
+      if(temp === null) { continue; }
+      if(typeof temp === 'string') { ret.push(temp); continue; }
+      ret.push(temp.unpack());
+    }
+    return ret;
+  })();
+  }
+  return t;
+}
 }
 
 export class MovieT implements flatbuffers.IGeneratedObject {
@@ -210,4 +247,79 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     characters
   );
 }
+
+clone(): MovieT {
+  const obj = new MovieT();
+  obj.mainCharacterType = this.mainCharacterType;
+  obj.mainCharacter = this.mainCharacter !== null && typeof (this.mainCharacter as any).clone === 'function' ? (this.mainCharacter as any).clone() : this.mainCharacter;
+  obj.charactersType = [...this.charactersType];
+  obj.characters = [...this.characters];
+  return obj;
+}
+
+equals(other: MovieT): boolean {
+  if (this.mainCharacterType !== other.mainCharacterType) return false;
+  if (this.mainCharacter !== null && other.mainCharacter !== null) {
+    if (typeof (this.mainCharacter as any).equals === 'function') {
+      if (!(this.mainCharacter as any).equals(other.mainCharacter)) return false;
+    } else if (this.mainCharacter !== other.mainCharacter) return false;
+  } else if (this.mainCharacter !== other.mainCharacter) return false;
+  if (this.charactersType.length !== other.charactersType.length) return false;
+  for (let i = 0; i < this.charactersType.length; i++) {
+    if (this.charactersType[i] !== other.charactersType[i]) return false;
+  }
+  if (this.characters.length !== other.characters.length) return false;
+  for (let i = 0; i < this.characters.length; i++) {
+    if (this.characters[i] !== other.characters[i]) return false;
+  }
+  return true;
+}
+}
+
+export function verifyMovie(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 1);
+    verifier.checkUnionConsistency(tablePos, 4, 6, 'main_character');
+    {
+      const pos = verifier.checkOffsetField(tablePos, 6);
+      if (pos !== 0) {
+        const uType = verifier.readFieldUint8(tablePos, 4);
+        switch (uType) {
+          case 1: // MuLan
+            { const o = verifier.readInt32(pos); verifyAttacker(verifier, pos + o); }
+            break;
+          case 2: // Rapunzel
+            verifier.checkRange(pos, 4);
+            break;
+          case 3: // Belle
+            verifier.checkRange(pos, 4);
+            break;
+          case 4: // BookFan
+            verifier.checkRange(pos, 4);
+            break;
+        }
+      }
+    }
+    {
+      const pos = verifier.checkOffsetField(tablePos, 8);
+      if (pos !== 0) {
+        verifier.checkVector(pos, 1);
+      }
+    }
+    {
+      const pos = verifier.checkOffsetField(tablePos, 10);
+      if (pos !== 0) {
+        verifier.checkVector(pos, 4);
+      }
+    }
+  } finally {
+    verifier.popDepth();
+  }
+}
+
+export function verifyRootAsMovie(buf: DataView, opts?: flatbuffers.VerifierOptions): void {
+  const verifier = new flatbuffers.Verifier(buf, opts);
+  const tablePos = verifier.readUint32(0);
+  verifyMovie(verifier, tablePos);
 }

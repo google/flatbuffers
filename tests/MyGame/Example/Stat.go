@@ -7,9 +7,9 @@ import (
 )
 
 type StatT struct {
-	Id string `json:"id"`
-	Val int64 `json:"val"`
-	Count uint16 `json:"count"`
+	Id string `json:"id,omitempty"`
+	Val int64 `json:"val,omitempty"`
+	Count uint16 `json:"count,omitempty"`
 }
 
 func (t *StatT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -42,6 +42,27 @@ func (rcv *Stat) UnPack() *StatT {
 	return t
 }
 
+// UnpackFields returns a partial *StatT with only the named fields populated.
+// Fields not in the list are left at their zero/default values.
+// This avoids materializing the entire table tree.
+func (rcv *Stat) UnpackFields(fields ...string) *StatT {
+	t := &StatT{}
+	fieldSet := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		fieldSet[f] = true
+	}
+	if fieldSet["id"] {
+		t.Id = string(rcv.Id())
+	}
+	if fieldSet["val"] {
+		t.Val = rcv.Val()
+	}
+	if fieldSet["count"] {
+		t.Count = rcv.Count()
+	}
+	return t
+}
+
 type Stat struct {
 	_tab flatbuffers.Table
 }
@@ -66,6 +87,47 @@ func GetSizePrefixedRootAsStat(buf []byte, offset flatbuffers.UOffsetT) *Stat {
 
 func FinishSizePrefixedStatBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsStat(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyStat(v, int(tablePos))
+}
+
+func VerifyStat(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyStat(v, tablePos)
+}
+
+func verifyStat(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if pos, err := v.CheckOffsetField(tablePos, 4); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckString(pos); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 6, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 8, 2); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rcv *Stat) Init(buf []byte, i flatbuffers.UOffsetT) {

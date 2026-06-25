@@ -40,3 +40,9 @@ export function unionListToAny(
     default: return null;
   }
 }
+
+export type AnyT =
+  | { type: 'NONE'; value: null }
+  | { type: 'Monster'; value: MonsterT }
+  | { type: 'TestSimpleTableWithEnum'; value: TestSimpleTableWithEnumT }
+  | { type: 'MyGame_Example2_Monster'; value: MyGame_Example2_MonsterT };

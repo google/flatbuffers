@@ -427,3 +427,53 @@ static createScalarStuff(builder:flatbuffers.Builder, justI8:number, maybeI8:num
   return ScalarStuff.endScalarStuff(builder);
 }
 }
+
+export function verifyScalarStuff(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 1);
+    verifier.checkScalarField(tablePos, 6, 1);
+    verifier.checkScalarField(tablePos, 8, 1);
+    verifier.checkScalarField(tablePos, 10, 1);
+    verifier.checkScalarField(tablePos, 12, 1);
+    verifier.checkScalarField(tablePos, 14, 1);
+    verifier.checkScalarField(tablePos, 16, 2);
+    verifier.checkScalarField(tablePos, 18, 2);
+    verifier.checkScalarField(tablePos, 20, 2);
+    verifier.checkScalarField(tablePos, 22, 2);
+    verifier.checkScalarField(tablePos, 24, 2);
+    verifier.checkScalarField(tablePos, 26, 2);
+    verifier.checkScalarField(tablePos, 28, 4);
+    verifier.checkScalarField(tablePos, 30, 4);
+    verifier.checkScalarField(tablePos, 32, 4);
+    verifier.checkScalarField(tablePos, 34, 4);
+    verifier.checkScalarField(tablePos, 36, 4);
+    verifier.checkScalarField(tablePos, 38, 4);
+    verifier.checkScalarField(tablePos, 40, 8);
+    verifier.checkScalarField(tablePos, 42, 8);
+    verifier.checkScalarField(tablePos, 44, 8);
+    verifier.checkScalarField(tablePos, 46, 8);
+    verifier.checkScalarField(tablePos, 48, 8);
+    verifier.checkScalarField(tablePos, 50, 8);
+    verifier.checkScalarField(tablePos, 52, 4);
+    verifier.checkScalarField(tablePos, 54, 4);
+    verifier.checkScalarField(tablePos, 56, 4);
+    verifier.checkScalarField(tablePos, 58, 8);
+    verifier.checkScalarField(tablePos, 60, 8);
+    verifier.checkScalarField(tablePos, 62, 8);
+    verifier.checkScalarField(tablePos, 64, 1);
+    verifier.checkScalarField(tablePos, 66, 1);
+    verifier.checkScalarField(tablePos, 68, 1);
+    verifier.checkScalarField(tablePos, 70, 1);
+    verifier.checkScalarField(tablePos, 72, 1);
+    verifier.checkScalarField(tablePos, 74, 1);
+  } finally {
+    verifier.popDepth();
+  }
+}
+
+export function verifyRootAsScalarStuff(buf: DataView, opts?: flatbuffers.VerifierOptions): void {
+  const verifier = new flatbuffers.Verifier(buf, opts);
+  const tablePos = verifier.readUint32(0);
+  verifyScalarStuff(verifier, tablePos);
+}

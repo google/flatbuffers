@@ -73,4 +73,17 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     (this.a?.c?.distance ?? 0)
   );
 }
+
+clone(): StructOfStructsOfStructsT {
+  const obj = new StructOfStructsOfStructsT();
+  obj.a = this.a !== null ? this.a!.clone() : null;
+  return obj;
+}
+
+equals(other: StructOfStructsOfStructsT): boolean {
+  if (this.a !== null && other.a !== null) {
+    if (!this.a!.equals(other.a!)) return false;
+  } else if (this.a !== other.a) return false;
+  return true;
+}
 }

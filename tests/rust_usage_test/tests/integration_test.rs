@@ -137,12 +137,13 @@ fn macro_check_is_some() {
 #[test]
 fn object_api_defaults() {
     use my_game::example::*;
+    use flatbuffers::ordered_float::OrderedFloat;
     assert_eq!(
         Vec3T::default(), Vec3T {
-        x: 0.0,
-        y: 0.0,
-        z: 0.0,
-        test1: 0.0,
+        x: OrderedFloat(0.0),
+        y: OrderedFloat(0.0),
+        z: OrderedFloat(0.0),
+        test1: OrderedFloat(0.0),
         test2: Color::empty(),
         test3: TestT {
             a: 0,
@@ -150,7 +151,7 @@ fn object_api_defaults() {
         }
     });
     let mut default_without_nan = MonsterT::default();
-    default_without_nan.nan_default = 0.0;
+    default_without_nan.nan_default = OrderedFloat(0.0);
     assert_eq!(
         default_without_nan,
         MonsterT {
@@ -180,9 +181,9 @@ fn object_api_defaults() {
             testhashu32_fnv1a: 0,
             testhashs64_fnv1a: 0,
             testhashu64_fnv1a: 0,
-            testf: 3.14159,
-            testf2: 3.0,
-            testf3: 0.0,
+            testf: OrderedFloat(3.14159),
+            testf2: OrderedFloat(3.0),
+            testf3: OrderedFloat(0.0),
             flex: None,
             vector_of_longs: None,
             vector_of_doubles: None,
@@ -204,14 +205,14 @@ fn object_api_defaults() {
             native_inline: None,
             long_enum_non_enum_default: Default::default(),
             long_enum_normal_default: LongEnum::LongOne,
-            nan_default: 0.0,
-            inf_default: f32::INFINITY,
-            positive_inf_default: f32::INFINITY,
-            infinity_default: f32::INFINITY,
-            positive_infinity_default: f32::INFINITY,
-            negative_inf_default: f32::NEG_INFINITY,
-            negative_infinity_default: f32::NEG_INFINITY,
-            double_inf_default: f64::INFINITY,
+            nan_default: OrderedFloat(0.0),
+            inf_default: OrderedFloat(f32::INFINITY),
+            positive_inf_default: OrderedFloat(f32::INFINITY),
+            infinity_default: OrderedFloat(f32::INFINITY),
+            positive_infinity_default: OrderedFloat(f32::INFINITY),
+            negative_inf_default: OrderedFloat(f32::NEG_INFINITY),
+            negative_infinity_default: OrderedFloat(f32::NEG_INFINITY),
+            double_inf_default: OrderedFloat(f64::INFINITY),
         }
     );
 }
@@ -583,7 +584,7 @@ mod lifetime_correctness {
         // make sure values retrieved from the 'static buffer are themselves 'static
         let monster: my_game::example::Monster<'static> = my_game::example::root_as_monster(slice).unwrap();
         // this line should compile:
-        let name: Option<&'static str> = unsafe { monster._tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None) };
+        let name: Option<&'static str> = unsafe { monster.tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None) };
         assert_eq!(name, Some("MyMonster"));
     }
 

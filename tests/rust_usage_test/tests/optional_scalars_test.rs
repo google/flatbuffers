@@ -2,6 +2,7 @@
 #[path = "../../optional_scalars/mod.rs"]
 mod optional_scalars_generated;
 use crate::optional_scalars_generated::optional_scalars::*;
+use flatbuffers::ordered_float::OrderedFloat;
 
 // There are 3 variants of scalars in tables - those specified with default=42,
 // optional scalars, and those with nothing specified (implicitly default=0).
@@ -42,7 +43,11 @@ macro_rules! make_test {
             let s = flatbuffers::root::<ScalarStuff>(builder.finished_data()).unwrap().unpack();
             assert_eq!(s.$just, $five);
             assert_eq!(s.$default, $five);
-            assert_eq!(s.$maybe, Some($five));
+            // For float fields the Object API type is `Option<OrderedFloat<_>>`,
+            // which has no `PartialEq<Option<f32>>`. Unwrapping first relies on
+            // `OrderedFloat<T>: PartialEq<T>` (an identity compare for the
+            // non-float scalar types). Unwrap also asserts the value is `Some`.
+            assert_eq!(s.$maybe.unwrap(), $five);
             let s = flatbuffers::root::<ScalarStuff>(&[0; 8]).unwrap().unpack();
             assert_eq!(s.$just, $zero);
             assert_eq!(s.$default, $fortytwo);
@@ -105,12 +110,12 @@ fn object_api_defaults() {
             maybe_u64: None,
             default_u64: 42,
 
-            just_f32: 0.0,
+            just_f32: OrderedFloat(0.0),
             maybe_f32: None,
-            default_f32: 42.0,
-            just_f64: 0.0,
+            default_f32: OrderedFloat(42.0),
+            just_f64: OrderedFloat(0.0),
             maybe_f64: None,
-            default_f64: 42.0,
+            default_f64: OrderedFloat(42.0),
 
             just_bool: false,
             maybe_bool: None,

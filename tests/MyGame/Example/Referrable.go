@@ -7,7 +7,7 @@ import (
 )
 
 type ReferrableT struct {
-	Id uint64 `json:"id"`
+	Id uint64 `json:"id,omitempty"`
 }
 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -29,6 +29,21 @@ func (rcv *Referrable) UnPack() *ReferrableT {
 	}
 	t := &ReferrableT{}
 	rcv.UnPackTo(t)
+	return t
+}
+
+// UnpackFields returns a partial *ReferrableT with only the named fields populated.
+// Fields not in the list are left at their zero/default values.
+// This avoids materializing the entire table tree.
+func (rcv *Referrable) UnpackFields(fields ...string) *ReferrableT {
+	t := &ReferrableT{}
+	fieldSet := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		fieldSet[f] = true
+	}
+	if fieldSet["id"] {
+		t.Id = rcv.Id()
+	}
 	return t
 }
 
@@ -56,6 +71,37 @@ func GetSizePrefixedRootAsReferrable(buf []byte, offset flatbuffers.UOffsetT) *R
 
 func FinishSizePrefixedReferrableBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsReferrable(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyReferrable(v, int(tablePos))
+}
+
+func VerifyReferrable(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyReferrable(v, tablePos)
+}
+
+func verifyReferrable(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 8); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {

@@ -73,6 +73,17 @@ unpack(): HandFanT {
 unpackTo(_o: HandFanT): void {
   _o.length = this.length();
 }
+
+
+
+unpackFields(...fields: string[]): HandFanT {
+  const t = new HandFanT();
+  const fieldSet = new Set(fields);
+  if (fieldSet.has('length')) {
+    t.length = this.length();
+  }
+  return t;
+}
 }
 
 export class HandFanT implements flatbuffers.IGeneratedObject {
@@ -86,4 +97,24 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.length
   );
 }
+
+clone(): HandFanT {
+  const obj = new HandFanT();
+  obj.length = this.length;
+  return obj;
+}
+
+equals(other: HandFanT): boolean {
+  if (this.length !== other.length) return false;
+  return true;
+}
+}
+
+export function verifyHandFan(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 4);
+  } finally {
+    verifier.popDepth();
+  }
 }

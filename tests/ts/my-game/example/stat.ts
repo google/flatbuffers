@@ -118,6 +118,23 @@ unpackTo(_o: StatT): void {
   _o.val = this.val();
   _o.count = this.count();
 }
+
+
+
+unpackFields(...fields: string[]): StatT {
+  const t = new StatT();
+  const fieldSet = new Set(fields);
+  if (fieldSet.has('id')) {
+    t.id = this.id();
+  }
+  if (fieldSet.has('val')) {
+    t.val = this.val();
+  }
+  if (fieldSet.has('count')) {
+    t.count = this.count();
+  }
+  return t;
+}
 }
 
 export class StatT implements flatbuffers.IGeneratedObject {
@@ -137,4 +154,35 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.count
   );
 }
+
+clone(): StatT {
+  const obj = new StatT();
+  obj.id = this.id;
+  obj.val = this.val;
+  obj.count = this.count;
+  return obj;
+}
+
+equals(other: StatT): boolean {
+  if (this.id !== other.id) return false;
+  if (this.val !== other.val) return false;
+  if (this.count !== other.count) return false;
+  return true;
+}
+}
+
+export function verifyStat(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    {
+      const pos = verifier.checkOffsetField(tablePos, 4);
+      if (pos !== 0) {
+        verifier.checkString(pos);
+      }
+    }
+    verifier.checkScalarField(tablePos, 6, 8);
+    verifier.checkScalarField(tablePos, 8, 2);
+  } finally {
+    verifier.popDepth();
+  }
 }

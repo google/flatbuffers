@@ -56,6 +56,14 @@ unpack(): MonsterT {
 
 
 unpackTo(_o: MonsterT): void {}
+
+
+
+unpackFields(...fields: string[]): MonsterT {
+  const t = new MonsterT();
+  const fieldSet = new Set(fields);
+  return t;
+}
 }
 
 export class MonsterT implements flatbuffers.IGeneratedObject {
@@ -65,4 +73,21 @@ constructor(){}
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return Monster.createMonster(builder);
 }
+
+clone(): MonsterT {
+  const obj = new MonsterT();
+  return obj;
+}
+
+equals(other: MonsterT): boolean {
+  return true;
+}
+}
+
+export function verifyMonster(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+  } finally {
+    verifier.popDepth();
+  }
 }

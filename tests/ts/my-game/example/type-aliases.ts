@@ -366,6 +366,50 @@ unpackTo(_o: TypeAliasesT): void {
   _o.v8 = this.bb!.createScalarList<number>(this.v8.bind(this), this.v8Length());
   _o.vf64 = this.bb!.createScalarList<number>(this.vf64.bind(this), this.vf64Length());
 }
+
+
+
+unpackFields(...fields: string[]): TypeAliasesT {
+  const t = new TypeAliasesT();
+  const fieldSet = new Set(fields);
+  if (fieldSet.has('i8')) {
+    t.i8 = this.i8();
+  }
+  if (fieldSet.has('u8')) {
+    t.u8 = this.u8();
+  }
+  if (fieldSet.has('i16')) {
+    t.i16 = this.i16();
+  }
+  if (fieldSet.has('u16')) {
+    t.u16 = this.u16();
+  }
+  if (fieldSet.has('i32')) {
+    t.i32 = this.i32();
+  }
+  if (fieldSet.has('u32')) {
+    t.u32 = this.u32();
+  }
+  if (fieldSet.has('i64')) {
+    t.i64 = this.i64();
+  }
+  if (fieldSet.has('u64')) {
+    t.u64 = this.u64();
+  }
+  if (fieldSet.has('f32')) {
+    t.f32 = this.f32();
+  }
+  if (fieldSet.has('f64')) {
+    t.f64 = this.f64();
+  }
+  if (fieldSet.has('v8')) {
+    t.v8 = this.bb!.createScalarList<number>(this.v8.bind(this), this.v8Length());
+  }
+  if (fieldSet.has('vf64')) {
+    t.vf64 = this.bb!.createScalarList<number>(this.vf64.bind(this), this.vf64Length());
+  }
+  return t;
+}
 }
 
 export class TypeAliasesT implements flatbuffers.IGeneratedObject {
@@ -404,4 +448,73 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     vf64
   );
 }
+
+clone(): TypeAliasesT {
+  const obj = new TypeAliasesT();
+  obj.i8 = this.i8;
+  obj.u8 = this.u8;
+  obj.i16 = this.i16;
+  obj.u16 = this.u16;
+  obj.i32 = this.i32;
+  obj.u32 = this.u32;
+  obj.i64 = this.i64;
+  obj.u64 = this.u64;
+  obj.f32 = this.f32;
+  obj.f64 = this.f64;
+  obj.v8 = [...this.v8];
+  obj.vf64 = [...this.vf64];
+  return obj;
+}
+
+equals(other: TypeAliasesT): boolean {
+  if (this.i8 !== other.i8) return false;
+  if (this.u8 !== other.u8) return false;
+  if (this.i16 !== other.i16) return false;
+  if (this.u16 !== other.u16) return false;
+  if (this.i32 !== other.i32) return false;
+  if (this.u32 !== other.u32) return false;
+  if (this.i64 !== other.i64) return false;
+  if (this.u64 !== other.u64) return false;
+  if (!Object.is(this.f32, other.f32)) return false;
+  if (!Object.is(this.f64, other.f64)) return false;
+  if (this.v8.length !== other.v8.length) return false;
+  for (let i = 0; i < this.v8.length; i++) {
+    if (this.v8[i] !== other.v8[i]) return false;
+  }
+  if (this.vf64.length !== other.vf64.length) return false;
+  for (let i = 0; i < this.vf64.length; i++) {
+    if (this.vf64[i] !== other.vf64[i]) return false;
+  }
+  return true;
+}
+}
+
+export function verifyTypeAliases(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 1);
+    verifier.checkScalarField(tablePos, 6, 1);
+    verifier.checkScalarField(tablePos, 8, 2);
+    verifier.checkScalarField(tablePos, 10, 2);
+    verifier.checkScalarField(tablePos, 12, 4);
+    verifier.checkScalarField(tablePos, 14, 4);
+    verifier.checkScalarField(tablePos, 16, 8);
+    verifier.checkScalarField(tablePos, 18, 8);
+    verifier.checkScalarField(tablePos, 20, 4);
+    verifier.checkScalarField(tablePos, 22, 8);
+    {
+      const pos = verifier.checkOffsetField(tablePos, 24);
+      if (pos !== 0) {
+        verifier.checkVector(pos, 1);
+      }
+    }
+    {
+      const pos = verifier.checkOffsetField(tablePos, 26);
+      if (pos !== 0) {
+        verifier.checkVector(pos, 8);
+      }
+    }
+  } finally {
+    verifier.popDepth();
+  }
 }

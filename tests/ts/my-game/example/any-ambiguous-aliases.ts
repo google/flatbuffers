@@ -38,3 +38,9 @@ export function unionListToAnyAmbiguousAliases(
     default: return null;
   }
 }
+
+export type AnyAmbiguousAliasesT =
+  | { type: 'NONE'; value: null }
+  | { type: 'M1'; value: MonsterT }
+  | { type: 'M2'; value: MonsterT }
+  | { type: 'M3'; value: MonsterT };

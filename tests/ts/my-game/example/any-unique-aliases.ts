@@ -40,3 +40,9 @@ export function unionListToAnyUniqueAliases(
     default: return null;
   }
 }
+
+export type AnyUniqueAliasesT =
+  | { type: 'NONE'; value: null }
+  | { type: 'M'; value: MonsterT }
+  | { type: 'TS'; value: TestSimpleTableWithEnumT }
+  | { type: 'M2'; value: MyGame_Example2_MonsterT };

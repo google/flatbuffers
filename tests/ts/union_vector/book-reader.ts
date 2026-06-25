@@ -62,4 +62,15 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.booksRead
   );
 }
+
+clone(): BookReaderT {
+  const obj = new BookReaderT();
+  obj.booksRead = this.booksRead;
+  return obj;
+}
+
+equals(other: BookReaderT): boolean {
+  if (this.booksRead !== other.booksRead) return false;
+  return true;
+}
 }

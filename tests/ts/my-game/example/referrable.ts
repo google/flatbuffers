@@ -81,6 +81,17 @@ unpack(): ReferrableT {
 unpackTo(_o: ReferrableT): void {
   _o.id = this.id();
 }
+
+
+
+unpackFields(...fields: string[]): ReferrableT {
+  const t = new ReferrableT();
+  const fieldSet = new Set(fields);
+  if (fieldSet.has('id')) {
+    t.id = this.id();
+  }
+  return t;
+}
 }
 
 export class ReferrableT implements flatbuffers.IGeneratedObject {
@@ -94,4 +105,24 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.id
   );
 }
+
+clone(): ReferrableT {
+  const obj = new ReferrableT();
+  obj.id = this.id;
+  return obj;
+}
+
+equals(other: ReferrableT): boolean {
+  if (this.id !== other.id) return false;
+  return true;
+}
+}
+
+export function verifyReferrable(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 8);
+  } finally {
+    verifier.popDepth();
+  }
 }

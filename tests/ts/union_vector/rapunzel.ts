@@ -62,4 +62,15 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.hairLength
   );
 }
+
+clone(): RapunzelT {
+  const obj = new RapunzelT();
+  obj.hairLength = this.hairLength;
+  return obj;
+}
+
+equals(other: RapunzelT): boolean {
+  if (this.hairLength !== other.hairLength) return false;
+  return true;
+}
 }

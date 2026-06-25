@@ -76,4 +76,17 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.distance
   );
 }
+
+clone(): AbilityT {
+  const obj = new AbilityT();
+  obj.id = this.id;
+  obj.distance = this.distance;
+  return obj;
+}
+
+equals(other: AbilityT): boolean {
+  if (this.id !== other.id) return false;
+  if (this.distance !== other.distance) return false;
+  return true;
+}
 }

@@ -56,6 +56,14 @@ unpack(): InParentNamespaceT {
 
 
 unpackTo(_o: InParentNamespaceT): void {}
+
+
+
+unpackFields(...fields: string[]): InParentNamespaceT {
+  const t = new InParentNamespaceT();
+  const fieldSet = new Set(fields);
+  return t;
+}
 }
 
 export class InParentNamespaceT implements flatbuffers.IGeneratedObject {
@@ -65,4 +73,21 @@ constructor(){}
 pack(builder:flatbuffers.Builder): flatbuffers.Offset {
   return InParentNamespace.createInParentNamespace(builder);
 }
+
+clone(): InParentNamespaceT {
+  const obj = new InParentNamespaceT();
+  return obj;
+}
+
+equals(other: InParentNamespaceT): boolean {
+  return true;
+}
+}
+
+export function verifyInParentNamespace(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+  } finally {
+    verifier.popDepth();
+  }
 }

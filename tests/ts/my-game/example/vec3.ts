@@ -136,4 +136,27 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     (this.test3?.b ?? 0)
   );
 }
+
+clone(): Vec3T {
+  const obj = new Vec3T();
+  obj.x = this.x;
+  obj.y = this.y;
+  obj.z = this.z;
+  obj.test1 = this.test1;
+  obj.test2 = this.test2;
+  obj.test3 = this.test3 !== null ? this.test3!.clone() : null;
+  return obj;
+}
+
+equals(other: Vec3T): boolean {
+  if (!Object.is(this.x, other.x)) return false;
+  if (!Object.is(this.y, other.y)) return false;
+  if (!Object.is(this.z, other.z)) return false;
+  if (!Object.is(this.test1, other.test1)) return false;
+  if (this.test2 !== other.test2) return false;
+  if (this.test3 !== null && other.test3 !== null) {
+    if (!this.test3!.equals(other.test3!)) return false;
+  } else if (this.test3 !== other.test3) return false;
+  return true;
+}
 }

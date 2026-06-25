@@ -77,4 +77,17 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.b
   );
 }
+
+clone(): TestT {
+  const obj = new TestT();
+  obj.a = this.a;
+  obj.b = this.b;
+  return obj;
+}
+
+equals(other: TestT): boolean {
+  if (this.a !== other.a) return false;
+  if (this.b !== other.b) return false;
+  return true;
+}
 }

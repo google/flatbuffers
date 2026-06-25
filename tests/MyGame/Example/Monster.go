@@ -8,68 +8,69 @@ import (
 	"math"
 
 	MyGame "MyGame"
+	MyGame__Example2 "MyGame/Example2"
 )
 
 /// an example documentation comment: "monster object"
 type MonsterT struct {
-	Pos *Vec3T `json:"pos"`
-	Mana int16 `json:"mana"`
-	Hp int16 `json:"hp"`
-	Name string `json:"name"`
-	Inventory []byte `json:"inventory"`
-	Color Color `json:"color"`
-	Test *AnyT `json:"test"`
-	Test4 []*TestT `json:"test4"`
-	Testarrayofstring []string `json:"testarrayofstring"`
-	Testarrayoftables []*MonsterT `json:"testarrayoftables"`
-	Enemy *MonsterT `json:"enemy"`
-	Testnestedflatbuffer []byte `json:"testnestedflatbuffer"`
-	Testempty *StatT `json:"testempty"`
-	Testbool bool `json:"testbool"`
-	Testhashs32Fnv1 int32 `json:"testhashs32_fnv1"`
-	Testhashu32Fnv1 uint32 `json:"testhashu32_fnv1"`
-	Testhashs64Fnv1 int64 `json:"testhashs64_fnv1"`
-	Testhashu64Fnv1 uint64 `json:"testhashu64_fnv1"`
-	Testhashs32Fnv1a int32 `json:"testhashs32_fnv1a"`
-	Testhashu32Fnv1a uint32 `json:"testhashu32_fnv1a"`
-	Testhashs64Fnv1a int64 `json:"testhashs64_fnv1a"`
-	Testhashu64Fnv1a uint64 `json:"testhashu64_fnv1a"`
-	Testarrayofbools []bool `json:"testarrayofbools"`
-	Testf float32 `json:"testf"`
-	Testf2 float32 `json:"testf2"`
-	Testf3 float32 `json:"testf3"`
-	Testarrayofstring2 []string `json:"testarrayofstring2"`
-	Testarrayofsortedstruct []*AbilityT `json:"testarrayofsortedstruct"`
-	Flex []byte `json:"flex"`
-	Test5 []*TestT `json:"test5"`
-	VectorOfLongs []int64 `json:"vector_of_longs"`
-	VectorOfDoubles []float64 `json:"vector_of_doubles"`
-	ParentNamespaceTest *MyGame.InParentNamespaceT `json:"parent_namespace_test"`
-	VectorOfReferrables []*ReferrableT `json:"vector_of_referrables"`
-	SingleWeakReference uint64 `json:"single_weak_reference"`
-	VectorOfWeakReferences []uint64 `json:"vector_of_weak_references"`
-	VectorOfStrongReferrables []*ReferrableT `json:"vector_of_strong_referrables"`
-	CoOwningReference uint64 `json:"co_owning_reference"`
-	VectorOfCoOwningReferences []uint64 `json:"vector_of_co_owning_references"`
-	NonOwningReference uint64 `json:"non_owning_reference"`
-	VectorOfNonOwningReferences []uint64 `json:"vector_of_non_owning_references"`
-	AnyUnique *AnyUniqueAliasesT `json:"any_unique"`
-	AnyAmbiguous *AnyAmbiguousAliasesT `json:"any_ambiguous"`
-	VectorOfEnums []Color `json:"vector_of_enums"`
-	SignedEnum Race `json:"signed_enum"`
-	Testrequirednestedflatbuffer []byte `json:"testrequirednestedflatbuffer"`
-	ScalarKeySortedTables []*StatT `json:"scalar_key_sorted_tables"`
-	NativeInline *TestT `json:"native_inline"`
-	LongEnumNonEnumDefault LongEnum `json:"long_enum_non_enum_default"`
-	LongEnumNormalDefault LongEnum `json:"long_enum_normal_default"`
-	NanDefault float32 `json:"nan_default"`
-	InfDefault float32 `json:"inf_default"`
-	PositiveInfDefault float32 `json:"positive_inf_default"`
-	InfinityDefault float32 `json:"infinity_default"`
-	PositiveInfinityDefault float32 `json:"positive_infinity_default"`
-	NegativeInfDefault float32 `json:"negative_inf_default"`
-	NegativeInfinityDefault float32 `json:"negative_infinity_default"`
-	DoubleInfDefault float64 `json:"double_inf_default"`
+	Pos *Vec3T `json:"pos,omitempty"`
+	Mana int16 `json:"mana,omitempty"`
+	Hp int16 `json:"hp,omitempty"`
+	Name string `json:"name,omitempty"`
+	Inventory []byte `json:"inventory,omitempty"`
+	Color Color `json:"color,omitempty"`
+	Test *AnyT `json:"test,omitempty"`
+	Test4 []*TestT `json:"test4,omitempty"`
+	Testarrayofstring []string `json:"testarrayofstring,omitempty"`
+	Testarrayoftables []*MonsterT `json:"testarrayoftables,omitempty"`
+	Enemy *MonsterT `json:"enemy,omitempty"`
+	Testnestedflatbuffer []byte `json:"testnestedflatbuffer,omitempty"`
+	Testempty *StatT `json:"testempty,omitempty"`
+	Testbool bool `json:"testbool,omitempty"`
+	Testhashs32Fnv1 int32 `json:"testhashs32_fnv1,omitempty"`
+	Testhashu32Fnv1 uint32 `json:"testhashu32_fnv1,omitempty"`
+	Testhashs64Fnv1 int64 `json:"testhashs64_fnv1,omitempty"`
+	Testhashu64Fnv1 uint64 `json:"testhashu64_fnv1,omitempty"`
+	Testhashs32Fnv1a int32 `json:"testhashs32_fnv1a,omitempty"`
+	Testhashu32Fnv1a uint32 `json:"testhashu32_fnv1a,omitempty"`
+	Testhashs64Fnv1a int64 `json:"testhashs64_fnv1a,omitempty"`
+	Testhashu64Fnv1a uint64 `json:"testhashu64_fnv1a,omitempty"`
+	Testarrayofbools []bool `json:"testarrayofbools,omitempty"`
+	Testf float32 `json:"testf,omitempty"`
+	Testf2 float32 `json:"testf2,omitempty"`
+	Testf3 float32 `json:"testf3,omitempty"`
+	Testarrayofstring2 []string `json:"testarrayofstring2,omitempty"`
+	Testarrayofsortedstruct []*AbilityT `json:"testarrayofsortedstruct,omitempty"`
+	Flex []byte `json:"flex,omitempty"`
+	Test5 []*TestT `json:"test5,omitempty"`
+	VectorOfLongs []int64 `json:"vector_of_longs,omitempty"`
+	VectorOfDoubles []float64 `json:"vector_of_doubles,omitempty"`
+	ParentNamespaceTest *MyGame.InParentNamespaceT `json:"parent_namespace_test,omitempty"`
+	VectorOfReferrables []*ReferrableT `json:"vector_of_referrables,omitempty"`
+	SingleWeakReference uint64 `json:"single_weak_reference,omitempty"`
+	VectorOfWeakReferences []uint64 `json:"vector_of_weak_references,omitempty"`
+	VectorOfStrongReferrables []*ReferrableT `json:"vector_of_strong_referrables,omitempty"`
+	CoOwningReference uint64 `json:"co_owning_reference,omitempty"`
+	VectorOfCoOwningReferences []uint64 `json:"vector_of_co_owning_references,omitempty"`
+	NonOwningReference uint64 `json:"non_owning_reference,omitempty"`
+	VectorOfNonOwningReferences []uint64 `json:"vector_of_non_owning_references,omitempty"`
+	AnyUnique *AnyUniqueAliasesT `json:"any_unique,omitempty"`
+	AnyAmbiguous *AnyAmbiguousAliasesT `json:"any_ambiguous,omitempty"`
+	VectorOfEnums []Color `json:"vector_of_enums,omitempty"`
+	SignedEnum Race `json:"signed_enum,omitempty"`
+	Testrequirednestedflatbuffer []byte `json:"testrequirednestedflatbuffer,omitempty"`
+	ScalarKeySortedTables []*StatT `json:"scalar_key_sorted_tables,omitempty"`
+	NativeInline *TestT `json:"native_inline,omitempty"`
+	LongEnumNonEnumDefault LongEnum `json:"long_enum_non_enum_default,omitempty"`
+	LongEnumNormalDefault LongEnum `json:"long_enum_normal_default,omitempty"`
+	NanDefault float32 `json:"nan_default,omitempty"`
+	InfDefault float32 `json:"inf_default,omitempty"`
+	PositiveInfDefault float32 `json:"positive_inf_default,omitempty"`
+	InfinityDefault float32 `json:"infinity_default,omitempty"`
+	PositiveInfinityDefault float32 `json:"positive_infinity_default,omitempty"`
+	NegativeInfDefault float32 `json:"negative_inf_default,omitempty"`
+	NegativeInfinityDefault float32 `json:"negative_infinity_default,omitempty"`
+	DoubleInfDefault float64 `json:"double_inf_default,omitempty"`
 }
 
 func (t *MonsterT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -500,6 +501,279 @@ func (rcv *Monster) UnPack() *MonsterT {
 	return t
 }
 
+// UnpackFields returns a partial *MonsterT with only the named fields populated.
+// Fields not in the list are left at their zero/default values.
+// This avoids materializing the entire table tree.
+func (rcv *Monster) UnpackFields(fields ...string) *MonsterT {
+	t := &MonsterT{}
+	fieldSet := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		fieldSet[f] = true
+	}
+	if fieldSet["pos"] {
+		t.Pos = rcv.Pos(nil).UnPack()
+	}
+	if fieldSet["mana"] {
+		t.Mana = rcv.Mana()
+	}
+	if fieldSet["hp"] {
+		t.Hp = rcv.Hp()
+	}
+	if fieldSet["name"] {
+		t.Name = string(rcv.Name())
+	}
+	if fieldSet["inventory"] {
+		t.Inventory = rcv.InventoryBytes()
+	}
+	if fieldSet["color"] {
+		t.Color = rcv.Color()
+	}
+	if fieldSet["test"] {
+		testTable := flatbuffers.Table{}
+		if rcv.Test(&testTable) {
+			t.Test = rcv.TestType().UnPack(testTable)
+		}
+	}
+	if fieldSet["test4"] {
+		test4Length := rcv.Test4Length()
+		t.Test4 = make([]*TestT, test4Length)
+		for j := 0; j < test4Length; j++ {
+			x := Test{}
+			rcv.Test4(&x, j)
+			t.Test4[j] = x.UnPack()
+		}
+	}
+	if fieldSet["testarrayofstring"] {
+		testarrayofstringLength := rcv.TestarrayofstringLength()
+		t.Testarrayofstring = make([]string, testarrayofstringLength)
+		for j := 0; j < testarrayofstringLength; j++ {
+			t.Testarrayofstring[j] = string(rcv.Testarrayofstring(j))
+		}
+	}
+	if fieldSet["testarrayoftables"] {
+		testarrayoftablesLength := rcv.TestarrayoftablesLength()
+		t.Testarrayoftables = make([]*MonsterT, testarrayoftablesLength)
+		for j := 0; j < testarrayoftablesLength; j++ {
+			x := Monster{}
+			rcv.Testarrayoftables(&x, j)
+			t.Testarrayoftables[j] = x.UnPack()
+		}
+	}
+	if fieldSet["enemy"] {
+		t.Enemy = rcv.Enemy(nil).UnPack()
+	}
+	if fieldSet["testnestedflatbuffer"] {
+		t.Testnestedflatbuffer = rcv.TestnestedflatbufferBytes()
+	}
+	if fieldSet["testempty"] {
+		t.Testempty = rcv.Testempty(nil).UnPack()
+	}
+	if fieldSet["testbool"] {
+		t.Testbool = rcv.Testbool()
+	}
+	if fieldSet["testhashs32_fnv1"] {
+		t.Testhashs32Fnv1 = rcv.Testhashs32Fnv1()
+	}
+	if fieldSet["testhashu32_fnv1"] {
+		t.Testhashu32Fnv1 = rcv.Testhashu32Fnv1()
+	}
+	if fieldSet["testhashs64_fnv1"] {
+		t.Testhashs64Fnv1 = rcv.Testhashs64Fnv1()
+	}
+	if fieldSet["testhashu64_fnv1"] {
+		t.Testhashu64Fnv1 = rcv.Testhashu64Fnv1()
+	}
+	if fieldSet["testhashs32_fnv1a"] {
+		t.Testhashs32Fnv1a = rcv.Testhashs32Fnv1a()
+	}
+	if fieldSet["testhashu32_fnv1a"] {
+		t.Testhashu32Fnv1a = rcv.Testhashu32Fnv1a()
+	}
+	if fieldSet["testhashs64_fnv1a"] {
+		t.Testhashs64Fnv1a = rcv.Testhashs64Fnv1a()
+	}
+	if fieldSet["testhashu64_fnv1a"] {
+		t.Testhashu64Fnv1a = rcv.Testhashu64Fnv1a()
+	}
+	if fieldSet["testarrayofbools"] {
+		testarrayofboolsLength := rcv.TestarrayofboolsLength()
+		t.Testarrayofbools = make([]bool, testarrayofboolsLength)
+		for j := 0; j < testarrayofboolsLength; j++ {
+			t.Testarrayofbools[j] = rcv.Testarrayofbools(j)
+		}
+	}
+	if fieldSet["testf"] {
+		t.Testf = rcv.Testf()
+	}
+	if fieldSet["testf2"] {
+		t.Testf2 = rcv.Testf2()
+	}
+	if fieldSet["testf3"] {
+		t.Testf3 = rcv.Testf3()
+	}
+	if fieldSet["testarrayofstring2"] {
+		testarrayofstring2Length := rcv.Testarrayofstring2Length()
+		t.Testarrayofstring2 = make([]string, testarrayofstring2Length)
+		for j := 0; j < testarrayofstring2Length; j++ {
+			t.Testarrayofstring2[j] = string(rcv.Testarrayofstring2(j))
+		}
+	}
+	if fieldSet["testarrayofsortedstruct"] {
+		testarrayofsortedstructLength := rcv.TestarrayofsortedstructLength()
+		t.Testarrayofsortedstruct = make([]*AbilityT, testarrayofsortedstructLength)
+		for j := 0; j < testarrayofsortedstructLength; j++ {
+			x := Ability{}
+			rcv.Testarrayofsortedstruct(&x, j)
+			t.Testarrayofsortedstruct[j] = x.UnPack()
+		}
+	}
+	if fieldSet["flex"] {
+		t.Flex = rcv.FlexBytes()
+	}
+	if fieldSet["test5"] {
+		test5Length := rcv.Test5Length()
+		t.Test5 = make([]*TestT, test5Length)
+		for j := 0; j < test5Length; j++ {
+			x := Test{}
+			rcv.Test5(&x, j)
+			t.Test5[j] = x.UnPack()
+		}
+	}
+	if fieldSet["vector_of_longs"] {
+		vectorOfLongsLength := rcv.VectorOfLongsLength()
+		t.VectorOfLongs = make([]int64, vectorOfLongsLength)
+		for j := 0; j < vectorOfLongsLength; j++ {
+			t.VectorOfLongs[j] = rcv.VectorOfLongs(j)
+		}
+	}
+	if fieldSet["vector_of_doubles"] {
+		vectorOfDoublesLength := rcv.VectorOfDoublesLength()
+		t.VectorOfDoubles = make([]float64, vectorOfDoublesLength)
+		for j := 0; j < vectorOfDoublesLength; j++ {
+			t.VectorOfDoubles[j] = rcv.VectorOfDoubles(j)
+		}
+	}
+	if fieldSet["parent_namespace_test"] {
+		t.ParentNamespaceTest = rcv.ParentNamespaceTest(nil).UnPack()
+	}
+	if fieldSet["vector_of_referrables"] {
+		vectorOfReferrablesLength := rcv.VectorOfReferrablesLength()
+		t.VectorOfReferrables = make([]*ReferrableT, vectorOfReferrablesLength)
+		for j := 0; j < vectorOfReferrablesLength; j++ {
+			x := Referrable{}
+			rcv.VectorOfReferrables(&x, j)
+			t.VectorOfReferrables[j] = x.UnPack()
+		}
+	}
+	if fieldSet["single_weak_reference"] {
+		t.SingleWeakReference = rcv.SingleWeakReference()
+	}
+	if fieldSet["vector_of_weak_references"] {
+		vectorOfWeakReferencesLength := rcv.VectorOfWeakReferencesLength()
+		t.VectorOfWeakReferences = make([]uint64, vectorOfWeakReferencesLength)
+		for j := 0; j < vectorOfWeakReferencesLength; j++ {
+			t.VectorOfWeakReferences[j] = rcv.VectorOfWeakReferences(j)
+		}
+	}
+	if fieldSet["vector_of_strong_referrables"] {
+		vectorOfStrongReferrablesLength := rcv.VectorOfStrongReferrablesLength()
+		t.VectorOfStrongReferrables = make([]*ReferrableT, vectorOfStrongReferrablesLength)
+		for j := 0; j < vectorOfStrongReferrablesLength; j++ {
+			x := Referrable{}
+			rcv.VectorOfStrongReferrables(&x, j)
+			t.VectorOfStrongReferrables[j] = x.UnPack()
+		}
+	}
+	if fieldSet["co_owning_reference"] {
+		t.CoOwningReference = rcv.CoOwningReference()
+	}
+	if fieldSet["vector_of_co_owning_references"] {
+		vectorOfCoOwningReferencesLength := rcv.VectorOfCoOwningReferencesLength()
+		t.VectorOfCoOwningReferences = make([]uint64, vectorOfCoOwningReferencesLength)
+		for j := 0; j < vectorOfCoOwningReferencesLength; j++ {
+			t.VectorOfCoOwningReferences[j] = rcv.VectorOfCoOwningReferences(j)
+		}
+	}
+	if fieldSet["non_owning_reference"] {
+		t.NonOwningReference = rcv.NonOwningReference()
+	}
+	if fieldSet["vector_of_non_owning_references"] {
+		vectorOfNonOwningReferencesLength := rcv.VectorOfNonOwningReferencesLength()
+		t.VectorOfNonOwningReferences = make([]uint64, vectorOfNonOwningReferencesLength)
+		for j := 0; j < vectorOfNonOwningReferencesLength; j++ {
+			t.VectorOfNonOwningReferences[j] = rcv.VectorOfNonOwningReferences(j)
+		}
+	}
+	if fieldSet["any_unique"] {
+		anyUniqueTable := flatbuffers.Table{}
+		if rcv.AnyUnique(&anyUniqueTable) {
+			t.AnyUnique = rcv.AnyUniqueType().UnPack(anyUniqueTable)
+		}
+	}
+	if fieldSet["any_ambiguous"] {
+		anyAmbiguousTable := flatbuffers.Table{}
+		if rcv.AnyAmbiguous(&anyAmbiguousTable) {
+			t.AnyAmbiguous = rcv.AnyAmbiguousType().UnPack(anyAmbiguousTable)
+		}
+	}
+	if fieldSet["vector_of_enums"] {
+		vectorOfEnumsLength := rcv.VectorOfEnumsLength()
+		t.VectorOfEnums = make([]Color, vectorOfEnumsLength)
+		for j := 0; j < vectorOfEnumsLength; j++ {
+			t.VectorOfEnums[j] = rcv.VectorOfEnums(j)
+		}
+	}
+	if fieldSet["signed_enum"] {
+		t.SignedEnum = rcv.SignedEnum()
+	}
+	if fieldSet["testrequirednestedflatbuffer"] {
+		t.Testrequirednestedflatbuffer = rcv.TestrequirednestedflatbufferBytes()
+	}
+	if fieldSet["scalar_key_sorted_tables"] {
+		scalarKeySortedTablesLength := rcv.ScalarKeySortedTablesLength()
+		t.ScalarKeySortedTables = make([]*StatT, scalarKeySortedTablesLength)
+		for j := 0; j < scalarKeySortedTablesLength; j++ {
+			x := Stat{}
+			rcv.ScalarKeySortedTables(&x, j)
+			t.ScalarKeySortedTables[j] = x.UnPack()
+		}
+	}
+	if fieldSet["native_inline"] {
+		t.NativeInline = rcv.NativeInline(nil).UnPack()
+	}
+	if fieldSet["long_enum_non_enum_default"] {
+		t.LongEnumNonEnumDefault = rcv.LongEnumNonEnumDefault()
+	}
+	if fieldSet["long_enum_normal_default"] {
+		t.LongEnumNormalDefault = rcv.LongEnumNormalDefault()
+	}
+	if fieldSet["nan_default"] {
+		t.NanDefault = rcv.NanDefault()
+	}
+	if fieldSet["inf_default"] {
+		t.InfDefault = rcv.InfDefault()
+	}
+	if fieldSet["positive_inf_default"] {
+		t.PositiveInfDefault = rcv.PositiveInfDefault()
+	}
+	if fieldSet["infinity_default"] {
+		t.InfinityDefault = rcv.InfinityDefault()
+	}
+	if fieldSet["positive_infinity_default"] {
+		t.PositiveInfinityDefault = rcv.PositiveInfinityDefault()
+	}
+	if fieldSet["negative_inf_default"] {
+		t.NegativeInfDefault = rcv.NegativeInfDefault()
+	}
+	if fieldSet["negative_infinity_default"] {
+		t.NegativeInfinityDefault = rcv.NegativeInfinityDefault()
+	}
+	if fieldSet["double_inf_default"] {
+		t.DoubleInfDefault = rcv.DoubleInfDefault()
+	}
+	return t
+}
+
 type Monster struct {
 	_tab flatbuffers.Table
 }
@@ -536,6 +810,382 @@ func FinishSizePrefixedMonsterBuffer(builder *flatbuffers.Builder, offset flatbu
 
 func SizePrefixedMonsterBufferHasIdentifier(buf []byte) bool {
 	return flatbuffers.SizePrefixedBufferHasIdentifier(buf, MonsterIdentifier)
+}
+
+func VerifyRootAsMonster(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyMonster(v, int(tablePos))
+}
+
+func VerifyMonster(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyMonster(v, tablePos)
+}
+
+func verifyMonster(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 32); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 6, 2); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 8, 2); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 10); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckString(pos); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckRequiredField(tablePos, 10, "name"); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 14); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 16, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 18, 1); err != nil {
+		return err
+	}
+	if err := v.CheckUnionConsistency(tablePos, 18, 20, "test"); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 20); err != nil {
+		return err
+	} else if pos != 0 {
+		uType, err := v.ReadFieldByte(tablePos, 18)
+		if err != nil {
+			return err
+		}
+		switch Any(uType) {
+		case AnyMonster:
+			if err := verifyMonster(v, pos); err != nil {
+				return err
+			}
+		case AnyTestSimpleTableWithEnum:
+			if err := verifyTestSimpleTableWithEnum(v, pos); err != nil {
+				return err
+			}
+		case AnyMyGame_Example2_Monster:
+			if err := MyGame__Example2.VerifyMonster(v, pos); err != nil {
+				return err
+			}
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 22); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 4); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 24); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfStrings(pos); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 26); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyMonster); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 28); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := verifyMonster(v, pos); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 30); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 32); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := verifyStat(v, pos); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 34, 1); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 36, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 38, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 40, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 42, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 44, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 46, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 48, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 50, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 52); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 54, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 56, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 58, 4); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 60); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfStrings(pos); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 62); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 64); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 66); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 4); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 68); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 70); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 72); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := MyGame.VerifyInParentNamespace(v, pos); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 74); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyReferrable); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 76, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 78); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 80); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyReferrable); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 82, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 84); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 86, 8); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 88); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 8); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 90, 1); err != nil {
+		return err
+	}
+	if err := v.CheckUnionConsistency(tablePos, 90, 92, "any_unique"); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 92); err != nil {
+		return err
+	} else if pos != 0 {
+		uType, err := v.ReadFieldByte(tablePos, 90)
+		if err != nil {
+			return err
+		}
+		switch AnyUniqueAliases(uType) {
+		case AnyUniqueAliasesM:
+			if err := verifyMonster(v, pos); err != nil {
+				return err
+			}
+		case AnyUniqueAliasesTS:
+			if err := verifyTestSimpleTableWithEnum(v, pos); err != nil {
+				return err
+			}
+		case AnyUniqueAliasesM2:
+			if err := MyGame__Example2.VerifyMonster(v, pos); err != nil {
+				return err
+			}
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 94, 1); err != nil {
+		return err
+	}
+	if err := v.CheckUnionConsistency(tablePos, 94, 96, "any_ambiguous"); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 96); err != nil {
+		return err
+	} else if pos != 0 {
+		uType, err := v.ReadFieldByte(tablePos, 94)
+		if err != nil {
+			return err
+		}
+		switch AnyAmbiguousAliases(uType) {
+		case AnyAmbiguousAliasesM1:
+			if err := verifyMonster(v, pos); err != nil {
+				return err
+			}
+		case AnyAmbiguousAliasesM2:
+			if err := verifyMonster(v, pos); err != nil {
+				return err
+			}
+		case AnyAmbiguousAliasesM3:
+			if err := verifyMonster(v, pos); err != nil {
+				return err
+			}
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 98); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 100, 1); err != nil {
+		return err
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 102); err != nil {
+		return err
+	} else if pos != 0 {
+		if _, err := v.CheckVector(pos, 1); err != nil {
+			return err
+		}
+	}
+	if pos, err := v.CheckOffsetField(tablePos, 104); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckVectorOfTables(pos, verifyStat); err != nil {
+			return err
+		}
+	}
+	if err := v.CheckScalarField(tablePos, 106, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 108, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 110, 8); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 112, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 114, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 116, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 118, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 120, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 122, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 124, 4); err != nil {
+		return err
+	}
+	if err := v.CheckScalarField(tablePos, 126, 8); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rcv *Monster) Init(buf []byte, i flatbuffers.UOffsetT) {

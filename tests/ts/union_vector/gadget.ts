@@ -36,3 +36,8 @@ export function unionListToGadget(
     default: return null;
   }
 }
+
+export type GadgetT =
+  | { type: 'NONE'; value: null }
+  | { type: 'FallingTub'; value: FallingTubT }
+  | { type: 'HandFan'; value: HandFanT };

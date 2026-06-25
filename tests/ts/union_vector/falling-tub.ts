@@ -62,4 +62,15 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.weight
   );
 }
+
+clone(): FallingTubT {
+  const obj = new FallingTubT();
+  obj.weight = this.weight;
+  return obj;
+}
+
+equals(other: FallingTubT): boolean {
+  if (this.weight !== other.weight) return false;
+  return true;
+}
 }

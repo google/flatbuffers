@@ -49,3 +49,12 @@ export function unionListToCharacter(
     default: return null;
   }
 }
+
+export type CharacterT =
+  | { type: 'NONE'; value: null }
+  | { type: 'MuLan'; value: AttackerT }
+  | { type: 'Rapunzel'; value: RapunzelT }
+  | { type: 'Belle'; value: BookReaderT }
+  | { type: 'BookFan'; value: BookReaderT }
+  | { type: 'Other'; value: string }
+  | { type: 'Unused'; value: string };

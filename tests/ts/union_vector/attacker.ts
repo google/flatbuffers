@@ -73,6 +73,17 @@ unpack(): AttackerT {
 unpackTo(_o: AttackerT): void {
   _o.swordAttackDamage = this.swordAttackDamage();
 }
+
+
+
+unpackFields(...fields: string[]): AttackerT {
+  const t = new AttackerT();
+  const fieldSet = new Set(fields);
+  if (fieldSet.has('sword_attack_damage')) {
+    t.swordAttackDamage = this.swordAttackDamage();
+  }
+  return t;
+}
 }
 
 export class AttackerT implements flatbuffers.IGeneratedObject {
@@ -86,4 +97,24 @@ pack(builder:flatbuffers.Builder): flatbuffers.Offset {
     this.swordAttackDamage
   );
 }
+
+clone(): AttackerT {
+  const obj = new AttackerT();
+  obj.swordAttackDamage = this.swordAttackDamage;
+  return obj;
+}
+
+equals(other: AttackerT): boolean {
+  if (this.swordAttackDamage !== other.swordAttackDamage) return false;
+  return true;
+}
+}
+
+export function verifyAttacker(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 4);
+  } finally {
+    verifier.popDepth();
+  }
 }
