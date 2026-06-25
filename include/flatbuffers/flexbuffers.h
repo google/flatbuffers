@@ -341,7 +341,9 @@ class FixedTypedVector : public Object {
 
 class Map : public Vector {
  public:
-  Map(const uint8_t* data, uint8_t byte_width) : Vector(data, byte_width) {}
+  Map(const uint8_t* data, uint8_t byte_width,
+      const uint8_t* buf_start = nullptr)
+      : Vector(data, byte_width), buf_start_(buf_start) {}
 
   Reference operator[](const char* key) const;
   Reference operator[](const std::string& key) const;
@@ -350,6 +352,12 @@ class Map : public Vector {
 
   TypedVector Keys() const {
     const size_t num_prefixed_fields = 3;
+    // Guard against reading before the start of the buffer allocation when a
+    // crafted FlexBuffer places the map data pointer too close to the start.
+    if (buf_start_ != nullptr &&
+        data_ < buf_start_ + byte_width_ * num_prefixed_fields) {
+      return TypedVector::EmptyTypedVector();
+    }
     auto keys_offset = data_ - byte_width_ * num_prefixed_fields;
     return TypedVector(Indirect(keys_offset, byte_width_),
                        static_cast<uint8_t>(
@@ -365,6 +373,9 @@ class Map : public Vector {
   }
 
   bool IsTheEmptyMap() const { return data_ == EmptyMap().data_; }
+
+ private:
+  const uint8_t* buf_start_;
 };
 
 inline void IndentString(std::string& s, int indent,
@@ -404,20 +415,24 @@ void AppendToString(std::string& s, T&& v, bool keys_quoted) {
 class Reference {
  public:
   Reference()
-      : data_(nullptr), parent_width_(0), byte_width_(0), type_(FBT_NULL) {}
+      : data_(nullptr), parent_width_(0), byte_width_(0), type_(FBT_NULL),
+        buf_start_(nullptr) {}
 
   Reference(const uint8_t* data, uint8_t parent_width, uint8_t byte_width,
-            Type type)
+            Type type, const uint8_t* buf_start = nullptr)
       : data_(data),
         parent_width_(parent_width),
         byte_width_(byte_width),
-        type_(type) {}
+        type_(type),
+        buf_start_(buf_start) {}
 
-  Reference(const uint8_t* data, uint8_t parent_width, uint8_t packed_type)
+  Reference(const uint8_t* data, uint8_t parent_width, uint8_t packed_type,
+            const uint8_t* buf_start = nullptr)
       : data_(data),
         parent_width_(parent_width),
         byte_width_(static_cast<uint8_t>(1 << (packed_type & 3))),
-        type_(static_cast<Type>(packed_type >> 2)) {}
+        type_(static_cast<Type>(packed_type >> 2)),
+        buf_start_(buf_start) {}
 
   Type GetType() const { return type_; }
 
@@ -730,7 +745,7 @@ class Reference {
 
   Map AsMap() const {
     if (type_ == FBT_MAP) {
-      return Map(Indirect(), byte_width_);
+      return Map(Indirect(), byte_width_, buf_start_);
     } else {
       return Map::EmptyMap();
     }
@@ -849,6 +864,7 @@ class Reference {
   uint8_t parent_width_;
   uint8_t byte_width_;
   Type type_;
+  const uint8_t* buf_start_;
 };
 
 // Template specialization for As().
@@ -1011,7 +1027,7 @@ inline Reference GetRoot(const uint8_t* buffer, size_t size) {
   auto byte_width = *--end;
   auto packed_type = *--end;
   end -= byte_width;  // The root data item.
-  return Reference(end, byte_width, packed_type);
+  return Reference(end, byte_width, packed_type, buffer);
 }
 
 inline Reference GetRoot(const std::vector<uint8_t>& buffer) {
