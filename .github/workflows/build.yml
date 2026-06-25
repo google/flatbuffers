@@ -369,6 +369,27 @@ jobs:
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v6
+    # Same rationale as the Linux build-generator job: scripts/generate_code.py
+    # formats the generated Go/Rust/TS corpus, so the regen-diff check is only
+    # meaningful when gofmt/rustfmt/prettier are installed. Without these the
+    # Windows job regenerated unformatted output and compared it against the
+    # formatted committed files, making the gate silently non-deterministic.
+    - name: Set up Go (gofmt)
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+    - name: Set up Rust (rustfmt)
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt
+    - name: Set up Node (prettier)
+      uses: actions/setup-node@v6
+      with:
+        node-version: '20'
+    - name: Install pnpm
+      run: npm install -g pnpm@10
+    - name: Install JS deps (pinned prettier)
+      run: pnpm i
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
     - name: cmake

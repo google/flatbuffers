@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import filecmp
-import glob
 from pathlib import Path
 import shutil
 import subprocess
@@ -443,6 +442,17 @@ flatc(
 
 flatc(RUST_OPTS, prefix="optional_scalars", schema=optional_scalars_schema)
 
+# Same schema with --rust-object-api-hashable-floats, so the OrderedFloat-wrapped
+# Object API (which lets *T structs derive Eq/Hash on float fields) is exercised
+# by the regen-diff gate and kept compiling across upstream merges. optional_scalars
+# has just/optional/defaulted f32 and f64 fields, covering every float code path
+# the flag touches. See tests/rust_usage_test/tests/optional_scalars_ordered_floats_test.rs.
+flatc(
+    RUST_OPTS + ["--rust-object-api-hashable-floats"],
+    prefix="optional_scalars_ordered_floats",
+    schema=optional_scalars_schema,
+)
+
 flatc(NO_INCL_OPTS + CPP_OPTS, schema=optional_scalars_schema)
 
 # Type / field collsion
@@ -668,8 +678,6 @@ generate_grpc_examples.GenerateGRPCExamples()
 # optional: if the tool isn't installed the step is skipped with a note, so the
 # script still works in minimal environments.
 def format_generated_code():
-  import shutil
-
   def have(tool):
     return shutil.which(tool) is not None
 
