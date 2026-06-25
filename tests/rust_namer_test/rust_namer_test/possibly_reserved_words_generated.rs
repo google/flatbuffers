@@ -231,20 +231,20 @@ impl<'a> PossiblyReservedWords {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PossiblyReservedWordsT {
-    pub follow_: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub push_: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub size: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub alignment: ::flatbuffers::ordered_float::OrderedFloat<f32>,
+    pub follow_: f32,
+    pub push_: f32,
+    pub size: f32,
+    pub alignment: f32,
 }
 impl Default for PossiblyReservedWordsT {
     fn default() -> Self {
         Self {
-            follow_: ::flatbuffers::ordered_float::OrderedFloat(0.0),
-            push_: ::flatbuffers::ordered_float::OrderedFloat(0.0),
-            size: ::flatbuffers::ordered_float::OrderedFloat(0.0),
-            alignment: ::flatbuffers::ordered_float::OrderedFloat(0.0),
+            follow_: 0.0,
+            push_: 0.0,
+            size: 0.0,
+            alignment: 0.0,
         }
     }
 }
@@ -253,10 +253,10 @@ impl PossiblyReservedWordsT {
     #[must_use]
     pub fn pack(&self) -> PossiblyReservedWords {
         PossiblyReservedWords::new(
-        self.follow_.into_inner(),
-        self.push_.into_inner(),
-        self.size.into_inner(),
-        self.alignment.into_inner(),
+            self.follow_,
+            self.push_,
+            self.size,
+            self.alignment,
         )
     }
 }

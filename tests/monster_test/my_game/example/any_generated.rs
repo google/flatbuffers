@@ -119,7 +119,7 @@ impl ::flatbuffers::SimpleToVerifyInSlice for Any {}
 pub struct AnyUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AnyT {
     NONE,
     Monster(Box<MonsterT>),

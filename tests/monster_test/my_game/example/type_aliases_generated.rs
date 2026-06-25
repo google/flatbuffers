@@ -93,7 +93,7 @@ impl<'a> TypeAliases<'a> {
             x.into_iter().collect()
         });
         let vf64 = self.vf64().map(|x| {
-            x.iter().map(|v| ::flatbuffers::ordered_float::OrderedFloat(v)).collect()
+            x.into_iter().collect()
         });
         TypeAliasesT {
             i8_,
@@ -411,7 +411,7 @@ impl ::core::fmt::Debug for TypeAliases<'_> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct TypeAliasesT {
     pub i8_: i8,
     pub u8_: u8,
@@ -421,10 +421,10 @@ pub struct TypeAliasesT {
     pub u32_: u32,
     pub i64_: i64,
     pub u64_: u64,
-    pub f32_: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub f64_: ::flatbuffers::ordered_float::OrderedFloat<f64>,
+    pub f32_: f32,
+    pub f64_: f64,
     pub v8: Option<Vec<i8>>,
-    pub vf64: Option<Vec<::flatbuffers::ordered_float::OrderedFloat<f64>>>,
+    pub vf64: Option<Vec<f64>>,
 }
 
 impl TypeAliasesT {
@@ -441,13 +441,13 @@ impl TypeAliasesT {
         let u32_ = self.u32_;
         let i64_ = self.i64_;
         let u64_ = self.u64_;
-      let f32_ = self.f32_.into_inner();
-      let f64_ = self.f64_.into_inner();
+      let f32_ = self.f32_;
+      let f64_ = self.f64_;
         let v8 = self.v8.as_ref().map(|x|{
             fbb.create_vector(x)
         });
         let vf64 = self.vf64.as_ref().map(|x|{
-            let w: Vec<_> = x.iter().map(|v| v.into_inner()).collect();fbb.create_vector(&w)
+            fbb.create_vector(x)
         });
         TypeAliases::create(fbb, &TypeAliasesArgs{
             i8_,

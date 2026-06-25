@@ -147,7 +147,7 @@ impl ::flatbuffers::SimpleToVerifyInSlice for AnyAmbiguousAliases {}
 pub struct AnyAmbiguousAliasesUnionTableOffset {}
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum AnyAmbiguousAliasesT {
     NONE,
     M1(Box<MonsterT>),

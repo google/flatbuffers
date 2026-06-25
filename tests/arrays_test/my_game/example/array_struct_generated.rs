@@ -263,9 +263,9 @@ impl<'a> ArrayStruct {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ArrayStructT {
-    pub a: ::flatbuffers::ordered_float::OrderedFloat<f32>,
+    pub a: f32,
     pub b: [i32; 15],
     pub c: i8,
     pub d: [NestedStructT; 2],
@@ -275,7 +275,7 @@ pub struct ArrayStructT {
 impl Default for ArrayStructT {
     fn default() -> Self {
         Self {
-            a: ::flatbuffers::ordered_float::OrderedFloat(0.0),
+            a: 0.0,
             b: [0; 15],
             c: 0,
             d: ::flatbuffers::array_init(|_| Default::default()),
@@ -289,7 +289,7 @@ impl ArrayStructT {
     #[must_use]
     pub fn pack(&self) -> ArrayStruct {
         ArrayStruct::new(
-        self.a.into_inner(),
+            self.a,
             &self.b,
             self.c,
             &::flatbuffers::array_init(|i| self.d[i].pack()),

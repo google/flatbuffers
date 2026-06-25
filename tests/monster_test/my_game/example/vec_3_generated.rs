@@ -282,22 +282,22 @@ impl<'a> Vec3 {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Vec3T {
-    pub x: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub y: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub z: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub test1: ::flatbuffers::ordered_float::OrderedFloat<f64>,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub test1: f64,
     pub test2: Color,
     pub test3: TestT,
 }
 impl Default for Vec3T {
     fn default() -> Self {
         Self {
-            x: ::flatbuffers::ordered_float::OrderedFloat(0.0),
-            y: ::flatbuffers::ordered_float::OrderedFloat(0.0),
-            z: ::flatbuffers::ordered_float::OrderedFloat(0.0),
-            test1: ::flatbuffers::ordered_float::OrderedFloat(0.0),
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            test1: 0.0,
             test2: Default::default(),
             test3: Default::default(),
         }
@@ -308,10 +308,10 @@ impl Vec3T {
     #[must_use]
     pub fn pack(&self) -> Vec3 {
         Vec3::new(
-        self.x.into_inner(),
-        self.y.into_inner(),
-        self.z.into_inner(),
-        self.test1.into_inner(),
+            self.x,
+            self.y,
+            self.z,
+            self.test1,
             self.test2,
             &self.test3.pack(),
         )

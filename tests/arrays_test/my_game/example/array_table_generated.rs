@@ -137,7 +137,7 @@ impl ::core::fmt::Debug for ArrayTable<'_> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct ArrayTableT {
     pub a: Option<ArrayStructT>,
 }

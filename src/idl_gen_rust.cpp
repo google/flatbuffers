@@ -19,6 +19,7 @@
 #include "idl_gen_rust.h"
 
 #include <cmath>
+#include <set>
 
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
@@ -847,12 +848,18 @@ class RustGenerator : public BaseGenerator {
     return GetTypeBasic(type);
   }
 
-  // Return the OrderedFloat-wrapped Rust type for Object API float fields.
+  // Return the Rust type used for Object API float fields. With the
+  // --rust-object-api-hashable-floats flag the type is wrapped in
+  // OrderedFloat so the containing type can derive Eq/Hash; otherwise the
+  // plain f32/f64 is used (matching upstream).
   std::string ObjectFloatType(const Type& type) const {
-    if (type.base_type == BASE_TYPE_FLOAT) {
-      return "::flatbuffers::ordered_float::OrderedFloat<f32>";
+    if (parser_.opts.rust_object_api_hashable_floats) {
+      if (type.base_type == BASE_TYPE_FLOAT) {
+        return "::flatbuffers::ordered_float::OrderedFloat<f32>";
+      }
+      return "::flatbuffers::ordered_float::OrderedFloat<f64>";
     }
-    return "::flatbuffers::ordered_float::OrderedFloat<f64>";
+    return type.base_type == BASE_TYPE_FLOAT ? "f32" : "f64";
   }
 
   // Look up the native type for an enum. This will always be an integer like
@@ -1412,7 +1419,7 @@ class RustGenerator : public BaseGenerator {
         } else {
           raw_value = field.value.constant;
         }
-        if (context == kObject) {
+        if (context == kObject && parser_.opts.rust_object_api_hashable_floats) {
           return "::flatbuffers::ordered_float::OrderedFloat(" + raw_value + ")";
         }
         return raw_value;
@@ -2192,9 +2199,13 @@ class RustGenerator : public BaseGenerator {
           }
           case ftFloat: {
             if (field.IsOptional()) {
-              code_ +=
-                  "  let {{FIELD}} = self.{{FIELD}}()"
-                  ".map(::flatbuffers::ordered_float::OrderedFloat);";
+              if (parser_.opts.rust_object_api_hashable_floats) {
+                code_ +=
+                    "  let {{FIELD}} = self.{{FIELD}}()"
+                    ".map(::flatbuffers::ordered_float::OrderedFloat);";
+              } else {
+                code_ += "  let {{FIELD}} = self.{{FIELD}}();";
+              }
             } else {
               code_ += "  let {{FIELD}} = self.{{FIELD}}().into();";
             }
@@ -2252,10 +2263,14 @@ class RustGenerator : public BaseGenerator {
             break;
           }
           case ftVectorOfFloat: {
-            code_.SetValue("EXPR",
-                           "x.iter().map(|v| "
-                           "::flatbuffers::ordered_float::OrderedFloat(v))"
-                           ".collect()");
+            if (parser_.opts.rust_object_api_hashable_floats) {
+              code_.SetValue("EXPR",
+                             "x.iter().map(|v| "
+                             "::flatbuffers::ordered_float::OrderedFloat(v))"
+                             ".collect()");
+            } else {
+              code_.SetValue("EXPR", "x.into_iter().collect()");
+            }
             break;
           }
           case ftVectorOfString: {
@@ -2850,11 +2865,15 @@ class RustGenerator : public BaseGenerator {
           return;
         }
         case ftFloat: {
-          if (field.IsOptional()) {
-            code_ +=
-                "  let {{FIELD}} = self.{{FIELD}}.map(|v| v.into_inner());";
+          if (parser_.opts.rust_object_api_hashable_floats) {
+            if (field.IsOptional()) {
+              code_ +=
+                  "  let {{FIELD}} = self.{{FIELD}}.map(|v| v.into_inner());";
+            } else {
+              code_ += "  let {{FIELD}} = self.{{FIELD}}.into_inner();";
+            }
           } else {
-            code_ += "  let {{FIELD}} = self.{{FIELD}}.into_inner();";
+            code_ += "  let {{FIELD}} = self.{{FIELD}};";
           }
           return;
         }
@@ -2907,10 +2926,14 @@ class RustGenerator : public BaseGenerator {
           return;
         }
         case ftVectorOfFloat: {
-          MapNativeTableField(field,
-                              "let w: Vec<_> = x.iter().map(|v| "
-                              "v.into_inner()).collect();"
-                              "fbb.create_vector(&w)");
+          if (parser_.opts.rust_object_api_hashable_floats) {
+            MapNativeTableField(field,
+                                "let w: Vec<_> = x.iter().map(|v| "
+                                "v.into_inner()).collect();"
+                                "fbb.create_vector(&w)");
+          } else {
+            MapNativeTableField(field, "fbb.create_vector(x)");
+          }
           return;
         }
         case ftVectorOfStruct: {
@@ -3607,11 +3630,18 @@ class RustGenerator : public BaseGenerator {
                 "self.{{FIELD}}(); ::flatbuffers::array_init(|i| "
                 "{{FIELD}}.get(i).unpack()) },";
           } else if (IsFloat(field.value.type.VectorType().base_type)) {
-            code_ +=
-                "    {{FIELD}}: { let {{FIELD}} = "
-                "self.{{FIELD}}(); ::flatbuffers::array_init(|i| "
-                "::flatbuffers::ordered_float::OrderedFloat({{FIELD}}.get(i))) "
-                "},";
+            if (parser_.opts.rust_object_api_hashable_floats) {
+              code_ +=
+                  "    {{FIELD}}: { let {{FIELD}} = "
+                  "self.{{FIELD}}(); ::flatbuffers::array_init(|i| "
+                  "::flatbuffers::ordered_float::OrderedFloat("
+                  "{{FIELD}}.get(i))) },";
+            } else {
+              code_ +=
+                  "    {{FIELD}}: { let {{FIELD}} = "
+                  "self.{{FIELD}}(); ::flatbuffers::array_init(|i| "
+                  "{{FIELD}}.get(i)) },";
+            }
           } else {
             code_ += "        {{FIELD}}: self.{{FIELD}}().into(),";
           }
@@ -3655,7 +3685,9 @@ class RustGenerator : public BaseGenerator {
             if (elem_type == BASE_TYPE_BOOL) {
               zero = "false";
             } else if (IsFloat(elem_type)) {
-              zero = "::flatbuffers::ordered_float::OrderedFloat(0.0)";
+              zero = parser_.opts.rust_object_api_hashable_floats
+                         ? "::flatbuffers::ordered_float::OrderedFloat(0.0)"
+                         : "0.0";
             } else {
               zero = "0";
             }
@@ -3697,14 +3729,22 @@ class RustGenerator : public BaseGenerator {
                 "        &::flatbuffers::array_init(|i| "
                 "self.{{FIELD}}[i].pack()),";
           } else if (IsFloat(field.value.type.VectorType().base_type)) {
-            code_ +=
-                "    &::flatbuffers::array_init(|i| "
-                "self.{{FIELD}}[i].into_inner()),";
+            if (parser_.opts.rust_object_api_hashable_floats) {
+              code_ +=
+                  "    &::flatbuffers::array_init(|i| "
+                  "self.{{FIELD}}[i].into_inner()),";
+            } else {
+              code_ += "        &self.{{FIELD}},";
+            }
           } else {
             code_ += "        &self.{{FIELD}},";
           }
         } else if (IsFloat(field.value.type.base_type)) {
-          code_ += "    self.{{FIELD}}.into_inner(),";
+          if (parser_.opts.rust_object_api_hashable_floats) {
+            code_ += "    self.{{FIELD}}.into_inner(),";
+          } else {
+            code_ += "        self.{{FIELD}},";
+          }
         } else {
           code_ += "        self.{{FIELD}},";
         }
@@ -3808,19 +3848,62 @@ class RustGenerator : public BaseGenerator {
     cur_name_space_ = ns;
   }
 
-  // Check if a type transitively contains f32/f64 fields.
-  // Object API float fields use OrderedFloat, so most types are hashable.
-  // However, HashMap and HashSet do not implement Hash or Eq, so any struct
-  // that contains a map_entry or set_entry vector field is not hashable.
+  // Determine whether a type's Object API representation can derive Eq + Hash.
+  //
+  // Floats are only hashable when --rust-object-api-hashable-floats is set
+  // (they are then wrapped in OrderedFloat); otherwise plain f32/f64 are
+  // emitted, which are not Eq/Hash. HashMap and HashSet (map_entry/set_entry
+  // vector fields) never implement Eq/Hash. A type is hashable only if every
+  // field it transitively contains is hashable.
   bool TypeIsHashable(const StructDef& struct_def) const {
+    std::set<const StructDef*> visited;
+    return StructIsHashable(struct_def, &visited);
+  }
+
+  bool UnionIsHashable(const EnumDef& enum_def) const {
+    std::set<const StructDef*> visited;
+    return UnionIsHashable(enum_def, &visited);
+  }
+
+  bool StructIsHashable(const StructDef& struct_def,
+                        std::set<const StructDef*>* visited) const {
+    // Recursive types are assumed hashable to break the cycle; any disqualifying
+    // field is still detected at the type's own frame.
+    if (!visited->insert(&struct_def).second) return true;
     for (auto* field : struct_def.fields.vec) {
       if (field->deprecated) continue;
       if (IsMapField(*field) || IsSetField(*field)) return false;
+      if (!FieldTypeIsHashable(field->value.type, visited)) return false;
     }
     return true;
   }
 
-  bool UnionIsHashable(const EnumDef& /*enum_def*/) const {
+  bool UnionIsHashable(const EnumDef& enum_def,
+                       std::set<const StructDef*>* visited) const {
+    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      const auto& ev = **it;
+      if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
+      if (ev.union_type.struct_def != nullptr &&
+          !StructIsHashable(*ev.union_type.struct_def, visited)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool FieldTypeIsHashable(const Type& type,
+                           std::set<const StructDef*>* visited) const {
+    // Vectors and fixed-size arrays are hashable iff their element type is.
+    const Type& elem = IsSeries(type) ? type.VectorType() : type;
+    if (IsFloat(elem.base_type)) {
+      return parser_.opts.rust_object_api_hashable_floats;
+    }
+    if (elem.base_type == BASE_TYPE_UNION) {
+      return elem.enum_def == nullptr || UnionIsHashable(*elem.enum_def, visited);
+    }
+    if (elem.struct_def != nullptr) {
+      return StructIsHashable(*elem.struct_def, visited);
+    }
     return true;
   }
 

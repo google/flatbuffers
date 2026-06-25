@@ -274,10 +274,10 @@ class CppGenerator : public BaseGenerator {
     code_ += "// generated, otherwise it may not be compatible.";
     code_ += "static_assert(FLATBUFFERS_VERSION_MAJOR == " +
              std::to_string(FLATBUFFERS_VERSION_MAJOR) + " &&";
+    // Only pin MAJOR.MINOR so patch-revision bumps don't churn every generated
+    // file's static_assert (and stay compatible across revisions).
     code_ += "              FLATBUFFERS_VERSION_MINOR == " +
-             std::to_string(FLATBUFFERS_VERSION_MINOR) + " &&";
-    code_ += "              FLATBUFFERS_VERSION_REVISION >= " +
-             std::to_string(FLATBUFFERS_VERSION_REVISION) + ",";
+             std::to_string(FLATBUFFERS_VERSION_MINOR) + ",";
     code_ += "             \"Non-compatible flatbuffers version included\");";
   }
 

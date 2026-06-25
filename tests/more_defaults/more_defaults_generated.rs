@@ -73,7 +73,7 @@ impl<'a> MoreDefaults<'a> {
         };
         let floats = {
             let x = self.floats();
-            x.iter().map(|v| ::flatbuffers::ordered_float::OrderedFloat(v)).collect()
+            x.into_iter().collect()
         };
       let empty_string = self.empty_string().to_string();
       let some_string = self.some_string().to_string();
@@ -275,10 +275,10 @@ impl ::core::fmt::Debug for MoreDefaults<'_> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MoreDefaultsT {
     pub ints: Vec<i32>,
-    pub floats: Vec<::flatbuffers::ordered_float::OrderedFloat<f32>>,
+    pub floats: Vec<f32>,
     pub empty_string: String,
     pub some_string: String,
     pub abcs: Vec<ABC>,
@@ -310,7 +310,7 @@ impl MoreDefaultsT {
         });
         let floats = Some({
             let x = &self.floats;
-            let w: Vec<_> = x.iter().map(|v| v.into_inner()).collect();fbb.create_vector(&w)
+            fbb.create_vector(x)
         });
         let empty_string = Some({
             let x = &self.empty_string;

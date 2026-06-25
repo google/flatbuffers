@@ -223,6 +223,9 @@ const static FlatCOption flatc_options[] = {
      "Implement serde::Serialize on generated Rust types."},
     {"", "rust-module-root-file", "",
      "Generate rust code in individual files with a module root file."},
+    {"", "rust-object-api-hashable-floats", "",
+     "Wrap Object API float fields in OrderedFloat so float-bearing types can "
+     "derive Eq/Hash."},
     {"", "root-type", "T", "Select or override the default root_type."},
     {"", "require-explicit-ids", "",
      "When parsing schemas, require explicit ids (id: x)."},
@@ -639,6 +642,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.rust_serialize = true;
       } else if (arg == "--rust-module-root-file") {
         opts.rust_module_root_file = true;
+      } else if (arg == "--rust-object-api-hashable-floats") {
+        opts.rust_object_api_hashable_floats = true;
       } else if (arg == "--require-explicit-ids") {
         opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {

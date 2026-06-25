@@ -783,6 +783,12 @@ struct IDLOptions {
   // If set, generate rust types in individual files with a root module file.
   bool rust_module_root_file;
 
+  // If set, wrap Object API (*T) f32/f64 fields in
+  // ::flatbuffers::ordered_float::OrderedFloat so that float-bearing types can
+  // derive Eq/Hash. When unset (default), plain f32/f64 are emitted, matching
+  // upstream.
+  bool rust_object_api_hashable_floats;
+
   // The corresponding language bit will be set if a language is included
   // for code generation.
   unsigned long lang_to_generate;
@@ -876,6 +882,7 @@ struct IDLOptions {
         require_explicit_ids(false),
         rust_serialize(false),
         rust_module_root_file(false),
+        rust_object_api_hashable_floats(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true),

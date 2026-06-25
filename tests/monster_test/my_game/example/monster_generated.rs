@@ -258,7 +258,7 @@ impl<'a> Monster<'a> {
             x.into_iter().collect()
         });
         let vector_of_doubles = self.vector_of_doubles().map(|x| {
-            x.iter().map(|v| ::flatbuffers::ordered_float::OrderedFloat(v)).collect()
+            x.into_iter().collect()
         });
         let parent_namespace_test = self.parent_namespace_test().map(|x| {
             Box::new(x.unpack())
@@ -1929,7 +1929,7 @@ impl ::core::fmt::Debug for Monster<'_> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
     pub pos: Option<Vec3T>,
     pub mana: i16,
@@ -1954,15 +1954,15 @@ pub struct MonsterT {
     pub testhashs64_fnv1a: i64,
     pub testhashu64_fnv1a: u64,
     pub testarrayofbools: Option<Vec<bool>>,
-    pub testf: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub testf2: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub testf3: ::flatbuffers::ordered_float::OrderedFloat<f32>,
+    pub testf: f32,
+    pub testf2: f32,
+    pub testf3: f32,
     pub testarrayofstring2: Option<Vec<String>>,
     pub testarrayofsortedstruct: Option<Vec<AbilityT>>,
     pub flex: Option<Vec<u8>>,
     pub test5: Option<Vec<TestT>>,
     pub vector_of_longs: Option<Vec<i64>>,
-    pub vector_of_doubles: Option<Vec<::flatbuffers::ordered_float::OrderedFloat<f64>>>,
+    pub vector_of_doubles: Option<Vec<f64>>,
     pub parent_namespace_test: Option<Box<super::InParentNamespaceT>>,
     pub vector_of_referrables: Option<Vec<ReferrableT>>,
     pub single_weak_reference: u64,
@@ -1981,14 +1981,14 @@ pub struct MonsterT {
     pub native_inline: Option<TestT>,
     pub long_enum_non_enum_default: LongEnum,
     pub long_enum_normal_default: LongEnum,
-    pub nan_default: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub inf_default: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub positive_inf_default: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub infinity_default: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub positive_infinity_default: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub negative_inf_default: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub negative_infinity_default: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub double_inf_default: ::flatbuffers::ordered_float::OrderedFloat<f64>,
+    pub nan_default: f32,
+    pub inf_default: f32,
+    pub positive_inf_default: f32,
+    pub infinity_default: f32,
+    pub positive_infinity_default: f32,
+    pub negative_inf_default: f32,
+    pub negative_infinity_default: f32,
+    pub double_inf_default: f64,
 }
 
 impl Default for MonsterT {
@@ -2017,9 +2017,9 @@ impl Default for MonsterT {
             testhashs64_fnv1a: 0,
             testhashu64_fnv1a: 0,
             testarrayofbools: None,
-            testf: ::flatbuffers::ordered_float::OrderedFloat(3.14159),
-            testf2: ::flatbuffers::ordered_float::OrderedFloat(3.0),
-            testf3: ::flatbuffers::ordered_float::OrderedFloat(0.0),
+            testf: 3.14159,
+            testf2: 3.0,
+            testf3: 0.0,
             testarrayofstring2: None,
             testarrayofsortedstruct: None,
             flex: None,
@@ -2044,14 +2044,14 @@ impl Default for MonsterT {
             native_inline: None,
             long_enum_non_enum_default: Default::default(),
             long_enum_normal_default: LongEnum::LongOne,
-            nan_default: ::flatbuffers::ordered_float::OrderedFloat(f32::NAN),
-            inf_default: ::flatbuffers::ordered_float::OrderedFloat(f32::INFINITY),
-            positive_inf_default: ::flatbuffers::ordered_float::OrderedFloat(f32::INFINITY),
-            infinity_default: ::flatbuffers::ordered_float::OrderedFloat(f32::INFINITY),
-            positive_infinity_default: ::flatbuffers::ordered_float::OrderedFloat(f32::INFINITY),
-            negative_inf_default: ::flatbuffers::ordered_float::OrderedFloat(f32::NEG_INFINITY),
-            negative_infinity_default: ::flatbuffers::ordered_float::OrderedFloat(f32::NEG_INFINITY),
-            double_inf_default: ::flatbuffers::ordered_float::OrderedFloat(f64::INFINITY),
+            nan_default: f32::NAN,
+            inf_default: f32::INFINITY,
+            positive_inf_default: f32::INFINITY,
+            infinity_default: f32::INFINITY,
+            positive_infinity_default: f32::INFINITY,
+            negative_inf_default: f32::NEG_INFINITY,
+            negative_infinity_default: f32::NEG_INFINITY,
+            double_inf_default: f64::INFINITY,
         }
     }
 }
@@ -2107,9 +2107,9 @@ impl MonsterT {
         let testarrayofbools = self.testarrayofbools.as_ref().map(|x|{
             fbb.create_vector(x)
         });
-      let testf = self.testf.into_inner();
-      let testf2 = self.testf2.into_inner();
-      let testf3 = self.testf3.into_inner();
+      let testf = self.testf;
+      let testf2 = self.testf2;
+      let testf3 = self.testf3;
         let testarrayofstring2 = self.testarrayofstring2.as_ref().map(|x|{
             let w: Vec<_> = x.iter().map(|s| fbb.create_string(s)).collect();fbb.create_vector(&w)
         });
@@ -2126,7 +2126,7 @@ impl MonsterT {
             fbb.create_vector(x)
         });
         let vector_of_doubles = self.vector_of_doubles.as_ref().map(|x|{
-            let w: Vec<_> = x.iter().map(|v| v.into_inner()).collect();fbb.create_vector(&w)
+            fbb.create_vector(x)
         });
         let parent_namespace_test = self.parent_namespace_test.as_ref().map(|x|{
             x.pack(fbb)
@@ -2169,14 +2169,14 @@ impl MonsterT {
         let native_inline = native_inline_tmp.as_ref();
         let long_enum_non_enum_default = self.long_enum_non_enum_default;
         let long_enum_normal_default = self.long_enum_normal_default;
-      let nan_default = self.nan_default.into_inner();
-      let inf_default = self.inf_default.into_inner();
-      let positive_inf_default = self.positive_inf_default.into_inner();
-      let infinity_default = self.infinity_default.into_inner();
-      let positive_infinity_default = self.positive_infinity_default.into_inner();
-      let negative_inf_default = self.negative_inf_default.into_inner();
-      let negative_infinity_default = self.negative_infinity_default.into_inner();
-      let double_inf_default = self.double_inf_default.into_inner();
+      let nan_default = self.nan_default;
+      let inf_default = self.inf_default;
+      let positive_inf_default = self.positive_inf_default;
+      let infinity_default = self.infinity_default;
+      let positive_infinity_default = self.positive_infinity_default;
+      let negative_inf_default = self.negative_inf_default;
+      let negative_infinity_default = self.negative_infinity_default;
+      let double_inf_default = self.double_inf_default;
         Monster::create(fbb, &MonsterArgs{
             pos,
             mana,

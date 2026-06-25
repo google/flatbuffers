@@ -152,10 +152,10 @@ impl<'a> ScalarStuff<'a> {
         let maybe_u64 = self.maybe_u64();
         let default_u64 = self.default_u64();
       let just_f32 = self.just_f32().into();
-      let maybe_f32 = self.maybe_f32().map(::flatbuffers::ordered_float::OrderedFloat);
+      let maybe_f32 = self.maybe_f32();
       let default_f32 = self.default_f32().into();
       let just_f64 = self.just_f64().into();
-      let maybe_f64 = self.maybe_f64().map(::flatbuffers::ordered_float::OrderedFloat);
+      let maybe_f64 = self.maybe_f64();
       let default_f64 = self.default_f64().into();
         let just_bool = self.just_bool();
         let maybe_bool = self.maybe_bool();
@@ -977,7 +977,7 @@ impl ::core::fmt::Debug for ScalarStuff<'_> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ScalarStuffT {
     pub just_i8: i8,
     pub maybe_i8: Option<i8>,
@@ -1003,12 +1003,12 @@ pub struct ScalarStuffT {
     pub just_u64: u64,
     pub maybe_u64: Option<u64>,
     pub default_u64: u64,
-    pub just_f32: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub maybe_f32: Option<::flatbuffers::ordered_float::OrderedFloat<f32>>,
-    pub default_f32: ::flatbuffers::ordered_float::OrderedFloat<f32>,
-    pub just_f64: ::flatbuffers::ordered_float::OrderedFloat<f64>,
-    pub maybe_f64: Option<::flatbuffers::ordered_float::OrderedFloat<f64>>,
-    pub default_f64: ::flatbuffers::ordered_float::OrderedFloat<f64>,
+    pub just_f32: f32,
+    pub maybe_f32: Option<f32>,
+    pub default_f32: f32,
+    pub just_f64: f64,
+    pub maybe_f64: Option<f64>,
+    pub default_f64: f64,
     pub just_bool: bool,
     pub maybe_bool: Option<bool>,
     pub default_bool: bool,
@@ -1044,12 +1044,12 @@ impl Default for ScalarStuffT {
             just_u64: 0,
             maybe_u64: None,
             default_u64: 42,
-            just_f32: ::flatbuffers::ordered_float::OrderedFloat(0.0),
+            just_f32: 0.0,
             maybe_f32: None,
-            default_f32: ::flatbuffers::ordered_float::OrderedFloat(42.0),
-            just_f64: ::flatbuffers::ordered_float::OrderedFloat(0.0),
+            default_f32: 42.0,
+            just_f64: 0.0,
             maybe_f64: None,
-            default_f64: ::flatbuffers::ordered_float::OrderedFloat(42.0),
+            default_f64: 42.0,
             just_bool: false,
             maybe_bool: None,
             default_bool: true,
@@ -1090,12 +1090,12 @@ impl ScalarStuffT {
         let just_u64 = self.just_u64;
         let maybe_u64 = self.maybe_u64;
         let default_u64 = self.default_u64;
-      let just_f32 = self.just_f32.into_inner();
-      let maybe_f32 = self.maybe_f32.map(|v| v.into_inner());
-      let default_f32 = self.default_f32.into_inner();
-      let just_f64 = self.just_f64.into_inner();
-      let maybe_f64 = self.maybe_f64.map(|v| v.into_inner());
-      let default_f64 = self.default_f64.into_inner();
+      let just_f32 = self.just_f32;
+      let maybe_f32 = self.maybe_f32;
+      let default_f32 = self.default_f32;
+      let just_f64 = self.just_f64;
+      let maybe_f64 = self.maybe_f64;
+      let default_f64 = self.default_f64;
         let just_bool = self.just_bool;
         let maybe_bool = self.maybe_bool;
         let default_bool = self.default_bool;

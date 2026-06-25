@@ -179,7 +179,7 @@ fn object_api_defaults() {
     assert_eq!(
         ArrayStructT::default(),
         ArrayStructT {
-            a: flatbuffers::ordered_float::OrderedFloat(0.0),
+            a: 0.0,
             b: [0; 0xF],
             c: 0,
             d: [NestedStructT::default(), NestedStructT::default()],

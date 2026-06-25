@@ -390,7 +390,7 @@ impl ::core::fmt::Debug for Monster<'_> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MonsterT {
     pub pos: Option<Vec3T>,
     pub mana: i16,

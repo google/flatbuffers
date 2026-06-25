@@ -199,7 +199,7 @@ impl<'a> LargeArrayStruct {
     pub fn unpack(&self) -> LargeArrayStructT {
         LargeArrayStructT {
             d: self.d().into(),
-        e: { let e = self.e(); ::flatbuffers::array_init(|i| ::flatbuffers::ordered_float::OrderedFloat(e.get(i))) },
+        e: { let e = self.e(); ::flatbuffers::array_init(|i| e.get(i)) },
             f: self.f().into(),
         g: { let g = self.g(); ::flatbuffers::array_init(|i| g.get(i).unpack()) },
             h: self.h().into(),
@@ -207,10 +207,10 @@ impl<'a> LargeArrayStruct {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LargeArrayStructT {
     pub d: [u8; 64],
-    pub e: [::flatbuffers::ordered_float::OrderedFloat<f32>; 64],
+    pub e: [f32; 64],
     pub f: [bool; 64],
     pub g: [NestedStructT; 64],
     pub h: [TestEnum; 64],
@@ -219,7 +219,7 @@ impl Default for LargeArrayStructT {
     fn default() -> Self {
         Self {
             d: [0; 64],
-            e: [::flatbuffers::ordered_float::OrderedFloat(0.0); 64],
+            e: [0.0; 64],
             f: [false; 64],
             g: ::flatbuffers::array_init(|_| Default::default()),
             h: ::flatbuffers::array_init(|_| Default::default()),
@@ -232,7 +232,7 @@ impl LargeArrayStructT {
     pub fn pack(&self) -> LargeArrayStruct {
         LargeArrayStruct::new(
             &self.d,
-        &::flatbuffers::array_init(|i| self.e[i].into_inner()),
+            &self.e,
             &self.f,
             &::flatbuffers::array_init(|i| self.g[i].pack()),
             &self.h,
