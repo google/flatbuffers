@@ -680,14 +680,12 @@ def format_generated_code():
 
   tests = Path(tests_path)
 
-  # C++ generated headers (.clang-format lives at the repo root).
-  if have("clang-format"):
-    cpp = glob(tests, "**/*_generated.h") + glob(tests, "**/*_generated.hpp")
-    if cpp:
-      run_chunked(["clang-format", "-i"], cpp)
-    print(f"[format] clang-format: {len(cpp)} C++ files")
-  else:
-    print("[format] clang-format not found; skipping C++")
+  # NOTE: C++ is intentionally NOT run through clang-format here. clang-format
+  # output varies significantly across major versions, which would make the
+  # regen-diff CI gate (check_generate_code.py) non-deterministic unless every
+  # environment pinned the exact same clang-format. flatc already emits cleanly
+  # formatted C++, so we leave it as-is. The formatters used below (gofmt,
+  # rustfmt, prettier) are stable/pinnable across the toolchains CI installs.
 
   # Rust generated modules.
   if have("rustfmt"):

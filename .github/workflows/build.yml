@@ -337,6 +337,26 @@ jobs:
         cxx: [g++-13, clang++-18]
     steps:
     - uses: actions/checkout@v6
+    # scripts/generate_code.py formats generated Go/Rust/TS with gofmt/rustfmt/
+    # prettier, so the regen-diff check below is only deterministic when those
+    # exact tools are available. gofmt/rustfmt are stable across versions;
+    # prettier is pinned via package.json + pnpm-lock.yaml.
+    - name: Set up Go (gofmt)
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+    - name: Set up Rust (rustfmt)
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt
+    - name: Set up Node (prettier)
+      uses: actions/setup-node@v6
+      with:
+        node-version: '20'
+    - name: Install pnpm
+      run: npm install -g pnpm@10
+    - name: Install JS deps (pinned prettier)
+      run: pnpm i
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Generate
