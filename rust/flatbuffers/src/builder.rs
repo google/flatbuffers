@@ -559,12 +559,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         let found = self.strings_pool.binary_search_by(|offset| {
             let ptr = offset.value() as usize;
             let str_memory = &buf[buf.len() - ptr..];
-            let size = u32::from_le_bytes([
-                str_memory[0],
-                str_memory[1],
-                str_memory[2],
-                str_memory[3],
-            ]) as usize;
+            let size =
+                u32::from_le_bytes([str_memory[0], str_memory[1], str_memory[2], str_memory[3]])
+                    as usize;
             let stored = &str_memory[4..4 + size];
             stored.cmp(s.as_bytes())
         });
@@ -572,8 +569,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         match found {
             Ok(index) => Ok(self.strings_pool[index]),
             Err(index) => {
-                let address =
-                    WIPOffset::new(self.try_create_byte_string(s.as_bytes())?.value());
+                let address = WIPOffset::new(self.try_create_byte_string(s.as_bytes())?.value());
                 self.strings_pool.insert(index, address);
                 Ok(address)
             }

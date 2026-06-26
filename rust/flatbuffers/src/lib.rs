@@ -72,11 +72,8 @@ pub use ordered_float;
 /// available with the `std` feature, since `std::collections::HashMap` has no
 /// `core`/`alloc` equivalent (map/set Object API fields require `std`).
 #[cfg(feature = "std")]
-pub type HashMap<K, V> = std::collections::HashMap<
-    K,
-    V,
-    std::hash::BuildHasherDefault<ahash::AHasher>,
->;
+pub type HashMap<K, V> =
+    std::collections::HashMap<K, V, std::hash::BuildHasherDefault<ahash::AHasher>>;
 
 /// HashSet backed by [`ahash::AHasher`] via [`std::hash::BuildHasherDefault`].
 ///
@@ -84,9 +81,6 @@ pub type HashMap<K, V> = std::collections::HashMap<
 /// `std::collections::HashSet` for faster, non-cryptographic hashing. Only
 /// available with the `std` feature (see [`HashMap`]).
 #[cfg(feature = "std")]
-pub type HashSet<V> = std::collections::HashSet<
-    V,
-    std::hash::BuildHasherDefault<ahash::AHasher>,
->;
+pub type HashSet<V> = std::collections::HashSet<V, std::hash::BuildHasherDefault<ahash::AHasher>>;
 
 // TODO(rw): Split fill ops in builder into fill_small, fill_big like in C++.
