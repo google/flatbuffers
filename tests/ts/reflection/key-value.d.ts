@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class KeyValue
-  implements flatbuffers.IUnpackableObject<KeyValueT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class KeyValue implements flatbuffers.IUnpackableObject<KeyValueT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): KeyValue;

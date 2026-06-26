@@ -1,8 +1,9 @@
-import * as flatbuffers from 'flatbuffers';
-import {InnerStruct, InnerStructT} from '../../my-game/example/inner-struct.js';
-export declare class OuterStruct
-  implements flatbuffers.IUnpackableObject<OuterStructT>
-{
+import * as flatbuffers from "flatbuffers";
+import {
+  InnerStruct,
+  InnerStructT,
+} from "../../my-game/example/inner-struct.js";
+export declare class OuterStruct implements flatbuffers.IUnpackableObject<OuterStructT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): OuterStruct;

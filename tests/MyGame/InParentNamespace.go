@@ -29,6 +29,19 @@ func (rcv *InParentNamespace) UnPack() *InParentNamespaceT {
 	return t
 }
 
+// UnpackFields returns a partial *InParentNamespaceT with only the named fields populated.
+// Fields not in the list are left at their zero/default values.
+// This avoids materializing the entire table tree. Pass the
+// generated InParentNamespaceField* constants rather than raw strings.
+func (rcv *InParentNamespace) UnpackFields(fields ...string) *InParentNamespaceT {
+	t := &InParentNamespaceT{}
+	fieldSet := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		fieldSet[f] = true
+	}
+	return t
+}
+
 type InParentNamespace struct {
 	_tab flatbuffers.Table
 }
@@ -53,6 +66,34 @@ func GetSizePrefixedRootAsInParentNamespace(buf []byte, offset flatbuffers.UOffs
 
 func FinishSizePrefixedInParentNamespaceBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsInParentNamespace(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyInParentNamespace(v, int(tablePos))
+}
+
+func VerifyInParentNamespace(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyInParentNamespace(v, tablePos)
+}
+
+func verifyInParentNamespace(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	return nil
 }
 
 func (rcv *InParentNamespace) Init(buf []byte, i flatbuffers.UOffsetT) {

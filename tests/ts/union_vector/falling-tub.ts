@@ -2,64 +2,67 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
-
-
+import * as flatbuffers from "flatbuffers";
 
 export class FallingTub implements flatbuffers.IUnpackableObject<FallingTubT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):FallingTub {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
+  __init(i: number, bb: flatbuffers.ByteBuffer): FallingTub {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
 
-weight():number {
-  return this.bb!.readInt32(this.bb_pos);
-}
+  weight(): number {
+    return this.bb!.readInt32(this.bb_pos);
+  }
 
-mutate_weight(value:number):boolean {
-  this.bb!.writeInt32(this.bb_pos + 0, value);
-  return true;
-}
+  mutate_weight(value: number): boolean {
+    this.bb!.writeInt32(this.bb_pos + 0, value);
+    return true;
+  }
 
-static getFullyQualifiedName(): "FallingTub" {
-  return 'FallingTub';
-}
+  static getFullyQualifiedName(): "FallingTub" {
+    return "FallingTub";
+  }
 
-static sizeOf():number {
-  return 4;
-}
+  static sizeOf(): number {
+    return 4;
+  }
 
-static createFallingTub(builder:flatbuffers.Builder, weight: number):flatbuffers.Offset {
-  builder.prep(4, 4);
-  builder.writeInt32(weight);
-  return builder.offset();
-}
+  static createFallingTub(
+    builder: flatbuffers.Builder,
+    weight: number,
+  ): flatbuffers.Offset {
+    builder.prep(4, 4);
+    builder.writeInt32(weight);
+    return builder.offset();
+  }
 
+  unpack(): FallingTubT {
+    return new FallingTubT(this.weight());
+  }
 
-unpack(): FallingTubT {
-  return new FallingTubT(
-    this.weight()
-  );
-}
-
-
-unpackTo(_o: FallingTubT): void {
-  _o.weight = this.weight();
-}
+  unpackTo(_o: FallingTubT): void {
+    _o.weight = this.weight();
+  }
 }
 
 export class FallingTubT implements flatbuffers.IGeneratedObject {
-constructor(
-  public weight: number = 0
-){}
+  constructor(public weight: number = 0) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return FallingTub.createFallingTub(builder, this.weight);
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return FallingTub.createFallingTub(builder,
-    this.weight
-  );
-}
+  clone(): FallingTubT {
+    const obj = new FallingTubT();
+    obj.weight = this.weight;
+    return obj;
+  }
+
+  equals(other: FallingTubT): boolean {
+    if (this.weight !== other.weight) return false;
+    return true;
+  }
 }

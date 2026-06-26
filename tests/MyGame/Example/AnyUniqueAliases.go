@@ -40,7 +40,7 @@ func (v AnyUniqueAliases) String() string {
 }
 
 type AnyUniqueAliasesT struct {
-	Type AnyUniqueAliases
+	Type  AnyUniqueAliases
 	Value interface{}
 }
 
@@ -75,4 +75,31 @@ func (rcv AnyUniqueAliases) UnPack(table flatbuffers.Table) *AnyUniqueAliasesT {
 		return &AnyUniqueAliasesT{Type: AnyUniqueAliasesM2, Value: x.UnPack()}
 	}
 	return nil
+}
+
+// Match dispatches to the appropriate callback based on the union variant.
+// Each callback receives the correctly typed value. If the variant is NONE
+// or unrecognized, no callback is invoked.
+func (u *AnyUniqueAliasesT) Match(
+	onM func(*MonsterT),
+	onTS func(*TestSimpleTableWithEnumT),
+	onM2 func(*MyGame__Example2.MonsterT),
+) {
+	if u == nil {
+		return
+	}
+	switch u.Type {
+	case AnyUniqueAliasesM:
+		if v, ok := u.Value.(*MonsterT); ok {
+			onM(v)
+		}
+	case AnyUniqueAliasesTS:
+		if v, ok := u.Value.(*TestSimpleTableWithEnumT); ok {
+			onTS(v)
+		}
+	case AnyUniqueAliasesM2:
+		if v, ok := u.Value.(*MyGame__Example2.MonsterT); ok {
+			onM2(v)
+		}
+	}
 }

@@ -279,8 +279,151 @@ struct JsonPrinter {
   }
 
   // Generate text for non-scalar field.
+  // Emit a map field as a JSON object: {"key1": val1, "key2": val2, ...}
+  const char* PrintMapAsObject(const FieldDef& fd, const Table* table,
+                               int indent) {
+    const auto* vec = table->GetPointer<
+        const Vector<Offset<Table>>*>(fd.value.offset);
+    if (!vec || !vec->size()) {
+      text += "{}";
+      return nullptr;
+    }
+    const auto& entry_def = *fd.value.type.VectorType().struct_def;
+    const FieldDef* kf = nullptr;
+    const FieldDef* vf = nullptr;
+    for (const auto* f : entry_def.fields.vec) {
+      if (f->key) kf = f;
+      if (f->name == "value") vf = f;
+    }
+    FLATBUFFERS_ASSERT(kf);
+    const auto elem_indent = indent + Indent();
+    text += '{';
+    AddNewLine();
+    for (uoffset_t i = 0; i < vec->size(); i++) {
+      if (i) { AddComma(); AddNewLine(); }
+      AddIndent(elem_indent);
+      auto entry = vec->Get(i);
+      // Emit the key as the JSON property name (always quoted).
+      if (IsString(kf->value.type)) {
+        auto k = entry->GetPointer<const String*>(kf->value.offset);
+        text += '\"';
+        if (k) text += k->c_str();
+        text += '\"';
+      } else {
+        // Numeric/bool/enum key — always quoted as a JSON property name.
+        text += '\"';
+        auto ival = entry->GetField<int64_t>(kf->value.offset, 0);
+        if (kf->value.type.enum_def && opts.output_enum_identifiers) {
+          if (auto ev = kf->value.type.enum_def->ReverseLookup(ival)) {
+            text += ev->name;
+          } else {
+            text += NumToString(ival);
+          }
+        } else if (kf->value.type.base_type == BASE_TYPE_BOOL) {
+          text += ival ? "true" : "false";
+        } else {
+          text += NumToString(ival);
+        }
+        text += '\"';
+      }
+      text += ':';
+      text += ' ';
+      // Emit the value.
+      if (vf) {
+        switch (vf->value.type.base_type) {
+          case BASE_TYPE_STRING: {
+            auto s = entry->GetPointer<const String*>(vf->value.offset);
+            if (s) {
+              text += '\"';
+              text += s->c_str();
+              text += '\"';
+            } else {
+              text += "null";
+            }
+            break;
+          }
+          case BASE_TYPE_STRUCT: {
+            if (IsStruct(vf->value.type)) {
+              auto sval = entry->GetStruct<const void*>(vf->value.offset);
+              auto err = PrintOffset(sval, vf->value.type, elem_indent,
+                                     nullptr, -1);
+              if (err) return err;
+            } else {
+              auto tbl = entry->GetPointer<const Table*>(vf->value.offset);
+              if (tbl) {
+                auto err = GenStruct(*vf->value.type.struct_def, tbl,
+                                     elem_indent);
+                if (err) return err;
+              } else {
+                text += "null";
+              }
+            }
+            break;
+          }
+          // clang-format off
+          #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+            case BASE_TYPE_ ## ENUM: \
+              GenField<CTYPE>(*vf, entry, false, elem_indent); \
+              break;
+            FLATBUFFERS_GEN_TYPES_SCALAR(FLATBUFFERS_TD)
+          #undef FLATBUFFERS_TD
+          // clang-format on
+          default: break;
+        }
+      }
+    }
+    AddNewLine();
+    AddIndent(indent);
+    text += '}';
+    return nullptr;
+  }
+
+  // Emit a set field as a JSON array of values: ["a", "b", "c"]
+  const char* PrintSetAsArray(const FieldDef& fd, const Table* table,
+                              int indent) {
+    const auto* vec = table->GetPointer<
+        const Vector<Offset<Table>>*>(fd.value.offset);
+    if (!vec || !vec->size()) {
+      text += "[]";
+      return nullptr;
+    }
+    const auto& entry_def = *fd.value.type.VectorType().struct_def;
+    const FieldDef* kf = nullptr;
+    for (const auto* f : entry_def.fields.vec) {
+      if (f->key) { kf = f; break; }
+    }
+    FLATBUFFERS_ASSERT(kf);
+    const auto elem_indent = indent + Indent();
+    text += '[';
+    AddNewLine();
+    for (uoffset_t i = 0; i < vec->size(); i++) {
+      if (i) { AddComma(); AddNewLine(); }
+      AddIndent(elem_indent);
+      auto entry = vec->Get(i);
+      if (IsString(kf->value.type)) {
+        auto s = entry->GetPointer<const String*>(kf->value.offset);
+        text += '\"';
+        if (s) text += s->c_str();
+        text += '\"';
+      } else {
+        GenField<int64_t>(*kf, entry, false, elem_indent);
+      }
+    }
+    AddNewLine();
+    AddIndent(indent);
+    text += ']';
+    return nullptr;
+  }
+
   const char* GenFieldOffset(const FieldDef& fd, const Table* table, bool fixed,
                              int indent, const uint8_t* prev_val) {
+    // Map/set fields get special JSON treatment.
+    if (!fixed && fd.attributes.Lookup("map_entry")) {
+      return PrintMapAsObject(fd, table, indent);
+    }
+    if (!fixed && fd.attributes.Lookup("set_entry")) {
+      return PrintSetAsArray(fd, table, indent);
+    }
     const void* val = nullptr;
     if (fixed) {
       // The only non-scalar fields in structs are structs or arrays.

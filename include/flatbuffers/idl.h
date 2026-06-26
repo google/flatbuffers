@@ -783,6 +783,12 @@ struct IDLOptions {
   // If set, generate rust types in individual files with a root module file.
   bool rust_module_root_file;
 
+  // If set, wrap Object API (*T) f32/f64 fields in
+  // ::flatbuffers::ordered_float::OrderedFloat so that float-bearing types can
+  // derive Eq/Hash. When unset (default), plain f32/f64 are emitted, matching
+  // upstream.
+  bool rust_object_api_hashable_floats;
+
   // The corresponding language bit will be set if a language is included
   // for code generation.
   unsigned long lang_to_generate;
@@ -876,6 +882,7 @@ struct IDLOptions {
         require_explicit_ids(false),
         rust_serialize(false),
         rust_module_root_file(false),
+        rust_object_api_hashable_floats(false),
         lang_to_generate(0),
         set_empty_strings_to_null(true),
         set_empty_vectors_to_null(true),
@@ -1026,6 +1033,11 @@ class Parser : public ParserState {
     // An attribute added to a vector field to indicate that it uses 64-bit
     // addressing and it has a 64-bit length.
     known_attributes_["vector64"] = true;
+
+    // Attributes added to fields that were desugared from map<K,V> or set<V>
+    // syntax. Codegens use these to emit HashMap/Map/map instead of Vec/[].
+    known_attributes_["map_entry"] = true;
+    known_attributes_["set_entry"] = true;
   }
 
   // Copying is not allowed
@@ -1129,6 +1141,7 @@ class Parser : public ParserState {
                                              std::string* last);
   FLATBUFFERS_CHECKED_ERROR ParseTypeIdent(Type& type);
   FLATBUFFERS_CHECKED_ERROR ParseType(Type& type);
+  FLATBUFFERS_CHECKED_ERROR ParseMapType(Type& type, bool is_set);
   FLATBUFFERS_CHECKED_ERROR AddField(StructDef& struct_def,
                                      const std::string& name, const Type& type,
                                      FieldDef** dest);
@@ -1153,6 +1166,10 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseVectorDelimiters(size_t& count, F body);
   FLATBUFFERS_CHECKED_ERROR ParseVector(const Type& type, uoffset_t* ovalue,
                                         FieldDef* field, size_t fieldn);
+  FLATBUFFERS_CHECKED_ERROR ParseMapObject(const Type& vector_type,
+                                           uoffset_t* ovalue, FieldDef* field);
+  FLATBUFFERS_CHECKED_ERROR ParseSetArray(const Type& vector_type,
+                                          uoffset_t* ovalue, FieldDef* field);
   FLATBUFFERS_CHECKED_ERROR ParseArray(Value& array);
   FLATBUFFERS_CHECKED_ERROR ParseNestedFlatbuffer(
       Value& val, FieldDef* field, size_t fieldn,

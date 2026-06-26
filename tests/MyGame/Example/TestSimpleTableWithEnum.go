@@ -7,7 +7,7 @@ import (
 )
 
 type TestSimpleTableWithEnumT struct {
-	Color Color `json:"color"`
+	Color Color `json:"color,omitempty"`
 }
 
 func (t *TestSimpleTableWithEnumT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -29,6 +29,26 @@ func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
 	}
 	t := &TestSimpleTableWithEnumT{}
 	rcv.UnPackTo(t)
+	return t
+}
+
+const (
+	TestSimpleTableWithEnumFieldColor = "color"
+)
+
+// UnpackFields returns a partial *TestSimpleTableWithEnumT with only the named fields populated.
+// Fields not in the list are left at their zero/default values.
+// This avoids materializing the entire table tree. Pass the
+// generated TestSimpleTableWithEnumField* constants rather than raw strings.
+func (rcv *TestSimpleTableWithEnum) UnpackFields(fields ...string) *TestSimpleTableWithEnumT {
+	t := &TestSimpleTableWithEnumT{}
+	fieldSet := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		fieldSet[f] = true
+	}
+	if fieldSet["color"] {
+		t.Color = rcv.Color()
+	}
 	return t
 }
 
@@ -56,6 +76,37 @@ func GetSizePrefixedRootAsTestSimpleTableWithEnum(buf []byte, offset flatbuffers
 
 func FinishSizePrefixedTestSimpleTableWithEnumBuffer(builder *flatbuffers.Builder, offset flatbuffers.UOffsetT) {
 	builder.FinishSizePrefixed(offset)
+}
+
+func VerifyRootAsTestSimpleTableWithEnum(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyTestSimpleTableWithEnum(v, int(tablePos))
+}
+
+func VerifyTestSimpleTableWithEnum(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyTestSimpleTableWithEnum(v, tablePos)
+}
+
+func verifyTestSimpleTableWithEnum(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 1); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rcv *TestSimpleTableWithEnum) Init(buf []byte, i flatbuffers.UOffsetT) {

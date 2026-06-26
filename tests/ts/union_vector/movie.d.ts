@@ -1,8 +1,8 @@
-import * as flatbuffers from 'flatbuffers';
-import {AttackerT} from './attacker.js';
-import {BookReaderT} from './book-reader.js';
-import {Character} from './character.js';
-import {RapunzelT} from './rapunzel.js';
+import * as flatbuffers from "flatbuffers";
+import { AttackerT } from "./attacker.js";
+import { BookReaderT } from "./book-reader.js";
+import { Character } from "./character.js";
+import { RapunzelT } from "./rapunzel.js";
 export declare class Movie implements flatbuffers.IUnpackableObject<MovieT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

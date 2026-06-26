@@ -1,11 +1,9 @@
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 import {
   StructOfStructs,
   StructOfStructsT,
-} from '../../my-game/example/struct-of-structs.js';
-export declare class StructOfStructsOfStructs
-  implements flatbuffers.IUnpackableObject<StructOfStructsOfStructsT>
-{
+} from "../../my-game/example/struct-of-structs.js";
+export declare class StructOfStructsOfStructs implements flatbuffers.IUnpackableObject<StructOfStructsOfStructsT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): StructOfStructsOfStructs;

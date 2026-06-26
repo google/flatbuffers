@@ -291,6 +291,11 @@ std::string TypedFloatConstantGenerator::NaN(double v) const {
 std::string TypedFloatConstantGenerator::Value(float v,
                                                const std::string& src) const {
   (void)v;
+  // Ensure the literal has a decimal point so "0f" becomes "0.0f" (valid C++).
+  if (src.find('.') == std::string::npos && src.find('e') == std::string::npos &&
+      src.find('E') == std::string::npos) {
+    return src + ".0f";
+  }
   return src + "f";
 }
 

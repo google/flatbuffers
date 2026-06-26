@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class TypeAliases
-  implements flatbuffers.IUnpackableObject<TypeAliasesT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class TypeAliases implements flatbuffers.IUnpackableObject<TypeAliasesT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): TypeAliases;

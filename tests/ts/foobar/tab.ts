@@ -2,10 +2,10 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {Abc} from '../foobar/abc.js';
-import {class_} from '../foobar/class.js';
+import { Abc } from "../foobar/abc.js";
+import { class_ } from "../foobar/class.js";
 
 export class Tab implements flatbuffers.IUnpackableObject<TabT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -75,7 +75,7 @@ export class Tab implements flatbuffers.IUnpackableObject<TabT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'foobar.Tab';
+    return "foobar.Tab";
   }
 
   static startTab(builder: flatbuffers.Builder) {

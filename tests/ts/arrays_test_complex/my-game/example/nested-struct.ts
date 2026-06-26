@@ -2,14 +2,15 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {OuterStruct, OuterStructT} from '../../my-game/example/outer-struct.js';
-import {TestEnum} from '../../my-game/example/test-enum.js';
+import {
+  OuterStruct,
+  OuterStructT,
+} from "../../my-game/example/outer-struct.js";
+import { TestEnum } from "../../my-game/example/test-enum.js";
 
-export class NestedStruct
-  implements flatbuffers.IUnpackableObject<NestedStructT>
-{
+export class NestedStruct implements flatbuffers.IUnpackableObject<NestedStructT> {
   bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
   __init(i: number, bb: flatbuffers.ByteBuffer): NestedStruct {
@@ -42,7 +43,7 @@ export class NestedStruct
   }
 
   static getFullyQualifiedName(): string {
-    return 'MyGame.Example.NestedStruct';
+    return "MyGame.Example.NestedStruct";
   }
 
   static sizeOf(): number {

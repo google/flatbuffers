@@ -38,7 +38,7 @@ func (v AnyAmbiguousAliases) String() string {
 }
 
 type AnyAmbiguousAliasesT struct {
-	Type AnyAmbiguousAliases
+	Type  AnyAmbiguousAliases
 	Value interface{}
 }
 
@@ -73,4 +73,31 @@ func (rcv AnyAmbiguousAliases) UnPack(table flatbuffers.Table) *AnyAmbiguousAlia
 		return &AnyAmbiguousAliasesT{Type: AnyAmbiguousAliasesM3, Value: x.UnPack()}
 	}
 	return nil
+}
+
+// Match dispatches to the appropriate callback based on the union variant.
+// Each callback receives the correctly typed value. If the variant is NONE
+// or unrecognized, no callback is invoked.
+func (u *AnyAmbiguousAliasesT) Match(
+	onM1 func(*MonsterT),
+	onM2 func(*MonsterT),
+	onM3 func(*MonsterT),
+) {
+	if u == nil {
+		return
+	}
+	switch u.Type {
+	case AnyAmbiguousAliasesM1:
+		if v, ok := u.Value.(*MonsterT); ok {
+			onM1(v)
+		}
+	case AnyAmbiguousAliasesM2:
+		if v, ok := u.Value.(*MonsterT); ok {
+			onM2(v)
+		}
+	case AnyAmbiguousAliasesM3:
+		if v, ok := u.Value.(*MonsterT); ok {
+			onM3(v)
+		}
+	}
 }

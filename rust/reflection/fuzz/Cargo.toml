@@ -1,0 +1,22 @@
+[package]
+name = "flatbuffers-reflection-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+flatbuffers = { path = "../../flatbuffers" }
+flatbuffers-reflection = { path = ".." }
+
+[[bin]]
+name = "reflection_verifier"
+path = "fuzz_targets/reflection_verifier.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

@@ -1,6 +1,6 @@
-import {Builder} from './flexbuffers/builder.js';
-import {toReference} from './flexbuffers/reference.js';
-export {toReference} from './flexbuffers/reference.js';
+import { Builder } from "./flexbuffers/builder.js";
+import { toReference } from "./flexbuffers/reference.js";
+export { toReference } from "./flexbuffers/reference.js";
 
 export function builder(): Builder {
   return new Builder();

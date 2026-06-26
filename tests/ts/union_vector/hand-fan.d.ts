@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class HandFan
-  implements flatbuffers.IUnpackableObject<HandFanT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class HandFan implements flatbuffers.IUnpackableObject<HandFanT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): HandFan;

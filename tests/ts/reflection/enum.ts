@@ -2,11 +2,11 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {EnumVal, EnumValT} from '../reflection/enum-val.js';
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-import {Type, TypeT} from '../reflection/type.js';
+import { EnumVal, EnumValT } from "../reflection/enum-val.js";
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+import { Type, TypeT } from "../reflection/type.js";
 
 export class Enum implements flatbuffers.IUnpackableObject<EnumT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -142,7 +142,7 @@ export class Enum implements flatbuffers.IUnpackableObject<EnumT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.Enum';
+    return "reflection.Enum";
   }
 
   static startEnum(builder: flatbuffers.Builder) {

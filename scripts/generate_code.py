@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import filecmp
-import glob
 from pathlib import Path
 import shutil
 import subprocess
@@ -443,6 +442,17 @@ flatc(
 
 flatc(RUST_OPTS, prefix="optional_scalars", schema=optional_scalars_schema)
 
+# Same schema with --rust-object-api-hashable-floats, so the OrderedFloat-wrapped
+# Object API (which lets *T structs derive Eq/Hash on float fields) is exercised
+# by the regen-diff gate and kept compiling across upstream merges. optional_scalars
+# has just/optional/defaulted f32 and f64 fields, covering every float code path
+# the flag touches. See tests/rust_usage_test/tests/optional_scalars_ordered_floats_test.rs.
+flatc(
+    RUST_OPTS + ["--rust-object-api-hashable-floats"],
+    prefix="optional_scalars_ordered_floats",
+    schema=optional_scalars_schema,
+)
+
 flatc(NO_INCL_OPTS + CPP_OPTS, schema=optional_scalars_schema)
 
 # Type / field collsion
@@ -659,3 +669,70 @@ flatc_annotate(
 
 # Run the generate_grpc_examples script
 generate_grpc_examples.GenerateGRPCExamples()
+
+
+# Post-generation formatting: run each language's canonical formatter over the
+# generated corpus so committed code is consistently formatted. This keeps
+# regenerations idempotent and eliminates whitespace-only churn that otherwise
+# shows up as noise (or conflicts) on every codegen change. Each formatter is
+# optional: if the tool isn't installed the step is skipped with a note, so the
+# script still works in minimal environments.
+def format_generated_code():
+  def have(tool):
+    return shutil.which(tool) is not None
+
+  def run_chunked(cmd, files, chunk=400):
+    # Process in chunks to stay under argv length limits on large corpora.
+    for i in range(0, len(files), chunk):
+      subprocess.run(cmd + files[i : i + chunk], check=False)
+
+  tests = Path(tests_path)
+
+  # NOTE: C++ is intentionally NOT run through clang-format here. clang-format
+  # output varies significantly across major versions, which would make the
+  # regen-diff CI gate (check_generate_code.py) non-deterministic unless every
+  # environment pinned the exact same clang-format. flatc already emits cleanly
+  # formatted C++, so we leave it as-is. The formatters used below (gofmt,
+  # rustfmt, prettier) are stable/pinnable across the toolchains CI installs.
+
+  # Rust generated modules.
+  if have("rustfmt"):
+    rs = glob(tests, "**/*_generated.rs")
+    if rs:
+      run_chunked(["rustfmt", "--edition", "2018"], rs)
+    print(f"[format] rustfmt: {len(rs)} Rust files")
+  else:
+    print("[format] rustfmt not found; skipping Rust")
+
+  # Go generated code (no _generated suffix; gofmt is idempotent and safe).
+  if have("gofmt"):
+    go = glob(tests, "**/*.go")
+    if go:
+      run_chunked(["gofmt", "-w"], go)
+    print(f"[format] gofmt: {len(go)} Go files")
+  else:
+    print("[format] gofmt not found; skipping Go")
+
+  # TypeScript generated code (prettier via npx).
+  if have("npx"):
+    ts = glob(Path(tests, "ts"), "**/*.ts")
+    if ts:
+      run_chunked(
+          ["npx", "--no-install", "prettier", "--write", "--log-level", "warn"],
+          ts,
+      )
+    print(f"[format] prettier: {len(ts)} TS files")
+  else:
+    print("[format] npx not found; skipping TypeScript")
+
+  # Python generated code (optional).
+  if have("black"):
+    py = glob(tests, "**/*.py")
+    if py:
+      run_chunked(["black", "-q"], py)
+    print(f"[format] black: {len(py)} Python files")
+  else:
+    print("[format] black not found; skipping Python")
+
+
+format_generated_code()
