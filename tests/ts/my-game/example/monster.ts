@@ -319,7 +319,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   testhashs64Fnv1(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 40);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : 0n;
   }
 
   mutate_testhashs64_fnv1(value: bigint): boolean {
@@ -335,7 +335,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   testhashu64Fnv1(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 42);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_testhashu64_fnv1(value: bigint): boolean {
@@ -383,7 +383,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   testhashs64Fnv1a(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 48);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : 0n;
   }
 
   mutate_testhashs64_fnv1a(value: bigint): boolean {
@@ -399,7 +399,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   testhashu64Fnv1a(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 50);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_testhashu64_fnv1a(value: bigint): boolean {
@@ -564,7 +564,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     const offset = this.bb!.__offset(this.bb_pos, 68);
     return offset
       ? this.bb!.readInt64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
-      : BigInt(0);
+      : 0n;
   }
 
   vectorOfLongsLength(): number {
@@ -626,7 +626,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   singleWeakReference(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 76);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_single_weak_reference(value: bigint): boolean {
@@ -644,7 +644,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     const offset = this.bb!.__offset(this.bb_pos, 78);
     return offset
       ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
-      : BigInt(0);
+      : 0n;
   }
 
   vectorOfWeakReferencesLength(): number {
@@ -674,7 +674,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   coOwningReference(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 82);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_co_owning_reference(value: bigint): boolean {
@@ -692,7 +692,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     const offset = this.bb!.__offset(this.bb_pos, 84);
     return offset
       ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
-      : BigInt(0);
+      : 0n;
   }
 
   vectorOfCoOwningReferencesLength(): number {
@@ -702,7 +702,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   nonOwningReference(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 86);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_non_owning_reference(value: bigint): boolean {
@@ -720,7 +720,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     const offset = this.bb!.__offset(this.bb_pos, 88);
     return offset
       ? this.bb!.readUint64(this.bb!.__vector(this.bb_pos + offset) + index * 8)
-      : BigInt(0);
+      : 0n;
   }
 
   vectorOfNonOwningReferencesLength(): number {
@@ -840,7 +840,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   longEnumNonEnumDefault(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 108);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_long_enum_non_enum_default(value: bigint): boolean {
@@ -856,7 +856,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
 
   longEnumNormalDefault(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 110);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("2");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 2n;
   }
 
   mutate_long_enum_normal_default(value: bigint): boolean {
@@ -1178,14 +1178,14 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     builder: flatbuffers.Builder,
     testhashs64Fnv1: bigint,
   ) {
-    builder.addFieldInt64(18, testhashs64Fnv1, BigInt("0"));
+    builder.addFieldInt64(18, testhashs64Fnv1, 0n);
   }
 
   static addTesthashu64Fnv1(
     builder: flatbuffers.Builder,
     testhashu64Fnv1: bigint,
   ) {
-    builder.addFieldInt64(19, testhashu64Fnv1, BigInt("0"));
+    builder.addFieldInt64(19, testhashu64Fnv1, 0n);
   }
 
   static addTesthashs32Fnv1a(
@@ -1206,14 +1206,14 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     builder: flatbuffers.Builder,
     testhashs64Fnv1a: bigint,
   ) {
-    builder.addFieldInt64(22, testhashs64Fnv1a, BigInt("0"));
+    builder.addFieldInt64(22, testhashs64Fnv1a, 0n);
   }
 
   static addTesthashu64Fnv1a(
     builder: flatbuffers.Builder,
     testhashu64Fnv1a: bigint,
   ) {
-    builder.addFieldInt64(23, testhashu64Fnv1a, BigInt("0"));
+    builder.addFieldInt64(23, testhashu64Fnv1a, 0n);
   }
 
   static addTestarrayofbools(
@@ -1419,7 +1419,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     builder: flatbuffers.Builder,
     singleWeakReference: bigint,
   ) {
-    builder.addFieldInt64(36, singleWeakReference, BigInt("0"));
+    builder.addFieldInt64(36, singleWeakReference, 0n);
   }
 
   static addVectorOfWeakReferences(
@@ -1476,7 +1476,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     builder: flatbuffers.Builder,
     coOwningReference: bigint,
   ) {
-    builder.addFieldInt64(39, coOwningReference, BigInt("0"));
+    builder.addFieldInt64(39, coOwningReference, 0n);
   }
 
   static addVectorOfCoOwningReferences(
@@ -1508,7 +1508,7 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     builder: flatbuffers.Builder,
     nonOwningReference: bigint,
   ) {
-    builder.addFieldInt64(41, nonOwningReference, BigInt("0"));
+    builder.addFieldInt64(41, nonOwningReference, 0n);
   }
 
   static addVectorOfNonOwningReferences(
@@ -1654,14 +1654,14 @@ export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
     builder: flatbuffers.Builder,
     longEnumNonEnumDefault: bigint,
   ) {
-    builder.addFieldInt64(52, longEnumNonEnumDefault, BigInt("0"));
+    builder.addFieldInt64(52, longEnumNonEnumDefault, 0n);
   }
 
   static addLongEnumNormalDefault(
     builder: flatbuffers.Builder,
     longEnumNormalDefault: bigint,
   ) {
-    builder.addFieldInt64(53, longEnumNormalDefault, BigInt("2"));
+    builder.addFieldInt64(53, longEnumNormalDefault, 2n);
   }
 
   static addNanDefault(builder: flatbuffers.Builder, nanDefault: number) {
@@ -2355,12 +2355,12 @@ export class MonsterT implements flatbuffers.IGeneratedObject {
     public testbool: boolean = false,
     public testhashs32Fnv1: number = 0,
     public testhashu32Fnv1: number = 0,
-    public testhashs64Fnv1: bigint = BigInt("0"),
-    public testhashu64Fnv1: bigint = BigInt("0"),
+    public testhashs64Fnv1: bigint = 0n,
+    public testhashu64Fnv1: bigint = 0n,
     public testhashs32Fnv1a: number = 0,
     public testhashu32Fnv1a: number = 0,
-    public testhashs64Fnv1a: bigint = BigInt("0"),
-    public testhashu64Fnv1a: bigint = BigInt("0"),
+    public testhashs64Fnv1a: bigint = 0n,
+    public testhashu64Fnv1a: bigint = 0n,
     public testarrayofbools: boolean[] = [],
     public testf: number = 3.14159,
     public testf2: number = 3.0,
@@ -2373,12 +2373,12 @@ export class MonsterT implements flatbuffers.IGeneratedObject {
     public vectorOfDoubles: number[] = [],
     public parentNamespaceTest: InParentNamespaceT | null = null,
     public vectorOfReferrables: ReferrableT[] = [],
-    public singleWeakReference: bigint = BigInt("0"),
+    public singleWeakReference: bigint = 0n,
     public vectorOfWeakReferences: bigint[] = [],
     public vectorOfStrongReferrables: ReferrableT[] = [],
-    public coOwningReference: bigint = BigInt("0"),
+    public coOwningReference: bigint = 0n,
     public vectorOfCoOwningReferences: bigint[] = [],
-    public nonOwningReference: bigint = BigInt("0"),
+    public nonOwningReference: bigint = 0n,
     public vectorOfNonOwningReferences: bigint[] = [],
     public anyUniqueType: AnyUniqueAliases = AnyUniqueAliases.NONE,
     public anyUnique:
@@ -2393,8 +2393,8 @@ export class MonsterT implements flatbuffers.IGeneratedObject {
     public testrequirednestedflatbuffer: number[] = [],
     public scalarKeySortedTables: StatT[] = [],
     public nativeInline: TestT | null = null,
-    public longEnumNonEnumDefault: bigint = BigInt("0"),
-    public longEnumNormalDefault: bigint = BigInt("2"),
+    public longEnumNonEnumDefault: bigint = 0n,
+    public longEnumNormalDefault: bigint = 2n,
     public nanDefault: number = NaN,
     public infDefault: number = Infinity,
     public positiveInfDefault: number = Infinity,

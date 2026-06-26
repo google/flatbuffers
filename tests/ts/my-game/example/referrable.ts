@@ -36,7 +36,7 @@ export class Referrable implements flatbuffers.IUnpackableObject<ReferrableT> {
 
   id(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 4);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_id(value: bigint): boolean {
@@ -59,7 +59,7 @@ export class Referrable implements flatbuffers.IUnpackableObject<ReferrableT> {
   }
 
   static addId(builder: flatbuffers.Builder, id: bigint) {
-    builder.addFieldInt64(0, id, BigInt("0"));
+    builder.addFieldInt64(0, id, 0n);
   }
 
   static endReferrable(builder: flatbuffers.Builder): flatbuffers.Offset {
@@ -103,7 +103,7 @@ export class Referrable implements flatbuffers.IUnpackableObject<ReferrableT> {
 }
 
 export class ReferrableT implements flatbuffers.IGeneratedObject {
-  constructor(public id: bigint = BigInt("0")) {}
+  constructor(public id: bigint = 0n) {}
 
   pack(builder: flatbuffers.Builder): flatbuffers.Offset {
     return Referrable.createReferrable(builder, this.id);

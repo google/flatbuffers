@@ -548,7 +548,7 @@ class TsGenerator : public BaseGenerator {
           // If the value is an enum with a 64-bit base type, we have to just
           // return the bigint value directly since typescript does not support
           // enums with bigint backing types.
-          return "BigInt('" + value.constant + "')";
+          return value.constant + "n";
         }
         default: {
           const EnumVal* val = value.type.enum_def->FindByValue(value.constant);
@@ -595,7 +595,7 @@ class TsGenerator : public BaseGenerator {
 
       case BASE_TYPE_LONG:
       case BASE_TYPE_ULONG: {
-        return "BigInt('" + value.constant + "')";
+        return value.constant + "n";
       }
 
       default: {
@@ -1393,7 +1393,7 @@ class TsGenerator : public BaseGenerator {
             nullValue = "false";
           } else if (field.value.type.base_type == BASE_TYPE_LONG ||
                      field.value.type.base_type == BASE_TYPE_ULONG) {
-            nullValue = "BigInt(0)";
+            nullValue = "0n";
           } else if (field.value.type.base_type == BASE_TYPE_ARRAY) {
             nullValue = "[]";
           }
@@ -2582,7 +2582,7 @@ class TsGenerator : public BaseGenerator {
               }
               case BASE_TYPE_LONG:
               case BASE_TYPE_ULONG: {
-                code += " : BigInt(0)";
+                code += " : 0n";
                 break;
               }
               default: {
@@ -2675,7 +2675,7 @@ class TsGenerator : public BaseGenerator {
               code += "false";
             } else if (field.value.type.element == BASE_TYPE_LONG ||
                        field.value.type.element == BASE_TYPE_ULONG) {
-              code += "BigInt(0)";
+              code += "0n";
             } else if (IsScalar(field.value.type.element)) {
               if (field.value.type.enum_def) {
                 code += null_keyword_;

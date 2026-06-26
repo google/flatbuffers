@@ -42,7 +42,7 @@ export class Stat implements flatbuffers.IUnpackableObject<StatT> {
 
   val(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 6);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : 0n;
   }
 
   mutate_val(value: bigint): boolean {
@@ -85,7 +85,7 @@ export class Stat implements flatbuffers.IUnpackableObject<StatT> {
   }
 
   static addVal(builder: flatbuffers.Builder, val: bigint) {
-    builder.addFieldInt64(1, val, BigInt("0"));
+    builder.addFieldInt64(1, val, 0n);
   }
 
   static addCount(builder: flatbuffers.Builder, count: number) {
@@ -147,7 +147,7 @@ export class Stat implements flatbuffers.IUnpackableObject<StatT> {
 export class StatT implements flatbuffers.IGeneratedObject {
   constructor(
     public id: string | Uint8Array | null = null,
-    public val: bigint = BigInt("0"),
+    public val: bigint = 0n,
     public count: number = 0,
   ) {}
 

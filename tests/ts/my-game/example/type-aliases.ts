@@ -132,7 +132,7 @@ export class TypeAliases implements flatbuffers.IUnpackableObject<TypeAliasesT> 
 
   i64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 16);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : 0n;
   }
 
   mutate_i64(value: bigint): boolean {
@@ -148,7 +148,7 @@ export class TypeAliases implements flatbuffers.IUnpackableObject<TypeAliasesT> 
 
   u64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 18);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   mutate_u64(value: bigint): boolean {
@@ -275,11 +275,11 @@ export class TypeAliases implements flatbuffers.IUnpackableObject<TypeAliasesT> 
   }
 
   static addI64(builder: flatbuffers.Builder, i64: bigint) {
-    builder.addFieldInt64(6, i64, BigInt("0"));
+    builder.addFieldInt64(6, i64, 0n);
   }
 
   static addU64(builder: flatbuffers.Builder, u64: bigint) {
-    builder.addFieldInt64(7, u64, BigInt("0"));
+    builder.addFieldInt64(7, u64, 0n);
   }
 
   static addF32(builder: flatbuffers.Builder, f32: number) {
@@ -492,8 +492,8 @@ export class TypeAliasesT implements flatbuffers.IGeneratedObject {
     public u16: number = 0,
     public i32: number = 0,
     public u32: number = 0,
-    public i64: bigint = BigInt("0"),
-    public u64: bigint = BigInt("0"),
+    public i64: bigint = 0n,
+    public u64: bigint = 0n,
     public f32: number = 0.0,
     public f64: number = 0.0,
     public v8: number[] = [],

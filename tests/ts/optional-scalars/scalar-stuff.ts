@@ -132,7 +132,7 @@ export class ScalarStuff {
 
   justI64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 40);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : 0n;
   }
 
   maybeI64(): bigint | null {
@@ -142,12 +142,12 @@ export class ScalarStuff {
 
   defaultI64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 44);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("42");
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : 42n;
   }
 
   justU64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 46);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
   }
 
   maybeU64(): bigint | null {
@@ -157,7 +157,7 @@ export class ScalarStuff {
 
   defaultU64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 50);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("42");
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 42n;
   }
 
   justF32(): number {
@@ -301,7 +301,7 @@ export class ScalarStuff {
   }
 
   static addJustI64(builder: flatbuffers.Builder, justI64: bigint) {
-    builder.addFieldInt64(18, justI64, BigInt("0"));
+    builder.addFieldInt64(18, justI64, 0n);
   }
 
   static addMaybeI64(builder: flatbuffers.Builder, maybeI64: bigint) {
@@ -309,11 +309,11 @@ export class ScalarStuff {
   }
 
   static addDefaultI64(builder: flatbuffers.Builder, defaultI64: bigint) {
-    builder.addFieldInt64(20, defaultI64, BigInt("42"));
+    builder.addFieldInt64(20, defaultI64, 42n);
   }
 
   static addJustU64(builder: flatbuffers.Builder, justU64: bigint) {
-    builder.addFieldInt64(21, justU64, BigInt("0"));
+    builder.addFieldInt64(21, justU64, 0n);
   }
 
   static addMaybeU64(builder: flatbuffers.Builder, maybeU64: bigint) {
@@ -321,7 +321,7 @@ export class ScalarStuff {
   }
 
   static addDefaultU64(builder: flatbuffers.Builder, defaultU64: bigint) {
-    builder.addFieldInt64(23, defaultU64, BigInt("42"));
+    builder.addFieldInt64(23, defaultU64, 42n);
   }
 
   static addJustF32(builder: flatbuffers.Builder, justF32: number) {
