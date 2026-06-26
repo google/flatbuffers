@@ -31,7 +31,8 @@ func (rcv *Monster) UnPack() *MonsterT {
 
 // UnpackFields returns a partial *MonsterT with only the named fields populated.
 // Fields not in the list are left at their zero/default values.
-// This avoids materializing the entire table tree.
+// This avoids materializing the entire table tree. Pass the
+// generated MonsterField* constants rather than raw strings.
 func (rcv *Monster) UnpackFields(fields ...string) *MonsterT {
 	t := &MonsterT{}
 	fieldSet := make(map[string]bool, len(fields))

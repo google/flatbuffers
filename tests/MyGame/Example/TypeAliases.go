@@ -91,9 +91,25 @@ func (rcv *TypeAliases) UnPack() *TypeAliasesT {
 	return t
 }
 
+const (
+	TypeAliasesFieldI8   = "i8"
+	TypeAliasesFieldU8   = "u8"
+	TypeAliasesFieldI16  = "i16"
+	TypeAliasesFieldU16  = "u16"
+	TypeAliasesFieldI32  = "i32"
+	TypeAliasesFieldU32  = "u32"
+	TypeAliasesFieldI64  = "i64"
+	TypeAliasesFieldU64  = "u64"
+	TypeAliasesFieldF32  = "f32"
+	TypeAliasesFieldF64  = "f64"
+	TypeAliasesFieldV8   = "v8"
+	TypeAliasesFieldVf64 = "vf64"
+)
+
 // UnpackFields returns a partial *TypeAliasesT with only the named fields populated.
 // Fields not in the list are left at their zero/default values.
-// This avoids materializing the entire table tree.
+// This avoids materializing the entire table tree. Pass the
+// generated TypeAliasesField* constants rather than raw strings.
 func (rcv *TypeAliases) UnpackFields(fields ...string) *TypeAliasesT {
 	t := &TypeAliasesT{}
 	fieldSet := make(map[string]bool, len(fields))

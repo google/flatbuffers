@@ -32,9 +32,14 @@ func (rcv *TestSimpleTableWithEnum) UnPack() *TestSimpleTableWithEnumT {
 	return t
 }
 
+const (
+	TestSimpleTableWithEnumFieldColor = "color"
+)
+
 // UnpackFields returns a partial *TestSimpleTableWithEnumT with only the named fields populated.
 // Fields not in the list are left at their zero/default values.
-// This avoids materializing the entire table tree.
+// This avoids materializing the entire table tree. Pass the
+// generated TestSimpleTableWithEnumField* constants rather than raw strings.
 func (rcv *TestSimpleTableWithEnum) UnpackFields(fields ...string) *TestSimpleTableWithEnumT {
 	t := &TestSimpleTableWithEnumT{}
 	fieldSet := make(map[string]bool, len(fields))

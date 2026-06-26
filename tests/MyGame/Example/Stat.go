@@ -42,9 +42,16 @@ func (rcv *Stat) UnPack() *StatT {
 	return t
 }
 
+const (
+	StatFieldId    = "id"
+	StatFieldVal   = "val"
+	StatFieldCount = "count"
+)
+
 // UnpackFields returns a partial *StatT with only the named fields populated.
 // Fields not in the list are left at their zero/default values.
-// This avoids materializing the entire table tree.
+// This avoids materializing the entire table tree. Pass the
+// generated StatField* constants rather than raw strings.
 func (rcv *Stat) UnpackFields(fields ...string) *StatT {
 	t := &StatT{}
 	fieldSet := make(map[string]bool, len(fields))
@@ -172,8 +179,7 @@ func (rcv *Stat) MutateCount(n uint16) bool {
 }
 
 func StatKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
-	obj1 := &Stat{}
-	obj2 := &Stat{}
+	var obj1, obj2 Stat
 	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
 	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
 	return obj1.Count() < obj2.Count()
@@ -185,7 +191,7 @@ func (rcv *Stat) LookupByKey(key uint16, vectorLocation flatbuffers.UOffsetT, bu
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
-		obj := &Stat{}
+		var obj Stat
 		obj.Init(buf, tableOffset)
 		val := obj.Count()
 		comp := 0

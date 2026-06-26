@@ -1220,8 +1220,9 @@ class GoGenerator : public BaseGenerator {
 
     code += "func " + namer_.Type(struct_def) + "KeyCompare(";
     code += "o1, o2 flatbuffers.UOffsetT, buf []byte) bool {\n";
-    code += "\tobj1 := &" + namer_.Type(struct_def) + "{}\n";
-    code += "\tobj2 := &" + namer_.Type(struct_def) + "{}\n";
+    // Stack-allocate the two accessors (no pointer escapes this function) to
+    // avoid two heap allocations on every comparator call during a sort.
+    code += "\tvar obj1, obj2 " + namer_.Type(struct_def) + "\n";
     code += "\tobj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)\n";
     code += "\tobj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)\n";
     if (IsString(field.value.type)) {
@@ -1255,7 +1256,9 @@ class GoGenerator : public BaseGenerator {
     code += "\t\ttableOffset := flatbuffers.GetIndirectOffset(buf, ";
     code += "vectorLocation+4*(start+middle))\n";
 
-    code += "\t\tobj := &" + namer_.Type(struct_def) + "{}\n";
+    // Stack-allocate the accessor (no pointer escapes the loop) to avoid a heap
+    // allocation on every step of the O(log n) binary search.
+    code += "\t\tvar obj " + namer_.Type(struct_def) + "\n";
     code += "\t\tobj.Init(buf, tableOffset)\n";
 
     if (IsString(field.value.type)) {
@@ -1852,10 +1855,33 @@ class GoGenerator : public BaseGenerator {
     const std::string struct_type = namer_.Type(struct_def);
     const std::string native_type = NativeName(struct_def);
 
+    // Exported field-name tokens for UnpackFields. Callers select fields with
+    // these compile-checked constants instead of raw schema-name strings;
+    // passing an unknown/misspelled name would otherwise silently populate
+    // nothing. Each constant's value is the schema field name UnpackFields
+    // matches on.
+    {
+      std::string consts;
+      for (auto it = struct_def.fields.vec.begin();
+           it != struct_def.fields.vec.end(); ++it) {
+        const FieldDef& field = **it;
+        if (field.deprecated) continue;
+        if (IsScalar(field.value.type.base_type) &&
+            field.value.type.enum_def != nullptr &&
+            field.value.type.enum_def->is_union)
+          continue;
+        consts += "\t" + struct_type + "Field" + namer_.Field(field) + " = \"" +
+                  field.name + "\"\n";
+      }
+      if (!consts.empty()) { code += "const (\n" + consts + ")\n\n"; }
+    }
+
     code += "// UnpackFields returns a partial *" + native_type +
             " with only the named fields populated.\n";
     code += "// Fields not in the list are left at their zero/default values.\n";
-    code += "// This avoids materializing the entire table tree.\n";
+    code += "// This avoids materializing the entire table tree. Pass the\n";
+    code += "// generated " + struct_type +
+            "Field* constants rather than raw strings.\n";
     code += "func (rcv *" + struct_type + ") UnpackFields(fields ...string) *" +
             native_type + " {\n";
     code += "\tt := &" + native_type + "{}\n";

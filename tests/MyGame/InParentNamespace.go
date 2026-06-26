@@ -31,7 +31,8 @@ func (rcv *InParentNamespace) UnPack() *InParentNamespaceT {
 
 // UnpackFields returns a partial *InParentNamespaceT with only the named fields populated.
 // Fields not in the list are left at their zero/default values.
-// This avoids materializing the entire table tree.
+// This avoids materializing the entire table tree. Pass the
+// generated InParentNamespaceField* constants rather than raw strings.
 func (rcv *InParentNamespace) UnpackFields(fields ...string) *InParentNamespaceT {
 	t := &InParentNamespaceT{}
 	fieldSet := make(map[string]bool, len(fields))

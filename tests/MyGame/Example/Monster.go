@@ -501,9 +501,71 @@ func (rcv *Monster) UnPack() *MonsterT {
 	return t
 }
 
+const (
+	MonsterFieldPos                          = "pos"
+	MonsterFieldMana                         = "mana"
+	MonsterFieldHp                           = "hp"
+	MonsterFieldName                         = "name"
+	MonsterFieldInventory                    = "inventory"
+	MonsterFieldColor                        = "color"
+	MonsterFieldTest                         = "test"
+	MonsterFieldTest4                        = "test4"
+	MonsterFieldTestarrayofstring            = "testarrayofstring"
+	MonsterFieldTestarrayoftables            = "testarrayoftables"
+	MonsterFieldEnemy                        = "enemy"
+	MonsterFieldTestnestedflatbuffer         = "testnestedflatbuffer"
+	MonsterFieldTestempty                    = "testempty"
+	MonsterFieldTestbool                     = "testbool"
+	MonsterFieldTesthashs32Fnv1              = "testhashs32_fnv1"
+	MonsterFieldTesthashu32Fnv1              = "testhashu32_fnv1"
+	MonsterFieldTesthashs64Fnv1              = "testhashs64_fnv1"
+	MonsterFieldTesthashu64Fnv1              = "testhashu64_fnv1"
+	MonsterFieldTesthashs32Fnv1a             = "testhashs32_fnv1a"
+	MonsterFieldTesthashu32Fnv1a             = "testhashu32_fnv1a"
+	MonsterFieldTesthashs64Fnv1a             = "testhashs64_fnv1a"
+	MonsterFieldTesthashu64Fnv1a             = "testhashu64_fnv1a"
+	MonsterFieldTestarrayofbools             = "testarrayofbools"
+	MonsterFieldTestf                        = "testf"
+	MonsterFieldTestf2                       = "testf2"
+	MonsterFieldTestf3                       = "testf3"
+	MonsterFieldTestarrayofstring2           = "testarrayofstring2"
+	MonsterFieldTestarrayofsortedstruct      = "testarrayofsortedstruct"
+	MonsterFieldFlex                         = "flex"
+	MonsterFieldTest5                        = "test5"
+	MonsterFieldVectorOfLongs                = "vector_of_longs"
+	MonsterFieldVectorOfDoubles              = "vector_of_doubles"
+	MonsterFieldParentNamespaceTest          = "parent_namespace_test"
+	MonsterFieldVectorOfReferrables          = "vector_of_referrables"
+	MonsterFieldSingleWeakReference          = "single_weak_reference"
+	MonsterFieldVectorOfWeakReferences       = "vector_of_weak_references"
+	MonsterFieldVectorOfStrongReferrables    = "vector_of_strong_referrables"
+	MonsterFieldCoOwningReference            = "co_owning_reference"
+	MonsterFieldVectorOfCoOwningReferences   = "vector_of_co_owning_references"
+	MonsterFieldNonOwningReference           = "non_owning_reference"
+	MonsterFieldVectorOfNonOwningReferences  = "vector_of_non_owning_references"
+	MonsterFieldAnyUnique                    = "any_unique"
+	MonsterFieldAnyAmbiguous                 = "any_ambiguous"
+	MonsterFieldVectorOfEnums                = "vector_of_enums"
+	MonsterFieldSignedEnum                   = "signed_enum"
+	MonsterFieldTestrequirednestedflatbuffer = "testrequirednestedflatbuffer"
+	MonsterFieldScalarKeySortedTables        = "scalar_key_sorted_tables"
+	MonsterFieldNativeInline                 = "native_inline"
+	MonsterFieldLongEnumNonEnumDefault       = "long_enum_non_enum_default"
+	MonsterFieldLongEnumNormalDefault        = "long_enum_normal_default"
+	MonsterFieldNanDefault                   = "nan_default"
+	MonsterFieldInfDefault                   = "inf_default"
+	MonsterFieldPositiveInfDefault           = "positive_inf_default"
+	MonsterFieldInfinityDefault              = "infinity_default"
+	MonsterFieldPositiveInfinityDefault      = "positive_infinity_default"
+	MonsterFieldNegativeInfDefault           = "negative_inf_default"
+	MonsterFieldNegativeInfinityDefault      = "negative_infinity_default"
+	MonsterFieldDoubleInfDefault             = "double_inf_default"
+)
+
 // UnpackFields returns a partial *MonsterT with only the named fields populated.
 // Fields not in the list are left at their zero/default values.
-// This avoids materializing the entire table tree.
+// This avoids materializing the entire table tree. Pass the
+// generated MonsterField* constants rather than raw strings.
 func (rcv *Monster) UnpackFields(fields ...string) *MonsterT {
 	t := &MonsterT{}
 	fieldSet := make(map[string]bool, len(fields))
@@ -1243,8 +1305,7 @@ func (rcv *Monster) Name() []byte {
 }
 
 func MonsterKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
-	obj1 := &Monster{}
-	obj2 := &Monster{}
+	var obj1, obj2 Monster
 	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
 	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
 	return string(obj1.Name()) < string(obj2.Name())
@@ -1257,7 +1318,7 @@ func (rcv *Monster) LookupByKey(key string, vectorLocation flatbuffers.UOffsetT,
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
-		obj := &Monster{}
+		var obj Monster
 		obj.Init(buf, tableOffset)
 		comp := bytes.Compare(obj.Name(), bKey)
 		if comp > 0 {
