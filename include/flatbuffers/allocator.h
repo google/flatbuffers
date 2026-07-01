@@ -57,9 +57,13 @@ class Allocator {
   void memcpy_downward(uint8_t* old_p, size_t old_size, uint8_t* new_p,
                        size_t new_size, size_t in_use_back,
                        size_t in_use_front) {
-    memcpy(new_p + new_size - in_use_back, old_p + old_size - in_use_back,
-           in_use_back);
-    memcpy(new_p, old_p, in_use_front);
+     FLATBUFFERS_ASSERT(in_use_back <= old_size);
+     FLATBUFFERS_ASSERT(in_use_back <= new_size);
+     memcpy(new_p + new_size - in_use_back, old_p + old_size - in_use_back,
+         in_use_back);
+     FLATBUFFERS_ASSERT(in_use_front <= old_size);
+     FLATBUFFERS_ASSERT(in_use_front <= new_size);
+     memcpy(new_p, old_p, in_use_front);
   }
 };
 
