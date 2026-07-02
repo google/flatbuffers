@@ -1983,8 +1983,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 #undef FLEX_CHECK_VERIFIED
 
   bool VerifyTerminator(const String& s) {
+    // Verify the string bytes plus the trailing terminator are in the buffer,
+    // then check the terminator is actually null so c_str() stays a bounded
+    // C string.
     return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
-                             s.size() + 1);
+                             s.size() + 1) &&
+           Check(s.c_str()[s.size()] == '\0');
   }
 
   bool VerifyRef(Reference r) {
