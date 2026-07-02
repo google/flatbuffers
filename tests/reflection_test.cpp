@@ -335,6 +335,93 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   }
 }
 
+// Regression test: a reflection::Type whose `index` scalar points past the
+// end of the schema's objects vector must cause flatbuffers::Verify to
+// return false cleanly, not read out of bounds.
+void ReflectionTypeIndexBoundsTest(const std::string& tests_data_path) {
+  // Load the binary schema into a mutable byte buffer so we can mutate a
+  // single scalar in place.
+  std::string bfbs_str;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
+                                true, &bfbs_str),
+          true);
+  std::vector<uint8_t> bfbs_buffer(bfbs_str.begin(), bfbs_str.end());
+
+  // The original BFBS must verify.
+  {
+    flatbuffers::Verifier schema_verifier(bfbs_buffer.data(),
+                                          bfbs_buffer.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(schema_verifier), true);
+  }
+
+  auto& schema = *reflection::GetSchema(bfbs_buffer.data());
+
+  // Load the Monster data buffer.
+  std::string data_str;
+  TEST_EQ(flatbuffers::LoadFile(
+              (tests_data_path + "monsterdata_test.mon").c_str(), true,
+              &data_str),
+          true);
+  std::vector<uint8_t> data_buffer(data_str.begin(), data_str.end());
+
+  // Original schema + original data must verify.
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), data_buffer.data(),
+                              data_buffer.size()),
+          true);
+
+  // Locate Monster.pos, which is an Obj-typed field referencing Vec3 via
+  // type()->index().
+  auto monster_object =
+      schema.objects()->LookupByKey("MyGame.Example.Monster");
+  TEST_NOTNULL(monster_object);
+  auto pos_field = monster_object->fields()->LookupByKey("pos");
+  TEST_NOTNULL(pos_field);
+  TEST_EQ(pos_field->type()->base_type(), reflection::Obj);
+
+  const int32_t original_index = pos_field->type()->index();
+  TEST_ASSERT(original_index >= 0);
+  TEST_ASSERT(original_index <
+              static_cast<int32_t>(schema.objects()->size()));
+
+  // Find the in-place address of reflection::Type::VT_INDEX inside the
+  // mutable BFBS buffer. reflection::Type does not expose a generated mutator
+  // for index(), so use the underlying Table slot address for this test-only
+  // scalar mutation.
+  auto* type_ptr = pos_field->type();
+  auto* type_table = reinterpret_cast<flatbuffers::Table*>(
+      const_cast<reflection::Type*>(type_ptr));
+  uint8_t* idx_addr = type_table->GetAddressOf(reflection::Type::VT_INDEX);
+  TEST_NOTNULL(idx_addr);
+
+  // Mutate the index to a clearly out-of-range value. The mutation touches
+  // exactly 4 bytes and does not change any offsets.
+  const int32_t bad_index =
+      static_cast<int32_t>(schema.objects()->size() + 100);
+  flatbuffers::WriteScalar<int32_t>(idx_addr, bad_index);
+  TEST_EQ(pos_field->type()->index(), bad_index);
+
+  // The mutated BFBS is still a structurally valid FlatBuffer; only the
+  // referential semantics are broken.
+  {
+    flatbuffers::Verifier schema_verifier(bfbs_buffer.data(),
+                                          bfbs_buffer.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(schema_verifier), true);
+  }
+
+  // The reflection-based data verifier must reject this cleanly rather than
+  // performing an out-of-bounds read on schema.objects().
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), data_buffer.data(),
+                              data_buffer.size()),
+          false);
+
+  // Restoring the original index must make Verify pass again.
+  flatbuffers::WriteScalar<int32_t>(idx_addr, original_index);
+  TEST_EQ(pos_field->type()->index(), original_index);
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), data_buffer.data(),
+                              data_buffer.size()),
+          true);
+}
+
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
   auto s =
       flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());
