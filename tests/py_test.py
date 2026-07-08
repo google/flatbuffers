@@ -2945,6 +2945,66 @@ class TestFixedLengthArrays(unittest.TestCase):
     self.assertEqual(table.A().D(1).D(0), -2)
     self.assertEqual(table.A().D(1).D(1), 2)
 
+  def test_object_api_pack_fixed_array_of_structs(self):
+    nested0 = MyGame.Example.NestedStruct.NestedStructT()
+    nested0.a = [1, 2]
+    nested0.b = MyGame.Example.TestEnum.TestEnum.B
+    nested0.c = [
+        MyGame.Example.TestEnum.TestEnum.A,
+        MyGame.Example.TestEnum.TestEnum.B,
+    ]
+    nested0.d = [-1, 1]
+
+    nested1 = MyGame.Example.NestedStruct.NestedStructT()
+    nested1.a = [3, 4]
+    nested1.b = MyGame.Example.TestEnum.TestEnum.C
+    nested1.c = [
+        MyGame.Example.TestEnum.TestEnum.C,
+        MyGame.Example.TestEnum.TestEnum.B,
+    ]
+    nested1.d = [-2, 2]
+
+    array = MyGame.Example.ArrayStruct.ArrayStructT()
+    array.a = 0.5
+    array.b = list(range(0, 15))
+    array.c = 1
+    array.d = [nested0, nested1]
+    array.e = 2
+    array.f = [-1, 1]
+
+    builder = flatbuffers.Builder(0)
+    arrayOffset = array.Pack(builder)
+
+    MyGame.Example.ArrayTable.Start(builder)
+    MyGame.Example.ArrayTable.AddA(builder, arrayOffset)
+    tableOffset = MyGame.Example.ArrayTable.End(builder)
+    builder.Finish(tableOffset)
+
+    table = MyGame.Example.ArrayTable.ArrayTable.GetRootAs(builder.Output())
+
+    self.assertEqual(table.A().D(0).A(), [1, 2])
+    self.assertEqual(table.A().D(1).A(), [3, 4])
+    self.assertEqual(table.A().D(0).B(), MyGame.Example.TestEnum.TestEnum.B)
+    self.assertEqual(table.A().D(1).B(), MyGame.Example.TestEnum.TestEnum.C)
+    self.assertEqual(
+        table.A().D(0).C(),
+        [
+            MyGame.Example.TestEnum.TestEnum.A,
+            MyGame.Example.TestEnum.TestEnum.B,
+        ],
+    )
+    self.assertEqual(
+        table.A().D(1).C(),
+        [
+            MyGame.Example.TestEnum.TestEnum.C,
+            MyGame.Example.TestEnum.TestEnum.B,
+        ],
+    )
+    self.assertEqual(table.A().D(0).D(), [-1, 1])
+    self.assertEqual(table.A().D(1).D(), [-2, 2])
+    self.assertEqual(table.A().B(), list(range(0, 15)))
+    self.assertEqual(table.A().F(), [-1, 1])
+
 
 class TestNestedUnionTables(unittest.TestCase):
 
