@@ -240,7 +240,7 @@ namespace Google.FlatBuffers
       try
       {
         // First, get vtable offset
-        short vtable = Convert.ToInt16(pos - ReadSOffsetT(verifier_buffer, pos));
+        int vtable = pos - ReadSOffsetT(verifier_buffer, pos);
         // Check that offset points to vtable area (is smaller than vtable size)
         if (vtableOffset < ReadVOffsetT(verifier_buffer, vtable))
         {
