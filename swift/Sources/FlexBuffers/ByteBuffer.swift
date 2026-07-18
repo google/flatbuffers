@@ -27,7 +27,7 @@ public struct ByteBuffer {
   @usableFromInline
   final class Storage {
     @usableFromInline
-    enum Blob {
+    @frozen enum Blob: ~Copyable {
       #if !os(WASI)
       case data(Data)
       case bytes(any ContiguousBytes)
@@ -36,6 +36,23 @@ public struct ByteBuffer {
       case byteBuffer(_InternalByteBuffer)
       case array([UInt8])
       case pointer(UnsafeMutableRawPointer)
+
+      init(_ other: borrowing Blob) {
+        switch other {
+        #if !os(WASI)
+        case .data(let data):
+          self = .data(data)
+        case .bytes(let contiguousBytes):
+          self = .bytes(contiguousBytes)
+        #endif
+        case .byteBuffer(let internalByteBuffer):
+          self = .byteBuffer(internalByteBuffer)
+        case .array(let array):
+          self = .array(array)
+        case .pointer(let unsafeMutableRawPointer):
+          self = .pointer(unsafeMutableRawPointer)
+        }
+      }
     }
 
     /// This storage doesn't own the memory, therefore, we won't deallocate on deinit.
@@ -44,7 +61,7 @@ public struct ByteBuffer {
     private let capacity: Int
     /// Retained blob of data that requires the storage to retain a pointer to.
     @usableFromInline
-    var retainedBlob: Blob
+    let retainedBlob: Blob
 
     @usableFromInline
     init(count: Int) {
@@ -57,9 +74,9 @@ public struct ByteBuffer {
     }
 
     @usableFromInline
-    init(blob: Blob, capacity count: Int) {
+    init(blob: borrowing Blob, capacity count: Int) {
       capacity = count
-      retainedBlob = blob
+      retainedBlob = .init(blob)
       isOwned = false
     }
 
@@ -276,7 +293,7 @@ public struct ByteBuffer {
   ///   - removeBytes: Removes a number of bytes from the current size
   @inline(__always)
   init(
-    blob: Storage.Blob,
+    blob: borrowing Storage.Blob,
     count: Int,
     removing removeBytes: Int)
   {
@@ -316,7 +333,7 @@ public struct ByteBuffer {
   ///   - def: Type of the object
   ///   - position: the index of the object in the buffer
   @inline(__always)
-  public func read<T>(def: T.Type, position: Int) -> T {
+  public func read<T: BitwiseCopyable>(def: T.Type, position: Int) -> T {
     _storage.readWithUnsafeRawPointer(position: position) {
       $0.bindMemory(to: T.self, capacity: 1)
         .pointee
@@ -360,10 +377,10 @@ public struct ByteBuffer {
   @inline(__always)
   func readSizedScalar<
     T: BinaryInteger,
-    T1: BinaryInteger,
-    T2: BinaryInteger,
-    T3: BinaryInteger,
-    T4: BinaryInteger
+    T1: BinaryInteger & BitwiseCopyable,
+    T2: BinaryInteger & BitwiseCopyable,
+    T3: BinaryInteger & BitwiseCopyable,
+    T4: BinaryInteger & BitwiseCopyable
   >(
     def: T.Type,
     t1: T1.Type,
