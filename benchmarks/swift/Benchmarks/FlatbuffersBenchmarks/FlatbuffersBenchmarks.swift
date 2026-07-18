@@ -97,6 +97,7 @@ let benchmarks = {
     for _ in benchmark.scaledIterations {
       blackHole(ByteBuffer(assumingMemoryBound: memory, capacity: Int(oneGB)))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Clearing 1GB", configuration: singleConfiguration) { benchmark in
@@ -105,6 +106,7 @@ let benchmarks = {
     for _ in benchmark.scaledIterations {
       blackHole(fb.clear())
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Strings 10") { benchmark in
@@ -113,6 +115,7 @@ let benchmarks = {
     for _ in benchmark.scaledIterations {
       blackHole(fb.create(string: str10))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Strings 100") { benchmark in
@@ -121,6 +124,7 @@ let benchmarks = {
     for _ in benchmark.scaledIterations {
       blackHole(fb.create(string: str100))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 1 Bytes") { benchmark in
@@ -129,6 +133,7 @@ let benchmarks = {
     for _ in benchmark.scaledIterations {
       blackHole(fb.createVector(bytes: bytes))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 1 Ints") { benchmark in
@@ -137,6 +142,7 @@ let benchmarks = {
     for _ in benchmark.scaledIterations {
       blackHole(fb.createVector(ints))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 100 Ints") { benchmark in
@@ -145,6 +151,7 @@ let benchmarks = {
     for i in benchmark.scaledIterations {
       blackHole(fb.createVector(ints))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 100 Bytes") { benchmark in
@@ -153,6 +160,7 @@ let benchmarks = {
     for i in benchmark.scaledIterations {
       blackHole(fb.createVector(bytes))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector 100 ContiguousBytes") { benchmark in
@@ -161,6 +169,7 @@ let benchmarks = {
     for i in benchmark.scaledIterations {
       blackHole(fb.createVector(bytes: bytes))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark(
@@ -178,6 +187,7 @@ let benchmarks = {
       fb.add(offset: off, at: 8)
       blackHole(fb.endTable(at: s))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark(
@@ -190,6 +200,7 @@ let benchmarks = {
       let s = fb.startTable(with: 4)
       blackHole(fb.endTable(at: s))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Struct") { benchmark in
@@ -198,6 +209,7 @@ let benchmarks = {
     for _ in benchmark.scaledIterations {
       blackHole(fb.create(struct: array.first!))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Structs") { benchmark in
@@ -219,6 +231,7 @@ let benchmarks = {
     fb.add(offset: vector, at: 4)
     let root = Offset(offset: fb.endTable(at: start))
     blackHole(fb.finish(offset: root))
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Vector of Offsets") { benchmark in
@@ -239,12 +252,15 @@ let benchmarks = {
       fb.add(offset: off, at: 2)
       blackHole(fb.endTable(at: s))
     }
+    benchmark.stopMeasurement()
   }
 
   Benchmark("Reading Doubles") { benchmark in
     let byteBuffer = ByteBuffer(data: data)
+    benchmark.startMeasurement()
     for _ in benchmark.scaledIterations {
       blackHole(byteBuffer.read(def: Double.self, position: 0))
     }
+    benchmark.stopMeasurement()
   }
 }

@@ -31,7 +31,7 @@ struct _InternalByteBuffer {
   @usableFromInline
   final class Storage {
     /// pointer to the start of the buffer object in memory
-    var memory: UnsafeMutableRawPointer
+    @exclusivity(unchecked) private(set) var memory: UnsafeMutableRawPointer
 
     @usableFromInline
     init(count: Int, alignment: Int) {

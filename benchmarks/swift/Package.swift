@@ -39,4 +39,14 @@ let package = Package(
       plugins: [
         .plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
       ]),
+    .executableTarget(
+      name: "FlexBuffersBenchmarks",
+      dependencies: [
+        .product(name: "FlexBuffers", package: "flatbuffers"),
+        .product(name: "Benchmark", package: "package-benchmark"),
+      ],
+      path: "Benchmarks/FlexBuffersBenchmarks",
+      plugins: [
+        .plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
+      ]),
   ])
