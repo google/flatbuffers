@@ -1400,6 +1400,24 @@ fn test_create_safe_buffer_limit_max_size_fails() {
 }
 
 #[test]
+fn test_create_safe_buffer_aliased_field_types_fails() {
+    // `enemy` (Monster) and `testempty` (Stat) are rewritten to point at the
+    // same child table. Before the fix the verifier deduped on position alone,
+    // so the Stat interpretation was never checked and a later read through the
+    // Stat layout reinterpreted unverified Monster bytes.
+    let (buffer, table_pos) = create_aliased_field_buffer();
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let schema = root_as_schema(schema_buffer.as_slice()).unwrap();
+
+    let safe_buffer = SafeBuffer::new(&buffer, &schema);
+
+    assert_eq!(
+        safe_buffer.err().unwrap(),
+        FlatbufferError::ConflictingObjectType(table_pos)
+    );
+}
+
+#[test]
 fn test_safe_buffer_integer_same_type_succeeds() {
     let buffer = create_test_buffer();
     let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
@@ -2040,4 +2058,52 @@ fn create_test_buffer() -> Vec<u8> {
     my_game::example::finish_monster_buffer(&mut builder, mon);
     let (flatbuf, start_loc) = builder.mut_finished_buffer();
     flatbuf[start_loc..].to_vec()
+}
+
+// Builds a monster with both `enemy` (Monster) and `testempty` (Stat) set, then
+// rewrites the root vtable so both fields resolve to the same child table
+// position. Returns the tampered buffer and that shared table position.
+fn create_aliased_field_buffer() -> (Vec<u8>, usize) {
+    use std::convert::TryInto;
+    let mut builder = FlatBufferBuilder::new();
+    let enemy_name = builder.create_string("EnemyMonster");
+    let enemy = my_game::example::Monster::create(
+        &mut builder,
+        &my_game::example::MonsterArgs { name: Some(enemy_name), ..Default::default() },
+    );
+    let fred_name = builder.create_string("Fred");
+    let stat = my_game::example::Stat::create(
+        &mut builder,
+        &my_game::example::StatArgs { id: Some(fred_name), ..Default::default() },
+    );
+    let name = builder.create_string("MyMonster");
+    let mon = my_game::example::Monster::create(
+        &mut builder,
+        &my_game::example::MonsterArgs {
+            name: Some(name),
+            enemy: Some(enemy),
+            testempty: Some(stat),
+            ..Default::default()
+        },
+    );
+    my_game::example::finish_monster_buffer(&mut builder, mon);
+
+    let schema_buffer = load_file_as_buffer("../monster_test.bfbs");
+    let enemy_voff = get_schema_field(&schema_buffer, "enemy").offset() as usize;
+    let testempty_voff = get_schema_field(&schema_buffer, "testempty").offset() as usize;
+
+    let mut buf = builder.finished_data().to_vec();
+    let rd_u32 = |b: &[u8], i: usize| u32::from_le_bytes(b[i..i + 4].try_into().unwrap());
+    let rd_i32 = |b: &[u8], i: usize| i32::from_le_bytes(b[i..i + 4].try_into().unwrap());
+    let rd_u16 = |b: &[u8], i: usize| u16::from_le_bytes(b[i..i + 2].try_into().unwrap());
+
+    let table_loc = rd_u32(&buf, 0) as usize;
+    let vtable_loc = (table_loc as i32 - rd_i32(&buf, table_loc)) as usize;
+    let enemy_slot = rd_u16(&buf, vtable_loc + enemy_voff);
+    buf[vtable_loc + testempty_voff..vtable_loc + testempty_voff + 2]
+        .copy_from_slice(&enemy_slot.to_le_bytes());
+
+    let field_pos = table_loc + enemy_slot as usize;
+    let table_pos = field_pos + rd_u32(&buf, field_pos) as usize;
+    (buf, table_pos)
 }
