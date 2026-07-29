@@ -32,11 +32,13 @@ class NestedStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int32Flags, self._tab.Pos + 0, self.ALength())
 
     # NestedStruct
-    def ALength(self) -> int:
+    @staticmethod
+    def ALength() -> int:
         return 2
 
     # NestedStruct
-    def AIsNone(self) -> bool:
+    @staticmethod
+    def AIsNone() -> bool:
         return False
 
     # NestedStruct
@@ -55,11 +57,13 @@ class NestedStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int8Flags, self._tab.Pos + 9, self.CLength())
 
     # NestedStruct
-    def CLength(self) -> int:
+    @staticmethod
+    def CLength() -> int:
         return 2
 
     # NestedStruct
-    def CIsNone(self) -> bool:
+    @staticmethod
+    def CIsNone() -> bool:
         return False
 
     # NestedStruct
@@ -76,11 +80,13 @@ class NestedStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int64Flags, self._tab.Pos + 16, self.DLength())
 
     # NestedStruct
-    def DLength(self) -> int:
+    @staticmethod
+    def DLength() -> int:
         return 2
 
     # NestedStruct
-    def DIsNone(self) -> bool:
+    @staticmethod
+    def DIsNone() -> bool:
         return False
 
 
