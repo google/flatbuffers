@@ -220,11 +220,11 @@ public struct Verifier {
     guard
       position >= 0,
       position <= storage.capacity,
-      storage.capacity - position >= size * 2
+      storage.capacity - position >= size &* 2
     else {
       throw FlatbuffersErrors.bufferDoesntContainID
     }
-    let str = _buffer.readString(at: position + size, count: size)
+    let str = _buffer.readString(at: position &+ size, count: size)
     if id == str {
       return
     }
