@@ -185,6 +185,31 @@ void FlexBuffersReuseBugTest() {
   TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
                                     slb.GetBuffer().size(), &reuse_tracker),
           true);
+
+  // A shared key vector can otherwise amplify verification work far beyond
+  // the size of the buffer. The default verifier rejects excessive reuse;
+  // callers that expect highly shared DAGs can supply the reuse tracker.
+  std::vector<std::string> shared_keys;
+  for (int i = 0; i < 64; ++i) {
+    shared_keys.push_back(std::string(2048, 'a') + NumToString(i));
+  }
+  flexbuffers::Builder shared(1024, flexbuffers::BUILDER_FLAG_SHARE_ALL);
+  shared.Vector([&]() {
+    for (int map = 0; map < 128; ++map) {
+      shared.Map([&]() {
+        for (int key = 0; key < 64; ++key) {
+          shared.Int(shared_keys[key].c_str(), key);
+        }
+      });
+    }
+  });
+  shared.Finish();
+  TEST_EQ(flexbuffers::VerifyBuffer(shared.GetBuffer().data(),
+                                    shared.GetBuffer().size(), nullptr),
+          false);
+  TEST_EQ(flexbuffers::VerifyBuffer(shared.GetBuffer().data(),
+                                    shared.GetBuffer().size(), &reuse_tracker),
+          true);
 }
 
 void FlexBuffersFloatingPointTest() {
