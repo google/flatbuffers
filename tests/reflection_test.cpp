@@ -385,6 +385,85 @@ void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
               "16, b: 32 } }");
 }
 
+// Regression test for a heap out-of-bounds read in the reflection-based
+// Verify() path. A malicious/corrupt reflection::Schema can encode a
+// Type.index() that does not correspond to any entry in Schema.objects()
+// (or Schema.enums()). Previously, VerifyObject/VerifyVector/VerifyUnion
+// passed such an index directly to Vector::Get(), whose only bounds check
+// is an assert that is compiled out in release (NDEBUG) builds, resulting
+// in an out-of-bounds read. This test builds such a schema (with an empty
+// `objects` vector and a field whose type.index() is far out of range) and
+// confirms that Verify() now fails closed (returns false) instead of
+// reading out of bounds.
+void ReflectionInvalidObjectIndexTest() {
+  // ---- Build a malicious schema: one Object ("Root") with one Field
+  // ("f") of base_type Obj whose type.index() is out of range, while
+  // `objects` itself is left empty. ----
+  flatbuffers::FlatBufferBuilder schema_fbb;
+
+  auto type_off = reflection::CreateType(
+      schema_fbb, reflection::Obj, reflection::None, /*index=*/999999);
+  auto fname_off = schema_fbb.CreateString("f");
+  auto field_off =
+      reflection::CreateField(schema_fbb, fname_off, type_off,
+                              /*id=*/0, /*offset=*/4);
+
+  std::vector<flatbuffers::Offset<reflection::Field>> fields_vec{field_off};
+  auto oname_off = schema_fbb.CreateString("Root");
+  auto fields_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Field>(&fields_vec);
+  auto root_obj_off = reflection::CreateObject(
+      schema_fbb, oname_off, fields_off, /*is_struct=*/false);
+
+  // `objects` is intentionally empty: any index() access into it is
+  // therefore out of range.
+  std::vector<flatbuffers::Offset<reflection::Object>> objects_vec;
+  auto objects_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Object>(
+          &objects_vec);
+
+  std::vector<flatbuffers::Offset<reflection::Enum>> enums_vec;
+  auto enums_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Enum>(&enums_vec);
+
+  auto schema_off = reflection::CreateSchema(
+      schema_fbb, objects_off, enums_off, /*file_ident=*/0, /*file_ext=*/0,
+      root_obj_off);
+  schema_fbb.Finish(schema_off, reflection::SchemaIdentifier());
+
+  const uint8_t* schema_buf = schema_fbb.GetBufferPointer();
+  const size_t schema_size = schema_fbb.GetSize();
+
+  flatbuffers::Verifier schema_verifier(schema_buf, schema_size);
+  TEST_EQ(reflection::VerifySchemaBuffer(schema_verifier), true);
+
+  const reflection::Schema* schema =
+      flatbuffers::GetRoot<reflection::Schema>(schema_buf);
+  TEST_EQ(schema->objects()->size(), 0u);
+
+  const reflection::Object* root = schema->root_table();
+
+  // ---- Build a minimal, well-formed data buffer matching the schema: a
+  // table with one field at vtable slot 4 pointing at a valid (empty)
+  // child table. ----
+  flatbuffers::FlatBufferBuilder data_fbb;
+  auto child_start = data_fbb.StartTable();
+  flatbuffers::Offset<flatbuffers::Table> child_off(
+      data_fbb.EndTable(child_start));
+
+  auto root_start = data_fbb.StartTable();
+  data_fbb.AddOffset(4, child_off);
+  auto root_end = data_fbb.EndTable(root_start);
+  data_fbb.Finish(flatbuffers::Offset<flatbuffers::Table>(root_end));
+
+  // Before the fix, this call reads out of bounds (crashes under ASan /
+  // UBSan in release builds; hits a compiled-out assert in debug builds).
+  // After the fix, it must fail closed.
+  bool result = flatbuffers::Verify(*schema, *root, data_fbb.GetBufferPointer(),
+                                    data_fbb.GetSize());
+  TEST_EQ(result, false);
+}
+
 void MiniReflectFixedLengthArrayTest() {
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700

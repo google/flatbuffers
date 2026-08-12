@@ -70,12 +70,22 @@ static bool VerifyUnion(flatbuffers::Verifier& v,
                         const uint8_t* elem,
                         const reflection::Field& union_field) {
   if (!utype) return true;  // Not present.
-  auto fb_enum = schema.enums()->Get(union_field.type()->index());
+  auto enum_index = union_field.type()->index();
+  if (enum_index < 0 ||
+      static_cast<uoffset_t>(enum_index) >= schema.enums()->size()) {
+    return false;
+  }
+  auto fb_enum = schema.enums()->Get(static_cast<uoffset_t>(enum_index));
   if (utype >= fb_enum->values()->size()) return false;
   auto elem_type = fb_enum->values()->Get(utype)->union_type();
   switch (elem_type->base_type()) {
     case reflection::Obj: {
-      auto elem_obj = schema.objects()->Get(elem_type->index());
+      auto obj_index = elem_type->index();
+      if (obj_index < 0 ||
+          static_cast<uoffset_t>(obj_index) >= schema.objects()->size()) {
+        return false;
+      }
+      auto elem_obj = schema.objects()->Get(static_cast<uoffset_t>(obj_index));
       if (elem_obj->is_struct()) {
         return v.VerifyFromPointer(elem, elem_obj->bytesize());
       } else {
@@ -130,7 +140,12 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       }
     }
     case reflection::Obj: {
-      auto obj = schema.objects()->Get(vec_field.type()->index());
+      auto obj_index = vec_field.type()->index();
+      if (obj_index < 0 ||
+          static_cast<uoffset_t>(obj_index) >= schema.objects()->size()) {
+        return false;
+      }
+      auto obj = schema.objects()->Get(static_cast<uoffset_t>(obj_index));
       if (obj->is_struct()) {
         return VerifyVectorOfStructs(v, table, vec_field.offset(), *obj,
                                      vec_field.required());
@@ -233,7 +248,13 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         if (!VerifyVector(v, schema, *table, *field_def)) return false;
         break;
       case reflection::Obj: {
-        auto child_obj = schema.objects()->Get(field_def->type()->index());
+        auto obj_index = field_def->type()->index();
+        if (obj_index < 0 ||
+            static_cast<uoffset_t>(obj_index) >= schema.objects()->size()) {
+          return false;
+        }
+        auto child_obj =
+            schema.objects()->Get(static_cast<uoffset_t>(obj_index));
         if (child_obj->is_struct()) {
           if (!VerifyStruct(v, *table, field_def->offset(), *child_obj,
                             field_def->required())) {
