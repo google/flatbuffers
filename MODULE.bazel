@@ -1,25 +1,24 @@
 module(
     name = "flatbuffers",
     version = "25.12.19",
-    compatibility_level = 1,
     repo_name = "com_github_google_flatbuffers",
 )
 
 bazel_dep(
     name = "aspect_bazel_lib",
-    version = "2.14.0",
+    version = "2.22.5",
 )
 bazel_dep(
     name = "aspect_rules_esbuild",
-    version = "0.21.0",
+    version = "0.27.0",
 )
 bazel_dep(
-    name = "aspect_rules_js",
-    version = "2.3.8",
+  name = "aspect_rules_js",
+  version = "3.4.0",
 )
 bazel_dep(
-    name = "aspect_rules_ts",
-    version = "3.6.0",
+  name = "aspect_rules_ts",
+  version = "3.10.0"
 )
 bazel_dep(
     name = "grpc",
@@ -28,34 +27,33 @@ bazel_dep(
 )
 bazel_dep(
     name = "platforms",
-    version = "0.0.11",
+    version = "1.1.0",
 )
 bazel_dep(
     name = "rules_cc",
-    version = "0.1.1",
+    version = "0.2.22",
 )
 bazel_dep(
     name = "rules_go",
-    version = "0.50.1",
+    version = "0.63.0",
     repo_name = "io_bazel_rules_go",
 )
 bazel_dep(
     name = "rules_nodejs",
-    version = "6.3.3",
+    version = "6.7.5",
 )
 bazel_dep(
     name = "rules_shell",
-    version = "0.3.0",
+    version = "0.6.1",
 )
 bazel_dep(
     name = "rules_swift",
     version = "3.1.2",
-    max_compatibility_level = 3,
     repo_name = "build_bazel_rules_swift",
 )
 bazel_dep(
     name = "bazel_skylib",
-    version = "1.7.1",
+    version = "1.8.2",
 )
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
