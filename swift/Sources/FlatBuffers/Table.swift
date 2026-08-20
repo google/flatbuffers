@@ -55,8 +55,10 @@ public struct Table {
       < bb
       .read(def: VOffset.self, position: Int(vtable))
       ? Int32(
+        // Read the slot as unsigned VOffset to match TableVerifier.dereference;
+        // a signed re-read diverges for slots >= 0x8000.
         bb.read(
-          def: Int16.self,
+          def: VOffset.self,
           position: Int(vtable &+ Int32(o)))) : 0
   }
 
@@ -201,8 +203,9 @@ public struct Table {
     let vTable = Int32(fbb.capacity) &- o
     return vTable
       &+ Int32(
+        // Read the slot as unsigned VOffset to match TableVerifier.dereference.
         fbb.read(
-          def: Int16.self,
+          def: VOffset.self,
           position: Int(
             vTable &+ vOffset
               &- fbb.read(
@@ -283,8 +286,9 @@ public struct Table {
     let vTable = Int32(fbb.capacity) &- o
     return vTable
       &+ Int32(
+        // Read the slot as unsigned VOffset to match TableVerifier.dereference.
         fbb.read(
-          def: Int16.self,
+          def: VOffset.self,
           position: Int(
             vTable &+ vOffset
               &- fbb.read(
