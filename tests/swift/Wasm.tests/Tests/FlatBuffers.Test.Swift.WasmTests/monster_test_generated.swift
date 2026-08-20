@@ -882,7 +882,7 @@ public struct MyGame_Example_Stat: FlatBufferVerifiableTable, FlatbuffersVectorI
   }
   public static func sortVectorOfStat(offsets:[Offset], _ fbb: inout FlatBufferBuilder) -> Offset {
     var off = offsets
-    off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 8, fbb: &fbb), Table.offset(Int32($0.o), vOffset: 8, fbb: &fbb), fbb: &fbb) < 0 } 
+    off.sort { fbb.read(def: UInt16.self, position: Int(Table.offset(Int32($0.o), vOffset: 8, fbb: &fbb))) < fbb.read(def: UInt16.self, position: Int(Table.offset(Int32($1.o), vOffset: 8, fbb: &fbb))) } 
     return fbb.createVector(ofOffsets: off)
   }
   fileprivate static func lookupByKey(vector: Int32, key: UInt16, fbb: ByteBuffer) -> MyGame_Example_Stat? {
@@ -891,7 +891,15 @@ public struct MyGame_Example_Stat: FlatBufferVerifiableTable, FlatbuffersVectorI
     while span != 0 {
       var middle = span / 2
       let tableOffset = Table.indirect(vector + 4 * (start + middle), fbb)
-      let comp = fbb.read(def: UInt16.self, position: Int(Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 8, fbb: fbb)))
+      let comp: Int32
+      let value = fbb.read(def: UInt16.self, position: Int(Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 8, fbb: fbb)))
+      if value > key {
+        comp = 1
+      } else if value < key {
+        comp = -1
+      } else {
+        comp = 0
+      }
       if comp > 0 {
         span = middle
       } else if comp < 0 {
@@ -1006,7 +1014,7 @@ public struct MyGame_Example_Referrable: FlatBufferVerifiableTable, FlatbuffersV
   }
   public static func sortVectorOfReferrable(offsets:[Offset], _ fbb: inout FlatBufferBuilder) -> Offset {
     var off = offsets
-    off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: 4, fbb: &fbb), Table.offset(Int32($0.o), vOffset: 4, fbb: &fbb), fbb: &fbb) < 0 } 
+    off.sort { fbb.read(def: UInt64.self, position: Int(Table.offset(Int32($0.o), vOffset: 4, fbb: &fbb))) < fbb.read(def: UInt64.self, position: Int(Table.offset(Int32($1.o), vOffset: 4, fbb: &fbb))) } 
     return fbb.createVector(ofOffsets: off)
   }
   fileprivate static func lookupByKey(vector: Int32, key: UInt64, fbb: ByteBuffer) -> MyGame_Example_Referrable? {
@@ -1015,7 +1023,15 @@ public struct MyGame_Example_Referrable: FlatBufferVerifiableTable, FlatbuffersV
     while span != 0 {
       var middle = span / 2
       let tableOffset = Table.indirect(vector + 4 * (start + middle), fbb)
-      let comp = fbb.read(def: UInt64.self, position: Int(Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 4, fbb: fbb)))
+      let comp: Int32
+      let value = fbb.read(def: UInt64.self, position: Int(Table.offset(Int32(fbb.capacity) - tableOffset, vOffset: 4, fbb: fbb)))
+      if value > key {
+        comp = 1
+      } else if value < key {
+        comp = -1
+      } else {
+        comp = 0
+      }
       if comp > 0 {
         span = middle
       } else if comp < 0 {
