@@ -707,6 +707,17 @@ class DecoderTest(unittest.TestCase):
 
     self.assertEqual(root.AsInt, len(vector))
 
+  def test_typed_vectors_as_float(self):
+    for builder_method, vector in (
+        ('TypedVectorFromElements', [1, 2, 3]),
+        ('FixedTypedVectorFromElements', [1, 2]),
+    ):
+      with self.subTest(builder_method=builder_method):
+        fbb = flexbuffers.Builder()
+        getattr(fbb, builder_method)(vector)
+        root = flexbuffers.GetRoot(fbb.Finish())
+        self.assertEqual(root.AsFloat, float(len(vector)))
+
   def test_fixed_typed_vector_float(self):
     for type_, vector in (
         (Type.VECTOR_FLOAT2, [-75.0, 34.89]),
