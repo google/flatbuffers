@@ -25,9 +25,6 @@ option(FLATBUFFERS_BUILD_FLATHASH "Enable the build of flathash" OFF)
 option(FLATBUFFERS_BUILD_BENCHMARKS "Enable the build of flatbenchmark."
        OFF)
 option(FLATBUFFERS_BUILD_GRPCTEST "Enable the build of grpctest" OFF)
-option(FLATBUFFERS_BUILD_SHAREDLIB
-       "Enable the build of the flatbuffers shared library"
-       OFF)
 option(FLATBUFFERS_LIBCXX_WITH_CLANG "Force libc++ when using Clang" ON)
 # NOTE: Sanitizer check only works on Linux & OSX (gcc & llvm).
 option(FLATBUFFERS_CODE_SANITIZE
@@ -437,8 +434,37 @@ else()
   endif()
 endif()
 
+# Deprecated: FLATBUFFERS_BUILD_SHAREDLIB
+
+if(DEFINED FLATBUFFERS_BUILD_SHAREDLIB)
+  message(DEPRECATION
+    "FLATBUFFERS_BUILD_SHAREDLIB is deprecated and will be removed in a "
+    "future release. flatbuffers::flatbuffers is now the only library "
+    "target; its type follows BUILD_SHARED_LIBS (or FlatBuffers_SHARED_LIBS) "
+    "instead of a separately-typed flatbuffers::flatbuffers_shared target. "
+    "Use -DBUILD_SHARED_LIBS=ON in place of -DFLATBUFFERS_BUILD_SHAREDLIB=ON.")
+  if(FLATBUFFERS_BUILD_SHAREDLIB)
+    set(BUILD_SHARED_LIBS ON)
+    if(NOT FLATBUFFERS_BUILD_FLATLIB)
+      message(DEPRECATION
+        "FLATBUFFERS_BUILD_SHAREDLIB=ON with FLATBUFFERS_BUILD_FLATLIB=OFF "
+        "used to build only the shared library, under its own name. That "
+        "library is now built through FLATBUFFERS_BUILD_FLATLIB itself (as "
+        "shared, per BUILD_SHARED_LIBS above), so FLATBUFFERS_BUILD_FLATLIB "
+        "is being forced back ON to preserve the resulting library.")
+      set(FLATBUFFERS_BUILD_FLATLIB ON)
+    endif()
+  endif()
+endif()
+
+# Honor FlatBuffers_SHARED_LIBS to match the install interface
+if(DEFINED FlatBuffers_SHARED_LIBS)
+  set(BUILD_SHARED_LIBS "${FlatBuffers_SHARED_LIBS}")
+endif()
+
 if(FLATBUFFERS_BUILD_FLATLIB)
-  add_library(flatbuffers STATIC ${FlatBuffers_Library_SRCS})
+  add_library(flatbuffers ${FlatBuffers_Library_SRCS})
+  add_library(flatbuffers::flatbuffers ALIAS flatbuffers)
 
   # Attach header directory for when build via add_subdirectory().
   target_include_directories(flatbuffers
@@ -449,6 +475,21 @@ if(FLATBUFFERS_BUILD_FLATLIB)
 
   if(FLATBUFFERS_ENABLE_PCH)
     add_pch_to_target(flatbuffers include/flatbuffers/pch/pch.h)
+  endif()
+
+  # FlatBuffers use calendar-based versioning and do not provide any ABI
+  # stability guarantees. Therefore, always use the full version as SOVERSION
+  # in order to avoid breaking reverse dependencies on upgrades. These
+  # properties are no-ops when flatbuffers is built STATIC.
+  set_target_properties(flatbuffers PROPERTIES
+                        SOVERSION "${PROJECT_VERSION}"
+                        VERSION "${PROJECT_VERSION}")
+
+  get_target_property(FlatBuffers_Library_TYPE flatbuffers TYPE)
+  if(FlatBuffers_Library_TYPE STREQUAL "SHARED_LIBRARY")
+    # Legacy target name, to be removed eventually.
+    add_library(flatbuffers_shared ALIAS flatbuffers)
+    add_library(flatbuffers::flatbuffers_shared ALIAS flatbuffers)
   endif()
 endif()
 
@@ -482,23 +523,7 @@ if(FLATBUFFERS_BUILD_FLATHASH)
   target_link_libraries(flathash PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
 endif()
 
-if(FLATBUFFERS_BUILD_SHAREDLIB)
-  add_library(flatbuffers_shared SHARED ${FlatBuffers_Library_SRCS})
-  target_link_libraries(flatbuffers_shared PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-  # FlatBuffers use calendar-based versioning and do not provide any ABI
-  # stability guarantees. Therefore, always use the full version as SOVERSION
-  # in order to avoid breaking reverse dependencies on upgrades.
-  set(FlatBuffers_Library_SONAME_FULL "${PROJECT_VERSION}")
-  set_target_properties(flatbuffers_shared PROPERTIES
-                        OUTPUT_NAME flatbuffers
-                        SOVERSION "${FlatBuffers_Library_SONAME_FULL}"
-                        VERSION "${FlatBuffers_Library_SONAME_FULL}")
-  if(FLATBUFFERS_ENABLE_PCH)
-    add_pch_to_target(flatbuffers_shared include/flatbuffers/pch/pch.h)
-  endif()
-endif()
-
-function(compile_schema SRC_FBS OPT SUFFIX OUT_GEN_FILE) 
+function(compile_schema SRC_FBS OPT SUFFIX OUT_GEN_FILE)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "${SUFFIX}.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
@@ -643,11 +668,23 @@ if(FLATBUFFERS_INSTALL)
     install(
       TARGETS flatbuffers EXPORT FlatBuffersTargets
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
+    # flatbuffers::flatbuffers is exported under a type-specific file name
+    # so that a packager who wants to offer both flavors can run two separate
+    # configure/build/install passes into the same prefix. The CMake package
+    # picks between them at find_package() time.
+    if(FlatBuffers_Library_TYPE STREQUAL "SHARED_LIBRARY")
+      set(FlatBuffers_Targets_FILE "FlatBuffersSharedTargets.cmake")
+    else()
+      set(FlatBuffers_Targets_FILE "FlatBuffersStaticTargets.cmake")
+    endif()
+
     install(EXPORT FlatBuffersTargets
-      FILE FlatBuffersTargets.cmake
+      FILE "${FlatBuffers_Targets_FILE}"
       NAMESPACE flatbuffers::
       DESTINATION ${FB_CMAKE_DIR}
     )
@@ -667,24 +704,7 @@ if(FLATBUFFERS_INSTALL)
     )
   endif()
 
-  if(FLATBUFFERS_BUILD_SHAREDLIB)
-    install(
-      TARGETS flatbuffers_shared EXPORT FlatBuffersSharedTargets
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
-
-    install(
-      EXPORT FlatBuffersSharedTargets
-      FILE FlatBuffersSharedTargets.cmake
-      NAMESPACE flatbuffers::
-      DESTINATION ${FB_CMAKE_DIR}
-    )
-  endif()
-
-  if(FLATBUFFERS_BUILD_SHAREDLIB OR FLATBUFFERS_BUILD_FLATLIB)
+  if(FLATBUFFERS_BUILD_FLATLIB)
       configure_file(CMake/flatbuffers.pc.in flatbuffers.pc @ONLY)
       install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/flatbuffers.pc"

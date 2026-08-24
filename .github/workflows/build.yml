@@ -435,6 +435,15 @@ jobs:
       # gradlew
       run: gradle jvmMainClasses jvmTest jsTest jsBrowserTest
 
+  build-cmake-package:
+    name: Test CMake package (static/shared)
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - name: test
+      working-directory: tests
+      run: bash CMakePackageTest.sh
+
   build-rust-linux:
     name: Build Rust Linux
     runs-on: ubuntu-24.04
