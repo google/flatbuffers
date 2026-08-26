@@ -957,8 +957,9 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         const CodeGenerator::Status status = code_generator->GenerateMakeRule(
             *parser, options.output_path, filename, make_rule);
         if (status == CodeGenerator::Status::OK && !make_rule.empty()) {
-          printf("%s\n",
-                 flatbuffers::WordWrap(make_rule, 80, " ", " \\").c_str());
+          // Emit the rule as a single line. Depfiles are line-oriented and
+          // word-wrapping would split escaped filenames.
+          printf("%s\n", make_rule.c_str());
         } else {
           Error("Cannot generate make rule for " +
                 code_generator->LanguageName());
