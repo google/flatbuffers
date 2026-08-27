@@ -546,9 +546,21 @@ class ResizeContext {
         auto offset = table->GetOptionalFieldOffset(fielddef.offset());
         if (!offset) continue;
         // Ignore structs.
+        //
+        // fielddef.type()->index() names an entry in schema_.objects(),
+        // which -- exactly as in CopyTable above -- is not guaranteed to be
+        // in range for a schema paired with data via Resize()/SetString()/
+        // ResizeAnyVector() rather than freshly verified together. An
+        // out-of-range index reaches Vector::Get(), whose only bounds check
+        // is an assert compiled out in release (NDEBUG) builds. The
+        // existing subobjectdef-is-null handling below (recursion is
+        // already skipped when it's null) means resolving it safely here is
+        // sufficient; nothing downstream needs to change.
+        auto obj_index = fielddef.type()->index();
         auto subobjectdef =
-            base_type == reflection::Obj
-                ? schema_.objects()->Get(fielddef.type()->index())
+            (base_type == reflection::Obj && obj_index >= 0 &&
+             static_cast<uoffset_t>(obj_index) < schema_.objects()->size())
+                ? schema_.objects()->Get(static_cast<uoffset_t>(obj_index))
                 : nullptr;
         if (subobjectdef && subobjectdef->is_struct()) continue;
         // Get this fields' offset, and read it if safe.
@@ -569,9 +581,14 @@ class ResizeContext {
             if (elem_type != reflection::Obj && elem_type != reflection::String)
               break;
             auto vec = reinterpret_cast<Vector<uoffset_t>*>(ref);
+            // See the comment on the Obj case above: same out-of-range
+            // index risk, same already-null-safe downstream handling.
+            auto elem_index = fielddef.type()->index();
             auto elemobjectdef =
-                elem_type == reflection::Obj
-                    ? schema_.objects()->Get(fielddef.type()->index())
+                (elem_type == reflection::Obj && elem_index >= 0 &&
+                 static_cast<uoffset_t>(elem_index) < schema_.objects()->size())
+                    ? schema_.objects()->Get(
+                          static_cast<uoffset_t>(elem_index))
                     : nullptr;
             if (elemobjectdef && elemobjectdef->is_struct()) break;
             for (uoffset_t i = 0; i < vec->size(); i++) {
@@ -698,7 +715,24 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         break;
       }
       case reflection::Obj: {
-        auto& subobjectdef = *schema.objects()->Get(fielddef.type()->index());
+        // fielddef.type()->index() names an entry in schema.objects(), but a
+        // schema is not guaranteed to have been verified against the data
+        // it's paired with here (CopyTable's own contract does not require
+        // it, and even a caller that did verify may have done so against a
+        // different, benign schema than the one passed here). An
+        // out-of-range index reaches Vector::Get(), whose only bounds check
+        // is an assert compiled out in release (NDEBUG) builds -- confirmed
+        // via a real ASan SEGV reading past schema.objects() with an empty
+        // objects vector and index()=999999. Skip the field, matching how
+        // this same loop already tolerates a field that is not present at
+        // all, rather than dereference an out-of-range entry.
+        auto obj_index = fielddef.type()->index();
+        if (obj_index < 0 ||
+            static_cast<uoffset_t>(obj_index) >= schema.objects()->size()) {
+          break;
+        }
+        auto& subobjectdef =
+            *schema.objects()->Get(static_cast<uoffset_t>(obj_index));
         if (!subobjectdef.is_struct()) {
           offset = CopyTable(fbb, schema, subobjectdef,
                              *GetFieldT(table, fielddef), use_string_pooling)
@@ -717,9 +751,21 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         auto vec =
             table.GetPointer<const Vector<Offset<Table>>*>(fielddef.offset());
         auto element_base_type = fielddef.type()->element();
+        // See the comment on the Obj case above: the same out-of-range
+        // Type.index() risk applies to a vector's element type. Skip the
+        // whole field rather than resolve a bogus elemobjectdef that every
+        // branch below would then need to separately guard.
+        if (element_base_type == reflection::Obj) {
+          auto elem_index = fielddef.type()->index();
+          if (elem_index < 0 ||
+              static_cast<uoffset_t>(elem_index) >= schema.objects()->size()) {
+            break;
+          }
+        }
         auto elemobjectdef =
             element_base_type == reflection::Obj
-                ? schema.objects()->Get(fielddef.type()->index())
+                ? schema.objects()->Get(
+                      static_cast<uoffset_t>(fielddef.type()->index()))
                 : nullptr;
         switch (element_base_type) {
           case reflection::String: {
@@ -775,7 +821,22 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
     auto base_type = fielddef.type()->base_type();
     switch (base_type) {
       case reflection::Obj: {
-        auto& subobjectdef = *schema.objects()->Get(fielddef.type()->index());
+        // Mirrors the bounds check in the collection loop above: this must
+        // make the identical accept/reject decision for the identical
+        // field, since an accepted field there pushed exactly one entry
+        // onto offsets that this loop's fallthrough path below expects to
+        // consume in lockstep via offset_idx. `continue` (not `break`) is
+        // required here specifically: `break` would fall through to that
+        // same offsets[offset_idx++] consumption below with nothing having
+        // been pushed for this field, desynchronizing every field
+        // processed after it.
+        auto obj_index = fielddef.type()->index();
+        if (obj_index < 0 ||
+            static_cast<uoffset_t>(obj_index) >= schema.objects()->size()) {
+          continue;
+        }
+        auto& subobjectdef =
+            *schema.objects()->Get(static_cast<uoffset_t>(obj_index));
         if (subobjectdef.is_struct()) {
           CopyInline(fbb, fielddef, table, subobjectdef.minalign(),
                      subobjectdef.bytesize());
@@ -822,3 +883,4 @@ bool VerifySizePrefixed(const reflection::Schema& schema,
 }
 
 }  // namespace flatbuffers
+

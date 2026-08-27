@@ -464,6 +464,169 @@ void ReflectionInvalidObjectIndexTest() {
   TEST_EQ(result, false);
 }
 
+// Regression test for a heap out-of-bounds read in CopyTable, sharing the
+// same root cause as ReflectionInvalidObjectIndexTest above: a malicious/
+// corrupt reflection::Schema can encode a Type.index() that does not
+// correspond to any entry in Schema.objects(). CopyTable's contract does
+// not require the schema to have been verified against the data it's
+// paired with here (and even a caller that did verify may have done so
+// against a different, benign schema than the one passed to CopyTable), so
+// this is independently reachable from the already-known Verify() gap.
+// Confirmed via a real ASan SEGV (heap-buffer-overflow read) before the
+// fix, at the schema.objects()->Get(fielddef.type()->index()) call in the
+// Obj case of CopyTable's first field loop.
+void CopyTableInvalidObjectIndexTest() {
+  // Same malicious-schema shape as ReflectionInvalidObjectIndexTest: one
+  // Object ("Root") with one Field ("f") of base_type Obj whose
+  // type.index() is out of range, while `objects` itself is empty.
+  flatbuffers::FlatBufferBuilder schema_fbb;
+
+  auto type_off = reflection::CreateType(
+      schema_fbb, reflection::Obj, reflection::None, /*index=*/999999);
+  auto fname_off = schema_fbb.CreateString("f");
+  auto field_off =
+      reflection::CreateField(schema_fbb, fname_off, type_off,
+                              /*id=*/0, /*offset=*/4);
+
+  std::vector<flatbuffers::Offset<reflection::Field>> fields_vec{field_off};
+  auto oname_off = schema_fbb.CreateString("Root");
+  auto fields_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Field>(&fields_vec);
+  auto root_obj_off = reflection::CreateObject(
+      schema_fbb, oname_off, fields_off, /*is_struct=*/false);
+
+  std::vector<flatbuffers::Offset<reflection::Object>> objects_vec;
+  auto objects_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Object>(
+          &objects_vec);
+  std::vector<flatbuffers::Offset<reflection::Enum>> enums_vec;
+  auto enums_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Enum>(&enums_vec);
+
+  auto schema_off = reflection::CreateSchema(
+      schema_fbb, objects_off, enums_off, /*file_ident=*/0, /*file_ext=*/0,
+      root_obj_off);
+  schema_fbb.Finish(schema_off, reflection::SchemaIdentifier());
+
+  const reflection::Schema* schema = flatbuffers::GetRoot<reflection::Schema>(
+      schema_fbb.GetBufferPointer());
+  TEST_EQ(schema->objects()->size(), 0u);
+  const reflection::Object* root = schema->root_table();
+
+  // A minimal, well-formed data buffer matching the schema: a table with
+  // one field at vtable slot 4 pointing at a valid (empty) child table.
+  flatbuffers::FlatBufferBuilder data_fbb;
+  auto child_start = data_fbb.StartTable();
+  flatbuffers::Offset<flatbuffers::Table> child_off(
+      data_fbb.EndTable(child_start));
+  auto root_start = data_fbb.StartTable();
+  data_fbb.AddOffset(4, child_off);
+  auto root_end = data_fbb.EndTable(root_start);
+  data_fbb.Finish(flatbuffers::Offset<flatbuffers::Table>(root_end));
+
+  const flatbuffers::Table* table = flatbuffers::GetRoot<flatbuffers::Table>(
+      data_fbb.GetBufferPointer());
+
+  // Before the fix, this reads out of bounds (confirmed via a real ASan
+  // SEGV in a release/NDEBUG build). After the fix, the malformed field is
+  // skipped and CopyTable returns a valid (if incomplete) table rather
+  // than crashing.
+  flatbuffers::FlatBufferBuilder out_fbb;
+  auto result =
+      flatbuffers::CopyTable(out_fbb, *schema, *root, *table, false);
+  TEST_EQ(result.o != 0, true);
+}
+
+// Regression test for a heap out-of-bounds read in
+// ResizeContext::ResizeTable, reachable via the public SetString/
+// ResizeAnyVector mutation API. Same root cause as
+// CopyTableInvalidObjectIndexTest above, in a different function:
+// ResizeTable walks the ENTIRE object graph from the root table (not just
+// the field being resized) to adjust offsets for the insertion point, and
+// reached the same unchecked schema.objects()->Get(fielddef.type()->
+// index()) pattern while doing so. Confirmed via a real ASan SEGV inside
+// ResizeContext::ResizeTable before the fix.
+void ResizeTableInvalidObjectIndexTest() {
+  // Malicious schema with TWO fields: "f" (Obj, out-of-range index, to be
+  // reached by the field walk) and "s" (String, to actually trigger a
+  // resize via SetString).
+  flatbuffers::FlatBufferBuilder schema_fbb;
+
+  auto obj_type_off = reflection::CreateType(
+      schema_fbb, reflection::Obj, reflection::None, /*index=*/999999);
+  auto fname_off = schema_fbb.CreateString("f");
+  auto field_f_off = reflection::CreateField(schema_fbb, fname_off,
+                                             obj_type_off,
+                                             /*id=*/0, /*offset=*/4);
+
+  auto str_type_off =
+      reflection::CreateType(schema_fbb, reflection::String);
+  auto sname_off = schema_fbb.CreateString("s");
+  auto field_s_off = reflection::CreateField(schema_fbb, sname_off,
+                                             str_type_off,
+                                             /*id=*/1, /*offset=*/6);
+
+  std::vector<flatbuffers::Offset<reflection::Field>> fields_vec{field_f_off,
+                                                                  field_s_off};
+  auto oname_off = schema_fbb.CreateString("Root");
+  auto fields_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Field>(&fields_vec);
+  auto root_obj_off = reflection::CreateObject(
+      schema_fbb, oname_off, fields_off, /*is_struct=*/false);
+
+  std::vector<flatbuffers::Offset<reflection::Object>> objects_vec;
+  auto objects_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Object>(
+          &objects_vec);
+  std::vector<flatbuffers::Offset<reflection::Enum>> enums_vec;
+  auto enums_off =
+      schema_fbb.CreateVectorOfSortedTables<reflection::Enum>(&enums_vec);
+
+  auto schema_off = reflection::CreateSchema(
+      schema_fbb, objects_off, enums_off, /*file_ident=*/0, /*file_ext=*/0,
+      root_obj_off);
+  schema_fbb.Finish(schema_off, reflection::SchemaIdentifier());
+
+  const reflection::Schema* schema = flatbuffers::GetRoot<reflection::Schema>(
+      schema_fbb.GetBufferPointer());
+  TEST_EQ(schema->objects()->size(), 0u);
+  const reflection::Object* root = schema->root_table();
+
+  // Data buffer: root table with field "f" (offset 4) pointing at a valid
+  // (empty) child table, and field "s" (offset 6) holding a short string.
+  flatbuffers::FlatBufferBuilder data_fbb;
+  auto child_start = data_fbb.StartTable();
+  auto child_off = data_fbb.EndTable(child_start);
+  auto str_off = data_fbb.CreateString("hi");
+  auto root_start = data_fbb.StartTable();
+  data_fbb.AddOffset(4, flatbuffers::Offset<void>(child_off));
+  data_fbb.AddOffset(6, flatbuffers::Offset<void>(str_off.o));
+  auto root_end = data_fbb.EndTable(root_start);
+  data_fbb.Finish(flatbuffers::Offset<flatbuffers::Table>(root_end));
+
+  std::vector<uint8_t> flatbuf(
+      data_fbb.GetBufferPointer(),
+      data_fbb.GetBufferPointer() + data_fbb.GetSize());
+
+  const flatbuffers::Table* table =
+      flatbuffers::GetRoot<flatbuffers::Table>(flatbuf.data());
+  const flatbuffers::String* str_in_buf =
+      table->GetPointer<const flatbuffers::String*>(6);
+
+  // Before the fix, SetString's resize walk over the whole object graph
+  // reaches the malicious "f" field and reads out of bounds (confirmed via
+  // a real ASan SEGV in ResizeContext::ResizeTable). After the fix, the
+  // malformed field is skipped during the walk and the string is resized
+  // normally.
+  flatbuffers::SetString(*schema, "a longer replacement string", str_in_buf,
+                         &flatbuf, root);
+
+  const flatbuffers::Table* table_after =
+      flatbuffers::GetRoot<flatbuffers::Table>(flatbuf.data());
+  auto str_after = table_after->GetPointer<const flatbuffers::String*>(6);
+  TEST_EQ_STR(str_after->c_str(), "a longer replacement string");
+}
+
 void MiniReflectFixedLengthArrayTest() {
   // VS10 does not support typed enums, exclude from tests
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -490,3 +653,4 @@ void MiniReflectFixedLengthArrayTest() {
 
 }  // namespace tests
 }  // namespace flatbuffers
+
