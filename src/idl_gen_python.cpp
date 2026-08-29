@@ -379,7 +379,7 @@ class PythonStubGenerator {
     stub << "  def _UnPack(self, " << namer_.Variable(*struct_def) << ": "
          << import.name << ") -> None: ...\n";
 
-    stub << "  def Pack(self, builder: flatbuffers.Builder) -> None: ...\n";
+    stub << "  def Pack(self, builder: flatbuffers.Builder) -> int: ...\n";
 
     if (parser_.opts.gen_compare) {
       stub << "  def __eq__(self, other: " << name + ") -> bool: ...\n";
