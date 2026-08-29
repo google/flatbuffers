@@ -2229,6 +2229,25 @@ class PythonGenerator : public BaseGenerator {
             ".decode('utf-8')";
   }
 
+  void GenUnPackForStringVector(const StructDef& struct_def,
+                                const FieldDef& field,
+                                std::string* code_ptr) const {
+    auto& code = *code_ptr;
+    const auto field_field = namer_.Field(field);
+    const auto field_method = namer_.Method(field);
+    const auto struct_var = namer_.Variable(struct_def);
+
+    code += GenIndents(2) + "if not " + struct_var + "." + field_method +
+            "IsNone():";
+    code += GenIndents(3) + "self." + field_field + " = []";
+    code += GenIndents(3) + "for i in range(" + struct_var + "." + field_method +
+            "Length()):";
+    code += GenIndents(4) + "item = " + struct_var + "." + field_method + "(i)";
+    code += GenIndents(4) + "if item is not None:";
+    code += GenIndents(5) + "item = item.decode('utf-8')";
+    code += GenIndents(4) + "self." + field_field + ".append(item)";
+  }
+
   void GenUnPackForScalar(const StructDef& struct_def, const FieldDef& field,
                           std::string* code_ptr) const {
     auto& code = *code_ptr;
@@ -2265,6 +2284,9 @@ class PythonGenerator : public BaseGenerator {
           auto vectortype = field.value.type.VectorType();
           if (vectortype.base_type == BASE_TYPE_STRUCT) {
             GenUnPackForStructVector(struct_def, field, &code);
+          } else if (vectortype.base_type == BASE_TYPE_STRING &&
+                     parser_.opts.python_decode_obj_api_strings) {
+            GenUnPackForStringVector(struct_def, field, &code);
           } else {
             GenUnPackForScalarVector(struct_def, field, &code);
           }
