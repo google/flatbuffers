@@ -6,19 +6,19 @@ module(
 
 bazel_dep(
     name = "aspect_bazel_lib",
-    version = "2.22.5",
+    version = "2.20.0",
 )
 bazel_dep(
     name = "aspect_rules_esbuild",
-    version = "0.27.0",
+    version = "0.23.0",
 )
 bazel_dep(
-  name = "aspect_rules_js",
-  version = "3.4.0",
+    name = "aspect_rules_js",
+    version = "2.3.8",
 )
 bazel_dep(
-  name = "aspect_rules_ts",
-  version = "3.10.0"
+    name = "aspect_rules_ts",
+    version = "3.6.0",
 )
 bazel_dep(
     name = "grpc",
@@ -31,11 +31,11 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_cc",
-    version = "0.2.22",
+    version = "0.2.17",
 )
 bazel_dep(
     name = "rules_go",
-    version = "0.63.0",
+    version = "0.60.0",
     repo_name = "io_bazel_rules_go",
 )
 bazel_dep(
