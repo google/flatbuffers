@@ -27,7 +27,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "platforms",
-    version = "1.1.0",
+    version = "1.0.0",
 )
 bazel_dep(
     name = "rules_cc",
@@ -40,7 +40,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_nodejs",
-    version = "6.7.5",
+    version = "6.3.3",
 )
 bazel_dep(
     name = "rules_shell",
