@@ -4421,6 +4421,18 @@ bool Definition::DeserializeAttributes(
 /* DESERIALIZATION                                                      */
 /************************************************************************/
 bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
+  // The identifier reads below (SchemaBufferHasIdentifier /
+  // BufferHasIdentifier) are pure pointer arithmetic plus a fixed 4-byte
+  // strncmp (see flatbuffers/buffer.h) and are not length-aware.  Refuse
+  // buffers that cannot possibly contain the identifier before any of those
+  // reads: the longest form (size-prefixed) needs 2*sizeof(uoffset_t) for the
+  // prefix plus kFileIdentifierLength for the identifier.  This is also the
+  // minimum a valid FlatBuffer root table can occupy, so rejecting shorter
+  // inputs is always correct.  (Without this check a short attacker-supplied
+  // buffer makes strncmp read past the end of the heap allocation.)
+  if (size < FLATBUFFERS_MIN_BUFFER_SIZE) {
+    return false;
+  }
   flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(buf), size);
   bool size_prefixed = false;
   if (!reflection::SchemaBufferHasIdentifier(buf)) {
