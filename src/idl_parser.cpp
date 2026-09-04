@@ -4380,6 +4380,27 @@ Offset<reflection::Type> Type::Serialize(FlatBufferBuilder* builder) const {
 
 bool Type::Deserialize(const Parser& parser, const reflection::Type* type) {
   if (type == nullptr) return true;
+  // Validate the wire base_type/element values against the internal BaseType
+  // set BEFORE the unchecked static_cast below.  The wire field is a signed
+  // byte (reflection::BaseType is stored as int8_t) whose values 0..18 map
+  // onto the internal enum; anything else (e.g. reflection::MaxBaseType == 19,
+  // or any negative value) has no case in SizeOf()/TypeName()/StringOf() and
+  // would reach their FLATBUFFERS_ASSERT(0) default in debug builds and
+  // produce wrong size metadata in release builds.
+  const auto wire_base = static_cast<int>(type->base_type());
+  const auto wire_element = static_cast<int>(type->element());
+  // Largest value in the internal enum (idl.h BaseType); the wire enum's
+  // MaxBaseType (19) is not a representable internal type.
+  constexpr int kMaxInternalBaseType =
+      static_cast<int>(reflection::Vector64);
+  if (wire_base < static_cast<int>(reflection::None) ||
+      wire_base > kMaxInternalBaseType) {
+    return false;
+  }
+  if (wire_element < static_cast<int>(reflection::None) ||
+      wire_element > kMaxInternalBaseType) {
+    return false;
+  }
   base_type = static_cast<BaseType>(type->base_type());
   element = static_cast<BaseType>(type->element());
   fixed_length = type->fixed_length();

@@ -102,11 +102,50 @@ void SymbolTableOwnershipTest() {
   TEST_EQ(p2.Deserialize(bytes.data(), bytes.size()), false);
 }
 
+void OutOfRangeBaseTypeTest() {
+  TEST_OUTPUT_LINE("OutOfRangeBaseTypeTest");
+  // Build a schema with a table field whose Type we can rewrite, then patch
+  // its base_type to an out-of-range value (reflection::MaxBaseType == 19,
+  // which has no case in the internal BaseType set).  Type::Deserialize must
+  // reject it (previously the unchecked static_cast let the value through to
+  // SizeOf()'s FLATBUFFERS_ASSERT(0) default in debug builds, or wrong size
+  // metadata in release builds).
+  Parser parser;
+  std::vector<uint8_t> bytes;
+  const char* field_schema =
+      "namespace P;"
+      "table Inner { }"
+      "table Outer { i: Inner; }"
+      "root_type Outer;";
+  TEST_EQ(BuildSchemaBytes(field_schema, &parser, &bytes), true);
+
+  const reflection::Schema* schema = reflection::GetSchema(bytes.data());
+  auto outer = schema->objects()->LookupByKey("P.Outer");
+  TEST_NOTNULL(outer);
+  const reflection::Field* f = outer->fields()->Get(0);
+  TEST_EQ_STR(f->name()->c_str(), "i");
+  const reflection::Type* t = f->type();
+  TEST_EQ(static_cast<int>(t->base_type()), static_cast<int>(reflection::Obj));
+
+  // Patch base_type (vtable slot VT_BASE_TYPE == 4) to MaxBaseType (19).
+  const auto* tbl = reinterpret_cast<const Table*>(t);
+  auto voff = tbl->GetOptionalFieldOffset(4 /* VT_BASE_TYPE */);
+  TEST_ASSERT(voff != 0);
+  uint8_t* loc = const_cast<uint8_t*>(
+      reinterpret_cast<const uint8_t*>(t) + voff);
+  *loc = static_cast<uint8_t>(reflection::MaxBaseType);
+
+  // Deserialize must reject the out-of-range base_type.
+  Parser p3;
+  TEST_EQ(p3.Deserialize(bytes.data(), bytes.size()), false);
+}
+
 }  // namespace
 
 void ReflectionEntrySecurityTest() {
   EntryLengthValidationTest();
   SymbolTableOwnershipTest();
+  OutOfRangeBaseTypeTest();
   TEST_OUTPUT_LINE("ReflectionEntrySecurityTest: PASSED");
 }
 
