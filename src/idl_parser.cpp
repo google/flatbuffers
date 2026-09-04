@@ -4467,11 +4467,15 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
     struct_def->fixed = it->is_struct();
     struct_def->minalign = it->minalign();
     if (structs_.Add(it->name()->str(), struct_def)) {
+      // Add() appended struct_def to structs_.vec before reporting the
+      // duplicate; drop it so ~SymbolTable does not free it a second time.
+      structs_.vec.pop_back();
       delete struct_def;
       return false;
     }
     auto type = new Type(BASE_TYPE_STRUCT, struct_def, nullptr);
     if (types_.Add(it->name()->str(), type)) {
+      types_.vec.pop_back();
       delete type;
       return false;
     }
@@ -4479,11 +4483,14 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
   for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
     auto enum_def = new EnumDef();
     if (enums_.Add(it->name()->str(), enum_def)) {
+      // Add() appended enum_def to enums_.vec before reporting the duplicate.
+      enums_.vec.pop_back();
       delete enum_def;
       return false;
     }
     auto type = new Type(BASE_TYPE_UNION, nullptr, enum_def);
     if (types_.Add(it->name()->str(), type)) {
+      types_.vec.pop_back();
       delete type;
       return false;
     }
@@ -4520,8 +4527,15 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
       auto service_def = new ServiceDef();
       service_def->defined_namespace =
           GetNamespace(qualified_name, namespaces_, namespaces_index);
-      if (!service_def->Deserialize(*this, *it) ||
-          services_.Add(qualified_name, service_def)) {
+      if (!service_def->Deserialize(*this, *it)) {
+        // Never registered with services_.Add; delete is safe as-is.
+        delete service_def;
+        return false;
+      }
+      if (services_.Add(qualified_name, service_def)) {
+        // Add() appended service_def to services_.vec before reporting the
+        // duplicate; drop it so ~SymbolTable does not free it a second time.
+        services_.vec.pop_back();
         delete service_def;
         return false;
       }
