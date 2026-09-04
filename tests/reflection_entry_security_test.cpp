@@ -1,7 +1,7 @@
 // Parser::Deserialize and reflection verification input-contract security
 // regression tests.
 //
-// Covers four hardening fixes (this file grows one test per fix commit):
+// Covers four hardening fixes:
 //   1. Length validation before identifier reads in
 //      Parser::Deserialize(const uint8_t*, size_t) (fixes an out-of-bounds
 //      strncmp on buffers shorter than the identifier).
@@ -140,12 +140,53 @@ void OutOfRangeBaseTypeTest() {
   TEST_EQ(p3.Deserialize(bytes.data(), bytes.size()), false);
 }
 
+void NoneFieldVerifyTest() {
+  TEST_OUTPUT_LINE("NoneFieldVerifyTest");
+  // Build a schema for T { a: int } and patch the field's base_type to None
+  // (0).  reflection::Verify must treat the None-typed field as a
+  // verification failure and return false (previously it hit
+  // FLATBUFFERS_ASSERT(false) in VerifyObject).
+  Parser parser;
+  std::vector<uint8_t> bytes;
+  const char* schema_txt =
+      "namespace P;"
+      "table T { a: int; }"
+      "root_type T;";
+  TEST_EQ(BuildSchemaBytes(schema_txt, &parser, &bytes), true);
+
+  const reflection::Schema* schema = reflection::GetSchema(bytes.data());
+  auto t_obj = schema->objects()->LookupByKey("P.T");
+  TEST_NOTNULL(t_obj);
+  const reflection::Field* f = t_obj->fields()->Get(0);
+  const reflection::Type* ft = f->type();
+  const auto* tbl = reinterpret_cast<const Table*>(ft);
+  auto voff = tbl->GetOptionalFieldOffset(4 /* VT_BASE_TYPE */);
+  TEST_ASSERT(voff != 0);
+  uint8_t* loc = const_cast<uint8_t*>(
+      reinterpret_cast<const uint8_t*>(ft) + voff);
+  *loc = 0;  // reflection::None
+
+  // A legal data buffer for T{ a = 1 }.
+  FlatBufferBuilder fbb(1024);
+  uoffset_t s = fbb.StartTable();
+  fbb.AddElement<int32_t>(4, 1, 0);
+  auto t = fbb.EndTable(s);
+  fbb.Finish(Offset<Table>(t));
+
+  schema = reflection::GetSchema(bytes.data());
+  t_obj = schema->objects()->LookupByKey("P.T");
+  TEST_EQ(flatbuffers::Verify(*schema, *t_obj, fbb.GetBufferPointer(),
+                              fbb.GetSize()),
+          false);
+}
+
 }  // namespace
 
 void ReflectionEntrySecurityTest() {
   EntryLengthValidationTest();
   SymbolTableOwnershipTest();
   OutOfRangeBaseTypeTest();
+  NoneFieldVerifyTest();
   TEST_OUTPUT_LINE("ReflectionEntrySecurityTest: PASSED");
 }
 

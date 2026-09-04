@@ -183,8 +183,11 @@ static bool VerifyObject(flatbuffers::Verifier& v,
     auto field_def = obj.fields()->Get(i);
     switch (field_def->type()->base_type()) {
       case reflection::None:
-        FLATBUFFERS_ASSERT(false);
-        break;
+        // A field whose type is `None` is not representable in a valid schema;
+        // treat it as a verification failure rather than asserting (debug) or
+        // silently skipping it (release).  A crafted schema+data pair can carry
+        // such a field through VerifySchemaBuffer, which only checks structure.
+        return false;
       case reflection::UType:
         if (!table->VerifyField<uint8_t>(v, field_def->offset(),
                                          sizeof(uint8_t)))
