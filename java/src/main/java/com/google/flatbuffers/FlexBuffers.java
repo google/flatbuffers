@@ -20,6 +20,7 @@ import static com.google.flatbuffers.FlexBuffers.Unsigned.byteToUnsignedInt;
 import static com.google.flatbuffers.FlexBuffers.Unsigned.intToUnsignedLong;
 import static com.google.flatbuffers.FlexBuffers.Unsigned.shortToUnsignedInt;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /// @file
@@ -796,8 +797,8 @@ public class FlexBuffers {
      */
     public ByteBuffer data() {
       ByteBuffer dup = ByteBuffer.wrap(bb.data());
-      dup.position(end);
-      dup.limit(end + size());
+      ((Buffer) dup).position(end);
+      ((Buffer) dup).limit(end + size());
       return dup.asReadOnlyBuffer().slice();
     }
 
