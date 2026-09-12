@@ -770,12 +770,20 @@ class SwiftGenerator : public BaseGenerator {
     }
   }
 
+  void GenIsPresent(const FieldDef& field) {
+    code_.SetValue("OFFSET", namer_.Constant(field.name));
+    code_ += "{{ACCESS_TYPE}} var " + namer_.Variable(field) +
+             "IsPresent: Bool { return "
+             "{{ACCESS}}.offset({{TABLEOFFSET}}.{{OFFSET}}.v) != 0 }";
+  }
+
   void GenTableReader(const StructDef& struct_def) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       const auto& field = **it;
       if (field.deprecated) continue;
       GenTableReaderFields(field);
+      GenIsPresent(field);
     }
   }
 
