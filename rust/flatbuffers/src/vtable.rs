@@ -110,6 +110,9 @@ pub fn field_offset_to_field_index(field_o: VOffsetT) -> VOffsetT {
 impl<'a> Follow<'a> for VTable<'a> {
     type Inner = VTable<'a>;
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        VTable::init(buf, loc)
+        // SAFETY:
+        // A valid vtable at `loc` is exactly what the caller guarantees, which is
+        // the contract of `VTable::init`.
+        unsafe { VTable::init(buf, loc) }
     }
 }

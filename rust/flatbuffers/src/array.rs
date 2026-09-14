@@ -89,14 +89,23 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
     type Inner = Array<'a, T, N>;
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Array::new(&buf[loc..loc + N * size_of::<T>()])
+        // SAFETY:
+        // The slice passed below is exactly `N * size_of::<T>()` bytes long,
+        // which is the length `Array::new` asserts, and the caller guarantees
+        // those bytes are a contiguous array of `T`.
+        unsafe { Array::new(&buf[loc..loc + N * size_of::<T>()]) }
     }
 }
 
 /// Place an array of EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
+///
 /// # Safety
-/// Caller must ensure `s.len() >= size_of::<[T; N]>()`
+///
+/// Caller must ensure `buf.len() >= loc + size_of::<[T::Scalar; N]>()`.
+///
+/// Note that the write starts at `loc`, so a bound that ignores `loc` is not
+/// sufficient to keep the write in bounds.
 pub unsafe fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     buf: &mut [u8],
     loc: usize,
@@ -105,12 +114,23 @@ pub unsafe fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     let mut buf_ptr = buf[loc..].as_mut_ptr();
     for item in src.iter() {
         let item_le = item.to_little_endian();
-        core::ptr::copy_nonoverlapping(
-            &item_le as *const T::Scalar as *const u8,
-            buf_ptr,
-            size_of::<T::Scalar>(),
-        );
-        buf_ptr = buf_ptr.add(size_of::<T::Scalar>());
+        // SAFETY:
+        // The caller guarantees `buf.len() >= loc + size_of::<[T::Scalar; N]>()`,
+        // so the `N` writes of `size_of::<T::Scalar>()` bytes each, starting at
+        // `loc`, all land inside `buf`. `item_le` is a distinct local, so the
+        // regions cannot overlap. `[u8]` has alignment 1, so the value is copied
+        // bytewise rather than written through a `*mut T::Scalar`.
+        //
+        // The final `add` produces a one-past-the-end pointer, which is a valid
+        // pointer to form (it is only dereferenced on earlier iterations).
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                &item_le as *const T::Scalar as *const u8,
+                buf_ptr,
+                size_of::<T::Scalar>(),
+            );
+            buf_ptr = buf_ptr.add(size_of::<T::Scalar>());
+        }
     }
 }
 

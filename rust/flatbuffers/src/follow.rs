@@ -51,13 +51,19 @@ impl<'a, T: Follow<'a> + 'a> FollowStart<T> {
     /// `buf[loc..]` must contain a valid value of `T`
     #[inline]
     pub unsafe fn self_follow(&'a self, buf: &'a [u8], loc: usize) -> T::Inner {
-        T::follow(buf, loc)
+        // SAFETY:
+        // Forwarded unchanged to `T::follow`, whose safety contract is identical
+        // to this function's and is guaranteed by the caller.
+        unsafe { T::follow(buf, loc) }
     }
 }
 impl<'a, T: Follow<'a>> Follow<'a> for FollowStart<T> {
     type Inner = T::Inner;
     #[inline]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        T::follow(buf, loc)
+        // SAFETY:
+        // `FollowStart<T>` is a marker with no representation of its own; a valid
+        // `T` at `loc` is exactly what the caller guarantees.
+        unsafe { T::follow(buf, loc) }
     }
 }

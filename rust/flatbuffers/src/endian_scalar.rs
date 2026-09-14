@@ -135,7 +135,7 @@ impl EndianScalar for f64 {
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() >= size_of::<T>()`
+/// Caller must ensure `s.len() >= size_of::<T::Scalar>()`
 #[inline]
 pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let size = size_of::<T::Scalar>();
@@ -147,38 +147,62 @@ pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     );
 
     let x_le = x.to_little_endian();
-    core::ptr::copy_nonoverlapping(
-        &x_le as *const T::Scalar as *const u8,
-        s.as_mut_ptr() as *mut u8,
-        size,
-    );
+    // SAFETY:
+    // The caller guarantees `s` is at least `size` bytes long, so writing `size`
+    // bytes into it is in bounds. `x_le` is a distinct local, so the source and
+    // destination regions cannot overlap. `[u8]` has alignment 1, so the value is
+    // copied bytewise rather than written through a `*mut T::Scalar`, which would
+    // additionally require `s` to satisfy `T::Scalar`'s alignment.
+    unsafe {
+        core::ptr::copy_nonoverlapping(
+            &x_le as *const T::Scalar as *const u8,
+            s.as_mut_ptr() as *mut u8,
+            size,
+        );
+    }
 }
 
 /// Read an EndianScalar from the provided byte slice at the specified location.
 /// Performs endian conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() >= loc + size_of::<T>()`.
+/// Caller must ensure `s.len() >= loc + size_of::<T::Scalar>()`.
 #[inline]
 pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
-    read_scalar(&s[loc..])
+    // SAFETY:
+    // Slicing `s` at `loc` panics unless `loc <= s.len()`, and the caller
+    // guarantees `s.len() >= loc + size_of::<T::Scalar>()`, so the remaining
+    // slice is at least `size_of::<T::Scalar>()` bytes long as `read_scalar`
+    // requires.
+    unsafe { read_scalar(&s[loc..]) }
 }
 
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`.
+/// Caller must ensure `s.len() >= size_of::<T::Scalar>()`.
 #[inline]
 pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
     let size = size_of::<T::Scalar>();
     debug_assert!(
         s.len() >= size,
-        "insufficient capacity for emplace_scalar, needed {} got {}",
+        "insufficient capacity for read_scalar, needed {} got {}",
         size,
         s.len()
     );
 
     let mut mem = core::mem::MaybeUninit::<T::Scalar>::uninit();
-    // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size);
-    T::from_little_endian(mem.assume_init())
+    // SAFETY:
+    // The caller guarantees `s` is at least `size` bytes long, so reading `size`
+    // bytes from it is in bounds. `mem` is a distinct local allocation of exactly
+    // `size_of::<T::Scalar>() == size` bytes, so the regions cannot overlap and
+    // the write is in bounds. Since `[u8]` has alignment 1, the bytes are copied
+    // into `mem` rather than read through a `*const T::Scalar`, which would
+    // additionally require `s` to satisfy `T::Scalar`'s alignment.
+    // `T::Scalar: TriviallyTransmutable`, so every bit pattern of `size` bytes is
+    // a valid value and `assume_init` is sound.
+    let v = unsafe {
+        core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size);
+        mem.assume_init()
+    };
+    T::from_little_endian(v)
 }

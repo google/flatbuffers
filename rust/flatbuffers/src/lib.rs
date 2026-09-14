@@ -28,6 +28,7 @@
 //! At this time, to generate Rust code, you will need the latest `master` version of `flatc`, available from here: <https://github.com/google/flatbuffers>
 //! (On OSX, you can install FlatBuffers from `HEAD` with the Homebrew package manager.)
 
+#![deny(unsafe_op_in_unsafe_fn)]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(all(nightly, not(feature = "std")), feature(error_in_core))]
 #![cfg_attr(nightly, feature(trusted_len))]
