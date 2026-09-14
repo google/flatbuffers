@@ -3601,6 +3601,7 @@ bool Parser::Parse(const char* source, const char** include_paths,
 bool Parser::ParseJson(const char* json, const char* json_filename) {
   const auto initial_depth = parse_depth_counter_;
   (void)initial_depth;
+  field_stack_.clear();
   builder_.Clear();
   const auto done =
       !StartParseFile(json, json_filename).Check() && !DoParseJson().Check();

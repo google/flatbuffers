@@ -1257,6 +1257,8 @@ class Parser : public ParserState {
   std::string file_being_parsed_;
 
  private:
+  friend struct ParserTestAccess;
+
   const char* source_;
 
   std::vector<std::pair<Value, FieldDef*>> field_stack_;
