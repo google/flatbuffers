@@ -51,7 +51,9 @@ extension Enum where Self: Verifiable {
     at position: Int,
     of type: T.Type) throws where T: Verifiable
   {
-    try verifier.inBuffer(position: position, of: type.self)
+    // Enum values are serialized as their declared scalar raw type. Swift may
+    // store a no-payload enum in fewer bytes than that raw type.
+    try verifier.inBuffer(position: position, of: Self.T.self)
   }
 
 }
