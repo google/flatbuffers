@@ -1,0 +1,9 @@
+// Test for the python object API decoding of vectors of strings
+// when --python-decode-obj-api-strings is used (issue #9059).
+
+table StringVecTable {
+  names: [string];
+  single: string;
+}
+
+root_type StringVecTable;
