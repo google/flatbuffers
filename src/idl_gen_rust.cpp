@@ -2063,6 +2063,22 @@ class RustGenerator : public BaseGenerator {
       if (GetFullType(field.value.type) != ftUnionValue) {
         // All types besides unions.
         code_.SetValue("TY", FollowType(field.value.type, "'_"));
+        // A field with the `nested_flatbuffer` attribute is a [ubyte] vector
+        // whose contents are themselves a flatbuffer. The generated
+        // `..._nested_flatbuffer()` accessor follows those bytes without any
+        // further bounds checking, so the bytes have to be verified as a buffer
+        // and not merely as a vector. This mirrors VerifyNestedFlatBuffer in
+        // the C++ generator.
+        //
+        // The root type is resolved by the parser, which errors out if it was
+        // never defined, so there is no lookup here that could fail and quietly
+        // leave the field verified as a plain vector.
+        if (field.nested_flatbuffer) {
+          code_.SetValue("TY",
+                         "::flatbuffers::ForwardsUOffset<"
+                         "::flatbuffers::NestedFlatBuffer<" +
+                             WrapInNameSpace(*field.nested_flatbuffer) + ">>");
+        }
         code_ +=
             "        .visit_field::<{{TY}}>(\"{{FIELD}}\", "
             "Self::{{OFFSET_NAME}}, {{IS_REQ}})?";
