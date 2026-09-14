@@ -281,6 +281,47 @@ void ParseCorruptedProto(const std::string& proto_path) {
   }
 }
 
+void proto_test_root_type(const std::string& proto_path,
+                          const std::string& proto_file) {
+  flatbuffers::IDLOptions opts;
+  opts.include_dependence_headers = false;
+  opts.proto_mode = true;
+  opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
+
+  const char* include_directories[] = {proto_path.c_str(), nullptr};
+
+  // 1. Without root type set: generated schema does not contain root_type.
+  {
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
+
+    std::unique_ptr<CodeGenerator> fbs_generator = NewFBSCodeGenerator(true);
+    std::string fbs;
+    TEST_EQ(fbs_generator->GenerateCodeString(parser, "test", fbs),
+            CodeGenerator::Status::OK);
+    TEST_EQ(fbs.find("root_type"), std::string::npos);
+  }
+
+  // 2. With root type set: generated schema contains root_type.
+  {
+    flatbuffers::Parser parser(opts);
+    TEST_EQ(parser.Parse(proto_file.c_str(), include_directories), true);
+    TEST_EQ(parser.SetRootType("ProtoMessage"), true);
+
+    std::unique_ptr<CodeGenerator> fbs_generator = NewFBSCodeGenerator(true);
+    std::string fbs;
+    TEST_EQ(fbs_generator->GenerateCodeString(parser, "test", fbs),
+            CodeGenerator::Status::OK);
+    TEST_NOTNULL(strstr(fbs.c_str(), "root_type proto.test.ProtoMessage;\n"));
+
+    // Ensure generated file is parsable and root_type is preserved.
+    flatbuffers::Parser parser2;
+    TEST_EQ(parser2.Parse(fbs.c_str(), nullptr), true);
+    TEST_NOTNULL(parser2.root_struct_def_);
+    TEST_EQ_STR(parser2.root_struct_def_->name.c_str(), "ProtoMessage");
+  }
+}
+
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest(const std::string& tests_data_path) {
   auto proto_path = tests_data_path + "prototest/";
@@ -307,6 +348,7 @@ void ParseProtoTest(const std::string& tests_data_path) {
   proto_test_union_suffix_id(proto_path, proto_file);
   proto_test_include_id(proto_path, proto_file, import_proto_file);
   proto_test_include_union_id(proto_path, proto_file, import_proto_file);
+  proto_test_root_type(proto_path, proto_file);
 
   ParseCorruptedProto(proto_path);
 }

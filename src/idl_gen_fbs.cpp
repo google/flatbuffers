@@ -404,6 +404,18 @@ static std::string GenerateFBS(const Parser& parser,
     }
     schema += "}\n\n";
   }
+
+  if (parser.root_struct_def_) {
+    if (last_namespace == parser.root_struct_def_->defined_namespace) {
+      schema += "root_type " + parser.root_struct_def_->name + ";\n\n";
+    } else {
+      schema += "root_type " +
+                parser.root_struct_def_->defined_namespace->GetFullyQualifiedName(
+                    parser.root_struct_def_->name) +
+                ";\n\n";
+    }
+  }
+
   return schema;
 }
 

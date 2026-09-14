@@ -80,3 +80,16 @@ class SchemaTests:
       pass
     
     flatc(["-c", "circular_table.fbs"])
+
+  def RootTypeFromProto(self):
+    flatc([
+        "--proto",
+        "--root-type",
+        "ProtoMessage",
+        "-o",
+        ".tmp",
+        str(Path(root_path, "tests/prototest/test.proto")),
+    ])
+    assert_file_exists("test.fbs", Path(script_path, ".tmp"))
+    content = get_file_contents("test.fbs", Path(script_path, ".tmp"))
+    assert "root_type proto.test.ProtoMessage;" in content

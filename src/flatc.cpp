@@ -930,6 +930,12 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
       if (parser->HasCircularStructDependency()) {
         Error("schema has circular struct dependencies: " + filename, false);
       }
+      if (!opts.root_type.empty()) {
+        if (!parser->SetRootType(opts.root_type.c_str()))
+          Error("unknown root type: " + opts.root_type);
+        else if (parser->root_struct_def_->fixed)
+          Error("root type must be a table");
+      }
       if (options.schema_binary || opts.binary_schema_gen_embed) {
         parser->Serialize();
       }
@@ -1003,13 +1009,6 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
                 code_generator->LanguageName());
         }
       }
-    }
-
-    if (!opts.root_type.empty()) {
-      if (!parser->SetRootType(opts.root_type.c_str()))
-        Error("unknown root type: " + opts.root_type);
-      else if (parser->root_struct_def_->fixed)
-        Error("root type must be a table");
     }
 
     // We do not want to generate code for the definitions in this file
