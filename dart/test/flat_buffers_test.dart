@@ -10,6 +10,7 @@ import './bool_structs_generated.dart' as example4;
 import './monster_test_my_game.example2_generated.dart' as example2;
 import './monster_test_my_game.example_generated.dart' as example;
 import 'enums_generated.dart' as example3;
+import 'union_vector_generated.dart' as example5;
 
 main() {
   defineReflectiveSuite(() {
@@ -18,6 +19,7 @@ main() {
     defineReflectiveTests(CheckOtherLangaugesData);
     defineReflectiveTests(GeneratorTest);
     defineReflectiveTests(ListOfEnumsTest);
+    defineReflectiveTests(UnionVectorTest);
   });
 }
 
@@ -931,6 +933,81 @@ class ObjectAPITest {
     fbb.finish(object3.pack(fbb));
     final object3Read = example.TypeAliases(fbb.buffer).unpack();
     expect(object3.toString(), object3Read.toString());
+  }
+}
+
+@reflectiveTest
+class UnionVectorTest {
+  void test_unionVector() {
+    final movie = example5.MovieT(
+      mainCharacterType: example5.CharacterTypeId.Rapunzel,
+      mainCharacter: example5.RapunzelT(hairLength: 42),
+      charactersType: [
+        example5.CharacterTypeId.MuLan,
+        example5.CharacterTypeId.Rapunzel,
+        example5.CharacterTypeId.Belle,
+        example5.CharacterTypeId.BookFan,
+        example5.CharacterTypeId.Other,
+        example5.CharacterTypeId.Unused,
+      ],
+      characters: [
+        example5.AttackerT(swordAttackDamage: 10),
+        example5.RapunzelT(hairLength: 203),
+        example5.BookReaderT(booksRead: 21),
+        example5.BookReaderT(booksRead: 500),
+        "Hello",
+        "World",
+      ],
+    );
+
+    final fbb = Builder();
+    fbb.finish(movie.pack(fbb));
+
+    final movie2 = example5.Movie(fbb.buffer);
+    expect(
+      movie2.toString().replaceAllMapped(
+          RegExp('([a-zA-Z0-9]+){'), (match) => match.group(1)! + 'T{'),
+      movie.toString(),
+    );
+
+    final movie3 = movie2.unpack();
+    expect(movie3.toString(), movie.toString());
+
+    final movie4 = example5.MovieT(
+      mainCharacter: "String",
+      mainCharacterType: example5.CharacterTypeId.Other,
+    );
+
+    fbb.reset();
+    fbb.finish(movie4.pack(fbb));
+
+    final movie5 = example5.Movie(fbb.buffer);
+    expect(
+      movie5.toString().replaceAllMapped(
+          RegExp('([a-zA-Z0-9]+){'), (match) => match.group(1)! + 'T{'),
+      movie4.toString(),
+    );
+
+    final movie6 = movie5.unpack();
+    expect(movie6.toString(), movie4.toString());
+
+    final movie7 = example5.MovieT(
+      mainCharacter: example5.AttackerT(swordAttackDamage: 43),
+      mainCharacterType: example5.CharacterTypeId.MuLan,
+    );
+
+    fbb.reset();
+    fbb.finish(movie7.pack(fbb));
+
+    final movie8 = example5.Movie(fbb.buffer);
+    expect(
+      movie8.toString().replaceAllMapped(
+          RegExp('([a-zA-Z0-9]+){'), (match) => match.group(1)! + 'T{'),
+      movie7.toString(),
+    );
+
+    final movie9 = movie8.unpack();
+    expect(movie9.toString(), movie7.toString());
   }
 }
 
