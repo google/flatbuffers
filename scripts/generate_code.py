@@ -229,6 +229,15 @@ flatc(
 )
 
 flatc(
+    DART_OPTS,
+    prefix="namespace_test",
+    schema=[
+        "namespace_test/namespace_test1.fbs",
+        "namespace_test/namespace_test2.fbs",
+    ],
+)
+
+flatc(
     [
         "--cpp",
         "--reflect-names",
