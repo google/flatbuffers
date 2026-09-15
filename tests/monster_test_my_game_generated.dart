@@ -48,6 +48,13 @@ class InParentNamespaceT implements fb.Packable {
   String toString() {
     return 'InParentNamespaceT{}';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is InParentNamespaceT;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
 }
 
 class _InParentNamespaceReader extends fb.TableReader<InParentNamespace> {
