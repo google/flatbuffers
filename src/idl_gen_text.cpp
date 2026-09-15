@@ -447,8 +447,18 @@ const char* GenTextFile(const Parser& parser, const std::string& path,
                : "SaveFile failed";
   }
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return nullptr;
+  // Verify the buffer before traversal to prevent out-of-bounds reads from
+  // corrupted offsets or vector lengths in untrusted binary FlatBuffers.
+  // Without this, GenText trusts serialized field offsets and vector lengths
+  // which can cause heap OOB reads or crashes (see issue #9051).
+  auto buf = parser.builder_.GetBufferPointer();
+  auto buf_size = parser.builder_.GetSize();
+  flatbuffers::Verifier verifier(buf, buf_size);
+  if (!verifier.VerifyBuffer<Table>(nullptr)) {
+    return "buffer verification failed: invalid or corrupted FlatBuffer";
+  }
   std::string text;
-  auto err = GenText(parser, parser.builder_.GetBufferPointer(), &text);
+  auto err = GenText(parser, buf, &text);
   if (err) return err;
   return parser.opts.file_saver->SaveFile(TextFileName(path, file_name).c_str(),
                                           text, false)
