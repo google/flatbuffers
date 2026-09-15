@@ -178,8 +178,16 @@ struct JsonPrinter {
     return PrintContainer<Container>(tag(), arr, size, type, indent, nullptr);
   }
 
+  struct DepthGuard {
+    int *depth_;
+    DepthGuard(int *depth) : depth_(depth) { --(*depth_); }
+    ~DepthGuard() { ++(*depth_); }
+  };
+
   const char* PrintOffset(const void* val, const Type& type, int indent,
                           const uint8_t* prev_val, soffset_t vector_index) {
+    if (depth_limit == 0) return "error: text generation depth limit exceeded";
+    DepthGuard depth_guard(&depth_limit);
     switch (type.base_type) {
       case BASE_TYPE_UNION: {
         // If this assert hits, you have an corrupt buffer, a union type field
@@ -314,6 +322,8 @@ struct JsonPrinter {
   // and bracketed by "{}"
   const char* GenStruct(const StructDef& struct_def, const Table* table,
                         int indent) {
+    if (depth_limit == 0) return "error: text generation depth limit exceeded";
+    DepthGuard depth_guard(&depth_limit);
     text += '{';
     int fieldout = 0;
     const uint8_t* prev_val = nullptr;
@@ -372,12 +382,13 @@ struct JsonPrinter {
   }
 
   JsonPrinter(const Parser& parser, std::string& dest)
-      : opts(parser.opts), text(dest) {
+      : opts(parser.opts), text(dest), depth_limit(FLATBUFFERS_MAX_PARSING_DEPTH) {
     text.reserve(1024);  // Reduce amount of inevitable reallocs.
   }
 
   const IDLOptions& opts;
   std::string& text;
+  int depth_limit;
 };
 
 static const char* GenerateTextImpl(const Parser& parser, const Table* table,
