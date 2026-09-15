@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class Referrable implements flatbuffers.IUnpackableObject<ReferrableT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
   this.bb_pos = i;
   this.bb = bb;
@@ -44,11 +44,11 @@ static getFullyQualifiedName(): "MyGame.Example.Referrable" {
   return 'MyGame.Example.Referrable';
 }
 
-static startReferrable(builder:flatbuffers.Builder) {
+static startReferrable(builder:flatbuffers.Builder):void {
   builder.startObject(1);
 }
 
-static addId(builder:flatbuffers.Builder, id:bigint) {
+static addId(builder:flatbuffers.Builder, id:bigint):void {
   builder.addFieldInt64(0, id, BigInt('0'));
 }
 

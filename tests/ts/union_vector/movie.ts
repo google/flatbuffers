@@ -12,7 +12,7 @@ import { Rapunzel, RapunzelT } from './rapunzel.js';
 
 export class Movie implements flatbuffers.IUnpackableObject<MovieT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
   this.bb_pos = i;
   this.bb = bb;
@@ -71,19 +71,19 @@ static getFullyQualifiedName(): "Movie" {
   return 'Movie';
 }
 
-static startMovie(builder:flatbuffers.Builder) {
+static startMovie(builder:flatbuffers.Builder):void {
   builder.startObject(4);
 }
 
-static addMainCharacterType(builder:flatbuffers.Builder, mainCharacterType:Character) {
+static addMainCharacterType(builder:flatbuffers.Builder, mainCharacterType:Character):void {
   builder.addFieldInt8(0, mainCharacterType, Character.NONE);
 }
 
-static addMainCharacter(builder:flatbuffers.Builder, mainCharacterOffset:flatbuffers.Offset) {
+static addMainCharacter(builder:flatbuffers.Builder, mainCharacterOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(1, mainCharacterOffset, 0);
 }
 
-static addCharactersType(builder:flatbuffers.Builder, charactersTypeOffset:flatbuffers.Offset) {
+static addCharactersType(builder:flatbuffers.Builder, charactersTypeOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(2, charactersTypeOffset, 0);
 }
 
@@ -95,11 +95,11 @@ static createCharactersTypeVector(builder:flatbuffers.Builder, data:Character[])
   return builder.endVector();
 }
 
-static startCharactersTypeVector(builder:flatbuffers.Builder, numElems:number) {
+static startCharactersTypeVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addCharacters(builder:flatbuffers.Builder, charactersOffset:flatbuffers.Offset) {
+static addCharacters(builder:flatbuffers.Builder, charactersOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(3, charactersOffset, 0);
 }
 
@@ -111,7 +111,7 @@ static createCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offs
   return builder.endVector();
 }
 
-static startCharactersVector(builder:flatbuffers.Builder, numElems:number) {
+static startCharactersVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 4);
 }
 
@@ -120,11 +120,11 @@ static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset):void {
   builder.finish(offset, 'MOVI');
 }
 
-static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset):void {
   builder.finish(offset, 'MOVI', true);
 }
 
