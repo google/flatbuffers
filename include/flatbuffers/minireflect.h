@@ -202,32 +202,52 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
           IterateObject(val, type_table, visitor);
           break;
         case ST_UNION: {
-          val += ReadScalar<uoffset_t>(val);
+          // A union value is only safe to resolve once its discriminator is
+          // known to refer to a concrete union member.  In particular, NONE
+          // entries and unknown/future union values must not be treated as
+          // tables/strings and must not index type_refs with a negative
+          // sequence_ref. Keep the original offset-slot pointer for Unknown()
+          // so visitor callbacks do not receive an already-resolved OOB
+          // pointer for unknown union types.
+          const uint8_t* union_offset = val;
           FLATBUFFERS_ASSERT(prev_val);
+          if (!prev_val) {
+            visitor->Unknown(union_offset);
+            break;
+          }
+
           auto union_type = *prev_val;  // Always a uint8_t.
           if (vector_index >= 0) {
             auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(prev_val);
             union_type = type_vec->Get(static_cast<uoffset_t>(vector_index));
           }
-          auto type_code_idx =
+          const auto type_code_idx =
               LookupEnum(union_type, type_table->values, type_table->num_elems);
-          if (type_code_idx >= 0 &&
-              type_code_idx < static_cast<int32_t>(type_table->num_elems)) {
-            auto type_code = type_table->type_codes[type_code_idx];
-            switch (type_code.base_type) {
-              case ET_SEQUENCE: {
-                auto ref = type_table->type_refs[type_code.sequence_ref]();
-                IterateObject(val, ref, visitor);
-                break;
-              }
-              case ET_STRING:
-                visitor->String(reinterpret_cast<const String*>(val));
-                break;
-              default:
-                visitor->Unknown(val);
+          if (type_code_idx < 0 ||
+              type_code_idx >= static_cast<int32_t>(type_table->num_elems)) {
+            visitor->Unknown(union_offset);
+            break;
+          }
+
+          const auto type_code = type_table->type_codes[type_code_idx];
+          if (type_code.base_type == ET_SEQUENCE &&
+              type_code.sequence_ref < 0) {
+            visitor->Unknown(union_offset);
+            break;
+          }
+
+          val = union_offset + ReadScalar<uoffset_t>(union_offset);
+          switch (type_code.base_type) {
+            case ET_SEQUENCE: {
+              auto ref = type_table->type_refs[type_code.sequence_ref]();
+              IterateObject(val, ref, visitor);
+              break;
             }
-          } else {
-            visitor->Unknown(val);
+            case ET_STRING:
+              visitor->String(reinterpret_cast<const String*>(val));
+              break;
+            default:
+              visitor->Unknown(val);
           }
           break;
         }
