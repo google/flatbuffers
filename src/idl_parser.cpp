@@ -4130,15 +4130,32 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
   name = parser.UnqualifiedName(object->name()->str());
   predecl = false;
   sortbysize = attributes.Lookup("original_order") == nullptr && !fixed;
-  const auto& of = *(object->fields());
-  auto indexes = std::vector<uoffset_t>(of.size());
-  for (uoffset_t i = 0; i < of.size(); i++) {
-  uint16_t field_id = of.Get(i)->id();
-  if (field_id >= of.size()) {
-    parser.error_ = "Field ID " + std::to_string(field_id) + 
-                    " exceeds field count " + std::to_string(of.size());
+  auto fields_ptr = object->fields();
+  if (!fields_ptr || fields_ptr->size() == 0) {
+    parser.error_ = "Object has no fields";
     return false;
   }
+  const auto& of = *fields_ptr;
+  const auto field_count = of.size();
+  auto indexes = std::vector<uoffset_t>(field_count);
+  std::vector<bool> id_used(field_count, false);
+  for (uoffset_t i = 0; i < field_count; i++) {
+  auto field_ptr = of.Get(i);
+  if (!field_ptr) {
+    parser.error_ = "Null field at index " + std::to_string(i);
+    return false;
+  }
+  uint16_t field_id = field_ptr->id();
+  if (field_id >= field_count) {
+    parser.error_ = "Field ID " + std::to_string(field_id) + 
+                    " exceeds field count " + std::to_string(field_count);
+    return false;
+  }
+  if (id_used[field_id]) {
+    parser.error_ = "Duplicate field ID " + std::to_string(field_id);
+    return false;
+  }
+  id_used[field_id] = true;
   indexes[field_id] = i;
 }
   size_t tmp_struct_size = 0;
@@ -4313,9 +4330,13 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder* builder,
 
 bool EnumDef::Deserialize(Parser& parser, const reflection::Enum* _enum) {
   name = parser.UnqualifiedName(_enum->name()->str());
-  for (uoffset_t i = 0; i < _enum->values()->size(); ++i) {
+  auto values_ptr = _enum->values();
+  if (!values_ptr) {
+    return false;
+  }
+  for (uoffset_t i = 0; i < values_ptr->size(); ++i) {
     auto val = new EnumVal();
-    if (!val->Deserialize(parser, _enum->values()->Get(i)) ||
+    if (!val->Deserialize(parser, values_ptr->Get(i)) ||
         vals.Add(val->name, val)) {
       delete val;
       return false;
@@ -4520,6 +4541,7 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
   if (schema->fbs_files())
     for (auto s = schema->fbs_files()->begin(); s != schema->fbs_files()->end();
          ++s) {
+      if (!s->included_filenames()) continue;
       for (auto f = s->included_filenames()->begin();
            f != s->included_filenames()->end(); ++f) {
         IncludedFile included_file;
