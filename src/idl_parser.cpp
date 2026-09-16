@@ -4380,6 +4380,27 @@ Offset<reflection::Type> Type::Serialize(FlatBufferBuilder* builder) const {
 
 bool Type::Deserialize(const Parser& parser, const reflection::Type* type) {
   if (type == nullptr) return true;
+  // Validate the wire base_type/element values against the internal BaseType
+  // set BEFORE the unchecked static_cast below.  The wire field is a signed
+  // byte (reflection::BaseType is stored as int8_t) whose values 0..18 map
+  // onto the internal enum; anything else (e.g. reflection::MaxBaseType == 19,
+  // or any negative value) has no case in SizeOf()/TypeName()/StringOf() and
+  // would reach their FLATBUFFERS_ASSERT(0) default in debug builds and
+  // produce wrong size metadata in release builds.
+  const auto wire_base = static_cast<int>(type->base_type());
+  const auto wire_element = static_cast<int>(type->element());
+  // Largest value in the internal enum (idl.h BaseType); the wire enum's
+  // MaxBaseType (19) is not a representable internal type.
+  constexpr int kMaxInternalBaseType =
+      static_cast<int>(reflection::Vector64);
+  if (wire_base < static_cast<int>(reflection::None) ||
+      wire_base > kMaxInternalBaseType) {
+    return false;
+  }
+  if (wire_element < static_cast<int>(reflection::None) ||
+      wire_element > kMaxInternalBaseType) {
+    return false;
+  }
   base_type = static_cast<BaseType>(type->base_type());
   element = static_cast<BaseType>(type->element());
   fixed_length = type->fixed_length();
@@ -4421,6 +4442,18 @@ bool Definition::DeserializeAttributes(
 /* DESERIALIZATION                                                      */
 /************************************************************************/
 bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
+  // The identifier reads below (SchemaBufferHasIdentifier /
+  // BufferHasIdentifier) are pure pointer arithmetic plus a fixed 4-byte
+  // strncmp (see flatbuffers/buffer.h) and are not length-aware.  Refuse
+  // buffers that cannot possibly contain the identifier before any of those
+  // reads: the longest form (size-prefixed) needs 2*sizeof(uoffset_t) for the
+  // prefix plus kFileIdentifierLength for the identifier.  This is also the
+  // minimum a valid FlatBuffer root table can occupy, so rejecting shorter
+  // inputs is always correct.  (Without this check a short attacker-supplied
+  // buffer makes strncmp read past the end of the heap allocation.)
+  if (size < FLATBUFFERS_MIN_BUFFER_SIZE) {
+    return false;
+  }
   flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(buf), size);
   bool size_prefixed = false;
   if (!reflection::SchemaBufferHasIdentifier(buf)) {
@@ -4455,11 +4488,15 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
     struct_def->fixed = it->is_struct();
     struct_def->minalign = it->minalign();
     if (structs_.Add(it->name()->str(), struct_def)) {
+      // Add() appended struct_def to structs_.vec before reporting the
+      // duplicate; drop it so ~SymbolTable does not free it a second time.
+      structs_.vec.pop_back();
       delete struct_def;
       return false;
     }
     auto type = new Type(BASE_TYPE_STRUCT, struct_def, nullptr);
     if (types_.Add(it->name()->str(), type)) {
+      types_.vec.pop_back();
       delete type;
       return false;
     }
@@ -4467,11 +4504,14 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
   for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
     auto enum_def = new EnumDef();
     if (enums_.Add(it->name()->str(), enum_def)) {
+      // Add() appended enum_def to enums_.vec before reporting the duplicate.
+      enums_.vec.pop_back();
       delete enum_def;
       return false;
     }
     auto type = new Type(BASE_TYPE_UNION, nullptr, enum_def);
     if (types_.Add(it->name()->str(), type)) {
+      types_.vec.pop_back();
       delete type;
       return false;
     }
@@ -4508,8 +4548,15 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
       auto service_def = new ServiceDef();
       service_def->defined_namespace =
           GetNamespace(qualified_name, namespaces_, namespaces_index);
-      if (!service_def->Deserialize(*this, *it) ||
-          services_.Add(qualified_name, service_def)) {
+      if (!service_def->Deserialize(*this, *it)) {
+        // Never registered with services_.Add; delete is safe as-is.
+        delete service_def;
+        return false;
+      }
+      if (services_.Add(qualified_name, service_def)) {
+        // Add() appended service_def to services_.vec before reporting the
+        // duplicate; drop it so ~SymbolTable does not free it a second time.
+        services_.vec.pop_back();
         delete service_def;
         return false;
       }
