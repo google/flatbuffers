@@ -350,83 +350,122 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC_LIKE)
-  target_compile_options(ProjectConfig
-    INTERFACE
-      /W4
-      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
-        /WX       # Treat all compiler warnings as errors
-      >
-      /wd4512   # C4512: assignment operator could not be generated
-      /wd4316   # C4316: object allocated on the heap may not be aligned
-      /wd4456   # C4456: hides previous local declaration
-      $<$<CXX_COMPILER_ID:Clang>:
-        /D_CRT_SECURE_NO_WARNINGS
-      >
+  set(interfaceCompileOptions
+    /W4
+    /wd4512   # C4512: assignment operator could not be generated
+    /wd4316   # C4316: object allocated on the heap may not be aligned
+    /wd4456   # C4456: hides previous local declaration
   )
-else()
+
+  if (FLATBUFFERS_STRICT_MODE)
+    list(APPEND interfaceCompileOptions
+      /WX  # Treat all compiler warnings as errors
+    )
+  endif()
+
+  if ("${CXX_COMPILER_ID}" STREQUAL "Clang")
+    list(APPEND interfaceCompileOptions
+      /D_CRT_SECURE_NO_WARNINGS
+    )
+  endif()
+
   target_compile_options(ProjectConfig
     INTERFACE
-      -Wall
-      $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
-        -Werror   # Treat all compiler warnings as errors
+      ${interfaceCompileOptions}
+  )
 
-        -fno-rtti # Disable runtime type information
+  unset(interfaceCompileOptions)
+else()
+  set(interfaceCompileOptions
+    -Wall
+    -pedantic
+    -Wextra
+    -Wno-unused-parameter
+    -Wold-style-cast
+    -fsigned-char
+    -Wnon-virtual-dtor
+  )
 
-        $<$<CXX_COMPILER_ID:GNU>:
-          # False positive string overflow
-          # https://github.com/google/flatbuffers/issues/7366
-          -Wno-error=stringop-overflow
-        >
-      >
-      -pedantic
-      -Wextra
-      -Wno-unused-parameter
-      -Wold-style-cast
-      -fsigned-char
-      -Wnon-virtual-dtor
-
-      # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
-      $<$<BOOL:${IS_CLANG}>:
-        -Wnewline-eof
-        -Wno-unknown-warning-option
-        -Wmissing-declarations
-        -Wzero-as-null-pointer-constant
-        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,3.8>:
-          -Wimplicit-fallthrough
-          -Wextra-semi
-          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
-            -Werror=unused-private-field
-          >
-        >
-      >
-
-      $<$<CXX_COMPILER_ID:GNU>:
-        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.4>:
-          -Wunused-result
-          -Wunused-parameter
-          -Werror=unused-parameter
-          -Wmissing-declarations
-        >
-        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,4.7>:
-          -Wzero-as-null-pointer-constant
-        >
-        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,7.0>:
-          -faligned-new
-          $<$<BOOL:${FLATBUFFERS_STRICT_MODE}>:
-            -Werror=implicit-fallthrough=2
-          >
-        >
-        $<$<VERSION_GREATER:$<CXX_COMPILER_VERSION>,8.0>:
-          -Wextra-semi
-        >
-      >
-
-      $<$<BOOL:${FLATBUFFERS_CODE_COVERAGE}>:
-        -g
-        -fprofile-arcs
-        -ftest-coverage
-      >
+  if (FLATBUFFERS_STRICT_MODE)
+    list(APPEND interfaceCompileOptions
+      -Werror   # Treat all compiler warnings as errors
+      -fno-rtti # Disable runtime type information
     )
+    if ("${CXX_COMPILER_ID}" STREQUAL "GNU")
+      list(APPEND interfaceCompileOptions
+        # False positive string overflow
+        # https://github.com/google/flatbuffers/issues/7366
+        -Wno-error=stringop-overflow
+      )
+    endif()
+  endif()
+
+  # This isn't working for some reason: $<$<CXX_COMPILER_ID:CLANG>:
+  if (IS_CLANG)
+    list(APPEND interfaceCompileOptions
+      -Wnewline-eof
+      -Wno-unknown-warning-option
+      -Wmissing-declarations
+      -Wzero-as-null-pointer-constant
+    )
+    if ("${CXX_COMPILER_VERSION}" VERSION_GREATER "3.8")
+      list(APPEND interfaceCompileOptions
+        -Wimplicit-fallthrough
+        -Wextra-semi
+      )
+      if (FLATBUFFERS_STRICT_MODE)
+        list(APPEND interfaceCompileOptions
+          -Werror=unused-private-field
+        )
+      endif()
+    endif()
+  endif()
+
+  if ("${CXX_COMPILER_ID}" STREQUAL "GNU")
+    if ("${CXX_COMPILER_VERSION}" VERSION_GREATER "4.4")
+      list(APPEND interfaceCompileOptions
+        -Wunused-result
+        -Wunused-parameter
+        -Werror=unused-parameter
+        -Wmissing-declarations
+      )
+    endif()
+    if ("${CXX_COMPILER_VERSION}" VERSION_GREATER "4.7")
+      list(APPEND interfaceCompileOptions
+        -Wzero-as-null-pointer-constant
+      )
+    endif()
+    if ("${CXX_COMPILER_VERSION}" VERSION_GREATER "7.0")
+      list(APPEND interfaceCompileOptions
+        -faligned-new
+      )
+      if (FLATBUFFERS_STRICT_MODE)
+        list(APPEND interfaceCompileOptions
+          -Werror=implicit-fallthrough=2
+        )
+      endif()
+    endif()
+    if ("${CXX_COMPILER_VERSION}" VERSION_GREATER "8.0")
+      list(APPEND interfaceCompileOptions
+        -Wextra-semi
+      )
+    endif()
+  endif()
+
+  if (FLATBUFFERS_CODE_COVERAGE)
+    list(APPEND interfaceCompileOptions
+      -g
+      -fprofile-arcs
+      -ftest-coverage
+    )
+  endif()
+
+  target_compile_options(ProjectConfig
+    INTERFACE
+      ${interfaceCompileOptions}
+  )
+
+  unset(interfaceCompileOptions)
 
   if(FLATBUFFERS_CODE_COVERAGE)
     target_link_options(ProjectConfig
@@ -461,9 +500,7 @@ if(FLATBUFFERS_BUILD_FLATC)
   target_link_libraries(flatc PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
   target_compile_options(flatc
     PRIVATE
-      $<$<AND:$<BOOL:${MSVC_LIKE}>,$<CONFIG:Release>>:
-        /MT
-      >
+      $<$<AND:$<BOOL:${MSVC_LIKE}>,$<CONFIG:Release>>:/MT>
   )
 
   if(FLATBUFFERS_CODE_SANITIZE AND NOT WIN32)
@@ -498,7 +535,7 @@ if(FLATBUFFERS_BUILD_SHAREDLIB)
   endif()
 endif()
 
-function(compile_schema SRC_FBS OPT SUFFIX OUT_GEN_FILE) 
+function(compile_schema SRC_FBS OPT SUFFIX OUT_GEN_FILE)
   get_filename_component(SRC_FBS_DIR ${SRC_FBS} PATH)
   string(REGEX REPLACE "\\.fbs$" "${SUFFIX}.h" GEN_HEADER ${SRC_FBS})
   add_custom_command(
@@ -532,14 +569,14 @@ endfunction()
 if(FLATBUFFERS_BUILD_TESTS)
   add_executable(flattests ${FlatBuffers_Tests_SRCS})
   target_link_libraries(flattests PRIVATE $<BUILD_INTERFACE:ProjectConfig>)
-  target_include_directories(flattests PUBLIC 
+  target_include_directories(flattests PUBLIC
     # Ideally everything is fully qualified from the root directories
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     # TODO(derekbailey): update includes to fully qualify src/ and tests/
-    src 
-    tests 
-    ${CMAKE_CURRENT_BINARY_DIR}/tests 
+    src
+    tests
+    ${CMAKE_CURRENT_BINARY_DIR}/tests
   )
 
   # Have tests load data from the source directory, not the build directory.
@@ -564,14 +601,14 @@ if(FLATBUFFERS_BUILD_TESTS)
   if(FLATBUFFERS_CODE_SANITIZE)
     add_fsanitize_to_target(flattests ${FLATBUFFERS_CODE_SANITIZE})
   endif()
-  
+
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/samples)
 
   add_executable(flatsamplebinary ${FlatBuffers_Sample_Binary_SRCS})
   add_executable(flatsampletext ${FlatBuffers_Sample_Text_SRCS})
   add_executable(flatsamplebfbs ${FlatBuffers_Sample_BFBS_SRCS})
 
-  # Add a library so there is a single target that the generated samples can 
+  # Add a library so there is a single target that the generated samples can
   # link too.
   if(MSVC OR ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.0")
     add_library(flatsample INTERFACE)
