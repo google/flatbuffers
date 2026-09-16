@@ -130,7 +130,8 @@ struct IndirectHelper<OffsetT<T>> {
   static return_type Read(const uint8_t* const p, const offset_type i) {
     // Offsets are relative to themselves, so first update the pointer to
     // point to the offset location.
-    const uint8_t* const offset_location = p + i * element_stride;
+    const uint8_t* const offset_location =
+        p + static_cast<uint64_t>(i) * element_stride;
 
     // Then read the scalar value of the offset (which may be 32 or 64-bits) and
     // then determine the relative location from the offset location.
@@ -140,7 +141,8 @@ struct IndirectHelper<OffsetT<T>> {
   static mutable_return_type Read(uint8_t* const p, const offset_type i) {
     // Offsets are relative to themselves, so first update the pointer to
     // point to the offset location.
-    uint8_t* const offset_location = p + i * element_stride;
+    uint8_t* const offset_location =
+        p + static_cast<uint64_t>(i) * element_stride;
 
     // Then read the scalar value of the offset (which may be 32 or 64-bits) and
     // then determine the relative location from the offset location.
