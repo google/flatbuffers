@@ -48,6 +48,52 @@ typedef std::set<ImportMapEntry> ImportMap;
 static const CommentConfig def_comment = {nullptr, "#", nullptr};
 static const std::string Indent = "    ";
 
+std::vector<std::string> SplitString(const std::string& input, char delim) {
+  std::vector<std::string> parts;
+  size_t start = 0;
+  while (start <= input.size()) {
+    size_t end = input.find(delim, start);
+    if (end == std::string::npos) end = input.size();
+    parts.emplace_back(input.substr(start, end - start));
+    start = end + 1;
+  }
+  return parts;
+}
+
+struct ModuleImport {
+  std::string statement;
+  std::string reference;
+};
+
+std::string MakeRelativeModulePath(const std::string& current_module,
+                                   const std::string& target_module) {
+  if (current_module.empty() || target_module.empty()) return target_module;
+  if (target_module[0] == '.') return target_module;
+
+  auto current_parts = SplitString(current_module, '.');
+  if (!current_parts.empty()) current_parts.pop_back();  // drop module name
+  const auto target_parts = SplitString(target_module, '.');
+
+  size_t common = 0;
+  while (common < current_parts.size() && common < target_parts.size() &&
+         current_parts[common] == target_parts[common]) {
+    ++common;
+  }
+
+  // Relative imports can only traverse within a common top-level package.
+  // Sibling top-level namespaces must remain absolute imports.
+  if (common == 0) return target_module;
+
+  const size_t up = current_parts.size() - common;
+  std::string relative;
+  relative.append(up + 1, '.');
+  for (size_t i = common; i < target_parts.size(); ++i) {
+    if (i > common) relative.push_back('.');
+    relative += target_parts[i];
+  }
+  return relative;
+}
+
 class PythonStubGenerator {
  public:
   PythonStubGenerator(const Parser& parser, const std::string& path,
@@ -65,10 +111,12 @@ class PythonStubGenerator {
       DeclareUOffset(stub, &imports);
       for (const EnumDef* def : parser_.enums_.vec) {
         if (def->generated) continue;
+        SetCurrentModule(ModuleForAbsolute(def));
         GenerateEnumStub(stub, def, &imports);
       }
       for (const StructDef* def : parser_.structs_.vec) {
         if (def->generated) continue;
+        SetCurrentModule(ModuleForAbsolute(def));
         GenerateStructStub(stub, def, &imports);
       }
 
@@ -87,6 +135,7 @@ class PythonStubGenerator {
       std::stringstream stub;
 
       DeclareUOffset(stub, &imports);
+      SetCurrentModule(ModuleForAbsolute(def));
       GenerateEnumStub(stub, def, &imports);
 
       std::string filename = namer_.Directories(*def->defined_namespace) +
@@ -101,6 +150,7 @@ class PythonStubGenerator {
       std::stringstream stub;
 
       DeclareUOffset(stub, &imports);
+      SetCurrentModule(ModuleForAbsolute(def));
       GenerateStructStub(stub, def, &imports);
 
       std::string filename = namer_.Directories(*def->defined_namespace) +
@@ -141,10 +191,24 @@ class PythonStubGenerator {
   }
 
   template <typename T>
-  std::string ModuleFor(const T* def) const {
+  std::string ModuleForAbsolute(const T* def) const {
     if (parser_.opts.one_file) return ModuleForFile(def->file);
     return namer_.NamespacedType(*def);
   }
+
+  std::string MaybeRelativeModule(const std::string& module) const {
+    if (!parser_.opts.python_relative_imports || parser_.opts.one_file) {
+      return module;
+    }
+    return MakeRelativeModulePath(current_module_, module);
+  }
+
+  template <typename T>
+  std::string ModuleFor(const T* def) const {
+    return MaybeRelativeModule(ModuleForAbsolute(def));
+  }
+
+  void SetCurrentModule(const std::string& module) { current_module_ = module; }
 
   const StructDef* GetNestedStruct(const FieldDef* field) const {
     const Value* nested = field->attributes.Lookup("nested_flatbuffer");
@@ -697,6 +761,7 @@ class PythonStubGenerator {
     }
   }
 
+  std::string current_module_;
   const Parser& parser_;
   const IdlNamer namer_;
   const Version version_;
@@ -1072,12 +1137,68 @@ class PythonGenerator : public BaseGenerator {
     return module;
   }
 
+  std::string MaybeRelativeModule(const std::string& module) const {
+    if (!parser_.opts.python_relative_imports || parser_.opts.one_file) {
+      return module;
+    }
+    return MakeRelativeModulePath(current_module_, module);
+  }
+
   // Generate the package reference when importing a struct or enum from its
   // module.
   std::string GenPackageReference(const Type& type) const {
-    if (type.struct_def) return ModuleFor(type.struct_def);
-    if (type.enum_def) return ModuleFor(type.enum_def);
+    if (type.struct_def) return MaybeRelativeModule(ModuleFor(type.struct_def));
+    if (type.enum_def) return MaybeRelativeModule(ModuleFor(type.enum_def));
     return "." + GenTypeGet(type);
+  }
+
+  void SetCurrentModule(const std::string& module) { current_module_ = module; }
+
+  std::string MakeRelativeModuleAlias(const std::string& module) const {
+    std::string alias = "_fb";
+    for (char ch : module) {
+      if (ch == '.') {
+        alias.push_back('_');
+      } else {
+        alias.push_back(ch);
+      }
+    }
+    return alias;
+  }
+
+  ModuleImport GenModuleImport(const std::string& module) const {
+    ModuleImport result;
+    if (module.empty() || module[0] != '.') {
+      result.statement = "import " + module;
+      result.reference = module;
+      return result;
+    }
+
+    const size_t first_non_dot = module.find_first_not_of('.');
+    if (first_non_dot == std::string::npos) {
+      result.statement = "import " + module;
+      result.reference = module;
+      return result;
+    }
+
+    const std::string remainder = module.substr(first_non_dot);
+    const size_t last_dot = remainder.rfind('.');
+    const std::string dots = module.substr(0, first_non_dot);
+
+    if (last_dot == std::string::npos) {
+      const std::string module_name = remainder;
+      result.statement = "from " + dots + " import " + module_name;
+      result.reference = module_name;
+      return result;
+    }
+
+    const std::string package = remainder.substr(0, last_dot);
+    const std::string module_name = remainder.substr(last_dot + 1);
+    const std::string alias = MakeRelativeModuleAlias(module);
+    result.statement =
+        "from " + dots + package + " import " + module_name + " as " + alias;
+    result.reference = alias;
+    return result;
   }
 
   // Get the value of a vector's struct member.
@@ -1834,9 +1955,10 @@ class PythonGenerator : public BaseGenerator {
         case BASE_TYPE_STRUCT:
           field_type = namer_.ObjectType(*ev.union_type.struct_def);
           if (parser_.opts.include_dependence_headers) {
-            auto package_reference = GenPackageReference(ev.union_type);
-            field_type = package_reference + "." + field_type;
-            import_list->insert("import " + package_reference);
+            const auto module_import =
+                GenModuleImport(GenPackageReference(ev.union_type));
+            field_type = module_import.reference + "." + field_type;
+            import_list->insert(module_import.statement);
           }
           field_type = "'" + field_type + "'";
           break;
@@ -1858,8 +1980,9 @@ class PythonGenerator : public BaseGenerator {
 
     // Gets the import lists for the union.
     if (parser_.opts.include_dependence_headers) {
-      const auto package_reference = GenPackageReference(field.value.type);
-      import_list->insert("import " + package_reference);
+      const auto module_import =
+          GenModuleImport(GenPackageReference(field.value.type));
+      import_list->insert(module_import.statement);
     }
   }
 
@@ -1871,9 +1994,9 @@ class PythonGenerator : public BaseGenerator {
     const Type& type = field.value.type;
     const std::string object_type = namer_.ObjectType(*type.struct_def);
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(type);
-      output = package_reference + "." + object_type + "]";
-      import_list->insert("import " + package_reference);
+      const auto module_import = GenModuleImport(GenPackageReference(type));
+      output = module_import.reference + "." + object_type + "]";
+      import_list->insert(module_import.statement);
     } else {
       output = object_type + "]";
     }
@@ -1892,9 +2015,10 @@ class PythonGenerator : public BaseGenerator {
           namer_.ObjectType(*vector_type.struct_def);
       field_type = object_type + "]";
       if (parser_.opts.include_dependence_headers) {
-        auto package_reference = GenPackageReference(vector_type);
-        field_type = package_reference + "." + object_type + "]";
-        import_list->insert("import " + package_reference);
+        const auto module_import =
+            GenModuleImport(GenPackageReference(vector_type));
+        field_type = module_import.reference + "." + object_type + "]";
+        import_list->insert(module_import.statement);
       }
       field_type = "Optional[List[" + field_type + "]";
     } else {
@@ -1989,8 +2113,9 @@ class PythonGenerator : public BaseGenerator {
     }
 
     // Removes the import of the struct itself, if applied.
-    auto struct_import = "import " + namer_.NamespacedType(struct_def);
-    import_list->erase(struct_import);
+    const auto self_module = MaybeRelativeModule(ModuleFor(&struct_def));
+    const auto self_import = GenModuleImport(self_module).statement;
+    import_list->erase(self_import);
   }
 
   void InitializeFromBuf(const StructDef& struct_def,
@@ -2068,8 +2193,9 @@ class PythonGenerator : public BaseGenerator {
     auto field_type = TypeName(field);
 
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(field.value.type);
-      field_type = package_reference + "." + TypeName(field);
+      const auto module_import =
+          GenModuleImport(GenPackageReference(field.value.type));
+      field_type = module_import.reference + "." + TypeName(field);
     }
 
     code += GenIndents(2) + "if " + struct_var + "." + field_method + "(";
@@ -2098,7 +2224,9 @@ class PythonGenerator : public BaseGenerator {
     auto union_fn = namer_.Function(enum_def);
 
     if (parser_.opts.include_dependence_headers) {
-      union_fn = namer_.NamespacedType(enum_def) + "." + union_fn;
+      const auto module_import =
+          GenModuleImport(GenPackageReference(field.value.type));
+      union_fn = module_import.reference + "." + union_fn;
     }
     code += GenIndents(2) + "self." + field_field + " = " + union_fn +
             "Creator(" + "self." + field_field + "Type, " + struct_var + "." +
@@ -2123,8 +2251,9 @@ class PythonGenerator : public BaseGenerator {
     auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(field.value.type);
-      field_type = package_reference + "." + TypeName(field);
+      const auto module_import =
+          GenModuleImport(GenPackageReference(field.value.type));
+      field_type = module_import.reference + "." + TypeName(field);
     }
     code += GenIndents(4) + "if " + struct_var + "." + field_method +
             "(i) is None:";
@@ -2155,8 +2284,9 @@ class PythonGenerator : public BaseGenerator {
     auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(field.value.type);
-      field_type = package_reference + "." + TypeName(field);
+      const auto module_import =
+          GenModuleImport(GenPackageReference(field.value.type));
+      field_type = module_import.reference + "." + TypeName(field);
     }
     code += GenIndents(4) + "if " + struct_var + "." + field_method +
             "(i) is None:";
@@ -2634,9 +2764,10 @@ class PythonGenerator : public BaseGenerator {
     code +=
         GenIndents(1) + "if unionType == " + union_type + "." + variant + ":";
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(ev.union_type);
-      code += GenIndents(2) + "import " + package_reference;
-      field_type = package_reference + "." + field_type;
+      const auto module_import =
+          GenModuleImport(GenPackageReference(ev.union_type));
+      code += GenIndents(2) + module_import.statement;
+      field_type = module_import.reference + "." + field_type;
     }
     code += GenIndents(2) + "return " + field_type +
             ".InitFromBuf(table.Bytes, table.Pos)";
@@ -2845,10 +2976,11 @@ class PythonGenerator : public BaseGenerator {
   }
 
  private:
-  bool generateEnums(std::string* one_file_code) const {
+  bool generateEnums(std::string* one_file_code) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       auto& enum_def = **it;
+      SetCurrentModule(ModuleFor(&enum_def));
       std::string enumcode;
       GenEnum(enum_def, &enumcode);
       if (parser_.opts.generate_object_based_api & enum_def.is_union) {
@@ -2872,10 +3004,11 @@ class PythonGenerator : public BaseGenerator {
   }
 
   bool generateStructs(std::string* one_file_code,
-                       ImportMap& one_file_imports) const {
+                       ImportMap& one_file_imports) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       auto& struct_def = **it;
+      SetCurrentModule(ModuleFor(&struct_def));
       std::string declcode;
       ImportMap imports;
       GenStruct(struct_def, &declcode, imports);
@@ -2965,6 +3098,7 @@ class PythonGenerator : public BaseGenerator {
   }
 
  private:
+  std::string current_module_;
   const SimpleFloatConstantGenerator float_const_gen_;
   const IdlNamer namer_;
 };
