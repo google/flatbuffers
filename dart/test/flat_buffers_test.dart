@@ -219,6 +219,17 @@ class BuilderTest {
     expect(mon3.pos!.test1, 3.0);
   }
 
+  void test_objectBuilder_alignsInlineStruct() {
+    final bytes = example4.MessageObjectBuilder(
+      prefix: 0x55aa,
+      header: example4.HeaderObjectBuilder(time: 123, ident: 0x1234),
+    ).toBytes();
+    final decoded = example4.Message(bytes);
+
+    expect(decoded.header!.time, 123);
+    expect(decoded.header!.ident, 0x1234);
+  }
+
   void test_error_addInt32_withoutStartTable([Builder? builder]) {
     builder ??= Builder();
     expect(() {

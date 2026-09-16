@@ -775,6 +775,31 @@ class Builder {
     }
   }
 
+  /// Prepare for writing a struct with the given [alignment] and [size].
+  ///
+  /// Struct fields are written one at a time, so this only writes the padding
+  /// needed before the whole inline struct. Field writes still advance the tail.
+  @pragma('vm:prefer-inline')
+  void prepStruct(int alignment, int size) {
+    assert(!_finished);
+    if (_maxAlign < alignment) {
+      _maxAlign = alignment;
+    }
+    final alignDelta = (-(_tail + size)) & (alignment - 1);
+    final oldCapacity = _buf.lengthInBytes;
+    if (_tail + alignDelta > oldCapacity) {
+      final desiredNewCapacity = (oldCapacity + alignDelta) * 2;
+      var deltaCapacity = desiredNewCapacity - oldCapacity;
+      deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
+      final newCapacity = oldCapacity + deltaCapacity;
+      _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
+    }
+    for (var i = _tail + 1; i <= _tail + alignDelta; i++) {
+      _setUint8AtTail(i, 0);
+    }
+    _tail += alignDelta;
+  }
+
   /// Prepare for writing the given `count` of scalars of the given `size`.
   /// Additionally allocate the specified `additionalBytes`. Update the current
   /// tail pointer to point at the allocated space.
