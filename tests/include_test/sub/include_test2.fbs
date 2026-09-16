@@ -1,6 +1,8 @@
 include "include_test1.fbs";
 include "sub/include_test2.fbs";    // should be skipped
 
+option rust_module = "rust_include_test::my_game::other_name_space";
+
 namespace MyGame.OtherNameSpace;
 
 enum FromInclude:long { IncludeVal }

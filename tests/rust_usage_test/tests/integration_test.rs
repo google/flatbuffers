@@ -55,7 +55,7 @@ pub mod namespace_test_generated;
 #[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
-pub use monster_test_generated::my_game;
+pub use monster_test_generated::*;
 
 #[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../optional_scalars/mod.rs"]

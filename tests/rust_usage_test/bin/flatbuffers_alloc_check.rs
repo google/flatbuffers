@@ -33,8 +33,7 @@ extern crate flatbuffers;
 #[allow(dead_code, unused_imports, clippy::all)]
 #[path = "../../monster_test/mod.rs"]
 mod monster_test_generated;
-
-pub use monster_test_generated::my_game;
+pub use monster_test_generated::*;
 
 // verbatim from the test suite:
 fn create_serialized_example_with_generated_code(builder: &mut flatbuffers::FlatBufferBuilder) {
