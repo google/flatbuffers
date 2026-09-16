@@ -3049,6 +3049,67 @@ CheckedError Parser::ParseNamespace() {
   return NoError();
 }
 
+const char* Parser::ProtoIgnoredInfo::KeywordName(Keyword keyword) {
+  switch (keyword) {
+    case Keyword::kOption:
+      return "option";
+    case Keyword::kService:
+      return "service";
+    case Keyword::kExtensions:
+      return "extensions";
+  }
+  FLATBUFFERS_ASSERT(false);
+  return "unknown";
+}
+
+const char* Parser::ProtoIgnoredInfo::ScopeName(Scope scope) {
+  switch (scope) {
+    case Scope::kTopLevel:
+      return "top-level scope";
+    case Scope::kMessage:
+      return "message scope";
+  }
+  FLATBUFFERS_ASSERT(false);
+  return "unknown";
+}
+
+IDLOptions::ProtoAction Parser::GetProtoIgnoredAction(
+    ProtoIgnoredInfo::Keyword keyword) const {
+  switch (keyword) {
+    case ProtoIgnoredInfo::Keyword::kOption:
+      return opts.proto_option_action;
+    case ProtoIgnoredInfo::Keyword::kService:
+      return opts.proto_service_action;
+    case ProtoIgnoredInfo::Keyword::kExtensions:
+      return opts.proto_extensions_action;
+  }
+  FLATBUFFERS_ASSERT(false);
+  return IDLOptions::ProtoAction::NO_OP;
+}
+
+CheckedError Parser::HandleIgnoredProtoKeyword(
+    ProtoIgnoredInfo::Keyword keyword, ProtoIgnoredInfo::Scope scope) {
+  const auto action = GetProtoIgnoredAction(keyword);
+
+  const std::string message =
+      "ignoring unsupported protobuf keyword `" +
+      std::string(ProtoIgnoredInfo::KeywordName(keyword)) + "` in " +
+      ProtoIgnoredInfo::ScopeName(scope);
+
+  switch (action) {
+    case IDLOptions::ProtoAction::NO_OP:
+      return NoError();
+    case IDLOptions::ProtoAction::WARNING:
+      Warning(message);
+      return NoError();
+    case IDLOptions::ProtoAction::ERROR:
+      return Error(message);
+  }
+
+  FLATBUFFERS_ASSERT(false);
+  return Error("internal error: unknown proto ignored action");
+}
+
 // Best effort parsing of .proto declarations, with the aim to turn them
 // in the closest corresponding FlatBuffer equivalent.
 // We parse everything as identifiers instead of keywords, since we don't
@@ -3103,10 +3164,14 @@ CheckedError Parser::ParseProtoDecl() {
     EXPECT('=');
     EXPECT(kTokenStringConstant);
     EXPECT(';');
-  } else if (IsIdent("option")) {  // Skip these.
+  } else if (IsIdent("option")) {
+    ECHECK(HandleIgnoredProtoKeyword(ProtoIgnoredInfo::Keyword::kOption,
+                                     ProtoIgnoredInfo::Scope::kTopLevel));
     ECHECK(ParseProtoOption());
     EXPECT(';');
-  } else if (IsIdent("service")) {  // Skip these.
+  } else if (IsIdent("service")) {
+    ECHECK(HandleIgnoredProtoKeyword(ProtoIgnoredInfo::Keyword::kService,
+                                     ProtoIgnoredInfo::Scope::kTopLevel));
     NEXT();
     EXPECT(kTokenIdentifier);
     ECHECK(ParseProtoCurliesOrIdent());
@@ -3142,7 +3207,9 @@ CheckedError Parser::ParseProtoFields(StructDef* struct_def, bool isextend,
     if (IsIdent("message") || IsIdent("extend") || IsIdent("enum")) {
       // Nested declarations.
       ECHECK(ParseProtoDecl());
-    } else if (IsIdent("extensions")) {  // Skip these.
+    } else if (IsIdent("extensions")) {
+      ECHECK(HandleIgnoredProtoKeyword(ProtoIgnoredInfo::Keyword::kExtensions,
+                                       ProtoIgnoredInfo::Scope::kMessage));
       NEXT();
       EXPECT(kTokenIntegerConstant);
       if (Is(kTokenIdentifier)) {
@@ -3150,7 +3217,9 @@ CheckedError Parser::ParseProtoFields(StructDef* struct_def, bool isextend,
         NEXT();  // num
       }
       EXPECT(';');
-    } else if (IsIdent("option")) {  // Skip these.
+    } else if (IsIdent("option")) {
+      ECHECK(HandleIgnoredProtoKeyword(ProtoIgnoredInfo::Keyword::kOption,
+                                       ProtoIgnoredInfo::Scope::kMessage));
       ECHECK(ParseProtoOption());
       EXPECT(';');
     } else if (IsIdent("reserved")) {  // Skip these.
