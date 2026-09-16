@@ -278,7 +278,7 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     pub fn reset(&mut self) {
         self.depth = 0;
         self.num_tables = 0;
-        self.num_tables = 0;
+        self.apparent_size = 0;
     }
     /// Checks `pos` is aligned to T's alignment. This does not mean `buffer[pos]` is aligned w.r.t
     /// memory since `buffer: &[u8]` has alignment 1.
@@ -627,3 +627,33 @@ impl_verifiable_for!(f32);
 impl_verifiable_for!(u64);
 impl_verifiable_for!(i64);
 impl_verifiable_for!(f64);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reset_clears_apparent_size() {
+        let opts = VerifierOptions {
+            max_apparent_size: 100,
+            ..Default::default()
+        };
+        let buffer = [0u8; 64];
+        let mut verifier = Verifier::new(&opts, &buffer);
+
+        verifier
+            .range_in_buffer(0, 60)
+            .expect("60 bytes is under the 100 byte budget");
+
+        // reset() restores the verifier to its state after new(), so the same
+        // range has to fit again. Without clearing apparent_size the running
+        // total stays at 60, and the second range pushes it to 120.
+        verifier.reset();
+
+        assert_eq!(
+            verifier.range_in_buffer(0, 60),
+            Ok(()),
+            "reset() must clear apparent_size, not just depth and num_tables"
+        );
+    }
+}
