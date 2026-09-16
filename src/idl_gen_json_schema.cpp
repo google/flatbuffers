@@ -87,8 +87,9 @@ static std::string GenType(BaseType type) {
       return "\"type\" : \"integer\", \"minimum\" : 0, \"maximum\" : " +
              NumToString(std::numeric_limits<uint64_t>::max());
     case BASE_TYPE_FLOAT:
+      return "\"type\" : \"number\", \"format\" : \"float\"";
     case BASE_TYPE_DOUBLE:
-      return "\"type\" : \"number\"";
+      return "\"type\" : \"number\", \"format\" : \"double\"";
     case BASE_TYPE_STRING:
       return "\"type\" : \"string\"";
     default:
