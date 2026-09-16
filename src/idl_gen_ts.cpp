@@ -1120,18 +1120,18 @@ class TsGenerator : public BaseGenerator {
       const auto enum_type = AddImport(imports, enum_def, enum_def).name;
 
       const auto union_enum_loop = [&](const std::string& accessor_str) {
-        ret += "  switch(" + enum_type + "[type]) {\n";
-        ret += "    case 'NONE': return " + null_keyword_ + "; \n";
+        ret += "  switch(type) {\n";
 
         for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
           const auto& ev = **it;
+          const auto case_label = enum_type + "." + namer_.Variant(ev);
           if (ev.IsZero()) {
+            ret +=
+                "    case " + case_label + ": return " + null_keyword_ + ";\n";
             continue;
           }
-
-          ret += "    case '" + namer_.Variant(ev) + "': ";
-
+          ret += "    case " + case_label + ": ";
           if (IsString(ev.union_type)) {
             ret += "return " + accessor_str + "'') as string;";
           } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
