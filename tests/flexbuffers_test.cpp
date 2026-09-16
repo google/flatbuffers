@@ -187,6 +187,21 @@ void FlexBuffersReuseBugTest() {
           true);
 }
 
+void FlexBuffersCyclicBufferTest() {
+  // Cyclic buffers must be rejected by the verifier. Before the cycle-aware
+  // reuse-tracking fix, these buffers passed VerifyBuffer() when a reuse
+  // tracker was supplied, and then caused unbounded recursion / stack
+  // exhaustion in recursive accessors such as Reference::ToString().
+  // A vector whose only element is the vector itself (self-loop).
+  const uint8_t self_loop[] = { 0x01, 0x00, 0x28, 0x01 };
+  // A vector element that points back to the parent vector (parent cycle).
+  const uint8_t parent_cycle[] = { 0x02, 0x24, 0x01, 0x02, 0x28, 0x01 };
+  std::vector<uint8_t> t1, t2;
+  TEST_EQ(flexbuffers::VerifyBuffer(self_loop, sizeof(self_loop), &t1), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(parent_cycle, sizeof(parent_cycle), &t2),
+          false);
+}
+
 void FlexBuffersFloatingPointTest() {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   flexbuffers::Builder slb(512,
