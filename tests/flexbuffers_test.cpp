@@ -128,6 +128,31 @@ void FlexBuffersTest() {
   TEST_EQ(vec[5].MutateBool(true), true);       // Can change a bool
   TEST_EQ(vec[5].AsBool(), true);               // Changed bool is now true
 
+  // A forced-width bool should mutate without reading beyond the source bool.
+  slb.Clear();
+  slb.ForceMinimumBitWidth(flexbuffers::BIT_WIDTH_64);
+  slb.Vector([&]() { slb.Bool(false); });
+  slb.ForceMinimumBitWidth();
+  slb.Finish();
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), &reuse_tracker),
+          true);
+  auto wide_bool = flexbuffers::GetRoot(slb.GetBuffer()).AsVector()[0];
+  TEST_EQ(wide_bool.MutateBool(true), true);
+  TEST_EQ(wide_bool.AsBool(), true);
+
+  // Indirect scalars must not overlap their own offset field. Otherwise,
+  // mutating the scalar also mutates the offset used by later accesses.
+  const uint8_t self_referential_indirect_int[] = {
+      0, 0, 0, 0, 0, 0, 0, 0,  // root offset aliases the indirect value
+      flexbuffers::PackedType(flexbuffers::BIT_WIDTH_64,
+                              flexbuffers::FBT_INDIRECT_INT),
+      8};
+  TEST_EQ(flexbuffers::VerifyBuffer(self_referential_indirect_int,
+                                    sizeof(self_referential_indirect_int),
+                                    &reuse_tracker),
+          false);
+
   // Parse from JSON:
   flatbuffers::Parser parser;
   slb.Clear();
