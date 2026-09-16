@@ -2,12 +2,16 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {A, AT} from '../union-underlying-type/a.js';
-import {ABC, unionListToAbc, unionToAbc} from '../union-underlying-type/abc.js';
-import {B, BT} from '../union-underlying-type/b.js';
-import {C, CT} from '../union-underlying-type/c.js';
+import { A, AT } from "../union-underlying-type/a.js";
+import {
+  ABC,
+  unionListToAbc,
+  unionToAbc,
+} from "../union-underlying-type/abc.js";
+import { B, BT } from "../union-underlying-type/b.js";
+import { C, CT } from "../union-underlying-type/c.js";
 
 export class D implements flatbuffers.IUnpackableObject<DT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -82,7 +86,7 @@ export class D implements flatbuffers.IUnpackableObject<DT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'UnionUnderlyingType.D';
+    return "UnionUnderlyingType.D";
   }
 
   static startD(builder: flatbuffers.Builder) {
@@ -195,7 +199,7 @@ export class D implements flatbuffers.IUnpackableObject<DT> {
           ++targetEnumIndex
         ) {
           const targetEnum = this.testVectorOfUnionType(targetEnumIndex);
-          if (targetEnum === null || ABC[targetEnum!] === 'NONE') {
+          if (targetEnum === null || ABC[targetEnum!] === "NONE") {
             continue;
           }
 
@@ -235,7 +239,7 @@ export class D implements flatbuffers.IUnpackableObject<DT> {
         ++targetEnumIndex
       ) {
         const targetEnum = this.testVectorOfUnionType(targetEnumIndex);
-        if (targetEnum === null || ABC[targetEnum!] === 'NONE') {
+        if (targetEnum === null || ABC[targetEnum!] === "NONE") {
           continue;
         }
 

@@ -1,6 +1,6 @@
-import {fromByteWidth, toByteWidth} from './bit-width-util.js';
-import {BitWidth} from './bit-width.js';
-import {fromUTF8Array, toUTF8Array} from './flexbuffers-util.js';
+import { fromByteWidth, toByteWidth } from "./bit-width-util.js";
+import { BitWidth } from "./bit-width.js";
+import { fromUTF8Array, toUTF8Array } from "./flexbuffers-util.js";
 
 export function validateOffset(
   dataView: DataView,
@@ -11,7 +11,7 @@ export function validateOffset(
     dataView.byteLength <= offset + width ||
     (offset & (toByteWidth(width) - 1)) !== 0
   ) {
-    throw 'Bad offset: ' + offset + ', width: ' + width;
+    throw "Bad offset: " + offset + ", width: " + width;
   }
 }
 
@@ -73,7 +73,7 @@ export function readFloat(
   width: number,
 ): number {
   if (width < BitWidth.WIDTH32) {
-    throw 'Bad width: ' + width;
+    throw "Bad width: " + width;
   }
   if (width === BitWidth.WIDTH32) {
     return dataView.getFloat32(offset, true);

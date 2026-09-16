@@ -2,10 +2,10 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {Field, FieldT} from '../reflection/field.js';
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
+import { Field, FieldT } from "../reflection/field.js";
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
 
 export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -163,7 +163,7 @@ export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.Object';
+    return "reflection.Object";
   }
 
   static startObject(builder: flatbuffers.Builder) {

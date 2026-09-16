@@ -1,8 +1,8 @@
-import * as flatbuffers from 'flatbuffers';
-import {Enum, EnumT} from '../reflection/enum.js';
-import {Object_, Object_T} from '../reflection/object.js';
-import {SchemaFile, SchemaFileT} from '../reflection/schema-file.js';
-import {Service, ServiceT} from '../reflection/service.js';
+import * as flatbuffers from "flatbuffers";
+import { Enum, EnumT } from "../reflection/enum.js";
+import { Object_, Object_T } from "../reflection/object.js";
+import { SchemaFile, SchemaFileT } from "../reflection/schema-file.js";
+import { Service, ServiceT } from "../reflection/service.js";
 export declare class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

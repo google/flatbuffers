@@ -2,12 +2,12 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {Abc} from '../foobar/abc.js';
-import {class_ as foobar_class_} from '../foobar/class.js';
-import {Schema, SchemaT} from '../reflection/schema.js';
-import {class_} from '../typescript/class.js';
+import { Abc } from "../foobar/abc.js";
+import { class_ as foobar_class_ } from "../foobar/class.js";
+import { Schema, SchemaT } from "../reflection/schema.js";
+import { class_ } from "../typescript/class.js";
 
 export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -145,7 +145,7 @@ export class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'typescript.Object';
+    return "typescript.Object";
   }
 
   static startObject(builder: flatbuffers.Builder) {

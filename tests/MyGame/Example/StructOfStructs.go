@@ -7,14 +7,23 @@ import (
 )
 
 type StructOfStructsT struct {
-	A *AbilityT `json:"a"`
-	B *TestT `json:"b"`
-	C *AbilityT `json:"c"`
+	A *AbilityT `json:"a,omitempty"`
+	B *TestT    `json:"b,omitempty"`
+	C *AbilityT `json:"c,omitempty"`
 }
 
 func (t *StructOfStructsT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t == nil {
 		return 0
+	}
+	if t.A == nil {
+		t.A = &AbilityT{}
+	}
+	if t.B == nil {
+		t.B = &TestT{}
+	}
+	if t.C == nil {
+		t.C = &AbilityT{}
 	}
 	return CreateStructOfStructs(builder, t.A.Id, t.A.Distance, t.B.A, t.B.B, t.C.Id, t.C.Distance)
 }

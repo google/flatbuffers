@@ -1,5 +1,5 @@
-import {Builder} from './builder.js';
-import {ByteBuffer} from './byte-buffer.js';
+import { Builder } from "./builder.js";
+import { ByteBuffer } from "./byte-buffer.js";
 
 export type Offset = number;
 

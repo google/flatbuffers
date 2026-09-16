@@ -1,4 +1,4 @@
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 export declare class Stat implements flatbuffers.IUnpackableObject<StatT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

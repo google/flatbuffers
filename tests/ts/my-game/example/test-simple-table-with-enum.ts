@@ -2,97 +2,142 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import { Color } from './color.js';
-
+import { Color } from "./color.js";
 
 export class TestSimpleTableWithEnum implements flatbuffers.IUnpackableObject<TestSimpleTableWithEnumT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-static getRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimpleTableWithEnum):TestSimpleTableWithEnum {
-  return (obj || new TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getSizePrefixedRootAsTestSimpleTableWithEnum(bb:flatbuffers.ByteBuffer, obj?:TestSimpleTableWithEnum):TestSimpleTableWithEnum {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new TestSimpleTableWithEnum()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-color():Color {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Green;
-}
-
-mutate_color(value:Color):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
+  __init(i: number, bb: flatbuffers.ByteBuffer): TestSimpleTableWithEnum {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
   }
 
-  this.bb!.writeUint8(this.bb_pos + offset, value);
-  return true;
-}
+  static getRootAsTestSimpleTableWithEnum(
+    bb: flatbuffers.ByteBuffer,
+    obj?: TestSimpleTableWithEnum,
+  ): TestSimpleTableWithEnum {
+    return (obj || new TestSimpleTableWithEnum()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static getFullyQualifiedName(): "MyGame.Example.TestSimpleTableWithEnum" {
-  return 'MyGame.Example.TestSimpleTableWithEnum';
-}
+  static getSizePrefixedRootAsTestSimpleTableWithEnum(
+    bb: flatbuffers.ByteBuffer,
+    obj?: TestSimpleTableWithEnum,
+  ): TestSimpleTableWithEnum {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new TestSimpleTableWithEnum()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static startTestSimpleTableWithEnum(builder:flatbuffers.Builder) {
-  builder.startObject(1);
-}
+  color(): Color {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
+    return offset ? this.bb!.readUint8(this.bb_pos + offset) : Color.Green;
+  }
 
-static addColor(builder:flatbuffers.Builder, color:Color) {
-  builder.addFieldInt8(0, color, Color.Green);
-}
+  mutate_color(value: Color): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
 
-static endTestSimpleTableWithEnum(builder:flatbuffers.Builder):flatbuffers.Offset {
-  const offset = builder.endObject();
-  return offset;
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static createTestSimpleTableWithEnum(builder:flatbuffers.Builder, color:Color):flatbuffers.Offset {
-  TestSimpleTableWithEnum.startTestSimpleTableWithEnum(builder);
-  TestSimpleTableWithEnum.addColor(builder, color);
-  return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
-}
+    this.bb!.writeUint8(this.bb_pos + offset, value);
+    return true;
+  }
 
-serialize():Uint8Array {
-  return this.bb!.bytes();
-}
+  static getFullyQualifiedName(): "MyGame.Example.TestSimpleTableWithEnum" {
+    return "MyGame.Example.TestSimpleTableWithEnum";
+  }
 
-static deserialize(buffer: Uint8Array):TestSimpleTableWithEnum {
-  return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(new flatbuffers.ByteBuffer(buffer))
-}
+  static startTestSimpleTableWithEnum(builder: flatbuffers.Builder) {
+    builder.startObject(1);
+  }
 
-unpack(): TestSimpleTableWithEnumT {
-  return new TestSimpleTableWithEnumT(
-    this.color()
-  );
-}
+  static addColor(builder: flatbuffers.Builder, color: Color) {
+    builder.addFieldInt8(0, color, Color.Green);
+  }
 
+  static endTestSimpleTableWithEnum(
+    builder: flatbuffers.Builder,
+  ): flatbuffers.Offset {
+    const offset = builder.endObject();
+    return offset;
+  }
 
-unpackTo(_o: TestSimpleTableWithEnumT): void {
-  _o.color = this.color();
-}
+  static createTestSimpleTableWithEnum(
+    builder: flatbuffers.Builder,
+    color: Color,
+  ): flatbuffers.Offset {
+    TestSimpleTableWithEnum.startTestSimpleTableWithEnum(builder);
+    TestSimpleTableWithEnum.addColor(builder, color);
+    return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(builder);
+  }
+
+  serialize(): Uint8Array {
+    return this.bb!.bytes();
+  }
+
+  static deserialize(buffer: Uint8Array): TestSimpleTableWithEnum {
+    return TestSimpleTableWithEnum.getRootAsTestSimpleTableWithEnum(
+      new flatbuffers.ByteBuffer(buffer),
+    );
+  }
+
+  unpack(): TestSimpleTableWithEnumT {
+    return new TestSimpleTableWithEnumT(this.color());
+  }
+
+  unpackTo(_o: TestSimpleTableWithEnumT): void {
+    _o.color = this.color();
+  }
+
+  unpackFields(...fields: string[]): TestSimpleTableWithEnumT {
+    const t = new TestSimpleTableWithEnumT();
+    const fieldSet = new Set(fields);
+    if (fieldSet.has("color")) {
+      t.color = this.color();
+    }
+    return t;
+  }
 }
 
 export class TestSimpleTableWithEnumT implements flatbuffers.IGeneratedObject {
-constructor(
-  public color: Color = Color.Green
-){}
+  constructor(public color: Color = Color.Green) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(
+      builder,
+      this.color,
+    );
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return TestSimpleTableWithEnum.createTestSimpleTableWithEnum(builder,
-    this.color
-  );
+  clone(): TestSimpleTableWithEnumT {
+    const obj = new TestSimpleTableWithEnumT();
+    obj.color = this.color;
+    return obj;
+  }
+
+  equals(other: TestSimpleTableWithEnumT): boolean {
+    if (this.color !== other.color) return false;
+    return true;
+  }
 }
+
+export function verifyTestSimpleTableWithEnum(
+  verifier: flatbuffers.Verifier,
+  tablePos: number,
+): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 1);
+  } finally {
+    verifier.popDepth();
+  }
 }

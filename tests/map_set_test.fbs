@@ -1,0 +1,39 @@
+// Test schema for native map<K, V> and set<V> syntax.
+// These types desugar to sorted vectors of auto-generated entry tables.
+
+namespace MapSetTest;
+
+enum Color : byte { Red = 0, Green, Blue }
+
+table Stats {
+  hp:int;
+  strength:float;
+}
+
+table Config {
+  // Map with string key, scalar value
+  settings:map<string, int>;
+
+  // Map with integer key, string value
+  id_to_name:map<uint32, string>;
+
+  // Map with enum key
+  color_scores:map<Color, float>;
+
+  // Map with string key, table value
+  profiles:map<string, Stats>;
+
+  // Set of strings
+  tags:set<string>;
+
+  // Set of integers
+  active_ids:set<int>;
+}
+
+table AnotherConfig {
+  // These reuse the same entry StructDefs as Config
+  overrides:map<string, int>;
+  labels:set<string>;
+}
+
+root_type Config;

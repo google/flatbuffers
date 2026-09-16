@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class Ability
-  implements flatbuffers.IUnpackableObject<AbilityT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class Ability implements flatbuffers.IUnpackableObject<AbilityT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Ability;

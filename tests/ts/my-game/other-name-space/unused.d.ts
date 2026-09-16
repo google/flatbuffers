@@ -1,4 +1,4 @@
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 export declare class Unused implements flatbuffers.IUnpackableObject<UnusedT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

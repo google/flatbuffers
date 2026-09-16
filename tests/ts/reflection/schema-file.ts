@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
 /**
  * File specific information.
@@ -78,7 +78,7 @@ export class SchemaFile implements flatbuffers.IUnpackableObject<SchemaFileT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.SchemaFile';
+    return "reflection.SchemaFile";
   }
 
   static startSchemaFile(builder: flatbuffers.Builder) {
