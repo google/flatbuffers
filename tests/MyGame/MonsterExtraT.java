@@ -83,6 +83,20 @@ public class MonsterExtraT {
     this.dvec = null;
     this.fvec = null;
   }
+
+  public MonsterExtraT(double d0, double d1, double d2, double d3, float f0, float f1, float f2, float f3, double[] dvec, float[] fvec) {
+    this.d0 = d0;
+    this.d1 = d1;
+    this.d2 = d2;
+    this.d3 = d3;
+    this.f0 = f0;
+    this.f1 = f1;
+    this.f2 = f2;
+    this.f3 = f3;
+    this.dvec = dvec;
+    this.fvec = fvec;
+  }
+
   public static MonsterExtraT deserializeFromBinary(byte[] fbBuffer) {
     return MonsterExtra.getRootAsMonsterExtra(ByteBuffer.wrap(fbBuffer)).unpack();
   }
