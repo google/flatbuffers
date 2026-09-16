@@ -537,7 +537,7 @@ class FlatBufferBuilderImpl {
   template <typename AlignT>
   void PreAlign(size_t len) {
     AssertScalarT<AlignT>();
-    PreAlign(len, AlignOf<AlignT>());
+    PreAlign(len, sizeof(AlignT));
   }
   /// @endcond
 
@@ -701,7 +701,12 @@ class FlatBufferBuilderImpl {
   template <typename T, template <typename> class OffsetT = Offset,
             typename LenT = uint32_t>
   void StartVector(size_t len) {
-    return StartVector<OffsetT, LenT>(len, sizeof(T), AlignOf<T>());
+    const size_t alignment = flatbuffers::is_scalar<T>::value ||
+                                     is_specialisation_of_Offset<T>::value ||
+                                     is_specialisation_of_Offset64<T>::value
+                                 ? sizeof(T)
+                                 : AlignOf<T>();
+    return StartVector<OffsetT, LenT>(len, sizeof(T), alignment);
   }
 
   // Call this right before StartVector/CreateVector if you want to force the
@@ -1221,7 +1226,7 @@ class FlatBufferBuilderImpl {
   template <typename T>
   Offset<Vector<T>> CreateUninitializedVector(size_t len, T** buf) {
     AssertScalarT<T>();
-    return CreateUninitializedVector(len, sizeof(T), AlignOf<T>(),
+    return CreateUninitializedVector(len, sizeof(T), sizeof(T),
                                      reinterpret_cast<uint8_t**>(buf));
   }
 
