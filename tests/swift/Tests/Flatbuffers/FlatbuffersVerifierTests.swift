@@ -561,4 +561,85 @@ final class FlatbuffersVerifierTests {
     let offset: UOffset = try verifier.getValue(at: value)
     return Int(clamping: (Int(offset) &+ 0).magnitude)
   }
+
+  @Test
+  func testHighVTableSlotIsReadUnsignedLikeTheVerifier() throws {
+    // Crafted buffer whose `array` vtable slot is 0x8000. The verifier reads
+    // the slot as an unsigned offset and accepts the buffer (the vector at
+    // table + 32768 is in bounds). Table.offset must observe the same
+    // displacement; re-reading the slot as a signed value would send the
+    // accessor before the start of the buffer.
+    // `array` is the 3rd field in tests/vector_has_test.fbs (VT.array = 8).
+    // The object size of 4 is deliberate: field data may live outside the
+    // table's inline region; the verifier only checks target bounds.
+    var bytes = [UInt8](repeating: 0, count: 32792)
+    bytes[0..<4] = [4, 0, 0, 0]  // root offset -> table at 4
+    bytes[4..<8] = [0xFC, 0xFF, 0xFF, 0xFF]  // soffset -4 -> vtable at 8
+    bytes[8..<10] = [10, 0]  // vtable size
+    bytes[10..<12] = [4, 0]  // object size
+    bytes[16..<18] = [0, 0x80]  // `array` slot (vtable + 8) = 0x8000
+    // Field lives at table (4) + 0x8000 and holds a uoffset to the vector.
+    bytes[32772..<32776] = [8, 0, 0, 0]  // uoffset -> vector header at 32780
+    bytes[32780..<32784] = [1, 0, 0, 0]  // vector length = 1
+    bytes[32784..<32792] = [0x2A, 0, 0, 0, 0, 0, 0, 0]  // element 42
+
+    var byteBuffer = ByteBuffer(bytes: bytes)
+    let vectors: Swift_Tests_Vectors = try getCheckedRoot(byteBuffer: &byteBuffer)
+    #expect(vectors.array.count == 1)
+    #expect(vectors.array[0] == 42)
+  }
+
+  @Test
+  func testHighVTableSlotMutateUsesVerifiedPosition() throws {
+    // Same crafted-slot shape through the write path: `mutate` reuses
+    // Table.offset, so the patched unsigned read must also steer writes to
+    // the verified field position. `count` is the 3rd field of
+    // MyGame.Example.Stat (VT.count = 8).
+    var bytes = [UInt8](repeating: 0, count: 32776)
+    bytes[0..<4] = [4, 0, 0, 0]  // root offset -> table at 4
+    bytes[4..<8] = [0xFC, 0xFF, 0xFF, 0xFF]  // soffset -4 -> vtable at 8
+    bytes[8..<10] = [10, 0]  // vtable size
+    bytes[10..<12] = [4, 0]  // object size
+    bytes[16..<18] = [0, 0x80]  // `count` slot (vtable + 8) = 0x8000
+    bytes[32772..<32774] = [0x2A, 0]  // count = 42 at table (4) + 0x8000
+
+    var byteBuffer = ByteBuffer(bytes: bytes)
+    var stat: MyGame_Example_Stat = try getCheckedRoot(byteBuffer: &byteBuffer)
+    #expect(stat.count == 42)
+    #expect(stat.mutate(count: 0x7777))
+    #expect(stat.count == 0x7777)
+  }
+
+  @Test
+  func testHighVTableSlotLookupByKeyUsesVerifiedPosition() throws {
+    // Generated `lookupByKey` resolves keyed-table slots through the static
+    // Table.offset(_:vOffset:fbb:) overload; the slot read there must match
+    // the verifier too. Monster carries a sorted Stat vector
+    // (VT.scalarKeySortedTables = 104) whose Stat `count` slot
+    // (VT.count = 8) is 0x8000.
+    var bytes = [UInt8](repeating: 0, count: 32928)
+    bytes[0..<4] = [4, 0, 0, 0]  // root offset -> Monster table at 4
+    bytes[4..<8] = [0xFC, 0xFF, 0xFF, 0xFF]  // soffset -4 -> vtable at 8
+    bytes[8..<10] = [106, 0]  // Monster vtable size (covers slot 104)
+    bytes[10..<12] = [4, 0]  // object size
+    bytes[18..<20] = [112, 0]  // `name` slot (vtable + 10) -> field at 116
+    bytes[112..<114] = [128, 0]  // `scalarKeySortedTables` slot -> field at 132
+    bytes[116..<120] = [8, 0, 0, 0]  // name uoffset -> string at 124
+    bytes[124..<128] = [2, 0, 0, 0]  // string length
+    bytes[128..<130] = [0x41, 0x42]  // "AB"
+    bytes[132..<136] = [8, 0, 0, 0]  // vector-field uoffset -> header at 140
+    bytes[140..<144] = [1, 0, 0, 0]  // vector length = 1
+    bytes[144..<148] = [8, 0, 0, 0]  // element uoffset -> Stat table at 152
+    bytes[152..<156] = [0xF8, 0xFF, 0xFF, 0xFF]  // soffset -8 -> vtable at 160
+    bytes[160..<162] = [10, 0]  // Stat vtable size
+    bytes[162..<164] = [4, 0]  // object size
+    bytes[168..<170] = [0, 0x80]  // `count` slot (vtable + 8) = 0x8000
+    bytes[32920..<32922] = [0, 0]  // count = 0 at Stat (152) + 0x8000
+
+    var byteBuffer = ByteBuffer(bytes: bytes)
+    let monster: MyGame_Example_Monster = try getCheckedRoot(byteBuffer: &byteBuffer)
+    let stat = monster.scalarKeySortedTablesBy(key: 0)
+    #expect(stat != nil)
+    #expect(stat?.count == 0)
+  }
 }
