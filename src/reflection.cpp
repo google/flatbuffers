@@ -384,7 +384,11 @@ void ForAllFields(const reflection::Object* object, bool reverse,
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+    // Validate field ID to prevent out-of-bounds write when processing
+    // untrusted binary schemas (.bfbs files).
+    if (field->id() < object->fields()->size()) {
+      field_to_id_map[field->id()] = i;
+    }
   }
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
