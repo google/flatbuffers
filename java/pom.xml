@@ -102,6 +102,11 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <version>5.1.2</version>
         <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Automatic-Module-Name>com.google.flatbuffers</Automatic-Module-Name>
+          </instructions>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
