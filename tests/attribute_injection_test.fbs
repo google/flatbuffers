@@ -1,0 +1,57 @@
+// Test schema for verifying that code-injection via FlatBuffers attributes
+// is rejected by the C++ code generator.
+//
+// This schema is intentionally malformed: the attribute values contain
+// characters that would allow a malicious .fbs author to break out of the
+// generated C++ source context and inject arbitrary code.
+//
+// The flatc C++ backend MUST reject schemas containing:
+//   - native_type values with characters outside [A-Za-z0-9_::<>*& ,.()\]
+//   - cpp_type values with the same restriction
+//   - cpp_ptr_type_get values with the same restriction
+//   - native_include paths containing '"', '\n', or '\r'
+//
+// This file documents the EXPECTED REJECTION cases; it is not expected to
+// compile successfully.  Each table below exercises one injection vector.
+// When compiled with:
+//   flatc --cpp --gen-object-api <file>
+// flatc must exit non-zero and print an error referencing the offending
+// attribute rather than emitting injectable output.
+//
+// Injection vector 1 — native_type:
+//   Semicolons and braces would break out of a typedef context.
+//   table NativeTypeInjection (native_type: "Foo}; void evil(){") { x: int; }
+//   => error: native_type attribute ... contains characters that are unsafe
+//
+// Injection vector 2 — cpp_type (requires a hashed field):
+//   A quote character would break out of a string literal context.
+//   table Stat { id: string; }
+//   table CppTypeInjection {
+//     field: uint (hash:"fnv1a_32", cpp_type:"Stat\"; system(0); //");
+//   }
+//   => error: cpp_type attribute ... contains characters that are unsafe
+//
+// Injection vector 3 — cpp_ptr_type_get:
+//   A semicolon would terminate the expression and inject a new statement.
+//   table CppPtrTypeGetInjection {
+//     field: string (cpp_ptr_type_get: ".get(); system(0); //");
+//   }
+//   => error: cpp_ptr_type_get attribute ... contains characters that are unsafe
+//
+// Injection vector 4 — native_include:
+//   A double-quote would close the #include path and allow arbitrary content.
+//   native_include "valid.h\"injected.h";
+//   => error: native_include path contains characters that are unsafe
+
+// Safe usage that must still compile successfully:
+//   native_include "native_type_test_impl.h";
+//   table Safe (native_type: "my::ValidType<int*>") { x: int; }
+
+namespace AttributeInjectionTest;
+
+// This table uses only safe, well-formed attributes and must compile.
+table SafeNativeType (native_type: "my::ValidNativeType") {
+  x: int;
+}
+
+root_type SafeNativeType;
