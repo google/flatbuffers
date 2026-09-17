@@ -296,3 +296,6 @@ if(BUILD_DEBUGGER)
     ${CMAKE_CURRENT_BINARY_DIR}/monster_test.bfbs)
 
 endif(BUILD_DEBUGGER)
+
+add_executable(verify_access_fuzzer flatbuffers_verify_access_fuzzer.cc)
+target_link_libraries(verify_access_fuzzer PRIVATE flatbuffers_fuzzed)
