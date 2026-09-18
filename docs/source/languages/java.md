@@ -17,23 +17,18 @@ documentation to build `flatc` and should be familiar with
 ## FlatBuffers Java code location
 
 The code for the FlatBuffers Java library can be found at
-`flatbuffers/java/com/google/flatbuffers`. You can browse the library on the
-[FlatBuffers GitHub page](https://github.com/google/flatbuffers/tree/master/
-java/com/google/flatbuffers).
+`flatbuffers/java/src/main/java/com/google/flatbuffers`. You can browse the
+library on the [FlatBuffers GitHub
+page](https://github.com/google/flatbuffers/tree/master/java/src/main/java/com/google/flatbuffers).
 
 ## Testing the FlatBuffers Java libraries
 
-The code to test the libraries can be found at `flatbuffers/tests`.
+The test code for Java is located in
+[JavaTest.java](https://github.com/google/flatbuffers/blob/master/java/src/test/java/JavaTest.java).
 
-The test code for Java is located in [JavaTest.java](https://github.com/google
-/flatbuffers/blob/master/tests/JavaTest.java).
+To run the tests, run `mvn test` from the `java/` directory.
 
-To run the tests, use either [JavaTest.sh](https://github.com/google/
-flatbuffers/blob/master/tests/JavaTest.sh) or [JavaTest.bat](https://github.com/
-google/flatbuffers/blob/master/tests/JavaTest.bat), depending on your operating
-system.
-
-*Note: These scripts require that [Java](https://www.oracle.com/java/index.html)
+*Note: These tests require that [Java](https://www.oracle.com/java/index.html)
 is installed.*
 
 ## Using the FlatBuffers Java library
