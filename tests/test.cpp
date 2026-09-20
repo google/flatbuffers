@@ -1745,6 +1745,276 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void MemorySafetyHardeningTest() {
+  // 1. Test GetVerifiedRoot with valid Monster buffer
+  flatbuffers::FlatBufferBuilder fbb;
+  auto name = fbb.CreateString("SafeMonster");
+  MonsterBuilder mb(fbb);
+  mb.add_name(name);
+  mb.add_hp(80);
+  auto mloc = mb.Finish();
+  fbb.Finish(mloc, MonsterIdentifier());
+
+  // 1a. Verify using span with builder.GetBufferSpan()
+  auto span_buf = fbb.GetBufferSpan();
+  TEST_EQ(span_buf.empty(), false);
+  flatbuffers::Verifier span_verifier(span_buf);
+  TEST_EQ(VerifyMonsterBuffer(span_verifier), true);
+
+  // 1b. GetVerifiedRoot with identifier
+  auto verified_monster = flatbuffers::GetVerifiedRoot<Monster>(
+      span_buf, MonsterIdentifier());
+  TEST_NOTNULL(verified_monster);
+  TEST_EQ_STR(verified_monster->name()->c_str(), "SafeMonster");
+
+  // 1c. GetVerifiedRoot without identifier
+  auto verified_monster2 = flatbuffers::GetVerifiedRoot<Monster>(span_buf);
+  TEST_NOTNULL(verified_monster2);
+  TEST_EQ_STR(verified_monster2->name()->c_str(), "SafeMonster");
+
+  // 1d. GetVerifiedRoot with raw pointer + size
+  auto verified_monster3 = flatbuffers::GetVerifiedRoot<Monster>(
+      span_buf.data(), span_buf.size(), MonsterIdentifier());
+  TEST_NOTNULL(verified_monster3);
+
+  // 1e. GetVerifiedRoot on null / truncated buffer returns nullptr
+  TEST_NULL(flatbuffers::GetVerifiedRoot<Monster>(nullptr, 100));
+  TEST_NULL(flatbuffers::GetVerifiedRoot<Monster>(span_buf.data(), 0));
+  TEST_NULL(flatbuffers::GetVerifiedRoot<Monster>(span_buf.data(), 3));
+  TEST_NULL(flatbuffers::GetVerifiedRoot<Monster>(span_buf.data(), span_buf.size(), "WRON"));
+
+  // 1f. GetVerifiedRoot on corrupted buffer (tampered root offset) returns nullptr
+  std::vector<uint8_t> corrupted(span_buf.data(), span_buf.data() + span_buf.size());
+  *reinterpret_cast<uoffset_t*>(&corrupted[0]) = 0x7FFFFFFF;
+  TEST_NULL(flatbuffers::GetVerifiedRoot<Monster>(corrupted.data(), corrupted.size()));
+
+  // 2. Test GetVerifiedSizePrefixedRoot
+  flatbuffers::FlatBufferBuilder fbb_sp;
+  auto name_sp = fbb_sp.CreateString("SizePrefixedMonster");
+  MonsterBuilder mb_sp(fbb_sp);
+  mb_sp.add_name(name_sp);
+  auto mloc_sp = mb_sp.Finish();
+  fbb_sp.FinishSizePrefixed(mloc_sp, MonsterIdentifier());
+  auto sp_span = fbb_sp.GetBufferSpan();
+
+  auto sp_monster = flatbuffers::GetVerifiedSizePrefixedRoot<Monster>(
+      sp_span, MonsterIdentifier());
+  TEST_NOTNULL(sp_monster);
+  TEST_EQ_STR(sp_monster->name()->c_str(), "SizePrefixedMonster");
+
+  // 2a. Truncated size-prefixed buffer returns nullptr
+  TEST_NULL(flatbuffers::GetVerifiedSizePrefixedRoot<Monster>(sp_span.data(), 4));
+
+  // 3. Test bounds-checked GetRoot(buf, size) and GetRoot(span)
+  auto checked_root = flatbuffers::GetRoot<Monster>(span_buf);
+  TEST_NOTNULL(checked_root);
+  TEST_EQ_STR(checked_root->name()->c_str(), "SafeMonster");
+
+  auto checked_root_ptr = flatbuffers::GetRoot<Monster>(span_buf.data(), span_buf.size());
+  TEST_NOTNULL(checked_root_ptr);
+
+  // 3a. Size less than sizeof(uoffset_t) returns nullptr
+  TEST_NULL(flatbuffers::GetRoot<Monster>(span_buf.data(), 0));
+  TEST_NULL(flatbuffers::GetRoot<Monster>(span_buf.data(), 1));
+  TEST_NULL(flatbuffers::GetRoot<Monster>(span_buf.data(), 3));
+
+  // 3b. Root offset pointing outside buffer returns nullptr
+  TEST_NULL(flatbuffers::GetRoot<Monster>(corrupted.data(), corrupted.size()));
+
+  // 4. Test BufferHasIdentifier with bounds checking
+  TEST_EQ(flatbuffers::BufferHasIdentifier(span_buf, MonsterIdentifier()), true);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(span_buf.data(), span_buf.size(), MonsterIdentifier()), true);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(span_buf.data(), span_buf.size(), "FAIL"), false);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(span_buf.data(), 0, MonsterIdentifier()), false);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(span_buf.data(), 4, MonsterIdentifier()), false);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(span_buf.data(), 7, MonsterIdentifier()), false);
+
+  // 5. Test span subviews and at()
+  uint8_t raw_arr[8] = {10, 20, 30, 40, 50, 60, 70, 80};
+  flatbuffers::span<uint8_t> s(raw_arr, 8);
+  TEST_EQ(s.at(0), 10);
+  TEST_EQ(s.at(7), 80);
+
+  auto sub = s.subspan(2, 4);
+  TEST_EQ(sub.size(), 4);
+  TEST_EQ(sub[0], 30);
+  TEST_EQ(sub[3], 60);
+
+  auto first3 = s.first(3);
+  TEST_EQ(first3.size(), 3);
+  TEST_EQ(first3[0], 10);
+  TEST_EQ(first3[2], 30);
+
+  auto last2 = s.last(2);
+  TEST_EQ(last2.size(), 2);
+  TEST_EQ(last2[0], 70);
+  TEST_EQ(last2[1], 80);
+
+  auto empty_sub = s.subspan(10);
+  TEST_EQ(empty_sub.empty(), true);
+
+  // 6. Test Vector::GetOptional and Vector::GetSafe
+  flatbuffers::FlatBufferBuilder fbb_vec;
+  auto name_v = fbb_vec.CreateString("VecMonster");
+  auto inv = fbb_vec.CreateVector<uint8_t>({1, 2, 3, 4, 5});
+  MonsterBuilder mb_vec(fbb_vec);
+  mb_vec.add_name(name_v);
+  mb_vec.add_inventory(inv);
+  auto mloc_vec = mb_vec.Finish();
+  fbb_vec.Finish(mloc_vec);
+
+  auto v_root = flatbuffers::GetVerifiedRoot<Monster>(fbb_vec.GetBufferSpan());
+  TEST_NOTNULL(v_root);
+  auto vec = v_root->inventory();
+  TEST_NOTNULL(vec);
+  TEST_EQ(vec->size(), 5);
+
+  auto opt0 = vec->GetOptional(0);
+  TEST_EQ(opt0.has_value(), true);
+  TEST_EQ(opt0.value(), 1);
+
+  auto opt4 = vec->GetOptional(4);
+  TEST_EQ(opt4.has_value(), true);
+  TEST_EQ(opt4.value(), 5);
+
+  auto opt5 = vec->GetOptional(5);
+  TEST_EQ(opt5.has_value(), false);
+
+  auto opt100 = vec->GetOptional(100);
+  TEST_EQ(opt100.has_value(), false);
+
+  TEST_EQ(vec->GetSafe(2, 99), 3);
+  TEST_EQ(vec->GetSafe(5, 99), 99);
+  TEST_EQ(vec->GetSafe(100, 42), 42);
+
+  // 6b. Test Vector::MutateSafe
+  auto* mut_inv = const_cast<flatbuffers::Vector<uint8_t>*>(vec);
+  TEST_EQ(mut_inv->MutateSafe(2, 42), true);
+  TEST_EQ(mut_inv->Get(2), 42);
+  TEST_EQ(mut_inv->MutateSafe(5, 99), false);
+  TEST_EQ(mut_inv->MutateSafe(100, 99), false);
+
+  // 7. Test Table::GetOptionalFieldOffset boundary hardening
+  const flatbuffers::Table* tbl = reinterpret_cast<const flatbuffers::Table*>(v_root);
+  TEST_NOTNULL(tbl);
+  TEST_EQ(tbl->GetOptionalFieldOffset(65534), 0);
+  // Fields 0 and 2 are vtable_size and object_size metadata, must return 0
+  TEST_EQ(tbl->GetOptionalFieldOffset(0), 0);
+  TEST_EQ(tbl->GetOptionalFieldOffset(2), 0);
+  // Unaligned field offsets must return 0
+  TEST_EQ(tbl->GetOptionalFieldOffset(1), 0);
+  TEST_EQ(tbl->GetOptionalFieldOffset(3), 0);
+  TEST_EQ(tbl->GetOptionalFieldOffset(5), 0);
+
+  // 7b. Test Table::GetOptionalFieldOffset off-by-one prevention on malformed vtable
+  // vtable size is 3 (less than field offset + sizeof(voffset_t) when field is 2)
+  uint8_t malformed_buf[16] = {0};
+  // offset 0: vtable starts: vtsize = 3 (uint16_t), objsize = 4 (uint16_t)
+  flatbuffers::WriteScalar<flatbuffers::voffset_t>(&malformed_buf[0], 3);
+  flatbuffers::WriteScalar<flatbuffers::voffset_t>(&malformed_buf[2], 4);
+  // table starts at malformed_buf + 8, soffset pointing back to vtable (-8)
+  flatbuffers::WriteScalar<flatbuffers::soffset_t>(&malformed_buf[8], 8);
+  const flatbuffers::Table* malformed_tbl =
+      reinterpret_cast<const flatbuffers::Table*>(&malformed_buf[8]);
+  // With field = 2: field < 4 returns 0 immediately, preventing metadata misinterpretation
+  TEST_EQ(malformed_tbl->GetOptionalFieldOffset(2), 0);
+
+  // 8. Test Array::GetOptional and Array::GetSafe
+  int32_t raw_array_data[3] = {100, 200, 300};
+  const auto* arr = reinterpret_cast<const flatbuffers::Array<int32_t, 3>*>(raw_array_data);
+  TEST_EQ(arr->size(), 3);
+  TEST_EQ(arr->GetOptional(0).has_value(), true);
+  TEST_EQ(arr->GetOptional(0).value(), 100);
+  TEST_EQ(arr->GetOptional(2).has_value(), true);
+  TEST_EQ(arr->GetOptional(2).value(), 300);
+  TEST_EQ(arr->GetOptional(3).has_value(), false);
+  TEST_EQ(arr->GetSafe(1, -1), 200);
+  TEST_EQ(arr->GetSafe(3, -1), -1);
+
+  // 8b. Test Array::MutateSafe
+  auto* mut_arr = reinterpret_cast<flatbuffers::Array<int32_t, 3>*>(raw_array_data);
+  TEST_EQ(mut_arr->MutateSafe(1, 777), true);
+  TEST_EQ(mut_arr->Get(1), 777);
+  TEST_EQ(mut_arr->MutateSafe(3, 999), false);
+
+  // 9. Test Verifier pointer bounds check for external pointers
+  uint8_t outside_byte = 0xAA;
+  TEST_EQ(span_verifier.VerifyFromPointer(&outside_byte, 1), false);
+  TEST_EQ(span_verifier.VerifyFromPointer(span_buf.data() + span_buf.size() + 10, 1), false);
+
+  // 10. Test flexbuffers::GetRoot on small / truncated buffers
+  auto empty_flex = flexbuffers::GetRoot(nullptr, 0);
+  TEST_EQ(empty_flex.IsNull(), true);
+
+  uint8_t small_flex[2] = {0, 0};
+  auto small_flex_ref = flexbuffers::GetRoot(small_flex, 2);
+  TEST_EQ(small_flex_ref.IsNull(), true);
+
+  // 10b. Test flexbuffers::GetRoot with invalid non-power-of-two or oversized byte_width
+  uint8_t invalid_bw_flex[8] = {1, 2, 3, 4, 5, 6, 0x04, 3};  // byte_width = 3 (invalid)
+  TEST_EQ(flexbuffers::GetRoot(invalid_bw_flex, sizeof(invalid_bw_flex)).IsNull(), true);
+  uint8_t invalid_bw_flex16[20] = {0};
+  invalid_bw_flex16[19] = 16;  // byte_width = 16 (invalid, prevents stack overflow)
+  invalid_bw_flex16[18] = 0x04;
+  TEST_EQ(flexbuffers::GetRoot(invalid_bw_flex16, sizeof(invalid_bw_flex16)).IsNull(), true);
+
+  flexbuffers::Builder flex_b;
+  flex_b.Int(12345);
+  flex_b.Finish();
+  auto flex_span = flatbuffers::span<const uint8_t>(flex_b.GetBuffer().data(), flex_b.GetBuffer().size());
+  auto valid_flex = flexbuffers::GetRoot(flex_span);
+  TEST_EQ(valid_flex.IsNull(), false);
+  TEST_EQ(valid_flex.AsInt32(), 12345);
+
+  // 11. Test DetachedBuffer::span()
+  flatbuffers::DetachedBuffer detached = fbb.Release();
+  TEST_EQ(detached.size(), span_buf.size());
+  auto dspan = detached.span();
+  TEST_EQ(dspan.size(), detached.size());
+  auto dspan_make = flatbuffers::make_span(detached);
+  TEST_EQ(dspan_make.size(), detached.size());
+  auto d_monster = flatbuffers::GetVerifiedRoot<Monster>(detached.data(), detached.size(), MonsterIdentifier());
+  TEST_NOTNULL(d_monster);
+  TEST_EQ_STR(d_monster->name()->c_str(), "SafeMonster");
+
+  // 12. Test BufferRef hardening
+  flatbuffers::BufferRef<Monster> bref(detached.data(), static_cast<uoffset_t>(detached.size()));
+  TEST_NOTNULL(bref.GetRoot());
+  TEST_NOTNULL(bref.GetVerifiedRoot(MonsterIdentifier()));
+  TEST_EQ(bref.GetSpan().size(), detached.size());
+  flatbuffers::BufferRef<Monster> trunc_bref(detached.data(), 2);
+  TEST_NULL(trunc_bref.GetRoot());
+  TEST_NULL(trunc_bref.GetVerifiedRoot());
+
+  // 13. Test GetMutableRoot boundary off-by-one check
+  uint8_t boundary_buf[4];
+  flatbuffers::WriteScalar<flatbuffers::uoffset_t>(boundary_buf, 4);  // offset == size
+  TEST_NULL(flatbuffers::GetRoot<Monster>(boundary_buf, 4));
+
+  // 14. Test GetMutableSizePrefixedRoot integer overflow prevention
+  uint8_t wrap_sp_buf[8];
+  flatbuffers::WriteScalar<flatbuffers::uoffset_t>(&wrap_sp_buf[0], 0xFFFFFFFF);
+  flatbuffers::WriteScalar<flatbuffers::uoffset_t>(&wrap_sp_buf[4], 4);
+  TEST_NULL(flatbuffers::GetSizePrefixedRoot<Monster>(wrap_sp_buf, 8));
+
+  // 15. Test VerifySizePrefixedBuffer integer overflow prevention
+  flatbuffers::Verifier sp_verifier(wrap_sp_buf, 8);
+  TEST_EQ(sp_verifier.VerifySizePrefixedBuffer<Monster>(nullptr), false);
+
+  // 16. Test VerifyTableStart with truncated/corrupt vtable sizes (0 and 2)
+  uint8_t zero_vtsize_buf[16] = {0};
+  flatbuffers::WriteScalar<flatbuffers::voffset_t>(&zero_vtsize_buf[0], 0);  // vsize = 0
+  flatbuffers::WriteScalar<flatbuffers::soffset_t>(&zero_vtsize_buf[8], 8);
+  flatbuffers::Verifier zero_vt_verifier(zero_vtsize_buf, sizeof(zero_vtsize_buf));
+  TEST_EQ(zero_vt_verifier.VerifyTableStart(&zero_vtsize_buf[8]), false);
+
+  uint8_t two_vtsize_buf[16] = {0};
+  flatbuffers::WriteScalar<flatbuffers::voffset_t>(&two_vtsize_buf[0], 2);  // vsize = 2 (missing objsize)
+  flatbuffers::WriteScalar<flatbuffers::soffset_t>(&two_vtsize_buf[8], 8);
+  flatbuffers::Verifier two_vt_verifier(two_vtsize_buf, sizeof(two_vtsize_buf));
+  TEST_EQ(two_vt_verifier.VerifyTableStart(&two_vtsize_buf[8]), false);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +2134,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  MemorySafetyHardeningTest();
   return 0;
 }
 }  // namespace

@@ -37,11 +37,23 @@ struct BufferRef : BufferRefBase {
     if (must_free) free(buf);
   }
 
-  const T* GetRoot() const { return flatbuffers::GetRoot<T>(buf); }
+  const T* GetRoot() const { return flatbuffers::GetRoot<T>(buf, len); }
+
+  const T* GetVerifiedRoot(const char* identifier = nullptr) const {
+    return flatbuffers::GetVerifiedRoot<T>(buf, len, identifier);
+  }
+
+  span<const uint8_t> GetSpan() const {
+    return span<const uint8_t>(buf, len);
+  }
+
+  span<uint8_t> GetSpan() {
+    return span<uint8_t>(buf, len);
+  }
 
   bool Verify() {
     Verifier verifier(buf, len);
-    return verifier.VerifyBuffer<T>(nullptr);
+    return verifier.template VerifyBuffer<T>(nullptr);
   }
 
   uint8_t* buf;

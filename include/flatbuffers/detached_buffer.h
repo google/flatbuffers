@@ -20,6 +20,7 @@
 #include "flatbuffers/allocator.h"
 #include "flatbuffers/base.h"
 #include "flatbuffers/default_allocator.h"
+#include "flatbuffers/stl_emulation.h"
 
 namespace flatbuffers {
 
@@ -85,6 +86,14 @@ class DetachedBuffer {
   uint8_t* end() { return data() + size(); }
   const uint8_t* end() const { return data() + size(); }
 
+  flatbuffers::span<const uint8_t> span() const {
+    return flatbuffers::span<const uint8_t>(data(), size());
+  }
+
+  flatbuffers::span<uint8_t> span() {
+    return flatbuffers::span<uint8_t>(data(), size());
+  }
+
   // These may change access mode, leave these at end of public section
   FLATBUFFERS_DELETE_FUNC(DetachedBuffer(const DetachedBuffer& other));
   FLATBUFFERS_DELETE_FUNC(
@@ -115,6 +124,14 @@ class DetachedBuffer {
     size_ = 0;
   }
 };
+
+inline flatbuffers::span<const uint8_t> make_span(const DetachedBuffer& buf) {
+  return flatbuffers::span<const uint8_t>(buf.data(), buf.size());
+}
+
+inline flatbuffers::span<uint8_t> make_span(DetachedBuffer& buf) {
+  return flatbuffers::span<uint8_t>(buf.data(), buf.size());
+}
 
 }  // namespace flatbuffers
 

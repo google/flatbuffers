@@ -54,6 +54,17 @@ class Array {
 
   return_type operator[](uoffset_t i) const { return Get(i); }
 
+  // Safe bounds-checked element access returning an Optional
+  Optional<return_type> GetOptional(uoffset_t i) const {
+    if (i >= size()) return nullopt;
+    return Optional<return_type>(Get(i));
+  }
+
+  // Safe bounds-checked element access with fallback default value
+  return_type GetSafe(uoffset_t i, return_type default_value = return_type()) const {
+    return (i < size()) ? Get(i) : default_value;
+  }
+
   // If this is a Vector of enums, T will be its storage type, not the enum
   // type. This function makes it convenient to retrieve value with enum
   // type E.
@@ -92,6 +103,13 @@ class Array {
   // Change elements if you have a non-const pointer to this object.
   void Mutate(uoffset_t i, const T& val) { MutateImpl(scalar_tag(), i, val); }
 
+  // Safe bounds-checked mutation returning false if out of bounds
+  bool MutateSafe(uoffset_t i, const T& val) {
+    if (i >= size()) return false;
+    Mutate(i, val);
+    return true;
+  }
+
   // The raw data in little endian format. Use with care.
   const uint8_t* Data() const { return data_; }
 
@@ -104,12 +122,13 @@ class Array {
   // Copy data from a span with endian conversion.
   // If this Array and the span overlap, the behavior is undefined.
   void CopyFromSpan(flatbuffers::span<const T, length> src) {
-    const auto p1 = reinterpret_cast<const uint8_t*>(src.data());
-    const auto p2 = Data();
-    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length)) &&
-                       !(p2 >= p1 && p2 < (p1 + length)));
-    (void)p1;
-    (void)p2;
+    const auto u1 = reinterpret_cast<uintptr_t>(src.data());
+    const auto u2 = reinterpret_cast<uintptr_t>(Data());
+    const size_t byte_length = length * sizeof(T);
+    FLATBUFFERS_ASSERT(!(u1 >= u2 && u1 < (u2 + byte_length)) &&
+                       !(u2 >= u1 && u2 < (u1 + byte_length)));
+    (void)u1;
+    (void)u2;
     CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
   }
 

@@ -34,13 +34,24 @@ class Table {
   // This gets the field offset for any of the functions below it, or 0
   // if the field was not present.
   voffset_t GetOptionalFieldOffset(voffset_t field) const {
+    // The vtable layout is:
+    // uint16_t vtable_size;
+    // uint16_t object_size;
+    // uint16_t field_offsets[];
+    // Field offsets must be aligned to sizeof(voffset_t) and start at or after offset 4.
+    if (field < 2 * sizeof(voffset_t) || (field & (sizeof(voffset_t) - 1)) != 0) {
+      return 0;
+    }
     // The vtable offset is always at the start.
     auto vtable = GetVTable();
     // The first element is the size of the vtable (fields + type id + itself).
     auto vtsize = ReadScalar<voffset_t>(vtable);
     // If the field we're accessing is outside the vtable, we're reading older
     // data, so it's the same as if the offset was 0 (not present).
-    return field < vtsize ? ReadScalar<voffset_t>(vtable + field) : 0;
+    // Ensure the entire voffset_t fits within the vtable to prevent reading out of bounds.
+    return (vtsize >= sizeof(voffset_t) && field <= vtsize - sizeof(voffset_t))
+               ? ReadScalar<voffset_t>(vtable + field)
+               : 0;
   }
 
   template <typename T>
