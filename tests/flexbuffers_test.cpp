@@ -314,5 +314,64 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+// Regression test for the span-based Verifier (Safe Buffers migration).
+// Exercises the Verifier on truncated and byte-mutated buffers, including
+// the shared-keys path that drives the reuse_tracker and the
+// FLEX_CHECK_VERIFIED macro. Verdicts are compared against golden
+// values frozen from the pre-migration implementation: a refactor must
+// not change which buffers verify.
+void FlexBuffersVerifierSpanTest() {
+  flexbuffers::Builder slb(512, flexbuffers::BUILDER_FLAG_SHARE_ALL);
+  slb.Map([&]() {
+    slb.String("name", "fenrir");
+    slb.Int("shards", 7);
+    slb.Vector("vec", [&]() { slb.Int(1); slb.Int(2); });
+    slb.Blob("blob", "abcd", 4);
+    slb.Map("nested", [&]() { slb.String("k", "v"); });
+  });
+  slb.Finish();
+  const auto &buf = slb.GetBuffer();
+  const size_t n = buf.size();
+
+  // The intact buffer must verify, with and without the reuse tracker.
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), n), true);
+  std::vector<uint8_t> tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), n, &tracker), true);
+
+  // Truncations: a prefix whose trailing bytes happen to form a valid
+  // root verifies legitimately (the format is self-describing from the
+  // end), so we only pin the TOTAL count of prefixes that verify.
+  // Golden value frozen from the pre-migration Verifier for this corpus.
+  size_t verified_prefixes = 0;
+  for (size_t k = 0; k + 1 < n; k++) {
+    if (flexbuffers::VerifyBuffer(buf.data(), k)) verified_prefixes++;
+  }
+  TEST_EQ(verified_prefixes, static_cast<size_t>(12));
+
+  // Single-byte mutations: count of buffers that still verify (they are
+  // valid alternative buffers, not failures). Golden value frozen from
+  // the pre-migration Verifier; the safety property (no out-of-bounds
+  // access) is enforced by the sanitizers in the fuzzing builds.
+  size_t verified_mutations = 0;
+  for (size_t i = 0; i < n; i++) {
+    std::vector<uint8_t> mut = buf;
+    mut[i] = static_cast<uint8_t>(mut[i] ^ 0xFF);
+    std::vector<uint8_t> t;
+    if (flexbuffers::VerifyBuffer(mut.data(), mut.size(), &t)) {
+      verified_mutations++;
+    }
+  }
+  TEST_EQ(verified_mutations, static_cast<size_t>(46));
+
+  // Degenerate inputs must be rejected without crashing.
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 0), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), 0), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), 1), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), 2), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
+
+
+
