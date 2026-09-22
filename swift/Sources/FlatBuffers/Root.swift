@@ -103,6 +103,9 @@ public func getPrefixedSizeRoot<T: FlatBufferTable>(
   byteBuffer: inout ByteBuffer)
   -> T
 {
+  guard byteBuffer.size >= MemoryLayout<Int32>.size else {
+    fatalError("ByteBuffer is too small to hold a size prefix")
+  }
   byteBuffer.skipPrefix()
   return getRoot(byteBuffer: &byteBuffer)
 
@@ -139,8 +142,13 @@ public func getCheckedRoot<T: FlatBufferTable & Verifiable>(
 /// - Parameter byteBuffer: Buffer that contains data
 /// - Returns: Returns a Flatbuffers object
 public func getRoot<T: FlatBufferTable>(byteBuffer: inout ByteBuffer) -> T {
-  T.init(
-    byteBuffer,
-    o: Int32(byteBuffer.read(def: UOffset.self, position: byteBuffer.reader))
-      &+ Int32(byteBuffer.reader))
+  let reader = byteBuffer.reader
+  guard reader &+ MemoryLayout<UOffset>.size <= byteBuffer.capacity else {
+    fatalError("ByteBuffer is too small to hold a root offset")
+  }
+  let position = reader &+ Int(byteBuffer.read(def: UOffset.self, position: reader))
+  guard position &+ MemoryLayout<Int32>.size <= byteBuffer.capacity else {
+    fatalError("Root offset points outside of the ByteBuffer bounds")
+  }
+  return T.init(byteBuffer, o: Int32(position))
 }
