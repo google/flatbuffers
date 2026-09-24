@@ -632,6 +632,25 @@ void SizePrefixedTest() {
     flatbuffers::Verifier verifier_smaller(fbb.GetBufferPointer(),
                                            fbb.GetSize() - 10);
     TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_smaller), false);
+
+    // Verify that a truncated buffer smaller than
+    // start + FLATBUFFERS_MIN_BUFFER_SIZE or start + 2 * sizeof(uoffset_t)
+    // safely fails verification without out-of-bounds reads.
+    flatbuffers::Verifier verifier_truncated_id(
+        fbb.GetBufferPointer(),
+        sizeof(flatbuffers::uoffset_t) + 2 * sizeof(flatbuffers::uoffset_t) - 1);
+    TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_truncated_id), false);
+
+    flatbuffers::Verifier verifier_truncated_min(
+        fbb.GetBufferPointer(),
+        sizeof(flatbuffers::uoffset_t) + FLATBUFFERS_MIN_BUFFER_SIZE - 1);
+    TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_truncated_min), false);
+
+    // Verify offset at or beyond the buffer boundary safely fails.
+    flatbuffers::Verifier verifier_boundary(fbb.GetBufferPointer(), fbb.GetSize());
+    TEST_EQ(verifier_boundary.VerifyBufferFromStart<MyGame::Example::Monster>(
+                MyGame::Example::MonsterIdentifier(), fbb.GetSize()),
+            false);
   }
 }
 

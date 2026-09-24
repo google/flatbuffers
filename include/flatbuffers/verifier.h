@@ -204,11 +204,16 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     // Buffers have to be of some size to be valid. The reason it is a runtime
     // check instead of static_assert, is that nested flatbuffers go through
     // this call and their size is determined at runtime.
-    if (!Check(size_ >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+    if (!Check(start <= size_ &&
+               size_ - start >= FLATBUFFERS_MIN_BUFFER_SIZE)) {
+      return false;
+    }
 
     // If an identifier is provided, check that we have a buffer
-    if (identifier && !Check((size_ >= 2 * sizeof(flatbuffers::uoffset_t) &&
-                              BufferHasIdentifier(buf_ + start, identifier)))) {
+    if (identifier &&
+        !Check(start <= size_ &&
+               size_ - start >= 2 * sizeof(flatbuffers::uoffset_t) &&
+               BufferHasIdentifier(buf_ + start, identifier))) {
       return false;
     }
 
@@ -256,8 +261,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   bool VerifySizePrefixedBuffer(const char* const identifier) {
     return Verify<SizeT>(0U) &&
            // Ensure the prefixed size is within the bounds of the provided
-           // length.
-           Check(ReadScalar<SizeT>(buf_) + sizeof(SizeT) <= size_) &&
+           // length without overflow.
+           Check(ReadScalar<SizeT>(buf_) <= size_ - sizeof(SizeT)) &&
            VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 
