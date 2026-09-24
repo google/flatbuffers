@@ -9,6 +9,7 @@ void FlexBuffersReuseBugTest();
 void FlexBuffersFloatingPointTest();
 void FlexBuffersDeprecatedTest();
 void ParseFlexbuffersFromJsonWithNullTest();
+void FlexBuffersVerifyMapKeysLengthTest();
 
 }  // namespace tests
 }  // namespace flatbuffers

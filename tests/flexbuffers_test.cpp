@@ -314,5 +314,61 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersVerifyMapKeysLengthTest() {
+  flexbuffers::Builder fbb;
+  size_t start = fbb.StartMap();
+  fbb.Int("key1", 100);
+  fbb.Int("key2", 200);
+  fbb.EndMap(start);
+  fbb.Finish();
+
+  auto buf = fbb.GetBuffer();
+  // A valid map with 2 keys and 2 values must verify successfully.
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), true);
+
+  auto root = flexbuffers::GetRoot(buf);
+  auto map = root.AsMap();
+  TEST_EQ(map.size(), 2U);
+  TEST_EQ(map.Keys().size(), 2U);
+  TEST_EQ(map.Values().size(), 2U);
+
+  // In the FlexBuffers map encoding, values vector data is at map.Values().data().
+  // Immediately preceding it are the map header fields:
+  //   data_ - 1 * byte_width: values_len
+  //   data_ - 2 * byte_width: keys_width
+  //   data_ - 3 * byte_width: keys_offset
+  // The keys vector data is at (data_ - 3 * byte_width) - keys_offset.
+  // Immediately preceding the keys vector data is its keys_len prefix.
+  const uint8_t byte_width = 1;
+  const uint8_t* map_data = map.Values().data();
+  const uint8_t* keys_offset_ptr = map_data - 3 * byte_width;
+  uint64_t keys_offset = flexbuffers::ReadUInt64(keys_offset_ptr, byte_width);
+  const uint8_t* keys_data = keys_offset_ptr - keys_offset;
+  uint8_t* keys_len_ptr = const_cast<uint8_t*>(keys_data - byte_width);
+
+  // Corrupt keys length to 1 (mismatched with values length 2)
+  uint8_t orig_keys_len = *keys_len_ptr;
+  *keys_len_ptr = 1;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), false);
+
+  // Corrupt keys length to 0 (mismatched with values length 2)
+  *keys_len_ptr = 0;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), false);
+
+  // Restore original keys length
+  *keys_len_ptr = orig_keys_len;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), true);
+
+  // Corrupt values length to 1 (mismatched with keys length 2)
+  uint8_t* values_len_ptr = const_cast<uint8_t*>(map_data - byte_width);
+  uint8_t orig_values_len = *values_len_ptr;
+  *values_len_ptr = 1;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), false);
+
+  // Restore original values length
+  *values_len_ptr = orig_values_len;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), true);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

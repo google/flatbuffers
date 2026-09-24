@@ -1963,14 +1963,18 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // The vector part of the map has already been verified.
     const size_t num_prefixed_fields = 3;
     if (!VerifyBeforePointer(p, byte_width * num_prefixed_fields)) return false;
+    const uint8_t* const values_p = p;
     p -= byte_width * num_prefixed_fields;
     auto off = ReadUInt64(p, byte_width);
     if (!VerifyOffset(off, p)) return false;
     auto key_byte_with =
         static_cast<uint8_t>(ReadUInt64(p + byte_width, byte_width));
     if (!VerifyByteWidth(key_byte_with)) return false;
-    return VerifyVector(Reference(p, byte_width, key_byte_with, FBT_VECTOR_KEY),
-                        p - off, FBT_KEY);
+    if (!VerifyVector(Reference(p, byte_width, key_byte_with, FBT_VECTOR_KEY),
+                      p - off, FBT_KEY))
+      return false;
+    return Check(Sized(p - off, key_byte_with).size() ==
+                 Sized(values_p, byte_width).size());
   }
 
   bool VerifyKey(const uint8_t* p) {
