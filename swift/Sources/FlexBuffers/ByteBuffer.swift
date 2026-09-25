@@ -411,7 +411,7 @@ public struct ByteBuffer {
     index: Int,
     count: Int) -> [T]
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
 
@@ -429,7 +429,7 @@ public struct ByteBuffer {
     count: Int,
     type: String.Encoding) -> String?
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
     return _storage.readWithUnsafeRawPointer(position: index) {
@@ -451,7 +451,7 @@ public struct ByteBuffer {
     at index: Int,
     count: Int) -> String?
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
     return _storage.readWithUnsafeRawPointer(position: index) {
@@ -470,7 +470,7 @@ public struct ByteBuffer {
     count: Int,
     body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
     return try _storage.readWithUnsafeRawPointer(position: index) {
