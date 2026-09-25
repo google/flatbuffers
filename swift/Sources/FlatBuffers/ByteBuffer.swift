@@ -370,7 +370,7 @@ public struct ByteBuffer: @unchecked Sendable {
     index: Int,
     count: Int) -> [T]
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
 
@@ -393,7 +393,7 @@ public struct ByteBuffer: @unchecked Sendable {
     count: Int,
     body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
     return try _storage.readWithUnsafeRawPointer(position: index) {
@@ -413,7 +413,7 @@ public struct ByteBuffer: @unchecked Sendable {
     count: Int,
     type: String.Encoding = .utf8) -> String?
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
     return _storage.readWithUnsafeRawPointer(position: index) {
@@ -435,7 +435,7 @@ public struct ByteBuffer: @unchecked Sendable {
     at index: Int,
     count: Int) -> String?
   {
-    assert(
+    precondition(
       index + count <= capacity,
       "Reading out of bounds is illegal")
     return _storage.readWithUnsafeRawPointer(position: index) {
@@ -465,6 +465,9 @@ public struct ByteBuffer: @unchecked Sendable {
   @usableFromInline
   @inline(__always)
   mutating func skipPrefix() -> Int32 {
+    precondition(
+      _readerIndex >= MemoryLayout<Int32>.size && capacity >= MemoryLayout<Int32>.size,
+      "Reading out of bounds is illegal")
     _readerIndex = _readerIndex &- MemoryLayout<Int32>.size
     return read(def: Int32.self, position: 0)
   }
