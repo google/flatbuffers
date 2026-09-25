@@ -83,7 +83,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
         upper_bound_ = upper_bound;
       }
     }
-    return Check(elem_len < size_ && elem <= size_ - elem_len);
+    return Check(buf_ != nullptr && elem_len < size_ &&
+                 elem <= size_ - elem_len);
   }
 
   bool VerifyAlignment(const size_t elem, const size_t align) const {
@@ -204,7 +205,9 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     // Buffers have to be of some size to be valid. The reason it is a runtime
     // check instead of static_assert, is that nested flatbuffers go through
     // this call and their size is determined at runtime.
-    if (!Check(size_ >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+    if (!Check(buf_ != nullptr && size_ >= FLATBUFFERS_MIN_BUFFER_SIZE)) {
+      return false;
+    }
 
     // If an identifier is provided, check that we have a buffer
     if (identifier && !Check((size_ >= 2 * sizeof(flatbuffers::uoffset_t) &&

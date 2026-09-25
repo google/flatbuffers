@@ -1860,7 +1860,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         reuse_tracker_(reuse_tracker) {
     FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) <
                        FLATBUFFERS_MAX_BUFFER_SIZE);
-    if (reuse_tracker_) {
+    if (buf_ && reuse_tracker_) {
       reuse_tracker_->clear();
       reuse_tracker_->resize(size_, PackedType(BIT_WIDTH_8, FBT_NULL));
     }
@@ -1879,10 +1879,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   // Verify any range within the buffer.
   bool VerifyFrom(size_t elem, size_t elem_len) const {
-    return Check(elem_len < size_ && elem <= size_ - elem_len);
+    return Check(buf_ != nullptr && elem_len < size_ &&
+                 elem <= size_ - elem_len);
   }
   bool VerifyBefore(size_t elem, size_t elem_len) const {
-    return Check(elem_len <= elem);
+    return Check(buf_ != nullptr && elem_len <= elem);
   }
 
   bool VerifyFromPointer(const uint8_t* p, size_t len) {
@@ -2050,7 +2051,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
  public:
   bool VerifyBuffer() {
-    if (!Check(size_ >= 3)) return false;
+    if (!Check(buf_ != nullptr && size_ >= 3)) return false;
     auto end = buf_ + size_;
     auto byte_width = *--end;
     auto packed_type = *--end;
@@ -2073,6 +2074,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 // parameters.
 inline bool VerifyBuffer(const uint8_t* buf, size_t buf_len,
                          std::vector<uint8_t>* reuse_tracker = nullptr) {
+  if (!buf) return false;
   Verifier verifier(buf, buf_len, reuse_tracker);
   return verifier.VerifyBuffer();
 }

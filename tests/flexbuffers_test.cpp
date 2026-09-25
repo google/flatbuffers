@@ -314,5 +314,14 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersVerifyNullBufferTest() {
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 0), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 10), false);
+  std::vector<uint8_t> reuse_tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 10, &reuse_tracker), false);
+  flexbuffers::Verifier verifier(nullptr, 10);
+  TEST_EQ(verifier.VerifyBuffer(), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

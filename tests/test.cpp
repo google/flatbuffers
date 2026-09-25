@@ -1319,6 +1319,12 @@ void SizeVerifierTest() {
   TEST_EQ(length, size_verifier.GetComputedSize());
 }
 
+void VerifierNullBufferTest() {
+  flatbuffers::Verifier null_verifier(nullptr, 100);
+  TEST_EQ(false, null_verifier.VerifyBuffer<Monster>());
+  TEST_EQ(false, null_verifier.Verify(0, 10));
+}
+
 template <class T, class Container>
 void TestIterators(const std::vector<T>& expected, const Container& tested) {
   TEST_ASSERT(tested.rbegin().base() == tested.end());
@@ -1840,6 +1846,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   NativeTypeTest();
   OptionalScalarsTest();
   ParseFlexbuffersFromJsonWithNullTest();
+  FlexBuffersVerifyNullBufferTest();
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
   FixedLengthArrayOperatorEqualTest();
@@ -1850,6 +1857,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   WarningsAsErrorsTest();
   NestedVerifierTest();
   SizeVerifierTest();
+  VerifierNullBufferTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
   VectorSpanTest();
