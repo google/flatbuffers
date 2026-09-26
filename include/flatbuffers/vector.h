@@ -249,19 +249,29 @@ class Vector {
 
   // Change elements if you have a non-const pointer to this object.
   // Scalars only. See reflection.h, and the documentation.
-  void Mutate(SizeT i, const T& val) {
+  // Returns false (and performs no write) if `i` is out of range, so an
+  // out-of-range caller-supplied index cannot cause an out-of-bounds write
+  // even in a release (NDEBUG) build where FLATBUFFERS_ASSERT is compiled
+  // out. The assert is kept for early detection in debug builds.
+  bool Mutate(SizeT i, const T& val) {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size()) return false;
     WriteScalar(data() + i, val);
+    return true;
   }
 
   // Change an element of a vector of tables (or strings).
   // "val" points to the new table/string, as you can obtain from
   // e.g. reflection::AddFlatBuffer().
-  void MutateOffset(SizeT i, const uint8_t* val) {
+  // Returns false (and performs no write) if `i` is out of range; see the
+  // comment on Mutate() above.
+  bool MutateOffset(SizeT i, const uint8_t* val) {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size()) return false;
     static_assert(sizeof(T) == sizeof(SizeT), "Unrelated types");
     WriteScalar(data() + i,
                 static_cast<SizeT>(val - (Data() + i * sizeof(SizeT))));
+    return true;
   }
 
   // Get a mutable pointer to tables/strings inside this vector.
