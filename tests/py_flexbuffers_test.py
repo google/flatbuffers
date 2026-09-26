@@ -393,6 +393,7 @@ class DecoderTest(unittest.TestCase):
   def _check_int(self, data, value):
     root = flexbuffers.GetRoot(data)
     self.assertTrue(root.IsInt)
+    self.assertFalse(root.IsAnyVector)
     self.assertEqual(root.AsInt, value)
     self.assertEqual(root.AsBool, bool(value))
     self.assertEqual(root.AsFloat, float(value))
@@ -698,6 +699,7 @@ class DecoderTest(unittest.TestCase):
 
     root = flexbuffers.GetRoot(data)
     self.assertTrue(root.IsFixedTypedVector)
+    self.assertTrue(root.IsAnyVector)
 
     v = root.AsFixedTypedVector
     self.assertEqual(len(v), len(vector))

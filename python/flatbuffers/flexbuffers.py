@@ -802,7 +802,7 @@ class Ref:
 
   @property
   def IsAnyVector(self):
-    return self.IsVector or self.IsTypedVector or self.IsFixedTypedVector()
+    return self.IsVector or self.IsTypedVector or self.IsFixedTypedVector
 
   @property
   def IsVector(self):
