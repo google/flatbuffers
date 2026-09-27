@@ -1594,6 +1594,42 @@ class EncoderTest(unittest.TestCase):
     fbb.Int(420)
     fbb.Finish()
 
+class MalformedMapTest(unittest.TestCase):
+  """A map stores its element count twice, in two independent size
+  prefixes: the values-vector prefix (shared by Map and Values) and the
+  key-vector prefix. In a valid buffer the two counts agree; the Python
+  reader previously accepted disagreements silently (the C++ verifier
+  has the same gap, #9274)."""
+
+  def _valid_map(self):
+    fbb = flexbuffers.Builder()
+    with fbb.Map():
+      fbb.Int('y', -2)
+      fbb.Int('x', 10)
+    return bytearray(fbb.Finish())
+
+  def test_valid_map_still_loads(self):
+    self.assertEqual(flexbuffers.Loads(bytes(self._valid_map())),
+                     {'x': 10, 'y': -2})
+
+  def test_keys_size_disagreement_rejected(self):
+    data = self._valid_map()
+    data[4] = 3  # key-vector count: one more key than map entries
+    with self.assertRaises(IndexError):
+      flexbuffers.GetRoot(bytearray(bytes(data))).AsMap.Value
+
+  def test_values_size_disagreement_rejected(self):
+    data = self._valid_map()
+    data[9] = 3  # values-vector prefix (shared with the map): count 3
+    with self.assertRaises(IndexError):
+      flexbuffers.GetRoot(bytearray(bytes(data))).AsMap.Value
+
+  def test_keys_header_corruption_rejected(self):
+    data = self._valid_map()
+    data[7] = 0  # keys-vector header area: the keys count reads zero
+    with self.assertRaises(IndexError):
+      flexbuffers.GetRoot(bytearray(bytes(data))).AsMap.Value
+
 
 if __name__ == '__main__':
   unittest.main()
