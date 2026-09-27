@@ -16,6 +16,21 @@ from . import encode
 from . import number_types as N
 
 
+def _CheckOffset(buf, offset, size, what):
+  """Raise IndexError unless a `size` byte read at `offset` fits in `buf`.
+
+  Offsets come from the buffer itself when reading untrusted data.
+  `struct.unpack_from` bounds-checks only the upper end (and silently
+  accepts negative offsets, reading relative to the end), and plain
+  slicing clamps, so malformed buffers previously produced wrong values
+  instead of errors.
+  """
+  if offset < 0 or offset + size > len(buf):
+    raise IndexError(
+        'FlatBuffers: %s read of %d byte(s) at offset %d is outside the'
+        ' buffer of %d byte(s)' % (what, size, offset, len(buf)))
+
+
 class Table(object):
   """Table wraps a byte slice and provides read access to its data.
 
@@ -37,6 +52,7 @@ class Table(object):
     """
 
     vtable = self.Pos - self.Get(N.SOffsetTFlags, self.Pos)
+    _CheckOffset(self.Bytes, vtable, N.VOffsetTFlags.bytewidth, 'vtable')
     vtableEnd = self.Get(N.VOffsetTFlags, vtable)
     if vtableOffset < vtableEnd:
       return self.Get(N.VOffsetTFlags, vtable + vtableOffset)
@@ -45,14 +61,19 @@ class Table(object):
   def Indirect(self, off):
     """Indirect retrieves the relative offset stored at `offset`."""
     N.enforce_number(off, N.UOffsetTFlags)
-    return off + encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    target = off + encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    _CheckOffset(self.Bytes, target, 0, 'indirect')
+    return target
 
   def String(self, off):
     """String gets a string from data stored inside the flatbuffer."""
     N.enforce_number(off, N.UOffsetTFlags)
     off += encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
-    start = off + N.UOffsetTFlags.bytewidth
+    # Lengths are unsigned; a huge malformed length is rejected by the
+    # range check below rather than silently clamped by the slice.
     length = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    start = off + N.UOffsetTFlags.bytewidth
+    _CheckOffset(self.Bytes, start, length, 'string')
     return bytes(self.Bytes[start : start + length])
 
   def VectorLen(self, off):
@@ -64,8 +85,7 @@ class Table(object):
 
     off += self.Pos
     off += encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
-    ret = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
-    return ret
+    return encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
 
   def Vector(self, off):
     """Vector retrieves the start of data of the vector whose offset is
@@ -78,6 +98,8 @@ class Table(object):
     x = off + self.Get(N.UOffsetTFlags, off)
     # data starts after metadata containing the vector length
     x += N.UOffsetTFlags.bytewidth
+    # An empty vector may start exactly at the end of the buffer.
+    _CheckOffset(self.Bytes, x, 0, 'vector')
     return x
 
   def Union(self, t2, off):
