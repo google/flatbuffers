@@ -557,7 +557,7 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   template <template <typename> class OffsetT = Offset>
   OffsetT<String> CreateString(const char* str) {
-    return CreateString<OffsetT>(str, strlen(str));
+    return str ? CreateString<OffsetT>(str, strlen(str)) : 0;
   }
 
   /// @brief Store a string in the buffer, which is null-terminated.
@@ -565,7 +565,7 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   template <template <typename> class OffsetT = Offset>
   OffsetT<String> CreateString(char* str) {
-    return CreateString<OffsetT>(str, strlen(str));
+    return str ? CreateString<OffsetT>(str, strlen(str)) : 0;
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -655,7 +655,7 @@ class FlatBufferBuilderImpl {
   /// @param[in] str A const char pointer to a C-string to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char* str) {
-    return CreateSharedString(str, strlen(str));
+    return str ? CreateSharedString(str, strlen(str)) : 0;
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -1413,7 +1413,13 @@ class FlatBufferBuilderImpl {
     NotNested();
     PreAlign<uoffset_t>(len + 1);  // Always 0-terminated.
     buf_.fill(1);
-    PushBytes(reinterpret_cast<const uint8_t*>(str), len);
+    if (len > 0) {
+      if (str != nullptr) {
+        PushBytes(reinterpret_cast<const uint8_t*>(str), len);
+      } else {
+        buf_.fill(len);
+      }
+    }
     PushElement(static_cast<uoffset_t>(len));
   }
 

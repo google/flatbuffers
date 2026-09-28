@@ -92,8 +92,15 @@ FLATBUFFERS_CONSTEXPR size_t AlignOf() {
 // return true if the first is less than the second.
 static inline bool StringLessThan(const char* a_data, uoffset_t a_size,
                                   const char* b_data, uoffset_t b_size) {
-  const auto cmp = memcmp(a_data, b_data, (std::min)(a_size, b_size));
-  return cmp == 0 ? a_size < b_size : cmp < 0;
+  const auto min_size = (std::min)(a_size, b_size);
+  if (min_size > 0) {
+    if (!a_data || !b_data) {
+      return a_data ? false : (b_data ? true : a_size < b_size);
+    }
+    const auto cmp = memcmp(a_data, b_data, min_size);
+    if (cmp != 0) return cmp < 0;
+  }
+  return a_size < b_size;
 }
 
 // When we read serialized data from memory, in the case of most scalars,

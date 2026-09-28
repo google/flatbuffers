@@ -557,6 +557,20 @@ void CreateSharedStringTest() {
   TEST_EQ(onetwo.o != one1.o, true);
   TEST_EQ(onetwo.o != two.o, true);
 
+  // NULL pointer safety checks
+  const char* null_cstr = nullptr;
+  char* null_mstr = nullptr;
+  TEST_EQ(builder.CreateString(null_cstr).IsNull(), true);
+  TEST_EQ(builder.CreateString(null_mstr).IsNull(), true);
+  TEST_EQ(builder.CreateSharedString(null_cstr).IsNull(), true);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, "a", 1), true);
+  TEST_EQ(flatbuffers::StringLessThan("a", 1, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 3, "abc", 3), true);
+  TEST_EQ(flatbuffers::StringLessThan("abc", 3, nullptr, 3), false);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 2, nullptr, 5), true);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 5, nullptr, 2), false);
+
   // Support for embedded nulls
   const char chars_b[] = {'a', '\0', 'b'};
   const char chars_c[] = {'a', '\0', 'c'};
