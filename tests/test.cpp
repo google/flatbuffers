@@ -38,6 +38,7 @@
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/hash.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
@@ -601,6 +602,43 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[5]) < (*a[4]), false);
   TEST_EQ((*a[5]) < (*a[4]), false);
   TEST_EQ((*a[6]) < (*a[5]), true);
+}
+
+void BufferAndHashNullGuardsTest() {
+  // Test GetBufferIdentifier with null buffer
+  TEST_NULL(flatbuffers::GetBufferIdentifier(nullptr));
+  TEST_NULL(flatbuffers::GetBufferIdentifier(nullptr, true));
+
+  // Test BufferHasIdentifier with null buffer or identifier
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, "TEST"), false);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, nullptr), false);
+
+  // Test size prefixed root access with null buffer
+  TEST_NULL(flatbuffers::GetMutableSizePrefixedRoot<Monster>(nullptr));
+  TEST_NULL(flatbuffers::GetSizePrefixedRoot<Monster>(nullptr));
+
+  // Test BufferRef with null or empty buffer
+  flatbuffers::BufferRef<Monster> empty_ref;
+  TEST_NULL(empty_ref.GetRoot());
+  TEST_EQ(empty_ref.Verify(), false);
+
+  // Test Hash functions with null input
+  TEST_EQ(flatbuffers::HashFnv1<uint32_t>(nullptr), 0U);
+  TEST_EQ(flatbuffers::HashFnv1a<uint32_t>(nullptr), 0U);
+  TEST_EQ(flatbuffers::HashFnv1<uint64_t>(nullptr), 0ULL);
+  TEST_EQ(flatbuffers::HashFnv1a<uint64_t>(nullptr), 0ULL);
+  TEST_NULL(flatbuffers::FindHashFunction16(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction32(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction64(nullptr));
+
+  // Test Registry methods with null inputs
+  flatbuffers::Registry registry;
+  registry.Register(nullptr, nullptr);
+  std::string dest;
+  TEST_EQ(registry.FlatBufferToText(nullptr, 0, &dest), false);
+  TEST_EQ(registry.FlatBufferToText(nullptr, 16, &dest), false);
+  const auto detached = registry.TextToFlatBuffer(nullptr, nullptr);
+  TEST_NULL(detached.data());
 }
 
 #if !defined(FLATBUFFERS_USE_STD_SPAN) && !defined(FLATBUFFERS_SPAN_MINIMAL)
@@ -1827,6 +1865,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   TypeAliasesTest();
   EndianSwapTest();
   CreateSharedStringTest();
+  BufferAndHashNullGuardsTest();
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
