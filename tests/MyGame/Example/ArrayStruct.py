@@ -84,23 +84,23 @@ class ArrayStruct(object):
 
 def CreateArrayStruct(builder, a, b, c, d_a, d_b, d_c, d_d, e, f):
     builder.Prep(8, 160)
-    for _idx0 in range(2 , 0, -1):
+    for _idx0 in range(2, 0, -1):
         builder.PrependInt64(f[_idx0-1])
     builder.Pad(4)
     builder.PrependInt32(e)
-    for _idx0 in range(2 , 0, -1):
+    for _idx0 in range(2, 0, -1):
         builder.Prep(8, 32)
-        for _idx1 in range(2 , 0, -1):
+        for _idx1 in range(2, 0, -1):
             builder.PrependInt64(d_d[_idx0-1][_idx1-1])
         builder.Pad(5)
-        for _idx1 in range(2 , 0, -1):
+        for _idx1 in range(2, 0, -1):
             builder.PrependInt8(d_c[_idx0-1][_idx1-1])
         builder.PrependInt8(d_b[_idx0-1])
-        for _idx1 in range(2 , 0, -1):
+        for _idx1 in range(2, 0, -1):
             builder.PrependInt32(d_a[_idx0-1][_idx1-1])
     builder.Pad(7)
     builder.PrependInt8(c)
-    for _idx0 in range(15 , 0, -1):
+    for _idx0 in range(15, 0, -1):
         builder.PrependInt32(b[_idx0-1])
     builder.PrependFloat32(a)
     return builder.Offset()
@@ -179,4 +179,24 @@ class ArrayStructT(object):
 
     # ArrayStructT
     def Pack(self, builder):
-        return CreateArrayStruct(builder, self.a, self.b, self.c, self.d.a, self.d.b, self.d.c, self.d.d, self.e, self.f)
+        builder.Prep(8, 160)
+        for _idx0 in range(2, 0, -1):
+            builder.PrependInt64(self.f[_idx0-1])
+        builder.Pad(4)
+        builder.PrependInt32(self.e)
+        for _idx0 in range(2, 0, -1):
+            builder.Prep(8, 32)
+            for _idx1 in range(2, 0, -1):
+                builder.PrependInt64(self.d[_idx0-1].d[_idx1-1])
+            builder.Pad(5)
+            for _idx1 in range(2, 0, -1):
+                builder.PrependInt8(self.d[_idx0-1].c[_idx1-1])
+            builder.PrependInt8(self.d[_idx0-1].b)
+            for _idx1 in range(2, 0, -1):
+                builder.PrependInt32(self.d[_idx0-1].a[_idx1-1])
+        builder.Pad(7)
+        builder.PrependInt8(self.c)
+        for _idx0 in range(15, 0, -1):
+            builder.PrependInt32(self.b[_idx0-1])
+        builder.PrependFloat32(self.a)
+        return builder.Offset()

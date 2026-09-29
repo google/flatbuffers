@@ -281,7 +281,11 @@ class TestT(object):
 
     # TestT
     def Pack(self, builder):
-        return CreateTest(builder, self.a, self.b)
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(self.b)
+        builder.PrependInt16(self.a)
+        return builder.Offset()
 
 
 class TestSimpleTableWithEnum(object):
@@ -462,7 +466,20 @@ class Vec3T(object):
 
     # Vec3T
     def Pack(self, builder):
-        return CreateVec3(builder, self.x, self.y, self.z, self.test1, self.test2, self.test3.a, self.test3.b)
+        builder.Prep(8, 32)
+        builder.Pad(2)
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(self.test3.b)
+        builder.PrependInt16(self.test3.a)
+        builder.Pad(1)
+        builder.PrependUint8(self.test2)
+        builder.PrependFloat64(self.test1)
+        builder.Pad(4)
+        builder.PrependFloat32(self.z)
+        builder.PrependFloat32(self.y)
+        builder.PrependFloat32(self.x)
+        return builder.Offset()
 
 
 class Ability(object):
@@ -525,7 +542,10 @@ class AbilityT(object):
 
     # AbilityT
     def Pack(self, builder):
-        return CreateAbility(builder, self.id, self.distance)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.distance)
+        builder.PrependUint32(self.id)
+        return builder.Offset()
 
 
 class StructOfStructs(object):
@@ -617,7 +637,18 @@ class StructOfStructsT(object):
 
     # StructOfStructsT
     def Pack(self, builder):
-        return CreateStructOfStructs(builder, self.a.id, self.a.distance, self.b.a, self.b.b, self.c.id, self.c.distance)
+        builder.Prep(4, 20)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.c.distance)
+        builder.PrependUint32(self.c.id)
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(self.b.b)
+        builder.PrependInt16(self.b.a)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.a.distance)
+        builder.PrependUint32(self.a.id)
+        return builder.Offset()
 
 
 class StructOfStructsOfStructs(object):
@@ -692,7 +723,19 @@ class StructOfStructsOfStructsT(object):
 
     # StructOfStructsOfStructsT
     def Pack(self, builder):
-        return CreateStructOfStructsOfStructs(builder, self.a.a.id, self.a.a.distance, self.a.b.a, self.a.b.b, self.a.c.id, self.a.c.distance)
+        builder.Prep(4, 20)
+        builder.Prep(4, 20)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.a.c.distance)
+        builder.PrependUint32(self.a.c.id)
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(self.a.b.b)
+        builder.PrependInt16(self.a.b.a)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.a.a.distance)
+        builder.PrependUint32(self.a.a.id)
+        return builder.Offset()
 
 
 class Stat(object):
