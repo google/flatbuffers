@@ -759,19 +759,24 @@ class FlatBufferBuilderImpl {
     AssertScalarT<T>();
     StartVector<T, OffsetT, LenT>(len);
     if (len > 0) {
-      // clang-format off
-      #if FLATBUFFERS_LITTLEENDIAN
-        PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
-      #else
-        if (sizeof(T) == 1) {
-          PushBytes(reinterpret_cast<const uint8_t *>(v), len);
-        } else {
-          for (auto i = len; i > 0; ) {
-            PushElement(v[--i]);
+      if (v != nullptr) {
+        // clang-format off
+        #if FLATBUFFERS_LITTLEENDIAN
+          PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
+        #else
+          if (sizeof(T) == 1) {
+            PushBytes(reinterpret_cast<const uint8_t *>(v), len);
+          } else {
+            for (auto i = len; i > 0; ) {
+              PushElement(v[--i]);
+            }
           }
-        }
-      #endif
-      // clang-format on
+        #endif
+        // clang-format on
+      } else {
+        uint8_t *dest = buf_.make_space(len * sizeof(T));
+        memset(dest, 0, len * sizeof(T));
+      }
     }
     return OffsetT<VectorT<T>>(EndVector<LenT, offset_type>(len));
   }
@@ -801,8 +806,14 @@ class FlatBufferBuilderImpl {
   template <typename T>
   Offset<Vector<Offset<T>>> CreateVector(const Offset<T>* v, size_t len) {
     StartVector<Offset<T>>(len);
-    for (auto i = len; i > 0;) {
-      PushElement(v[--i]);
+    if (v != nullptr) {
+      for (auto i = len; i > 0;) {
+        PushElement(v[--i]);
+      }
+    } else if (len > 0) {
+      for (auto i = len; i > 0; --i) {
+        PushElement(Offset<T>(0));
+      }
     }
     return Offset<Vector<Offset<T>>>(EndVector(len));
   }
@@ -941,7 +952,12 @@ class FlatBufferBuilderImpl {
 
     StartVector<OffsetT, LenT>(len, sizeof(T), AlignOf<T>());
     if (len > 0) {
-      PushBytes(reinterpret_cast<const uint8_t*>(v), sizeof(T) * len);
+      if (v != nullptr) {
+        PushBytes(reinterpret_cast<const uint8_t*>(v), sizeof(T) * len);
+      } else {
+        uint8_t* dest = buf_.make_space(sizeof(T) * len);
+        memset(dest, 0, sizeof(T) * len);
+      }
     }
     return OffsetT<VectorT<const T*>>(EndVector<LenT, offset_type>(len));
   }
@@ -1020,8 +1036,12 @@ class FlatBufferBuilderImpl {
       const S* v, size_t len, T (*const pack_func)(const S&)) {
     FLATBUFFERS_ASSERT(pack_func);
     auto structs = StartVectorOfStructs<T>(len);
-    for (size_t i = 0; i < len; i++) {
-      structs[i] = pack_func(v[i]);
+    if (v != nullptr) {
+      for (size_t i = 0; i < len; i++) {
+        structs[i] = pack_func(v[i]);
+      }
+    } else if (len > 0) {
+      memset(structs, 0, len * sizeof(T));
     }
     return EndVectorOfStructs<T>(len);
   }
@@ -1169,7 +1189,9 @@ class FlatBufferBuilderImpl {
   template <typename T>
   Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(Offset<T>* v,
                                                        size_t len) {
-    std::stable_sort(v, v + len, TableKeyComparator<T>(buf_));
+    if (v != nullptr && len > 0) {
+      std::stable_sort(v, v + len, TableKeyComparator<T>(buf_));
+    }
     return CreateVector(v, len);
   }
 

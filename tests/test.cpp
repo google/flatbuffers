@@ -603,6 +603,29 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
+void CreateVectorNullGuardsTest() {
+  flatbuffers::FlatBufferBuilder builder;
+  // Test CreateVector with null pointer and non-zero length
+  const auto byte_vec =
+      builder.CreateVector(static_cast<const uint8_t*>(nullptr), 4);
+  TEST_EQ(byte_vec.o != 0, true);
+
+  // Test CreateVector of Offsets with null pointer and non-zero length
+  const auto offset_vec = builder.CreateVector(
+      static_cast<const flatbuffers::Offset<Monster>*>(nullptr), 3);
+  TEST_EQ(offset_vec.o != 0, true);
+
+  // Test CreateVectorOfStructs with null pointer and non-zero length
+  const auto struct_vec =
+      builder.CreateVectorOfStructs(static_cast<const Vec3*>(nullptr), 2);
+  TEST_EQ(struct_vec.o != 0, true);
+
+  // Test CreateVectorOfSortedTables with null pointer and non-zero length
+  const auto sorted_vec = builder.CreateVectorOfSortedTables(
+      static_cast<flatbuffers::Offset<Monster>*>(nullptr), 2);
+  TEST_EQ(sorted_vec.o != 0, true);
+}
+
 #if !defined(FLATBUFFERS_USE_STD_SPAN) && !defined(FLATBUFFERS_SPAN_MINIMAL)
 void FlatbuffersSpanTest() {
   // Compile-time checking of non-const [] to const [] conversions.
@@ -1827,6 +1850,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   TypeAliasesTest();
   EndianSwapTest();
   CreateSharedStringTest();
+  CreateVectorNullGuardsTest();
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
