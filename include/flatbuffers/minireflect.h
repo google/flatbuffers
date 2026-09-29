@@ -89,11 +89,13 @@ inline size_t InlineSize(ElementaryType type, const TypeTable* type_table) {
     case ET_DOUBLE:
       return 8;
     case ET_SEQUENCE:
+      if (!type_table) return 1;
       switch (type_table->st) {
         case ST_TABLE:
         case ST_UNION:
           return 4;
         case ST_STRUCT:
+          if (!type_table->values) return 1;
           return static_cast<size_t>(type_table->values[type_table->num_elems]);
         default:
           FLATBUFFERS_ASSERT(false);
@@ -131,6 +133,7 @@ void IterateObject(const uint8_t* obj, const TypeTable* type_table,
 inline void IterateValue(ElementaryType type, const uint8_t* val,
                          const TypeTable* type_table, const uint8_t* prev_val,
                          soffset_t vector_index, IterationVisitor* visitor) {
+  if (!val || !visitor) return;
   switch (type) {
     case ET_UTYPE: {
       auto tval = ReadScalar<uint8_t>(val);
@@ -193,6 +196,10 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
       break;
     }
     case ET_SEQUENCE: {
+      if (!type_table) {
+        visitor->Unknown(val);
+        break;
+      }
       switch (type_table->st) {
         case ST_TABLE:
           val += ReadScalar<uoffset_t>(val);
@@ -203,7 +210,10 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
           break;
         case ST_UNION: {
           val += ReadScalar<uoffset_t>(val);
-          FLATBUFFERS_ASSERT(prev_val);
+          if (!prev_val || !type_table->type_codes) {
+            visitor->Unknown(val);
+            break;
+          }
           auto union_type = *prev_val;  // Always a uint8_t.
           if (vector_index >= 0) {
             auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(prev_val);
@@ -216,8 +226,14 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
             auto type_code = type_table->type_codes[type_code_idx];
             switch (type_code.base_type) {
               case ET_SEQUENCE: {
-                auto ref = type_table->type_refs[type_code.sequence_ref]();
-                IterateObject(val, ref, visitor);
+                if (type_table->type_refs &&
+                    type_code.sequence_ref >= 0 &&
+                    type_table->type_refs[type_code.sequence_ref]) {
+                  auto ref = type_table->type_refs[type_code.sequence_ref]();
+                  IterateObject(val, ref, visitor);
+                } else {
+                  visitor->Unknown(val);
+                }
                 break;
               }
               case ET_STRING:
@@ -246,17 +262,20 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
 
 inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
                           IterationVisitor* visitor) {
+  if (!obj || !type_table || !visitor) return;
   visitor->StartSequence();
   const uint8_t* prev_val = nullptr;
   size_t set_idx = 0;
   size_t array_idx = 0;
   for (size_t i = 0; i < type_table->num_elems; i++) {
+    if (!type_table->type_codes) break;
     auto type_code = type_table->type_codes[i];
     auto type = static_cast<ElementaryType>(type_code.base_type);
     auto is_repeating = type_code.is_repeating != 0;
     auto ref_idx = type_code.sequence_ref;
     const TypeTable* ref = nullptr;
-    if (ref_idx >= 0) {
+    if (ref_idx >= 0 && type_table->type_refs &&
+        type_table->type_refs[ref_idx]) {
       ref = type_table->type_refs[ref_idx]();
     }
     auto name = type_table->names ? type_table->names[i] : nullptr;
@@ -265,6 +284,7 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
       val = reinterpret_cast<const Table*>(obj)->GetAddressOf(
           FieldIndexToOffset(static_cast<voffset_t>(i)));
     } else {
+      if (!type_table->values) break;
       val = obj + type_table->values[i];
     }
     visitor->Field(i, set_idx, type, is_repeating, ref, name, val);
@@ -281,6 +301,7 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
           size = vec->size();
         } else {
           // otherwise fixed size array
+          if (!type_table->array_sizes) break;
           size = type_table->array_sizes[array_idx];
           ++array_idx;
         }
@@ -304,6 +325,7 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
 inline void IterateFlatBuffer(const uint8_t* buffer,
                               const TypeTable* type_table,
                               IterationVisitor* callback) {
+  if (!buffer || !type_table || !callback) return;
   IterateObject(GetRoot<uint8_t>(buffer), type_table, callback);
 }
 
@@ -387,6 +409,7 @@ struct ToStringVisitor : public IterationVisitor {
   void Float(float x) { s += NumToString(x); }
   void Double(double x) { s += NumToString(x); }
   void String(const struct String* str) {
+    if (!str) return;
     EscapeString(str->c_str(), str->size(), &s, true, false);
   }
   void Unknown(const uint8_t*) { s += "(?)"; }
@@ -430,6 +453,7 @@ inline std::string FlatBufferToString(const uint8_t* buffer,
                                       bool vector_delimited = true,
                                       const std::string& indent = "",
                                       bool quotes = false) {
+  if (!buffer || !type_table) return "";
   ToStringVisitor tostring_visitor(multi_line ? "\n" : " ", quotes, indent,
                                    vector_delimited);
   IterateFlatBuffer(buffer, type_table, &tostring_visitor);

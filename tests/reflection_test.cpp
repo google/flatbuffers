@@ -406,6 +406,16 @@ void MiniReflectFixedLengthArrayTest() {
       "e: 1, f: [ 0, 0 ] } "
       "}",
       s.c_str());
+
+  // Test FlatBufferToString and IterateObject with nullptr arguments.
+  TEST_EQ_STR("", flatbuffers::FlatBufferToString(nullptr, nullptr).c_str());
+  TEST_EQ_STR("", flatbuffers::FlatBufferToString(flatbuf.data(),
+                                                  nullptr).c_str());
+  TEST_EQ_STR("", flatbuffers::FlatBufferToString(
+                      nullptr,
+                      MyGame::Example::ArrayTableTypeTable()).c_str());
+  flatbuffers::IterateObject(nullptr, nullptr, nullptr);
+  flatbuffers::IterateFlatBuffer(nullptr, nullptr, nullptr);
 #endif
 }
 
