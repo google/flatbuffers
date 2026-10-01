@@ -1594,6 +1594,16 @@ class EncoderTest(unittest.TestCase):
     fbb.Int(420)
     fbb.Finish()
 
+  def test_finish_twice(self):
+    fbb = flexbuffers.Builder()
+    fbb.Int(420)
+    data = fbb.Finish()
+    size = len(data)
+
+    with self.assertRaises(RuntimeError):
+      fbb.Finish()
+    self.assertEqual(len(data), size)
+
 
 if __name__ == '__main__':
   unittest.main()
