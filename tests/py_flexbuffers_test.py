@@ -15,8 +15,10 @@
 """Unit tests for flexbuffers.py."""
 
 import array
+import math
 import os.path
 import struct
+import sys
 import unittest
 
 from flatbuffers import flexbuffers
@@ -152,6 +154,25 @@ UINT_MIN_MAX_VALUES = (
 
 class UtilTest(unittest.TestCase):
   """Tests to check FlexBuffer utility functions."""
+
+  def test_float_bit_width(self):
+    float32_max = float.fromhex('0x1.fffffep+127')
+    for value, expected in (
+        (0.0, flexbuffers.BitWidth.W32),
+        (1.5, flexbuffers.BitWidth.W32),
+        (float32_max, flexbuffers.BitWidth.W32),
+        (math.nextafter(float32_max, math.inf), flexbuffers.BitWidth.W64),
+        (float.fromhex('0x1p+128'), flexbuffers.BitWidth.W64),
+        (1e100, flexbuffers.BitWidth.W64),
+        (sys.float_info.max, flexbuffers.BitWidth.W64),
+        (sys.float_info.min, flexbuffers.BitWidth.W64),
+        (float.fromhex('0x1p-1074'), flexbuffers.BitWidth.W64),
+        (math.inf, flexbuffers.BitWidth.W32),
+        (math.nan, flexbuffers.BitWidth.W64),
+    ):
+      for sign in 1, -1:
+        with self.subTest(value=value, sign=sign):
+          self.assertEqual(flexbuffers.BitWidth.F(sign * value), expected)
 
   def _test_type_predicate(self, pred, types):
     for type_ in types:
@@ -1201,6 +1222,43 @@ class EncoderTest(unittest.TestCase):
 
           data = encode_type(type_, value, 8)
           self.assertEqual(flexbuffers.Loads(data), value)
+
+  def test_float64_range(self):
+    for value in float.fromhex('0x1p+128'), 1e100, sys.float_info.max:
+      for sign in 1, -1:
+        value_signed = sign * value
+        for type_ in Type.FLOAT, Type.INDIRECT_FLOAT:
+          with self.subTest(value=value_signed, type=type_):
+            data = encode_type(type_, value_signed)
+            self.assertEqual(flexbuffers.Loads(data), value_signed)
+            if type_ is Type.FLOAT:
+              expected = bytes([
+                  *float_bytes(value_signed, 8),
+                  packed_type(Type.FLOAT, 8),
+                  8,
+              ])
+            else:
+              expected = bytes([
+                  *float_bytes(value_signed, 8),
+                  8,
+                  packed_type(Type.INDIRECT_FLOAT, 8),
+                  1,
+              ])
+            self.assertEqual(data, expected)
+
+        with self.subTest(value=value_signed, container='nested'):
+          obj = {'values': [value_signed, {'value': value_signed}]}
+          self.assertEqual(flexbuffers.Loads(flexbuffers.Dumps(obj)), obj)
+
+        for fixed in False, True:
+          with self.subTest(value=value_signed, fixed=fixed):
+            fbb = flexbuffers.Builder()
+            elements = [value_signed, 0.0]
+            if fixed:
+              fbb.FixedTypedVectorFromElements(elements)
+            else:
+              fbb.TypedVectorFromElements(elements)
+            self.assertEqual(flexbuffers.Loads(fbb.Finish()), elements)
 
   def test_string(self):
     for value in '', 'x', 'color', 'hello world':

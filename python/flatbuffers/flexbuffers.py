@@ -76,7 +76,11 @@ class BitWidth(enum.IntEnum):
   @staticmethod
   def F(value):
     """Returns the `BitWidth` to encode floating point value."""
-    if struct.unpack('<f', struct.pack('<f', value))[0] == value:
+    try:
+      packed = struct.pack('<f', value)
+    except OverflowError:
+      return BitWidth.W64
+    if struct.unpack('<f', packed)[0] == value:
       return BitWidth.W32
     return BitWidth.W64
 
