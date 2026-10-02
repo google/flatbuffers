@@ -22,7 +22,6 @@ use core::fmt::{Debug, Display};
 use core::iter::{DoubleEndedIterator, ExactSizeIterator};
 use core::marker::PhantomData;
 use core::ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
-use core::ptr::write_bytes;
 
 #[cfg(feature = "std")]
 use std::collections::HashMap;
@@ -104,14 +103,7 @@ unsafe impl Allocator for DefaultAllocator {
             right.copy_from_slice(left);
         }
         // finally, zero out the old end data.
-        {
-            let ptr = self.0[..middle].as_mut_ptr();
-            // Safety:
-            // ptr is byte aligned and of length middle
-            unsafe {
-                write_bytes(ptr, 0, middle);
-            }
-        }
+        self.0[..middle].fill(0);
         Ok(())
     }
 
@@ -1262,6 +1254,19 @@ mod tests {
         assert_eq!(&buf[idx.range_to_end()], &[4, 5]);
         assert_eq!(&buf[idx.range_to(idx + 1)], &[4]);
         assert_eq!(idx.to_forward_index(&buf), 4);
+    }
+
+    #[test]
+    fn default_allocator_grows_and_clears_old_contents() {
+        for &old_len in &[0, 1, 3, 16] {
+            let original = vec![0xa5; old_len];
+            let mut allocator = DefaultAllocator::from_vec(original.clone());
+            allocator.grow_downwards().unwrap();
+            let new_len = max(1, old_len * 2);
+            assert_eq!(allocator.len(), new_len);
+            assert_eq!(&allocator[..new_len - old_len], &vec![0; new_len - old_len]);
+            assert_eq!(&allocator[new_len - old_len..], original.as_slice());
+        }
     }
 
     #[test]
