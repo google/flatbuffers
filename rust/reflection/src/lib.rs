@@ -199,7 +199,7 @@ pub unsafe fn get_field_table<'a>(
 ///
 /// [table] must contain recursively valid offsets that match the [field].
 pub unsafe fn get_any_field_integer(table: &Table, field: &Field) -> FlatbufferResult<i64> {
-    if let Some(field_loc) = get_field_loc(table, field) {
+    if let Some(field_loc) = get_field_loc(table, field)? {
         get_any_value_integer(field.type_().base_type(), table.buf(), field_loc)
     } else {
         Ok(field.default_integer())
@@ -212,7 +212,7 @@ pub unsafe fn get_any_field_integer(table: &Table, field: &Field) -> FlatbufferR
 ///
 /// [table] must contain recursively valid offsets that match the [field].
 pub unsafe fn get_any_field_float(table: &Table, field: &Field) -> FlatbufferResult<f64> {
-    if let Some(field_loc) = get_field_loc(table, field) {
+    if let Some(field_loc) = get_field_loc(table, field)? {
         get_any_value_float(field.type_().base_type(), table.buf(), field_loc)
     } else {
         Ok(field.default_real())
@@ -225,16 +225,18 @@ pub unsafe fn get_any_field_float(table: &Table, field: &Field) -> FlatbufferRes
 ///
 /// [table] must contain recursively valid offsets that match the [field].
 pub unsafe fn get_any_field_string(table: &Table, field: &Field, schema: &Schema) -> String {
-    if let Some(field_loc) = get_field_loc(table, field) {
-        get_any_value_string(
+    // This accessor returns `String` rather than a `Result`, so an out-of-range field
+    // location is reported the same way an unpopulated field is: as an empty string,
+    // rather than by reading out of bounds.
+    match get_field_loc(table, field) {
+        Ok(Some(field_loc)) => get_any_value_string(
             field.type_().base_type(),
             table.buf(),
             field_loc,
             schema,
             field.type_().index() as usize,
-        )
-    } else {
-        String::from("")
+        ),
+        Ok(None) | Err(_) => String::from(""),
     }
 }
 
@@ -316,7 +318,7 @@ pub unsafe fn set_any_field_integer(
     let field_type = field.type_().base_type();
     let table = Table::follow(buf, table_loc);
 
-    let Some(field_loc) = get_field_loc(&table, field) else {
+    let Some(field_loc) = get_field_loc(&table, field)? else {
         return Err(FlatbufferError::SetValueNotSupported);
     };
 
@@ -341,7 +343,7 @@ pub unsafe fn set_any_field_float(
     let field_type = field.type_().base_type();
     let table = Table::follow(buf, table_loc);
 
-    let Some(field_loc) = get_field_loc(&table, field) else {
+    let Some(field_loc) = get_field_loc(&table, field)? else {
         return Err(FlatbufferError::SetValueNotSupported);
     };
 
@@ -366,7 +368,7 @@ pub unsafe fn set_any_field_string(
     let field_type = field.type_().base_type();
     let table = Table::follow(buf, table_loc);
 
-    let Some(field_loc) = get_field_loc(&table, field) else {
+    let Some(field_loc) = get_field_loc(&table, field)? else {
         return Err(FlatbufferError::SetValueNotSupported);
     };
 
@@ -402,7 +404,7 @@ pub unsafe fn set_field<T: EndianScalar>(
         ));
     }
 
-    let Some(field_loc) = get_field_loc(&table, field) else {
+    let Some(field_loc) = get_field_loc(&table, field)? else {
         return Err(FlatbufferError::SetValueNotSupported);
     };
 
@@ -446,7 +448,7 @@ pub unsafe fn set_string(
 
     let table = Table::follow(buf, table_loc);
 
-    let Some(field_loc) = get_field_loc(&table, field) else {
+    let Some(field_loc) = get_field_loc(&table, field)? else {
         return Err(FlatbufferError::SetValueNotSupported);
     };
 
@@ -543,18 +545,67 @@ fn get_type_size(base_type: BaseType) -> usize {
     }
 }
 
+
+/// Follows the string (or byte vector) at `loc`, range-checking both the length
+/// prefix and the payload.
+///
+/// `Follow::follow` for `&[u8]` reads a `u32` length and then slices
+/// `buf[loc + 4 .. loc + 4 + len]` without validating either end, so a crafted
+/// length makes it panic (or, on a wrapping offset, read out of bounds). This
+/// helper turns that into a normal error.
+unsafe fn follow_string_checked<'a>(buf: &'a [u8], loc: usize) -> FlatbufferResult<&'a [u8]> {
+    let size = SIZE_UOFFSET;
+    if loc.saturating_add(size) > buf.len() {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: loc..loc.saturating_add(size),
+                error_trace: Default::default(),
+            },
+        ));
+    }
+    // SAFETY: the length prefix is within `buf` by the check above.
+    let len = unsafe { read_uoffset(buf, loc) } as usize;
+    let end = loc.saturating_add(size).saturating_add(len);
+    if end > buf.len() {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: loc..end,
+                error_trace: Default::default(),
+            },
+        ));
+    }
+    // SAFETY: both ends of `loc + size .. end` are within `buf` by the checks above.
+    Ok(unsafe { buf.get(loc + size..end) }.unwrap_or_default())
+}
+
 /// Returns the absolute field location in the buffer and [None] if the field is not populated.
+///
+/// Returns an error if the field is populated but does not lie within the buffer.
 ///
 /// # Safety
 ///
 /// [table] must contain a valid vtable.
-unsafe fn get_field_loc(table: &Table, field: &Field) -> Option<usize> {
+unsafe fn get_field_loc(table: &Table, field: &Field) -> FlatbufferResult<Option<usize>> {
     let field_offset = table.vtable().get(field.offset()) as usize;
     if field_offset == 0 {
-        return None;
+        return Ok(None);
     }
 
-    Some(table.loc() + field_offset)
+    // `field_offset` is read from the vtable in the buffer being inspected, so it is
+    // attacker-influenced and is not necessarily in range. Every caller goes on to read
+    // a value at `table.loc() + field_offset`, so range-check it here: this is the
+    // single chokepoint for all `get_any_*` and `set_any_*` field accessors.
+    let loc = table.loc().saturating_add(field_offset);
+    if loc > table.buf().len() {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: table.loc()..loc,
+                error_trace: Default::default(),
+            },
+        ));
+    }
+
+    Ok(Some(loc))
 }
 
 /// Reads value as a 64-bit int from the provided byte slice at the specified location. Returns error if the value cannot be parsed as integer.
@@ -567,6 +618,21 @@ unsafe fn get_any_value_integer(
     buf: &[u8],
     loc: usize,
 ) -> FlatbufferResult<i64> {
+    // `loc` is derived from offsets stored in the buffer being read and is therefore
+    // not necessarily in range. The `match` below dispatches to `Follow::follow`,
+    // which only `debug_assert!`s the remaining length and so reads past the end of
+    // the buffer in release builds. Range-check before reading. `size == 0` means the
+    // base type is not a fixed-size scalar, which this function cannot represent.
+    let size = get_type_size(base_type);
+    if size == 0 || loc.saturating_add(size) > buf.len() {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: loc..loc.saturating_add(size),
+                error_trace: Default::default(),
+            },
+        ));
+    }
+
     match base_type {
         BaseType::UType | BaseType::UByte => i64::from_u8(u8::follow(buf, loc)),
         BaseType::Bool => bool::follow(buf, loc).try_into().ok(),
@@ -598,6 +664,17 @@ unsafe fn get_any_value_float(
     buf: &[u8],
     loc: usize,
 ) -> FlatbufferResult<f64> {
+    // See `get_any_value_integer`: range-check before dispatching to `Follow::follow`.
+    let size = get_type_size(base_type);
+    if size == 0 || loc.saturating_add(size) > buf.len() {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: loc..loc.saturating_add(size),
+                error_trace: Default::default(),
+            },
+        ));
+    }
+
     match base_type {
         BaseType::UType | BaseType::UByte => f64::from_u8(u8::follow(buf, loc)),
         BaseType::Bool => bool::follow(buf, loc).try_into().ok(),
@@ -635,9 +712,10 @@ unsafe fn get_any_value_string(
         BaseType::Float | BaseType::Double => {
             get_any_value_float(base_type, buf, loc).unwrap_or_default().to_string()
         }
-        BaseType::String => {
-            String::from_utf8_lossy(ForwardsUOffset::<&[u8]>::follow(buf, loc)).to_string()
-        }
+        BaseType::String => match follow_string_checked(buf, loc) {
+            Ok(bytes) => String::from_utf8_lossy(bytes).to_string(),
+            Err(_) => String::from(""),
+        },
         BaseType::Obj => {
             // Converts the table to a string. This is mostly for debugging purposes,
             // and does NOT promise to be JSON compliant.
@@ -686,14 +764,20 @@ fn set_any_value_integer(
     field_loc: usize,
     v: i64,
 ) -> FlatbufferResult<()> {
-    if buf.len() < get_type_size(base_type) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: field_loc,
-                end: field_loc.saturating_add(get_type_size(base_type)),
+    // The whole value must fit in the buffer *from the field's location*. Comparing
+    // `buf.len()` against the type size only proves the buffer is large enough
+    // somewhere, which says nothing about `field_loc`: a field near the end of the
+    // buffer passes this check and is then written past the end of the slice.
+    // `emplace_scalar` only `debug_assert!`s the available capacity, so in release
+    // builds that write is out of bounds.
+    let size = get_type_size(base_type);
+    if size == 0 || field_loc.saturating_add(size) > buf.len() {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: field_loc..field_loc.saturating_add(size),
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
     let buf = &mut buf[field_loc..];
     let type_name = base_type.variant_name().unwrap_or_default().to_string();
@@ -766,14 +850,16 @@ fn set_any_value_float(
     field_loc: usize,
     v: f64,
 ) -> FlatbufferResult<()> {
-    if buf.len() < get_type_size(base_type) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: field_loc,
-                end: field_loc.saturating_add(get_type_size(base_type)),
+    // See `set_any_value_integer`: the value must fit from `field_loc`, not merely
+    // somewhere in the buffer.
+    let size = get_type_size(base_type);
+    if size == 0 || field_loc.saturating_add(size) > buf.len() {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: field_loc..field_loc.saturating_add(size),
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
     let buf = &mut buf[field_loc..];
     let type_name = base_type.variant_name().unwrap_or_default().to_string();
