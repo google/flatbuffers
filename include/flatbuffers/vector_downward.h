@@ -143,12 +143,16 @@ class vector_downward {
 
   size_t ensure_space(size_t len) {
     FLATBUFFERS_ASSERT(cur_ >= scratch_ && scratch_ >= buf_);
+    FLATBUFFERS_ASSERT(len <= max_size_ &&
+                       static_cast<size_t>(size_) +
+                           static_cast<size_t>(scratch_size()) <=
+                           static_cast<size_t>(max_size_) - len);
     // If the length is larger than the unused part of the buffer, we need to
     // grow.
     if (len > unused_buffer_size()) {
       reallocate(len);
     }
-    FLATBUFFERS_ASSERT(size() < max_size_);
+    FLATBUFFERS_ASSERT(unused_buffer_size() >= len);
     return len;
   }
 
@@ -231,11 +235,15 @@ class vector_downward {
   }
 
   void pop(size_t bytes_to_remove) {
+    FLATBUFFERS_ASSERT(bytes_to_remove <= static_cast<size_t>(size_));
     cur_ += bytes_to_remove;
     size_ -= static_cast<SizeT>(bytes_to_remove);
   }
 
-  void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
+  void scratch_pop(size_t bytes_to_remove) {
+    FLATBUFFERS_ASSERT(bytes_to_remove <= static_cast<size_t>(scratch_size()));
+    scratch_ -= bytes_to_remove;
+  }
 
   void swap(vector_downward& other) {
     using std::swap;
@@ -279,9 +287,21 @@ class vector_downward {
     auto old_reserved = reserved_;
     auto old_size = size();
     auto old_scratch_size = scratch_size();
-    reserved_ +=
+    size_t min_reserved = static_cast<size_t>(old_size) +
+                          static_cast<size_t>(old_scratch_size) + len;
+    FLATBUFFERS_ASSERT(min_reserved <= max_size_);
+    size_t growth =
         (std::max)(len, old_reserved ? old_reserved / 2 : initial_size_);
-    reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
+    if (growth > max_size_ - reserved_) {
+      reserved_ = max_size_;
+    } else {
+      reserved_ += growth;
+    }
+    if (reserved_ <= (std::numeric_limits<size_t>::max)() - (buffer_minalign_ - 1)) {
+      reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
+    }
+    FLATBUFFERS_ASSERT(reserved_ >= min_reserved);
+    FLATBUFFERS_ASSERT(reserved_ > old_reserved);
     if (buf_) {
       buf_ = ReallocateDownward(allocator_, buf_, old_reserved, reserved_,
                                 old_size, old_scratch_size);
@@ -290,6 +310,7 @@ class vector_downward {
     }
     cur_ = buf_ + reserved_ - old_size;
     scratch_ = buf_ + old_scratch_size;
+    FLATBUFFERS_ASSERT(cur_ >= scratch_ + len);
   }
 };
 
