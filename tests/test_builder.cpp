@@ -121,6 +121,28 @@ bool release_n_verify(flatbuffers::FlatBufferBuilder& fbb,
 // forward-declared in test.cpp
 void FlatBufferBuilderTest();
 
+void VectorDownwardOverflowGuardTest() {
+  // Test that vector_downward respects max_size and stays safely bounded without underflow.
+  const size_t initial_size = 16;
+  const size_t max_size = 256;
+  flatbuffers::vector_downward<flatbuffers::uoffset_t> vec(
+      initial_size, nullptr, false, 8, static_cast<flatbuffers::uoffset_t>(max_size));
+
+  uint8_t dummy[64] = {0};
+  vec.push(dummy, sizeof(dummy));
+  TEST_EQ(vec.size(), sizeof(dummy));
+  TEST_ASSERT(vec.capacity() <= max_size);
+  TEST_ASSERT(vec.capacity() >= sizeof(dummy));
+
+  // Additional pushes within max_size succeed cleanly without memory corruption.
+  vec.push(dummy, sizeof(dummy));
+  TEST_EQ(vec.size(), 2 * sizeof(dummy));
+  TEST_ASSERT(vec.capacity() <= max_size);
+
+  vec.pop(sizeof(dummy));
+  TEST_EQ(vec.size(), sizeof(dummy));
+}
+
 void FlatBufferBuilderTest() {
   using flatbuffers::FlatBufferBuilder;
 
@@ -139,6 +161,8 @@ void FlatBufferBuilderTest() {
       TestSelector(tests, tests + 4));
   BuilderReuseTests<GrpcLikeMessageBuilder, GrpcLikeMessageBuilder>::run_tests(
       TestSelector(tests, tests + 4));
+
+  VectorDownwardOverflowGuardTest();
 }
 
 // forward-declared in test_builder.h
