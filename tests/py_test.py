@@ -122,6 +122,70 @@ def byte_swap_array(np_version, arr):
     return arr.byteswap().newbyteorder()
 
 
+class TestScalarReader(unittest.TestCase):
+  def test_builtin_buffers(self):
+    import struct
+
+    for buffer_type in (bytes, bytearray):
+      for fmt in ("<b", "<H", "<i", "<Q", "<f", "<d", "<?"):
+        packer = struct.Struct(fmt)
+        raw = buffer_type(packer.pack(1) * 2)
+        for offset in (0, packer.size, -packer.size):
+          self.assertEqual(
+              flatbuffers.encode.Get(packer, raw, offset),
+              packer.unpack_from(memoryview(raw), offset)[0],
+          )
+        with self.assertRaises(struct.error):
+          flatbuffers.encode.Get(packer, raw, len(raw))
+
+  def test_custom_packer_receives_memoryview(self):
+    class Packer:
+      def unpack_from(self, buffer, offset):
+        self.buffer = buffer
+        self.offset = offset
+        return (42,)
+
+    packer = Packer()
+    self.assertEqual(flatbuffers.encode.Get(packer, b"abc", 0), 42)
+    self.assertIs(type(packer.buffer), memoryview)
+    self.assertEqual(packer.offset, 0)
+
+  def test_offset_conversion_preserves_buffer_export(self):
+    import struct
+
+    raw = bytearray(b"a")
+
+    class Offset:
+      def __index__(self):
+        raw.extend(b"b")
+        return 0
+
+    with self.assertRaises(BufferError):
+      flatbuffers.encode.Get(struct.Struct("<B"), raw, Offset())
+    self.assertEqual(raw, bytearray(b"a"))
+
+  def test_subclass_and_memoryview_fallback(self):
+    import struct
+
+    class Bytes(bytes):
+      pass
+
+    packer = struct.Struct("<I")
+    for buffer in (Bytes(b"\x01\x00\x00\x00"),
+                   memoryview(b"\x01\x00\x00\x00")):
+      self.assertEqual(flatbuffers.encode.Get(packer, buffer, 0), 1)
+
+  def test_builtin_read_releases_buffer_on_error(self):
+    import struct
+
+    for offset in (0, -1, 10):
+      raw = bytearray(b'a')
+      with self.assertRaises(struct.error):
+        flatbuffers.encode.Get(struct.Struct('<I'), raw, offset)
+      raw.extend(b'b')
+      self.assertEqual(raw, bytearray(b'ab'))
+
+
 class TestWireFormat(unittest.TestCase):
 
   def test_wire_format(self):
