@@ -182,9 +182,8 @@ struct JsonPrinter {
                           const uint8_t* prev_val, soffset_t vector_index) {
     switch (type.base_type) {
       case BASE_TYPE_UNION: {
-        // If this assert hits, you have an corrupt buffer, a union type field
-        // was not present or was out of range.
-        FLATBUFFERS_ASSERT(prev_val);
+        // A corrupt buffer may have the union value without its type field.
+        if (!prev_val) return "union type field not present";
         auto union_type_byte = *prev_val;  // Always a uint8_t.
         if (vector_index >= 0) {
           auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(
@@ -363,6 +362,9 @@ struct JsonPrinter {
         } else {
           prev_val = table->GetAddressOf(fd.value.offset);
         }
+      } else {
+        // Absent field: a following union must not use an older type field.
+        prev_val = nullptr;
       }
     }
     AddNewLine();
