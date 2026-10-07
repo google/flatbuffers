@@ -138,10 +138,10 @@ inline bool operator!=(const UnionInNestedNSUnion &lhs, const UnionInNestedNSUni
     return !(lhs == rhs);
 }
 
-template <bool B = false>
-bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, UnionInNestedNS type);
-template <bool B = false>
-bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+template <bool VerifySizePrefixed = false>
+bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const void *obj, UnionInNestedNS type);
+template <bool VerifySizePrefixed = false>
+bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
 
 enum EnumInNestedNS : int8_t {
   EnumInNestedNS_A = 0,
@@ -248,8 +248,8 @@ struct TableInNestedNS FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_foo(int32_t _foo = 0) {
     return SetField<int32_t>(VT_FOO, _foo, 0);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FOO, 4) &&
            verifier.EndTable();
@@ -324,8 +324,8 @@ inline ::flatbuffers::Offset<TableInNestedNS> TableInNestedNS::Pack(::flatbuffer
       _foo);
 }
 
-template <bool B>
-inline bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, UnionInNestedNS type) {
+template <bool VerifySizePrefixed>
+inline bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const void *obj, UnionInNestedNS type) {
   switch (type) {
     case UnionInNestedNS_NONE: {
       return true;
@@ -338,8 +338,8 @@ inline bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<B> &verifier, 
   }
 }
 
-template <bool B>
-inline bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+template <bool VerifySizePrefixed>
+inline bool VerifyUnionInNestedNSVector(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {

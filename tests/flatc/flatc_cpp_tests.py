@@ -17,6 +17,30 @@ from flatc_test import *
 
 class CppTests:
 
+  def FieldNamedLikeVerifierTemplateParameter(self):
+    # A field named `B` used to collide with the verifier's template
+    # parameter, producing C++ that fails to compile. Schema names equal to
+    # the new parameter name are escaped like C++ keywords.
+    schema = Path(script_path, "verifier_param_collision.fbs")
+    schema.write_text(
+        "table Record { B:string; VerifySizePrefixed:string; }\n"
+        "table VerifySizePrefixed { record:Record; }\n"
+        "root_type VerifySizePrefixed;\n"
+    )
+    try:
+      flatc(["--cpp", schema.name])
+      assert_file_and_contents(
+          "verifier_param_collision_generated.h",
+          [
+              "VerifierTemplate<VerifySizePrefixed>",
+              "struct VerifySizePrefixed_ ",
+              "VerifySizePrefixed_() const",
+          ],
+          doesnt_contain="VerifierTemplate<B>",
+      )
+    finally:
+      schema.unlink()
+
   def Flatten(self):
     # Generate just foo with a "flatten" import of bar.
     flatc(["--cpp", "foo.fbs"])

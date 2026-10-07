@@ -102,10 +102,10 @@ template<> struct UnionTraits<Evolution::V1::TableB> {
   static const Union enum_value = Union::TableB;
 };
 
-template <bool B = false>
-bool VerifyUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Union type);
-template <bool B = false>
-bool VerifyUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types);
+template <bool VerifySizePrefixed = false>
+bool VerifyUnion(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const void *obj, Union type);
+template <bool VerifySizePrefixed = false>
+bool VerifyUnionVector(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Struct FLATBUFFERS_FINAL_CLASS {
  private:
@@ -162,8 +162,8 @@ struct TableA FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t b() const {
     return GetField<int32_t>(VT_B, 0);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<float>(verifier, VT_A, 4) &&
            VerifyField<int32_t>(verifier, VT_B, 4) &&
@@ -210,8 +210,8 @@ struct TableB FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t a() const {
     return GetField<int32_t>(VT_A, 0);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            verifier.EndTable();
@@ -310,8 +310,8 @@ struct Root FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const Evolution::V1::TableB *j_as_TableB() const {
     return j_type() == Evolution::V1::Union::TableB ? static_cast<const Evolution::V1::TableB *>(j()) : nullptr;
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_A, 4) &&
            VerifyField<uint8_t>(verifier, VT_B, 1) &&
@@ -464,8 +464,8 @@ inline ::flatbuffers::Offset<Root> CreateRootDirect(
       j);
 }
 
-template <bool B>
-inline bool VerifyUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Union type) {
+template <bool VerifySizePrefixed>
+inline bool VerifyUnion(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const void *obj, Union type) {
   switch (type) {
     case Union::NONE: {
       return true;
@@ -482,8 +482,8 @@ inline bool VerifyUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void
   }
 }
 
-template <bool B>
-inline bool VerifyUnionVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types) {
+template <bool VerifySizePrefixed>
+inline bool VerifyUnionVector(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<Union> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -503,15 +503,15 @@ inline const Evolution::V1::Root *GetSizePrefixedRoot(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<Evolution::V1::Root>(buf);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifyRootBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifyBuffer<Evolution::V1::Root>(nullptr);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifySizePrefixedRootBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<Evolution::V1::Root>(nullptr);
 }
 
