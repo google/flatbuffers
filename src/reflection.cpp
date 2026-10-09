@@ -240,6 +240,13 @@ static bool VerifyObject(flatbuffers::Verifier& v,
             return false;
           }
         } else {
+          // Verify the field offset is within bounds before dereferencing
+          // via GetFieldT. Without this, a malicious offset causes a heap
+          // OOB read in GetPointer.
+          if (!table->VerifyField<uoffset_t>(v, field_def->offset(),
+                                             sizeof(uoffset_t))) {
+            return false;
+          }
           if (!VerifyObject(v, schema, *child_obj,
                             flatbuffers::GetFieldT(*table, *field_def),
                             field_def->required())) {
