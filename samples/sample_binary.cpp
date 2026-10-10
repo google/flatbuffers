@@ -62,6 +62,10 @@ int main(int /*argc*/, const char* /*argv*/[]) {
 
   // Instead, we're going to access it right away (as if we just received it).
 
+  // Verify the buffer before accessing it:
+  flatbuffers::Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
+  assert(VerifyMonsterBuffer(verifier));
+
   // Get access to the root:
   auto monster = GetMonster(builder.GetBufferPointer());
 
