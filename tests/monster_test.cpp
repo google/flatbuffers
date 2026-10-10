@@ -219,6 +219,8 @@ void AccessFlatBufferTest(const uint8_t* flatbuf, size_t length, bool pooled) {
 
   TEST_EQ(strcmp(MonsterIdentifier(), "MONS"), 0);
   TEST_EQ(MonsterBufferHasIdentifier(flatbuf), true);
+  TEST_EQ(MonsterBufferHasIdentifier(nullptr), false);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, "MONS"), false);
   TEST_EQ(strcmp(MonsterExtension(), "mon"), 0);
 
   // Access the buffer from the root.
