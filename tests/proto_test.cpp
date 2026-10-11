@@ -331,5 +331,22 @@ void ParseProtoBufAsciiTest() {
               "{\n  A [\n    1\n    2\n  ]\n  C {\n    B: 2\n  }\n}\n");
 }
 
+void FBSGeneratorSafetyTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table S { a:int; b:string; } root_type S;"), true);
+
+  std::unique_ptr<CodeGenerator> fbs_generator = NewFBSCodeGenerator(true);
+  std::string fbs;
+  TEST_EQ(fbs_generator->GenerateCodeString(parser, "test", fbs),
+          CodeGenerator::Status::OK);
+  // Ensure that no invalid empty namespace statement was generated
+  TEST_EQ(fbs.find("namespace ;"), std::string::npos);
+
+  // Test null file_saver safety in GenerateCode
+  parser.opts.file_saver = nullptr;
+  TEST_EQ(fbs_generator->GenerateCode(parser, "", "test"),
+          CodeGenerator::Status::ERROR);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

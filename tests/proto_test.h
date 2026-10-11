@@ -39,6 +39,7 @@ void proto_test_include_union_id(const std::string& proto_path,
 void ParseCorruptedProto(const std::string& proto_path);
 void ParseProtoTest(const std::string& tests_data_path);
 void ParseProtoBufAsciiTest();
+void FBSGeneratorSafetyTest();
 
 }  // namespace tests
 }  // namespace flatbuffers

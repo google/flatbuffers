@@ -1824,6 +1824,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   ValidSameNameDifferentNamespaceTest();
   ConformTest();
   ParseProtoBufAsciiTest();
+  FBSGeneratorSafetyTest();
   TypeAliasesTest();
   EndianSwapTest();
   CreateSharedStringTest();

@@ -33,14 +33,19 @@ namespace {
 static std::string GenType(const Type& type, bool underlying = false) {
   switch (type.base_type) {
     case BASE_TYPE_STRUCT:
-      return type.struct_def->defined_namespace->GetFullyQualifiedName(
-          type.struct_def->name);
+      if (type.struct_def == nullptr) return "";
+      return type.struct_def->defined_namespace != nullptr
+                 ? type.struct_def->defined_namespace->GetFullyQualifiedName(
+                       type.struct_def->name)
+                 : type.struct_def->name;
     case BASE_TYPE_VECTOR:
       return "[" + GenType(type.VectorType()) + "]";
     default:
       if (type.enum_def && !underlying) {
-        return type.enum_def->defined_namespace->GetFullyQualifiedName(
-            type.enum_def->name);
+        return type.enum_def->defined_namespace != nullptr
+                   ? type.enum_def->defined_namespace->GetFullyQualifiedName(
+                         type.enum_def->name)
+                   : type.enum_def->name;
       } else {
         return TypeName(type.base_type);
       }
@@ -118,6 +123,9 @@ static std::vector<voffset_t> ExtractProtobufIds(
 
 static bool HasTwiceUsedId(const std::vector<FieldDef*>& fields) {
   std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
+  if (used_proto_ids.size() < 2) {
+    return false;
+  }
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
@@ -131,6 +139,9 @@ static bool HasTwiceUsedId(const std::vector<FieldDef*>& fields) {
 
 static bool HasGapInProtoId(const std::vector<FieldDef*>& fields) {
   std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
+  if (used_proto_ids.size() < 2) {
+    return false;
+  }
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
@@ -257,15 +268,16 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
   return proto_to_fbs;
 }
 
-static void GenNameSpace(const Namespace& name_space, std::string* _schema,
+static void GenNameSpace(const Namespace* name_space, std::string* _schema,
                          const Namespace** last_namespace) {
-  if (*last_namespace == &name_space) return;
-  *last_namespace = &name_space;
+  if (name_space == nullptr || name_space->components.empty()) return;
+  if (*last_namespace == name_space) return;
+  *last_namespace = name_space;
   auto& schema = *_schema;
   schema += "namespace ";
-  for (auto it = name_space.components.begin();
-       it != name_space.components.end(); ++it) {
-    if (it != name_space.components.begin()) schema += ".";
+  for (auto it = name_space->components.begin();
+       it != name_space->components.end(); ++it) {
+    if (it != name_space->components.begin()) schema += ".";
     schema += *it;
   }
   schema += ";\n\n";
@@ -280,15 +292,17 @@ static std::string GenerateFBS(const Parser& parser,
   for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
        ++it) {
     auto& ns = **it;
-    for (size_t i = 0; i < ns.from_table; i++) {
+    for (size_t i = 0; i < ns.from_table && i < ns.components.size(); i++) {
       ns.components[ns.components.size() - 1 - i] += "_";
     }
 
     if (parser.opts.proto_mode && !parser.opts.proto_namespace_suffix.empty()) {
       // Since we know that all these namespaces come from a .proto, and all are
       // being converted, we can simply apply this suffix to all of them.
-      ns.components.insert(ns.components.end() - ns.from_table,
-                           parser.opts.proto_namespace_suffix);
+      if (ns.from_table <= ns.components.size()) {
+        ns.components.insert(ns.components.end() - ns.from_table,
+                             parser.opts.proto_namespace_suffix);
+      }
     }
   }
 
@@ -324,7 +338,7 @@ static std::string GenerateFBS(const Parser& parser,
     if (parser.opts.include_dependence_headers && enum_def.generated) {
       continue;
     }
-    GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
+    GenNameSpace(enum_def.defined_namespace, &schema, &last_namespace);
     GenComment(enum_def.doc_comment, &schema, nullptr);
     if (enum_def.is_union) {
       schema += "union " + enum_def.name;
@@ -359,7 +373,7 @@ static std::string GenerateFBS(const Parser& parser,
       continue;
     }
 
-    GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
+    GenNameSpace(struct_def.defined_namespace, &schema, &last_namespace);
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
     for (auto field_it = struct_def.fields.vec.begin();
@@ -409,6 +423,9 @@ static std::string GenerateFBS(const Parser& parser,
 
 static bool GenerateFBS(const Parser& parser, const std::string& path,
                         const std::string& file_name, bool no_log = false) {
+  if (parser.opts.file_saver == nullptr) {
+    return false;
+  }
   const std::string fbs = GenerateFBS(parser, file_name, no_log);
   if (fbs.empty()) {
     return false;
