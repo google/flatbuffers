@@ -465,6 +465,7 @@ void ResizeVector(const reflection::Schema& schema, uoffset_t newsize, T val,
   auto newelems = ResizeAnyVector(
       schema, newsize, reinterpret_cast<const VectorOfAny*>(vec), vec->size(),
       static_cast<uoffset_t>(sizeof(T)), flatbuf, root_table);
+  if (newelems == nullptr) return;
   // Set new elements to "val".
   for (int i = 0; i < delta_elem; i++) {
     auto loc = newelems + i * sizeof(T);

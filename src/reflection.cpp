@@ -613,12 +613,26 @@ uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,
                          const VectorOfAny* vec, uoffset_t num_elems,
                          uoffset_t elem_size, std::vector<uint8_t>* flatbuf,
                          const reflection::Object* root_table) {
-  auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
-  auto delta_bytes = delta_elem * static_cast<int>(elem_size);
+  if (!flatbuf || !vec || elem_size == 0) return nullptr;
+  const auto max_elems =
+      static_cast<uoffset_t>((std::numeric_limits<soffset_t>::max)()) / elem_size;
+  if (newsize > max_elems || num_elems > max_elems) {
+    return nullptr;
+  }
   auto vec_start = reinterpret_cast<const uint8_t*>(vec) - flatbuf->data();
+  if (vec_start < 0 || static_cast<size_t>(vec_start) > flatbuf->size()) {
+    return nullptr;
+  }
+  const auto old_bytes = elem_size * num_elems;
+  if (static_cast<size_t>(vec_start) > flatbuf->size() - sizeof(uoffset_t) ||
+      old_bytes > flatbuf->size() - static_cast<size_t>(vec_start) - sizeof(uoffset_t)) {
+    return nullptr;
+  }
   auto start = static_cast<uoffset_t>(vec_start) +
                static_cast<uoffset_t>(sizeof(uoffset_t)) +
-               elem_size * num_elems;
+               old_bytes;
+  auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
+  auto delta_bytes = delta_elem * static_cast<int>(elem_size);
   if (delta_bytes) {
     if (delta_elem < 0) {
       // Clear elements we're throwing away, since some might remain in the
