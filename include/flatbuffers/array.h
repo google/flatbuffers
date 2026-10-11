@@ -106,10 +106,13 @@ class Array {
   void CopyFromSpan(flatbuffers::span<const T, length> src) {
     const auto p1 = reinterpret_cast<const uint8_t*>(src.data());
     const auto p2 = Data();
-    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length)) &&
-                       !(p2 >= p1 && p2 < (p1 + length)));
+    const size_t byte_size = length * sizeof(T);
+    FLATBUFFERS_ASSERT(src.data() != nullptr || length == 0);
+    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + byte_size)) &&
+                       !(p2 >= p1 && p2 < (p1 + byte_size)));
     (void)p1;
     (void)p2;
+    (void)byte_size;
     CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
   }
 
@@ -220,6 +223,40 @@ make_bytes_span(const Array<U, N>& arr) FLATBUFFERS_NOEXCEPT {
   return span<const uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
 }
 
+template <class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_span(Array<U, N>* ptr)
+    FLATBUFFERS_NOEXCEPT {
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
+  return ptr ? make_span(*ptr) : span<U>();
+}
+
+template <class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
+    const Array<U, N>* ptr) FLATBUFFERS_NOEXCEPT {
+  static_assert(
+      Array<U, N>::is_span_observable,
+      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
+  return ptr ? make_span(*ptr) : span<const U>();
+}
+
+template <class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
+    Array<U, N>* ptr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
+  return ptr ? make_bytes_span(*ptr) : span<uint8_t>();
+}
+
+template <class U, uint16_t N>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
+    const Array<U, N>* ptr) FLATBUFFERS_NOEXCEPT {
+  static_assert(Array<U, N>::is_span_observable,
+                "internal error, Array<T> might hold only scalars or structs");
+  return ptr ? make_bytes_span(*ptr) : span<const uint8_t>();
+}
+
 // Cast a raw T[length] to a raw flatbuffers::Array<T, length>
 // without endian conversion. Use with care.
 // TODO: move these Cast-methods to `internal` namespace.
@@ -251,6 +288,12 @@ bool operator==(const Array<T, length>& lhs,
   return std::addressof(lhs) == std::addressof(rhs) ||
          (lhs.size() == rhs.size() &&
           std::memcmp(lhs.Data(), rhs.Data(), rhs.size() * sizeof(T)) == 0);
+}
+
+template <typename T, uint16_t length>
+bool operator!=(const Array<T, length>& lhs,
+                const Array<T, length>& rhs) noexcept {
+  return !(lhs == rhs);
 }
 
 }  // namespace flatbuffers
