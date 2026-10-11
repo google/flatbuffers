@@ -488,6 +488,19 @@ void MutateFlatBuffersTest(uint8_t* flatbuf, std::size_t length) {
   TEST_EQ(tables->LookupByKey("Barney")->hp(), 0);
   TEST_EQ(tables->MutableLookupByKey("Barney")->mutate_hp(1000), true);
 
+  // Test Table::SetPointer and SetPointer64
+  auto table = reinterpret_cast<flatbuffers::Table*>(monster);
+  auto orig_name_ptr = reinterpret_cast<const uint8_t*>(monster->name());
+  TEST_NOTNULL(orig_name_ptr);
+  TEST_EQ(table->SetPointer(Monster::VT_NAME, orig_name_ptr), true);
+  TEST_EQ_STR(monster->name()->c_str(), "MyMonster");
+  // Nonexistent / out-of-bounds fields safely return false / 0 / nullptr
+  TEST_EQ(table->SetPointer(9999, orig_name_ptr), false);
+  TEST_EQ(table->SetPointer64(9999, orig_name_ptr), false);
+  TEST_EQ(table->GetOptionalFieldOffset(9999), 0);
+  TEST_EQ(table->GetPointer<const flatbuffers::String*>(9999),
+          static_cast<const flatbuffers::String*>(nullptr));
+
   // Run the verifier and the regular test to make sure we didn't trample on
   // anything.
   AccessFlatBufferTest(flatbuf, length);

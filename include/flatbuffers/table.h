@@ -40,7 +40,9 @@ class Table {
     auto vtsize = ReadScalar<voffset_t>(vtable);
     // If the field we're accessing is outside the vtable, we're reading older
     // data, so it's the same as if the offset was 0 (not present).
-    return field < vtsize ? ReadScalar<voffset_t>(vtable + field) : 0;
+    return (vtsize >= sizeof(voffset_t) && field <= vtsize - sizeof(voffset_t))
+               ? ReadScalar<voffset_t>(vtable + field)
+               : 0;
   }
 
   template <typename T>
@@ -52,9 +54,10 @@ class Table {
   template <typename P, typename OffsetSize = uoffset_t>
   P GetPointer(voffset_t field) {
     auto field_offset = GetOptionalFieldOffset(field);
+    if (!field_offset) return nullptr;
     auto p = data_ + field_offset;
-    return field_offset ? reinterpret_cast<P>(p + ReadScalar<OffsetSize>(p))
-                        : nullptr;
+    auto offset = ReadScalar<OffsetSize>(p);
+    return offset ? reinterpret_cast<P>(p + offset) : nullptr;
   }
   template <typename P, typename OffsetSize = uoffset_t>
   P GetPointer(voffset_t field) const {
@@ -130,8 +133,20 @@ class Table {
   bool SetPointer(voffset_t field, const uint8_t* val) {
     auto field_offset = GetOptionalFieldOffset(field);
     if (!field_offset) return false;
+    FLATBUFFERS_ASSERT(val >= data_ + field_offset);
+    FLATBUFFERS_ASSERT(static_cast<size_t>(val - (data_ + field_offset)) <=
+                       (std::numeric_limits<uoffset_t>::max)());
     WriteScalar(data_ + field_offset,
                 static_cast<uoffset_t>(val - (data_ + field_offset)));
+    return true;
+  }
+
+  bool SetPointer64(voffset_t field, const uint8_t* val) {
+    auto field_offset = GetOptionalFieldOffset(field);
+    if (!field_offset) return false;
+    FLATBUFFERS_ASSERT(val >= data_ + field_offset);
+    WriteScalar(data_ + field_offset,
+                static_cast<uoffset64_t>(val - (data_ + field_offset)));
     return true;
   }
 
