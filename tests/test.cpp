@@ -1745,6 +1745,52 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void StlEmulationAndVectorSafetyTest() {
+  // Test Optional mutable operator*, value()
+  flatbuffers::Optional<int> opt_int(123);
+  TEST_EQ(opt_int.has_value(), true);
+  TEST_EQ(*opt_int, 123);
+  *opt_int = 456;
+  TEST_EQ(opt_int.value(), 456);
+  opt_int.value() = 789;
+  TEST_EQ(*opt_int, 789);
+
+  const flatbuffers::Optional<int> const_opt(55);
+  TEST_EQ(*const_opt, 55);
+  TEST_EQ(const_opt.value(), 55);
+
+  flatbuffers::Optional<int> opt_empty;
+  TEST_EQ(opt_empty.has_value(), false);
+  TEST_EQ(opt_empty.value_or(42), 42);
+
+  // Test span copy-assignment and return statement
+  int arr1[] = {1, 2, 3};
+  int arr2[] = {4, 5, 6};
+  flatbuffers::span<int> s1(arr1, 3);
+  flatbuffers::span<int> s2(arr2, 3);
+  s1 = s2;
+  TEST_EQ(s1.size(), 3);
+  TEST_EQ(s1[0], 4);
+
+  // Test VectorIterator default and null handling
+  flatbuffers::VectorConstIterator<uint8_t, uint8_t> it1;
+  flatbuffers::VectorConstIterator<uint8_t, uint8_t> it2;
+  TEST_EQ(it1 == it2, true);
+  TEST_EQ(it1 - it2, 0);
+
+  // Test VectorCast null safety
+  flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>* null_vec = nullptr;
+  auto cast_vec = flatbuffers::VectorCast<flatbuffers::String, flatbuffers::String>(null_vec);
+  TEST_NULL(cast_vec);
+
+  // Test Allocator null handling
+  flatbuffers::DefaultAllocator alloc;
+  uint8_t* p = alloc.allocate(0);
+  TEST_NULL(p);
+  alloc.deallocate(nullptr, 0);
+  flatbuffers::Deallocate(nullptr, nullptr, 0);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1910,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  StlEmulationAndVectorSafetyTest();
   return 0;
 }
 }  // namespace

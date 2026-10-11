@@ -238,7 +238,24 @@ class Optional FLATBUFFERS_FINAL_CLASS {
     return value_;
   }
 
+  FLATBUFFERS_CONSTEXPR_CPP14 T& operator*() FLATBUFFERS_NOEXCEPT {
+    return value_;
+  }
+
+  const T* operator->() const FLATBUFFERS_NOEXCEPT {
+    return &value_;
+  }
+
+  T* operator->() FLATBUFFERS_NOEXCEPT {
+    return &value_;
+  }
+
   const T& value() const {
+    FLATBUFFERS_ASSERT(has_value());
+    return value_;
+  }
+
+  T& value() {
     FLATBUFFERS_ASSERT(has_value());
     return value_;
   }
@@ -391,6 +408,7 @@ class span FLATBUFFERS_FINAL_CLASS {
       FLATBUFFERS_NOEXCEPT {
     data_ = other.data_;
     count_ = other.count_;
+    return *this;
   }
 
   // Limited implementation of
@@ -468,7 +486,7 @@ class span FLATBUFFERS_FINAL_CLASS {
 
  private:
   // This is a naive implementation with 'count_' member even if (Extent != dynamic_extent).
-  pointer const data_;
+  pointer data_;
   size_type count_;
 };
 #endif  // defined(FLATBUFFERS_USE_STD_SPAN)

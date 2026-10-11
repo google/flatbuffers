@@ -38,7 +38,8 @@ struct VectorIterator {
 
   static const SizeT element_stride = IndirectHelper<T>::element_stride;
 
-  VectorIterator(Data data, SizeT i) : data_(data + element_stride * i) {}
+  VectorIterator(Data data, SizeT i)
+      : data_((data != nullptr) ? (data + element_stride * i) : nullptr) {}
   VectorIterator(const VectorIterator& other) : data_(other.data_) {}
   VectorIterator() : data_(nullptr) {}
 
@@ -77,7 +78,7 @@ struct VectorIterator {
   }
 
   difference_type operator-(const VectorIterator& other) const {
-    return (data_ - other.data_) / element_stride;
+    return element_stride != 0 ? ((data_ - other.data_) / element_stride) : 0;
   }
 
   // Note: return type is incompatible with the standard
@@ -89,42 +90,44 @@ struct VectorIterator {
   IT operator->() const { return IndirectHelper<T>::Read(data_, 0); }
 
   VectorIterator& operator++() {
-    data_ += element_stride;
+    if (data_ != nullptr) data_ += element_stride;
     return *this;
   }
 
   VectorIterator operator++(int) {
     VectorIterator temp(data_, 0);
-    data_ += element_stride;
+    if (data_ != nullptr) data_ += element_stride;
     return temp;
   }
 
   VectorIterator operator+(const SizeT& offset) const {
-    return VectorIterator(data_ + offset * element_stride, 0);
+    return VectorIterator(
+        (data_ != nullptr) ? (data_ + offset * element_stride) : nullptr, 0);
   }
 
   VectorIterator& operator+=(const SizeT& offset) {
-    data_ += offset * element_stride;
+    if (data_ != nullptr) data_ += offset * element_stride;
     return *this;
   }
 
   VectorIterator& operator--() {
-    data_ -= element_stride;
+    if (data_ != nullptr) data_ -= element_stride;
     return *this;
   }
 
   VectorIterator operator--(int) {
     VectorIterator temp(data_, 0);
-    data_ -= element_stride;
+    if (data_ != nullptr) data_ -= element_stride;
     return temp;
   }
 
   VectorIterator operator-(const SizeT& offset) const {
-    return VectorIterator(data_ - offset * element_stride, 0);
+    return VectorIterator(
+        (data_ != nullptr) ? (data_ - offset * element_stride) : nullptr, 0);
   }
 
   VectorIterator& operator-=(const SizeT& offset) {
-    data_ -= offset * element_stride;
+    if (data_ != nullptr) data_ -= offset * element_stride;
     return *this;
   }
 
@@ -283,6 +286,9 @@ class Vector {
 
   template <typename K>
   return_type LookupByKey(K key) const {
+    if (!size()) {
+      return nullptr;
+    }
     void* search_result = std::bsearch(
         &key, Data(), size(), IndirectHelper<T>::element_stride, KeyCompare<K>);
 
@@ -317,7 +323,9 @@ class Vector {
   static int KeyCompare(const void* ap, const void* bp) {
     const K* key = reinterpret_cast<const K*>(ap);
     const uint8_t* data = reinterpret_cast<const uint8_t*>(bp);
+    if (!key || !data) return 0;
     auto table = IndirectHelper<T>::Read(data, 0);
+    if (!table) return 0;
 
     // std::bsearch compares with the operands transposed, so we negate the
     // result here.
@@ -399,13 +407,13 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
 template <class U>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_structs_span(
     Vector<const U*>* ptr) FLATBUFFERS_NOEXCEPT {
-  return ptr ? make_span(*ptr) : span<U>();
+  return ptr ? make_structs_span(*ptr) : span<U>();
 }
 
 template <class U>
 FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_structs_span(
     const Vector<const U*>* ptr) FLATBUFFERS_NOEXCEPT {
-  return ptr ? make_span(*ptr) : span<const U>();
+  return ptr ? make_structs_span(*ptr) : span<const U>();
 }
 
 #endif
@@ -434,13 +442,13 @@ class VectorOfAny {
 template <typename T, typename U>
 Vector<Offset<T>>* VectorCast(Vector<Offset<U>>* ptr) {
   static_assert(std::is_base_of<T, U>::value, "Unrelated types");
-  return reinterpret_cast<Vector<Offset<T>>*>(ptr);
+  return ptr ? reinterpret_cast<Vector<Offset<T>>*>(ptr) : nullptr;
 }
 
 template <typename T, typename U>
 const Vector<Offset<T>>* VectorCast(const Vector<Offset<U>>* ptr) {
   static_assert(std::is_base_of<T, U>::value, "Unrelated types");
-  return reinterpret_cast<const Vector<Offset<T>>*>(ptr);
+  return ptr ? reinterpret_cast<const Vector<Offset<T>>*>(ptr) : nullptr;
 }
 
 // Convenient helper function to get the length of any vector, regardless
