@@ -409,5 +409,92 @@ void MiniReflectFixedLengthArrayTest() {
 #endif
 }
 
+void ReflectionSafetyTest(const std::string& tests_data_path) {
+  // 1. Buffer root and identifier safety with null / empty buffers
+  TEST_NULL(flatbuffers::GetBufferIdentifier(nullptr));
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, "MONS"), false);
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, nullptr), false);
+  const char dummy_buf[8] = { 0 };
+  TEST_EQ(flatbuffers::BufferHasIdentifier(dummy_buf, nullptr), false);
+
+  TEST_NULL(flatbuffers::GetRoot<Table>(nullptr));
+  TEST_NULL(flatbuffers::GetMutableRoot<Table>(nullptr));
+  TEST_NULL(flatbuffers::GetSizePrefixedRoot<Table>(nullptr));
+  TEST_NULL(flatbuffers::GetMutableSizePrefixedRoot<Table>(nullptr));
+  TEST_NULL(flatbuffers::GetAnyRoot(static_cast<uint8_t*>(nullptr)));
+  TEST_NULL(flatbuffers::GetAnyRoot(static_cast<const uint8_t*>(nullptr)));
+  TEST_NULL(flatbuffers::GetAnySizePrefixedRoot(static_cast<uint8_t*>(nullptr)));
+  TEST_NULL(flatbuffers::GetAnySizePrefixedRoot(static_cast<const uint8_t*>(nullptr)));
+
+  // 2. Value getters & setters null data safety
+  TEST_EQ(flatbuffers::GetAnyValueI(reflection::Int, nullptr), 0);
+  TEST_EQ(flatbuffers::GetAnyValueF(reflection::Float, nullptr), 0.0);
+  TEST_EQ_STR(flatbuffers::GetAnyValueS(reflection::String, nullptr, nullptr, 0).c_str(), "");
+  flatbuffers::SetAnyValueI(reflection::Int, nullptr, 42);
+  flatbuffers::SetAnyValueF(reflection::Float, nullptr, 3.14);
+  flatbuffers::SetAnyValueS(reflection::String, nullptr, "test");
+
+  // 3. ForAllFields with null object
+  flatbuffers::ForAllFields(nullptr, false, [](const reflection::Field*) {
+    TEST_ASSERT(false);
+  });
+  flatbuffers::ForAllFields(nullptr, true, [](const reflection::Field*) {
+    TEST_ASSERT(false);
+  });
+
+  // 4. ForAllFields with sparse field IDs (e.g. IDs 0 and 7 on a 2-field object)
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto name = fbb.CreateString("SparseTable");
+    auto f0_name = fbb.CreateString("f0");
+    auto f7_name = fbb.CreateString("f7");
+    auto type0 = reflection::CreateType(fbb, reflection::Int);
+    auto type7 = reflection::CreateType(fbb, reflection::Int);
+    auto f0 = reflection::CreateField(fbb, f0_name, type0, /*id=*/0, /*offset=*/4);
+    auto f7 = reflection::CreateField(fbb, f7_name, type7, /*id=*/7, /*offset=*/8);
+    std::vector<flatbuffers::Offset<reflection::Field>> field_vec;
+    field_vec.push_back(f0);
+    field_vec.push_back(f7);
+    auto fields = fbb.CreateVector(field_vec);
+    auto obj_offset = reflection::CreateObject(fbb, name, fields);
+    fbb.Finish(obj_offset);
+
+    auto obj = flatbuffers::GetRoot<reflection::Object>(fbb.GetBufferPointer());
+    TEST_NOTNULL(obj);
+    std::vector<uint16_t> forward_ids;
+    flatbuffers::ForAllFields(obj, false, [&](const reflection::Field* f) {
+      forward_ids.push_back(f->id());
+    });
+    TEST_EQ(forward_ids.size(), 2u);
+    TEST_EQ(forward_ids[0], 0);
+    TEST_EQ(forward_ids[1], 7);
+
+    std::vector<uint16_t> reverse_ids;
+    flatbuffers::ForAllFields(obj, true, [&](const reflection::Field* f) {
+      reverse_ids.push_back(f->id());
+    });
+    TEST_EQ(reverse_ids.size(), 2u);
+    TEST_EQ(reverse_ids[0], 7);
+    TEST_EQ(reverse_ids[1], 0);
+  }
+
+  // 5. Verify & VerifySizePrefixed with null / 0-length buffer
+  {
+    std::string bfbsfile;
+    TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
+                                  true, &bfbsfile),
+            true);
+    auto& schema = *reflection::GetSchema(bfbsfile.c_str());
+    auto root_table = schema.root_table();
+    TEST_NOTNULL(root_table);
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, nullptr, 0), false);
+    TEST_EQ(flatbuffers::VerifySizePrefixed(schema, *root_table, nullptr, 0), false);
+
+    // SetString & ResizeAnyVector with null buffer
+    flatbuffers::SetString(schema, "test", nullptr, nullptr);
+    TEST_NULL(flatbuffers::ResizeAnyVector(schema, 10, nullptr, 5, 4, nullptr));
+  }
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

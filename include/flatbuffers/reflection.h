@@ -92,18 +92,22 @@ inline size_t GetTypeSizeInline(reflection::BaseType base_type, int type_index,
 
 // Get the root, regardless of what type it is.
 inline Table* GetAnyRoot(uint8_t* const flatbuf) {
+  if (!flatbuf) return nullptr;
   return GetMutableRoot<Table>(flatbuf);
 }
 
 inline const Table* GetAnyRoot(const uint8_t* const flatbuf) {
+  if (!flatbuf) return nullptr;
   return GetRoot<Table>(flatbuf);
 }
 
 inline Table* GetAnySizePrefixedRoot(uint8_t* const flatbuf) {
+  if (!flatbuf) return nullptr;
   return GetMutableSizePrefixedRoot<Table>(flatbuf);
 }
 
 inline const Table* GetAnySizePrefixedRoot(const uint8_t* const flatbuf) {
+  if (!flatbuf) return nullptr;
   return GetSizePrefixedRoot<Table>(flatbuf);
 }
 

@@ -153,9 +153,10 @@ static bool VerifyVector(flatbuffers::Verifier& v,
           table, vec_field);
       if (!v.VerifyVector(vec)) return false;
       if (!vec) return true;
+      if (vec_field.offset() < sizeof(voffset_t)) return false;
       auto type_vec = table.GetPointer<Vector<uint8_t>*>(vec_field.offset() -
                                                          sizeof(voffset_t));
-      if (!v.VerifyVector(type_vec)) return false;
+      if (!type_vec || !v.VerifyVector(type_vec)) return false;
       if (type_vec->size() != vec->size()) return false;
       for (uoffset_t j = 0; j < vec->size(); j++) {
         //  get union type from the prev field
@@ -250,6 +251,7 @@ static bool VerifyObject(flatbuffers::Verifier& v,
       }
       case reflection::Union: {
         //  get union type from the prev field
+        if (field_def->offset() < sizeof(voffset_t)) return false;
         voffset_t utype_offset = field_def->offset() - sizeof(voffset_t);
         auto utype = table->GetField<uint8_t>(utype_offset, 0);
         auto uval = reinterpret_cast<const uint8_t*>(
@@ -273,6 +275,7 @@ static bool VerifyObject(flatbuffers::Verifier& v,
 }  // namespace
 
 int64_t GetAnyValueI(reflection::BaseType type, const uint8_t* data) {
+  if (!data) return 0;
   // clang-format off
   #define FLATBUFFERS_GET(T) static_cast<int64_t>(ReadScalar<T>(data))
   switch (type) {
@@ -300,6 +303,7 @@ int64_t GetAnyValueI(reflection::BaseType type, const uint8_t* data) {
 }
 
 double GetAnyValueF(reflection::BaseType type, const uint8_t* data) {
+  if (!data) return 0.0;
   switch (type) {
     case reflection::Float:
       return static_cast<double>(ReadScalar<float>(data));
@@ -323,6 +327,7 @@ double GetAnyValueF(reflection::BaseType type, const uint8_t* data) {
 
 std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
                          const reflection::Schema* schema, int type_index) {
+  if (!data) return "";
   switch (type) {
     case reflection::Float:
     case reflection::Double:
@@ -342,8 +347,9 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
         if (objectdef.is_struct()) {
           s += "(struct)";  // TODO: implement this as well.
         } else {
-          auto table_field = reinterpret_cast<const Table*>(
-              ReadScalar<uoffset_t>(data) + data);
+          uoffset_t table_offset = ReadScalar<uoffset_t>(data);
+          if (!table_offset) return "null";
+          auto table_field = reinterpret_cast<const Table*>(data + table_offset);
           s += " { ";
           auto fielddefs = objectdef.fields();
           for (auto it = fielddefs->begin(); it != fielddefs->end(); ++it) {
@@ -378,22 +384,34 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
 
 void ForAllFields(const reflection::Object* object, bool reverse,
                   std::function<void(const reflection::Field*)> func) {
-  std::vector<uint32_t> field_to_id_map;
-  field_to_id_map.resize(object->fields()->size());
+  if (!object || !object->fields()) return;
+  uint32_t max_id = 0;
+  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
+    auto field = object->fields()->Get(i);
+    if (field && field->id() > max_id) {
+      max_id = field->id();
+    }
+  }
+  std::vector<int> field_to_id_map(max_id + 1, -1);
 
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+    if (field) {
+      field_to_id_map[field->id()] = static_cast<int>(i);
+    }
   }
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-    func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+    size_t idx = reverse ? field_to_id_map.size() - (i + 1) : i;
+    if (field_to_id_map[idx] >= 0) {
+      func(object->fields()->Get(field_to_id_map[idx]));
+    }
   }
 }
 
 void SetAnyValueI(reflection::BaseType type, uint8_t* data, int64_t val) {
+  if (!data) return;
   // clang-format off
   #define FLATBUFFERS_SET(T) WriteScalar(data, static_cast<T>(val))
   switch (type) {
@@ -417,6 +435,7 @@ void SetAnyValueI(reflection::BaseType type, uint8_t* data, int64_t val) {
 }
 
 void SetAnyValueF(reflection::BaseType type, uint8_t* data, double val) {
+  if (!data) return;
   switch (type) {
     case reflection::Float:
       WriteScalar(data, static_cast<float>(val));
@@ -432,6 +451,7 @@ void SetAnyValueF(reflection::BaseType type, uint8_t* data, double val) {
 }
 
 void SetAnyValueS(reflection::BaseType type, uint8_t* data, const char* val) {
+  if (!data || !val) return;
   switch (type) {
     case reflection::Float:
     case reflection::Double: {
@@ -461,22 +481,30 @@ class ResizeContext {
                 std::vector<uint8_t>* flatbuf,
                 const reflection::Object* root_table = nullptr)
       : schema_(schema),
-        startptr_(flatbuf->data() + start),
+        startptr_(flatbuf ? flatbuf->data() + start : nullptr),
         delta_(delta),
         buf_(*flatbuf),
-        dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
+        dag_check_(flatbuf ? flatbuf->size() / sizeof(uoffset_t) : 0, false) {
+    if (!flatbuf || start > flatbuf->size()) return;
     auto mask = static_cast<int>(sizeof(largest_scalar_t) - 1);
     delta_ = (delta_ + mask) & ~mask;
     if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(buf_.data());
+    if (!root) return;
     Straddle<uoffset_t, 1>(buf_.data(), root, buf_.data());
-    ResizeTable(root_table ? *root_table : *schema.root_table(), root);
+    auto root_obj = root_table ? root_table : schema.root_table();
+    if (root_obj) {
+      ResizeTable(*root_obj, root);
+    }
     // We can now add or remove bytes at start.
-    if (delta_ > 0)
+    if (delta_ > 0) {
       buf_.insert(buf_.begin() + start, delta_, 0);
-    else
-      buf_.erase(buf_.begin() + start + delta_, buf_.begin() + start);
+    } else {
+      if (static_cast<size_t>(-delta_) <= start && start <= buf_.size()) {
+        buf_.erase(buf_.begin() + start + delta_, buf_.begin() + start);
+      }
+    }
   }
 
   // Check if the range between first (lower address) and second straddles
@@ -484,6 +512,7 @@ class ResizeContext {
   // type T, with direction D).
   template <typename T, int D>
   void Straddle(const void* first, const void* second, void* offsetloc) {
+    if (!first || !second || !offsetloc || !startptr_) return;
     if (first <= startptr_ && second >= startptr_) {
       WriteScalar<T>(offsetloc, ReadScalar<T>(offsetloc) + delta_ * D);
       DagCheck(offsetloc) = true;
@@ -497,13 +526,17 @@ class ResizeContext {
   // This must be checked for every offset, since we can't know which offsets
   // will straddle and which won't.
   uint8_t& DagCheck(const void* offsetloc) {
-    auto dag_idx = reinterpret_cast<const uoffset_t*>(offsetloc) -
-                   reinterpret_cast<const uoffset_t*>(buf_.data());
+    if (!offsetloc || dag_check_.empty()) return dummy_;
+    auto ptr = reinterpret_cast<const uoffset_t*>(offsetloc);
+    auto base = reinterpret_cast<const uoffset_t*>(buf_.data());
+    if (ptr < base) return dummy_;
+    auto dag_idx = static_cast<size_t>(ptr - base);
+    if (dag_idx >= dag_check_.size()) return dummy_;
     return dag_check_[dag_idx];
   }
 
   void ResizeTable(const reflection::Object& objectdef, Table* table) {
-    if (DagCheck(table)) return;  // Table already visited.
+    if (!table || DagCheck(table)) return;  // Table already visited or null.
     auto vtable = table->GetVTable();
     // Early out: since all fields inside the table must point forwards in
     // memory, if the insertion point is before the table we can stop here.
@@ -538,7 +571,7 @@ class ResizeContext {
         // Recurse.
         switch (base_type) {
           case reflection::Obj: {
-            if (subobjectdef) {
+            if (subobjectdef && ref) {
               ResizeTable(*subobjectdef, reinterpret_cast<Table*>(ref));
             }
             break;
@@ -548,6 +581,7 @@ class ResizeContext {
             if (elem_type != reflection::Obj && elem_type != reflection::String)
               break;
             auto vec = reinterpret_cast<Vector<uoffset_t>*>(ref);
+            if (!vec) break;
             auto elemobjectdef =
                 elem_type == reflection::Obj
                     ? schema_.objects()->Get(fielddef.type()->index())
@@ -558,14 +592,16 @@ class ResizeContext {
               if (DagCheck(loc)) continue;  // This offset already visited.
               auto dest = loc + vec->Get(i);
               Straddle<uoffset_t, 1>(loc, dest, loc);
-              if (elemobjectdef)
+              if (elemobjectdef && dest)
                 ResizeTable(*elemobjectdef, reinterpret_cast<Table*>(dest));
             }
             break;
           }
           case reflection::Union: {
-            ResizeTable(GetUnionType(schema_, objectdef, fielddef, *table),
-                        reinterpret_cast<Table*>(ref));
+            if (ref) {
+              ResizeTable(GetUnionType(schema_, objectdef, fielddef, *table),
+                          reinterpret_cast<Table*>(ref));
+            }
             break;
           }
           case reflection::String:
@@ -587,11 +623,13 @@ class ResizeContext {
   int delta_;
   std::vector<uint8_t>& buf_;
   std::vector<uint8_t> dag_check_;
+  uint8_t dummy_ = 0;
 };
 
 void SetString(const reflection::Schema& schema, const std::string& val,
                const String* str, std::vector<uint8_t>* flatbuf,
                const reflection::Object* root_table) {
+  if (!str || !flatbuf || flatbuf->empty()) return;
   auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
   auto str_start = static_cast<uoffset_t>(
       reinterpret_cast<const uint8_t*>(str) - flatbuf->data());
@@ -613,6 +651,7 @@ uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,
                          const VectorOfAny* vec, uoffset_t num_elems,
                          uoffset_t elem_size, std::vector<uint8_t>* flatbuf,
                          const reflection::Object* root_table) {
+  if (!vec || !flatbuf || flatbuf->empty()) return nullptr;
   auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
   auto delta_bytes = delta_elem * static_cast<int>(elem_size);
   auto vec_start = reinterpret_cast<const uint8_t*>(vec) - flatbuf->data();
@@ -669,32 +708,47 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
     // Skip if field is not present in the source.
     if (!table.CheckField(fielddef.offset())) continue;
     uoffset_t offset = 0;
+    bool is_offset_field = false;
     switch (fielddef.type()->base_type()) {
       case reflection::String: {
-        offset = use_string_pooling
-                     ? fbb.CreateSharedString(GetFieldS(table, fielddef)).o
-                     : fbb.CreateString(GetFieldS(table, fielddef)).o;
+        is_offset_field = true;
+        auto s = GetFieldS(table, fielddef);
+        if (s) {
+          offset = use_string_pooling
+                       ? fbb.CreateSharedString(s).o
+                       : fbb.CreateString(s).o;
+        }
         break;
       }
       case reflection::Obj: {
         auto& subobjectdef = *schema.objects()->Get(fielddef.type()->index());
         if (!subobjectdef.is_struct()) {
-          offset = CopyTable(fbb, schema, subobjectdef,
-                             *GetFieldT(table, fielddef), use_string_pooling)
-                       .o;
+          is_offset_field = true;
+          auto subtable = GetFieldT(table, fielddef);
+          if (subtable) {
+            offset = CopyTable(fbb, schema, subobjectdef,
+                               *subtable, use_string_pooling)
+                         .o;
+          }
         }
         break;
       }
       case reflection::Union: {
+        is_offset_field = true;
         auto& subobjectdef = GetUnionType(schema, objectdef, fielddef, table);
-        offset = CopyTable(fbb, schema, subobjectdef,
-                           *GetFieldT(table, fielddef), use_string_pooling)
-                     .o;
+        auto subtable = GetFieldT(table, fielddef);
+        if (subtable) {
+          offset = CopyTable(fbb, schema, subobjectdef,
+                             *subtable, use_string_pooling)
+                       .o;
+        }
         break;
       }
       case reflection::Vector: {
+        is_offset_field = true;
         auto vec =
             table.GetPointer<const Vector<Offset<Table>>*>(fielddef.offset());
+        if (!vec) break;
         auto element_base_type = fielddef.type()->element();
         auto elemobjectdef =
             element_base_type == reflection::Obj
@@ -705,19 +759,23 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
             std::vector<Offset<const String*>> elements(vec->size());
             auto vec_s = reinterpret_cast<const Vector<Offset<String>>*>(vec);
             for (uoffset_t i = 0; i < vec_s->size(); i++) {
-              elements[i] = use_string_pooling
-                                ? fbb.CreateSharedString(vec_s->Get(i)).o
-                                : fbb.CreateString(vec_s->Get(i)).o;
+              auto str = vec_s->Get(i);
+              elements[i] = (use_string_pooling && str)
+                                ? fbb.CreateSharedString(str).o
+                                : (str ? fbb.CreateString(str).o : 0);
             }
             offset = fbb.CreateVector(elements).o;
             break;
           }
           case reflection::Obj: {
-            if (!elemobjectdef->is_struct()) {
+            if (elemobjectdef && !elemobjectdef->is_struct()) {
               std::vector<Offset<const Table*>> elements(vec->size());
               for (uoffset_t i = 0; i < vec->size(); i++) {
-                elements[i] = CopyTable(fbb, schema, *elemobjectdef,
-                                        *vec->Get(i), use_string_pooling);
+                auto elem_table = vec->Get(i);
+                elements[i] = elem_table
+                                  ? CopyTable(fbb, schema, *elemobjectdef,
+                                              *elem_table, use_string_pooling)
+                                  : 0;
               }
               offset = fbb.CreateVector(elements).o;
               break;
@@ -729,8 +787,14 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
             auto element_alignment = element_size;  // For primitive elements
             if (elemobjectdef && elemobjectdef->is_struct())
               element_size = elemobjectdef->bytesize();
+            if (element_size > 0 &&
+                vec->size() > FLATBUFFERS_MAX_BUFFER_SIZE / element_size) {
+              break;
+            }
             fbb.StartVector(vec->size(), element_size, element_alignment);
-            fbb.PushBytes(vec->Data(), element_size * vec->size());
+            if (vec->Data()) {
+              fbb.PushBytes(vec->Data(), element_size * vec->size());
+            }
             offset = fbb.EndVector(vec->size());
             break;
           }
@@ -740,7 +804,7 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
       default:  // Scalars.
         break;
     }
-    if (offset) {
+    if (is_offset_field) {
       offsets.push_back(offset);
     }
   }
@@ -765,7 +829,12 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
       case reflection::Union:
       case reflection::String:
       case reflection::Vector:
-        fbb.AddOffset(fielddef.offset(), Offset<void>(offsets[offset_idx++]));
+        if (offset_idx < offsets.size()) {
+          auto off = offsets[offset_idx++];
+          if (off) {
+            fbb.AddOffset(fielddef.offset(), Offset<void>(off));
+          }
+        }
         break;
       default: {  // Scalars.
         auto size = GetTypeSize(base_type);
@@ -786,18 +855,22 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
 bool Verify(const reflection::Schema& schema, const reflection::Object& root,
             const uint8_t* const buf, const size_t length,
             const uoffset_t max_depth, const uoffset_t max_tables) {
+  if (!buf || length == 0) return false;
   Verifier v(buf, length, max_depth, max_tables);
-  return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf),
-                      /*required=*/true);
+  auto root_table = flatbuffers::GetAnyRoot(buf);
+  if (!root_table) return false;
+  return VerifyObject(v, schema, root, root_table, /*required=*/true);
 }
 
 bool VerifySizePrefixed(const reflection::Schema& schema,
                         const reflection::Object& root,
                         const uint8_t* const buf, const size_t length,
                         const uoffset_t max_depth, const uoffset_t max_tables) {
+  if (!buf || length == 0) return false;
   Verifier v(buf, length, max_depth, max_tables);
-  return VerifyObject(v, schema, root, flatbuffers::GetAnySizePrefixedRoot(buf),
-                      /*required=*/true);
+  auto root_table = flatbuffers::GetAnySizePrefixedRoot(buf);
+  if (!root_table) return false;
+  return VerifyObject(v, schema, root, root_table, /*required=*/true);
 }
 
 }  // namespace flatbuffers

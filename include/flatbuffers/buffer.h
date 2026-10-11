@@ -184,6 +184,7 @@ struct IndirectHelper<
 /// vtable).
 inline const char* GetBufferIdentifier(const void* buf,
                                        bool size_prefixed = false) {
+  if (!buf) return nullptr;
   return reinterpret_cast<const char*>(buf) +
          ((size_prefixed) ? 2 * sizeof(uoffset_t) : sizeof(uoffset_t));
 }
@@ -191,8 +192,10 @@ inline const char* GetBufferIdentifier(const void* buf,
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void* buf, const char* identifier,
                                 bool size_prefixed = false) {
-  return strncmp(GetBufferIdentifier(buf, size_prefixed), identifier,
-                 flatbuffers::kFileIdentifierLength) == 0;
+  if (!buf || !identifier) return false;
+  auto id = GetBufferIdentifier(buf, size_prefixed);
+  return id != nullptr && strncmp(id, identifier,
+                                  flatbuffers::kFileIdentifierLength) == 0;
 }
 
 /// @cond FLATBUFFERS_INTERNAL
@@ -207,16 +210,19 @@ T* GetMutableRoot(void* buf) {
 
 template <typename T, typename SizeT = uoffset_t>
 T* GetMutableSizePrefixedRoot(void* buf) {
+  if (!buf) return nullptr;
   return GetMutableRoot<T>(reinterpret_cast<uint8_t*>(buf) + sizeof(SizeT));
 }
 
 template <typename T>
 const T* GetRoot(const void* buf) {
+  if (!buf) return nullptr;
   return GetMutableRoot<T>(const_cast<void*>(buf));
 }
 
 template <typename T, typename SizeT = uoffset_t>
 const T* GetSizePrefixedRoot(const void* buf) {
+  if (!buf) return nullptr;
   return GetRoot<T>(reinterpret_cast<const uint8_t*>(buf) + sizeof(SizeT));
 }
 
