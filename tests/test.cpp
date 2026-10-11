@@ -37,6 +37,7 @@
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
+#include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -1745,8 +1746,83 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+namespace {
+class TestCodeGenerator : public BaseGenerator {
+ public:
+  TestCodeGenerator(const Parser& p, const std::string& path,
+                    const std::string& fn)
+      : BaseGenerator(p, path, fn, "", ".", "") {}
+  bool generate() FLATBUFFERS_OVERRIDE { return true; }
+  using BaseGenerator::FullNamespace;
+  using BaseGenerator::WrapInNameSpace;
+  using BaseGenerator::GetNameSpace;
+};
+}  // namespace
+
+void CodeGeneratorSafetyTest() {
+  // Test CodeWriter negative indentation guard
+  CodeWriter cw;
+  cw.DecrementIdentLevel();
+  cw.DecrementIdentLevel();
+  cw += "line1";
+  TEST_EQ(cw.ToString(), std::string("line1\n"));
+
+  // Test CodeWriter variable expansion
+  CodeWriter cw2;
+  cw2.SetValue("NAME", "Widget");
+  cw2 += "{{NAME}}";
+  TEST_EQ(cw2.ToString(), std::string("Widget\n"));
+
+  // Test GenComment null code_ptr and empty comments
+  GenComment({}, nullptr, nullptr);
+  std::string comment_out;
+  GenComment({}, &comment_out, nullptr);
+  TEST_EQ(comment_out, std::string(""));
+
+  // Test GenComment with null prefix
+  CommentConfig config = { "//", " *", " */" };
+  std::vector<std::string> comments;
+  comments.push_back("doc line");
+  GenComment(comments, &comment_out, &config, nullptr);
+  TEST_ASSERT(!comment_out.empty());
+
+  // Test FloatConstantGenerators with null arguments in constructors
+  TypedFloatConstantGenerator typed_gen(nullptr, nullptr, nullptr, nullptr,
+                                        nullptr);
+  (void)typed_gen;
+  SimpleFloatConstantGenerator simple_gen(nullptr, nullptr, nullptr);
+  (void)simple_gen;
+
+  // Test BaseGenerator methods with null inputs
+  Parser parser;
+  TestCodeGenerator gen(parser, "", "");
+  Namespace ns;
+  ns.components.push_back("org");
+  ns.components.push_back("test");
+  std::string full_null = TestCodeGenerator::FullNamespace(nullptr, ns);
+  TEST_EQ(full_null, std::string("orgtest"));
+  std::string full_sep = TestCodeGenerator::FullNamespace(".", ns);
+  TEST_EQ(full_sep, std::string("org.test"));
+
+  std::string wrapped =
+      gen.WrapInNameSpace(static_cast<const Namespace*>(nullptr), "Foo");
+  TEST_EQ(wrapped, std::string("Foo"));
+
+  struct DummyDef : public Definition {};
+  DummyDef def;
+  def.defined_namespace = nullptr;
+  std::string ns_name = gen.GetNameSpace(def);
+  TEST_EQ(ns_name, std::string(""));
+
+  // Test JavaCSharpMakeRule with empty parser
+  std::string rule = JavaCSharpMakeRule(true, parser, "", "");
+  TEST_EQ(rule, std::string(": "));
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+
+  CodeGeneratorSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

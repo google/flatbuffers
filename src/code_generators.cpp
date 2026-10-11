@@ -38,7 +38,9 @@ std::string JavaCSharpMakeRule(const bool java, const Parser& parser,
 
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        ++it) {
+    if (!*it) continue;
     auto& enum_def = **it;
+    if (!enum_def.defined_namespace) continue;
     if (!make_rule.empty()) make_rule += " ";
     std::string directory =
         BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
@@ -47,7 +49,9 @@ std::string JavaCSharpMakeRule(const bool java, const Parser& parser,
 
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
+    if (!*it) continue;
     auto& struct_def = **it;
+    if (!struct_def.defined_namespace) continue;
     if (!make_rule.empty()) make_rule += " ";
     std::string directory = BaseGenerator::NamespaceDir(
         parser, path, *struct_def.defined_namespace);
@@ -108,7 +112,7 @@ void CodeWriter::operator+=(std::string text) {
 
 void CodeWriter::AppendIdent(std::stringstream& stream) {
   int lvl = cur_ident_lvl_;
-  while (lvl--) {
+  while (lvl-- > 0) {
     stream.write(pad_.c_str(), static_cast<std::streamsize>(pad_.size()));
   }
 }
@@ -142,6 +146,7 @@ std::string BaseGenerator::NamespaceDir(const Namespace& ns,
 
 std::string BaseGenerator::FullNamespace(const char* separator,
                                          const Namespace& ns) {
+  if (!separator) separator = "";
   std::string namespace_name;
   auto& namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
@@ -161,6 +166,7 @@ std::string BaseGenerator::LastNamespacePart(const Namespace& ns) {
 // Ensure that a type is prefixed with its namespace.
 std::string BaseGenerator::WrapInNameSpace(const Namespace* ns,
                                            const std::string& name) const {
+  if (!ns) return name;
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
     qualified_name += *it + qualifying_separator_;
@@ -174,7 +180,7 @@ std::string BaseGenerator::WrapInNameSpace(const Definition& def,
 
 std::string BaseGenerator::GetNameSpace(const Definition& def) const {
   const Namespace* ns = def.defined_namespace;
-  if (CurrentNameSpace() == ns) return "";
+  if (!ns || CurrentNameSpace() == ns) return "";
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
     qualified_name += *it;
@@ -197,10 +203,11 @@ std::string BaseGenerator::GeneratedFileName(const std::string& path,
 // Generate a documentation comment, if available.
 void GenComment(const std::vector<std::string>& dc, std::string* code_ptr,
                 const CommentConfig* config, const char* prefix) {
-  if (dc.begin() == dc.end()) {
+  if (!code_ptr || dc.empty()) {
     // Don't output empty comment blocks with 0 lines of comment content.
     return;
   }
+  if (!prefix) prefix = "";
 
   std::string& code = *code_ptr;
   if (config != nullptr && config->first_line != nullptr) {
@@ -254,11 +261,11 @@ TypedFloatConstantGenerator::TypedFloatConstantGenerator(
     const char* double_prefix, const char* single_prefix,
     const char* nan_number, const char* pos_inf_number,
     const char* neg_inf_number)
-    : double_prefix_(double_prefix),
-      single_prefix_(single_prefix),
-      nan_number_(nan_number),
-      pos_inf_number_(pos_inf_number),
-      neg_inf_number_(neg_inf_number) {}
+    : double_prefix_(double_prefix ? double_prefix : ""),
+      single_prefix_(single_prefix ? single_prefix : ""),
+      nan_number_(nan_number ? nan_number : ""),
+      pos_inf_number_(pos_inf_number ? pos_inf_number : ""),
+      neg_inf_number_(neg_inf_number ? neg_inf_number : "") {}
 
 std::string TypedFloatConstantGenerator::MakeNaN(
     const std::string& prefix) const {
@@ -306,9 +313,9 @@ std::string TypedFloatConstantGenerator::NaN(float v) const {
 SimpleFloatConstantGenerator::SimpleFloatConstantGenerator(
     const char* nan_number, const char* pos_inf_number,
     const char* neg_inf_number)
-    : nan_number_(nan_number),
-      pos_inf_number_(pos_inf_number),
-      neg_inf_number_(neg_inf_number) {}
+    : nan_number_(nan_number ? nan_number : ""),
+      pos_inf_number_(pos_inf_number ? pos_inf_number : ""),
+      neg_inf_number_(neg_inf_number ? neg_inf_number : "") {}
 
 std::string SimpleFloatConstantGenerator::Value(double v,
                                                 const std::string& src) const {

@@ -29,25 +29,28 @@ namespace {
 static void ForAllEnums(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>>* enums,
     std::function<void(const reflection::Enum*)> func) {
+  if (!enums) return;
   for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
-    func(*it);
+    if (*it) func(*it);
   }
 }
 
 static void ForAllObjects(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>>* objects,
     std::function<void(const reflection::Object*)> func) {
+  if (!objects) return;
   for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
-    func(*it);
+    if (*it) func(*it);
   }
 }
 
 static void ForAllEnumValues(
     const reflection::Enum* enum_def,
     std::function<void(const reflection::EnumVal*)> func) {
+  if (!enum_def || !enum_def->values()) return;
   for (auto it = enum_def->values()->cbegin(); it != enum_def->values()->cend();
        ++it) {
-    func(*it);
+    if (*it) func(*it);
   }
 }
 
@@ -59,7 +62,7 @@ static void ForAllDocumentation(
     return;
   }
   for (auto it = documentation->cbegin(); it != documentation->cend(); ++it) {
-    func(*it);
+    if (*it) func(*it);
   }
 }
 
@@ -67,12 +70,16 @@ static void ForAllDocumentation(
 // in the return vector).
 static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
   std::vector<uint32_t> field_index_by_id;
+  if (!object || !object->fields()) return field_index_by_id;
   field_index_by_id.resize(object->fields()->size());
 
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_index_by_id[field->id()] = i;
+    if (!field) continue;
+    if (field->id() < field_index_by_id.size()) {
+      field_index_by_id[field->id()] = i;
+    }
   }
 
   return field_index_by_id;
@@ -167,7 +174,7 @@ class BaseBfbsGenerator : public CodeGenerator {
   // Used to get a object that is reference by index. (e.g.
   // reflection::Type::index). Returns nullptr if no object is available.
   const reflection::Object* GetObjectByIndex(int32_t index) const {
-    if (!schema_ || index < 0 ||
+    if (!schema_ || !schema_->objects() || index < 0 ||
         index >= static_cast<int32_t>(schema_->objects()->size())) {
       return nullptr;
     }
@@ -177,7 +184,7 @@ class BaseBfbsGenerator : public CodeGenerator {
   // Used to get a enum that is reference by index. (e.g.
   // reflection::Type::index). Returns nullptr if no enum is available.
   const reflection::Enum* GetEnumByIndex(int32_t index) const {
-    if (!schema_ || index < 0 ||
+    if (!schema_ || !schema_->enums() || index < 0 ||
         index >= static_cast<int32_t>(schema_->enums()->size())) {
       return nullptr;
     }
@@ -186,22 +193,31 @@ class BaseBfbsGenerator : public CodeGenerator {
 
   void ForAllFields(const reflection::Object* object, bool reverse,
                     std::function<void(const reflection::Field*)> func) const {
+    if (!object || !object->fields()) return;
     const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
     for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-      func(object->fields()->Get(
-          field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+      uint32_t field_idx =
+          field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i];
+      if (field_idx < object->fields()->size()) {
+        func(object->fields()->Get(field_idx));
+      }
     }
   }
 
   bool IsTable(const reflection::Type* type, bool use_element = false) const {
-    return !IsStruct(type, use_element);
+    if (!type) return false;
+    const reflection::BaseType base_type =
+        use_element ? type->element() : type->base_type();
+    return IsStructOrTable(base_type) && !IsStruct(type, use_element);
   }
 
   bool IsStruct(const reflection::Type* type, bool use_element = false) const {
+    if (!type) return false;
     const reflection::BaseType base_type =
         use_element ? type->element() : type->base_type();
-    return IsStructOrTable(base_type) &&
-           GetObjectByIndex(type->index())->is_struct();
+    if (!IsStructOrTable(base_type)) return false;
+    auto* obj = GetObjectByIndex(type->index());
+    return obj && obj->is_struct();
   }
 
   const reflection::Schema* schema_;
