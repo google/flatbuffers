@@ -120,7 +120,8 @@ class PythonStubGenerator {
     ss << content.str() << '\n';
 
     EnsureDirExists(StripFileName(filename));
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), ss.str(), false);
+    return parser_.opts.file_saver != nullptr &&
+           parser_.opts.file_saver->SaveFile(filename.c_str(), ss.str(), false);
   }
 
   static void DeclareUOffset(std::stringstream& stub, Imports* imports) {
@@ -2952,6 +2953,8 @@ class PythonGenerator : public BaseGenerator {
     const std::string directories =
         parser_.opts.one_file ? path_ : namer_.Directories(ns.components);
     EnsureDirExists(directories);
+
+    if (!parser_.opts.file_saver) return false;
 
     for (size_t i = directories.find(kPathSeparator, path_.size());
          i != std::string::npos; i = directories.find(kPathSeparator, i + 1)) {

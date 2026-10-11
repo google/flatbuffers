@@ -191,7 +191,8 @@ class SwiftGenerator : public BaseGenerator {
 
     const auto filename = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), final_code,
+    return parser_.opts.file_saver != nullptr &&
+           parser_.opts.file_saver->SaveFile(filename.c_str(), final_code,
                                              false);
   }
 

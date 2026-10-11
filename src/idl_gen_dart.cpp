@@ -164,7 +164,8 @@ class DartGenerator : public BaseGenerator {
       code += "\n";
       code += kv->second;
 
-      if (!parser_.opts.file_saver->SaveFile(Filename(kv->first).c_str(), code,
+      if (!parser_.opts.file_saver ||
+          !parser_.opts.file_saver->SaveFile(Filename(kv->first).c_str(), code,
                                              false)) {
         return false;
       }

@@ -95,7 +95,8 @@ class PhpGenerator : public BaseGenerator {
 
     std::string filename =
         NamespaceDir(*def.defined_namespace) + def.name + ".php";
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver != nullptr &&
+           parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
   // Begin a class declaration.

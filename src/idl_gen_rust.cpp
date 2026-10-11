@@ -337,6 +337,7 @@ static bool GenerateRustModuleRootFile(const Parser& parser,
       "Do not modify.";
   code += "// @generated";
   root_module.GenerateImports(code);
+  if (!parser.opts.file_saver) return false;
   const bool success = parser.opts.file_saver->SaveFile(
       (output_dir + "mod.rs").c_str(), code.ToString(), false);
   code.Clear();
@@ -388,6 +389,7 @@ class RustGenerator : public BaseGenerator {
           namer_.Directories(*symbol.defined_namespace);
       EnsureDirExists(directories);
       const std::string file_path = directories + namer_.File(symbol);
+      if (!parser_.opts.file_saver) return false;
       const bool save_success = parser_.opts.file_saver->SaveFile(
           file_path.c_str(), code_.ToString(), /*binary=*/false);
       if (!save_success) return false;
@@ -489,7 +491,8 @@ class RustGenerator : public BaseGenerator {
 
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
-    return parser_.opts.file_saver->SaveFile(file_path.c_str(), final_code,
+    return parser_.opts.file_saver != nullptr &&
+           parser_.opts.file_saver->SaveFile(file_path.c_str(), final_code,
                                              false);
   }
 

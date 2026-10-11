@@ -181,7 +181,8 @@ class TsGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     auto basename = dirs + namer_.File(definition, SkipFile::Suffix);
 
-    return parser_.opts.file_saver->SaveFile(basename.c_str(), code, false);
+    return parser_.opts.file_saver != nullptr &&
+           parser_.opts.file_saver->SaveFile(basename.c_str(), code, false);
   }
 
   void TrackNsDef(const Definition& definition, std::string type_name) {
@@ -324,7 +325,7 @@ class TsGenerator : public BaseGenerator {
         export_counter++;
       }
 
-      if (export_counter > 0) {
+      if (export_counter > 0 && parser_.opts.file_saver != nullptr) {
         parser_.opts.file_saver->SaveFile(it.second.filepath.c_str(), code,
                                           false);
       }

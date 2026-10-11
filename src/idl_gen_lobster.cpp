@@ -403,9 +403,10 @@ class LobsterGenerator : public BaseGenerator {
       auto& struct_def = **it;
       GenStruct(struct_def, &code);
     }
-    return parser_.opts.file_saver->SaveFile(
-        GeneratedFileName(path_, file_name_, parser_.opts).c_str(), code,
-        false);
+    return parser_.opts.file_saver != nullptr &&
+           parser_.opts.file_saver->SaveFile(
+               GeneratedFileName(path_, file_name_, parser_.opts).c_str(), code,
+               false);
   }
 
  private:
