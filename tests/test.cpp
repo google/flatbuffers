@@ -1745,8 +1745,36 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void RegistryAndBufferSafetyTest() {
+  // 1. Registry null inputs
+  Registry registry;
+  registry.Register(nullptr, nullptr);
+  registry.AddIncludeDirectory(nullptr);
+  TEST_EQ(registry.FlatBufferToText(nullptr, 0, nullptr), false);
+  DetachedBuffer parsed = registry.TextToFlatBuffer(nullptr, nullptr);
+  TEST_EQ(parsed.data(), static_cast<const uint8_t*>(nullptr));
+
+  // 2. DetachedBuffer null and empty bounds
+  DetachedBuffer db;
+  TEST_EQ(db.data(), static_cast<const uint8_t*>(nullptr));
+  TEST_EQ(db.begin(), static_cast<uint8_t*>(nullptr));
+  TEST_EQ(db.end(), static_cast<uint8_t*>(nullptr));
+
+  // 3. BufferRef null safety
+  BufferRef<Monster> bref;
+  TEST_EQ(bref.GetRoot(), static_cast<const Monster*>(nullptr));
+  TEST_EQ(bref.Verify(), false);
+
+  // 4. Deallocate and ReallocateDownward safety
+  Deallocate(nullptr, nullptr, 0);
+  uint8_t dummy = 0;
+  TEST_EQ(ReallocateDownward(nullptr, &dummy, 10, 5, 0, 0), &dummy);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+
+  RegistryAndBufferSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

@@ -34,12 +34,15 @@ struct BufferRef : BufferRefBase {
       : buf(_buf), len(_len), must_free(false) {}
 
   ~BufferRef() {
-    if (must_free) free(buf);
+    if (must_free && buf) free(buf);
   }
 
-  const T* GetRoot() const { return flatbuffers::GetRoot<T>(buf); }
+  const T* GetRoot() const {
+    return buf && len ? flatbuffers::GetRoot<T>(buf) : nullptr;
+  }
 
   bool Verify() {
+    if (!buf || !len) return false;
     Verifier verifier(buf, len);
     return verifier.VerifyBuffer<T>(nullptr);
   }

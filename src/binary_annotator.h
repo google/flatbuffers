@@ -288,7 +288,7 @@ class BinaryAnnotator {
                            const bool is_size_prefixed)
       : bfbs_(bfbs),
         bfbs_length_(bfbs_length),
-        schema_(reflection::GetSchema(bfbs)),
+        schema_(bfbs ? reflection::GetSchema(bfbs) : nullptr),
         root_table_(""),
         binary_(binary),
         binary_length_(binary_length),

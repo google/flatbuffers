@@ -60,6 +60,7 @@ static BinarySection MakeSingleRegionBinarySection(const std::string& name,
 
 static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
                             const uint8_t* const binary) {
+  if (!binary) return false;
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (binary[i] != 0) {
       return true;
@@ -70,6 +71,7 @@ static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
 
 static bool IsPrintableRegion(const uint64_t offset, const uint64_t length,
                               const uint8_t* const binary) {
+  if (!binary) return false;
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (!isprint(binary[i])) {
       return false;
@@ -82,6 +84,7 @@ static BinarySection GenerateMissingSection(const uint64_t offset,
                                             const uint64_t length,
                                             const uint8_t* const binary) {
   std::vector<BinaryRegion> regions;
+  if (!binary) return MakeBinarySection("", BinarySectionType::Unknown, regions);
 
   // Check if the region is all zeros or not, as that can tell us if it is
   // padding or not.
@@ -171,7 +174,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 
     bool has_prefix_value = false;
     const auto prefix_length = ReadScalar<uoffset64_t>(offset);
-    if (*prefix_length <= binary_length_) {
+    if (prefix_length.has_value() && *prefix_length <= binary_length_) {
       regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset64_t),
                                          BinaryRegionType::Uint64, 0, 0,
                                          prefix_length_comment));
@@ -181,7 +184,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 
     if (!has_prefix_value) {
       const auto prefix_length = ReadScalar<uoffset_t>(offset);
-      if (*prefix_length <= binary_length_) {
+      if (prefix_length.has_value() && *prefix_length <= binary_length_) {
         regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset_t),
                                            BinaryRegionType::Uint32, 0, 0,
                                            prefix_length_comment));

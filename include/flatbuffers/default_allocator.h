@@ -44,6 +44,7 @@ inline uint8_t* Allocate(Allocator* allocator, size_t size) {
 }
 
 inline void Deallocate(Allocator* allocator, uint8_t* p, size_t size) {
+  if (!p) return;
   if (allocator)
     allocator->deallocate(p, size);
   else
@@ -53,6 +54,7 @@ inline void Deallocate(Allocator* allocator, uint8_t* p, size_t size) {
 inline uint8_t* ReallocateDownward(Allocator* allocator, uint8_t* old_p,
                                    size_t old_size, size_t new_size,
                                    size_t in_use_back, size_t in_use_front) {
+  if (new_size <= old_size) return old_p;
   return allocator ? allocator->reallocate_downward(old_p, old_size, new_size,
                                                     in_use_back, in_use_front)
                    : DefaultAllocator().reallocate_downward(
