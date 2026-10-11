@@ -38,6 +38,7 @@
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/buffer_ref.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
@@ -1745,6 +1746,51 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void AllocatorAndBufferRefTest() {
+  // Test DefaultAllocator / Allocator null safety and reallocation bounds
+  flatbuffers::DefaultAllocator alloc;
+  uint8_t* p = alloc.allocate(16);
+  TEST_NOTNULL(p);
+  memset(p, 0xAA, 16);
+
+  // Reallocate downward with front and back regions in use
+  uint8_t* p2 = alloc.reallocate_downward(p, 16, 32, 4, 4);
+  TEST_NOTNULL(p2);
+  TEST_EQ(p2[0], 0xAA);
+  TEST_EQ(p2[3], 0xAA);
+  TEST_EQ(p2[32 - 4], 0xAA);
+  TEST_EQ(p2[31], 0xAA);
+  alloc.deallocate(p2, 32);
+
+  // Test Deallocate null pointer guard
+  flatbuffers::Deallocate(&alloc, nullptr, 0);
+  flatbuffers::Deallocate(nullptr, nullptr, 0);
+
+  // Test DetachedBuffer null-safety on empty buffer
+  flatbuffers::DetachedBuffer empty_buf;
+  TEST_EQ(empty_buf.data(), static_cast<const uint8_t*>(nullptr));
+  TEST_EQ(empty_buf.size(), static_cast<size_t>(0));
+  TEST_EQ(empty_buf.begin(), static_cast<uint8_t*>(nullptr));
+  TEST_EQ(empty_buf.end(), static_cast<uint8_t*>(nullptr));
+
+  // Test BufferRef null safety and move semantics
+  flatbuffers::BufferRef<MyGame::Example::Monster> empty_ref;
+  TEST_EQ(empty_ref.GetRoot(), static_cast<const MyGame::Example::Monster*>(nullptr));
+  TEST_EQ(empty_ref.Verify(), false);
+
+  uint8_t* malloc_buf = static_cast<uint8_t*>(malloc(64));
+  TEST_NOTNULL(malloc_buf);
+  memset(malloc_buf, 0, 64);
+  flatbuffers::BufferRef<MyGame::Example::Monster> owning_ref(malloc_buf, 64);
+  owning_ref.must_free = true;
+
+  flatbuffers::BufferRef<MyGame::Example::Monster> moved_ref(std::move(owning_ref));
+  TEST_EQ(owning_ref.buf, static_cast<uint8_t*>(nullptr));
+  TEST_EQ(owning_ref.must_free, false);
+  TEST_EQ(moved_ref.buf, malloc_buf);
+  TEST_EQ(moved_ref.must_free, true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1767,6 +1813,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   SizePrefixedTest();
 
   AlignmentTest();
+  AllocatorAndBufferRefTest();
 
 #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest(tests_data_path, false);

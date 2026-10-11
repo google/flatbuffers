@@ -42,10 +42,18 @@ class Allocator {
                                        size_t new_size, size_t in_use_back,
                                        size_t in_use_front) {
     FLATBUFFERS_ASSERT(new_size > old_size);  // vector_downward only grows
+    FLATBUFFERS_ASSERT(in_use_back <= old_size);
+    FLATBUFFERS_ASSERT(in_use_front <= old_size);
+    FLATBUFFERS_ASSERT(in_use_back <= old_size - in_use_front);
+    FLATBUFFERS_ASSERT(in_use_back <= new_size);
+    FLATBUFFERS_ASSERT(in_use_front <= new_size);
+    FLATBUFFERS_ASSERT(in_use_back <= new_size - in_use_front);
     uint8_t* new_p = allocate(new_size);
     memcpy_downward(old_p, old_size, new_p, new_size, in_use_back,
                     in_use_front);
-    deallocate(old_p, old_size);
+    if (old_p != nullptr) {
+      deallocate(old_p, old_size);
+    }
     return new_p;
   }
 
@@ -57,9 +65,19 @@ class Allocator {
   void memcpy_downward(uint8_t* old_p, size_t old_size, uint8_t* new_p,
                        size_t new_size, size_t in_use_back,
                        size_t in_use_front) {
-    memcpy(new_p + new_size - in_use_back, old_p + old_size - in_use_back,
-           in_use_back);
-    memcpy(new_p, old_p, in_use_front);
+    FLATBUFFERS_ASSERT(in_use_back <= old_size);
+    FLATBUFFERS_ASSERT(in_use_back <= new_size);
+    FLATBUFFERS_ASSERT(in_use_front <= old_size);
+    FLATBUFFERS_ASSERT(in_use_front <= new_size);
+    FLATBUFFERS_ASSERT(in_use_back <= old_size - in_use_front);
+    FLATBUFFERS_ASSERT(in_use_back <= new_size - in_use_front);
+    if (in_use_back > 0 && old_p != nullptr && new_p != nullptr) {
+      memcpy(new_p + new_size - in_use_back, old_p + old_size - in_use_back,
+             in_use_back);
+    }
+    if (in_use_front > 0 && old_p != nullptr && new_p != nullptr) {
+      memcpy(new_p, old_p, in_use_front);
+    }
   }
 };
 

@@ -34,12 +34,51 @@ struct BufferRef : BufferRefBase {
       : buf(_buf), len(_len), must_free(false) {}
 
   ~BufferRef() {
-    if (must_free) free(buf);
+    if (must_free && buf != nullptr) free(buf);
   }
 
-  const T* GetRoot() const { return flatbuffers::GetRoot<T>(buf); }
+  BufferRef(BufferRef&& other) FLATBUFFERS_NOEXCEPT
+      : buf(other.buf), len(other.len), must_free(other.must_free) {
+    other.buf = nullptr;
+    other.len = 0;
+    other.must_free = false;
+  }
 
-  bool Verify() {
+  BufferRef& operator=(BufferRef&& other) FLATBUFFERS_NOEXCEPT {
+    if (this != &other) {
+      if (must_free && buf != nullptr) free(buf);
+      buf = other.buf;
+      len = other.len;
+      must_free = other.must_free;
+      other.buf = nullptr;
+      other.len = 0;
+      other.must_free = false;
+    }
+    return *this;
+  }
+
+  BufferRef(const BufferRef& other)
+      : buf(other.buf), len(other.len), must_free(false) {
+    FLATBUFFERS_ASSERT(!other.must_free);
+  }
+
+  BufferRef& operator=(const BufferRef& other) {
+    if (this != &other) {
+      FLATBUFFERS_ASSERT(!other.must_free);
+      if (must_free && buf != nullptr) free(buf);
+      buf = other.buf;
+      len = other.len;
+      must_free = false;
+    }
+    return *this;
+  }
+
+  const T* GetRoot() const {
+    return buf != nullptr ? flatbuffers::GetRoot<T>(buf) : nullptr;
+  }
+
+  bool Verify() const {
+    if (buf == nullptr) return false;
     Verifier verifier(buf, len);
     return verifier.VerifyBuffer<T>(nullptr);
   }
