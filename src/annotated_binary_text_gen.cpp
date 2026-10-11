@@ -76,6 +76,9 @@ std::string ToString(T value) {
 
 template <typename T>
 std::string ToValueString(const BinaryRegion& region, const uint8_t* binary) {
+  if (binary == nullptr || region.length < sizeof(T)) {
+    return "";
+  }
   std::string s;
   s += "0x";
   const T val = ReadScalar<T>(binary + region.offset);
@@ -92,6 +95,9 @@ std::string ToValueString(const BinaryRegion& region, const uint8_t* binary) {
 template <>
 std::string ToValueString<std::string>(const BinaryRegion& region,
                                        const uint8_t* binary) {
+  if (binary == nullptr) {
+    return "";
+  }
   return std::string(reinterpret_cast<const char*>(binary + region.offset),
                      static_cast<size_t>(region.array_length));
 }
@@ -104,10 +110,15 @@ static std::string ToValueString(const BinaryRegion& region,
   if (region.array_length) {
     if (region.type == BinaryRegionType::Uint8 ||
         region.type == BinaryRegionType::Unknown) {
+      if (binary == nullptr) {
+        return "";
+      }
       // Interpret each value as a ASCII to aid debugging
       for (uint64_t i = 0; i < region.array_length; ++i) {
         const uint8_t c = *(binary + region.offset + i);
-        s += isprint(c) ? static_cast<char>(c & 0x7F) : '.';
+        s += isprint(static_cast<unsigned char>(c))
+                 ? static_cast<char>(c & 0x7F)
+                 : '.';
       }
       return s;
     } else if (region.type == BinaryRegionType::Char) {
@@ -323,7 +334,10 @@ static void GenerateDocumentation(std::ostream& os, const BinaryRegion& region,
                                   const OutputConfig& output_config) {
   // Check if there is a doc continuation that should be prioritized.
   if (continuation.value_start_column) {
-    os << std::string(continuation.value_start_column - 2, ' ');
+    const size_t pad = continuation.value_start_column >= 2
+                           ? continuation.value_start_column - 2
+                           : 0;
+    os << std::string(pad, ' ');
     os << output_config.delimiter << " ";
 
     os << continuation.value.substr(0, output_config.max_bytes_per_line);
@@ -372,6 +386,9 @@ static void GenerateDocumentation(std::ostream& os, const BinaryRegion& region,
 static void GenerateRegion(std::ostream& os, const BinaryRegion& region,
                            const BinarySection& section, const uint8_t* binary,
                            const OutputConfig& output_config) {
+  if (binary == nullptr) {
+    return;
+  }
   bool doc_generated = false;
   DocContinuation doc_continuation;
   for (uint64_t i = 0; i < region.length; ++i) {
@@ -415,6 +432,9 @@ static void GenerateRegion(std::ostream& os, const BinaryRegion& region,
 static void GenerateSection(std::ostream& os, const BinarySection& section,
                             const uint8_t* binary,
                             const OutputConfig& output_config) {
+  if (binary == nullptr) {
+    return;
+  }
   os << std::endl;
   os << ToString(section.type);
   if (!section.name.empty()) {
@@ -454,6 +474,9 @@ static void GenerateSection(std::ostream& os, const BinarySection& section,
 bool AnnotatedBinaryTextGenerator::Generate(
     const std::string& filename, const std::string& schema_filename,
     const std::string& output_filename) {
+  if (binary_ == nullptr && binary_length_ > 0) {
+    return false;
+  }
   OutputConfig output_config;
   output_config.max_bytes_per_line = options_.max_bytes_per_line;
   output_config.include_vector_contents = options_.include_vector_contents;
@@ -497,6 +520,9 @@ bool AnnotatedBinaryTextGenerator::Generate(
   }
 
   std::ofstream ofs(out.c_str());
+  if (!ofs.is_open()) {
+    return false;
+  }
 
   ofs << "// Annotated Flatbuffer Binary" << std::endl;
   ofs << "//" << std::endl;
@@ -511,7 +537,7 @@ bool AnnotatedBinaryTextGenerator::Generate(
   }
 
   ofs.close();
-  return true;
+  return !ofs.fail();
 }
 
 }  // namespace flatbuffers

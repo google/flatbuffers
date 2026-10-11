@@ -1,5 +1,6 @@
 #include "util_test.h"
 
+#include "annotated_binary_text_gen.h"
 #include "flatbuffers/util.h"
 #include "test_assert.h"
 
@@ -167,6 +168,21 @@ void UtilConvertCase() {
                                        test_case.input_case));
     }
   }
+}
+
+void AnnotatedBinaryTextGenSafetyTest() {
+  AnnotatedBinaryTextGenerator::Options opts;
+  std::map<uint64_t, BinarySection> annotations;
+
+  // Test null binary safety with positive length
+  AnnotatedBinaryTextGenerator generator_null(opts, annotations, nullptr, 100);
+  TEST_EQ(generator_null.Generate("test.bin", "", "nonexistent_dir/test.afb"), false);
+
+  // Test with valid dummy binary and empty annotations
+  uint8_t dummy = 0;
+  AnnotatedBinaryTextGenerator generator_valid(opts, annotations, &dummy, 1);
+  // Opening unwritable path should fail safely instead of silently claiming success
+  TEST_EQ(generator_valid.Generate("test.bin", "", "/dev/null/invalid_path/out.afb"), false);
 }
 
 }  // namespace tests
