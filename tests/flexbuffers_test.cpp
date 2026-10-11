@@ -314,5 +314,24 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersDefensiveVerifierTest() {
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 100), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 0), false);
+
+  uint8_t short_buf[2] = { 1, 1 };
+  TEST_EQ(flexbuffers::VerifyBuffer(short_buf, sizeof(short_buf)), false);
+
+  TEST_EQ(flexbuffers::GetRoot(nullptr, 100).IsNull(), true);
+  TEST_EQ(flexbuffers::GetRoot(short_buf, sizeof(short_buf)).IsNull(), true);
+
+  flexbuffers::Reference default_ref;
+  TEST_EQ_STR(default_ref.AsKey(), "");
+  TEST_EQ_STR(default_ref.AsString().c_str(), "");
+
+  flexbuffers::Reference null_key_ref(nullptr, 1, 1, flexbuffers::FBT_KEY);
+  TEST_EQ_STR(null_key_ref.AsKey(), "");
+  TEST_EQ_STR(null_key_ref.AsString().c_str(), "");
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

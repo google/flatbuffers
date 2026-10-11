@@ -1840,6 +1840,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   NativeTypeTest();
   OptionalScalarsTest();
   ParseFlexbuffersFromJsonWithNullTest();
+  FlexBuffersDefensiveVerifierTest();
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
   FixedLengthArrayOperatorEqualTest();

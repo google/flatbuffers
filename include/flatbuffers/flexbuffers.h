@@ -559,7 +559,7 @@ class Reference {
   float AsFloat() const { return static_cast<float>(AsDouble()); }
 
   const char* AsKey() const {
-    if (type_ == FBT_KEY || type_ == FBT_STRING) {
+    if ((type_ == FBT_KEY || type_ == FBT_STRING) && data_) {
       return reinterpret_cast<const char*>(Indirect());
     } else {
       return "";
@@ -569,9 +569,9 @@ class Reference {
   // This function returns the empty string if you try to read something that
   // is not a string or key.
   String AsString() const {
-    if (type_ == FBT_STRING) {
+    if (type_ == FBT_STRING && data_) {
       return String(Indirect(), byte_width_);
-    } else if (type_ == FBT_KEY) {
+    } else if (type_ == FBT_KEY && data_) {
       auto key = Indirect();
       return String(key, byte_width_,
                     strlen(reinterpret_cast<const char*>(key)));
@@ -817,7 +817,7 @@ class Reference {
 
  private:
   const uint8_t* Indirect() const {
-    return flexbuffers::Indirect(data_, parent_width_);
+    return data_ ? flexbuffers::Indirect(data_, parent_width_) : nullptr;
   }
 
   template <typename T>
@@ -1007,9 +1007,11 @@ inline Reference Map::operator[](const std::string& key) const {
 inline Reference GetRoot(const uint8_t* buffer, size_t size) {
   // See Finish() below for the serialization counterpart of this.
   // The root starts at the end of the buffer, so we parse backwards from there.
+  if (!buffer || size < 3) return Reference();
   auto end = buffer + size;
   auto byte_width = *--end;
   auto packed_type = *--end;
+  if (byte_width > end - buffer) return Reference();
   end -= byte_width;  // The root data item.
   return Reference(end, byte_width, packed_type);
 }
@@ -1886,10 +1888,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyFromPointer(const uint8_t* p, size_t len) {
+    if (!Check(p >= buf_)) return false;
     auto o = static_cast<size_t>(p - buf_);
     return VerifyFrom(o, len);
   }
   bool VerifyBeforePointer(const uint8_t* p, size_t len) {
+    if (!Check(p >= buf_)) return false;
     auto o = static_cast<size_t>(p - buf_);
     return VerifyBefore(o, len);
   }
@@ -1901,8 +1905,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyType(int type) { return Check(type >= 0 && type < FBT_MAX_TYPE); }
 
   bool VerifyOffset(uint64_t off, const uint8_t* p) {
-    return Check(off <= static_cast<uint64_t>(size_)) &&
-           off <= static_cast<uint64_t>(p - buf_);
+    return Check(p >= buf_ && off <= static_cast<uint64_t>(size_) &&
+                 off <= static_cast<uint64_t>(p - buf_));
   }
 
   bool VerifyAlignment(const uint8_t* p, size_t size) const {
@@ -1944,6 +1948,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (!VerifyFromPointer(p, byte_size)) return false;
     if (elem_type == FBT_NULL) {
       // Verify type bytes after the vector.
+      if (!Check(num_elems <= (std::numeric_limits<size_t>::max)() - byte_size))
+        return false;
       if (!VerifyFromPointer(p + byte_size, num_elems)) return false;
       auto v = Vector(p, size_byte_width);
       for (size_t i = 0; i < num_elems; i++)
@@ -1974,6 +1980,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyKey(const uint8_t* p) {
+    if (!Check(p >= buf_ && p < buf_ + size_)) return false;
     FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
     while (p < buf_ + size_)
       if (!*p++) return true;
@@ -2050,7 +2057,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
  public:
   bool VerifyBuffer() {
-    if (!Check(size_ >= 3)) return false;
+    if (!Check(buf_ != nullptr && size_ >= 3)) return false;
     auto end = buf_ + size_;
     auto byte_width = *--end;
     auto packed_type = *--end;
