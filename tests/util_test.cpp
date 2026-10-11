@@ -1,5 +1,7 @@
 #include "util_test.h"
 
+#include "flatbuffers/hash.h"
+#include "flatbuffers/string.h"
 #include "flatbuffers/util.h"
 #include "test_assert.h"
 
@@ -167,6 +169,57 @@ void UtilConvertCase() {
                                        test_case.input_case));
     }
   }
+}
+
+void HashUtilTest() {
+  // Test null input safety on HashFnv functions
+  TEST_EQ(flatbuffers::HashFnv1<uint32_t>(nullptr),
+          flatbuffers::FnvTraits<uint32_t>::kOffsetBasis);
+  TEST_EQ(flatbuffers::HashFnv1a<uint32_t>(nullptr),
+          flatbuffers::FnvTraits<uint32_t>::kOffsetBasis);
+  TEST_EQ(flatbuffers::HashFnv1<uint64_t>(nullptr),
+          flatbuffers::FnvTraits<uint64_t>::kOffsetBasis);
+  TEST_EQ(flatbuffers::HashFnv1a<uint64_t>(nullptr),
+          flatbuffers::FnvTraits<uint64_t>::kOffsetBasis);
+
+  // Test valid string hashes match expected
+  TEST_EQ(flatbuffers::HashFnv1<uint32_t>(""),
+          flatbuffers::FnvTraits<uint32_t>::kOffsetBasis);
+  TEST_EQ(flatbuffers::HashFnv1a<uint32_t>(""),
+          flatbuffers::FnvTraits<uint32_t>::kOffsetBasis);
+
+  // Test FindHashFunction null safety
+  TEST_NULL(flatbuffers::FindHashFunction16(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction32(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction64(nullptr));
+
+  // Test FindHashFunction lookup
+  TEST_NOTNULL(flatbuffers::FindHashFunction16("fnv1_16"));
+  TEST_NOTNULL(flatbuffers::FindHashFunction32("fnv1a_32"));
+  TEST_NOTNULL(flatbuffers::FindHashFunction64("fnv1_64"));
+  TEST_NULL(flatbuffers::FindHashFunction32("unknown_hash"));
+}
+
+void StringUtilTest() {
+  // Test GetString and GetCstring on null pointer
+  const flatbuffers::String* null_str = nullptr;
+  TEST_EQ_STR(flatbuffers::GetString(null_str).c_str(), "");
+  TEST_EQ_STR(flatbuffers::GetCstring(null_str), "");
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  TEST_EQ(flatbuffers::GetStringView(null_str).size(), static_cast<size_t>(0));
+#endif
+
+  // Test with an actual string built into FlatBuffer
+  flatbuffers::FlatBufferBuilder fbb;
+  auto off = fbb.CreateString("test_string");
+  fbb.Finish(off);
+  auto str_ptr = reinterpret_cast<const flatbuffers::String*>(
+      fbb.GetBufferPointer() + sizeof(flatbuffers::uoffset_t));
+  TEST_EQ_STR(flatbuffers::GetCstring(str_ptr), "test_string");
+  TEST_EQ_STR(flatbuffers::GetString(str_ptr).c_str(), "test_string");
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  TEST_EQ(flatbuffers::GetStringView(str_ptr) == "test_string", true);
+#endif
 }
 
 }  // namespace tests

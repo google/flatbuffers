@@ -45,6 +45,7 @@ struct FnvTraits<uint64_t> {
 template <typename T>
 T HashFnv1(const char* input) {
   T hash = FnvTraits<T>::kOffsetBasis;
+  if (!input) return hash;
   for (const char* c = input; *c; ++c) {
     hash *= FnvTraits<T>::kFnvPrime;
     hash ^= static_cast<unsigned char>(*c);
@@ -55,6 +56,7 @@ T HashFnv1(const char* input) {
 template <typename T>
 T HashFnv1a(const char* input) {
   T hash = FnvTraits<T>::kOffsetBasis;
+  if (!input) return hash;
   for (const char* c = input; *c; ++c) {
     hash ^= static_cast<unsigned char>(*c);
     hash *= FnvTraits<T>::kFnvPrime;
@@ -99,6 +101,7 @@ const NamedHashFunction<uint64_t> kHashFunctions64[] = {
 
 inline NamedHashFunction<uint16_t>::HashFunction FindHashFunction16(
     const char* name) {
+  if (!name) return nullptr;
   std::size_t size = sizeof(kHashFunctions16) / sizeof(kHashFunctions16[0]);
   for (std::size_t i = 0; i < size; ++i) {
     if (std::strcmp(name, kHashFunctions16[i].name) == 0) {
@@ -110,6 +113,7 @@ inline NamedHashFunction<uint16_t>::HashFunction FindHashFunction16(
 
 inline NamedHashFunction<uint32_t>::HashFunction FindHashFunction32(
     const char* name) {
+  if (!name) return nullptr;
   std::size_t size = sizeof(kHashFunctions32) / sizeof(kHashFunctions32[0]);
   for (std::size_t i = 0; i < size; ++i) {
     if (std::strcmp(name, kHashFunctions32[i].name) == 0) {
@@ -121,6 +125,7 @@ inline NamedHashFunction<uint32_t>::HashFunction FindHashFunction32(
 
 inline NamedHashFunction<uint64_t>::HashFunction FindHashFunction64(
     const char* name) {
+  if (!name) return nullptr;
   std::size_t size = sizeof(kHashFunctions64) / sizeof(kHashFunctions64[0]);
   for (std::size_t i = 0; i < size; ++i) {
     if (std::strcmp(name, kHashFunctions64[i].name) == 0) {

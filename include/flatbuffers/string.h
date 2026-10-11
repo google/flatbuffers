@@ -24,23 +24,32 @@ namespace flatbuffers {
 
 struct String : public Vector<char> {
   const char* c_str() const { return reinterpret_cast<const char*>(Data()); }
-  std::string str() const { return std::string(c_str(), size()); }
+  std::string str() const {
+    const char* p = c_str();
+    return p ? std::string(p, size()) : std::string();
+  }
 
   // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   flatbuffers::string_view string_view() const {
-    return flatbuffers::string_view(c_str(), size());
+    const char* p = c_str();
+    return p ? flatbuffers::string_view(p, size()) : flatbuffers::string_view();
   }
 
   /* implicit */
   operator flatbuffers::string_view() const {
-    return flatbuffers::string_view(c_str(), size());
+    return string_view();
   }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
   // clang-format on
 
   bool operator<(const String& o) const {
-    return StringLessThan(this->data(), this->size(), o.data(), o.size());
+    const char* a = this->data();
+    const char* b = o.data();
+    if (!a && !b) return false;
+    if (!a) return true;
+    if (!b) return false;
+    return StringLessThan(a, this->size(), b, o.size());
   }
 };
 
@@ -53,14 +62,14 @@ static inline std::string GetString(const String* str) {
 // Convenience function to get char* from a String returning an empty string on
 // null pointer.
 static inline const char* GetCstring(const String* str) {
-  return str ? str->c_str() : "";
+  return (str && str->c_str()) ? str->c_str() : "";
 }
 
 #ifdef FLATBUFFERS_HAS_STRING_VIEW
 // Convenience function to get string_view from a String returning an empty
 // string_view on null pointer.
 static inline flatbuffers::string_view GetStringView(const String* str) {
-  return str ? str->string_view() : flatbuffers::string_view();
+  return (str && str->c_str()) ? str->string_view() : flatbuffers::string_view();
 }
 #endif  // FLATBUFFERS_HAS_STRING_VIEW
 

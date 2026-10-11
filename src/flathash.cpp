@@ -25,8 +25,8 @@
 enum OutputFormat { kDecimal, kHexadecimal, kHexadecimal0x };
 
 int main(int argc, char* argv[]) {
-  const char* name = argv[0];
-  if (argc <= 1) {
+  const char* name = (argv && argc > 0 && argv[0]) ? argv[0] : "flathash";
+  if (argc <= 1 || !argv) {
     printf("%s HASH [OPTION]... [--] STRING...\n", name);
     printf("Available hashing algorithms:\n");
     printf("  16 bit:\n");
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  const char* hash_algorithm = argv[1];
+  const char* hash_algorithm = (argv && argc > 1) ? argv[1] : nullptr;
 
   flatbuffers::NamedHashFunction<uint16_t>::HashFunction hash_function16 =
       flatbuffers::FindHashFunction16(hash_algorithm);
@@ -65,7 +65,8 @@ int main(int argc, char* argv[]) {
       flatbuffers::FindHashFunction64(hash_algorithm);
 
   if (!hash_function16 && !hash_function32 && !hash_function64) {
-    printf("\"%s\" is not a known hash algorithm.\n", hash_algorithm);
+    printf("\"%s\" is not a known hash algorithm.\n",
+           hash_algorithm ? hash_algorithm : "");
     return 1;
   }
 
@@ -74,6 +75,7 @@ int main(int argc, char* argv[]) {
   bool escape_dash = false;
   for (int i = 2; i < argc; i++) {
     const char* arg = argv[i];
+    if (!arg) continue;
     if (!escape_dash && arg[0] == '-') {
       std::string opt = arg;
       if (opt == "-d")
