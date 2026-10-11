@@ -8,6 +8,8 @@
 #include "monster_test_generated.h"
 #include "test_assert.h"
 #include "tests/arrays_test_generated.h"
+#include "bfbs_gen_lua.h"
+#include "bfbs_gen_nim.h"
 
 namespace flatbuffers {
 namespace tests {
@@ -407,6 +409,25 @@ void MiniReflectFixedLengthArrayTest() {
       "}",
       s.c_str());
 #endif
+}
+
+void BfbsGeneratorsNullSafetyTest() {
+  CodeGenOptions opts;
+
+  auto lua_gen = NewLuaBfbsGenerator("2.0.0");
+  TEST_NOTNULL(lua_gen.get());
+  TEST_EQ(lua_gen->GenerateCode(nullptr, 0, opts),
+          CodeGenerator::FAILED_VERIFICATION);
+  const uint8_t dummy_buf[4] = { 0, 0, 0, 0 };
+  TEST_EQ(lua_gen->GenerateCode(dummy_buf, sizeof(dummy_buf), opts),
+          CodeGenerator::FAILED_VERIFICATION);
+
+  auto nim_gen = NewNimBfbsGenerator("2.0.0");
+  TEST_NOTNULL(nim_gen.get());
+  TEST_EQ(nim_gen->GenerateCode(nullptr, 0, opts),
+          CodeGenerator::FAILED_VERIFICATION);
+  TEST_EQ(nim_gen->GenerateCode(dummy_buf, sizeof(dummy_buf), opts),
+          CodeGenerator::FAILED_VERIFICATION);
 }
 
 }  // namespace tests

@@ -98,6 +98,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   Status GenerateFromSchema(const r::Schema* schema,
                             const CodeGenOptions& options)
       FLATBUFFERS_OVERRIDE {
+    if (!schema) {
+      return ERROR;
+    }
     options_ = options;
     ForAllEnums(schema->enums(), [&](const r::Enum* enum_def) {
       StartCodeBlock(enum_def);
@@ -178,7 +181,10 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
               NumToString(enum_val->value()) + "." + enum_type + ",\n";
     });
 
-    EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
+    const std::string decl_file = enum_def->declaration_file()
+                                       ? enum_def->declaration_file()->str()
+                                       : "";
+    EmitCodeBlock(code, enum_name, ns, decl_file);
   }
 
   void GenerateObject(const r::Object* object) {
@@ -349,7 +355,10 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
               "*(builder: var Builder): uoffset =\n";
       code += "  return builder.EndObject()\n";
     }
-    EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
+    const std::string decl_file = object->declaration_file()
+                                       ? object->declaration_file()->str()
+                                       : "";
+    EmitCodeBlock(code, object_name, ns, decl_file);
   }
 
  private:
@@ -686,10 +695,13 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";
-    if (schema_->root_table() != nullptr) {
-      const std::string root_type = schema_->root_table()->name()->str();
-      const std::string root_file =
-          schema_->root_table()->declaration_file()->str();
+    const r::Object* root_table = schema_ ? schema_->root_table() : nullptr;
+    if (root_table != nullptr) {
+      const std::string root_type =
+          root_table->name() ? root_table->name()->str() : "";
+      const std::string root_file = root_table->declaration_file()
+                                        ? root_table->declaration_file()->str()
+                                        : "";
       code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
     }
     code += "]#\n\n";
@@ -713,6 +725,10 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       path = ".";
     } else {
       std::replace(path.begin(), path.end(), '.', '/');
+    }
+
+    if (options_.file_saver == nullptr) {
+      return;
     }
 
     // TODO(derekbailey): figure out a save file without depending on util.h

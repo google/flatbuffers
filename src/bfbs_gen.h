@@ -29,6 +29,9 @@ namespace {
 static void ForAllEnums(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Enum>>* enums,
     std::function<void(const reflection::Enum*)> func) {
+  if (!enums) {
+    return;
+  }
   for (auto it = enums->cbegin(); it != enums->cend(); ++it) {
     func(*it);
   }
@@ -37,6 +40,9 @@ static void ForAllEnums(
 static void ForAllObjects(
     const flatbuffers::Vector<flatbuffers::Offset<reflection::Object>>* objects,
     std::function<void(const reflection::Object*)> func) {
+  if (!objects) {
+    return;
+  }
   for (auto it = objects->cbegin(); it != objects->cend(); ++it) {
     func(*it);
   }
@@ -45,6 +51,9 @@ static void ForAllObjects(
 static void ForAllEnumValues(
     const reflection::Enum* enum_def,
     std::function<void(const reflection::EnumVal*)> func) {
+  if (!enum_def || !enum_def->values()) {
+    return;
+  }
   for (auto it = enum_def->values()->cbegin(); it != enum_def->values()->cend();
        ++it) {
     func(*it);
@@ -67,12 +76,17 @@ static void ForAllDocumentation(
 // in the return vector).
 static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
   std::vector<uint32_t> field_index_by_id;
+  if (!object || !object->fields()) {
+    return field_index_by_id;
+  }
   field_index_by_id.resize(object->fields()->size());
 
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_index_by_id[field->id()] = i;
+    if (field && static_cast<size_t>(field->id()) < field_index_by_id.size()) {
+      field_index_by_id[field->id()] = i;
+    }
   }
 
   return field_index_by_id;
@@ -116,6 +130,9 @@ class BaseBfbsGenerator : public CodeGenerator {
   // deserialization and verification steps.
   Status GenerateCode(const uint8_t* buffer, int64_t length,
                       const CodeGenOptions& options) FLATBUFFERS_OVERRIDE {
+    if (!buffer || length <= 0) {
+      return FAILED_VERIFICATION;
+    }
     flatbuffers::Verifier verifier(buffer, static_cast<size_t>(length));
     if (!reflection::VerifySchemaBuffer(verifier)) {
       return FAILED_VERIFICATION;
@@ -124,6 +141,9 @@ class BaseBfbsGenerator : public CodeGenerator {
     // Store the root schema since there are cases where leaf nodes refer to
     // things in the root schema (e.g., indexing the objects).
     schema_ = reflection::GetSchema(buffer);
+    if (!schema_) {
+      return FAILED_VERIFICATION;
+    }
 
     const uint64_t advance_features = schema_->advanced_features();
     if (advance_features > SupportedAdvancedFeatures()) {

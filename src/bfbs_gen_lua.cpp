@@ -83,6 +83,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   Status GenerateFromSchema(const r::Schema* schema,
                             const CodeGenOptions& options)
       FLATBUFFERS_OVERRIDE {
+    if (!schema) {
+      return ERROR;
+    }
     options_ = options;
     if (!GenerateEnums(schema->enums())) {
       return ERROR;
@@ -162,7 +165,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       code += "}\n";
       code += "\n";
 
-      EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
+      const std::string decl_file = enum_def->declaration_file()
+                                         ? enum_def->declaration_file()->str()
+                                         : "";
+      EmitCodeBlock(code, enum_name, ns, decl_file);
     });
     return true;
   }
@@ -492,7 +498,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         }
       }
 
-      EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
+      const std::string decl_file = object->declaration_file()
+                                         ? object->declaration_file()->str()
+                                         : "";
+      EmitCodeBlock(code, object_name, ns, decl_file);
     });
     return true;
   }
@@ -706,10 +715,13 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";
 
-    const r::Object* root_table = schema_->root_table();
+    const r::Object* root_table = schema_ ? schema_->root_table() : nullptr;
     if (root_table) {
-      const std::string root_type = root_table->name()->str();
-      const std::string root_file = root_table->declaration_file()->str();
+      const std::string root_type =
+          root_table->name() ? root_table->name()->str() : "";
+      const std::string root_file = root_table->declaration_file()
+                                        ? root_table->declaration_file()->str()
+                                        : "";
 
       code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
     }
@@ -733,6 +745,10 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       path = ".";
     } else {
       std::replace(path.begin(), path.end(), '.', '/');
+    }
+
+    if (options_.file_saver == nullptr) {
+      return;
     }
 
     // TODO(derekbailey): figure out a save file without depending on util.h
