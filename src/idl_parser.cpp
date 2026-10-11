@@ -263,11 +263,20 @@ static bool CompareTablesByStringKey(const Offset<Table>* _a,
 static void SwapSerializedTables(Offset<Table>* a, Offset<Table>* b) {
   // These are serialized offsets, so are relative where they are
   // stored in memory, so compute the distance between these pointers:
-  ptrdiff_t diff = (b - a) * sizeof(Offset<Table>);
-  FLATBUFFERS_ASSERT(diff >= 0);  // Guaranteed by SimpleQsort.
-  auto udiff = static_cast<uoffset_t>(diff);
-  a->o = EndianScalar(ReadScalar<uoffset_t>(a) - udiff);
-  b->o = EndianScalar(ReadScalar<uoffset_t>(b) + udiff);
+  FLATBUFFERS_ASSERT(b >= a);  // Guaranteed by SimpleQsort.
+  const size_t ptr_diff = static_cast<size_t>(b - a);
+  FLATBUFFERS_ASSERT(ptr_diff <=
+                     (std::numeric_limits<size_t>::max)() / sizeof(Offset<Table>));
+  const size_t byte_diff = ptr_diff * sizeof(Offset<Table>);
+  FLATBUFFERS_ASSERT(byte_diff <=
+                     static_cast<size_t>((std::numeric_limits<uoffset_t>::max)()));
+  const auto udiff = static_cast<uoffset_t>(byte_diff);
+  const auto a_val = ReadScalar<uoffset_t>(a);
+  const auto b_val = ReadScalar<uoffset_t>(b);
+  FLATBUFFERS_ASSERT(a_val >= udiff);
+  FLATBUFFERS_ASSERT(b_val <= (std::numeric_limits<uoffset_t>::max)() - udiff);
+  a->o = EndianScalar(a_val - udiff);
+  b->o = EndianScalar(b_val + udiff);
   std::swap(*a, *b);
 }
 
@@ -907,7 +916,11 @@ CheckedError Parser::AddField(StructDef& struct_def, const std::string& name,
     // the largest scalar
     struct_def.minalign = std::max(struct_def.minalign, alignment);
     struct_def.PadLastField(alignment);
+    if (struct_def.bytesize > (std::numeric_limits<voffset_t>::max)())
+      return Error("struct size exceeds 16-bit limits: " + struct_def.name);
     field.value.offset = static_cast<voffset_t>(struct_def.bytesize);
+    if (size > (std::numeric_limits<size_t>::max)() - struct_def.bytesize)
+      return Error("struct size exceeds maximum limits: " + struct_def.name);
     struct_def.bytesize += size;
   }
   if (struct_def.fields.Add(name, &field))
@@ -1840,11 +1853,15 @@ CheckedError Parser::ParseVector(const Type& vector_type, uoffset_t* ovalue,
     if (type.struct_def->fixed) {
       const voffset_t offset = key->value.offset;
       const size_t struct_size = type.struct_def->bytesize;
+      if (!struct_size) return Error("size 0 structs not allowed");
       auto v =
           reinterpret_cast<VectorOfAny*>(builder_.GetCurrentBufferPointer());
+      if (v->size() > (std::numeric_limits<size_t>::max)() / struct_size) {
+        return Error("vector size exceeds limits");
+      }
       SimpleQsort<uint8_t>(
-          v->Data(), v->Data() + v->size() * type.struct_def->bytesize,
-          type.struct_def->bytesize,
+          v->Data(), v->Data() + v->size() * struct_size,
+          struct_size,
           [offset, key](const uint8_t* a, const uint8_t* b) -> bool {
             return CompareSerializedScalars(a + offset, b + offset, *key);
           },
