@@ -1707,6 +1707,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   size_t CreateAlignedBlob(const void* data, size_t len, size_t trailing,
                            Type type, BitWidth alignment) {
+    FLATBUFFERS_ASSERT(len <= (std::numeric_limits<size_t>::max)() - trailing);
     auto byte_width = Align(alignment);
     Write<uint64_t>(len, byte_width);
     auto sloc = buf_.size();
