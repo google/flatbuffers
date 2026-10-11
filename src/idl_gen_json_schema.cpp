@@ -32,10 +32,13 @@ namespace {
 
 template <class T>
 static std::string GenFullName(const T* enum_def) {
+  if (!enum_def) return "";
   std::string full_name;
-  const auto& name_spaces = enum_def->defined_namespace->components;
-  for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
-    full_name.append(*ns + "_");
+  if (enum_def->defined_namespace != nullptr) {
+    const auto& name_spaces = enum_def->defined_namespace->components;
+    for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+      full_name.append(*ns + "_");
+    }
   }
   full_name.append(enum_def->name);
   return full_name;
@@ -130,10 +133,12 @@ static std::string GenType(const Type& type) {
       return GenTypeRef(type.struct_def);
     }
     case BASE_TYPE_UNION: {
+      if (!type.enum_def) return "";
       std::string union_type_string("\"anyOf\": [");
       const auto& union_types = type.enum_def->Vals();
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
         const auto& union_type = *ut;
+        if (!union_type) continue;
         if (union_type->union_type.base_type == BASE_TYPE_NONE) {
           continue;
         }
@@ -196,12 +201,14 @@ class JsonSchemaGenerator : public BaseGenerator {
       const auto& comment_line = *line_iterator;
 
       // remove leading and trailing spaces from comment line
-      const auto start = std::find_if(comment_line.begin(), comment_line.end(),
-                                      [](char c) { return !isspace(c); });
+      const auto start = std::find_if(
+          comment_line.begin(), comment_line.end(),
+          [](char c) { return !isspace(static_cast<unsigned char>(c)); });
       const auto end =
-          std::find_if(comment_line.rbegin(), comment_line.rend(), [](char c) {
-            return !isspace(c);
-          }).base();
+          std::find_if(
+              comment_line.rbegin(), comment_line.rend(),
+              [](char c) { return !isspace(static_cast<unsigned char>(c)); })
+              .base();
       if (start < end) {
         comment.append(start, end);
       } else {
@@ -298,7 +305,9 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::vector<FieldDef*> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
-                   [](FieldDef const* prop) { return prop->IsRequired(); });
+                   [](FieldDef const* prop) {
+                     return prop && prop->IsRequired();
+                   });
       if (!requiredProperties.empty()) {
         auto required_string(Indent(3) + "\"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();
@@ -330,7 +339,8 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   bool save() const {
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
-    return parser_.opts.file_saver->SaveFile(file_path.c_str(), code_, false);
+    return parser_.opts.file_saver &&
+           parser_.opts.file_saver->SaveFile(file_path.c_str(), code_, false);
   }
 
   const std::string getJson() { return code_; }

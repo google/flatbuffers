@@ -4,7 +4,9 @@
 #include <limits>
 #include <string>
 
+#include "flatbuffers/default_allocator.h"
 #include "flatbuffers/idl.h"
+#include "idl_gen_fbs.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -933,6 +935,39 @@ void FieldIdentifierTest() {
   TEST_EQ(true, Parser().Parse("table T{ inf: float = inf; }"));
   TEST_EQ(true, Parser().Parse("table T{ nan: float = inf; }"));
 #endif
+}
+
+void FBSAndAllocatorSafetyTest() {
+  // Test FBSCodeGenerator null file_saver safety and code generation
+  auto fbs_gen = NewFBSCodeGenerator(true);
+  TEST_NOTNULL(fbs_gen.get());
+
+  Parser parser;
+  TEST_EQ(parser.Parse("namespace TestNS; table Item { id:int; } root_type Item;"), true);
+
+  // GenerateCodeString should succeed and produce valid schema
+  std::string fbs_output;
+  TEST_EQ(fbs_gen->GenerateCodeString(parser, "Item", fbs_output), CodeGenerator::Status::OK);
+  TEST_EQ(fbs_output.find("table Item") != std::string::npos, true);
+
+  // GenerateCode should safely return ERROR when file_saver is nullptr
+  parser.opts.file_saver = nullptr;
+  TEST_EQ(fbs_gen->GenerateCode(parser, "out", "Item"), CodeGenerator::Status::ERROR);
+
+  // Test namespace bounds safety when from_table > components.size()
+  Namespace* empty_ns = new Namespace();
+  empty_ns->from_table = 5;
+  parser.namespaces_.push_back(empty_ns);
+  std::string fbs_output2;
+  TEST_EQ(fbs_gen->GenerateCodeString(parser, "Item", fbs_output2), CodeGenerator::Status::OK);
+
+  // Test DefaultAllocator downward reallocation and memcpy with 0 in-use sizes
+  DefaultAllocator allocator;
+  uint8_t* p = allocator.allocate(16);
+  TEST_NOTNULL(p);
+  uint8_t* p2 = allocator.reallocate_downward(p, 16, 32, 0, 0);
+  TEST_NOTNULL(p2);
+  allocator.deallocate(p2, 32);
 }
 
 }  // namespace tests
