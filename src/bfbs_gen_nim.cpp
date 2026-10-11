@@ -98,6 +98,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   Status GenerateFromSchema(const r::Schema* schema,
                             const CodeGenOptions& options)
       FLATBUFFERS_OVERRIDE {
+    if (!schema) {
+      return ERROR;
+    }
     options_ = options;
     ForAllEnums(schema->enums(), [&](const r::Enum* enum_def) {
       StartCodeBlock(enum_def);
@@ -719,7 +722,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     EnsureDirExists(path);
     const std::string file_name =
         options_.output_path + path + "/" + namer_.File(name);
-    options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    if (options_.file_saver) {
+      options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    }
   }
 
   std::unordered_set<std::string> keywords_;

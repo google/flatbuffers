@@ -208,7 +208,10 @@ class Namer {
       result += ConvertCase(*d, config_.directories, input_case);
       result.push_back(kPathSeparator);
     }
-    if (skip_trailing_seperator && !result.empty()) result.pop_back();
+    if (skip_trailing_seperator && !result.empty() &&
+        result.back() == kPathSeparator) {
+      result.pop_back();
+    }
     return result;
   }
 

@@ -42,6 +42,9 @@
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/registry.h"
+#include "codegen/idl_namer.h"
+#include "codegen/namer.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/util.h"
 #include "fuzz_test.h"
 #include "json_test.h"
@@ -1745,6 +1748,36 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void FileSaversAndNamersSafetyTest() {
+  // Test FileNameSaver null checks
+  flatbuffers::FileNameSaver fn_saver;
+  TEST_EQ(fn_saver.SaveFile(nullptr, "data", 4, false), false);
+  TEST_EQ(fn_saver.SaveFile("test_output_name.txt", "data", 4, false), true);
+
+  // Test RealFileSaver null checks
+  flatbuffers::RealFileSaver rf_saver;
+  TEST_EQ(rf_saver.SaveFile(nullptr, "data", 4, false), false);
+  TEST_EQ(rf_saver.SaveFile("non_existent_dir_123/test.txt", nullptr, 10, false), false);
+
+  // Test Namer Directories handling
+  flatbuffers::Namer::Config cfg;
+  cfg.output_path = "output_dir";
+  cfg.directories = flatbuffers::Case::kKeep;
+  flatbuffers::Namer namer(cfg, {});
+  std::string dir = namer.Directories({}, flatbuffers::SkipDir::TrailingPathSeperator);
+  TEST_EQ(dir, std::string("output_dir"));
+
+  // Test IdlNamer LegacySwiftVariant with parsed enum
+  flatbuffers::IdlNamer idl_namer(cfg, {});
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("enum Color : byte { Red = 0, Green = 1 }"), true);
+  auto* enum_def = parser.enums_.Lookup("Color");
+  TEST_NOTNULL(enum_def);
+  auto* val = enum_def->Lookup("Red");
+  TEST_NOTNULL(val);
+  TEST_EQ(idl_namer.LegacySwiftVariant(*val), std::string("red"));
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1897,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  FileSaversAndNamersSafetyTest();
   return 0;
 }
 }  // namespace

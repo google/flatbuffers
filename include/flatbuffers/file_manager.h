@@ -34,6 +34,7 @@ class FileSaver {
                         bool binary) = 0;
 
   bool SaveFile(const char* name, const std::string& buf, bool binary) {
+    if (!name) return false;
     return SaveFile(name, buf.c_str(), buf.size(), binary);
   }
 
