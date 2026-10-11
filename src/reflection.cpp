@@ -592,10 +592,25 @@ class ResizeContext {
 void SetString(const reflection::Schema& schema, const std::string& val,
                const String* str, std::vector<uint8_t>* flatbuf,
                const reflection::Object* root_table) {
-  auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
-  auto str_start = static_cast<uoffset_t>(
-      reinterpret_cast<const uint8_t*>(str) - flatbuf->data());
+  if (!flatbuf || !str) return;
+  const auto max_size =
+      static_cast<size_t>((std::numeric_limits<soffset_t>::max)());
+  if (val.size() > max_size || str->size() > max_size) return;
+  auto str_start_signed =
+      reinterpret_cast<const uint8_t*>(str) - flatbuf->data();
+  if (str_start_signed < 0 ||
+      static_cast<size_t>(str_start_signed) > flatbuf->size() ||
+      static_cast<size_t>(str_start_signed) >
+          flatbuf->size() - sizeof(uoffset_t)) {
+    return;
+  }
+  auto str_start = static_cast<uoffset_t>(str_start_signed);
   auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
+  if (static_cast<size_t>(str->size()) >
+      flatbuf->size() - static_cast<size_t>(start)) {
+    return;
+  }
+  auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
     memset(flatbuf->data() + start, 0, str->size());
@@ -645,10 +660,15 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
   FLATBUFFERS_ASSERT(newlen >= sizeof(uoffset_t));
   auto root = ReadScalar<uoffset_t>(newbuf);
   if (root < sizeof(uoffset_t) || root >= newlen) return nullptr;
+  const size_t payload_len = newlen - sizeof(uoffset_t);
+  if (payload_len > (std::numeric_limits<size_t>::max)() - flatbuf.size()) {
+    return nullptr;
+  }
   while ((flatbuf.size() & (sizeof(uoffset_t) - 1)) ||
          !(flatbuf.size() & (sizeof(largest_scalar_t) - 1))) {
     flatbuf.push_back(0);
   }
+  if (flatbuf.size() > (std::numeric_limits<uoffset_t>::max)()) return nullptr;
   auto insertion_point = static_cast<uoffset_t>(flatbuf.size());
   // Insert the entire FlatBuffer minus the root pointer.
   flatbuf.insert(flatbuf.end(), newbuf + sizeof(uoffset_t), newbuf + newlen);

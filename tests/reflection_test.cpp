@@ -177,6 +177,9 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
                                 resizingbuf);
   SetString(schema, "totally new string", GetFieldS(**rroot, name_field),
             &resizingbuf);
+  // Guard against null pointers or invalid inputs.
+  SetString(schema, "safe test", nullptr, &resizingbuf);
+  SetString(schema, "safe test", GetFieldS(**rroot, name_field), nullptr);
   // Here resizingbuf has changed, but rroot is still valid.
   TEST_EQ_STR(GetFieldS(**rroot, name_field)->c_str(), "totally new string");
   // Now lets extend a vector by 100 elements (10 -> 110).
@@ -210,6 +213,11 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   // Add the contents of it to our existing FlatBuffer.
   // We do this last, so the pointer doesn't get invalidated (since it is
   // at the end of the buffer):
+  // AddFlatBuffer safety guards: invalid length or null buffer return nullptr.
+  uint8_t invalid_buf[2] = {0, 0};
+  TEST_NULL(flatbuffers::AddFlatBuffer(resizingbuf, nullptr, 100));
+  TEST_NULL(flatbuffers::AddFlatBuffer(resizingbuf, invalid_buf,
+                                       sizeof(invalid_buf)));
   auto string_ptr = flatbuffers::AddFlatBuffer(
       resizingbuf, stringfbb.GetBufferPointer(), stringfbb.GetSize());
   // Finally, set the new value in the vector.
