@@ -32,10 +32,13 @@ namespace {
 
 template <class T>
 static std::string GenFullName(const T* enum_def) {
+  if (enum_def == nullptr) return "";
   std::string full_name;
-  const auto& name_spaces = enum_def->defined_namespace->components;
-  for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
-    full_name.append(*ns + "_");
+  if (enum_def->defined_namespace != nullptr) {
+    const auto& name_spaces = enum_def->defined_namespace->components;
+    for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+      full_name.append(*ns + "_");
+    }
   }
   full_name.append(enum_def->name);
   return full_name;
@@ -130,6 +133,7 @@ static std::string GenType(const Type& type) {
       return GenTypeRef(type.struct_def);
     }
     case BASE_TYPE_UNION: {
+      if (type.enum_def == nullptr) return "";
       std::string union_type_string("\"anyOf\": [");
       const auto& union_types = type.enum_def->Vals();
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
@@ -149,7 +153,7 @@ static std::string GenType(const Type& type) {
       return union_type_string;
     }
     case BASE_TYPE_UTYPE:
-      return GenTypeRef(type.enum_def);
+      return type.enum_def != nullptr ? GenTypeRef(type.enum_def) : "";
     default: {
       return GenBaseType(type);
     }
@@ -321,8 +325,10 @@ class JsonSchemaGenerator : public BaseGenerator {
     code_ += Indent(1) + "}," + NewLine();  // close definitions
 
     // mark root type
-    code_ += Indent(1) + "\"$ref\" : \"#/definitions/" +
-             GenFullName(parser_.root_struct_def_) + "\"" + NewLine();
+    if (parser_.root_struct_def_ != nullptr) {
+      code_ += Indent(1) + "\"$ref\" : \"#/definitions/" +
+               GenFullName(parser_.root_struct_def_) + "\"" + NewLine();
+    }
 
     code_ += "}" + NewLine();  // close schema root
     return true;
@@ -330,6 +336,9 @@ class JsonSchemaGenerator : public BaseGenerator {
 
   bool save() const {
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
+    if (parser_.opts.file_saver == nullptr) {
+      return SaveFile(file_path.c_str(), code_, false);
+    }
     return parser_.opts.file_saver->SaveFile(file_path.c_str(), code_, false);
   }
 

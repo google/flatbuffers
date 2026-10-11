@@ -31,6 +31,7 @@ class Registry {
   // Call this for all schemas that may be in use. The identifier has
   // a function in the generated code, e.g. MonsterIdentifier().
   void Register(const char* file_identifier, const char* schema_path) {
+    if (file_identifier == nullptr || schema_path == nullptr) return;
     Schema schema;
     schema.path_ = schema_path;
     schemas_[file_identifier] = schema;
@@ -39,6 +40,10 @@ class Registry {
   // Generate text from an arbitrary FlatBuffer by looking up its
   // file_identifier in the registry.
   bool FlatBufferToText(const uint8_t* flatbuf, size_t len, std::string* dest) {
+    if (flatbuf == nullptr || dest == nullptr) {
+      lasterror_ = "null buffer or destination";
+      return false;
+    }
     // Get the identifier out of the buffer.
     // If the buffer is truncated, exit.
     if (len < sizeof(uoffset_t) + kFileIdentifierLength) {
@@ -66,6 +71,10 @@ class Registry {
   // If DetachedBuffer::data() is null then parsing failed.
   DetachedBuffer TextToFlatBuffer(const char* text,
                                   const char* file_identifier) {
+    if (text == nullptr || file_identifier == nullptr) {
+      lasterror_ = "null text or identifier";
+      return DetachedBuffer();
+    }
     // Load and parse the schema.
     Parser parser;
     if (!LoadSchema(file_identifier, &parser)) return DetachedBuffer();
@@ -83,13 +92,17 @@ class Registry {
 
   // If schemas used contain include statements, call this function for every
   // directory the parser should search them for.
-  void AddIncludeDirectory(const char* path) { include_paths_.push_back(path); }
+  void AddIncludeDirectory(const char* path) {
+    if (path == nullptr) return;
+    include_paths_.push_back(path);
+  }
 
   // Returns a human readable error if any of the above functions fail.
   const std::string& GetLastError() { return lasterror_; }
 
  private:
   bool LoadSchema(const std::string& ident, Parser* parser) {
+    if (parser == nullptr) return false;
     // Find the schema, if not, exit.
     auto it = schemas_.find(ident);
     if (it == schemas_.end()) {
@@ -106,7 +119,9 @@ class Registry {
     }
     // Parse schema.
     parser->opts = opts_;
-    if (!parser->Parse(schematext.c_str(), include_paths_.data(),
+    std::vector<const char*> include_paths = include_paths_;
+    include_paths.push_back(nullptr);
+    if (!parser->Parse(schematext.c_str(), include_paths.data(),
                        schema.path_.c_str())) {
       lasterror_ = parser->error_;
       return false;

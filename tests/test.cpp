@@ -1745,8 +1745,42 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void RegistryAndArraySafetyTest() {
+  // Test Registry null robustness
+  flatbuffers::Registry registry;
+  registry.Register(nullptr, nullptr);
+  registry.Register("TEST", nullptr);
+  registry.Register(nullptr, "path.fbs");
+  registry.AddIncludeDirectory(nullptr);
+
+  std::string dest;
+  TEST_EQ(registry.FlatBufferToText(nullptr, 0, &dest), false);
+  TEST_EQ(registry.FlatBufferToText(nullptr, 100, &dest), false);
+
+  uint8_t dummy_buf[16] = {0};
+  TEST_EQ(registry.FlatBufferToText(dummy_buf, sizeof(dummy_buf), nullptr),
+          false);
+
+  auto detached = registry.TextToFlatBuffer(nullptr, "TEST");
+  TEST_NULL(detached.data());
+
+  detached = registry.TextToFlatBuffer("{}", nullptr);
+  TEST_NULL(detached.data());
+
+  // Test Array::CopyFromSpan byte length with sizeof(T) > 1
+  uint32_t src_values[3] = {10, 20, 30};
+  flatbuffers::span<const uint32_t, 3> src_span(src_values, 3);
+  uint32_t dst_values[3] = {0, 0, 0};
+  auto& dst_array = flatbuffers::CastToArray(dst_values);
+  dst_array.CopyFromSpan(src_span);
+  TEST_EQ(dst_array[0], 10U);
+  TEST_EQ(dst_array[1], 20U);
+  TEST_EQ(dst_array[2], 30U);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  RegistryAndArraySafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

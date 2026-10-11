@@ -106,8 +106,9 @@ class Array {
   void CopyFromSpan(flatbuffers::span<const T, length> src) {
     const auto p1 = reinterpret_cast<const uint8_t*>(src.data());
     const auto p2 = Data();
-    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length)) &&
-                       !(p2 >= p1 && p2 < (p1 + length)));
+    const auto byte_length = length * sizeof(T);
+    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + byte_length)) &&
+                       !(p2 >= p1 && p2 < (p1 + byte_length)));
     (void)p1;
     (void)p2;
     CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
