@@ -42,6 +42,15 @@ void NumericUtilsTest() {
   NumericUtilsTestInteger<int8_t>("-129", "128");
   NumericUtilsTestFloat<float>("-3.4029e+38", "+3.4029e+38");
   NumericUtilsTestFloat<float>("-1.7977e+308", "+1.7977e+308");
+
+  // Test PaddingBytes boundary behavior.
+  TEST_EQ(static_cast<size_t>(0), flatbuffers::PaddingBytes(0, 0));
+  TEST_EQ(static_cast<size_t>(0), flatbuffers::PaddingBytes(1, 0));
+  TEST_EQ(static_cast<size_t>(0), flatbuffers::PaddingBytes(0, 4));
+  TEST_EQ(static_cast<size_t>(3), flatbuffers::PaddingBytes(1, 4));
+  TEST_EQ(static_cast<size_t>(2), flatbuffers::PaddingBytes(2, 4));
+  TEST_EQ(static_cast<size_t>(1), flatbuffers::PaddingBytes(3, 4));
+  TEST_EQ(static_cast<size_t>(0), flatbuffers::PaddingBytes(4, 4));
 }
 
 void IsAsciiUtilsTest() {

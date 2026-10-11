@@ -454,9 +454,9 @@ template<typename T> FLATBUFFERS_SUPPRESS_UBSAN("alignment") void WriteScalar(vo
 // Computes how many bytes you'd have to pad to be able to write an
 // "scalar_size" scalar if the buffer had grown to "buf_size" (downwards in
 // memory).
-FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow")
 inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
-  return ((~buf_size) + 1) & (scalar_size - 1);
+  if (scalar_size == 0) return 0;
+  return (scalar_size - (buf_size & (scalar_size - 1))) & (scalar_size - 1);
 }
 
 #if !defined(_MSC_VER)
