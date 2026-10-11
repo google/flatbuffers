@@ -935,5 +935,26 @@ void FieldIdentifierTest() {
 #endif
 }
 
+void ParserVectorAndTypeSafetyTest() {
+  flatbuffers::Parser parser;
+  // Test parsing schema with vector and struct array
+  TEST_EQ(true, parser.Parse("struct S { a:[int:3]; } table T { v:[int]; s:S; } root_type T;"));
+
+  // Test IsStruct, IsTable, IsIncompleteStruct with null struct_def
+  Type null_struct_type(BASE_TYPE_STRUCT, nullptr);
+  TEST_EQ(IsStruct(null_struct_type), false);
+  TEST_EQ(IsTable(null_struct_type), false);
+  TEST_EQ(IsIncompleteStruct(null_struct_type), false);
+
+  // For an unassigned struct_def (like an un-fixed table reference), inline size is offset (4 bytes)
+  TEST_EQ(InlineSize(null_struct_type), 4);
+  TEST_EQ(InlineAlignment(null_struct_type), 4);
+
+  // Test SymbolTable::Add with null pointer
+  SymbolTable<FieldDef> syms;
+  TEST_EQ(syms.Add("test", nullptr), true);
+  TEST_EQ(syms.vec.empty(), true);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

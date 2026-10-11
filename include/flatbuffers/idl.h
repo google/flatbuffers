@@ -245,6 +245,7 @@ class SymbolTable {
   }
 
   bool Add(const std::string& name, T* e) {
+    if (e == nullptr) return true;
     vec.emplace_back(e);
     auto it = dict.find(name);
     if (it != dict.end()) return true;
@@ -531,15 +532,18 @@ inline bool IsString(const Type& type) {
 }
 
 inline bool IsStruct(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         type.struct_def->fixed;
 }
 
 inline bool IsIncompleteStruct(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->predecl;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         type.struct_def->predecl;
 }
 
 inline bool IsTable(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && !type.struct_def->fixed;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         !type.struct_def->fixed;
 }
 
 inline bool IsUnion(const Type& type) {
@@ -573,21 +577,28 @@ inline bool IsEnum(const Type& type) {
 }
 
 inline size_t InlineSize(const Type& type) {
-  return IsStruct(type)
-             ? type.struct_def->bytesize
-             : (IsArray(type)
-                    ? InlineSize(type.VectorType()) * type.fixed_length
-                    : SizeOf(type.base_type));
+  if (IsStruct(type)) {
+    return type.struct_def != nullptr ? type.struct_def->bytesize : 0;
+  } else if (IsArray(type)) {
+    const size_t elem_size = InlineSize(type.VectorType());
+    if (type.fixed_length > 0 && elem_size > SIZE_MAX / type.fixed_length) {
+      return 0;
+    }
+    return elem_size * type.fixed_length;
+  } else {
+    return SizeOf(type.base_type);
+  }
 }
 
 inline size_t InlineAlignment(const Type& type) {
   if (IsStruct(type)) {
-    return type.struct_def->minalign;
+    return type.struct_def != nullptr ? type.struct_def->minalign : 1;
   } else if (IsArray(type)) {
-    return IsStruct(type.VectorType()) ? type.struct_def->minalign
-                                       : SizeOf(type.element);
+    return IsStruct(type.VectorType())
+               ? (type.struct_def != nullptr ? type.struct_def->minalign : 1)
+               : std::max<size_t>(1, SizeOf(type.element));
   } else {
-    return SizeOf(type.base_type);
+    return std::max<size_t>(1, SizeOf(type.base_type));
   }
 }
 inline bool operator==(const EnumVal& lhs, const EnumVal& rhs) {

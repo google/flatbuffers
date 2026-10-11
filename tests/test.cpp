@@ -1844,6 +1844,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedLengthArrayConstructorTest();
   FixedLengthArrayOperatorEqualTest();
   FieldIdentifierTest();
+  ParserVectorAndTypeSafetyTest();
   StringVectorDefaultsTest();
   FlexBuffersFloatingPointTest();
   FlatbuffersIteratorsTest();

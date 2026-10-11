@@ -1695,6 +1695,8 @@ CheckedError Parser::ParseTable(const StructDef& struct_def, std::string* value,
           #undef FLATBUFFERS_TD
             case BASE_TYPE_ARRAY:
               builder_.Pad(field->padding);
+              FLATBUFFERS_ASSERT(field_value.constant.length() ==
+                                 InlineSize(field_value.type));
               builder_.PushBytes(
                 reinterpret_cast<const uint8_t*>(field_value.constant.c_str()),
                 InlineSize(field_value.type));
@@ -1758,6 +1760,7 @@ CheckedError Parser::ParseAlignAttribute(const std::string& align_constant,
 
 CheckedError Parser::ParseVector(const Type& vector_type, uoffset_t* ovalue,
                                  FieldDef* field, size_t fieldn) {
+  if (ovalue == nullptr) return Error("Null output offset pointer.");
   Type type = vector_type.VectorType();
   size_t count = 0;
   auto err = ParseVectorDelimiters(count, [&](size_t&) -> CheckedError {
@@ -1770,9 +1773,21 @@ CheckedError Parser::ParseVector(const Type& vector_type, uoffset_t* ovalue,
   ECHECK(err);
 
   const size_t alignment = InlineAlignment(type);
-  const size_t len = count * InlineSize(type) / InlineAlignment(type);
-  const size_t elemsize = InlineAlignment(type);
-  const auto force_align = field->attributes.Lookup("force_align");
+  if (alignment == 0) {
+    return Error("Invalid vector element alignment of 0.");
+  }
+  const size_t elem_size = InlineSize(type);
+  if (count > 0 && elem_size > SIZE_MAX / count) {
+    return Error("Vector size overflow.");
+  }
+  const size_t total_size = count * elem_size;
+  if (total_size > FLATBUFFERS_MAX_BUFFER_SIZE) {
+    return Error("Vector size exceeds maximum buffer size.");
+  }
+  const size_t len = total_size / alignment;
+  const size_t elemsize = alignment;
+  const auto force_align =
+      field != nullptr ? field->attributes.Lookup("force_align") : nullptr;
   if (force_align) {
     size_t align;
     ECHECK(ParseAlignAttribute(force_align->constant, 1, &align));
@@ -1817,7 +1832,8 @@ CheckedError Parser::ParseVector(const Type& vector_type, uoffset_t* ovalue,
     *ovalue = builder_.EndVector(count);
   }
 
-  if (type.base_type == BASE_TYPE_STRUCT && type.struct_def->has_key) {
+  if (type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+      type.struct_def->has_key) {
     // We should sort this vector. Find the key first.
     const FieldDef* key = nullptr;
     for (auto it = type.struct_def->fields.vec.begin();
@@ -1921,9 +1937,15 @@ CheckedError Parser::ParseArray(Value& array) {
     // clang-format on
   }
 
-  array.constant.assign(
-      reinterpret_cast<const char*>(builder.GetCurrentBufferPointer()),
-      InlineSize(array.type));
+  if (builder.GetSize() != InlineSize(array.type)) {
+    return Error("Fixed-length array serialization size mismatch.");
+  }
+  const uint8_t* buf = builder.GetCurrentBufferPointer();
+  if (buf == nullptr) {
+    return Error("Null buffer pointer during array serialization.");
+  }
+  array.constant.assign(reinterpret_cast<const char*>(buf),
+                        InlineSize(array.type));
   return NoError();
 }
 
@@ -3487,6 +3509,7 @@ CheckedError Parser::SkipAnyJsonValue() {
 
 CheckedError Parser::ParseFlexBufferNumericConstant(
     flexbuffers::Builder* builder) {
+  if (!builder) return Error("Null flexbuffers builder pointer.");
   double d;
   if (!StringToNumber(attribute_.c_str(), &d))
     return Error("unexpected floating-point constant: " + attribute_);
@@ -3495,6 +3518,7 @@ CheckedError Parser::ParseFlexBufferNumericConstant(
 }
 
 CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder* builder) {
+  if (!builder) return Error("Null flexbuffers builder pointer.");
   ParseDepthGuard depth_guard(this);
   ECHECK(depth_guard.Check());
 
