@@ -63,12 +63,21 @@ void FlatCompiler::LoadBinarySchema(flatbuffers::Parser& parser,
 }
 
 void FlatCompiler::Warn(const std::string& warn, bool show_exe_name) const {
-  params_.warn_fn(this, warn, show_exe_name);
+  if (params_.warn_fn) {
+    params_.warn_fn(this, warn, show_exe_name);
+  } else {
+    std::fprintf(stderr, "\nwarning:\n  %s\n\n", warn.c_str());
+  }
 }
 
 void FlatCompiler::Error(const std::string& err, bool usage,
                          bool show_exe_name) const {
-  params_.error_fn(this, err, usage, show_exe_name);
+  if (params_.error_fn) {
+    params_.error_fn(this, err, usage, show_exe_name);
+  } else {
+    std::fprintf(stderr, "\nerror:\n  %s\n\n", err.c_str());
+    std::exit(1);
+  }
 }
 
 const static FlatCOption flatc_options[] = {
@@ -412,6 +421,7 @@ std::string FlatCompiler::GetUsageString(
 void FlatCompiler::AnnotateBinaries(const uint8_t* binary_schema,
                                     const uint64_t binary_schema_size,
                                     const FlatCOptions& options) {
+  if (binary_schema == nullptr || binary_schema_size == 0) return;
   const std::string& schema_filename = options.annotate_schema;
 
   for (const std::string& filename : options.filenames) {
@@ -449,18 +459,20 @@ void FlatCompiler::AnnotateBinaries(const uint8_t* binary_schema,
 
 FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
                                                          const char** argv) {
-  if (argc <= 1) {
+  if (argv == nullptr || argc <= 1) {
     Error("Need to provide at least one argument.");
   }
 
   FlatCOptions options;
 
-  options.program_name = std::string(argv[0]);
+  options.program_name = (argv && argv[0]) ? std::string(argv[0]) : "flatc";
 
   IDLOptions& opts = options.opts;
 
   for (int argi = 1; argi < argc; argi++) {
+    if (argv[argi] == nullptr) continue;
     std::string arg = argv[argi];
+    if (arg.empty()) continue;
     if (arg[0] == '-') {
       if (options.filenames.size() && arg[1] != '-')
         Error("invalid option location: " + arg, true);
@@ -475,7 +487,7 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         options.include_directories.push_back(
             options.include_directories_storage.back().c_str());
       } else if (arg == "--bfbs-filenames") {
-        if (++argi > argc) Error("missing path following: " + arg, true);
+        if (++argi >= argc) Error("missing path following: " + arg, true);
         opts.project_root = argv[argi];
         if (!DirExists(opts.project_root.c_str()))
           Error(arg + " is not a directory: " + opts.project_root);
@@ -771,6 +783,10 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
 
         std::shared_ptr<CodeGenerator> code_generator =
             code_generator_it->second;
+        if (!code_generator) {
+          Error("invalid generator for argument: " + arg, true);
+          return options;
+        }
 
         // TODO(derekbailey): remove in favor of just checking if
         // generators.empty().
@@ -952,6 +968,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
 
     for (const std::shared_ptr<CodeGenerator>& code_generator :
          options.generators) {
+      if (!code_generator) continue;
       if (options.print_make_rules) {
         std::string make_rule;
         const CodeGenerator::Status status = code_generator->GenerateMakeRule(
@@ -1081,7 +1098,7 @@ int FlatCompiler::Compile(const FlatCOptions& options) {
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
 
   for (const auto& code_generator : options.generators) {
-    if (code_generator->SupportsRootFileGeneration()) {
+    if (code_generator && code_generator->SupportsRootFileGeneration()) {
       code_generator->GenerateRootFile(*parser, options.output_path);
     }
   }
@@ -1091,6 +1108,9 @@ int FlatCompiler::Compile(const FlatCOptions& options) {
 
 bool FlatCompiler::RegisterCodeGenerator(
     const FlatCOption& option, std::shared_ptr<CodeGenerator> code_generator) {
+  if (!code_generator) {
+    return false;
+  }
   if (!option.short_opt.empty() &&
       code_generators_.find("-" + option.short_opt) != code_generators_.end()) {
     Error("multiple generators registered under: -" + option.short_opt, false,

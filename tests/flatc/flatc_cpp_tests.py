@@ -259,3 +259,11 @@ class CppTests:
         ],
         unlink=False,
     )
+
+  def MissingArgumentGuard(self):
+    # Verify that a trailing option expecting an argument does not segfault
+    try:
+      flatc(["--bfbs-filenames"])
+      assert False, "Expected flatc to fail on missing --bfbs-filenames argument"
+    except subprocess.CalledProcessError as e:
+      assert e.returncode == 1
