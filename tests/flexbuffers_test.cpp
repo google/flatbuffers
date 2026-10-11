@@ -314,5 +314,49 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersNullSafetyTest() {
+  // 1. GetRoot with null or short buffer
+  TEST_ASSERT(flexbuffers::GetRoot(nullptr, 0).IsNull());
+  TEST_ASSERT(flexbuffers::GetRoot(std::vector<uint8_t>()).IsNull());
+  const uint8_t tiny_buf[2] = { 1, 2 };
+  TEST_ASSERT(flexbuffers::GetRoot(tiny_buf, 2).IsNull());
+
+  // 2. Default constructed Reference safety
+  flexbuffers::Reference ref;
+  TEST_ASSERT(ref.IsNull());
+  TEST_EQ(ref.AsBool(), false);
+  TEST_EQ(ref.AsInt64(), 0);
+  TEST_EQ(ref.AsUInt64(), 0);
+  TEST_EQ(ref.AsDouble(), 0.0);
+  TEST_EQ(ref.AsFloat(), 0.0f);
+  TEST_EQ_STR(ref.AsKey(), "");
+  TEST_EQ_STR(ref.AsString().c_str(), "");
+  TEST_EQ(ref.AsBlob().size(), 0u);
+  TEST_EQ(ref.AsVector().size(), 0u);
+  TEST_EQ(ref.AsTypedVector().size(), 0u);
+  TEST_EQ(ref.AsFixedTypedVector().size(), 0u);
+  TEST_EQ(ref.AsMap().size(), 0u);
+
+  // 3. Map operations with empty/null map and null key
+  auto map = ref.AsMap();
+  TEST_EQ(map.Keys().size(), 0u);
+  TEST_EQ(map.Values().size(), 0u);
+  TEST_ASSERT(map[nullptr].IsNull());
+  TEST_ASSERT(map["missing"].IsNull());
+
+  // 4. Builder null string/key/blob safety
+  flexbuffers::Builder slb;
+  slb.Map([&]() {
+    slb.Key(nullptr);
+    slb.String(nullptr);
+    slb.Blob("blob_key", nullptr, 0);
+  });
+  slb.Finish();
+  auto root = flexbuffers::GetRoot(slb.GetBuffer());
+  TEST_ASSERT(root.IsMap());
+  auto m = root.AsMap();
+  TEST_ASSERT(m[nullptr].IsNull());
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

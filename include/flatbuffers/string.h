@@ -23,24 +23,35 @@
 namespace flatbuffers {
 
 struct String : public Vector<char> {
-  const char* c_str() const { return reinterpret_cast<const char*>(Data()); }
-  std::string str() const { return std::string(c_str(), size()); }
+  const char* c_str() const {
+    auto d = Data();
+    return d ? reinterpret_cast<const char*>(d) : "";
+  }
+  std::string str() const {
+    auto c = c_str();
+    return (c && size() > 0) ? std::string(c, size()) : std::string();
+  }
 
   // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   flatbuffers::string_view string_view() const {
-    return flatbuffers::string_view(c_str(), size());
+    auto c = c_str();
+    return (c && size() > 0) ? flatbuffers::string_view(c, size())
+                             : flatbuffers::string_view();
   }
 
   /* implicit */
   operator flatbuffers::string_view() const {
-    return flatbuffers::string_view(c_str(), size());
+    return string_view();
   }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
   // clang-format on
 
   bool operator<(const String& o) const {
-    return StringLessThan(this->data(), this->size(), o.data(), o.size());
+    auto d1 = this->data();
+    auto d2 = o.data();
+    if (!d1 || !d2) return d1 < d2;
+    return StringLessThan(d1, this->size(), d2, o.size());
   }
 };
 

@@ -1745,6 +1745,45 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void BuilderAndStringSafetyTest() {
+  flatbuffers::FlatBufferBuilder fbb;
+  const char* null_cstr = nullptr;
+  char* null_nonconst_cstr = nullptr;
+  TEST_EQ(fbb.CreateString(null_cstr).o, 0u);
+  TEST_EQ(fbb.CreateString(null_nonconst_cstr).o, 0u);
+  TEST_EQ(fbb.CreateSharedString(null_cstr).o, 0u);
+  TEST_EQ(fbb.CreateSharedString(nullptr, 10).o, 0u);
+
+  // Uninitialized vector with null pointer out parameter
+  fbb.CreateUninitializedVector(16, 1, nullptr);
+
+  uint8_t* buf_ptr = nullptr;
+  fbb.CreateUninitializedVector(16, 1, &buf_ptr);
+  TEST_ASSERT(buf_ptr != nullptr);
+
+  // Sorted vectors with null buffer and 0 length
+  fbb.CreateVectorOfSortedTables<Monster>(nullptr, 0);
+  fbb.CreateVectorOfSortedStructs<MyGame::Example::Ability>(nullptr, 0);
+
+  // String null safety
+  const flatbuffers::String* null_str = nullptr;
+  TEST_EQ(flatbuffers::GetCstring(null_str), "");
+
+  // Vector LookupByKey null key safety
+  flatbuffers::FlatBufferBuilder fbb2;
+  auto mon1 = CreateMonster(fbb2, nullptr, 0, 0, fbb2.CreateString("Bob"));
+  auto vec_tables = fbb2.CreateVectorOfSortedTables(&mon1, 1);
+  auto root_name = fbb2.CreateString("Root");
+  MonsterBuilder mb(fbb2);
+  mb.add_testarrayoftables(vec_tables);
+  mb.add_name(root_name);
+  FinishMonsterBuffer(fbb2, mb.Finish());
+  auto root = GetMonster(fbb2.GetBufferPointer());
+  TEST_ASSERT(root->testarrayoftables() != nullptr);
+  TEST_ASSERT(root->testarrayoftables()->LookupByKey(static_cast<const char*>(nullptr)) == nullptr);
+  TEST_ASSERT(root->testarrayoftables()->LookupByKey("Bob") != nullptr);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1827,9 +1866,11 @@ int FlatBufferTests(const std::string& tests_data_path) {
   TypeAliasesTest();
   EndianSwapTest();
   CreateSharedStringTest();
+  BuilderAndStringSafetyTest();
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
+  FlexBuffersNullSafetyTest();
   UninitializedVectorTest();
   EqualOperatorTest();
   NumericUtilsTest();

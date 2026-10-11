@@ -23,6 +23,16 @@
 
 namespace flatbuffers {
 
+template <typename K>
+inline bool IsNullKey(const K&) {
+  return false;
+}
+
+template <typename K>
+inline bool IsNullKey(K* ptr) {
+  return ptr == nullptr;
+}
+
 struct String;
 
 // An STL compatible iterator implementation for Vector below, effectively
@@ -283,6 +293,9 @@ class Vector {
 
   template <typename K>
   return_type LookupByKey(K key) const {
+    if (IsNullKey(key) || !Data() || size() == 0) {
+      return nullptr;
+    }
     void* search_result = std::bsearch(
         &key, Data(), size(), IndirectHelper<T>::element_stride, KeyCompare<K>);
 
@@ -315,9 +328,14 @@ class Vector {
 
   template <typename K>
   static int KeyCompare(const void* ap, const void* bp) {
+    if (!ap && !bp) return 0;
+    if (!ap) return -1;
+    if (!bp) return 1;
     const K* key = reinterpret_cast<const K*>(ap);
+    if (!key || IsNullKey(*key)) return -1;
     const uint8_t* data = reinterpret_cast<const uint8_t*>(bp);
     auto table = IndirectHelper<T>::Read(data, 0);
+    if (!table) return 1;
 
     // std::bsearch compares with the operands transposed, so we negate the
     // result here.

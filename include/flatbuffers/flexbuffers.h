@@ -184,12 +184,12 @@ inline double ReadDouble(const uint8_t* data, uint8_t byte_width) {
 }
 
 inline const uint8_t* Indirect(const uint8_t* offset, uint8_t byte_width) {
-  return offset - ReadUInt64(offset, byte_width);
+  return offset ? offset - ReadUInt64(offset, byte_width) : nullptr;
 }
 
 template <typename T>
 const uint8_t* Indirect(const uint8_t* offset) {
-  return offset - flatbuffers::ReadScalar<T>(offset);
+  return offset ? offset - flatbuffers::ReadScalar<T>(offset) : nullptr;
 }
 
 inline BitWidth WidthU(uint64_t u) {
@@ -238,6 +238,7 @@ class Sized : public Object {
   size_t size() const { return size_; }
   // Access size stored in `byte_width_` bytes before data_ pointer.
   size_t read_size() const {
+    if (!data_) return 0;
     return static_cast<size_t>(ReadUInt64(data_ - byte_width_, byte_width_));
   }
 
@@ -349,9 +350,12 @@ class Map : public Vector {
   Vector Values() const { return Vector(data_, byte_width_); }
 
   TypedVector Keys() const {
+    if (!data_) return TypedVector::EmptyTypedVector();
     const size_t num_prefixed_fields = 3;
     auto keys_offset = data_ - byte_width_ * num_prefixed_fields;
-    return TypedVector(Indirect(keys_offset, byte_width_),
+    auto ind = Indirect(keys_offset, byte_width_);
+    if (!ind) return TypedVector::EmptyTypedVector();
+    return TypedVector(ind,
                        static_cast<uint8_t>(
                            ReadUInt64(keys_offset + byte_width_, byte_width_)),
                        FBT_KEY);
@@ -446,6 +450,7 @@ class Reference {
   bool IsMap() const { return type_ == FBT_MAP; }
   bool IsBlob() const { return type_ == FBT_BLOB; }
   bool AsBool() const {
+    if (!data_) return false;
     return (type_ == FBT_BOOL ? ReadUInt64(data_, parent_width_)
                               : AsUInt64()) != 0;
   }
@@ -454,21 +459,28 @@ class Reference {
   // Truncates floats, strings are attempted to be parsed for a number,
   // vectors/maps return their size. Returns 0 if all else fails.
   int64_t AsInt64() const {
+    if (!data_) return 0;
     if (type_ == FBT_INT) {
       // A fast path for the common case.
       return ReadInt64(data_, parent_width_);
     } else
       switch (type_) {
-        case FBT_INDIRECT_INT:
-          return ReadInt64(Indirect(), byte_width_);
+        case FBT_INDIRECT_INT: {
+          auto ind = Indirect();
+          return ind ? ReadInt64(ind, byte_width_) : 0;
+        }
         case FBT_UINT:
           return ReadUInt64(data_, parent_width_);
-        case FBT_INDIRECT_UINT:
-          return ReadUInt64(Indirect(), byte_width_);
+        case FBT_INDIRECT_UINT: {
+          auto ind = Indirect();
+          return ind ? ReadUInt64(ind, byte_width_) : 0;
+        }
         case FBT_FLOAT:
           return static_cast<int64_t>(ReadDouble(data_, parent_width_));
-        case FBT_INDIRECT_FLOAT:
-          return static_cast<int64_t>(ReadDouble(Indirect(), byte_width_));
+        case FBT_INDIRECT_FLOAT: {
+          auto ind = Indirect();
+          return ind ? static_cast<int64_t>(ReadDouble(ind, byte_width_)) : 0;
+        }
         case FBT_NULL:
           return 0;
         case FBT_STRING:
@@ -490,21 +502,28 @@ class Reference {
   int8_t AsInt8() const { return static_cast<int8_t>(AsInt64()); }
 
   uint64_t AsUInt64() const {
+    if (!data_) return 0;
     if (type_ == FBT_UINT) {
       // A fast path for the common case.
       return ReadUInt64(data_, parent_width_);
     } else
       switch (type_) {
-        case FBT_INDIRECT_UINT:
-          return ReadUInt64(Indirect(), byte_width_);
+        case FBT_INDIRECT_UINT: {
+          auto ind = Indirect();
+          return ind ? ReadUInt64(ind, byte_width_) : 0;
+        }
         case FBT_INT:
           return ReadInt64(data_, parent_width_);
-        case FBT_INDIRECT_INT:
-          return ReadInt64(Indirect(), byte_width_);
+        case FBT_INDIRECT_INT: {
+          auto ind = Indirect();
+          return ind ? ReadInt64(ind, byte_width_) : 0;
+        }
         case FBT_FLOAT:
           return static_cast<uint64_t>(ReadDouble(data_, parent_width_));
-        case FBT_INDIRECT_FLOAT:
-          return static_cast<uint64_t>(ReadDouble(Indirect(), byte_width_));
+        case FBT_INDIRECT_FLOAT: {
+          auto ind = Indirect();
+          return ind ? static_cast<uint64_t>(ReadDouble(ind, byte_width_)) : 0;
+        }
         case FBT_NULL:
           return 0;
         case FBT_STRING:
@@ -524,21 +543,28 @@ class Reference {
   uint8_t AsUInt8() const { return static_cast<uint8_t>(AsUInt64()); }
 
   double AsDouble() const {
+    if (!data_) return 0.0;
     if (type_ == FBT_FLOAT) {
       // A fast path for the common case.
       return ReadDouble(data_, parent_width_);
     } else
       switch (type_) {
-        case FBT_INDIRECT_FLOAT:
-          return ReadDouble(Indirect(), byte_width_);
+        case FBT_INDIRECT_FLOAT: {
+          auto ind = Indirect();
+          return ind ? ReadDouble(ind, byte_width_) : 0.0;
+        }
         case FBT_INT:
           return static_cast<double>(ReadInt64(data_, parent_width_));
         case FBT_UINT:
           return static_cast<double>(ReadUInt64(data_, parent_width_));
-        case FBT_INDIRECT_INT:
-          return static_cast<double>(ReadInt64(Indirect(), byte_width_));
-        case FBT_INDIRECT_UINT:
-          return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
+        case FBT_INDIRECT_INT: {
+          auto ind = Indirect();
+          return ind ? static_cast<double>(ReadInt64(ind, byte_width_)) : 0.0;
+        }
+        case FBT_INDIRECT_UINT: {
+          auto ind = Indirect();
+          return ind ? static_cast<double>(ReadUInt64(ind, byte_width_)) : 0.0;
+        }
         case FBT_NULL:
           return 0.0;
         case FBT_STRING: {
@@ -559,8 +585,10 @@ class Reference {
   float AsFloat() const { return static_cast<float>(AsDouble()); }
 
   const char* AsKey() const {
+    if (!data_) return "";
     if (type_ == FBT_KEY || type_ == FBT_STRING) {
-      return reinterpret_cast<const char*>(Indirect());
+      auto ind = Indirect();
+      return ind ? reinterpret_cast<const char*>(ind) : "";
     } else {
       return "";
     }
@@ -569,12 +597,15 @@ class Reference {
   // This function returns the empty string if you try to read something that
   // is not a string or key.
   String AsString() const {
+    if (!data_) return String::EmptyString();
     if (type_ == FBT_STRING) {
-      return String(Indirect(), byte_width_);
+      auto ind = Indirect();
+      return ind ? String(ind, byte_width_) : String::EmptyString();
     } else if (type_ == FBT_KEY) {
       auto key = Indirect();
-      return String(key, byte_width_,
-                    strlen(reinterpret_cast<const char*>(key)));
+      return key ? String(key, byte_width_,
+                          strlen(reinterpret_cast<const char*>(key)))
+                 : String::EmptyString();
     } else {
       return String::EmptyString();
     }
@@ -682,8 +713,10 @@ class Reference {
   // This function returns the empty blob if you try to read a not-blob.
   // Strings can be viewed as blobs too.
   Blob AsBlob() const {
+    if (!data_) return Blob::EmptyBlob();
     if (type_ == FBT_BLOB || type_ == FBT_STRING) {
-      return Blob(Indirect(), byte_width_);
+      auto ind = Indirect();
+      return ind ? Blob(ind, byte_width_) : Blob::EmptyBlob();
     } else {
       return Blob::EmptyBlob();
     }
@@ -692,17 +725,22 @@ class Reference {
   // This function returns the empty vector if you try to read a not-vector.
   // Maps can be viewed as vectors too.
   Vector AsVector() const {
+    if (!data_) return Vector::EmptyVector();
     if (type_ == FBT_VECTOR || type_ == FBT_MAP) {
-      return Vector(Indirect(), byte_width_);
+      auto ind = Indirect();
+      return ind ? Vector(ind, byte_width_) : Vector::EmptyVector();
     } else {
       return Vector::EmptyVector();
     }
   }
 
   TypedVector AsTypedVector() const {
+    if (!data_) return TypedVector::EmptyTypedVector();
     if (IsTypedVector()) {
+      auto ind = Indirect();
+      if (!ind) return TypedVector::EmptyTypedVector();
       auto tv =
-          TypedVector(Indirect(), byte_width_, ToTypedVectorElementType(type_));
+          TypedVector(ind, byte_width_, ToTypedVectorElementType(type_));
       if (tv.type_ == FBT_STRING) {
         // These can't be accessed as strings, since we don't know the bit-width
         // of the size field, see the declaration of
@@ -719,18 +757,23 @@ class Reference {
   }
 
   FixedTypedVector AsFixedTypedVector() const {
+    if (!data_) return FixedTypedVector::EmptyFixedTypedVector();
     if (IsFixedTypedVector()) {
+      auto ind = Indirect();
+      if (!ind) return FixedTypedVector::EmptyFixedTypedVector();
       uint8_t len = 0;
       auto vtype = ToFixedTypedVectorElementType(type_, &len);
-      return FixedTypedVector(Indirect(), byte_width_, vtype, len);
+      return FixedTypedVector(ind, byte_width_, vtype, len);
     } else {
       return FixedTypedVector::EmptyFixedTypedVector();
     }
   }
 
   Map AsMap() const {
+    if (!data_) return Map::EmptyMap();
     if (type_ == FBT_MAP) {
-      return Map(Indirect(), byte_width_);
+      auto ind = Indirect();
+      return ind ? Map(ind, byte_width_) : Map::EmptyMap();
     } else {
       return Map::EmptyMap();
     }
@@ -817,7 +860,7 @@ class Reference {
 
  private:
   const uint8_t* Indirect() const {
-    return flexbuffers::Indirect(data_, parent_width_);
+    return data_ ? flexbuffers::Indirect(data_, parent_width_) : nullptr;
   }
 
   template <typename T>
@@ -966,14 +1009,20 @@ inline Reference FixedTypedVector::operator[](size_t i) const {
 
 template <typename T>
 int KeyCompare(const void* key, const void* elem) {
+  if (!key && !elem) return 0;
+  if (!key) return -1;
+  if (!elem) return 1;
   auto str_elem = reinterpret_cast<const char*>(
       Indirect<T>(reinterpret_cast<const uint8_t*>(elem)));
+  if (!str_elem) return 1;
   auto skey = reinterpret_cast<const char*>(key);
   return strcmp(skey, str_elem);
 }
 
 inline Reference Map::operator[](const char* key) const {
+  if (!key) return Reference(nullptr, 1, NullPackedType());
   auto keys = Keys();
+  if (!keys.data_ || keys.size() == 0) return Reference(nullptr, 1, NullPackedType());
   // We can't pass keys.byte_width_ to the comparison function, so we have
   // to pick the right one ahead of time.
   int (*comp)(const void*, const void*) = nullptr;
@@ -1007,9 +1056,11 @@ inline Reference Map::operator[](const std::string& key) const {
 inline Reference GetRoot(const uint8_t* buffer, size_t size) {
   // See Finish() below for the serialization counterpart of this.
   // The root starts at the end of the buffer, so we parse backwards from there.
+  if (!buffer || size < 3) return Reference();
   auto end = buffer + size;
   auto byte_width = *--end;
   auto packed_type = *--end;
+  if (static_cast<size_t>(byte_width) > size - 2) return Reference();
   end -= byte_width;  // The root data item.
   return Reference(end, byte_width, packed_type);
 }
@@ -1149,7 +1200,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   size_t Key(const char* str, size_t len) {
     auto sloc = buf_.size();
-    WriteBytes(str, len + 1);
+    WriteBytes(str ? str : "", len + 1);
     if (flags_ & BUILDER_FLAG_SHARE_KEYS) {
       auto it = key_pool.find(sloc);
       if (it != key_pool.end()) {
@@ -1165,7 +1216,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return sloc;
   }
 
-  size_t Key(const char* str) { return Key(str, strlen(str)); }
+  size_t Key(const char* str) {
+    return Key(str ? str : "", str ? strlen(str) : 0);
+  }
   size_t Key(const std::string& str) { return Key(str.c_str(), str.size()); }
 
   size_t String(const char* str, size_t len) {
@@ -1186,7 +1239,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     }
     return sloc;
   }
-  size_t String(const char* str) { return String(str, strlen(str)); }
+  size_t String(const char* str) {
+    return String(str ? str : "", str ? strlen(str) : 0);
+  }
   size_t String(const std::string& str) {
     return String(str.c_str(), str.size());
   }
@@ -1541,6 +1596,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   void WriteBytes(const void* val, size_t size) {
+    if (size == 0) return;
+    if (!val) {
+      buf_.insert(buf_.end(), size, 0);
+      return;
+    }
     buf_.insert(buf_.end(), reinterpret_cast<const uint8_t*>(val),
                 reinterpret_cast<const uint8_t*>(val) + size);
   }
@@ -1729,7 +1789,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Align(bit_width);
     if (!fixed) Write<uint64_t>(len, byte_width);
     auto vloc = buf_.size();
-    for (size_t i = 0; i < len; i++) Write(elems[i], byte_width);
+    for (size_t i = 0; i < len; i++) Write(elems ? elems[i] : T(), byte_width);
     stack_.push_back(Value(static_cast<uint64_t>(vloc),
                            ToTypedVector(vector_type, fixed ? len : 0),
                            bit_width));

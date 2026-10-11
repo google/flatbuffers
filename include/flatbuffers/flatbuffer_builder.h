@@ -557,7 +557,7 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   template <template <typename> class OffsetT = Offset>
   OffsetT<String> CreateString(const char* str) {
-    return CreateString<OffsetT>(str, strlen(str));
+    return str ? CreateString<OffsetT>(str, strlen(str)) : 0;
   }
 
   /// @brief Store a string in the buffer, which is null-terminated.
@@ -565,7 +565,7 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   template <template <typename> class OffsetT = Offset>
   OffsetT<String> CreateString(char* str) {
-    return CreateString<OffsetT>(str, strlen(str));
+    return str ? CreateString<OffsetT>(str, strlen(str)) : 0;
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -617,6 +617,7 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char* str, size_t len) {
     FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
+    if (!str && len > 0) return 0;
     if (!string_pool) {
       string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
     }
@@ -637,6 +638,15 @@ class FlatBufferBuilderImpl {
     return off;
   }
 
+  /// @brief Store a string in the buffer, which is null-terminated.
+  /// If a string with this exact contents has already been serialized before,
+  /// instead simply returns the offset of the existing string.
+  /// @param[in] str A const char pointer to a C-string to add to the buffer.
+  /// @return Returns the offset in the buffer where the string starts.
+  Offset<String> CreateSharedString(const char* str) {
+    return str ? CreateSharedString(str, strlen(str)) : 0;
+  }
+
 #ifdef FLATBUFFERS_HAS_STRING_VIEW
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
@@ -648,16 +658,6 @@ class FlatBufferBuilderImpl {
     return CreateSharedString(str.data(), str.size());
   }
 #else
-  /// @brief Store a string in the buffer, which null-terminated.
-  /// If a string with this exact contents has already been serialized before,
-  /// instead simply returns the offset of the existing string. This uses a map
-  /// stored on the heap, but only stores the numerical offsets.
-  /// @param[in] str A const char pointer to a C-string to add to the buffer.
-  /// @return Returns the offset in the buffer where the string starts.
-  Offset<String> CreateSharedString(const char* str) {
-    return CreateSharedString(str, strlen(str));
-  }
-
   /// @brief Store a string in the buffer, which can contain any binary data.
   /// If a string with this exact contents has already been serialized before,
   /// instead simply returns the offset of the existing string. This uses a map
@@ -906,6 +906,8 @@ class FlatBufferBuilderImpl {
     auto distance = std::distance(begin, end);
     FLATBUFFERS_ASSERT(distance >= 0);
     auto size = static_cast<size_t>(distance);
+    FLATBUFFERS_ASSERT(sizeof(Offset<String>) == 0 ||
+                       size <= FLATBUFFERS_MAX_BUFFER_SIZE / sizeof(Offset<String>));
     auto scratch_buffer_usage = size * sizeof(Offset<String>);
     // If there is not enough space to store the offsets, there definitely won't
     // be enough space to store all the strings. So ensuring space for the
@@ -1116,7 +1118,9 @@ class FlatBufferBuilderImpl {
   /// where the vector is stored.
   template <typename T>
   Offset<Vector<const T*>> CreateVectorOfSortedStructs(T* v, size_t len) {
-    std::stable_sort(v, v + len, StructKeyComparator<T>());
+    if (len > 0 && v) {
+      std::stable_sort(v, v + len, StructKeyComparator<T>());
+    }
     return CreateVectorOfStructs(v, len);
   }
 
@@ -1133,10 +1137,12 @@ class FlatBufferBuilderImpl {
   Offset<Vector<const T*>> CreateVectorOfSortedNativeStructs(S* v, size_t len) {
     extern T Pack(const S&);
     auto structs = StartVectorOfStructs<T>(len);
-    for (size_t i = 0; i < len; i++) {
-      structs[i] = Pack(v[i]);
+    if (len > 0 && v && structs) {
+      for (size_t i = 0; i < len; i++) {
+        structs[i] = Pack(v[i]);
+      }
+      std::stable_sort(structs, structs + len, StructKeyComparator<T>());
     }
-    std::stable_sort(structs, structs + len, StructKeyComparator<T>());
     return EndVectorOfStructs<T>(len);
   }
 
@@ -1169,7 +1175,9 @@ class FlatBufferBuilderImpl {
   template <typename T>
   Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(Offset<T>* v,
                                                        size_t len) {
-    std::stable_sort(v, v + len, TableKeyComparator<T>(buf_));
+    if (len > 0 && v) {
+      std::stable_sort(v, v + len, TableKeyComparator<T>(buf_));
+    }
     return CreateVector(v, len);
   }
 
@@ -1200,7 +1208,9 @@ class FlatBufferBuilderImpl {
     buf_.make_space(len * elemsize);
     const uoffset_t vec_start = GetSizeRelative32BitRegion();
     auto vec_end = EndVector(len);
-    *buf = buf_.data_at(vec_start);
+    if (buf) {
+      *buf = buf_.data_at(vec_start);
+    }
     return vec_end;
   }
 
@@ -1308,9 +1318,14 @@ class FlatBufferBuilderImpl {
     PreAlign(prefix_size + root_offset_size + file_id_size, minalign_);
 
     if (file_identifier) {
-      FLATBUFFERS_ASSERT(strlen(file_identifier) == kFileIdentifierLength);
-      PushBytes(reinterpret_cast<const uint8_t*>(file_identifier),
-                kFileIdentifierLength);
+      size_t id_len = strlen(file_identifier);
+      FLATBUFFERS_ASSERT(id_len == ::flatbuffers::kFileIdentifierLength);
+      uint8_t id_buf[::flatbuffers::kFileIdentifierLength] = { 0 };
+      memcpy(id_buf, file_identifier,
+             id_len < ::flatbuffers::kFileIdentifierLength
+                 ? id_len
+                 : ::flatbuffers::kFileIdentifierLength);
+      PushBytes(id_buf, ::flatbuffers::kFileIdentifierLength);
     }
     PushElement(ReferTo(root));  // Location of root.
     if (size_prefix) {
@@ -1421,6 +1436,10 @@ class FlatBufferBuilderImpl {
   // Must be completed with EndVectorOfStructs().
   template <typename T, template <typename> class OffsetT = Offset>
   T* StartVectorOfStructs(size_t vector_size) {
+    FLATBUFFERS_ASSERT(sizeof(T) == 0 ||
+                       vector_size <= ((Is64Aware ? FLATBUFFERS_MAX_64_BUFFER_SIZE
+                                                  : FLATBUFFERS_MAX_BUFFER_SIZE) /
+                                       sizeof(T)));
     StartVector<OffsetT>(vector_size, sizeof(T), AlignOf<T>());
     return reinterpret_cast<T*>(buf_.make_space(vector_size * sizeof(T)));
   }
