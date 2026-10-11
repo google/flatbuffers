@@ -63,12 +63,16 @@ void FlatCompiler::LoadBinarySchema(flatbuffers::Parser& parser,
 }
 
 void FlatCompiler::Warn(const std::string& warn, bool show_exe_name) const {
-  params_.warn_fn(this, warn, show_exe_name);
+  if (params_.warn_fn) {
+    params_.warn_fn(this, warn, show_exe_name);
+  }
 }
 
 void FlatCompiler::Error(const std::string& err, bool usage,
                          bool show_exe_name) const {
-  params_.error_fn(this, err, usage, show_exe_name);
+  if (params_.error_fn) {
+    params_.error_fn(this, err, usage, show_exe_name);
+  }
 }
 
 const static FlatCOption flatc_options[] = {
@@ -373,9 +377,11 @@ std::string FlatCompiler::GetShortUsageString(
     ss << ", ";
   }
 
-  ss.seekp(-2, ss.cur);
-  ss << "]... FILE... [-- BINARY_FILE...]";
   std::string help = ss.str();
+  if (help.size() >= 2 && help.substr(help.size() - 2) == ", ") {
+    help.erase(help.size() - 2);
+  }
+  help += "]... FILE... [-- BINARY_FILE...]";
   std::stringstream ss_textwrap;
   AppendTextWrappedString(ss_textwrap, help, 80, 0);
   return ss_textwrap.str();
@@ -449,34 +455,35 @@ void FlatCompiler::AnnotateBinaries(const uint8_t* binary_schema,
 
 FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
                                                          const char** argv) {
-  if (argc <= 1) {
+  if (argc <= 1 || !argv) {
     Error("Need to provide at least one argument.");
   }
 
   FlatCOptions options;
 
-  options.program_name = std::string(argv[0]);
+  options.program_name = (argv[0] != nullptr) ? std::string(argv[0]) : "flatc";
 
   IDLOptions& opts = options.opts;
 
   for (int argi = 1; argi < argc; argi++) {
+    if (!argv[argi]) continue;
     std::string arg = argv[argi];
     if (arg[0] == '-') {
-      if (options.filenames.size() && arg[1] != '-')
+      if (options.filenames.size() && arg.size() > 1 && arg[1] != '-')
         Error("invalid option location: " + arg, true);
       if (arg == "-o") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.output_path = flatbuffers::ConCatPathFileName(
-            flatbuffers::PosixPath(argv[argi]), "");
+            flatbuffers::PosixPath(argv[argi] ? argv[argi] : ""), "");
       } else if (arg == "-I") {
         if (++argi >= argc) Error("missing path following: " + arg, true);
         options.include_directories_storage.push_back(
-            flatbuffers::PosixPath(argv[argi]));
+            flatbuffers::PosixPath(argv[argi] ? argv[argi] : ""));
         options.include_directories.push_back(
             options.include_directories_storage.back().c_str());
       } else if (arg == "--bfbs-filenames") {
-        if (++argi > argc) Error("missing path following: " + arg, true);
-        opts.project_root = argv[argi];
+        if (++argi >= argc) Error("missing path following: " + arg, true);
+        opts.project_root = argv[argi] ? argv[argi] : "";
         if (!DirExists(opts.project_root.c_str()))
           Error(arg + " is not a directory: " + opts.project_root);
       } else if (arg == "--conform") {
@@ -548,7 +555,8 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--no-cpp-direct-copy") {
         opts.cpp_direct_copy = false;
       } else if (arg == "--cpp-field-case-style") {
-        if (++argi >= argc) Error("missing case style following: " + arg, true);
+        if (++argi >= argc || !argv[argi])
+          Error("missing case style following: " + arg, true);
         if (!strcmp(argv[argi], "unchanged"))
           opts.cpp_object_api_field_case_style =
               IDLOptions::CaseStyle_Unchanged;
@@ -952,6 +960,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
 
     for (const std::shared_ptr<CodeGenerator>& code_generator :
          options.generators) {
+      if (!code_generator) continue;
       if (options.print_make_rules) {
         std::string make_rule;
         const CodeGenerator::Status status = code_generator->GenerateMakeRule(
@@ -1080,9 +1089,11 @@ int FlatCompiler::Compile(const FlatCOptions& options) {
 
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
 
-  for (const auto& code_generator : options.generators) {
-    if (code_generator->SupportsRootFileGeneration()) {
-      code_generator->GenerateRootFile(*parser, options.output_path);
+  if (parser) {
+    for (const auto& code_generator : options.generators) {
+      if (code_generator && code_generator->SupportsRootFileGeneration()) {
+        code_generator->GenerateRootFile(*parser, options.output_path);
+      }
     }
   }
 
@@ -1091,6 +1102,7 @@ int FlatCompiler::Compile(const FlatCOptions& options) {
 
 bool FlatCompiler::RegisterCodeGenerator(
     const FlatCOption& option, std::shared_ptr<CodeGenerator> code_generator) {
+  if (!code_generator) return false;
   if (!option.short_opt.empty() &&
       code_generators_.find("-" + option.short_opt) != code_generators_.end()) {
     Error("multiple generators registered under: -" + option.short_opt, false,

@@ -38,6 +38,7 @@
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/hash.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
@@ -1745,6 +1746,34 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void StringAndHashSafetyTest() {
+  // Test StringLessThan null and empty safety
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, "a", 1), true);
+  TEST_EQ(flatbuffers::StringLessThan("a", 1, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan("a", 0, "b", 0), false);
+  TEST_EQ(flatbuffers::StringLessThan("a", 1, "b", 1), true);
+  TEST_EQ(flatbuffers::StringLessThan("b", 1, "a", 1), false);
+  TEST_EQ(flatbuffers::StringLessThan("abc", 2, "abc", 3), true);
+
+  // Test Hash null safety
+  auto basis32 = flatbuffers::FnvTraits<uint32_t>::kOffsetBasis;
+  TEST_EQ(flatbuffers::HashFnv1<uint32_t>(nullptr), basis32);
+  TEST_EQ(flatbuffers::HashFnv1a<uint32_t>(nullptr), basis32);
+
+  auto basis64 = flatbuffers::FnvTraits<uint64_t>::kOffsetBasis;
+  TEST_EQ(flatbuffers::HashFnv1<uint64_t>(nullptr), basis64);
+  TEST_EQ(flatbuffers::HashFnv1a<uint64_t>(nullptr), basis64);
+
+  TEST_NULL(flatbuffers::FindHashFunction16(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction32(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction64(nullptr));
+
+  auto fn32 = flatbuffers::FindHashFunction32("fnv1_32");
+  TEST_NOTNULL(fn32);
+  TEST_EQ(fn32("test"), flatbuffers::HashFnv1<uint32_t>("test"));
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1893,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  StringAndHashSafetyTest();
   return 0;
 }
 }  // namespace

@@ -92,7 +92,12 @@ FLATBUFFERS_CONSTEXPR size_t AlignOf() {
 // return true if the first is less than the second.
 static inline bool StringLessThan(const char* a_data, uoffset_t a_size,
                                   const char* b_data, uoffset_t b_size) {
-  const auto cmp = memcmp(a_data, b_data, (std::min)(a_size, b_size));
+  if (!a_data || !b_data) {
+    if (!a_data && !b_data) return a_size < b_size;
+    return a_data == nullptr;
+  }
+  const auto min_size = (std::min)(a_size, b_size);
+  const auto cmp = min_size > 0 ? memcmp(a_data, b_data, min_size) : 0;
   return cmp == 0 ? a_size < b_size : cmp < 0;
 }
 

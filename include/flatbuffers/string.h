@@ -23,18 +23,26 @@
 namespace flatbuffers {
 
 struct String : public Vector<char> {
-  const char* c_str() const { return reinterpret_cast<const char*>(Data()); }
-  std::string str() const { return std::string(c_str(), size()); }
+  const char* c_str() const {
+    const char* d = reinterpret_cast<const char*>(Data());
+    return d ? d : "";
+  }
+  std::string str() const {
+    const char* c = c_str();
+    return (c && size() > 0) ? std::string(c, size()) : std::string();
+  }
 
   // clang-format off
   #ifdef FLATBUFFERS_HAS_STRING_VIEW
   flatbuffers::string_view string_view() const {
-    return flatbuffers::string_view(c_str(), size());
+    const char* c = c_str();
+    return (c && size() > 0) ? flatbuffers::string_view(c, size())
+                             : flatbuffers::string_view();
   }
 
   /* implicit */
   operator flatbuffers::string_view() const {
-    return flatbuffers::string_view(c_str(), size());
+    return string_view();
   }
   #endif // FLATBUFFERS_HAS_STRING_VIEW
   // clang-format on

@@ -46,7 +46,7 @@ static void Warn(const flatbuffers::FlatCompiler* flatc,
                  const std::string& warn, bool show_exe_name) {
   (void)flatc;
   if (show_exe_name) {
-    printf("%s: ", g_program_name);
+    printf("%s: ", g_program_name ? g_program_name : "flatc");
   }
   fprintf(stderr, "\nwarning:\n  %s\n\n", warn.c_str());
 }
@@ -54,10 +54,12 @@ static void Warn(const flatbuffers::FlatCompiler* flatc,
 static void Error(const flatbuffers::FlatCompiler* flatc,
                   const std::string& err, bool usage, bool show_exe_name) {
   if (show_exe_name) {
-    printf("%s: ", g_program_name);
+    printf("%s: ", g_program_name ? g_program_name : "flatc");
   }
   if (usage && flatc) {
-    fprintf(stderr, "%s\n", flatc->GetShortUsageString(g_program_name).c_str());
+    fprintf(stderr, "%s\n",
+            flatc->GetShortUsageString(g_program_name ? g_program_name : "flatc")
+                .c_str());
   }
   fprintf(stderr, "\nerror:\n  %s\n\n", err.c_str());
   exit(1);
@@ -76,7 +78,7 @@ void LogCompilerError(const std::string& err) {
 int main(int argc, const char* argv[]) {
   const std::string flatbuffers_version(flatbuffers::FLATBUFFERS_VERSION());
 
-  g_program_name = argv[0];
+  g_program_name = (argc > 0 && argv && argv[0]) ? argv[0] : "flatc";
 
   flatbuffers::FlatCompiler::InitParams params;
   params.warn_fn = Warn;
@@ -199,7 +201,9 @@ int main(int argc, const char* argv[]) {
   int success = flatc.Compile(options);
 
   // print file names if file-names-only option is set
-  options.opts.file_saver->Finish();
+  if (options.opts.file_saver) {
+    options.opts.file_saver->Finish();
+  }
 
   return success;
 }
