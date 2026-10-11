@@ -63,12 +63,18 @@ void FlatCompiler::LoadBinarySchema(flatbuffers::Parser& parser,
 }
 
 void FlatCompiler::Warn(const std::string& warn, bool show_exe_name) const {
-  params_.warn_fn(this, warn, show_exe_name);
+  if (params_.warn_fn) {
+    params_.warn_fn(this, warn, show_exe_name);
+  }
 }
 
 void FlatCompiler::Error(const std::string& err, bool usage,
                          bool show_exe_name) const {
-  params_.error_fn(this, err, usage, show_exe_name);
+  if (params_.error_fn) {
+    params_.error_fn(this, err, usage, show_exe_name);
+  } else {
+    exit(1);
+  }
 }
 
 const static FlatCOption flatc_options[] = {
@@ -952,6 +958,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
 
     for (const std::shared_ptr<CodeGenerator>& code_generator :
          options.generators) {
+      if (!code_generator) continue;
       if (options.print_make_rules) {
         std::string make_rule;
         const CodeGenerator::Status status = code_generator->GenerateMakeRule(
@@ -1081,7 +1088,7 @@ int FlatCompiler::Compile(const FlatCOptions& options) {
   std::unique_ptr<Parser> parser = GenerateCode(options, conform_parser);
 
   for (const auto& code_generator : options.generators) {
-    if (code_generator->SupportsRootFileGeneration()) {
+    if (code_generator && code_generator->SupportsRootFileGeneration()) {
       code_generator->GenerateRootFile(*parser, options.output_path);
     }
   }

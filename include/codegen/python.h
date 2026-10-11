@@ -64,6 +64,7 @@ static const Namer::Config kStubConfig = {
 //
 // https://docs.python.org/3/faq/general.html#how-does-the-python-version-numbering-scheme-work
 struct Version {
+  Version() = default;
   explicit Version(const std::string& version);
 
   bool IsValid() const;
@@ -71,6 +72,7 @@ struct Version {
   int16_t major = 0;
   int16_t minor = 0;
   int16_t micro = 0;
+  bool valid_ = true;
 };
 
 std::set<std::string> Keywords(const Version& version);

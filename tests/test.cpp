@@ -1864,6 +1864,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  ParserSafetyAndConformanceTest();
   return 0;
 }
 }  // namespace

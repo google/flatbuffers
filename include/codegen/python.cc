@@ -8,13 +8,53 @@
 namespace flatbuffers {
 namespace python {
 Version::Version(const std::string& version) {
+  if (version.empty()) {
+    valid_ = true;
+    return;
+  }
   std::stringstream ss(version);
-  char dot;
-  ss >> major >> dot >> minor >> dot >> micro;
+  int maj = 0;
+  if (!(ss >> maj)) {
+    valid_ = false;
+    return;
+  }
+  major = static_cast<int16_t>(maj);
+  char dot1 = 0;
+  if (ss >> dot1) {
+    if (dot1 != '.') {
+      valid_ = false;
+      return;
+    }
+    int min = 0;
+    if (!(ss >> min)) {
+      valid_ = false;
+      return;
+    }
+    minor = static_cast<int16_t>(min);
+    char dot2 = 0;
+    if (ss >> dot2) {
+      if (dot2 != '.') {
+        valid_ = false;
+        return;
+      }
+      int mic = 0;
+      if (!(ss >> mic)) {
+        valid_ = false;
+        return;
+      }
+      micro = static_cast<int16_t>(mic);
+    }
+  }
+  std::string trailing;
+  if (ss >> trailing && !trailing.empty()) {
+    valid_ = false;
+    return;
+  }
+  valid_ = true;
 }
 
 bool Version::IsValid() const {
-  return (major == 0 || major == 2 || major == 3) && minor >= 0 && micro >= 0;
+  return valid_ && (major == 0 || major == 2 || major == 3) && minor >= 0 && micro >= 0;
 }
 
 std::set<std::string> Keywords(const Version& version) {

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "flatbuffers/idl.h"
+#include "codegen/python.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -933,6 +934,93 @@ void FieldIdentifierTest() {
   TEST_EQ(true, Parser().Parse("table T{ inf: float = inf; }"));
   TEST_EQ(true, Parser().Parse("table T{ nan: float = inf; }"));
 #endif
+}
+
+void ParserSafetyAndConformanceTest() {
+  flatbuffers::Parser parser;
+  // Test null deserialization inputs
+  TEST_EQ(parser.Deserialize(static_cast<const uint8_t*>(nullptr), 0), false);
+  TEST_EQ(parser.Deserialize(static_cast<const reflection::Schema*>(nullptr)),
+          false);
+
+  // Test null builder in serialization routines
+  flatbuffers::Type type(flatbuffers::BASE_TYPE_STRUCT);
+  TEST_EQ(type.Serialize(nullptr).o, 0U);
+
+  flatbuffers::StructDef struct_def;
+  struct_def.name = "TestStruct";
+  TEST_EQ(struct_def.Serialize(nullptr, parser).o, 0U);
+
+  flatbuffers::FieldDef field_def;
+  field_def.name = "test_field";
+  TEST_EQ(field_def.Serialize(nullptr, 0, parser).o, 0U);
+
+  flatbuffers::EnumDef enum_def;
+  enum_def.name = "TestEnum";
+  TEST_EQ(enum_def.Serialize(nullptr, parser).o, 0U);
+
+  flatbuffers::ServiceDef service_def;
+  service_def.name = "TestService";
+  TEST_EQ(service_def.Serialize(nullptr, parser).o, 0U);
+
+  flatbuffers::RPCCall rpc_call;
+  rpc_call.name = "TestCall";
+  TEST_EQ(rpc_call.Serialize(nullptr, parser).o, 0U);
+
+  // Test null input objects in deserialization routines
+  TEST_EQ(struct_def.Deserialize(parser, nullptr), false);
+  TEST_EQ(field_def.Deserialize(parser, nullptr), false);
+  TEST_EQ(enum_def.Deserialize(parser, nullptr), false);
+  TEST_EQ(service_def.Deserialize(parser, nullptr), false);
+  TEST_EQ(rpc_call.Deserialize(parser, nullptr), false);
+
+  // Test HasCircularStructDependency on safe parser
+  TEST_EQ(parser.HasCircularStructDependency(), false);
+
+  // Test ConformTo with schema parsed
+  flatbuffers::Parser conform_base;
+  TEST_EQ(conform_base.Parse("table A { x: int; } root_type A;"), true);
+  flatbuffers::Parser conform_derived;
+  TEST_EQ(conform_derived.Parse("table A { x: int; y: int; } root_type A;"),
+          true);
+  TEST_EQ_STR(conform_derived.ConformTo(conform_base).c_str(), "");
+
+  // Test Python Version parsing robustness
+  flatbuffers::python::Version v_empty("");
+  TEST_EQ(true, v_empty.IsValid());
+
+  flatbuffers::python::Version v_major("3");
+  TEST_EQ(true, v_major.IsValid());
+  TEST_EQ(3, v_major.major);
+  TEST_EQ(0, v_major.minor);
+  TEST_EQ(0, v_major.micro);
+
+  flatbuffers::python::Version v_minor("3.10");
+  TEST_EQ(true, v_minor.IsValid());
+  TEST_EQ(3, v_minor.major);
+  TEST_EQ(10, v_minor.minor);
+  TEST_EQ(0, v_minor.micro);
+
+  flatbuffers::python::Version v_micro("3.10.8");
+  TEST_EQ(true, v_micro.IsValid());
+  TEST_EQ(3, v_micro.major);
+  TEST_EQ(10, v_micro.minor);
+  TEST_EQ(8, v_micro.micro);
+
+  flatbuffers::python::Version v_invalid("invalid");
+  TEST_EQ(v_invalid.IsValid(), false);
+
+  flatbuffers::python::Version v_trailing("3.10.8.extra");
+  TEST_EQ(v_trailing.IsValid(), false);
+
+  flatbuffers::python::Version v_bad_minor("3.foo");
+  TEST_EQ(v_bad_minor.IsValid(), false);
+
+  flatbuffers::python::Version v_py4("4.0");
+  TEST_EQ(v_py4.IsValid(), false);
+
+  flatbuffers::python::Version v_neg("-1.0");
+  TEST_EQ(v_neg.IsValid(), false);
 }
 
 }  // namespace tests

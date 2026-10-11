@@ -369,8 +369,14 @@ static uint64_t HashFile(const char* source_filename, const char* source) {
 
 template <typename T>
 static bool compareName(const T* a, const T* b) {
-  return a->defined_namespace->GetFullyQualifiedName(a->name) <
-         b->defined_namespace->GetFullyQualifiedName(b->name);
+  if (!a || !b) return a < b;
+  const auto name_a = a->defined_namespace
+                          ? a->defined_namespace->GetFullyQualifiedName(a->name)
+                          : a->name;
+  const auto name_b = b->defined_namespace
+                          ? b->defined_namespace->GetFullyQualifiedName(b->name)
+                          : b->name;
+  return name_a < name_b;
 }
 
 template <typename T>
@@ -378,7 +384,9 @@ static void AssignIndices(const std::vector<T*>& defvec) {
   // Pre-sort these vectors, such that we can set the correct indices for them.
   auto vec = defvec;
   std::sort(vec.begin(), vec.end(), compareName<T>);
-  for (int i = 0; i < static_cast<int>(vec.size()); i++) vec[i]->index = i;
+  for (int i = 0; i < static_cast<int>(vec.size()); i++) {
+    if (vec[i]) vec[i]->index = i;
+  }
 }
 
 }  // namespace
@@ -2758,6 +2766,9 @@ std::vector<IncludedFile> Parser::GetIncludedFiles() const {
 bool Parser::HasCircularStructDependency() {
   std::function<bool(StructDef*)> visit =
       [&](StructDef* struct_def) {
+        if (!struct_def) {
+          return false;
+        }
         // Only consider fixed structs and structs we have yet to check
         if (!struct_def->fixed || struct_def->cycle_status == StructDef::CycleStatus::Checked) {
           return false;
@@ -2771,7 +2782,8 @@ bool Parser::HasCircularStructDependency() {
         struct_def->cycle_status = StructDef::CycleStatus::InProgress;
 
         for (const auto& field : struct_def->fields.vec) {
-          if (field->value.type.base_type == BASE_TYPE_STRUCT) {
+          if (field && field->value.type.base_type == BASE_TYPE_STRUCT &&
+              field->value.type.struct_def) {
             if (visit(field->value.type.struct_def)) {
               return true;  // Cycle detected in recursion.
             }
@@ -2783,7 +2795,7 @@ bool Parser::HasCircularStructDependency() {
       };
 
   for (const auto& struct_def : structs_.vec) {
-    if (visit(struct_def)) {
+    if (struct_def && visit(struct_def)) {
       return true;  // Cycle detected.
     }
   }
@@ -3636,13 +3648,17 @@ CheckedError Parser::ParseRoot(const char* source, const char** include_paths,
         // Protos allow enums to be used before declaration, so check if that
         // is the case here.
         EnumDef* enum_def = nullptr;
-        for (size_t components =
-                 struct_def.defined_namespace->components.size() + 1;
-             components && !enum_def; components--) {
-          auto qualified_name =
-              struct_def.defined_namespace->GetFullyQualifiedName(
-                  struct_def.name, components - 1);
-          enum_def = LookupEnum(qualified_name);
+        if (struct_def.defined_namespace) {
+          for (size_t components =
+                   struct_def.defined_namespace->components.size() + 1;
+               components && !enum_def; components--) {
+            auto qualified_name =
+                struct_def.defined_namespace->GetFullyQualifiedName(
+                    struct_def.name, components - 1);
+            enum_def = LookupEnum(qualified_name);
+          }
+        } else {
+          enum_def = LookupEnum(struct_def.name);
         }
         if (enum_def) {
           // This is pretty slow, but a simple solution for now.
@@ -4105,12 +4121,15 @@ void Parser::Serialize() {
 
 Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder* builder,
                                                 const Parser& parser) const {
+  if (!builder) return 0;
   std::vector<Offset<reflection::Field>> field_offsets;
   for (auto it = fields.vec.begin(); it != fields.vec.end(); ++it) {
+    if (!*it) continue;
     field_offsets.push_back((*it)->Serialize(
         builder, static_cast<uint16_t>(it - fields.vec.begin()), parser));
   }
-  const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
+  const auto qualified_name =
+      defined_namespace ? defined_namespace->GetFullyQualifiedName(name) : name;
   const auto name__ = builder->CreateString(qualified_name);
   const auto flds__ = builder->CreateVectorOfSortedTables(&field_offsets);
   const auto attr__ = SerializeAttributes(builder, parser);
@@ -4125,6 +4144,7 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder* builder,
 }
 
 bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
+  if (!object || !object->name() || !object->fields()) return false;
   if (!DeserializeAttributes(parser, object->attributes())) return false;
   DeserializeDoc(doc_comment, object->documentation());
   name = parser.UnqualifiedName(object->name()->str());
@@ -4133,17 +4153,20 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
   const auto& of = *(object->fields());
   auto indexes = std::vector<uoffset_t>(of.size());
   for (uoffset_t i = 0; i < of.size(); i++) {
-  uint16_t field_id = of.Get(i)->id();
-  if (field_id >= of.size()) {
-    parser.error_ = "Field ID " + std::to_string(field_id) + 
-                    " exceeds field count " + std::to_string(of.size());
-    return false;
+    auto f = of.Get(i);
+    if (!f) return false;
+    uint16_t field_id = f->id();
+    if (field_id >= of.size()) {
+      parser.error_ = "Field ID " + std::to_string(field_id) + 
+                      " exceeds field count " + std::to_string(of.size());
+      return false;
+    }
+    indexes[field_id] = i;
   }
-  indexes[field_id] = i;
-}
   size_t tmp_struct_size = 0;
   for (size_t i = 0; i < indexes.size(); i++) {
     auto field = of.Get(indexes[i]);
+    if (!field) return false;
     auto field_def = new FieldDef();
     if (!field_def->Deserialize(parser, field) ||
         fields.Add(field_def->name, field_def)) {
@@ -4177,6 +4200,7 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
 Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder* builder,
                                               uint16_t id,
                                               const Parser& parser) const {
+  if (!builder) return 0;
   auto name__ = builder->CreateString(name);
   auto type__ = value.type.Serialize(builder);
   auto attr__ = SerializeAttributes(builder, parser);
@@ -4197,6 +4221,7 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder* builder,
 }
 
 bool FieldDef::Deserialize(Parser& parser, const reflection::Field* field) {
+  if (!field || !field->name() || !field->type()) return false;
   name = field->name()->str();
   defined_namespace = parser.current_namespace_;
   if (!value.type.Deserialize(parser, field->type())) return false;
@@ -4220,6 +4245,7 @@ bool FieldDef::Deserialize(Parser& parser, const reflection::Field* field) {
       return false;
   }
   if (auto nested = attributes.Lookup("nested_flatbuffer")) {
+    if (!parser.current_namespace_) return false;
     auto nested_qualified_name =
         parser.current_namespace_->GetFullyQualifiedName(nested->constant);
     nested_flatbuffer = parser.LookupStruct(nested_qualified_name);
@@ -4232,6 +4258,7 @@ bool FieldDef::Deserialize(Parser& parser, const reflection::Field* field) {
 
 Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder* builder,
                                                const Parser& parser) const {
+  if (!builder || !request || !response) return 0;
   auto name__ = builder->CreateString(name);
   auto attr__ = SerializeAttributes(builder, parser);
   auto docs__ = parser.opts.binary_schema_comments && !doc_comment.empty()
@@ -4243,6 +4270,10 @@ Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder* builder,
 }
 
 bool RPCCall::Deserialize(Parser& parser, const reflection::RPCCall* call) {
+  if (!call || !call->name() || !call->request() || !call->response() ||
+      !call->request()->name() || !call->response()->name()) {
+    return false;
+  }
   name = call->name()->str();
   if (!DeserializeAttributes(parser, call->attributes())) return false;
   DeserializeDoc(doc_comment, call->documentation());
@@ -4256,11 +4287,14 @@ bool RPCCall::Deserialize(Parser& parser, const reflection::RPCCall* call) {
 
 Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder* builder,
                                                   const Parser& parser) const {
+  if (!builder) return 0;
   std::vector<Offset<reflection::RPCCall>> servicecall_offsets;
   for (auto it = calls.vec.begin(); it != calls.vec.end(); ++it) {
+    if (!*it) continue;
     servicecall_offsets.push_back((*it)->Serialize(builder, parser));
   }
-  const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
+  const auto qualified_name =
+      defined_namespace ? defined_namespace->GetFullyQualifiedName(name) : name;
   const auto name__ = builder->CreateString(qualified_name);
   const auto call__ = builder->CreateVector(servicecall_offsets);
   const auto attr__ = SerializeAttributes(builder, parser);
@@ -4275,11 +4309,14 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder* builder,
 
 bool ServiceDef::Deserialize(Parser& parser,
                              const reflection::Service* service) {
+  if (!service || !service->name()) return false;
   name = parser.UnqualifiedName(service->name()->str());
   if (service->calls()) {
     for (uoffset_t i = 0; i < service->calls()->size(); ++i) {
+      auto call_data = service->calls()->Get(i);
+      if (!call_data) return false;
       auto call = new RPCCall();
-      if (!call->Deserialize(parser, service->calls()->Get(i)) ||
+      if (!call->Deserialize(parser, call_data) ||
           calls.Add(call->name, call)) {
         delete call;
         return false;
@@ -4293,11 +4330,14 @@ bool ServiceDef::Deserialize(Parser& parser,
 
 Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder* builder,
                                             const Parser& parser) const {
+  if (!builder) return 0;
   std::vector<Offset<reflection::EnumVal>> enumval_offsets;
   for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
+    if (!*it) continue;
     enumval_offsets.push_back((*it)->Serialize(builder, parser));
   }
-  const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
+  const auto qualified_name =
+      defined_namespace ? defined_namespace->GetFullyQualifiedName(name) : name;
   const auto name__ = builder->CreateString(qualified_name);
   const auto vals__ = builder->CreateVector(enumval_offsets);
   const auto type__ = underlying_type.Serialize(builder);
@@ -4312,10 +4352,15 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder* builder,
 }
 
 bool EnumDef::Deserialize(Parser& parser, const reflection::Enum* _enum) {
+  if (!_enum || !_enum->name() || !_enum->values() || !_enum->underlying_type()) {
+    return false;
+  }
   name = parser.UnqualifiedName(_enum->name()->str());
   for (uoffset_t i = 0; i < _enum->values()->size(); ++i) {
+    auto val_data = _enum->values()->Get(i);
+    if (!val_data) return false;
     auto val = new EnumVal();
-    if (!val->Deserialize(parser, _enum->values()->Get(i)) ||
+    if (!val->Deserialize(parser, val_data) ||
         vals.Add(val->name, val)) {
       delete val;
       return false;
@@ -4355,6 +4400,7 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder* builder,
 }
 
 bool EnumVal::Deserialize(Parser& parser, const reflection::EnumVal* val) {
+  if (!val || !val->name()) return false;
   name = val->name()->str();
   value = val->value();
   if (!union_type.Deserialize(parser, val->union_type())) return false;
@@ -4364,9 +4410,10 @@ bool EnumVal::Deserialize(Parser& parser, const reflection::EnumVal* val) {
 }
 
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder* builder) const {
+  if (!builder) return 0;
   size_t element_size = SizeOf(element);
   if (base_type == BASE_TYPE_VECTOR && element == BASE_TYPE_STRUCT &&
-      struct_def->bytesize != 0) {
+      struct_def && struct_def->bytesize != 0) {
     // struct_def->bytesize==0 means struct is table
     element_size = struct_def->bytesize;
   }
@@ -4421,6 +4468,7 @@ bool Definition::DeserializeAttributes(
 /* DESERIALIZATION                                                      */
 /************************************************************************/
 bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
+  if (!buf || size < FLATBUFFERS_MIN_BUFFER_SIZE) return false;
   flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(buf), size);
   bool size_prefixed = false;
   if (!reflection::SchemaBufferHasIdentifier(buf)) {
@@ -4442,68 +4490,84 @@ bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
 }
 
 bool Parser::Deserialize(const reflection::Schema* schema) {
+  if (!schema) return false;
   file_identifier_ = schema->file_ident() ? schema->file_ident()->str() : "";
   file_extension_ = schema->file_ext() ? schema->file_ext()->str() : "";
   std::map<std::string, Namespace*> namespaces_index;
 
   // Create defs without deserializing so references from fields to structs and
   // enums can be resolved.
-  for (auto it = schema->objects()->begin(); it != schema->objects()->end();
-       ++it) {
-    auto struct_def = new StructDef();
-    struct_def->bytesize = it->bytesize();
-    struct_def->fixed = it->is_struct();
-    struct_def->minalign = it->minalign();
-    if (structs_.Add(it->name()->str(), struct_def)) {
-      delete struct_def;
-      return false;
-    }
-    auto type = new Type(BASE_TYPE_STRUCT, struct_def, nullptr);
-    if (types_.Add(it->name()->str(), type)) {
-      delete type;
-      return false;
+  if (schema->objects()) {
+    for (auto it = schema->objects()->begin(); it != schema->objects()->end();
+         ++it) {
+      if (!*it || !it->name()) return false;
+      auto struct_def = new StructDef();
+      struct_def->bytesize = it->bytesize();
+      struct_def->fixed = it->is_struct();
+      struct_def->minalign = it->minalign();
+      if (structs_.Add(it->name()->str(), struct_def)) {
+        delete struct_def;
+        return false;
+      }
+      auto type = new Type(BASE_TYPE_STRUCT, struct_def, nullptr);
+      if (types_.Add(it->name()->str(), type)) {
+        delete type;
+        return false;
+      }
     }
   }
-  for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
-    auto enum_def = new EnumDef();
-    if (enums_.Add(it->name()->str(), enum_def)) {
-      delete enum_def;
-      return false;
-    }
-    auto type = new Type(BASE_TYPE_UNION, nullptr, enum_def);
-    if (types_.Add(it->name()->str(), type)) {
-      delete type;
-      return false;
+  if (schema->enums()) {
+    for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
+      if (!*it || !it->name()) return false;
+      auto enum_def = new EnumDef();
+      if (enums_.Add(it->name()->str(), enum_def)) {
+        delete enum_def;
+        return false;
+      }
+      auto type = new Type(BASE_TYPE_UNION, nullptr, enum_def);
+      if (types_.Add(it->name()->str(), type)) {
+        delete type;
+        return false;
+      }
     }
   }
 
   // Now fields can refer to structs and enums by index.
-  for (auto it = schema->objects()->begin(); it != schema->objects()->end();
-       ++it) {
-    std::string qualified_name = it->name()->str();
-    auto struct_def = structs_.Lookup(qualified_name);
-    struct_def->defined_namespace =
-        GetNamespace(qualified_name, namespaces_, namespaces_index);
-    if (!struct_def->Deserialize(*this, *it)) {
-      return false;
-    }
-    if (schema->root_table() == *it) {
-      root_struct_def_ = struct_def;
+  if (schema->objects()) {
+    for (auto it = schema->objects()->begin(); it != schema->objects()->end();
+         ++it) {
+      if (!*it || !it->name()) return false;
+      std::string qualified_name = it->name()->str();
+      auto struct_def = structs_.Lookup(qualified_name);
+      if (!struct_def) return false;
+      struct_def->defined_namespace =
+          GetNamespace(qualified_name, namespaces_, namespaces_index);
+      if (!struct_def->Deserialize(*this, *it)) {
+        return false;
+      }
+      if (schema->root_table() == *it) {
+        root_struct_def_ = struct_def;
+      }
     }
   }
-  for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
-    std::string qualified_name = it->name()->str();
-    auto enum_def = enums_.Lookup(qualified_name);
-    enum_def->defined_namespace =
-        GetNamespace(qualified_name, namespaces_, namespaces_index);
-    if (!enum_def->Deserialize(*this, *it)) {
-      return false;
+  if (schema->enums()) {
+    for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
+      if (!*it || !it->name()) return false;
+      std::string qualified_name = it->name()->str();
+      auto enum_def = enums_.Lookup(qualified_name);
+      if (!enum_def) return false;
+      enum_def->defined_namespace =
+          GetNamespace(qualified_name, namespaces_, namespaces_index);
+      if (!enum_def->Deserialize(*this, *it)) {
+        return false;
+      }
     }
   }
 
   if (schema->services()) {
     for (auto it = schema->services()->begin(); it != schema->services()->end();
          ++it) {
+      if (!*it || !it->name()) return false;
       std::string qualified_name = it->name()->str();
       auto service_def = new ServiceDef();
       service_def->defined_namespace =
@@ -4517,30 +4581,37 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
   }
   advanced_features_ = schema->advanced_features();
 
-  if (schema->fbs_files())
+  if (schema->fbs_files()) {
     for (auto s = schema->fbs_files()->begin(); s != schema->fbs_files()->end();
          ++s) {
+      if (!*s || !s->filename() || !s->included_filenames()) continue;
       for (auto f = s->included_filenames()->begin();
            f != s->included_filenames()->end(); ++f) {
+        if (!*f) continue;
         IncludedFile included_file;
         included_file.filename = f->str();
         files_included_per_file_[s->filename()->str()].insert(included_file);
       }
     }
+  }
 
   return true;
 }
 
 std::string Parser::ConformTo(const Parser& base) {
   for (auto sit = structs_.vec.begin(); sit != structs_.vec.end(); ++sit) {
+    if (!*sit) continue;
     auto& struct_def = **sit;
     auto qualified_name =
-        struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
+        struct_def.defined_namespace
+            ? struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name)
+            : struct_def.name;
     auto struct_def_base = base.LookupStruct(qualified_name);
     if (!struct_def_base) continue;
     std::set<FieldDef*> renamed_fields;
     for (auto fit = struct_def.fields.vec.begin();
          fit != struct_def.fields.vec.end(); ++fit) {
+      if (!*fit) continue;
       auto& field = **fit;
       auto field_base = struct_def_base->fields.Lookup(field.name);
       const auto qualified_field_name = qualified_name + "." + field.name;
@@ -4563,6 +4634,7 @@ std::string Parser::ConformTo(const Parser& base) {
         // but is incompatible (in the case of field renaming).
         for (auto fbit = struct_def_base->fields.vec.begin();
              fbit != struct_def_base->fields.vec.end(); ++fbit) {
+          if (!*fbit) continue;
           field_base = *fbit;
           if (field.value.offset == field_base->value.offset) {
             renamed_fields.insert(field_base);
@@ -4581,6 +4653,7 @@ std::string Parser::ConformTo(const Parser& base) {
     // deletion of trailing fields are not allowed
     for (auto fit = struct_def_base->fields.vec.begin();
          fit != struct_def_base->fields.vec.end(); ++fit) {
+      if (!*fit) continue;
       auto& field_base = **fit;
       // not a renamed field
       if (renamed_fields.find(&field_base) == renamed_fields.end()) {
@@ -4593,13 +4666,17 @@ std::string Parser::ConformTo(const Parser& base) {
   }
 
   for (auto eit = enums_.vec.begin(); eit != enums_.vec.end(); ++eit) {
+    if (!*eit) continue;
     auto& enum_def = **eit;
     auto qualified_name =
-        enum_def.defined_namespace->GetFullyQualifiedName(enum_def.name);
+        enum_def.defined_namespace
+            ? enum_def.defined_namespace->GetFullyQualifiedName(enum_def.name)
+            : enum_def.name;
     auto enum_def_base = base.enums_.Lookup(qualified_name);
     if (!enum_def_base) continue;
     for (auto evit = enum_def.Vals().begin(); evit != enum_def.Vals().end();
          ++evit) {
+      if (!*evit) continue;
       auto& enum_val = **evit;
       auto enum_val_base = enum_def_base->Lookup(enum_val.name);
       if (enum_val_base) {

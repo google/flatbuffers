@@ -45,19 +45,21 @@ static const char* g_program_name = nullptr;
 static void Warn(const flatbuffers::FlatCompiler* flatc,
                  const std::string& warn, bool show_exe_name) {
   (void)flatc;
+  const char* prog = g_program_name ? g_program_name : "flatc";
   if (show_exe_name) {
-    printf("%s: ", g_program_name);
+    printf("%s: ", prog);
   }
   fprintf(stderr, "\nwarning:\n  %s\n\n", warn.c_str());
 }
 
 static void Error(const flatbuffers::FlatCompiler* flatc,
                   const std::string& err, bool usage, bool show_exe_name) {
+  const char* prog = g_program_name ? g_program_name : "flatc";
   if (show_exe_name) {
-    printf("%s: ", g_program_name);
+    printf("%s: ", prog);
   }
   if (usage && flatc) {
-    fprintf(stderr, "%s\n", flatc->GetShortUsageString(g_program_name).c_str());
+    fprintf(stderr, "%s\n", flatc->GetShortUsageString(prog).c_str());
   }
   fprintf(stderr, "\nerror:\n  %s\n\n", err.c_str());
   exit(1);
