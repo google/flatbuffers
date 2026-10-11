@@ -59,11 +59,13 @@ namespace flatbuffers {
 namespace {
 
 static bool FileExistsRaw(const char* name) {
+  if (!name) return false;
   std::ifstream ifs(name);
   return ifs.good();
 }
 
 static bool LoadFileRaw(const char* name, bool binary, std::string* buf) {
+  if (!name || !buf) return false;
   if (DirExists(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
@@ -71,9 +73,12 @@ static bool LoadFileRaw(const char* name, bool binary, std::string* buf) {
     // The fastest way to read a file into a string.
     ifs.seekg(0, std::ios::end);
     auto size = ifs.tellg();
+    if (size < 0) return false;
     (*buf).resize(static_cast<size_t>(size));
     ifs.seekg(0, std::ios::beg);
-    ifs.read(&(*buf)[0], (*buf).size());
+    if (size > 0) {
+      ifs.read(&(*buf)[0], (*buf).size());
+    }
   } else {
     // This is slower, but works correctly on all platforms for text files.
     std::ostringstream oss;
@@ -255,9 +260,12 @@ FileExistsFunction SetFileExistsFunction(
 }
 
 bool SaveFile(const char* name, const char* buf, size_t len, bool binary) {
+  if (!name || (!buf && len > 0)) return false;
   std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
   if (!ofs.is_open()) return false;
-  ofs.write(buf, len);
+  if (len > 0) {
+    ofs.write(buf, len);
+  }
   return !ofs.bad();
 }
 

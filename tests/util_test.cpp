@@ -169,5 +169,28 @@ void UtilConvertCase() {
   }
 }
 
+void UtilDefensiveHardeningTest() {
+  TEST_EQ(flatbuffers::FromUTF8(nullptr), -1);
+  const char* null_str = nullptr;
+  TEST_EQ(flatbuffers::FromUTF8(&null_str), -1);
+
+  std::string escaped;
+  TEST_EQ(flatbuffers::EscapeString(nullptr, 10, &escaped, false, false),
+          false);
+  TEST_EQ(flatbuffers::EscapeString("abc", 3, nullptr, false, false), false);
+
+  std::string loaded;
+  TEST_EQ(flatbuffers::LoadFile(nullptr, true, &loaded), false);
+  TEST_EQ(flatbuffers::LoadFile("non_existent_file.tmp", true, nullptr), false);
+
+  TEST_EQ(flatbuffers::SaveFile(nullptr, "data", 4, true), false);
+  TEST_EQ(flatbuffers::SaveFile("test.tmp", nullptr, 4, true), false);
+
+  uint8_t hex_data[4] = { 0xAA, 0xBB, 0xCC, 0xDD };
+  auto hex =
+      flatbuffers::BufferToHexText(hex_data, sizeof(hex_data), 10, "[", "]");
+  TEST_EQ(hex.empty(), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

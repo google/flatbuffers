@@ -543,6 +543,7 @@ inline int ToUTF8(uint32_t ucc, std::string* out) {
 // returns -1 upon corrupt UTF-8 encoding (ignore the incoming pointer in
 // this case).
 inline int FromUTF8(const char** in) {
+  if (!in || !*in) return -1;
   int len = 0;
   // Count leading 1 bits.
   for (int mask = 0x80; mask >= 0x04; mask >>= 1) {
@@ -626,9 +627,11 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 
 inline bool EscapeString(const char* s, size_t length, std::string* _text,
                          bool allow_non_utf8, bool natural_utf8) {
+  if (!_text) return false;
+  if (!s && length > 0) return false;
   std::string& text = *_text;
   text += "\"";
-  for (uoffset_t i = 0; i < length; i++) {
+  for (size_t i = 0; i < length; i++) {
     char c = s[i];
     switch (c) {
       case '\n':
@@ -698,7 +701,7 @@ inline bool EscapeString(const char* s, size_t length, std::string* _text,
               text += IntToStringHex(low_surrogate, 4);
             }
             // Skip past characters recognized.
-            i = static_cast<uoffset_t>(utf8 - s - 1);
+            i = static_cast<size_t>(utf8 - s - 1);
           }
         }
         break;
@@ -725,7 +728,11 @@ inline std::string BufferToHexText(const void* buffer, size_t buffer_size,
     }
     // If we have more to process and we reached max_length
     if (have_more &&
-        text.size() + wrapped_line_suffix.size() >= start_offset + max_length) {
+        max_length <= (std::numeric_limits<size_t>::max)() - start_offset &&
+        text.size() <=
+            (std::numeric_limits<size_t>::max)() - wrapped_line_suffix.size() &&
+        text.size() + wrapped_line_suffix.size() >=
+            start_offset + max_length) {
       text += wrapped_line_suffix;
       text += '\n';
       start_offset = text.size();
