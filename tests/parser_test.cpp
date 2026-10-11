@@ -5,6 +5,7 @@
 #include <string>
 
 #include "flatbuffers/idl.h"
+#include "idl_gen_binary.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -933,6 +934,19 @@ void FieldIdentifierTest() {
   TEST_EQ(true, Parser().Parse("table T{ inf: float = inf; }"));
   TEST_EQ(true, Parser().Parse("table T{ nan: float = inf; }"));
 #endif
+}
+
+void BinaryCodeGeneratorTest() {
+  auto gen = flatbuffers::NewBinaryCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  flatbuffers::Parser parser;
+  parser.opts.file_saver = nullptr;
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::Status::ERROR);
+
+  std::string output;
+  TEST_EQ(gen->GenerateMakeRule(parser, "", "test", output),
+          CodeGenerator::Status::OK);
+  TEST_EQ(output.empty(), true);
 }
 
 }  // namespace tests

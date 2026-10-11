@@ -218,6 +218,7 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  src/idl_gen_binary.cpp
   tests/default_vectors_strings_test.cpp
   tests/default_vectors_strings_test.h
   tests/evolution_test.cpp

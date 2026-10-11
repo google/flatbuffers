@@ -26,6 +26,7 @@ void ValidSameNameDifferentNamespaceTest();
 void WarningsAsErrorsTest();
 void StringVectorDefaultsTest();
 void FieldIdentifierTest();
+void BinaryCodeGeneratorTest();
 
 }  // namespace tests
 }  // namespace flatbuffers
