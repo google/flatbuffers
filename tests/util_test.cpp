@@ -1,5 +1,8 @@
 #include "util_test.h"
 
+#include "codegen/namer.h"
+#include "flatbuffers/code_generators.h"
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/util.h"
 #include "test_assert.h"
 
@@ -167,6 +170,88 @@ void UtilConvertCase() {
                                        test_case.input_case));
     }
   }
+}
+
+namespace {
+class TestGenerator : public BaseGenerator {
+ public:
+  explicit TestGenerator(const Parser& parser)
+      : BaseGenerator(parser, "out", "file", "MyRoot.", ".", "ext") {}
+  bool generate() FLATBUFFERS_OVERRIDE { return true; }
+
+  using BaseGenerator::WrapInNameSpace;
+  using BaseGenerator::GetNameSpace;
+  using BaseGenerator::FullNamespace;
+};
+}  // namespace
+
+void NamerAndGeneratorSafetyTest() {
+  // Test Namer::Directories trailing separator handling
+  Namer::Config cfg;
+  cfg.output_path = "output_dir";
+  cfg.directories = Case::kKeep;
+  Namer namer(cfg, std::set<std::string>());
+
+  // When directories is empty, trailing separator skip should not strip from output_path
+  TEST_EQ(namer.Directories({}, SkipDir::TrailingPathSeperator),
+          std::string("output_dir"));
+  TEST_EQ(namer.Directories({}, SkipDir::None),
+          std::string("output_dir"));
+
+  // When directories has elements, trailing separator should be popped if requested
+  const std::string dir_with_sep = namer.Directories({"sub"}, SkipDir::None);
+  TEST_EQ(dir_with_sep,
+          std::string("output_dirsub") + std::string(1, kPathSeparator));
+  const std::string dir_without_sep =
+      namer.Directories({"sub"}, SkipDir::TrailingPathSeperator);
+  TEST_EQ(dir_without_sep, std::string("output_dirsub"));
+
+  // Test BaseGenerator::FullNamespace null separator safety
+  Namespace ns;
+  ns.components.push_back("Foo");
+  ns.components.push_back("Bar");
+  TEST_EQ(TestGenerator::FullNamespace(".", ns), std::string("Foo.Bar"));
+  TEST_EQ(TestGenerator::FullNamespace(nullptr, ns), std::string("FooBar"));
+
+  // Test BaseGenerator::WrapInNameSpace and GetNameSpace null namespace safety
+  Parser parser;
+  TestGenerator gen(parser);
+  TEST_EQ(gen.WrapInNameSpace(nullptr, "Type"), std::string("Type"));
+  Definition def;
+  def.name = "Def";
+  def.defined_namespace = nullptr;
+  TEST_EQ(gen.GetNameSpace(def), std::string(""));
+
+  // Test GenComment null safety
+  GenComment({}, nullptr, nullptr, nullptr);
+  std::string comment;
+  GenComment({}, &comment, nullptr, nullptr);
+  TEST_EQ(comment.empty(), true);
+
+  std::vector<std::string> comment_lines;
+  comment_lines.push_back("line1");
+  comment_lines.push_back("line2");
+  GenComment(comment_lines, &comment, nullptr, nullptr);
+  TEST_EQ(comment, std::string("///line1\n///line2\n"));
+
+  // Test TypedFloatConstantGenerator and SimpleFloatConstantGenerator null safety
+  TypedFloatConstantGenerator typed_gen(nullptr, nullptr, nullptr, nullptr, nullptr);
+  FieldDef fd;
+  fd.value.type.base_type = BASE_TYPE_FLOAT;
+  fd.value.constant = "nan";
+  TEST_EQ(typed_gen.GenFloatConstant(fd), std::string(""));
+
+  SimpleFloatConstantGenerator simple_gen(nullptr, nullptr, nullptr);
+  TEST_EQ(simple_gen.GenFloatConstant(fd), std::string(""));
+
+  // Test FileNameSaver and RealFileSaver null pointer guards
+  FileNameSaver fn_saver;
+  TEST_EQ(fn_saver.SaveFile(nullptr, "data", 4, false), false);
+  TEST_EQ(fn_saver.SaveFile("valid_name", nullptr, 0, false), true);
+
+  RealFileSaver rf_saver;
+  TEST_EQ(rf_saver.SaveFile(nullptr, "data", 4, false), false);
+  TEST_EQ(rf_saver.SaveFile("some_file", nullptr, 10, false), false);
 }
 
 }  // namespace tests

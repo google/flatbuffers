@@ -24,9 +24,10 @@ namespace flatbuffers {
 
 bool RealFileSaver::SaveFile(const char* name, const char* buf, size_t len,
                              bool binary) {
+  if (!name || (!buf && len > 0)) return false;
   std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
   if (!ofs.is_open()) return false;
-  ofs.write(buf, len);
+  if (len > 0) ofs.write(buf, len);
   return !ofs.bad();
 }
 

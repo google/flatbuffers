@@ -29,20 +29,22 @@ class BfbsNamer : public Namer {
   template <typename T>
   std::string Denamespace(T t, std::string& namespace_prefix,
                           const char delimiter = '.') const {
+    if (!t || !t->name()) return "";
     return Namer::Denamespace(t->name()->c_str(), namespace_prefix, delimiter);
   }
 
   template <typename T>
   std::string Denamespace(T t, const char delimiter = '.') const {
+    if (!t || !t->name()) return "";
     return Namer::Denamespace(t->name()->c_str(), delimiter);
   }
 
   virtual std::string Field(const ::reflection::Field& f) const {
-    return Field(f.name()->str());
+    return f.name() ? Field(f.name()->str()) : "";
   }
 
   virtual std::string Variable(const ::reflection::Field& f) const {
-    return Variable(f.name()->str());
+    return f.name() ? Variable(f.name()->str()) : "";
   }
 };
 
