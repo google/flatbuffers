@@ -852,6 +852,13 @@ void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary) {
   TEST_EQ(ok, true);
   TEST_EQ_STR(text.c_str(), jsonfile.c_str());
 
+  // Test defensive null checks in Registry.
+  registry.Register(nullptr, nullptr);
+  registry.AddIncludeDirectory(nullptr);
+  TEST_NULL(registry.TextToFlatBuffer(nullptr, nullptr).data());
+  TEST_EQ(registry.FlatBufferToText(nullptr, buf.size(), &text), false);
+  TEST_EQ(registry.FlatBufferToText(buf.data(), buf.size(), nullptr), false);
+
   // Generate text for UTF-8 strings without escapes.
   std::string jsonfile_utf8;
   TEST_EQ(flatbuffers::LoadFile((tests_data_path + "unicode_test.json").c_str(),
