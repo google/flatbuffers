@@ -383,6 +383,18 @@ void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
   TEST_EQ_STR(vec_str.c_str(),
               "{ x: 1.0, y: 2.0, z: 3.0, test1: 1.5, test2: Red, test3: { a: "
               "16, b: 32 } }");
+
+  // Test defensive null checks in minireflect
+  TEST_EQ_STR(
+      flatbuffers::FlatBufferToString(nullptr, Vec3::MiniReflectTypeTable())
+          .c_str(),
+      "");
+  TEST_EQ_STR(
+      flatbuffers::FlatBufferToString(vec_buffer.data(), nullptr).c_str(), "");
+  TEST_EQ(flatbuffers::InlineSize(flatbuffers::ET_SEQUENCE, nullptr), 0);
+  flatbuffers::IterateFlatBuffer(nullptr, Vec3::MiniReflectTypeTable(),
+                                 nullptr);
+  flatbuffers::IterateObject(nullptr, Vec3::MiniReflectTypeTable(), nullptr);
 }
 
 void MiniReflectFixedLengthArrayTest() {
