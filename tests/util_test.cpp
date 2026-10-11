@@ -1,5 +1,6 @@
 #include "util_test.h"
 
+#include "flatbuffers/code_generators.h"
 #include "flatbuffers/util.h"
 #include "test_assert.h"
 
@@ -167,6 +168,31 @@ void UtilConvertCase() {
                                        test_case.input_case));
     }
   }
+}
+
+void CodeGeneratorUtilTest() {
+  CodeWriter code;
+  code.SetValue("NAME", "Bar");
+  code += "void {{NAME}}() {}";
+  TEST_EQ(code.ToString().find("void Bar() {}") != std::string::npos, true);
+
+  // Test GenComment with null prefix and null code_ptr
+  GenComment({}, nullptr, nullptr, nullptr);
+  std::string comment;
+  GenComment({"line 1"}, &comment, nullptr, nullptr);
+  TEST_EQ(comment.empty(), false);
+
+  // Test BaseGenerator::FullNamespace with null separator
+  struct DummyGenerator : public BaseGenerator {
+    using BaseGenerator::FullNamespace;
+    DummyGenerator(const Parser& p) : BaseGenerator(p, "", "", "", "", "") {}
+    bool generate() override { return true; }
+  };
+  Namespace ns;
+  ns.components.push_back("A");
+  ns.components.push_back("B");
+  auto full_ns = DummyGenerator::FullNamespace(nullptr, ns);
+  TEST_EQ_STR(full_ns.c_str(), "AB");
 }
 
 }  // namespace tests
