@@ -433,6 +433,7 @@ class CppGenerator : public BaseGenerator {
         GeneratedFileName(path_, file_name_ + "_bfbs", opts_);
     const auto final_code = code_.ToString();
 
+    if (!parser_.opts.file_saver) return false;
     return parser_.opts.file_saver->SaveFile(file_path.c_str(), final_code,
                                              false);
   }
@@ -765,6 +766,7 @@ class CppGenerator : public BaseGenerator {
     const auto final_code = code_.ToString();
 
     // Save the file and optionally generate the binary schema code.
+    if (!parser_.opts.file_saver) return false;
     return parser_.opts.file_saver->SaveFile(
         file_path.c_str(), final_code,
         (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed()));

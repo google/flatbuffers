@@ -43,6 +43,7 @@
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
+#include "idl_gen_fbs.h"
 #include "fuzz_test.h"
 #include "json_test.h"
 #include "key_field_test.h"
@@ -1745,6 +1746,25 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void IdlGeneratorsSafetyTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.opts.file_saver != nullptr, false);
+
+  const char* err = flatbuffers::GenTextFile(parser, "", "test");
+  TEST_NOTNULL(err);
+
+  std::unique_ptr<flatbuffers::CodeGenerator> fbs_gen =
+      flatbuffers::NewFBSCodeGenerator(true);
+  TEST_NOTNULL(fbs_gen.get());
+  auto status = fbs_gen->GenerateCode(parser, "", "test");
+  TEST_EQ(status, flatbuffers::CodeGenerator::Status::ERROR);
+
+  std::string output;
+  status = fbs_gen->GenerateCodeString(parser, "test", output);
+  TEST_EQ(status, flatbuffers::CodeGenerator::Status::OK);
+  TEST_EQ(output.empty(), false);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1884,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  IdlGeneratorsSafetyTest();
   return 0;
 }
 }  // namespace

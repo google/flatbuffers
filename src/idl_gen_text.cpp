@@ -437,6 +437,7 @@ const char* GenerateTextFile(const Parser& parser, const std::string& path,
 
 const char* GenTextFile(const Parser& parser, const std::string& path,
                         const std::string& file_name) {
+  if (!parser.opts.file_saver) return "SaveFile failed: null file_saver";
   if (parser.opts.use_flexbuffers) {
     std::string json;
     parser.flex_root_.ToString(true, parser.opts.strict_json, json);

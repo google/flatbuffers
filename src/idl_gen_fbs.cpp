@@ -33,14 +33,19 @@ namespace {
 static std::string GenType(const Type& type, bool underlying = false) {
   switch (type.base_type) {
     case BASE_TYPE_STRUCT:
-      return type.struct_def->defined_namespace->GetFullyQualifiedName(
-          type.struct_def->name);
+      if (!type.struct_def) return "";
+      return (type.struct_def->defined_namespace != nullptr)
+                 ? type.struct_def->defined_namespace->GetFullyQualifiedName(
+                       type.struct_def->name)
+                 : type.struct_def->name;
     case BASE_TYPE_VECTOR:
       return "[" + GenType(type.VectorType()) + "]";
     default:
       if (type.enum_def && !underlying) {
-        return type.enum_def->defined_namespace->GetFullyQualifiedName(
-            type.enum_def->name);
+        return (type.enum_def->defined_namespace != nullptr)
+                   ? type.enum_def->defined_namespace->GetFullyQualifiedName(
+                         type.enum_def->name)
+                   : type.enum_def->name;
       } else {
         return TypeName(type.base_type);
       }
@@ -51,6 +56,7 @@ static bool HasFieldWithId(const std::vector<FieldDef*>& fields) {
   static const std::string ID = "id";
 
   for (const auto* field : fields) {
+    if (!field) continue;
     const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       return true;
@@ -63,6 +69,7 @@ static bool HasNonPositiveFieldId(const std::vector<FieldDef*>& fields) {
   static const std::string ID = "id";
 
   for (const auto* field : fields) {
+    if (!field) continue;
     const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       voffset_t proto_id = 0;
@@ -81,6 +88,7 @@ static bool HasFieldIdFromReservedIds(
   static const std::string ID = "id";
 
   for (const auto* field : fields) {
+    if (!field) continue;
     const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       voffset_t proto_id = 0;
@@ -103,6 +111,7 @@ static std::vector<voffset_t> ExtractProtobufIds(
   static const std::string ID = "id";
   std::vector<voffset_t> used_proto_ids;
   for (const auto* field : fields) {
+    if (!field) continue;
     const auto* id_attribute = field->attributes.Lookup(ID);
     if (id_attribute != nullptr && !id_attribute->constant.empty()) {
       voffset_t proto_id = 0;
@@ -118,6 +127,7 @@ static std::vector<voffset_t> ExtractProtobufIds(
 
 static bool HasTwiceUsedId(const std::vector<FieldDef*>& fields) {
   std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
+  if (used_proto_ids.size() < 2) return false;
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
@@ -131,6 +141,7 @@ static bool HasTwiceUsedId(const std::vector<FieldDef*>& fields) {
 
 static bool HasGapInProtoId(const std::vector<FieldDef*>& fields) {
   std::vector<voffset_t> used_proto_ids = ExtractProtobufIds(fields);
+  if (used_proto_ids.size() < 2) return false;
   std::sort(std::begin(used_proto_ids), std::end(used_proto_ids));
   for (auto it = std::next(std::begin(used_proto_ids));
        it != std::end(used_proto_ids); it++) {
@@ -218,6 +229,7 @@ static ProtobufToFbsIdMap MapProtoIdsToFieldsId(
   std::vector<ProtoIdFieldNamePair> proto_ids;
 
   for (const auto* field : fields) {
+    if (!field) continue;
     const auto* id_attribute = field->attributes.Lookup("id");
     if (id_attribute != nullptr) {
       // When we have union but do not use union flag to keep them
@@ -279,16 +291,21 @@ static std::string GenerateFBS(const Parser& parser,
   // generated from a table:
   for (auto it = parser.namespaces_.begin(); it != parser.namespaces_.end();
        ++it) {
+    if (!*it) continue;
     auto& ns = **it;
-    for (size_t i = 0; i < ns.from_table; i++) {
-      ns.components[ns.components.size() - 1 - i] += "_";
-    }
+    if (ns.from_table <= ns.components.size()) {
+      for (size_t i = 0; i < ns.from_table; i++) {
+        if (i < ns.components.size()) {
+          ns.components[ns.components.size() - 1 - i] += "_";
+        }
+      }
 
-    if (parser.opts.proto_mode && !parser.opts.proto_namespace_suffix.empty()) {
-      // Since we know that all these namespaces come from a .proto, and all are
-      // being converted, we can simply apply this suffix to all of them.
-      ns.components.insert(ns.components.end() - ns.from_table,
-                           parser.opts.proto_namespace_suffix);
+      if (parser.opts.proto_mode && !parser.opts.proto_namespace_suffix.empty()) {
+        // Since we know that all these namespaces come from a .proto, and all are
+        // being converted, we can simply apply this suffix to all of them.
+        ns.components.insert(ns.components.end() - ns.from_table,
+                             parser.opts.proto_namespace_suffix);
+      }
     }
   }
 
@@ -320,11 +337,14 @@ static std::string GenerateFBS(const Parser& parser,
   const Namespace* last_namespace = nullptr;
   for (auto enum_def_it = parser.enums_.vec.begin();
        enum_def_it != parser.enums_.vec.end(); ++enum_def_it) {
+    if (!*enum_def_it) continue;
     EnumDef& enum_def = **enum_def_it;
     if (parser.opts.include_dependence_headers && enum_def.generated) {
       continue;
     }
-    GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
+    if (enum_def.defined_namespace != nullptr) {
+      GenNameSpace(*enum_def.defined_namespace, &schema, &last_namespace);
+    }
     GenComment(enum_def.doc_comment, &schema, nullptr);
     if (enum_def.is_union) {
       schema += "union " + enum_def.name;
@@ -335,6 +355,7 @@ static std::string GenerateFBS(const Parser& parser,
     schema += GenType(enum_def.underlying_type, true) + " {\n";
 
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       GenComment(ev.doc_comment, &schema, nullptr, "  ");
       if (enum_def.is_union) {
@@ -348,6 +369,7 @@ static std::string GenerateFBS(const Parser& parser,
   // Generate code for all structs/tables.
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        ++it) {
+    if (!*it) continue;
     StructDef& struct_def = **it;
     const auto proto_fbs_ids = MapProtoIdsToFieldsId(
         struct_def, parser.opts.proto_id_gap_action, no_log);
@@ -359,11 +381,14 @@ static std::string GenerateFBS(const Parser& parser,
       continue;
     }
 
-    GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
+    if (struct_def.defined_namespace != nullptr) {
+      GenNameSpace(*struct_def.defined_namespace, &schema, &last_namespace);
+    }
     GenComment(struct_def.doc_comment, &schema, nullptr);
     schema += "table " + struct_def.name + " {\n";
     for (auto field_it = struct_def.fields.vec.begin();
          field_it != struct_def.fields.vec.end(); ++field_it) {
+      if (!*field_it) continue;
       auto& field = **field_it;
       if (field.value.type.base_type != BASE_TYPE_UTYPE) {
         GenComment(field.doc_comment, &schema, nullptr, "  ");
@@ -419,6 +444,7 @@ static bool GenerateFBS(const Parser& parser, const std::string& path,
             "When you use --proto, that you should check for conformity "
             "yourself, using the existing --conform");
   }
+  if (!parser.opts.file_saver) return false;
   return parser.opts.file_saver->SaveFile((path + file_name + ".fbs").c_str(),
                                           fbs, false);
 }

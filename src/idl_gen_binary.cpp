@@ -45,20 +45,22 @@ static bool GenerateBinary(const Parser& parser, const std::string& path,
     auto data_vec = parser.flex_builder_.GetBuffer();
     auto data_ptr = reinterpret_cast<char*>(data(data_vec));
     return !parser.flex_builder_.GetSize() ||
-           parser.opts.file_saver->SaveFile(
-               BinaryFileName(parser, path, file_name).c_str(), data_ptr,
-               parser.flex_builder_.GetSize(), true);
+           (parser.opts.file_saver &&
+            parser.opts.file_saver->SaveFile(
+                BinaryFileName(parser, path, file_name).c_str(), data_ptr,
+                parser.flex_builder_.GetSize(), true));
   }
   return !parser.builder_.GetSize() ||
-         parser.opts.file_saver->SaveFile(
-             BinaryFileName(parser, path, file_name).c_str(),
-             reinterpret_cast<char*>(parser.builder_.GetBufferPointer()),
-             parser.builder_.GetSize(), true);
+         (parser.opts.file_saver &&
+          parser.opts.file_saver->SaveFile(
+              BinaryFileName(parser, path, file_name).c_str(),
+              reinterpret_cast<char*>(parser.builder_.GetBufferPointer()),
+              parser.builder_.GetSize(), true));
 }
 
 static std::string BinaryMakeRule(const Parser& parser, const std::string& path,
                                   const std::string& file_name) {
-  if (!parser.builder_.GetSize()) return "";
+  if (!parser.builder_.GetSize() || !parser.root_struct_def_) return "";
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   std::string make_rule =
