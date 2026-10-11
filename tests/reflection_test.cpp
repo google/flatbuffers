@@ -409,5 +409,80 @@ void MiniReflectFixedLengthArrayTest() {
 #endif
 }
 
+void ReflectionSafetyTest(const std::string& tests_data_path) {
+  // 1. GetTypeSize with invalid or out-of-bounds enum values
+  TEST_EQ(flatbuffers::GetTypeSize(static_cast<reflection::BaseType>(-1)), 0u);
+  TEST_EQ(flatbuffers::GetTypeSize(
+              static_cast<reflection::BaseType>(reflection::MaxBaseType + 1)),
+          0u);
+  TEST_EQ(flatbuffers::GetTypeSize(reflection::Int), 4u);
+  TEST_EQ(flatbuffers::GetTypeSize(reflection::Double), 8u);
+
+  // 2. Load schema to test GetTypeSizeInline with out-of-bounds index
+  std::string bfbsfile;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
+                                true, &bfbsfile),
+          true);
+  auto& schema = *reflection::GetSchema(bfbsfile.c_str());
+  TEST_EQ(flatbuffers::GetTypeSizeInline(reflection::Obj, -1, schema), 4u);
+  TEST_EQ(flatbuffers::GetTypeSizeInline(reflection::Obj, 99999, schema), 4u);
+  auto vec3_obj = schema.objects()->LookupByKey("MyGame.Example.Vec3");
+  TEST_NOTNULL(vec3_obj);
+  int vec3_idx = -1;
+  for (uoffset_t i = 0; i < schema.objects()->size(); ++i) {
+    if (schema.objects()->Get(i) == vec3_obj) {
+      vec3_idx = static_cast<int>(i);
+      break;
+    }
+  }
+  TEST_ASSERT(vec3_idx >= 0);
+  TEST_EQ(flatbuffers::GetTypeSizeInline(reflection::Obj, vec3_idx, schema),
+          static_cast<size_t>(vec3_obj->bytesize()));
+
+  // 3. GetAnyVectorElem* and SetAnyVectorElem* with nullptr vector
+  TEST_EQ(flatbuffers::GetAnyVectorElemI(nullptr, reflection::Int, 0), 0);
+  TEST_EQ(flatbuffers::GetAnyVectorElemF(nullptr, reflection::Double, 0), 0.0);
+  TEST_EQ_STR(
+      flatbuffers::GetAnyVectorElemS(nullptr, reflection::String, 0).c_str(),
+      "");
+  flatbuffers::SetAnyVectorElemI(nullptr, reflection::Int, 0, 42);
+  flatbuffers::SetAnyVectorElemF(nullptr, reflection::Double, 0, 4.2);
+  flatbuffers::SetAnyVectorElemS(nullptr, reflection::String, 0, "test");
+
+  // 4. GetAnyValue* and SetAnyValue* with nullptr data
+  TEST_EQ(flatbuffers::GetAnyValueI(reflection::Int, nullptr), 0);
+  TEST_EQ(flatbuffers::GetAnyValueF(reflection::Float, nullptr), 0.0);
+  TEST_EQ_STR(
+      flatbuffers::GetAnyValueS(reflection::String, nullptr, nullptr, 0).c_str(),
+      "");
+  TEST_EQ_STR(
+      flatbuffers::GetAnyValueS(reflection::Obj, nullptr, &schema, 0).c_str(),
+      "");
+  flatbuffers::SetAnyValueI(reflection::Int, nullptr, 42);
+  flatbuffers::SetAnyValueF(reflection::Float, nullptr, 4.2);
+  flatbuffers::SetAnyValueS(reflection::String, nullptr, nullptr);
+
+  // 5. ForAllFields with nullptr
+  int called = 0;
+  flatbuffers::ForAllFields(nullptr, false,
+                            [&called](const reflection::Field*) { called++; });
+  TEST_EQ(called, 0);
+
+  // 6. MiniReflect null safety
+  TEST_EQ(flatbuffers::InlineSize(flatbuffers::ET_SEQUENCE, nullptr), 1u);
+  TEST_EQ(flatbuffers::LookupEnum(9999, nullptr, 5), -1);
+  TEST_EQ(flatbuffers::LookupEnum(-1, nullptr, 5), -1);
+  flatbuffers::IterateObject(nullptr, nullptr, nullptr);
+  flatbuffers::IterateFlatBuffer(nullptr, nullptr, nullptr);
+  TEST_EQ_STR(flatbuffers::FlatBufferToString(nullptr, nullptr).c_str(), "");
+
+  // 7. Resizing setters null safety
+  flatbuffers::ResizeVector<int>(schema, 10, 0, nullptr, nullptr);
+  flatbuffers::SetString(schema, "test", nullptr, nullptr);
+  TEST_EQ(flatbuffers::ResizeAnyVector(schema, 10, nullptr, 0, 4, nullptr) ==
+              nullptr,
+          true);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

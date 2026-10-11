@@ -146,7 +146,10 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
 
   if (IsValidOffset(root_table_offset)) {
     // Build the root table, and all else will be referenced from it.
-    BuildTable(root_table_offset, BinarySectionType::RootTable, RootTable());
+    const auto* root_table = RootTable();
+    if (root_table) {
+      BuildTable(root_table_offset, BinarySectionType::RootTable, root_table);
+    }
   }
 
   // Now that all the sections are built, make sure the binary sections are
@@ -207,7 +210,10 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 
   BinaryRegionComment root_offset_comment;
   root_offset_comment.type = BinaryRegionCommentType::RootTableOffset;
-  root_offset_comment.name = RootTable()->name()->str();
+  const auto* root_table = RootTable();
+  if (root_table && root_table->name()) {
+    root_offset_comment.name = root_table->name()->str();
+  }
 
   if (!IsValidOffset(root_table_loc)) {
     SetError(root_offset_comment,
@@ -754,13 +760,18 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
     switch (field->type()->base_type()) {
       case reflection::BaseType::Obj: {
         const reflection::Object* next_object =
-            schema_->objects()->Get(field->type()->index());
+            schema_->objects() && field->type()->index() >= 0 &&
+            static_cast<size_t>(field->type()->index()) <
+                schema_->objects()->size()
+                ? schema_->objects()->Get(field->type()->index())
+                : nullptr;
 
-        if (next_object->is_struct()) {
+        if (next_object && next_object->is_struct()) {
           // Structs are stored inline.
-          BuildStruct(field_offset, regions, field->name()->c_str(),
+          BuildStruct(field_offset, regions,
+                      field->name() ? field->name()->c_str() : "",
                       next_object);
-        } else {
+        } else if (next_object) {
           offset_field_comment.default_value = "(table)";
 
           regions.push_back(MakeBinaryRegion(field_offset, length, region_type,
@@ -911,9 +922,18 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
       offset += type_size;
     } else if (field->type()->base_type() == reflection::BaseType::Obj) {
       // Structs are stored inline, even when nested.
-      offset = BuildStruct(offset, regions,
-                           referring_field_name + "." + field->name()->str(),
-                           schema_->objects()->Get(field->type()->index()));
+      const reflection::Object* nested_obj =
+          schema_->objects() && field->type()->index() >= 0 &&
+          static_cast<size_t>(field->type()->index()) <
+              schema_->objects()->size()
+              ? schema_->objects()->Get(field->type()->index())
+              : nullptr;
+      if (nested_obj) {
+        offset = BuildStruct(offset, regions,
+                             referring_field_name + "." +
+                                 (field->name() ? field->name()->str() : ""),
+                             nested_obj);
+      }
     } else if (field->type()->base_type() == reflection::BaseType::Array) {
       const bool is_scalar = IsScalar(field->type()->element());
       const uint64_t type_size = GetTypeSize(field->type()->element());
@@ -926,10 +946,11 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
           BinaryRegionComment array_comment;
           array_comment.type = BinaryRegionCommentType::ArrayField;
           array_comment.name =
-              referring_field_name + "." + field->name()->str();
+              referring_field_name + "." +
+              (field->name() ? field->name()->str() : "");
           array_comment.index = i;
           array_comment.default_value =
-              "of '" + object->name()->str() + "' (" +
+              "of '" + (object->name() ? object->name()->str() : "") + "' (" +
               std::string(
                   reflection::EnumNameBaseType(field->type()->element())) +
               ")";
@@ -961,10 +982,19 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
           // TODO(dbaileychess): This works, but the comments on the fields lose
           // some context. Need to figure a way how to plumb the nested arrays
           // comments together that isn't too confusing.
-          offset =
-              BuildStruct(offset, regions,
-                          referring_field_name + "." + field->name()->str(),
-                          schema_->objects()->Get(field->type()->index()));
+          const reflection::Object* nested_obj =
+              schema_->objects() && field->type()->index() >= 0 &&
+              static_cast<size_t>(field->type()->index()) <
+                  schema_->objects()->size()
+                  ? schema_->objects()->Get(field->type()->index())
+                  : nullptr;
+          if (nested_obj) {
+            offset =
+                BuildStruct(offset, regions,
+                            referring_field_name + "." +
+                                (field->name() ? field->name()->str() : ""),
+                            nested_obj);
+          }
         }
       }
     }
@@ -1132,8 +1162,13 @@ void BinaryAnnotator::BuildVector(
   switch (field->type()->element()) {
     case reflection::BaseType::Obj: {
       const reflection::Object* object =
-          schema_->objects()->Get(field->type()->index());
+          schema_->objects() && field->type()->index() >= 0 &&
+          static_cast<size_t>(field->type()->index()) <
+              schema_->objects()->size()
+              ? schema_->objects()->Get(field->type()->index())
+              : nullptr;
 
+      if (!object) break;
       if (object->is_struct()) {
         // Vector of structs
         for (size_t i = 0; i < vector_length.value(); ++i) {
@@ -1408,39 +1443,56 @@ void BinaryAnnotator::BuildVector(
 std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
                                         const uint8_t realized_type,
                                         const reflection::Field* const field) {
-  const reflection::Enum* next_enum =
-      schema_->enums()->Get(field->type()->index());
-
-  const reflection::EnumVal* enum_val = next_enum->values()->Get(realized_type);
+  if (!schema_ || !schema_->enums() || !field || !field->type()) return "";
+  auto enum_idx = field->type()->index();
+  if (enum_idx < 0 ||
+      static_cast<size_t>(enum_idx) >= schema_->enums()->size())
+    return "";
+  const reflection::Enum* next_enum = schema_->enums()->Get(enum_idx);
+  if (!next_enum || !next_enum->values()) return "";
+  if (realized_type >= next_enum->values()->size()) return "";
+  const reflection::EnumVal* enum_val =
+      next_enum->values()->Get(realized_type);
+  if (!enum_val) return "";
 
   if (ContainsSection(union_offset)) {
-    return enum_val->name()->c_str();
+    return enum_val->name() ? enum_val->name()->c_str() : "";
   }
 
   const reflection::Type* union_type = enum_val->union_type();
+  if (!union_type) return enum_val->name() ? enum_val->name()->c_str() : "";
 
   if (union_type->base_type() == reflection::BaseType::Obj) {
-    const reflection::Object* object =
-        schema_->objects()->Get(union_type->index());
+    if (!schema_->objects())
+      return enum_val->name() ? enum_val->name()->c_str() : "";
+    auto obj_idx = union_type->index();
+    if (obj_idx < 0 ||
+        static_cast<size_t>(obj_idx) >= schema_->objects()->size())
+      return enum_val->name() ? enum_val->name()->c_str() : "";
+    const reflection::Object* object = schema_->objects()->Get(obj_idx);
+    if (!object) return enum_val->name() ? enum_val->name()->c_str() : "";
 
     if (object->is_struct()) {
       // Union of vectors point to a new Binary section
       std::vector<BinaryRegion> regions;
 
-      BuildStruct(union_offset, regions, field->name()->c_str(), object);
+      BuildStruct(union_offset, regions,
+                  field->name() ? field->name()->c_str() : "", object);
 
+      auto sec_name =
+          std::string(object->name() ? object->name()->c_str() : "") + "." +
+          (field->name() ? field->name()->c_str() : "");
       AddSection(
           union_offset,
-          MakeBinarySection(std::string(object->name()->c_str()) + "." +
-                                field->name()->c_str(),
-                            BinarySectionType::Union, std::move(regions)));
+          MakeBinarySection(sec_name, BinarySectionType::Union,
+                            std::move(regions)));
     } else {
       BuildTable(union_offset, BinarySectionType::Table, object);
     }
   }
   // TODO(dbaileychess): handle the other union types.
 
-  return enum_val->name()->c_str();
+  return enum_val->name() ? enum_val->name()->c_str() : "";
 }
 
 void BinaryAnnotator::FixMissingRegions() {
@@ -1548,8 +1600,10 @@ bool BinaryAnnotator::ContainsSection(const uint64_t offset) {
 }
 
 const reflection::Object* BinaryAnnotator::RootTable() const {
+  if (!schema_) return nullptr;
   if (!root_table_.empty()) {
-    return schema_->objects()->LookupByKey(root_table_);
+    return schema_->objects() ? schema_->objects()->LookupByKey(root_table_)
+                               : nullptr;
   }
   return schema_->root_table();
 }

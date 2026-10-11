@@ -75,14 +75,19 @@ static_assert(sizeof(kBaseTypeSize) / sizeof(size_t) ==
 
 // Size of a basic type, don't use with structs.
 constexpr size_t GetTypeSize(reflection::BaseType base_type) {
-  return kBaseTypeSize[base_type];
+  return (base_type >= 0 && base_type <= reflection::MaxBaseType)
+             ? kBaseTypeSize[base_type]
+             : 0;
 }
 
 // Same as above, but now correctly returns the size of a struct if
 // the field (or vector element) is a struct.
 inline size_t GetTypeSizeInline(reflection::BaseType base_type, int type_index,
                                 const reflection::Schema& schema) {
-  if (base_type == reflection::Obj &&
+  if (base_type == reflection::Obj && schema.objects() &&
+      type_index >= 0 &&
+      static_cast<size_t>(type_index) < schema.objects()->size() &&
+      schema.objects()->Get(type_index) &&
       schema.objects()->Get(type_index)->is_struct()) {
     return schema.objects()->Get(type_index)->bytesize();
   } else {
@@ -245,20 +250,23 @@ inline std::string GetAnyFieldS(const Struct& st,
 // Get any vector element as a 64bit int, regardless of what type it is.
 inline int64_t GetAnyVectorElemI(const VectorOfAny* vec,
                                  reflection::BaseType elem_type, size_t i) {
-  return GetAnyValueI(elem_type, vec->Data() + GetTypeSize(elem_type) * i);
+  return vec ? GetAnyValueI(elem_type, vec->Data() + GetTypeSize(elem_type) * i)
+             : 0;
 }
 
 // Get any vector element as a double, regardless of what type it is.
 inline double GetAnyVectorElemF(const VectorOfAny* vec,
                                 reflection::BaseType elem_type, size_t i) {
-  return GetAnyValueF(elem_type, vec->Data() + GetTypeSize(elem_type) * i);
+  return vec ? GetAnyValueF(elem_type, vec->Data() + GetTypeSize(elem_type) * i)
+             : 0.0;
 }
 
 // Get any vector element as a string, regardless of what type it is.
 inline std::string GetAnyVectorElemS(const VectorOfAny* vec,
                                      reflection::BaseType elem_type, size_t i) {
-  return GetAnyValueS(elem_type, vec->Data() + GetTypeSize(elem_type) * i,
-                      nullptr, -1);
+  return vec ? GetAnyValueS(elem_type, vec->Data() + GetTypeSize(elem_type) * i,
+                            nullptr, -1)
+             : "";
 }
 
 // Get a vector element that's a table/string/vector from a generic vector.
@@ -378,19 +386,25 @@ inline void SetAnyFieldS(Struct* st, const reflection::Field& field,
 // Set any vector element as a 64bit int, regardless of type what it is.
 inline void SetAnyVectorElemI(VectorOfAny* vec, reflection::BaseType elem_type,
                               size_t i, int64_t val) {
-  SetAnyValueI(elem_type, vec->Data() + GetTypeSize(elem_type) * i, val);
+  if (vec) {
+    SetAnyValueI(elem_type, vec->Data() + GetTypeSize(elem_type) * i, val);
+  }
 }
 
 // Set any vector element as a double, regardless of type what it is.
 inline void SetAnyVectorElemF(VectorOfAny* vec, reflection::BaseType elem_type,
                               size_t i, double val) {
-  SetAnyValueF(elem_type, vec->Data() + GetTypeSize(elem_type) * i, val);
+  if (vec) {
+    SetAnyValueF(elem_type, vec->Data() + GetTypeSize(elem_type) * i, val);
+  }
 }
 
 // Set any vector element as a string, regardless of type what it is.
 inline void SetAnyVectorElemS(VectorOfAny* vec, reflection::BaseType elem_type,
                               size_t i, const char* val) {
-  SetAnyValueS(elem_type, vec->Data() + GetTypeSize(elem_type) * i, val);
+  if (vec) {
+    SetAnyValueS(elem_type, vec->Data() + GetTypeSize(elem_type) * i, val);
+  }
 }
 
 // ------------------------- RESIZING SETTERS -------------------------
@@ -461,10 +475,12 @@ template <typename T>
 void ResizeVector(const reflection::Schema& schema, uoffset_t newsize, T val,
                   const Vector<T>* vec, std::vector<uint8_t>* flatbuf,
                   const reflection::Object* root_table = nullptr) {
+  if (!vec || !flatbuf) return;
   auto delta_elem = static_cast<int>(newsize) - static_cast<int>(vec->size());
   auto newelems = ResizeAnyVector(
       schema, newsize, reinterpret_cast<const VectorOfAny*>(vec), vec->size(),
       static_cast<uoffset_t>(sizeof(T)), flatbuf, root_table);
+  if (!newelems) return;
   // Set new elements to "val".
   for (int i = 0; i < delta_elem; i++) {
     auto loc = newelems + i * sizeof(T);

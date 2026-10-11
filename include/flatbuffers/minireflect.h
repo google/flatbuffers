@@ -89,12 +89,16 @@ inline size_t InlineSize(ElementaryType type, const TypeTable* type_table) {
     case ET_DOUBLE:
       return 8;
     case ET_SEQUENCE:
+      if (!type_table) return 1;
       switch (type_table->st) {
         case ST_TABLE:
         case ST_UNION:
           return 4;
         case ST_STRUCT:
-          return static_cast<size_t>(type_table->values[type_table->num_elems]);
+          return (type_table->values)
+                     ? static_cast<size_t>(
+                           type_table->values[type_table->num_elems])
+                     : 0;
         default:
           FLATBUFFERS_ASSERT(false);
           return 1;
@@ -107,7 +111,10 @@ inline size_t InlineSize(ElementaryType type, const TypeTable* type_table) {
 
 inline int64_t LookupEnum(int64_t enum_val, const int64_t* values,
                           size_t num_values) {
-  if (!values) return enum_val;
+  if (!values)
+    return (enum_val >= 0 && static_cast<size_t>(enum_val) < num_values)
+               ? enum_val
+               : -1;
   for (size_t i = 0; i < num_values; i++) {
     if (enum_val == values[i]) return static_cast<int64_t>(i);
   }
@@ -246,17 +253,22 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
 
 inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
                           IterationVisitor* visitor) {
+  if (!obj || !type_table || !visitor) return;
   visitor->StartSequence();
   const uint8_t* prev_val = nullptr;
   size_t set_idx = 0;
   size_t array_idx = 0;
+  if (!type_table->type_codes) {
+    visitor->EndSequence();
+    return;
+  }
   for (size_t i = 0; i < type_table->num_elems; i++) {
     auto type_code = type_table->type_codes[i];
     auto type = static_cast<ElementaryType>(type_code.base_type);
     auto is_repeating = type_code.is_repeating != 0;
     auto ref_idx = type_code.sequence_ref;
     const TypeTable* ref = nullptr;
-    if (ref_idx >= 0) {
+    if (ref_idx >= 0 && type_table->type_refs) {
       ref = type_table->type_refs[ref_idx]();
     }
     auto name = type_table->names ? type_table->names[i] : nullptr;
@@ -264,7 +276,7 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
     if (type_table->st == ST_TABLE) {
       val = reinterpret_cast<const Table*>(obj)->GetAddressOf(
           FieldIndexToOffset(static_cast<voffset_t>(i)));
-    } else {
+    } else if (type_table->values) {
       val = obj + type_table->values[i];
     }
     visitor->Field(i, set_idx, type, is_repeating, ref, name, val);
@@ -277,19 +289,23 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
           // variable length vector
           val += ReadScalar<uoffset_t>(val);
           auto vec = reinterpret_cast<const Vector<uint8_t>*>(val);
-          elem_ptr = vec->Data();
-          size = vec->size();
-        } else {
+          if (vec) {
+            elem_ptr = vec->Data();
+            size = vec->size();
+          }
+        } else if (type_table->array_sizes) {
           // otherwise fixed size array
           size = type_table->array_sizes[array_idx];
           ++array_idx;
         }
         visitor->StartVector();
-        for (size_t j = 0; j < size; j++) {
-          visitor->Element(j, type, ref, elem_ptr);
-          IterateValue(type, elem_ptr, ref, prev_val, static_cast<soffset_t>(j),
-                       visitor);
-          elem_ptr += InlineSize(type, ref);
+        if (elem_ptr) {
+          for (size_t j = 0; j < size; j++) {
+            visitor->Element(j, type, ref, elem_ptr);
+            IterateValue(type, elem_ptr, ref, prev_val,
+                         static_cast<soffset_t>(j), visitor);
+            elem_ptr += InlineSize(type, ref);
+          }
         }
         visitor->EndVector();
       } else {
@@ -304,6 +320,7 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
 inline void IterateFlatBuffer(const uint8_t* buffer,
                               const TypeTable* type_table,
                               IterationVisitor* callback) {
+  if (!buffer || !type_table || !callback) return;
   IterateObject(GetRoot<uint8_t>(buffer), type_table, callback);
 }
 
