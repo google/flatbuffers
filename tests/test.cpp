@@ -61,6 +61,7 @@
 #if INCLUDE_64_BIT_TESTS
 #include "tests/64bit/offset64_test.h"
 #endif
+#include "flatbuffers/flex_flat_util.h"
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
@@ -1745,8 +1746,46 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void VerifierAndBaseSafetyTest() {
+  // 1. VerifyAlignmentRequirements
+  TEST_EQ(VerifyAlignmentRequirements(0, 0), false);
+  TEST_EQ(VerifyAlignmentRequirements(0, 1), false);
+  TEST_EQ(VerifyAlignmentRequirements(4, 1), true);
+  TEST_EQ(VerifyAlignmentRequirements(3, 1), false);
+
+  // 2. PaddingBytes
+  TEST_EQ(PaddingBytes(10, 0), static_cast<size_t>(0));
+  TEST_EQ(PaddingBytes(10, 4), static_cast<size_t>(2));
+
+  // 3. ReadScalar and WriteScalar with null pointers
+  TEST_EQ(ReadScalar<int32_t>(nullptr), 0);
+  WriteScalar<int32_t>(nullptr, 42);
+  Offset<void> off(10);
+  WriteScalar<void>(nullptr, off);
+
+  // 4. Verifier and SizeVerifier safety
+  uint8_t dummy_buf[64] = { 0 };
+  Verifier verifier(dummy_buf, sizeof(dummy_buf));
+  TEST_EQ(verifier.EndTable(), true);
+  TEST_EQ(verifier.VerifyComplexity(), true);
+  TEST_EQ(verifier.VerifyFromPointer(nullptr, 4), false);
+  uint8_t external_buf[4] = { 0 };
+  TEST_EQ(verifier.VerifyFromPointer(external_buf, 4), false);
+  TEST_EQ(verifier.VerifyFieldStruct(nullptr, 0, 4, 4), false);
+  TEST_EQ(verifier.VerifyField<int32_t>(nullptr, 0, 4), false);
+  TEST_EQ(verifier.VerifyOffset(nullptr, 0), static_cast<size_t>(0));
+
+  SizeVerifier sverifier(dummy_buf, sizeof(dummy_buf));
+  TEST_EQ(sverifier.GetComputedSize(), static_cast<size_t>(0));
+
+  // 6. flexbuffers::VerifyNestedFlexBuffer null safety
+  TEST_EQ(flexbuffers::VerifyNestedFlexBuffer(nullptr, verifier), true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+
+  VerifierAndBaseSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

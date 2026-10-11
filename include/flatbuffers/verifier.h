@@ -97,12 +97,14 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyFromPointer(const uint8_t* const p, const size_t len) {
+    if (!p || !buf_ || p < buf_) return false;
     return Verify(static_cast<size_t>(p - buf_), len);
   }
 
   // Verify relative to a known-good base pointer.
   bool VerifyFieldStruct(const uint8_t* const base, const voffset_t elem_off,
                          const size_t elem_len, const size_t align) const {
+    if (!base || !buf_ || base < buf_) return false;
     const auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, elem_len);
   }
@@ -110,6 +112,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <typename T>
   bool VerifyField(const uint8_t* const base, const voffset_t elem_off,
                    const size_t align) const {
+    if (!base || !buf_ || base < buf_) return false;
     const auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, sizeof(T));
   }
@@ -146,12 +149,14 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <typename LenT = uoffset_t>
   bool VerifyVectorOrString(const uint8_t* const vec, const size_t elem_size,
                             size_t* const end = nullptr) const {
+    if (!vec || !buf_ || vec < buf_) return false;
     const auto vec_offset = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<LenT>(vec_offset)) return false;
     // Check the whole array. If this is a string, the byte past the array must
     // be 0.
     const LenT size = ReadScalar<LenT>(vec);
+    if (elem_size == 0) return false;
     const auto max_elems = opts_.max_size / elem_size;
     if (!Check(size < max_elems))
       return false;  // Protect against byte_size overflowing.
@@ -175,7 +180,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   bool VerifyVectorOfTables(const Vector<Offset<T>>* const vec) {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!vec->Get(i)->Verify(*this)) return false;
+        auto table = vec->Get(i);
+        if (!table || !table->Verify(*this)) return false;
       }
     }
     return true;
@@ -183,6 +189,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow")
   bool VerifyTableStart(const uint8_t* const table) {
+    if (!table || !buf_ || table < buf_) return false;
     // Check the vtable offset.
     const auto tableo = static_cast<size_t>(table - buf_);
     if (!Verify<soffset_t>(tableo)) return false;
@@ -201,6 +208,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   template <typename T>
   bool VerifyBufferFromStart(const char* const identifier, const size_t start) {
+    if (!buf_ || start >= size_) return false;
     // Buffers have to be of some size to be valid. The reason it is a runtime
     // check instead of static_assert, is that nested flatbuffers go through
     // this call and their size is determined at runtime.
@@ -254,10 +262,11 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   template <typename T, typename SizeT = uoffset_t>
   bool VerifySizePrefixedBuffer(const char* const identifier) {
+    if (!buf_ || size_ < sizeof(SizeT)) return false;
     return Verify<SizeT>(0U) &&
            // Ensure the prefixed size is within the bounds of the provided
            // length.
-           Check(ReadScalar<SizeT>(buf_) + sizeof(SizeT) <= size_) &&
+           Check(ReadScalar<SizeT>(buf_) <= size_ - sizeof(SizeT)) &&
            VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 
@@ -277,6 +286,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   template <typename OffsetT = uoffset_t>
   size_t VerifyOffset(const uint8_t* const base, const voffset_t start) const {
+    if (!base || !buf_ || base < buf_) return 0;
     return VerifyOffset<OffsetT>(static_cast<size_t>(base - buf_) + start);
   }
 
@@ -291,7 +301,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   // Called at the end of a table to pop the depth count.
   bool EndTable() {
-    depth_--;
+    if (depth_ > 0) depth_--;
     return true;
   }
 
@@ -306,6 +316,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   // is false, this fails at runtime or returns zero.
   size_t GetComputedSize() const {
     if (TrackVerifierBufferSize) {
+      if (upper_bound_ == 0) return 0;
       uintptr_t size = upper_bound_;
       // Align the size to uoffset_t
       size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);

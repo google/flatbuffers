@@ -358,7 +358,8 @@ typedef uintmax_t largest_scalar_t;
 static const size_t kFileIdentifierLength = 4;
 
 inline bool VerifyAlignmentRequirements(size_t align, size_t min_align = 1) {
-  return (min_align <= align) && (align <= (FLATBUFFERS_MAX_ALIGNMENT)) &&
+  return (align > 0) && (min_align <= align) &&
+         (align <= (FLATBUFFERS_MAX_ALIGNMENT)) &&
          (align & (align - 1)) == 0;  // must be power of 2
 }
 
@@ -425,7 +426,7 @@ template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 FLATBUFFERS_SUPPRESS_UBSAN("alignment")
 T ReadScalar(const void *p) {
-  return EndianScalar(*reinterpret_cast<const T *>(p));
+  return p ? EndianScalar(*reinterpret_cast<const T *>(p)) : T();
 }
 
 // See https://github.com/google/flatbuffers/issues/5950
@@ -439,12 +440,12 @@ template<typename T>
 // UBSAN: C++ aliasing type rules, see std::bit_cast<> for details.
 FLATBUFFERS_SUPPRESS_UBSAN("alignment")
 void WriteScalar(void *p, T t) {
-  *reinterpret_cast<T *>(p) = EndianScalar(t);
+  if (p) *reinterpret_cast<T *>(p) = EndianScalar(t);
 }
 
 template<typename T> struct Offset;
 template<typename T> FLATBUFFERS_SUPPRESS_UBSAN("alignment") void WriteScalar(void *p, Offset<T> t) {
-  *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
+  if (p) *reinterpret_cast<uoffset_t *>(p) = EndianScalar(t.o);
 }
 
 #if (FLATBUFFERS_GCC >= 100000) && (FLATBUFFERS_GCC < 110000)
@@ -456,7 +457,7 @@ template<typename T> FLATBUFFERS_SUPPRESS_UBSAN("alignment") void WriteScalar(vo
 // memory).
 FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow")
 inline size_t PaddingBytes(size_t buf_size, size_t scalar_size) {
-  return ((~buf_size) + 1) & (scalar_size - 1);
+  return scalar_size ? (((~buf_size) + 1) & (scalar_size - 1)) : 0;
 }
 
 #if !defined(_MSC_VER)
