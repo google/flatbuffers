@@ -1,5 +1,6 @@
 #include "util_test.h"
 
+#include "flatbuffers/file_manager.h"
 #include "flatbuffers/util.h"
 #include "test_assert.h"
 
@@ -167,6 +168,18 @@ void UtilConvertCase() {
                                        test_case.input_case));
     }
   }
+}
+
+void FileSaverTest() {
+  RealFileSaver real_saver;
+  TEST_EQ(real_saver.SaveFile(nullptr, "test", 4, false), false);
+  TEST_EQ(real_saver.SaveFile("test", nullptr, 4, false), false);
+  TEST_EQ(real_saver.SaveFile(nullptr, std::string("test"), false), false);
+
+  FileNameSaver name_saver;
+  TEST_EQ(name_saver.SaveFile(nullptr, "test", 4, false), false);
+  TEST_EQ(name_saver.SaveFile("test_name", "test", 4, false), true);
+  TEST_EQ(name_saver.SaveFile(nullptr, std::string("test"), false), false);
 }
 
 }  // namespace tests

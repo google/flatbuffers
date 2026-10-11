@@ -34,7 +34,7 @@ class FileSaver {
                         bool binary) = 0;
 
   bool SaveFile(const char* name, const std::string& buf, bool binary) {
-    return SaveFile(name, buf.c_str(), buf.size(), binary);
+    return name ? SaveFile(name, buf.c_str(), buf.size(), binary) : false;
   }
 
   virtual void Finish() {}
@@ -50,12 +50,14 @@ class FileSaver {
 
 class RealFileSaver final : public FileSaver {
  public:
+  using FileSaver::SaveFile;
   bool SaveFile(const char* name, const char* buf, size_t len,
                 bool binary) final;
 };
 
 class FileNameSaver final : public FileSaver {
  public:
+  using FileSaver::SaveFile;
   bool SaveFile(const char* name, const char* buf, size_t len,
                 bool binary) final;
 

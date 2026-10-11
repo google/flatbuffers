@@ -26,6 +26,7 @@ bool FileNameSaver::SaveFile(const char* name, const char* buf, size_t len,
   (void)buf;
   (void)len;
   (void)binary;
+  if (!name) return false;
 
   std::ignore = file_names_.insert(name);
 

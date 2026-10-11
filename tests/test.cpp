@@ -1799,6 +1799,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
 #endif
 
   UtilConvertCase();
+  FileSaverTest();
 
   FuzzTest1();
   FuzzTest2();
