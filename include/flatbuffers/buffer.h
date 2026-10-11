@@ -92,7 +92,11 @@ FLATBUFFERS_CONSTEXPR size_t AlignOf() {
 // return true if the first is less than the second.
 static inline bool StringLessThan(const char* a_data, uoffset_t a_size,
                                   const char* b_data, uoffset_t b_size) {
-  const auto cmp = memcmp(a_data, b_data, (std::min)(a_size, b_size));
+  if (!a_data && !b_data) return a_size < b_size;
+  if (!a_data) return true;
+  if (!b_data) return false;
+  const auto min_size = (std::min)(a_size, b_size);
+  const auto cmp = min_size > 0 ? memcmp(a_data, b_data, min_size) : 0;
   return cmp == 0 ? a_size < b_size : cmp < 0;
 }
 
@@ -184,6 +188,7 @@ struct IndirectHelper<
 /// vtable).
 inline const char* GetBufferIdentifier(const void* buf,
                                        bool size_prefixed = false) {
+  if (!buf) return nullptr;
   return reinterpret_cast<const char*>(buf) +
          ((size_prefixed) ? 2 * sizeof(uoffset_t) : sizeof(uoffset_t));
 }
@@ -191,8 +196,10 @@ inline const char* GetBufferIdentifier(const void* buf,
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void* buf, const char* identifier,
                                 bool size_prefixed = false) {
-  return strncmp(GetBufferIdentifier(buf, size_prefixed), identifier,
-                 flatbuffers::kFileIdentifierLength) == 0;
+  if (!buf || !identifier) return false;
+  auto id_ptr = GetBufferIdentifier(buf, size_prefixed);
+  return id_ptr && strncmp(id_ptr, identifier,
+                           flatbuffers::kFileIdentifierLength) == 0;
 }
 
 /// @cond FLATBUFFERS_INTERNAL
@@ -207,6 +214,7 @@ T* GetMutableRoot(void* buf) {
 
 template <typename T, typename SizeT = uoffset_t>
 T* GetMutableSizePrefixedRoot(void* buf) {
+  if (!buf) return nullptr;
   return GetMutableRoot<T>(reinterpret_cast<uint8_t*>(buf) + sizeof(SizeT));
 }
 
@@ -217,6 +225,7 @@ const T* GetRoot(const void* buf) {
 
 template <typename T, typename SizeT = uoffset_t>
 const T* GetSizePrefixedRoot(const void* buf) {
+  if (!buf) return nullptr;
   return GetRoot<T>(reinterpret_cast<const uint8_t*>(buf) + sizeof(SizeT));
 }
 

@@ -913,6 +913,53 @@ void FixedLengthArrayOperatorEqualTest() {
   TEST_ASSERT(arr_struct[1] != arr_struct[2]);
 }
 
+void BufferAndTableSafetyTest() {
+  // Buffer identifier null safety
+  TEST_NULL(flatbuffers::GetBufferIdentifier(nullptr));
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, "TEST"), false);
+  const char fake_buf[16] = {0};
+  TEST_EQ(flatbuffers::BufferHasIdentifier(fake_buf, nullptr), false);
+
+  // Size-prefixed roots null safety
+  TEST_NULL(flatbuffers::GetSizePrefixedRoot<flatbuffers::Table>(nullptr));
+  TEST_NULL(flatbuffers::GetMutableSizePrefixedRoot<flatbuffers::Table>(nullptr));
+
+  // StringLessThan null safety
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, "a", 1), true);
+  TEST_EQ(flatbuffers::StringLessThan("a", 1, nullptr, 0), false);
+
+  // BufferRef null safety
+  flatbuffers::BufferRef<MyGame::Example::Monster> empty_ref;
+  TEST_NULL(empty_ref.GetRoot());
+  TEST_EQ(empty_ref.Verify(), false);
+
+  // vector_downward bounds and underflow safety
+  flatbuffers::DefaultAllocator alloc;
+  flatbuffers::vector_downward<> vd(1024, &alloc, false, 0);
+  TEST_EQ(vd.offset(), static_cast<size_t>(0));
+  TEST_EQ(vd.unused_buffer_size(), static_cast<flatbuffers::uoffset_t>(0));
+  TEST_EQ(vd.scratch_size(), static_cast<flatbuffers::uoffset_t>(0));
+  TEST_NULL(vd.data_at(100));
+  vd.push(nullptr, 10);
+  vd.pop(100);
+  TEST_EQ(vd.size(), static_cast<flatbuffers::uoffset_t>(0));
+  vd.scratch_pop(100);
+  TEST_EQ(vd.scratch_size(), static_cast<flatbuffers::uoffset_t>(0));
+
+  // Array span copy and equality safety
+  uint32_t raw_storage1[2] = {0, 0};
+  uint32_t raw_storage2[2] = {0, 0};
+  const uint32_t raw_vals[2] = {10, 20};
+  auto& arr1 = flatbuffers::CastToArray(raw_storage1);
+  auto& arr2 = flatbuffers::CastToArray(raw_storage2);
+  arr1.CopyFromSpan(flatbuffers::span<const uint32_t, 2>(raw_vals, 2));
+  TEST_EQ(arr1[0], 10u);
+  TEST_EQ(arr1[1], 20u);
+  arr2.CopyFromSpan(flatbuffers::span<const uint32_t, 2>(raw_vals, 2));
+  TEST_ASSERT(arr1 == arr2);
+}
+
 void NativeTypeTest() {
   const int N = 3;
 
@@ -1843,6 +1890,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
   FixedLengthArrayOperatorEqualTest();
+  BufferAndTableSafetyTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
   FlexBuffersFloatingPointTest();

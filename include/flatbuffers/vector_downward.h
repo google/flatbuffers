@@ -42,7 +42,7 @@ class vector_downward {
         own_allocator_(own_allocator),
         initial_size_(initial_size),
         max_size_(max_size),
-        buffer_minalign_(buffer_minalign),
+        buffer_minalign_(buffer_minalign ? buffer_minalign : 1),
         reserved_(0),
         size_(0),
         buf_(nullptr),
@@ -165,18 +165,26 @@ class vector_downward {
   Allocator* get_custom_allocator() { return allocator_; }
 
   // The current offset into the buffer.
-  size_t offset() const { return cur_ - buf_; }
+  size_t offset() const {
+    return (buf_ && cur_) ? static_cast<size_t>(cur_ - buf_) : 0;
+  }
 
   // The total size of the vector (both the buffer and scratch parts).
   inline SizeT size() const { return size_; }
 
   // The size of the buffer part of the vector that is currently unused.
   SizeT unused_buffer_size() const {
-    return static_cast<SizeT>(cur_ - scratch_);
+    return (cur_ && scratch_ && cur_ >= scratch_)
+               ? static_cast<SizeT>(cur_ - scratch_)
+               : 0;
   }
 
   // The size of the scratch part of the vector.
-  SizeT scratch_size() const { return static_cast<SizeT>(scratch_ - buf_); }
+  SizeT scratch_size() const {
+    return (scratch_ && buf_ && scratch_ >= buf_)
+               ? static_cast<SizeT>(scratch_ - buf_)
+               : 0;
+  }
 
   size_t capacity() const { return reserved_; }
 
@@ -195,10 +203,13 @@ class vector_downward {
     return scratch_;
   }
 
-  uint8_t* data_at(size_t offset) const { return buf_ + reserved_ - offset; }
+  uint8_t* data_at(size_t offset) const {
+    if (!buf_ || offset > reserved_) return nullptr;
+    return buf_ + reserved_ - offset;
+  }
 
   void push(const uint8_t* bytes, size_t num) {
-    if (num > 0) {
+    if (num > 0 && bytes) {
       memcpy(make_space(num), bytes, num);
     }
   }
@@ -231,11 +242,16 @@ class vector_downward {
   }
 
   void pop(size_t bytes_to_remove) {
+    bytes_to_remove = (std::min)(bytes_to_remove, static_cast<size_t>(size_));
     cur_ += bytes_to_remove;
     size_ -= static_cast<SizeT>(bytes_to_remove);
   }
 
-  void scratch_pop(size_t bytes_to_remove) { scratch_ -= bytes_to_remove; }
+  void scratch_pop(size_t bytes_to_remove) {
+    bytes_to_remove =
+        (std::min)(bytes_to_remove, static_cast<size_t>(scratch_size()));
+    scratch_ -= bytes_to_remove;
+  }
 
   void swap(vector_downward& other) {
     using std::swap;
@@ -281,7 +297,8 @@ class vector_downward {
     auto old_scratch_size = scratch_size();
     reserved_ +=
         (std::max)(len, old_reserved ? old_reserved / 2 : initial_size_);
-    reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
+    const size_t align = buffer_minalign_ ? buffer_minalign_ : 1;
+    reserved_ = (reserved_ + align - 1) & ~(align - 1);
     if (buf_) {
       buf_ = ReallocateDownward(allocator_, buf_, old_reserved, reserved_,
                                 old_size, old_scratch_size);
