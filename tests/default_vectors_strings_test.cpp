@@ -1,6 +1,7 @@
 #include "tests/default_vectors_strings_test.h"
 
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 #include "include/flatbuffers/buffer.h"
@@ -238,11 +239,23 @@ void DefaultVectorsStringsTest_BufferSize() {
   TEST_ASSERT(builder.GetSize() <= buffer_size_threshold_in_bytes);
 }
 
+void DefaultVectorsStringsTest_VerifierVectorSizeOverflow() {
+  alignas(size_t) uint8_t buffer[sizeof(size_t) * 2] = {};
+  WriteScalar<size_t>(buffer, std::numeric_limits<size_t>::max() - 1);
+
+  Verifier::Options options;
+  options.max_size = std::numeric_limits<size_t>::max();
+  Verifier verifier(buffer, sizeof(buffer), options);
+
+  TEST_ASSERT(!verifier.VerifyVectorOrString<size_t>(buffer, 1));
+}
+
 void DefaultVectorsStringsTest() {
   DefaultVectorsStringsTest_EmptyOnDefault_Const();
   DefaultVectorsStringsTest_EmptyOnDefault_Mutable();
   DefaultVectorsStringsTest_WithValues();
   DefaultVectorsStringsTest_BufferSize();
+  DefaultVectorsStringsTest_VerifierVectorSizeOverflow();
 }
 
 }  // namespace tests

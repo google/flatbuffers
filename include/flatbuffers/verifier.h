@@ -152,6 +152,11 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     // Check the whole array. If this is a string, the byte past the array must
     // be 0.
     const LenT size = ReadScalar<LenT>(vec);
+    if (!Check(elem_size != 0))
+      return false;
+    const auto max_size = std::numeric_limits<size_t>::max();
+    if (!Check(size <= (max_size - sizeof(LenT)) / elem_size))
+      return false;  // Protect the length field addition and element size multiplication.
     const auto max_elems = opts_.max_size / elem_size;
     if (!Check(size < max_elems))
       return false;  // Protect against byte_size overflowing.
