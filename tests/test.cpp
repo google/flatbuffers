@@ -1569,6 +1569,32 @@ void VectorSpanTest() {
     flatbuffers::span<uint8_t> mutable_nested =
         flatbuffers::make_span(mutable_monster->mutable_testnestedflatbuffer());
     TEST_ASSERT(mutable_nested.empty());
+
+    // Test make_bytes_span on references, pointers, and null pointers
+    flatbuffers::span<const uint8_t> const_bytes =
+        flatbuffers::make_bytes_span(*monster->inventory());
+    TEST_EQ(const_bytes.size(), 10);
+    TEST_EQ(const_bytes[0], 0);
+
+    flatbuffers::span<uint8_t> mutable_bytes =
+        flatbuffers::make_bytes_span(*mutable_monster->mutable_inventory());
+    TEST_EQ(mutable_bytes.size(), 10);
+
+    flatbuffers::span<const uint8_t> const_ptr_bytes =
+        flatbuffers::make_bytes_span(monster->inventory());
+    TEST_EQ(const_ptr_bytes.size(), 10);
+
+    flatbuffers::span<uint8_t> mutable_ptr_bytes =
+        flatbuffers::make_bytes_span(mutable_monster->mutable_inventory());
+    TEST_EQ(mutable_ptr_bytes.size(), 10);
+
+    flatbuffers::span<const uint8_t> null_const_bytes =
+        flatbuffers::make_bytes_span(monster->testnestedflatbuffer());
+    TEST_ASSERT(null_const_bytes.empty());
+
+    flatbuffers::span<uint8_t> null_mutable_bytes =
+        flatbuffers::make_bytes_span(mutable_monster->mutable_testnestedflatbuffer());
+    TEST_ASSERT(null_mutable_bytes.empty());
   }
 }
 

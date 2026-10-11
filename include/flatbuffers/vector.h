@@ -260,6 +260,9 @@ class Vector {
   void MutateOffset(SizeT i, const uint8_t* val) {
     FLATBUFFERS_ASSERT(i < size());
     static_assert(sizeof(T) == sizeof(SizeT), "Unrelated types");
+    FLATBUFFERS_ASSERT(val >= Data() + i * sizeof(SizeT));
+    FLATBUFFERS_ASSERT(static_cast<size_t>(val - (Data() + i * sizeof(SizeT))) <=
+                       (std::numeric_limits<SizeT>::max)());
     WriteScalar(data() + i,
                 static_cast<SizeT>(val - (Data() + i * sizeof(SizeT))));
   }
@@ -349,7 +352,12 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
     Vector<U>& vec) FLATBUFFERS_NOEXCEPT {
   static_assert(Vector<U>::scalar_tag::value,
                 "wrong type U, only LE-scalar, or byte types are allowed");
-  return span<uint8_t>(vec.Data(), vec.size() * sizeof(U));
+  return (sizeof(U) == 0 ||
+          vec.size() <= static_cast<typename Vector<U>::size_type>(
+                            static_cast<size_t>(-1)) / sizeof(U))
+             ? span<uint8_t>(vec.Data(),
+                             static_cast<size_t>(vec.size() * sizeof(U)))
+             : span<uint8_t>();
 }
 
 template <class U>
@@ -357,7 +365,12 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
     const Vector<U>& vec) FLATBUFFERS_NOEXCEPT {
   static_assert(Vector<U>::scalar_tag::value,
                 "wrong type U, only LE-scalar, or byte types are allowed");
-  return span<const uint8_t>(vec.Data(), vec.size() * sizeof(U));
+  return (sizeof(U) == 0 ||
+          vec.size() <= static_cast<typename Vector<U>::size_type>(
+                            static_cast<size_t>(-1)) / sizeof(U))
+             ? span<const uint8_t>(vec.Data(),
+                                   static_cast<size_t>(vec.size() * sizeof(U)))
+             : span<const uint8_t>();
 }
 
 #if FLATBUFFERS_LITTLEENDIAN
@@ -409,6 +422,18 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_structs_span(
 }
 
 #endif
+
+template <class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
+    Vector<U>* ptr) FLATBUFFERS_NOEXCEPT {
+  return ptr ? make_bytes_span(*ptr) : span<uint8_t>();
+}
+
+template <class U>
+FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
+    const Vector<U>* ptr) FLATBUFFERS_NOEXCEPT {
+  return ptr ? make_bytes_span(*ptr) : span<const uint8_t>();
+}
 
 // Represent a vector much like the template above, but in this case we
 // don't know what the element types are (used with reflection.h).
