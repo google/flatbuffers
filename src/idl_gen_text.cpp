@@ -46,7 +46,9 @@ struct JsonPrinter {
     if (opts.indent_step >= 0) text += '\n';
   }
 
-  void AddIndent(int ident) { text.append(ident, ' '); }
+  void AddIndent(int ident) {
+    if (ident > 0) text.append(static_cast<size_t>(ident), ' ');
+  }
 
   int Indent() const { return std::max(opts.indent_step, 0); }
 
@@ -383,6 +385,7 @@ struct JsonPrinter {
 static const char* GenerateTextImpl(const Parser& parser, const Table* table,
                                     const StructDef& struct_def,
                                     std::string* _text) {
+  if (!_text || !table) return "invalid table or destination";
   JsonPrinter printer(parser, *_text);
   auto err = printer.GenStruct(struct_def, table, 0);
   if (err) return err;
@@ -401,6 +404,7 @@ bool GenerateTextFromTable(const Parser& parser, const void* table,
 const char* GenTextFromTable(const Parser& parser, const void* table,
                              const std::string& table_name,
                              std::string* _text) {
+  if (!_text || !table) return "invalid table or destination";
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) {
     return "unknown struct";
@@ -418,6 +422,8 @@ const char* GenerateText(const Parser& parser, const void* flatbuffer,
 // Generate a text representation of a flatbuffer in JSON format.
 const char* GenText(const Parser& parser, const void* flatbuffer,
                     std::string* _text) {
+  if (!_text || !flatbuffer) return "invalid buffer or destination";
+  if (!parser.root_struct_def_) return "no root type";
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
   auto root = parser.opts.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
                                         : GetRoot<Table>(flatbuffer);

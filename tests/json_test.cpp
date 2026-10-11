@@ -42,6 +42,14 @@ void JsonDefaultTest(const std::string& tests_data_path) {
   TEST_EQ(std::string::npos != jsongen.find("color: \"Blue\""), true);
   // default value of the "testf" field is 3.14159
   TEST_EQ(std::string::npos != jsongen.find("testf: 3.14159"), true);
+
+  // Test defensive null and negative indent guards.
+  TEST_NOTNULL(GenText(parser, nullptr, &jsongen));
+  TEST_NOTNULL(GenText(parser, builder.GetBufferPointer(), nullptr));
+  parser.opts.indent_step = -1;
+  jsongen.clear();
+  TEST_NULL(GenText(parser, builder.GetBufferPointer(), &jsongen));
+  parser.opts.indent_step = 2;
 }
 
 void JsonEnumsTest(const std::string& tests_data_path) {
