@@ -935,5 +935,45 @@ void FieldIdentifierTest() {
 #endif
 }
 
+void IdlParserAndSchemaSafetyTest() {
+  flatbuffers::Parser parser;
+  // Null inputs to parser methods
+  TEST_EQ(parser.Parse(nullptr), false);
+  TEST_NOTNULL(strstr(parser.error_.c_str(), "source buffer is null"));
+  TEST_EQ(parser.ParseJson(nullptr), false);
+  TEST_EQ(parser.ParseFlexBuffer(nullptr, nullptr, nullptr), false);
+  flexbuffers::Builder builder;
+  TEST_EQ(parser.ParseFlexBuffer(nullptr, nullptr, &builder), false);
+  TEST_EQ(parser.ParseFlexBuffer("{ a: 1 }", nullptr, nullptr), false);
+  TEST_EQ(parser.BytesConsumed(), 0);
+  TEST_EQ(parser.SetRootType(nullptr), false);
+
+  // Deserialization null guards
+  TEST_EQ(parser.Deserialize(nullptr, 0), false);
+  TEST_EQ(parser.Deserialize(nullptr, 100), false);
+  TEST_EQ(parser.Deserialize(static_cast<const reflection::Schema*>(nullptr)), false);
+
+  // ConformTo null safety and basic schema comparison
+  flatbuffers::Parser base_parser;
+  TEST_ASSERT(base_parser.Parse("namespace Foo; table Bar { x:int; } root_type Bar;"));
+  flatbuffers::Parser derived_parser;
+  TEST_ASSERT(derived_parser.Parse("namespace Foo; table Bar { x:int; y:string; } root_type Bar;"));
+  TEST_EQ(derived_parser.ConformTo(base_parser), std::string());
+
+  // Hash attribute parsing
+  flatbuffers::Parser hash_parser;
+  TEST_ASSERT(hash_parser.Parse("table H { x:uint (hash:\"fnv1a_32\"); } root_type H;"));
+  TEST_ASSERT(hash_parser.ParseJson("{ x: \"hello\" }"));
+
+  // Math functions (asin, acos) domain boundary
+  flatbuffers::Parser math_parser;
+  TEST_ASSERT(math_parser.Parse("table M { a:float = asin(1.0); b:float = acos(-1.0); }"));
+
+  // JSON parsing with negative/positive numbers and inf/nan
+  flatbuffers::Parser json_parser;
+  TEST_ASSERT(json_parser.Parse("table J { f:float; i:int; } root_type J;"));
+  TEST_ASSERT(json_parser.ParseJson("{ f: -inf, i: -42 }"));
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
