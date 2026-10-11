@@ -203,5 +203,27 @@ root_type JsonUnionStructTest;
   TEST_EQ_STR(json_source, json_generated.c_str());
 }
 
+void JsonHardeningTest() {
+  flatbuffers::Parser parser;
+  // Test GenTextFile handles null file_saver safely
+  parser.opts.file_saver = nullptr;
+  TEST_EQ_STR(GenTextFile(parser, "", "test"), "file_saver is null");
+
+  // Test GenText with nested flatbuffer options when buffer is unset
+  const char* schema =
+      "table Nested { val: int; }\n"
+      "table Root { nested: [ubyte] (nested_flatbuffer: \"Nested\"); }\n"
+      "root_type Root;\n";
+  TEST_ASSERT(parser.Parse(schema));
+  parser.opts.json_nested_flatbuffers = true;
+  flatbuffers::FlatBufferBuilder fbb;
+  auto start = fbb.StartTable();
+  auto root_offset = fbb.EndTable(start);
+  fbb.Finish(flatbuffers::Offset<flatbuffers::Table>(root_offset));
+  std::string json;
+  auto err = GenText(parser, fbb.GetBufferPointer(), &json);
+  TEST_NULL(err);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

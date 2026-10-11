@@ -144,6 +144,10 @@ struct JsonPrinter {
         AddNewLine();
       }
       AddIndent(elem_indent);
+      if (is_struct && type.struct_def->bytesize != 0 &&
+          i > static_cast<size_t>(-1) / type.struct_def->bytesize) {
+        return "struct array size overflow";
+      }
       auto ptr = is_struct ? reinterpret_cast<const void*>(
                                  c.Data() + type.struct_def->bytesize * i)
                            : c[i];
@@ -180,17 +184,25 @@ struct JsonPrinter {
 
   const char* PrintOffset(const void* val, const Type& type, int indent,
                           const uint8_t* prev_val, soffset_t vector_index) {
+    if (!val && type.base_type != BASE_TYPE_UNION) {
+      text += "null";
+      return nullptr;
+    }
     switch (type.base_type) {
       case BASE_TYPE_UNION: {
-        // If this assert hits, you have an corrupt buffer, a union type field
-        // was not present or was out of range.
-        FLATBUFFERS_ASSERT(prev_val);
+        if (!prev_val) return "missing union type discriminator";
         auto union_type_byte = *prev_val;  // Always a uint8_t.
         if (vector_index >= 0) {
+          auto offset = ReadScalar<uoffset_t>(prev_val);
+          if (!offset) return "missing union type vector";
           auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(
-              prev_val + ReadScalar<uoffset_t>(prev_val));
+              prev_val + offset);
+          if (static_cast<uoffset_t>(vector_index) >= type_vec->size()) {
+            return "union vector index out of bounds";
+          }
           union_type_byte = type_vec->Get(static_cast<uoffset_t>(vector_index));
         }
+        if (!type.enum_def) return "missing union enum definition";
         auto enum_val = type.enum_def->ReverseLookup(union_type_byte, true);
         if (enum_val) {
           return PrintOffset(val, enum_val->union_type, indent, nullptr, -1);
@@ -295,11 +307,19 @@ struct JsonPrinter {
       // If the whole buffer is corrupt, we likely crash before we even get
       // here.
       auto vec = table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
+      if (!vec) {
+        text += "null";
+        return nullptr;
+      }
       auto root = flexbuffers::GetRoot(vec->data(), vec->size());
       root.ToString(true, opts.strict_json, text);
       return nullptr;
     } else if (fd.nested_flatbuffer && opts.json_nested_flatbuffers) {
       auto vec = table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
+      if (!vec || !vec->data()) {
+        text += "null";
+        return nullptr;
+      }
       auto root = GetRoot<Table>(vec->data());
       return GenStruct(*fd.nested_flatbuffer, root, indent);
     } else {
@@ -437,6 +457,7 @@ const char* GenerateTextFile(const Parser& parser, const std::string& path,
 
 const char* GenTextFile(const Parser& parser, const std::string& path,
                         const std::string& file_name) {
+  if (!parser.opts.file_saver) return "file_saver is null";
   if (parser.opts.use_flexbuffers) {
     std::string json;
     parser.flex_root_.ToString(true, parser.opts.strict_json, json);
