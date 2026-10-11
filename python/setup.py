@@ -46,6 +46,8 @@ try:
         ),
         packages=['flatbuffers'],
         include_package_data=True,
+        # Ship the PEP 561 marker so type checkers treat the package as typed.
+        package_data={'flatbuffers': ['py.typed']},
         requires=[],
         description='The FlatBuffers serialization format for Python',
         classifiers=[
