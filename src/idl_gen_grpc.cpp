@@ -43,11 +43,13 @@ class FlatBufMethod : public grpc_generator::Method {
 
   FlatBufMethod(const RPCCall* method) : method_(method) {
     streaming_ = kNone;
-    auto val = method_->attributes.Lookup("streaming");
-    if (val) {
-      if (val->constant == "client") streaming_ = kClient;
-      if (val->constant == "server") streaming_ = kServer;
-      if (val->constant == "bidi") streaming_ = kBiDi;
+    if (method_) {
+      auto val = method_->attributes.Lookup("streaming");
+      if (val) {
+        if (val->constant == "client") streaming_ = kClient;
+        if (val->constant == "server") streaming_ = kServer;
+        if (val->constant == "bidi") streaming_ = kBiDi;
+      }
     }
   }
 
@@ -56,10 +58,10 @@ class FlatBufMethod : public grpc_generator::Method {
   grpc::string GetTrailingComments(const grpc::string) const { return ""; }
 
   std::vector<grpc::string> GetAllComments() const {
-    return method_->doc_comment;
+    return method_ ? method_->doc_comment : std::vector<grpc::string>();
   }
 
-  std::string name() const { return method_->name; }
+  std::string name() const { return method_ ? method_->name : ""; }
 
   // TODO: This method need to incorporate namespace for C++ side. Other
   // language bindings simply don't use this method.
@@ -68,16 +70,26 @@ class FlatBufMethod : public grpc_generator::Method {
   }
 
   std::vector<std::string> get_input_namespace_parts() const {
-    return (*method_->request).defined_namespace->components;
+    if (method_ && method_->request && method_->request->defined_namespace) {
+      return method_->request->defined_namespace->components;
+    }
+    return std::vector<std::string>();
   }
 
-  std::string get_input_type_name() const { return (*method_->request).name; }
+  std::string get_input_type_name() const {
+    return (method_ && method_->request) ? method_->request->name : "";
+  }
 
   std::vector<std::string> get_output_namespace_parts() const {
-    return (*method_->response).defined_namespace->components;
+    if (method_ && method_->response && method_->response->defined_namespace) {
+      return method_->response->defined_namespace->components;
+    }
+    return std::vector<std::string>();
   }
 
-  std::string get_output_type_name() const { return (*method_->response).name; }
+  std::string get_output_type_name() const {
+    return (method_ && method_->response) ? method_->response->name : "";
+  }
 
   bool get_module_and_message_path_input(grpc::string* /*str*/,
                                          grpc::string /*generator_file_name*/,
@@ -94,9 +106,13 @@ class FlatBufMethod : public grpc_generator::Method {
 
   std::string get_fb_builder() const { return "builder"; }
 
-  std::string input_type_name() const { return GRPCType(*method_->request); }
+  std::string input_type_name() const {
+    return (method_ && method_->request) ? GRPCType(*method_->request) : "";
+  }
 
-  std::string output_type_name() const { return GRPCType(*method_->response); }
+  std::string output_type_name() const {
+    return (method_ && method_->response) ? GRPCType(*method_->response) : "";
+  }
 
   bool NoStreaming() const { return streaming_ == kNone; }
 
@@ -120,23 +136,32 @@ class FlatBufService : public grpc_generator::Service {
   grpc::string GetTrailingComments(const grpc::string) const { return ""; }
 
   std::vector<grpc::string> GetAllComments() const {
-    return service_->doc_comment;
+    return service_ ? service_->doc_comment : std::vector<grpc::string>();
   }
 
   std::vector<grpc::string> namespace_parts() const {
-    return service_->defined_namespace->components;
+    if (service_ && service_->defined_namespace) {
+      return service_->defined_namespace->components;
+    }
+    return std::vector<grpc::string>();
   }
 
-  std::string name() const { return service_->name; }
+  std::string name() const { return service_ ? service_->name : ""; }
   bool is_internal() const {
-    return service_->Definition::attributes.Lookup("private") ? true : false;
+    return (service_ && service_->Definition::attributes.Lookup("private"))
+               ? true
+               : false;
   }
 
   int method_count() const {
-    return static_cast<int>(service_->calls.vec.size());
+    return service_ ? static_cast<int>(service_->calls.vec.size()) : 0;
   }
 
   std::unique_ptr<const grpc_generator::Method> method(int i) const {
+    if (!service_ || i < 0 ||
+        static_cast<size_t>(i) >= service_->calls.vec.size()) {
+      return nullptr;
+    }
     return std::unique_ptr<const grpc_generator::Method>(
         new FlatBufMethod(service_->calls.vec[i]));
   }
@@ -156,6 +181,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
 
   void Print(const std::map<std::string, std::string>& vars,
              const char* string_template) {
+    if (!string_template || !str_) return;
     std::string s = string_template;
     // Replace any occurrences of strings in "vars" that are surrounded
     // by the escape character by what they're mapped to.
@@ -175,7 +201,7 @@ class FlatBufPrinter : public grpc_generator::Printer {
   }
 
   void Print(const char* s) {
-    if (s == nullptr || *s == '\0') {
+    if (s == nullptr || *s == '\0' || !str_) {
       return;
     }
     // Add this string, but for each part separated by \n, add indentation.
@@ -196,7 +222,9 @@ class FlatBufPrinter : public grpc_generator::Printer {
   }
 
   void SetIndentationSize(const size_t size) {
-    FLATBUFFERS_ASSERT(str_->empty());
+    if (str_) {
+      FLATBUFFERS_ASSERT(str_->empty());
+    }
     indentation_size_ = size;
   }
 
@@ -247,11 +275,15 @@ class FlatBufFile : public grpc_generator::File {
   }
 
   std::string package() const {
-    return parser_.current_namespace_->GetFullyQualifiedName("");
+    return parser_.current_namespace_
+               ? parser_.current_namespace_->GetFullyQualifiedName("")
+               : "";
   }
 
   std::vector<std::string> package_parts() const {
-    return parser_.current_namespace_->components;
+    return parser_.current_namespace_
+               ? parser_.current_namespace_->components
+               : std::vector<std::string>();
   }
 
   std::string additional_headers() const {
@@ -292,6 +324,9 @@ class FlatBufFile : public grpc_generator::File {
   }
 
   std::unique_ptr<const grpc_generator::Service> service(int i) const {
+    if (i < 0 || static_cast<size_t>(i) >= parser_.services_.vec.size()) {
+      return nullptr;
+    }
     return std::unique_ptr<const grpc_generator::Service>(
         new FlatBufService(parser_.services_.vec[i]));
   }
@@ -318,12 +353,15 @@ class GoGRPCGenerator : public flatbuffers::BaseGenerator {
         file_name_(file_name) {}
 
   bool generate() {
+    if (!parser_.opts.file_saver) return false;
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageGo);
     grpc_go_generator::Parameters p;
     p.custom_method_io_type = "flatbuffers.Builder";
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
+      if (!service) continue;
       const Definition* def = parser_.services_.vec[i];
+      if (!def || !def->defined_namespace) continue;
       p.package_name = LastNamespacePart(*(def->defined_namespace));
       p.service_prefix =
           def->defined_namespace->GetFullyQualifiedName("");  // file.package();
@@ -347,7 +385,7 @@ bool GenerateGoGRPC(const Parser& parser, const std::string& path,
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
-    if (!(*it)->generated) nservices++;
+    if (*it && !(*it)->generated) nservices++;
   }
   if (!nservices) return true;
   return GoGRPCGenerator(parser, path, file_name).generate();
@@ -359,9 +397,10 @@ bool GenerateCppGRPC(const Parser& parser, const std::string& path,
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
-    if (!(*it)->generated) nservices++;
+    if (*it && !(*it)->generated) nservices++;
   }
   if (!nservices) return true;
+  if (!opts.file_saver) return false;
 
   std::string suffix = "";
   suffix += opts.filename_suffix.empty() ? "_generated" : opts.filename_suffix;
@@ -411,11 +450,14 @@ class JavaGRPCGenerator : public flatbuffers::BaseGenerator {
       : BaseGenerator(parser, path, file_name, "", "." /*separator*/, "java") {}
 
   bool generate() {
+    if (!parser_.opts.file_saver) return false;
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageJava);
     grpc_java_generator::Parameters p;
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
+      if (!service) continue;
       const Definition* def = parser_.services_.vec[i];
+      if (!def || !def->defined_namespace) continue;
       p.package_name =
           def->defined_namespace->GetFullyQualifiedName("");  // file.package();
       std::string output =
@@ -434,7 +476,7 @@ bool GenerateJavaGRPC(const Parser& parser, const std::string& path,
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
-    if (!(*it)->generated) nservices++;
+    if (*it && !(*it)->generated) nservices++;
   }
   if (!nservices) return true;
   return JavaGRPCGenerator(parser, path, file_name).generate();
@@ -445,7 +487,7 @@ bool GeneratePythonGRPC(const Parser& parser, const std::string& path,
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
-    if (!(*it)->generated) nservices++;
+    if (*it && !(*it)->generated) nservices++;
   }
   if (!nservices) return true;
 
@@ -471,12 +513,14 @@ class SwiftGRPCGenerator : public flatbuffers::BaseGenerator {
       : BaseGenerator(parser, path, filename, "", "" /*Unused*/, "swift") {}
 
   bool generate() {
+    if (!parser_.opts.file_saver) return false;
     code_.Clear();
     code_ += "// Generated GRPC code for FlatBuffers swift!";
     code_ += grpc_swift_generator::GenerateHeader();
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageSwift);
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
+      if (!service) continue;
       code_ += grpc_swift_generator::Generate(&file, service.get());
     }
     const auto final_code = code_.ToString();
@@ -496,7 +540,7 @@ bool GenerateSwiftGRPC(const Parser& parser, const std::string& path,
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
-    if (!(*it)->generated) nservices++;
+    if (*it && !(*it)->generated) nservices++;
   }
   if (!nservices) return true;
   return SwiftGRPCGenerator(parser, path, file_name).generate();
@@ -512,11 +556,13 @@ class TSGRPCGenerator : public flatbuffers::BaseGenerator {
       : BaseGenerator(parser, path, filename, "", "" /*Unused*/, "ts") {}
 
   bool generate() {
+    if (!parser_.opts.file_saver) return false;
     code_.Clear();
     FlatBufFile file(parser_, file_name_, FlatBufFile::kLanguageTS);
 
     for (int i = 0; i < file.service_count(); i++) {
       auto service = file.service(i);
+      if (!service) continue;
       code_ += grpc_ts_generator::Generate(&file, service.get(), file_name_);
       const auto ts_name = GeneratedFileName(path_, file_name_);
       if (!parser_.opts.file_saver->SaveFile(ts_name.c_str(), code_.ToString(),
@@ -547,7 +593,7 @@ bool GenerateTSGRPC(const Parser& parser, const std::string& path,
   int nservices = 0;
   for (auto it = parser.services_.vec.begin(); it != parser.services_.vec.end();
        ++it) {
-    if (!(*it)->generated) nservices++;
+    if (*it && !(*it)->generated) nservices++;
   }
   if (!nservices) return true;
   return TSGRPCGenerator(parser, path, file_name).generate();

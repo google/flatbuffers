@@ -16,11 +16,11 @@ static grpc::string as_string(T x) {
 }
 
 static inline bool ClientOnlyStreaming(const grpc_generator::Method* method) {
-  return method->ClientStreaming() && !method->ServerStreaming();
+  return method && method->ClientStreaming() && !method->ServerStreaming();
 }
 
 static inline bool ServerOnlyStreaming(const grpc_generator::Method* method) {
-  return !method->ClientStreaming() && method->ServerStreaming();
+  return method && !method->ClientStreaming() && method->ServerStreaming();
 }
 
 static grpc::string FilenameIdentifier(const grpc::string& filename) {
@@ -81,6 +81,7 @@ static void PrintIncludes(grpc_generator::Printer* printer,
 
 grpc::string GetHeaderPrologue(grpc_generator::File* file,
                                const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -113,6 +114,7 @@ grpc::string GetHeaderPrologue(grpc_generator::File* file,
 
 grpc::string GetHeaderIncludes(grpc_generator::File* file,
                                const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -157,6 +159,7 @@ namespace {
 static void PrintHeaderClientMethodInterfaces(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars, bool is_public) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -372,6 +375,7 @@ static void PrintHeaderClientMethod(grpc_generator::Printer* printer,
                                     const grpc_generator::Method* method,
                                     std::map<grpc::string, grpc::string>* vars,
                                     bool is_public) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -616,6 +620,7 @@ static void PrintHeaderClientMethod(grpc_generator::Printer* printer,
 static void PrintHeaderClientMethodData(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   printer->Print(*vars,
                  "const ::grpc::internal::RpcMethod rpcmethod_$Method$_;\n");
@@ -624,6 +629,7 @@ static void PrintHeaderClientMethodData(
 static void PrintHeaderServerMethodSync(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -658,6 +664,7 @@ static void PrintHeaderServerMethodSync(
 static void PrintHeaderServerMethodAsync(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -774,6 +781,7 @@ static void PrintHeaderServerMethodAsync(
 static void PrintHeaderServerMethodStreamedUnary(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -825,6 +833,7 @@ static void PrintHeaderServerMethodStreamedUnary(
 static void PrintHeaderServerMethodSplitStreaming(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -878,6 +887,7 @@ static void PrintHeaderServerMethodSplitStreaming(
 static void PrintHeaderServerMethodGeneric(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -949,6 +959,7 @@ static void PrintHeaderServerMethodGeneric(
 static void PrintHeaderService(grpc_generator::Printer* printer,
                                const grpc_generator::Service* service,
                                std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !service || !vars) return;
   (*vars)["Service"] = service->name();
 
   printer->Print(service->GetLeadingComments("//").c_str());
@@ -970,16 +981,20 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
   printer->Indent();
   printer->Print("virtual ~StubInterface() {}\n");
   for (int i = 0; i < service->method_count(); ++i) {
-    printer->Print(service->method(i)->GetLeadingComments("//").c_str());
-    PrintHeaderClientMethodInterfaces(printer, service->method(i).get(), vars,
+    auto method = service->method(i);
+    if (!method) continue;
+    printer->Print(method->GetLeadingComments("//").c_str());
+    PrintHeaderClientMethodInterfaces(printer, method.get(), vars,
                                       true);
-    printer->Print(service->method(i)->GetTrailingComments("//").c_str());
+    printer->Print(method->GetTrailingComments("//").c_str());
   }
   printer->Outdent();
   printer->Print("private:\n");
   printer->Indent();
   for (int i = 0; i < service->method_count(); ++i) {
-    PrintHeaderClientMethodInterfaces(printer, service->method(i).get(), vars,
+    auto method = service->method(i);
+    if (!method) continue;
+    PrintHeaderClientMethodInterfaces(printer, method.get(), vars,
                                       false);
   }
   printer->Outdent();
@@ -996,17 +1011,23 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
       "Stub(const std::shared_ptr< ::grpc::ChannelInterface>& "
       "channel);\n");
   for (int i = 0; i < service->method_count(); ++i) {
-    PrintHeaderClientMethod(printer, service->method(i).get(), vars, true);
+    auto method = service->method(i);
+    if (!method) continue;
+    PrintHeaderClientMethod(printer, method.get(), vars, true);
   }
   printer->Outdent();
   printer->Print("\n private:\n");
   printer->Indent();
   printer->Print("std::shared_ptr< ::grpc::ChannelInterface> channel_;\n");
   for (int i = 0; i < service->method_count(); ++i) {
-    PrintHeaderClientMethod(printer, service->method(i).get(), vars, false);
+    auto method = service->method(i);
+    if (!method) continue;
+    PrintHeaderClientMethod(printer, method.get(), vars, false);
   }
   for (int i = 0; i < service->method_count(); ++i) {
-    PrintHeaderClientMethodData(printer, service->method(i).get(), vars);
+    auto method = service->method(i);
+    if (!method) continue;
+    PrintHeaderClientMethodData(printer, method.get(), vars);
   }
   printer->Outdent();
   printer->Print("};\n");
@@ -1025,52 +1046,68 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
   printer->Print("Service();\n");
   printer->Print("virtual ~Service();\n");
   for (int i = 0; i < service->method_count(); ++i) {
-    PrintHeaderServerMethodSync(printer, service->method(i).get(), vars);
+    auto method = service->method(i);
+    if (!method) continue;
+    PrintHeaderServerMethodSync(printer, method.get(), vars);
   }
   printer->Outdent();
   printer->Print("};\n");
 
   // Server side - Asynchronous
   for (int i = 0; i < service->method_count(); ++i) {
+    auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Idx"] = as_string(i);
-    PrintHeaderServerMethodAsync(printer, service->method(i).get(), vars);
+    PrintHeaderServerMethodAsync(printer, method.get(), vars);
   }
 
   printer->Print("typedef ");
 
   for (int i = 0; i < service->method_count(); ++i) {
-    (*vars)["method_name"] = service->method(i).get()->name();
+    auto method = service->method(i);
+    if (!method) continue;
+    (*vars)["method_name"] = method->name();
     printer->Print(*vars, "WithAsyncMethod_$method_name$<");
   }
   printer->Print("Service");
   for (int i = 0; i < service->method_count(); ++i) {
+    auto method = service->method(i);
+    if (!method) continue;
     printer->Print(" >");
   }
   printer->Print(" AsyncService;\n");
 
   // Server side - Generic
   for (int i = 0; i < service->method_count(); ++i) {
+    auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Idx"] = as_string(i);
-    PrintHeaderServerMethodGeneric(printer, service->method(i).get(), vars);
+    PrintHeaderServerMethodGeneric(printer, method.get(), vars);
   }
 
   // Server side - Streamed Unary
   for (int i = 0; i < service->method_count(); ++i) {
+    auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Idx"] = as_string(i);
-    PrintHeaderServerMethodStreamedUnary(printer, service->method(i).get(),
+    PrintHeaderServerMethodStreamedUnary(printer, method.get(),
                                          vars);
   }
 
   printer->Print("typedef ");
   for (int i = 0; i < service->method_count(); ++i) {
-    (*vars)["method_name"] = service->method(i).get()->name();
-    if (service->method(i)->NoStreaming()) {
+    auto method = service->method(i);
+    if (!method) continue;
+    (*vars)["method_name"] = method->name();
+    if (method->NoStreaming()) {
       printer->Print(*vars, "WithStreamedUnaryMethod_$method_name$<");
     }
   }
   printer->Print("Service");
   for (int i = 0; i < service->method_count(); ++i) {
-    if (service->method(i)->NoStreaming()) {
+    auto method = service->method(i);
+    if (!method) continue;
+    if (method->NoStreaming()) {
       printer->Print(" >");
     }
   }
@@ -1078,15 +1115,18 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
 
   // Server side - controlled server-side streaming
   for (int i = 0; i < service->method_count(); ++i) {
+    auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Idx"] = as_string(i);
-    PrintHeaderServerMethodSplitStreaming(printer, service->method(i).get(),
+    PrintHeaderServerMethodSplitStreaming(printer, method.get(),
                                           vars);
   }
 
   printer->Print("typedef ");
   for (int i = 0; i < service->method_count(); ++i) {
-    (*vars)["method_name"] = service->method(i).get()->name();
     auto method = service->method(i);
+    if (!method) continue;
+    (*vars)["method_name"] = method->name();
     if (ServerOnlyStreaming(method.get())) {
       printer->Print(*vars, "WithSplitStreamingMethod_$method_name$<");
     }
@@ -1094,6 +1134,7 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
   printer->Print("Service");
   for (int i = 0; i < service->method_count(); ++i) {
     auto method = service->method(i);
+    if (!method) continue;
     if (ServerOnlyStreaming(method.get())) {
       printer->Print(" >");
     }
@@ -1103,19 +1144,21 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
   // Server side - typedef for controlled both unary and server-side streaming
   printer->Print("typedef ");
   for (int i = 0; i < service->method_count(); ++i) {
-    (*vars)["method_name"] = service->method(i).get()->name();
     auto method = service->method(i);
+    if (!method) continue;
+    (*vars)["method_name"] = method->name();
     if (ServerOnlyStreaming(method.get())) {
       printer->Print(*vars, "WithSplitStreamingMethod_$method_name$<");
     }
-    if (service->method(i)->NoStreaming()) {
+    if (method->NoStreaming()) {
       printer->Print(*vars, "WithStreamedUnaryMethod_$method_name$<");
     }
   }
   printer->Print("Service");
   for (int i = 0; i < service->method_count(); ++i) {
     auto method = service->method(i);
-    if (service->method(i)->NoStreaming() ||
+    if (!method) continue;
+    if (method->NoStreaming() ||
         ServerOnlyStreaming(method.get())) {
       printer->Print(" >");
     }
@@ -1137,6 +1180,7 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
     printer->Indent();
     for (int i = 0; i < service->method_count(); ++i) {
       auto m = service->method(i);
+      if (!m) continue;
       (*vars)["Method"] = m->name();
       (*vars)["Request"] = m->input_type_name();
       (*vars)["Response"] = m->output_type_name();
@@ -1173,6 +1217,7 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
 
 grpc::string GetHeaderServices(grpc_generator::File* file,
                                const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -1191,8 +1236,10 @@ grpc::string GetHeaderServices(grpc_generator::File* file,
     }
 
     for (int i = 0; i < file->service_count(); ++i) {
+      auto service = file->service(i);
+      if (!service) continue;
       vars["generate_callback_api"] = params.generate_callback_api ? "1" : "0";
-      PrintHeaderService(printer.get(), file->service(i).get(), &vars);
+      PrintHeaderService(printer.get(), service.get(), &vars);
       printer->Print("\n");
     }
     if (params.generate_callback_api) {
@@ -1209,6 +1256,7 @@ grpc::string GetHeaderServices(grpc_generator::File* file,
 
 grpc::string GetHeaderEpilogue(grpc_generator::File* file,
                                const Parameters& /*params*/) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -1238,6 +1286,7 @@ grpc::string GetHeaderEpilogue(grpc_generator::File* file,
 
 grpc::string GetSourcePrologue(grpc_generator::File* file,
                                const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -1264,6 +1313,7 @@ grpc::string GetSourcePrologue(grpc_generator::File* file,
 
 grpc::string GetSourceIncludes(grpc_generator::File* file,
                                const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -1301,6 +1351,7 @@ namespace {
 static void PrintSourceClientMethod(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -1501,6 +1552,7 @@ static void PrintSourceClientMethod(
 static void PrintSourceServerMethod(
     grpc_generator::Printer* printer, const grpc_generator::Method* method,
     std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -1550,13 +1602,16 @@ static void PrintSourceServerMethod(
 static void PrintSourceService(grpc_generator::Printer* printer,
                                const grpc_generator::Service* service,
                                std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !service || !vars) return;
   (*vars)["Service"] = service->name();
 
   if (service->method_count() > 0) {
     printer->Print(*vars,
                    "static const char* $prefix$$Service$_method_names[] = {\n");
     for (int i = 0; i < service->method_count(); ++i) {
-      (*vars)["Method"] = service->method(i).get()->name();
+      auto method = service->method(i);
+      if (!method) continue;
+      (*vars)["Method"] = method->name();
       printer->Print(*vars, "  \"/$Package$$Service$/$Method$\",\n");
     }
     printer->Print(*vars, "};\n\n");
@@ -1577,6 +1632,7 @@ static void PrintSourceService(grpc_generator::Printer* printer,
   printer->Print(": channel_(channel)");
   for (int i = 0; i < service->method_count(); ++i) {
     auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Method"] = method->name();
     (*vars)["Idx"] = as_string(i);
     if (method->NoStreaming()) {
@@ -1602,14 +1658,17 @@ static void PrintSourceService(grpc_generator::Printer* printer,
   printer->Outdent();
 
   for (int i = 0; i < service->method_count(); ++i) {
+    auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Idx"] = as_string(i);
-    PrintSourceClientMethod(printer, service->method(i).get(), vars);
+    PrintSourceClientMethod(printer, method.get(), vars);
   }
 
   printer->Print(*vars, "$ns$$Service$::Service::Service() {\n");
   printer->Indent();
   for (int i = 0; i < service->method_count(); ++i) {
     auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Idx"] = as_string(i);
     (*vars)["Method"] = method->name();
     (*vars)["Request"] = method->input_type_name();
@@ -1659,8 +1718,10 @@ static void PrintSourceService(grpc_generator::Printer* printer,
                  "$ns$$Service$::Service::~Service() {\n"
                  "}\n\n");
   for (int i = 0; i < service->method_count(); ++i) {
+    auto method = service->method(i);
+    if (!method) continue;
     (*vars)["Idx"] = as_string(i);
-    PrintSourceServerMethod(printer, service->method(i).get(), vars);
+    PrintSourceServerMethod(printer, method.get(), vars);
   }
 
   // CallbackService implementation (if enabled)
@@ -1672,6 +1733,7 @@ static void PrintSourceService(grpc_generator::Printer* printer,
     printer->Indent();
     for (int i = 0; i < service->method_count(); ++i) {
       auto method = service->method(i);
+      if (!method) continue;
       (*vars)["Idx"] = as_string(i);
       (*vars)["Method"] = method->name();
       (*vars)["Request"] = method->input_type_name();
@@ -1732,6 +1794,7 @@ static void PrintSourceService(grpc_generator::Printer* printer,
     // Default method bodies returning UNIMPLEMENTED reactors.
     for (int i = 0; i < service->method_count(); ++i) {
       auto method = service->method(i);
+      if (!method) continue;
       (*vars)["Method"] = method->name();
       (*vars)["Request"] = method->input_type_name();
       (*vars)["Response"] = method->output_type_name();
@@ -1776,6 +1839,7 @@ static void PrintSourceService(grpc_generator::Printer* printer,
 
 grpc::string GetSourceServices(grpc_generator::File* file,
                                const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -1796,8 +1860,10 @@ grpc::string GetSourceServices(grpc_generator::File* file,
     }
 
     for (int i = 0; i < file->service_count(); ++i) {
+      auto service = file->service(i);
+      if (!service) continue;
       vars["generate_callback_api"] = params.generate_callback_api ? "1" : "0";
-      PrintSourceService(printer.get(), file->service(i).get(), &vars);
+      PrintSourceService(printer.get(), service.get(), &vars);
       printer->Print("\n");
     }
   }
@@ -1806,6 +1872,7 @@ grpc::string GetSourceServices(grpc_generator::File* file,
 
 grpc::string GetSourceEpilogue(grpc_generator::File* file,
                                const Parameters& /*params*/) {
+  if (!file) return "";
   grpc::string temp;
 
   if (!file->package().empty()) {
@@ -1824,6 +1891,7 @@ grpc::string GetSourceEpilogue(grpc_generator::File* file,
 
 grpc::string GetMockPrologue(grpc_generator::File* file,
                              const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -1851,6 +1919,7 @@ grpc::string GetMockPrologue(grpc_generator::File* file,
 // TODO(mmukhi): Add client-stream and completion-queue headers.
 grpc::string GetMockIncludes(grpc_generator::File* file,
                              const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -1884,6 +1953,7 @@ namespace {
 static void PrintMockClientMethods(grpc_generator::Printer* printer,
                                    const grpc_generator::Method* method,
                                    std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !method || !vars) return;
   (*vars)["Method"] = method->name();
   (*vars)["Request"] = method->input_type_name();
   (*vars)["Response"] = method->output_type_name();
@@ -1975,6 +2045,7 @@ static void PrintMockClientMethods(grpc_generator::Printer* printer,
 static void PrintMockService(grpc_generator::Printer* printer,
                              const grpc_generator::Service* service,
                              std::map<grpc::string, grpc::string>* vars) {
+  if (!printer || !service || !vars) return;
   (*vars)["Service"] = service->name();
 
   printer->Print(*vars,
@@ -1982,7 +2053,9 @@ static void PrintMockService(grpc_generator::Printer* printer,
                  " public:\n");
   printer->Indent();
   for (int i = 0; i < service->method_count(); ++i) {
-    PrintMockClientMethods(printer, service->method(i).get(), vars);
+    auto method = service->method(i);
+    if (!method) continue;
+    PrintMockClientMethods(printer, method.get(), vars);
   }
   printer->Outdent();
   printer->Print("};\n");
@@ -1992,6 +2065,7 @@ static void PrintMockService(grpc_generator::Printer* printer,
 
 grpc::string GetMockServices(grpc_generator::File* file,
                              const Parameters& params) {
+  if (!file) return "";
   grpc::string output;
   {
     // Scope the output stream so it closes and finalizes output to the string.
@@ -2010,7 +2084,9 @@ grpc::string GetMockServices(grpc_generator::File* file,
     }
 
     for (int i = 0; i < file->service_count(); i++) {
-      PrintMockService(printer.get(), file->service(i).get(), &vars);
+      auto service = file->service(i);
+      if (!service) continue;
+      PrintMockService(printer.get(), service.get(), &vars);
       printer->Print("\n");
     }
 
@@ -2023,6 +2099,7 @@ grpc::string GetMockServices(grpc_generator::File* file,
 
 grpc::string GetMockEpilogue(grpc_generator::File* file,
                              const Parameters& /*params*/) {
+  if (!file) return "";
   grpc::string temp;
 
   if (!file->package().empty()) {

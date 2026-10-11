@@ -52,13 +52,18 @@ class Message {
   size_t size() const { return slice_.size(); }
 
   bool Verify() const {
+    if (!data() || size() == 0) return false;
     Verifier verifier(data(), size());
     return verifier.VerifyBuffer<T>(nullptr);
   }
 
-  T* GetMutableRoot() { return flatbuffers::GetMutableRoot<T>(mutable_data()); }
+  T* GetMutableRoot() {
+    return data() ? flatbuffers::GetMutableRoot<T>(mutable_data()) : nullptr;
+  }
 
-  const T* GetRoot() const { return flatbuffers::GetRoot<T>(data()); }
+  const T* GetRoot() const {
+    return data() ? flatbuffers::GetRoot<T>(data()) : nullptr;
+  }
 
   // This is only intended for serializer use, or if you know what you're doing
   const ::grpc::Slice& BorrowSlice() const { return slice_; }
@@ -233,6 +238,10 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     FLATBUFFERS_ASSERT(msg_size);
     FLATBUFFERS_ASSERT(msg_data >= buf_data);
     FLATBUFFERS_ASSERT(msg_data + msg_size <= buf_data + buf_size);
+    if (!msg_data || msg_size == 0 || !buf_data || msg_data < buf_data ||
+        msg_data + msg_size > buf_data + buf_size) {
+      return Message<T>();
+    }
     // Calculate offsets from the buffer start
     auto begin = msg_data - buf_data;
     auto end = begin + msg_size;
@@ -266,6 +275,10 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
  public:
   static grpc::Status Serialize(const flatbuffers::grpc::Message<T>& msg,
                                 ByteBuffer* buffer, bool* own_buffer) {
+    if (!buffer || !own_buffer) {
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT,
+                            "Invalid buffer arguments");
+    }
     // Package the single slice into a `ByteBuffer`,
     // incrementing the refcount in the process.
     *buffer = ByteBuffer(&msg.BorrowSlice(), 1);
@@ -276,6 +289,10 @@ class SerializationTraits<flatbuffers::grpc::Message<T>> {
   // Deserialize by pulling the
   static grpc::Status Deserialize(ByteBuffer* buf,
                                   flatbuffers::grpc::Message<T>* msg) {
+    if (!buf || !msg) {
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT,
+                            "Invalid arguments");
+    }
     Slice slice;
     if (!buf->TrySingleSlice(&slice).ok()) {
       if (!buf->DumpToSingleSlice(&slice).ok()) {

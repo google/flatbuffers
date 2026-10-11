@@ -259,3 +259,24 @@ class CppTests:
         ],
         unlink=False,
     )
+
+  def GrpcGeneration(self):
+    flatc([
+        "--cpp",
+        "--grpc",
+        "-I",
+        "../../tests/include_test",
+        "-o",
+        ".tmp",
+        "../../tests/monster_test.fbs",
+    ])
+    assert_file_and_contents(
+        ".tmp/monster_test.grpc.fb.h",
+        "class MonsterStorage",
+        unlink=True,
+    )
+    assert_file_and_contents(
+        ".tmp/monster_test.grpc.fb.cc",
+        "MonsterStorage::NewStub",
+        unlink=True,
+    )
