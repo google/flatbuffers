@@ -60,6 +60,9 @@ static BinarySection MakeSingleRegionBinarySection(const std::string& name,
 
 static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
                             const uint8_t* const binary) {
+  if (offset > (std::numeric_limits<uint64_t>::max)() - length) {
+    return false;
+  }
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (binary[i] != 0) {
       return true;
@@ -70,6 +73,9 @@ static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
 
 static bool IsPrintableRegion(const uint64_t offset, const uint64_t length,
                               const uint8_t* const binary) {
+  if (offset > (std::numeric_limits<uint64_t>::max)() - length) {
+    return false;
+  }
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (!isprint(binary[i])) {
       return false;
@@ -171,7 +177,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 
     bool has_prefix_value = false;
     const auto prefix_length = ReadScalar<uoffset64_t>(offset);
-    if (*prefix_length <= binary_length_) {
+    if (prefix_length.has_value() && *prefix_length <= binary_length_) {
       regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset64_t),
                                          BinaryRegionType::Uint64, 0, 0,
                                          prefix_length_comment));
@@ -181,7 +187,7 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 
     if (!has_prefix_value) {
       const auto prefix_length = ReadScalar<uoffset_t>(offset);
-      if (*prefix_length <= binary_length_) {
+      if (prefix_length.has_value() && *prefix_length <= binary_length_) {
         regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset_t),
                                            BinaryRegionType::Uint32, 0, 0,
                                            prefix_length_comment));
@@ -1012,10 +1018,17 @@ void BinaryAnnotator::BuildString(const uint64_t string_offset,
 
   } else {
     const uint32_t string_size = string_length.value();
+    const bool string_end_overflow =
+        (string_offset > (std::numeric_limits<uint64_t>::max)() -
+                             sizeof(uint32_t) - sizeof(char)) ||
+        (string_size > (std::numeric_limits<uint64_t>::max)() -
+                           sizeof(uint32_t) - sizeof(char) - string_offset);
     const uint64_t string_end =
-        string_offset + sizeof(uint32_t) + string_size + sizeof(char);
+        string_end_overflow
+            ? 0
+            : string_offset + sizeof(uint32_t) + string_size + sizeof(char);
 
-    if (!IsValidOffset(string_end - 1)) {
+    if (string_end_overflow || !IsValidOffset(string_end - 1)) {
       SetError(string_length_comment,
                BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);
 
@@ -1105,11 +1118,24 @@ void BinaryAnnotator::BuildVector(
 
   // Validate there are enough bytes left in the binary to process all the
   // items.
-  const uint64_t last_item_offset =
-      vector_offset + vector_length_size_type +
-      vector_length.value() * GetElementSize(field);
+  const uint64_t elem_size = GetElementSize(field);
+  const bool vector_overflow =
+      (elem_size > 0 &&
+       vector_length.value() >
+           (std::numeric_limits<uint64_t>::max)() / elem_size) ||
+      (vector_offset > (std::numeric_limits<uint64_t>::max)() -
+                           vector_length_size_type) ||
+      (vector_length.value() * elem_size >
+       (std::numeric_limits<uint64_t>::max)() - vector_length_size_type -
+           vector_offset);
 
-  if (!IsValidOffset(last_item_offset - 1)) {
+  const uint64_t last_item_offset =
+      vector_overflow
+          ? 0
+          : vector_offset + vector_length_size_type +
+                vector_length.value() * elem_size;
+
+  if (vector_overflow || !IsValidOffset(last_item_offset - 1)) {
     SetError(vector_length_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);
     AddSection(
         vector_offset,
