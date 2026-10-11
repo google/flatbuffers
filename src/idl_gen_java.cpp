@@ -226,7 +226,9 @@ class JavaGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver
+               ? parser_.opts.file_saver->SaveFile(filename.c_str(), code, false)
+               : false;
   }
 
   const Namespace* CurrentNameSpace() const { return cur_name_space_; }

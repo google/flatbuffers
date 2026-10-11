@@ -1745,6 +1745,16 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void IdlLanguageGeneratorsSafetyTest() {
+  flatbuffers::Parser parser;
+  parser.opts.file_saver = nullptr;
+  TEST_EQ(parser.Parse("table Monster { name: string; } root_type Monster; { name: \"MyMonster\" }"), true);
+  // Calling GenerateTextFile with nullptr file_saver must safely fail and return "SaveFile failed" rather than crashing
+  const char* err = flatbuffers::GenerateTextFile(parser, "", "test");
+  TEST_NOTNULL(err);
+  TEST_EQ(std::string(err), std::string("SaveFile failed"));
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1874,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  IdlLanguageGeneratorsSafetyTest();
   return 0;
 }
 }  // namespace

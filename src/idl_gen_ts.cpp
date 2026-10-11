@@ -177,11 +177,14 @@ class TsGenerator : public BaseGenerator {
 
     code += class_code;
 
+    if (!definition.defined_namespace) return false;
     auto dirs = namer_.Directories(*definition.defined_namespace);
     EnsureDirExists(dirs);
     auto basename = dirs + namer_.File(definition, SkipFile::Suffix);
 
-    return parser_.opts.file_saver->SaveFile(basename.c_str(), code, false);
+    return parser_.opts.file_saver
+               ? parser_.opts.file_saver->SaveFile(basename.c_str(), code, false)
+               : false;
   }
 
   void TrackNsDef(const Definition& definition, std::string type_name) {
@@ -308,9 +311,13 @@ class TsGenerator : public BaseGenerator {
       }
 
       // re-export child namespace(s) in parent
+      if (!it.second.ns) continue;
       const auto child_ns_level = it.second.ns->components.size() + 1;
       for (const auto& it2 : ns_defs_) {
-        if (it2.second.ns->components.size() != child_ns_level) continue;
+        if (!it2.second.ns || it2.second.ns->components.size() != child_ns_level) {
+          continue;
+        }
+        if (it2.second.ns->components.empty()) continue;
         auto ts_file_path = it2.second.path + ".ts";
         code += "export * as " + it2.second.symbolic_name + " from './";
         int count = it2.second.ns->components.size() > 1 ? 2 : 1;
@@ -324,7 +331,7 @@ class TsGenerator : public BaseGenerator {
         export_counter++;
       }
 
-      if (export_counter > 0) {
+      if (export_counter > 0 && parser_.opts.file_saver) {
         parser_.opts.file_saver->SaveFile(it.second.filepath.c_str(), code,
                                           false);
       }

@@ -88,6 +88,7 @@ class PhpGenerator : public BaseGenerator {
                 bool needs_imports) {
     if (!classcode.length()) return true;
 
+    if (!def.defined_namespace) return false;
     std::string code = "";
     BeginFile(FullNamespace("\\", *def.defined_namespace), needs_imports,
               &code);
@@ -95,7 +96,9 @@ class PhpGenerator : public BaseGenerator {
 
     std::string filename =
         NamespaceDir(*def.defined_namespace) + def.name + ".php";
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
+    return parser_.opts.file_saver
+               ? parser_.opts.file_saver->SaveFile(filename.c_str(), code, false)
+               : false;
   }
 
   // Begin a class declaration.

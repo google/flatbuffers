@@ -400,12 +400,15 @@ class LobsterGenerator : public BaseGenerator {
     }
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       auto& struct_def = **it;
       GenStruct(struct_def, &code);
     }
-    return parser_.opts.file_saver->SaveFile(
-        GeneratedFileName(path_, file_name_, parser_.opts).c_str(), code,
-        false);
+    return parser_.opts.file_saver
+               ? parser_.opts.file_saver->SaveFile(
+                     GeneratedFileName(path_, file_name_, parser_.opts).c_str(),
+                     code, false)
+               : false;
   }
 
  private:

@@ -241,7 +241,9 @@ class CSharpGenerator : public BaseGenerator {
     }
     filename +=
         options.filename_extension.empty() ? ".cs" : options.filename_extension;
-    return options.file_saver->SaveFile(filename.c_str(), code, false);
+    return options.file_saver
+               ? options.file_saver->SaveFile(filename.c_str(), code, false)
+               : false;
   }
 
   const Namespace* CurrentNameSpace() const { return cur_name_space_; }

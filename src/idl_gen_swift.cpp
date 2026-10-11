@@ -191,14 +191,17 @@ class SwiftGenerator : public BaseGenerator {
 
     const auto filename = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
-    return parser_.opts.file_saver->SaveFile(filename.c_str(), final_code,
-                                             false);
+    return parser_.opts.file_saver
+               ? parser_.opts.file_saver->SaveFile(filename.c_str(), final_code,
+                                                   false)
+               : false;
   }
 
   void GenerateCode() {
     // Generate code for all the enum declarations.
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      if (!*it) continue;
       const auto& enum_def = **it;
       if (!enum_def.generated) {
         GenEnum(enum_def);
@@ -207,6 +210,7 @@ class SwiftGenerator : public BaseGenerator {
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& struct_def = **it;
       if (struct_def.fixed && !struct_def.generated) {
         GenStructReader(struct_def);
@@ -216,6 +220,7 @@ class SwiftGenerator : public BaseGenerator {
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& struct_def = **it;
       if (!struct_def.fixed && !struct_def.generated) {
         GenTable(struct_def);
