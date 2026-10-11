@@ -254,11 +254,11 @@ TypedFloatConstantGenerator::TypedFloatConstantGenerator(
     const char* double_prefix, const char* single_prefix,
     const char* nan_number, const char* pos_inf_number,
     const char* neg_inf_number)
-    : double_prefix_(double_prefix),
-      single_prefix_(single_prefix),
-      nan_number_(nan_number),
-      pos_inf_number_(pos_inf_number),
-      neg_inf_number_(neg_inf_number) {}
+    : double_prefix_(double_prefix ? double_prefix : ""),
+      single_prefix_(single_prefix ? single_prefix : ""),
+      nan_number_(nan_number ? nan_number : ""),
+      pos_inf_number_(pos_inf_number ? pos_inf_number : ""),
+      neg_inf_number_(neg_inf_number ? neg_inf_number : "") {}
 
 std::string TypedFloatConstantGenerator::MakeNaN(
     const std::string& prefix) const {
@@ -306,9 +306,9 @@ std::string TypedFloatConstantGenerator::NaN(float v) const {
 SimpleFloatConstantGenerator::SimpleFloatConstantGenerator(
     const char* nan_number, const char* pos_inf_number,
     const char* neg_inf_number)
-    : nan_number_(nan_number),
-      pos_inf_number_(pos_inf_number),
-      neg_inf_number_(neg_inf_number) {}
+    : nan_number_(nan_number ? nan_number : ""),
+      pos_inf_number_(pos_inf_number ? pos_inf_number : ""),
+      neg_inf_number_(neg_inf_number ? neg_inf_number : "") {}
 
 std::string SimpleFloatConstantGenerator::Value(double v,
                                                 const std::string& src) const {

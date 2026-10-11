@@ -98,6 +98,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   Status GenerateFromSchema(const r::Schema* schema,
                             const CodeGenOptions& options)
       FLATBUFFERS_OVERRIDE {
+    if (!schema) {
+      return ERROR;
+    }
     options_ = options;
     ForAllEnums(schema->enums(), [&](const r::Enum* enum_def) {
       StartCodeBlock(enum_def);
@@ -173,12 +176,19 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     code += "type " + enum_name + Export + "{.pure.} = enum\n";
 
     ForAllEnumValues(enum_def, [&](const reflection::EnumVal* enum_val) {
+      if (!enum_val) return;
       GenerateDocumentation(enum_val->documentation(), "  ", code);
-      code += "  " + namer_.Variant(enum_val->name()->str()) + " = " +
+      const std::string val_name =
+          enum_val->name() ? namer_.Variant(enum_val->name()->str()) : "";
+      code += "  " + val_name + " = " +
               NumToString(enum_val->value()) + "." + enum_type + ",\n";
     });
 
-    EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
+    const std::string decl_file =
+        (enum_def && enum_def->declaration_file())
+            ? enum_def->declaration_file()->str()
+            : "";
+    EmitCodeBlock(code, enum_name, ns, decl_file);
   }
 
   void GenerateObject(const r::Object* object) {
@@ -337,7 +347,11 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
           const int32_t element_size = field->type()->element_size();
           int32_t alignment = element_size;
           if (IsStruct(field->type(), /*use_element=*/true)) {
-            alignment = GetObjectByIndex(field->type()->index())->minalign();
+            const r::Object* elem_obj =
+                GetObjectByIndex(field->type()->index());
+            if (elem_obj) {
+              alignment = elem_obj->minalign();
+            }
           }
 
           code += "  builder.StartVector(" + NumToString(element_size) +
@@ -349,7 +363,11 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
               "*(builder: var Builder): uoffset =\n";
       code += "  return builder.EndObject()\n";
     }
-    EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
+    const std::string decl_file =
+        (object && object->declaration_file())
+            ? object->declaration_file()->str()
+            : "";
+    EmitCodeBlock(code, object_name, ns, decl_file);
   }
 
  private:
@@ -686,10 +704,15 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";
-    if (schema_->root_table() != nullptr) {
-      const std::string root_type = schema_->root_table()->name()->str();
+    if (schema_ && schema_->root_table() != nullptr) {
+      const std::string root_type =
+          schema_->root_table()->name()
+              ? schema_->root_table()->name()->str()
+              : "";
       const std::string root_file =
-          schema_->root_table()->declaration_file()->str();
+          schema_->root_table()->declaration_file()
+              ? schema_->root_table()->declaration_file()->str()
+              : "";
       code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
     }
     code += "]#\n\n";
@@ -719,7 +742,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     EnsureDirExists(path);
     const std::string file_name =
         options_.output_path + path + "/" + namer_.File(name);
-    options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    if (options_.file_saver) {
+      options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    }
   }
 
   std::unordered_set<std::string> keywords_;

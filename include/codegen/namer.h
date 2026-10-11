@@ -204,11 +204,18 @@ class Namer {
     const bool skip_trailing_seperator =
         (skips & SkipDir::TrailingPathSeperator) != SkipDir::None;
     std::string result = skip_output_path ? "" : config_.output_path;
+    if (!directories.empty() && !result.empty() &&
+        result.back() != kPathSeparator) {
+      result.push_back(kPathSeparator);
+    }
     for (auto d = directories.begin(); d != directories.end(); d++) {
       result += ConvertCase(*d, config_.directories, input_case);
       result.push_back(kPathSeparator);
     }
-    if (skip_trailing_seperator && !result.empty()) result.pop_back();
+    if (skip_trailing_seperator && !result.empty() &&
+        result.back() == kPathSeparator) {
+      result.pop_back();
+    }
     return result;
   }
 

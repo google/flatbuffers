@@ -74,6 +74,9 @@ class IdlNamer : public Namer {
   std::string Namespace(const struct Namespace& ns) const {
     return Namespace(ns.components);
   }
+  std::string Namespace(const struct Namespace* ns) const {
+    return ns ? Namespace(ns->components) : "";
+  }
 
   std::string NamespacedEnumVariant(const EnumDef& e, const EnumVal& v) const {
     return NamespacedString(e.defined_namespace, EnumVariant(e, v));
@@ -91,6 +94,14 @@ class IdlNamer : public Namer {
                           SkipDir skips = SkipDir::None,
                           Case input_case = Case::kUpperCamel) const {
     return Directories(ns.components, skips, input_case);
+  }
+  std::string Directories(const struct Namespace* ns,
+                          SkipDir skips = SkipDir::None,
+                          Case input_case = Case::kUpperCamel) const {
+    if (ns == nullptr) {
+      return Directories(std::vector<std::string>{}, skips, input_case);
+    }
+    return Directories(ns->components, skips, input_case);
   }
 
   // Legacy fields do not really follow the usual config and should be
@@ -110,7 +121,7 @@ class IdlNamer : public Namer {
 
   std::string LegacySwiftVariant(const EnumVal& ev) const {
     auto name = ev.name;
-    if (isupper(name.front())) {
+    if (!name.empty() && isupper(static_cast<unsigned char>(name.front()))) {
       std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     }
     return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));

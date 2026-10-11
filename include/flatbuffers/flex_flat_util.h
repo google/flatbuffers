@@ -28,6 +28,7 @@ inline bool VerifyNestedFlexBuffer(
     const flatbuffers::Vector<uint8_t>* const nested,
     flatbuffers::VerifierTemplate<B>& verifier) {
   if (!nested) return true;
+  if (nested->size() > 0 && !nested->data()) return false;
   return verifier.Check(flexbuffers::VerifyBuffer(
       nested->data(), nested->size(), verifier.GetFlexReuseTracker()));
 }

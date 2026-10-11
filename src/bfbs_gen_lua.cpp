@@ -83,6 +83,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   Status GenerateFromSchema(const r::Schema* schema,
                             const CodeGenOptions& options)
       FLATBUFFERS_OVERRIDE {
+    if (!schema) {
+      return ERROR;
+    }
     options_ = options;
     if (!GenerateEnums(schema->enums())) {
       return ERROR;
@@ -155,14 +158,21 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
       code += "local " + enum_name + " = {\n";
 
       ForAllEnumValues(enum_def, [&](const reflection::EnumVal* enum_val) {
+        if (!enum_val) return;
         GenerateDocumentation(enum_val->documentation(), "  ", code);
-        code += "  " + namer_.Variant(enum_val->name()->str()) + " = " +
+        const std::string val_name =
+            enum_val->name() ? namer_.Variant(enum_val->name()->str()) : "";
+        code += "  " + val_name + " = " +
                 NumToString(enum_val->value()) + ",\n";
       });
       code += "}\n";
       code += "\n";
 
-      EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
+      const std::string decl_file =
+          (enum_def && enum_def->declaration_file())
+              ? enum_def->declaration_file()->str()
+              : "";
+      EmitCodeBlock(code, enum_name, ns, decl_file);
     });
     return true;
   }
@@ -445,7 +455,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
             const int32_t element_size = field->type()->element_size();
             int32_t alignment = 0;
             if (IsStruct(field->type(), /*use_element=*/true)) {
-              alignment = GetObjectByIndex(field->type()->index())->minalign();
+              const r::Object* elem_obj =
+                  GetObjectByIndex(field->type()->index());
+              alignment = elem_obj ? elem_obj->minalign() : element_size;
             } else {
               alignment = element_size;
             }
@@ -492,7 +504,11 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
         }
       }
 
-      EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
+      const std::string decl_file =
+          (object && object->declaration_file())
+              ? object->declaration_file()->str()
+              : "";
+      EmitCodeBlock(code, object_name, ns, decl_file);
     });
     return true;
   }
@@ -511,11 +527,15 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   std::string GenerateStructBuilderArgs(const r::Object* object,
                                         std::string prefix = "") const {
     std::string signature;
+    if (!object) return signature;
     ForAllFields(object, /*reverse=*/false, [&](const r::Field* field) {
+      if (!field || !field->type()) return;
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object* field_object = GetObject(field->type());
-        signature += GenerateStructBuilderArgs(
-            field_object, prefix + namer_.Variable(*field) + "_");
+        if (field_object) {
+          signature += GenerateStructBuilderArgs(
+              field_object, prefix + namer_.Variable(*field) + "_");
+        }
       } else {
         signature += ", " + prefix + namer_.Variable(*field);
       }
@@ -526,20 +546,24 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
   std::string AppendStructBuilderBody(const r::Object* object,
                                       std::string prefix = "") const {
     std::string code;
+    if (!object) return code;
     code += "  builder:Prep(" + NumToString(object->minalign()) + ", " +
             NumToString(object->bytesize()) + ")\n";
 
     // We need to reverse the order we iterate over, since we build the
     // buffer backwards.
     ForAllFields(object, /*reverse=*/true, [&](const r::Field* field) {
+      if (!field || !field->type()) return;
       const int32_t num_padding_bytes = field->padding();
       if (num_padding_bytes) {
         code += "  builder:Pad(" + NumToString(num_padding_bytes) + ")\n";
       }
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object* field_object = GetObject(field->type());
-        code += AppendStructBuilderBody(field_object,
-                                        prefix + namer_.Variable(*field) + "_");
+        if (field_object) {
+          code += AppendStructBuilderBody(field_object,
+                                          prefix + namer_.Variable(*field) + "_");
+        }
       } else {
         code += "  builder:Prepend" + GenerateMethod(field) + "(" + prefix +
                 namer_.Variable(*field) + ")\n";
@@ -657,6 +681,7 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
   std::string RegisterRequires(const r::Field* field,
                                bool use_element = false) {
+    if (!field || !field->type()) return "";
     std::string type_name;
 
     const r::BaseType type =
@@ -664,17 +689,21 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     if (IsStructOrTable(type)) {
       const r::Object* object = GetObjectByIndex(field->type()->index());
+      if (!object) return "";
       if (object == current_obj_) {
         return namer_.Denamespace(object);
       }
-      type_name = object->name()->str();
+      type_name = object->name() ? object->name()->str() : "";
     } else {
       const r::Enum* enum_def = GetEnumByIndex(field->type()->index());
+      if (!enum_def) return "";
       if (enum_def == current_enum_) {
         return namer_.Denamespace(enum_def);
       }
-      type_name = enum_def->name()->str();
+      type_name = enum_def->name() ? enum_def->name()->str() : "";
     }
+
+    if (type_name.empty()) return "";
 
     // Prefix with double __ to avoid name clashing, since these are defined
     // at the top of the file and have lexical scoping. Replace '.' with '_'
@@ -706,10 +735,14 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";
 
-    const r::Object* root_table = schema_->root_table();
+    const r::Object* root_table = schema_ ? schema_->root_table() : nullptr;
     if (root_table) {
-      const std::string root_type = root_table->name()->str();
-      const std::string root_file = root_table->declaration_file()->str();
+      const std::string root_type =
+          root_table->name() ? root_table->name()->str() : "";
+      const std::string root_file =
+          root_table->declaration_file()
+              ? root_table->declaration_file()->str()
+              : "";
 
       code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
     }
@@ -739,7 +772,9 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
     EnsureDirExists(path);
     const std::string file_name =
         options_.output_path + path + "/" + namer_.File(name);
-    options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    if (options_.file_saver) {
+      options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    }
   }
 
   std::unordered_set<std::string> keywords_;

@@ -9,6 +9,14 @@
 #include "test_assert.h"
 #include "tests/arrays_test_generated.h"
 
+#include "bfbs_gen.h"
+#include "bfbs_namer.h"
+#include "codegen/idl_namer.h"
+#include "codegen/namer.h"
+#include "flatbuffers/code_generators.h"
+#include "flatbuffers/flex_flat_util.h"
+#include "flatbuffers/idl.h"
+
 namespace flatbuffers {
 namespace tests {
 
@@ -407,6 +415,96 @@ void MiniReflectFixedLengthArrayTest() {
       "}",
       s.c_str());
 #endif
+}
+
+void BfbsNamerAndGeneratorHardeningTest() {
+  // Test BfbsNamer null safety
+  {
+    BfbsNamer namer(Namer::Config(), {});
+    TEST_EQ_STR(
+        namer.Denamespace(static_cast<const reflection::Object*>(nullptr)).c_str(),
+        "");
+    std::string prefix = "initial";
+    TEST_EQ_STR(
+        namer.Denamespace(static_cast<const reflection::Object*>(nullptr), prefix)
+            .c_str(),
+        "");
+    TEST_EQ_STR(prefix.c_str(), "");
+    TEST_EQ_STR(namer.Field(static_cast<const reflection::Field*>(nullptr)).c_str(),
+                "");
+    TEST_EQ_STR(
+        namer.Variable(static_cast<const reflection::Field*>(nullptr)).c_str(), "");
+  }
+
+  // Test Namer::Directories trailing path separator safety
+  {
+    Namer::Config cfg;
+    cfg.output_path = "out_dir";
+    Namer namer(cfg, {});
+    std::vector<std::string> empty_dirs;
+    // With empty dirs and TrailingPathSeperator skip, should not strip last char of output_path
+    std::string path =
+        namer.Directories(empty_dirs, SkipDir::TrailingPathSeperator);
+    TEST_EQ_STR(path.c_str(), "out_dir");
+
+    std::vector<std::string> dirs;
+    dirs.push_back("subdir");
+    path = namer.Directories(dirs, SkipDir::TrailingPathSeperator);
+    TEST_EQ_STR(path.c_str(), "out_dir/subdir");
+
+    path = namer.Directories(dirs, SkipDir::None);
+    TEST_EQ_STR(path.c_str(), "out_dir/subdir/");
+  }
+
+  // Test IdlNamer null pointer and empty string safety
+  {
+    Namer::Config cfg;
+    cfg.output_path = "out_dir";
+    IdlNamer idl_namer(cfg, {});
+    std::string idl_path = idl_namer.Directories(
+        static_cast<const Namespace*>(nullptr),
+        SkipDir::OutputPathAndTrailingPathSeparator);
+    TEST_EQ_STR(idl_path.c_str(), "");
+    TEST_EQ_STR(
+        idl_namer.Namespace(static_cast<const Namespace*>(nullptr)).c_str(), "");
+
+    Parser parser;
+    TEST_EQ(parser.Parse("enum TestEnum: byte { ValueA = 0 }"), true);
+    auto* enum_def = parser.enums_.Lookup("TestEnum");
+    TEST_NOTNULL(enum_def);
+    const auto* ev = enum_def->Lookup("ValueA");
+    TEST_NOTNULL(ev);
+    TEST_EQ_STR(idl_namer.LegacySwiftVariant(*ev).c_str(), "valuea");
+    auto* ev_mut = enum_def->Vals().front();
+    ev_mut->name = "";
+    TEST_EQ_STR(idl_namer.LegacySwiftVariant(*ev_mut).c_str(), "");
+  }
+
+  // Test FloatConstantGenerator nullptr construction safety (must not throw or crash)
+  {
+    TypedFloatConstantGenerator typed_gen(nullptr, nullptr, nullptr, nullptr,
+                                          nullptr);
+    SimpleFloatConstantGenerator simple_gen(nullptr, nullptr, nullptr);
+  }
+
+  // Test VerifyNestedFlexBuffer null safety
+  {
+    Verifier verifier(nullptr, 0);
+    TEST_EQ(flexbuffers::VerifyNestedFlexBuffer(nullptr, verifier), true);
+  }
+
+  // Test FieldIdToIndex and ForAllFields null safety
+  {
+    auto mapping = flatbuffers::FieldIdToIndex(nullptr);
+    TEST_EQ(mapping.empty(), true);
+
+    int count = 0;
+    flatbuffers::ForAllFields(nullptr, false,
+                              [&count](const reflection::Field*) { count++; });
+    flatbuffers::ForAllFields(nullptr, true,
+                              [&count](const reflection::Field*) { count++; });
+    TEST_EQ(count, 0);
+  }
 }
 
 }  // namespace tests
