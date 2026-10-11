@@ -1834,6 +1834,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   EqualOperatorTest();
   NumericUtilsTest();
   IsAsciiUtilsTest();
+  UtilSafetyTest();
   ValidFloatTest();
   InvalidFloatTest();
   FixedLengthArrayTest();

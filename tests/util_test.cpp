@@ -169,5 +169,79 @@ void UtilConvertCase() {
   }
 }
 
+void UtilSafetyTest() {
+  // String to number conversions with null pointers.
+  int32_t i32 = 42;
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &i32), false);
+  TEST_EQ(i32, 0);
+  TEST_EQ(flatbuffers::StringToNumber("123", static_cast<int32_t*>(nullptr)),
+          false);
+
+  int64_t i64 = 42;
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &i64), false);
+  TEST_EQ(i64, 0);
+  TEST_EQ(flatbuffers::StringToNumber("123", static_cast<int64_t*>(nullptr)),
+          false);
+
+  uint64_t u64 = 42;
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &u64), false);
+  TEST_EQ(u64, 0);
+  TEST_EQ(flatbuffers::StringToNumber("123", static_cast<uint64_t*>(nullptr)),
+          false);
+
+  float f32 = 1.0f;
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &f32), false);
+  TEST_EQ(f32, 0.0f);
+  TEST_EQ(flatbuffers::StringToNumber("1.0", static_cast<float*>(nullptr)),
+          false);
+
+  double f64 = 1.0;
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &f64), false);
+  TEST_EQ(f64, 0.0);
+  TEST_EQ(flatbuffers::StringToNumber("1.0", static_cast<double*>(nullptr)),
+          false);
+
+  TEST_EQ(flatbuffers::StringToInt(nullptr), 0);
+  TEST_EQ(flatbuffers::StringToUInt(nullptr), 0);
+
+  // UTF-8 conversions with null pointers or invalid inputs.
+  std::string utf8_out;
+  TEST_EQ(flatbuffers::ToUTF8(0x80000000u, &utf8_out), -1);
+  TEST_EQ(flatbuffers::ToUTF8(65, nullptr), -1);
+  TEST_EQ(flatbuffers::FromUTF8(nullptr), -1);
+  const char* null_str = nullptr;
+  TEST_EQ(flatbuffers::FromUTF8(&null_str), -1);
+
+  // String escaping and hex formatting.
+  TEST_EQ(flatbuffers::EscapeString(nullptr, 0, nullptr, false, false), false);
+  TEST_EQ(flatbuffers::EscapeString(nullptr, 10, &utf8_out, false, false),
+          false);
+  TEST_EQ(flatbuffers::BufferToHexText(nullptr, 10, 80, "", ""),
+          std::string(""));
+
+  // File I/O null pointer handling.
+  std::string file_buf;
+  TEST_EQ(flatbuffers::FileExists(nullptr), false);
+  TEST_EQ(flatbuffers::DirExists(nullptr), false);
+  TEST_EQ(flatbuffers::LoadFile(nullptr, false, &file_buf), false);
+  TEST_EQ(flatbuffers::LoadFile("non_existent_file.tmp", false, nullptr),
+          false);
+  TEST_EQ(flatbuffers::SaveFile(nullptr, "data", 4, false), false);
+  TEST_EQ(flatbuffers::SaveFile("test.tmp", nullptr, 10, false), false);
+
+  // Path utilities with empty/null/short inputs.
+  TEST_EQ(flatbuffers::PosixPath(static_cast<const char*>(nullptr)),
+          std::string(""));
+  TEST_EQ(flatbuffers::StripPrefix("abc", "abcdef"), std::string("abc"));
+  TEST_EQ(flatbuffers::ConCatPathFileName("", "file.txt"),
+          std::string("file.txt"));
+  TEST_EQ(flatbuffers::AbsolutePath(""), std::string(""));
+  flatbuffers::EnsureDirExists("");
+  TEST_EQ(flatbuffers::RemoveStringQuotes(""), std::string(""));
+  TEST_EQ(flatbuffers::RemoveStringQuotes("a"), std::string("a"));
+  TEST_EQ(flatbuffers::SetGlobalTestLocale(nullptr, nullptr), false);
+  TEST_EQ(flatbuffers::ReadEnvironmentVariable(nullptr, nullptr), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

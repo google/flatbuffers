@@ -59,11 +59,13 @@ namespace flatbuffers {
 namespace {
 
 static bool FileExistsRaw(const char* name) {
+  if (!name) return false;
   std::ifstream ifs(name);
   return ifs.good();
 }
 
 static bool LoadFileRaw(const char* name, bool binary, std::string* buf) {
+  if (!name || !buf) return false;
   if (DirExists(name)) return false;
   std::ifstream ifs(name, binary ? std::ifstream::binary : std::ifstream::in);
   if (!ifs.is_open()) return false;
@@ -71,9 +73,12 @@ static bool LoadFileRaw(const char* name, bool binary, std::string* buf) {
     // The fastest way to read a file into a string.
     ifs.seekg(0, std::ios::end);
     auto size = ifs.tellg();
+    if (size < 0) return false;
     (*buf).resize(static_cast<size_t>(size));
     ifs.seekg(0, std::ios::beg);
-    ifs.read(&(*buf)[0], (*buf).size());
+    if (size > 0) {
+      ifs.read(&(*buf)[0], (*buf).size());
+    }
   } else {
     // This is slower, but works correctly on all platforms for text files.
     std::ostringstream oss;
@@ -215,16 +220,21 @@ std::string SnakeToSnake2(const std::string& s) {
 }  // namespace
 
 bool LoadFile(const char* name, bool binary, std::string* buf) {
+  if (!name || !buf) return false;
   FLATBUFFERS_ASSERT(g_load_file_function);
+  if (!g_load_file_function) return false;
   return g_load_file_function(name, binary, buf);
 }
 
 bool FileExists(const char* name) {
+  if (!name) return false;
   FLATBUFFERS_ASSERT(g_file_exists_function);
+  if (!g_file_exists_function) return false;
   return g_file_exists_function(name);
 }
 
 bool DirExists(const char* name) {
+  if (!name) return false;
   // clang-format off
 
   #ifdef _WIN32
@@ -255,9 +265,12 @@ FileExistsFunction SetFileExistsFunction(
 }
 
 bool SaveFile(const char* name, const char* buf, size_t len, bool binary) {
+  if (!name || (!buf && len > 0)) return false;
   std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
   if (!ofs.is_open()) return false;
-  ofs.write(buf, len);
+  if (buf && len > 0) {
+    ofs.write(buf, len);
+  }
   return !ofs.bad();
 }
 
@@ -290,7 +303,9 @@ std::string StripFileName(const std::string& filepath) {
 
 std::string StripPrefix(const std::string& filepath,
                         const std::string& prefix_to_remove) {
-  if (!strncmp(filepath.c_str(), prefix_to_remove.c_str(),
+  if (prefix_to_remove.empty()) return filepath;
+  if (filepath.size() >= prefix_to_remove.size() &&
+      !strncmp(filepath.c_str(), prefix_to_remove.c_str(),
                prefix_to_remove.size())) {
     return filepath.substr(prefix_to_remove.size());
   }
@@ -310,13 +325,15 @@ std::string ConCatPathFileName(const std::string& path,
   }
   filepath += filename;
   // Ignore './' at the start of filepath.
-  if (filepath[0] == '.' && filepath[1] == kPathSeparator) {
+  if (filepath.length() >= 2 && filepath[0] == '.' &&
+      filepath[1] == kPathSeparator) {
     filepath.erase(0, 2);
   }
   return filepath;
 }
 
 std::string PosixPath(const char* path) {
+  if (!path) return "";
   std::string p = path;
   std::replace(p.begin(), p.end(), '\\', '/');
   return p;
@@ -326,6 +343,7 @@ std::string PosixPath(const std::string& path) {
 }
 
 void EnsureDirExists(const std::string& filepath) {
+  if (filepath.empty()) return;
   auto parent = StripFileName(filepath);
   if (parent.length()) EnsureDirExists(parent);
   // clang-format off
@@ -345,6 +363,7 @@ std::string FilePath(const std::string& project, const std::string& filePath,
 }
 
 std::string AbsolutePath(const std::string& filepath) {
+  if (filepath.empty()) return "";
   // clang-format off
 
   #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
@@ -372,7 +391,8 @@ std::string AbsolutePath(const std::string& filepath) {
 std::string RelativeToRootPath(const std::string& project,
                                const std::string& filepath) {
   std::string absolute_project = PosixPath(AbsolutePath(project));
-  if (absolute_project.back() != '/') absolute_project += "/";
+  if (absolute_project.empty() || absolute_project.back() != '/')
+    absolute_project += "/";
   std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
 
   // Find the first character where they disagree.
@@ -391,7 +411,7 @@ std::string RelativeToRootPath(const std::string& project,
   size_t num_up = 0;
   while (*suffix != '\0')
     if (*suffix++ == '/') num_up++;
-  num_up--;  // last one is known to be '/'.
+  if (num_up > 0) num_up--;  // last one is known to be '/'.
   std::string result = "//";
   for (size_t i = 0; i < num_up; i++) result += "../";
   result += absolute_filepath.substr(common_prefix_len + 1);
@@ -421,13 +441,15 @@ ClassicLocale ClassicLocale::instance_;
 #endif  // !FLATBUFFERS_LOCALE_INDEPENDENT
 
 std::string RemoveStringQuotes(const std::string& s) {
-  auto ch = *s.c_str();
-  return ((s.size() >= 2) && (ch == '\"' || ch == '\'') && (ch == s.back()))
+  if (s.size() < 2) return s;
+  auto ch = s.front();
+  return ((ch == '\"' || ch == '\'') && (ch == s.back()))
              ? s.substr(1, s.length() - 2)
              : s;
 }
 
 bool SetGlobalTestLocale(const char* locale_name, std::string* _value) {
+  if (!locale_name) return false;
   const auto the_locale = setlocale(LC_ALL, locale_name);
   if (!the_locale) return false;
   if (_value) *_value = std::string(the_locale);
@@ -435,6 +457,7 @@ bool SetGlobalTestLocale(const char* locale_name, std::string* _value) {
 }
 
 bool ReadEnvironmentVariable(const char* var_name, std::string* _value) {
+  if (!var_name) return false;
 #ifdef _MSC_VER
   __pragma(warning(disable : 4996));  // _CRT_SECURE_NO_WARNINGS
 #endif

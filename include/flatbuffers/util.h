@@ -293,7 +293,10 @@ inline bool StringToIntegerImpl(T* val, const char* const str,
                                 const int base = 0,
                                 const bool check_errno = true) {
   // T is int64_t or uint64_T
-  FLATBUFFERS_ASSERT(str);
+  if (!str || !val) {
+    if (val) *val = 0;
+    return false;
+  }
   if (base <= 0) {
     auto s = str;
     while (*s && !is_digit(*s)) s++;
@@ -318,7 +321,10 @@ inline bool StringToIntegerImpl(T* val, const char* const str,
 template <typename T>
 inline bool StringToFloatImpl(T* val, const char* const str) {
   // Type T must be either float or double.
-  FLATBUFFERS_ASSERT(str && val);
+  if (!str || !val) {
+    if (val) *val = 0;
+    return false;
+  }
   auto end = str;
   strtoval_impl(val, str, const_cast<char**>(&end));
   auto done = (end != str) && (*end == '\0');
@@ -340,7 +346,10 @@ inline bool StringToNumber(const char* s, T* val) {
   // Assert on `unsigned long` and `signed long` on LP64.
   // If it is necessary, it could be solved with flatbuffers::enable_if<B,T>.
   static_assert(sizeof(T) < sizeof(int64_t), "unexpected type T");
-  FLATBUFFERS_ASSERT(s && val);
+  if (!s || !val) {
+    if (val) *val = 0;
+    return false;
+  }
   int64_t i64;
   // The errno check isn't needed, will return MAX/MIN on overflow.
   if (StringToIntegerImpl(&i64, s, 0, false)) {
@@ -365,11 +374,19 @@ inline bool StringToNumber(const char* s, T* val) {
 
 template <>
 inline bool StringToNumber<int64_t>(const char* str, int64_t* val) {
+  if (!str || !val) {
+    if (val) *val = 0;
+    return false;
+  }
   return StringToIntegerImpl(val, str);
 }
 
 template <>
 inline bool StringToNumber<uint64_t>(const char* str, uint64_t* val) {
+  if (!str || !val) {
+    if (val) *val = 0;
+    return false;
+  }
   if (!StringToIntegerImpl(val, str)) return false;
   // The strtoull accepts negative numbers:
   // If the minus sign was part of the input sequence, the numeric value
@@ -401,13 +418,13 @@ inline bool StringToNumber(const char* s, double* val) {
 }
 
 inline int64_t StringToInt(const char* s, int base = 10) {
-  int64_t val;
-  return StringToIntegerImpl(&val, s, base) ? val : 0;
+  int64_t val = 0;
+  return (s && StringToIntegerImpl(&val, s, base)) ? val : 0;
 }
 
 inline uint64_t StringToUInt(const char* s, int base = 10) {
-  uint64_t val;
-  return StringToIntegerImpl(&val, s, base) ? val : 0;
+  uint64_t val = 0;
+  return (s && StringToIntegerImpl(&val, s, base)) ? val : 0;
 }
 
 inline bool StringIsFlatbufferNan(const std::string& s) {
@@ -515,7 +532,7 @@ std::string RelativeToRootPath(const std::string& project,
 // Convert a unicode code point into a UTF-8 representation by appending it
 // to a string. Returns the number of bytes generated.
 inline int ToUTF8(uint32_t ucc, std::string* out) {
-  FLATBUFFERS_ASSERT(!(ucc & 0x80000000));  // Top bit can't be set.
+  if (!out || (ucc & 0x80000000)) return -1;
   // 6 possible encodings: http://en.wikipedia.org/wiki/UTF-8
   for (int i = 0; i < 6; i++) {
     // Max bits this encoding can represent.
@@ -533,7 +550,6 @@ inline int ToUTF8(uint32_t ucc, std::string* out) {
       return i + 1;  // Return the number of bytes added.
     }
   }
-  FLATBUFFERS_ASSERT(0);  // Impossible to arrive here.
   return -1;
 }
 
@@ -543,6 +559,7 @@ inline int ToUTF8(uint32_t ucc, std::string* out) {
 // returns -1 upon corrupt UTF-8 encoding (ignore the incoming pointer in
 // this case).
 inline int FromUTF8(const char** in) {
+  if (!in || !*in) return -1;
   int len = 0;
   // Count leading 1 bits.
   for (int mask = 0x80; mask >= 0x04; mask >>= 1) {
@@ -562,7 +579,7 @@ inline int FromUTF8(const char** in) {
   // Grab initial bits of the code.
   int ucc = *(*in)++ & ((1 << (7 - len)) - 1);
   for (int i = 0; i < len - 1; i++) {
-    if ((**in & 0xC0) != 0x80) return -1;  // Upper bits must 1 0.
+    if (!**in || (**in & 0xC0) != 0x80) return -1;  // Upper bits must 1 0.
     ucc <<= 6;
     ucc |= *(*in)++ & 0x3F;  // Grab 6 more bits of the code.
   }
@@ -626,6 +643,8 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 
 inline bool EscapeString(const char* s, size_t length, std::string* _text,
                          bool allow_non_utf8, bool natural_utf8) {
+  if (!_text) return false;
+  if (!s && length > 0) return false;
   std::string& text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < length; i++) {
@@ -712,6 +731,7 @@ inline std::string BufferToHexText(const void* buffer, size_t buffer_size,
                                    size_t max_length,
                                    const std::string& wrapped_line_prefix,
                                    const std::string& wrapped_line_suffix) {
+  if (!buffer && buffer_size > 0) return "";
   std::string text = wrapped_line_prefix;
   size_t start_offset = 0;
   const char* s = reinterpret_cast<const char*>(buffer);
