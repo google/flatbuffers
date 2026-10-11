@@ -2,6 +2,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
+#include "idl_gen_json_schema.h"
 #include "monster_test_bfbs_generated.h"
 #include "monster_test_generated.h"
 #include "optional_scalars_generated.h"
@@ -201,6 +202,24 @@ root_type JsonUnionStructTest;
       GenText(parser, parser.builder_.GetBufferPointer(), &json_generated);
   TEST_NULL(generate_result);
   TEST_EQ_STR(json_source, json_generated.c_str());
+}
+
+void JsonSchemaGeneratorTest() {
+  flatbuffers::Parser parser;
+  TEST_EQ(true, parser.Parse("table S { a:int; b:string; } root_type S;"));
+
+  auto generator = NewJsonSchemaCodeGenerator();
+  std::string schema_json;
+  TEST_EQ(generator->GenerateCodeString(parser, "test", schema_json),
+          CodeGenerator::Status::OK);
+  TEST_ASSERT(!schema_json.empty());
+  TEST_ASSERT(schema_json.find("\"$schema\"") != std::string::npos);
+  TEST_ASSERT(schema_json.find("\"definitions\"") != std::string::npos);
+
+  // Test null file_saver safety in GenerateCode
+  parser.opts.file_saver = nullptr;
+  TEST_EQ(generator->GenerateCode(parser, "", "test"),
+          CodeGenerator::Status::ERROR);
 }
 
 }  // namespace tests

@@ -31,19 +31,24 @@ namespace jsons {
 namespace {
 
 template <class T>
-static std::string GenFullName(const T* enum_def) {
-  std::string full_name;
-  const auto& name_spaces = enum_def->defined_namespace->components;
-  for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
-    full_name.append(*ns + "_");
+static std::string GenFullName(const T* def) {
+  if (def == nullptr) {
+    return "";
   }
-  full_name.append(enum_def->name);
+  std::string full_name;
+  if (def->defined_namespace != nullptr) {
+    const auto& name_spaces = def->defined_namespace->components;
+    for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+      full_name.append(*ns + "_");
+    }
+  }
+  full_name.append(def->name);
   return full_name;
 }
 
 template <class T>
-static std::string GenTypeRef(const T* enum_def) {
-  return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
+static std::string GenTypeRef(const T* def) {
+  return "\"$ref\" : \"#/definitions/" + GenFullName(def) + "\"";
 }
 
 static std::string GenType(const std::string& name) {
@@ -130,6 +135,9 @@ static std::string GenType(const Type& type) {
       return GenTypeRef(type.struct_def);
     }
     case BASE_TYPE_UNION: {
+      if (type.enum_def == nullptr) {
+        return "";
+      }
       std::string union_type_string("\"anyOf\": [");
       const auto& union_types = type.enum_def->Vals();
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
@@ -137,7 +145,8 @@ static std::string GenType(const Type& type) {
         if (union_type->union_type.base_type == BASE_TYPE_NONE) {
           continue;
         }
-        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+        if (union_type->union_type.base_type == BASE_TYPE_STRUCT &&
+            union_type->union_type.struct_def != nullptr) {
           union_type_string.append(
               "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
         }
@@ -149,7 +158,7 @@ static std::string GenType(const Type& type) {
       return union_type_string;
     }
     case BASE_TYPE_UTYPE:
-      return GenTypeRef(type.enum_def);
+      return type.enum_def != nullptr ? GenTypeRef(type.enum_def) : "";
     default: {
       return GenBaseType(type);
     }
@@ -197,10 +206,12 @@ class JsonSchemaGenerator : public BaseGenerator {
 
       // remove leading and trailing spaces from comment line
       const auto start = std::find_if(comment_line.begin(), comment_line.end(),
-                                      [](char c) { return !isspace(c); });
+                                      [](char c) {
+                                        return !isspace(static_cast<unsigned char>(c));
+                                      });
       const auto end =
           std::find_if(comment_line.rbegin(), comment_line.rend(), [](char c) {
-            return !isspace(c);
+            return !isspace(static_cast<unsigned char>(c));
           }).base();
       if (start < end) {
         comment.append(start, end);
@@ -329,6 +340,9 @@ class JsonSchemaGenerator : public BaseGenerator {
   }
 
   bool save() const {
+    if (parser_.opts.file_saver == nullptr) {
+      return false;
+    }
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
     return parser_.opts.file_saver->SaveFile(file_path.c_str(), code_, false);
   }
@@ -339,6 +353,9 @@ class JsonSchemaGenerator : public BaseGenerator {
 
 static bool GenerateJsonSchema(const Parser& parser, const std::string& path,
                                const std::string& file_name) {
+  if (parser.opts.file_saver == nullptr) {
+    return false;
+  }
   jsons::JsonSchemaGenerator generator(parser, path, file_name);
   if (!generator.generate()) {
     return false;
@@ -355,6 +372,17 @@ class JsonSchemaCodeGenerator : public CodeGenerator {
     if (!GenerateJsonSchema(parser, path, filename)) {
       return Status::ERROR;
     }
+    return Status::OK;
+  }
+
+  Status GenerateCodeString(const Parser& parser, const std::string& filename,
+                            std::string& output) override {
+    (void)filename;
+    jsons::JsonSchemaGenerator generator(parser, "", filename);
+    if (!generator.generate()) {
+      return Status::ERROR;
+    }
+    output = generator.getJson();
     return Status::OK;
   }
 
