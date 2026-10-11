@@ -207,6 +207,7 @@ T* GetMutableRoot(void* buf) {
 
 template <typename T, typename SizeT = uoffset_t>
 T* GetMutableSizePrefixedRoot(void* buf) {
+  if (!buf) return nullptr;
   return GetMutableRoot<T>(reinterpret_cast<uint8_t*>(buf) + sizeof(SizeT));
 }
 
@@ -217,6 +218,7 @@ const T* GetRoot(const void* buf) {
 
 template <typename T, typename SizeT = uoffset_t>
 const T* GetSizePrefixedRoot(const void* buf) {
+  if (!buf) return nullptr;
   return GetRoot<T>(reinterpret_cast<const uint8_t*>(buf) + sizeof(SizeT));
 }
 

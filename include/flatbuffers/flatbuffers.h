@@ -89,7 +89,12 @@ inline SizeT GetPrefixedSize(const uint8_t* buf) {
 //  |---------length--------|
 template <typename SizeT = uoffset_t>
 inline SizeT GetSizePrefixedBufferLength(const uint8_t* const buf) {
-  return ReadScalar<SizeT>(buf) + sizeof(SizeT);
+  if (!buf) return 0;
+  const SizeT size = ReadScalar<SizeT>(buf);
+  if (size > (std::numeric_limits<SizeT>::max)() - sizeof(SizeT)) {
+    return 0;
+  }
+  return size + static_cast<SizeT>(sizeof(SizeT));
 }
 
 // Base class for native objects (FlatBuffer data de-serialized into native

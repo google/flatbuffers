@@ -623,6 +623,11 @@ void SizePrefixedTest() {
   TEST_EQ(m->hp(), 300);
   TEST_EQ_STR(m->name()->c_str(), "bob");
 
+  // Null safety and overflow checks.
+  TEST_EQ(static_cast<uoffset_t>(0), GetSizePrefixedBufferLength(nullptr));
+  TEST_NULL(GetSizePrefixedMonster(nullptr));
+  TEST_NULL(GetMutableSizePrefixedMonster(nullptr));
+
   {
     // Verify that passing a larger size is OK, but not a smaller
     flatbuffers::Verifier verifier_larger(fbb.GetBufferPointer(),
