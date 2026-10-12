@@ -21,8 +21,14 @@
 
 namespace flatbuffers {
 
+class Parser;
+
 // Constructs a new Java code generator.
 std::unique_ptr<CodeGenerator> NewJavaCodeGenerator();
+
+/// Generate Java code from a full FlatBuffer dictionary.
+bool GenerateJava(const Parser &parser, const std::string &path,
+                  const std::string &file_name);
 
 }  // namespace flatbuffers
 

@@ -114,14 +114,19 @@ class JavaGenerator : public BaseGenerator {
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      if (!*it) continue;
       std::string enumcode;
       auto& enum_def = **it;
+      static const Namespace empty_namespace;
+      const Namespace& enum_ns = enum_def.defined_namespace
+                                     ? *enum_def.defined_namespace
+                                     : empty_namespace;
       if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
       GenEnum(enum_def, enumcode);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
-        if (!SaveType(enum_def.name, *enum_def.defined_namespace, enumcode,
+        if (!SaveType(enum_def.name, enum_ns, enumcode,
                       /* needs_includes= */ false))
           return false;
       }
@@ -133,7 +138,7 @@ class JavaGenerator : public BaseGenerator {
         if (parser_.opts.one_file) {
           one_file_code += enumcode;
         } else {
-          if (!SaveType(class_name, *enum_def.defined_namespace, enumcode,
+          if (!SaveType(class_name, enum_ns, enumcode,
                         /* needs_includes= */ false))
             return false;
         }
@@ -142,15 +147,20 @@ class JavaGenerator : public BaseGenerator {
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       std::string declcode;
       auto& struct_def = **it;
       if (!parser_.opts.one_file)
         cur_name_space_ = struct_def.defined_namespace;
       GenStruct(struct_def, declcode, parser_.opts);
+      static const Namespace empty_namespace;
+      const Namespace& struct_ns = struct_def.defined_namespace
+                                       ? *struct_def.defined_namespace
+                                       : empty_namespace;
       if (parser_.opts.one_file) {
         one_file_code += declcode;
       } else {
-        if (!SaveType(struct_def.name, *struct_def.defined_namespace, declcode,
+        if (!SaveType(struct_def.name, struct_ns, declcode,
                       /* needs_includes= */ true))
           return false;
       }
@@ -162,7 +172,7 @@ class JavaGenerator : public BaseGenerator {
         if (parser_.opts.one_file) {
           one_file_code += declcode;
         } else {
-          if (!SaveType(class_name, *struct_def.defined_namespace, declcode,
+          if (!SaveType(class_name, struct_ns, declcode,
                         /* needs_includes= */ true))
             return false;
         }
@@ -170,7 +180,11 @@ class JavaGenerator : public BaseGenerator {
     }
 
     if (parser_.opts.one_file) {
-      return SaveType(file_name_, *parser_.current_namespace_, one_file_code,
+      static const Namespace empty_namespace;
+      const Namespace& cur_ns = parser_.current_namespace_
+                                    ? *parser_.current_namespace_
+                                    : empty_namespace;
+      return SaveType(file_name_, cur_ns, one_file_code,
                       /* needs_includes= */ true);
     }
     return true;
@@ -226,6 +240,7 @@ class JavaGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
@@ -439,6 +454,7 @@ class JavaGenerator : public BaseGenerator {
     code += " {\n";
     code += "  private " + namer_.Type(enum_def) + "() { }\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       GenComment(ev.doc_comment, &code, &comment_config, "  ");
       code += "  public static final ";
@@ -462,7 +478,9 @@ class JavaGenerator : public BaseGenerator {
     // Average distance between values above which we consider a table
     // "too sparse". Change at will.
     static const uint64_t kMaxSparseness = 5;
-    if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness &&
+    if (!enum_def.Vals().empty() && enum_def.size() != 0 &&
+        enum_def.MinValue() != nullptr &&
+        range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness &&
         GenTypeBasic(DestinationType(enum_def.underlying_type, false)) !=
             "long") {
       code += "\n  public static final String";
@@ -470,6 +488,7 @@ class JavaGenerator : public BaseGenerator {
       const EnumVal* prev = enum_def.Vals().front();
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
+        if (!*it) continue;
         const EnumVal& ev = **it;
         for (auto k = enum_def.Distance(prev, &ev); k > 1; --k)
           code += "\"\", ";
@@ -558,13 +577,14 @@ class JavaGenerator : public BaseGenerator {
                      const char* nameprefix, size_t array_count = 0) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       const auto& field_type = field.value.type;
       const auto array_field = IsArray(field_type);
       const auto& type = array_field ? field_type.VectorType()
                                      : DestinationType(field_type, false);
       const auto array_cnt = array_field ? (array_count + 1) : array_count;
-      if (IsStruct(type)) {
+      if (IsStruct(type) && field_type.struct_def != nullptr) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
@@ -593,13 +613,14 @@ class JavaGenerator : public BaseGenerator {
     code += NumToString(struct_def.bytesize) + ");\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       const auto& field_type = field.value.type;
       if (field.padding) {
         code += indent + "  builder.pad(";
         code += NumToString(field.padding) + ");\n";
       }
-      if (IsStruct(field_type)) {
+      if (IsStruct(field_type) && field_type.struct_def != nullptr) {
         GenStructBody(*field_type.struct_def, code,
                       (nameprefix + (field.name + "_")).c_str(), index,
                       in_array);
@@ -613,7 +634,7 @@ class JavaGenerator : public BaseGenerator {
           code += "; " + index_var + " > 0; " + index_var + "--) {\n";
           in_array = true;
         }
-        if (IsStruct(type)) {
+        if (IsStruct(type) && field_type.struct_def != nullptr) {
           GenStructBody(*field_type.struct_def, code,
                         (nameprefix + (field.name + "_")).c_str(), index + 1,
                         in_array);
@@ -774,6 +795,7 @@ class JavaGenerator : public BaseGenerator {
     code += "{ __init(_i, _bb); return this; }\n\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       GenComment(field.doc_comment, &code, &comment_config, "  ");
@@ -1096,6 +1118,7 @@ class JavaGenerator : public BaseGenerator {
       int num_fields = 0;
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         if (IsStruct(field.value.type)) {
@@ -1115,6 +1138,7 @@ class JavaGenerator : public BaseGenerator {
         code += "(FlatBufferBuilder builder";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
+          if (!*it) continue;
           auto& field = **it;
           auto field_name = namer_.Field(field);
           if (field.deprecated) continue;
@@ -1131,6 +1155,7 @@ class JavaGenerator : public BaseGenerator {
              size; size /= 2) {
           for (auto it = struct_def.fields.vec.rbegin();
                it != struct_def.fields.vec.rend(); ++it) {
+            if (!*it) continue;
             auto& field = **it;
             auto field_name = namer_.Field(field);
             if (!field.deprecated &&
@@ -1159,6 +1184,7 @@ class JavaGenerator : public BaseGenerator {
       code += NumToString(struct_def.fields.vec.size()) + "); }\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
 
@@ -1245,6 +1271,7 @@ class JavaGenerator : public BaseGenerator {
       code += "endTable();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (!field.deprecated && field.IsRequired()) {
           code += "    builder.required(o, ";
@@ -1406,17 +1433,21 @@ class JavaGenerator : public BaseGenerator {
     code += "  public void setValue(Object value) { this.value = value; }\n\n";
     // Constructor
     code += "  public " + union_name + "() {\n";
-    code +=
-        "    this.type = " + namer_.EnumVariant(enum_def, *enum_def.Vals()[0]) +
-        ";\n";
+    if (!enum_def.Vals().empty() && enum_def.Vals()[0]) {
+      code +=
+          "    this.type = " + namer_.EnumVariant(enum_def, *enum_def.Vals()[0]) +
+          ";\n";
+    }
     code += "    this.value = null;\n";
     code += "  }\n\n";
     // As
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
       auto type_name = GenTypeGet_ObjectAPI(ev.union_type, false, true);
       if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+          ev.union_type.struct_def &&
           ev.union_type.struct_def->attributes.Lookup("private")) {
         code += "  ";
       } else {
@@ -1431,6 +1462,7 @@ class JavaGenerator : public BaseGenerator {
             union_name + " _o) {\n";
     code += "    switch (_o.type) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         continue;
@@ -1474,12 +1506,14 @@ class JavaGenerator : public BaseGenerator {
     code += indent + "switch (" + variable_name + "Type) {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
+      if (!*eit) continue;
       auto& ev = **eit;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         continue;
       } else {
         if (ev.union_type.base_type == BASE_TYPE_STRING ||
             (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+             ev.union_type.struct_def &&
              ev.union_type.struct_def->fixed)) {
           continue;  // This branch is due to bad implemantation of Unions in
                      // Java which doesn't handle non Table types. Should be
@@ -1519,6 +1553,7 @@ class JavaGenerator : public BaseGenerator {
     code += "  public void unpackTo(" + struct_name + " _o) {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
@@ -1535,13 +1570,14 @@ class JavaGenerator : public BaseGenerator {
       auto call_setter = true;
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
-          auto fixed = struct_def.fixed && field.value.type.struct_def->fixed;
+          auto fixed = struct_def.fixed && field.value.type.struct_def &&
+                       field.value.type.struct_def->fixed;
           if (fixed) {
             code +=
                 "    " + accessor + "().unpackTo(_o." + get_field + "());\n";
           } else {
             code += "    if (" + accessor + "() != null) ";
-            if (field.value.type.struct_def->fixed) {
+            if (field.value.type.struct_def && field.value.type.struct_def->fixed) {
               code += accessor + "().unpackTo(_o." + get_field + "());\n";
             } else {
               code += "_o." + set_field + "(" + accessor + "().unpack());\n";
@@ -1570,8 +1606,10 @@ class JavaGenerator : public BaseGenerator {
                     accessor + "Length()];\n";
             code +=
                 "    for (int _j = 0; _j < " + accessor + "Length(); ++_j) {\n";
-            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code,
-                                     type_name, accessor, true);
+            if (field.value.type.enum_def != nullptr) {
+              GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code,
+                                       type_name, accessor, true);
+            }
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
             auto fixed = field.value.type.struct_def == nullptr;
@@ -1595,8 +1633,10 @@ class JavaGenerator : public BaseGenerator {
         case BASE_TYPE_UTYPE:
           break;
         case BASE_TYPE_UNION: {
-          GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code, type_name,
-                                   accessor, false);
+          if (field.value.type.enum_def != nullptr) {
+            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code, type_name,
+                                     accessor, false);
+          }
           break;
         }
         default: {
@@ -1620,6 +1660,7 @@ class JavaGenerator : public BaseGenerator {
     code += "    if (_o == null) return 0;\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       const auto field_name = namer_.Field(field);
@@ -1628,12 +1669,12 @@ class JavaGenerator : public BaseGenerator {
       // pre
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
-          if (!field.value.type.struct_def->fixed) {
+          if (!field.value.type.struct_def || !field.value.type.struct_def->fixed) {
             code += "    " + GenOffsetType() + " _" + namer_.Variable(field) +
                     " = _o." + get_field +
                     "() == null ? 0 : " + GenTypeGet(field.value.type) +
                     ".pack(builder, _o." + get_field + "());\n";
-          } else if (struct_def.fixed && struct_has_create) {
+          } else if (struct_def.fixed && struct_has_create && field.value.type.struct_def) {
             std::vector<FieldArrayLength> array_lengths;
             FieldArrayLength tmp_array_length = {
                 field.name,
@@ -1676,17 +1717,21 @@ class JavaGenerator : public BaseGenerator {
                 break;
               case BASE_TYPE_UTYPE:
                 property_name = field_name.substr(0, field_name.size() - 4);
-                array_type = GenTypeBasic(DestinationType(
-                    field.value.type.enum_def->underlying_type, false));
-                element_type = field.value.type.enum_def->name + "Union";
+                if (field.value.type.enum_def != nullptr) {
+                  array_type = GenTypeBasic(DestinationType(
+                      field.value.type.enum_def->underlying_type, false));
+                  element_type = field.value.type.enum_def->name + "Union";
+                }
                 to_array = "_o." + namer_.Method("get", property_name) +
                            "()[_j].getType()";
                 break;
               case BASE_TYPE_UNION:
                 array_type = "int";
-                element_type = Prefixed(namer_.NamespacedType(
-                                   *field.value.type.enum_def)) +
-                               "Union";
+                if (field.value.type.enum_def != nullptr) {
+                  element_type = Prefixed(namer_.NamespacedType(
+                                     *field.value.type.enum_def)) +
+                                 "Union";
+                }
                 to_array = element_type + ".pack(builder,  _o." +
                            namer_.Method("get", property_name) + "()[_j])";
                 break;
@@ -1766,17 +1811,19 @@ class JavaGenerator : public BaseGenerator {
           break;
         }
         case BASE_TYPE_UNION: {
-          code += "    " +
-                  GenTypeBasic(DestinationType(
-                      field.value.type.enum_def->underlying_type, false)) +
-                  " _" + field_name + "Type = _o." + get_field +
-                  "() == null ? " +
-                  Prefixed(namer_.NamespacedType(*field.value.type.enum_def)) +
-                  ".NONE : " + "_o." + get_field + "().getType();\n";
-          code += "    " + GenOffsetType() + " _" + field_name + " = _o." +
-                  get_field + "() == null ? 0 : " +
-                  Prefixed(namer_.NamespacedType(*field.value.type.enum_def)) +
-                  "Union.pack(builder, _o." + get_field + "());\n";
+          if (field.value.type.enum_def != nullptr) {
+            code += "    " +
+                    GenTypeBasic(DestinationType(
+                        field.value.type.enum_def->underlying_type, false)) +
+                    " _" + field_name + "Type = _o." + get_field +
+                    "() == null ? " +
+                    Prefixed(namer_.NamespacedType(*field.value.type.enum_def)) +
+                    ".NONE : " + "_o." + get_field + "().getType();\n";
+            code += "    " + GenOffsetType() + " _" + field_name + " = _o." +
+                    get_field + "() == null ? 0 : " +
+                    Prefixed(namer_.NamespacedType(*field.value.type.enum_def)) +
+                    "Union.pack(builder, _o." + get_field + "());\n";
+          }
           break;
         }
         default:
@@ -1790,6 +1837,7 @@ class JavaGenerator : public BaseGenerator {
       code += "      builder";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         const auto field_name = namer_.Field(field);
@@ -1797,11 +1845,13 @@ class JavaGenerator : public BaseGenerator {
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
             if (struct_def.fixed) {
-              GenStructPackCall_ObjectAPI(*field.value.type.struct_def, code,
-                                          "      _" + field_name + "_");
+              if (field.value.type.struct_def != nullptr) {
+                GenStructPackCall_ObjectAPI(*field.value.type.struct_def, code,
+                                            "      _" + field_name + "_");
+              }
             } else {
               code += ",\n";
-              if (field.value.type.struct_def->fixed) {
+              if (field.value.type.struct_def && field.value.type.struct_def->fixed) {
                 if (opts.generate_object_based_api)
                   code += "      _o." + field_name;
                 else
@@ -1848,6 +1898,7 @@ class JavaGenerator : public BaseGenerator {
               "(builder);\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         const auto arg = "_" + namer_.Variable(field);
@@ -1856,7 +1907,7 @@ class JavaGenerator : public BaseGenerator {
 
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
-            if (field.value.type.struct_def->fixed) {
+            if (field.value.type.struct_def && field.value.type.struct_def->fixed) {
               code += "    " + add_field + "(builder, " +
                       GenTypeGet(field.value.type) + ".pack(builder, _o." +
                       get_field + "()));\n";
@@ -1904,6 +1955,7 @@ class JavaGenerator : public BaseGenerator {
                                    std::string& code) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const FieldDef& field = **it;
       const bool is_array = IsArray(field.value.type);
       const Type& field_type =
@@ -1987,6 +2039,7 @@ class JavaGenerator : public BaseGenerator {
                                    std::string prefix) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       const auto& field_type = field.value.type;
       if (field_type.struct_def != nullptr) {
@@ -2036,7 +2089,7 @@ class JavaGenerator : public BaseGenerator {
           auto new_type_name = namer_.ObjectType(*type.struct_def);
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
-        } else if (type.element == BASE_TYPE_UNION) {
+        } else if (type.element == BASE_TYPE_UNION && type.enum_def != nullptr) {
           if (wrap_in_namespace) {
             type_name =
                 Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
@@ -2048,10 +2101,12 @@ class JavaGenerator : public BaseGenerator {
       }
 
       case BASE_TYPE_UNION: {
-        if (wrap_in_namespace) {
-          type_name = Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
-        } else {
-          type_name = namer_.Type(*type.enum_def) + "Union";
+        if (type.enum_def != nullptr) {
+          if (wrap_in_namespace) {
+            type_name = Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
+          } else {
+            type_name = namer_.Type(*type.enum_def) + "Union";
+          }
         }
         break;
       }
@@ -2089,14 +2144,16 @@ class JavaGenerator : public BaseGenerator {
           auto new_type_name = namer_.ObjectType(*type.struct_def);
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
-        } else if (type.element == BASE_TYPE_UNION) {
+        } else if (type.element == BASE_TYPE_UNION && type.enum_def != nullptr) {
           type_name = Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
         }
         break;
       }
 
       case BASE_TYPE_UNION: {
-        type_name = Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
+        if (type.enum_def != nullptr) {
+          type_name = Prefixed(namer_.NamespacedType(*type.enum_def)) + "Union";
+        }
         break;
       }
       default:
@@ -2131,6 +2188,7 @@ class JavaGenerator : public BaseGenerator {
     // Generate Properties
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
@@ -2145,6 +2203,7 @@ class JavaGenerator : public BaseGenerator {
     code += "\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
@@ -2172,6 +2231,7 @@ class JavaGenerator : public BaseGenerator {
     code += "  public " + class_name + "() {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
@@ -2244,8 +2304,8 @@ class JavaGenerator : public BaseGenerator {
 };
 }  // namespace java
 
-static bool GenerateJava(const Parser& parser, const std::string& path,
-                         const std::string& file_name) {
+bool GenerateJava(const Parser& parser, const std::string& path,
+                  const std::string& file_name) {
   java::JavaGenerator generator(parser, path, file_name,
                                 parser.opts.java_package_prefix);
   return generator.generate();

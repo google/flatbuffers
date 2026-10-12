@@ -68,6 +68,14 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_java.h"
+
+namespace flatbuffers {
+// Stub for JavaCodeGenerator::GenerateGrpcCode when testing Java generator in flattests.
+bool GenerateJavaGRPC(const Parser&, const std::string&, const std::string&) {
+  return false;
+}
+}  // namespace flatbuffers
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1753,65 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void JavaGeneratorHardeningSafetyTest() {
+  auto gen = NewJavaCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kJava);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "Java");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  // Test empty parser code generation
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateJava(empty_parser, "", "test"), true);
+
+  // Test empty parser gRPC code generation
+  TEST_EQ(gen->GenerateGrpcCode(empty_parser, "", "test"), CodeGenerator::ERROR);
+
+  // Test schema with empty enum (Distance / size division by zero guard)
+  {
+    Parser empty_enum_parser;
+    empty_enum_parser.opts.one_file = true;
+    TEST_EQ(empty_enum_parser.Parse("namespace Test.Empty; "
+                                   "enum EmptyEnum : byte {} "
+                                   "table Dummy { e:EmptyEnum; } "
+                                   "root_type Dummy;"), true);
+    TEST_EQ(GenerateJava(empty_enum_parser, "", "test_empty_enum"), true);
+  }
+
+  // Test schema with sparse enum, union, struct, and table in both one_file and multi-file modes
+  {
+    Parser parser;
+    parser.opts.one_file = true;
+    parser.opts.generate_object_based_api = true;
+    TEST_EQ(parser.Parse("namespace Test.Java; "
+                         "enum Color : byte { Red = 0, Blue = 100 } "
+                         "union Any { Item } "
+                         "struct Vec3 { x:float; y:float; z:float; } "
+                         "table Item { id:int; color:Color; pos:Vec3; names:[string]; } "
+                         "root_type Item;"), true);
+    TEST_EQ(gen->GenerateCode(parser, "", "test_java"), CodeGenerator::OK);
+    TEST_EQ(GenerateJava(parser, "", "test_java"), true);
+  }
+
+  // Test multi-file mode without file_saver (should safely no-op SaveType)
+  {
+    Parser parser;
+    parser.opts.one_file = false;
+    parser.opts.generate_object_based_api = true;
+    parser.opts.file_saver = nullptr;
+    TEST_EQ(parser.Parse("namespace Test.JavaMulti; "
+                         "enum Color : byte { Red = 0, Green = 1 } "
+                         "union Any { Item } "
+                         "struct Vec3 { x:float; y:float; z:float; } "
+                         "table Item { id:int; color:Color; pos:Vec3; names:[string]; } "
+                         "root_type Item;"), true);
+    TEST_EQ(GenerateJava(parser, "", "test_java_multi"), true);
+  }
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1931,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  JavaGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace
