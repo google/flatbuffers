@@ -288,7 +288,7 @@ class BinaryAnnotator {
                            const bool is_size_prefixed)
       : bfbs_(bfbs),
         bfbs_length_(bfbs_length),
-        schema_(reflection::GetSchema(bfbs)),
+        schema_(bfbs ? reflection::GetSchema(bfbs) : nullptr),
         root_table_(""),
         binary_(binary),
         binary_length_(binary_length),
@@ -364,13 +364,19 @@ class BinaryAnnotator {
   }
 
   inline bool IsValidRead(const uint64_t offset, const uint64_t length) const {
-    return length < binary_length_ && IsValidOffset(offset + length - 1);
+    if (binary_ == nullptr || length > binary_length_ ||
+        offset > binary_length_) {
+      return false;
+    }
+    return (offset + length >= offset) && (offset + length <= binary_length_);
   }
 
   // Calculate the number of bytes remaining from the given offset. If offset is
   // > binary_length, 0 is returned.
   uint64_t RemainingBytes(const uint64_t offset) const {
-    return IsValidOffset(offset) ? binary_length_ - offset : 0;
+    return (binary_ != nullptr && IsValidOffset(offset))
+               ? binary_length_ - offset
+               : 0;
   }
 
   template <typename T>
@@ -390,8 +396,15 @@ class BinaryAnnotator {
   }
 
   bool IsInlineField(const reflection::Field* const field) {
+    if (!field || !field->type()) return false;
     if (field->type()->base_type() == reflection::BaseType::Obj) {
-      return schema_->objects()->Get(field->type()->index())->is_struct();
+      if (!schema_ || !schema_->objects() || field->type()->index() < 0 ||
+          static_cast<size_t>(field->type()->index()) >=
+              schema_->objects()->size()) {
+        return false;
+      }
+      auto obj = schema_->objects()->Get(field->type()->index());
+      return obj ? obj->is_struct() : false;
     }
     return IsScalar(field->type()->base_type());
   }
@@ -402,6 +415,7 @@ class BinaryAnnotator {
   }
 
   bool IsUnionType(const reflection::Field* const field) {
+    if (!field || !field->type()) return false;
     return IsUnionType(field->type()->base_type()) &&
            field->type()->index() >= 0;
   }
@@ -413,13 +427,13 @@ class BinaryAnnotator {
   }
 
   bool IsValidUnionValue(const uint32_t enum_id, const uint8_t value) {
-    if (enum_id >= schema_->enums()->size()) {
+    if (!schema_ || !schema_->enums() || enum_id >= schema_->enums()->size()) {
       return false;
     }
 
     const reflection::Enum* enum_def = schema_->enums()->Get(enum_id);
 
-    if (enum_def == nullptr) {
+    if (enum_def == nullptr || enum_def->values() == nullptr) {
       return false;
     }
 
@@ -427,14 +441,20 @@ class BinaryAnnotator {
   }
 
   uint64_t GetElementSize(const reflection::Field* const field) {
+    if (!field || !field->type()) return sizeof(uint32_t);
     if (IsScalar(field->type()->element())) {
       return GetTypeSize(field->type()->element());
     }
 
     switch (field->type()->element()) {
       case reflection::BaseType::Obj: {
+        if (!schema_ || !schema_->objects() || field->type()->index() < 0 ||
+            static_cast<size_t>(field->type()->index()) >=
+                schema_->objects()->size()) {
+          return sizeof(uint32_t);
+        }
         auto obj = schema_->objects()->Get(field->type()->index());
-        return obj->is_struct() ? obj->bytesize() : sizeof(uint32_t);
+        return (obj && obj->is_struct()) ? obj->bytesize() : sizeof(uint32_t);
       }
       default:
         return sizeof(uint32_t);

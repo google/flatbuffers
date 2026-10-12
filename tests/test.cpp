@@ -34,6 +34,8 @@
 #include "third_party/absl/container/flat_hash_set.h"
 #endif
 #include "alignment_test.h"
+#include "annotated_binary_text_gen.h"
+#include "binary_annotator.h"
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
@@ -1745,6 +1747,25 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void BinaryAnnotatorHardeningSafetyTest() {
+  // Test BinaryAnnotator with null bfbs, null binary, and zero length
+  flatbuffers::BinaryAnnotator null_annotator(nullptr, 0, nullptr, 0, false);
+  auto null_sections = null_annotator.Annotate();
+  TEST_EQ(null_sections.empty(), true);
+
+  // Test with truncated binary below FLATBUFFERS_MIN_BUFFER_SIZE
+  uint8_t tiny_bin[2] = { 0, 0 };
+  flatbuffers::BinaryAnnotator tiny_annotator(nullptr, 0, tiny_bin,
+                                             sizeof(tiny_bin), false);
+  TEST_EQ(tiny_annotator.Annotate().empty(), true);
+
+  // Test AnnotatedBinaryTextGenerator with null binary, zero binary length, and zero max_bytes_per_line
+  flatbuffers::AnnotatedBinaryTextGenerator::Options opts;
+  opts.max_bytes_per_line = 0;
+  flatbuffers::AnnotatedBinaryTextGenerator text_gen(opts, {}, nullptr, 0);
+  TEST_EQ(text_gen.Generate("dummy.bin", "dummy.bfbs"), false);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1885,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  BinaryAnnotatorHardeningSafetyTest();
   return 0;
 }
 }  // namespace

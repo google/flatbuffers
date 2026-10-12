@@ -76,6 +76,7 @@ std::string ToString(T value) {
 
 template <typename T>
 std::string ToValueString(const BinaryRegion& region, const uint8_t* binary) {
+  if (!binary || region.length == 0) return "";
   std::string s;
   s += "0x";
   const T val = ReadScalar<T>(binary + region.offset);
@@ -92,6 +93,7 @@ std::string ToValueString(const BinaryRegion& region, const uint8_t* binary) {
 template <>
 std::string ToValueString<std::string>(const BinaryRegion& region,
                                        const uint8_t* binary) {
+  if (!binary) return "";
   return std::string(reinterpret_cast<const char*>(binary + region.offset),
                      static_cast<size_t>(region.array_length));
 }
@@ -99,6 +101,7 @@ std::string ToValueString<std::string>(const BinaryRegion& region,
 static std::string ToValueString(const BinaryRegion& region,
                                  const uint8_t* binary,
                                  const OutputConfig& output_config) {
+  if (!binary) return "";
   std::string s;
 
   if (region.array_length) {
@@ -323,7 +326,9 @@ static void GenerateDocumentation(std::ostream& os, const BinaryRegion& region,
                                   const OutputConfig& output_config) {
   // Check if there is a doc continuation that should be prioritized.
   if (continuation.value_start_column) {
-    os << std::string(continuation.value_start_column - 2, ' ');
+    if (continuation.value_start_column >= 2) {
+      os << std::string(continuation.value_start_column - 2, ' ');
+    }
     os << output_config.delimiter << " ";
 
     os << continuation.value.substr(0, output_config.max_bytes_per_line);
@@ -454,8 +459,13 @@ static void GenerateSection(std::ostream& os, const BinarySection& section,
 bool AnnotatedBinaryTextGenerator::Generate(
     const std::string& filename, const std::string& schema_filename,
     const std::string& output_filename) {
+  if (!binary_ || binary_length_ <= 0) {
+    return false;
+  }
+
   OutputConfig output_config;
-  output_config.max_bytes_per_line = options_.max_bytes_per_line;
+  output_config.max_bytes_per_line =
+      options_.max_bytes_per_line > 0 ? options_.max_bytes_per_line : 8;
   output_config.include_vector_contents = options_.include_vector_contents;
 
   // Given the length of the binary, we can calculate the maximum number of
