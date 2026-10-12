@@ -188,6 +188,25 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   // rinventory still valid, so lets read from it.
   TEST_EQ(rinventory->Get(10), 50);
 
+  // Test ResizeAnyVector boundary and overflow guards.
+  auto bad_resize_ptr = flatbuffers::ResizeAnyVector(
+      schema, (std::numeric_limits<uoffset_t>::max)(),
+      reinterpret_cast<const flatbuffers::VectorOfAny*>(*rinventory),
+      rinventory->size(), sizeof(uint8_t), &resizingbuf);
+  TEST_NULL(bad_resize_ptr);
+
+  auto zero_elem_resize_ptr = flatbuffers::ResizeAnyVector(
+      schema, 110,
+      reinterpret_cast<const flatbuffers::VectorOfAny*>(*rinventory),
+      rinventory->size(), 0, &resizingbuf);
+  TEST_NULL(zero_elem_resize_ptr);
+
+  auto good_resize_ptr = flatbuffers::ResizeAnyVector(
+      schema, 110,
+      reinterpret_cast<const flatbuffers::VectorOfAny*>(*rinventory),
+      rinventory->size(), sizeof(uint8_t), &resizingbuf);
+  TEST_NOTNULL(good_resize_ptr);
+
   // For reflection uses not covered already, there is a more powerful way:
   // we can simply generate whatever object we want to add/modify in a
   // FlatBuffer of its own, then add that to an existing FlatBuffer:

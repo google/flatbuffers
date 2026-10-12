@@ -461,13 +461,15 @@ template <typename T>
 void ResizeVector(const reflection::Schema& schema, uoffset_t newsize, T val,
                   const Vector<T>* vec, std::vector<uint8_t>* flatbuf,
                   const reflection::Object* root_table = nullptr) {
-  auto delta_elem = static_cast<int>(newsize) - static_cast<int>(vec->size());
+  const uoffset_t old_size = vec->size();
   auto newelems = ResizeAnyVector(
-      schema, newsize, reinterpret_cast<const VectorOfAny*>(vec), vec->size(),
+      schema, newsize, reinterpret_cast<const VectorOfAny*>(vec), old_size,
       static_cast<uoffset_t>(sizeof(T)), flatbuf, root_table);
+  if (newelems == nullptr || newsize <= old_size) return;
   // Set new elements to "val".
-  for (int i = 0; i < delta_elem; i++) {
-    auto loc = newelems + i * sizeof(T);
+  const uoffset_t added = newsize - old_size;
+  for (uoffset_t i = 0; i < added; i++) {
+    auto loc = newelems + static_cast<size_t>(i) * sizeof(T);
     auto is_scalar = flatbuffers::is_scalar<T>::value;
     if (is_scalar) {
       WriteScalar(loc, val);
