@@ -314,5 +314,73 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersSafetyTest() {
+  // 1. GetRoot with null and truncated buffers.
+  TEST_EQ(flexbuffers::GetRoot(nullptr, 0).IsNull(), true);
+  uint8_t dummy_buf[2] = { 0, 0 };
+  TEST_EQ(flexbuffers::GetRoot(dummy_buf, 0).IsNull(), true);
+  TEST_EQ(flexbuffers::GetRoot(dummy_buf, 1).IsNull(), true);
+  TEST_EQ(flexbuffers::GetRoot(dummy_buf, 2).IsNull(), true);
+
+  // 2. Default-constructed Reference (data_ == nullptr).
+  flexbuffers::Reference ref;
+  TEST_EQ(ref.IsNull(), true);
+  TEST_EQ(ref.AsInt64(), 0);
+  TEST_EQ(ref.AsUInt64(), 0);
+  TEST_EQ(ref.AsDouble(), 0.0);
+  TEST_EQ(ref.AsFloat(), 0.0f);
+  TEST_EQ(ref.AsBool(), false);
+  TEST_EQ_STR(ref.AsKey(), "");
+  TEST_EQ_STR(ref.AsString().c_str(), "");
+  TEST_EQ(ref.AsString().IsTheEmptyString(), true);
+  TEST_EQ(ref.AsBlob().IsTheEmptyBlob(), true);
+  TEST_EQ(ref.AsVector().IsTheEmptyVector(), true);
+  TEST_EQ(ref.AsTypedVector().IsTheEmptyVector(), true);
+  TEST_EQ(ref.AsFixedTypedVector().IsTheEmptyFixedTypedVector(), true);
+  TEST_EQ(ref.AsMap().IsTheEmptyMap(), true);
+  TEST_EQ(ref.MutateInt(42), false);
+  TEST_EQ(ref.MutateUInt(42), false);
+  TEST_EQ(ref.MutateFloat(4.2), false);
+  TEST_EQ(ref.MutateBool(true), false);
+  TEST_EQ(ref.MutateString("abc"), false);
+
+  // 3. Null-initialized Vector and Map.
+  auto vec = flexbuffers::Vector(nullptr, 1);
+  TEST_EQ(vec.IsTheEmptyVector(), true);
+  TEST_EQ(vec.size(), 0);
+  TEST_EQ(vec[0].IsNull(), true);
+
+  auto tvec = flexbuffers::TypedVector(nullptr, 1, flexbuffers::FBT_INT);
+  TEST_EQ(tvec.IsTheEmptyVector(), true);
+  TEST_EQ(tvec.size(), 0);
+  TEST_EQ(tvec[0].IsNull(), true);
+
+  auto fvec =
+      flexbuffers::FixedTypedVector(nullptr, 1, flexbuffers::FBT_INT, 0);
+  TEST_EQ(fvec.IsTheEmptyFixedTypedVector(), true);
+  TEST_EQ(fvec.size(), 0);
+  TEST_EQ(fvec[0].IsNull(), true);
+
+  auto map = flexbuffers::Map(nullptr, 1);
+  TEST_EQ(map.IsTheEmptyMap(), true);
+  TEST_EQ(map.size(), 0);
+  TEST_EQ(map.Keys().IsTheEmptyVector(), true);
+  TEST_EQ(map.Values().IsTheEmptyVector(), true);
+  TEST_EQ(map["missing"].IsNull(), true);
+  TEST_EQ(map[static_cast<const char*>(nullptr)].IsNull(), true);
+
+  // 4. Verifier with null buffer.
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 0), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 10), false);
+
+  // 5. Builder safety with null inputs.
+  flexbuffers::Builder builder;
+  TEST_EQ(builder.Key(nullptr), 0);
+  TEST_EQ(builder.String(nullptr), 0);
+  builder.Vector(static_cast<const int*>(nullptr), 0);
+  TEST_EQ(builder.EndVector(100, false, false), 0);
+  TEST_EQ(builder.EndMap(100), 0);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
