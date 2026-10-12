@@ -21,6 +21,12 @@
 
 namespace flatbuffers {
 
+class Parser;
+
+// Generate text includes for Python.
+const char* GeneratePython(const Parser& parser, const std::string& path,
+                           const std::string& file_name);
+
 // Constructs a new Python code generator.
 std::unique_ptr<CodeGenerator> NewPythonCodeGenerator();
 

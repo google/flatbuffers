@@ -68,6 +68,14 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_python.h"
+
+namespace flatbuffers {
+// Stub for PythonCodeGenerator::GenerateGrpcCode when testing Python generator in flattests.
+bool GeneratePythonGRPC(const Parser&, const std::string&, const std::string&) {
+  return false;
+}
+}  // namespace flatbuffers
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1753,48 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void PythonGeneratorHardeningSafetyTest() {
+  auto gen = NewPythonCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kPython);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "Python");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  // Test empty parser code generation
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_NULL(GeneratePython(empty_parser, "", "test"));
+
+  // Test parsed schema with enums, tables, unions, and root type in multi-file mode without file_saver
+  Parser parser;
+  TEST_EQ(parser.Parse("namespace Test.Python; "
+                       "enum Color : byte { Red = 0, Green = 1 } "
+                       "union Any { Item } "
+                       "struct Vec3 { x:float; y:float; z:float; } "
+                       "table Item { id:int; color:Color; pos:Vec3; names:[string]; } "
+                       "table Root { item:Any; items:[Item]; } "
+                       "root_type Root;"), true);
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_NULL(GeneratePython(parser, "", "test"));
+
+  // Test one_file mode without file_saver
+  parser.opts.one_file = true;
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_NULL(GeneratePython(parser, "", "test"));
+
+  // Test python_typing without file_saver
+  parser.opts.python_typing = true;
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_NULL(GeneratePython(parser, "", "test"));
+
+  // Test object-based API without file_saver
+  parser.opts.generate_object_based_api = true;
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_NULL(GeneratePython(parser, "", "test"));
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1914,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  PythonGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace
