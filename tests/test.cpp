@@ -68,6 +68,14 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_go.h"
+
+namespace flatbuffers {
+// Stub for GoCodeGenerator::GenerateGrpcCode when testing Go generator in flattests.
+bool GenerateGoGRPC(const Parser&, const std::string&, const std::string&) {
+  return false;
+}
+}  // namespace flatbuffers
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1753,37 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void GoGeneratorHardeningSafetyTest() {
+  auto gen = NewGoCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kGo);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "Go");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  // Test empty parser code generation
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateGo(empty_parser, "", "test"), true);
+
+  // Test parsed schema with enums, tables, unions, and root type in multi-file mode without file_saver
+  Parser parser;
+  TEST_EQ(parser.Parse("namespace Test.Go; "
+                       "enum Color : byte { Red = 0, Green = 1 } "
+                       "union Any { Item } "
+                       "table Item { id:int; color:Color; } "
+                       "table Root { item:Any; } "
+                       "root_type Root;"), true);
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateGo(parser, "", "test"), true);
+
+  // Test one_file mode without file_saver
+  parser.opts.one_file = true;
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateGo(parser, "", "test"), true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1903,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  GoGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace

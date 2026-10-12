@@ -246,6 +246,7 @@ set(FlatBuffers_Tests_SRCS
   tests/64bit/offset64_test.cpp
   include/flatbuffers/code_generators.h
   src/code_generators.cpp
+  src/idl_gen_go.cpp
 )
 
 set(FlatBuffers_Tests_CPP17_SRCS

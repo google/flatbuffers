@@ -21,6 +21,12 @@
 
 namespace flatbuffers {
 
+class Parser;
+
+// Generate text includes for Go.
+bool GenerateGo(const Parser& parser, const std::string& path,
+                const std::string& file_name);
+
 // Constructs a new Go code generator.
 std::unique_ptr<CodeGenerator> NewGoCodeGenerator();
 

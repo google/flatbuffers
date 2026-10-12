@@ -114,6 +114,7 @@ class GoGenerator : public BaseGenerator {
       code += one_file_code;
       const std::string filename =
           GeneratedFileName(path_, file_name_, parser_.opts);
+      if (!parser_.opts.file_saver) return true;
       return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
     }
 
@@ -125,6 +126,7 @@ class GoGenerator : public BaseGenerator {
     bool needs_imports = false;
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      if (!*it) continue;
       if (!parser_.opts.one_file) {
         needs_imports = false;
         ResetImports();
@@ -156,6 +158,7 @@ class GoGenerator : public BaseGenerator {
   bool generateStructs(std::string* one_file_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       if (!parser_.opts.one_file) {
         ResetImports();
       }
@@ -177,6 +180,9 @@ class GoGenerator : public BaseGenerator {
 
   struct NamespacePtrLess {
     bool operator()(const Definition* a, const Definition* b) const {
+      if (!a || !b) return a < b;
+      if (!a->defined_namespace || !b->defined_namespace)
+        return a->defined_namespace < b->defined_namespace;
       return *a->defined_namespace < *b->defined_namespace;
     }
   };
@@ -550,14 +556,15 @@ class GoGenerator : public BaseGenerator {
                                       std::string* code_ptr) {
     std::string& code = *code_ptr;
     auto vectortype = field.value.type.VectorType();
-    FLATBUFFERS_ASSERT(vectortype.struct_def->has_key);
+    if (!vectortype.struct_def || !vectortype.struct_def->has_key) return;
 
     auto& vector_struct_fields = vectortype.struct_def->fields.vec;
     auto kit =
         std::find_if(vector_struct_fields.begin(), vector_struct_fields.end(),
                      [&](FieldDef* vector_struct_field) {
-                       return vector_struct_field->key;
+                       return vector_struct_field && vector_struct_field->key;
                      });
+    if (kit == vector_struct_fields.end() || !*kit) return;
 
     auto& key_field = **kit;
     FLATBUFFERS_ASSERT(key_field.key);
@@ -1063,6 +1070,7 @@ class GoGenerator : public BaseGenerator {
     code += "\tswitch t.Type {\n";
     for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
          ++it2) {
+      if (!*it2) continue;
       const EnumVal& ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
@@ -1086,12 +1094,15 @@ class GoGenerator : public BaseGenerator {
 
     for (auto it2 = enum_def.Vals().begin(); it2 != enum_def.Vals().end();
          ++it2) {
+      if (!*it2) continue;
       const EnumVal& ev = **it2;
       if (ev.IsZero()) continue;
       code += "\tcase " + namer_.EnumVariant(enum_def, ev) + ":\n";
       code += "\t\tvar x " +
-              WrapInNameSpaceAndTrack(ev.union_type.struct_def,
-                                      ev.union_type.struct_def->name) +
+              (ev.union_type.struct_def != nullptr
+                   ? WrapInNameSpaceAndTrack(ev.union_type.struct_def,
+                                             ev.union_type.struct_def->name)
+                   : "") +
               "\n";
       code += "\t\tx.Init(table.Bytes, table.Pos)\n";
 
@@ -1378,6 +1389,7 @@ class GoGenerator : public BaseGenerator {
     GenEnumType(enum_def, code_ptr);
     BeginEnum(code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       const EnumVal& ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, "\t");
       EnumMember(enum_def, ev, max_name_length, code_ptr);
@@ -1386,6 +1398,7 @@ class GoGenerator : public BaseGenerator {
 
     BeginEnumNames(enum_def, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       const EnumVal& ev = **it;
       EnumNameMember(enum_def, ev, max_name_length, code_ptr);
     }
@@ -1393,6 +1406,7 @@ class GoGenerator : public BaseGenerator {
 
     BeginEnumValues(enum_def, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       EnumValueMember(enum_def, ev, max_name_length, code_ptr);
     }
@@ -1581,7 +1595,9 @@ class GoGenerator : public BaseGenerator {
         code += "\n";
         for (auto it = tracked_imported_namespaces_.begin();
              it != tracked_imported_namespaces_.end(); ++it) {
-          if ((*it)->defined_namespace->components.empty()) {
+          if (!*it) continue;
+          if (!(*it)->defined_namespace ||
+              (*it)->defined_namespace->components.empty()) {
             code += "\t" + (*it)->name + " \"" + (*it)->name + "\"\n";
           } else {
             code += "\t" + NamespaceImportName((*it)->defined_namespace) +
@@ -1614,8 +1630,11 @@ class GoGenerator : public BaseGenerator {
                 const bool needs_imports, const bool is_enum) {
     if (!classcode.length()) return true;
 
-    Namespace& ns = go_namespace_.components.empty() ? *def.defined_namespace
-                                                     : go_namespace_;
+    Namespace empty_ns;
+    Namespace& ns = !go_namespace_.components.empty()
+                        ? go_namespace_
+                        : (def.defined_namespace != nullptr ? *def.defined_namespace
+                                                            : empty_ns);
     std::string code = "";
     BeginFile(ns.components.empty() ? def.name : LastNamespacePart(ns),
               needs_imports, is_enum, &code);
@@ -1628,16 +1647,19 @@ class GoGenerator : public BaseGenerator {
     std::string file = namer_.File(def, SkipFile::Suffix);
     EnsureDirExists(directory);
     std::string filename = directory + file;
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
   // Create the full name of the imported namespace (format: A__B__C).
   std::string NamespaceImportName(const Namespace* ns) const {
+    if (!ns) return "";
     return namer_.Namespace(*ns);
   }
 
   // Create the full path for the imported namespace (format: A/B/C).
   std::string NamespaceImportPath(const Namespace* ns) const {
+    if (!ns) return "";
     std::string path =
         namer_.Directories(*ns, SkipDir::OutputPathAndTrailingPathSeparator);
     if (!parser_.opts.go_module_name.empty()) {
@@ -1650,9 +1672,10 @@ class GoGenerator : public BaseGenerator {
   // used outside of its namespace.
   std::string WrapInNameSpaceAndTrack(const Definition* def,
                                       const std::string& name) {
+    if (!def) return name;
     if (CurrentNameSpace() == def->defined_namespace) return name;
     tracked_imported_namespaces_.insert(def);
-    if (def->defined_namespace->components.empty())
+    if (!def->defined_namespace || def->defined_namespace->components.empty())
       return def->name + "." + name;
     else
       return NamespaceImportName(def->defined_namespace) + "." + name;
@@ -1663,6 +1686,7 @@ class GoGenerator : public BaseGenerator {
   static size_t MaxNameLength(const EnumDef& enum_def) {
     size_t max = 0;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       max = std::max((*it)->name.length(), max);
     }
     return max;
@@ -1670,8 +1694,8 @@ class GoGenerator : public BaseGenerator {
 };
 }  // namespace go
 
-static bool GenerateGo(const Parser& parser, const std::string& path,
-                       const std::string& file_name) {
+bool GenerateGo(const Parser& parser, const std::string& path,
+                const std::string& file_name) {
   go::GoGenerator generator(parser, path, file_name, parser.opts.go_namespace);
   return generator.generate();
 }
