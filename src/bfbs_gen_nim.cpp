@@ -99,6 +99,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
                             const CodeGenOptions& options)
       FLATBUFFERS_OVERRIDE {
     options_ = options;
+    if (!schema) {
+      return ERROR;
+    }
     ForAllEnums(schema->enums(), [&](const r::Enum* enum_def) {
       StartCodeBlock(enum_def);
       GenerateEnum(enum_def);
@@ -162,6 +165,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
  protected:
   void GenerateEnum(const r::Enum* enum_def) {
+    if (!enum_def || !enum_def->name()) {
+      return;
+    }
     std::string code;
 
     std::string ns;
@@ -173,15 +179,23 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     code += "type " + enum_name + Export + "{.pure.} = enum\n";
 
     ForAllEnumValues(enum_def, [&](const reflection::EnumVal* enum_val) {
+      if (!enum_val || !enum_val->name()) {
+        return;
+      }
       GenerateDocumentation(enum_val->documentation(), "  ", code);
       code += "  " + namer_.Variant(enum_val->name()->str()) + " = " +
               NumToString(enum_val->value()) + "." + enum_type + ",\n";
     });
 
-    EmitCodeBlock(code, enum_name, ns, enum_def->declaration_file()->str());
+    const std::string declaring_file =
+        enum_def->declaration_file() ? enum_def->declaration_file()->str() : "";
+    EmitCodeBlock(code, enum_name, ns, declaring_file);
   }
 
   void GenerateObject(const r::Object* object) {
+    if (!object || !object->name()) {
+      return;
+    }
     // Register the main flatbuffers module.
     RegisterImports("flatbuffers", "");
     std::string code;
@@ -195,7 +209,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     // Create all the field accessors.
     ForAllFields(object, /*reverse=*/false, [&](const r::Field* field) {
       // Skip writing deprecated fields altogether.
-      if (field->deprecated()) {
+      if (!field || !field->type() || !field->name() || field->deprecated()) {
         return;
       }
 
@@ -308,13 +322,15 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       code += "  return self.Offset()\n";
     } else {
       // Table builders
+      const size_t num_fields =
+          object->fields() ? object->fields()->size() : 0;
       code += "proc " + namer_.Function(object_name + "Start") +
               "*(builder: var Builder) =\n";
-      code += "  builder.StartObject(" + NumToString(object->fields()->size()) +
+      code += "  builder.StartObject(" + NumToString(num_fields) +
               ")\n";
 
       ForAllFields(object, /*reverse=*/false, [&](const r::Field* field) {
-        if (field->deprecated()) {
+        if (!field || !field->type() || !field->name() || field->deprecated()) {
           return;
         }
 
@@ -337,7 +353,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
           const int32_t element_size = field->type()->element_size();
           int32_t alignment = element_size;
           if (IsStruct(field->type(), /*use_element=*/true)) {
-            alignment = GetObjectByIndex(field->type()->index())->minalign();
+            const reflection::Object* obj =
+                GetObjectByIndex(field->type()->index());
+            alignment = obj ? obj->minalign() : element_size;
           }
 
           code += "  builder.StartVector(" + NumToString(element_size) +
@@ -349,7 +367,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
               "*(builder: var Builder): uoffset =\n";
       code += "  return builder.EndObject()\n";
     }
-    EmitCodeBlock(code, object_name, ns, object->declaration_file()->str());
+    const std::string declaring_file =
+        object->declaration_file() ? object->declaration_file()->str() : "";
+    EmitCodeBlock(code, object_name, ns, declaring_file);
   }
 
  private:
@@ -359,18 +379,28 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       std::string indent, std::string& code) const {
     flatbuffers::ForAllDocumentation(
         documentation, [&](const flatbuffers::String* str) {
-          code += indent + "# " + str->str() + "\n";
+          if (str) {
+            code += indent + "# " + str->str() + "\n";
+          }
         });
   }
 
   std::string GenerateStructBuilderArgs(const r::Object* object,
                                         std::string prefix = "") const {
+    if (!object) {
+      return "";
+    }
     std::string signature;
     ForAllFields(object, /*reverse=*/false, [&](const r::Field* field) {
+      if (!field || !field->type() || !field->name()) {
+        return;
+      }
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object* field_object = GetObject(field->type());
-        signature += GenerateStructBuilderArgs(
-            field_object, prefix + namer_.Variable(*field) + "_");
+        if (field_object) {
+          signature += GenerateStructBuilderArgs(
+              field_object, prefix + namer_.Variable(*field) + "_");
+        }
       } else {
         signature += ", " + prefix + namer_.Variable(*field) + ": " +
                      GenerateType(field->type());
@@ -381,6 +411,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
   std::string AppendStructBuilderBody(const r::Object* object,
                                       std::string prefix = "") const {
+    if (!object) {
+      return "";
+    }
     std::string code;
     code += "  self.Prep(" + NumToString(object->minalign()) + ", " +
             NumToString(object->bytesize()) + ")\n";
@@ -388,14 +421,19 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     // We need to reverse the order we iterate over, since we build the
     // buffer backwards.
     ForAllFields(object, /*reverse=*/true, [&](const r::Field* field) {
+      if (!field || !field->type() || !field->name()) {
+        return;
+      }
       const int32_t num_padding_bytes = field->padding();
       if (num_padding_bytes) {
         code += "  self.Pad(" + NumToString(num_padding_bytes) + ")\n";
       }
       if (IsStructOrTable(field->type()->base_type())) {
         const r::Object* field_object = GetObject(field->type());
-        code += AppendStructBuilderBody(field_object,
-                                        prefix + namer_.Variable(*field) + "_");
+        if (field_object) {
+          code += AppendStructBuilderBody(field_object,
+                                          prefix + namer_.Variable(*field) + "_");
+        }
       } else {
         code += "  self.Prepend(" + prefix + namer_.Variable(*field) + ")\n";
       }
@@ -405,6 +443,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   }
 
   std::string GenerateMethod(const r::Field* field) const {
+    if (!field || !field->type()) {
+      return "";
+    }
     const r::BaseType base_type = field->type()->base_type();
     if (IsStructOrTable(base_type)) {
       return "Struct";
@@ -414,6 +455,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
   std::string GenerateGetter(const r::Type* type, const std::string& offsetval,
                              bool element_type = false) const {
+    if (!type) {
+      return "";
+    }
     const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
     std::string offset = offsetval;
@@ -466,11 +510,14 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
   std::string GenerateType(const r::Type* type, bool element_type = false,
                            bool enum_inner = false) const {
+    if (!type) {
+      return "uoffset";
+    }
     const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
     if (IsScalar(base_type) && !enum_inner) {
       const r::Enum* type_enum = GetEnum(type, element_type);
-      if (type_enum != nullptr) {
+      if (type_enum != nullptr && type_enum->name()) {
         std::string importns;
         std::string type_name = Denamespace(type_enum->name()->str(), importns);
         return importns + "." + type_name;
@@ -489,6 +536,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         return "Vtable";
       case r::Obj: {
         const r::Object* type_obj = GetObject(type, element_type);
+        if (!type_obj || !type_obj->name()) {
+          return "uoffset";
+        }
         std::string importns;
         std::string type_name = Denamespace(type_obj->name()->str(), importns);
         if (type_obj == current_obj_) {
@@ -504,6 +554,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
   std::string GenerateTypeBasic(const r::Type* type,
                                 bool element_type = false) const {
+    if (!type) {
+      return "uoffset";
+    }
     const r::BaseType base_type =
         element_type ? type->element() : type->base_type();
     if (IsScalar(base_type)) {
@@ -549,6 +602,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
   }
 
   std::string DefaultValue(const r::Field* field) const {
+    if (!field || !field->type()) {
+      return "0";
+    }
     const r::BaseType base_type = field->type()->base_type();
     if (IsFloatingPoint(base_type)) {
       if (field->default_real() != field->default_real()) {
@@ -621,7 +677,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
         break;
       }
     }
-    relative_to_vec.pop_back();
+    if (!relative_to_vec.empty()) {
+      relative_to_vec.pop_back();
+    }
     for (size_t i = 0; i < relative_to_vec.size(); ++i) {
       str2_vec.insert(str2_vec.begin(), std::string(".."));
     }
@@ -638,6 +696,9 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
   void RegisterImports(const r::Object* object, const r::Field* field,
                        bool use_element = false) {
+    if (!object || !object->name() || !field || !field->type()) {
+      return;
+    }
     std::string importns;
     std::string type_name;
 
@@ -646,7 +707,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
 
     if (IsStructOrTable(type)) {
       const r::Object* object_def = GetObjectByIndex(field->type()->index());
-      if (object_def == current_obj_) {
+      if (!object_def || object_def == current_obj_ || !object_def->name()) {
         return;
       }
       std::string ns;
@@ -654,7 +715,7 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       type_name = ns.empty() ? type_name : ns + "." + type_name;
     } else {
       const r::Enum* enum_def = GetEnumByIndex(field->type()->index());
-      if (enum_def == current_enum_) {
+      if (!enum_def || enum_def == current_enum_ || !enum_def->name()) {
         return;
       }
       std::string ns;
@@ -686,10 +747,14 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
     code += "  flatc version: " + flatc_version_ + "\n";
     code += "\n";
     code += "  Declared by  : " + declaring_file + "\n";
-    if (schema_->root_table() != nullptr) {
-      const std::string root_type = schema_->root_table()->name()->str();
+    if (schema_ && schema_->root_table() != nullptr) {
+      const std::string root_type =
+          schema_->root_table()->name() ? schema_->root_table()->name()->str()
+                                        : "";
       const std::string root_file =
-          schema_->root_table()->declaration_file()->str();
+          schema_->root_table()->declaration_file()
+              ? schema_->root_table()->declaration_file()->str()
+              : "";
       code += "  Rooting type : " + root_type + " (" + root_file + ")\n";
     }
     code += "]#\n\n";
@@ -715,11 +780,12 @@ class NimBfbsGenerator : public BaseBfbsGenerator {
       std::replace(path.begin(), path.end(), '.', '/');
     }
 
-    // TODO(derekbailey): figure out a save file without depending on util.h
-    EnsureDirExists(path);
-    const std::string file_name =
-        options_.output_path + path + "/" + namer_.File(name);
-    options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    if (options_.file_saver) {
+      EnsureDirExists(path);
+      const std::string file_name =
+          options_.output_path + path + "/" + namer_.File(name);
+      options_.file_saver->SaveFile(file_name.c_str(), code, false);
+    }
   }
 
   std::unordered_set<std::string> keywords_;

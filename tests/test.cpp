@@ -68,6 +68,9 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "bfbs_gen.h"
+#include "bfbs_gen_lua.h"
+#include "bfbs_gen_nim.h"
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1748,43 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void BfbsGeneratorHardeningSafetyTest() {
+  CodeGenOptions opts;
+  opts.file_saver = nullptr;
+
+  auto lua_gen = NewLuaBfbsGenerator("2.0.0");
+  TEST_NOTNULL(lua_gen.get());
+  TEST_EQ(lua_gen->Language(), IDLOptions::kLua);
+  TEST_EQ_STR(lua_gen->LanguageName().c_str(), "Lua");
+  TEST_EQ(lua_gen->IsSchemaOnly(), true);
+  TEST_EQ(lua_gen->SupportsBfbsGeneration(), true);
+  TEST_EQ(lua_gen->SupportsRootFileGeneration(), false);
+
+  // Buffer null/invalid verification
+  TEST_EQ(lua_gen->GenerateCode(nullptr, 0, opts), CodeGenerator::FAILED_VERIFICATION);
+  TEST_EQ(lua_gen->GenerateCode(nullptr, -1, opts), CodeGenerator::FAILED_VERIFICATION);
+  const uint8_t dummy_buf[16] = {0};
+  TEST_EQ(lua_gen->GenerateCode(dummy_buf, sizeof(dummy_buf), opts), CodeGenerator::FAILED_VERIFICATION);
+
+  auto nim_gen = NewNimBfbsGenerator("2.0.0");
+  TEST_NOTNULL(nim_gen.get());
+  TEST_EQ(nim_gen->Language(), IDLOptions::kNim);
+  TEST_EQ_STR(nim_gen->LanguageName().c_str(), "Nim");
+  TEST_EQ(nim_gen->IsSchemaOnly(), true);
+  TEST_EQ(nim_gen->SupportsBfbsGeneration(), true);
+  TEST_EQ(nim_gen->SupportsRootFileGeneration(), false);
+
+  TEST_EQ(nim_gen->GenerateCode(nullptr, 0, opts), CodeGenerator::FAILED_VERIFICATION);
+  TEST_EQ(nim_gen->GenerateCode(nullptr, -1, opts), CodeGenerator::FAILED_VERIFICATION);
+  TEST_EQ(nim_gen->GenerateCode(dummy_buf, sizeof(dummy_buf), opts), CodeGenerator::FAILED_VERIFICATION);
+
+  // Valid schema test using embedded monster schema
+  const uint8_t *bfbs = MyGame::Example::MonsterBinarySchema::data();
+  TEST_NOTNULL(bfbs);
+  TEST_EQ(lua_gen->GenerateCode(bfbs, 14520, opts), CodeGenerator::OK);
+  TEST_EQ(nim_gen->GenerateCode(bfbs, 14520, opts), CodeGenerator::OK);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1904,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  BfbsGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace
