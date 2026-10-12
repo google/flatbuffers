@@ -157,9 +157,8 @@ inline size_t SizeOf(const BaseType t) {
     case BASE_TYPE_##ENUM: return sizeof(CTYPE);
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
-    default: FLATBUFFERS_ASSERT(0);
+    default: return 0;
   }
-  return 0;
 }
 
 inline const char* TypeName(const BaseType t) {
@@ -168,9 +167,8 @@ inline const char* TypeName(const BaseType t) {
     case BASE_TYPE_##ENUM: return IDLTYPE;
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
-    default: FLATBUFFERS_ASSERT(0);
+    default: return "";
   }
-  return nullptr;
 }
 
 inline const char* StringOf(const BaseType t) {
@@ -179,9 +177,8 @@ inline const char* StringOf(const BaseType t) {
     case BASE_TYPE_##ENUM: return #CTYPE;
       FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
   #undef FLATBUFFERS_TD
-    default: FLATBUFFERS_ASSERT(0);
+    default: return "";
   }
-  return "";
 }
 
 // clang-format on
@@ -245,6 +242,7 @@ class SymbolTable {
   }
 
   bool Add(const std::string& name, T* e) {
+    if (!e) return false;
     vec.emplace_back(e);
     auto it = dict.find(name);
     if (it != dict.end()) return true;
@@ -258,8 +256,6 @@ class SymbolTable {
       auto obj = it->second;
       dict.erase(it);
       dict[newname] = obj;
-    } else {
-      FLATBUFFERS_ASSERT(false);
     }
   }
 
@@ -413,7 +409,8 @@ struct StructDef : public Definition {
   void PadLastField(size_t min_align) {
     auto padding = PaddingBytes(bytesize, min_align);
     bytesize += padding;
-    if (fields.vec.size()) fields.vec.back()->padding = padding;
+    if (fields.vec.size() && fields.vec.back())
+      fields.vec.back()->padding = padding;
   }
 
   Offset<reflection::Object> Serialize(FlatBufferBuilder* builder,
@@ -482,7 +479,9 @@ struct EnumDef : public Definition {
   bool Deserialize(Parser& parser, const reflection::Enum* values);
 
   template <typename T>
-  void ChangeEnumValue(EnumVal* ev, T new_val);
+  void ChangeEnumValue(EnumVal* ev, T new_val) {
+    if (ev) ev->value = static_cast<int64_t>(new_val);
+  }
   void SortByValue();
   void RemoveDuplicates();
 
@@ -531,15 +530,18 @@ inline bool IsString(const Type& type) {
 }
 
 inline bool IsStruct(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->fixed;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         type.struct_def->fixed;
 }
 
 inline bool IsIncompleteStruct(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && type.struct_def->predecl;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         type.struct_def->predecl;
 }
 
 inline bool IsTable(const Type& type) {
-  return type.base_type == BASE_TYPE_STRUCT && !type.struct_def->fixed;
+  return type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+         !type.struct_def->fixed;
 }
 
 inline bool IsUnion(const Type& type) {
@@ -574,7 +576,7 @@ inline bool IsEnum(const Type& type) {
 
 inline size_t InlineSize(const Type& type) {
   return IsStruct(type)
-             ? type.struct_def->bytesize
+             ? (type.struct_def ? type.struct_def->bytesize : 0)
              : (IsArray(type)
                     ? InlineSize(type.VectorType()) * type.fixed_length
                     : SizeOf(type.base_type));
@@ -582,10 +584,11 @@ inline size_t InlineSize(const Type& type) {
 
 inline size_t InlineAlignment(const Type& type) {
   if (IsStruct(type)) {
-    return type.struct_def->minalign;
+    return type.struct_def ? type.struct_def->minalign : 1;
   } else if (IsArray(type)) {
-    return IsStruct(type.VectorType()) ? type.struct_def->minalign
-                                       : SizeOf(type.element);
+    return (IsStruct(type.VectorType()) && type.struct_def)
+               ? type.struct_def->minalign
+               : SizeOf(type.element);
   } else {
     return SizeOf(type.base_type);
   }

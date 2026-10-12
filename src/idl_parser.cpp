@@ -369,8 +369,14 @@ static uint64_t HashFile(const char* source_filename, const char* source) {
 
 template <typename T>
 static bool compareName(const T* a, const T* b) {
-  return a->defined_namespace->GetFullyQualifiedName(a->name) <
-         b->defined_namespace->GetFullyQualifiedName(b->name);
+  if (!a || !b) return a < b;
+  std::string name_a = a->defined_namespace
+                           ? a->defined_namespace->GetFullyQualifiedName(a->name)
+                           : a->name;
+  std::string name_b = b->defined_namespace
+                           ? b->defined_namespace->GetFullyQualifiedName(b->name)
+                           : b->name;
+  return name_a < name_b;
 }
 
 template <typename T>
@@ -378,7 +384,9 @@ static void AssignIndices(const std::vector<T*>& defvec) {
   // Pre-sort these vectors, such that we can set the correct indices for them.
   auto vec = defvec;
   std::sort(vec.begin(), vec.end(), compareName<T>);
-  for (int i = 0; i < static_cast<int>(vec.size()); i++) vec[i]->index = i;
+  for (int i = 0; i < static_cast<int>(vec.size()); i++) {
+    if (vec[i]) vec[i]->index = i;
+  }
 }
 
 }  // namespace
@@ -471,8 +479,10 @@ std::string Parser::TokenToStringId(int t) const {
 // Parses exactly nibbles worth of hex digits into a number, or error.
 CheckedError Parser::ParseHexNum(int nibbles, uint64_t* val) {
   FLATBUFFERS_ASSERT(nibbles > 0);
+  if (!val || nibbles <= 0) return Error("invalid hex argument");
+  if (!cursor_) return Error("unexpected end of input in hex number");
   for (int i = 0; i < nibbles; i++)
-    if (!is_xdigit(cursor_[i]))
+    if (!cursor_[i] || !is_xdigit(cursor_[i]))
       return Error("escape code must be followed by " + NumToString(nibbles) +
                    " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
@@ -2360,24 +2370,26 @@ const EnumVal* EnumDef::MaxValue() const {
 }
 
 uint64_t EnumDef::Distance(const EnumVal* v1, const EnumVal* v2) const {
+  if (!v1 || !v2) return 0;
   return IsUInt64() ? EnumDistanceImpl(v1->GetAsUInt64(), v2->GetAsUInt64())
                     : EnumDistanceImpl(v1->GetAsInt64(), v2->GetAsInt64());
 }
 
 std::string EnumDef::AllFlags() const {
-  FLATBUFFERS_ASSERT(attributes.Lookup("bit_flags"));
+  if (Vals().empty()) return "0";
   uint64_t u64 = 0;
   for (auto it = Vals().begin(); it != Vals().end(); ++it) {
-    u64 |= (*it)->GetAsUInt64();
+    if (*it) u64 |= (*it)->GetAsUInt64();
   }
   return IsUInt64() ? NumToString(u64) : NumToString(static_cast<int64_t>(u64));
 }
 
 EnumVal* EnumDef::ReverseLookup(int64_t enum_idx,
                                 bool skip_union_default) const {
-  auto skip_first = static_cast<int>(is_union && skip_union_default);
+  auto skip_first = static_cast<size_t>(is_union && skip_union_default ? 1 : 0);
+  if (skip_first >= Vals().size()) return nullptr;
   for (auto it = Vals().begin() + skip_first; it != Vals().end(); ++it) {
-    if ((*it)->GetAsInt64() == enum_idx) {
+    if (*it && (*it)->GetAsInt64() == enum_idx) {
       return *it;
     }
   }
@@ -2438,11 +2450,6 @@ void EnumDef::RemoveDuplicates() {
     }
   }
   vals.vec.erase(++result, last);
-}
-
-template <typename T>
-void EnumDef::ChangeEnumValue(EnumVal* ev, T new_value) {
-  ev->value = static_cast<int64_t>(new_value);
 }
 
 namespace EnumHelper {
@@ -4110,7 +4117,8 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder* builder,
     field_offsets.push_back((*it)->Serialize(
         builder, static_cast<uint16_t>(it - fields.vec.begin()), parser));
   }
-  const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
+  const auto qualified_name =
+      defined_namespace ? defined_namespace->GetFullyQualifiedName(name) : name;
   const auto name__ = builder->CreateString(qualified_name);
   const auto flds__ = builder->CreateVectorOfSortedTables(&field_offsets);
   const auto attr__ = SerializeAttributes(builder, parser);
@@ -4125,6 +4133,7 @@ Offset<reflection::Object> StructDef::Serialize(FlatBufferBuilder* builder,
 }
 
 bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
+  if (!object || !object->name() || !object->fields()) return false;
   if (!DeserializeAttributes(parser, object->attributes())) return false;
   DeserializeDoc(doc_comment, object->documentation());
   name = parser.UnqualifiedName(object->name()->str());
@@ -4197,6 +4206,7 @@ Offset<reflection::Field> FieldDef::Serialize(FlatBufferBuilder* builder,
 }
 
 bool FieldDef::Deserialize(Parser& parser, const reflection::Field* field) {
+  if (!field || !field->name() || !field->type()) return false;
   name = field->name()->str();
   defined_namespace = parser.current_namespace_;
   if (!value.type.Deserialize(parser, field->type())) return false;
@@ -4238,11 +4248,14 @@ Offset<reflection::RPCCall> RPCCall::Serialize(FlatBufferBuilder* builder,
                     ? builder->CreateVectorOfStrings(doc_comment)
                     : 0;
   return reflection::CreateRPCCall(
-      *builder, name__, request->serialized_location,
-      response->serialized_location, attr__, docs__);
+      *builder, name__, request ? request->serialized_location : 0,
+      response ? response->serialized_location : 0, attr__, docs__);
 }
 
 bool RPCCall::Deserialize(Parser& parser, const reflection::RPCCall* call) {
+  if (!call || !call->name() || !call->request() || !call->response())
+    return false;
+  if (!call->request()->name() || !call->response()->name()) return false;
   name = call->name()->str();
   if (!DeserializeAttributes(parser, call->attributes())) return false;
   DeserializeDoc(doc_comment, call->documentation());
@@ -4260,7 +4273,8 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder* builder,
   for (auto it = calls.vec.begin(); it != calls.vec.end(); ++it) {
     servicecall_offsets.push_back((*it)->Serialize(builder, parser));
   }
-  const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
+  const auto qualified_name =
+      defined_namespace ? defined_namespace->GetFullyQualifiedName(name) : name;
   const auto name__ = builder->CreateString(qualified_name);
   const auto call__ = builder->CreateVector(servicecall_offsets);
   const auto attr__ = SerializeAttributes(builder, parser);
@@ -4275,6 +4289,7 @@ Offset<reflection::Service> ServiceDef::Serialize(FlatBufferBuilder* builder,
 
 bool ServiceDef::Deserialize(Parser& parser,
                              const reflection::Service* service) {
+  if (!service || !service->name()) return false;
   name = parser.UnqualifiedName(service->name()->str());
   if (service->calls()) {
     for (uoffset_t i = 0; i < service->calls()->size(); ++i) {
@@ -4297,7 +4312,8 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder* builder,
   for (auto it = vals.vec.begin(); it != vals.vec.end(); ++it) {
     enumval_offsets.push_back((*it)->Serialize(builder, parser));
   }
-  const auto qualified_name = defined_namespace->GetFullyQualifiedName(name);
+  const auto qualified_name =
+      defined_namespace ? defined_namespace->GetFullyQualifiedName(name) : name;
   const auto name__ = builder->CreateString(qualified_name);
   const auto vals__ = builder->CreateVector(enumval_offsets);
   const auto type__ = underlying_type.Serialize(builder);
@@ -4312,6 +4328,8 @@ Offset<reflection::Enum> EnumDef::Serialize(FlatBufferBuilder* builder,
 }
 
 bool EnumDef::Deserialize(Parser& parser, const reflection::Enum* _enum) {
+  if (!_enum || !_enum->name() || !_enum->values() || !_enum->underlying_type())
+    return false;
   name = parser.UnqualifiedName(_enum->name()->str());
   for (uoffset_t i = 0; i < _enum->values()->size(); ++i) {
     auto val = new EnumVal();
@@ -4355,9 +4373,11 @@ Offset<reflection::EnumVal> EnumVal::Serialize(FlatBufferBuilder* builder,
 }
 
 bool EnumVal::Deserialize(Parser& parser, const reflection::EnumVal* val) {
+  if (!val || !val->name()) return false;
   name = val->name()->str();
   value = val->value();
-  if (!union_type.Deserialize(parser, val->union_type())) return false;
+  if (val->union_type() && !union_type.Deserialize(parser, val->union_type()))
+    return false;
   if (!DeserializeAttributes(parser, val->attributes())) return false;
   DeserializeDoc(doc_comment, val->documentation());
   return true;
@@ -4366,7 +4386,7 @@ bool EnumVal::Deserialize(Parser& parser, const reflection::EnumVal* val) {
 Offset<reflection::Type> Type::Serialize(FlatBufferBuilder* builder) const {
   size_t element_size = SizeOf(element);
   if (base_type == BASE_TYPE_VECTOR && element == BASE_TYPE_STRUCT &&
-      struct_def->bytesize != 0) {
+      struct_def && struct_def->bytesize != 0) {
     // struct_def->bytesize==0 means struct is table
     element_size = struct_def->bytesize;
   }
@@ -4390,7 +4410,7 @@ bool Type::Deserialize(const Parser& parser, const reflection::Type* type) {
         (is_series && type->element() == reflection::Obj)) {
       if (static_cast<size_t>(type->index()) < parser.structs_.vec.size()) {
         struct_def = parser.structs_.vec[type->index()];
-        struct_def->refcount++;
+        if (struct_def) struct_def->refcount++;
       } else {
         return false;
       }

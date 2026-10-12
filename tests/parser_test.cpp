@@ -935,5 +935,55 @@ void FieldIdentifierTest() {
 #endif
 }
 
+void IdlParserHardeningSafetyTest() {
+  // Test invalid BaseType safety in SizeOf, TypeName, StringOf
+  auto invalid_base_type = static_cast<flatbuffers::BaseType>(999);
+  TEST_EQ(flatbuffers::SizeOf(invalid_base_type), 0);
+  TEST_EQ_STR(flatbuffers::TypeName(invalid_base_type), "");
+  TEST_EQ_STR(flatbuffers::StringOf(invalid_base_type), "");
+
+  // Test Type null struct_def safety
+  flatbuffers::Type t(flatbuffers::BASE_TYPE_STRUCT, nullptr);
+  TEST_EQ(flatbuffers::IsStruct(t), false);
+  TEST_EQ(flatbuffers::IsIncompleteStruct(t), false);
+  TEST_EQ(flatbuffers::IsTable(t), false);
+  TEST_EQ(flatbuffers::InlineSize(t), 4);
+  TEST_EQ(flatbuffers::InlineAlignment(t), 4);
+
+  // Test SymbolTable null element safety
+  flatbuffers::SymbolTable<flatbuffers::Value> table;
+  TEST_EQ(table.Add("null_entry", nullptr), false);
+  table.Move("missing_key", "target_key");
+  TEST_EQ(table.Lookup("missing_key") == nullptr, true);
+
+  // Test StructDef null padding safety
+  flatbuffers::StructDef sd;
+  sd.PadLastField(4);
+  TEST_EQ(sd.bytesize, 0);
+
+  // Test EnumDef empty and null safety
+  flatbuffers::EnumDef ed;
+  TEST_EQ(ed.MinValue() == nullptr, true);
+  TEST_EQ(ed.MaxValue() == nullptr, true);
+  TEST_EQ(ed.Distance(), 0);
+  TEST_EQ(ed.Distance(nullptr, nullptr), 0);
+  TEST_EQ_STR(ed.AllFlags().c_str(), "0");
+  TEST_EQ(ed.ReverseLookup(1, true) == nullptr, true);
+  ed.ChangeEnumValue(nullptr, 42);
+
+  // Test reflection deserialization with null pointers
+  flatbuffers::Parser parser;
+  flatbuffers::StructDef deserial_sd;
+  TEST_EQ(deserial_sd.Deserialize(parser, nullptr), false);
+  flatbuffers::FieldDef deserial_fd;
+  TEST_EQ(deserial_fd.Deserialize(parser, nullptr), false);
+  flatbuffers::EnumDef deserial_ed;
+  TEST_EQ(deserial_ed.Deserialize(parser, nullptr), false);
+  flatbuffers::ServiceDef deserial_sdef;
+  TEST_EQ(deserial_sdef.Deserialize(parser, nullptr), false);
+  flatbuffers::RPCCall deserial_rpc;
+  TEST_EQ(deserial_rpc.Deserialize(parser, nullptr), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
