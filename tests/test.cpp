@@ -38,6 +38,7 @@
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/hash.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
@@ -1745,8 +1746,58 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void MiniReflectHashSafetyTest() {
+  // 1. Hash functions with null pointers.
+  TEST_EQ(flatbuffers::HashFnv1<uint32_t>(nullptr), static_cast<uint32_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1a<uint32_t>(nullptr), static_cast<uint32_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1<uint64_t>(nullptr), static_cast<uint64_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1a<uint64_t>(nullptr), static_cast<uint64_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1<uint16_t>(nullptr), static_cast<uint16_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1a<uint16_t>(nullptr), static_cast<uint16_t>(0));
+
+  // 2. Hash function lookup with null pointers.
+  TEST_EQ(
+      flatbuffers::FindHashFunction16(nullptr),
+      static_cast<flatbuffers::NamedHashFunction<uint16_t>::HashFunction>(
+          nullptr));
+  TEST_EQ(
+      flatbuffers::FindHashFunction32(nullptr),
+      static_cast<flatbuffers::NamedHashFunction<uint32_t>::HashFunction>(
+          nullptr));
+  TEST_EQ(
+      flatbuffers::FindHashFunction64(nullptr),
+      static_cast<flatbuffers::NamedHashFunction<uint64_t>::HashFunction>(
+          nullptr));
+  TEST_EQ(
+      flatbuffers::FindHashFunction16("unknown"),
+      static_cast<flatbuffers::NamedHashFunction<uint16_t>::HashFunction>(
+          nullptr));
+
+  // 3. MiniReflect InlineSize with null type_table.
+  TEST_EQ(flatbuffers::InlineSize(flatbuffers::ET_SEQUENCE, nullptr),
+          static_cast<size_t>(0));
+
+  // 4. FlatBufferToString with null pointers.
+  TEST_EQ_STR(flatbuffers::FlatBufferToString(nullptr, nullptr).c_str(), "");
+
+  // 5. IterateFlatBuffer and IterateObject with null pointers.
+  flatbuffers::IterateFlatBuffer(nullptr, nullptr, nullptr);
+  flatbuffers::IterateObject(nullptr, nullptr, nullptr);
+  flatbuffers::IterateValue(flatbuffers::ET_INT, nullptr, nullptr, nullptr, 0,
+                            nullptr);
+
+  // 6. ToStringVisitor underflow guards.
+  flatbuffers::ToStringVisitor visitor("\n");
+  visitor.EndSequence();
+  visitor.EndVector();
+  TEST_EQ(visitor.indent_level, static_cast<size_t>(0));
+  visitor.String(nullptr);
+  TEST_EQ_STR(visitor.s.c_str(), "\n}\n]\"\"");
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  MiniReflectHashSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
