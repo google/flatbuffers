@@ -365,8 +365,9 @@ class CSharpGenerator : public BaseGenerator {
       case BASE_TYPE_ULONG:
         return value.constant;
       case BASE_TYPE_UINT:
-      case BASE_TYPE_LONG:
-        return value.constant + longSuffix;
+      case BASE_TYPE_LONG: return value.constant + longSuffix;
+      case BASE_TYPE_STRING:
+        return value.constant == "0" ? "null" : "\"" + value.constant + "\"";
       default:
         if (IsFloat(value.type.base_type))
           return CSharpFloatGen.GenFloatConstant(field);
@@ -1054,7 +1055,9 @@ class CSharpGenerator : public BaseGenerator {
             code += " { get";
             member_suffix += "} ";
             code += offset_prefix + getter + "(o + " + "__p.";
-            code += "bb_pos) : null";
+            // code += "bb_pos) : null";
+            code += "bb_pos) : " + GenDefaultValue(field, true);
+
             break;
           case BASE_TYPE_ARRAY:
             FLATBUFFERS_FALLTHROUGH();  // fall thru
@@ -1192,25 +1195,25 @@ class CSharpGenerator : public BaseGenerator {
       if ((IsVector(field.value.type) &&
            IsScalar(field.value.type.VectorType().base_type)) ||
           IsString(field.value.type)) {
-        code += "#if ENABLE_SPAN_T\n";
-        code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
-                "> Get";
-        code += Name(field);
-        code += "Bytes() { return ";
-        code += "__p.__vector_as_span<" +
-                GenTypeBasic(field.value.type.VectorType()) + ">(";
-        code += NumToString(field.value.offset);
-        code +=
-            ", " + NumToString(SizeOf(field.value.type.VectorType().base_type));
-        code += "); }\n";
-        code += "#else\n";
-        code += "  public ArraySegment<byte>? Get";
-        code += Name(field);
-        code += "Bytes() { return ";
-        code += "__p.__vector_as_arraysegment(";
-        code += NumToString(field.value.offset);
-        code += "); }\n";
-        code += "#endif\n";
+        //code += "#if ENABLE_SPAN_T\n";
+          code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
+                  "> Get";
+          code += Name(field);
+          code += "Bytes() { return ";
+          code += "__p.__vector_as_span<" +
+                  GenTypeBasic(field.value.type.VectorType()) + ">(";
+          code += NumToString(field.value.offset);
+          code +=
+              ", " + NumToString(SizeOf(field.value.type.VectorType().base_type));
+          code += "); }\n";
+      /*  code += "#else\n";
+          code += "  public ArraySegment<byte>? Get";
+          code += Name(field);
+          code += "Bytes() { return ";
+          code += "__p.__vector_as_arraysegment(";
+          code += NumToString(field.value.offset);
+          code += "); }\n";
+        code += "#endif\n";*/
 
         // For direct blockcopying the data into a typed array
         code += "  public ";
@@ -1257,7 +1260,7 @@ class CSharpGenerator : public BaseGenerator {
         code += ";\n";
         
         // Generate GetBytes methods for scalar arrays (similar to vector pattern)
-        code += "#if ENABLE_SPAN_T\n";
+        //code += "#if ENABLE_SPAN_T\n";
         code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
                 "> Get";
         code += camel_name;
@@ -1282,7 +1285,7 @@ class CSharpGenerator : public BaseGenerator {
           code += "))";
         }
         code += "; }\n";
-        code += "#else\n";
+     /*   code += "#else\n";
         code += "  public ArraySegment<byte>? Get";
         code += camel_name;
         code += "Bytes() { return ";
@@ -1292,7 +1295,7 @@ class CSharpGenerator : public BaseGenerator {
         code += NumToString(field.value.type.fixed_length *
                            SizeOf(field.value.type.VectorType().base_type));
         code += ");}\n";
-        code += "#endif\n";
+        code += "#endif\n";*/
       }
       
       // generate object accessors if is nested_flatbuffer
@@ -1499,7 +1502,9 @@ class CSharpGenerator : public BaseGenerator {
             field.value.type.base_type != BASE_TYPE_UNION) {
           code += ".Value";
         }
-        if (!field.IsScalarOptional()) {
+        if (IsString(field.value.type)) {
+          code += ", 0";
+        } else if(!field.IsScalarOptional()) {
           // When the scalar is optional, use the builder method that doesn't
           // supply a default value. Otherwise, we to continue to use the
           // default value method.

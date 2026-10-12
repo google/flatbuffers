@@ -972,8 +972,7 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     // value to identify union type fields.
     Type union_type(type.enum_def->underlying_type);
     union_type.base_type = BASE_TYPE_UTYPE;
-    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(), union_type,
-                    &typefield));
+    ECHECK(AddField(struct_def, name + UnionTypeFieldSuffix(),union_type, &typefield));
 
   } else if (IsVector(type) && type.element == BASE_TYPE_UNION) {
     advanced_features_ |= reflection::AdvancedUnionFeatures;
@@ -1009,7 +1008,7 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
       return Error(
           "default values are not supported for struct fields, table fields, "
           "or in structs.");
-    if (IsString(type) || IsVector(type)) {
+    if (/* IsString(type) || */ IsVector(type)) {
       advanced_features_ |= reflection::DefaultVectorsAndStrings;
       if (field->value.constant != "0" && !SupportsDefaultVectorsAndStrings()) {
         return Error(
@@ -2808,7 +2807,7 @@ bool Parser::SupportsOptionalScalars() const {
 
 bool Parser::SupportsDefaultVectorsAndStrings() const {
   static FLATBUFFERS_CONSTEXPR unsigned long supported_langs =
-      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim |
+      IDLOptions::kRust | IDLOptions::kSwift | IDLOptions::kNim | IDLOptions::kCSharp |
       IDLOptions::kCpp | IDLOptions::kBinary | IDLOptions::kJson |
       IDLOptions::kTs;
   return !(opts.lang_to_generate & ~supported_langs);
@@ -4135,7 +4134,7 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
   for (uoffset_t i = 0; i < of.size(); i++) {
   uint16_t field_id = of.Get(i)->id();
   if (field_id >= of.size()) {
-    parser.error_ = "Field ID " + std::to_string(field_id) + 
+    parser.error_ = "Field ID " + std::to_string(field_id) +
                     " exceeds field count " + std::to_string(of.size());
     return false;
   }
