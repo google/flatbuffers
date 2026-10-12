@@ -68,6 +68,14 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_swift.h"
+
+namespace flatbuffers {
+// Stub for SwiftCodeGenerator::GenerateGrpcCode when testing Swift generator in flattests.
+bool GenerateSwiftGRPC(const Parser&, const std::string&, const std::string&) {
+  return false;
+}
+}  // namespace flatbuffers
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1753,31 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void SwiftGeneratorHardeningSafetyTest() {
+  auto gen = NewSwiftCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kSwift);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "Swift");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateSwift(empty_parser, "", "test"), true);
+
+  Parser parser;
+  TEST_EQ(parser.Parse("namespace Test.Swift; "
+                       "enum Color : byte { Red = 0, Green = 1 } "
+                       "union Any { Item } "
+                       "struct Vec3 { x:float; y:float; z:float; } "
+                       "table Item { id:int; color:Color; pos:Vec3; names:[string]; } "
+                       "table Root { item:Any; items:[Item]; } "
+                       "root_type Root;"), true);
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateSwift(parser, "", "test"), true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1897,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  SwiftGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace

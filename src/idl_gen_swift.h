@@ -21,7 +21,13 @@
 
 namespace flatbuffers {
 
-// Constructs a new Cpp code generator.
+class Parser;
+
+// Generate text includes for Swift.
+bool GenerateSwift(const Parser& parser, const std::string& path,
+                   const std::string& file_name);
+
+// Constructs a new Swift code generator.
 std::unique_ptr<CodeGenerator> NewSwiftCodeGenerator();
 
 }  // namespace flatbuffers
