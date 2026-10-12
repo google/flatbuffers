@@ -68,6 +68,18 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "flatbuffers/flatc.h"
+#include "idl_gen_cpp.h"
+
+namespace flatbuffers {
+// Stub for CppCodeGenerator::GenerateGrpcCode when testing the C++ generator
+// in flattests.
+bool GenerateCppGRPC(const Parser&, const std::string&, const std::string&) {
+  return false;
+}
+// Stub for the compiler error logger normally defined in flatc_main.cpp.
+void LogCompilerError(const std::string&) {}
+}  // namespace flatbuffers
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1757,49 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void CppGeneratorHardeningSafetyTest() {
+  auto gen = NewCppCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kCpp);
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+
+  // Empty parser code generation.
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateCPP(empty_parser, "", "test"), true);
+
+  // Sparse enum, union, struct and table with the object API.
+  {
+    Parser parser;
+    parser.opts.generate_object_based_api = true;
+    parser.opts.mini_reflect = IDLOptions::kTypesAndNames;
+    TEST_EQ(parser.Parse("namespace Test.Cpp; "
+                         "enum Color : byte { Red = 0, Blue = 100 } "
+                         "struct Vec3 { x:float; y:float; z:float; } "
+                         "table Item { id:int; color:Color; pos:Vec3; "
+                         "names:[string]; } "
+                         "union Any { Item } "
+                         "table Holder { a:Any; v:[Any]; } "
+                         "root_type Item;"),
+            true);
+    TEST_EQ(gen->GenerateCode(parser, "", "test_cpp"), CodeGenerator::OK);
+    TEST_EQ(GenerateCPP(parser, "", "test_cpp"), true);
+  }
+
+  // Generation without a file_saver must not crash.
+  {
+    Parser parser;
+    parser.opts.file_saver = nullptr;
+    TEST_EQ(parser.Parse("namespace Test.CppNoSaver; "
+                         "enum Color : byte { Red = 0, Green = 1 } "
+                         "table Item { id:int; color:Color; } "
+                         "root_type Item;"),
+            true);
+    TEST_EQ(GenerateCPP(parser, "", "test_cpp_nosaver"), true);
+  }
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1919,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  CppGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace

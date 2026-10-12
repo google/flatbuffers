@@ -17,12 +17,21 @@
 #ifndef FLATBUFFERS_IDL_GEN_CPP_H_
 #define FLATBUFFERS_IDL_GEN_CPP_H_
 
+#include <memory>
+#include <string>
+
 #include "flatbuffers/code_generator.h"
 
 namespace flatbuffers {
 
+class Parser;
+
 // Constructs a new Cpp code generator.
 std::unique_ptr<CodeGenerator> NewCppCodeGenerator();
+
+/// Generate C++ code from a full FlatBuffer dictionary.
+bool GenerateCPP(const Parser &parser, const std::string &path,
+                 const std::string &file_name);
 
 }  // namespace flatbuffers
 

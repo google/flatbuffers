@@ -433,6 +433,7 @@ class CppGenerator : public BaseGenerator {
         GeneratedFileName(path_, file_name_ + "_bfbs", opts_);
     const auto final_code = code_.ToString();
 
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(file_path.c_str(), final_code,
                                              false);
   }
@@ -765,6 +766,7 @@ class CppGenerator : public BaseGenerator {
     const auto final_code = code_.ToString();
 
     // Save the file and optionally generate the binary schema code.
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(
         file_path.c_str(), final_code,
         (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed()));
@@ -1212,6 +1214,7 @@ class CppGenerator : public BaseGenerator {
     } else {
       for (auto it = enum_def->Vals().begin(); it != enum_def->Vals().end();
            ++it) {
+        if (!*it) continue;
         const auto& ev = **it;
         names.push_back(Name(ev));
         types.push_back(enum_def->is_union ? ev.union_type
@@ -1270,11 +1273,13 @@ class CppGenerator : public BaseGenerator {
     }
     std::string vs;
     const auto consecutive_enum_from_zero =
-        enum_def && enum_def->MinValue()->IsZero() &&
+        enum_def && enum_def->size() != 0 && enum_def->MinValue() &&
+        enum_def->MinValue()->IsZero() &&
         ((enum_def->size() - 1) == enum_def->Distance());
     if (enum_def && !consecutive_enum_from_zero) {
       for (auto it = enum_def->Vals().begin(); it != enum_def->Vals().end();
            ++it) {
+        if (!*it) continue;
         const auto& ev = **it;
         if (!vs.empty()) vs += ", ";
         vs += NumToStringCpp(enum_def->ToString(ev),
@@ -1407,6 +1412,7 @@ class CppGenerator : public BaseGenerator {
     if (enum_def.is_union && !enum_def.uses_multiple_type_instances) {
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
+        if (!*it) continue;
         const auto& ev = **it;
 
         if (it == enum_def.Vals().begin()) {
@@ -1446,6 +1452,7 @@ class CppGenerator : public BaseGenerator {
     if (!enum_def.uses_multiple_type_instances) {
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
+        if (!*it) continue;
         const auto& ev = **it;
 
         if (it == enum_def.Vals().begin()) {
@@ -1578,6 +1585,7 @@ class CppGenerator : public BaseGenerator {
              num_fields + "] {";
     code_ += "  static const {{ENUM_NAME}} values[] = {";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       const auto& ev = **it;
       auto value = GetEnumValUse(enum_def, ev);
       auto suffix = *it != enum_def.Vals().back() ? "," : "";
@@ -1598,7 +1606,8 @@ class CppGenerator : public BaseGenerator {
     // Average distance between values above which we consider a table
     // "too sparse". Change at will.
     static const uint64_t kMaxSparseness = 5;
-    if (range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
+    if (enum_def.size() != 0 &&
+        range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness) {
       code_ += "inline const char * const *EnumNames{{ENUM_NAME}}() {";
       code_ += "  static const char * const names[" +
                NumToString(range + 1 + 1) + "] = {";
@@ -1661,6 +1670,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "inline " + UnionVerifySignature(enum_def) + " {";
     code_ += "  switch (type) {";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       const auto& ev = **it;
       code_.SetValue("LABEL", GetEnumValUse(enum_def, ev));
 
@@ -1721,6 +1731,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
+        if (!*it) continue;
         const auto& ev = **it;
         if (ev.IsZero()) {
           continue;
@@ -1754,6 +1765,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
+        if (!*it) continue;
         auto& ev = **it;
         if (ev.IsZero()) {
           continue;
@@ -1834,6 +1846,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
+        if (!*it) continue;
         const auto& ev = **it;
         if (ev.IsZero()) {
           continue;
@@ -2056,6 +2069,7 @@ class CppGenerator : public BaseGenerator {
     std::string initializer_list;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       if (!field.deprecated &&  // Deprecated fields won't be accessible.
           field.value.type.base_type != BASE_TYPE_UTYPE) {
@@ -2239,6 +2253,7 @@ class CppGenerator : public BaseGenerator {
     std::string compare_op;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       const auto accessor = Name(field) + accessSuffix;
       const auto lhs_accessor = "lhs." + accessor;
@@ -2699,6 +2714,7 @@ class CppGenerator : public BaseGenerator {
           "{{MUTABLE_EXT}};";
 
     for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
+      if (!*u_it) continue;
       auto& ev = **u_it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         continue;
@@ -2895,6 +2911,7 @@ class CppGenerator : public BaseGenerator {
     // Generate the field_names elements.
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       if (field.deprecated) {
         // Deprecated fields won't be accessible.
@@ -3185,6 +3202,7 @@ class CppGenerator : public BaseGenerator {
       code_.SetValue("FIELD_NAME", Name(*field));
 
       for (auto u_it = u->Vals().begin(); u_it != u->Vals().end(); ++u_it) {
+        if (!*u_it) continue;
         auto& ev = **u_it;
         if (ev.union_type.base_type == BASE_TYPE_NONE) {
           continue;
@@ -3269,6 +3287,7 @@ class CppGenerator : public BaseGenerator {
     bool has_string_or_vector_fields = false;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       if (field.deprecated) continue;
       const bool is_scalar = IsScalar(field.value.type.base_type);
@@ -3356,6 +3375,7 @@ class CppGenerator : public BaseGenerator {
          size; size /= 2) {
       for (auto it = struct_def.fields.vec.rbegin();
            it != struct_def.fields.vec.rend(); ++it) {
+        if (!*it) continue;
         const auto& field = **it;
         if (!field.deprecated && (!struct_def.sortbysize ||
                                   size == SizeOf(field.value.type.base_type))) {
@@ -4014,6 +4034,7 @@ class CppGenerator : public BaseGenerator {
 
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
+          if (!*it) continue;
           const auto& field = **it;
           if (field.deprecated) {
             continue;
@@ -4065,6 +4086,7 @@ class CppGenerator : public BaseGenerator {
 
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
+          if (!*it) continue;
           auto& field = **it;
           if (field.deprecated) {
             continue;
@@ -4215,6 +4237,7 @@ class CppGenerator : public BaseGenerator {
     const auto init_arrays = (array_mode != kArrayArgModeNone);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       const auto& field = **it;
       const auto& type = field.value.type;
       const auto is_array = IsArray(type);
@@ -4501,8 +4524,8 @@ class CppGenerator : public BaseGenerator {
 
 }  // namespace cpp
 
-static bool GenerateCPP(const Parser& parser, const std::string& path,
-                        const std::string& file_name) {
+bool GenerateCPP(const Parser& parser, const std::string& path,
+                const std::string& file_name) {
   cpp::IDLOptionsCpp opts(parser.opts);
   // The '--cpp_std' argument could be extended (like ASAN):
   // Example: "flatc --cpp_std c++17:option1:option2".
