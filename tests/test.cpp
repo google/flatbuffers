@@ -603,6 +603,65 @@ void CreateSharedStringTest() {
   TEST_EQ((*a[6]) < (*a[5]), true);
 }
 
+void BuilderHardeningSafetyTest() {
+  // Test null string creation
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto s1 = fbb.CreateString(static_cast<const char*>(nullptr));
+    auto s2 = fbb.CreateString(static_cast<char*>(nullptr));
+    auto s3 = fbb.CreateSharedString(static_cast<const char*>(nullptr));
+    TEST_EQ(s1.o != 0, true);
+    TEST_EQ(s2.o != 0, true);
+    TEST_EQ(s3.o != 0, true);
+  }
+
+  // Test null vector creation
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto v1 = fbb.CreateVector(static_cast<const int32_t*>(nullptr), 0);
+    auto v2 = fbb.CreateVector(static_cast<const int32_t*>(nullptr), 4);
+    TEST_EQ(v1.o != 0, true);
+    TEST_EQ(v2.o != 0, true);
+
+    auto v3 = fbb.CreateVector(static_cast<const flatbuffers::Offset<flatbuffers::String>*>(nullptr), 2);
+    TEST_EQ(v3.o != 0, true);
+
+    auto v4 = fbb.CreateVectorScalarCast<int32_t, int16_t>(nullptr, 3);
+    TEST_EQ(v4.o != 0, true);
+
+    auto v5 = fbb.CreateVectorOfStructs(static_cast<const Ability*>(nullptr), 2);
+    TEST_EQ(v5.o != 0, true);
+  }
+
+  // Test uninitialized vector with null buffer pointer
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto uoff = fbb.CreateUninitializedVector(4, 4, 4, nullptr);
+    TEST_EQ(uoff != 0, true);
+  }
+
+  // Test null vector pointer to sorted structs / tables
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto vs = fbb.CreateVectorOfSortedStructs(static_cast<std::vector<Ability>*>(nullptr));
+    TEST_EQ(vs.o != 0, true);
+
+    auto vt = fbb.CreateVectorOfSortedTables(static_cast<std::vector<flatbuffers::Offset<Monster>>*>(nullptr));
+    TEST_EQ(vt.o != 0, true);
+  }
+
+  // Test Finish with short file identifier
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto name = fbb.CreateString("test");
+    MonsterBuilder mb(fbb);
+    mb.add_name(name);
+    auto root = mb.Finish();
+    fbb.Finish(root, "TEST");
+    TEST_EQ(fbb.GetSize() > 0, true);
+  }
+}
+
 #if !defined(FLATBUFFERS_USE_STD_SPAN) && !defined(FLATBUFFERS_SPAN_MINIMAL)
 void FlatbuffersSpanTest() {
   // Compile-time checking of non-const [] to const [] conversions.
@@ -1827,6 +1886,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   TypeAliasesTest();
   EndianSwapTest();
   CreateSharedStringTest();
+  BuilderHardeningSafetyTest();
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();

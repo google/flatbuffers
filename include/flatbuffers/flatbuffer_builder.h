@@ -47,6 +47,7 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
       2 * sizeof(voffset_t);  // Vtable size and Object Size.
   size_t offset = fixed_fields + field_id * sizeof(voffset_t);
   FLATBUFFERS_ASSERT(offset < std::numeric_limits<voffset_t>::max());
+  if (offset >= std::numeric_limits<voffset_t>::max()) return 0;
   return static_cast<voffset_t>(offset);
 }
 
@@ -319,7 +320,8 @@ class FlatBufferBuilderImpl {
   template <typename T, template <typename> class OffsetT = Offset>
   uoffset_t PushElement(OffsetT<T> off) {
     // Special case for offsets: see ReferTo below.
-    return PushElement(ReferTo(off.o));
+    return off.IsNull() ? PushElement<typename OffsetT<T>::offset_type>(0)
+                        : PushElement(ReferTo(off.o));
   }
 
   // When writing fields, we track where they are, so we can create correct
@@ -379,25 +381,27 @@ class FlatBufferBuilderImpl {
     // 32-bit offsets are relative to the tail of the 32-bit region of the
     // buffer. For most cases (without 64-bit entities) this is equivalent to
     // size of the whole buffer (e.g. GetSize())
-    return ReferTo(off, GetSizeRelative32BitRegion());
+    return off ? ReferTo(off, GetSizeRelative32BitRegion()) : 0;
   }
 
   uoffset64_t ReferTo(uoffset64_t off) {
     // Align to ensure GetSize() below is correct.
     Align(sizeof(uoffset64_t));
     // 64-bit offsets are relative to tail of the whole buffer
-    return ReferTo(off, GetSize());
+    return off ? ReferTo(off, GetSize()) : 0;
   }
 
   template <typename T, typename T2>
   T ReferTo(const T off, const T2 size) {
     FLATBUFFERS_ASSERT(off && off <= size);
+    if (!off || off > size) return 0;
     return size - off + static_cast<T>(sizeof(T));
   }
 
   template <typename T>
   T ReferTo(const T off, const T size) {
     FLATBUFFERS_ASSERT(off && off <= size);
+    if (!off || off > size) return 0;
     return size - off + static_cast<T>(sizeof(T));
   }
 
@@ -557,7 +561,8 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   template <template <typename> class OffsetT = Offset>
   OffsetT<String> CreateString(const char* str) {
-    return CreateString<OffsetT>(str, strlen(str));
+    return str ? CreateString<OffsetT>(str, strlen(str))
+               : CreateString<OffsetT>("", 0);
   }
 
   /// @brief Store a string in the buffer, which is null-terminated.
@@ -565,7 +570,8 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   template <template <typename> class OffsetT = Offset>
   OffsetT<String> CreateString(char* str) {
-    return CreateString<OffsetT>(str, strlen(str));
+    return str ? CreateString<OffsetT>(str, strlen(str))
+               : CreateString<OffsetT>("", 0);
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -617,6 +623,7 @@ class FlatBufferBuilderImpl {
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char* str, size_t len) {
     FLATBUFFERS_ASSERT(FLATBUFFERS_GENERAL_HEAP_ALLOC_OK);
+    if (!str && len == 0) str = "";
     if (!string_pool) {
       string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
     }
@@ -647,6 +654,11 @@ class FlatBufferBuilderImpl {
   Offset<String> CreateSharedString(const flatbuffers::string_view str) {
     return CreateSharedString(str.data(), str.size());
   }
+
+  Offset<String> CreateSharedString(const char* str) {
+    return str ? CreateSharedString(str, strlen(str))
+               : CreateSharedString("", 0);
+  }
 #else
   /// @brief Store a string in the buffer, which null-terminated.
   /// If a string with this exact contents has already been serialized before,
@@ -655,7 +667,8 @@ class FlatBufferBuilderImpl {
   /// @param[in] str A const char pointer to a C-string to add to the buffer.
   /// @return Returns the offset in the buffer where the string starts.
   Offset<String> CreateSharedString(const char* str) {
-    return CreateSharedString(str, strlen(str));
+    return str ? CreateSharedString(str, strlen(str))
+               : CreateSharedString("", 0);
   }
 
   /// @brief Store a string in the buffer, which can contain any binary data.
@@ -759,19 +772,23 @@ class FlatBufferBuilderImpl {
     AssertScalarT<T>();
     StartVector<T, OffsetT, LenT>(len);
     if (len > 0) {
-      // clang-format off
-      #if FLATBUFFERS_LITTLEENDIAN
-        PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
-      #else
-        if (sizeof(T) == 1) {
-          PushBytes(reinterpret_cast<const uint8_t *>(v), len);
-        } else {
-          for (auto i = len; i > 0; ) {
-            PushElement(v[--i]);
+      if (v) {
+        // clang-format off
+        #if FLATBUFFERS_LITTLEENDIAN
+          PushBytes(reinterpret_cast<const uint8_t *>(v), len * sizeof(T));
+        #else
+          if (sizeof(T) == 1) {
+            PushBytes(reinterpret_cast<const uint8_t *>(v), len);
+          } else {
+            for (auto i = len; i > 0; ) {
+              PushElement(v[--i]);
+            }
           }
-        }
-      #endif
-      // clang-format on
+        #endif
+        // clang-format on
+      } else {
+        buf_.fill(len * sizeof(T));
+      }
     }
     return OffsetT<VectorT<T>>(EndVector<LenT, offset_type>(len));
   }
@@ -801,8 +818,12 @@ class FlatBufferBuilderImpl {
   template <typename T>
   Offset<Vector<Offset<T>>> CreateVector(const Offset<T>* v, size_t len) {
     StartVector<Offset<T>>(len);
-    for (auto i = len; i > 0;) {
-      PushElement(v[--i]);
+    if (v) {
+      for (auto i = len; i > 0;) {
+        PushElement(v[--i]);
+      }
+    } else {
+      buf_.fill(len * sizeof(uoffset_t));
     }
     return Offset<Vector<Offset<T>>>(EndVector(len));
   }
@@ -905,6 +926,9 @@ class FlatBufferBuilderImpl {
   Offset<Vector<Offset<String>>> CreateVectorOfStrings(It begin, It end) {
     auto distance = std::distance(begin, end);
     FLATBUFFERS_ASSERT(distance >= 0);
+    if (distance <= 0) {
+      return CreateVector(static_cast<const Offset<String>*>(nullptr), 0);
+    }
     auto size = static_cast<size_t>(distance);
     auto scratch_buffer_usage = size * sizeof(Offset<String>);
     // If there is not enough space to store the offsets, there definitely won't
@@ -941,7 +965,11 @@ class FlatBufferBuilderImpl {
 
     StartVector<OffsetT, LenT>(len, sizeof(T), AlignOf<T>());
     if (len > 0) {
-      PushBytes(reinterpret_cast<const uint8_t*>(v), sizeof(T) * len);
+      if (v) {
+        PushBytes(reinterpret_cast<const uint8_t*>(v), sizeof(T) * len);
+      } else {
+        buf_.fill(sizeof(T) * len);
+      }
     }
     return OffsetT<VectorT<const T*>>(EndVector<LenT, offset_type>(len));
   }
@@ -958,9 +986,11 @@ class FlatBufferBuilderImpl {
   Offset<Vector<const T*>> CreateVectorOfStructs(
       size_t vector_size, const std::function<void(size_t i, T*)>& filler) {
     T* structs = StartVectorOfStructs<T>(vector_size);
-    for (size_t i = 0; i < vector_size; i++) {
-      filler(i, structs);
-      structs++;
+    if (structs) {
+      for (size_t i = 0; i < vector_size; i++) {
+        if (filler) filler(i, structs);
+        structs++;
+      }
     }
     return EndVectorOfStructs<T>(vector_size);
   }
@@ -978,9 +1008,11 @@ class FlatBufferBuilderImpl {
   Offset<Vector<const T*>> CreateVectorOfStructs(size_t vector_size, F f,
                                                  S* state) {
     T* structs = StartVectorOfStructs<T>(vector_size);
-    for (size_t i = 0; i < vector_size; i++) {
-      f(i, structs, state);
-      structs++;
+    if (structs) {
+      for (size_t i = 0; i < vector_size; i++) {
+        f(i, structs, state);
+        structs++;
+      }
     }
     return EndVectorOfStructs<T>(vector_size);
   }
@@ -1020,8 +1052,10 @@ class FlatBufferBuilderImpl {
       const S* v, size_t len, T (*const pack_func)(const S&)) {
     FLATBUFFERS_ASSERT(pack_func);
     auto structs = StartVectorOfStructs<T>(len);
-    for (size_t i = 0; i < len; i++) {
-      structs[i] = pack_func(v[i]);
+    if (v && pack_func && structs) {
+      for (size_t i = 0; i < len; i++) {
+        structs[i] = pack_func(v[i]);
+      }
     }
     return EndVectorOfStructs<T>(len);
   }
@@ -1089,7 +1123,8 @@ class FlatBufferBuilderImpl {
   template <typename T, typename Alloc = std::allocator<T>>
   Offset<Vector<const T*>> CreateVectorOfSortedStructs(
       std::vector<T, Alloc>* v) {
-    return CreateVectorOfSortedStructs(data(*v), v->size());
+    return v ? CreateVectorOfSortedStructs(data(*v), v->size())
+             : CreateVectorOfSortedStructs(static_cast<T*>(nullptr), 0);
   }
 
   /// @brief Serialize a `std::vector` of native structs into a FlatBuffer
@@ -1103,7 +1138,8 @@ class FlatBufferBuilderImpl {
   template <typename T, typename S, typename Alloc = std::allocator<T>>
   Offset<Vector<const T*>> CreateVectorOfSortedNativeStructs(
       std::vector<S, Alloc>* v) {
-    return CreateVectorOfSortedNativeStructs<T, S>(data(*v), v->size());
+    return v ? CreateVectorOfSortedNativeStructs<T, S>(data(*v), v->size())
+             : CreateVectorOfSortedNativeStructs<T, S>(static_cast<S*>(nullptr), 0);
   }
 
   /// @brief Serialize an array of structs into a FlatBuffer `vector` in sorted
@@ -1116,7 +1152,9 @@ class FlatBufferBuilderImpl {
   /// where the vector is stored.
   template <typename T>
   Offset<Vector<const T*>> CreateVectorOfSortedStructs(T* v, size_t len) {
-    std::stable_sort(v, v + len, StructKeyComparator<T>());
+    if (v && len > 1) {
+      std::stable_sort(v, v + len, StructKeyComparator<T>());
+    }
     return CreateVectorOfStructs(v, len);
   }
 
@@ -1133,10 +1171,14 @@ class FlatBufferBuilderImpl {
   Offset<Vector<const T*>> CreateVectorOfSortedNativeStructs(S* v, size_t len) {
     extern T Pack(const S&);
     auto structs = StartVectorOfStructs<T>(len);
-    for (size_t i = 0; i < len; i++) {
-      structs[i] = Pack(v[i]);
+    if (v && structs) {
+      for (size_t i = 0; i < len; i++) {
+        structs[i] = Pack(v[i]);
+      }
+      if (len > 1) {
+        std::stable_sort(structs, structs + len, StructKeyComparator<T>());
+      }
     }
-    std::stable_sort(structs, structs + len, StructKeyComparator<T>());
     return EndVectorOfStructs<T>(len);
   }
 
@@ -1148,6 +1190,7 @@ class FlatBufferBuilderImpl {
     bool operator()(const Offset<T>& a, const Offset<T>& b) const {
       auto table_a = reinterpret_cast<T*>(buf_.data_at(a.o));
       auto table_b = reinterpret_cast<T*>(buf_.data_at(b.o));
+      if (!table_a || !table_b) return a.o < b.o;
       return table_a->KeyCompareLessThan(table_b);
     }
     vector_downward<SizeT>& buf_;
@@ -1169,7 +1212,9 @@ class FlatBufferBuilderImpl {
   template <typename T>
   Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(Offset<T>* v,
                                                        size_t len) {
-    std::stable_sort(v, v + len, TableKeyComparator<T>(buf_));
+    if (v && len > 1) {
+      std::stable_sort(v, v + len, TableKeyComparator<T>(buf_));
+    }
     return CreateVector(v, len);
   }
 
@@ -1183,7 +1228,8 @@ class FlatBufferBuilderImpl {
   template <typename T, typename Alloc = std::allocator<T>>
   Offset<Vector<Offset<T>>> CreateVectorOfSortedTables(
       std::vector<Offset<T>, Alloc>* v) {
-    return CreateVectorOfSortedTables(data(*v), v->size());
+    return v ? CreateVectorOfSortedTables(data(*v), v->size())
+             : CreateVectorOfSortedTables(static_cast<Offset<T>*>(nullptr), 0);
   }
 
   /// @brief Specialized version of `CreateVector` for non-copying use cases.
@@ -1200,7 +1246,9 @@ class FlatBufferBuilderImpl {
     buf_.make_space(len * elemsize);
     const uoffset_t vec_start = GetSizeRelative32BitRegion();
     auto vec_end = EndVector(len);
-    *buf = buf_.data_at(vec_start);
+    if (buf) {
+      *buf = buf_.data_at(vec_start);
+    }
     return vec_end;
   }
 
@@ -1240,8 +1288,14 @@ class FlatBufferBuilderImpl {
     AssertScalarT<T>();
     AssertScalarT<U>();
     StartVector<T>(len);
-    for (auto i = len; i > 0;) {
-      PushElement(static_cast<T>(v[--i]));
+    if (v) {
+      for (auto i = len; i > 0;) {
+        PushElement(static_cast<T>(v[--i]));
+      }
+    } else {
+      for (auto i = len; i > 0; --i) {
+        PushElement(static_cast<T>(0));
+      }
     }
     return Offset<Vector<T>>(EndVector(len));
   }
@@ -1309,8 +1363,11 @@ class FlatBufferBuilderImpl {
 
     if (file_identifier) {
       FLATBUFFERS_ASSERT(strlen(file_identifier) == kFileIdentifierLength);
-      PushBytes(reinterpret_cast<const uint8_t*>(file_identifier),
-                kFileIdentifierLength);
+      char id[kFileIdentifierLength] = { 0 };
+      const size_t len = std::min(strlen(file_identifier),
+                                  static_cast<size_t>(kFileIdentifierLength));
+      memcpy(id, file_identifier, len);
+      PushBytes(reinterpret_cast<const uint8_t*>(id), kFileIdentifierLength);
     }
     PushElement(ReferTo(root));  // Location of root.
     if (size_prefix) {
@@ -1369,8 +1426,10 @@ class FlatBufferBuilderImpl {
     explicit StringOffsetCompare(const vector_downward<SizeT>& buf)
         : buf_(&buf) {}
     bool operator()(const Offset<String>& a, const Offset<String>& b) const {
+      if (!buf_) return a.o < b.o;
       auto stra = reinterpret_cast<const String*>(buf_->data_at(a.o));
       auto strb = reinterpret_cast<const String*>(buf_->data_at(b.o));
+      if (!stra || !strb) return stra < strb;
       return StringLessThan(stra->data(), stra->size(), strb->data(),
                             strb->size());
     }
@@ -1413,7 +1472,11 @@ class FlatBufferBuilderImpl {
     NotNested();
     PreAlign<uoffset_t>(len + 1);  // Always 0-terminated.
     buf_.fill(1);
-    PushBytes(reinterpret_cast<const uint8_t*>(str), len);
+    if (str && len) {
+      PushBytes(reinterpret_cast<const uint8_t*>(str), len);
+    } else if (len) {
+      buf_.fill(len);
+    }
     PushElement(static_cast<uoffset_t>(len));
   }
 
