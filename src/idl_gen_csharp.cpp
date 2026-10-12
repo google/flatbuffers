@@ -149,14 +149,19 @@ class CSharpGenerator : public BaseGenerator {
 
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      if (!*it) continue;
       std::string enumcode;
       auto& enum_def = **it;
+      static const Namespace empty_namespace;
+      const Namespace& enum_ns = enum_def.defined_namespace
+                                     ? *enum_def.defined_namespace
+                                     : empty_namespace;
       if (!parser_.opts.one_file) cur_name_space_ = enum_def.defined_namespace;
       GenEnum(enum_def, &enumcode, parser_.opts);
       if (parser_.opts.one_file) {
         one_file_code += enumcode;
       } else {
-        if (!SaveType(enum_def.name, *enum_def.defined_namespace, enumcode,
+        if (!SaveType(enum_def.name, enum_ns, enumcode,
                       false, parser_.opts))
           return false;
       }
@@ -164,8 +169,13 @@ class CSharpGenerator : public BaseGenerator {
 
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       std::string declcode;
       auto& struct_def = **it;
+      static const Namespace empty_namespace;
+      const Namespace& struct_ns = struct_def.defined_namespace
+                                       ? *struct_def.defined_namespace
+                                       : empty_namespace;
       if (!parser_.opts.one_file)
         cur_name_space_ = struct_def.defined_namespace;
       GenStruct(struct_def, &declcode, parser_.opts);
@@ -173,14 +183,18 @@ class CSharpGenerator : public BaseGenerator {
       if (parser_.opts.one_file) {
         one_file_code += declcode;
       } else {
-        if (!SaveType(struct_def.name, *struct_def.defined_namespace, declcode,
+        if (!SaveType(struct_def.name, struct_ns, declcode,
                       true, parser_.opts))
           return false;
       }
     }
 
     if (parser_.opts.one_file) {
-      return SaveType(file_name_, *parser_.current_namespace_, one_file_code,
+      static const Namespace empty_namespace;
+      const Namespace& cur_ns = parser_.current_namespace_
+                                    ? *parser_.current_namespace_
+                                    : empty_namespace;
+      return SaveType(file_name_, cur_ns, one_file_code,
                       true, parser_.opts);
     }
     return true;
@@ -241,6 +255,7 @@ class CSharpGenerator : public BaseGenerator {
     }
     filename +=
         options.filename_extension.empty() ? ".cs" : options.filename_extension;
+    if (!options.file_saver) return true;
     return options.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
@@ -257,8 +272,8 @@ class CSharpGenerator : public BaseGenerator {
     // clang-format on
 
     if (enableLangOverrides) {
-      if (IsEnum(type)) return NamespacedName(*type.enum_def);
-      if (type.base_type == BASE_TYPE_STRUCT) {
+      if (IsEnum(type) && type.enum_def != nullptr) return NamespacedName(*type.enum_def);
+      if (type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr) {
         return "Offset<" + NamespacedName(*type.struct_def) + ">";
       }
     }
@@ -435,6 +450,7 @@ class CSharpGenerator : public BaseGenerator {
     code += " : " + GenTypeBasic(enum_def.underlying_type, false);
     code += "\n{\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       GenComment(ev.doc_comment, code_ptr, &comment_config, "  ");
       code += "  ";
@@ -457,6 +473,7 @@ class CSharpGenerator : public BaseGenerator {
   bool HasUnionStringValue(const EnumDef& enum_def) const {
     if (!enum_def.is_union) return false;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& val = **it;
       if (IsString(val.union_type)) {
         return true;
@@ -542,12 +559,13 @@ class CSharpGenerator : public BaseGenerator {
     std::string& code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       const auto& field_type = field.value.type;
       const auto array_field = IsArray(field_type);
       const auto& type = array_field ? field_type.VectorType() : field_type;
       const auto array_cnt = array_field ? (array_count + 1) : array_count;
-      if (IsStruct(type)) {
+      if (IsStruct(type) && field_type.struct_def != nullptr) {
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious these arguments are constructing
         // a nested struct, prefix the name with the field name.
@@ -585,13 +603,14 @@ class CSharpGenerator : public BaseGenerator {
     code += NumToString(struct_def.bytesize) + ");\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       const auto& field_type = field.value.type;
       if (field.padding) {
         code += indent + "  builder.Pad(";
         code += NumToString(field.padding) + ");\n";
       }
-      if (IsStruct(field_type)) {
+      if (IsStruct(field_type) && field_type.struct_def != nullptr) {
         GenStructBody(*field_type.struct_def, code_ptr,
                       (nameprefix + (field.name + "_")).c_str(), index,
                       in_array);
@@ -605,7 +624,7 @@ class CSharpGenerator : public BaseGenerator {
           code += "; " + index_var + " > 0; " + index_var + "--) {\n";
           in_array = true;
         }
-        if (IsStruct(type)) {
+        if (IsStruct(type) && field_type.struct_def != nullptr) {
           GenStructBody(*field_type.struct_def, code_ptr,
                         (nameprefix + (field.name + "_")).c_str(), index + 1,
                         in_array);
@@ -832,6 +851,7 @@ class CSharpGenerator : public BaseGenerator {
     // Generate struct fields accessors
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
 
@@ -951,6 +971,7 @@ class CSharpGenerator : public BaseGenerator {
     code += "{ __init(_i, _bb); return this; }\n\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       GenComment(field.doc_comment, code_ptr, &comment_config, "  ");
@@ -1114,7 +1135,8 @@ class CSharpGenerator : public BaseGenerator {
             code += "() where TTable : struct, IFlatbufferObject";
             code += offset_prefix + "(TTable?)" + getter;
             code += "<TTable>(o + __p.bb_pos) : null";
-            if (HasUnionStringValue(*field.value.type.enum_def)) {
+            if (field.value.type.enum_def &&
+                HasUnionStringValue(*field.value.type.enum_def)) {
               code += member_suffix;
               code += "}\n";
               code += "  public string " + Name(field) + "AsString()";
@@ -1124,27 +1146,31 @@ class CSharpGenerator : public BaseGenerator {
             // As<> accesors for Unions
             // Loop through all the possible union types and generate an As
             // accessor that casts to the correct type.
-            for (auto uit = field.value.type.enum_def->Vals().begin();
-                 uit != field.value.type.enum_def->Vals().end(); ++uit) {
-              auto val = *uit;
-              if (val->union_type.base_type == BASE_TYPE_NONE) {
-                continue;
-              }
-              auto union_field_type_name = GenTypeGet(val->union_type);
-              code += member_suffix + "}\n";
-              if (val->union_type.base_type == BASE_TYPE_STRUCT &&
-                  val->union_type.struct_def->attributes.Lookup("private")) {
-                code += "  internal ";
-              } else {
-                code += "  public ";
-              }
-              code += union_field_type_name + " ";
-              code += field_name_camel + "As" + val->name + "() { return ";
-              code += field_name_camel;
-              if (IsString(val->union_type)) {
-                code += "AsString()";
-              } else {
-                code += "<" + union_field_type_name + ">().Value";
+            if (field.value.type.enum_def != nullptr) {
+              for (auto uit = field.value.type.enum_def->Vals().begin();
+                   uit != field.value.type.enum_def->Vals().end(); ++uit) {
+                if (!*uit) continue;
+                auto val = *uit;
+                if (val->union_type.base_type == BASE_TYPE_NONE) {
+                  continue;
+                }
+                auto union_field_type_name = GenTypeGet(val->union_type);
+                code += member_suffix + "}\n";
+                if (val->union_type.base_type == BASE_TYPE_STRUCT &&
+                    val->union_type.struct_def &&
+                    val->union_type.struct_def->attributes.Lookup("private")) {
+                  code += "  internal ";
+                } else {
+                  code += "  public ";
+                }
+                code += union_field_type_name + " ";
+                code += field_name_camel + "As" + val->name + "() { return ";
+                code += field_name_camel;
+                if (IsString(val->union_type)) {
+                  code += "AsString()";
+                } else {
+                  code += "<" + union_field_type_name + ">().Value";
+                }
               }
             }
             break;
@@ -1392,6 +1418,7 @@ class CSharpGenerator : public BaseGenerator {
       int num_fields = 0;
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         if (IsStruct(field.value.type)) {
@@ -1412,10 +1439,12 @@ class CSharpGenerator : public BaseGenerator {
         code += "(FlatBufferBuilder builder";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
+          if (!*it) continue;
           auto& field = **it;
           if (field.deprecated) continue;
           code += ",\n      ";
-          if (IsStruct(field.value.type) && opts.generate_object_based_api) {
+          if (IsStruct(field.value.type) && opts.generate_object_based_api &&
+              field.value.type.struct_def != nullptr) {
             code += WrapInNameSpace(
                 field.value.type.struct_def->defined_namespace,
                 GenTypeName_ObjectAPI(field.value.type.struct_def->name, opts));
@@ -1442,6 +1471,7 @@ class CSharpGenerator : public BaseGenerator {
              size; size /= 2) {
           for (auto it = struct_def.fields.vec.rbegin();
                it != struct_def.fields.vec.rend(); ++it) {
+            if (!*it) continue;
             auto& field = **it;
             if (!field.deprecated &&
                 (!struct_def.sortbysize ||
@@ -1478,6 +1508,7 @@ class CSharpGenerator : public BaseGenerator {
       code += NumToString(struct_def.fields.vec.size()) + "); }\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         if (field.key) key_field = &field;
@@ -1589,6 +1620,7 @@ class CSharpGenerator : public BaseGenerator {
       code += "EndTable();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (!field.deprecated && field.IsRequired()) {
           code += "    builder.Required(o, ";
@@ -1757,6 +1789,7 @@ class CSharpGenerator : public BaseGenerator {
 
         for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
+          if (!*it) continue;
           const auto& ev = **it;
           if (ev.IsZero()) {
             continue;
@@ -1767,7 +1800,8 @@ class CSharpGenerator : public BaseGenerator {
           if (IsString(ev.union_type)) {
             ret += "       result = verifier.VerifyUnionString(tablePos);\n";
             ret += "        break;";
-          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+                     ev.union_type.struct_def != nullptr) {
             if (!ev.union_type.struct_def->fixed) {
               auto type = GenTypeGet(ev.union_type);
               ret += "        result = " + type +
@@ -1825,8 +1859,10 @@ class CSharpGenerator : public BaseGenerator {
     code += "\n";
     // Constructor
     code += "  public " + union_name + "() {\n";
-    code += "    this.Type = " + enum_def.name + "." +
-            enum_def.Vals()[0]->name + ";\n";
+    if (!enum_def.Vals().empty() && enum_def.Vals()[0]) {
+      code += "    this.Type = " + enum_def.name + "." +
+              enum_def.Vals()[0]->name + ";\n";
+    }
     code += "    this." + class_member + " = null;\n";
     code += "  }\n\n";
     // As<T>
@@ -1834,11 +1870,13 @@ class CSharpGenerator : public BaseGenerator {
             " as T; }\n";
     // As, From
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) continue;
       auto type_name = GenTypeGet_ObjectAPI(ev.union_type, opts);
       std::string accessibility =
           (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+           ev.union_type.struct_def != nullptr &&
            ev.union_type.struct_def->attributes.Lookup("private"))
               ? "internal"
               : "public";
@@ -1863,6 +1901,7 @@ class CSharpGenerator : public BaseGenerator {
         union_name + " _o) {\n";
     code += "    switch (_o.Type) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         code += "      default: return 0;\n";
@@ -1948,6 +1987,7 @@ class CSharpGenerator : public BaseGenerator {
       code += "    switch (_o.Type) {\n";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {
+        if (!*it) continue;
         auto& ev = **it;
         if (ev.union_type.base_type == BASE_TYPE_NONE) {
           code += "      default: break;\n";
@@ -1999,6 +2039,7 @@ class CSharpGenerator : public BaseGenerator {
             ") {\n";
     for (auto eit = enum_def.Vals().begin(); eit != enum_def.Vals().end();
          ++eit) {
+      if (!*eit) continue;
       auto& ev = **eit;
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
         code += indent + "  default: break;\n";
@@ -2040,6 +2081,7 @@ class CSharpGenerator : public BaseGenerator {
     code += "  public void UnPackTo(" + struct_name + " _o) {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       auto camel_name = Name(field);
@@ -2050,7 +2092,9 @@ class CSharpGenerator : public BaseGenerator {
       auto start = "    _o." + camel_name + " = ";
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
-          auto fixed = struct_def.fixed && field.value.type.struct_def->fixed;
+          auto fixed = struct_def.fixed &&
+                       field.value.type.struct_def != nullptr &&
+                       field.value.type.struct_def->fixed;
           if (fixed) {
             code += start + "this." + camel_name + ".UnPack();\n";
           } else {
@@ -2079,8 +2123,10 @@ class CSharpGenerator : public BaseGenerator {
                     GenTypeGet_ObjectAPI(field.value.type, opts) + "();\n";
             code += "    for (var _j = 0; _j < this." + camel_name +
                     "Length; ++_j) {\n";
-            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
-                                     camel_name, camel_name_short, true);
+            if (field.value.type.enum_def != nullptr) {
+              GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
+                                       camel_name, camel_name_short, true);
+            }
             code += "    }\n";
           } else if (field.value.type.element != BASE_TYPE_UTYPE) {
             auto fixed = field.value.type.struct_def == nullptr;
@@ -2101,8 +2147,10 @@ class CSharpGenerator : public BaseGenerator {
         case BASE_TYPE_UTYPE:
           break;
         case BASE_TYPE_UNION: {
-          GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
-                                   camel_name, camel_name_short, false);
+          if (field.value.type.enum_def != nullptr) {
+            GenUnionUnPack_ObjectAPI(*field.value.type.enum_def, code_ptr,
+                                     camel_name, camel_name_short, false);
+          }
           break;
         }
         default: {
@@ -2119,6 +2167,7 @@ class CSharpGenerator : public BaseGenerator {
             ");\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       auto camel_name = Name(field);
@@ -2129,21 +2178,23 @@ class CSharpGenerator : public BaseGenerator {
       // pre
       switch (field.value.type.base_type) {
         case BASE_TYPE_STRUCT: {
-          if (!field.value.type.struct_def->fixed) {
-            code += "    var _" + field.name + " = _o." + camel_name +
-                    " == null ? default(" +
-                    GenOffsetType(*field.value.type.struct_def) +
-                    ") : " + GenTypeGet(field.value.type) +
-                    ".Pack(builder, _o." + camel_name + ");\n";
-          } else if (struct_def.fixed && struct_has_create) {
-            std::vector<FieldArrayLength> array_lengths;
-            FieldArrayLength tmp_array_length = {
-                field.name,
-                field.value.type.fixed_length,
-            };
-            array_lengths.push_back(tmp_array_length);
-            GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
-                                        array_lengths);
+          if (field.value.type.struct_def != nullptr) {
+            if (!field.value.type.struct_def->fixed) {
+              code += "    var _" + field.name + " = _o." + camel_name +
+                      " == null ? default(" +
+                      GenOffsetType(*field.value.type.struct_def) +
+                      ") : " + GenTypeGet(field.value.type) +
+                      ".Pack(builder, _o." + camel_name + ");\n";
+            } else if (struct_def.fixed && struct_has_create) {
+              std::vector<FieldArrayLength> array_lengths;
+              FieldArrayLength tmp_array_length = {
+                  field.name,
+                  field.value.type.fixed_length,
+              };
+              array_lengths.push_back(tmp_array_length);
+              GenStructPackDecl_ObjectAPI(*field.value.type.struct_def, code_ptr,
+                                          array_lengths);
+            }
           }
           break;
         }
@@ -2179,12 +2230,16 @@ class CSharpGenerator : public BaseGenerator {
                 break;
               case BASE_TYPE_UTYPE:
                 property_name = camel_name.substr(0, camel_name.size() - 4);
-                array_type = NamespacedName(*field.value.type.enum_def);
+                array_type = field.value.type.enum_def != nullptr
+                                 ? NamespacedName(*field.value.type.enum_def)
+                                 : "";
                 to_array = "_o." + property_name + "[_j].Type";
                 break;
               case BASE_TYPE_UNION:
                 array_type = "int";
-                to_array = NamespacedName(*field.value.type.enum_def) +
+                to_array = (field.value.type.enum_def != nullptr
+                                ? NamespacedName(*field.value.type.enum_def)
+                                : "") +
                            "Union.Pack(builder,  _o." + property_name + "[_j])";
                 break;
               default:
@@ -2241,7 +2296,10 @@ class CSharpGenerator : public BaseGenerator {
         }
         case BASE_TYPE_UNION: {
           code += "    var _" + field.name + "_type = _o." + camel_name +
-                  " == null ? " + NamespacedName(*field.value.type.enum_def) +
+                  " == null ? " +
+                  (field.value.type.enum_def != nullptr
+                       ? NamespacedName(*field.value.type.enum_def)
+                       : "") +
                   ".NONE : " + "_o." + camel_name + ".Type;\n";
           code +=
               "    var _" + field.name + " = _o." + camel_name +
@@ -2259,6 +2317,7 @@ class CSharpGenerator : public BaseGenerator {
       code += "      builder";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         auto camel_name = Name(field);
@@ -2267,20 +2326,22 @@ class CSharpGenerator : public BaseGenerator {
         }
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
-            if (struct_def.fixed) {
-              GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
-                                          code_ptr,
-                                          "      _" + field.name + "_");
-            } else {
-              code += ",\n";
-              if (field.value.type.struct_def->fixed) {
-                if (opts.generate_object_based_api)
-                  code += "      _o." + camel_name;
-                else
-                  code += "      " + GenTypeGet(field.value.type) +
-                          ".Pack(builder, _o." + camel_name + ")";
+            if (field.value.type.struct_def != nullptr) {
+              if (struct_def.fixed) {
+                GenStructPackCall_ObjectAPI(*field.value.type.struct_def,
+                                            code_ptr,
+                                            "      _" + field.name + "_");
               } else {
-                code += "      _" + field.name;
+                code += ",\n";
+                if (field.value.type.struct_def->fixed) {
+                  if (opts.generate_object_based_api)
+                    code += "      _o." + camel_name;
+                  else
+                    code += "      " + GenTypeGet(field.value.type) +
+                            ".Pack(builder, _o." + camel_name + ")";
+                } else {
+                  code += "      _" + field.name;
+                }
               }
             }
             break;
@@ -2319,12 +2380,14 @@ class CSharpGenerator : public BaseGenerator {
       code += "    Start" + struct_def.name + "(builder);\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         auto camel_name = Name(field);
         switch (field.value.type.base_type) {
           case BASE_TYPE_STRUCT: {
-            if (field.value.type.struct_def->fixed) {
+            if (field.value.type.struct_def != nullptr &&
+                field.value.type.struct_def->fixed) {
               code += "    Add" + camel_name + "(builder, " +
                       GenTypeGet(field.value.type) + ".Pack(builder, _o." +
                       camel_name + "));\n";
@@ -2371,6 +2434,7 @@ class CSharpGenerator : public BaseGenerator {
     auto& code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       auto is_array = IsArray(field.value.type);
       const auto& field_type =
@@ -2449,6 +2513,7 @@ class CSharpGenerator : public BaseGenerator {
     auto& code = *code_ptr;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       const auto& field_type = field.value.type;
       if (field_type.struct_def != nullptr) {
@@ -2477,14 +2542,17 @@ class CSharpGenerator : public BaseGenerator {
               GenTypeName_ObjectAPI(type.struct_def->name, opts);
           type_name.replace(type_name.length() - type_name_length,
                             type_name_length, new_type_name);
-        } else if (type.element == BASE_TYPE_UNION) {
+        } else if (type.element == BASE_TYPE_UNION &&
+                   type.enum_def != nullptr) {
           type_name = NamespacedName(*type.enum_def) + "Union";
         }
         break;
       }
 
       case BASE_TYPE_UNION: {
-        type_name = NamespacedName(*type.enum_def) + "Union";
+        if (type.enum_def != nullptr) {
+          type_name = NamespacedName(*type.enum_def) + "Union";
+        }
         break;
       }
       default:
@@ -2524,6 +2592,7 @@ class CSharpGenerator : public BaseGenerator {
     // Generate Properties
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
@@ -2535,7 +2604,7 @@ class CSharpGenerator : public BaseGenerator {
         camel_name += "_";
       }
       if (opts.cs_gen_json_serializer) {
-        if (IsUnion(field.value.type)) {
+        if (IsUnion(field.value.type) && field.value.type.enum_def != nullptr) {
           auto utype_name = NamespacedName(*field.value.type.enum_def);
           code +=
               "  [Newtonsoft.Json.JsonProperty(\"" + field.name + "_type\")]\n";
@@ -2595,6 +2664,7 @@ class CSharpGenerator : public BaseGenerator {
     code += "  public " + class_name + "() {\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
@@ -2667,8 +2737,8 @@ class CSharpGenerator : public BaseGenerator {
 };
 }  // namespace csharp
 
-static bool GenerateCSharp(const Parser& parser, const std::string& path,
-                           const std::string& file_name) {
+bool GenerateCSharp(const Parser& parser, const std::string& path,
+                    const std::string& file_name) {
   csharp::CSharpGenerator generator(parser, path, file_name);
   return generator.generate();
 }

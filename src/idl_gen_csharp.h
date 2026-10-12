@@ -21,8 +21,14 @@
 
 namespace flatbuffers {
 
+class Parser;
+
 // Constructs a new CSharp code generator.
 std::unique_ptr<CodeGenerator> NewCSharpCodeGenerator();
+
+/// Generate C# code from a full FlatBuffer dictionary.
+bool GenerateCSharp(const Parser &parser, const std::string &path,
+                    const std::string &file_name);
 
 }  // namespace flatbuffers
 

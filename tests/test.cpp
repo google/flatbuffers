@@ -44,6 +44,7 @@
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
 #include "fuzz_test.h"
+#include "idl_gen_csharp.h"
 #include "json_test.h"
 #include "key_field_test.h"
 #include "monster_test.h"
@@ -1745,6 +1746,55 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void CSharpGeneratorHardeningSafetyTest() {
+  auto gen = NewCSharpCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kCSharp);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "CSharp");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  // Empty parser code generation.
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateCSharp(empty_parser, "", "test"), true);
+  TEST_EQ(gen->GenerateGrpcCode(empty_parser, "", "test"),
+          CodeGenerator::NOT_IMPLEMENTED);
+
+  // Schema with sparse enum, union, struct and table with the object API.
+  {
+    Parser parser;
+    parser.opts.one_file = true;
+    parser.opts.generate_object_based_api = true;
+    TEST_EQ(parser.Parse("namespace Test.CSharp; "
+                         "enum Color : byte { Red = 0, Blue = 100 } "
+                         "struct Vec3 { x:float; y:float; z:float; } "
+                         "table Item { id:int; color:Color; pos:Vec3; "
+                         "names:[string]; } "
+                         "union Any { Item } "
+                         "table Holder { a:Any; v:[Any]; } "
+                         "root_type Item;"),
+            true);
+    TEST_EQ(gen->GenerateCode(parser, "", "test_csharp"), CodeGenerator::OK);
+    TEST_EQ(GenerateCSharp(parser, "", "test_csharp"), true);
+  }
+
+  // Multi-file mode without a file_saver must safely no-op SaveType.
+  {
+    Parser parser;
+    parser.opts.one_file = false;
+    parser.opts.generate_object_based_api = true;
+    parser.opts.file_saver = nullptr;
+    TEST_EQ(parser.Parse("namespace Test.CSharpMulti; "
+                         "enum Color : byte { Red = 0, Green = 1 } "
+                         "table Item { id:int; color:Color; } "
+                         "root_type Item;"),
+            true);
+    TEST_EQ(GenerateCSharp(parser, "", "test_csharp_multi"), true);
+  }
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1914,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  CSharpGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace
