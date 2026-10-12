@@ -21,6 +21,16 @@
 
 namespace flatbuffers {
 
+class Parser;
+
+// Generate text includes for Dart.
+bool GenerateDart(const Parser& parser, const std::string& path,
+                  const std::string& file_name);
+
+// Generate make rule for Dart.
+std::string DartMakeRule(const Parser& parser, const std::string& path,
+                         const std::string& file_name);
+
 // Constructs a new Dart code generator.
 std::unique_ptr<CodeGenerator> NewDartCodeGenerator();
 

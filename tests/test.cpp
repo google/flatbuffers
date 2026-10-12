@@ -68,6 +68,7 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_dart.h"
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1746,33 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void DartGeneratorHardeningSafetyTest() {
+  auto gen = NewDartCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kDart);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "Dart");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateDart(empty_parser, "", "test"), true);
+  std::string make_rule;
+  TEST_EQ(gen->GenerateMakeRule(empty_parser, "", "test", make_rule), CodeGenerator::OK);
+  TEST_EQ_STR(DartMakeRule(empty_parser, "", "test").c_str(), make_rule.c_str());
+
+  Parser parser;
+  TEST_EQ(parser.Parse("namespace Test.Dart; "
+                       "enum Color : byte { Red = 0, Green = 1 } "
+                       "union Any { Item } "
+                       "table Item { id:int; color:Color; } "
+                       "table Root { item:Any; } "
+                       "root_type Root;"), true);
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateDart(parser, "", "test"), true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1892,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  DartGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace

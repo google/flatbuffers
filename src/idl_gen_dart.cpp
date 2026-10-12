@@ -97,8 +97,13 @@ class DartGenerator : public BaseGenerator {
                         const std::string& included,
                         std::set<std::string>& imports) {
     for (const auto& item : definitions) {
+      if (!item) continue;
       if (item->file == included) {
-        std::string component = namer_.Namespace(*item->defined_namespace);
+        Namespace empty_ns;
+        const Namespace& item_ns = item->defined_namespace != nullptr
+                                       ? *item->defined_namespace
+                                       : empty_ns;
+        std::string component = namer_.Namespace(item_ns);
         std::string filebase =
             flatbuffers::StripPath(flatbuffers::StripExtension(item->file));
         std::string filename =
@@ -164,7 +169,8 @@ class DartGenerator : public BaseGenerator {
       code += "\n";
       code += kv->second;
 
-      if (!parser_.opts.file_saver->SaveFile(Filename(kv->first).c_str(), code,
+      if (parser_.opts.file_saver &&
+          !parser_.opts.file_saver->SaveFile(Filename(kv->first).c_str(), code,
                                              false)) {
         return false;
       }
@@ -193,6 +199,7 @@ class DartGenerator : public BaseGenerator {
   void GenerateEnums(namespace_code_map& namespace_code) {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      if (!*it) continue;
       auto& enum_def = **it;
       GenEnum(enum_def, namespace_code);
     }
@@ -201,6 +208,7 @@ class DartGenerator : public BaseGenerator {
   void GenerateStructs(namespace_code_map& namespace_code) {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       auto& struct_def = **it;
       GenStruct(struct_def, namespace_code);
     }
@@ -232,11 +240,14 @@ class DartGenerator : public BaseGenerator {
     const bool auto_default = is_bit_flags && !enum_def.FindByValue("0");
 
     code += "enum " + enum_type + " {\n";
+    bool first = true;
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       const auto enum_var = namer_.Variant(ev);
-      if (it != enum_def.Vals().begin()) code += ",\n";
+      if (!first) code += ",\n";
       code += "  " + enum_var + "(" + enum_def.ToString(ev) + ")";
+      first = false;
     }
     if (auto_default) {
       code += ",\n  _default(0)";
@@ -248,6 +259,7 @@ class DartGenerator : public BaseGenerator {
     code += "  factory " + enum_type + ".fromValue(int value) {\n";
     code += "    switch (value) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       const auto enum_var = namer_.Variant(ev);
       code += "      case " + enum_def.ToString(ev) + ":";
@@ -511,6 +523,7 @@ class DartGenerator : public BaseGenerator {
     std::vector<std::pair<int, FieldDef*>> non_deprecated_fields;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       FieldDef& field = **it;
       if (field.deprecated) continue;
       auto offset = static_cast<int>(it - struct_def.fields.vec.begin());
@@ -654,8 +667,15 @@ class DartGenerator : public BaseGenerator {
 
   std::string NamespaceAliasFromUnionType(Namespace* root_namespace,
                                           const Type& type) {
-    const Namespace& type_namespace = *type.struct_def->defined_namespace;
-    if (root_namespace->components == type_namespace.components) {
+    if (!type.struct_def) return "";
+    Namespace empty_ns;
+    const Namespace& type_namespace =
+        type.struct_def->defined_namespace != nullptr
+            ? *type.struct_def->defined_namespace
+            : empty_ns;
+    const Namespace& root_ns =
+        root_namespace != nullptr ? *root_namespace : empty_ns;
+    if (root_ns.components == type_namespace.components) {
       return namer_.Type(*type.struct_def);
     }
 
@@ -686,15 +706,20 @@ class DartGenerator : public BaseGenerator {
       if (field.value.type.base_type == BASE_TYPE_UNION) {
         code += " {\n";
         code += "    switch (" + field_name + "Type?.value) {\n";
-        const auto& enum_def = *field.value.type.enum_def;
-        for (auto en_it = enum_def.Vals().begin() + 1;
-             en_it != enum_def.Vals().end(); ++en_it) {
-          const auto& ev = **en_it;
-          const auto enum_name = NamespaceAliasFromUnionType(
-              enum_def.defined_namespace, ev.union_type);
-          code += "      case " + enum_def.ToString(ev) + ": return " +
-                  enum_name + ".reader.vTableGetNullable(_bc, _bcOffset, " +
-                  NumToString(field.value.offset) + ");\n";
+        if (field.value.type.enum_def != nullptr) {
+          const auto& enum_def = *field.value.type.enum_def;
+          const auto& vals = enum_def.Vals();
+          if (vals.size() > 1) {
+            for (auto en_it = vals.begin() + 1; en_it != vals.end(); ++en_it) {
+              if (!*en_it) continue;
+              const auto& ev = **en_it;
+              const auto enum_name = NamespaceAliasFromUnionType(
+                  enum_def.defined_namespace, ev.union_type);
+              code += "      case " + enum_def.ToString(ev) + ": return " +
+                      enum_name + ".reader.vTableGetNullable(_bc, _bcOffset, " +
+                      NumToString(field.value.offset) + ");\n";
+            }
+          }
         }
         code += "      default: return null;\n";
         code += "    }\n";
@@ -1141,14 +1166,14 @@ class DartGenerator : public BaseGenerator {
 };
 }  // namespace dart
 
-static bool GenerateDart(const Parser& parser, const std::string& path,
-                         const std::string& file_name) {
+bool GenerateDart(const Parser& parser, const std::string& path,
+                  const std::string& file_name) {
   dart::DartGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-static std::string DartMakeRule(const Parser& parser, const std::string& path,
-                                const std::string& file_name) {
+std::string DartMakeRule(const Parser& parser, const std::string& path,
+                         const std::string& file_name) {
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);
