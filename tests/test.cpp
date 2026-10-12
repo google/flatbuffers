@@ -43,6 +43,9 @@
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/buffer_ref.h"
+#include "flatbuffers/default_allocator.h"
+#include "flatbuffers/detached_buffer.h"
 #include "fuzz_test.h"
 #include "json_test.h"
 #include "key_field_test.h"
@@ -1745,8 +1748,48 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void DetachedBufferAndAllocatorSafetyTest() {
+  flatbuffers::DetachedBuffer empty_buf;
+  TEST_NULL(empty_buf.data());
+  TEST_EQ(empty_buf.size(), static_cast<size_t>(0));
+  TEST_NULL(empty_buf.begin());
+  TEST_NULL(empty_buf.end());
+
+  uint8_t* heap_buf = new uint8_t[16]();
+  flatbuffers::DetachedBuffer invalid_buf(nullptr, false, heap_buf, 16, heap_buf + 20, 10);
+  TEST_NULL(invalid_buf.data());
+  TEST_EQ(invalid_buf.size(), static_cast<size_t>(0));
+
+  flatbuffers::BufferRef<MyGame::Example::Monster> empty_ref;
+  TEST_NULL(empty_ref.GetRoot());
+  TEST_EQ(empty_ref.Verify(), false);
+
+  uint8_t* dyn_buf = static_cast<uint8_t*>(malloc(32));
+  memset(dyn_buf, 0, 32);
+  flatbuffers::BufferRef<MyGame::Example::Monster> ref1(dyn_buf, 32);
+  ref1.must_free = true;
+
+  flatbuffers::BufferRef<MyGame::Example::Monster> ref2 = ref1;
+  TEST_ASSERT(ref2.must_free);
+  TEST_ASSERT(ref2.buf != ref1.buf);
+  TEST_EQ(ref2.len, ref1.len);
+
+  flatbuffers::BufferRef<MyGame::Example::Monster> ref3 = std::move(ref2);
+  TEST_ASSERT(ref3.must_free);
+  TEST_NULL(ref2.buf);
+  TEST_EQ(ref2.must_free, false);
+
+  flatbuffers::DefaultAllocator default_alloc;
+  default_alloc.deallocate(nullptr, 0);
+  flatbuffers::DefaultAllocator::dealloc(nullptr, 0);
+  flatbuffers::Deallocate(nullptr, nullptr, 0);
+
+  TEST_NULL(default_alloc.reallocate_downward(nullptr, 10, 5, 0, 0));
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  DetachedBufferAndAllocatorSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

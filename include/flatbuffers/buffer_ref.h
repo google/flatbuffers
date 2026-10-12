@@ -33,13 +33,66 @@ struct BufferRef : BufferRefBase {
   BufferRef(uint8_t* _buf, uoffset_t _len)
       : buf(_buf), len(_len), must_free(false) {}
 
-  ~BufferRef() {
-    if (must_free) free(buf);
+  BufferRef(const BufferRef& other)
+      : buf(other.buf), len(other.len), must_free(false) {
+    if (other.must_free && other.buf && other.len > 0) {
+      buf = static_cast<uint8_t*>(malloc(other.len));
+      if (buf) {
+        memcpy(buf, other.buf, other.len);
+        must_free = true;
+      } else {
+        len = 0;
+      }
+    }
   }
 
-  const T* GetRoot() const { return flatbuffers::GetRoot<T>(buf); }
+  BufferRef& operator=(const BufferRef& other) {
+    if (this != &other) {
+      if (must_free && buf) free(buf);
+      buf = other.buf;
+      len = other.len;
+      must_free = false;
+      if (other.must_free && other.buf && other.len > 0) {
+        buf = static_cast<uint8_t*>(malloc(other.len));
+        if (buf) {
+          memcpy(buf, other.buf, other.len);
+          must_free = true;
+        } else {
+          len = 0;
+        }
+      }
+    }
+    return *this;
+  }
 
-  bool Verify() {
+  BufferRef(BufferRef&& other) noexcept
+      : buf(other.buf), len(other.len), must_free(other.must_free) {
+    other.buf = nullptr;
+    other.len = 0;
+    other.must_free = false;
+  }
+
+  BufferRef& operator=(BufferRef&& other) noexcept {
+    if (this != &other) {
+      if (must_free && buf) free(buf);
+      buf = other.buf;
+      len = other.len;
+      must_free = other.must_free;
+      other.buf = nullptr;
+      other.len = 0;
+      other.must_free = false;
+    }
+    return *this;
+  }
+
+  ~BufferRef() {
+    if (must_free && buf) free(buf);
+  }
+
+  const T* GetRoot() const { return buf ? flatbuffers::GetRoot<T>(buf) : nullptr; }
+
+  bool Verify() const {
+    if (!buf || len == 0) return false;
     Verifier verifier(buf, len);
     return verifier.VerifyBuffer<T>(nullptr);
   }

@@ -29,9 +29,13 @@ class DefaultAllocator : public Allocator {
     return new uint8_t[size];
   }
 
-  void deallocate(uint8_t* p, size_t) FLATBUFFERS_OVERRIDE { delete[] p; }
+  void deallocate(uint8_t* p, size_t) FLATBUFFERS_OVERRIDE {
+    if (p) delete[] p;
+  }
 
-  static void dealloc(void* p, size_t) { delete[] static_cast<uint8_t*>(p); }
+  static void dealloc(void* p, size_t) {
+    if (p) delete[] static_cast<uint8_t*>(p);
+  }
 };
 
 // These functions allow for a null allocator to mean use the default allocator,
@@ -44,6 +48,7 @@ inline uint8_t* Allocate(Allocator* allocator, size_t size) {
 }
 
 inline void Deallocate(Allocator* allocator, uint8_t* p, size_t size) {
+  if (!p) return;
   if (allocator)
     allocator->deallocate(p, size);
   else
