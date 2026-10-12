@@ -37,6 +37,7 @@
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
+#include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -1745,6 +1746,60 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void CodeGeneratorsSafetyTest() {
+  // 1. BaseGenerator: WrapInNameSpace and GetNameSpace null handling
+  {
+    class DummyGenerator : public flatbuffers::BaseGenerator {
+     public:
+      DummyGenerator(const flatbuffers::Parser& parser, const std::string& path)
+          : flatbuffers::BaseGenerator(parser, path, "", "", ".", "") {}
+      bool generate() FLATBUFFERS_OVERRIDE { return true; }
+      std::string TestWrap(const flatbuffers::Namespace* ns, const std::string& name) {
+        return WrapInNameSpace(ns, name);
+      }
+      std::string TestGetNS(const flatbuffers::Definition& def) {
+        return GetNameSpace(def);
+      }
+    };
+
+    flatbuffers::Parser parser;
+    DummyGenerator gen(parser, ".");
+    // Null namespace should safely return the unqualified name
+    TEST_EQ(gen.TestWrap(nullptr, "MyType"), std::string("MyType"));
+
+    flatbuffers::Definition def;
+    def.defined_namespace = nullptr;
+    TEST_EQ(gen.TestGetNS(def), std::string(""));
+  }
+
+  // 2. GenComment: null code_ptr and null prefix
+  {
+    std::vector<std::string> comments;
+    comments.push_back("Line 1");
+    comments.push_back("Line 2");
+    // Should not crash with null code_ptr
+    flatbuffers::GenComment(comments, nullptr, nullptr, nullptr);
+
+    std::string code;
+    // Should safely format without crashing when prefix and config are null
+    flatbuffers::GenComment(comments, &code, nullptr, nullptr);
+    TEST_EQ(code.find("///Line 1\n") != std::string::npos, true);
+  }
+
+  // 3. FloatConstantGenerator: null constructor arguments
+  {
+    flatbuffers::FieldDef field;
+    field.value.type.base_type = flatbuffers::BASE_TYPE_FLOAT;
+    field.value.constant = "nan";
+
+    flatbuffers::TypedFloatConstantGenerator typed_gen(nullptr, nullptr, nullptr, nullptr, nullptr);
+    TEST_EQ(typed_gen.GenFloatConstant(field), std::string(""));
+
+    flatbuffers::SimpleFloatConstantGenerator simple_gen(nullptr, nullptr, nullptr);
+    TEST_EQ(simple_gen.GenFloatConstant(field), std::string(""));
+  }
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1919,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  CodeGeneratorsSafetyTest();
   return 0;
 }
 }  // namespace

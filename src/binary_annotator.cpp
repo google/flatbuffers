@@ -60,6 +60,7 @@ static BinarySection MakeSingleRegionBinarySection(const std::string& name,
 
 static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
                             const uint8_t* const binary) {
+  if (!binary) { return false; }
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (binary[i] != 0) {
       return true;
@@ -70,6 +71,7 @@ static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
 
 static bool IsPrintableRegion(const uint64_t offset, const uint64_t length,
                               const uint8_t* const binary) {
+  if (!binary) { return false; }
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (!isprint(binary[i])) {
       return false;
@@ -146,7 +148,10 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
 
   if (IsValidOffset(root_table_offset)) {
     // Build the root table, and all else will be referenced from it.
-    BuildTable(root_table_offset, BinarySectionType::RootTable, RootTable());
+    const reflection::Object* root_table = RootTable();
+    if (root_table != nullptr) {
+      BuildTable(root_table_offset, BinarySectionType::RootTable, root_table);
+    }
   }
 
   // Now that all the sections are built, make sure the binary sections are
@@ -170,8 +175,8 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
     prefix_length_comment.type = BinaryRegionCommentType::SizePrefix;
 
     bool has_prefix_value = false;
-    const auto prefix_length = ReadScalar<uoffset64_t>(offset);
-    if (*prefix_length <= binary_length_) {
+    const auto prefix_length_64 = ReadScalar<uoffset64_t>(offset);
+    if (prefix_length_64.has_value() && *prefix_length_64 <= binary_length_) {
       regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset64_t),
                                          BinaryRegionType::Uint64, 0, 0,
                                          prefix_length_comment));
@@ -180,8 +185,8 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
     }
 
     if (!has_prefix_value) {
-      const auto prefix_length = ReadScalar<uoffset_t>(offset);
-      if (*prefix_length <= binary_length_) {
+      const auto prefix_length_32 = ReadScalar<uoffset_t>(offset);
+      if (prefix_length_32.has_value() && *prefix_length_32 <= binary_length_) {
         regions.push_back(MakeBinaryRegion(offset, sizeof(uoffset_t),
                                            BinaryRegionType::Uint32, 0, 0,
                                            prefix_length_comment));
@@ -207,7 +212,11 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 
   BinaryRegionComment root_offset_comment;
   root_offset_comment.type = BinaryRegionCommentType::RootTableOffset;
-  root_offset_comment.name = RootTable()->name()->str();
+  const reflection::Object* root_table = RootTable();
+  root_offset_comment.name =
+      (root_table != nullptr && root_table->name() != nullptr)
+          ? root_table->name()->str()
+          : "";
 
   if (!IsValidOffset(root_table_loc)) {
     SetError(root_offset_comment,
@@ -241,6 +250,10 @@ uint64_t BinaryAnnotator::BuildHeader(const uint64_t header_offset) {
 BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
     const uint64_t vtable_offset, const reflection::Object* const table,
     const uint64_t offset_of_referring_table) {
+  if (!table) {
+    return nullptr;
+  }
+
   // Get a list of vtables (if any) already defined at this offset.
   std::list<VTable>& vtables = vtables_[vtable_offset];
 
@@ -257,7 +270,8 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
     return nullptr;
   }
 
-  const std::string referring_table_name = table->name()->str();
+  const std::string referring_table_name =
+      table->name() != nullptr ? table->name()->str() : "";
 
   BinaryRegionComment vtable_size_comment;
   vtable_size_comment.type = BinaryRegionCommentType::VTableSize;
@@ -506,9 +520,12 @@ BinaryAnnotator::VTable* BinaryAnnotator::GetOrBuildVTable(
 void BinaryAnnotator::BuildTable(const uint64_t table_offset,
                                  const BinarySectionType type,
                                  const reflection::Object* const table) {
-  if (ContainsSection(table_offset)) {
+  if (!table || ContainsSection(table_offset)) {
     return;
   }
+
+  const std::string table_name =
+      table->name() != nullptr ? table->name()->str() : "";
 
   BinaryRegionComment vtable_offset_comment;
   vtable_offset_comment.type = BinaryRegionCommentType::TableVTableOffset;
@@ -523,7 +540,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
     AddSection(
         table_offset,
         MakeSingleRegionBinarySection(
-            table->name()->str(), type,
+            table_name, type,
             MakeBinaryRegion(table_offset, remaining, BinaryRegionType::Unknown,
                              remaining, 0, vtable_offset_comment)));
 
@@ -541,7 +558,7 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
     AddSection(table_offset,
                MakeSingleRegionBinarySection(
-                   table->name()->str(), type,
+                   table_name, type,
                    MakeBinaryRegion(table_offset, sizeof(int32_t),
                                     BinaryRegionType::SOffset, 0, vtable_offset,
                                     vtable_offset_comment)));
@@ -1548,8 +1565,13 @@ bool BinaryAnnotator::ContainsSection(const uint64_t offset) {
 }
 
 const reflection::Object* BinaryAnnotator::RootTable() const {
+  if (!schema_) {
+    return nullptr;
+  }
   if (!root_table_.empty()) {
-    return schema_->objects()->LookupByKey(root_table_);
+    return schema_->objects() != nullptr
+               ? schema_->objects()->LookupByKey(root_table_)
+               : nullptr;
   }
   return schema_->root_table();
 }

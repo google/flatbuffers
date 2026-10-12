@@ -390,8 +390,15 @@ class BinaryAnnotator {
   }
 
   bool IsInlineField(const reflection::Field* const field) {
+    if (!field || !field->type()) { return false; }
     if (field->type()->base_type() == reflection::BaseType::Obj) {
-      return schema_->objects()->Get(field->type()->index())->is_struct();
+      if (!schema_ || !schema_->objects()) { return false; }
+      const int32_t index = field->type()->index();
+      if (index < 0 || static_cast<size_t>(index) >= schema_->objects()->size()) {
+        return false;
+      }
+      const reflection::Object* obj = schema_->objects()->Get(index);
+      return obj != nullptr ? obj->is_struct() : false;
     }
     return IsScalar(field->type()->base_type());
   }
@@ -402,6 +409,7 @@ class BinaryAnnotator {
   }
 
   bool IsUnionType(const reflection::Field* const field) {
+    if (!field || !field->type()) { return false; }
     return IsUnionType(field->type()->base_type()) &&
            field->type()->index() >= 0;
   }
@@ -409,17 +417,17 @@ class BinaryAnnotator {
   bool IsValidUnionValue(const reflection::Field* const field,
                          const uint8_t value) {
     return IsUnionType(field) &&
-           IsValidUnionValue(field->type()->index(), value);
+           IsValidUnionValue(static_cast<uint32_t>(field->type()->index()), value);
   }
 
   bool IsValidUnionValue(const uint32_t enum_id, const uint8_t value) {
-    if (enum_id >= schema_->enums()->size()) {
+    if (!schema_ || !schema_->enums() || enum_id >= schema_->enums()->size()) {
       return false;
     }
 
     const reflection::Enum* enum_def = schema_->enums()->Get(enum_id);
 
-    if (enum_def == nullptr) {
+    if (enum_def == nullptr || enum_def->values() == nullptr) {
       return false;
     }
 
@@ -427,14 +435,24 @@ class BinaryAnnotator {
   }
 
   uint64_t GetElementSize(const reflection::Field* const field) {
+    if (!field || !field->type()) {
+      return sizeof(uint32_t);
+    }
     if (IsScalar(field->type()->element())) {
       return GetTypeSize(field->type()->element());
     }
 
     switch (field->type()->element()) {
       case reflection::BaseType::Obj: {
-        auto obj = schema_->objects()->Get(field->type()->index());
-        return obj->is_struct() ? obj->bytesize() : sizeof(uint32_t);
+        if (!schema_ || !schema_->objects()) {
+          return sizeof(uint32_t);
+        }
+        const int32_t index = field->type()->index();
+        if (index < 0 || static_cast<size_t>(index) >= schema_->objects()->size()) {
+          return sizeof(uint32_t);
+        }
+        const auto obj = schema_->objects()->Get(index);
+        return (obj != nullptr && obj->is_struct()) ? obj->bytesize() : sizeof(uint32_t);
       }
       default:
         return sizeof(uint32_t);
