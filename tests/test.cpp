@@ -1830,6 +1830,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
+  FlexBuffersHardeningSafetyTest();
   UninitializedVectorTest();
   EqualOperatorTest();
   NumericUtilsTest();

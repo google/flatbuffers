@@ -143,6 +143,7 @@ typedef int8_t quarter;
 // which that doesn't work (or where we'd read into un-owned memory).
 template <typename R, typename T1, typename T2, typename T4, typename T8>
 R ReadSizedScalar(const uint8_t* data, uint8_t byte_width) {
+  if (!data) return static_cast<R>(0);
   return byte_width < 4
              ? (byte_width < 2
                     ? static_cast<R>(flatbuffers::ReadScalar<T1>(data))
@@ -168,8 +169,10 @@ inline uint64_t ReadUInt64(const uint8_t* data, uint8_t byte_width) {
   #if defined(_MSC_VER) && defined(_M_X64) && !defined(_M_ARM64EC)
   // This is 64-bit Windows only, __movsb does not work on 32-bit Windows.
     uint64_t u = 0;
-    __movsb(reinterpret_cast<uint8_t *>(&u),
-            reinterpret_cast<const uint8_t *>(data), byte_width);
+    if (data) {
+      __movsb(reinterpret_cast<uint8_t *>(&u),
+              reinterpret_cast<const uint8_t *>(data), byte_width);
+    }
     return flatbuffers::EndianScalar(u);
   #else
     return ReadSizedScalar<uint64_t, uint8_t, uint16_t, uint32_t, uint64_t>(
@@ -184,12 +187,12 @@ inline double ReadDouble(const uint8_t* data, uint8_t byte_width) {
 }
 
 inline const uint8_t* Indirect(const uint8_t* offset, uint8_t byte_width) {
-  return offset - ReadUInt64(offset, byte_width);
+  return offset ? offset - ReadUInt64(offset, byte_width) : nullptr;
 }
 
 template <typename T>
 const uint8_t* Indirect(const uint8_t* offset) {
-  return offset - flatbuffers::ReadScalar<T>(offset);
+  return offset ? offset - flatbuffers::ReadScalar<T>(offset) : nullptr;
 }
 
 inline BitWidth WidthU(uint64_t u) {
@@ -238,7 +241,8 @@ class Sized : public Object {
   size_t size() const { return size_; }
   // Access size stored in `byte_width_` bytes before data_ pointer.
   size_t read_size() const {
-    return static_cast<size_t>(ReadUInt64(data_ - byte_width_, byte_width_));
+    return data_ ? static_cast<size_t>(ReadUInt64(data_ - byte_width_, byte_width_))
+                 : 0;
   }
 
  protected:
@@ -254,8 +258,12 @@ class String : public Sized {
       : Sized(data, byte_width, sz) {}
 
   size_t length() const { return size(); }
-  const char* c_str() const { return reinterpret_cast<const char*>(data_); }
-  std::string str() const { return std::string(c_str(), size()); }
+  const char* c_str() const {
+    return data_ ? reinterpret_cast<const char*>(data_) : "";
+  }
+  std::string str() const {
+    return (data_ && c_str()) ? std::string(c_str(), size()) : std::string();
+  }
 
   static String EmptyString() {
     static const char* empty_string = "";
@@ -560,7 +568,8 @@ class Reference {
 
   const char* AsKey() const {
     if (type_ == FBT_KEY || type_ == FBT_STRING) {
-      return reinterpret_cast<const char*>(Indirect());
+      auto ptr = Indirect();
+      return ptr ? reinterpret_cast<const char*>(ptr) : "";
     } else {
       return "";
     }
@@ -570,11 +579,13 @@ class Reference {
   // is not a string or key.
   String AsString() const {
     if (type_ == FBT_STRING) {
-      return String(Indirect(), byte_width_);
+      auto ptr = Indirect();
+      return ptr ? String(ptr, byte_width_) : String::EmptyString();
     } else if (type_ == FBT_KEY) {
       auto key = Indirect();
-      return String(key, byte_width_,
-                    strlen(reinterpret_cast<const char*>(key)));
+      return key ? String(key, byte_width_,
+                          strlen(reinterpret_cast<const char*>(key)))
+                 : String::EmptyString();
     } else {
       return String::EmptyString();
     }
@@ -683,7 +694,8 @@ class Reference {
   // Strings can be viewed as blobs too.
   Blob AsBlob() const {
     if (type_ == FBT_BLOB || type_ == FBT_STRING) {
-      return Blob(Indirect(), byte_width_);
+      auto ptr = Indirect();
+      return ptr ? Blob(ptr, byte_width_) : Blob::EmptyBlob();
     } else {
       return Blob::EmptyBlob();
     }
@@ -693,7 +705,8 @@ class Reference {
   // Maps can be viewed as vectors too.
   Vector AsVector() const {
     if (type_ == FBT_VECTOR || type_ == FBT_MAP) {
-      return Vector(Indirect(), byte_width_);
+      auto ptr = Indirect();
+      return ptr ? Vector(ptr, byte_width_) : Vector::EmptyVector();
     } else {
       return Vector::EmptyVector();
     }
@@ -701,8 +714,10 @@ class Reference {
 
   TypedVector AsTypedVector() const {
     if (IsTypedVector()) {
+      auto ptr = Indirect();
+      if (!ptr) return TypedVector::EmptyTypedVector();
       auto tv =
-          TypedVector(Indirect(), byte_width_, ToTypedVectorElementType(type_));
+          TypedVector(ptr, byte_width_, ToTypedVectorElementType(type_));
       if (tv.type_ == FBT_STRING) {
         // These can't be accessed as strings, since we don't know the bit-width
         // of the size field, see the declaration of
@@ -722,7 +737,9 @@ class Reference {
     if (IsFixedTypedVector()) {
       uint8_t len = 0;
       auto vtype = ToFixedTypedVectorElementType(type_, &len);
-      return FixedTypedVector(Indirect(), byte_width_, vtype, len);
+      auto ptr = Indirect();
+      return ptr ? FixedTypedVector(ptr, byte_width_, vtype, len)
+                 : FixedTypedVector::EmptyFixedTypedVector();
     } else {
       return FixedTypedVector::EmptyFixedTypedVector();
     }
@@ -730,7 +747,8 @@ class Reference {
 
   Map AsMap() const {
     if (type_ == FBT_MAP) {
-      return Map(Indirect(), byte_width_);
+      auto ptr = Indirect();
+      return ptr ? Map(ptr, byte_width_) : Map::EmptyMap();
     } else {
       return Map::EmptyMap();
     }
@@ -944,6 +962,7 @@ inline uint8_t NullPackedType() { return PackedType(BIT_WIDTH_8, FBT_NULL); }
 // The Null converts seamlessly into a default value for any other type.
 // TODO(wvo): Could introduce an #ifdef that makes this into an assert?
 inline Reference Vector::operator[](size_t i) const {
+  if (!data_) return Reference(nullptr, 1, NullPackedType());
   auto len = size();
   if (i >= len) return Reference(nullptr, 1, NullPackedType());
   auto packed_type = (data_ + len * byte_width_)[i];
@@ -952,6 +971,7 @@ inline Reference Vector::operator[](size_t i) const {
 }
 
 inline Reference TypedVector::operator[](size_t i) const {
+  if (!data_) return Reference(nullptr, 1, NullPackedType());
   auto len = size();
   if (i >= len) return Reference(nullptr, 1, NullPackedType());
   auto elem = data_ + i * byte_width_;
@@ -959,21 +979,26 @@ inline Reference TypedVector::operator[](size_t i) const {
 }
 
 inline Reference FixedTypedVector::operator[](size_t i) const {
-  if (i >= len_) return Reference(nullptr, 1, NullPackedType());
+  if (!data_ || i >= len_) return Reference(nullptr, 1, NullPackedType());
   auto elem = data_ + i * byte_width_;
   return Reference(elem, byte_width_, 1, type_);
 }
 
 template <typename T>
 int KeyCompare(const void* key, const void* elem) {
+  if (!key || !elem) return (key ? 1 : (elem ? -1 : 0));
   auto str_elem = reinterpret_cast<const char*>(
       Indirect<T>(reinterpret_cast<const uint8_t*>(elem)));
+  if (!str_elem) return 1;
   auto skey = reinterpret_cast<const char*>(key);
   return strcmp(skey, str_elem);
 }
 
 inline Reference Map::operator[](const char* key) const {
+  if (!key || !data_) return Reference(nullptr, 1, NullPackedType());
   auto keys = Keys();
+  if (!keys.data_ || keys.size() == 0)
+    return Reference(nullptr, 1, NullPackedType());
   // We can't pass keys.byte_width_ to the comparison function, so we have
   // to pick the right one ahead of time.
   int (*comp)(const void*, const void*) = nullptr;
@@ -1007,9 +1032,12 @@ inline Reference Map::operator[](const std::string& key) const {
 inline Reference GetRoot(const uint8_t* buffer, size_t size) {
   // See Finish() below for the serialization counterpart of this.
   // The root starts at the end of the buffer, so we parse backwards from there.
+  if (!buffer || size < 3) return Reference();
   auto end = buffer + size;
   auto byte_width = *--end;
   auto packed_type = *--end;
+  if (byte_width == 0 || byte_width > static_cast<size_t>(end - buffer))
+    return Reference();
   end -= byte_width;  // The root data item.
   return Reference(end, byte_width, packed_type);
 }
@@ -1886,10 +1914,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyFromPointer(const uint8_t* p, size_t len) {
+    if (!p || !buf_ || p < buf_) return false;
     auto o = static_cast<size_t>(p - buf_);
     return VerifyFrom(o, len);
   }
   bool VerifyBeforePointer(const uint8_t* p, size_t len) {
+    if (!p || !buf_ || p < buf_) return false;
     auto o = static_cast<size_t>(p - buf_);
     return VerifyBefore(o, len);
   }
@@ -1901,11 +1931,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyType(int type) { return Check(type >= 0 && type < FBT_MAX_TYPE); }
 
   bool VerifyOffset(uint64_t off, const uint8_t* p) {
+    if (!p || !buf_ || p < buf_) return false;
     return Check(off <= static_cast<uint64_t>(size_)) &&
            off <= static_cast<uint64_t>(p - buf_);
   }
 
   bool VerifyAlignment(const uint8_t* p, size_t size) const {
+    if (!p || !buf_ || p < buf_ || size == 0) return false;
     auto o = static_cast<size_t>(p - buf_);
     return Check((o & (size - 1)) == 0 || !check_alignment_);
   }
@@ -1961,6 +1993,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   bool VerifyKeys(const uint8_t* p, uint8_t byte_width) {
     // The vector part of the map has already been verified.
+    if (!p || byte_width == 0) return false;
     const size_t num_prefixed_fields = 3;
     if (!VerifyBeforePointer(p, byte_width * num_prefixed_fields)) return false;
     p -= byte_width * num_prefixed_fields;
@@ -1974,6 +2007,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyKey(const uint8_t* p) {
+    if (!p || !buf_ || p < buf_) return false;
     FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
     while (p < buf_ + size_)
       if (!*p++) return true;
@@ -1983,6 +2017,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 #undef FLEX_CHECK_VERIFIED
 
   bool VerifyTerminator(const String& s) {
+    if (!s.c_str()) return false;
     return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
                              s.size() + 1);
   }
@@ -2050,7 +2085,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
  public:
   bool VerifyBuffer() {
-    if (!Check(size_ >= 3)) return false;
+    if (!buf_ || !Check(size_ >= 3)) return false;
     auto end = buf_ + size_;
     auto byte_width = *--end;
     auto packed_type = *--end;

@@ -314,5 +314,66 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersHardeningSafetyTest() {
+  // Test GetRoot guards
+  uint8_t small_buf[2] = {0, 0};
+  auto r0 = flexbuffers::GetRoot(nullptr, 0);
+  TEST_EQ(r0.IsNull(), true);
+  auto r1 = flexbuffers::GetRoot(small_buf, sizeof(small_buf));
+  TEST_EQ(r1.IsNull(), true);
+
+  // Test Verifier guards
+  TEST_EQ(flexbuffers::VerifyBuffer(nullptr, 0), false);
+  TEST_EQ(flexbuffers::VerifyBuffer(small_buf, sizeof(small_buf)), false);
+  flexbuffers::Verifier verifier(nullptr, 0);
+  TEST_EQ(verifier.VerifyBuffer(), false);
+
+  // Test helper functions with nullptr
+  TEST_EQ(flexbuffers::Indirect(nullptr, 1) == nullptr, true);
+  TEST_EQ(flexbuffers::Indirect<uint32_t>(nullptr) == nullptr, true);
+  auto scalar_zero = flexbuffers::ReadSizedScalar<int32_t, int8_t, int16_t,
+                                                 int32_t, int64_t>(nullptr, 4);
+  TEST_EQ(scalar_zero, 0);
+
+  // Test Reference null fallbacks
+  flexbuffers::Reference null_ref;
+  TEST_EQ_STR(null_ref.AsKey(), "");
+  TEST_EQ_STR(null_ref.AsString().c_str(), "");
+  TEST_EQ_STR(null_ref.AsString().str().c_str(), "");
+  TEST_EQ(null_ref.AsBlob().size(), 0);
+  TEST_EQ(null_ref.AsVector().size(), 0);
+  TEST_EQ(null_ref.AsVector()[0].IsNull(), true);
+  TEST_EQ(null_ref.AsTypedVector().size(), 0);
+  TEST_EQ(null_ref.AsTypedVector()[0].IsNull(), true);
+  TEST_EQ(null_ref.AsFixedTypedVector().size(), 0);
+  TEST_EQ(null_ref.AsFixedTypedVector()[0].IsNull(), true);
+  TEST_EQ(null_ref.AsMap().size(), 0);
+  TEST_EQ(null_ref.AsMap()["test"].IsNull(), true);
+  TEST_EQ(null_ref.AsMap()[nullptr].IsNull(), true);
+
+  // Test Sized/String/Vector/Map null safety
+  flexbuffers::String null_str(nullptr, 1, 0);
+  TEST_EQ_STR(null_str.c_str(), "");
+  TEST_EQ_STR(null_str.str().c_str(), "");
+  TEST_EQ(null_str.length(), 0);
+
+  flexbuffers::Vector null_vec(nullptr, 1);
+  TEST_EQ(null_vec.size(), 0);
+  TEST_EQ(null_vec[0].IsNull(), true);
+
+  flexbuffers::TypedVector null_tvec(nullptr, 1, flexbuffers::FBT_INT);
+  TEST_EQ(null_tvec.size(), 0);
+  TEST_EQ(null_tvec[0].IsNull(), true);
+
+  flexbuffers::FixedTypedVector null_ftvec(nullptr, 1, flexbuffers::FBT_INT, 2);
+  TEST_EQ(null_ftvec.size(), 2);
+  TEST_EQ(null_ftvec[0].IsNull(), true);
+
+  flexbuffers::Map null_map(nullptr, 1);
+  TEST_EQ(null_map.size(), 0);
+  TEST_EQ(null_map["test"].IsNull(), true);
+  TEST_EQ(null_map[nullptr].IsNull(), true);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
