@@ -143,6 +143,7 @@ typedef int8_t quarter;
 // which that doesn't work (or where we'd read into un-owned memory).
 template <typename R, typename T1, typename T2, typename T4, typename T8>
 R ReadSizedScalar(const uint8_t* data, uint8_t byte_width) {
+  if (!data) return static_cast<R>(0);
   return byte_width < 4
              ? (byte_width < 2
                     ? static_cast<R>(flatbuffers::ReadScalar<T1>(data))
@@ -153,11 +154,13 @@ R ReadSizedScalar(const uint8_t* data, uint8_t byte_width) {
 }
 
 inline int64_t ReadInt64(const uint8_t* data, uint8_t byte_width) {
+  if (!data) return 0;
   return ReadSizedScalar<int64_t, int8_t, int16_t, int32_t, int64_t>(
       data, byte_width);
 }
 
 inline uint64_t ReadUInt64(const uint8_t* data, uint8_t byte_width) {
+  if (!data) return 0;
   // This is the "hottest" function (all offset lookups use this), so worth
   // optimizing if possible.
   // TODO: GCC apparently replaces memcpy by a rep movsb, but only if count is a
@@ -179,16 +182,19 @@ inline uint64_t ReadUInt64(const uint8_t* data, uint8_t byte_width) {
 }
 
 inline double ReadDouble(const uint8_t* data, uint8_t byte_width) {
+  if (!data) return 0.0;
   return ReadSizedScalar<double, quarter, half, float, double>(data,
                                                                byte_width);
 }
 
 inline const uint8_t* Indirect(const uint8_t* offset, uint8_t byte_width) {
+  if (!offset) return nullptr;
   return offset - ReadUInt64(offset, byte_width);
 }
 
 template <typename T>
 const uint8_t* Indirect(const uint8_t* offset) {
+  if (!offset) return nullptr;
   return offset - flatbuffers::ReadScalar<T>(offset);
 }
 
@@ -238,7 +244,9 @@ class Sized : public Object {
   size_t size() const { return size_; }
   // Access size stored in `byte_width_` bytes before data_ pointer.
   size_t read_size() const {
-    return static_cast<size_t>(ReadUInt64(data_ - byte_width_, byte_width_));
+    return data_ ? static_cast<size_t>(
+                       ReadUInt64(data_ - byte_width_, byte_width_))
+                 : 0;
   }
 
  protected:
@@ -254,7 +262,9 @@ class String : public Sized {
       : Sized(data, byte_width, sz) {}
 
   size_t length() const { return size(); }
-  const char* c_str() const { return reinterpret_cast<const char*>(data_); }
+  const char* c_str() const {
+    return data_ ? reinterpret_cast<const char*>(data_) : "";
+  }
   std::string str() const { return std::string(c_str(), size()); }
 
   static String EmptyString() {
@@ -349,6 +359,7 @@ class Map : public Vector {
   Vector Values() const { return Vector(data_, byte_width_); }
 
   TypedVector Keys() const {
+    if (!data_) return TypedVector::EmptyTypedVector();
     const size_t num_prefixed_fields = 3;
     auto keys_offset = data_ - byte_width_ * num_prefixed_fields;
     return TypedVector(Indirect(keys_offset, byte_width_),
@@ -560,7 +571,8 @@ class Reference {
 
   const char* AsKey() const {
     if (type_ == FBT_KEY || type_ == FBT_STRING) {
-      return reinterpret_cast<const char*>(Indirect());
+      auto p = Indirect();
+      return p ? reinterpret_cast<const char*>(p) : "";
     } else {
       return "";
     }
@@ -573,6 +585,7 @@ class Reference {
       return String(Indirect(), byte_width_);
     } else if (type_ == FBT_KEY) {
       auto key = Indirect();
+      if (!key) return String::EmptyString();
       return String(key, byte_width_,
                     strlen(reinterpret_cast<const char*>(key)));
     } else {
@@ -944,6 +957,7 @@ inline uint8_t NullPackedType() { return PackedType(BIT_WIDTH_8, FBT_NULL); }
 // The Null converts seamlessly into a default value for any other type.
 // TODO(wvo): Could introduce an #ifdef that makes this into an assert?
 inline Reference Vector::operator[](size_t i) const {
+  if (!data_) return Reference(nullptr, 1, NullPackedType());
   auto len = size();
   if (i >= len) return Reference(nullptr, 1, NullPackedType());
   auto packed_type = (data_ + len * byte_width_)[i];
@@ -952,6 +966,7 @@ inline Reference Vector::operator[](size_t i) const {
 }
 
 inline Reference TypedVector::operator[](size_t i) const {
+  if (!data_) return Reference(nullptr, 1, NullPackedType());
   auto len = size();
   if (i >= len) return Reference(nullptr, 1, NullPackedType());
   auto elem = data_ + i * byte_width_;
@@ -959,21 +974,25 @@ inline Reference TypedVector::operator[](size_t i) const {
 }
 
 inline Reference FixedTypedVector::operator[](size_t i) const {
-  if (i >= len_) return Reference(nullptr, 1, NullPackedType());
+  if (!data_ || i >= len_) return Reference(nullptr, 1, NullPackedType());
   auto elem = data_ + i * byte_width_;
   return Reference(elem, byte_width_, 1, type_);
 }
 
 template <typename T>
 int KeyCompare(const void* key, const void* elem) {
+  if (!elem || !key) return elem ? 1 : (key ? -1 : 0);
   auto str_elem = reinterpret_cast<const char*>(
       Indirect<T>(reinterpret_cast<const uint8_t*>(elem)));
   auto skey = reinterpret_cast<const char*>(key);
+  if (!str_elem || !skey) return str_elem ? 1 : (skey ? -1 : 0);
   return strcmp(skey, str_elem);
 }
 
 inline Reference Map::operator[](const char* key) const {
+  if (!key) return Reference(nullptr, 1, NullPackedType());
   auto keys = Keys();
+  if (!keys.data_ || !keys.size()) return Reference(nullptr, 1, NullPackedType());
   // We can't pass keys.byte_width_ to the comparison function, so we have
   // to pick the right one ahead of time.
   int (*comp)(const void*, const void*) = nullptr;
@@ -1007,8 +1026,12 @@ inline Reference Map::operator[](const std::string& key) const {
 inline Reference GetRoot(const uint8_t* buffer, size_t size) {
   // See Finish() below for the serialization counterpart of this.
   // The root starts at the end of the buffer, so we parse backwards from there.
+  if (!buffer || size < 3) return Reference(nullptr, 1, NullPackedType());
   auto end = buffer + size;
   auto byte_width = *--end;
+  if (byte_width == 0 || size < static_cast<size_t>(byte_width) + 2) {
+    return Reference(nullptr, 1, NullPackedType());
+  }
   auto packed_type = *--end;
   end -= byte_width;  // The root data item.
   return Reference(end, byte_width, packed_type);
@@ -1149,7 +1172,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   size_t Key(const char* str, size_t len) {
     auto sloc = buf_.size();
-    WriteBytes(str, len + 1);
+    if (!str) {
+      buf_.push_back(0);
+    } else {
+      WriteBytes(str, len + 1);
+    }
     if (flags_ & BUILDER_FLAG_SHARE_KEYS) {
       auto it = key_pool.find(sloc);
       if (it != key_pool.end()) {
@@ -1165,7 +1192,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     return sloc;
   }
 
-  size_t Key(const char* str) { return Key(str, strlen(str)); }
+  size_t Key(const char* str) {
+    return str ? Key(str, strlen(str)) : Key("", static_cast<size_t>(0));
+  }
   size_t Key(const std::string& str) { return Key(str.c_str(), str.size()); }
 
   size_t String(const char* str, size_t len) {
@@ -1186,7 +1215,9 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     }
     return sloc;
   }
-  size_t String(const char* str) { return String(str, strlen(str)); }
+  size_t String(const char* str) {
+    return str ? String(str, strlen(str)) : String("", static_cast<size_t>(0));
+  }
   size_t String(const std::string& str) {
     return String(str.c_str(), str.size());
   }
@@ -1541,6 +1572,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   }
 
   void WriteBytes(const void* val, size_t size) {
+    if (!val && size > 0) {
+      buf_.insert(buf_.end(), size, 0);
+      return;
+    }
     buf_.insert(buf_.end(), reinterpret_cast<const uint8_t*>(val),
                 reinterpret_cast<const uint8_t*>(val) + size);
   }
@@ -1729,7 +1764,10 @@ class Builder FLATBUFFERS_FINAL_CLASS {
     Align(bit_width);
     if (!fixed) Write<uint64_t>(len, byte_width);
     auto vloc = buf_.size();
-    for (size_t i = 0; i < len; i++) Write(elems[i], byte_width);
+    T default_val = T();
+    for (size_t i = 0; i < len; i++) {
+      Write(elems ? elems[i] : default_val, byte_width);
+    }
     stack_.push_back(Value(static_cast<uint64_t>(vloc),
                            ToTypedVector(vector_type, fixed ? len : 0),
                            bit_width));

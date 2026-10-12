@@ -43,6 +43,7 @@
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
+#include "flatbuffers/code_generators.h"
 #include "fuzz_test.h"
 #include "json_test.h"
 #include "key_field_test.h"
@@ -1745,8 +1746,46 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void FlexbuffersAndCodeGeneratorsSafetyTest() {
+  TEST_EQ(flexbuffers::GetRoot(nullptr, 0).IsNull(), true);
+  uint8_t dummy = 0;
+  TEST_EQ(flexbuffers::GetRoot(&dummy, 1).IsNull(), true);
+
+  TEST_EQ(flexbuffers::ReadInt64(nullptr, 1), 0);
+  TEST_EQ(flexbuffers::ReadUInt64(nullptr, 1), 0);
+  TEST_EQ(flexbuffers::ReadDouble(nullptr, 1), 0.0);
+  TEST_NULL(flexbuffers::Indirect(nullptr, 1));
+  TEST_NULL(flexbuffers::Indirect<uint8_t>(nullptr));
+
+  flexbuffers::Builder fbb;
+  fbb.Key(nullptr);
+  fbb.String(nullptr);
+  fbb.Blob(nullptr, 0);
+
+  flexbuffers::Vector v(nullptr, 1);
+  TEST_EQ(v.size(), 0);
+  TEST_EQ(v[0].IsNull(), true);
+
+  flexbuffers::Map m(nullptr, 1);
+  TEST_EQ(m.Keys().size(), 0);
+  TEST_EQ(m["key"].IsNull(), true);
+  TEST_EQ(m[static_cast<const char*>(nullptr)].IsNull(), true);
+
+  flatbuffers::CommentConfig config;
+  std::vector<std::string> comments;
+  comments.push_back("comment1");
+  flatbuffers::GenComment(comments, nullptr, &config, nullptr);
+  std::string comment_out;
+  flatbuffers::GenComment(comments, &comment_out, &config, nullptr);
+  TEST_ASSERT(!comment_out.empty());
+
+  flatbuffers::Parser parser;
+  TEST_ASSERT(flatbuffers::JavaCSharpMakeRule(true, parser, "", "").empty());
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  FlexbuffersAndCodeGeneratorsSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
