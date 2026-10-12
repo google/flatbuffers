@@ -38,6 +38,7 @@
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flex_flat_util.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
@@ -1745,8 +1746,38 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void BufferMiniReflectAndFlexFlatUtilSafetyTest() {
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, "a", 1), true);
+  TEST_EQ(flatbuffers::StringLessThan("a", 1, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan("a", 1, "b", 1), true);
+
+  TEST_NULL(flatbuffers::GetBufferIdentifier(nullptr));
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, "TEST"), false);
+  uint8_t dummy_buf[16] = {0};
+  TEST_EQ(flatbuffers::BufferHasIdentifier(dummy_buf, nullptr), false);
+
+  TEST_NULL(flatbuffers::GetMutableRoot<uint8_t>(nullptr));
+  TEST_NULL(flatbuffers::GetRoot<uint8_t>(nullptr));
+  TEST_NULL(flatbuffers::GetMutableSizePrefixedRoot<uint8_t>(nullptr));
+  TEST_NULL(flatbuffers::GetSizePrefixedRoot<uint8_t>(nullptr));
+
+  TEST_NULL((flatbuffers::IndirectHelper<flatbuffers::Offset<uint8_t>>::Read(static_cast<const uint8_t*>(nullptr), 0)));
+  TEST_NULL((flatbuffers::IndirectHelper<flatbuffers::Offset64<uint8_t>>::Read(static_cast<const uint8_t*>(nullptr), 0)));
+
+  TEST_EQ(flatbuffers::InlineSize(flatbuffers::ET_SEQUENCE, nullptr), static_cast<size_t>(4));
+  TEST_NULL(flatbuffers::EnumName<uint8_t>(0, nullptr));
+  flatbuffers::IterateObject(nullptr, nullptr, nullptr);
+  flatbuffers::IterateFlatBuffer(nullptr, nullptr, nullptr);
+  TEST_EQ_STR(flatbuffers::FlatBufferToString(nullptr, nullptr).c_str(), "");
+
+  flatbuffers::Verifier verifier(dummy_buf, sizeof(dummy_buf));
+  TEST_EQ(flexbuffers::VerifyNestedFlexBuffer(nullptr, verifier), true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  BufferMiniReflectAndFlexFlatUtilSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

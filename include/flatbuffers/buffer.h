@@ -92,7 +92,10 @@ FLATBUFFERS_CONSTEXPR size_t AlignOf() {
 // return true if the first is less than the second.
 static inline bool StringLessThan(const char* a_data, uoffset_t a_size,
                                   const char* b_data, uoffset_t b_size) {
-  const auto cmp = memcmp(a_data, b_data, (std::min)(a_size, b_size));
+  if (!a_data) return b_data != nullptr || (a_size < b_size);
+  if (!b_data) return false;
+  const auto min_len = (std::min)(a_size, b_size);
+  const auto cmp = min_len ? memcmp(a_data, b_data, min_len) : 0;
   return cmp == 0 ? a_size < b_size : cmp < 0;
 }
 
@@ -111,9 +114,11 @@ struct IndirectHelper {
   static const size_t element_stride = sizeof(T);
 
   static return_type Read(const uint8_t* p, const size_t i) {
+    if (!p) return return_type();
     return EndianScalar((reinterpret_cast<const T*>(p))[i]);
   }
   static mutable_return_type Read(uint8_t* p, const size_t i) {
+    if (!p) return mutable_return_type();
     return reinterpret_cast<mutable_return_type>(
         Read(const_cast<const uint8_t*>(p), i));
   }
@@ -128,6 +133,7 @@ struct IndirectHelper<OffsetT<T>> {
   static const offset_type element_stride = sizeof(offset_type);
 
   static return_type Read(const uint8_t* const p, const offset_type i) {
+    if (!p) return nullptr;
     // Offsets are relative to themselves, so first update the pointer to
     // point to the offset location.
     const uint8_t* const offset_location = p + i * element_stride;
@@ -138,6 +144,7 @@ struct IndirectHelper<OffsetT<T>> {
         offset_location + ReadScalar<offset_type>(offset_location));
   }
   static mutable_return_type Read(uint8_t* const p, const offset_type i) {
+    if (!p) return nullptr;
     // Offsets are relative to themselves, so first update the pointer to
     // point to the offset location.
     uint8_t* const offset_location = p + i * element_stride;
@@ -166,10 +173,12 @@ struct IndirectHelper<
   static const size_t element_stride = sizeof(pointee_type);
 
   static return_type Read(const uint8_t* const p, const size_t i) {
+    if (!p) return nullptr;
     // Structs are stored inline, relative to the first struct pointer.
     return reinterpret_cast<return_type>(p + i * element_stride);
   }
   static mutable_return_type Read(uint8_t* const p, const size_t i) {
+    if (!p) return nullptr;
     // Structs are stored inline, relative to the first struct pointer.
     return reinterpret_cast<mutable_return_type>(p + i * element_stride);
   }
@@ -184,6 +193,7 @@ struct IndirectHelper<
 /// vtable).
 inline const char* GetBufferIdentifier(const void* buf,
                                        bool size_prefixed = false) {
+  if (!buf) return nullptr;
   return reinterpret_cast<const char*>(buf) +
          ((size_prefixed) ? 2 * sizeof(uoffset_t) : sizeof(uoffset_t));
 }
@@ -191,8 +201,9 @@ inline const char* GetBufferIdentifier(const void* buf,
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void* buf, const char* identifier,
                                 bool size_prefixed = false) {
-  return strncmp(GetBufferIdentifier(buf, size_prefixed), identifier,
-                 flatbuffers::kFileIdentifierLength) == 0;
+  if (!buf || !identifier) return false;
+  const char* id = GetBufferIdentifier(buf, size_prefixed);
+  return id && strncmp(id, identifier, flatbuffers::kFileIdentifierLength) == 0;
 }
 
 /// @cond FLATBUFFERS_INTERNAL
@@ -207,16 +218,19 @@ T* GetMutableRoot(void* buf) {
 
 template <typename T, typename SizeT = uoffset_t>
 T* GetMutableSizePrefixedRoot(void* buf) {
+  if (!buf) return nullptr;
   return GetMutableRoot<T>(reinterpret_cast<uint8_t*>(buf) + sizeof(SizeT));
 }
 
 template <typename T>
 const T* GetRoot(const void* buf) {
+  if (!buf) return nullptr;
   return GetMutableRoot<T>(const_cast<void*>(buf));
 }
 
 template <typename T, typename SizeT = uoffset_t>
 const T* GetSizePrefixedRoot(const void* buf) {
+  if (!buf) return nullptr;
   return GetRoot<T>(reinterpret_cast<const uint8_t*>(buf) + sizeof(SizeT));
 }
 

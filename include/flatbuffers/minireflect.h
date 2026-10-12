@@ -89,12 +89,13 @@ inline size_t InlineSize(ElementaryType type, const TypeTable* type_table) {
     case ET_DOUBLE:
       return 8;
     case ET_SEQUENCE:
+      if (!type_table) return 4;
       switch (type_table->st) {
         case ST_TABLE:
         case ST_UNION:
           return 4;
         case ST_STRUCT:
-          return static_cast<size_t>(type_table->values[type_table->num_elems]);
+          return type_table->values ? static_cast<size_t>(type_table->values[type_table->num_elems]) : 0;
         default:
           FLATBUFFERS_ASSERT(false);
           return 1;
@@ -131,6 +132,7 @@ void IterateObject(const uint8_t* obj, const TypeTable* type_table,
 inline void IterateValue(ElementaryType type, const uint8_t* val,
                          const TypeTable* type_table, const uint8_t* prev_val,
                          soffset_t vector_index, IterationVisitor* visitor) {
+  if (!val || !visitor) return;
   switch (type) {
     case ET_UTYPE: {
       auto tval = ReadScalar<uint8_t>(val);
@@ -193,6 +195,7 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
       break;
     }
     case ET_SEQUENCE: {
+      if (!type_table) break;
       switch (type_table->st) {
         case ST_TABLE:
           val += ReadScalar<uoffset_t>(val);
@@ -204,9 +207,11 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
         case ST_UNION: {
           val += ReadScalar<uoffset_t>(val);
           FLATBUFFERS_ASSERT(prev_val);
+          if (!prev_val) break;
           auto union_type = *prev_val;  // Always a uint8_t.
           if (vector_index >= 0) {
             auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(prev_val);
+            if (!type_vec || !type_vec->Data()) break;
             union_type = type_vec->Get(static_cast<uoffset_t>(vector_index));
           }
           auto type_code_idx =
@@ -216,8 +221,11 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
             auto type_code = type_table->type_codes[type_code_idx];
             switch (type_code.base_type) {
               case ET_SEQUENCE: {
-                auto ref = type_table->type_refs[type_code.sequence_ref]();
-                IterateObject(val, ref, visitor);
+                auto ref = (type_table->type_refs && type_code.sequence_ref >= 0 &&
+                            type_table->type_refs[type_code.sequence_ref])
+                               ? type_table->type_refs[type_code.sequence_ref]()
+                               : nullptr;
+                if (ref) IterateObject(val, ref, visitor);
                 break;
               }
               case ET_STRING:
@@ -246,6 +254,7 @@ inline void IterateValue(ElementaryType type, const uint8_t* val,
 
 inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
                           IterationVisitor* visitor) {
+  if (!obj || !type_table || !visitor) return;
   visitor->StartSequence();
   const uint8_t* prev_val = nullptr;
   size_t set_idx = 0;
@@ -304,7 +313,10 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
 inline void IterateFlatBuffer(const uint8_t* buffer,
                               const TypeTable* type_table,
                               IterationVisitor* callback) {
-  IterateObject(GetRoot<uint8_t>(buffer), type_table, callback);
+  if (!buffer || !type_table || !callback) return;
+  auto root = GetRoot<uint8_t>(buffer);
+  if (!root) return;
+  IterateObject(root, type_table, callback);
 }
 
 // Outputting a Flatbuffer to a string. Tries to conform as close to JSON /
@@ -387,6 +399,7 @@ struct ToStringVisitor : public IterationVisitor {
   void Float(float x) { s += NumToString(x); }
   void Double(double x) { s += NumToString(x); }
   void String(const struct String* str) {
+    if (!str) return;
     EscapeString(str->c_str(), str->size(), &s, true, false);
   }
   void Unknown(const uint8_t*) { s += "(?)"; }
@@ -430,6 +443,7 @@ inline std::string FlatBufferToString(const uint8_t* buffer,
                                       bool vector_delimited = true,
                                       const std::string& indent = "",
                                       bool quotes = false) {
+  if (!buffer || !type_table) return "";
   ToStringVisitor tostring_visitor(multi_line ? "\n" : " ", quotes, indent,
                                    vector_delimited);
   IterateFlatBuffer(buffer, type_table, &tostring_visitor);
