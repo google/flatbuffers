@@ -68,6 +68,7 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_json_schema.h"
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1746,27 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void JsonSchemaGeneratorHardeningSafetyTest() {
+  auto gen = NewJsonSchemaCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kJsonSchema);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "JsonSchema");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  // An unparsed / empty parser has no root_struct_def_, so GenerateCode fails gracefully
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::ERROR);
+  TEST_EQ(GenerateJsonSchema(empty_parser, "", "test"), false);
+
+  // Parse a valid schema with table and union and verify generation without crashing
+  Parser parser;
+  TEST_EQ(parser.Parse("namespace Test; union U { T } table T { x:int; u:U; } root_type T;"), true);
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateJsonSchema(parser, "", "test"), true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1886,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  JsonSchemaGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace

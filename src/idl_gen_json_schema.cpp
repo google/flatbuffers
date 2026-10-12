@@ -32,10 +32,15 @@ namespace {
 
 template <class T>
 static std::string GenFullName(const T* enum_def) {
+  if (!enum_def) {
+    return "";
+  }
   std::string full_name;
-  const auto& name_spaces = enum_def->defined_namespace->components;
-  for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
-    full_name.append(*ns + "_");
+  if (enum_def->defined_namespace != nullptr) {
+    const auto& name_spaces = enum_def->defined_namespace->components;
+    for (auto ns = name_spaces.cbegin(); ns != name_spaces.cend(); ++ns) {
+      full_name.append(*ns + "_");
+    }
   }
   full_name.append(enum_def->name);
   return full_name;
@@ -43,6 +48,9 @@ static std::string GenFullName(const T* enum_def) {
 
 template <class T>
 static std::string GenTypeRef(const T* enum_def) {
+  if (!enum_def) {
+    return "\"$ref\" : \"#/definitions/\"";
+  }
   return "\"$ref\" : \"#/definitions/" + GenFullName(enum_def) + "\"";
 }
 
@@ -127,29 +135,38 @@ static std::string GenType(const Type& type) {
       return GenArrayType(type);
     }
     case BASE_TYPE_STRUCT: {
-      return GenTypeRef(type.struct_def);
+      return type.struct_def != nullptr ? GenTypeRef(type.struct_def)
+                                        : GenType(type.base_type);
     }
     case BASE_TYPE_UNION: {
       std::string union_type_string("\"anyOf\": [");
+      if (type.enum_def == nullptr) {
+        union_type_string.append("]");
+        return union_type_string;
+      }
       const auto& union_types = type.enum_def->Vals();
+      bool first = true;
       for (auto ut = union_types.cbegin(); ut < union_types.cend(); ++ut) {
         const auto& union_type = *ut;
-        if (union_type->union_type.base_type == BASE_TYPE_NONE) {
+        if (!union_type || union_type->union_type.base_type == BASE_TYPE_NONE) {
           continue;
         }
-        if (union_type->union_type.base_type == BASE_TYPE_STRUCT) {
+        if (union_type->union_type.base_type == BASE_TYPE_STRUCT &&
+            union_type->union_type.struct_def != nullptr) {
+          if (!first) {
+            union_type_string.append(",");
+          }
           union_type_string.append(
               "{ " + GenTypeRef(union_type->union_type.struct_def) + " }");
-        }
-        if (union_type != *type.enum_def->Vals().rbegin()) {
-          union_type_string.append(",");
+          first = false;
         }
       }
       union_type_string.append("]");
       return union_type_string;
     }
     case BASE_TYPE_UTYPE:
-      return GenTypeRef(type.enum_def);
+      return type.enum_def != nullptr ? GenTypeRef(type.enum_def)
+                                      : GenType(type.base_type);
     default: {
       return GenBaseType(type);
     }
@@ -234,13 +251,20 @@ class JsonSchemaGenerator : public BaseGenerator {
     code_ += Indent(1) + "\"definitions\": {" + NewLine();
     for (auto e = parser_.enums_.vec.cbegin(); e != parser_.enums_.vec.cend();
          ++e) {
+      if (!*e) {
+        continue;
+      }
       code_ += Indent(2) + "\"" + GenFullName(*e) + "\" : {" + NewLine();
       code_ += Indent(3) + GenType("string") + "," + NewLine();
       auto enumdef(Indent(3) + "\"enum\": [");
-      for (auto enum_value = (*e)->Vals().begin();
-           enum_value != (*e)->Vals().end(); ++enum_value) {
+      const auto& vals = (*e)->Vals();
+      for (auto enum_value = vals.begin();
+           enum_value != vals.end(); ++enum_value) {
+        if (!*enum_value) {
+          continue;
+        }
         enumdef.append("\"" + (*enum_value)->name + "\"");
-        if (*enum_value != (*e)->Vals().back()) {
+        if (enum_value + 1 != vals.end()) {
           enumdef.append(", ");
         }
       }
@@ -251,6 +275,9 @@ class JsonSchemaGenerator : public BaseGenerator {
     for (auto s = parser_.structs_.vec.cbegin();
          s != parser_.structs_.vec.cend(); ++s) {
       const auto& structure = *s;
+      if (!structure) {
+        continue;
+      }
       code_ += Indent(2) + "\"" + GenFullName(structure) + "\" : {" + NewLine();
       code_ += Indent(3) + GenType("object") + "," + NewLine();
       const auto& comment_lines = structure->doc_comment;
@@ -264,6 +291,9 @@ class JsonSchemaGenerator : public BaseGenerator {
       const auto& properties = structure->fields.vec;
       for (auto prop = properties.cbegin(); prop != properties.cend(); ++prop) {
         const auto& property = *prop;
+        if (!property) {
+          continue;
+        }
         std::string arrayInfo = "";
         if (IsArray(property->value.type)) {
           arrayInfo = "," + NewLine() + Indent(8) + "\"minItems\": " +
@@ -288,7 +318,7 @@ class JsonSchemaGenerator : public BaseGenerator {
         }
 
         typeLine += NewLine() + Indent(7) + "}";
-        if (property != properties.back()) {
+        if (prop + 1 != properties.cend()) {
           typeLine.append(",");
         }
         code_ += typeLine + NewLine();
@@ -298,13 +328,13 @@ class JsonSchemaGenerator : public BaseGenerator {
       std::vector<FieldDef*> requiredProperties;
       std::copy_if(properties.begin(), properties.end(),
                    back_inserter(requiredProperties),
-                   [](FieldDef const* prop) { return prop->IsRequired(); });
+                   [](FieldDef const* prop) { return prop && prop->IsRequired(); });
       if (!requiredProperties.empty()) {
         auto required_string(Indent(3) + "\"required\" : [");
         for (auto req_prop = requiredProperties.cbegin();
              req_prop != requiredProperties.cend(); ++req_prop) {
           required_string.append("\"" + (*req_prop)->name + "\"");
-          if (*req_prop != requiredProperties.back()) {
+          if (req_prop + 1 != requiredProperties.cend()) {
             required_string.append(", ");
           }
         }
@@ -313,7 +343,7 @@ class JsonSchemaGenerator : public BaseGenerator {
       }
       code_ += Indent(3) + "\"additionalProperties\" : false" + NewLine();
       auto closeType(Indent(2) + "}");
-      if (*s != parser_.structs_.vec.back()) {
+      if (s + 1 != parser_.structs_.vec.cend()) {
         closeType.append(",");
       }
       code_ += closeType + NewLine();  // close type
@@ -329,6 +359,9 @@ class JsonSchemaGenerator : public BaseGenerator {
   }
 
   bool save() const {
+    if (!parser_.opts.file_saver) {
+      return true;
+    }
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
     return parser_.opts.file_saver->SaveFile(file_path.c_str(), code_, false);
   }
@@ -337,8 +370,8 @@ class JsonSchemaGenerator : public BaseGenerator {
 };
 }  // namespace jsons
 
-static bool GenerateJsonSchema(const Parser& parser, const std::string& path,
-                               const std::string& file_name) {
+bool GenerateJsonSchema(const Parser& parser, const std::string& path,
+                        const std::string& file_name) {
   jsons::JsonSchemaGenerator generator(parser, path, file_name);
   if (!generator.generate()) {
     return false;

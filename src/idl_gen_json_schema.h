@@ -24,6 +24,12 @@
 
 namespace flatbuffers {
 
+class Parser;
+
+// Generates a JSON Schema for the given parser.
+bool GenerateJsonSchema(const Parser& parser, const std::string& path,
+                        const std::string& file_name);
+
 // Constructs a new JsonSchema Code generator.
 std::unique_ptr<CodeGenerator> NewJsonSchemaCodeGenerator();
 
