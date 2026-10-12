@@ -409,5 +409,71 @@ void MiniReflectFixedLengthArrayTest() {
 #endif
 }
 
+void ReflectionSafetyTest(const std::string& tests_data_path) {
+  // Load binary schema to get real Field objects.
+  std::string bfbsfile;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
+                                true, &bfbsfile),
+          true);
+  auto& schema = *reflection::GetSchema(bfbsfile.c_str());
+  auto root_table = schema.root_table();
+  TEST_NOTNULL(root_table);
+  auto fields = root_table->fields();
+  TEST_NOTNULL(fields);
+  auto hp_field = fields->LookupByKey("hp");
+  TEST_NOTNULL(hp_field);
+
+  // 1. Table setters with nullptr table.
+  TEST_EQ(SetField<int16_t>(nullptr, *hp_field, 100), false);
+  TEST_EQ(SetAnyFieldI(static_cast<Table*>(nullptr), *hp_field, 100), false);
+  TEST_EQ(SetAnyFieldF(static_cast<Table*>(nullptr), *hp_field, 100.0), false);
+  TEST_EQ(SetAnyFieldS(static_cast<Table*>(nullptr), *hp_field, "100"), false);
+
+  // 2. Struct setters with nullptr struct.
+  SetAnyFieldI(static_cast<Struct*>(nullptr), *hp_field, 100);
+  SetAnyFieldF(static_cast<Struct*>(nullptr), *hp_field, 100.0);
+  SetAnyFieldS(static_cast<Struct*>(nullptr), *hp_field, "100");
+
+  // 3. Vector element access with nullptr vector.
+  TEST_EQ(GetAnyVectorElemI(nullptr, reflection::Int, 0), 0);
+  TEST_EQ(GetAnyVectorElemF(nullptr, reflection::Float, 0), 0.0);
+  TEST_EQ_STR(GetAnyVectorElemS(nullptr, reflection::String, 0).c_str(), "");
+  TEST_EQ(GetAnyVectorElemPointer<const Table>(nullptr, 0), static_cast<const Table*>(nullptr));
+  TEST_EQ(GetAnyVectorElemAddressOf<const Table>(nullptr, 0, 4), static_cast<const Table*>(nullptr));
+  SetAnyVectorElemI(nullptr, reflection::Int, 0, 42);
+  SetAnyVectorElemF(nullptr, reflection::Float, 0, 3.14);
+  SetAnyVectorElemS(nullptr, reflection::String, 0, "test");
+
+  // 4. Raw value access with nullptr data.
+  TEST_EQ(GetAnyValueI(reflection::Int, nullptr), 0);
+  TEST_EQ(GetAnyValueF(reflection::Float, nullptr), 0.0);
+  TEST_EQ_STR(GetAnyValueS(reflection::Int, nullptr, &schema, -1).c_str(), "");
+  SetAnyValueI(reflection::Int, nullptr, 42);
+  SetAnyValueF(reflection::Float, nullptr, 3.14);
+  SetAnyValueS(reflection::Int, nullptr, "42");
+  uint8_t dummy_buf[8] = { 0 };
+  SetAnyValueS(reflection::Int, dummy_buf, nullptr);
+
+  // 5. ForAllFields with nullptr or null callback.
+  ForAllFields(nullptr, false, [](const reflection::Field*) {});
+  ForAllFields(root_table, false, nullptr);
+
+  // 6. SetString and ResizeAnyVector with nullptr.
+  std::vector<uint8_t> flatbuf_dummy(64, 0);
+  SetString(schema, "hello", nullptr, &flatbuf_dummy, nullptr);
+  SetString(schema, "hello", reinterpret_cast<const String*>(flatbuf_dummy.data()), nullptr, nullptr);
+  TEST_EQ(ResizeAnyVector(schema, 5, nullptr, 0, 4, &flatbuf_dummy, nullptr), static_cast<uint8_t*>(nullptr));
+  TEST_EQ(ResizeAnyVector(schema, 5, reinterpret_cast<const VectorOfAny*>(flatbuf_dummy.data()), 0, 4, nullptr, nullptr), static_cast<uint8_t*>(nullptr));
+
+  // 7. pointer_inside_vector with nullptr / empty vector.
+  std::vector<uint8_t> empty_vec;
+  pointer_inside_vector<uint8_t, uint8_t> piv(nullptr, empty_vec);
+  TEST_EQ(*piv, static_cast<uint8_t*>(nullptr));
+
+  // 8. GetUnionTypePointer with invalid parameters.
+  const auto& dummy_table = *reinterpret_cast<const Table*>(flatbuf_dummy.data());
+  TEST_EQ(GetUnionTypePointer(schema, *root_table, *hp_field, dummy_table), static_cast<const reflection::Object*>(nullptr));
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
