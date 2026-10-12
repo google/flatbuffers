@@ -60,6 +60,7 @@ static BinarySection MakeSingleRegionBinarySection(const std::string& name,
 
 static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
                             const uint8_t* const binary) {
+  if (!binary) return false;
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (binary[i] != 0) {
       return true;
@@ -70,6 +71,7 @@ static bool IsNonZeroRegion(const uint64_t offset, const uint64_t length,
 
 static bool IsPrintableRegion(const uint64_t offset, const uint64_t length,
                               const uint8_t* const binary) {
+  if (!binary) return false;
   for (uint64_t i = offset; i < offset + length; ++i) {
     if (!isprint(binary[i])) {
       return false;
@@ -131,8 +133,8 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
     }
   }
 
-  // The binary is too short to read as a flatbuffers.
-  if (binary_length_ < FLATBUFFERS_MIN_BUFFER_SIZE) {
+  // The binary is null or too short to read as a flatbuffers.
+  if (!binary_ || binary_length_ < FLATBUFFERS_MIN_BUFFER_SIZE) {
     return {};
   }
 

@@ -1745,8 +1745,27 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void RegistrySafetyTest() {
+  // 1. Registry null and bounds protections.
+  flatbuffers::Registry reg;
+  reg.Register(nullptr, nullptr);
+  reg.Register("TEST", nullptr);
+  reg.Register(nullptr, "path.fbs");
+  reg.AddIncludeDirectory(nullptr);
+  std::string out;
+  TEST_EQ(reg.FlatBufferToText(nullptr, 0, &out), false);
+  TEST_EQ(reg.FlatBufferToText(nullptr, 100, nullptr), false);
+  auto buf = reg.TextToFlatBuffer(nullptr, nullptr);
+  TEST_NULL(buf.data());
+  auto buf2 = reg.TextToFlatBuffer("text", nullptr);
+  TEST_NULL(buf2.data());
+  auto buf3 = reg.TextToFlatBuffer(nullptr, "TEST");
+  TEST_NULL(buf3.data());
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  RegistrySafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
