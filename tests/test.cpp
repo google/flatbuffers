@@ -38,6 +38,7 @@
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/hash.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
@@ -1745,8 +1746,34 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void HashAndVectorSafetyTest() {
+  TEST_EQ(flatbuffers::HashFnv1<uint32_t>(nullptr), static_cast<uint32_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1a<uint32_t>(nullptr), static_cast<uint32_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1<uint64_t>(nullptr), static_cast<uint64_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1a<uint64_t>(nullptr), static_cast<uint64_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1<uint16_t>(nullptr), static_cast<uint16_t>(0));
+  TEST_EQ(flatbuffers::HashFnv1a<uint16_t>(nullptr), static_cast<uint16_t>(0));
+
+  TEST_NULL(flatbuffers::FindHashFunction16(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction32(nullptr));
+  TEST_NULL(flatbuffers::FindHashFunction64(nullptr));
+
+  flatbuffers::FlatBufferBuilder fbb;
+  std::vector<int32_t> vec_data;
+  vec_data.push_back(10);
+  vec_data.push_back(20);
+  auto vec_offset = fbb.CreateVector(vec_data);
+  fbb.Finish(vec_offset);
+  auto vec = flatbuffers::GetMutableRoot<flatbuffers::Vector<int32_t>>(fbb.GetBufferPointer());
+  TEST_EQ(vec->Get(0), 10);
+  TEST_EQ(vec->Get(1), 20);
+  vec->Mutate(0, 15);
+  TEST_EQ(vec->Get(0), 15);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  HashAndVectorSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

@@ -193,6 +193,7 @@ class Vector {
 
   return_type Get(SizeT i) const {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size() || !Data()) return return_type();
     return IndirectHelper<T>::Read(Data(), i);
   }
 
@@ -251,6 +252,7 @@ class Vector {
   // Scalars only. See reflection.h, and the documentation.
   void Mutate(SizeT i, const T& val) {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size() || !data()) return;
     WriteScalar(data() + i, val);
   }
 
@@ -259,6 +261,7 @@ class Vector {
   // e.g. reflection::AddFlatBuffer().
   void MutateOffset(SizeT i, const uint8_t* val) {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size() || !data() || !val) return;
     static_assert(sizeof(T) == sizeof(SizeT), "Unrelated types");
     WriteScalar(data() + i,
                 static_cast<SizeT>(val - (Data() + i * sizeof(SizeT))));
@@ -267,6 +270,7 @@ class Vector {
   // Get a mutable pointer to tables/strings inside this vector.
   mutable_return_type GetMutableObject(SizeT i) const {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size() || !Data()) return mutable_return_type();
     return const_cast<mutable_return_type>(IndirectHelper<T>::Read(Data(), i));
   }
 
@@ -283,6 +287,7 @@ class Vector {
 
   template <typename K>
   return_type LookupByKey(K key) const {
+    if (size() == 0 || !Data()) return nullptr;
     void* search_result = std::bsearch(
         &key, Data(), size(), IndirectHelper<T>::element_stride, KeyCompare<K>);
 
