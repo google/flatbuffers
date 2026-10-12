@@ -38,7 +38,8 @@ struct VectorIterator {
 
   static const SizeT element_stride = IndirectHelper<T>::element_stride;
 
-  VectorIterator(Data data, SizeT i) : data_(data + element_stride * i) {}
+  VectorIterator(Data data, SizeT i)
+      : data_(data ? data + element_stride * i : nullptr) {}
   VectorIterator(const VectorIterator& other) : data_(other.data_) {}
   VectorIterator() : data_(nullptr) {}
 
@@ -77,7 +78,7 @@ struct VectorIterator {
   }
 
   difference_type operator-(const VectorIterator& other) const {
-    return (data_ - other.data_) / element_stride;
+    return element_stride > 0 ? (data_ - other.data_) / element_stride : 0;
   }
 
   // Note: return type is incompatible with the standard
@@ -260,8 +261,12 @@ class Vector {
   void MutateOffset(SizeT i, const uint8_t* val) {
     FLATBUFFERS_ASSERT(i < size());
     static_assert(sizeof(T) == sizeof(SizeT), "Unrelated types");
-    WriteScalar(data() + i,
-                static_cast<SizeT>(val - (Data() + i * sizeof(SizeT))));
+    const auto elem_ptr = Data() + i * sizeof(SizeT);
+    if (!val || val < elem_ptr) {
+      WriteScalar(data() + i, static_cast<SizeT>(0));
+      return;
+    }
+    WriteScalar(data() + i, static_cast<SizeT>(val - elem_ptr));
   }
 
   // Get a mutable pointer to tables/strings inside this vector.
@@ -283,6 +288,9 @@ class Vector {
 
   template <typename K>
   return_type LookupByKey(K key) const {
+    if (size() == 0 || !Data()) {
+      return nullptr;
+    }
     void* search_result = std::bsearch(
         &key, Data(), size(), IndirectHelper<T>::element_stride, KeyCompare<K>);
 
@@ -315,9 +323,11 @@ class Vector {
 
   template <typename K>
   static int KeyCompare(const void* ap, const void* bp) {
+    if (!ap || !bp) return 0;
     const K* key = reinterpret_cast<const K*>(ap);
     const uint8_t* data = reinterpret_cast<const uint8_t*>(bp);
     auto table = IndirectHelper<T>::Read(data, 0);
+    if (!table) return 0;
 
     // std::bsearch compares with the operands transposed, so we negate the
     // result here.

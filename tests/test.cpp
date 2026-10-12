@@ -37,6 +37,7 @@
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
+#include "flatbuffers/buffer_ref.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -1745,8 +1746,64 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void BufferTableVectorSafetyTest() {
+  // 1. GetBufferIdentifier and BufferHasIdentifier null safety.
+  TEST_EQ(flatbuffers::GetBufferIdentifier(nullptr),
+          static_cast<const char*>(nullptr));
+  TEST_EQ(flatbuffers::GetBufferIdentifier(nullptr, true),
+          static_cast<const char*>(nullptr));
+  TEST_EQ(flatbuffers::BufferHasIdentifier(nullptr, "TEST"), false);
+  uint8_t dummy_buf[16] = { 0 };
+  TEST_EQ(flatbuffers::BufferHasIdentifier(dummy_buf, nullptr), false);
+
+  // 2. Root accessors with null pointers.
+  TEST_EQ(flatbuffers::GetRoot<void>(nullptr),
+          static_cast<const void*>(nullptr));
+  TEST_EQ(flatbuffers::GetMutableRoot<void>(nullptr),
+          static_cast<void*>(nullptr));
+  TEST_EQ(flatbuffers::GetSizePrefixedRoot<void>(nullptr),
+          static_cast<const void*>(nullptr));
+  TEST_EQ(flatbuffers::GetMutableSizePrefixedRoot<void>(nullptr),
+          static_cast<void*>(nullptr));
+
+  // 3. StringLessThan null safety and zero-length behavior.
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, "abc", 3), true);
+  TEST_EQ(flatbuffers::StringLessThan("abc", 3, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan(nullptr, 0, nullptr, 0), false);
+  TEST_EQ(flatbuffers::StringLessThan("abc", 3, "def", 3), true);
+  TEST_EQ(flatbuffers::StringLessThan("def", 3, "abc", 3), false);
+
+  // 4. DetachedBuffer end() with default empty state.
+  flatbuffers::DetachedBuffer detached;
+  TEST_EQ(detached.data(), static_cast<const uint8_t*>(nullptr));
+  TEST_EQ(detached.size(), static_cast<size_t>(0));
+  TEST_EQ(detached.begin(), static_cast<uint8_t*>(nullptr));
+  TEST_EQ(detached.end(), static_cast<uint8_t*>(nullptr));
+
+  // 5. Deallocate helper with null pointer.
+  flatbuffers::Deallocate(nullptr, nullptr, 0);
+  flatbuffers::Deallocate(nullptr, nullptr, 64);
+
+  // 6. BufferRef move semantics, root accessor, and verification.
+  flatbuffers::BufferRef<foo::Consumer> bref;
+  TEST_EQ(bref.buf, static_cast<uint8_t*>(nullptr));
+  TEST_EQ(bref.len, static_cast<flatbuffers::uoffset_t>(0));
+  TEST_EQ(bref.GetRoot(), static_cast<const foo::Consumer*>(nullptr));
+  TEST_EQ(bref.Verify(), false);
+  flatbuffers::BufferRef<foo::Consumer> moved_bref = std::move(bref);
+  TEST_EQ(moved_bref.buf, static_cast<uint8_t*>(nullptr));
+  TEST_EQ(moved_bref.Verify(), false);
+
+  // 7. VectorIterator with null data.
+  flatbuffers::VectorConstIterator<uint8_t, uint8_t> iter(nullptr, 0);
+  flatbuffers::VectorConstIterator<uint8_t, uint8_t> iter2(nullptr, 0);
+  TEST_EQ(iter == iter2, true);
+  TEST_EQ(iter - iter2, 0);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  BufferTableVectorSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

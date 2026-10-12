@@ -33,13 +33,36 @@ struct BufferRef : BufferRefBase {
   BufferRef(uint8_t* _buf, uoffset_t _len)
       : buf(_buf), len(_len), must_free(false) {}
 
-  ~BufferRef() {
-    if (must_free) free(buf);
+  BufferRef(BufferRef&& other) FLATBUFFERS_NOEXCEPT
+      : buf(other.buf), len(other.len), must_free(other.must_free) {
+    other.buf = nullptr;
+    other.len = 0;
+    other.must_free = false;
   }
 
-  const T* GetRoot() const { return flatbuffers::GetRoot<T>(buf); }
+  BufferRef& operator=(BufferRef&& other) FLATBUFFERS_NOEXCEPT {
+    if (this != &other) {
+      if (must_free && buf) free(buf);
+      buf = other.buf;
+      len = other.len;
+      must_free = other.must_free;
+      other.buf = nullptr;
+      other.len = 0;
+      other.must_free = false;
+    }
+    return *this;
+  }
+
+  ~BufferRef() {
+    if (must_free && buf) free(buf);
+  }
+
+  const T* GetRoot() const {
+    return buf ? flatbuffers::GetRoot<T>(buf) : nullptr;
+  }
 
   bool Verify() {
+    if (!buf || len == 0) return false;
     Verifier verifier(buf, len);
     return verifier.VerifyBuffer<T>(nullptr);
   }
@@ -47,6 +70,10 @@ struct BufferRef : BufferRefBase {
   uint8_t* buf;
   uoffset_t len;
   bool must_free;
+
+ private:
+  BufferRef(const BufferRef&);
+  BufferRef& operator=(const BufferRef&);
 };
 
 }  // namespace flatbuffers

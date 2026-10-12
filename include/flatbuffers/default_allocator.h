@@ -44,6 +44,7 @@ inline uint8_t* Allocate(Allocator* allocator, size_t size) {
 }
 
 inline void Deallocate(Allocator* allocator, uint8_t* p, size_t size) {
+  if (!p) return;
   if (allocator)
     allocator->deallocate(p, size);
   else

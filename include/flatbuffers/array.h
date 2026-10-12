@@ -104,10 +104,13 @@ class Array {
   // Copy data from a span with endian conversion.
   // If this Array and the span overlap, the behavior is undefined.
   void CopyFromSpan(flatbuffers::span<const T, length> src) {
+    if (length == 0) return;
     const auto p1 = reinterpret_cast<const uint8_t*>(src.data());
     const auto p2 = Data();
-    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length)) &&
-                       !(p2 >= p1 && p2 < (p1 + length)));
+    const size_t byte_length = static_cast<size_t>(length) * sizeof(T);
+    FLATBUFFERS_ASSERT(p1 != nullptr && p2 != nullptr);
+    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + byte_length)) &&
+                       !(p2 >= p1 && p2 < (p1 + byte_length)));
     (void)p1;
     (void)p2;
     CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
@@ -250,7 +253,8 @@ bool operator==(const Array<T, length>& lhs,
                 const Array<T, length>& rhs) noexcept {
   return std::addressof(lhs) == std::addressof(rhs) ||
          (lhs.size() == rhs.size() &&
-          std::memcmp(lhs.Data(), rhs.Data(), rhs.size() * sizeof(T)) == 0);
+          (lhs.size() == 0 ||
+           std::memcmp(lhs.Data(), rhs.Data(), rhs.size() * sizeof(T)) == 0));
 }
 
 }  // namespace flatbuffers
