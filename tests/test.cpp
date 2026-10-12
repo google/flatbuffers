@@ -1745,8 +1745,59 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void StlEmulationSpanVectorSafetyTest() {
+  // 1. Default span is empty with null data.
+  flatbuffers::span<int> empty_span;
+  TEST_EQ(empty_span.empty(), true);
+  TEST_EQ(empty_span.size(), static_cast<size_t>(0));
+  TEST_NULL(empty_span.data());
+  TEST_EQ(empty_span.begin() == empty_span.end(), true);
+
+  // 2. Span constructed with null pointer and non-zero count is safely empty.
+  flatbuffers::span<int> null_span(nullptr, 10);
+  TEST_EQ(null_span.empty(), true);
+  TEST_EQ(null_span.size(), static_cast<size_t>(0));
+  TEST_NULL(null_span.data());
+
+  // 3. Span copy assignment returns reference and updates data/size.
+  int arr[3] = {10, 20, 30};
+  flatbuffers::span<int> valid_span(arr, 3);
+  TEST_EQ(valid_span.size(), static_cast<size_t>(3));
+  TEST_EQ(valid_span[0], 10);
+  TEST_EQ(valid_span[1], 20);
+  TEST_EQ(valid_span[2], 30);
+
+  flatbuffers::span<int> assigned_span;
+  assigned_span = valid_span;
+  TEST_EQ(assigned_span.size(), static_cast<size_t>(3));
+  TEST_EQ(assigned_span.data(), arr);
+
+  // 4. Chained assignment.
+  flatbuffers::span<int> chained_span;
+  chained_span = assigned_span = valid_span;
+  TEST_EQ(chained_span.size(), static_cast<size_t>(3));
+
+  // 5. Iterator safety and traversal.
+  int sum = 0;
+  for (auto it = valid_span.begin(); it != valid_span.end(); ++it) {
+    sum += *it;
+  }
+  TEST_EQ(sum, 60);
+
+  // 6. vector_downward null and out-of-bounds guards.
+  flatbuffers::DefaultAllocator alloc;
+  flatbuffers::vector_downward<flatbuffers::uoffset_t> vd(64, &alloc, false, 8);
+  vd.push(nullptr, 0);
+  vd.push(nullptr, 16);
+  uint8_t val = 0x7f;
+  vd.push(&val, 1);
+  TEST_NOTNULL(vd.data_at(1));
+  TEST_NULL(vd.data_at(999999));
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  StlEmulationSpanVectorSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

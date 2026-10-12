@@ -321,9 +321,18 @@ namespace internal {
     #endif // _MSC_VER
 
     SpanIterator(pointer ptr) : ptr_(ptr) {}
-    reference operator*() const { return *ptr_; }
-    pointer operator->() { return ptr_; }
-    SpanIterator& operator++() { ptr_++; return *this; }
+    reference operator*() const {
+      FLATBUFFERS_ASSERT(ptr_ != nullptr);
+      return *ptr_;
+    }
+    pointer operator->() {
+      FLATBUFFERS_ASSERT(ptr_ != nullptr);
+      return ptr_;
+    }
+    SpanIterator& operator++() {
+      if (ptr_) ptr_++;
+      return *this;
+    }
     SpanIterator  operator++(int) { auto tmp = *this; ++(*this); return tmp; }
 
     friend bool operator== (const SpanIterator& lhs, const SpanIterator& rhs) { return lhs.ptr_ == rhs.ptr_; }
@@ -375,7 +384,7 @@ class span FLATBUFFERS_FINAL_CLASS {
     using Iterator = internal::SpanIterator<T>;
 
     Iterator begin() const { return Iterator(data()); }
-    Iterator end() const   { return Iterator(data() + size()); }
+    Iterator end() const   { return Iterator(data() ? data() + size() : nullptr); }
   #endif
 
   // Returns a reference to the idx-th element of the sequence.
@@ -391,6 +400,7 @@ class span FLATBUFFERS_FINAL_CLASS {
       FLATBUFFERS_NOEXCEPT {
     data_ = other.data_;
     count_ = other.count_;
+    return *this;
   }
 
   // Limited implementation of
@@ -402,8 +412,8 @@ class span FLATBUFFERS_FINAL_CLASS {
   // or if (extent != flatbuffers::dynamic_extent && count != extent).
   FLATBUFFERS_CONSTEXPR_CPP11
   explicit span(pointer first, size_type count) FLATBUFFERS_NOEXCEPT
-    : data_ (Extent == dynamic_extent ? first : (Extent == count ? first : nullptr)),
-      count_(Extent == dynamic_extent ? count : (Extent == count ? Extent : 0)) {
+    : data_ ((first && (Extent == dynamic_extent || Extent == count)) ? first : nullptr),
+      count_((first && (Extent == dynamic_extent || Extent == count)) ? (Extent == dynamic_extent ? count : Extent) : 0) {
       // Make span empty if the count argument is incompatible with span<T,N>.
   }
 
@@ -468,7 +478,7 @@ class span FLATBUFFERS_FINAL_CLASS {
 
  private:
   // This is a naive implementation with 'count_' member even if (Extent != dynamic_extent).
-  pointer const data_;
+  pointer data_;
   size_type count_;
 };
 #endif  // defined(FLATBUFFERS_USE_STD_SPAN)

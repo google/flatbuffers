@@ -195,10 +195,13 @@ class vector_downward {
     return scratch_;
   }
 
-  uint8_t* data_at(size_t offset) const { return buf_ + reserved_ - offset; }
+  uint8_t* data_at(size_t offset) const {
+    return (buf_ && offset <= reserved_) ? (buf_ + reserved_ - offset)
+                                         : nullptr;
+  }
 
   void push(const uint8_t* bytes, size_t num) {
-    if (num > 0) {
+    if (num > 0 && bytes != nullptr) {
       memcpy(make_space(num), bytes, num);
     }
   }
