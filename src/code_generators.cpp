@@ -41,7 +41,9 @@ std::string JavaCSharpMakeRule(const bool java, const Parser& parser,
     auto& enum_def = **it;
     if (!make_rule.empty()) make_rule += " ";
     std::string directory =
-        BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
+        enum_def.defined_namespace
+            ? BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace)
+            : path;
     make_rule += directory + enum_def.name + file_extension;
   }
 
@@ -49,8 +51,10 @@ std::string JavaCSharpMakeRule(const bool java, const Parser& parser,
        ++it) {
     auto& struct_def = **it;
     if (!make_rule.empty()) make_rule += " ";
-    std::string directory = BaseGenerator::NamespaceDir(
-        parser, path, *struct_def.defined_namespace);
+    std::string directory =
+        struct_def.defined_namespace
+            ? BaseGenerator::NamespaceDir(parser, path, *struct_def.defined_namespace)
+            : path;
     make_rule += directory + struct_def.name + file_extension;
   }
 
@@ -142,10 +146,11 @@ std::string BaseGenerator::NamespaceDir(const Namespace& ns,
 
 std::string BaseGenerator::FullNamespace(const char* separator,
                                          const Namespace& ns) {
+  const char* sep = separator ? separator : "";
   std::string namespace_name;
   auto& namespaces = ns.components;
   for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
-    if (namespace_name.length()) namespace_name += separator;
+    if (namespace_name.length()) namespace_name += sep;
     namespace_name += *it;
   }
   return namespace_name;
@@ -161,6 +166,7 @@ std::string BaseGenerator::LastNamespacePart(const Namespace& ns) {
 // Ensure that a type is prefixed with its namespace.
 std::string BaseGenerator::WrapInNameSpace(const Namespace* ns,
                                            const std::string& name) const {
+  if (!ns) return name;
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it)
     qualified_name += *it + qualifying_separator_;
@@ -174,7 +180,7 @@ std::string BaseGenerator::WrapInNameSpace(const Definition& def,
 
 std::string BaseGenerator::GetNameSpace(const Definition& def) const {
   const Namespace* ns = def.defined_namespace;
-  if (CurrentNameSpace() == ns) return "";
+  if (!ns || CurrentNameSpace() == ns) return "";
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
     qualified_name += *it;
@@ -197,17 +203,18 @@ std::string BaseGenerator::GeneratedFileName(const std::string& path,
 // Generate a documentation comment, if available.
 void GenComment(const std::vector<std::string>& dc, std::string* code_ptr,
                 const CommentConfig* config, const char* prefix) {
-  if (dc.begin() == dc.end()) {
-    // Don't output empty comment blocks with 0 lines of comment content.
+  if (!code_ptr || dc.empty()) {
+    // Don't output empty comment blocks with 0 lines of comment content or null pointer.
     return;
   }
 
+  const char* safe_prefix = prefix ? prefix : "";
   std::string& code = *code_ptr;
   if (config != nullptr && config->first_line != nullptr) {
-    code += std::string(prefix) + std::string(config->first_line) + "\n";
+    code += std::string(safe_prefix) + std::string(config->first_line) + "\n";
   }
   std::string line_prefix =
-      std::string(prefix) +
+      std::string(safe_prefix) +
       ((config != nullptr && config->content_line_prefix != nullptr)
            ? config->content_line_prefix
            : "///");
@@ -215,7 +222,7 @@ void GenComment(const std::vector<std::string>& dc, std::string* code_ptr,
     code += line_prefix + *it + "\n";
   }
   if (config != nullptr && config->last_line != nullptr) {
-    code += std::string(prefix) + std::string(config->last_line) + "\n";
+    code += std::string(safe_prefix) + std::string(config->last_line) + "\n";
   }
 }
 

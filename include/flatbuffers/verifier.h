@@ -87,6 +87,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyAlignment(const size_t elem, const size_t align) const {
+    if (align == 0) return true;
     return Check((elem & (align - 1)) == 0 || !opts_.check_alignment);
   }
 
@@ -97,12 +98,14 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   }
 
   bool VerifyFromPointer(const uint8_t* const p, const size_t len) {
+    if (!p || !buf_ || p < buf_) return false;
     return Verify(static_cast<size_t>(p - buf_), len);
   }
 
   // Verify relative to a known-good base pointer.
   bool VerifyFieldStruct(const uint8_t* const base, const voffset_t elem_off,
                          const size_t elem_len, const size_t align) const {
+    if (!base || !buf_ || base < buf_) return false;
     const auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, elem_len);
   }
@@ -110,6 +113,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <typename T>
   bool VerifyField(const uint8_t* const base, const voffset_t elem_off,
                    const size_t align) const {
+    if (!base || !buf_ || base < buf_) return false;
     const auto f = static_cast<size_t>(base - buf_) + elem_off;
     return VerifyAlignment(f, align) && Verify(f, sizeof(T));
   }
@@ -146,6 +150,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <typename LenT = uoffset_t>
   bool VerifyVectorOrString(const uint8_t* const vec, const size_t elem_size,
                             size_t* const end = nullptr) const {
+    if (!vec || !buf_ || vec < buf_ || elem_size == 0) return false;
     const auto vec_offset = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<LenT>(vec_offset)) return false;
@@ -183,6 +188,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow")
   bool VerifyTableStart(const uint8_t* const table) {
+    if (!table || !buf_ || table < buf_) return false;
     // Check the vtable offset.
     const auto tableo = static_cast<size_t>(table - buf_);
     if (!Verify<soffset_t>(tableo)) return false;
@@ -254,6 +260,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   template <typename T, typename SizeT = uoffset_t>
   bool VerifySizePrefixedBuffer(const char* const identifier) {
+    if (!buf_ || size_ < sizeof(SizeT)) return false;
     return Verify<SizeT>(0U) &&
            // Ensure the prefixed size is within the bounds of the provided
            // length.

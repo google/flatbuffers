@@ -37,6 +37,7 @@
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
+#include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -1745,8 +1746,46 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void VerifierCodeGeneratorSafetyTest() {
+  // 1. Verifier bounds and null guards.
+  flatbuffers::Verifier null_verifier(nullptr, 0);
+  TEST_EQ(null_verifier.VerifyFromPointer(nullptr, 0), false);
+  TEST_EQ(null_verifier.VerifyFieldStruct(nullptr, 0, 0, 1), false);
+  TEST_EQ(null_verifier.VerifyField<uint32_t>(nullptr, 0, 4), false);
+  TEST_EQ(null_verifier.VerifyTableStart(nullptr), false);
+  TEST_EQ(null_verifier.VerifyAlignment(10, 0), true);
+  TEST_EQ(null_verifier.VerifyVectorOrString(nullptr, 0), false);
+  TEST_EQ(null_verifier.VerifySizePrefixedBuffer<MyGame::Example::Monster>(nullptr), false);
+
+  // 2. CodeGenerator FullNamespace with null separator.
+  struct TestBaseGen : public flatbuffers::BaseGenerator {
+    using flatbuffers::BaseGenerator::FullNamespace;
+  };
+  flatbuffers::Namespace ns;
+  ns.components.push_back("foo");
+  ns.components.push_back("bar");
+  std::string full_ns = TestBaseGen::FullNamespace(nullptr, ns);
+  TEST_EQ_STR(full_ns.c_str(), "foobar");
+
+  // 3. GenComment with null code_ptr and null prefix.
+  std::vector<std::string> comments;
+  comments.push_back("comment 1");
+  comments.push_back("comment 2");
+  flatbuffers::GenComment(comments, nullptr, nullptr, nullptr);
+  std::string comment_out;
+  flatbuffers::GenComment(comments, &comment_out, nullptr, nullptr);
+  TEST_EQ(comment_out.empty(), false);
+
+  // 4. JavaCSharpMakeRule with empty parser.
+  flatbuffers::Parser empty_parser;
+  std::string make_rule =
+      flatbuffers::JavaCSharpMakeRule(true, empty_parser, "path", "file.fbs");
+  TEST_EQ(make_rule.empty(), false);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  VerifierCodeGeneratorSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
