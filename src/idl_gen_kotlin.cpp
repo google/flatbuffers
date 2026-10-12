@@ -88,6 +88,7 @@ class KotlinGenerator : public BaseGenerator {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
       CodeWriter enumWriter(ident_pad);
+      if (!*it) continue;
       auto& enum_def = **it;
       GenEnum(enum_def, enumWriter);
       if (parser_.opts.one_file) {
@@ -102,6 +103,7 @@ class KotlinGenerator : public BaseGenerator {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
       CodeWriter structWriter(ident_pad);
+      if (!*it) continue;
       auto& struct_def = **it;
       GenStruct(struct_def, structWriter, parser_.opts);
       if (parser_.opts.one_file) {
@@ -157,6 +159,7 @@ class KotlinGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     const std::string filename =
         dirs + namer_.File(defname, /*skips=*/SkipFile::Suffix);
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
@@ -306,6 +309,7 @@ class KotlinGenerator : public BaseGenerator {
       // Write all properties
       auto vals = enum_def.Vals();
       for (auto it = vals.begin(); it != vals.end(); ++it) {
+        if (!*it) continue;
         auto& ev = **it;
         auto field_type = GenTypeBasic(enum_def.underlying_type.base_type);
         auto val = enum_def.ToString(ev);
@@ -326,6 +330,7 @@ class KotlinGenerator : public BaseGenerator {
       // "too sparse". Change at will.
       static const uint64_t kMaxSparseness = 5;
       bool generate_names =
+          enum_def.size() != 0 &&
           range / static_cast<uint64_t>(enum_def.size()) < kMaxSparseness &&
           parser_.opts.mini_reflect == IDLOptions::kTypesAndNames;
       if (generate_names) {
@@ -447,6 +452,7 @@ class KotlinGenerator : public BaseGenerator {
                      const char* nameprefix) const {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (IsStruct(field.value.type)) {
         // Generate arguments for a struct inside a struct. To ensure
@@ -473,6 +479,7 @@ class KotlinGenerator : public BaseGenerator {
     writer += "builder.prep({{align}}, {{size}})";
     auto fields_vec = struct_def.fields.vec;
     for (auto it = fields_vec.rbegin(); it != fields_vec.rend(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
 
       if (field.padding) {
@@ -565,6 +572,7 @@ class KotlinGenerator : public BaseGenerator {
           auto fields = struct_def.fields.vec;
           int field_pos = -1;
           for (auto it = fields.begin(); it != fields.end(); ++it) {
+            if (!*it) continue;
             auto& field = **it;
             field_pos++;
             if (field.deprecated) continue;
@@ -706,6 +714,7 @@ class KotlinGenerator : public BaseGenerator {
           writer += "val o = builder.endTable()";
           writer.IncrementIdentLevel();
           for (auto it = field_vec.begin(); it != field_vec.end(); ++it) {
+            if (!*it) continue;
             auto& field = **it;
             if (field.deprecated || !field.IsRequired()) {
               continue;
@@ -866,6 +875,7 @@ class KotlinGenerator : public BaseGenerator {
     auto fields_vec = struct_def.fields.vec;
 
     for (auto it = fields_vec.begin(); it != fields_vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       if (IsStruct(field.value.type)) {
@@ -884,6 +894,7 @@ class KotlinGenerator : public BaseGenerator {
       std::stringstream params;
       params << "builder: FlatBufferBuilder";
       for (auto it = fields_vec.begin(); it != fields_vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         params << ", " << namer_.Variable(field);
@@ -908,6 +919,7 @@ class KotlinGenerator : public BaseGenerator {
             for (size_t size = largest; size; size /= 2) {
               for (auto it = fields_vec.rbegin(); it != fields_vec.rend();
                    ++it) {
+                if (!*it) continue;
                 auto& field = **it;
                 auto base_type_size = SizeOf(field.value.type.base_type);
                 if (!field.deprecated &&
@@ -953,6 +965,7 @@ class KotlinGenerator : public BaseGenerator {
     auto fields_vec = struct_def.fields.vec;
     FieldDef* key_field = nullptr;
     for (auto it = fields_vec.begin(); it != fields_vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       if (field.key) key_field = &field;
@@ -1159,6 +1172,7 @@ class KotlinGenerator : public BaseGenerator {
           auto& sd = *field.value.type.struct_def;
           auto& fields = sd.fields.vec;
           for (auto kit = fields.begin(); kit != fields.end(); ++kit) {
+            if (!*kit) continue;
             auto& kfield = **kit;
             if (kfield.key) {
               auto qualified_name = WrapInNameSpace(sd);
@@ -1467,6 +1481,7 @@ class KotlinGenerator : public BaseGenerator {
       out << "builder: FlatBufferBuilder";
     }
     for (auto it = field_vec.begin(); it != field_vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (IsStruct(field.value.type)) {
         // Generate arguments for a struct inside a struct. To ensure
@@ -1659,8 +1674,8 @@ class KotlinGenerator : public BaseGenerator {
 };
 }  // namespace kotlin
 
-static bool GenerateKotlin(const Parser& parser, const std::string& path,
-                           const std::string& file_name) {
+bool GenerateKotlin(const Parser& parser, const std::string& path,
+                    const std::string& file_name) {
   kotlin::KotlinGenerator generator(parser, path, file_name);
   return generator.generate();
 }

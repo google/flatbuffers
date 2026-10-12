@@ -17,15 +17,28 @@
 #ifndef FLATBUFFERS_IDL_GEN_KOTLIN_H_
 #define FLATBUFFERS_IDL_GEN_KOTLIN_H_
 
+#include <memory>
+#include <string>
+
 #include "flatbuffers/code_generator.h"
 
 namespace flatbuffers {
+
+class Parser;
 
 // Constructs a new Kotlin code generator.
 std::unique_ptr<CodeGenerator> NewKotlinCodeGenerator();
 
 // Constructs a new Kotlin code generator.
 std::unique_ptr<CodeGenerator> NewKotlinKMPCodeGenerator();
+
+/// Generate Kotlin code from a full FlatBuffer dictionary.
+bool GenerateKotlin(const Parser &parser, const std::string &path,
+                    const std::string &file_name);
+
+/// Generate Kotlin Multiplatform code from a full FlatBuffer dictionary.
+bool GenerateKotlinKMP(const Parser &parser, const std::string &path,
+                       const std::string &file_name);
 }  // namespace flatbuffers
 
 #endif  // FLATBUFFERS_IDL_GEN_KOTLIN_H_

@@ -68,6 +68,7 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_kotlin.h"
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1746,125 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void KotlinGeneratorHardeningSafetyTest() {
+  {
+    auto gen = NewKotlinCodeGenerator();
+    TEST_NOTNULL(gen.get());
+    TEST_EQ(gen->Language(), IDLOptions::kKotlin);
+    TEST_EQ(gen->IsSchemaOnly(), true);
+    TEST_EQ(gen->SupportsBfbsGeneration(), false);
+    TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+    Parser empty_parser;
+    TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+    TEST_EQ(GenerateKotlin(empty_parser, "", "test"), true);
+    TEST_EQ(gen->GenerateGrpcCode(empty_parser, "", "test"),
+            CodeGenerator::NOT_IMPLEMENTED);
+
+    // Empty enum must not divide by zero when sizing the names table.
+    {
+      Parser parser;
+      parser.opts.one_file = true;
+      parser.opts.mini_reflect = IDLOptions::kTypesAndNames;
+      TEST_EQ(parser.Parse("namespace Test.KotlinEmpty; "
+                           "enum EmptyEnum : byte {} "
+                           "table Dummy { e:EmptyEnum; } "
+                           "root_type Dummy;"),
+              true);
+      TEST_EQ(GenerateKotlin(parser, "", "test_empty_enum"), true);
+    }
+
+    // Sparse enum, struct, table and union with the object API.
+    {
+      Parser parser;
+      parser.opts.one_file = true;
+      parser.opts.generate_object_based_api = true;
+      TEST_EQ(parser.Parse("namespace Test.Kotlin; "
+                           "enum Color : byte { Red = 0, Blue = 100 } "
+                           "struct Vec3 { x:float; y:float; z:float; } "
+                           "table Item { id:int; color:Color; pos:Vec3; "
+                           "names:[string]; } "
+                           "union Any { Item } "
+                           "table Holder { a:Any; v:[Any]; } "
+                           "root_type Item;"),
+              true);
+      TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+      TEST_EQ(GenerateKotlin(parser, "", "test"), true);
+    }
+
+    // Multi-file mode without a file_saver must not crash.
+    {
+      Parser parser;
+      parser.opts.one_file = false;
+      parser.opts.file_saver = nullptr;
+      TEST_EQ(parser.Parse("namespace Test.KotlinMulti; "
+                           "enum Color : byte { Red = 0, Green = 1 } "
+                           "table Item { id:int; color:Color; } "
+                           "root_type Item;"),
+              true);
+      TEST_EQ(GenerateKotlin(parser, "", "test_multi"), true);
+    }
+  }
+  {
+    auto gen = NewKotlinKMPCodeGenerator();
+    TEST_NOTNULL(gen.get());
+    TEST_EQ(gen->Language(), IDLOptions::kKotlinKmp);
+    TEST_EQ(gen->IsSchemaOnly(), true);
+    TEST_EQ(gen->SupportsBfbsGeneration(), false);
+    TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+    Parser empty_parser;
+    TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+    TEST_EQ(GenerateKotlinKMP(empty_parser, "", "test"), true);
+    TEST_EQ(gen->GenerateGrpcCode(empty_parser, "", "test"),
+            CodeGenerator::NOT_IMPLEMENTED);
+
+    // Empty enum must not divide by zero when sizing the names table.
+    {
+      Parser parser;
+      parser.opts.one_file = true;
+      parser.opts.mini_reflect = IDLOptions::kTypesAndNames;
+      TEST_EQ(parser.Parse("namespace Test.KotlinKmpEmpty; "
+                           "enum EmptyEnum : byte {} "
+                           "table Dummy { e:EmptyEnum; } "
+                           "root_type Dummy;"),
+              true);
+      TEST_EQ(GenerateKotlinKMP(parser, "", "test_empty_enum"), true);
+    }
+
+    // Sparse enum, struct, table and union with the object API.
+    {
+      Parser parser;
+      parser.opts.one_file = true;
+      parser.opts.generate_object_based_api = true;
+      TEST_EQ(parser.Parse("namespace Test.KotlinKmp; "
+                           "enum Color : byte { Red = 0, Blue = 100 } "
+                           "struct Vec3 { x:float; y:float; z:float; } "
+                           "table Item { id:int; color:Color; pos:Vec3; "
+                           "names:[string]; } "
+                           "union Any { Item } "
+                           "table Holder { a:Any; v:[Any]; } "
+                           "root_type Item;"),
+              true);
+      TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+      TEST_EQ(GenerateKotlinKMP(parser, "", "test"), true);
+    }
+
+    // Multi-file mode without a file_saver must not crash.
+    {
+      Parser parser;
+      parser.opts.one_file = false;
+      parser.opts.file_saver = nullptr;
+      TEST_EQ(parser.Parse("namespace Test.KotlinKmpMulti; "
+                           "enum Color : byte { Red = 0, Green = 1 } "
+                           "table Item { id:int; color:Color; } "
+                           "root_type Item;"),
+              true);
+      TEST_EQ(GenerateKotlinKMP(parser, "", "test_multi"), true);
+    }
+  }
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1984,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  KotlinGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace
