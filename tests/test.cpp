@@ -41,6 +41,7 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
+#include "flatbuffers/reflection.h"
 #include "flatbuffers/registry.h"
 #include "flatbuffers/util.h"
 #include "fuzz_test.h"
@@ -1745,8 +1746,48 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void ReflectionHardeningSafetyTest() {
+  TEST_EQ(flatbuffers::GetTypeSize(reflection::None), static_cast<size_t>(0));
+  TEST_EQ(flatbuffers::GetTypeSize(reflection::Int), static_cast<size_t>(4));
+  TEST_EQ(flatbuffers::GetTypeSize(static_cast<reflection::BaseType>(-1)),
+          static_cast<size_t>(0));
+  TEST_EQ(flatbuffers::GetTypeSize(static_cast<reflection::BaseType>(999)),
+          static_cast<size_t>(0));
+
+  TEST_EQ(flatbuffers::GetAnyValueI(reflection::Int, nullptr),
+          static_cast<int64_t>(0));
+  TEST_EQ(flatbuffers::GetAnyValueF(reflection::Float, nullptr), 0.0);
+  TEST_EQ_STR(
+      flatbuffers::GetAnyValueS(reflection::String, nullptr, nullptr, 0).c_str(),
+      "");
+
+  flatbuffers::SetAnyValueI(reflection::Int, nullptr, 42);
+  flatbuffers::SetAnyValueF(reflection::Float, nullptr, 3.14);
+  flatbuffers::SetAnyValueS(reflection::String, nullptr, "test");
+
+  uint8_t dummy_buf[16] = {0};
+  flatbuffers::SetAnyValueS(reflection::Int, dummy_buf, nullptr);
+
+  flatbuffers::ForAllFields(nullptr, false,
+                            [](const reflection::Field*) {});
+
+  TEST_EQ(flatbuffers::GetAnyVectorElemI(nullptr, reflection::Int, 0),
+          static_cast<int64_t>(0));
+  TEST_EQ(flatbuffers::GetAnyVectorElemF(nullptr, reflection::Float, 0), 0.0);
+  TEST_EQ_STR(
+      flatbuffers::GetAnyVectorElemS(nullptr, reflection::String, 0).c_str(),
+      "");
+  TEST_NULL(flatbuffers::GetAnyVectorElemPointer<const flatbuffers::Table>(nullptr, 0));
+  TEST_NULL(flatbuffers::GetAnyVectorElemAddressOf<const uint8_t>(nullptr, 0, 4));
+
+  flatbuffers::SetAnyVectorElemI(nullptr, reflection::Int, 0, 42);
+  flatbuffers::SetAnyVectorElemF(nullptr, reflection::Float, 0, 3.14);
+  flatbuffers::SetAnyVectorElemS(nullptr, reflection::String, 0, "test");
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  ReflectionHardeningSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
