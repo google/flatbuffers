@@ -21,6 +21,20 @@
 
 namespace flatbuffers {
 
+class Parser;
+
+// Generate text includes for Rust.
+bool GenerateRust(const Parser& parser, const std::string& path,
+                  const std::string& file_name);
+
+// Generate root module file for Rust.
+bool GenerateRustModuleRootFile(const Parser& parser,
+                                const std::string& output_dir);
+
+// Generate make rule for Rust.
+std::string RustMakeRule(const Parser& parser, const std::string& path,
+                         const std::string& file_name);
+
 // Constructs a new Rust code generator.
 std::unique_ptr<CodeGenerator> NewRustCodeGenerator();
 

@@ -183,7 +183,7 @@ static FullType GetFullType(const Type& type) {
   if (IsString(type)) {
     return ftString;
   } else if (type.base_type == BASE_TYPE_STRUCT) {
-    if (type.struct_def->fixed) {
+    if (type.struct_def != nullptr && type.struct_def->fixed) {
       return ftStruct;
     } else {
       return ftTable;
@@ -278,8 +278,8 @@ static bool IsOptionalToBuilder(const FieldDef& field) {
 }
 }  // namespace
 
-static bool GenerateRustModuleRootFile(const Parser& parser,
-                                       const std::string& output_dir) {
+bool GenerateRustModuleRootFile(const Parser& parser,
+                                const std::string& output_dir) {
   if (!parser.opts.rust_module_root_file) {
     // Don't generate a root file when generating one file. This isn't an error
     // so return true.
@@ -294,12 +294,15 @@ static bool GenerateRustModuleRootFile(const Parser& parser,
     std::vector<std::string> generated_files;
     // Add a symbol into the tree.
     void Insert(const Namer& namer, const Definition* s) {
+      if (!s) return;
       const Definition& symbol = *s;
       Module* current_module = this;
-      for (auto it = symbol.defined_namespace->components.begin();
-           it != symbol.defined_namespace->components.end(); it++) {
-        std::string ns_component = namer.Namespace(*it);
-        current_module = &current_module->sub_modules[ns_component];
+      if (symbol.defined_namespace != nullptr) {
+        for (auto it = symbol.defined_namespace->components.begin();
+             it != symbol.defined_namespace->components.end(); it++) {
+          std::string ns_component = namer.Namespace(*it);
+          current_module = &current_module->sub_modules[ns_component];
+        }
       }
       current_module->generated_files.push_back(
           namer.File(symbol.name, SkipFile::Extension));
@@ -324,10 +327,12 @@ static bool GenerateRustModuleRootFile(const Parser& parser,
   Module root_module;
   for (auto it = parser.enums_.vec.begin(); it != parser.enums_.vec.end();
        it++) {
+    if (!*it) continue;
     root_module.Insert(namer, *it);
   }
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
        it++) {
+    if (!*it) continue;
     root_module.Insert(namer, *it);
   }
   CodeWriter code("    ");
@@ -337,6 +342,7 @@ static bool GenerateRustModuleRootFile(const Parser& parser,
       "Do not modify.";
   code += "// @generated";
   root_module.GenerateImports(code);
+  if (!parser.opts.file_saver) return true;
   const bool success = parser.opts.file_saver->SaveFile(
       (output_dir + "mod.rs").c_str(), code.ToString(), false);
   code.Clear();
@@ -369,6 +375,7 @@ class RustGenerator : public BaseGenerator {
   bool GenerateSymbols(const SymbolTable<T>& symbols,
                        std::function<void(const T&)> gen_symbol) {
     for (auto it = symbols.vec.begin(); it != symbols.vec.end(); it++) {
+      if (!*it) continue;
       const T& symbol = **it;
       if (symbol.generated) continue;
       code_.Clear();
@@ -384,10 +391,14 @@ class RustGenerator : public BaseGenerator {
       cur_name_space_ = symbol.defined_namespace;
       gen_symbol(symbol);
 
-      const std::string directories =
-          namer_.Directories(*symbol.defined_namespace);
+      Namespace empty_ns;
+      const Namespace& ns = symbol.defined_namespace != nullptr
+                                ? *symbol.defined_namespace
+                                : empty_ns;
+      const std::string directories = namer_.Directories(ns);
       EnsureDirExists(directories);
       const std::string file_path = directories + namer_.File(symbol);
+      if (!parser_.opts.file_saver) return true;
       const bool save_success = parser_.opts.file_saver->SaveFile(
           file_path.c_str(), code_.ToString(), /*binary=*/false);
       if (!save_success) return false;
@@ -443,6 +454,7 @@ class RustGenerator : public BaseGenerator {
       // Generate code for all the enum declarations.
       for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
            ++it) {
+        if (!*it) continue;
         const auto& enum_def = **it;
         if (enum_def.defined_namespace == ns && !enum_def.generated) {
           SetNameSpace(enum_def.defined_namespace);
@@ -453,6 +465,7 @@ class RustGenerator : public BaseGenerator {
       // Generate code for all structs.
       for (auto it = parser_.structs_.vec.begin();
            it != parser_.structs_.vec.end(); ++it) {
+        if (!*it) continue;
         const auto& struct_def = **it;
         if (struct_def.defined_namespace == ns && struct_def.fixed &&
             !struct_def.generated) {
@@ -464,6 +477,7 @@ class RustGenerator : public BaseGenerator {
       // Generate code for all tables.
       for (auto it = parser_.structs_.vec.begin();
            it != parser_.structs_.vec.end(); ++it) {
+        if (!*it) continue;
         const auto& struct_def = **it;
         if (struct_def.defined_namespace == ns && !struct_def.fixed &&
             !struct_def.generated) {
@@ -489,6 +503,7 @@ class RustGenerator : public BaseGenerator {
 
     const auto file_path = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(file_path.c_str(), final_code,
                                              false);
   }
@@ -667,13 +682,17 @@ class RustGenerator : public BaseGenerator {
                NumToString(type.fixed_length) + "]";
       }
       case ftTable: {
-        return WrapInNameSpace(type.struct_def->defined_namespace,
-                               type.struct_def->name) +
+        return (type.struct_def != nullptr
+                    ? WrapInNameSpace(type.struct_def->defined_namespace,
+                                      type.struct_def->name)
+                    : std::string("")) +
                "<'a>";
       }
       default: {
-        return WrapInNameSpace(type.struct_def->defined_namespace,
-                               type.struct_def->name);
+        return type.struct_def != nullptr
+                   ? WrapInNameSpace(type.struct_def->defined_namespace,
+                                     type.struct_def->name)
+                   : std::string("");
       }
     }
   }
@@ -687,6 +706,7 @@ class RustGenerator : public BaseGenerator {
   void ForAllEnumValues1(const EnumDef& enum_def,
                          std::function<void(const EnumVal&)> cb) {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       const auto& ev = **it;
       code_.SetValue("VARIANT", namer_.Variant(ev));
       code_.SetValue("VALUE", enum_def.ToString(ev));
@@ -957,6 +977,7 @@ class RustGenerator : public BaseGenerator {
   void ForAllUnionObjectVariantsBesidesNone(const EnumDef& enum_def,
                                             std::function<void()> cb) {
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& enum_val = **it;
       if (enum_val.union_type.base_type == BASE_TYPE_NONE) continue;
       code_.SetValue("VARIANT_NAME", namer_.Variant(enum_val));
@@ -966,7 +987,9 @@ class RustGenerator : public BaseGenerator {
                      namer_.LegacyRustNativeVariant(enum_val));
       code_.SetValue("U_ELEMENT_NAME", namer_.Method(enum_val));
       code_.SetValue("U_ELEMENT_TABLE_TYPE",
-                     NamespacedNativeName(*enum_val.union_type.struct_def));
+                     enum_val.union_type.struct_def != nullptr
+                         ? NamespacedNativeName(*enum_val.union_type.struct_def)
+                         : "");
       code_.IncrementIdentLevel();
       cb();
       code_.DecrementIdentLevel();
@@ -1124,6 +1147,7 @@ class RustGenerator : public BaseGenerator {
       }
       case ftUnionKey:
       case ftEnumKey: {
+        if (!field.value.type.enum_def) return "Default::default()";
         auto ev = field.value.type.enum_def->FindByValue(field.value.constant);
         if (!ev) return "Default::default()";  // Bitflags enum.
         return WrapInNameSpace(
@@ -1660,7 +1684,9 @@ class RustGenerator : public BaseGenerator {
   void GenFullyQualifiedNameGetter(const StructDef& struct_def,
                                    const std::string& name) {
     const std::string fully_qualified_name =
-        struct_def.defined_namespace->GetFullyQualifiedName(name);
+        struct_def.defined_namespace != nullptr
+            ? struct_def.defined_namespace->GetFullyQualifiedName(name)
+            : name;
     code_ += "    pub const fn get_fully_qualified_name() -> &'static str {";
     code_ += "        \"" + fully_qualified_name + "\"";
     code_ += "    }";
@@ -1672,6 +1698,7 @@ class RustGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(def.is_union);
 
     for (auto it = def.Vals().begin(); it != def.Vals().end(); ++it) {
+      if (!*it) continue;
       const EnumVal& ev = **it;
       // TODO(cneo): Can variants be deprecated, should we skip them?
       if (ev.union_type.base_type == BASE_TYPE_NONE) {
@@ -1682,8 +1709,10 @@ class RustGenerator : public BaseGenerator {
           WrapInNameSpace(def.defined_namespace, namer_.EnumVariant(def, ev)));
       code_.SetValue(
           "U_ELEMENT_TABLE_TYPE",
-          WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
-                          ev.union_type.struct_def->name));
+          ev.union_type.struct_def != nullptr
+              ? WrapInNameSpace(ev.union_type.struct_def->defined_namespace,
+                                ev.union_type.struct_def->name)
+              : "");
       code_.SetValue("U_ELEMENT_NAME", namer_.Function(ev.name));
       cb(ev);
     }
@@ -3134,7 +3163,9 @@ class RustGenerator : public BaseGenerator {
               "use crate::" + basename + parser_.opts.filename_suffix + "::*;";
         } else {
           auto prefix = parser_.opts.include_prefix;
-          prefix.pop_back();
+          if (!prefix.empty()) {
+            prefix.pop_back();
+          }
 
           code_ += "use crate::" + prefix + "::" + basename +
                    parser_.opts.filename_suffix + "::*;";
@@ -3201,14 +3232,14 @@ class RustGenerator : public BaseGenerator {
 
 }  // namespace rust
 
-static bool GenerateRust(const Parser& parser, const std::string& path,
-                         const std::string& file_name) {
+bool GenerateRust(const Parser& parser, const std::string& path,
+                  const std::string& file_name) {
   rust::RustGenerator generator(parser, path, file_name);
   return generator.generate();
 }
 
-static std::string RustMakeRule(const Parser& parser, const std::string& path,
-                                const std::string& file_name) {
+std::string RustMakeRule(const Parser& parser, const std::string& path,
+                         const std::string& file_name) {
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   rust::RustGenerator generator(parser, path, file_name);

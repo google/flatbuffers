@@ -68,6 +68,8 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "codegen/idl_namer.h"
+#include "idl_gen_rust.h"
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1747,55 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void RustGeneratorHardeningSafetyTest() {
+  auto gen = NewRustCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kRust);
+  TEST_EQ_STR(gen->LanguageName().c_str(), "Rust");
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), true);
+
+  // Test empty parser code generation
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateRust(empty_parser, "", "test"), true);
+  TEST_EQ(gen->GenerateRootFile(empty_parser, ""), CodeGenerator::OK);
+  TEST_EQ(GenerateRustModuleRootFile(empty_parser, ""), true);
+  std::string make_rule;
+  TEST_EQ(gen->GenerateMakeRule(empty_parser, "", "test", make_rule), CodeGenerator::OK);
+  TEST_EQ_STR(RustMakeRule(empty_parser, "", "test").c_str(), make_rule.c_str());
+
+  // Test parsed schema with enums, tables, unions, and structs without file_saver
+  Parser parser;
+  TEST_EQ(parser.Parse("namespace Test.Hardening; "
+                       "enum Color : byte { Red = 0, Green = 1 } "
+                       "union Any { Item } "
+                       "table Item { id:int; color:Color; } "
+                       "table Root { item:Any; } "
+                       "root_type Root;"), true);
+  TEST_EQ(gen->GenerateCode(parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateRust(parser, "", "test"), true);
+  TEST_EQ(gen->GenerateRootFile(parser, ""), CodeGenerator::OK);
+  TEST_EQ(GenerateRustModuleRootFile(parser, ""), true);
+
+  // Test IdlNamer legacy helpers
+  Namer::Config cfg;
+  IdlNamer namer(cfg, std::set<std::string>());
+  TEST_EQ(parser.enums_.vec.empty(), false);
+  auto* color_enum = parser.enums_.vec.front();
+  TEST_NOTNULL(color_enum);
+  TEST_EQ(color_enum->Vals().empty(), false);
+  auto* red_val = color_enum->Vals().front();
+  TEST_NOTNULL(red_val);
+  TEST_EQ_STR(red_val->name.c_str(), "Red");
+  TEST_EQ_STR(namer.LegacySwiftVariant(*red_val).c_str(), "red");
+  std::string orig_name = red_val->name;
+  red_val->name = "";
+  TEST_EQ_STR(namer.LegacySwiftVariant(*red_val).c_str(), "");
+  red_val->name = orig_name;
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1915,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  RustGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace

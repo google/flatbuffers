@@ -110,7 +110,7 @@ class IdlNamer : public Namer {
 
   std::string LegacySwiftVariant(const EnumVal& ev) const {
     auto name = ev.name;
-    if (isupper(name.front())) {
+    if (!name.empty() && isupper(static_cast<unsigned char>(name.front()))) {
       std::transform(name.begin(), name.end(), name.begin(), CharToLower);
     }
     return EscapeKeyword(ConvertCase(name, Case::kLowerCamel));
