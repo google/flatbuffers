@@ -181,6 +181,7 @@ class TsGenerator : public BaseGenerator {
     EnsureDirExists(dirs);
     auto basename = dirs + namer_.File(definition, SkipFile::Suffix);
 
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(basename.c_str(), code, false);
   }
 
@@ -227,6 +228,7 @@ class TsGenerator : public BaseGenerator {
       import_set bare_imports;
       import_set imports;
       std::string enumcode;
+      if (!*it) continue;
       auto& enum_def = **it;
       GenEnum(enum_def, &enumcode, imports, false);
       GenEnum(enum_def, &enumcode, imports, true);
@@ -243,6 +245,7 @@ class TsGenerator : public BaseGenerator {
       import_set bare_imports;
       import_set imports;
       AddImport(bare_imports, "* as flatbuffers", "flatbuffers");
+      if (!*it) continue;
       auto& struct_def = **it;
       std::string declcode;
       GenStruct(parser_, struct_def, &declcode, imports);
@@ -324,7 +327,7 @@ class TsGenerator : public BaseGenerator {
         export_counter++;
       }
 
-      if (export_counter > 0) {
+      if (export_counter > 0 && parser_.opts.file_saver) {
         parser_.opts.file_saver->SaveFile(it.second.filepath.c_str(), code,
                                           false);
       }
@@ -371,6 +374,7 @@ class TsGenerator : public BaseGenerator {
     code += GetTypeName(enum_def);
     code += " {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       if (!ev.doc_comment.empty()) {
         if (it != enum_def.Vals().begin()) {
@@ -441,7 +445,7 @@ class TsGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR:
         return GenType(type.VectorType());
       case BASE_TYPE_STRUCT:
-        return type.struct_def->name;
+        return type.struct_def ? type.struct_def->name : "flatbuffers.Table";
       default:
         return "flatbuffers.Table";
     }
@@ -454,7 +458,7 @@ class TsGenerator : public BaseGenerator {
       case BASE_TYPE_STRUCT:
         return GenBBAccess() + ".__struct" + arguments;
       case BASE_TYPE_UNION:
-        if (!UnionHasStringType(*type.enum_def)) {
+        if (!type.enum_def || !UnionHasStringType(*type.enum_def)) {
           return GenBBAccess() + ".__union" + arguments;
         }
         return GenBBAccess() + ".__union_with_string" + arguments;
@@ -571,8 +575,10 @@ class TsGenerator : public BaseGenerator {
         std::string name;
         if (IsString(type)) {
           name = "string|Uint8Array";
-        } else {
+        } else if (type.struct_def) {
           name = AddImport(imports, owner, *type.struct_def).name;
+        } else {
+          name = "flatbuffers.Table";
         }
         return allowNull ? (name + "|" + null_keyword_) : name;
       }
@@ -665,6 +671,7 @@ class TsGenerator : public BaseGenerator {
                      const std::string& nameprefix) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (IsStruct(field.value.type)) {
         // Generate arguments for a struct inside a struct. To ensure names
@@ -688,6 +695,7 @@ class TsGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.padding) {
         *body += "  builder.pad(" + NumToString(field.padding) + ");\n";
@@ -855,6 +863,7 @@ class TsGenerator : public BaseGenerator {
 
     for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
          ++it) {
+      if (!*it) continue;
       const auto& ev = **it;
       if (ev.IsZero()) {
         continue;
@@ -863,7 +872,8 @@ class TsGenerator : public BaseGenerator {
       std::string type = "";
       if (IsString(ev.union_type)) {
         type = "string";  // no need to wrap string type in namespace
-      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+      } else if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+                 ev.union_type.struct_def != nullptr) {
         type = AddImport(imports, union_enum, *ev.union_type.struct_def).name;
       } else {
         FLATBUFFERS_ASSERT(false);
@@ -1069,6 +1079,7 @@ class TsGenerator : public BaseGenerator {
 
     for (auto it = union_enum.Vals().begin(); it != union_enum.Vals().end();
          ++it) {
+      if (!*it) continue;
       const auto& ev = **it;
       if (ev.IsZero()) {
         continue;
@@ -1125,6 +1136,7 @@ class TsGenerator : public BaseGenerator {
 
         for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
              ++it) {
+          if (!*it) continue;
           const auto& ev = **it;
           if (ev.IsZero()) {
             continue;
@@ -1248,6 +1260,7 @@ class TsGenerator : public BaseGenerator {
     std::string ret;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
 
       auto curr_member_accessor = prefix + "." + namer_.Method(field);
@@ -1325,6 +1338,7 @@ class TsGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
 
@@ -1733,6 +1747,7 @@ class TsGenerator : public BaseGenerator {
     // Emit field accessors
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
       std::string offset_prefix = "";
@@ -2165,6 +2180,7 @@ class TsGenerator : public BaseGenerator {
       // Generate a set of static methods that allow table construction
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (field.deprecated) continue;
         const auto argname = GetArgName(field);
@@ -2261,6 +2277,7 @@ class TsGenerator : public BaseGenerator {
       code += "  const offset = builder.endObject();\n";
       for (auto it = struct_def.fields.vec.begin();
            it != struct_def.fields.vec.end(); ++it) {
+        if (!*it) continue;
         auto& field = **it;
         if (!field.deprecated && field.IsRequired()) {
           code += "  builder.requiredField(offset, ";
@@ -2281,6 +2298,7 @@ class TsGenerator : public BaseGenerator {
         code += "(builder:flatbuffers.Builder";
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
+          if (!*it) continue;
           const auto& field = **it;
           if (field.deprecated) continue;
           code += ", " + GetArgName(field) + ":" +
@@ -2294,6 +2312,7 @@ class TsGenerator : public BaseGenerator {
         std::string methodPrefix = object_name;
         for (auto it = struct_def.fields.vec.begin();
              it != struct_def.fields.vec.end(); ++it) {
+          if (!*it) continue;
           const auto& field = **it;
           if (field.deprecated) continue;
 
@@ -2393,8 +2412,8 @@ class TsGenerator : public BaseGenerator {
 };  // namespace ts
 }  // namespace ts
 
-static bool GenerateTS(const Parser& parser, const std::string& path,
-                       const std::string& file_name) {
+bool GenerateTS(const Parser& parser, const std::string& path,
+                const std::string& file_name) {
   ts::TsGenerator generator(parser, path, file_name);
   return generator.generate();
 }

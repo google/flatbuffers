@@ -24,8 +24,14 @@
 
 namespace flatbuffers {
 
+class Parser;
+
 // Constructs a new Ts code generator.
 std::unique_ptr<CodeGenerator> NewTsCodeGenerator();
+
+/// Generate TypeScript code from a full FlatBuffer dictionary.
+bool GenerateTS(const Parser &parser, const std::string &path,
+                const std::string &file_name);
 
 }  // namespace flatbuffers
 

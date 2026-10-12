@@ -68,6 +68,15 @@
 #include "test_assert.h"
 #include "util_test.h"
 #include "vector_table_naked_ptr_test.h"
+#include "idl_gen_ts.h"
+
+namespace flatbuffers {
+// Stub for TsCodeGenerator::GenerateGrpcCode when testing the TS generator in
+// flattests.
+bool GenerateTSGRPC(const Parser&, const std::string&, const std::string&) {
+  return false;
+}
+}  // namespace flatbuffers
 
 void FlatBufferBuilderTest();
 
@@ -1745,6 +1754,54 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void TsGeneratorHardeningSafetyTest() {
+  auto gen = NewTsCodeGenerator();
+  TEST_NOTNULL(gen.get());
+  TEST_EQ(gen->Language(), IDLOptions::kTs);
+  TEST_EQ(gen->IsSchemaOnly(), true);
+  TEST_EQ(gen->SupportsBfbsGeneration(), false);
+  TEST_EQ(gen->SupportsRootFileGeneration(), false);
+
+  // Empty parser code generation.
+  Parser empty_parser;
+  TEST_EQ(gen->GenerateCode(empty_parser, "", "test"), CodeGenerator::OK);
+  TEST_EQ(GenerateTS(empty_parser, "", "test"), true);
+  TEST_EQ(gen->GenerateGrpcCode(empty_parser, "", "test"),
+          CodeGenerator::ERROR);
+
+  // Schema with sparse enum, struct, table and union.
+  {
+    Parser parser;
+    parser.opts.one_file = true;
+    parser.opts.generate_object_based_api = true;
+    TEST_EQ(parser.Parse("namespace Test.Ts; "
+                         "enum Color : byte { Red = 0, Blue = 100 } "
+                         "struct Vec3 { x:float; y:float; z:float; } "
+                         "table Item { id:int; color:Color; pos:Vec3; "
+                         "names:[string]; } "
+                         "union Any { Item } "
+                         "table Holder { a:Any; v:[Any]; } "
+                         "root_type Item;"),
+            true);
+    TEST_EQ(gen->GenerateCode(parser, "", "test_ts"), CodeGenerator::OK);
+    TEST_EQ(GenerateTS(parser, "", "test_ts"), true);
+  }
+
+  // Multi-file mode without a file_saver must not crash.
+  {
+    Parser parser;
+    parser.opts.one_file = false;
+    parser.opts.generate_object_based_api = true;
+    parser.opts.file_saver = nullptr;
+    TEST_EQ(parser.Parse("namespace Test.TsMulti; "
+                         "enum Color : byte { Red = 0, Green = 1 } "
+                         "table Item { id:int; color:Color; } "
+                         "root_type Item;"),
+            true);
+    TEST_EQ(GenerateTS(parser, "", "test_ts_multi"), true);
+  }
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1921,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  TsGeneratorHardeningSafetyTest();
   return 0;
 }
 }  // namespace
