@@ -1745,8 +1745,70 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void ParserLexerSafetyTest() {
+  flatbuffers::Parser parser;
+
+  // 1. ParserState::CursorPosition with invalid/null pointers.
+  struct TestState : public flatbuffers::ParserState {
+    using flatbuffers::ParserState::CursorPosition;
+  };
+  TestState state;
+  TEST_EQ(state.CursorPosition(), static_cast<int64_t>(0));
+
+  // 2. Parser::Parse with nullptr source.
+  TEST_EQ(parser.Parse(nullptr), false);
+
+  // 3. Parser::ParseJson with nullptr source.
+  TEST_EQ(parser.ParseJson(nullptr), false);
+
+  // 4. Parser::ParseFlexBuffer with nullptr source or nullptr builder.
+  TEST_EQ(parser.ParseFlexBuffer(nullptr, nullptr, nullptr), false);
+  flexbuffers::Builder flex_builder;
+  TEST_EQ(parser.ParseFlexBuffer(nullptr, nullptr, &flex_builder), false);
+
+  // 5. Parser::BytesConsumed initial / safe state.
+  TEST_EQ(parser.BytesConsumed(), static_cast<std::ptrdiff_t>(0));
+
+  // 6. Unterminated block comment at EOF without trailing newline or closing marker.
+  {
+    flatbuffers::Parser comment_parser;
+    bool ok = comment_parser.Parse("/* unterminated block comment");
+    TEST_EQ(ok, false);
+  }
+
+  // 7. Unterminated string constant with trailing escape backslash at EOF.
+  {
+    flatbuffers::Parser escape_parser;
+    bool ok = escape_parser.Parse("\"unterminated escape \\");
+    TEST_EQ(ok, false);
+  }
+
+  // 8. Unterminated single-quote string constant at EOF.
+  {
+    flatbuffers::Parser sq_parser;
+    bool ok = sq_parser.Parse("'unterminated");
+    TEST_EQ(ok, false);
+  }
+
+  // 9. Truncated hex number in escape sequence.
+  {
+    flatbuffers::Parser hex_parser;
+    bool ok = hex_parser.Parse("\"\\x1");
+    TEST_EQ(ok, false);
+  }
+
+  // 10. Valid minimal schema parses correctly.
+  {
+    flatbuffers::Parser valid_parser;
+    bool ok = valid_parser.Parse("table T { x:int; } root_type T;");
+    TEST_EQ(ok, true);
+    TEST_NOTNULL(valid_parser.root_struct_def_);
+  }
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  ParserLexerSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

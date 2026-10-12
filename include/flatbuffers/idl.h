@@ -909,7 +909,7 @@ struct ParserState {
   }
 
   int64_t CursorPosition() const {
-    FLATBUFFERS_ASSERT(cursor_ && line_start_ && cursor_ >= line_start_);
+    if (!cursor_ || !line_start_ || cursor_ < line_start_) return 0;
     return static_cast<int64_t>(cursor_ - line_start_);
   }
 

@@ -470,9 +470,10 @@ std::string Parser::TokenToStringId(int t) const {
 
 // Parses exactly nibbles worth of hex digits into a number, or error.
 CheckedError Parser::ParseHexNum(int nibbles, uint64_t* val) {
-  FLATBUFFERS_ASSERT(nibbles > 0);
+  if (!val) return Error("internal error: null val in ParseHexNum");
+  if (nibbles <= 0 || !cursor_) return Error("internal error: invalid cursor or nibbles in ParseHexNum");
   for (int i = 0; i < nibbles; i++)
-    if (!is_xdigit(cursor_[i]))
+    if (!cursor_[i] || !is_xdigit(cursor_[i]))
       return Error("escape code must be followed by " + NumToString(nibbles) +
                    " hex digits");
   std::string target(cursor_, cursor_ + nibbles);
@@ -482,12 +483,13 @@ CheckedError Parser::ParseHexNum(int nibbles, uint64_t* val) {
 }
 
 CheckedError Parser::SkipByteOrderMark() {
+  if (!cursor_ || !*cursor_) return NoError();
   if (static_cast<unsigned char>(*cursor_) != 0xef) return NoError();
   cursor_++;
-  if (static_cast<unsigned char>(*cursor_) != 0xbb)
+  if (!*cursor_ || static_cast<unsigned char>(*cursor_) != 0xbb)
     return Error("invalid utf-8 byte order mark");
   cursor_++;
-  if (static_cast<unsigned char>(*cursor_) != 0xbf)
+  if (!*cursor_ || static_cast<unsigned char>(*cursor_) != 0xbf)
     return Error("invalid utf-8 byte order mark");
   cursor_++;
   return NoError();
@@ -538,6 +540,8 @@ CheckedError Parser::Next() {
           if (*cursor_ == '\\') {
             attr_is_trivial_ascii_string_ = false;  // has escape sequence
             cursor_++;
+            if (!*cursor_)
+              return Error("illegal character in string constant");
             if (unicode_high_surrogate != -1 && *cursor_ != 'u') {
               return Error(
                   "illegal Unicode sequence (unpaired high surrogate)");
@@ -657,11 +661,12 @@ CheckedError Parser::Next() {
         } else if (*cursor_ == '*') {
           cursor_++;
           // TODO: make nested.
-          while (*cursor_ != '*' || cursor_[1] != '/') {
+          while (*cursor_) {
+            if (*cursor_ == '*' && cursor_[1] == '/') break;
             if (*cursor_ == '\n') MarkNewLine();
-            if (!*cursor_) return Error("end of file in comment");
             cursor_++;
           }
+          if (!*cursor_) return Error("end of file in comment");
           cursor_ += 2;
           break;
         }
@@ -756,7 +761,7 @@ CheckedError Parser::Next() {
 bool Parser::Is(int t) const { return t == token_; }
 
 bool Parser::IsIdent(const char* id) const {
-  return token_ == kTokenIdentifier && attribute_ == id;
+  return id != nullptr && token_ == kTokenIdentifier && attribute_ == id;
 }
 
 // Expect a given token to be next, consume it, or error if not present.
@@ -3574,6 +3579,10 @@ CheckedError Parser::ParseFlexBufferValue(flexbuffers::Builder* builder) {
 
 bool Parser::ParseFlexBuffer(const char* source, const char* source_filename,
                              flexbuffers::Builder* builder) {
+  if (!source || !builder) {
+    error_ = "source or builder is null";
+    return false;
+  }
   const auto initial_depth = parse_depth_counter_;
   (void)initial_depth;
   auto ok = !StartParseFile(source, source_filename).Check() &&
@@ -3585,6 +3594,10 @@ bool Parser::ParseFlexBuffer(const char* source, const char* source_filename,
 
 bool Parser::Parse(const char* source, const char** include_paths,
                    const char* source_filename) {
+  if (!source) {
+    error_ = "source string is null";
+    return false;
+  }
   const auto initial_depth = parse_depth_counter_;
   (void)initial_depth;
   bool r;
@@ -3599,6 +3612,10 @@ bool Parser::Parse(const char* source, const char** include_paths,
 }
 
 bool Parser::ParseJson(const char* json, const char* json_filename) {
+  if (!json) {
+    error_ = "json string is null";
+    return false;
+  }
   const auto initial_depth = parse_depth_counter_;
   (void)initial_depth;
   builder_.Clear();
@@ -3609,11 +3626,13 @@ bool Parser::ParseJson(const char* json, const char* json_filename) {
 }
 
 std::ptrdiff_t Parser::BytesConsumed() const {
+  if (!source_ || !prev_cursor_ || prev_cursor_ < source_) return 0;
   return std::distance(source_, prev_cursor_);
 }
 
 CheckedError Parser::StartParseFile(const char* source,
                                     const char* source_filename) {
+  if (!source) return Error("source string is null");
   file_being_parsed_ = source_filename ? source_filename : "";
   source_ = source;
   ResetState(source_);
