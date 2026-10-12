@@ -128,8 +128,10 @@ class Table {
   }
 
   bool SetPointer(voffset_t field, const uint8_t* val) {
+    if (!val) return false;
     auto field_offset = GetOptionalFieldOffset(field);
     if (!field_offset) return false;
+    if (val < (data_ + field_offset)) return false;
     WriteScalar(data_ + field_offset,
                 static_cast<uoffset_t>(val - (data_ + field_offset)));
     return true;

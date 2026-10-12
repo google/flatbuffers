@@ -49,6 +49,7 @@ class Array {
 
   return_type Get(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size() || !Data()) return return_type();
     return IndirectHelper<T>::Read(Data(), i);
   }
 
@@ -86,6 +87,7 @@ class Array {
   typename flatbuffers::conditional<scalar_tag::value, void, T*>::type
   GetMutablePointer(uoffset_t i) const {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size() || !Data()) return nullptr;
     return const_cast<T*>(&data()[i]);
   }
 
@@ -104,10 +106,11 @@ class Array {
   // Copy data from a span with endian conversion.
   // If this Array and the span overlap, the behavior is undefined.
   void CopyFromSpan(flatbuffers::span<const T, length> src) {
+    if (!src.data() || !Data()) return;
     const auto p1 = reinterpret_cast<const uint8_t*>(src.data());
     const auto p2 = Data();
-    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length)) &&
-                       !(p2 >= p1 && p2 < (p1 + length)));
+    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length * sizeof(T))) &&
+                       !(p2 >= p1 && p2 < (p1 + length * sizeof(T))));
     (void)p1;
     (void)p2;
     CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
@@ -116,11 +119,13 @@ class Array {
  protected:
   void MutateImpl(flatbuffers::true_type, uoffset_t i, const T& val) {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size() || !data()) return;
     WriteScalar(data() + i, val);
   }
 
   void MutateImpl(flatbuffers::false_type, uoffset_t i, const T& val) {
-    *(GetMutablePointer(i)) = val;
+    auto ptr = GetMutablePointer(i);
+    if (ptr) *ptr = val;
   }
 
   void CopyFromSpanImpl(flatbuffers::true_type,

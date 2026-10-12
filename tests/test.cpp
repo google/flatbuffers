@@ -1745,8 +1745,26 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void TableStringAndArraySafetyTest() {
+  const flatbuffers::String* null_string = nullptr;
+  TEST_EQ_STR(flatbuffers::GetCstring(null_string), "");
+  TEST_EQ_STR(flatbuffers::GetString(null_string).c_str(), "");
+#ifdef FLATBUFFERS_HAS_STRING_VIEW
+  TEST_EQ(flatbuffers::GetStringView(null_string).empty(), true);
+#endif
+
+  flatbuffers::FlatBufferBuilder fbb;
+  auto start = fbb.StartTable();
+  auto offset = flatbuffers::Offset<flatbuffers::Table>(fbb.EndTable(start));
+  fbb.Finish(offset);
+  auto table = const_cast<flatbuffers::Table*>(flatbuffers::GetRoot<flatbuffers::Table>(fbb.GetBufferPointer()));
+  TEST_EQ(table->SetPointer(4, nullptr), false);
+  TEST_EQ(table->SetPointer(4, fbb.GetBufferPointer() - 10), false);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  TableStringAndArraySafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
