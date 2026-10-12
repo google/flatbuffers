@@ -46,7 +46,9 @@ struct JsonPrinter {
     if (opts.indent_step >= 0) text += '\n';
   }
 
-  void AddIndent(int ident) { text.append(ident, ' '); }
+  void AddIndent(int ident) {
+    if (ident > 0) text.append(static_cast<size_t>(ident), ' ');
+  }
 
   int Indent() const { return std::max(opts.indent_step, 0); }
 
@@ -184,13 +186,18 @@ struct JsonPrinter {
       case BASE_TYPE_UNION: {
         // If this assert hits, you have an corrupt buffer, a union type field
         // was not present or was out of range.
-        FLATBUFFERS_ASSERT(prev_val);
+        if (!prev_val) return "corrupt buffer: missing union type field";
         auto union_type_byte = *prev_val;  // Always a uint8_t.
         if (vector_index >= 0) {
           auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(
               prev_val + ReadScalar<uoffset_t>(prev_val));
+          if (!type_vec ||
+              static_cast<uoffset_t>(vector_index) >= type_vec->size()) {
+            return "corrupt buffer: union vector out of range";
+          }
           union_type_byte = type_vec->Get(static_cast<uoffset_t>(vector_index));
         }
+        if (!type.enum_def) return "corrupt buffer: missing enum definition";
         auto enum_val = type.enum_def->ReverseLookup(union_type_byte, true);
         if (enum_val) {
           return PrintOffset(val, enum_val->union_type, indent, nullptr, -1);
@@ -199,10 +206,12 @@ struct JsonPrinter {
         }
       }
       case BASE_TYPE_STRUCT:
+        if (!type.struct_def) return "null struct_def";
         return GenStruct(*type.struct_def, reinterpret_cast<const Table*>(val),
                          indent);
       case BASE_TYPE_STRING: {
         auto s = reinterpret_cast<const String*>(val);
+        if (!s) return "null string pointer";
         bool ok = EscapeString(s->c_str(), s->size(), &text,
                                opts.allow_non_utf8, opts.natural_utf8);
         return ok ? nullptr : "string contains non-utf8 bytes";
@@ -295,11 +304,14 @@ struct JsonPrinter {
       // If the whole buffer is corrupt, we likely crash before we even get
       // here.
       auto vec = table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
+      if (!vec) return "null flexbuffer vector";
       auto root = flexbuffers::GetRoot(vec->data(), vec->size());
       root.ToString(true, opts.strict_json, text);
       return nullptr;
     } else if (fd.nested_flatbuffer && opts.json_nested_flatbuffers) {
       auto vec = table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
+      if (!vec) return "null nested flatbuffer vector";
+      if (!fd.nested_flatbuffer) return "null nested flatbuffer definition";
       auto root = GetRoot<Table>(vec->data());
       return GenStruct(*fd.nested_flatbuffer, root, indent);
     } else {
@@ -314,6 +326,7 @@ struct JsonPrinter {
   // and bracketed by "{}"
   const char* GenStruct(const StructDef& struct_def, const Table* table,
                         int indent) {
+    if (!table) return "null table pointer";
     text += '{';
     int fieldout = 0;
     const uint8_t* prev_val = nullptr;
@@ -383,6 +396,8 @@ struct JsonPrinter {
 static const char* GenerateTextImpl(const Parser& parser, const Table* table,
                                     const StructDef& struct_def,
                                     std::string* _text) {
+  if (!_text) return "null destination text pointer";
+  if (!table) return "null table pointer";
   JsonPrinter printer(parser, *_text);
   auto err = printer.GenStruct(struct_def, table, 0);
   if (err) return err;
@@ -401,6 +416,8 @@ bool GenerateTextFromTable(const Parser& parser, const void* table,
 const char* GenTextFromTable(const Parser& parser, const void* table,
                              const std::string& table_name,
                              std::string* _text) {
+  if (!_text) return "null destination text pointer";
+  if (!table) return "null table pointer";
   auto struct_def = parser.LookupStruct(table_name);
   if (struct_def == nullptr) {
     return "unknown struct";
@@ -418,7 +435,9 @@ const char* GenerateText(const Parser& parser, const void* flatbuffer,
 // Generate a text representation of a flatbuffer in JSON format.
 const char* GenText(const Parser& parser, const void* flatbuffer,
                     std::string* _text) {
-  FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
+  if (!_text) return "null destination text pointer";
+  if (!flatbuffer) return "null flatbuffer pointer";
+  if (!parser.root_struct_def_) return "no root type set";
   auto root = parser.opts.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
                                         : GetRoot<Table>(flatbuffer);
   return GenerateTextImpl(parser, root, *parser.root_struct_def_, _text);
@@ -440,6 +459,7 @@ const char* GenTextFile(const Parser& parser, const std::string& path,
   if (parser.opts.use_flexbuffers) {
     std::string json;
     parser.flex_root_.ToString(true, parser.opts.strict_json, json);
+    if (!parser.opts.file_saver) return "null file_saver";
     return parser.opts.file_saver->SaveFile(
                TextFileName(path, file_name).c_str(), json.c_str(), json.size(),
                true)
@@ -450,6 +470,7 @@ const char* GenTextFile(const Parser& parser, const std::string& path,
   std::string text;
   auto err = GenText(parser, parser.builder_.GetBufferPointer(), &text);
   if (err) return err;
+  if (!parser.opts.file_saver) return "null file_saver";
   return parser.opts.file_saver->SaveFile(TextFileName(path, file_name).c_str(),
                                           text, false)
              ? nullptr

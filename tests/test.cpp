@@ -1745,8 +1745,32 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void IdlGenTextAndBinarySafetyTest() {
+  flatbuffers::Parser parser;
+  std::string text;
+  TEST_NOTNULL(flatbuffers::GenText(parser, nullptr, &text));
+  TEST_NOTNULL(flatbuffers::GenText(parser, "fake_buffer", nullptr));
+  TEST_NOTNULL(flatbuffers::GenerateText(parser, nullptr, &text));
+  TEST_NOTNULL(flatbuffers::GenTextFromTable(parser, nullptr, "Monster", &text));
+  TEST_NOTNULL(flatbuffers::GenTextFromTable(parser, "fake_table", "Monster", nullptr));
+
+  parser.opts.use_flexbuffers = true;
+  parser.opts.file_saver = nullptr;
+  TEST_NOTNULL(flatbuffers::GenTextFile(parser, "path", "file"));
+
+  parser.opts.use_flexbuffers = false;
+  TEST_NULL(flatbuffers::GenTextFile(parser, "path", "file"));
+
+  TEST_EQ(parser.Parse("table M { x:int; } root_type M;"), true);
+  TEST_EQ_STR(flatbuffers::GenText(parser, nullptr, &text), "null flatbuffer pointer");
+  TEST_EQ_STR(flatbuffers::GenText(parser, "buf", nullptr), "null destination text pointer");
+  TEST_EQ_STR(flatbuffers::GenTextFromTable(parser, nullptr, "M", &text), "null table pointer");
+  TEST_EQ_STR(flatbuffers::GenTextFromTable(parser, "tbl", "M", nullptr), "null destination text pointer");
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  IdlGenTextAndBinarySafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
