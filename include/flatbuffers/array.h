@@ -223,40 +223,6 @@ make_bytes_span(const Array<U, N>& arr) FLATBUFFERS_NOEXCEPT {
   return span<const uint8_t, sizeof(U) * N>(arr.Data(), sizeof(U) * N);
 }
 
-template <class U, uint16_t N>
-FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<U> make_span(Array<U, N>* ptr)
-    FLATBUFFERS_NOEXCEPT {
-  static_assert(
-      Array<U, N>::is_span_observable,
-      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
-  return ptr ? make_span(*ptr) : span<U>();
-}
-
-template <class U, uint16_t N>
-FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const U> make_span(
-    const Array<U, N>* ptr) FLATBUFFERS_NOEXCEPT {
-  static_assert(
-      Array<U, N>::is_span_observable,
-      "wrong type U, only plain struct, LE-scalar, or byte types are allowed");
-  return ptr ? make_span(*ptr) : span<const U>();
-}
-
-template <class U, uint16_t N>
-FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
-    Array<U, N>* ptr) FLATBUFFERS_NOEXCEPT {
-  static_assert(Array<U, N>::is_span_observable,
-                "internal error, Array<T> might hold only scalars or structs");
-  return ptr ? make_bytes_span(*ptr) : span<uint8_t>();
-}
-
-template <class U, uint16_t N>
-FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
-    const Array<U, N>* ptr) FLATBUFFERS_NOEXCEPT {
-  static_assert(Array<U, N>::is_span_observable,
-                "internal error, Array<T> might hold only scalars or structs");
-  return ptr ? make_bytes_span(*ptr) : span<const uint8_t>();
-}
-
 // Cast a raw T[length] to a raw flatbuffers::Array<T, length>
 // without endian conversion. Use with care.
 // TODO: move these Cast-methods to `internal` namespace.

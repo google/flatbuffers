@@ -914,20 +914,11 @@ void FixedLengthArrayOperatorEqualTest() {
   TEST_ASSERT(*arr_struct[0].b() == *arr_struct[1].b());
   TEST_ASSERT(*arr_struct[1].b() != *arr_struct[2].b());
 
-  const flatbuffers::Array<int32_t, 15>* null_arr = nullptr;
-  auto null_span = flatbuffers::make_span(null_arr);
-  TEST_EQ(null_span.size(), 0);
-  TEST_NULL(null_span.data());
-
-  auto null_bytes = flatbuffers::make_bytes_span(null_arr);
-  TEST_EQ(null_bytes.size(), 0);
-  TEST_NULL(null_bytes.data());
-
-  auto non_null_span = flatbuffers::make_span(arr_struct[0].b());
+  auto non_null_span = flatbuffers::make_span(*arr_struct[0].b());
   TEST_EQ(non_null_span.size(), 15);
   TEST_EQ(non_null_span[0], 1);
 
-  auto non_null_bytes = flatbuffers::make_bytes_span(arr_struct[0].b());
+  auto non_null_bytes = flatbuffers::make_bytes_span(*arr_struct[0].b());
   TEST_EQ(non_null_bytes.size(), 15 * sizeof(int32_t));
 }
 
