@@ -631,16 +631,23 @@ uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,
   auto start = static_cast<uoffset_t>(vec_start) +
                static_cast<uoffset_t>(sizeof(uoffset_t)) +
                old_bytes;
-  auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
-  auto delta_bytes = delta_elem * static_cast<int>(elem_size);
+  // Both sizes are <= max_elems, so this product fits in soffset_t.
+  const int64_t delta_elem =
+      static_cast<int64_t>(newsize) - static_cast<int64_t>(num_elems);
+  const int64_t delta_bytes = delta_elem * static_cast<int64_t>(elem_size);
   if (delta_bytes) {
     if (delta_elem < 0) {
       // Clear elements we're throwing away, since some might remain in the
       // buffer.
-      auto size_clear = -delta_elem * elem_size;
+      const auto size_clear =
+          static_cast<size_t>(-delta_elem) * elem_size;
       memset(flatbuf->data() + start - size_clear, 0, size_clear);
     }
-    ResizeContext ctx(schema, start, delta_bytes, flatbuf, root_table);
+    FLATBUFFERS_ASSERT(
+        delta_bytes >= (std::numeric_limits<soffset_t>::min)() &&
+        delta_bytes <= (std::numeric_limits<soffset_t>::max)());
+    ResizeContext ctx(schema, start, static_cast<int>(delta_bytes), flatbuf,
+                       root_table);
     WriteScalar(flatbuf->data() + vec_start, newsize);  // Length field.
     // Set new elements to 0.. this can be overwritten by the caller.
     if (delta_elem > 0) {
