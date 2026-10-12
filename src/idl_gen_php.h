@@ -21,6 +21,12 @@
 
 namespace flatbuffers {
 
+class Parser;
+
+// Generate text includes for Php.
+bool GeneratePhp(const Parser& parser, const std::string& path,
+                 const std::string& file_name);
+
 // Constructs a new Php code generator.
 std::unique_ptr<CodeGenerator> NewPhpCodeGenerator();
 

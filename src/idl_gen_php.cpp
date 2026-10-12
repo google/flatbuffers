@@ -44,6 +44,7 @@ class PhpGenerator : public BaseGenerator {
   bool GenerateEnums() {
     for (auto it = parser_.enums_.vec.begin(); it != parser_.enums_.vec.end();
          ++it) {
+      if (!*it) continue;
       auto& enum_def = **it;
       std::string enumcode;
       GenEnum(enum_def, &enumcode);
@@ -55,6 +56,7 @@ class PhpGenerator : public BaseGenerator {
   bool GenerateStructs() {
     for (auto it = parser_.structs_.vec.begin();
          it != parser_.structs_.vec.end(); ++it) {
+      if (!*it) continue;
       auto& struct_def = **it;
       std::string declcode;
       GenStruct(struct_def, &declcode);
@@ -88,13 +90,16 @@ class PhpGenerator : public BaseGenerator {
                 bool needs_imports) {
     if (!classcode.length()) return true;
 
+    Namespace empty_ns;
+    const Namespace& ns =
+        def.defined_namespace != nullptr ? *def.defined_namespace : empty_ns;
+
     std::string code = "";
-    BeginFile(FullNamespace("\\", *def.defined_namespace), needs_imports,
-              &code);
+    BeginFile(FullNamespace("\\", ns), needs_imports, &code);
     code += classcode;
 
-    std::string filename =
-        NamespaceDir(*def.defined_namespace) + def.name + ".php";
+    std::string filename = NamespaceDir(ns) + def.name + ".php";
+    if (!parser_.opts.file_saver) return true;
     return parser_.opts.file_saver->SaveFile(filename.c_str(), code, false);
   }
 
@@ -287,7 +292,8 @@ class PhpGenerator : public BaseGenerator {
             NumToString(field.value.offset) + ");\n";
     code += Indent + Indent;
     code += "return $o != 0 ? $obj->init(";
-    if (field.value.type.struct_def->fixed) {
+    if (field.value.type.struct_def != nullptr &&
+        field.value.type.struct_def->fixed) {
       code += "$o + $this->bb_pos, $this->bb) : ";
     } else {
       code += "$this->__indirect($o + $this->bb_pos), $this->bb) : ";
@@ -355,7 +361,8 @@ class PhpGenerator : public BaseGenerator {
                   NumToString(field.value.offset) + ", $this->bb) : null;\n";
         } else {
           code += Indent + Indent + "return $o != 0 ? $obj->init(";
-          code += field.value.type.struct_def->fixed
+          code += (field.value.type.struct_def != nullptr &&
+                   field.value.type.struct_def->fixed)
                       ? "$o + $this->bb_pos"
                       : "$this->__indirect($o + $this->bb_pos)";
           code += ", $this->bb) : null;\n";
@@ -368,7 +375,8 @@ class PhpGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR:
         if (vectortype.base_type == BASE_TYPE_STRUCT) {
           code += Indent + Indent + "return $o != 0 ? $obj->init(";
-          if (vectortype.struct_def->fixed) {
+          if (vectortype.struct_def != nullptr &&
+              vectortype.struct_def->fixed) {
             code += "$this->__vector($o) + $j *";
             code += NumToString(InlineSize(vectortype));
           } else {
@@ -450,8 +458,10 @@ class PhpGenerator : public BaseGenerator {
                                 const char* nameprefix, std::string* code_ptr) {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (IsStruct(field.value.type)) {
+        if (!field.value.type.struct_def) continue;
         // Generate arguments for a struct inside a struct. To ensure names
         // don't clash, and to make it obvious
         // these arguments are constructing
@@ -476,12 +486,14 @@ class PhpGenerator : public BaseGenerator {
     code += NumToString(struct_def.bytesize) + ");\n";
     for (auto it = struct_def.fields.vec.rbegin();
          it != struct_def.fields.vec.rend(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.padding) {
         code += Indent + Indent + "$builder->pad(";
         code += NumToString(field.padding) + ");\n";
       }
       if (IsStruct(field.value.type)) {
+        if (!field.value.type.struct_def) continue;
         StructBuilderBody(*field.value.type.struct_def,
                           (nameprefix + (field.name + "_")).c_str(), code_ptr);
       } else {
@@ -516,15 +528,18 @@ class PhpGenerator : public BaseGenerator {
     code += Indent + "public static function create" + struct_def.name;
     code += "(FlatBufferBuilder $builder, ";
 
+    bool first = true;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
 
       if (field.deprecated) continue;
-      if (it != struct_def.fields.vec.begin()) {
+      if (!first) {
         code += ", ";
       }
       code += "$" + field.name;
+      first = false;
     }
     code += ")\n";
     code += Indent + "{\n";
@@ -533,6 +548,7 @@ class PhpGenerator : public BaseGenerator {
     code += ");\n";
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
 
@@ -545,6 +561,7 @@ class PhpGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (!field.deprecated && field.IsRequired()) {
         code += Indent + Indent + "$builder->required($o, ";
@@ -655,6 +672,7 @@ class PhpGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (!field.deprecated && field.IsRequired()) {
         code += Indent + Indent + "$builder->required($o, ";
@@ -718,7 +736,7 @@ class PhpGenerator : public BaseGenerator {
           GetUnionField(field, code_ptr);
           break;
         default:
-          FLATBUFFERS_ASSERT(0);
+          break;
       }
     }
     if (IsVector(field.value.type)) {
@@ -735,6 +753,7 @@ class PhpGenerator : public BaseGenerator {
 
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
 
@@ -809,6 +828,7 @@ class PhpGenerator : public BaseGenerator {
     InitializeExisting(struct_def, code_ptr);
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
+      if (!*it) continue;
       auto& field = **it;
       if (field.deprecated) continue;
 
@@ -832,6 +852,7 @@ class PhpGenerator : public BaseGenerator {
     GenComment(enum_def.doc_comment, code_ptr, nullptr);
     BeginEnum(enum_def.name, code_ptr);
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       GenComment(ev.doc_comment, code_ptr, nullptr, Indent.c_str());
       EnumMember(enum_def, ev, code_ptr);
@@ -841,6 +862,7 @@ class PhpGenerator : public BaseGenerator {
     code += "\n";
     code += Indent + "private static $names = array(\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
+      if (!*it) continue;
       auto& ev = **it;
       code += Indent + Indent + enum_def.name + "::" + ev.name + "=>" + "\"" +
               ev.name + "\",\n";
@@ -927,7 +949,7 @@ class PhpGenerator : public BaseGenerator {
       case BASE_TYPE_VECTOR:
         return GenTypeGet(type.VectorType());
       case BASE_TYPE_STRUCT:
-        return type.struct_def->name;
+        return type.struct_def != nullptr ? type.struct_def->name : "Table";
       case BASE_TYPE_UNION:
         // fall through
       default:
@@ -941,7 +963,7 @@ class PhpGenerator : public BaseGenerator {
 
   // Create a struct with a builder and the struct's arguments.
   static void GenStructBuilder(const StructDef& struct_def,
-                               std::string* code_ptr) {
+                                std::string* code_ptr) {
     std::string& code = *code_ptr;
     code += "\n";
     code += Indent + "/**\n";
@@ -961,8 +983,8 @@ class PhpGenerator : public BaseGenerator {
 };
 }  // namespace php
 
-static bool GeneratePhp(const Parser& parser, const std::string& path,
-                        const std::string& file_name) {
+bool GeneratePhp(const Parser& parser, const std::string& path,
+                 const std::string& file_name) {
   php::PhpGenerator generator(parser, path, file_name);
   return generator.generate();
 }
