@@ -380,7 +380,9 @@ class CppGenerator : public BaseGenerator {
     } else {
       auto& struct_def = *parser_.root_struct_def_;
       const auto include_guard =
-          GenIncludeGuard(file_name_, *struct_def.defined_namespace, "bfbs");
+          GenIncludeGuard(file_name_, struct_def.defined_namespace
+                                          ? *struct_def.defined_namespace
+                                          : Namespace(), "bfbs");
 
       code_ += "#ifndef " + include_guard;
       code_ += "#define " + include_guard;
@@ -447,7 +449,9 @@ class CppGenerator : public BaseGenerator {
     code_ += "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
 
     const auto include_guard =
-        GenIncludeGuard(file_name_, *parser_.current_namespace_);
+        GenIncludeGuard(file_name_, parser_.current_namespace_
+                                        ? *parser_.current_namespace_
+                                        : Namespace());
     code_ += "#ifndef " + include_guard;
     code_ += "#define " + include_guard;
     code_ += "";
@@ -476,6 +480,7 @@ class CppGenerator : public BaseGenerator {
     // Generate forward declarations for all structs/tables, since they may
     // have circular references.
     for (const auto& struct_def : parser_.structs_.vec) {
+      if (!struct_def) continue;
       if (!struct_def->generated) {
         SetNameSpace(struct_def->defined_namespace);
         code_ += "struct " + Name(*struct_def) + ";";
@@ -487,7 +492,7 @@ class CppGenerator : public BaseGenerator {
 
           // Check that nativeName doesn't collide the name of another struct.
           for (const auto& other_struct_def : parser_.structs_.vec) {
-            if (other_struct_def == struct_def ||
+            if (!other_struct_def || other_struct_def == struct_def ||
                 other_struct_def->defined_namespace !=
                     struct_def->defined_namespace) {
               continue;
@@ -516,6 +521,7 @@ class CppGenerator : public BaseGenerator {
     // Generate forward declarations for all equal operators
     if (opts_.generate_object_based_api && opts_.gen_compare) {
       for (const auto& struct_def : parser_.structs_.vec) {
+        if (!struct_def) continue;
         const auto native_type = struct_def->attributes.Lookup("native_type");
         if (!struct_def->generated && !native_type) {
           SetNameSpace(struct_def->defined_namespace);
@@ -533,6 +539,7 @@ class CppGenerator : public BaseGenerator {
     if (opts_.mini_reflect != IDLOptions::kNone) {
       // To break cyclic dependencies, first pre-declare all tables/structs.
       for (const auto& struct_def : parser_.structs_.vec) {
+        if (!struct_def) continue;
         if (!struct_def->generated) {
           SetNameSpace(struct_def->defined_namespace);
           GenMiniReflectPre(struct_def);
@@ -542,6 +549,7 @@ class CppGenerator : public BaseGenerator {
 
     // Generate code for all the enum declarations.
     for (const auto& enum_def : parser_.enums_.vec) {
+      if (!enum_def) continue;
       if (!enum_def->generated) {
         SetNameSpace(enum_def->defined_namespace);
         GenEnum(*enum_def);
@@ -550,18 +558,21 @@ class CppGenerator : public BaseGenerator {
 
     // Generate code for all structs, then all tables.
     for (const auto& struct_def : parser_.structs_.vec) {
+      if (!struct_def) continue;
       if (struct_def->fixed && !struct_def->generated) {
         SetNameSpace(struct_def->defined_namespace);
         GenStruct(*struct_def);
       }
     }
     for (const auto& struct_def : parser_.structs_.vec) {
+      if (!struct_def) continue;
       if (!struct_def->fixed && !struct_def->generated) {
         SetNameSpace(struct_def->defined_namespace);
         GenTable(*struct_def);
       }
     }
     for (const auto& struct_def : parser_.structs_.vec) {
+      if (!struct_def) continue;
       if (!struct_def->fixed && !struct_def->generated) {
         SetNameSpace(struct_def->defined_namespace);
         GenTablePost(*struct_def);
@@ -570,6 +581,7 @@ class CppGenerator : public BaseGenerator {
 
     // Generate code for union verifiers.
     for (const auto& enum_def : parser_.enums_.vec) {
+      if (!enum_def) continue;
       if (enum_def->is_union && !enum_def->generated) {
         SetNameSpace(enum_def->defined_namespace);
         GenUnionPost(*enum_def);
@@ -580,6 +592,7 @@ class CppGenerator : public BaseGenerator {
     if (opts_.mini_reflect != IDLOptions::kNone) {
       // Then the unions/enums that may refer to them.
       for (const auto& enum_def : parser_.enums_.vec) {
+        if (!enum_def) continue;
         if (!enum_def->generated) {
           SetNameSpace(enum_def->defined_namespace);
           GenMiniReflect(nullptr, enum_def);
@@ -587,6 +600,7 @@ class CppGenerator : public BaseGenerator {
       }
       // Then the full tables/structs.
       for (const auto& struct_def : parser_.structs_.vec) {
+        if (!struct_def) continue;
         if (!struct_def->generated) {
           SetNameSpace(struct_def->defined_namespace);
           GenMiniReflect(struct_def, nullptr);
@@ -599,7 +613,9 @@ class CppGenerator : public BaseGenerator {
       auto& struct_def = *parser_.root_struct_def_;
       SetNameSpace(struct_def.defined_namespace);
       auto name = Name(struct_def);
-      auto qualified_name = cur_name_space_->GetFullyQualifiedName(name);
+      auto qualified_name = cur_name_space_
+                                ? cur_name_space_->GetFullyQualifiedName(name)
+                                : name;
       auto cpp_name = TranslateNameSpace(qualified_name);
 
       code_.SetValue("STRUCT_NAME", name);
@@ -765,6 +781,7 @@ class CppGenerator : public BaseGenerator {
     const auto final_code = code_.ToString();
 
     // Save the file and optionally generate the binary schema code.
+    if (!parser_.opts.file_saver) return false;
     return parser_.opts.file_saver->SaveFile(
         file_path.c_str(), final_code,
         (!parser_.opts.binary_schema_gen_embed || generate_bfbs_embed()));
@@ -797,11 +814,11 @@ class CppGenerator : public BaseGenerator {
   }
 
   bool TypeHasKey(const Type& type) {
-    if (type.base_type != BASE_TYPE_STRUCT) {
+    if (type.base_type != BASE_TYPE_STRUCT || !type.struct_def) {
       return false;
     }
     for (auto& field : type.struct_def->fields.vec) {
-      if (field->key) {
+      if (field && field->key) {
         return true;
       }
     }
@@ -851,7 +868,7 @@ class CppGenerator : public BaseGenerator {
                type_name + ">";
       }
       case BASE_TYPE_STRUCT: {
-        return WrapInNameSpace(*type.struct_def);
+        return type.struct_def ? WrapInNameSpace(*type.struct_def) : "void";
       }
       case BASE_TYPE_UNION:
         // fall through
@@ -894,14 +911,15 @@ class CppGenerator : public BaseGenerator {
 
   static std::string NativeName(const std::string& name, const StructDef* sd,
                                 const IDLOptions& opts) {
+    if (!sd) return name;
     // If the table is a native_type, return the native_type name.
     const auto native_type = sd->attributes.Lookup("native_type");
     if (native_type && !sd->fixed) {
       return native_type->constant;
     }
 
-    return sd && !sd->fixed ? opts.object_prefix + name + opts.object_suffix
-                            : name;
+    return !sd->fixed ? opts.object_prefix + name + opts.object_suffix
+                      : name;
   }
 
   std::string WrapNativeNameInNameSpace(const StructDef& struct_def,
@@ -1093,7 +1111,8 @@ class CppGenerator : public BaseGenerator {
 
   std::string GetUnionElement(const EnumVal& ev, bool native_type,
                               const IDLOptions& opts) {
-    if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+    if (ev.union_type.base_type == BASE_TYPE_STRUCT &&
+        ev.union_type.struct_def) {
       std::string name = ev.union_type.struct_def->name;
       if (native_type) {
         name = NativeName(std::move(name), ev.union_type.struct_def, opts);
@@ -1884,7 +1903,10 @@ class CppGenerator : public BaseGenerator {
     if (!opts_.generate_name_strings) {
       return;
     }
-    auto fullname = struct_def.defined_namespace->GetFullyQualifiedName(name);
+    auto fullname =
+        struct_def.defined_namespace
+            ? struct_def.defined_namespace->GetFullyQualifiedName(name)
+            : name;
     code_.SetValue("NAME", fullname);
     code_.SetValue("CONSTEXPR", "FLATBUFFERS_CONSTEXPR_CPP11");
     code_ += "  static {{CONSTEXPR}} const char *GetFullyQualifiedName() {";
@@ -2922,7 +2944,10 @@ class CppGenerator : public BaseGenerator {
   void GenTraitsStruct(const StructDef& struct_def) {
     code_.SetValue(
         "FULLY_QUALIFIED_NAME",
-        struct_def.defined_namespace->GetFullyQualifiedName(Name(struct_def)));
+        struct_def.defined_namespace
+            ? struct_def.defined_namespace->GetFullyQualifiedName(
+                  Name(struct_def))
+            : Name(struct_def));
     code_ += "struct {{STRUCT_NAME}}::Traits {";
     code_ += "  using type = {{STRUCT_NAME}};";
     if (!struct_def.fixed) {
@@ -3393,7 +3418,9 @@ class CppGenerator : public BaseGenerator {
       }
       // Need to call "Create" with the struct namespace.
       const auto qualified_create_name =
-          struct_def.defined_namespace->GetFullyQualifiedName("Create");
+          struct_def.defined_namespace
+              ? struct_def.defined_namespace->GetFullyQualifiedName("Create")
+              : "Create";
       code_.SetValue("CREATE_NAME", TranslateNameSpace(qualified_create_name));
       code_ += ") {";
       // Offset64 bit fields need to be added to the buffer first, so here we
@@ -4081,7 +4108,9 @@ class CppGenerator : public BaseGenerator {
         }
         // Need to call "Create" with the struct namespace.
         const auto qualified_create_name =
-            struct_def.defined_namespace->GetFullyQualifiedName("Create");
+            struct_def.defined_namespace
+                ? struct_def.defined_namespace->GetFullyQualifiedName("Create")
+                : "Create";
         code_.SetValue("CREATE_NAME",
                        TranslateNameSpace(qualified_create_name));
 

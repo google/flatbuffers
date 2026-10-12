@@ -37,8 +37,10 @@
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
+#include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
+#include "idl_gen_fbs.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection_generated.h"
 #include "flatbuffers/registry.h"
@@ -1745,6 +1747,43 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+class HardenedTestGenerator : public flatbuffers::BaseGenerator {
+ public:
+  HardenedTestGenerator(const flatbuffers::Parser& parser)
+      : flatbuffers::BaseGenerator(parser, "", "test", "::", "::", ".h") {}
+  bool generate() FLATBUFFERS_OVERRIDE { return true; }
+  using flatbuffers::BaseGenerator::WrapInNameSpace;
+  using flatbuffers::BaseGenerator::GetNameSpace;
+};
+
+void CodegenHardeningSafetyTest() {
+  // Test GenComment with null code_ptr and empty comments
+  std::vector<std::string> comments = { "doc comment" };
+  flatbuffers::GenComment(comments, nullptr, nullptr);
+  std::string comment_out;
+  std::vector<std::string> empty_comments;
+  flatbuffers::GenComment(empty_comments, &comment_out, nullptr);
+  TEST_EQ(comment_out.empty(), true);
+
+  // Test BaseGenerator::WrapInNameSpace and GetNameSpace with null namespace
+  flatbuffers::Parser parser;
+  HardenedTestGenerator gen(parser);
+  TEST_EQ_STR(gen.WrapInNameSpace(nullptr, "MyType").c_str(), "MyType");
+  flatbuffers::StructDef sd;
+  sd.name = "MyStruct";
+  sd.defined_namespace = nullptr;
+  TEST_EQ_STR(gen.GetNameSpace(sd).c_str(), "");
+
+  // Test FBS code generator with empty / unparsed parser and null file saver
+  std::unique_ptr<flatbuffers::CodeGenerator> fbs_gen =
+      flatbuffers::NewFBSCodeGenerator(true);
+  std::string fbs_out;
+  TEST_EQ(fbs_gen->GenerateCodeString(parser, "test", fbs_out),
+          flatbuffers::CodeGenerator::Status::OK);
+  TEST_EQ(fbs_gen->GenerateCode(parser, "", "test"),
+          flatbuffers::CodeGenerator::Status::ERROR);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1864,6 +1903,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
+  CodegenHardeningSafetyTest();
   return 0;
 }
 }  // namespace
