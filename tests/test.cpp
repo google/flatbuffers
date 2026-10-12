@@ -1745,8 +1745,55 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+static void UtilSafetyTest() {
+  std::string s;
+  int64_t i64 = 0;
+  uint64_t u64 = 0;
+  float f = 0.0f;
+  double d = 0.0;
+  int32_t i32 = 0;
+
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &i32), false);
+  TEST_EQ(flatbuffers::StringToNumber("123", static_cast<int32_t*>(nullptr)), false);
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &i64), false);
+  TEST_EQ(flatbuffers::StringToNumber("123", static_cast<int64_t*>(nullptr)), false);
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &u64), false);
+  TEST_EQ(flatbuffers::StringToNumber("123", static_cast<uint64_t*>(nullptr)), false);
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &f), false);
+  TEST_EQ(flatbuffers::StringToNumber("1.5", static_cast<float*>(nullptr)), false);
+  TEST_EQ(flatbuffers::StringToNumber(nullptr, &d), false);
+  TEST_EQ(flatbuffers::StringToNumber("1.5", static_cast<double*>(nullptr)), false);
+
+  TEST_EQ(flatbuffers::StringToInt(nullptr), 0);
+  TEST_EQ(flatbuffers::StringToUInt(nullptr), 0);
+
+  TEST_EQ(flatbuffers::ToUTF8(0x80000000, &s), -1);
+  TEST_EQ(flatbuffers::ToUTF8(65, nullptr), -1);
+  TEST_EQ(flatbuffers::FromUTF8(nullptr), -1);
+  const char* null_ptr = nullptr;
+  TEST_EQ(flatbuffers::FromUTF8(&null_ptr), -1);
+
+  TEST_EQ(flatbuffers::EscapeString("abc", 3, nullptr, false, false), false);
+  TEST_EQ(flatbuffers::EscapeString(nullptr, 10, &s, false, false), false);
+
+  TEST_EQ(flatbuffers::FileExists(nullptr), false);
+  TEST_EQ(flatbuffers::DirExists(nullptr), false);
+  TEST_EQ(flatbuffers::LoadFile(nullptr, false, &s), false);
+  TEST_EQ(flatbuffers::LoadFile("some_file", false, nullptr), false);
+  TEST_EQ(flatbuffers::SaveFile(nullptr, "data", 4, false), false);
+  TEST_EQ(flatbuffers::SaveFile("file", nullptr, 4, false), false);
+
+  TEST_EQ_STR(flatbuffers::PosixPath(static_cast<const char*>(nullptr)).c_str(), "");
+  TEST_EQ_STR(flatbuffers::ConCatPathFileName("", "").c_str(), "");
+  TEST_EQ_STR(flatbuffers::ConCatPathFileName(".", "").c_str(), "");
+
+  TEST_EQ(flatbuffers::SetGlobalTestLocale(nullptr), false);
+  TEST_EQ(flatbuffers::ReadEnvironmentVariable(nullptr), false);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
+  UtilSafetyTest();
 
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);

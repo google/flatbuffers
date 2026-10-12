@@ -293,6 +293,7 @@ inline bool StringToIntegerImpl(T* val, const char* const str,
                                 const int base = 0,
                                 const bool check_errno = true) {
   // T is int64_t or uint64_T
+  if (!val || !str) return false;
   FLATBUFFERS_ASSERT(str);
   if (base <= 0) {
     auto s = str;
@@ -318,6 +319,7 @@ inline bool StringToIntegerImpl(T* val, const char* const str,
 template <typename T>
 inline bool StringToFloatImpl(T* val, const char* const str) {
   // Type T must be either float or double.
+  if (!val || !str) return false;
   FLATBUFFERS_ASSERT(str && val);
   auto end = str;
   strtoval_impl(val, str, const_cast<char**>(&end));
@@ -340,6 +342,7 @@ inline bool StringToNumber(const char* s, T* val) {
   // Assert on `unsigned long` and `signed long` on LP64.
   // If it is necessary, it could be solved with flatbuffers::enable_if<B,T>.
   static_assert(sizeof(T) < sizeof(int64_t), "unexpected type T");
+  if (!s || !val) return false;
   FLATBUFFERS_ASSERT(s && val);
   int64_t i64;
   // The errno check isn't needed, will return MAX/MIN on overflow.
@@ -370,6 +373,7 @@ inline bool StringToNumber<int64_t>(const char* str, int64_t* val) {
 
 template <>
 inline bool StringToNumber<uint64_t>(const char* str, uint64_t* val) {
+  if (!str || !val) return false;
   if (!StringToIntegerImpl(val, str)) return false;
   // The strtoull accepts negative numbers:
   // If the minus sign was part of the input sequence, the numeric value
@@ -401,12 +405,14 @@ inline bool StringToNumber(const char* s, double* val) {
 }
 
 inline int64_t StringToInt(const char* s, int base = 10) {
-  int64_t val;
+  if (!s) return 0;
+  int64_t val = 0;
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
 inline uint64_t StringToUInt(const char* s, int base = 10) {
-  uint64_t val;
+  if (!s) return 0;
+  uint64_t val = 0;
   return StringToIntegerImpl(&val, s, base) ? val : 0;
 }
 
@@ -515,7 +521,9 @@ std::string RelativeToRootPath(const std::string& project,
 // Convert a unicode code point into a UTF-8 representation by appending it
 // to a string. Returns the number of bytes generated.
 inline int ToUTF8(uint32_t ucc, std::string* out) {
-  FLATBUFFERS_ASSERT(!(ucc & 0x80000000));  // Top bit can't be set.
+  if (!out) return -1;
+  if (ucc & 0x80000000) return -1;  // Top bit can't be set.
+  FLATBUFFERS_ASSERT(!(ucc & 0x80000000));
   // 6 possible encodings: http://en.wikipedia.org/wiki/UTF-8
   for (int i = 0; i < 6; i++) {
     // Max bits this encoding can represent.
@@ -543,6 +551,7 @@ inline int ToUTF8(uint32_t ucc, std::string* out) {
 // returns -1 upon corrupt UTF-8 encoding (ignore the incoming pointer in
 // this case).
 inline int FromUTF8(const char** in) {
+  if (!in || !*in) return -1;
   int len = 0;
   // Count leading 1 bits.
   for (int mask = 0x80; mask >= 0x04; mask >>= 1) {
@@ -626,6 +635,8 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 
 inline bool EscapeString(const char* s, size_t length, std::string* _text,
                          bool allow_non_utf8, bool natural_utf8) {
+  if (!_text) return false;
+  if (!s && length > 0) return false;
   std::string& text = *_text;
   text += "\"";
   for (uoffset_t i = 0; i < length; i++) {
