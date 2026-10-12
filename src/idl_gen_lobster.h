@@ -21,6 +21,12 @@
 
 namespace flatbuffers {
 
+class Parser;
+
+// Generate text includes for Lobster.
+bool GenerateLobster(const Parser& parser, const std::string& path,
+                     const std::string& file_name);
+
 // Constructs a new Lobster code generator.
 std::unique_ptr<CodeGenerator> NewLobsterCodeGenerator();
 
