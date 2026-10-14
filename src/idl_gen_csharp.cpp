@@ -785,7 +785,14 @@ class CSharpGenerator : public BaseGenerator {
             break;
           }
           case BASE_TYPE_UNION: {
-            // Vectors of unions are not yet supported for go
+            code_.SetValue("ENUM_NAME",
+                           NamespacedName(*field.value.type.enum_def));
+            code_.SetValue("TYPE_ID_OFFSET",
+                           NumToString(field.value.offset - sizeof(voffset_t)));
+            code_ +=
+                "{{PRE}}      && verifier.VerifyVectorOfUnion(tablePos, "
+                "{{TYPE_ID_OFFSET}}, {{OFFSET}} /*{{NAME}}*/, "
+                "{{ENUM_NAME}}Verify.Verify, {{REQUIRED_FLAG}})";
             break;
           }
           default:
