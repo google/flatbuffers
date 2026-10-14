@@ -15,6 +15,7 @@
  */
 
 using System;
+using MyGame.Example;
 
 namespace Google.FlatBuffers.Test
 {
@@ -76,6 +77,47 @@ namespace Google.FlatBuffers.Test
             // VerifyBuffer("", ...) for schemas that declare no file_identifier.
             Assert.IsTrue(Verify(BuildBuffer(null), ""));
             Assert.IsTrue(Verify(BuildBuffer("NULL"), ""));
+        }
+
+        // A Monster whose testnestedflatbuffer field holds a finished Monster
+        // buffer: the layout for which generated code calls VerifyNestedBuffer.
+        private static byte[] BuildMonsterWithNestedBuffer(bool corruptInner)
+        {
+            var innerBuilder = new FlatBufferBuilder(64);
+            var innerName = innerBuilder.CreateString("inner");
+            Monster.StartMonster(innerBuilder);
+            Monster.AddName(innerBuilder, innerName);
+            Monster.AddHp(innerBuilder, 100);
+            Monster.FinishMonsterBuffer(innerBuilder, Monster.EndMonster(innerBuilder));
+            var innerBytes = innerBuilder.SizedByteArray();
+            if (corruptInner)
+            {
+                // Overwrite the length of the inner name string.
+                innerBytes[innerBytes.Length - innerName.Value] = 0xFF;
+            }
+
+            var outerBuilder = new FlatBufferBuilder(128);
+            var outerName = outerBuilder.CreateString("outer");
+            var nested = Monster.CreateTestnestedflatbufferVector(outerBuilder, innerBytes);
+            Monster.StartMonster(outerBuilder);
+            Monster.AddName(outerBuilder, outerName);
+            Monster.AddTestnestedflatbuffer(outerBuilder, nested);
+            Monster.FinishMonsterBuffer(outerBuilder, Monster.EndMonster(outerBuilder));
+            return outerBuilder.SizedByteArray();
+        }
+
+        [FlatBuffersTestMethod]
+        public void VerifyBufferAcceptsNestedFlatBuffer()
+        {
+            // VerifyNestedBuffer has no identifier for the nested buffer and
+            // passes "", so the identifier check must be skipped for it.
+            Assert.IsTrue(Monster.VerifyMonster(new ByteBuffer(BuildMonsterWithNestedBuffer(false))));
+        }
+
+        [FlatBuffersTestMethod]
+        public void VerifyBufferRejectsCorruptNestedFlatBuffer()
+        {
+            Assert.IsFalse(Monster.VerifyMonster(new ByteBuffer(BuildMonsterWithNestedBuffer(true))));
         }
     }
 }
