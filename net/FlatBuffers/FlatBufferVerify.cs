@@ -726,6 +726,11 @@ namespace Google.FlatBuffers
       var typeIdVectorOffset = GetIndirectOffset(offset);
       // values offset must be valid
       offset = GetVOffset(tablePos, offsetId);
+      if (offset == 0)
+      {
+        // Type id vector present without a matching value vector is malformed
+        return false;
+      }
       if (!CheckIndirectOffset(offset))
       {
         return false;
