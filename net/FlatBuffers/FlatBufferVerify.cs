@@ -434,7 +434,7 @@ namespace Google.FlatBuffers
     private bool CheckBufferFromStart(string identifier, uint startPos, VerifyTableAction verifyAction)
     {
       if ((identifier != null) &&
-          (identifier.Length == 0) &&
+          (identifier.Length != 0) &&
           ((verifier_buffer.Length < (SIZE_U_OFFSET + FILE_IDENTIFIER_LENGTH)) || (!BufferHasIdentifier(verifier_buffer, startPos, identifier))))
       {
         return false;
