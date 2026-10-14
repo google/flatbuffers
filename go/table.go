@@ -54,21 +54,51 @@ func (t *Table) ByteVector(off UOffsetT) []byte {
 }
 
 // VectorLen retrieves the length of the vector whose offset is stored at
-// "off" in this object.
+// "off" in this object. If the offset is invalid, out of bounds, or the
+// claimed length could not possibly fit in the remaining buffer (even for
+// the smallest, 1-byte element type), returns 0 to prevent crashes, mirroring
+// the bounds checking already done in ByteVector above.
 func (t *Table) VectorLen(off UOffsetT) int {
+	n := UOffsetT(len(t.Bytes))
+	u := UOffsetT(SizeUOffsetT)
+	if t.Pos > n || off > n-t.Pos || n-t.Pos-off < u {
+		return 0
+	}
 	off += t.Pos
-	off += GetUOffsetT(t.Bytes[off:])
-	return int(GetUOffsetT(t.Bytes[off:]))
+	rel := GetUOffsetT(t.Bytes[off:])
+	if rel > n-off || n-off-rel < u {
+		return 0
+	}
+	off += rel
+	length := GetUOffsetT(t.Bytes[off:])
+	start := off + u
+	// Avoid overflow by checking the length against the remaining buffer space.
+	if length > n-start {
+		return 0
+	}
+	return int(length)
 }
 
 // Vector retrieves the start of data of the vector whose offset is stored
-// at "off" in this object.
+// at "off" in this object. If the offset is invalid, out of bounds, or the
+// vector's relative offset does not fit in the buffer, returns n (the
+// buffer length, a position past its end) so that any subsequent read
+// through the returned position fails safely instead of silently landing
+// on a wild, attacker-influenced address, mirroring the bounds checking
+// already done in ByteVector and VectorLen above.
 func (t *Table) Vector(off UOffsetT) UOffsetT {
+	n := UOffsetT(len(t.Bytes))
+	u := UOffsetT(SizeUOffsetT)
+	if t.Pos > n || off > n-t.Pos || n-t.Pos-off < u {
+		return n
+	}
 	off += t.Pos
-	x := off + GetUOffsetT(t.Bytes[off:])
-	// data starts after metadata containing the vector length
-	x += UOffsetT(SizeUOffsetT)
-	return x
+	rel := GetUOffsetT(t.Bytes[off:])
+	if rel > n-off || n-off-rel < u {
+		return n
+	}
+	off += rel
+	return off + u
 }
 
 // Union initializes any Table-derived type to point to the union at the given
