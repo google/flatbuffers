@@ -750,7 +750,7 @@ namespace Google.FlatBuffers
       for (uint i = 0; i < typeIdVectorLength; i++)
       {
         // Get type id
-        byte typeId = verifier_buffer.Get(Convert.ToInt32(typeIdStart + i * SIZE_U_OFFSET));
+        byte typeId = verifier_buffer.Get(Convert.ToInt32(typeIdStart + i * SIZE_BYTE));
         // get offset to vector item
         uint off = valueStart + i * SIZE_U_OFFSET;
         // Check the vector item has a proper offset

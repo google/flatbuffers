@@ -221,6 +221,7 @@ static public class MovieVerify
       && verifier.VerifyField(tablePos, 4 /*MainCharacterType*/, 1 /*Character*/, 1, false)
       && verifier.VerifyUnion(tablePos, 4, 6 /*MainCharacter*/, CharacterVerify.Verify, false)
       && verifier.VerifyVectorOfData(tablePos, 8 /*CharactersType*/, 1 /*Character*/, false)
+      && verifier.VerifyVectorOfUnion(tablePos, 8, 10 /*Characters*/, CharacterVerify.Verify, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }
