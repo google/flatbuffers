@@ -33,17 +33,11 @@ func (t *Table) String(off UOffsetT) string {
 // ByteVector gets a byte slice from data stored inside the flatbuffer.
 // If the offset is invalid or out of bounds, returns nil to prevent crashes.
 func (t *Table) ByteVector(off UOffsetT) []byte {
+	off, ok := t.vectorLenPos(off)
+	if !ok {
+		return nil
+	}
 	n := UOffsetT(len(t.Bytes))
-	// Need at least SizeUOffsetT bytes to read the relative vector offset.
-	u := UOffsetT(SizeUOffsetT)
-	if n < u || off > n-u {
-		return nil
-	}
-	off += GetUOffsetT(t.Bytes[off:])
-	// Need at least SizeUOffsetT bytes to read the vector length.
-	if n < u || off > n-u {
-		return nil
-	}
 	start := off + UOffsetT(SizeUOffsetT)
 	length := GetUOffsetT(t.Bytes[off:])
 	// Avoid overflow by checking the length against the remaining buffer space.
@@ -53,30 +47,91 @@ func (t *Table) ByteVector(off UOffsetT) []byte {
 	return t.Bytes[start : start+length]
 }
 
-// VectorLen retrieves the length of the vector whose offset is stored at
-// "off" in this object.
-func (t *Table) VectorLen(off UOffsetT) int {
-	off += t.Pos
+// vectorLenPos resolves `off`, the position of a vector's relative offset
+// field, into the position of that vector's length field.
+//
+// Both the relative offset and everything derived from it come from the
+// buffer, which is untrusted input, so every step is validated against the
+// buffer bounds before it is dereferenced. The checks are written as
+// subtractions rather than sums: UOffsetT is a uint32, so an attacker can
+// pick a relative offset that makes `off + rel` wrap around back into the
+// buffer and slip past a bounds check performed after the addition.
+//
+// The second return value reports whether the length field itself is
+// readable, i.e. whether SizeUOffsetT bytes are available at the returned
+// position.
+func (t *Table) vectorLenPos(off UOffsetT) (UOffsetT, bool) {
 	n := UOffsetT(len(t.Bytes))
 	u := UOffsetT(SizeUOffsetT)
+	// Need at least SizeUOffsetT bytes at `off` to read the relative offset.
 	if n < u || off > n-u {
+		return 0, false
+	}
+	// Check the relative offset before adding it: a large value would
+	// otherwise wrap the sum back into the buffer.
+	rel := GetUOffsetT(t.Bytes[off:])
+	if rel > n-off {
+		return 0, false
+	}
+	off += rel
+	// Need at least SizeUOffsetT bytes at the new position to read the length.
+	if n < u || off > n-u {
+		return 0, false
+	}
+	return off, true
+}
+
+// vectorPos is vectorLenPos for the table-relative offsets that Vector and
+// VectorLen are called with: it turns the offset into a position in the buffer
+// first, rejecting one whose sum with the table position would wrap around
+// back into the buffer.
+func (t *Table) vectorPos(off UOffsetT) (UOffsetT, bool) {
+	n := UOffsetT(len(t.Bytes))
+	if t.Pos > n || off > n-t.Pos {
+		return 0, false
+	}
+	return t.vectorLenPos(off + t.Pos)
+}
+
+// VectorLen retrieves the length of the vector whose offset is stored at
+// "off" in this object.
+//
+// The offset, the vector's relative offset and the length it claims are all
+// read from the buffer, so all of them are validated against the buffer
+// bounds first. If any step is out of bounds, or if the claimed length could
+// not fit in the buffer even for a one-byte element type, 0 is returned
+// instead of panicking or handing back an attacker-controlled length.
+func (t *Table) VectorLen(off UOffsetT) int {
+	pos, ok := t.vectorPos(off)
+	if !ok {
 		return 0
 	}
-	off += GetUOffsetT(t.Bytes[off:])
-	if n < u || off > n-u {
+	length := GetUOffsetT(t.Bytes[pos:])
+	// A vector cannot hold more elements than there are bytes left in the
+	// buffer after its length field, not even for a one-byte element type.
+	// Comparing against the remaining space (rather than adding up
+	// `pos+SizeUOffsetT+length`) keeps this check free of overflow.
+	if length > UOffsetT(len(t.Bytes))-pos-UOffsetT(SizeUOffsetT) {
 		return 0
 	}
-	return int(GetUOffsetT(t.Bytes[off:]))
+	return int(length)
 }
 
 // Vector retrieves the start of data of the vector whose offset is stored
 // at "off" in this object.
+//
+// The offset and the vector's relative offset are validated against the
+// buffer bounds first. If either is out of bounds, 0 is returned: it can
+// never be the start of a vector's data, and it keeps the element reads that
+// generated code performs on the result inside the buffer instead of
+// panicking on a wild position.
 func (t *Table) Vector(off UOffsetT) UOffsetT {
-	off += t.Pos
-	x := off + GetUOffsetT(t.Bytes[off:])
+	pos, ok := t.vectorPos(off)
+	if !ok {
+		return 0
+	}
 	// data starts after metadata containing the vector length
-	x += UOffsetT(SizeUOffsetT)
-	return x
+	return pos + UOffsetT(SizeUOffsetT)
 }
 
 // Union initializes any Table-derived type to point to the union at the given
