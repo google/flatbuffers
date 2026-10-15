@@ -2522,45 +2522,239 @@ func CheckByteVectorBoundsChecking(fail func(string, ...interface{})) {
 	}
 }
 
-// CheckVectorLenBoundsChecking ensures VectorLen handles malformed input safely.
+// monsterWithInventory is a minimal but well-formed Monster root table holding a
+// single `inventory:[ubyte]` vector with the values [1, 2, 3]. Every other
+// field is absent, which is legal. Its layout is:
+//
+//	 0: root uoffset -> table at 20
+//	 4: vtable: size 16, table size 8, slot 14 ("inventory") -> table + 4
+//	20: table: soffset -> vtable at 4, inventory field at 24
+//	24: inventory relative uoffset -> 28
+//	28: inventory length -> 3
+//	32: inventory data -> 1, 2, 3
+var monsterWithInventory = []byte{
+	0x14, 0x00, 0x00, 0x00, // root uoffset -> table at 20
+	0x10, 0x00, // vtable byte size
+	0x08, 0x00, // table byte size
+	0x00, 0x00, // field: slot 4
+	0x00, 0x00, // field: slot 6
+	0x00, 0x00, // field: slot 8
+	0x00, 0x00, // field: slot 10
+	0x00, 0x00, // field: slot 12
+	0x04, 0x00, // field: slot 14 (inventory) -> table + 4
+	0x10, 0x00, 0x00, 0x00, // table soffset -> vtable at 4
+	0x04, 0x00, 0x00, 0x00, // inventory relative uoffset -> 28
+	0x03, 0x00, 0x00, 0x00, // inventory length -> 3
+	0x01, 0x02, 0x03, 0x00, // inventory data
+}
+
+// Positions of the fields of interest inside monsterWithInventory.
+const (
+	inventoryUOffsetPos = 24 // the inventory's relative uoffset
+	inventoryLengthPos  = 28 // the inventory's length field
+	inventoryDataPos    = 32 // the inventory's first data byte
+)
+
+// writeUOffsetT writes a little-endian UOffsetT into buf at off.
+func writeUOffsetT(buf []byte, off int, v uint32) {
+	buf[off] = byte(v)
+	buf[off+1] = byte(v >> 8)
+	buf[off+2] = byte(v >> 16)
+	buf[off+3] = byte(v >> 24)
+}
+
+// mustNotPanic runs f, failing the check if it panics. The accessors used on an
+// unverified buffer have to fail closed rather than crash the process.
+func mustNotPanic(fail func(string, ...interface{}), what string, f func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			fail("%s panicked: %v", what, r)
+		}
+	}()
+	f()
+}
+
+// CheckVectorLenBoundsChecking ensures that Table.VectorLen and Table.Vector
+// validate every offset they take from the buffer instead of trusting it. A
+// FlatBuffer read from an untrusted source is not necessarily verified, so the
+// relative offset and the length stored in the buffer are attacker-controlled:
+// using them unchecked made these accessors panic on a truncated buffer, and
+// report a length (and therefore a data position) the buffer could not back up.
 func CheckVectorLenBoundsChecking(fail func(string, ...interface{})) {
-	// Test case 1: Offset beyond buffer size
-	table := &flatbuffers.Table{
-		Bytes: []byte{0x04, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00}, // Small buffer
-		Pos:   0,
+	// A well-formed buffer keeps working, both through the raw accessors and
+	// through the generated code built on top of them.
+	good := &flatbuffers.Table{
+		Bytes: monsterWithInventory,
+		Pos:   flatbuffers.GetUOffsetT(monsterWithInventory),
 	}
-	if result := table.VectorLen(100); result != 0 { // Offset way beyond buffer
-		fail("VectorLen should return 0 for offset beyond buffer")
+	goodSlot := flatbuffers.UOffsetT(good.Offset(14))
+	if got := good.VectorLen(goodSlot); got != 3 {
+		fail("VectorLen on a valid buffer: want 3, got %d", got)
 	}
-
-	// Test case 2: Relative offset points beyond the buffer
-	// (e.g. a truncated payload whose vtable entry was not truncated)
-	truncatedBytes := make([]byte, 20)
-	truncatedBytes[0] = 200 // relative offset far beyond the buffer
-	table = &flatbuffers.Table{Bytes: truncatedBytes, Pos: 0}
-	if result := table.VectorLen(0); result != 0 {
-		fail("VectorLen should return 0 for relative offset beyond buffer")
+	if got := good.Vector(goodSlot); got != inventoryDataPos {
+		fail("Vector on a valid buffer: want %d, got %d", inventoryDataPos, got)
 	}
-
-	// Test case 3: Offset beyond buffer size when combined with Pos
-	table = &flatbuffers.Table{
-		Bytes: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-		Pos:   6,
+	goodMonster := example.GetRootAsMonster(monsterWithInventory, 0)
+	if got := goodMonster.InventoryLength(); got != 3 {
+		fail("Monster.InventoryLength on a valid buffer: want 3, got %d", got)
 	}
-	if result := table.VectorLen(4); result != 0 {
-		fail("VectorLen should return 0 when Pos plus offset exceeds buffer")
+	for i, want := range []byte{1, 2, 3} {
+		if got := goodMonster.Inventory(i); got != want {
+			fail("Monster.Inventory(%d): want %d, got %d", i, want, got)
+		}
 	}
 
-	// Test case 4: Valid case should still work
-	// Construct: [relative offset: 4] [vector length: 3] [data: 'a', 'b', 'c']
-	validBytes := []byte{
-		4, 0, 0, 0, // relative offset to vector data (at position 4)
-		3, 0, 0, 0, // vector length (3)
-		'a', 'b', 'c', // actual vector data
+	// A length that does not fit in the buffer is rejected. Generated code
+	// uses this length to bound a loop and to index into the vector, so a
+	// bogus length turns into an out-of-range access further down.
+	evilLen := append([]byte(nil), monsterWithInventory...)
+	writeUOffsetT(evilLen, inventoryLengthPos, 0x7fffffff)
+	evilLenTable := &flatbuffers.Table{Bytes: evilLen, Pos: flatbuffers.GetUOffsetT(evilLen)}
+	if got := evilLenTable.VectorLen(flatbuffers.UOffsetT(evilLenTable.Offset(14))); got != 0 {
+		fail("VectorLen with a corrupted length: want 0, got %d", got)
 	}
-	table = &flatbuffers.Table{Bytes: validBytes, Pos: 0}
-	if result := table.VectorLen(0); result != 3 {
-		fail("VectorLen should work correctly for valid data")
+	evilLenMonster := example.GetRootAsMonster(evilLen, 0)
+	if got := evilLenMonster.InventoryLength(); got != 0 {
+		fail("Monster.InventoryLength with a corrupted length: want 0, got %d", got)
+	}
+	mustNotPanic(fail, "Monster.Inventory with a corrupted length", func() {
+		evilLenMonster.Inventory(0)
+	})
+
+	// A relative offset that points past the end of the buffer is rejected.
+	evilOff := append([]byte(nil), monsterWithInventory...)
+	writeUOffsetT(evilOff, inventoryUOffsetPos, 0x7fffffff)
+	evilOffTable := &flatbuffers.Table{Bytes: evilOff, Pos: flatbuffers.GetUOffsetT(evilOff)}
+	evilOffSlot := flatbuffers.UOffsetT(evilOffTable.Offset(14))
+	if got := evilOffTable.VectorLen(evilOffSlot); got != 0 {
+		fail("VectorLen with a corrupted offset: want 0, got %d", got)
+	}
+	if got := evilOffTable.Vector(evilOffSlot); got != 0 {
+		fail("Vector with a corrupted offset: want 0, got %d", got)
+	}
+	evilOffMonster := example.GetRootAsMonster(evilOff, 0)
+	mustNotPanic(fail, "Monster.InventoryLength with a corrupted offset", func() {
+		if got := evilOffMonster.InventoryLength(); got != 0 {
+			fail("Monster.InventoryLength with a corrupted offset: want 0, got %d", got)
+		}
+	})
+
+	// A relative offset picked so that the sum with the offset wraps around the
+	// 32 bit range and lands back inside the buffer is rejected as well. A
+	// bounds check performed after the addition would accept this one and then
+	// read the length stored at the position the wrap landed on.
+	wrap := append([]byte(nil), monsterWithInventory...)
+	writeUOffsetT(wrap, inventoryUOffsetPos, 0xffffffec) // 24 + 0xffffffec == 4
+	wrapTable := &flatbuffers.Table{Bytes: wrap, Pos: flatbuffers.GetUOffsetT(wrap)}
+	wrapSlot := flatbuffers.UOffsetT(wrapTable.Offset(14))
+	if got := wrapTable.VectorLen(wrapSlot); got != 0 {
+		fail("VectorLen with a wrapping relative offset: want 0, got %d", got)
+	}
+	if got := wrapTable.Vector(wrapSlot); got != 0 {
+		fail("Vector with a wrapping relative offset: want 0, got %d", got)
+	}
+	wrapMonster := example.GetRootAsMonster(wrap, 0)
+	mustNotPanic(fail, "Monster.InventoryLength with a wrapping relative offset", func() {
+		if got := wrapMonster.InventoryLength(); got != 0 {
+			fail("Monster.InventoryLength with a wrapping relative offset: want 0, got %d", got)
+		}
+	})
+
+	// A buffer truncated in the middle of the vector metadata is rejected
+	// instead of reading the length field past the end of the buffer.
+	truncated := monsterWithInventory[:inventoryUOffsetPos]
+	truncatedTable := &flatbuffers.Table{Bytes: truncated, Pos: flatbuffers.GetUOffsetT(truncated)}
+	truncatedSlot := flatbuffers.UOffsetT(truncatedTable.Offset(14))
+	if got := truncatedTable.VectorLen(truncatedSlot); got != 0 {
+		fail("VectorLen on a truncated buffer: want 0, got %d", got)
+	}
+	if got := truncatedTable.Vector(truncatedSlot); got != 0 {
+		fail("Vector on a truncated buffer: want 0, got %d", got)
+	}
+	truncatedMonster := example.GetRootAsMonster(truncated, 0)
+	mustNotPanic(fail, "Monster.InventoryLength on a truncated buffer", func() {
+		if got := truncatedMonster.InventoryLength(); got != 0 {
+			fail("Monster.InventoryLength on a truncated buffer: want 0, got %d", got)
+		}
+	})
+
+	// Wild offsets and a buffer too short to hold any offset at all must not
+	// take the process down.
+	for _, off := range []flatbuffers.UOffsetT{1, 100, 200, 0xffffffff, 0xfffffff0} {
+		off := off
+		mustNotPanic(fail, fmt.Sprintf("VectorLen(%d)", off), func() {
+			table := &flatbuffers.Table{Bytes: monsterWithInventory, Pos: 20}
+			if got := table.VectorLen(off); got != 0 {
+				fail("VectorLen(%d): want 0, got %d", off, got)
+			}
+		})
+		mustNotPanic(fail, fmt.Sprintf("Vector(%d)", off), func() {
+			table := &flatbuffers.Table{Bytes: monsterWithInventory, Pos: 20}
+			table.Vector(off)
+		})
+	}
+	mustNotPanic(fail, "VectorLen on an empty buffer", func() {
+		if got := (&flatbuffers.Table{}).VectorLen(0); got != 0 {
+			fail("VectorLen on an empty buffer: want 0, got %d", got)
+		}
+	})
+	mustNotPanic(fail, "Vector on an empty buffer", func() {
+		(&flatbuffers.Table{}).Vector(0)
+	})
+
+	// An offset that overflows once the table position is added to it is
+	// rejected as well, instead of wrapping back into the buffer.
+	mustNotPanic(fail, "VectorLen with an overflowing table position", func() {
+		table := &flatbuffers.Table{Bytes: monsterWithInventory, Pos: 0xfffffff0}
+		if got := table.VectorLen(4); got != 0 {
+			fail("VectorLen with an overflowing table position: want 0, got %d", got)
+		}
+	})
+	mustNotPanic(fail, "Vector with an overflowing table position", func() {
+		table := &flatbuffers.Table{Bytes: monsterWithInventory, Pos: 0xfffffff0}
+		if got := table.Vector(4); got != 0 {
+			fail("Vector with an overflowing table position: want 0, got %d", got)
+		}
+	})
+
+	// A vector stored at the very start of the buffer, i.e. one whose table
+	// position is 0, keeps working; its relative offset and length are read
+	// from the same two checks as any other vector.
+	simple := &flatbuffers.Table{Bytes: []byte{
+		4, 0, 0, 0, // relative uoffset -> 4
+		3, 0, 0, 0, // length -> 3
+		'a', 'b', 'c',
+	}, Pos: 0}
+	if got := simple.VectorLen(0); got != 3 {
+		fail("VectorLen on a valid buffer at position 0: want 3, got %d", got)
+	}
+	if got := simple.Vector(0); got != 8 {
+		fail("Vector on a valid buffer at position 0: want 8, got %d", got)
+	}
+
+	// A relative offset that runs past the end of the buffer is rejected, and
+	// so is an offset that does once the table position is added to it.
+	farRel := &flatbuffers.Table{Bytes: make([]byte, 20), Pos: 0}
+	writeUOffsetT(farRel.Bytes, 0, 200)
+	if got := farRel.VectorLen(0); got != 0 {
+		fail("VectorLen with a relative offset past the buffer: want 0, got %d", got)
+	}
+	pastPos := &flatbuffers.Table{Bytes: make([]byte, 8), Pos: 6}
+	if got := pastPos.VectorLen(4); got != 0 {
+		fail("VectorLen with an offset past the table position: want 0, got %d", got)
+	}
+
+	// ByteVector walks the same chain of offsets, so it rejects a wrapping
+	// relative offset too instead of returning a slice from a position the
+	// attacker chose.
+	wrapVec := []byte{
+		0x00, 0x00, 0x00, 0x00, // padding
+		0xfc, 0xff, 0xff, 0xff, // relative uoffset: 4 + 0xfffffffc wraps to 0
+		0x03, 0x00, 0x00, 0x00, // length of the vector that starts at 0
+		'a', 'b', 'c', // data
+	}
+	if result := (&flatbuffers.Table{Bytes: wrapVec, Pos: 0}).ByteVector(4); result != nil {
+		fail("ByteVector should return nil for a wrapping relative offset")
 	}
 }
 
