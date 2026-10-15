@@ -75,6 +75,17 @@ extension Array where Element == Package.Dependency {
       .package(
         url: "https://github.com/grpc/grpc-swift-nio-transport.git",
         from: "2.0.0"),
+      // swift-crypto arrives through grpc-swift-nio-transport -> swift-nio-ssl
+      // and is otherwise resolved afresh on every build, because this package
+      // ships no Package.resolved. 5.x asks for swift-tools-version 6.2, so only
+      // the 6.2 CI job selects it - and then fails to compile it, because 5.x
+      // uses `@nonexhaustive`, which the 6.2.x toolchains do not accept yet.
+      // Stay on the last 4.x release that still builds with every toolchain in
+      // the Swift CI matrix (4.3.0 declares swift-tools-version 6.0; 4.4+ asks
+      // for 6.1 and would drop the 6.0 job).
+      .package(
+        url: "https://github.com/apple/swift-crypto.git",
+        "4.0.0" ..< "4.4.0"),
     ]
     #endif
   }
