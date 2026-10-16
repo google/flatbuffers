@@ -19,6 +19,7 @@ import sys
 PY_VERSION = sys.version_info[:2]
 
 import ctypes
+import struct
 from collections import defaultdict
 import math
 import random
@@ -340,6 +341,61 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertTrue(optsT2.maybeEnum is None)
     self.assertTrue(optsT2.defaultU64 == 42)
 
+
+class TestVectorLenBoundsChecking(unittest.TestCase):
+  """Regression test: Table.VectorLen() and Table.Vector() must reject a
+  corrupted relative-offset or length field instead of trusting it, so that
+  reading an untrusted buffer cannot raise an uncaught exception or hand
+  back a wild, out-of-bounds address to a downstream element access.
+  """
+
+  def _build_good(self):
+    builder = flatbuffers.Builder(64)
+    inv = builder.CreateByteVector(bytes([1, 2, 3]))
+    MyGame.Example.Monster.MonsterStart(builder)
+    MyGame.Example.Monster.MonsterAddInventory(builder, inv)
+    mon = MyGame.Example.Monster.MonsterEnd(builder)
+    builder.Finish(mon)
+    return bytes(builder.Output())
+
+  def test_corrupted_length_field_is_rejected(self):
+    good = self._build_good()
+    idx = good.find(bytes([3, 0, 0, 0]) + bytes([1, 2, 3]))
+    self.assertNotEqual(idx, -1)
+    evil = bytearray(good)
+    struct.pack_into('<I', evil, idx, 0x7FFFFFFF)
+    evil = bytes(evil)
+
+    good_monster = MyGame.Example.Monster.Monster.GetRootAs(good, 0)
+    self.assertEqual(good_monster.InventoryLength(), 3)
+    self.assertEqual(
+        [good_monster.Inventory(i) for i in range(good_monster.InventoryLength())],
+        [1, 2, 3])
+
+    evil_monster = MyGame.Example.Monster.Monster.GetRootAs(evil, 0)
+    self.assertEqual(evil_monster.InventoryLength(), 0)
+    for i in range(evil_monster.InventoryLength()):
+      evil_monster.Inventory(i)  # must not raise
+
+  def test_corrupted_relative_offset_field_is_rejected(self):
+    good = self._build_good()
+    idx = good.find(bytes([3, 0, 0, 0]) + bytes([1, 2, 3])) - 4
+    self.assertGreaterEqual(idx, 0)
+    evil = bytearray(good)
+    struct.pack_into('<I', evil, idx, 0x7FFFFFFF)
+    evil = bytes(evil)
+
+    evil_monster = MyGame.Example.Monster.Monster.GetRootAs(evil, 0)
+    self.assertEqual(evil_monster.InventoryLength(), 0)
+
+  def test_huge_pos_does_not_bypass_via_wraparound(self):
+    buf = bytearray(20)
+    buf[4:8] = (4).to_bytes(4, "little")
+    buf[8:12] = (3).to_bytes(4, "little")
+    buf[12:15] = bytes([1, 2, 3])
+    t = flatbuffers.table.Table(bytes(buf), 0xFFFFFFF0)
+    self.assertEqual(t.VectorLen(20), 0)
+    self.assertEqual(t.Vector(20), len(buf))
 
 class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):
   """Tests the object API generated for monster_test.fbs for mutation
