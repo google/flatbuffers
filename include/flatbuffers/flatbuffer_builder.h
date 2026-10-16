@@ -1396,11 +1396,11 @@ class FlatBufferBuilderImpl {
     typedef void is_transparent;
     bool operator()(const Offset<String>& a, const StringLookup& b) const {
       auto str = reinterpret_cast<const String*>(buf_->data_at(a.o));
-      return StringLessThan(str->c_str(), str->size(), b.data, b.size);
+      return StringLessThan(str->data(), str->size(), b.data, b.size);
     }
     bool operator()(const StringLookup& a, const Offset<String>& b) const {
       auto str = reinterpret_cast<const String*>(buf_->data_at(b.o));
-      return StringLessThan(a.data, a.size, str->c_str(), str->size());
+      return StringLessThan(a.data, a.size, str->data(), str->size());
     }
 #endif
     explicit StringOffsetCompare(const vector_downward<SizeT>& buf)
