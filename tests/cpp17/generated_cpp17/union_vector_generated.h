@@ -893,6 +893,7 @@ inline void *CharacterUnion::UnPack(const void *obj, Character type, const ::fla
 
 inline ::flatbuffers::Offset<void> CharacterUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
+  if (!value) { return 0; }
   switch (type) {
     case Character::MuLan: {
       auto ptr = reinterpret_cast<const AttackerT *>(value);
@@ -1038,6 +1039,7 @@ inline void *GadgetUnion::UnPack(const void *obj, Gadget type, const ::flatbuffe
 
 inline ::flatbuffers::Offset<void> GadgetUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
+  if (!value) { return 0; }
   switch (type) {
     case Gadget::FallingTub: {
       auto ptr = reinterpret_cast<const FallingTub *>(value);
