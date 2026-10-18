@@ -235,10 +235,17 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
     // If there is a nested buffer, it must be greater than the min size.
     if (!Check(buf->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+    if (!Check(depth_ < opts_.max_depth)) return false;
+    if (!Check(num_tables_ <= opts_.max_tables)) return false;
 
+    Options nested_opts = opts_;
+    nested_opts.max_depth = opts_.max_depth - depth_;
+    nested_opts.max_tables = opts_.max_tables - num_tables_;
     VerifierTemplate<TrackVerifierBufferSize> nested_verifier(
-        buf->data(), buf->size(), opts_);
-    return nested_verifier.VerifyBuffer<T>(identifier);
+        buf->data(), buf->size(), nested_opts);
+    if (!nested_verifier.template VerifyBuffer<T>(identifier)) return false;
+    num_tables_ += nested_verifier.num_tables_;
+    return Check(num_tables_ <= opts_.max_tables);
   }
 
   // Verify this whole buffer, starting with root type T.
