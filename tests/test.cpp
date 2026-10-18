@@ -1833,6 +1833,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   UninitializedVectorTest();
   EqualOperatorTest();
   NumericUtilsTest();
+  NumToStringLocaleTest();
   IsAsciiUtilsTest();
   ValidFloatTest();
   InvalidFloatTest();

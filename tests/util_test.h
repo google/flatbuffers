@@ -5,6 +5,7 @@ namespace flatbuffers {
 namespace tests {
 
 void NumericUtilsTest();
+void NumToStringLocaleTest();
 void IsAsciiUtilsTest();
 void UtilConvertCase();
 
