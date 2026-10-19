@@ -489,11 +489,14 @@ void Offset64ForceAlign() {
   FinishRootTableBuffer(builder, root_table_offset);
 
   // Verify that VerifyTableStart rejects truncated vtables smaller than the
-  // 4-byte vtable header (vsize < 2 * sizeof(voffset_t)).
-  const uint8_t truncated_vtable_buf[10] = {
+  // 4-byte vtable header (vsize < 2 * sizeof(voffset_t)). The buffer is
+  // padded to FLATBUFFERS_MIN_BUFFER_SIZE (12 bytes) so that it passes the
+  // minimum buffer size check and actually reaches VerifyTableStart.
+  const uint8_t truncated_vtable_buf[12] = {
       0x04, 0x00, 0x00, 0x00,  // root offset = 4 -> table at [4]
       0xfc, 0xff, 0xff, 0xff,  // soffset_t = -4 -> vtable at [8]
-      0x02, 0x00               // vsize = 2 (truncated: missing object size)
+      0x02, 0x00,              // vsize = 2 (truncated: missing object size)
+      0x00, 0x00               // padding to the 12-byte minimum buffer size
   };
   Verifier truncated_verifier(truncated_vtable_buf,
                               sizeof(truncated_vtable_buf));
