@@ -210,6 +210,22 @@ void Offset64CreateDirect() {
   TEST_EQ(root_table->big_vector()->size(), data.size());
   TEST_EQ_STR(root_table->far_string()->c_str(), "some far string");
   TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
+
+  // Also test unpacking and repacking via the Object API Pack() method to
+  // ensure Offset64 fields are serialized before 32-bit Offset fields and
+  // empty force_align vectors do not misalign the 64-bit region.
+  RootTableT unpacked;
+  root_table->UnPackTo(&unpacked);
+  FlatBufferBuilder64 packed_fbb;
+  packed_fbb.Finish(RootTable::Pack(packed_fbb, &unpacked));
+  Verifier packed_verifier(packed_fbb.GetBufferPointer(), packed_fbb.GetSize(),
+                           options);
+  TEST_EQ(VerifyRootTableBuffer(packed_verifier), true);
+  const RootTable* packed_root = GetRootTable(packed_fbb.GetBufferPointer());
+  TEST_EQ(packed_root->far_vector()->size(), data.size());
+  TEST_EQ(packed_root->big_vector()->size(), data.size());
+  TEST_EQ_STR(packed_root->far_string()->c_str(), "some far string");
+  TEST_EQ_STR(packed_root->near_string()->c_str(), "some near string");
 }
 
 void Offset64Evolution() {
@@ -263,6 +279,19 @@ void Offset64Evolution() {
     TEST_ASSERT(v2_root->big_vector() != nullptr);
     TEST_EQ(v2_root->big_vector()->size(), big_data.size());
     TEST_EQ(v2_root->big_vector()->Get(2), 8);
+
+    // Also verify v2::RootTable::Pack serializes 64-bit big_vector before
+    // 32-bit vector b.
+    v2::RootTableT unpacked;
+    v2_root->UnPackTo(&unpacked);
+    FlatBufferBuilder64 packed_builder;
+    packed_builder.Finish(v2::RootTable::Pack(packed_builder, &unpacked));
+    auto packed_v2 = v2::GetRootTable(packed_builder.GetBufferPointer());
+    TEST_EQ(packed_v2->a(), 1234);
+    TEST_ASSERT(packed_v2->b() != nullptr);
+    TEST_EQ(packed_v2->b()->Get(2), 3);
+    TEST_ASSERT(packed_v2->big_vector() != nullptr);
+    TEST_EQ(packed_v2->big_vector()->Get(2), 8);
   }
 
   // Built V2 read V1, bigger than max 32-bit buffer sized.
@@ -458,6 +487,17 @@ void Offset64ForceAlign() {
 
   // Finish the buffer.
   FinishRootTableBuffer(builder, root_table_offset);
+
+  // Verify that VerifyTableStart rejects truncated vtables smaller than the
+  // 4-byte vtable header (vsize < 2 * sizeof(voffset_t)).
+  const uint8_t truncated_vtable_buf[10] = {
+      0x04, 0x00, 0x00, 0x00,  // root offset = 4 -> table at [4]
+      0xfc, 0xff, 0xff, 0xff,  // soffset_t = -4 -> vtable at [8]
+      0x02, 0x00               // vsize = 2 (truncated: missing object size)
+  };
+  Verifier truncated_verifier(truncated_vtable_buf,
+                              sizeof(truncated_vtable_buf));
+  TEST_EQ(VerifyRootTableBuffer(truncated_verifier), false);
 }
 
 }  // namespace tests
