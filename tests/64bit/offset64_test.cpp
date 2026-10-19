@@ -6,6 +6,7 @@
 #include <fstream>
 #include <limits>
 #include <ostream>
+#include <vector>
 
 #include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
@@ -374,6 +375,23 @@ void Offset64SizePrefix() {
 
   // Verify the fields.
   TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
+
+  // A size-prefixed 64-bit buffer must reject integer wraparound
+  // in its declared length, even when its table is otherwise valid.
+  {
+    std::vector<uint8_t> forged(builder.GetBufferPointer(),
+                                builder.GetBufferPointer() + builder.GetSize());
+
+    WriteScalar<uoffset64_t>(forged.data(),
+                             std::numeric_limits<uoffset64_t>::max() - 3);
+
+    Verifier::Options bounds_options;
+    bounds_options.max_size = FLATBUFFERS_MAX_64_BUFFER_SIZE;
+
+    Verifier forged_verifier(forged.data(), forged.size(), bounds_options);
+
+    TEST_EQ(VerifySizePrefixedRootTableBuffer(forged_verifier), false);
+  }
 }
 
 void Offset64ManyVectors() {
