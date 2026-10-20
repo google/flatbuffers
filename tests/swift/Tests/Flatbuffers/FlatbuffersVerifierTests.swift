@@ -374,6 +374,58 @@ final class FlatbuffersVerifierTests {
   }
 
   @Test
+  func testSizePrefixedVerifierUsesPostPrefixRoot() throws {
+    // The size prefix points to a valid empty decoy table at byte 44. The real
+    // root at byte 4 points to a truncated UInt64 vector that must be rejected.
+    let bytes: [UInt8] = [
+      44, 0, 0, 0,
+      16, 0, 0, 0,
+      6, 0, 8, 0, 4, 0,
+      0, 0, 0, 0, 0, 0,
+      12, 0, 0, 0,
+      8, 0, 0, 0, 0, 0, 0, 0,
+      2, 0, 0, 0, 65, 66,
+      0, 0,
+      4, 0, 4, 0,
+      4, 0, 0, 0,
+    ]
+
+    var strictBuffer = ByteBuffer(bytes: bytes)
+    #expect(throws: FlatbuffersErrors.self) {
+      try getCheckedPrefixedSizeRoot(
+        byteBuffer: &strictBuffer) as Swift_Tests_Vectors
+    }
+
+    var prefixedBuffer = ByteBuffer(bytes: bytes)
+    #expect(throws: FlatbuffersErrors.self) {
+      try getPrefixedSizeCheckedRoot(
+        byteBuffer: &prefixedBuffer) as Swift_Tests_Vectors
+    }
+
+    var builder = FlatBufferBuilder()
+    let movie = Movie.createMovie(&builder)
+    Movie.finish(&builder, end: movie, prefix: true)
+    var validBuffer = builder.sizedBuffer
+    let _: Movie = try getCheckedPrefixedSizeRoot(
+      byteBuffer: &validBuffer,
+      fileId: Movie.id)
+
+    var shortBuffer = ByteBuffer(bytes: [0, 0, 0, 0])
+    #expect(throws: FlatbuffersErrors.bufferDoesntContainID) {
+      try getCheckedRoot(
+        byteBuffer: &shortBuffer,
+        fileId: Movie.id) as Movie
+    }
+
+    var oversizedPrefix = ByteBuffer(bytes: [5, 0, 0, 0, 0, 0, 0, 0])
+    #expect(throws: FlatbuffersErrors.outOfBounds(position: 9, end: 8)) {
+      try getPrefixedSizeCheckedRoot(
+        byteBuffer: &oversizedPrefix) as Movie
+    }
+    #expect(oversizedPrefix.reader == 0)
+  }
+
+  @Test
   func testFullVerifier() throws {
     _ =
       try getCheckedRoot(

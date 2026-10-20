@@ -215,12 +215,16 @@ public struct Verifier {
   }
 
   @inline(__always)
-  func verify(id: String) throws {
+  func verify(id: String, at position: Int) throws {
     let size = MemoryLayout<Int32>.size
-    guard storage.capacity >= (size &* 2) else {
+    guard
+      position >= 0,
+      position <= storage.capacity,
+      storage.capacity - position >= size &* 2
+    else {
       throw FlatbuffersErrors.bufferDoesntContainID
     }
-    let str = _buffer.readString(at: size, count: size)
+    let str = _buffer.readString(at: position &+ size, count: size)
     if id == str {
       return
     }
