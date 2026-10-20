@@ -185,6 +185,38 @@ void FlexBuffersReuseBugTest() {
   TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
                                     slb.GetBuffer().size(), &reuse_tracker),
           true);
+
+  // Verify that reused vectors/strings early-returning through
+  // FLEX_CHECK_VERIFIED do not leak depth_ or over-count num_vectors_ across
+  // sibling references when reuse_tracker is supplied.
+  flexbuffers::Builder shared_slb(
+      512, flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+  shared_slb.Vector([&]() {
+    for (int i = 0; i < 100; ++i) {
+      shared_slb.String("shared_str");
+    }
+  });
+  shared_slb.Finish();
+  reuse_tracker.clear();
+  TEST_EQ(flexbuffers::VerifyBuffer(shared_slb.GetBuffer().data(),
+                                    shared_slb.GetBuffer().size(),
+                                    &reuse_tracker),
+          true);
+  TEST_EQ(flexbuffers::Verifier(shared_slb.GetBuffer().data(),
+                                shared_slb.GetBuffer().size(), &reuse_tracker,
+                                true, /*max_depth=*/2, /*max_vectors=*/64)
+              .VerifyBuffer(),
+          true);
+  TEST_EQ(flexbuffers::Verifier(shared_slb.GetBuffer().data(),
+                                shared_slb.GetBuffer().size(), &reuse_tracker,
+                                true, /*max_depth=*/1, /*max_vectors=*/64)
+              .VerifyBuffer(),
+          false);
+  TEST_EQ(flexbuffers::Verifier(shared_slb.GetBuffer().data(),
+                                shared_slb.GetBuffer().size(), nullptr, true,
+                                /*max_depth=*/64, /*max_vectors=*/64)
+              .VerifyBuffer(),
+          false);
 }
 
 void FlexBuffersFloatingPointTest() {

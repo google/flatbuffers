@@ -1849,13 +1849,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            // comes at the cost of using additional memory the same size of
            // the buffer being verified, so it is by default off.
            std::vector<uint8_t>* reuse_tracker = nullptr,
-           bool _check_alignment = true, size_t max_depth = 64)
+           bool _check_alignment = true, size_t max_depth = 64,
+           size_t max_vectors = 0)
       : buf_(buf),
         size_(buf_len),
         depth_(0),
         max_depth_(max_depth),
         num_vectors_(0),
-        max_vectors_(buf_len),
+        max_vectors_(max_vectors ? max_vectors : buf_len),
         check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
     FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) <
@@ -1924,14 +1925,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyVector(Reference r, const uint8_t* p, Type elem_type) {
     // Any kind of nesting goes thru this function, so guard against that
     // here, both with simple nesting checks, and the reuse tracker if on.
-    depth_++;
-    num_vectors_++;
-    if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_))
-      return false;
     auto size_byte_width = r.byte_width_;
     if (!VerifyBeforePointer(p, size_byte_width)) return false;
     FLEX_CHECK_VERIFIED(p - size_byte_width,
                         PackedType(Builder::WidthB(size_byte_width), r.type_));
+    depth_++;
+    num_vectors_++;
+    if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_))
+      return false;
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
