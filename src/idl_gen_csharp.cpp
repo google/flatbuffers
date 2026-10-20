@@ -1195,6 +1195,7 @@ class CSharpGenerator : public BaseGenerator {
       if ((IsVector(field.value.type) &&
            IsScalar(field.value.type.VectorType().base_type)) ||
           IsString(field.value.type)) {
+        // vcob: default ENABLE_SPAN_T
         //code += "#if ENABLE_SPAN_T\n";
           code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
                   "> Get";
@@ -1206,6 +1207,7 @@ class CSharpGenerator : public BaseGenerator {
           code +=
               ", " + NumToString(SizeOf(field.value.type.VectorType().base_type));
           code += "); }\n";
+          // vcob: default ENABLE_SPAN_T
       /*  code += "#else\n";
           code += "  public ArraySegment<byte>? Get";
           code += Name(field);
@@ -1260,6 +1262,7 @@ class CSharpGenerator : public BaseGenerator {
         code += ";\n";
         
         // Generate GetBytes methods for scalar arrays (similar to vector pattern)
+        // vcob: default ENABLE_SPAN_T
         //code += "#if ENABLE_SPAN_T\n";
         code += "  public Span<" + GenTypeBasic(field.value.type.VectorType()) +
                 "> Get";
@@ -1285,6 +1288,7 @@ class CSharpGenerator : public BaseGenerator {
           code += "))";
         }
         code += "; }\n";
+        // vcob: default ENABLE_SPAN_T
      /*   code += "#else\n";
         code += "  public ArraySegment<byte>? Get";
         code += camel_name;
