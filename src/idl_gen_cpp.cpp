@@ -4063,22 +4063,27 @@ class CppGenerator : public BaseGenerator {
             "const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { "
             "&_fbb, _o, _rehasher}; (void)_va;";
 
-        for (auto it = struct_def.fields.vec.begin();
-             it != struct_def.fields.vec.end(); ++it) {
-          auto& field = **it;
+        ForAllFieldsOrderedByOffset(struct_def, [&](const FieldDef* field_ptr) {
+          const auto& field = *field_ptr;
           if (field.deprecated) {
-            continue;
+            return;
           }
           if (IsVector(field.value.type)) {
             const std::string force_align_code =
                 GenVectorForceAlign(field, "_o->" + Name(field) + ".size()");
             if (!force_align_code.empty()) {
-              code_ += "  " + force_align_code;
+              if (field.attributes.Lookup("nested_flatbuffer") ||
+                  (opts_.set_empty_vectors_to_null && !field.IsRequired())) {
+                code_ += "  if (_o->" + Name(field) + ".size()) { " +
+                         force_align_code + " }";
+              } else {
+                code_ += "  " + force_align_code;
+              }
             }
           }
           code_ +=
               "  auto _" + Name(field) + " = " + GenCreateParam(field) + ";";
-        }
+        });
         // Need to call "Create" with the struct namespace.
         const auto qualified_create_name =
             struct_def.defined_namespace->GetFullyQualifiedName("Create");
