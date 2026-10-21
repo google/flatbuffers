@@ -1,5 +1,6 @@
 #include "reflection_test.h"
 
+#include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
@@ -246,6 +247,85 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
                               fbb.GetBufferPointer(), fbb.GetSize()),
           true);
+}
+
+// CopyTable must align vectors of structs to the struct's alignment, as it
+// already does for struct fields, not to the size of an offset.
+void CopyTableStructVectorAlignmentTest() {
+  const char* schema_src =
+      "struct S8 { a: double; }"
+      "table T { v: [S8]; w: [ubyte]; }"
+      "root_type T;";
+  flatbuffers::Parser schema_parser;
+  TEST_EQ(schema_parser.Parse(schema_src), true);
+  schema_parser.Serialize();
+  const auto& schema =
+      *reflection::GetSchema(schema_parser.builder_.GetBufferPointer());
+  const auto& v_field = *schema.root_table()->fields()->LookupByKey("v");
+
+  // CopyTable serializes fields in name order, back to front, so w ends up in
+  // front of v: varying its length moves v through every 4-byte slot.
+  for (int pad = 0; pad < 8; pad++) {
+    std::string json = "{ v: [{ a: 1.5 }], w: [";
+    for (int i = 0; i < pad; i++) json += i ? ",1" : "1";
+    json += "] }";
+    flatbuffers::Parser data_parser;
+    TEST_EQ(data_parser.Parse(schema_src), true);
+    TEST_EQ(data_parser.Parse(json.c_str()), true);
+
+    flatbuffers::FlatBufferBuilder fbb;
+    fbb.Finish(flatbuffers::CopyTable(
+        fbb, schema, *schema.root_table(),
+        *flatbuffers::GetAnyRoot(data_parser.builder_.GetBufferPointer())));
+    const auto buf = fbb.GetBufferPointer();
+    const auto v = flatbuffers::GetFieldAnyV(*flatbuffers::GetAnyRoot(buf),
+                                             v_field);
+    TEST_NOTNULL(v);
+    const auto elems = reinterpret_cast<uintptr_t>(v->Data()) -
+                       reinterpret_cast<uintptr_t>(buf);
+    TEST_EQ(elems % 8, 0u);
+  }
+}
+
+// Resizing a buffer in place must keep data after the insertion point aligned
+// for structs with force_align larger than any scalar.
+void ResizeForceAlignTest() {
+  const char* schema_src =
+      "struct F (force_align: 16) { a: int; }"
+      "table RZ { s: string; v: [F]; }"
+      "root_type RZ;";
+  flatbuffers::Parser schema_parser;
+  TEST_EQ(schema_parser.Parse(schema_src), true);
+  schema_parser.Serialize();
+  const auto& schema =
+      *reflection::GetSchema(schema_parser.builder_.GetBufferPointer());
+  const auto& s_field = *schema.root_table()->fields()->LookupByKey("s");
+  const auto& v_field = *schema.root_table()->fields()->LookupByKey("v");
+
+  // v is serialized first, so it ends up after s and moves when s grows.
+  flatbuffers::Parser data_parser;
+  TEST_EQ(data_parser.Parse(schema_src), true);
+  TEST_EQ(data_parser.Parse("{ v: [{ a: 1 }], s: \"ab\" }"), true);
+  const auto data = data_parser.builder_.GetBufferPointer();
+  const auto v0 =
+      flatbuffers::GetFieldAnyV(*flatbuffers::GetAnyRoot(data), v_field);
+  TEST_EQ((reinterpret_cast<uintptr_t>(v0->Data()) -
+           reinterpret_cast<uintptr_t>(data)) % 16,
+          0u);
+
+  for (size_t grow = 1; grow <= 16; grow++) {
+    std::vector<uint8_t> buf(data, data + data_parser.builder_.GetSize());
+    auto root = flatbuffers::GetAnyRoot(buf.data());
+    flatbuffers::SetString(schema, std::string(2 + grow, 'x'),
+                           flatbuffers::GetFieldS(*root, s_field), &buf);
+    root = flatbuffers::GetAnyRoot(buf.data());
+    const auto v = flatbuffers::GetFieldAnyV(*root, v_field);
+    TEST_NOTNULL(v);
+    TEST_EQ(ReadScalar<int32_t>(v->Data()), 1);
+    const auto elems = reinterpret_cast<uintptr_t>(v->Data()) -
+                       reinterpret_cast<uintptr_t>(buf.data());
+    TEST_EQ(elems % 16, 0u);
+  }
 }
 
 // Test that ForAllFields with reverse=true iterates fields in descending

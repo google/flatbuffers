@@ -11,6 +11,8 @@ namespace tests {
 void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
                     size_t length);
 void ForAllFieldsReverseTest(const std::string& tests_data_path);
+void CopyTableStructVectorAlignmentTest();
+void ResizeForceAlignTest();
 void MiniReflectFixedLengthArrayTest();
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf);
 

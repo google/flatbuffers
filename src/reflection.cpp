@@ -465,9 +465,22 @@ class ResizeContext {
         delta_(delta),
         buf_(*flatbuf),
         dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
-    auto mask = static_cast<int>(sizeof(largest_scalar_t) - 1);
+    // Everything after start moves by delta_, so round it to the largest
+    // alignment the data may need: largest_scalar_t, or more for structs with
+    // force_align.
+    size_t align = sizeof(largest_scalar_t);
+    if (schema.objects()) {
+      for (auto obj : *schema.objects()) {
+        const auto obj_align = static_cast<size_t>(obj->minalign());
+        if (obj->is_struct() && obj_align > align &&
+            VerifyAlignmentRequirements(obj_align)) {
+          align = obj_align;
+        }
+      }
+    }
+    auto mask = static_cast<int>(align - 1);
     delta_ = (delta_ + mask) & ~mask;
-    if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
+    if (!delta_) return;  // We can't shrink by less than that alignment.
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(buf_.data());
     Straddle<uoffset_t, 1>(buf_.data(), root, buf_.data());
@@ -727,8 +740,13 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
           default: {                    // Scalars and structs.
             auto element_size = GetTypeSize(element_base_type);
             auto element_alignment = element_size;  // For primitive elements
-            if (elemobjectdef && elemobjectdef->is_struct())
+            if (elemobjectdef && elemobjectdef->is_struct()) {
               element_size = elemobjectdef->bytesize();
+              const auto struct_alignment =
+                  static_cast<size_t>(elemobjectdef->minalign());
+              if (VerifyAlignmentRequirements(struct_alignment))
+                element_alignment = struct_alignment;
+            }
             fbb.StartVector(vec->size(), element_size, element_alignment);
             fbb.PushBytes(vec->Data(), element_size * vec->size());
             offset = fbb.EndVector(vec->size());

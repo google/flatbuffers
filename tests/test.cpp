@@ -1765,6 +1765,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
 
   MiniReflectFlatBuffersTest(flatbuf.data());
   MiniReflectFixedLengthArrayTest();
+  CopyTableStructVectorAlignmentTest();
+  ResizeForceAlignTest();
 
   SizePrefixedTest();
 
