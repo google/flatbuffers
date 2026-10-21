@@ -44,7 +44,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   explicit VerifierTemplate(const uint8_t* const buf, const size_t buf_len,
                             const Options& opts)
       : buf_(buf), size_(buf_len), opts_(opts) {
-    FLATBUFFERS_ASSERT(size_ < opts.max_size);
+    FLATBUFFERS_SECURITY_CHECK(size_ < opts.max_size);
   }
 
   // Deprecated API, please construct with VerifierTemplate::Options.
@@ -152,7 +152,10 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     // Check the whole array. If this is a string, the byte past the array must
     // be 0.
     const LenT size = ReadScalar<LenT>(vec);
-    const auto max_elems = opts_.max_size / elem_size;
+    const auto max_elems =
+        (opts_.max_size > sizeof(LenT))
+            ? (opts_.max_size - sizeof(LenT)) / elem_size
+            : 0;
     if (!Check(size < max_elems))
       return false;  // Protect against byte_size overflowing.
     const auto byte_size = sizeof(LenT) + elem_size * size;
@@ -207,8 +210,10 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     if (!Check(size_ >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
 
     // If an identifier is provided, check that we have a buffer
-    if (identifier && !Check((size_ >= 2 * sizeof(flatbuffers::uoffset_t) &&
-                              BufferHasIdentifier(buf_ + start, identifier)))) {
+    if (identifier &&
+        !Check((size_ >= start + sizeof(flatbuffers::uoffset_t) +
+                             flatbuffers::kFileIdentifierLength &&
+                BufferHasIdentifier(buf_ + start, identifier)))) {
       return false;
     }
 
@@ -257,7 +262,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return Verify<SizeT>(0U) &&
            // Ensure the prefixed size is within the bounds of the provided
            // length.
-           Check(ReadScalar<SizeT>(buf_) + sizeof(SizeT) <= size_) &&
+           Check(ReadScalar<SizeT>(buf_) <= size_ - sizeof(SizeT)) &&
            VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 

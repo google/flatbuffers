@@ -148,7 +148,7 @@ class vector_downward {
     if (len > unused_buffer_size()) {
       reallocate(len);
     }
-    FLATBUFFERS_ASSERT(size() < max_size_);
+    FLATBUFFERS_SECURITY_CHECK(size() < max_size_);
     return len;
   }
 
