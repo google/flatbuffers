@@ -23,6 +23,9 @@ FetchContent_Declare(
 # For Windows: Prevent overriding the parent project's compiler/linker 
 # settings.
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# Don't build Google Benchmark's own tests; they fail to compile with newer
+# compilers under its -Werror (e.g. -Wunused-but-set-variable in Clang 18).
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(
     googletest
     googlebenchmark
