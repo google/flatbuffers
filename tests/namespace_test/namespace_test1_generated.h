@@ -364,6 +364,7 @@ inline void *UnionInNestedNSUnion::UnPack(const void *obj, UnionInNestedNS type,
 
 inline ::flatbuffers::Offset<void> UnionInNestedNSUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
+  if (!value) { return 0; }
   switch (type) {
     case UnionInNestedNS_TableInNestedNS: {
       auto ptr = reinterpret_cast<const NamespaceA::NamespaceB::TableInNestedNST *>(value);
