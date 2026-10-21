@@ -2007,6 +2007,17 @@ void MemorySafetyHardeningTest() {
   flatbuffers::Verifier sp_verifier(wrap_sp_buf, 8);
   TEST_EQ(sp_verifier.VerifySizePrefixedBuffer<Monster>(nullptr), false);
 
+  // 15b. VerifySizePrefixedBuffer requires FLATBUFFERS_MIN_BUFFER_SIZE bytes
+  // after the size prefix. These 8 would otherwise verify as a Stat whose
+  // vtable overlaps the root offset.
+  uint32_t short_sp_buf[3];
+  flatbuffers::WriteScalar<flatbuffers::uoffset_t>(&short_sp_buf[0], 8);
+  flatbuffers::WriteScalar<flatbuffers::uoffset_t>(&short_sp_buf[1], 4);
+  flatbuffers::WriteScalar<flatbuffers::soffset_t>(&short_sp_buf[2], 4);
+  flatbuffers::Verifier short_sp_verifier(
+      reinterpret_cast<const uint8_t*>(short_sp_buf), sizeof(short_sp_buf));
+  TEST_EQ(short_sp_verifier.VerifySizePrefixedBuffer<Stat>(nullptr), false);
+
   // 16. Test VerifyTableStart with truncated/corrupt vtable sizes (0 and 2)
   uint8_t zero_vtsize_buf[16] = {0};
   flatbuffers::WriteScalar<flatbuffers::voffset_t>(&zero_vtsize_buf[0], 0);  // vsize = 0

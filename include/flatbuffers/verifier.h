@@ -255,7 +255,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     // this call and their size is determined at runtime.
     if (!Check(size_ >= FLATBUFFERS_MIN_BUFFER_SIZE &&
                size_ < opts_.max_size &&
-               start <= size_ - FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+               // The macro is an unparenthesized sum.
+               start <= size_ - (FLATBUFFERS_MIN_BUFFER_SIZE))) return false;
 
     // If an identifier is provided, check that we have a buffer
     if (identifier && !Check((size_ - start >= 2 * sizeof(flatbuffers::uoffset_t) &&
