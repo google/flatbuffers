@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_BFBS_GEN_H_
 #define FLATBUFFERS_BFBS_GEN_H_
 
+#include <algorithm>
 #include <cstdint>
 
 #include "flatbuffers/code_generator.h"
@@ -63,19 +64,23 @@ static void ForAllDocumentation(
   }
 }
 
-// Maps the field index into object->fields() to the field's ID (the ith element
-// in the return vector).
+// Returns the field indices into object->fields() sorted in increasing order of
+// the field's ID (the ith element in the return vector).
 static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
-  std::vector<uint32_t> field_index_by_id;
-  field_index_by_id.resize(object->fields()->size());
-
-  // Create the mapping of field ID to the index into the vector.
-  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
-    auto field = object->fields()->Get(i);
-    field_index_by_id[field->id()] = i;
+  if (!object || !object->fields()) return {};
+  const auto field_count = object->fields()->size();
+  std::vector<uint32_t> field_indices(field_count);
+  for (uint32_t i = 0; i < field_count; ++i) {
+    field_indices[i] = i;
   }
 
-  return field_index_by_id;
+  std::sort(field_indices.begin(), field_indices.end(),
+            [object](uint32_t a, uint32_t b) {
+              return object->fields()->Get(a)->id() <
+                     object->fields()->Get(b)->id();
+            });
+
+  return field_indices;
 }
 
 static bool IsStructOrTable(const reflection::BaseType base_type) {
