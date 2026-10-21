@@ -24,9 +24,6 @@
 //! Finally, add this crate to your `Cargo.toml`.
 //!
 //! At this time, Rust support is experimental, and APIs may change between minor versions.
-//!
-//! At this time, to generate Rust code, you will need the latest `master` version of `flatc`, available from here: <https://github.com/google/flatbuffers>
-//! (On OSX, you can install FlatBuffers from `HEAD` with the Homebrew package manager.)
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(all(nightly, not(feature = "std")), feature(error_in_core))]
