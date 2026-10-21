@@ -1832,8 +1832,11 @@ void MemorySafetyHardeningTest() {
   // 5. Test span subviews and at()
   uint8_t raw_arr[8] = {10, 20, 30, 40, 50, 60, 70, 80};
   flatbuffers::span<uint8_t> s(raw_arr, 8);
+#if !defined(FLATBUFFERS_USE_STD_SPAN)
+  // std::span has no at() before C++26.
   TEST_EQ(s.at(0), 10);
   TEST_EQ(s.at(7), 80);
+#endif
 
   auto sub = s.subspan(2, 4);
   TEST_EQ(sub.size(), 4);
@@ -1850,8 +1853,11 @@ void MemorySafetyHardeningTest() {
   TEST_EQ(last2[0], 70);
   TEST_EQ(last2[1], 80);
 
+#if !defined(FLATBUFFERS_USE_STD_SPAN)
+  // std::span::subspan() with offset > size() is undefined behavior.
   auto empty_sub = s.subspan(10);
   TEST_EQ(empty_sub.empty(), true);
+#endif
 
   // 6. Test Vector::GetOptional and Vector::GetSafe
   flatbuffers::FlatBufferBuilder fbb_vec;

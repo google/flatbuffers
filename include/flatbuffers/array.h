@@ -129,6 +129,7 @@ class Array {
                        !(u2 >= u1 && u2 < (u1 + byte_length)));
     (void)u1;
     (void)u2;
+    (void)byte_length;
     CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
   }
 
