@@ -404,7 +404,7 @@ class CppGenerator : public BaseGenerator {
       code_ += "struct {{STRUCT_NAME}}BinarySchema {";
       code_ += "  static const uint8_t *data() {";
       code_ += "    // Buffer containing the binary schema.";
-      code_ += "    static const uint8_t bfbsData[" +
+      code_ += "    alignas(uint64_t) static const uint8_t bfbsData[" +
                NumToString(parser_.builder_.GetSize()) + "] = {";
       code_ += binary_schema_hex_text;
       code_ += "    };";
