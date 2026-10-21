@@ -53,6 +53,7 @@
 #include "parser_test.h"
 #include "proto_test.h"
 #include "reflection_test.h"
+#include "scalar_test.h"
 #include "tests/union_vector/union_vector_generated.h"
 #include "union_underlying_type_test_generated.h"
 #if !defined(_MSC_VER) || _MSC_VER >= 1700
@@ -1826,6 +1827,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   ParseProtoBufAsciiTest();
   TypeAliasesTest();
   EndianSwapTest();
+  ScalarAccessTest();
   CreateSharedStringTest();
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
