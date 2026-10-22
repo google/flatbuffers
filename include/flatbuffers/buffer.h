@@ -191,6 +191,7 @@ inline const char* GetBufferIdentifier(const void* buf,
 // Helper to see if the identifier in a buffer has the expected value.
 inline bool BufferHasIdentifier(const void* buf, const char* identifier,
                                 bool size_prefixed = false) {
+  if (!buf) return false;
   return strncmp(GetBufferIdentifier(buf, size_prefixed), identifier,
                  flatbuffers::kFileIdentifierLength) == 0;
 }
