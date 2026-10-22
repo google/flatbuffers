@@ -24,8 +24,9 @@ use core::marker::PhantomData;
 use core::ops::{Add, AddAssign, Deref, DerefMut, Index, IndexMut, Sub, SubAssign};
 use core::ptr::write_bytes;
 
-#[cfg(feature = "std")]
-use std::collections::HashMap;
+use hashbrown::HashTable;
+use hashbrown::DefaultHashBuilder;
+use core::hash::BuildHasher;
 
 use crate::endian_scalar::emplace_scalar;
 use crate::primitives::*;
@@ -129,7 +130,7 @@ struct FieldLoc {
 /// FlatBufferBuilder builds a FlatBuffer through manipulating its internal
 /// state. It has an owned `Vec<u8>` that grows as needed (up to the hardcoded
 /// limit of 2GiB, which is set by the FlatBuffers format).
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct FlatBufferBuilder<'fbb, A: Allocator = DefaultAllocator> {
     allocator: A,
     head: ReverseIndex,
@@ -142,13 +143,39 @@ pub struct FlatBufferBuilder<'fbb, A: Allocator = DefaultAllocator> {
 
     min_align: usize,
     force_defaults: bool,
-    #[cfg(feature = "std")]
-    strings_pool: HashMap<String, WIPOffset<&'fbb str>>,
-    #[cfg(not(feature = "std"))]
-    strings_pool: Vec<WIPOffset<&'fbb str>>,
+    strings_pool: HashTable<WIPOffset<&'fbb str>>,
+    random_state: DefaultHashBuilder,
 
     _phantom: PhantomData<&'fbb ()>,
 }
+
+impl<A: Allocator + PartialEq> PartialEq for FlatBufferBuilder<'_, A> {
+    fn eq(&self, other: &Self) -> bool {
+        let FlatBufferBuilder {
+            allocator,
+            head,
+            field_locs,
+            written_vtable_revpos,
+            nested,
+            finished,
+            min_align,
+            force_defaults,
+            strings_pool: _,
+            random_state: _,
+            _phantom,
+        } = self;
+        allocator == &other.allocator
+            && head == &other.head
+            && field_locs == &other.field_locs
+            && written_vtable_revpos == &other.written_vtable_revpos
+            && nested == &other.nested
+            && finished == &other.finished
+            && min_align == &other.min_align
+            && force_defaults == &other.force_defaults
+    }
+}
+
+impl<A: Allocator + Eq> Eq for FlatBufferBuilder<'_, A> {}
 
 impl<'fbb> FlatBufferBuilder<'fbb, DefaultAllocator> {
     /// Create a FlatBufferBuilder that is ready for writing.
@@ -257,10 +284,8 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
             min_align: 0,
             force_defaults: false,
-            #[cfg(feature = "std")]
-            strings_pool: HashMap::new(),
-            #[cfg(not(feature = "std"))]
-            strings_pool: Vec::new(),
+            strings_pool: HashTable::new(),
+            random_state: DefaultHashBuilder::default(),
 
             _phantom: PhantomData,
         }
@@ -294,10 +319,8 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
             min_align: 0,
             force_defaults: false,
-            #[cfg(feature = "std")]
-            strings_pool: HashMap::with_capacity(strings_pool_capacity),
-            #[cfg(not(feature = "std"))]
-            strings_pool: Vec::with_capacity(strings_pool_capacity),
+            strings_pool: HashTable::with_capacity(strings_pool_capacity),
+            random_state: DefaultHashBuilder::default(),
 
             _phantom: PhantomData,
         }
@@ -506,9 +529,8 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
 
     /// Fallible version of [`create_shared_string`](Self::create_shared_string).
     ///
-    /// Uses a HashMap to track previously written strings, providing O(1)
+    /// Uses a HashTable to track previously written strings, providing O(1)
     /// amortized lookup and insertion.
-    #[cfg(feature = "std")]
     #[inline]
     pub fn try_create_shared_string<'a: 'b, 'b>(
         &'a mut self,
@@ -518,73 +540,45 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             "create_shared_string can not be called when a table or vector is under construction",
         );
 
-        if let Some(&offset) = self.strings_pool.get(s) {
-            return Ok(offset);
+        fn read_string<'a, A: Allocator>(
+            allocator: &'a A,
+            wip_offset: WIPOffset<&'a str>,
+        ) -> &'a [u8] {
+            let ptr = wip_offset.value() as usize;
+            let str_start = allocator.len() - ptr;
+            let len = u32::from_le_bytes([
+                allocator[str_start],
+                allocator[str_start + 1],
+                allocator[str_start + 2],
+                allocator[str_start + 3],
+            ]) as usize;
+            &allocator[str_start + 4..str_start + 4 + len]
+        }
+
+        let hash = self.random_state.hash_one(s.as_bytes());
+
+        if let Some(found) = self.strings_pool.find(hash, |wip_offset| {
+            let stored = read_string(&self.allocator, *wip_offset);
+            stored == s.as_bytes()
+        }) {
+            return Ok(*found);
         }
 
         let address = WIPOffset::new(self.try_create_byte_string(s.as_bytes())?.value());
-        self.strings_pool.insert(s.to_owned(), address);
+        let allocator = &self.allocator;
+        let random_state = &self.random_state;
+        self.strings_pool
+            .insert_unique(hash, address, |wip_offset| {
+                let stored = read_string(allocator, *wip_offset);
+                random_state.hash_one(stored)
+            });
         Ok(address)
     }
 
     /// Create a utf8 string, and de-duplicate if already created.
     ///
-    /// Uses a HashMap to track previously written strings, providing O(1)
+    /// Uses a HashTable to track previously written strings, providing O(1)
     /// amortized lookup and insertion.
-    #[cfg(feature = "std")]
-    #[inline]
-    pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
-        self.try_create_shared_string(s)
-            .expect("Flatbuffer allocation failure")
-    }
-
-    /// Fallible version of [`create_shared_string`](Self::create_shared_string).
-    ///
-    /// Uses a sorted Vec with binary search to track previously written
-    /// strings when in `no_std` mode.
-    #[cfg(not(feature = "std"))]
-    #[inline]
-    pub fn try_create_shared_string<'a: 'b, 'b>(
-        &'a mut self,
-        s: &'b str,
-    ) -> Result<WIPOffset<&'fbb str>, A::Error> {
-        self.assert_not_nested(
-            "create_shared_string can not be called when a table or vector is under construction",
-        );
-
-        // Saves a ref to allocator since rust doesnt like us refrencing it
-        // in the binary_search_by code.
-        let buf = &self.allocator;
-
-        let found = self.strings_pool.binary_search_by(|offset| {
-            let ptr = offset.value() as usize;
-            let str_memory = &buf[buf.len() - ptr..];
-            let size = u32::from_le_bytes([
-                str_memory[0],
-                str_memory[1],
-                str_memory[2],
-                str_memory[3],
-            ]) as usize;
-            let stored = &str_memory[4..4 + size];
-            stored.cmp(s.as_bytes())
-        });
-
-        match found {
-            Ok(index) => Ok(self.strings_pool[index]),
-            Err(index) => {
-                let address =
-                    WIPOffset::new(self.try_create_byte_string(s.as_bytes())?.value());
-                self.strings_pool.insert(index, address);
-                Ok(address)
-            }
-        }
-    }
-
-    /// Create a utf8 string, and de-duplicate if already created.
-    ///
-    /// Uses a sorted Vec with binary search to track previously written
-    /// strings when in `no_std` mode.
-    #[cfg(not(feature = "std"))]
     #[inline]
     pub fn create_shared_string<'a: 'b, 'b>(&'a mut self, s: &'b str) -> WIPOffset<&'fbb str> {
         self.try_create_shared_string(s)
@@ -1224,7 +1218,7 @@ impl<T> IndexMut<ReverseIndexRange> for [T] {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
     use core::sync::atomic::{AtomicUsize, Ordering};
