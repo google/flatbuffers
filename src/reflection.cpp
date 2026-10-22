@@ -240,6 +240,14 @@ static bool VerifyObject(flatbuffers::Verifier& v,
             return false;
           }
         } else {
+          // Verify the field offset points within the buffer before
+          // dereferencing it via GetFieldT. Without this check, a malformed
+          // table with an out-of-bounds field offset causes GetFieldT to
+          // compute a pointer outside the buffer, leading to a heap-buffer-
+          // overflow in ReadScalar. See github.com/google/flatbuffers/issues/9040
+          if (!table->VerifyField<uoffset_t>(v, field_def->offset(),
+                                             sizeof(uoffset_t)))
+            return false;
           if (!VerifyObject(v, schema, *child_obj,
                             flatbuffers::GetFieldT(*table, *field_def),
                             field_def->required())) {
@@ -252,6 +260,11 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         //  get union type from the prev field
         voffset_t utype_offset = field_def->offset() - sizeof(voffset_t);
         auto utype = table->GetField<uint8_t>(utype_offset, 0);
+        // Verify the field offset before dereferencing via GetFieldT.
+        // See github.com/google/flatbuffers/issues/9040
+        if (!table->VerifyField<uoffset_t>(v, field_def->offset(),
+                                           sizeof(uoffset_t)))
+          return false;
         auto uval = reinterpret_cast<const uint8_t*>(
             flatbuffers::GetFieldT(*table, *field_def));
         if (!VerifyUnion(v, schema, utype, uval, *field_def)) {
