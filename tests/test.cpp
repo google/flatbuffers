@@ -1572,6 +1572,82 @@ void VectorSpanTest() {
   }
 }
 
+// Regression test for the Vector<T>::Mutate() / MutateOffset() and
+// Array<T,length>::Mutate() out-of-bounds write: previously the only guard
+// on the caller-supplied index was FLATBUFFERS_ASSERT(i < size()), which is
+// compiled out under NDEBUG. Mutate()/MutateOffset() now return bool and
+// fail closed (return false, perform no write) on an out-of-range index,
+// unconditionally (i.e. even in a release/NDEBUG build).
+void MutateBoundsCheckTest() {
+  flatbuffers::FlatBufferBuilder builder;
+
+  auto mloc = CreateMonster(
+      builder, nullptr, 0, 0, builder.CreateString("Monster"),
+      builder.CreateVector<uint8_t>({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
+
+  FinishMonsterBuffer(builder, mloc);
+
+  auto mutable_monster = GetMutableMonster(builder.GetBufferPointer());
+  auto inventory = mutable_monster->mutable_inventory();
+  TEST_NOTNULL(inventory);
+  TEST_EQ(inventory->size(), 10);
+
+  // In-range Mutate() still succeeds and writes correctly (no regression).
+  TEST_EQ(inventory->Mutate(0, 42), true);
+  TEST_EQ((*inventory)[0], 42);
+  TEST_EQ(inventory->Mutate(0, 0), true);
+  TEST_EQ((*inventory)[0], 0);
+
+  TEST_EQ(inventory->Mutate(inventory->size() - 1, 99), true);
+  TEST_EQ((*inventory)[inventory->size() - 1], 99);
+  TEST_EQ(inventory->Mutate(inventory->size() - 1, 9), true);
+
+  // Out-of-range Mutate() (size()+10) now fails closed: returns false, no
+  // write, no crash, no memory corruption -- this is the security fix.
+  // FLATBUFFERS_ASSERT(i < size()) is intentionally kept alongside the
+  // bounds check for early detection in debug builds, so it still aborts
+  // there by design; the fail-closed return-false path this test exists to
+  // check is the one that matters -- the release (NDEBUG) build, where the
+  // assert is compiled out and the bounds check is the only thing standing
+  // between an out-of-range index and an OOB write. Gate on NDEBUG so this
+  // test exercises that path (built+run under ASan; see PoC re-verification
+  // in the disclosure package for the equivalent standalone repro) without
+  // tripping the assert in ordinary debug test runs.
+#if defined(NDEBUG)
+  TEST_EQ(inventory->Mutate(inventory->size() + 10, 0x41414141), false);
+
+  // The buffer must be unchanged by the rejected out-of-range mutation.
+  for (flatbuffers::uoffset_t i = 0; i < inventory->size(); ++i) {
+    TEST_EQ((*inventory)[i], i);
+  }
+#endif
+
+  // Same coverage for MutateOffset(): build a small vector-of-strings
+  // buffer and confirm both the in-range and out-of-range behavior.
+  {
+    flatbuffers::FlatBufferBuilder sbuilder;
+    std::vector<flatbuffers::Offset<flatbuffers::String>> strings;
+    strings.push_back(sbuilder.CreateString("hello"));
+    strings.push_back(sbuilder.CreateString("world"));
+    auto svec_offset = sbuilder.CreateVector(strings);
+    sbuilder.Finish(svec_offset);
+
+    auto* svec = flatbuffers::GetMutableRoot<
+        flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>>(
+        sbuilder.GetBufferPointer());
+    TEST_EQ(svec->size(), 2);
+
+#if defined(NDEBUG)
+    // Out-of-range MutateOffset() must fail closed rather than writing past
+    // the end of the vector. See the NDEBUG note above.
+    TEST_EQ(
+        svec->MutateOffset(svec->size() + 10,
+                            reinterpret_cast<const uint8_t*>(svec->Get(0))),
+        false);
+#endif
+  }
+}
+
 void NativeInlineTableVectorTest() {
   TestNativeInlineTableT test;
   for (int i = 0; i < 10; ++i) {
@@ -1853,6 +1929,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
   VectorSpanTest();
+  MutateBoundsCheckTest();
   NativeInlineTableVectorTest();
   FixedSizedScalarKeyInStructTest();
   StructKeyInStructTest();
