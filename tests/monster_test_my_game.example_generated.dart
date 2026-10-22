@@ -160,6 +160,19 @@ class _AnyTypeIdReader extends fb.Reader<AnyTypeId> {
       AnyTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
+class _AnyReader extends fb.UnionReader {
+  _AnyReader(AnyTypeId? type) : super(_get(type));
+
+  static fb.Reader? _get(AnyTypeId? type) {
+    switch (type?.value) {
+      case 1: return Monster.reader;
+      case 2: return TestSimpleTableWithEnum.reader;
+      case 3: return my_game_example2.Monster.reader;
+      default: return null;
+    }
+  }
+}
+
 enum AnyUniqueAliasesTypeId {
   NONE(0),
   M(1),
@@ -198,6 +211,19 @@ class _AnyUniqueAliasesTypeIdReader extends fb.Reader<AnyUniqueAliasesTypeId> {
       AnyUniqueAliasesTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
 }
 
+class _AnyUniqueAliasesReader extends fb.UnionReader {
+  _AnyUniqueAliasesReader(AnyUniqueAliasesTypeId? type) : super(_get(type));
+
+  static fb.Reader? _get(AnyUniqueAliasesTypeId? type) {
+    switch (type?.value) {
+      case 1: return Monster.reader;
+      case 2: return TestSimpleTableWithEnum.reader;
+      case 3: return my_game_example2.Monster.reader;
+      default: return null;
+    }
+  }
+}
+
 enum AnyAmbiguousAliasesTypeId {
   NONE(0),
   M1(1),
@@ -234,6 +260,19 @@ class _AnyAmbiguousAliasesTypeIdReader extends fb.Reader<AnyAmbiguousAliasesType
   @override
   AnyAmbiguousAliasesTypeId read(fb.BufferContext bc, int offset) =>
       AnyAmbiguousAliasesTypeId.fromValue(const fb.Uint8Reader().read(bc, offset));
+}
+
+class _AnyAmbiguousAliasesReader extends fb.UnionReader {
+  _AnyAmbiguousAliasesReader(AnyAmbiguousAliasesTypeId? type) : super(_get(type));
+
+  static fb.Reader? _get(AnyAmbiguousAliasesTypeId? type) {
+    switch (type?.value) {
+      case 1: return Monster.reader;
+      case 2: return Monster.reader;
+      case 3: return Monster.reader;
+      default: return null;
+    }
+  }
 }
 
 class Test {
@@ -1122,14 +1161,7 @@ class Monster {
   List<int>? get inventory => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 14);
   Color get color => Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId? get testType => AnyTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 18));
-  dynamic get test {
-    switch (testType?.value) {
-      case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 20);
-      case 2: return TestSimpleTableWithEnum.reader.vTableGetNullable(_bc, _bcOffset, 20);
-      case 3: return my_game_example2.Monster.reader.vTableGetNullable(_bc, _bcOffset, 20);
-      default: return null;
-    }
-  }
+  dynamic get test => _AnyReader(testType).vTableGetNullable(_bc, _bcOffset, 20);
   List<Test>? get test4 => const fb.ListReader<Test>(Test.reader).vTableGetNullable(_bc, _bcOffset, 22);
   List<String>? get testarrayofstring => const fb.ListReader<String>(fb.StringReader()).vTableGetNullable(_bc, _bcOffset, 24);
   ///  an example documentation comment: this will end up in the generated code
@@ -1167,23 +1199,9 @@ class Monster {
   int get nonOwningReference => const fb.Uint64Reader().vTableGet(_bc, _bcOffset, 86, 0);
   List<int>? get vectorOfNonOwningReferences => const fb.ListReader<int>(fb.Uint64Reader()).vTableGetNullable(_bc, _bcOffset, 88);
   AnyUniqueAliasesTypeId? get anyUniqueType => AnyUniqueAliasesTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 90));
-  dynamic get anyUnique {
-    switch (anyUniqueType?.value) {
-      case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 92);
-      case 2: return TestSimpleTableWithEnum.reader.vTableGetNullable(_bc, _bcOffset, 92);
-      case 3: return my_game_example2.Monster.reader.vTableGetNullable(_bc, _bcOffset, 92);
-      default: return null;
-    }
-  }
+  dynamic get anyUnique => _AnyUniqueAliasesReader(anyUniqueType).vTableGetNullable(_bc, _bcOffset, 92);
   AnyAmbiguousAliasesTypeId? get anyAmbiguousType => AnyAmbiguousAliasesTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 94));
-  dynamic get anyAmbiguous {
-    switch (anyAmbiguousType?.value) {
-      case 1: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 96);
-      case 2: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 96);
-      case 3: return Monster.reader.vTableGetNullable(_bc, _bcOffset, 96);
-      default: return null;
-    }
-  }
+  dynamic get anyAmbiguous => _AnyAmbiguousAliasesReader(anyAmbiguousType).vTableGetNullable(_bc, _bcOffset, 96);
   List<Color>? get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGetNullable(_bc, _bcOffset, 98);
   Race get signedEnum => Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
   List<int>? get testrequirednestedflatbuffer => const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 102);
@@ -1213,7 +1231,7 @@ class Monster {
       inventory: inventory?.toList(),
       color: color,
       testType: testType,
-      test: test?.unpack(),
+      test: test is String ? test : test?.unpack(),
       test4: test4?.map((e) => e.unpack()).toList(),
       testarrayofstring: testarrayofstring?.toList(),
       testarrayoftables: testarrayoftables?.map((e) => e.unpack()).toList(),
@@ -1249,9 +1267,9 @@ class Monster {
       nonOwningReference: nonOwningReference,
       vectorOfNonOwningReferences: vectorOfNonOwningReferences?.toList(),
       anyUniqueType: anyUniqueType,
-      anyUnique: anyUnique?.unpack(),
+      anyUnique: anyUnique is String ? anyUnique : anyUnique?.unpack(),
       anyAmbiguousType: anyAmbiguousType,
-      anyAmbiguous: anyAmbiguous?.unpack(),
+      anyAmbiguous: anyAmbiguous is String ? anyAmbiguous : anyAmbiguous?.unpack(),
       vectorOfEnums: vectorOfEnums?.toList(),
       signedEnum: signedEnum,
       testrequirednestedflatbuffer: testrequirednestedflatbuffer?.toList(),
@@ -1409,7 +1427,7 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeString(name!);
     final int? inventoryOffset = inventory == null ? null
         : fbBuilder.writeListUint8(inventory!);
-    final int? testOffset = test?.pack(fbBuilder);
+    final int? testOffset = test is String ? fbBuilder.writeString(test) : test?.pack(fbBuilder);
     int? test4Offset;
     if (test4 != null) {
       for (var e in test4!.reversed) { e.pack(fbBuilder); }
@@ -1454,8 +1472,8 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeListUint64(vectorOfCoOwningReferences!);
     final int? vectorOfNonOwningReferencesOffset = vectorOfNonOwningReferences == null ? null
         : fbBuilder.writeListUint64(vectorOfNonOwningReferences!);
-    final int? anyUniqueOffset = anyUnique?.pack(fbBuilder);
-    final int? anyAmbiguousOffset = anyAmbiguous?.pack(fbBuilder);
+    final int? anyUniqueOffset = anyUnique is String ? fbBuilder.writeString(anyUnique) : anyUnique?.pack(fbBuilder);
+    final int? anyAmbiguousOffset = anyAmbiguous is String ? fbBuilder.writeString(anyAmbiguous) : anyAmbiguous?.pack(fbBuilder);
     final int? vectorOfEnumsOffset = vectorOfEnums == null ? null
         : fbBuilder.writeListUint8(vectorOfEnums!.map((f) => f.value).toList());
     final int? testrequirednestedflatbufferOffset = testrequirednestedflatbuffer == null ? null
@@ -1999,7 +2017,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeString(_name!);
     final int? inventoryOffset = _inventory == null ? null
         : fbBuilder.writeListUint8(_inventory!);
-    final int? testOffset = _test?.getOrCreateOffset(fbBuilder);
+    final int? testOffset = _test is String ? fbBuilder.writeString(_test) : _test?.getOrCreateOffset(fbBuilder);
     final int? test4Offset = _test4 == null ? null
         : fbBuilder.writeListOfStructs(_test4!);
     final int? testarrayofstringOffset = _testarrayofstring == null ? null
@@ -2035,8 +2053,8 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeListUint64(_vectorOfCoOwningReferences!);
     final int? vectorOfNonOwningReferencesOffset = _vectorOfNonOwningReferences == null ? null
         : fbBuilder.writeListUint64(_vectorOfNonOwningReferences!);
-    final int? anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
-    final int? anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
+    final int? anyUniqueOffset = _anyUnique is String ? fbBuilder.writeString(_anyUnique) : _anyUnique?.getOrCreateOffset(fbBuilder);
+    final int? anyAmbiguousOffset = _anyAmbiguous is String ? fbBuilder.writeString(_anyAmbiguous) : _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int? vectorOfEnumsOffset = _vectorOfEnums == null ? null
         : fbBuilder.writeListUint8(_vectorOfEnums!.map((f) => f.value).toList());
     final int? testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer == null ? null
