@@ -13,6 +13,13 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
 void ForAllFieldsReverseTest(const std::string& tests_data_path);
 void CopyTableStructVectorAlignmentTest();
 void ResizeForceAlignTest();
+void SetStringShrinkTest();
+void ResizeVectorBeforeVTableTest();
+void ResizeUnionVectorTest();
+void UnionMemberKindsTest();
+void CopyTableUnionVectorTest();
+void AlignedVectorAttributesTest();
+void AddFlatBufferAlignmentTest();
 void MiniReflectFixedLengthArrayTest();
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf);
 

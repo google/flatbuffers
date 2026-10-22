@@ -328,6 +328,306 @@ void ResizeForceAlignTest() {
   }
 }
 
+namespace {
+
+// A binary schema plus a buffer parsed from JSON with it.
+struct ParsedBuffer {
+  std::vector<uint8_t> bfbs;
+  std::vector<uint8_t> data;
+
+  const reflection::Schema& schema() const {
+    return *reflection::GetSchema(bfbs.data());
+  }
+  const reflection::Object& object(const char* name) const {
+    return *schema().objects()->LookupByKey(name);
+  }
+  const reflection::Field& field(const char* object_name,
+                                 const char* name) const {
+    return *object(object_name).fields()->LookupByKey(name);
+  }
+  bool Verify(const std::vector<uint8_t>& buf) const {
+    return flatbuffers::Verify(schema(), *schema().root_table(), buf.data(),
+                               buf.size());
+  }
+};
+
+flatbuffers::IDLOptions ReflectionTestOptions(bool builtins) {
+  flatbuffers::IDLOptions opts;
+  // Unions with struct and string members need C++ as the target language.
+  opts.lang_to_generate = flatbuffers::IDLOptions::kCpp;
+  // Keeps attributes such as force_align in the binary schema.
+  opts.binary_schema_builtins = builtins;
+  return opts;
+}
+
+ParsedBuffer Parse(const char* schema_src, const std::string& json,
+                   bool builtins = false) {
+  ParsedBuffer parsed;
+  flatbuffers::Parser schema_parser(ReflectionTestOptions(builtins));
+  TEST_EQ(schema_parser.Parse(schema_src), true);
+  schema_parser.Serialize();
+  parsed.bfbs.assign(
+      schema_parser.builder_.GetBufferPointer(),
+      schema_parser.builder_.GetBufferPointer() +
+          schema_parser.builder_.GetSize());
+  flatbuffers::Parser data_parser(ReflectionTestOptions(builtins));
+  TEST_EQ(data_parser.Parse(schema_src), true);
+  TEST_EQ(data_parser.Parse(json.c_str()), true);
+  parsed.data.assign(
+      data_parser.builder_.GetBufferPointer(),
+      data_parser.builder_.GetBufferPointer() + data_parser.builder_.GetSize());
+  return parsed;
+}
+
+std::string ToJson(const char* schema_src, const uint8_t* buf) {
+  flatbuffers::Parser parser(ReflectionTestOptions(false));
+  TEST_EQ(parser.Parse(schema_src), true);
+  std::string json;
+  TEST_NULL(flatbuffers::GenText(parser, buf, &json));
+  return json;
+}
+
+std::vector<uint8_t> Copy(const ParsedBuffer& parsed) {
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(flatbuffers::CopyTable(fbb, parsed.schema(),
+                                    *parsed.schema().root_table(),
+                                    *flatbuffers::GetAnyRoot(parsed.data.data())));
+  return std::vector<uint8_t>(fbb.GetBufferPointer(),
+                              fbb.GetBufferPointer() + fbb.GetSize());
+}
+
+size_t OffsetIn(const std::vector<uint8_t>& buf, const void* p) {
+  return static_cast<size_t>(reinterpret_cast<uintptr_t>(p) -
+                             reinterpret_cast<uintptr_t>(buf.data()));
+}
+
+}  // namespace
+
+// Shrinking a string must only remove bytes of the old string, not the data
+// in front of it (here the end of the inv vector).
+void SetStringShrinkTest() {
+  const char* schema_src =
+      "table T { inv: [ubyte]; name: string; } root_type T;";
+  // name is serialized first, so inv ends up directly in front of it.
+  const auto parsed =
+      Parse(schema_src, "{ name: \"MyMonster\", inv: [0, 1, 2, 3, 4] }");
+  const auto& name_field = parsed.field("T", "name");
+  const auto& inv_field = parsed.field("T", "inv");
+
+  const char* sequences[][3] = {
+      { "", nullptr, nullptr },
+      { "My", nullptr, nullptr },
+      { "MyMonsterMyMonsterMyMonsterMyMonster", "", nullptr },
+      { "MyMonsterMyMonsterMyMonsterMyMonster", "abc", "q" },
+  };
+  for (auto& sequence : sequences) {
+    auto buf = parsed.data;
+    for (auto name : sequence) {
+      if (!name) break;
+      flatbuffers::SetString(
+          parsed.schema(), name,
+          flatbuffers::GetFieldS(*flatbuffers::GetAnyRoot(buf.data()),
+                                 name_field),
+          &buf);
+      TEST_EQ(parsed.Verify(buf), true);
+      const auto& root = *flatbuffers::GetAnyRoot(buf.data());
+      TEST_EQ_STR(flatbuffers::GetFieldS(root, name_field)->c_str(), name);
+      const auto inv = flatbuffers::GetFieldV<uint8_t>(root, inv_field);
+      TEST_EQ(inv->size(), 5u);
+      for (uoffset_t i = 0; i < inv->size(); i++) TEST_EQ(inv->Get(i), i);
+    }
+  }
+}
+
+// Resizing a vector that ends exactly where another table's vtable begins
+// must not adjust that table's vtable offset: both move together.
+void ResizeVectorBeforeVTableTest() {
+  const char* schema_src =
+      "struct P { a: short; b: byte; }"
+      "table Inner { name: string; x: int; }"
+      "table T { inner: Inner; v: [P]; }"
+      "root_type T;";
+  bool boundary_seen = false;
+  for (int n = 1; n <= 4; n++) {
+    // inner is serialized first, so v ends up in front of its vtable.
+    std::string json = "{ inner: { name: \"Fred\", x: 7 }, v: [";
+    for (int i = 0; i < n; i++) json += i ? ", { a: 1, b: 2 }" : "{ a: 1, b: 2 }";
+    json += "] }";
+    const auto parsed = Parse(schema_src, json);
+    const auto& inner_field = parsed.field("T", "inner");
+    const auto& v_field = parsed.field("T", "v");
+    const auto& name_field = parsed.field("Inner", "name");
+    const auto& x_field = parsed.field("Inner", "x");
+    const auto& p_def = parsed.object("P");
+
+    const auto& root = *flatbuffers::GetAnyRoot(parsed.data.data());
+    const auto vec = flatbuffers::GetFieldAnyV(root, v_field);
+    const auto vec_end =
+        vec->Data() + vec->size() * static_cast<size_t>(p_def.bytesize());
+    boundary_seen |=
+        vec_end == flatbuffers::GetFieldT(root, inner_field)->GetVTable();
+
+    for (uoffset_t newsize = 0; newsize <= 6; newsize++) {
+      auto buf = parsed.data;
+      flatbuffers::ResizeAnyVector(
+          parsed.schema(), newsize,
+          flatbuffers::GetFieldAnyV(*flatbuffers::GetAnyRoot(buf.data()),
+                                    v_field),
+          static_cast<uoffset_t>(n), static_cast<uoffset_t>(p_def.bytesize()),
+          &buf);
+      TEST_EQ(parsed.Verify(buf), true);
+      const auto& inner = *flatbuffers::GetFieldT(
+          *flatbuffers::GetAnyRoot(buf.data()), inner_field);
+      TEST_EQ_STR(flatbuffers::GetFieldS(inner, name_field)->c_str(), "Fred");
+      TEST_EQ(flatbuffers::GetFieldI<int32_t>(inner, x_field), 7);
+    }
+  }
+  // Make sure the layout above actually exercises the boundary case.
+  TEST_EQ(boundary_seen, true);
+}
+
+// Resizing must adjust the offsets stored in vectors of unions.
+void ResizeUnionVectorTest() {
+  const char* schema_src =
+      "table S { s: string; } union U { S } table T { uv: [U]; }"
+      "root_type T;";
+  const auto parsed = Parse(
+      schema_src, "{ uv_type: [S, S], uv: [{ s: \"first\" }, { s: \"second\" }] }");
+  const auto& uv_field = parsed.field("T", "uv");
+  const auto& s_field = parsed.field("S", "s");
+  auto elements = [&](const std::vector<uint8_t>& buf) {
+    return flatbuffers::GetAnyRoot(buf.data())
+        ->GetPointer<const Vector<Offset<Table>>*>(uv_field.offset());
+  };
+
+  auto buf = parsed.data;
+  flatbuffers::SetString(parsed.schema(), "second-longer",
+                         flatbuffers::GetFieldS(*elements(buf)->Get(1), s_field),
+                         &buf);
+  TEST_EQ(parsed.Verify(buf), true);
+  TEST_EQ_STR(flatbuffers::GetFieldS(*elements(buf)->Get(0), s_field)->c_str(),
+              "first");
+  TEST_EQ_STR(flatbuffers::GetFieldS(*elements(buf)->Get(1), s_field)->c_str(),
+              "second-longer");
+}
+
+// Unions can hold tables, structs and strings; resizing and copying must
+// handle each kind instead of treating every member as a table.
+void UnionMemberKindsTest() {
+  const char* schema_src =
+      "struct P { x: int; y: int; }"
+      "table X { a: string; }"
+      "union U { P, X, str: string }"
+      "table T { s: string; u: U; }"
+      "root_type T;";
+  // u is serialized first, so it ends up after s and moves when s grows.
+  const char* jsons[] = {
+      "{ u_type: P, u: { x: 1000000000, y: 3 }, s: \"ab\" }",
+      "{ u_type: X, u: { a: \"table member\" }, s: \"ab\" }",
+      "{ u_type: str, u: \"string member\", s: \"ab\" }",
+  };
+  for (auto json : jsons) {
+    const auto parsed = Parse(schema_src, json);
+    const auto& s_field = parsed.field("T", "s");
+    const auto expected = ToJson(schema_src, parsed.data.data());
+
+    const auto copy = Copy(parsed);
+    TEST_EQ(parsed.Verify(copy), true);
+    TEST_EQ_STR(ToJson(schema_src, copy.data()).c_str(), expected.c_str());
+
+    const std::string longer = "abcdefghijklmnopq";
+    auto buf = parsed.data;
+    flatbuffers::SetString(
+        parsed.schema(), longer,
+        flatbuffers::GetFieldS(*flatbuffers::GetAnyRoot(buf.data()), s_field),
+        &buf);
+    TEST_EQ(parsed.Verify(buf), true);
+    auto resized = ToJson(schema_src, buf.data());
+    const auto at = resized.find(longer);
+    TEST_EQ(at != std::string::npos, true);
+    resized.replace(at, longer.size(), "ab");
+    TEST_EQ_STR(resized.c_str(), expected.c_str());
+  }
+}
+
+// CopyTable must copy vectors of unions element by element, not as raw
+// offsets into the source buffer.
+void CopyTableUnionVectorTest() {
+  const char* schema_src =
+      "table X { a: int; } table Y { b: string; } union U { X, Y }"
+      "table R { u: [U]; } root_type R;";
+  const auto parsed =
+      Parse(schema_src, "{ u_type: [X, Y], u: [{ a: 7 }, { b: \"hi\" }] }");
+  const auto copy = Copy(parsed);
+  TEST_EQ(parsed.Verify(copy), true);
+  TEST_EQ_STR(ToJson(schema_src, copy.data()).c_str(),
+              ToJson(schema_src, parsed.data.data()).c_str());
+}
+
+// Vectors with force_align, nested FlatBuffers and FlexBuffers are aligned
+// beyond their element size when built; CopyTable and resizing must keep that.
+void AlignedVectorAttributesTest() {
+  const char* schema_src =
+      "table N { d: double; }"
+      "table T { v: [ubyte] (force_align: 16);"
+      "          n: [ubyte] (nested_flatbuffer: \"N\");"
+      "          f: [ubyte] (flexbuffer);"
+      "          s: string; w: [ubyte]; }"
+      "root_type T;";
+  for (int pad = 0; pad < 16; pad++) {
+    // v, n and f are serialized before s, so they move when s grows. CopyTable
+    // serializes in name order, so w ends up in front of all of them.
+    std::string json =
+        "{ v: [1, 2, 3], n: { d: 1.5 }, f: { a: 1.0 }, s: \"ab\", w: [";
+    for (int i = 0; i < pad; i++) json += i ? ",1" : "1";
+    json += "] }";
+    const auto parsed = Parse(schema_src, json, true);
+    const auto check = [&](const std::vector<uint8_t>& buf) {
+      TEST_EQ(parsed.Verify(buf), true);
+      const auto& root = *flatbuffers::GetAnyRoot(buf.data());
+      TEST_EQ(OffsetIn(buf, flatbuffers::GetFieldAnyV(root, parsed.field("T", "v"))
+                                ->Data()) % 16,
+              0u);
+      TEST_EQ(OffsetIn(buf, flatbuffers::GetFieldAnyV(root, parsed.field("T", "n"))
+                                ->Data()) % 8,
+              0u);
+      TEST_EQ(OffsetIn(buf, flatbuffers::GetFieldAnyV(root, parsed.field("T", "f"))
+                                ->Data()) % 8,
+              0u);
+    };
+    check(parsed.data);
+    check(Copy(parsed));
+    for (size_t grow = 1; grow <= 16; grow++) {
+      auto buf = parsed.data;
+      flatbuffers::SetString(
+          parsed.schema(), std::string(2 + grow, 'x'),
+          flatbuffers::GetFieldS(*flatbuffers::GetAnyRoot(buf.data()),
+                                 parsed.field("T", "s")),
+          &buf);
+      check(buf);
+    }
+  }
+}
+
+// AddFlatBuffer must place the added buffer so that data aligned within it
+// (here a force_align: 16 struct) stays aligned.
+void AddFlatBufferAlignmentTest() {
+  const auto parsed =
+      Parse("struct F (force_align: 16) { a: int; } table T { f: F; }"
+            "root_type T;",
+            "{ f: { a: 7 } }");
+  const auto& f_field = parsed.field("T", "f");
+  for (size_t host_size = 0; host_size < 32; host_size++) {
+    std::vector<uint8_t> host(host_size, 0);
+    const auto table = reinterpret_cast<const Table*>(flatbuffers::AddFlatBuffer(
+        host, parsed.data.data(), parsed.data.size()));
+    TEST_NOTNULL(table);
+    const auto f = table->GetStruct<const uint8_t*>(f_field.offset());
+    TEST_EQ(ReadScalar<int32_t>(f), 7);
+    TEST_EQ(OffsetIn(host, f) % 16, 0u);
+  }
+}
+
 // Test that ForAllFields with reverse=true iterates fields in descending
 // ID order. This exercises a fix for an operator precedence bug where the
 // expression `size() - i + 1` was evaluated as `(size() - i) + 1` instead
