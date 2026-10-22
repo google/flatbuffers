@@ -1152,11 +1152,11 @@ static std::string DartMakeRule(const Parser& parser, const std::string& path,
   auto filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);
-  auto make_rule = generator.Filename("") + ": ";
+  auto make_rule = EscapeMakeDep(generator.Filename("")) + ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
-    make_rule += " " + *it;
+    make_rule += " " + EscapeMakeDep(*it);
   }
   return make_rule;
 }
