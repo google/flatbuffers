@@ -412,6 +412,8 @@ struct StructDef : public Definition {
 
   void PadLastField(size_t min_align) {
     auto padding = PaddingBytes(bytesize, min_align);
+    FLATBUFFERS_ASSERT(bytesize <=
+                       (std::numeric_limits<size_t>::max)() - padding);
     bytesize += padding;
     if (fields.vec.size()) fields.vec.back()->padding = padding;
   }
