@@ -33,11 +33,13 @@ class LargeArrayStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Uint8Flags, self._tab.Pos + 0, self.DLength())
 
     # LargeArrayStruct
-    def DLength(self) -> int:
+    @staticmethod
+    def DLength() -> int:
         return 64
 
     # LargeArrayStruct
-    def DIsNone(self) -> bool:
+    @staticmethod
+    def DIsNone() -> bool:
         return False
 
     # LargeArrayStruct
@@ -54,11 +56,13 @@ class LargeArrayStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Float32Flags, self._tab.Pos + 64, self.ELength())
 
     # LargeArrayStruct
-    def ELength(self) -> int:
+    @staticmethod
+    def ELength() -> int:
         return 64
 
     # LargeArrayStruct
-    def EIsNone(self) -> bool:
+    @staticmethod
+    def EIsNone() -> bool:
         return False
 
     # LargeArrayStruct
@@ -75,11 +79,13 @@ class LargeArrayStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.BoolFlags, self._tab.Pos + 320, self.FLength())
 
     # LargeArrayStruct
-    def FLength(self) -> int:
+    @staticmethod
+    def FLength() -> int:
         return 64
 
     # LargeArrayStruct
-    def FIsNone(self) -> bool:
+    @staticmethod
+    def FIsNone() -> bool:
         return False
 
     # LargeArrayStruct
@@ -89,11 +95,13 @@ class LargeArrayStruct(object):
         return obj
 
     # LargeArrayStruct
-    def GLength(self) -> int:
+    @staticmethod
+    def GLength() -> int:
         return 64
 
     # LargeArrayStruct
-    def GIsNone(self) -> bool:
+    @staticmethod
+    def GIsNone() -> bool:
         return False
 
     # LargeArrayStruct
@@ -110,11 +118,13 @@ class LargeArrayStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int8Flags, self._tab.Pos + 2432, self.HLength())
 
     # LargeArrayStruct
-    def HLength(self) -> int:
+    @staticmethod
+    def HLength() -> int:
         return 64
 
     # LargeArrayStruct
-    def HIsNone(self) -> bool:
+    @staticmethod
+    def HIsNone() -> bool:
         return False
 
 
