@@ -19,7 +19,96 @@
 namespace flatbuffers {
 namespace tests {
 
+
+// Verify that a forged 64-bit vector length cannot overflow size_t.
+// The test uses an actual generated RootTable and never dereferences
+// malformed vector contents.
+static void VerifyVectorLengthOverflowRegression() {
+  if (sizeof(size_t) != sizeof(uoffset64_t)) return;
+
+  FlatBufferBuilder64 builder;
+  std::vector<uint8_t> elements = {1, 2, 3};
+
+  const auto vector_offset = builder.CreateVector64(elements);
+  const auto root =
+      CreateRootTable(builder, 0, 0, 0, 0, vector_offset);
+
+  builder.Finish(root);
+
+  std::vector<uint8_t> valid(
+      builder.GetBufferPointer(),
+      builder.GetBufferPointer() + builder.GetSize());
+
+  const auto *vector = GetRootTable(valid.data())->big_vector();
+
+  TEST_EQ(vector != nullptr, true);
+  TEST_EQ(vector->size(), static_cast<uoffset64_t>(3));
+
+  const size_t position = static_cast<size_t>(
+      reinterpret_cast<const uint8_t *>(vector) - valid.data());
+
+  TEST_EQ(position + sizeof(uoffset64_t) <= valid.size(), true);
+
+  auto malformed = valid;
+
+  const auto forged_count =
+      (std::numeric_limits<uoffset64_t>::max)() - 7;
+
+  WriteScalar<uoffset64_t>(
+      malformed.data() + position, forged_count);
+
+  Verifier::Options ordinary;
+  ordinary.max_size = FLATBUFFERS_MAX_BUFFER_SIZE;
+
+  Verifier valid_default(
+      valid.data(), valid.size(), ordinary);
+
+  Verifier invalid_default(
+      malformed.data(), malformed.size(), ordinary);
+
+  TEST_EQ(VerifyRootTableBuffer(valid_default), true);
+  TEST_EQ(VerifyRootTableBuffer(invalid_default), false);
+
+  Verifier::Options documented64;
+  documented64.max_size = FLATBUFFERS_MAX_64_BUFFER_SIZE;
+
+  Verifier valid64(
+      valid.data(), valid.size(), documented64);
+
+  Verifier invalid64(
+      malformed.data(), malformed.size(), documented64);
+
+  TEST_EQ(VerifyRootTableBuffer(valid64), true);
+  TEST_EQ(VerifyRootTableBuffer(invalid64), false);
+
+  Verifier::Options maximum;
+  maximum.max_size = (std::numeric_limits<size_t>::max)();
+
+  Verifier valid_max(
+      valid.data(), valid.size(), maximum);
+
+  Verifier invalid_max(
+      malformed.data(), malformed.size(), maximum);
+
+  TEST_EQ(VerifyRootTableBuffer(valid_max), true);
+  TEST_EQ(VerifyRootTableBuffer(invalid_max), false);
+
+  SizeVerifier::Options tracked_options;
+  tracked_options.max_size =
+      (std::numeric_limits<size_t>::max)();
+
+  SizeVerifier valid_tracked(
+      valid.data(), valid.size(), tracked_options);
+
+  SizeVerifier invalid_tracked(
+      malformed.data(), malformed.size(), tracked_options);
+
+  TEST_EQ(VerifyRootTableBuffer(valid_tracked), true);
+  TEST_EQ(VerifyRootTableBuffer(invalid_tracked), false);
+}
+
 void Offset64Test() {
+  VerifyVectorLengthOverflowRegression();
   FlatBufferBuilder64 builder;
 
   const size_t far_vector_size = 1LL << 2;
