@@ -1,6 +1,6 @@
-import * as flatbuffers from 'flatbuffers';
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-import {Type, TypeT} from '../reflection/type.js';
+import * as flatbuffers from "flatbuffers";
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+import { Type, TypeT } from "../reflection/type.js";
 export declare class Field implements flatbuffers.IUnpackableObject<FieldT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

@@ -1,6 +1,6 @@
-import {fromByteWidth} from './bit-width-util.js';
-import {BitWidth} from './bit-width.js';
-import {fromUTF8Array} from './flexbuffers-util.js';
+import { fromByteWidth } from "./bit-width-util.js";
+import { BitWidth } from "./bit-width.js";
+import { fromUTF8Array } from "./flexbuffers-util.js";
 import {
   indirect,
   keyForIndex,
@@ -8,7 +8,7 @@ import {
   readFloat,
   readInt,
   readUInt,
-} from './reference-util.js';
+} from "./reference-util.js";
 import {
   fixedTypedVectorElementSize,
   fixedTypedVectorElementType,
@@ -19,14 +19,14 @@ import {
   isTypedVector,
   packedType,
   typedVectorElementType,
-} from './value-type-util.js';
-import {ValueType} from './value-type.js';
+} from "./value-type-util.js";
+import { ValueType } from "./value-type.js";
 
 export function toReference(buffer: ArrayBuffer): Reference {
   const len = buffer.byteLength;
 
   if (len < 3) {
-    throw new Error('Buffer needs to be bigger than 3 bytes');
+    throw new Error("Buffer needs to be bigger than 3 bytes");
   }
 
   const dataView = new DataView(buffer);
@@ -45,12 +45,12 @@ export function toReference(buffer: ArrayBuffer): Reference {
   ) {
     // Ensure parent width is wide enough to address the buffer
     let w = 1;
-    while ((1 << (w * 8)) <= len && w < 8) w <<= 1;
+    while (1 << (w * 8) <= len && w < 8) w <<= 1;
     parentWidth = fromByteWidth(w);
     offset = len - w - 2; // no extra hacks
   }
 
-  return new Reference(dataView, offset, parentWidth, packedType, '/');
+  return new Reference(dataView, offset, parentWidth, packedType, "/");
 }
 
 function valueForIndexWithKey(
@@ -197,7 +197,9 @@ export class Reference {
     const length = this.length();
     if (Number.isInteger(key) && isAVector(this.valueType)) {
       if (key >= length || key < 0) {
-        throw new Error(`Key: [${key}] is not applicable on ${this.path} of ${this.valueType} length: ${length}`);
+        throw new Error(
+          `Key: [${key}] is not applicable on ${this.path} of ${this.valueType} length: ${length}`,
+        );
       }
       const _indirect = indirect(this.dataView, this.offset, this.parentWidth);
       const elementOffset = _indirect + key * this.byteWidth;
@@ -205,21 +207,21 @@ export class Reference {
       let _packedType: ValueType;
 
       if (isTypedVector(this.valueType)) {
-      // Root typed vector: derive type instead of reading from buffer
-      const _valueType = typedVectorElementType(this.valueType);
-      _packedType = packedType(_valueType, BitWidth.WIDTH8);
-    } else if (isFixedTypedVector(this.valueType)) {
-      const _valueType = fixedTypedVectorElementType(this.valueType);
-      _packedType = packedType(_valueType, BitWidth.WIDTH8);
-    } else {
-      // Only read packed type from buffer if it exists
-      const typeOffset = _indirect + length * this.byteWidth + key;
-      if (typeOffset < this.dataView.byteLength) {
-        _packedType = this.dataView.getUint8(typeOffset);
+        // Root typed vector: derive type instead of reading from buffer
+        const _valueType = typedVectorElementType(this.valueType);
+        _packedType = packedType(_valueType, BitWidth.WIDTH8);
+      } else if (isFixedTypedVector(this.valueType)) {
+        const _valueType = fixedTypedVectorElementType(this.valueType);
+        _packedType = packedType(_valueType, BitWidth.WIDTH8);
       } else {
-        // fallback for edge cases (e.g., root vectors)
-        _packedType = this.packedType;
-      }
+        // Only read packed type from buffer if it exists
+        const typeOffset = _indirect + length * this.byteWidth + key;
+        if (typeOffset < this.dataView.byteLength) {
+          _packedType = this.dataView.getUint8(typeOffset);
+        } else {
+          // fallback for edge cases (e.g., root vectors)
+          _packedType = this.packedType;
+        }
       }
 
       return new Reference(
@@ -231,7 +233,7 @@ export class Reference {
       );
     }
 
-    if (typeof key === 'string') {
+    if (typeof key === "string") {
       const index = keyIndex(
         key,
         this.dataView,
@@ -254,7 +256,9 @@ export class Reference {
       }
     }
 
-    throw new Error(`Key [${key}] is not applicable on ${this.path} of ${this.valueType}`);
+    throw new Error(
+      `Key [${key}] is not applicable on ${this.path} of ${this.valueType}`,
+    );
   }
 
   length(): number {

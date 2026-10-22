@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class Attacker
-  implements flatbuffers.IUnpackableObject<AttackerT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class Attacker implements flatbuffers.IUnpackableObject<AttackerT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Attacker;

@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class Monster
-  implements flatbuffers.IUnpackableObject<MonsterT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Monster;

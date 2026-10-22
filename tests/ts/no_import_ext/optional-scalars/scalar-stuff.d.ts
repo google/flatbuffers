@@ -1,5 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-import {OptionalByte} from '../optional-scalars/optional-byte';
+import * as flatbuffers from "flatbuffers";
+import { OptionalByte } from "../optional-scalars/optional-byte";
 export declare class ScalarStuff {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

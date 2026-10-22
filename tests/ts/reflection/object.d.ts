@@ -1,9 +1,7 @@
-import * as flatbuffers from 'flatbuffers';
-import {Field, FieldT} from '../reflection/field.js';
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-export declare class Object_
-  implements flatbuffers.IUnpackableObject<Object_T>
-{
+import * as flatbuffers from "flatbuffers";
+import { Field, FieldT } from "../reflection/field.js";
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+export declare class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Object_;

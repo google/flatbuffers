@@ -2,11 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-export class InnerStruct
-  implements flatbuffers.IUnpackableObject<InnerStructT>
-{
+export class InnerStruct implements flatbuffers.IUnpackableObject<InnerStructT> {
   bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
   __init(i: number, bb: flatbuffers.ByteBuffer): InnerStruct {
@@ -32,7 +30,7 @@ export class InnerStruct
   }
 
   static getFullyQualifiedName(): string {
-    return 'MyGame.Example.InnerStruct';
+    return "MyGame.Example.InnerStruct";
   }
 
   static sizeOf(): number {
@@ -81,7 +79,7 @@ export class InnerStructT implements flatbuffers.IGeneratedObject {
     public a: number = 0.0,
     public b: number[] = [],
     public c: number = 0,
-    public dUnderscore: bigint = BigInt('0'),
+    public dUnderscore: bigint = BigInt("0"),
   ) {}
 
   pack(builder: flatbuffers.Builder): flatbuffers.Offset {

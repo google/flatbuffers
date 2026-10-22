@@ -32,6 +32,41 @@ func FinishSizePrefixedHelloReplyBuffer(builder *flatbuffers.Builder, offset fla
 	builder.FinishSizePrefixed(offset)
 }
 
+func VerifyRootAsHelloReply(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyHelloReply(v, int(tablePos))
+}
+
+func VerifyHelloReply(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyHelloReply(v, tablePos)
+}
+
+func verifyHelloReply(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if pos, err := v.CheckOffsetField(tablePos, 4); err != nil {
+		return err
+	} else if pos != 0 {
+		if err := v.CheckString(pos); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (rcv *HelloReply) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i

@@ -5,16 +5,16 @@ import {
   paddingSize,
   toByteWidth,
   uwidth,
-} from './bit-width-util.js';
-import {BitWidth} from './bit-width.js';
-import {toUTF8Array} from './flexbuffers-util.js';
-import {StackValue} from './stack-value.js';
+} from "./bit-width-util.js";
+import { BitWidth } from "./bit-width.js";
+import { toUTF8Array } from "./flexbuffers-util.js";
+import { StackValue } from "./stack-value.js";
 import {
   isNumber,
   isTypedVectorElement,
   toTypedVector,
-} from './value-type-util.js';
-import {ValueType} from './value-type.js';
+} from "./value-type-util.js";
+import { ValueType } from "./value-type.js";
 
 interface StackPointer {
   stackPosition: number;
@@ -195,32 +195,35 @@ export class Builder {
 
   private integrityCheckOnValueAddition() {
     if (this.finished) {
-      throw 'Adding values after finish is prohibited';
+      throw "Adding values after finish is prohibited";
     }
     if (
       this.stackPointers.length !== 0 &&
       this.stackPointers[this.stackPointers.length - 1].isVector === false
     ) {
       if (this.stack[this.stack.length - 1].type !== ValueType.KEY) {
-        throw 'Adding value to a map before adding a key is prohibited';
+        throw "Adding value to a map before adding a key is prohibited";
       }
     }
   }
 
   private integrityCheckOnKeyAddition() {
     if (this.finished) {
-      throw 'Adding values after finish is prohibited';
+      throw "Adding values after finish is prohibited";
     }
     if (
       this.stackPointers.length === 0 ||
       this.stackPointers[this.stackPointers.length - 1].isVector
     ) {
-      throw 'Adding key before starting a map is prohibited';
+      throw "Adding key before starting a map is prohibited";
     }
   }
 
   startVector(): void {
-    this.stackPointers.push({stackPosition: this.stack.length, isVector: true});
+    this.stackPointers.push({
+      stackPosition: this.stack.length,
+      isVector: true,
+    });
   }
 
   startMap(presorted = false): void {
@@ -242,7 +245,7 @@ export class Builder {
     if (!stackPointer.presorted) {
       this.sort(stackPointer);
     }
-    let keyVectorHash = '';
+    let keyVectorHash = "";
     for (let i = stackPointer.stackPosition; i < this.stack.length; i += 2) {
       keyVectorHash += `,${this.stack[i].offset}`;
     }
@@ -508,16 +511,16 @@ export class Builder {
       | unknown,
   ): void {
     this.integrityCheckOnValueAddition();
-    if (typeof value === 'undefined') {
-      throw 'You need to provide a value';
+    if (typeof value === "undefined") {
+      throw "You need to provide a value";
     }
     if (value === null) {
       this.stack.push(this.nullStackValue());
-    } else if (typeof value === 'boolean') {
+    } else if (typeof value === "boolean") {
       this.stack.push(this.boolStackValue(value));
-    } else if (typeof value === 'bigint') {
+    } else if (typeof value === "bigint") {
       this.stack.push(this.intStackValue(value));
-    } else if (typeof value == 'number') {
+    } else if (typeof value == "number") {
       if (Number.isInteger(value)) {
         this.stack.push(this.intStackValue(value));
       } else {
@@ -525,7 +528,7 @@ export class Builder {
       }
     } else if (ArrayBuffer.isView(value)) {
       this.writeBlob(value.buffer);
-    } else if (typeof value === 'string' || value instanceof String) {
+    } else if (typeof value === "string" || value instanceof String) {
       this.writeString(value as string);
     } else if (Array.isArray(value)) {
       this.startVector();
@@ -533,7 +536,7 @@ export class Builder {
         this.add(value[i]);
       }
       this.end();
-    } else if (typeof value === 'object') {
+    } else if (typeof value === "object") {
       const properties = Object.getOwnPropertyNames(value).sort();
       this.startMap(true);
       for (let i = 0; i < properties.length; i++) {

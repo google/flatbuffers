@@ -1,6 +1,6 @@
-import {A} from '../union-underlying-type/a.js';
-import {B} from '../union-underlying-type/b.js';
-import {C} from '../union-underlying-type/c.js';
+import { A } from "../union-underlying-type/a.js";
+import { B } from "../union-underlying-type/b.js";
+import { C } from "../union-underlying-type/c.js";
 export declare enum ABC {
   NONE = 0,
   A = 555,

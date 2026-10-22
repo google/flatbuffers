@@ -1,6 +1,6 @@
 [package]
 name = "flatbuffers"
-version = "25.12.19"
+version = "25.12.27"
 edition = "2018"
 authors = ["Robert Winslow <hello@rwinslow.com>", "FlatBuffers Maintainers"]
 license = "Apache-2.0"
@@ -17,7 +17,9 @@ std = []
 serialize = ["serde"]
 
 [dependencies]
+ahash = { version = "0.8", default-features = false, features = ["std"] }
 bitflags = "2.8.0"
+ordered-float = { version = "5", features = ["serde"] }
 serde = { version = "1.0", optional = true }
 
 [build-dependencies]

@@ -2,138 +2,167 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import { Color } from './color.js';
-import { Test, TestT } from './test.js';
-
+import { Color } from "./color.js";
+import { Test, TestT } from "./test.js";
 
 export class Vec3 implements flatbuffers.IUnpackableObject<Vec3T> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Vec3 {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
+  __init(i: number, bb: flatbuffers.ByteBuffer): Vec3 {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
 
-x():number {
-  return this.bb!.readFloat32(this.bb_pos);
-}
+  x(): number {
+    return this.bb!.readFloat32(this.bb_pos);
+  }
 
-mutate_x(value:number):boolean {
-  this.bb!.writeFloat32(this.bb_pos + 0, value);
-  return true;
-}
+  mutate_x(value: number): boolean {
+    this.bb!.writeFloat32(this.bb_pos + 0, value);
+    return true;
+  }
 
-y():number {
-  return this.bb!.readFloat32(this.bb_pos + 4);
-}
+  y(): number {
+    return this.bb!.readFloat32(this.bb_pos + 4);
+  }
 
-mutate_y(value:number):boolean {
-  this.bb!.writeFloat32(this.bb_pos + 4, value);
-  return true;
-}
+  mutate_y(value: number): boolean {
+    this.bb!.writeFloat32(this.bb_pos + 4, value);
+    return true;
+  }
 
-z():number {
-  return this.bb!.readFloat32(this.bb_pos + 8);
-}
+  z(): number {
+    return this.bb!.readFloat32(this.bb_pos + 8);
+  }
 
-mutate_z(value:number):boolean {
-  this.bb!.writeFloat32(this.bb_pos + 8, value);
-  return true;
-}
+  mutate_z(value: number): boolean {
+    this.bb!.writeFloat32(this.bb_pos + 8, value);
+    return true;
+  }
 
-test1():number {
-  return this.bb!.readFloat64(this.bb_pos + 16);
-}
+  test1(): number {
+    return this.bb!.readFloat64(this.bb_pos + 16);
+  }
 
-mutate_test1(value:number):boolean {
-  this.bb!.writeFloat64(this.bb_pos + 16, value);
-  return true;
-}
+  mutate_test1(value: number): boolean {
+    this.bb!.writeFloat64(this.bb_pos + 16, value);
+    return true;
+  }
 
-test2():Color {
-  return this.bb!.readUint8(this.bb_pos + 24);
-}
+  test2(): Color {
+    return this.bb!.readUint8(this.bb_pos + 24);
+  }
 
-mutate_test2(value:Color):boolean {
-  this.bb!.writeUint8(this.bb_pos + 24, value);
-  return true;
-}
+  mutate_test2(value: Color): boolean {
+    this.bb!.writeUint8(this.bb_pos + 24, value);
+    return true;
+  }
 
-test3(obj?:Test):Test|null {
-  return (obj || new Test()).__init(this.bb_pos + 26, this.bb!);
-}
+  test3(obj?: Test): Test | null {
+    return (obj || new Test()).__init(this.bb_pos + 26, this.bb!);
+  }
 
-static getFullyQualifiedName(): "MyGame.Example.Vec3" {
-  return 'MyGame.Example.Vec3';
-}
+  static getFullyQualifiedName(): "MyGame.Example.Vec3" {
+    return "MyGame.Example.Vec3";
+  }
 
-static sizeOf():number {
-  return 32;
-}
+  static sizeOf(): number {
+    return 32;
+  }
 
-static createVec3(builder:flatbuffers.Builder, x: number, y: number, z: number, test1: number, test2: Color, test3_a: number, test3_b: number):flatbuffers.Offset {
-  builder.prep(8, 32);
-  builder.pad(2);
-  builder.prep(2, 4);
-  builder.pad(1);
-  builder.writeInt8(test3_b);
-  builder.writeInt16(test3_a);
-  builder.pad(1);
-  builder.writeInt8(test2);
-  builder.writeFloat64(test1);
-  builder.pad(4);
-  builder.writeFloat32(z);
-  builder.writeFloat32(y);
-  builder.writeFloat32(x);
-  return builder.offset();
-}
+  static createVec3(
+    builder: flatbuffers.Builder,
+    x: number,
+    y: number,
+    z: number,
+    test1: number,
+    test2: Color,
+    test3_a: number,
+    test3_b: number,
+  ): flatbuffers.Offset {
+    builder.prep(8, 32);
+    builder.pad(2);
+    builder.prep(2, 4);
+    builder.pad(1);
+    builder.writeInt8(test3_b);
+    builder.writeInt16(test3_a);
+    builder.pad(1);
+    builder.writeInt8(test2);
+    builder.writeFloat64(test1);
+    builder.pad(4);
+    builder.writeFloat32(z);
+    builder.writeFloat32(y);
+    builder.writeFloat32(x);
+    return builder.offset();
+  }
 
+  unpack(): Vec3T {
+    return new Vec3T(
+      this.x(),
+      this.y(),
+      this.z(),
+      this.test1(),
+      this.test2(),
+      this.test3() !== null ? this.test3()!.unpack() : null,
+    );
+  }
 
-unpack(): Vec3T {
-  return new Vec3T(
-    this.x(),
-    this.y(),
-    this.z(),
-    this.test1(),
-    this.test2(),
-    (this.test3() !== null ? this.test3()!.unpack() : null)
-  );
-}
-
-
-unpackTo(_o: Vec3T): void {
-  _o.x = this.x();
-  _o.y = this.y();
-  _o.z = this.z();
-  _o.test1 = this.test1();
-  _o.test2 = this.test2();
-  _o.test3 = (this.test3() !== null ? this.test3()!.unpack() : null);
-}
+  unpackTo(_o: Vec3T): void {
+    _o.x = this.x();
+    _o.y = this.y();
+    _o.z = this.z();
+    _o.test1 = this.test1();
+    _o.test2 = this.test2();
+    _o.test3 = this.test3() !== null ? this.test3()!.unpack() : null;
+  }
 }
 
 export class Vec3T implements flatbuffers.IGeneratedObject {
-constructor(
-  public x: number = 0.0,
-  public y: number = 0.0,
-  public z: number = 0.0,
-  public test1: number = 0.0,
-  public test2: Color = Color.Red,
-  public test3: TestT|null = null
-){}
+  constructor(
+    public x: number = 0.0,
+    public y: number = 0.0,
+    public z: number = 0.0,
+    public test1: number = 0.0,
+    public test2: Color = Color.Red,
+    public test3: TestT | null = null,
+  ) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return Vec3.createVec3(
+      builder,
+      this.x,
+      this.y,
+      this.z,
+      this.test1,
+      this.test2,
+      this.test3?.a ?? 0,
+      this.test3?.b ?? 0,
+    );
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Vec3.createVec3(builder,
-    this.x,
-    this.y,
-    this.z,
-    this.test1,
-    this.test2,
-    (this.test3?.a ?? 0),
-    (this.test3?.b ?? 0)
-  );
-}
+  clone(): Vec3T {
+    const obj = new Vec3T();
+    obj.x = this.x;
+    obj.y = this.y;
+    obj.z = this.z;
+    obj.test1 = this.test1;
+    obj.test2 = this.test2;
+    obj.test3 = this.test3 !== null ? this.test3!.clone() : null;
+    return obj;
+  }
+
+  equals(other: Vec3T): boolean {
+    if (!Object.is(this.x, other.x)) return false;
+    if (!Object.is(this.y, other.y)) return false;
+    if (!Object.is(this.z, other.z)) return false;
+    if (!Object.is(this.test1, other.test1)) return false;
+    if (this.test2 !== other.test2) return false;
+    if (this.test3 !== null && other.test3 !== null) {
+      if (!this.test3!.equals(other.test3!)) return false;
+    } else if (this.test3 !== other.test3) return false;
+    return true;
+  }
 }
