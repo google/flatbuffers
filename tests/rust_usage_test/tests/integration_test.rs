@@ -509,6 +509,316 @@ fn verifier_in_too_deep() {
     assert!(flatbuffers::root_with_opts::<Monster>(&opts, data).is_ok());
 }
 
+/// Builds a Monster whose `testnestedflatbuffer` field holds `payload`.
+#[cfg(test)]
+fn monster_with_nested_payload(payload: &[u8]) -> Vec<u8> {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("outer"));
+    let nested = Some(b.create_vector::<u8>(payload));
+    let m = Monster::create(b, &MonsterArgs {
+        name,  // required field.
+        testnestedflatbuffer: nested,
+        ..Default::default()
+    });
+    b.finish(m, None);
+    b.finished_data().to_vec()
+}
+
+/// A well-formed nested Monster, so the nested check has something valid to accept.
+#[cfg(test)]
+fn valid_nested_monster(name: &str) -> Vec<u8> {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let n = Some(b.create_string(name));
+    let m = Monster::create(b, &MonsterArgs { name: n, hp: 1234, ..Default::default() });
+    b.finish(m, None);
+    b.finished_data().to_vec()
+}
+
+#[test]
+fn verifier_accepts_valid_nested_flatbuffer() {
+    use my_game::example::*;
+    let data = monster_with_nested_payload(&valid_nested_monster("nested"));
+    let m = flatbuffers::root::<Monster>(&data).unwrap();
+    let nested = m.testnestedflatbuffer_nested_flatbuffer().unwrap();
+    assert_eq!(nested.name(), "nested");
+    assert_eq!(nested.hp(), 1234);
+}
+
+#[test]
+fn verifier_rejects_nested_flatbuffer_with_invalid_utf8() {
+    use my_game::example::*;
+    // The nested buffer is structurally fine but its string is not UTF-8.
+    // Without verifying the nested buffer, the safe
+    // `testnestedflatbuffer_nested_flatbuffer()` accessor would hand out a
+    // `&str` that is not valid UTF-8.
+    let mut nested = valid_nested_monster("AAAA");
+    let pos = nested.windows(4).position(|w| w == b"AAAA").unwrap();
+    for i in 0..4 { nested[pos + i] = 0xFF; }
+    let data = monster_with_nested_payload(&nested);
+    assert!(flatbuffers::root::<Monster>(&data).is_err());
+}
+
+#[test]
+fn verifier_rejects_nested_flatbuffer_with_out_of_bounds_offsets() {
+    use my_game::example::*;
+    // uoffset 4 -> table at 4; soffset -7 -> vtable at 11, which leaves only one
+    // byte for a two-byte VOffsetT read.
+    let mut payload = Vec::new();
+    payload.extend_from_slice(&4u32.to_le_bytes());
+    payload.extend_from_slice(&(-7i32).to_le_bytes());
+    payload.extend_from_slice(&[0xAA; 4]);
+    let data = monster_with_nested_payload(&payload);
+    assert!(flatbuffers::root::<Monster>(&data).is_err());
+}
+
+#[test]
+fn verifier_rejects_truncated_nested_flatbuffer() {
+    use my_game::example::*;
+    // Too short to even hold a root uoffset.
+    let data = monster_with_nested_payload(&[0u8; 2]);
+    assert!(flatbuffers::root::<Monster>(&data).is_err());
+}
+
+#[test]
+fn nested_flatbuffer_verification_can_be_disabled() {
+    use my_game::example::*;
+    let mut nested = valid_nested_monster("AAAA");
+    let pos = nested.windows(4).position(|w| w == b"AAAA").unwrap();
+    for i in 0..4 { nested[pos + i] = 0xFF; }
+    let data = monster_with_nested_payload(&nested);
+
+    let mut opts = flatbuffers::VerifierOptions::default();
+    assert!(opts.check_nested_flatbuffers);
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, &data).is_err());
+
+    // Opting out restores the previous behaviour, matching the C++ option of
+    // the same name. Accessors are then unsound for untrusted input.
+    opts.check_nested_flatbuffers = false;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, &data).is_ok());
+}
+
+#[test]
+#[cfg(not(miri))] // slow.
+fn nested_flatbuffer_large_payload_still_verifies() {
+    use my_game::example::*;
+    // Verifying the nested buffer accounts for its contents against the outer
+    // budgets, so a legitimate, sizeable nested buffer must still verify under
+    // the default options.
+    let mut b = flatbuffers::FlatBufferBuilder::new();
+    let n = b.create_string("big");
+    let payload_bytes: Vec<u8> = (0..200_000u32).map(|i| i as u8).collect();
+    let inv = b.create_vector::<u8>(&payload_bytes);
+    let m = Monster::create(
+        &mut b,
+        &MonsterArgs { name: Some(n), inventory: Some(inv), ..Default::default() },
+    );
+    b.finish(m, None);
+    let nested = b.finished_data().to_vec();
+    assert!(nested.len() > 200_000);
+
+    let data = monster_with_nested_payload(&nested);
+    let m = flatbuffers::root::<Monster>(&data).expect("large nested buffer must still verify");
+    let nm = m.testnestedflatbuffer_nested_flatbuffer().unwrap();
+    assert_eq!(nm.name(), "big");
+    assert_eq!(nm.inventory().unwrap().len(), 200_000);
+}
+
+#[test]
+#[cfg(not(miri))] // slow: builds 200 nested buffers.
+fn nested_flatbuffer_chain_is_bounded() {
+    use my_game::example::*;
+    // Each level of nesting is verified with a verifier of its own. If the depth
+    // budget were not carried across that boundary, a chain of nested buffers
+    // would be unbounded and could exhaust the stack instead of being rejected.
+    let mut payload = valid_nested_monster("leaf");
+    for _ in 0..200 {
+        payload = monster_with_nested_payload(&payload);
+    }
+    assert_eq!(
+        flatbuffers::root::<Monster>(&payload).unwrap_err(),
+        flatbuffers::InvalidFlatbuffer::DepthLimitReached
+    );
+}
+
+#[test]
+fn nested_flatbuffer_compat_empty_and_absent() {
+    use my_game::example::*;
+    // Absent field: unaffected, still verifies.
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("outer"));
+    let m = Monster::create(b, &MonsterArgs { name, ..Default::default() });
+    b.finish(m, None);
+    assert!(flatbuffers::root::<Monster>(b.finished_data()).is_ok());
+
+    // Present but empty: cannot hold a root, so it is now rejected. This
+    // matches C++, which requires a nested buffer to be at least
+    // FLATBUFFERS_MIN_BUFFER_SIZE. Previously it verified and then panicked in
+    // the accessor.
+    let data = monster_with_nested_payload(&[]);
+    assert!(flatbuffers::root::<Monster>(&data).is_err());
+}
+
+#[test]
+fn nested_flatbuffer_depth_counts_toward_max_depth() {
+    use my_game::example::*;
+    // The nested buffer is verified with its own Verifier, so its budgets must
+    // be carried over from the outer one; otherwise a chain of nested buffers
+    // could reset max_depth at every level.
+    let data = monster_with_nested_payload(&valid_nested_monster("nested"));
+    let mut opts = flatbuffers::VerifierOptions::default();
+    opts.max_depth = 1;
+    assert_eq!(
+        flatbuffers::root_with_opts::<Monster>(&opts, &data).unwrap_err(),
+        flatbuffers::InvalidFlatbuffer::DepthLimitReached
+    );
+    opts.max_depth = 64;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, &data).is_ok());
+}
+
+/// A nested Monster carrying `n` bytes of inventory, so that verifying it costs
+/// a measurable amount of the apparent-size budget.
+#[cfg(test)]
+fn nested_monster_with_inventory(n: usize) -> Vec<u8> {
+    use my_game::example::*;
+    let b = &mut flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("inner"));
+    let inventory = Some(b.create_vector::<u8>(&vec![7u8; n]));
+    let m = Monster::create(b, &MonsterArgs { name, inventory, ..Default::default() });
+    b.finish(m, None);
+    b.finished_data().to_vec()
+}
+
+/// The smallest `max_apparent_size` that still accepts `data`.
+#[cfg(test)]
+fn min_apparent_size_budget(data: &[u8], check_nested: bool) -> usize {
+    use my_game::example::*;
+    let (mut lo, mut hi) = (0usize, 4 * 1024 * 1024usize);
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2;
+        let mut opts = flatbuffers::VerifierOptions::default();
+        opts.check_nested_flatbuffers = check_nested;
+        opts.max_apparent_size = mid;
+        if flatbuffers::root_with_opts::<Monster>(&opts, data).is_ok() {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+    lo
+}
+
+/// Work done inside a nested buffer must be charged to the *outer* verifier's
+/// apparent-size budget. If the nested buffer got a fresh budget, an attacker
+/// could use nesting to multiply the amount of verification work a single
+/// message can buy, which would make this fix a denial-of-service vector.
+///
+/// The thresholds are measured rather than hard-coded so this cannot go stale
+/// if the generated layout changes.
+#[test]
+fn nested_flatbuffer_work_counts_toward_apparent_size() {
+    use my_game::example::*;
+    let data = monster_with_nested_payload(&nested_monster_with_inventory(4096));
+
+    let without = min_apparent_size_budget(&data, false);
+    let with = min_apparent_size_budget(&data, true);
+    assert!(
+        with > without,
+        "verifying the nested buffer must consume apparent-size budget \
+         (without={}, with={}); if these are equal the nested contents are \
+         being verified for free and nesting is an amplifier",
+        without,
+        with
+    );
+
+    // At exactly the budget that suffices when the nested contents are skipped,
+    // verifying them must run out rather than proceed unbilled.
+    let mut opts = flatbuffers::VerifierOptions::default();
+    opts.max_apparent_size = without;
+    assert_eq!(
+        flatbuffers::root_with_opts::<Monster>(&opts, &data).unwrap_err(),
+        flatbuffers::InvalidFlatbuffer::ApparentSizeTooLarge
+    );
+    // Control: the same budget is enough when the nested check is off, so the
+    // rejection above is caused by the nested work and not by a budget that was
+    // too small to begin with.
+    opts.check_nested_flatbuffers = false;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, &data).is_ok());
+}
+
+/// Tables inside a nested buffer must count toward `max_tables` for the same
+/// reason: otherwise each nesting level would grant a fresh table budget.
+#[test]
+fn nested_flatbuffer_tables_count_toward_max_tables() {
+    use my_game::example::*;
+    let data = monster_with_nested_payload(&valid_nested_monster("nested"));
+
+    // The outer Monster is one table; the nested one makes two.
+    let mut opts = flatbuffers::VerifierOptions::default();
+    opts.max_tables = 1;
+    assert_eq!(
+        flatbuffers::root_with_opts::<Monster>(&opts, &data).unwrap_err(),
+        flatbuffers::InvalidFlatbuffer::TooManyTables
+    );
+    // Control: one table is enough once the nested contents are not verified,
+    // so the limit above is reached by the nested table and not by the outer one.
+    opts.check_nested_flatbuffers = false;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, &data).is_ok());
+
+    opts.check_nested_flatbuffers = true;
+    opts.max_tables = 2;
+    assert!(flatbuffers::root_with_opts::<Monster>(&opts, &data).is_ok());
+}
+
+#[test]
+fn nested_flatbuffer_is_verified_recursively() {
+    use my_game::example::*;
+    // A nested buffer can itself hold a nested buffer, so verification has to
+    // recurse all the way down rather than stopping at the first level. Build
+    // outer -> nested Monster -> its own nested buffer holding malformed bytes,
+    // and confirm the outer verifier rejects it.
+    let malformed = [0xFFu8, 0xFF, 0xFF, 0xFF, 0x01, 0, 0, 0, 0xAA, 0xBB];
+    let mut b = flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("inner"));
+    let inner = Some(b.create_vector::<u8>(&malformed));
+    let m = Monster::create(&mut b, &MonsterArgs {
+        name,
+        testnestedflatbuffer: inner,
+        ..Default::default()
+    });
+    b.finish(m, None);
+    let level_one = b.finished_data().to_vec();
+
+    let data = monster_with_nested_payload(&level_one);
+    assert!(
+        flatbuffers::root::<Monster>(&data).is_err(),
+        "the malformed innermost buffer must be caught by recursive verification"
+    );
+}
+
+#[test]
+fn nested_flatbuffer_verified_on_size_prefixed_root() {
+    use my_game::example::*;
+    // The nested check lives in the `Verifiable` impl, so it must apply on every
+    // safe entry point, not just `root`. Confirm `size_prefixed_root` rejects a
+    // malformed nested buffer too.
+    let malformed = [0xFFu8, 0xFF, 0xFF, 0xFF, 0x01, 0, 0, 0, 0xAA, 0xBB];
+    let mut b = flatbuffers::FlatBufferBuilder::new();
+    let name = Some(b.create_string("outer"));
+    let nested = Some(b.create_vector::<u8>(&malformed));
+    let m = Monster::create(&mut b, &MonsterArgs {
+        name,
+        testnestedflatbuffer: nested,
+        ..Default::default()
+    });
+    b.finish_size_prefixed(m, None);
+    assert!(
+        flatbuffers::size_prefixed_root::<Monster>(b.finished_data()).is_err(),
+        "size_prefixed_root must verify nested buffers like root does"
+    );
+}
+
 #[cfg(test)]
 mod generated_constants {
     extern crate flatbuffers;
