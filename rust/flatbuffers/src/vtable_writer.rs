@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-use core::ptr::write_bytes;
-
-use crate::endian_scalar::emplace_scalar;
 use crate::primitives::*;
 
 /// VTableWriter compartmentalizes actions needed to create a vtable.
@@ -41,11 +38,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_vtable_byte_length(&mut self, n: VOffsetT) {
         let buf = &mut self.buf[..SIZE_VOFFSET];
-        // Safety:
-        // Validated range above
-        unsafe {
-            emplace_scalar::<VOffsetT>(buf, n);
-        }
+        buf.copy_from_slice(&n.to_le_bytes());
         debug_assert_eq!(n as usize, self.buf.len());
     }
 
@@ -53,11 +46,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_object_inline_size(&mut self, n: VOffsetT) {
         let buf = &mut self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET];
-        // Safety:
-        // Validated range above
-        unsafe {
-            emplace_scalar::<VOffsetT>(buf, n);
-        }
+        buf.copy_from_slice(&n.to_le_bytes());
     }
 
     /// Writes an object field offset into the vtable.
@@ -68,25 +57,55 @@ impl<'a> VTableWriter<'a> {
     pub fn write_field_offset(&mut self, vtable_offset: VOffsetT, object_data_offset: VOffsetT) {
         let idx = vtable_offset as usize;
         let buf = &mut self.buf[idx..idx + SIZE_VOFFSET];
-        // Safety:
-        // Validated range above
-        unsafe {
-            emplace_scalar::<VOffsetT>(buf, object_data_offset);
-        }
+        buf.copy_from_slice(&object_data_offset.to_le_bytes());
     }
 
     /// Clears all data in this VTableWriter. Used to cleanly undo a
     /// vtable write.
     #[inline(always)]
     pub fn clear(&mut self) {
-        // This is the closest thing to memset in Rust right now.
-        let len = self.buf.len();
-        let p = self.buf.as_mut_ptr() as *mut u8;
+        self.buf.fill(0);
+    }
+}
 
-        // Safety:
-        // p is byte aligned and of length `len`
-        unsafe {
-            write_bytes(p, 0, len);
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn writes_little_endian_values_without_changing_other_bytes() {
+        let mut buf = [0xa5; 10];
+        let mut writer = VTableWriter::init(&mut buf[1..9]);
+        writer.write_vtable_byte_length(8);
+        writer.write_object_inline_size(0xabcd);
+        writer.write_field_offset(4, 0x1234);
+        assert_eq!(buf, [0xa5, 8, 0, 0xcd, 0xab, 0x34, 0x12, 0xa5, 0xa5, 0xa5]);
+    }
+
+    #[test]
+    fn clears_only_the_vtable_slice() {
+        let mut buf = [0xa5; 10];
+        VTableWriter::init(&mut buf[1..9]).clear();
+        assert_eq!(buf, [0xa5, 0, 0, 0, 0, 0, 0, 0, 0, 0xa5]);
+    }
+
+    #[test]
+    fn clears_empty_and_single_byte_slices() {
+        VTableWriter::init(&mut []).clear();
+        let mut buf = [0xa5];
+        VTableWriter::init(&mut buf).clear();
+        assert_eq!(buf, [0]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn rejects_truncated_object_size() {
+        VTableWriter::init(&mut [0; 3]).write_object_inline_size(1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn rejects_out_of_bounds_field_offset() {
+        VTableWriter::init(&mut [0; 4]).write_field_offset(4, 1);
     }
 }
