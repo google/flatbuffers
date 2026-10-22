@@ -911,6 +911,15 @@ void FixedLengthArrayOperatorEqualTest() {
 
   TEST_ASSERT(arr_struct[0] == arr_struct[1]);
   TEST_ASSERT(arr_struct[1] != arr_struct[2]);
+  TEST_ASSERT(*arr_struct[0].b() == *arr_struct[1].b());
+  TEST_ASSERT(*arr_struct[1].b() != *arr_struct[2].b());
+
+  auto non_null_span = flatbuffers::make_span(*arr_struct[0].b());
+  TEST_EQ(non_null_span.size(), 15);
+  TEST_EQ(non_null_span[0], 1);
+
+  auto non_null_bytes = flatbuffers::make_bytes_span(*arr_struct[0].b());
+  TEST_EQ(non_null_bytes.size(), 15 * sizeof(int32_t));
 }
 
 void NativeTypeTest() {
