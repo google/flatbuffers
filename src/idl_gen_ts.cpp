@@ -320,7 +320,7 @@ class TsGenerator : public BaseGenerator {
                   std::back_inserter(rel_path));
         code += namer_.Directories(
                     rel_path, SkipDir::OutputPathAndTrailingPathSeparator) +
-                ".js';\n";
+                (parser_.opts.ts_no_import_ext ? "" : ".js") + "';\n";
         export_counter++;
       }
 
