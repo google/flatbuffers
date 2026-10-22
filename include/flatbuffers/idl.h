@@ -1174,6 +1174,7 @@ class Parser : public ParserState {
   FLATBUFFERS_CHECKED_ERROR ParseEnum(bool is_union, EnumDef** dest,
                                       const char* filename);
   FLATBUFFERS_CHECKED_ERROR ParseNamespace();
+  FLATBUFFERS_CHECKED_ERROR ParseOption();
   FLATBUFFERS_CHECKED_ERROR StartStruct(const std::string& name,
                                         StructDef** dest);
   FLATBUFFERS_CHECKED_ERROR StartEnum(const std::string& name, bool is_union,
@@ -1241,6 +1242,8 @@ class Parser : public ParserState {
   StructDef* root_struct_def_;
   std::string file_identifier_;
   std::string file_extension_;
+  std::string rust_module_;
+  std::map<std::string, std::string> rust_modules_by_file_;
 
   std::map<uint64_t, std::string> included_files_;
   std::map<std::string, std::set<IncludedFile>> files_included_per_file_;

@@ -3,7 +3,6 @@
 extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
-use super::*;
 
 #[allow(non_upper_case_globals)]
 mod bitflags_long_enum {

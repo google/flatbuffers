@@ -3,7 +3,6 @@
 extern crate alloc;
 extern crate serde;
 use self::serde::ser::{Serialize, Serializer, SerializeStruct};
-use super::*;
 
 // struct Unused, aligned to 4
 #[repr(transparent)]
