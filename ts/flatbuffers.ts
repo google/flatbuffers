@@ -5,7 +5,7 @@ export {
   SIZE_PREFIX_LENGTH,
 } from './constants.js';
 
-export {IGeneratedObject, IUnpackableObject, Offset, Table} from './types.js';
+export type {IGeneratedObject, IUnpackableObject, Offset, Table} from './types.js';
 
 export {float32, float64, int32, isLittleEndian} from './utils.js';
 

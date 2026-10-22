@@ -8,7 +8,7 @@ import * as flatbuffers from 'flatbuffers';
 
 export class HandFan implements flatbuffers.IUnpackableObject<HandFanT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):HandFan {
   this.bb_pos = i;
   this.bb = bb;
@@ -44,11 +44,11 @@ static getFullyQualifiedName(): "HandFan" {
   return 'HandFan';
 }
 
-static startHandFan(builder:flatbuffers.Builder) {
+static startHandFan(builder:flatbuffers.Builder):void {
   builder.startObject(1);
 }
 
-static addLength(builder:flatbuffers.Builder, length:number) {
+static addLength(builder:flatbuffers.Builder, length:number):void {
   builder.addFieldInt32(0, length, 0);
 }
 

@@ -24,7 +24,7 @@ import { InParentNamespace, InParentNamespaceT } from '../in-parent-namespace.js
  */
 export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
   this.bb_pos = i;
   this.bb = bb;
@@ -817,27 +817,27 @@ static getFullyQualifiedName(): "MyGame.Example.Monster" {
   return 'MyGame.Example.Monster';
 }
 
-static startMonster(builder:flatbuffers.Builder) {
+static startMonster(builder:flatbuffers.Builder):void {
   builder.startObject(62);
 }
 
-static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset) {
+static addPos(builder:flatbuffers.Builder, posOffset:flatbuffers.Offset):void {
   builder.addFieldStruct(0, posOffset, 0);
 }
 
-static addMana(builder:flatbuffers.Builder, mana:number) {
+static addMana(builder:flatbuffers.Builder, mana:number):void {
   builder.addFieldInt16(1, mana, 150);
 }
 
-static addHp(builder:flatbuffers.Builder, hp:number) {
+static addHp(builder:flatbuffers.Builder, hp:number):void {
   builder.addFieldInt16(2, hp, 100);
 }
 
-static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
+static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(3, nameOffset, 0);
 }
 
-static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Offset) {
+static addInventory(builder:flatbuffers.Builder, inventoryOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(5, inventoryOffset, 0);
 }
 
@@ -849,31 +849,31 @@ static createInventoryVector(builder:flatbuffers.Builder, data:number[]|Uint8Arr
   return builder.endVector();
 }
 
-static startInventoryVector(builder:flatbuffers.Builder, numElems:number) {
+static startInventoryVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addColor(builder:flatbuffers.Builder, color:Color) {
+static addColor(builder:flatbuffers.Builder, color:Color):void {
   builder.addFieldInt8(6, color, Color.Blue);
 }
 
-static addTestType(builder:flatbuffers.Builder, testType:Any) {
+static addTestType(builder:flatbuffers.Builder, testType:Any):void {
   builder.addFieldInt8(7, testType, Any.NONE);
 }
 
-static addTest(builder:flatbuffers.Builder, testOffset:flatbuffers.Offset) {
+static addTest(builder:flatbuffers.Builder, testOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(8, testOffset, 0);
 }
 
-static addTest4(builder:flatbuffers.Builder, test4Offset:flatbuffers.Offset) {
+static addTest4(builder:flatbuffers.Builder, test4Offset:flatbuffers.Offset):void {
   builder.addFieldOffset(9, test4Offset, 0);
 }
 
-static startTest4Vector(builder:flatbuffers.Builder, numElems:number) {
+static startTest4Vector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 2);
 }
 
-static addTestarrayofstring(builder:flatbuffers.Builder, testarrayofstringOffset:flatbuffers.Offset) {
+static addTestarrayofstring(builder:flatbuffers.Builder, testarrayofstringOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(10, testarrayofstringOffset, 0);
 }
 
@@ -885,11 +885,11 @@ static createTestarrayofstringVector(builder:flatbuffers.Builder, data:flatbuffe
   return builder.endVector();
 }
 
-static startTestarrayofstringVector(builder:flatbuffers.Builder, numElems:number) {
+static startTestarrayofstringVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 4);
 }
 
-static addTestarrayoftables(builder:flatbuffers.Builder, testarrayoftablesOffset:flatbuffers.Offset) {
+static addTestarrayoftables(builder:flatbuffers.Builder, testarrayoftablesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(11, testarrayoftablesOffset, 0);
 }
 
@@ -901,15 +901,15 @@ static createTestarrayoftablesVector(builder:flatbuffers.Builder, data:flatbuffe
   return builder.endVector();
 }
 
-static startTestarrayoftablesVector(builder:flatbuffers.Builder, numElems:number) {
+static startTestarrayoftablesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 4);
 }
 
-static addEnemy(builder:flatbuffers.Builder, enemyOffset:flatbuffers.Offset) {
+static addEnemy(builder:flatbuffers.Builder, enemyOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(12, enemyOffset, 0);
 }
 
-static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbufferOffset:flatbuffers.Offset) {
+static addTestnestedflatbuffer(builder:flatbuffers.Builder, testnestedflatbufferOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(13, testnestedflatbufferOffset, 0);
 }
 
@@ -921,51 +921,51 @@ static createTestnestedflatbufferVector(builder:flatbuffers.Builder, data:number
   return builder.endVector();
 }
 
-static startTestnestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
+static startTestnestedflatbufferVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addTestempty(builder:flatbuffers.Builder, testemptyOffset:flatbuffers.Offset) {
+static addTestempty(builder:flatbuffers.Builder, testemptyOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(14, testemptyOffset, 0);
 }
 
-static addTestbool(builder:flatbuffers.Builder, testbool:boolean) {
+static addTestbool(builder:flatbuffers.Builder, testbool:boolean):void {
   builder.addFieldInt8(15, +testbool, +false);
 }
 
-static addTesthashs32Fnv1(builder:flatbuffers.Builder, testhashs32Fnv1:number) {
+static addTesthashs32Fnv1(builder:flatbuffers.Builder, testhashs32Fnv1:number):void {
   builder.addFieldInt32(16, testhashs32Fnv1, 0);
 }
 
-static addTesthashu32Fnv1(builder:flatbuffers.Builder, testhashu32Fnv1:number) {
+static addTesthashu32Fnv1(builder:flatbuffers.Builder, testhashu32Fnv1:number):void {
   builder.addFieldInt32(17, testhashu32Fnv1, 0);
 }
 
-static addTesthashs64Fnv1(builder:flatbuffers.Builder, testhashs64Fnv1:bigint) {
+static addTesthashs64Fnv1(builder:flatbuffers.Builder, testhashs64Fnv1:bigint):void {
   builder.addFieldInt64(18, testhashs64Fnv1, BigInt('0'));
 }
 
-static addTesthashu64Fnv1(builder:flatbuffers.Builder, testhashu64Fnv1:bigint) {
+static addTesthashu64Fnv1(builder:flatbuffers.Builder, testhashu64Fnv1:bigint):void {
   builder.addFieldInt64(19, testhashu64Fnv1, BigInt('0'));
 }
 
-static addTesthashs32Fnv1a(builder:flatbuffers.Builder, testhashs32Fnv1a:number) {
+static addTesthashs32Fnv1a(builder:flatbuffers.Builder, testhashs32Fnv1a:number):void {
   builder.addFieldInt32(20, testhashs32Fnv1a, 0);
 }
 
-static addTesthashu32Fnv1a(builder:flatbuffers.Builder, testhashu32Fnv1a:number) {
+static addTesthashu32Fnv1a(builder:flatbuffers.Builder, testhashu32Fnv1a:number):void {
   builder.addFieldInt32(21, testhashu32Fnv1a, 0);
 }
 
-static addTesthashs64Fnv1a(builder:flatbuffers.Builder, testhashs64Fnv1a:bigint) {
+static addTesthashs64Fnv1a(builder:flatbuffers.Builder, testhashs64Fnv1a:bigint):void {
   builder.addFieldInt64(22, testhashs64Fnv1a, BigInt('0'));
 }
 
-static addTesthashu64Fnv1a(builder:flatbuffers.Builder, testhashu64Fnv1a:bigint) {
+static addTesthashu64Fnv1a(builder:flatbuffers.Builder, testhashu64Fnv1a:bigint):void {
   builder.addFieldInt64(23, testhashu64Fnv1a, BigInt('0'));
 }
 
-static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:flatbuffers.Offset) {
+static addTestarrayofbools(builder:flatbuffers.Builder, testarrayofboolsOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(24, testarrayofboolsOffset, 0);
 }
 
@@ -977,23 +977,23 @@ static createTestarrayofboolsVector(builder:flatbuffers.Builder, data:boolean[])
   return builder.endVector();
 }
 
-static startTestarrayofboolsVector(builder:flatbuffers.Builder, numElems:number) {
+static startTestarrayofboolsVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addTestf(builder:flatbuffers.Builder, testf:number) {
+static addTestf(builder:flatbuffers.Builder, testf:number):void {
   builder.addFieldFloat32(25, testf, 3.14159);
 }
 
-static addTestf2(builder:flatbuffers.Builder, testf2:number) {
+static addTestf2(builder:flatbuffers.Builder, testf2:number):void {
   builder.addFieldFloat32(26, testf2, 3.0);
 }
 
-static addTestf3(builder:flatbuffers.Builder, testf3:number) {
+static addTestf3(builder:flatbuffers.Builder, testf3:number):void {
   builder.addFieldFloat32(27, testf3, 0.0);
 }
 
-static addTestarrayofstring2(builder:flatbuffers.Builder, testarrayofstring2Offset:flatbuffers.Offset) {
+static addTestarrayofstring2(builder:flatbuffers.Builder, testarrayofstring2Offset:flatbuffers.Offset):void {
   builder.addFieldOffset(28, testarrayofstring2Offset, 0);
 }
 
@@ -1005,19 +1005,19 @@ static createTestarrayofstring2Vector(builder:flatbuffers.Builder, data:flatbuff
   return builder.endVector();
 }
 
-static startTestarrayofstring2Vector(builder:flatbuffers.Builder, numElems:number) {
+static startTestarrayofstring2Vector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 4);
 }
 
-static addTestarrayofsortedstruct(builder:flatbuffers.Builder, testarrayofsortedstructOffset:flatbuffers.Offset) {
+static addTestarrayofsortedstruct(builder:flatbuffers.Builder, testarrayofsortedstructOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(29, testarrayofsortedstructOffset, 0);
 }
 
-static startTestarrayofsortedstructVector(builder:flatbuffers.Builder, numElems:number) {
+static startTestarrayofsortedstructVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(8, numElems, 4);
 }
 
-static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset) {
+static addFlex(builder:flatbuffers.Builder, flexOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(30, flexOffset, 0);
 }
 
@@ -1029,19 +1029,19 @@ static createFlexVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):f
   return builder.endVector();
 }
 
-static startFlexVector(builder:flatbuffers.Builder, numElems:number) {
+static startFlexVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addTest5(builder:flatbuffers.Builder, test5Offset:flatbuffers.Offset) {
+static addTest5(builder:flatbuffers.Builder, test5Offset:flatbuffers.Offset):void {
   builder.addFieldOffset(31, test5Offset, 0);
 }
 
-static startTest5Vector(builder:flatbuffers.Builder, numElems:number) {
+static startTest5Vector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 2);
 }
 
-static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset) {
+static addVectorOfLongs(builder:flatbuffers.Builder, vectorOfLongsOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(32, vectorOfLongsOffset, 0);
 }
 
@@ -1053,11 +1053,11 @@ static createVectorOfLongsVector(builder:flatbuffers.Builder, data:bigint[]):fla
   return builder.endVector();
 }
 
-static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfLongsVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(8, numElems, 8);
 }
 
-static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:flatbuffers.Offset) {
+static addVectorOfDoubles(builder:flatbuffers.Builder, vectorOfDoublesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(33, vectorOfDoublesOffset, 0);
 }
 
@@ -1074,15 +1074,15 @@ static createVectorOfDoublesVector(builder:flatbuffers.Builder, data:number[]|Fl
   return builder.endVector();
 }
 
-static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfDoublesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(8, numElems, 8);
 }
 
-static addParentNamespaceTest(builder:flatbuffers.Builder, parentNamespaceTestOffset:flatbuffers.Offset) {
+static addParentNamespaceTest(builder:flatbuffers.Builder, parentNamespaceTestOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(34, parentNamespaceTestOffset, 0);
 }
 
-static addVectorOfReferrables(builder:flatbuffers.Builder, vectorOfReferrablesOffset:flatbuffers.Offset) {
+static addVectorOfReferrables(builder:flatbuffers.Builder, vectorOfReferrablesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(35, vectorOfReferrablesOffset, 0);
 }
 
@@ -1094,15 +1094,15 @@ static createVectorOfReferrablesVector(builder:flatbuffers.Builder, data:flatbuf
   return builder.endVector();
 }
 
-static startVectorOfReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfReferrablesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 4);
 }
 
-static addSingleWeakReference(builder:flatbuffers.Builder, singleWeakReference:bigint) {
+static addSingleWeakReference(builder:flatbuffers.Builder, singleWeakReference:bigint):void {
   builder.addFieldInt64(36, singleWeakReference, BigInt('0'));
 }
 
-static addVectorOfWeakReferences(builder:flatbuffers.Builder, vectorOfWeakReferencesOffset:flatbuffers.Offset) {
+static addVectorOfWeakReferences(builder:flatbuffers.Builder, vectorOfWeakReferencesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(37, vectorOfWeakReferencesOffset, 0);
 }
 
@@ -1114,11 +1114,11 @@ static createVectorOfWeakReferencesVector(builder:flatbuffers.Builder, data:bigi
   return builder.endVector();
 }
 
-static startVectorOfWeakReferencesVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfWeakReferencesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(8, numElems, 8);
 }
 
-static addVectorOfStrongReferrables(builder:flatbuffers.Builder, vectorOfStrongReferrablesOffset:flatbuffers.Offset) {
+static addVectorOfStrongReferrables(builder:flatbuffers.Builder, vectorOfStrongReferrablesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(38, vectorOfStrongReferrablesOffset, 0);
 }
 
@@ -1130,15 +1130,15 @@ static createVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, data:f
   return builder.endVector();
 }
 
-static startVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfStrongReferrablesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 4);
 }
 
-static addCoOwningReference(builder:flatbuffers.Builder, coOwningReference:bigint) {
+static addCoOwningReference(builder:flatbuffers.Builder, coOwningReference:bigint):void {
   builder.addFieldInt64(39, coOwningReference, BigInt('0'));
 }
 
-static addVectorOfCoOwningReferences(builder:flatbuffers.Builder, vectorOfCoOwningReferencesOffset:flatbuffers.Offset) {
+static addVectorOfCoOwningReferences(builder:flatbuffers.Builder, vectorOfCoOwningReferencesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(40, vectorOfCoOwningReferencesOffset, 0);
 }
 
@@ -1150,15 +1150,15 @@ static createVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, data:
   return builder.endVector();
 }
 
-static startVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfCoOwningReferencesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(8, numElems, 8);
 }
 
-static addNonOwningReference(builder:flatbuffers.Builder, nonOwningReference:bigint) {
+static addNonOwningReference(builder:flatbuffers.Builder, nonOwningReference:bigint):void {
   builder.addFieldInt64(41, nonOwningReference, BigInt('0'));
 }
 
-static addVectorOfNonOwningReferences(builder:flatbuffers.Builder, vectorOfNonOwningReferencesOffset:flatbuffers.Offset) {
+static addVectorOfNonOwningReferences(builder:flatbuffers.Builder, vectorOfNonOwningReferencesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(42, vectorOfNonOwningReferencesOffset, 0);
 }
 
@@ -1170,27 +1170,27 @@ static createVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, data
   return builder.endVector();
 }
 
-static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfNonOwningReferencesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(8, numElems, 8);
 }
 
-static addAnyUniqueType(builder:flatbuffers.Builder, anyUniqueType:AnyUniqueAliases) {
+static addAnyUniqueType(builder:flatbuffers.Builder, anyUniqueType:AnyUniqueAliases):void {
   builder.addFieldInt8(43, anyUniqueType, AnyUniqueAliases.NONE);
 }
 
-static addAnyUnique(builder:flatbuffers.Builder, anyUniqueOffset:flatbuffers.Offset) {
+static addAnyUnique(builder:flatbuffers.Builder, anyUniqueOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(44, anyUniqueOffset, 0);
 }
 
-static addAnyAmbiguousType(builder:flatbuffers.Builder, anyAmbiguousType:AnyAmbiguousAliases) {
+static addAnyAmbiguousType(builder:flatbuffers.Builder, anyAmbiguousType:AnyAmbiguousAliases):void {
   builder.addFieldInt8(45, anyAmbiguousType, AnyAmbiguousAliases.NONE);
 }
 
-static addAnyAmbiguous(builder:flatbuffers.Builder, anyAmbiguousOffset:flatbuffers.Offset) {
+static addAnyAmbiguous(builder:flatbuffers.Builder, anyAmbiguousOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(46, anyAmbiguousOffset, 0);
 }
 
-static addVectorOfEnums(builder:flatbuffers.Builder, vectorOfEnumsOffset:flatbuffers.Offset) {
+static addVectorOfEnums(builder:flatbuffers.Builder, vectorOfEnumsOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(47, vectorOfEnumsOffset, 0);
 }
 
@@ -1202,15 +1202,15 @@ static createVectorOfEnumsVector(builder:flatbuffers.Builder, data:Color[]):flat
   return builder.endVector();
 }
 
-static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number) {
+static startVectorOfEnumsVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addSignedEnum(builder:flatbuffers.Builder, signedEnum:Race) {
+static addSignedEnum(builder:flatbuffers.Builder, signedEnum:Race):void {
   builder.addFieldInt8(48, signedEnum, Race.None);
 }
 
-static addTestrequirednestedflatbuffer(builder:flatbuffers.Builder, testrequirednestedflatbufferOffset:flatbuffers.Offset) {
+static addTestrequirednestedflatbuffer(builder:flatbuffers.Builder, testrequirednestedflatbufferOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(49, testrequirednestedflatbufferOffset, 0);
 }
 
@@ -1222,11 +1222,11 @@ static createTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, dat
   return builder.endVector();
 }
 
-static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numElems:number) {
+static startTestrequirednestedflatbufferVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(1, numElems, 1);
 }
 
-static addScalarKeySortedTables(builder:flatbuffers.Builder, scalarKeySortedTablesOffset:flatbuffers.Offset) {
+static addScalarKeySortedTables(builder:flatbuffers.Builder, scalarKeySortedTablesOffset:flatbuffers.Offset):void {
   builder.addFieldOffset(50, scalarKeySortedTablesOffset, 0);
 }
 
@@ -1238,51 +1238,51 @@ static createScalarKeySortedTablesVector(builder:flatbuffers.Builder, data:flatb
   return builder.endVector();
 }
 
-static startScalarKeySortedTablesVector(builder:flatbuffers.Builder, numElems:number) {
+static startScalarKeySortedTablesVector(builder:flatbuffers.Builder, numElems:number):void {
   builder.startVector(4, numElems, 4);
 }
 
-static addNativeInline(builder:flatbuffers.Builder, nativeInlineOffset:flatbuffers.Offset) {
+static addNativeInline(builder:flatbuffers.Builder, nativeInlineOffset:flatbuffers.Offset):void {
   builder.addFieldStruct(51, nativeInlineOffset, 0);
 }
 
-static addLongEnumNonEnumDefault(builder:flatbuffers.Builder, longEnumNonEnumDefault:bigint) {
+static addLongEnumNonEnumDefault(builder:flatbuffers.Builder, longEnumNonEnumDefault:bigint):void {
   builder.addFieldInt64(52, longEnumNonEnumDefault, BigInt('0'));
 }
 
-static addLongEnumNormalDefault(builder:flatbuffers.Builder, longEnumNormalDefault:bigint) {
+static addLongEnumNormalDefault(builder:flatbuffers.Builder, longEnumNormalDefault:bigint):void {
   builder.addFieldInt64(53, longEnumNormalDefault, BigInt('2'));
 }
 
-static addNanDefault(builder:flatbuffers.Builder, nanDefault:number) {
+static addNanDefault(builder:flatbuffers.Builder, nanDefault:number):void {
   builder.addFieldFloat32(54, nanDefault, NaN);
 }
 
-static addInfDefault(builder:flatbuffers.Builder, infDefault:number) {
+static addInfDefault(builder:flatbuffers.Builder, infDefault:number):void {
   builder.addFieldFloat32(55, infDefault, Infinity);
 }
 
-static addPositiveInfDefault(builder:flatbuffers.Builder, positiveInfDefault:number) {
+static addPositiveInfDefault(builder:flatbuffers.Builder, positiveInfDefault:number):void {
   builder.addFieldFloat32(56, positiveInfDefault, Infinity);
 }
 
-static addInfinityDefault(builder:flatbuffers.Builder, infinityDefault:number) {
+static addInfinityDefault(builder:flatbuffers.Builder, infinityDefault:number):void {
   builder.addFieldFloat32(57, infinityDefault, Infinity);
 }
 
-static addPositiveInfinityDefault(builder:flatbuffers.Builder, positiveInfinityDefault:number) {
+static addPositiveInfinityDefault(builder:flatbuffers.Builder, positiveInfinityDefault:number):void {
   builder.addFieldFloat32(58, positiveInfinityDefault, Infinity);
 }
 
-static addNegativeInfDefault(builder:flatbuffers.Builder, negativeInfDefault:number) {
+static addNegativeInfDefault(builder:flatbuffers.Builder, negativeInfDefault:number):void {
   builder.addFieldFloat32(59, negativeInfDefault, -Infinity);
 }
 
-static addNegativeInfinityDefault(builder:flatbuffers.Builder, negativeInfinityDefault:number) {
+static addNegativeInfinityDefault(builder:flatbuffers.Builder, negativeInfinityDefault:number):void {
   builder.addFieldFloat32(60, negativeInfinityDefault, -Infinity);
 }
 
-static addDoubleInfDefault(builder:flatbuffers.Builder, doubleInfDefault:number) {
+static addDoubleInfDefault(builder:flatbuffers.Builder, doubleInfDefault:number):void {
   builder.addFieldFloat64(61, doubleInfDefault, Infinity);
 }
 
@@ -1292,11 +1292,11 @@ static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset):void {
   builder.finish(offset, 'MONS');
 }
 
-static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset):void {
   builder.finish(offset, 'MONS', true);
 }
 

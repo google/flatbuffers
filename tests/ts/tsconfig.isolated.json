@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "isolatedDeclarations": true,
+    "isolatedModules": true,
+    "skipLibCheck": false
+  }
+}
