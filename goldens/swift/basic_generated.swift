@@ -17,15 +17,13 @@ public struct flatbuffers_goldens_Galaxy: FlatBufferTable, FlatbuffersVectorInit
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case numStars = 4
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let numStars: VOffset = 4
   }
 
-  public var numStars: Int64 { let o = _accessor.offset(VTOFFSET.numStars.v); return o == 0 ? 0 : _accessor.readBuffer(of: Int64.self, at: o) }
+  public var numStars: Int64 { let o = _accessor.offset(VT.numStars); return o == 0 ? 0 : _accessor.readBuffer(of: Int64.self, at: o) }
   public static func startGalaxy(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 1) }
-  public static func add(numStars: Int64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: numStars, def: 0, at: VTOFFSET.numStars.p) }
+  public static func add(numStars: Int64, _ fbb: inout FlatBufferBuilder) { fbb.add(element: numStars, def: 0, at: VT.numStars) }
   public static func endGalaxy(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createGalaxy(
     _ fbb: inout FlatBufferBuilder,
@@ -38,7 +36,7 @@ public struct flatbuffers_goldens_Galaxy: FlatBufferTable, FlatbuffersVectorInit
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.numStars.p, fieldName: "numStars", required: false, type: Int64.self)
+    try _v.visit(field: VT.numStars, fieldName: "numStars", required: false, type: Int64.self)
     _v.finish()
   }
 }
@@ -52,18 +50,16 @@ public struct flatbuffers_goldens_Universe: FlatBufferTable, FlatbuffersVectorIn
   private init(_ t: Table) { _accessor = t }
   public init(_ bb: ByteBuffer, o: Int32) { _accessor = Table(bb: bb, position: o) }
 
-  private enum VTOFFSET: VOffset {
-    case age = 4
-    case galaxies = 6
-    var v: Int32 { Int32(self.rawValue) }
-    var p: VOffset { self.rawValue }
+  private struct VT {
+    static let age: VOffset = 4
+    static let galaxies: VOffset = 6
   }
 
-  public var age: Double { let o = _accessor.offset(VTOFFSET.age.v); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
-  public var galaxies: FlatbufferVector<flatbuffers_goldens_Galaxy> { return _accessor.vector(at: VTOFFSET.galaxies.v, byteSize: 4) }
+  public var age: Double { let o = _accessor.offset(VT.age); return o == 0 ? 0.0 : _accessor.readBuffer(of: Double.self, at: o) }
+  public var galaxies: FlatbufferVector<flatbuffers_goldens_Galaxy> { return _accessor.vector(at: VT.galaxies, byteSize: 4) }
   public static func startUniverse(_ fbb: inout FlatBufferBuilder) -> UOffset { fbb.startTable(with: 2) }
-  public static func add(age: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: age, def: 0.0, at: VTOFFSET.age.p) }
-  public static func addVectorOf(galaxies: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: galaxies, at: VTOFFSET.galaxies.p) }
+  public static func add(age: Double, _ fbb: inout FlatBufferBuilder) { fbb.add(element: age, def: 0.0, at: VT.age) }
+  public static func addVectorOf(galaxies: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: galaxies, at: VT.galaxies) }
   public static func endUniverse(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createUniverse(
     _ fbb: inout FlatBufferBuilder,
@@ -78,8 +74,8 @@ public struct flatbuffers_goldens_Universe: FlatBufferTable, FlatbuffersVectorIn
 
   public static func verify<T>(_ verifier: inout Verifier, at position: Int, of type: T.Type) throws where T: Verifiable {
     var _v = try verifier.visitTable(at: position)
-    try _v.visit(field: VTOFFSET.age.p, fieldName: "age", required: false, type: Double.self)
-    try _v.visit(field: VTOFFSET.galaxies.p, fieldName: "galaxies", required: false, type: ForwardOffset<Vector<ForwardOffset<flatbuffers_goldens_Galaxy>, flatbuffers_goldens_Galaxy>>.self)
+    try _v.visit(field: VT.age, fieldName: "age", required: false, type: Double.self)
+    try _v.visit(field: VT.galaxies, fieldName: "galaxies", required: false, type: ForwardOffset<Vector<ForwardOffset<flatbuffers_goldens_Galaxy>, flatbuffers_goldens_Galaxy>>.self)
     _v.finish()
   }
 }
