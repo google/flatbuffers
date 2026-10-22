@@ -43,7 +43,11 @@ impl<'a, T: Push> Push for &'a T {
     type Output = T::Output;
 
     unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
-        T::push(self, dst, written_len)
+        // SAFETY:
+        // Forwarded unchanged to `T::push`; `&T` has the same `Output`, `size`
+        // and `alignment` as `T`, so the caller's guarantees about `dst` carry
+        // over verbatim.
+        unsafe { T::push(self, dst, written_len) }
     }
 
     fn size() -> usize {
@@ -81,7 +85,11 @@ macro_rules! impl_push_for_endian_scalar {
 
             #[inline]
             unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-                emplace_scalar::<$ty>(dst, *self);
+                // SAFETY:
+                // The caller guarantees `dst` is at least `Self::size()` bytes,
+                // which for these scalar types is `size_of::<$ty::Scalar>()`, as
+                // `emplace_scalar` requires.
+                unsafe { emplace_scalar::<$ty>(dst, *self) };
             }
         }
     };

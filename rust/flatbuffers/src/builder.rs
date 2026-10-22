@@ -1234,12 +1234,19 @@ mod tests {
 
     struct CountingAllocator;
 
+    // SAFETY:
+    // `CountingAllocator` only counts allocations and forwards every call to
+    // `System`, so it inherits `System`'s compliance with the `GlobalAlloc`
+    // contract.
     unsafe impl GlobalAlloc for CountingAllocator {
         unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
             ALLOC_COUNT.fetch_add(1, Ordering::Relaxed);
+            // SAFETY: `layout` is forwarded unchanged from the caller.
             unsafe { System.alloc(layout) }
         }
         unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+            // SAFETY: `ptr` and `layout` are forwarded unchanged from the
+            // caller, and `ptr` was allocated by `System` in `alloc` above.
             unsafe { System.dealloc(ptr, layout) }
         }
     }
