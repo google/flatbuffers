@@ -63,6 +63,10 @@ extension String: FlatbuffersInitializable {
   ///   - o: Current position
   public init(_ bb: ByteBuffer, o: Int32) {
     let v = Int(o)
+    guard v >= 0, v &+ MemoryLayout<Int32>.size <= bb.capacity else {
+      self = ""
+      return
+    }
     let count = bb.read(def: Int32.self, position: v)
     self =
       bb.readString(

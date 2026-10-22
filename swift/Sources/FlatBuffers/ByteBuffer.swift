@@ -370,8 +370,8 @@ public struct ByteBuffer: @unchecked Sendable {
     index: Int,
     count: Int) -> [T]
   {
-    assert(
-      index + count <= capacity,
+    precondition(
+      index >= 0 && count >= 0 && index <= capacity && count <= capacity - index,
       "Reading out of bounds is illegal")
 
     return _storage.readWithUnsafeRawPointer(position: index) {
@@ -393,8 +393,8 @@ public struct ByteBuffer: @unchecked Sendable {
     count: Int,
     body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T
   {
-    assert(
-      index + count <= capacity,
+    precondition(
+      index >= 0 && count >= 0 && index <= capacity && count <= capacity - index,
       "Reading out of bounds is illegal")
     return try _storage.readWithUnsafeRawPointer(position: index) {
       try body(UnsafeRawBufferPointer(start: $0, count: count))
@@ -413,9 +413,9 @@ public struct ByteBuffer: @unchecked Sendable {
     count: Int,
     type: String.Encoding = .utf8) -> String?
   {
-    assert(
-      index + count <= capacity,
-      "Reading out of bounds is illegal")
+    guard index >= 0, count >= 0, index <= capacity, count <= capacity - index else {
+      return nil
+    }
     return _storage.readWithUnsafeRawPointer(position: index) {
       let buf = UnsafeBufferPointer(
         start: $0.bindMemory(to: UInt8.self, capacity: count),
@@ -435,9 +435,9 @@ public struct ByteBuffer: @unchecked Sendable {
     at index: Int,
     count: Int) -> String?
   {
-    assert(
-      index + count <= capacity,
-      "Reading out of bounds is illegal")
+    guard index >= 0, count >= 0, index <= capacity, count <= capacity - index else {
+      return nil
+    }
     return _storage.readWithUnsafeRawPointer(position: index) {
       String(cString: $0.bindMemory(to: UInt8.self, capacity: count))
     }
