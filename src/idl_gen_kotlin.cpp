@@ -1410,7 +1410,14 @@ class KotlinGenerator : public BaseGenerator {
              ? config->content_line_prefix
              : "///");
     for (auto it = dc.begin(); it != dc.end(); ++it) {
-      writer += line_prefix + *it;
+      std::string sanitized = *it;
+      // Sanitize comment content: escape block comment closing sequence
+      // to prevent code injection via premature comment termination.
+      for (size_t pos = sanitized.find("*/"); pos != std::string::npos;
+           pos = sanitized.find("*/", pos + 2)) {
+        sanitized.replace(pos, 2, "* /");
+      }
+      writer += line_prefix + sanitized;
     }
     if (config != nullptr && config->last_line != nullptr) {
       writer += std::string(config->last_line);
