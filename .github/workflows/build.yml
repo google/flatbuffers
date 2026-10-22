@@ -1,5 +1,6 @@
 name: CI
-permissions: read-all
+permissions:
+  contents: read
 
 on:
   # For manual tests.
@@ -19,7 +20,7 @@ on:
 jobs:
   build-linux:
     permissions:
-      contents: write
+      contents: read
     outputs:
       digests-gcc: ${{ steps.hash-gcc.outputs.hashes }}
       digests-clang: ${{ steps.hash-clang.outputs.hashes }}
@@ -30,7 +31,7 @@ jobs:
         cxx: [g++-13, clang++-18]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_STATIC_FLATC=ON .
     - name: build
@@ -42,7 +43,7 @@ jobs:
         chmod +x flatc
         ./flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: Linux flatc binary ${{ matrix.cxx }}
         path: flatc
@@ -50,11 +51,12 @@ jobs:
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
       run: zip Linux.flatc.binary.${{ matrix.cxx }}.zip flatc
-    - name: Release zip file
-      uses: softprops/action-gh-release@v2
+    - name: Upload release zip artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: Linux.flatc.binary.${{ matrix.cxx }}.zip
+        name: release-linux-${{ matrix.cxx }}
+        path: Linux.flatc.binary.${{ matrix.cxx }}.zip
     - name: Generate SLSA subjects - clang
       if: matrix.cxx == 'clang++-18' && startsWith(github.ref, 'refs/tags/')
       id: hash-clang
@@ -68,7 +70,7 @@ jobs:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: cmake
       run: CXX=clang++-18 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON -DFLATBUFFERS_CXX_FLAGS="-DFLATBUFFERS_NO_FILE_TESTS" .
     - name: build
@@ -80,7 +82,7 @@ jobs:
     name: Build Linux with out-of-source build location
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: make build directory
       run: mkdir build
     - name: cmake
@@ -112,7 +114,7 @@ jobs:
             std: 23
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: cmake
       run: >
         CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles"
@@ -135,9 +137,9 @@ jobs:
         std: [11, 14, 17, 20, 23]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce
     - name: cmake
       run: >
         cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
@@ -154,15 +156,15 @@ jobs:
 
   build-windows:
     permissions:
-      contents: write
+      contents: read
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Windows 2022
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce
     - name: cmake
       run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -170,7 +172,7 @@ jobs:
     - name: test
       run: Release\flattests.exe
     - name: upload build artifacts
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: Windows flatc binary
         path: Release\flatc.exe
@@ -178,11 +180,12 @@ jobs:
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
       run: move Release/flatc.exe . && Compress-Archive flatc.exe Windows.flatc.binary.zip
-    - name: Release binary
-      uses: softprops/action-gh-release@v2
+    - name: Upload release zip artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: Windows.flatc.binary.zip
+        name: release-windows
+        path: Windows.flatc.binary.zip
     - name: Generate SLSA subjects
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
@@ -200,9 +203,9 @@ jobs:
           '-p:EnableSpanT=true,UnsafeByteBuffer=true'
           ]
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
       with:
         dotnet-version: '8.0.x'
     - name: Build
@@ -223,13 +226,13 @@ jobs:
 
   build-mac-intel:
     permissions:
-      contents: write
+      contents: read
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (for Intel)
     runs-on: macos-15-intel
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: cmake
       run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -246,7 +249,7 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: Mac flatc binary Intel
         path: Release/flatc
@@ -254,11 +257,12 @@ jobs:
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
       run: mv Release/flatc . && zip MacIntel.flatc.binary.zip flatc
-    - name: Release binary
-      uses: softprops/action-gh-release@v2
+    - name: Upload release zip artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: MacIntel.flatc.binary.zip
+        name: release-mac-intel
+        path: MacIntel.flatc.binary.zip
     - name: Generate SLSA subjects
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
@@ -266,13 +270,13 @@ jobs:
 
   build-mac-universal:
     permissions:
-      contents: write
+      contents: read
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
     name: Build Mac (universal build)
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: cmake
       run: cmake -G "Xcode" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -289,7 +293,7 @@ jobs:
         chmod +x Release/flatc
         Release/flatc --version
     - name: upload build artifacts
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: Mac flatc binary Universal
         path: Release/flatc
@@ -297,11 +301,12 @@ jobs:
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
       run: mv Release/flatc . && zip Mac.flatc.binary.zip flatc
-    - name: Release binary
-      uses: softprops/action-gh-release@v2
+    - name: Upload release zip artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: Mac.flatc.binary.zip
+        name: release-mac-universal
+        path: Mac.flatc.binary.zip
     - name: Generate SLSA subjects
       if: startsWith(github.ref, 'refs/tags/')
       id: hash
@@ -312,14 +317,14 @@ jobs:
    if: false #disabled due to continual failure
    runs-on: ubuntu-24.04
    steps:
-   - uses: actions/checkout@v6
+   - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
    - name: set up Java
-     uses: actions/setup-java@v5
+     uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
      with:
        distribution: temurin
        java-version: 17
    - name: set up Gradle
-     uses: gradle/actions/setup-gradle@v5
+     uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
    - name: set up flatc
      run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON .
@@ -336,7 +341,7 @@ jobs:
       matrix:
         cxx: [g++-13, clang++-18]
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Generate
@@ -348,9 +353,9 @@ jobs:
     name: Check Generated Code on Windows
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce
     - name: cmake
       run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
@@ -367,13 +372,13 @@ jobs:
       matrix:
         cxx: [g++-13]
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: cmake
       run: CXX=${{ matrix.cxx }} cmake -G "Unix Makefiles" -DFLATBUFFERS_CXX_FLAGS="-Wno-unused-parameter -fno-aligned-new" -DFLATBUFFERS_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_STRICT_MODE=ON . && make -j
     - name: Run benchmarks
       run: ./flatbenchmark --benchmark_repetitions=5 --benchmark_display_aggregates_only=true --benchmark_out_format=console --benchmark_out=benchmarks/results_${{matrix.cxx}}
     - name: Upload benchmarks results
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: Linux flatbenchmark results ${{matrix.cxx}}
         path: benchmarks/results_${{matrix.cxx}}
@@ -382,7 +387,7 @@ jobs:
     name: Build Java
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: test
       working-directory: java
       run: mvn test
@@ -392,14 +397,14 @@ jobs:
     runs-on: macos-15
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: set up Java
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
       with:
         distribution: temurin
         java-version: 17
     - name: set up Gradle
-      uses: gradle/actions/setup-gradle@v5
+      uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
@@ -415,14 +420,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: set up Java
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
       with:
         distribution: temurin
         java-version: 17
     - name: set up Gradle
-      uses: gradle/actions/setup-gradle@v5
+      uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
     - name: Build flatc
       run: |
        cmake -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF .
@@ -439,7 +444,7 @@ jobs:
     name: Build Rust Linux
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: test
       working-directory: tests
       run: bash RustTest.sh
@@ -448,7 +453,7 @@ jobs:
     name: Build Rust Windows
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: test
       working-directory: tests
       run: ./RustTest.bat
@@ -457,7 +462,7 @@ jobs:
     name: Build Python
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -469,7 +474,7 @@ jobs:
     name: Build Go
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -481,7 +486,7 @@ jobs:
    name: Build PHP
    runs-on: ubuntu-24.04
    steps:
-   - uses: actions/checkout@v6
+   - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
    - name: flatc
      # FIXME: make test script not rely on flatc
      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF -DFLATBUFFERS_STRICT_MODE=ON . && make -j
@@ -498,8 +503,8 @@ jobs:
         swift: ["6.0", "6.1", "6.2"]
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
-    - uses: swift-actions/setup-swift@v2
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+    - uses: swift-actions/setup-swift@7ca6abe6b3b0e8b5421b88be48feee39cbf52c6a
       with:
         swift-version: ${{ matrix.swift }}
     - name: Get swift version
@@ -511,8 +516,8 @@ jobs:
     name: Test swift windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: SwiftyLab/setup-swift@latest
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: SwiftyLab/setup-swift@38f54a76b70d989321de9dc7c840618c08cf56e9
         with:
           swift-version: '6.1'
       - run: swift build
@@ -522,11 +527,11 @@ jobs:
     name: Test Swift Wasm
     runs-on: ubuntu-24.04
     steps:
-       - uses: actions/checkout@v6
-       - uses: swift-actions/setup-swift@v2
+       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+       - uses: swift-actions/setup-swift@7ca6abe6b3b0e8b5421b88be48feee39cbf52c6a
          with:
            swift-version: 6.2.1
-       - uses: bytecodealliance/actions/wasmtime/setup@v1
+       - uses: bytecodealliance/actions/wasmtime/setup@9152e710e9f7182e4c29ad218e4f335a7b203613
        - name: Install Swift SDK
          run: swift sdk install https://download.swift.org/swift-6.2.1-release/wasm-sdk/swift-6.2.1-RELEASE/swift-6.2.1-RELEASE_wasm.artifactbundle.tar.gz --checksum 482b9f95462b87bedfafca94a092cf9ec4496671ca13b43745097122d20f18af
        - name: Test
@@ -540,7 +545,7 @@ jobs:
     name: Build TS
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
@@ -559,8 +564,8 @@ jobs:
     name: Build Dart
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - uses: dart-lang/setup-dart@v1
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
         with:
           sdk: stable
       - name: flatc
@@ -574,11 +579,11 @@ jobs:
     name: Build Nim
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
     - name: flatc
       # FIXME: make test script not rely on flatc
       run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_TESTS=OFF -DFLATBUFFERS_INSTALL=OFF -DFLATBUFFERS_BUILD_FLATLIB=OFF -DFLATBUFFERS_BUILD_FLATHASH=OFF . && make -j
-    - uses: jiro4989/setup-nim-action@v2
+    - uses: jiro4989/setup-nim-action@cb1fc1270b117457dd0d9f610ec981fad3369cec
     - name: install library
       working-directory: nim
       run: nimble -y develop && nimble install
@@ -590,7 +595,7 @@ jobs:
     name: Bazel
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       # Explicitly use 8.5.1 until we can update or https://github.com/actions/runner-images/issues/13564 is fixed.
       - name: Set env
         run: >
@@ -630,6 +635,24 @@ jobs:
           echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
           echo "digests=$(cat checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
+  release-binaries:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build-linux, build-windows, build-mac-intel, build-mac-universal]
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+      - name: Release binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" release-assets/*.zip --clobber
+
   provenance:
     if: startsWith(github.ref, 'refs/tags/')
     needs: [release-digests]
@@ -637,7 +660,7 @@ jobs:
       actions: read   # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a
     with:
       base64-subjects: "${{ needs.release-digests.outputs.digests }}"
       upload-assets: true # Optional: Upload to a new release
