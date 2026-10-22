@@ -2089,7 +2089,10 @@ class RustGenerator : public BaseGenerator {
             "<::flatbuffers::ForwardsUOffset<{{U_ELEMENT_TABLE_TYPE}}>>("
             "\"{{U_ELEMENT_ENUM_TYPE}}\", pos),";
       });
-      code_ += "                _ => Ok(()),";
+      code_ +=
+          "                _ => v.verify_union_variant::"
+          "<::flatbuffers::ForwardsUOffset<::flatbuffers::Table<'static>>>("
+          "\"unknown\", pos),";
       code_ += "            }";
       code_ += "        })?";
     });
