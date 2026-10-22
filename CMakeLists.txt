@@ -230,6 +230,7 @@ set(FlatBuffers_Tests_SRCS
   tests/parser_test.cpp
   tests/proto_test.cpp
   tests/reflection_test.cpp
+  tests/reflection_union_security_test.cpp
   tests/test.cpp
   tests/test_assert.h
   tests/test_assert.cpp
