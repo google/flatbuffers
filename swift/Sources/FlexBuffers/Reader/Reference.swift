@@ -47,6 +47,9 @@ public func getRoot(buffer: ByteBuffer) throws -> Reference? {
 @inline(__always)
 public func getRootChecked(buffer: ByteBuffer) throws -> Reference? {
   // TODO(mustiikhalil): implement verifier
+  // Until a full verifier exists, at minimum fail closed when the root
+  // header cannot possibly fit in the buffer.
+  precondition(buffer.capacity >= 3, "FlexBuffer too small to hold a root")
   return try getRoot(buffer: buffer)
 }
 
