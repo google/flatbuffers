@@ -104,6 +104,8 @@ void ConformTest() {
   test_conform(ref, "table T { B:float; }",
                "field renamed to different type: T.B (renamed from T.A)");
   test_conform(ref, "enum E:byte { B, A }", "values differ for enum: A");
+  test_conform("enum E:byte { A, B }", "enum E:byte { A }",
+               "enum value deleted: E.B");
   test_conform(ref, "table T { }", "field deleted: T.A");
   test_conform(ref, "table T { B:int; }", "");  // renaming a field is allowed
 
@@ -114,6 +116,24 @@ void ConformTest() {
   // Check enum underlying type changes.
   test_conform("enum E:int32 {A}", "enum E: byte {A}",
                "underlying type differ for enum: E");
+
+  // Check enum-like deletion and table-field presence changes.
+  test_conform("table A {} table B {} union U { A, B }",
+               "table A {} table B {} union U { A }",
+               "union value deleted: U.B");
+  test_conform("table T { a:string; }", "table T { a:string (required); }",
+               "presence differs for field: T.a");
+
+  // Check fixed struct layout changes that do not alter field offsets.
+  test_conform("struct S { a:int; }", "struct S (force_align: 8) { a:int; }",
+               "struct layout differs: S");
+
+  // Check schema-level buffer identification changes.
+  test_conform("table A {} table B {} root_type A;",
+               "table A {} table B {} root_type B;", "root types differ");
+  test_conform("table T {} file_identifier \"ABCD\";",
+               "table T {} file_identifier \"WXYZ\";",
+               "file identifiers differ");
 
   // Check union underlying type changes.
   const char ref3[] = "table A {} table B {} union C {A, B}";
