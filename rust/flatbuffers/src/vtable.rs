@@ -33,7 +33,8 @@ impl<'a> PartialEq for VTable<'a> {
 }
 
 impl<'a> VTable<'a> {
-    /// SAFETY
+    /// # Safety
+    ///
     /// `buf` must contain a valid vtable at `loc`
     ///
     /// This consists of a number of `VOffsetT`
@@ -44,8 +45,11 @@ impl<'a> VTable<'a> {
         VTable { buf, loc }
     }
 
+    /// Returns the number of fields in the table's schema when the code was
+    /// compiled. Saturates to 0 for malformed vtables shorter than the two
+    /// mandatory metadata fields.
     pub fn num_fields(&self) -> usize {
-        (self.num_bytes() / SIZE_VOFFSET) - 2
+        (self.num_bytes() / SIZE_VOFFSET).saturating_sub(VTABLE_METADATA_FIELDS)
     }
 
     pub fn num_bytes(&self) -> usize {
@@ -63,7 +67,10 @@ impl<'a> VTable<'a> {
 
     pub fn get_field(&self, idx: usize) -> VOffsetT {
         // TODO(rw): distinguish between None and 0?
-        if idx > self.num_fields() {
+        // `idx` is a zero-based field index, so the valid range is
+        // `0..num_fields()`. Reading at `idx == num_fields()` would go two
+        // bytes past the end of the vtable.
+        if idx >= self.num_fields() {
             return 0;
         }
 

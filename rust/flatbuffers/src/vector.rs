@@ -32,7 +32,10 @@ pub struct Vector<'a, T: 'a>(&'a [u8], usize, PhantomData<T>);
 impl<'a, T: 'a> Default for Vector<'a, T> {
     fn default() -> Self {
         // Static, length 0 vector.
-        // Note that derived default causes UB due to issues in read_scalar_at /facepalm.
+        // Note that derived default cannot be used: it would construct a
+        // zero-length buffer, and `len()` reads a UOffsetT at offset 0.
+        // (This used to be undefined behavior; scalar reads now panic instead.
+        // The workaround is kept so that `Default` remains panic-free.)
         Self(&[0; core::mem::size_of::<UOffsetT>()], 0, Default::default())
     }
 }
