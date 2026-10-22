@@ -31,6 +31,22 @@
 
 namespace flatbuffers {
 
+bool IDLOptions::ParseProtoAction(const char* str, ProtoAction& action) {
+  if (!strcmp(str, "nop")) {
+    action = ProtoAction::NO_OP;
+    return true;
+  }
+  if (!strcmp(str, "warn")) {
+    action = ProtoAction::WARNING;
+    return true;
+  }
+  if (!strcmp(str, "error")) {
+    action = ProtoAction::ERROR;
+    return true;
+  }
+  return false;
+}
+
 static const char* FLATC_VERSION() { return FLATBUFFERS_VERSION(); }
 
 void FlatCompiler::ParseFile(
@@ -186,6 +202,15 @@ const static FlatCOption flatc_options[] = {
      "* 'error' - An error message will be shown and the fbs generation will "
      "be "
      "interrupted."},
+    {"", "proto-option", "",
+     "Action when a protobuf `option` keyword is ignored during conversion. "
+     "Supported values: 'nop' (default), 'warn', 'error'."},
+    {"", "proto-service", "",
+     "Action when a protobuf `service` keyword is ignored during conversion. "
+     "Supported values: 'nop' (default), 'warn', 'error'."},
+    {"", "proto-extensions", "",
+     "Action when a protobuf `extensions` keyword is ignored during conversion. "
+     "Supported values: 'nop' (default), 'warn', 'error'."},
     {"", "grpc", "", "Generate GRPC interfaces for the specified languages."},
     {"", "schema", "", "Serialize schemas instead of JSON (use with -b)."},
     {"", "bfbs-filenames", "PATH",
@@ -602,15 +627,23 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--keep-proto-id") {
         opts.keep_proto_id = true;
       } else if (arg == "--proto-id-gap") {
-        if (++argi >= argc) Error("missing case style following: " + arg, true);
-        if (!strcmp(argv[argi], "nop"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::NO_OP;
-        else if (!strcmp(argv[argi], "warn"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::WARNING;
-        else if (!strcmp(argv[argi], "error"))
-          opts.proto_id_gap_action = IDLOptions::ProtoIdGapAction::ERROR;
-        else
-          Error("unknown case style: " + std::string(argv[argi]), true);
+        if (++argi >= argc) Error("missing action following: " + arg, true);
+        if (!IDLOptions::ParseProtoAction(argv[argi], opts.proto_id_gap_action))
+          Error("unknown action: " + std::string(argv[argi]), true);
+      } else if (arg == "--proto-option") {
+        if (++argi >= argc) Error("missing action following: " + arg, true);
+        if (!IDLOptions::ParseProtoAction(argv[argi], opts.proto_option_action))
+          Error("unknown action: " + std::string(argv[argi]), true);
+      } else if (arg == "--proto-service") {
+        if (++argi >= argc) Error("missing action following: " + arg, true);
+        if (!IDLOptions::ParseProtoAction(argv[argi],
+                                          opts.proto_service_action))
+          Error("unknown action: " + std::string(argv[argi]), true);
+      } else if (arg == "--proto-extensions") {
+        if (++argi >= argc) Error("missing action following: " + arg, true);
+        if (!IDLOptions::ParseProtoAction(argv[argi],
+                                          opts.proto_extensions_action))
+          Error("unknown action: " + std::string(argv[argi]), true);
       } else if (arg == "--schema") {
         options.schema_binary = true;
       } else if (arg == "-M") {
