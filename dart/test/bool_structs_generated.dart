@@ -2,8 +2,9 @@
 // ignore_for_file: unused_import, unused_field, unused_element, unused_local_variable, constant_identifier_names
 
 import 'dart:typed_data' show Uint8List;
-
 import 'package:flat_buffers/flat_buffers.dart' as fb;
+
+
 
 class Foo {
   Foo._(this._bc, this._bcOffset);
@@ -17,15 +18,15 @@ class Foo {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  FooProperties? get myFoo =>
-      FooProperties.reader.vTableGetNullable(_bc, _bcOffset, 4);
+  FooProperties? get myFoo => FooProperties.reader.vTableGetNullable(_bc, _bcOffset, 4);
 
   @override
   String toString() {
     return 'Foo{myFoo: ${myFoo}}';
   }
 
-  FooT unpack() => FooT(myFoo: myFoo?.unpack());
+  FooT unpack() => FooT(
+      myFoo: myFoo?.unpack());
 
   static int pack(fb.Builder fbBuilder, FooT? object) {
     if (object == null) return 0;
@@ -36,7 +37,8 @@ class Foo {
 class FooT implements fb.Packable {
   FooPropertiesT? myFoo;
 
-  FooT({this.myFoo});
+  FooT({
+      this.myFoo});
 
   @override
   int pack(fb.Builder fbBuilder) {
@@ -57,7 +59,8 @@ class _FooReader extends fb.TableReader<Foo> {
   const _FooReader();
 
   @override
-  Foo createObject(fb.BufferContext bc, int offset) => Foo._(bc, offset);
+  Foo createObject(fb.BufferContext bc, int offset) =>
+    Foo._(bc, offset);
 }
 
 class FooBuilder {
@@ -82,7 +85,10 @@ class FooBuilder {
 class FooObjectBuilder extends fb.ObjectBuilder {
   final FooPropertiesObjectBuilder? _myFoo;
 
-  FooObjectBuilder({FooPropertiesObjectBuilder? myFoo}) : _myFoo = myFoo;
+  FooObjectBuilder({
+    FooPropertiesObjectBuilder? myFoo,
+  })
+      : _myFoo = myFoo;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -102,7 +108,6 @@ class FooObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.buffer;
   }
 }
-
 class FooProperties {
   FooProperties._(this._bc, this._bcOffset);
 
@@ -119,7 +124,9 @@ class FooProperties {
     return 'FooProperties{a: ${a}, b: ${b}}';
   }
 
-  FooPropertiesT unpack() => FooPropertiesT(a: a, b: b);
+  FooPropertiesT unpack() => FooPropertiesT(
+      a: a,
+      b: b);
 
   static int pack(fb.Builder fbBuilder, FooPropertiesT? object) {
     if (object == null) return 0;
@@ -131,10 +138,13 @@ class FooPropertiesT implements fb.Packable {
   bool a;
   bool b;
 
-  FooPropertiesT({required this.a, required this.b});
+  FooPropertiesT({
+      required this.a,
+      required this.b});
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prepStruct(1, 2);
     fbBuilder.putBool(b);
     fbBuilder.putBool(a);
     return fbBuilder.offset;
@@ -154,7 +164,7 @@ class _FooPropertiesReader extends fb.StructReader<FooProperties> {
 
   @override
   FooProperties createObject(fb.BufferContext bc, int offset) =>
-      FooProperties._(bc, offset);
+    FooProperties._(bc, offset);
 }
 
 class FooPropertiesBuilder {
@@ -163,26 +173,251 @@ class FooPropertiesBuilder {
   final fb.Builder fbBuilder;
 
   int finish(bool a, bool b) {
+    fbBuilder.prepStruct(1, 2);
     fbBuilder.putBool(b);
     fbBuilder.putBool(a);
     return fbBuilder.offset;
   }
+
 }
 
 class FooPropertiesObjectBuilder extends fb.ObjectBuilder {
   final bool _a;
   final bool _b;
 
-  FooPropertiesObjectBuilder({required bool a, required bool b})
-    : _a = a,
-      _b = b;
+  FooPropertiesObjectBuilder({
+    required bool a,
+    required bool b,
+  })
+      : _a = a,
+        _b = b;
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prepStruct(1, 2);
     fbBuilder.putBool(_b);
     fbBuilder.putBool(_a);
     return fbBuilder.offset;
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
+class Header {
+  Header._(this._bc, this._bcOffset);
+
+  static const fb.Reader<Header> reader = _HeaderReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  int get time => const fb.Uint64Reader().read(_bc, _bcOffset + 0);
+  int get ident => const fb.Uint16Reader().read(_bc, _bcOffset + 8);
+
+  @override
+  String toString() {
+    return 'Header{time: ${time}, ident: ${ident}}';
+  }
+
+  HeaderT unpack() => HeaderT(
+      time: time,
+      ident: ident);
+
+  static int pack(fb.Builder fbBuilder, HeaderT? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class HeaderT implements fb.Packable {
+  int time;
+  int ident;
+
+  HeaderT({
+      required this.time,
+      required this.ident});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    fbBuilder.prepStruct(8, 16);
+    fbBuilder.pad(6);
+    fbBuilder.putUint16(ident);
+    fbBuilder.putUint64(time);
+    return fbBuilder.offset;
+  }
+
+  @override
+  String toString() {
+    return 'HeaderT{time: ${time}, ident: ${ident}}';
+  }
+}
+
+class _HeaderReader extends fb.StructReader<Header> {
+  const _HeaderReader();
+
+  @override
+  int get size => 16;
+
+  @override
+  Header createObject(fb.BufferContext bc, int offset) =>
+    Header._(bc, offset);
+}
+
+class HeaderBuilder {
+  HeaderBuilder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  int finish(int time, int ident) {
+    fbBuilder.prepStruct(8, 16);
+    fbBuilder.pad(6);
+    fbBuilder.putUint16(ident);
+    fbBuilder.putUint64(time);
+    return fbBuilder.offset;
+  }
+
+}
+
+class HeaderObjectBuilder extends fb.ObjectBuilder {
+  final int _time;
+  final int _ident;
+
+  HeaderObjectBuilder({
+    required int time,
+    required int ident,
+  })
+      : _time = time,
+        _ident = ident;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    fbBuilder.prepStruct(8, 16);
+    fbBuilder.pad(6);
+    fbBuilder.putUint16(_ident);
+    fbBuilder.putUint64(_time);
+    return fbBuilder.offset;
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
+class Message {
+  Message._(this._bc, this._bcOffset);
+  factory Message(List<int> bytes) {
+    final rootRef = fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<Message> reader = _MessageReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  int get prefix => const fb.Uint16Reader().vTableGet(_bc, _bcOffset, 4, 0);
+  Header? get header => Header.reader.vTableGetNullable(_bc, _bcOffset, 6);
+
+  @override
+  String toString() {
+    return 'Message{prefix: ${prefix}, header: ${header}}';
+  }
+
+  MessageT unpack() => MessageT(
+      prefix: prefix,
+      header: header?.unpack());
+
+  static int pack(fb.Builder fbBuilder, MessageT? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class MessageT implements fb.Packable {
+  int prefix;
+  HeaderT? header;
+
+  MessageT({
+      this.prefix = 0,
+      this.header});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    fbBuilder.startTable(2);
+    fbBuilder.addUint16(0, prefix);
+    if (header != null) {
+      fbBuilder.addStruct(1, header!.pack(fbBuilder));
+    }
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'MessageT{prefix: ${prefix}, header: ${header}}';
+  }
+}
+
+class _MessageReader extends fb.TableReader<Message> {
+  const _MessageReader();
+
+  @override
+  Message createObject(fb.BufferContext bc, int offset) =>
+    Message._(bc, offset);
+}
+
+class MessageBuilder {
+  MessageBuilder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable(2);
+  }
+
+  int addPrefix(int? prefix) {
+    fbBuilder.addUint16(0, prefix);
+    return fbBuilder.offset;
+  }
+  int addHeader(int offset) {
+    fbBuilder.addStruct(1, offset);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class MessageObjectBuilder extends fb.ObjectBuilder {
+  final int? _prefix;
+  final HeaderObjectBuilder? _header;
+
+  MessageObjectBuilder({
+    int? prefix,
+    HeaderObjectBuilder? header,
+  })
+      : _prefix = prefix,
+        _header = header;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    fbBuilder.startTable(2);
+    fbBuilder.addUint16(0, _prefix);
+    if (_header != null) {
+      fbBuilder.addStruct(1, _header!.finish(fbBuilder));
+    }
+    return fbBuilder.endTable();
   }
 
   /// Convenience method to serialize to byte list.
