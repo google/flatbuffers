@@ -323,7 +323,12 @@ impl<B: Buffer> Reader<B> {
     /// Otherwise Returns error.
     pub fn get_bool(&self) -> Result<bool, Error> {
         self.expect_type(FlexBufferType::Bool)?;
-        Ok(self.buffer[self.address..self.address + self.width.n_bytes()].iter().any(|&b| b != 0))
+        Ok(self
+            .buffer
+            .get(self.address..self.address + self.width.n_bytes())
+            .ok_or(Error::FlexbufferOutOfBounds)?
+            .iter()
+            .any(|&b| b != 0))
     }
 
     /// Gets the length of the key if this type is a key.
@@ -601,9 +606,9 @@ fn f64_from_le_bytes(bytes: [u8; 8]) -> f64 {
 }
 
 fn read_usize(buffer: &[u8], address: usize, width: BitWidth) -> usize {
-    let cursor = &buffer[address..];
+    let cursor = buffer.get(address..).unwrap_or_default();
     match width {
-        BitWidth::W8 => cursor[0] as usize,
+        BitWidth::W8 => cursor.first().copied().unwrap_or_default() as usize,
         BitWidth::W16 => cursor
             .get(0..2)
             .and_then(|s| s.try_into().ok())
