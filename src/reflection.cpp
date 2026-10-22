@@ -481,6 +481,25 @@ static size_t GetForceAlign(const reflection::Field& field) {
   return static_cast<size_t>(StringToUInt(attr->value()->c_str()));
 }
 
+// For a "<name>_type" field (a union type tag, or a vector of them), the union
+// field it holds the type of, if any.
+static const reflection::Field* GetUnionFieldOfType(
+    const reflection::Object& parent, const reflection::Field& typefield) {
+  const auto& name = typefield.name()->str();
+  const std::string suffix = UnionTypeFieldSuffix();
+  if (name.size() <= suffix.size() ||
+      name.compare(name.size() - suffix.size(), suffix.size(), suffix) != 0)
+    return nullptr;
+  auto unionfield = parent.fields()->LookupByKey(
+      name.substr(0, name.size() - suffix.size()).c_str());
+  if (!unionfield) return nullptr;
+  auto type = unionfield->type();
+  const bool is_union = type->base_type() == reflection::Union ||
+                        (type->base_type() == reflection::Vector &&
+                         type->element() == reflection::Union);
+  return is_union ? unionfield : nullptr;
+}
+
 static bool HasAttribute(const reflection::Field& field, const char* name) {
   return field.attributes() && field.attributes()->LookupByKey(name);
 }
@@ -499,6 +518,20 @@ static size_t GetMaxAlignment(const reflection::Schema& schema) {
     for (auto field : *obj->fields()) consider(GetForceAlign(*field));
   }
   return align;
+}
+
+// The alignment a vector field is built with beyond what its elements need:
+// its force_align, or that of the buffer nested in it. 0 if there is none.
+static size_t GetExtraVectorAlignment(const reflection::Schema& schema,
+                                      const reflection::Field& field) {
+  size_t align = 0;
+  const auto force_align = GetForceAlign(field);
+  if (VerifyAlignmentRequirements(force_align)) align = force_align;
+  if (HasAttribute(field, "nested_flatbuffer") ||
+      HasAttribute(field, "flexbuffer")) {
+    align = std::max(align, GetMaxAlignment(schema));
+  }
+  return VerifyAlignmentRequirements(align) ? align : 0;
 }
 
 // Resize a FlatBuffer in-place by iterating through all offsets in the buffer
@@ -749,8 +782,9 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
   if (root < sizeof(uoffset_t) || root >= newlen) return nullptr;
   // We're going to chop off the root offset, so align to sizeof(uoffset_t)
   // past the largest alignment newbuf may contain (structs with force_align).
-  while ((flatbuf.size() & (FLATBUFFERS_MAX_ALIGNMENT - 1)) !=
-         sizeof(uoffset_t)) {
+  const size_t align = std::max<size_t>(FLATBUFFERS_MAX_ALIGNMENT,
+                                        sizeof(largest_scalar_t));
+  while ((flatbuf.size() & (align - 1)) != sizeof(uoffset_t)) {
     flatbuf.push_back(0);
   }
   auto insertion_point = static_cast<uoffset_t>(flatbuf.size());
@@ -834,6 +868,8 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
             element_base_type == reflection::Obj
                 ? schema.objects()->Get(fielddef.type()->index())
                 : nullptr;
+        // Keep any extra alignment the source vector was built with.
+        const auto extra_alignment = GetExtraVectorAlignment(schema, fielddef);
         switch (element_base_type) {
           case reflection::String: {
             std::vector<Offset<const String*>> elements(vec->size());
@@ -842,6 +878,10 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
               elements[i] = use_string_pooling
                                 ? fbb.CreateSharedString(vec_s->Get(i)).o
                                 : fbb.CreateString(vec_s->Get(i)).o;
+            }
+            if (extra_alignment > sizeof(uoffset_t)) {
+              fbb.ForceVectorAlignment(elements.size(), sizeof(uoffset_t),
+                                       extra_alignment);
             }
             offset = fbb.CreateVector(elements).o;
             break;
@@ -864,7 +904,7 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
                                             use_string_pooling);
             }
             fbb.StartVector(elements.size(), sizeof(uoffset_t),
-                            sizeof(uoffset_t));
+                            std::max(sizeof(uoffset_t), extra_alignment));
             for (auto i = elements.size(); i-- > 0;) {
               // NONE elements have no value to point to.
               if (elements[i])
@@ -882,6 +922,10 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
                 elements[i] = CopyTable(fbb, schema, *elemobjectdef,
                                         *vec->Get(i), use_string_pooling);
               }
+              if (extra_alignment > sizeof(uoffset_t)) {
+                fbb.ForceVectorAlignment(elements.size(), sizeof(uoffset_t),
+                                         extra_alignment);
+              }
               offset = fbb.CreateVector(elements).o;
               break;
             }
@@ -897,20 +941,22 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
               if (VerifyAlignmentRequirements(struct_alignment))
                 element_alignment = struct_alignment;
             }
-            // Keep any extra alignment the source vector was built with.
-            const auto force_align = GetForceAlign(fielddef);
-            if (force_align > element_alignment &&
-                VerifyAlignmentRequirements(force_align))
-              element_alignment = force_align;
-            if (HasAttribute(fielddef, "nested_flatbuffer") ||
-                HasAttribute(fielddef, "flexbuffer")) {
-              // The contents are a buffer of their own, with alignment
-              // requirements of its own.
-              element_alignment =
-                  std::max(element_alignment, GetMaxAlignment(schema));
+            element_alignment = std::max(element_alignment, extra_alignment);
+            const uint8_t* data = vec->Data();
+            std::vector<uint8_t> tags;
+            if (element_base_type == reflection::UType) {
+              if (auto unionfield = GetUnionFieldOfType(objectdef, fielddef)) {
+                // Tags of union values that can't be copied (see above)
+                // become NONE.
+                tags.assign(data, data + vec->size());
+                for (auto& tag : tags) {
+                  if (!GetUnionMemberType(schema, *unionfield, tag)) tag = 0;
+                }
+                data = tags.data();
+              }
             }
             fbb.StartVector(vec->size(), element_size, element_alignment);
-            fbb.PushBytes(vec->Data(), element_size * vec->size());
+            fbb.PushBytes(data, element_size * vec->size());
             offset = fbb.EndVector(vec->size());
             break;
           }
@@ -954,6 +1000,15 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         fbb.AddOffset(fielddef.offset(), Offset<void>(offsets[offset_idx++]));
         break;
       default: {  // Scalars.
+        if (base_type == reflection::UType) {
+          // Leave out the tag of a union value that couldn't be copied (see
+          // above), so the union becomes NONE instead of referring to nothing.
+          auto unionfield = GetUnionFieldOfType(objectdef, fielddef);
+          if (unionfield &&
+              !GetUnionMemberType(schema, *unionfield,
+                                  GetFieldI<uint8_t>(table, fielddef)))
+            break;
+        }
         auto size = GetTypeSize(base_type);
         CopyInline(fbb, fielddef, table, size, size);
         break;

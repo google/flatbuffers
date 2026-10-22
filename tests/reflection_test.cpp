@@ -387,13 +387,18 @@ std::string ToJson(const char* schema_src, const uint8_t* buf) {
   return json;
 }
 
-std::vector<uint8_t> Copy(const ParsedBuffer& parsed) {
+// Copies "data" with CopyTable, using "schema" to interpret it.
+std::vector<uint8_t> Copy(const reflection::Schema& schema,
+                          const std::vector<uint8_t>& data) {
   flatbuffers::FlatBufferBuilder fbb;
-  fbb.Finish(flatbuffers::CopyTable(fbb, parsed.schema(),
-                                    *parsed.schema().root_table(),
-                                    *flatbuffers::GetAnyRoot(parsed.data.data())));
+  fbb.Finish(flatbuffers::CopyTable(fbb, schema, *schema.root_table(),
+                                    *flatbuffers::GetAnyRoot(data.data())));
   return std::vector<uint8_t>(fbb.GetBufferPointer(),
                               fbb.GetBufferPointer() + fbb.GetSize());
+}
+
+std::vector<uint8_t> Copy(const ParsedBuffer& parsed) {
+  return Copy(parsed.schema(), parsed.data);
 }
 
 size_t OffsetIn(const std::vector<uint8_t>& buf, const void* p) {
@@ -564,36 +569,79 @@ void CopyTableUnionVectorTest() {
               ToJson(schema_src, parsed.data.data()).c_str());
 }
 
+// Copying newer data with an older schema can meet union members the older
+// schema doesn't know. CopyTable can't copy their values, so it must not keep
+// their tags either: they become NONE.
+void CopyTableUnknownUnionMembersTest() {
+  const char* v1 =
+      "table X { a: int; } table Y { b: string; } union U { X, Y }"
+      "table R { u: U; uv: [U]; } root_type R;";
+  const char* v2 =
+      "table X { a: int; } table Y { b: string; }"
+      "table Z { c: string; d: int; } union U { X, Y, Z, s: string }"
+      "table R { u: U; uv: [U]; } root_type R;";
+  const auto newer = Parse(v2,
+                           "{ u_type: Z, u: { c: \"q\", d: 4 },"
+                           "  uv_type: [X, Z, s],"
+                           "  uv: [{ a: 1 }, { c: \"q\", d: 4 }, \"str\"] }");
+  const auto older = Parse(v1, "{}");
+
+  const auto copy = Copy(older.schema(), newer.data);
+  TEST_EQ(older.Verify(copy), true);
+  TEST_EQ(newer.Verify(copy), true);
+  const auto& root = *flatbuffers::GetAnyRoot(copy.data());
+  TEST_EQ(flatbuffers::GetFieldI<uint8_t>(root, newer.field("R", "u_type")),
+          0);
+  const auto types =
+      flatbuffers::GetFieldV<uint8_t>(root, newer.field("R", "uv_type"));
+  TEST_NOTNULL(types);
+  TEST_EQ(types->size(), 3u);
+  TEST_EQ(types->Get(0), 1);  // X
+  TEST_EQ(types->Get(1), 0);  // Z: unknown to v1, so NONE.
+  TEST_EQ(types->Get(2), 0);  // s: unknown to v1, so NONE.
+  const auto uv = root.GetPointer<const Vector<Offset<Table>>*>(
+      newer.field("R", "uv").offset());
+  TEST_EQ(flatbuffers::GetFieldI<int32_t>(*uv->Get(0), newer.field("X", "a")),
+          1);
+}
+
 // Vectors with force_align, nested FlatBuffers and FlexBuffers are aligned
 // beyond their element size when built; CopyTable and resizing must keep that.
 void AlignedVectorAttributesTest() {
   const char* schema_src =
       "table N { d: double; }"
+      "table X { a: int; } union U { X }"
       "table T { v: [ubyte] (force_align: 16);"
+      "          ss: [string] (force_align: 16);"
+      "          xs: [X] (force_align: 16);"
+      "          uv: [U] (force_align: 16);"
       "          n: [ubyte] (nested_flatbuffer: \"N\");"
       "          f: [ubyte] (flexbuffer);"
-      "          s: string; w: [ubyte]; }"
+      "          s: string; zz: [ubyte]; }"
       "root_type T;";
   for (int pad = 0; pad < 16; pad++) {
-    // v, n and f are serialized before s, so they move when s grows. CopyTable
-    // serializes in name order, so w ends up in front of all of them.
+    // Everything but zz is serialized before s, so it moves when s grows.
+    // CopyTable serializes in name order, so zz ends up in front of the rest.
     std::string json =
-        "{ v: [1, 2, 3], n: { d: 1.5 }, f: { a: 1.0 }, s: \"ab\", w: [";
+        "{ v: [1, 2, 3], ss: [\"a\"], xs: [{ a: 1 }], uv_type: [X],"
+        "  uv: [{ a: 2 }], n: { d: 1.5 }, f: { a: 1.0 }, s: \"ab\", zz: [";
     for (int i = 0; i < pad; i++) json += i ? ",1" : "1";
     json += "] }";
     const auto parsed = Parse(schema_src, json, true);
     const auto check = [&](const std::vector<uint8_t>& buf) {
       TEST_EQ(parsed.Verify(buf), true);
       const auto& root = *flatbuffers::GetAnyRoot(buf.data());
-      TEST_EQ(OffsetIn(buf, flatbuffers::GetFieldAnyV(root, parsed.field("T", "v"))
-                                ->Data()) % 16,
-              0u);
-      TEST_EQ(OffsetIn(buf, flatbuffers::GetFieldAnyV(root, parsed.field("T", "n"))
-                                ->Data()) % 8,
-              0u);
-      TEST_EQ(OffsetIn(buf, flatbuffers::GetFieldAnyV(root, parsed.field("T", "f"))
-                                ->Data()) % 8,
-              0u);
+      const auto data_offset = [&](const char* name) {
+        return OffsetIn(
+            buf,
+            flatbuffers::GetFieldAnyV(root, parsed.field("T", name))->Data());
+      };
+      TEST_EQ(data_offset("v") % 16, 0u);
+      TEST_EQ(data_offset("ss") % 16, 0u);
+      TEST_EQ(data_offset("xs") % 16, 0u);
+      TEST_EQ(data_offset("uv") % 16, 0u);
+      TEST_EQ(data_offset("n") % 8, 0u);
+      TEST_EQ(data_offset("f") % 8, 0u);
     };
     check(parsed.data);
     check(Copy(parsed));

@@ -18,6 +18,7 @@ void ResizeVectorBeforeVTableTest();
 void ResizeUnionVectorTest();
 void UnionMemberKindsTest();
 void CopyTableUnionVectorTest();
+void CopyTableUnknownUnionMembersTest();
 void AlignedVectorAttributesTest();
 void AddFlatBufferAlignmentTest();
 void MiniReflectFixedLengthArrayTest();

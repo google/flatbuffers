@@ -1772,6 +1772,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   ResizeUnionVectorTest();
   UnionMemberKindsTest();
   CopyTableUnionVectorTest();
+  CopyTableUnknownUnionMembersTest();
   AlignedVectorAttributesTest();
   AddFlatBufferAlignmentTest();
 
