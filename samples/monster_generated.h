@@ -179,10 +179,10 @@ inline bool operator!=(const EquipmentUnion &lhs, const EquipmentUnion &rhs) {
     return !(lhs == rhs);
 }
 
-template <bool B = false>
-bool VerifyEquipment(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Equipment type);
-template <bool B = false>
-bool VerifyEquipmentVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
+template <bool VerifySizePrefixed = false>
+bool VerifyEquipment(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const void *obj, Equipment type);
+template <bool VerifySizePrefixed = false>
+bool VerifyEquipmentVector(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -341,8 +341,8 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<const MyGame::Sample::Vec3 *> *mutable_path() {
     return GetPointer<::flatbuffers::Vector<const MyGame::Sample::Vec3 *> *>(VT_PATH);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<MyGame::Sample::Vec3>(verifier, VT_POS, 4) &&
            VerifyField<int16_t>(verifier, VT_MANA, 2) &&
@@ -506,8 +506,8 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_damage(int16_t _damage = 0) {
     return SetField<int16_t>(VT_DAMAGE, _damage, 0);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -702,8 +702,8 @@ inline ::flatbuffers::Offset<Weapon> Weapon::Pack(::flatbuffers::FlatBufferBuild
       _damage);
 }
 
-template <bool B>
-inline bool VerifyEquipment(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, Equipment type) {
+template <bool VerifySizePrefixed>
+inline bool VerifyEquipment(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const void *obj, Equipment type) {
   switch (type) {
     case Equipment_NONE: {
       return true;
@@ -716,8 +716,8 @@ inline bool VerifyEquipment(::flatbuffers::VerifierTemplate<B> &verifier, const 
   }
 }
 
-template <bool B>
-inline bool VerifyEquipmentVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
+template <bool VerifySizePrefixed>
+inline bool VerifyEquipmentVector(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -901,15 +901,15 @@ inline MyGame::Sample::Monster *GetMutableSizePrefixedMonster(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<MyGame::Sample::Monster>(buf);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifyMonsterBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifyBuffer<MyGame::Sample::Monster>(nullptr);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifySizePrefixedMonsterBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<MyGame::Sample::Monster>(nullptr);
 }
 

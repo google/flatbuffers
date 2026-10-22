@@ -150,8 +150,8 @@ struct Matrix FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<float> *mutable_values() {
     return GetPointer<::flatbuffers::Vector<float> *>(VT_VALUES);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_ROWS, 4) &&
            VerifyField<int32_t>(verifier, VT_COLUMNS, 4) &&
@@ -279,8 +279,8 @@ struct ApplicationData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<Geometry::Matrix>> *mutable_matrices() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<Geometry::Matrix>> *>(VT_MATRICES);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_VECTORS) &&
            verifier.VerifyVector(vectors()) &&
@@ -558,15 +558,15 @@ inline Geometry::ApplicationData *GetMutableSizePrefixedApplicationData(void *bu
   return ::flatbuffers::GetMutableSizePrefixedRoot<Geometry::ApplicationData>(buf);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifyApplicationDataBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifyBuffer<Geometry::ApplicationData>(nullptr);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifySizePrefixedApplicationDataBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<Geometry::ApplicationData>(nullptr);
 }
 
