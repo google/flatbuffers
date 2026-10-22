@@ -8,7 +8,45 @@
 namespace flatbuffers {
 namespace tests {
 
+#if defined(__GNUC__) || defined(__clang__)
+enum __attribute__((aligned(2))) UnderAligned32 : uint32_t {
+  kUnderAlignedLength = 4
+};
+enum __attribute__((aligned(2))) UnderAligned64 : uint64_t {
+  kUnderAlignedValue = UINT64_C(0x0102030405060708)
+};
+
+void ScalarWireAlignmentTest() {
+  TEST_EQ(sizeof(UnderAligned32), 4UL);
+  TEST_EQ(AlignOf<UnderAligned32>(), 2UL);
+
+  const char payload[] = {'m', '6', '8', 'k', '\0'};
+  FlatBufferBuilder prefix_builder;
+  prefix_builder.PreAlign<UnderAligned32>(sizeof(payload));
+  prefix_builder.PushBytes(reinterpret_cast<const uint8_t*>(payload),
+                           sizeof(payload));
+  prefix_builder.PushElement(kUnderAlignedLength);
+
+  const uint8_t* prefix = prefix_builder.GetCurrentBufferPointer();
+  for (size_t i = 0; i < sizeof(payload); ++i) {
+    TEST_EQ(prefix[sizeof(UnderAligned32) + i],
+            static_cast<uint8_t>(payload[i]));
+  }
+
+  FlatBufferBuilder vector_builder;
+  vector_builder.PushElement(static_cast<uint16_t>(0));
+  const UnderAligned64 value = kUnderAlignedValue;
+  const Offset<Vector<UnderAligned64>> vector =
+      vector_builder.CreateVector(&value, 1);
+  TEST_EQ((vector.o - sizeof(uoffset_t)) % sizeof(UnderAligned64), 0UL);
+}
+#endif
+
 void AlignmentTest() {
+#if defined(__GNUC__) || defined(__clang__)
+  ScalarWireAlignmentTest();
+#endif
+
   FlatBufferBuilder builder;
 
   BadAlignmentLarge large;
