@@ -534,6 +534,13 @@ flatc(
     prefix="../../Tests/Flatbuffers/",
 )
 
+flatc(
+    SWIFT_OPTS_CODE_GEN + BASE_OPTS,
+    schema="force_align_test.fbs",
+    cwd=swift_code_gen,
+    prefix="../../Tests/Flatbuffers/",
+)
+
 # Swift Wasm Tests
 swift_Wasm_prefix = "swift/Wasm.tests/Tests/FlatBuffers.Test.Swift.WasmTests"
 flatc(

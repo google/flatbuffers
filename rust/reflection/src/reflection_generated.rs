@@ -156,6 +156,11 @@ pub mod reflection {
         unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
             flatbuffers::emplace_scalar::<i8>(dst, self.0);
         }
+
+        #[inline]
+        fn alignment() -> flatbuffers::PushAlignment {
+            <i8 as flatbuffers::Push>::alignment()
+        }
     }
 
     impl flatbuffers::EndianScalar for BaseType {
@@ -213,6 +218,11 @@ pub mod reflection {
         #[inline]
         unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
             flatbuffers::emplace_scalar::<u64>(dst, self.bits());
+        }
+
+        #[inline]
+        fn alignment() -> flatbuffers::PushAlignment {
+            <u64 as flatbuffers::Push>::alignment()
         }
     }
 

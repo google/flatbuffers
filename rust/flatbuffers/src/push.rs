@@ -33,6 +33,11 @@ pub trait Push: Sized {
     fn size() -> usize {
         size_of::<Self::Output>()
     }
+    /// The alignment of the value within the FlatBuffer.
+    ///
+    /// The default, `align_of::<Self::Output>()`, is target-dependent, so
+    /// types with a fixed FlatBuffers alignment (scalars, enums, structs)
+    /// override it.
     #[inline]
     fn alignment() -> PushAlignment {
         PushAlignment::new(align_of::<Self::Output>())
@@ -74,6 +79,10 @@ impl PushAlignment {
 }
 
 /// Macro to implement Push for EndianScalar types.
+///
+/// FlatBuffers aligns scalars to their size. This must not be derived from
+/// `align_of`, which is target-dependent: e.g. on i686 `align_of::<f64>()`,
+/// `align_of::<i64>()` and `align_of::<u64>()` are 4, not 8.
 macro_rules! impl_push_for_endian_scalar {
     ($ty:ident) => {
         impl Push for $ty {
@@ -82,6 +91,11 @@ macro_rules! impl_push_for_endian_scalar {
             #[inline]
             unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
                 emplace_scalar::<$ty>(dst, *self);
+            }
+
+            #[inline]
+            fn alignment() -> PushAlignment {
+                PushAlignment::new(size_of::<$ty>())
             }
         }
     };

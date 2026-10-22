@@ -252,6 +252,11 @@ class SwiftGenerator : public BaseGenerator {
     Indent();
     code_ += ValidateFunc();
     code_ += "";
+    // Swift can't express `force_align`, so the natural alignment of the
+    // generated struct can be smaller than the struct's minalign.
+    code_.SetValue("MINALIGN", NumToString(struct_def.minalign));
+    code_ += "{{ACCESS_TYPE}} static var alignment: Int { {{MINALIGN}} }";
+    code_ += "";
     int padding_id = 0;
     std::string constructor = "";
     std::vector<std::string> base_constructor;
@@ -769,9 +774,8 @@ class SwiftGenerator : public BaseGenerator {
                "(_ size: Int, in builder: inout "
                "FlatBufferBuilder) {";
       Indent();
-      code_ += "builder.startVector(size * MemoryLayout<" + field_name +
-               ">.size, elementSize: MemoryLayout<" + field_name +
-               ">.alignment)";
+      code_ += "builder.startVector(size, elementSize: MemoryLayout<" +
+               field_name + ">.size, alignment: " + field_name + ".alignment)";
       Outdent();
       code_ += "}";
     }
@@ -1555,18 +1559,10 @@ class SwiftGenerator : public BaseGenerator {
           code_ += "let __" + var + " = builder.createVector(ofOffsets: __" +
                    var + "__)";
         } else {
-          code_ += "{{STRUCTNAME}}." + namer_.Method("start_vector_of", var) +
-                   "(obj." + field + ".count, in: &builder)";
-          std::string code;
-          GenerateStructArgs(*field_type.struct_def, &code, "", "", "_o", true);
-          code = code.substr(0, code.size() - 2);
-          code_ += "for val in obj." + field + " {";
-          Indent();
-          code_ += "builder.create(struct: val)";
-          Outdent();
-          code_ += "}";
-          code_ += "let __" + var + " = builder.endVector(len: obj." + field +
-                   ".count)";
+          // Writing the structs one by one with `create(struct:)` would store
+          // them in reverse order, since the buffer is built back to front.
+          code_ += "let __" + var + " = builder.createVector(ofStructs: obj." +
+                   field + ")";
         }
         break;
       }

@@ -107,6 +107,11 @@ impl ::flatbuffers::Push for Race {
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<i8>(dst, self.0) };
     }
+
+    #[inline]
+    fn alignment() -> ::flatbuffers::PushAlignment {
+        <i8 as ::flatbuffers::Push>::alignment()
+    }
 }
 
 impl ::flatbuffers::EndianScalar for Race {
