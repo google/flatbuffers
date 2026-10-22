@@ -775,8 +775,7 @@ class SwiftGenerator : public BaseGenerator {
                "FlatBufferBuilder) {";
       Indent();
       code_ += "builder.startVector(size, elementSize: MemoryLayout<" +
-               field_name + ">.size, alignment: " + field_name +
-               ".alignment)";
+               field_name + ">.size, alignment: " + field_name + ".alignment)";
       Outdent();
       code_ += "}";
     }
