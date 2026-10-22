@@ -201,6 +201,38 @@ namespace Google.FlatBuffers.Test
             TestObjectAPI(Monster.GetRootAsMonster(dataBuffer));
         }
 
+        [FlatBuffersTestMethod]
+        public void TestVerifierVtableBeyond32k()
+        {
+            // The vtable position is an absolute buffer offset. When a table is
+            // located past the 2^15 byte mark the verifier must still read its
+            // vtable (like the runtime Table.__offset, which uses an int). A
+            // narrower type there silently drops that table's field verification,
+            // so a well-formed buffer with a required field fails to verify once
+            // it grows large enough.
+            foreach (var inventorySize in new[] { 16, 40000 })
+            {
+                var fbb = new FlatBufferBuilder(1024);
+                // Build the nested table first so it ends up near the end of the
+                // buffer, i.e. at a high absolute offset once the buffer grows.
+                var nestedName = fbb.CreateString("nested");
+                Monster.StartMonster(fbb);
+                Monster.AddName(fbb, nestedName);
+                var nested = Monster.EndMonster(fbb);
+                var tables = Monster.CreateTestarrayoftablesVector(fbb, new[] { nested });
+                var inventory = Monster.CreateInventoryVector(fbb, new byte[inventorySize]);
+                var rootName = fbb.CreateString("root");
+                Monster.StartMonster(fbb);
+                Monster.AddName(fbb, rootName);
+                Monster.AddInventory(fbb, inventory);
+                Monster.AddTestarrayoftables(fbb, tables);
+                Monster.FinishMonsterBuffer(fbb, Monster.EndMonster(fbb));
+
+                var bb = new ByteBuffer(fbb.DataBuffer.ToSizedArray());
+                Assert.IsTrue(Monster.VerifyMonster(bb));
+            }
+        }
+
         private void TestBuffer(ByteBuffer bb)
         {
             bool test = Monster.VerifyMonster(bb);
