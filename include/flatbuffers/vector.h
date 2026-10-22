@@ -198,6 +198,17 @@ class Vector {
 
   return_type operator[](SizeT i) const { return Get(i); }
 
+  // Safe bounds-checked element access returning an Optional
+  Optional<return_type> GetOptional(SizeT i) const {
+    if (i >= size()) return nullopt;
+    return Optional<return_type>(Get(i));
+  }
+
+  // Safe bounds-checked element access with fallback default value
+  return_type GetSafe(SizeT i, return_type default_value = return_type()) const {
+    return (i < size()) ? Get(i) : default_value;
+  }
+
   // If this is a Vector of enums, T will be its storage type, not the enum
   // type. This function makes it convenient to retrieve value with enum
   // type E.
@@ -252,6 +263,13 @@ class Vector {
   void Mutate(SizeT i, const T& val) {
     FLATBUFFERS_ASSERT(i < size());
     WriteScalar(data() + i, val);
+  }
+
+  // Safe bounds-checked mutation returning false if out of bounds
+  bool MutateSafe(SizeT i, const T& val) {
+    if (i >= size()) return false;
+    WriteScalar(data() + i, val);
+    return true;
   }
 
   // Change an element of a vector of tables (or strings).

@@ -1,6 +1,8 @@
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <type_traits>
+#include <vector>
 
 #include "64bit/test_64bit_bfbs_generated.h"
 #include "64bit/test_64bit_generated.h"
@@ -30,7 +32,10 @@ uint64_t Hash(T value, uint64_t hash) {
 
 uint64_t Hash(double value, uint64_t hash) {
   static_assert(sizeof(double) == sizeof(uint64_t));
-  return (hash * kFnvPrime) ^ static_cast<uint64_t>(value);
+  // Hash the bit pattern: converting an out-of-range double is UB.
+  uint64_t bits;
+  std::memcpy(&bits, &value, sizeof(bits));
+  return (hash * kFnvPrime) ^ bits;
 }
 
 uint64_t Hash(const flatbuffers::String* value, uint64_t hash) {
@@ -117,15 +122,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
   // Take the first bit of data as a flag to control things.
   const uint8_t flags = data[0];
-  data++;
-  size--;
+
+  // Skipping the flag byte leaves the payload misaligned, but the accessors
+  // read offsets directly from memory. Copy it into a heap allocation, which
+  // is suitably aligned like any real FlatBuffer.
+  const std::vector<uint8_t> buffer(data + 1, data + size);
 
   Verifier::Options options;
   options.assert = true;
   options.check_alignment = true;
   options.check_nested_flatbuffers = true;
 
-  Verifier verifier(data, size, options);
+  Verifier verifier(buffer.data(), buffer.size(), options);
 
   const bool is_size_prefixed = flags & flags_sized_prefixed;
 
@@ -135,7 +143,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     return 0;
   }
 
-  return AccessBuffer(data, size, is_size_prefixed);
+  return AccessBuffer(buffer.data(), buffer.size(), is_size_prefixed);
 }
 
 }  // namespace flatbuffers

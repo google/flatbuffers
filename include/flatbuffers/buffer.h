@@ -195,6 +195,25 @@ inline bool BufferHasIdentifier(const void* buf, const char* identifier,
                  flatbuffers::kFileIdentifierLength) == 0;
 }
 
+// Bounds-checked helper to see if the identifier in a buffer has the expected value.
+inline bool BufferHasIdentifier(const void* buf, size_t size,
+                                const char* identifier,
+                                bool size_prefixed = false) {
+  if (!buf || !identifier) return false;
+  const size_t min_needed =
+      (size_prefixed ? 2 * sizeof(uoffset_t) : sizeof(uoffset_t)) +
+      flatbuffers::kFileIdentifierLength;
+  if (size < min_needed) return false;
+  return BufferHasIdentifier(buf, identifier, size_prefixed);
+}
+
+inline bool BufferHasIdentifier(span<const uint8_t> buffer,
+                                const char* identifier,
+                                bool size_prefixed = false) {
+  return BufferHasIdentifier(buffer.data(), buffer.size(), identifier,
+                             size_prefixed);
+}
+
 /// @cond FLATBUFFERS_INTERNAL
 // Helpers to get a typed pointer to the root object contained in the buffer.
 template <typename T>
@@ -205,9 +224,44 @@ T* GetMutableRoot(void* buf) {
                               EndianScalar(*reinterpret_cast<uoffset_t*>(buf)));
 }
 
+// Bounds-checked overload accepting explicit buffer size
+template <typename T>
+T* GetMutableRoot(void* buf, size_t size) {
+  if (!buf || size < sizeof(uoffset_t)) return nullptr;
+  EndianCheck();
+  const auto offset = EndianScalar(*reinterpret_cast<const uoffset_t*>(buf));
+  if (offset < sizeof(uoffset_t) || static_cast<soffset_t>(offset) < 0 ||
+      static_cast<size_t>(offset) >= size) {
+    return nullptr;
+  }
+  return reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(buf) + offset);
+}
+
+// Bounds-checked overload accepting span
+template <typename T>
+T* GetMutableRoot(span<uint8_t> buffer) {
+  return GetMutableRoot<T>(buffer.data(), buffer.size());
+}
+
 template <typename T, typename SizeT = uoffset_t>
 T* GetMutableSizePrefixedRoot(void* buf) {
   return GetMutableRoot<T>(reinterpret_cast<uint8_t*>(buf) + sizeof(SizeT));
+}
+
+template <typename T, typename SizeT = uoffset_t>
+T* GetMutableSizePrefixedRoot(void* buf, size_t size) {
+  if (!buf || size < sizeof(SizeT) + sizeof(uoffset_t)) return nullptr;
+  const auto prefixed_size = ReadScalar<SizeT>(buf);
+  if (static_cast<size_t>(prefixed_size) > size - sizeof(SizeT)) {
+    return nullptr;
+  }
+  return GetMutableRoot<T>(reinterpret_cast<uint8_t*>(buf) + sizeof(SizeT),
+                           static_cast<size_t>(prefixed_size));
+}
+
+template <typename T, typename SizeT = uoffset_t>
+T* GetMutableSizePrefixedRoot(span<uint8_t> buffer) {
+  return GetMutableSizePrefixedRoot<T, SizeT>(buffer.data(), buffer.size());
 }
 
 template <typename T>
@@ -215,9 +269,29 @@ const T* GetRoot(const void* buf) {
   return GetMutableRoot<T>(const_cast<void*>(buf));
 }
 
+template <typename T>
+const T* GetRoot(const void* buf, size_t size) {
+  return GetMutableRoot<T>(const_cast<void*>(buf), size);
+}
+
+template <typename T>
+const T* GetRoot(span<const uint8_t> buffer) {
+  return GetRoot<T>(buffer.data(), buffer.size());
+}
+
 template <typename T, typename SizeT = uoffset_t>
 const T* GetSizePrefixedRoot(const void* buf) {
   return GetRoot<T>(reinterpret_cast<const uint8_t*>(buf) + sizeof(SizeT));
+}
+
+template <typename T, typename SizeT = uoffset_t>
+const T* GetSizePrefixedRoot(const void* buf, size_t size) {
+  return GetMutableSizePrefixedRoot<T, SizeT>(const_cast<void*>(buf), size);
+}
+
+template <typename T, typename SizeT = uoffset_t>
+const T* GetSizePrefixedRoot(span<const uint8_t> buffer) {
+  return GetSizePrefixedRoot<T, SizeT>(buffer.data(), buffer.size());
 }
 
 }  // namespace flatbuffers

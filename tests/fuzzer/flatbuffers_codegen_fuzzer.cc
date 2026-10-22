@@ -40,6 +40,15 @@ OneTimeTestInit OneTimeTestInit::one_time_init_;
 
 static const char* g_program_name = nullptr;
 
+// Generators write their output through IDLOptions::file_saver, which is null
+// by default. Discard the output: only the generators themselves are fuzzed.
+class NullFileSaver final : public flatbuffers::FileSaver {
+ public:
+  bool SaveFile(const char*, const char*, size_t, bool) final { return true; }
+};
+
+static NullFileSaver g_file_saver;
+
 static void Warn(const flatbuffers::FlatCompiler* flatc,
                  const std::string& warn, bool show_exe_name) {
   (void)flatc;
@@ -85,6 +94,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     return 0;
 
   flatbuffers::IDLOptions opts;
+  opts.file_saver = &g_file_saver;
   opts.strict_json = (flags & flags_strict_json);
   opts.skip_unexpected_fields_in_json =
       (flags & flags_skip_unexpected_fields_in_json);

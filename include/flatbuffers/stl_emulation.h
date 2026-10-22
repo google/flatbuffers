@@ -379,9 +379,38 @@ class span FLATBUFFERS_FINAL_CLASS {
   #endif
 
   // Returns a reference to the idx-th element of the sequence.
-  // The behavior is undefined if the idx is greater than or equal to size().
   FLATBUFFERS_CONSTEXPR_CPP11 reference operator[](size_type idx) const {
     return data()[idx];
+  }
+
+  // Bounds-checked element access
+  FLATBUFFERS_CONSTEXPR_CPP14 reference at(size_type idx) const {
+    FLATBUFFERS_ASSERT(idx < size());
+    return data()[idx];
+  }
+
+  // Bounds-checked subspan view
+  FLATBUFFERS_CONSTEXPR_CPP11 span<element_type, dynamic_extent> subspan(
+      size_type offset, size_type count = dynamic_extent) const FLATBUFFERS_NOEXCEPT {
+    return (offset > size())
+               ? span<element_type, dynamic_extent>()
+               : span<element_type, dynamic_extent>(
+                     data() + offset,
+                     (count == dynamic_extent || count > size() - offset)
+                         ? size() - offset
+                         : count);
+  }
+
+  // First count elements view
+  FLATBUFFERS_CONSTEXPR_CPP11 span<element_type, dynamic_extent> first(
+      size_type count) const FLATBUFFERS_NOEXCEPT {
+    return subspan(0, count);
+  }
+
+  // Last count elements view
+  FLATBUFFERS_CONSTEXPR_CPP11 span<element_type, dynamic_extent> last(
+      size_type count) const FLATBUFFERS_NOEXCEPT {
+    return (count >= size()) ? subspan(0) : subspan(size() - count, count);
   }
 
   FLATBUFFERS_CONSTEXPR_CPP11 span(const span &other) FLATBUFFERS_NOEXCEPT
@@ -391,6 +420,7 @@ class span FLATBUFFERS_FINAL_CLASS {
       FLATBUFFERS_NOEXCEPT {
     data_ = other.data_;
     count_ = other.count_;
+    return *this;
   }
 
   // Limited implementation of
@@ -468,7 +498,7 @@ class span FLATBUFFERS_FINAL_CLASS {
 
  private:
   // This is a naive implementation with 'count_' member even if (Extent != dynamic_extent).
-  pointer const data_;
+  pointer data_;
   size_type count_;
 };
 #endif  // defined(FLATBUFFERS_USE_STD_SPAN)
