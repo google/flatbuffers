@@ -231,20 +231,35 @@ class DartGenerator : public BaseGenerator {
     // a default value of zero, even if it's not a valid enum value...
     const bool auto_default = is_bit_flags && !enum_def.FindByValue("0");
 
-    code += "enum " + enum_type + " {\n";
-    for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
-      auto& ev = **it;
-      const auto enum_var = namer_.Variant(ev);
-      if (it != enum_def.Vals().begin()) code += ",\n";
-      code += "  " + enum_var + "(" + enum_def.ToString(ev) + ")";
+    if (is_bit_flags) {
+      code += "class " + enum_type + " {\n";
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+           ++it) {
+        auto& ev = **it;
+        const auto enum_var = namer_.Variant(ev);
+        code += "  static const " + enum_type + " " + enum_var + " = " +
+                enum_type + "._(" + enum_def.ToString(ev) + ");\n";
+      }
+      if (auto_default) {
+        code += "  static const " + enum_type + " _default = " + enum_type +
+                "._(0);\n";
+      }
+      code += "\n";
+    } else {
+      code += "enum " + enum_type + " {\n";
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+           ++it) {
+        auto& ev = **it;
+        const auto enum_var = namer_.Variant(ev);
+        if (it != enum_def.Vals().begin()) code += ",\n";
+        code += "  " + enum_var + "(" + enum_def.ToString(ev) + ")";
+      }
+      code += ";\n\n";
     }
-    if (auto_default) {
-      code += ",\n  _default(0)";
-    }
-    code += ";\n\n";
 
     code += "  final int value;\n";
-    code += "  const " + enum_type + "(this.value);\n\n";
+    code += "  const " + enum_type + (is_bit_flags ? "._" : "") +
+            "(this.value);\n\n";
     code += "  factory " + enum_type + ".fromValue(int value) {\n";
     code += "    switch (value) {\n";
     for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end(); ++it) {
@@ -256,8 +271,12 @@ class DartGenerator : public BaseGenerator {
     if (auto_default) {
       code += "      case 0: return " + enum_type + "._default;\n";
     }
-    code += "      default: throw StateError(";
-    code += "'Invalid value $value for bit flag enum');\n";
+    if (is_bit_flags) {
+      code += "      default: return " + enum_type + "._(value);\n";
+    } else {
+      code += "      default: throw StateError(";
+      code += "'Invalid value $value for bit flag enum');\n";
+    }
     code += "    }\n";
     code += "  }\n\n";
 
@@ -265,9 +284,43 @@ class DartGenerator : public BaseGenerator {
     code +=
         "      value == null ? null : " + enum_type + ".fromValue(value);\n\n";
 
-    // This is meaningless for bit_flags, however, note that unlike "regular"
-    // dart enums this enum can still have holes.
-    if (!is_bit_flags) {
+    if (is_bit_flags) {
+      code += "  static const List<" + enum_type + "> values = <" + enum_type +
+              ">[\n";
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+           ++it) {
+        auto& ev = **it;
+        code += "    " + namer_.Variant(ev) + ",\n";
+      }
+      if (auto_default) {
+        code += "    _default,\n";
+      }
+      code += "  ];\n\n";
+
+      code += "  @override\n";
+      code += "  String toString() {\n";
+      code += "    switch (value) {\n";
+      for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+           ++it) {
+        auto& ev = **it;
+        const auto enum_var = namer_.Variant(ev);
+        code += "      case " + enum_def.ToString(ev) + ":";
+        code += " return '" + enum_type + "." + enum_var + "';\n";
+      }
+      if (auto_default) {
+        code += "      case 0: return '" + enum_type + "._default';\n";
+      }
+      code += "      default: return '" + enum_type + "($value)';\n";
+      code += "    }\n";
+      code += "  }\n\n";
+
+      code += "  @override\n";
+      code += "  bool operator ==(Object other) =>\n";
+      code += "      identical(this, other) || other is " + enum_type +
+              " && other.value == value;\n\n";
+      code += "  @override\n";
+      code += "  int get hashCode => value.hashCode;\n\n";
+    } else {
       code += "  static const int minValue = " +
               enum_def.ToString(*enum_def.MinValue()) + ";\n";
       code += "  static const int maxValue = " +
