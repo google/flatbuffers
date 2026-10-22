@@ -212,7 +212,15 @@ void GenComment(const std::vector<std::string>& dc, std::string* code_ptr,
            ? config->content_line_prefix
            : "///");
   for (auto it = dc.begin(); it != dc.end(); ++it) {
-    code += line_prefix + *it + "\n";
+    std::string line = *it;
+    if (config != nullptr && config->first_line != nullptr) {
+      for (size_t pos = 0;
+           (pos = line.find("*/", pos)) != std::string::npos;) {
+        line.replace(pos, 2, "*\\/");
+        pos += 3;
+      }
+    }
+    code += line_prefix + line + "\n";
   }
   if (config != nullptr && config->last_line != nullptr) {
     code += std::string(prefix) + std::string(config->last_line) + "\n";
