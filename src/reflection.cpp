@@ -520,16 +520,21 @@ static size_t GetMaxAlignment(const reflection::Schema& schema) {
   return align;
 }
 
-// The alignment a vector field is built with beyond what its elements need:
-// its force_align, or that of the buffer nested in it. 0 if there is none.
+// The alignment a vector field of "size" elements is built with beyond what
+// its elements need: its force_align, or that of the buffer nested in it.
+// 0 if there is none.
 static size_t GetExtraVectorAlignment(const reflection::Schema& schema,
-                                      const reflection::Field& field) {
+                                      const reflection::Field& field,
+                                      size_t size) {
   size_t align = 0;
   const auto force_align = GetForceAlign(field);
   if (VerifyAlignmentRequirements(force_align)) align = force_align;
-  if (HasAttribute(field, "nested_flatbuffer") ||
-      HasAttribute(field, "flexbuffer")) {
-    align = std::max(align, GetMaxAlignment(schema));
+  if (HasAttribute(field, "nested_flatbuffer")) {
+    // A finished buffer is padded to a multiple of its alignment, so the
+    // largest power of two dividing its size covers that alignment, without
+    // padding after it when it is the first thing in the new buffer.
+    align =
+        std::max(align, std::min(GetMaxAlignment(schema), size & (~size + 1)));
   }
   return VerifyAlignmentRequirements(align) ? align : 0;
 }
@@ -663,8 +668,8 @@ class ResizeContext {
           case reflection::Union: {
             auto type_field = GetUnionTypeField(objectdef, fielddef);
             if (!type_field) break;
-            ResizeUnionMember(
-                fielddef, GetFieldI<uint8_t>(*table, *type_field), ref);
+            ResizeUnionMember(fielddef, GetFieldI<uint8_t>(*table, *type_field),
+                              ref);
             break;
           }
           case reflection::String:
@@ -782,8 +787,8 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
   if (root < sizeof(uoffset_t) || root >= newlen) return nullptr;
   // We're going to chop off the root offset, so align to sizeof(uoffset_t)
   // past the largest alignment newbuf may contain (structs with force_align).
-  const size_t align = std::max<size_t>(FLATBUFFERS_MAX_ALIGNMENT,
-                                        sizeof(largest_scalar_t));
+  const size_t align =
+      std::max<size_t>(FLATBUFFERS_MAX_ALIGNMENT, sizeof(largest_scalar_t));
   while ((flatbuf.size() & (align - 1)) != sizeof(uoffset_t)) {
     flatbuf.push_back(0);
   }
@@ -869,7 +874,8 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
                 ? schema.objects()->Get(fielddef.type()->index())
                 : nullptr;
         // Keep any extra alignment the source vector was built with.
-        const auto extra_alignment = GetExtraVectorAlignment(schema, fielddef);
+        const auto extra_alignment =
+            GetExtraVectorAlignment(schema, fielddef, vec->size());
         switch (element_base_type) {
           case reflection::String: {
             std::vector<Offset<const String*>> elements(vec->size());
@@ -898,10 +904,9 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
             for (uoffset_t i = 0; i < values->size(); i++) {
               if (!types || i >= types->size()) break;
               auto loc = values->Data() + i * sizeof(uoffset_t);
-              elements[i] = CopyUnionMember(fbb, schema, fielddef,
-                                            types->Get(i),
-                                            loc + values->Get(i),
-                                            use_string_pooling);
+              elements[i] =
+                  CopyUnionMember(fbb, schema, fielddef, types->Get(i),
+                                  loc + values->Get(i), use_string_pooling);
             }
             fbb.StartVector(elements.size(), sizeof(uoffset_t),
                             std::max(sizeof(uoffset_t), extra_alignment));

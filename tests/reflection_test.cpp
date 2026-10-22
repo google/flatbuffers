@@ -278,8 +278,8 @@ void CopyTableStructVectorAlignmentTest() {
         fbb, schema, *schema.root_table(),
         *flatbuffers::GetAnyRoot(data_parser.builder_.GetBufferPointer())));
     const auto buf = fbb.GetBufferPointer();
-    const auto v = flatbuffers::GetFieldAnyV(*flatbuffers::GetAnyRoot(buf),
-                                             v_field);
+    const auto v =
+        flatbuffers::GetFieldAnyV(*flatbuffers::GetAnyRoot(buf), v_field);
     TEST_NOTNULL(v);
     const auto elems = reinterpret_cast<uintptr_t>(v->Data()) -
                        reinterpret_cast<uintptr_t>(buf);
@@ -310,7 +310,8 @@ void ResizeForceAlignTest() {
   const auto v0 =
       flatbuffers::GetFieldAnyV(*flatbuffers::GetAnyRoot(data), v_field);
   TEST_EQ((reinterpret_cast<uintptr_t>(v0->Data()) -
-           reinterpret_cast<uintptr_t>(data)) % 16,
+           reinterpret_cast<uintptr_t>(data)) %
+              16,
           0u);
 
   for (size_t grow = 1; grow <= 16; grow++) {
@@ -366,10 +367,9 @@ ParsedBuffer Parse(const char* schema_src, const std::string& json,
   flatbuffers::Parser schema_parser(ReflectionTestOptions(builtins));
   TEST_EQ(schema_parser.Parse(schema_src), true);
   schema_parser.Serialize();
-  parsed.bfbs.assign(
-      schema_parser.builder_.GetBufferPointer(),
-      schema_parser.builder_.GetBufferPointer() +
-          schema_parser.builder_.GetSize());
+  parsed.bfbs.assign(schema_parser.builder_.GetBufferPointer(),
+                     schema_parser.builder_.GetBufferPointer() +
+                         schema_parser.builder_.GetSize());
   flatbuffers::Parser data_parser(ReflectionTestOptions(builtins));
   TEST_EQ(data_parser.Parse(schema_src), true);
   TEST_EQ(data_parser.Parse(json.c_str()), true);
@@ -420,10 +420,10 @@ void SetStringShrinkTest() {
   const auto& inv_field = parsed.field("T", "inv");
 
   const char* sequences[][3] = {
-      { "", nullptr, nullptr },
-      { "My", nullptr, nullptr },
-      { "MyMonsterMyMonsterMyMonsterMyMonster", "", nullptr },
-      { "MyMonsterMyMonsterMyMonsterMyMonster", "abc", "q" },
+      {"", nullptr, nullptr},
+      {"My", nullptr, nullptr},
+      {"MyMonsterMyMonsterMyMonsterMyMonster", "", nullptr},
+      {"MyMonsterMyMonsterMyMonsterMyMonster", "abc", "q"},
   };
   for (auto& sequence : sequences) {
     auto buf = parsed.data;
@@ -456,7 +456,8 @@ void ResizeVectorBeforeVTableTest() {
   for (int n = 1; n <= 4; n++) {
     // inner is serialized first, so v ends up in front of its vtable.
     std::string json = "{ inner: { name: \"Fred\", x: 7 }, v: [";
-    for (int i = 0; i < n; i++) json += i ? ", { a: 1, b: 2 }" : "{ a: 1, b: 2 }";
+    for (int i = 0; i < n; i++)
+      json += i ? ", { a: 1, b: 2 }" : "{ a: 1, b: 2 }";
     json += "] }";
     const auto parsed = Parse(schema_src, json);
     const auto& inner_field = parsed.field("T", "inner");
@@ -496,8 +497,9 @@ void ResizeUnionVectorTest() {
   const char* schema_src =
       "table S { s: string; } union U { S } table T { uv: [U]; }"
       "root_type T;";
-  const auto parsed = Parse(
-      schema_src, "{ uv_type: [S, S], uv: [{ s: \"first\" }, { s: \"second\" }] }");
+  const auto parsed =
+      Parse(schema_src,
+            "{ uv_type: [S, S], uv: [{ s: \"first\" }, { s: \"second\" }] }");
   const auto& uv_field = parsed.field("T", "uv");
   const auto& s_field = parsed.field("S", "s");
   auto elements = [&](const std::vector<uint8_t>& buf) {
@@ -506,9 +508,9 @@ void ResizeUnionVectorTest() {
   };
 
   auto buf = parsed.data;
-  flatbuffers::SetString(parsed.schema(), "second-longer",
-                         flatbuffers::GetFieldS(*elements(buf)->Get(1), s_field),
-                         &buf);
+  flatbuffers::SetString(
+      parsed.schema(), "second-longer",
+      flatbuffers::GetFieldS(*elements(buf)->Get(1), s_field), &buf);
   TEST_EQ(parsed.Verify(buf), true);
   TEST_EQ_STR(flatbuffers::GetFieldS(*elements(buf)->Get(0), s_field)->c_str(),
               "first");
@@ -590,8 +592,7 @@ void CopyTableUnknownUnionMembersTest() {
   TEST_EQ(older.Verify(copy), true);
   TEST_EQ(newer.Verify(copy), true);
   const auto& root = *flatbuffers::GetAnyRoot(copy.data());
-  TEST_EQ(flatbuffers::GetFieldI<uint8_t>(root, newer.field("R", "u_type")),
-          0);
+  TEST_EQ(flatbuffers::GetFieldI<uint8_t>(root, newer.field("R", "u_type")), 0);
   const auto types =
       flatbuffers::GetFieldV<uint8_t>(root, newer.field("R", "uv_type"));
   TEST_NOTNULL(types);
@@ -606,7 +607,9 @@ void CopyTableUnknownUnionMembersTest() {
 }
 
 // Vectors with force_align, nested FlatBuffers and FlexBuffers are aligned
-// beyond their element size when built; CopyTable and resizing must keep that.
+// beyond their element size when built; resizing must keep that, and so must
+// CopyTable, except for FlexBuffers, which the generated code doesn't align
+// either.
 void AlignedVectorAttributesTest() {
   const char* schema_src =
       "table N { d: double; }"
@@ -628,7 +631,7 @@ void AlignedVectorAttributesTest() {
     for (int i = 0; i < pad; i++) json += i ? ",1" : "1";
     json += "] }";
     const auto parsed = Parse(schema_src, json, true);
-    const auto check = [&](const std::vector<uint8_t>& buf) {
+    const auto check = [&](const std::vector<uint8_t>& buf, bool flex) {
       TEST_EQ(parsed.Verify(buf), true);
       const auto& root = *flatbuffers::GetAnyRoot(buf.data());
       const auto data_offset = [&](const char* name) {
@@ -641,10 +644,10 @@ void AlignedVectorAttributesTest() {
       TEST_EQ(data_offset("xs") % 16, 0u);
       TEST_EQ(data_offset("uv") % 16, 0u);
       TEST_EQ(data_offset("n") % 8, 0u);
-      TEST_EQ(data_offset("f") % 8, 0u);
+      if (flex) TEST_EQ(data_offset("f") % 8, 0u);
     };
-    check(parsed.data);
-    check(Copy(parsed));
+    check(parsed.data, true);
+    check(Copy(parsed), false);
     for (size_t grow = 1; grow <= 16; grow++) {
       auto buf = parsed.data;
       flatbuffers::SetString(
@@ -652,23 +655,56 @@ void AlignedVectorAttributesTest() {
           flatbuffers::GetFieldS(*flatbuffers::GetAnyRoot(buf.data()),
                                  parsed.field("T", "s")),
           &buf);
-      check(buf);
+      check(buf, true);
     }
+  }
+}
+
+// The first thing CopyTable copies ends up at the end of the new buffer, so
+// aligning it beyond what its data needs leaves padding after everything the
+// copy refers to, and SizeVerifier then computes too small a size.
+void CopyTableTrailingPaddingTest() {
+  struct {
+    const char* schema;
+    const char* json;
+    size_t align;  // What the data in "a" needs.
+  } cases[] = {
+      // A nested buffer that only needs 4-byte alignment.
+      {"table N { i: int; } table T { a: [ubyte] (nested_flatbuffer: \"N\"); }"
+       "root_type T;",
+       "{ a: { i: 7 } }", 4},
+      {"table T { a: [ubyte] (flexbuffer); } root_type T;", "{ a: 1234 }", 1},
+  };
+  for (auto& c : cases) {
+    const auto parsed = Parse(c.schema, c.json, true);
+    const auto copy = Copy(parsed);
+    TEST_EQ(parsed.Verify(copy), true);
+    const auto a = flatbuffers::GetFieldAnyV(
+        *flatbuffers::GetAnyRoot(copy.data()), parsed.field("T", "a"));
+    TEST_NOTNULL(a);
+    const auto start = OffsetIn(copy, a->Data());
+    TEST_EQ(start % c.align, 0u);
+    // What SizeVerifier computes: the end of the data, rounded up to the size
+    // of an offset.
+    const auto end = start + a->size();
+    TEST_EQ((end + sizeof(uoffset_t) - 1) & ~(sizeof(uoffset_t) - 1),
+            copy.size());
   }
 }
 
 // AddFlatBuffer must place the added buffer so that data aligned within it
 // (here a force_align: 16 struct) stays aligned.
 void AddFlatBufferAlignmentTest() {
-  const auto parsed =
-      Parse("struct F (force_align: 16) { a: int; } table T { f: F; }"
-            "root_type T;",
-            "{ f: { a: 7 } }");
+  const auto parsed = Parse(
+      "struct F (force_align: 16) { a: int; } table T { f: F; }"
+      "root_type T;",
+      "{ f: { a: 7 } }");
   const auto& f_field = parsed.field("T", "f");
   for (size_t host_size = 0; host_size < 32; host_size++) {
     std::vector<uint8_t> host(host_size, 0);
-    const auto table = reinterpret_cast<const Table*>(flatbuffers::AddFlatBuffer(
-        host, parsed.data.data(), parsed.data.size()));
+    const auto table =
+        reinterpret_cast<const Table*>(flatbuffers::AddFlatBuffer(
+            host, parsed.data.data(), parsed.data.size()));
     TEST_NOTNULL(table);
     const auto f = table->GetStruct<const uint8_t*>(f_field.offset());
     TEST_EQ(ReadScalar<int32_t>(f), 7);

@@ -20,6 +20,7 @@ void UnionMemberKindsTest();
 void CopyTableUnionVectorTest();
 void CopyTableUnknownUnionMembersTest();
 void AlignedVectorAttributesTest();
+void CopyTableTrailingPaddingTest();
 void AddFlatBufferAlignmentTest();
 void MiniReflectFixedLengthArrayTest();
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf);
