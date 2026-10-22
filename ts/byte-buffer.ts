@@ -56,6 +56,7 @@ export class ByteBuffer {
   }
 
   readUint8(offset: number): number {
+    this.checkRead_(offset, 1);
     return this.bytes_[offset];
   }
 
@@ -64,10 +65,12 @@ export class ByteBuffer {
   }
 
   readUint16(offset: number): number {
+    this.checkRead_(offset, 2);
     return this.bytes_[offset] | (this.bytes_[offset + 1] << 8);
   }
 
   readInt32(offset: number): number {
+    this.checkRead_(offset, 4);
     return (
       this.bytes_[offset] |
       (this.bytes_[offset + 1] << 8) |
@@ -187,6 +190,21 @@ export class ByteBuffer {
   }
 
   /**
+   * Validate that a read of `size` bytes at `offset` stays inside the
+   * buffer. Offsets come from the buffer itself when reading untrusted
+   * data, and out-of-bounds indices previously read `undefined` (or
+   * wrapped around for negative offsets on typed arrays), silently
+   * producing NaN-propagating results instead of a clear failure.
+   */
+  private checkRead_(offset: number, size: number): void {
+    if (offset < 0 || offset + size > this.bytes_.length) {
+      throw new RangeError(
+        `FlatBuffers: read of ${size} byte(s) at offset ${offset} is outside the buffer of ${this.bytes_.length} byte(s).`,
+      );
+    }
+  }
+
+  /**
    * Look up a field in the vtable, return an offset into the object, or 0 if the
    * field is not present.
    */
@@ -221,6 +239,12 @@ export class ByteBuffer {
     offset += this.readInt32(offset);
     const length = this.readInt32(offset);
     offset += SIZEOF_INT;
+    if (length < 0) {
+      throw new RangeError(
+        `FlatBuffers: string at offset ${offset - SIZEOF_INT} has a negative length ${length}.`,
+      );
+    }
+    this.checkRead_(offset, length);
     const utf8bytes = this.bytes_.subarray(offset, offset + length);
     if (opt_encoding === Encoding.UTF8_BYTES) return utf8bytes;
     else return this.text_decoder_.decode(utf8bytes);
@@ -251,7 +275,12 @@ export class ByteBuffer {
    * Get the start of data of a vector whose offset is stored at "offset" in this object.
    */
   __vector(offset: Offset): Offset {
-    return offset + this.readInt32(offset) + SIZEOF_INT; // data starts after the length
+    const start = offset + this.readInt32(offset) + SIZEOF_INT; // data starts after the length
+    // A vector's data starts at `start` and is followed by `length` elements
+    // validated on access; `start` itself must point inside the buffer (an
+    // empty vector may start exactly at the end).
+    this.checkRead_(start, 0);
+    return start;
   }
 
   /**
