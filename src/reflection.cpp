@@ -156,6 +156,10 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       auto type_vec = table.GetPointer<Vector<uint8_t>*>(vec_field.offset() -
                                                          sizeof(voffset_t));
       if (!v.VerifyVector(type_vec)) return false;
+      // type_vec must be present if vec is present; a null type_vec here
+      // would cause a null dereference below. VerifyVector returns true
+      // for null, so check explicitly.
+      if (!type_vec) return false;
       if (type_vec->size() != vec->size()) return false;
       for (uoffset_t j = 0; j < vec->size(); j++) {
         //  get union type from the prev field
@@ -240,6 +244,13 @@ static bool VerifyObject(flatbuffers::Verifier& v,
             return false;
           }
         } else {
+          // Verify the field offset is within bounds before dereferencing
+          // via GetFieldT. Without this, a malicious offset causes a heap
+          // OOB read in GetPointer.
+          if (!table->VerifyField<uoffset_t>(v, field_def->offset(),
+                                             sizeof(uoffset_t))) {
+            return false;
+          }
           if (!VerifyObject(v, schema, *child_obj,
                             flatbuffers::GetFieldT(*table, *field_def),
                             field_def->required())) {
