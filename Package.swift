@@ -75,6 +75,13 @@ extension Array where Element == Package.Dependency {
       .package(
         url: "https://github.com/grpc/grpc-swift-nio-transport.git",
         from: "2.0.0"),
+      // Pulled in by grpc-swift-nio-transport (via swift-certificates).
+      // swift-crypto 5 uses @nonexhaustive, which needs a newer Swift 6.2
+      // toolchain than CI installs, so stay on the 3.x/4.x releases that
+      // swift-certificates also accepts.
+      .package(
+        url: "https://github.com/apple/swift-crypto.git",
+        "3.12.3"..<"5.0.0"),
     ]
     #endif
   }
