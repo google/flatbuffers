@@ -1231,6 +1231,9 @@ bit more directly.
 
     // Using the Builder classes, you can write a list of structs like so:
     // Note that the intended order should be reversed if order is important.
+    // Start the vector with the number of structs, and the size and alignment
+    // of the struct (12 and 4 bytes for `Vec3`), so that it is aligned.
+    builder.startStructVector(2, 12, 4);
     final vec3Builder = new myGame.Vec3Builder(builder);
     vec3Builder.finish(4.0, 5.0, 6.0);
     vec3Builder.finish(1.0, 2.0, 3.0);
