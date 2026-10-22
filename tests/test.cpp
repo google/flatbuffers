@@ -547,6 +547,46 @@ void EqualOperatorTest() {
   }
 }
 
+#if defined(__cpp_lib_generic_associative_lookup) && \
+    __cpp_lib_generic_associative_lookup >= 201304L
+class SharedStringCountingAllocator : public flatbuffers::DefaultAllocator {
+ public:
+  size_t allocations = 0;
+  uint8_t* allocate(size_t size) override {
+    ++allocations;
+    return flatbuffers::DefaultAllocator::allocate(size);
+  }
+};
+
+void SharedStringDuplicateAllocationTest() {
+  SharedStringCountingAllocator allocator;
+  const std::string value(1024, 'x');
+  flatbuffers::FlatBufferBuilder builder(value.size() + 8, &allocator);
+  const auto original = builder.CreateSharedString(value.data(), value.size());
+  const auto allocations = allocator.allocations;
+  const auto size = builder.GetSize();
+  for (int i = 0; i < 8; ++i) {
+    TEST_EQ(builder.CreateSharedString(value.data(), value.size()).o,
+            original.o);
+  }
+  TEST_EQ(allocator.allocations, allocations);
+  TEST_EQ(builder.GetSize(), size);
+
+  // Empty inputs, prefixes and binary strings must keep exact-length lookup.
+  const auto empty = builder.CreateSharedString("", 0);
+  TEST_EQ(builder.CreateSharedString(nullptr, 0).o, empty.o);
+  const auto prefix =
+      builder.CreateSharedString(value.data(), value.size() - 1);
+  TEST_EQ(prefix.o != original.o, true);
+  TEST_EQ(builder.CreateSharedString(value.data(), value.size()).o, original.o);
+  builder.CreateString(std::string(4096, 'y'));
+  TEST_EQ(builder.CreateSharedString(value.data(), value.size()).o, original.o);
+  builder.Clear();
+  const auto reset = builder.CreateSharedString(value.data(), value.size());
+  TEST_EQ(builder.CreateSharedString(value.data(), value.size()).o, reset.o);
+}
+#endif
+
 void CreateSharedStringTest() {
   flatbuffers::FlatBufferBuilder builder;
   const auto one1 = builder.CreateSharedString("one");
@@ -1827,6 +1867,10 @@ int FlatBufferTests(const std::string& tests_data_path) {
   TypeAliasesTest();
   EndianSwapTest();
   CreateSharedStringTest();
+#if defined(__cpp_lib_generic_associative_lookup) && \
+    __cpp_lib_generic_associative_lookup >= 201304L
+  SharedStringDuplicateAllocationTest();
+#endif
   FlexBuffersTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
