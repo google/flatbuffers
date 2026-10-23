@@ -48,11 +48,362 @@ static void TestError_(const char* src, const char* error_substr,
 
 static bool FloatCompare(float a, float b) { return fabs(a - b) < 0.001; }
 
+const char* const kBfbsLayoutSchema =
+    "struct Pair { a:int; b:int; } "
+    "struct Aligned (force_align:16) { lead:ubyte; pair:Pair; "
+    "samples:[ushort:3]; } "
+    "struct Nested { first:Pair; values:[Pair:2]; } "
+    "table A { value:int; } table B { value:int; } "
+    "union U { A, B } union V { A, B } "
+    "table Root { pair:Pair; aligned:Aligned; nested:Nested; "
+    "scalar:U; vector:[U]; other:V; counter:int; } root_type Root;";
+
+const char* const kBfbsLayoutJson =
+    "{ pair:{a:1,b:2}, aligned:{lead:3,pair:{a:4,b:5},samples:[6,7,8]}, "
+    "nested:{first:{a:9,b:10},values:[{a:11,b:12},{a:13,b:14}]}, "
+    "scalar_type:A, scalar:{value:15}, vector_type:[A,B], "
+    "vector:[{value:16},{value:17}], other_type:B, other:{value:18}, "
+    "counter:19 }";
+
+// Force scalar defaults into the binary schema so each mutation writes an
+// existing field. The structural verifier must still accept every test input.
+static std::vector<uint8_t> SerializeLayoutSchema(const char* source,
+                                                 bool size_prefixed = false) {
+  IDLOptions opts;
+  opts.lang_to_generate = IDLOptions::kCpp;
+  opts.size_prefixed = size_prefixed;
+  Parser parser(opts);
+  const bool parsed = parser.Parse(source);
+  TEST_ASSERT(parsed);
+  if (!parsed) return std::vector<uint8_t>();
+  parser.builder_.ForceDefaults(true);
+  parser.Serialize();
+  return std::vector<uint8_t>(parser.builder_.GetBufferPointer(),
+                              parser.builder_.GetBufferPointer() +
+                                  parser.builder_.GetSize());
+}
+
+template <typename T, typename U>
+static void SetLayoutField(const T* table, voffset_t field, U value) {
+  TEST_NOTNULL(table);
+  if (!table) return;
+  auto mutable_table = reinterpret_cast<Table*>(const_cast<T*>(table));
+  TEST_ASSERT(mutable_table->SetField<U>(field, value));
+}
+
+static void CheckLayoutSchema(const std::vector<uint8_t>& buffer,
+                              bool expected) {
+  TEST_ASSERT(!buffer.empty());
+  if (buffer.empty()) return;
+  Verifier verifier(buffer.data(), buffer.size());
+  const bool structurally_valid = reflection::VerifySchemaBuffer(verifier);
+  TEST_ASSERT(structurally_valid);
+  if (!structurally_valid) return;
+  Parser parser;
+  TEST_EQ(expected, parser.Deserialize(buffer.data(), buffer.size()));
+  Parser direct_parser;
+  TEST_EQ(expected,
+          direct_parser.Deserialize(reflection::GetSchema(buffer.data())));
+}
+
+static const reflection::Object* LayoutObject(std::vector<uint8_t>& buffer,
+                                              const char* name) {
+  const auto object =
+      reflection::GetSchema(buffer.data())->objects()->LookupByKey(name);
+  TEST_NOTNULL(object);
+  return object;
+}
+
+static const reflection::Field* LayoutField(std::vector<uint8_t>& buffer,
+                                            const char* object,
+                                            const char* field) {
+  const auto result = LayoutObject(buffer, object)->fields()->LookupByKey(field);
+  TEST_NOTNULL(result);
+  return result;
+}
+
+static void BfbsDeserializeLayoutTest() {
+  size_t accepted = 0;
+  size_t rejected = 0;
+  for (int size_prefixed = 0; size_prefixed != 2; ++size_prefixed) {
+    const auto buffer =
+        SerializeLayoutSchema(kBfbsLayoutSchema, size_prefixed != 0);
+    IDLOptions opts;
+    opts.lang_to_generate = IDLOptions::kCpp;
+    opts.size_prefixed = size_prefixed != 0;
+    Parser original(opts);
+    TEST_ASSERT(original.Parse(kBfbsLayoutSchema));
+    TEST_ASSERT(original.Parse(kBfbsLayoutJson));
+    std::string expected;
+    TEST_NULL(GenText(original, original.builder_.GetBufferPointer(), &expected));
+    Parser restored(opts);
+    const bool deserialized = restored.Deserialize(buffer.data(), buffer.size());
+    TEST_ASSERT(deserialized);
+    if (!deserialized) continue;
+    TEST_ASSERT(restored.Parse(kBfbsLayoutJson));
+    std::string actual;
+    TEST_NULL(GenText(restored, restored.builder_.GetBufferPointer(), &actual));
+    TEST_EQ_STR(expected.c_str(), actual.c_str());
+    restored.Serialize();
+    Parser round_trip(opts);
+    TEST_ASSERT(round_trip.Deserialize(restored.builder_.GetBufferPointer(),
+                                       restored.builder_.GetSize()));
+    TEST_ASSERT(round_trip.Parse(actual.c_str()));
+    std::string repeated;
+    TEST_NULL(
+        GenText(round_trip, round_trip.builder_.GetBufferPointer(), &repeated));
+    TEST_EQ_STR(expected.c_str(), repeated.c_str());
+    ++accepted;
+  }
+
+  const auto valid = SerializeLayoutSchema(kBfbsLayoutSchema);
+  TEST_ASSERT(!valid.empty());
+  if (valid.empty()) return;
+  CheckLayoutSchema(valid, true);
+  ++accepted;
+
+  // Signed sizes and alignment constraints are checked before using them in
+  // inline field size and padding computations.
+  const int32_t bad_sizes[] = {-1, 0, 4, 7, 9, 12,
+                               std::numeric_limits<int32_t>::max()};
+  for (auto size : bad_sizes) {
+    auto buffer = valid;
+    SetLayoutField(LayoutObject(buffer, "Pair"), reflection::Object::VT_BYTESIZE,
+                   size);
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutObject(buffer, "Root"), reflection::Object::VT_BYTESIZE,
+                   int32_t(-1));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  const int32_t bad_alignments[] = {0, -1, 3, FLATBUFFERS_MAX_ALIGNMENT * 2, 1, 2};
+  for (auto alignment : bad_alignments) {
+    auto buffer = valid;
+    SetLayoutField(LayoutObject(buffer, "Pair"), reflection::Object::VT_MINALIGN,
+                   alignment);
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  const uint16_t bad_offsets[] = {0, 2, 5, 7, 8, 0xFFFF};
+  for (auto offset : bad_offsets) {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Pair", "b"), reflection::Field::VT_OFFSET,
+                   offset);
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Pair", "a"), reflection::Field::VT_OFFSET,
+                   uint16_t(4));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Aligned", "pair"),
+                   reflection::Field::VT_OFFSET,
+                   uint16_t(2));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Aligned", "samples"),
+                   reflection::Field::VT_OFFSET,
+                   uint16_t(13));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Nested", "values")->type(),
+                   reflection::Type::VT_FIXED_LENGTH, uint16_t(0));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+
+  const uint16_t bad_voffsets[] = {0, 2, 3, 5, 0xFFFD, 0xFFFE, 0xFFFF};
+  for (auto offset : bad_voffsets) {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Root", "counter"),
+                   reflection::Field::VT_OFFSET,
+                   offset);
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  // The highest even voffset leaves room for the vtable length itself.
+  const uint16_t good_voffsets[] = {FieldIndexToOffset(0), 0xFFFA, 0xFFFC};
+  for (auto offset : good_voffsets) {
+    auto buffer =
+        SerializeLayoutSchema("table Root { counter:int; } root_type Root;");
+    SetLayoutField(LayoutField(buffer, "Root", "counter"),
+                   reflection::Field::VT_OFFSET,
+                   offset);
+    CheckLayoutSchema(buffer, true);
+    Parser parser;
+    TEST_ASSERT(parser.Deserialize(buffer.data(), buffer.size()));
+    TEST_ASSERT(parser.Parse("{ counter:17 }"));
+    std::string actual;
+    TEST_NULL(GenText(parser, parser.builder_.GetBufferPointer(), &actual));
+    TEST_ASSERT(actual.find("counter: 17") != std::string::npos);
+    ++accepted;
+  }
+  {
+    auto buffer = valid;
+    const auto object = LayoutObject(buffer, "Pair");
+    auto schema = reinterpret_cast<Table*>(
+        const_cast<reflection::Schema*>(reflection::GetSchema(buffer.data())));
+    TEST_ASSERT(schema->SetPointer(reflection::Schema::VT_ROOT_TABLE,
+                                   reinterpret_cast<const uint8_t*>(object)));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+
+  // Scalar and vector union values each require a matching discriminator.
+  const char* const union_fields[] = {"scalar", "vector"};
+  for (auto name : union_fields) {
+    const std::string companion = std::string(name) + "_type";
+    {
+      auto buffer = valid;
+      const auto field = LayoutField(buffer, "Root", companion.c_str());
+      const_cast<char*>(field->name()->c_str())[0] = 'x';
+      CheckLayoutSchema(buffer, false);
+      ++rejected;
+    }
+    {
+      auto buffer = valid;
+      const auto type = LayoutField(buffer, "Root", companion.c_str())->type();
+      SetLayoutField(type, type->base_type() == reflection::Vector
+                               ? reflection::Type::VT_ELEMENT
+                               : reflection::Type::VT_BASE_TYPE,
+                     int8_t(reflection::Byte));
+      CheckLayoutSchema(buffer, false);
+      ++rejected;
+    }
+    {
+      auto buffer = valid;
+      const auto type = LayoutField(buffer, "Root", companion.c_str())->type();
+      const auto other = LayoutField(buffer, "Root", "other_type")->type();
+      TEST_NE(type->index(), other->index());
+      SetLayoutField(type, reflection::Type::VT_INDEX, other->index());
+      CheckLayoutSchema(buffer, false);
+      ++rejected;
+    }
+    {
+      auto buffer = valid;
+      const auto type = LayoutField(buffer, "Root", companion.c_str())->type();
+      const bool vector = type->base_type() == reflection::Vector;
+      SetLayoutField(type, reflection::Type::VT_BASE_TYPE,
+                     int8_t(vector ? reflection::UType : reflection::Vector));
+      SetLayoutField(type, reflection::Type::VT_ELEMENT,
+                     int8_t(vector ? reflection::None : reflection::UType));
+      CheckLayoutSchema(buffer, false);
+      ++rejected;
+    }
+    {
+      auto buffer = valid;
+      SetLayoutField(LayoutField(buffer, "Root", name)->type(),
+                     reflection::Type::VT_INDEX, int32_t(-1));
+      CheckLayoutSchema(buffer, false);
+      ++rejected;
+    }
+  }
+  {
+    auto buffer = valid;
+    const auto enum_def =
+        reflection::GetSchema(buffer.data())->enums()->LookupByKey("U");
+    SetLayoutField(enum_def, reflection::Enum::VT_IS_UNION, uint8_t(0));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  // Fixed structs may contain only scalars, fixed structs, or fixed-length
+  // arrays of scalars or fixed structs; tables may not contain fixed arrays.
+  int32_t table_a_index = -1;
+  {
+    const auto objects = reflection::GetSchema(valid.data())->objects();
+    for (uoffset_t i = 0; i < objects->size(); ++i) {
+      if (objects->Get(i)->name()->str() == "A") {
+        table_a_index = static_cast<int32_t>(i);
+        break;
+      }
+    }
+    TEST_ASSERT(table_a_index >= 0);
+  }
+  {
+    auto buffer = valid;
+    const auto type = LayoutField(buffer, "Pair", "b")->type();
+    const auto union_index =
+        LayoutField(buffer, "Root", "scalar")->type()->index();
+    SetLayoutField(type, reflection::Type::VT_BASE_TYPE,
+                   int8_t(reflection::Union));
+    SetLayoutField(type, reflection::Type::VT_INDEX, union_index);
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Pair", "b")->type(),
+                   reflection::Type::VT_BASE_TYPE, int8_t(reflection::String));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    const auto type = LayoutField(buffer, "Pair", "b")->type();
+    SetLayoutField(type, reflection::Type::VT_BASE_TYPE,
+                   int8_t(reflection::Vector));
+    SetLayoutField(type, reflection::Type::VT_ELEMENT, int8_t(reflection::Int));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Aligned", "pair")->type(),
+                   reflection::Type::VT_INDEX, table_a_index);
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Aligned", "samples")->type(),
+                   reflection::Type::VT_ELEMENT, int8_t(reflection::String));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    SetLayoutField(LayoutField(buffer, "Nested", "values")->type(),
+                   reflection::Type::VT_INDEX, table_a_index);
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  {
+    auto buffer = valid;
+    const auto type = LayoutField(buffer, "Root", "counter")->type();
+    SetLayoutField(type, reflection::Type::VT_BASE_TYPE,
+                   int8_t(reflection::Array));
+    SetLayoutField(type, reflection::Type::VT_ELEMENT, int8_t(reflection::Int));
+    SetLayoutField(type, reflection::Type::VT_FIXED_LENGTH, uint16_t(2));
+    CheckLayoutSchema(buffer, false);
+    ++rejected;
+  }
+  TEST_OUTPUT_LINE("bfbs layout cases: %u positive controls, "
+                   "%u negative validation cases",
+                   static_cast<unsigned>(accepted), static_cast<unsigned>(rejected));
+}
+
+
 }  // namespace
 
 // Test that parsing errors occur as we'd expect.
 // Also useful for coverage, making sure these paths are run.
 void ErrorTest() {
+  BfbsDeserializeLayoutTest();
   // In order they appear in idl_parser.cpp
   TestError("table X { Y:byte; } root_type X; { Y: 999 }", "does not fit");
   TestError("\"\0", "illegal");
