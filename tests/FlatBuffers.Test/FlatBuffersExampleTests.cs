@@ -20,6 +20,7 @@ using System.Threading;
 using MyGame.Example;
 using optional_scalars;
 using KeywordTest;
+using System;
 
 namespace Google.FlatBuffers.Test
 {
@@ -1236,5 +1237,26 @@ namespace Google.FlatBuffers.Test
             Assert.IsFalse(valid_after_inner_corrupt);
             Assert.IsFalse(valid_after_outer_corrupt);
         }
-    }
+
+        [FlatBuffersTestMethod]
+        public void TestVerifyingTableWithRelativeOffsetAbove32k()
+        {
+            var fbb = new FlatBufferBuilder(65536);
+
+            var name = fbb.CreateString("Fred");
+            var longsVector = Monster.CreateVectorOfLongsVector(fbb, new long[UInt16.MaxValue / sizeof(long)]);
+
+            Monster.StartMonster(fbb);
+            Monster.AddName(fbb, name);
+            Monster.AddVectorOfLongs(fbb, longsVector);
+            var mon = Monster.EndMonster(fbb);
+
+            Monster.FinishMonsterBuffer(fbb, mon);
+
+            ByteBuffer dataBuffer = fbb.DataBuffer;
+
+            bool test = Monster.VerifyMonster(dataBuffer);
+            Assert.AreEqual(true, test);
+        }
+  }
 }
