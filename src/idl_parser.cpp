@@ -4159,18 +4159,77 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
       has_key = true;
     }
     if (fixed) {
+      const auto& type = field_def->value.type;
+      bool valid_type =
+          IsScalar(type.base_type) ||
+          (type.base_type == BASE_TYPE_STRUCT && type.struct_def != nullptr &&
+           type.struct_def->fixed);
+      if (!valid_type && IsArray(type)) {
+        const auto elem_type = type.VectorType();
+        valid_type =
+            IsScalar(elem_type.base_type) ||
+            (elem_type.base_type == BASE_TYPE_STRUCT &&
+             elem_type.struct_def != nullptr && elem_type.struct_def->fixed);
+      }
+      if (!valid_type) return false;
       // Recompute padding since that's currently not serialized.
-      auto size = InlineSize(field_def->value.type);
+      const auto size = InlineSize(type);
+      const auto alignment = InlineAlignment(type);
+      const auto struct_size = static_cast<size_t>(object->bytesize());
+      const auto field_offset = static_cast<size_t>(field_def->value.offset);
+      if (size == 0 || field_offset > struct_size ||
+          size > struct_size - field_offset ||
+          !VerifyAlignmentRequirements(alignment) || alignment > minalign ||
+          field_offset % alignment != 0) {
+        return false;
+      }
+      if (i == 0 && field_offset != 0) return false;
+      const size_t end = field_offset + size;
       auto next_field =
           i + 1 < indexes.size() ? of.Get(indexes[i + 1]) : nullptr;
+      if (next_field && static_cast<size_t>(next_field->offset()) < end) {
+        return false;
+      }
       tmp_struct_size += size;
       field_def->padding =
-          next_field ? (next_field->offset() - field_def->value.offset) - size
+          next_field ? (static_cast<size_t>(next_field->offset()) -
+                        field_offset) -
+                           size
                      : PaddingBytes(tmp_struct_size, minalign);
       tmp_struct_size += field_def->padding;
+    } else if (IsArray(field_def->value.type) ||
+               field_def->value.offset < FieldIndexToOffset(0) ||
+               (field_def->value.offset & 1) != 0 ||
+               field_def->value.offset > 0xFFFC) {
+      return false;
     }
   }
-  FLATBUFFERS_ASSERT(static_cast<int>(tmp_struct_size) == object->bytesize());
+  if (fixed && tmp_struct_size != static_cast<size_t>(object->bytesize())) {
+    return false;
+  }
+  if (!fixed) {
+    for (const auto field_def : fields.vec) {
+      const auto& type = field_def->value.type;
+      if (type.base_type != BASE_TYPE_UNION &&
+          !(IsVector(type) && type.element == BASE_TYPE_UNION)) {
+        continue;
+      }
+      const auto type_field =
+          fields.Lookup(field_def->name + UnionTypeFieldSuffix());
+      if (!type_field) return false;
+      const auto& companion = type_field->value.type;
+      if (IsVector(type) != IsVector(companion) ||
+          (IsVector(type) && type.base_type != companion.base_type)) {
+        return false;
+      }
+      const auto discriminator =
+          IsVector(companion) ? companion.VectorType() : companion;
+      if (discriminator.base_type != BASE_TYPE_UTYPE ||
+          !IsUnionType(discriminator) || discriminator.enum_def != type.enum_def) {
+        return false;
+      }
+    }
+  }
   return true;
 }
 
@@ -4450,6 +4509,12 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
   // enums can be resolved.
   for (auto it = schema->objects()->begin(); it != schema->objects()->end();
        ++it) {
+    if (it->bytesize() < 0 ||
+        (it->is_struct() &&
+         (it->bytesize() == 0 ||
+          !VerifyAlignmentRequirements(static_cast<size_t>(it->minalign()))))) {
+      return false;
+    }
     auto struct_def = new StructDef();
     struct_def->bytesize = it->bytesize();
     struct_def->fixed = it->is_struct();
@@ -4466,6 +4531,8 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
   }
   for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
     auto enum_def = new EnumDef();
+    // Field deserialization validates union companions before enum values.
+    enum_def->is_union = it->is_union();
     if (enums_.Add(it->name()->str(), enum_def)) {
       delete enum_def;
       return false;
@@ -4489,6 +4556,7 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
     }
     if (schema->root_table() == *it) {
       root_struct_def_ = struct_def;
+      if (root_struct_def_->fixed) return false;
     }
   }
   for (auto it = schema->enums()->begin(); it != schema->enums()->end(); ++it) {
