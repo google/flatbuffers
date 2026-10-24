@@ -165,6 +165,138 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   // Reset it, for further tests.
   flatbuffers::SetField<uint16_t>(&root, hp_field, 80);
 
+  // Verify nested_flatbuffer and flexbuffer UByte vectors in flatbuffers::Verify.
+  {
+    flatbuffers::FlatBufferBuilder nested_fbb;
+    auto nested_name = nested_fbb.CreateString("NestedMonster");
+    MonsterBuilder nested_mb(nested_fbb);
+    nested_mb.add_name(nested_name);
+    nested_fbb.Finish(nested_mb.Finish(), MonsterIdentifier());
+
+    flexbuffers::Builder flex_fbb;
+    flex_fbb.Int(1234);
+    flex_fbb.Finish();
+
+    flatbuffers::FlatBufferBuilder valid_fbb;
+    auto valid_name = valid_fbb.CreateString("ValidOuter");
+    auto valid_nested = valid_fbb.CreateVector(nested_fbb.GetBufferPointer(),
+                                               nested_fbb.GetSize());
+    auto valid_flex = valid_fbb.CreateVector(flex_fbb.GetBuffer());
+    MonsterBuilder valid_mb(valid_fbb);
+    valid_mb.add_name(valid_name);
+    valid_mb.add_testnestedflatbuffer(valid_nested);
+    valid_mb.add_flex(valid_flex);
+    valid_fbb.Finish(valid_mb.Finish(), MonsterIdentifier());
+
+    flatbuffers::Verifier gen_valid_verifier(valid_fbb.GetBufferPointer(),
+                                             valid_fbb.GetSize());
+    TEST_EQ(VerifyMonsterBuffer(gen_valid_verifier), true);
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                                valid_fbb.GetBufferPointer(),
+                                valid_fbb.GetSize()),
+            true);
+
+    const uint8_t one_byte[] = {0};
+    flatbuffers::FlatBufferBuilder bad_nested_fbb;
+    auto bad_nested_name = bad_nested_fbb.CreateString("BadNestedOuter");
+    auto bad_nested_vec = bad_nested_fbb.CreateVector(one_byte, 1);
+    MonsterBuilder bad_nested_mb(bad_nested_fbb);
+    bad_nested_mb.add_name(bad_nested_name);
+    bad_nested_mb.add_testnestedflatbuffer(bad_nested_vec);
+    bad_nested_fbb.Finish(bad_nested_mb.Finish(), MonsterIdentifier());
+
+    flatbuffers::Verifier gen_bad_nested_verifier(
+        bad_nested_fbb.GetBufferPointer(), bad_nested_fbb.GetSize());
+    TEST_EQ(VerifyMonsterBuffer(gen_bad_nested_verifier), false);
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                                bad_nested_fbb.GetBufferPointer(),
+                                bad_nested_fbb.GetSize()),
+            false);
+
+    const uint8_t corrupt_nested_bytes[16] = {4, 0, 0, 0, 0x9c, 0xff, 0xff, 0xff,
+                                              0, 0, 0, 0, 0,    0,    0,    0};
+    flatbuffers::FlatBufferBuilder corrupt_nested_fbb;
+    auto corrupt_nested_name =
+        corrupt_nested_fbb.CreateString("CorruptNestedOuter");
+    auto corrupt_nested_vec = corrupt_nested_fbb.CreateVector(
+        corrupt_nested_bytes, sizeof(corrupt_nested_bytes));
+    MonsterBuilder corrupt_nested_mb(corrupt_nested_fbb);
+    corrupt_nested_mb.add_name(corrupt_nested_name);
+    corrupt_nested_mb.add_testnestedflatbuffer(corrupt_nested_vec);
+    corrupt_nested_fbb.Finish(corrupt_nested_mb.Finish(), MonsterIdentifier());
+
+    flatbuffers::Verifier gen_corrupt_nested_verifier(
+        corrupt_nested_fbb.GetBufferPointer(), corrupt_nested_fbb.GetSize());
+    TEST_EQ(VerifyMonsterBuffer(gen_corrupt_nested_verifier), false);
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                                corrupt_nested_fbb.GetBufferPointer(),
+                                corrupt_nested_fbb.GetSize()),
+            false);
+
+    flatbuffers::FlatBufferBuilder bad_flex_fbb;
+    auto bad_flex_name = bad_flex_fbb.CreateString("BadFlexOuter");
+    auto bad_flex_vec = bad_flex_fbb.CreateVector(one_byte, 1);
+    MonsterBuilder bad_flex_mb(bad_flex_fbb);
+    bad_flex_mb.add_name(bad_flex_name);
+    bad_flex_mb.add_flex(bad_flex_vec);
+    bad_flex_fbb.Finish(bad_flex_mb.Finish(), MonsterIdentifier());
+
+    flatbuffers::Verifier gen_bad_flex_verifier(bad_flex_fbb.GetBufferPointer(),
+                                                bad_flex_fbb.GetSize());
+    TEST_EQ(VerifyMonsterBuffer(gen_bad_flex_verifier), false);
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                                bad_flex_fbb.GetBufferPointer(),
+                                bad_flex_fbb.GetSize()),
+            false);
+
+    // Exercise LookupObjectByName fallback and rejection paths by mutating a
+    // copy of the binary schema's nested_flatbuffer attribute value ("Monster").
+    auto mutate_nested_attr = [&](const char* replacement) {
+      std::string bfbs_copy = bfbsfile;
+      auto& schema_copy = *reflection::GetSchema(bfbs_copy.c_str());
+      auto* nf_str = schema_copy.root_table()
+                         ->fields()
+                         ->LookupByKey("testnestedflatbuffer")
+                         ->attributes()
+                         ->LookupByKey("nested_flatbuffer")
+                         ->value();
+      TEST_NOTNULL(nf_str);
+      const size_t new_len = strlen(replacement);
+      TEST_ASSERT(new_len <= nf_str->size());
+      auto* raw_len = reinterpret_cast<uint8_t*>(
+          const_cast<flatbuffers::String*>(nf_str));
+      flatbuffers::WriteScalar<uoffset_t>(
+          raw_len, static_cast<uoffset_t>(new_len));
+      memcpy(raw_len + sizeof(uoffset_t), replacement, new_len + 1);
+      return bfbs_copy;
+    };
+
+    auto unknown_bfbs = mutate_nested_attr("Unknown");
+    auto& unknown_schema = *reflection::GetSchema(unknown_bfbs.c_str());
+    TEST_EQ(flatbuffers::Verify(unknown_schema, *unknown_schema.root_table(),
+                                valid_fbb.GetBufferPointer(),
+                                valid_fbb.GetSize()),
+            false);
+
+    auto struct_bfbs = mutate_nested_attr("Vec3");
+    auto& struct_schema = *reflection::GetSchema(struct_bfbs.c_str());
+    TEST_EQ(flatbuffers::Verify(struct_schema, *struct_schema.root_table(),
+                                valid_fbb.GetBufferPointer(),
+                                valid_fbb.GetSize()),
+            false);
+
+    auto global_bfbs = mutate_nested_attr("TableA");
+    auto& global_schema = *reflection::GetSchema(global_bfbs.c_str());
+    TEST_EQ(flatbuffers::Verify(global_schema, *global_schema.root_table(),
+                                valid_fbb.GetBufferPointer(),
+                                valid_fbb.GetSize()),
+            true);
+    TEST_EQ(flatbuffers::Verify(global_schema, *global_schema.root_table(),
+                                bad_nested_fbb.GetBufferPointer(),
+                                bad_nested_fbb.GetSize()),
+            false);
+  }
+
   // More advanced functionality: changing the size of items in-line!
   // First we put the FlatBuffer inside an std::vector.
   std::vector<uint8_t> resizingbuf(flatbuf, flatbuf + length);
