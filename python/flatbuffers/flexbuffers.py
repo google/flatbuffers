@@ -521,6 +521,23 @@ class TypedVector(Sized):
 class Map(Vector):
   """Data accessor for the encoded map bytes."""
 
+  def __init__(self, buf, byte_width, size=0):
+    super().__init__(buf, byte_width, size)
+    # A map stores its element count in the values-vector size prefix
+    # (which Map and Values share) and independently in the key-vector
+    # size prefix; in a valid buffer the two counts agree. In a
+    # malformed one they disagree, which previously was accepted
+    # silently: zip() truncated Value() to the shorter vector, and
+    # __getitem__ could pair a key with the wrong value or read past the
+    # value region. The same missing invariant was independently
+    # identified in the C++ verifier (#9274); this applies equivalent
+    # protection to the Python reader.
+    keys_len = len(self.Keys)
+    if keys_len != len(self):
+      raise IndexError(
+          'FlexBuffers: malformed map: values=%d, keys=%d must agree'
+          % (len(self), keys_len))
+
   @staticmethod
   def CompareKeys(a, b):
     if isinstance(a, Ref):
