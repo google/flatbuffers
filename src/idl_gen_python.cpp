@@ -2010,8 +2010,6 @@ class PythonGenerator : public BaseGenerator {
   void InitializeFromPackedBuf(const StructDef& struct_def,
                                std::string* code_ptr) const {
     auto& code = *code_ptr;
-    const auto struct_var = namer_.Variable(struct_def);
-    const auto struct_type = namer_.Type(struct_def);
 
     code += GenIndents(1) + "@classmethod";
     code += GenIndents(1) + "def InitFromPackedBuf(cls, buf, pos=0):";

@@ -146,7 +146,6 @@ class KotlinKMPGenerator : public BaseGenerator {
 
     std::string code =
         "// " + std::string(FlatBuffersGeneratedWarning()) + "\n\n";
-    auto qualified = ns.GetFullyQualifiedName("");
     std::string namespace_name = namer_.Namespace(ns);
     if (!namespace_name.empty()) {
       code += "package " + namespace_name;
@@ -341,7 +340,6 @@ class KotlinKMPGenerator : public BaseGenerator {
   std::string GenDefaultBufferValue(const FieldDef& field) const {
     auto& value = field.value;
     auto base_type = value.type.base_type;
-    auto field_name = field.name;
     std::string suffix = IsScalar(base_type) ? LiteralSuffix(value.type) : "";
     if (field.IsScalarOptional()) {
       return "null";
@@ -373,7 +371,6 @@ class KotlinKMPGenerator : public BaseGenerator {
   std::string GenDefaultValue(const FieldDef& field) const {
     auto& value = field.value;
     auto base_type = value.type.base_type;
-    auto field_name = field.name;
     std::string suffix = LiteralSuffix(value.type);
     if (field.IsScalarOptional()) {
       return "null";
@@ -1082,8 +1079,6 @@ class KotlinKMPGenerator : public BaseGenerator {
       auto return_type = GetterReturnType(field);
       auto bbgetter = ByteBufferGetter(field.value.type, "bb");
       auto offset_val = NumToString(field.value.offset);
-      auto offset_prefix =
-          "val o = offset(" + offset_val + "); return o != 0 ? ";
       auto value_base_type = field.value.type.base_type;
       // Most field accessors need to retrieve and test the field offset
       // first, this is the offset value for that:
