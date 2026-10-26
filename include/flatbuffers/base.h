@@ -271,7 +271,7 @@ namespace flatbuffers {
   #if (defined(_MSC_VER) && _MSC_VER >= 1800) || \
       (defined(__ANDROID__) && defined(__ANDROID_API__) && __ANDROID_API__>= 26) || \
       (defined(_XOPEN_VERSION) && (_XOPEN_VERSION >= 700)) && \
-      !defined(__Fuchsia__)
+      !defined(__Fuchsia__) && (!defined(__linux__) || defined(__GLIBC__))
     #define FLATBUFFERS_LOCALE_INDEPENDENT 1
   #else
     #define FLATBUFFERS_LOCALE_INDEPENDENT 0
