@@ -257,7 +257,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return Verify<SizeT>(0U) &&
            // Ensure the prefixed size is within the bounds of the provided
            // length.
-           Check(ReadScalar<SizeT>(buf_) + sizeof(SizeT) <= size_) &&
+           Check(size_ >= sizeof(SizeT) &&
+                 ReadScalar<SizeT>(buf_) <= size_ - sizeof(SizeT)) &&
            VerifyBufferFromStart<T>(identifier, sizeof(SizeT));
   }
 
