@@ -966,8 +966,6 @@ class KotlinGenerator : public BaseGenerator {
       auto bbgetter = ByteBufferGetter(field.value.type, "bb");
       auto ucast = CastToUsigned(field);
       auto offset_val = NumToString(field.value.offset);
-      auto offset_prefix =
-          "val o = __offset(" + offset_val + "); return o != 0 ? ";
       auto value_base_type = field.value.type.base_type;
       // Most field accessors need to retrieve and test the field offset
       // first, this is the offset value for that:
