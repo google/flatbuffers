@@ -77,6 +77,8 @@ public struct MyGame_Sample_Vec3: NativeStruct, FlatbuffersVectorInitializable, 
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 4 }
+
   private var _x: Float32
   private var _y: Float32
   private var _z: Float32
@@ -214,7 +216,7 @@ public struct MyGame_Sample_Monster: FlatBufferVerifiableTable, FlatbuffersVecto
   public static func add(equipped: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: equipped, at: VT.equipped) }
   public static func addVectorOf(path: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: path, at: VT.path) }
   public static func startVectorOfPath(_ size: Int, in builder: inout FlatBufferBuilder) {
-    builder.startVector(size * MemoryLayout<MyGame_Sample_Vec3>.size, elementSize: MemoryLayout<MyGame_Sample_Vec3>.alignment)
+    builder.startVector(size, elementSize: MemoryLayout<MyGame_Sample_Vec3>.size, alignment: MyGame_Sample_Vec3.alignment)
   }
   public static func endMonster(_ fbb: inout FlatBufferBuilder, start: UOffset) -> Offset { let end = Offset(offset: fbb.endTable(at: start)); return end }
   public static func createMonster(
@@ -267,11 +269,7 @@ public struct MyGame_Sample_Monster: FlatBufferVerifiableTable, FlatbuffersVecto
     }
     let __weapons = builder.createVector(ofOffsets: __weapons__)
     let __equipped = obj.equipped?.pack(builder: &builder) ?? Offset()
-    MyGame_Sample_Monster.startVectorOfPath(obj.path.count, in: &builder)
-    for val in obj.path {
-      builder.create(struct: val)
-    }
-    let __path = builder.endVector(len: obj.path.count)
+    let __path = builder.createVector(ofStructs: obj.path)
     let __root = MyGame_Sample_Monster.startMonster(&builder)
     MyGame_Sample_Monster.add(pos: obj.pos, &builder)
     MyGame_Sample_Monster.add(mana: obj.mana, &builder)

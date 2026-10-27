@@ -1727,11 +1727,13 @@ static void Offset64Tests() {
 void CrossNamespacePackTest() {
   // Build a Consumer with a cross-namespace TableWithNative reference.
   foo::ConsumerT consumer;
-  consumer.c1 = std::make_unique<native::TableWithNativeT>();
+  consumer.c1 = std::unique_ptr<native::TableWithNativeT>(
+      new native::TableWithNativeT());
   consumer.c1->value = 42;
 
   // Add a vector element too.
-  consumer.c2.push_back(std::make_unique<native::TableWithNativeT>());
+  consumer.c2.push_back(std::unique_ptr<native::TableWithNativeT>(
+      new native::TableWithNativeT()));
   consumer.c2[0]->value = 99;
 
   // Pack and verify round-trip.
@@ -1739,7 +1741,7 @@ void CrossNamespacePackTest() {
   fbb.Finish(foo::Consumer::Pack(fbb, &consumer));
 
   auto* packed = flatbuffers::GetRoot<foo::Consumer>(fbb.GetBufferPointer());
-  auto unpacked = packed->UnPack();
+  std::unique_ptr<foo::ConsumerT> unpacked(packed->UnPack());
   TEST_EQ(unpacked->c1->value, 42);
   TEST_EQ(unpacked->c2.size(), 1);
   TEST_EQ(unpacked->c2[0]->value, 99);
@@ -1763,6 +1765,17 @@ int FlatBufferTests(const std::string& tests_data_path) {
 
   MiniReflectFlatBuffersTest(flatbuf.data());
   MiniReflectFixedLengthArrayTest();
+  CopyTableStructVectorAlignmentTest();
+  ResizeForceAlignTest();
+  SetStringShrinkTest();
+  ResizeVectorBeforeVTableTest();
+  ResizeUnionVectorTest();
+  UnionMemberKindsTest();
+  CopyTableUnionVectorTest();
+  CopyTableUnknownUnionMembersTest();
+  AlignedVectorAttributesTest();
+  CopyTableTrailingPaddingTest();
+  AddFlatBufferAlignmentTest();
 
   SizePrefixedTest();
 

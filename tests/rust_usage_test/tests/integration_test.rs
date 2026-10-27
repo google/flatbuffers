@@ -1098,6 +1098,63 @@ mod generated_code_alignment_and_padding {
             assert_eq!((a_ptr - start_ptr) % 8, 0);
         }
     }
+
+    #[test]
+    fn eight_byte_scalars_are_written_with_correct_alignment() {
+        // 8-byte scalars, and enums with an 8-byte base type, are aligned to 8
+        // wrt the flatbuffer, in table fields and in vectors, even on targets
+        // where their `align_of` is only 4 (e.g. i686).
+        use alloc::vec::Vec;
+        use my_game::example::{LongEnum, Monster, MonsterArgs};
+
+        let b = &mut flatbuffers::FlatBufferBuilder::new();
+        // 12 bytes, so the following data does not start 8-aligned by chance.
+        let name = b.create_string("abcdefg");
+        let doubles = b.create_vector(&[1.5f64, 2.5]);
+        let longs = b.create_vector(&[-7i64]);
+        let mon = Monster::create(b, &MonsterArgs {
+            name: Some(name),
+            vector_of_doubles: Some(doubles),
+            vector_of_longs: Some(longs),
+            testhashs64_fnv1: -1,
+            testhashu64_fnv1: 2,
+            long_enum_non_enum_default: LongEnum::LongTwo,
+            long_enum_normal_default: LongEnum::LongBig,
+            ..Default::default()
+        });
+        my_game::example::finish_monster_buffer(b, mon);
+        let buf = b.finished_data();
+        let mon = my_game::example::root_as_monster(buf).unwrap();
+        assert_eq!(mon.vector_of_doubles().unwrap().iter().collect::<Vec<_>>(), [1.5, 2.5]);
+        assert_eq!(mon.vector_of_longs().unwrap().iter().collect::<Vec<_>>(), [-7]);
+        assert_eq!(mon.testhashs64_fnv1(), -1);
+        assert_eq!(mon.testhashu64_fnv1(), 2);
+        assert_eq!(mon.long_enum_non_enum_default(), LongEnum::LongTwo);
+        assert_eq!(mon.long_enum_normal_default(), LongEnum::LongBig);
+
+        let start = buf.as_ptr() as usize;
+        let vector_data = |bytes: &[u8]| bytes.as_ptr() as usize - start;
+        let mut positions = vec![
+            ("vector_of_doubles", vector_data(mon.vector_of_doubles().unwrap().bytes())),
+            ("vector_of_longs", vector_data(mon.vector_of_longs().unwrap().bytes())),
+        ];
+        for (name, slot) in [
+            ("testhashs64_fnv1", Monster::VT_TESTHASHS64_FNV1),
+            ("testhashu64_fnv1", Monster::VT_TESTHASHU64_FNV1),
+            ("long_enum_non_enum_default", Monster::VT_LONG_ENUM_NON_ENUM_DEFAULT),
+            ("long_enum_normal_default", Monster::VT_LONG_ENUM_NORMAL_DEFAULT),
+        ] {
+            let field_offset = mon._tab.vtable().get(slot) as usize;
+            assert_ne!(field_offset, 0, "{} is not present", name);
+            positions.push((name, mon._tab.loc() + field_offset));
+        }
+        let misaligned: Vec<_> = positions.into_iter().filter(|(_, pos)| pos % 8 != 0).collect();
+        assert!(misaligned.is_empty(), "not 8-aligned (name, position): {:?}", misaligned);
+        // The buffer is built back to front, so its size must be a multiple of
+        // the largest alignment as well; otherwise data that is 8-aligned
+        // relative to the end would not be relative to the start.
+        assert_eq!(buf.len() % 8, 0, "buffer size {} is not a multiple of 8", buf.len());
+    }
 }
 
 #[cfg(not(miri))]
@@ -2422,6 +2479,62 @@ mod push_impls {
         b.push(1u8);
         b.push(my_game::example::Test::new(10, 20));
         check(&b, &[10, 0, 20, 0, 0, 1]);
+    }
+
+    #[test]
+    fn push_u8_i64_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(2i64);
+        check(&b, &[2, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn push_u8_f64_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(3.14159265359f64);
+        check(&b, &[234, 46, 68, 84,
+                    251, 33, 9, 64,
+                    0, 0, 0, 0,
+                    0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn push_u8_generated_8_byte_enum_alignment() {
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        b.push(1u8);
+        b.push(my_game::example::LongEnum::LongOne);
+        check(&b, &[2, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    0, 0, 0, 1]);
+    }
+
+    #[test]
+    fn scalar_alignment_is_scalar_size() {
+        // Not `align_of`, which is target-dependent (e.g. 4 for 8-byte scalars
+        // on i686).
+        fn check_alignment<T: flatbuffers::Push>(want: usize) {
+            assert_eq!(T::alignment().value(), want, "{}", core::any::type_name::<T>());
+        }
+        check_alignment::<bool>(1);
+        check_alignment::<u8>(1);
+        check_alignment::<i8>(1);
+        check_alignment::<u16>(2);
+        check_alignment::<i16>(2);
+        check_alignment::<u32>(4);
+        check_alignment::<i32>(4);
+        check_alignment::<f32>(4);
+        check_alignment::<u64>(8);
+        check_alignment::<i64>(8);
+        check_alignment::<f64>(8);
+        check_alignment::<&f64>(8);
+        check_alignment::<my_game::example::Color>(1);
+        check_alignment::<my_game::example::LongEnum>(8);
     }
 }
 

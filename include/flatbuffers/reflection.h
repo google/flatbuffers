@@ -425,6 +425,7 @@ pointer_inside_vector<T, U> piv(T* ptr, std::vector<U>& vec) {
 constexpr const char* UnionTypeFieldSuffix() { return "_type"; }
 
 // Helper to figure out the actual table type a union refers to.
+// The union must currently hold a table, not NONE, a struct or a string.
 inline const reflection::Object& GetUnionType(
     const reflection::Schema& schema, const reflection::Object& parent,
     const reflection::Field& unionfield, const Table& table) {

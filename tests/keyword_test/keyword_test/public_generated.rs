@@ -65,6 +65,11 @@ impl ::flatbuffers::Push for public {
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<i32>(dst, self.0) };
     }
+
+    #[inline]
+    fn alignment() -> ::flatbuffers::PushAlignment {
+        <i32 as ::flatbuffers::Push>::alignment()
+    }
 }
 
 impl ::flatbuffers::EndianScalar for public {

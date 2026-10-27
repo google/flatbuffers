@@ -16,6 +16,8 @@
 
 #include "flatbuffers/reflection.h"
 
+#include <algorithm>
+
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -447,12 +449,103 @@ void SetAnyValueS(reflection::BaseType type, uint8_t* data, const char* val) {
   }
 }
 
+// The "<name>_type" field holding the type of union field "unionfield".
+static const reflection::Field* GetUnionTypeField(
+    const reflection::Object& parent, const reflection::Field& unionfield) {
+  return parent.fields()->LookupByKey(
+      (unionfield.name()->str() + UnionTypeFieldSuffix()).c_str());
+}
+
+// The type of the value (a table, struct or string) stored in union field
+// "unionfield" with type tag "utype", or null for NONE and unknown tags.
+static const reflection::Type* GetUnionMemberType(
+    const reflection::Schema& schema, const reflection::Field& unionfield,
+    uint8_t utype) {
+  auto enumval = schema.enums()
+                     ->Get(unionfield.type()->index())
+                     ->values()
+                     ->LookupByKey(utype);
+  if (!enumval || !enumval->union_type()) return nullptr;
+  const auto base_type = enumval->union_type()->base_type();
+  if (base_type != reflection::Obj && base_type != reflection::String)
+    return nullptr;
+  return enumval->union_type();
+}
+
+// The force_align attribute of a field, or 0. Attributes are only present in
+// schemas serialized with builtin attributes (flatc --bfbs-builtins).
+static size_t GetForceAlign(const reflection::Field& field) {
+  if (!field.attributes()) return 0;
+  auto attr = field.attributes()->LookupByKey("force_align");
+  if (!attr || !attr->value()) return 0;
+  return static_cast<size_t>(StringToUInt(attr->value()->c_str()));
+}
+
+// For a "<name>_type" field (a union type tag, or a vector of them), the union
+// field it holds the type of, if any.
+static const reflection::Field* GetUnionFieldOfType(
+    const reflection::Object& parent, const reflection::Field& typefield) {
+  const auto& name = typefield.name()->str();
+  const std::string suffix = UnionTypeFieldSuffix();
+  if (name.size() <= suffix.size() ||
+      name.compare(name.size() - suffix.size(), suffix.size(), suffix) != 0)
+    return nullptr;
+  auto unionfield = parent.fields()->LookupByKey(
+      name.substr(0, name.size() - suffix.size()).c_str());
+  if (!unionfield) return nullptr;
+  auto type = unionfield->type();
+  const bool is_union = type->base_type() == reflection::Union ||
+                        (type->base_type() == reflection::Vector &&
+                         type->element() == reflection::Union);
+  return is_union ? unionfield : nullptr;
+}
+
+static bool HasAttribute(const reflection::Field& field, const char* name) {
+  return field.attributes() && field.attributes()->LookupByKey(name);
+}
+
+// The largest alignment data described by "schema" may need: that of the
+// largest scalar, or more for structs and vectors with force_align.
+static size_t GetMaxAlignment(const reflection::Schema& schema) {
+  size_t align = sizeof(largest_scalar_t);
+  auto consider = [&align](size_t a) {
+    if (a > align && VerifyAlignmentRequirements(a)) align = a;
+  };
+  if (!schema.objects()) return align;
+  for (auto obj : *schema.objects()) {
+    if (obj->is_struct()) consider(static_cast<size_t>(obj->minalign()));
+    if (!obj->fields()) continue;
+    for (auto field : *obj->fields()) consider(GetForceAlign(*field));
+  }
+  return align;
+}
+
+// The alignment a vector field of "size" elements is built with beyond what
+// its elements need: its force_align, or that of the buffer nested in it.
+// 0 if there is none.
+static size_t GetExtraVectorAlignment(const reflection::Schema& schema,
+                                      const reflection::Field& field,
+                                      size_t size) {
+  size_t align = 0;
+  const auto force_align = GetForceAlign(field);
+  if (VerifyAlignmentRequirements(force_align)) align = force_align;
+  if (HasAttribute(field, "nested_flatbuffer")) {
+    // A finished buffer is padded to a multiple of its alignment, so the
+    // largest power of two dividing its size covers that alignment, without
+    // padding after it when it is the first thing in the new buffer.
+    align =
+        std::max(align, std::min(GetMaxAlignment(schema), size & (~size + 1)));
+  }
+  return VerifyAlignmentRequirements(align) ? align : 0;
+}
+
 // Resize a FlatBuffer in-place by iterating through all offsets in the buffer
 // and adjusting them by "delta" if they straddle the start offset.
 // Once that is done, bytes can now be inserted/deleted safely.
 // "delta" may be negative (shrinking).
 // Unless "delta" is a multiple of the largest alignment, you'll create a small
-// amount of garbage space in the buffer (usually 0..7 bytes).
+// amount of garbage space in the buffer (usually 0..7 bytes, more if the
+// schema uses force_align).
 // If your FlatBuffer's root table is not the schema's root table, you should
 // pass in your root_table type as well.
 class ResizeContext {
@@ -465,9 +558,11 @@ class ResizeContext {
         delta_(delta),
         buf_(*flatbuf),
         dag_check_(flatbuf->size() / sizeof(uoffset_t), false) {
-    auto mask = static_cast<int>(sizeof(largest_scalar_t) - 1);
+    // Everything after start moves by delta_, so round it to the largest
+    // alignment the data may need.
+    auto mask = static_cast<int>(GetMaxAlignment(schema) - 1);
     delta_ = (delta_ + mask) & ~mask;
-    if (!delta_) return;  // We can't shrink by less than largest_scalar_t.
+    if (!delta_) return;  // We can't shrink by less than that alignment.
     // Now change all the offsets by delta_.
     auto root = GetAnyRoot(buf_.data());
     Straddle<uoffset_t, 1>(buf_.data(), root, buf_.data());
@@ -481,10 +576,11 @@ class ResizeContext {
 
   // Check if the range between first (lower address) and second straddles
   // the insertion point. If it does, change the offset at offsetloc (of
-  // type T, with direction D).
+  // type T, with direction D). Something that starts exactly at the insertion
+  // point moves along with everything after it, so it doesn't straddle.
   template <typename T, int D>
   void Straddle(const void* first, const void* second, void* offsetloc) {
-    if (first <= startptr_ && second >= startptr_) {
+    if (first < startptr_ && second >= startptr_) {
       WriteScalar<T>(offsetloc, ReadScalar<T>(offsetloc) + delta_ * D);
       DagCheck(offsetloc) = true;
     }
@@ -511,8 +607,9 @@ class ResizeContext {
     if (startptr_ <= tableloc) {
       // Check if insertion point is between the table and a vtable that
       // precedes it. This can't happen in current construction code, but check
-      // just in case we ever change the way flatbuffers are built.
-      Straddle<soffset_t, -1>(vtable, table, table);
+      // just in case we ever change the way flatbuffers are built. The table
+      // moves away from its vtable, so its soffset (table - vtable) grows.
+      Straddle<soffset_t, 1>(vtable, table, table);
     } else {
       // Check each field.
       auto fielddefs = objectdef.fields();
@@ -545,6 +642,11 @@ class ResizeContext {
           }
           case reflection::Vector: {
             auto elem_type = fielddef.type()->element();
+            if (elem_type == reflection::Union) {
+              ResizeUnionVector(objectdef, fielddef, *table,
+                                reinterpret_cast<Vector<uoffset_t>*>(ref));
+              break;
+            }
             if (elem_type != reflection::Obj && elem_type != reflection::String)
               break;
             auto vec = reinterpret_cast<Vector<uoffset_t>*>(ref);
@@ -564,8 +666,10 @@ class ResizeContext {
             break;
           }
           case reflection::Union: {
-            ResizeTable(GetUnionType(schema_, objectdef, fielddef, *table),
-                        reinterpret_cast<Table*>(ref));
+            auto type_field = GetUnionTypeField(objectdef, fielddef);
+            if (!type_field) break;
+            ResizeUnionMember(fielddef, GetFieldI<uint8_t>(*table, *type_field),
+                              ref);
             break;
           }
           case reflection::String:
@@ -581,6 +685,39 @@ class ResizeContext {
     }
   }
 
+  // Unions can also hold structs and strings, which contain no offsets.
+  void ResizeUnionMember(const reflection::Field& unionfield, uint8_t utype,
+                         uint8_t* value) {
+    auto member = GetUnionMemberType(schema_, unionfield, utype);
+    if (!member || member->base_type() != reflection::Obj) return;
+    auto& memberdef = *schema_.objects()->Get(member->index());
+    if (!memberdef.is_struct())
+      ResizeTable(memberdef, reinterpret_cast<Table*>(value));
+  }
+
+  void ResizeUnionVector(const reflection::Object& objectdef,
+                         const reflection::Field& fielddef, const Table& table,
+                         Vector<uoffset_t>* vec) {
+    // The element types are in the "<name>_type" vector.
+    auto type_field = GetUnionTypeField(objectdef, fielddef);
+    if (!type_field) return;
+    auto type_offset = table.GetOptionalFieldOffset(type_field->offset());
+    if (!type_offset) return;
+    auto typesloc = reinterpret_cast<const uint8_t*>(&table) + type_offset;
+    auto types_rel = ReadScalar<uoffset_t>(typesloc);
+    // If that offset was adjusted already, undo that to find the vector now.
+    if (DagCheck(typesloc)) types_rel -= static_cast<uoffset_t>(delta_);
+    auto types = reinterpret_cast<const Vector<uint8_t>*>(typesloc + types_rel);
+    for (uoffset_t i = 0; i < vec->size() && i < types->size(); i++) {
+      if (!types->Get(i)) continue;  // NONE.
+      auto loc = vec->Data() + i * sizeof(uoffset_t);
+      if (DagCheck(loc)) continue;  // This offset already visited.
+      auto dest = loc + vec->Get(i);
+      Straddle<uoffset_t, 1>(loc, dest, loc);
+      ResizeUnionMember(fielddef, types->Get(i), dest);
+    }
+  }
+
  private:
   const reflection::Schema& schema_;
   uint8_t* startptr_;
@@ -592,15 +729,20 @@ class ResizeContext {
 void SetString(const reflection::Schema& schema, const std::string& val,
                const String* str, std::vector<uint8_t>* flatbuf,
                const reflection::Object* root_table) {
-  auto delta = static_cast<int>(val.size()) - static_cast<int>(str->size());
+  const auto old_size = str->size();
+  auto delta = static_cast<int>(val.size()) - static_cast<int>(old_size);
   auto str_start = static_cast<uoffset_t>(
       reinterpret_cast<const uint8_t*>(str) - flatbuf->data());
   auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
-    memset(flatbuf->data() + start, 0, str->size());
-    // Different size, we must expand (or contract).
-    ResizeContext ctx(schema, start, delta, flatbuf, root_table);
+    memset(flatbuf->data() + start, 0, old_size);
+    // Different size, we must expand (or contract). Grow at the first
+    // character, but shrink from the end of the old characters, so that only
+    // bytes of the old string are removed, never its length or what precedes
+    // it.
+    ResizeContext ctx(schema, delta < 0 ? start + old_size : start, delta,
+                      flatbuf, root_table);
     // Set the new length.
     WriteScalar(flatbuf->data() + str_start,
                 static_cast<uoffset_t>(val.size()));
@@ -639,14 +781,15 @@ uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,
 
 const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
                              const uint8_t* newbuf, size_t newlen) {
-  // Align to sizeof(uoffset_t) past sizeof(largest_scalar_t) since we're
-  // going to chop off the root offset.
   if (!newbuf || newlen < sizeof(uoffset_t)) return nullptr;
   FLATBUFFERS_ASSERT(newlen >= sizeof(uoffset_t));
   auto root = ReadScalar<uoffset_t>(newbuf);
   if (root < sizeof(uoffset_t) || root >= newlen) return nullptr;
-  while ((flatbuf.size() & (sizeof(uoffset_t) - 1)) ||
-         !(flatbuf.size() & (sizeof(largest_scalar_t) - 1))) {
+  // We're going to chop off the root offset, so align to sizeof(uoffset_t)
+  // past the largest alignment newbuf may contain (structs with force_align).
+  const size_t align =
+      std::max<size_t>(FLATBUFFERS_MAX_ALIGNMENT, sizeof(largest_scalar_t));
+  while ((flatbuf.size() & (align - 1)) != sizeof(uoffset_t)) {
     flatbuf.push_back(0);
   }
   auto insertion_point = static_cast<uoffset_t>(flatbuf.size());
@@ -654,6 +797,34 @@ const uint8_t* AddFlatBuffer(std::vector<uint8_t>& flatbuf,
   flatbuf.insert(flatbuf.end(), newbuf + sizeof(uoffset_t), newbuf + newlen);
   auto root_offset = root - sizeof(uoffset_t);
   return flatbuf.data() + insertion_point + root_offset;
+}
+
+// Copies a union value (a table, struct or string) with type tag "utype".
+// Returns 0 for NONE and unknown tags.
+static uoffset_t CopyUnionMember(FlatBufferBuilder& fbb,
+                                 const reflection::Schema& schema,
+                                 const reflection::Field& unionfield,
+                                 uint8_t utype, const uint8_t* value,
+                                 bool use_string_pooling) {
+  auto member = GetUnionMemberType(schema, unionfield, utype);
+  if (!member) return 0;
+  if (member->base_type() == reflection::String) {
+    auto str = reinterpret_cast<const String*>(value);
+    return use_string_pooling ? fbb.CreateSharedString(str).o
+                              : fbb.CreateString(str).o;
+  }
+  auto& memberdef = *schema.objects()->Get(member->index());
+  if (!memberdef.is_struct()) {
+    return CopyTable(fbb, schema, memberdef,
+                     *reinterpret_cast<const Table*>(value), use_string_pooling)
+        .o;
+  }
+  // Structs in unions are stored out of line, like FlatBufferBuilder's
+  // CreateStruct does.
+  const auto align = static_cast<size_t>(memberdef.minalign());
+  if (VerifyAlignmentRequirements(align)) fbb.Align(align);
+  fbb.PushBytes(value, static_cast<size_t>(memberdef.bytesize()));
+  return static_cast<uoffset_t>(fbb.GetSize());
 }
 
 Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
@@ -686,10 +857,12 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         break;
       }
       case reflection::Union: {
-        auto& subobjectdef = GetUnionType(schema, objectdef, fielddef, table);
-        offset = CopyTable(fbb, schema, subobjectdef,
-                           *GetFieldT(table, fielddef), use_string_pooling)
-                     .o;
+        auto type_field = GetUnionTypeField(objectdef, fielddef);
+        if (!type_field) break;
+        offset = CopyUnionMember(
+            fbb, schema, fielddef, GetFieldI<uint8_t>(table, *type_field),
+            table.GetPointer<const uint8_t*>(fielddef.offset()),
+            use_string_pooling);
         break;
       }
       case reflection::Vector: {
@@ -700,6 +873,9 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
             element_base_type == reflection::Obj
                 ? schema.objects()->Get(fielddef.type()->index())
                 : nullptr;
+        // Keep any extra alignment the source vector was built with.
+        const auto extra_alignment =
+            GetExtraVectorAlignment(schema, fielddef, vec->size());
         switch (element_base_type) {
           case reflection::String: {
             std::vector<Offset<const String*>> elements(vec->size());
@@ -709,7 +885,39 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
                                 ? fbb.CreateSharedString(vec_s->Get(i)).o
                                 : fbb.CreateString(vec_s->Get(i)).o;
             }
+            if (extra_alignment > sizeof(uoffset_t)) {
+              fbb.ForceVectorAlignment(elements.size(), sizeof(uoffset_t),
+                                       extra_alignment);
+            }
             offset = fbb.CreateVector(elements).o;
+            break;
+          }
+          case reflection::Union: {
+            // Copy each value according to its tag in the "<name>_type"
+            // vector, which itself is copied as a vector of scalars.
+            auto type_field = GetUnionTypeField(objectdef, fielddef);
+            auto types = type_field ? table.GetPointer<const Vector<uint8_t>*>(
+                                          type_field->offset())
+                                    : nullptr;
+            auto values = reinterpret_cast<const Vector<uoffset_t>*>(vec);
+            std::vector<uoffset_t> elements(values->size(), 0);
+            for (uoffset_t i = 0; i < values->size(); i++) {
+              if (!types || i >= types->size()) break;
+              auto loc = values->Data() + i * sizeof(uoffset_t);
+              elements[i] =
+                  CopyUnionMember(fbb, schema, fielddef, types->Get(i),
+                                  loc + values->Get(i), use_string_pooling);
+            }
+            fbb.StartVector(elements.size(), sizeof(uoffset_t),
+                            std::max(sizeof(uoffset_t), extra_alignment));
+            for (auto i = elements.size(); i-- > 0;) {
+              // NONE elements have no value to point to.
+              if (elements[i])
+                fbb.PushElement(Offset<void>(elements[i]));
+              else
+                fbb.PushElement<uoffset_t>(0);
+            }
+            offset = fbb.EndVector(elements.size());
             break;
           }
           case reflection::Obj: {
@@ -719,6 +927,10 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
                 elements[i] = CopyTable(fbb, schema, *elemobjectdef,
                                         *vec->Get(i), use_string_pooling);
               }
+              if (extra_alignment > sizeof(uoffset_t)) {
+                fbb.ForceVectorAlignment(elements.size(), sizeof(uoffset_t),
+                                         extra_alignment);
+              }
               offset = fbb.CreateVector(elements).o;
               break;
             }
@@ -727,10 +939,29 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
           default: {                    // Scalars and structs.
             auto element_size = GetTypeSize(element_base_type);
             auto element_alignment = element_size;  // For primitive elements
-            if (elemobjectdef && elemobjectdef->is_struct())
+            if (elemobjectdef && elemobjectdef->is_struct()) {
               element_size = elemobjectdef->bytesize();
+              const auto struct_alignment =
+                  static_cast<size_t>(elemobjectdef->minalign());
+              if (VerifyAlignmentRequirements(struct_alignment))
+                element_alignment = struct_alignment;
+            }
+            element_alignment = std::max(element_alignment, extra_alignment);
+            const uint8_t* data = vec->Data();
+            std::vector<uint8_t> tags;
+            if (element_base_type == reflection::UType) {
+              if (auto unionfield = GetUnionFieldOfType(objectdef, fielddef)) {
+                // Tags of union values that can't be copied (see above)
+                // become NONE.
+                tags.assign(data, data + vec->size());
+                for (auto& tag : tags) {
+                  if (!GetUnionMemberType(schema, *unionfield, tag)) tag = 0;
+                }
+                data = tags.data();
+              }
+            }
             fbb.StartVector(vec->size(), element_size, element_alignment);
-            fbb.PushBytes(vec->Data(), element_size * vec->size());
+            fbb.PushBytes(data, element_size * vec->size());
             offset = fbb.EndVector(vec->size());
             break;
           }
@@ -740,7 +971,13 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
       default:  // Scalars.
         break;
     }
-    if (offset) {
+    // The loop below takes one offset for each such field (0 for none, such as
+    // a NONE union), so the two stay in step.
+    const auto base_type = fielddef.type()->base_type();
+    if (base_type == reflection::String || base_type == reflection::Union ||
+        base_type == reflection::Vector ||
+        (base_type == reflection::Obj &&
+         !schema.objects()->Get(fielddef.type()->index())->is_struct())) {
       offsets.push_back(offset);
     }
   }
@@ -768,6 +1005,15 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         fbb.AddOffset(fielddef.offset(), Offset<void>(offsets[offset_idx++]));
         break;
       default: {  // Scalars.
+        if (base_type == reflection::UType) {
+          // Leave out the tag of a union value that couldn't be copied (see
+          // above), so the union becomes NONE instead of referring to nothing.
+          auto unionfield = GetUnionFieldOfType(objectdef, fielddef);
+          if (unionfield &&
+              !GetUnionMemberType(schema, *unionfield,
+                                  GetFieldI<uint8_t>(table, fielddef)))
+            break;
+        }
         auto size = GetTypeSize(base_type);
         CopyInline(fbb, fielddef, table, size, size);
         break;

@@ -303,6 +303,7 @@ class TestT implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prep(2, 4);
     fbBuilder.pad(1);
     fbBuilder.putInt8(b);
     fbBuilder.putInt16(a);
@@ -331,6 +332,7 @@ class TestBuilder {
   final fb.Builder fbBuilder;
 
   int finish(int a, int b) {
+    fbBuilder.prep(2, 4);
     fbBuilder.pad(1);
     fbBuilder.putInt8(b);
     fbBuilder.putInt16(a);
@@ -347,6 +349,7 @@ class TestObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prep(2, 4);
     fbBuilder.pad(1);
     fbBuilder.putInt8(_b);
     fbBuilder.putInt16(_a);
@@ -514,6 +517,7 @@ class Vec3T implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prep(8, 32);
     fbBuilder.pad(2);
     test3.pack(fbBuilder);
     fbBuilder.pad(1);
@@ -555,6 +559,7 @@ class Vec3Builder {
     Color test2,
     fb.StructBuilder test3,
   ) {
+    fbBuilder.prep(8, 32);
     fbBuilder.pad(2);
     test3();
     fbBuilder.pad(1);
@@ -593,6 +598,7 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prep(8, 32);
     fbBuilder.pad(2);
     _test3.finish(fbBuilder);
     fbBuilder.pad(1);
@@ -646,6 +652,7 @@ class AbilityT implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 8);
     fbBuilder.putUint32(distance);
     fbBuilder.putUint32(id);
     return fbBuilder.offset;
@@ -674,6 +681,7 @@ class AbilityBuilder {
   final fb.Builder fbBuilder;
 
   int finish(int id, int distance) {
+    fbBuilder.prep(4, 8);
     fbBuilder.putUint32(distance);
     fbBuilder.putUint32(id);
     return fbBuilder.offset;
@@ -691,6 +699,7 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 8);
     fbBuilder.putUint32(_distance);
     fbBuilder.putUint32(_id);
     return fbBuilder.offset;
@@ -740,6 +749,7 @@ class StructOfStructsT implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 20);
     c.pack(fbBuilder);
     b.pack(fbBuilder);
     a.pack(fbBuilder);
@@ -769,6 +779,7 @@ class StructOfStructsBuilder {
   final fb.Builder fbBuilder;
 
   int finish(fb.StructBuilder a, fb.StructBuilder b, fb.StructBuilder c) {
+    fbBuilder.prep(4, 20);
     c();
     b();
     a();
@@ -792,6 +803,7 @@ class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 20);
     _c.finish(fbBuilder);
     _b.finish(fbBuilder);
     _a.finish(fbBuilder);
@@ -839,6 +851,7 @@ class StructOfStructsOfStructsT implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 20);
     a.pack(fbBuilder);
     return fbBuilder.offset;
   }
@@ -867,6 +880,7 @@ class StructOfStructsOfStructsBuilder {
   final fb.Builder fbBuilder;
 
   int finish(fb.StructBuilder a) {
+    fbBuilder.prep(4, 20);
     a();
     return fbBuilder.offset;
   }
@@ -882,6 +896,7 @@ class StructOfStructsOfStructsObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 20);
     _a.finish(fbBuilder);
     return fbBuilder.offset;
   }
@@ -1537,6 +1552,7 @@ class MonsterT implements fb.Packable {
     final int? testOffset = test?.pack(fbBuilder);
     int? test4Offset;
     if (test4 != null) {
+      fbBuilder.startStructVector(test4!.length, 4, 2);
       for (var e in test4!.reversed) {
         e.pack(fbBuilder);
       }
@@ -1567,6 +1583,7 @@ class MonsterT implements fb.Packable {
           );
     int? testarrayofsortedstructOffset;
     if (testarrayofsortedstruct != null) {
+      fbBuilder.startStructVector(testarrayofsortedstruct!.length, 8, 4);
       for (var e in testarrayofsortedstruct!.reversed) {
         e.pack(fbBuilder);
       }
@@ -1579,6 +1596,7 @@ class MonsterT implements fb.Packable {
         : fbBuilder.writeListUint8(flex!);
     int? test5Offset;
     if (test5 != null) {
+      fbBuilder.startStructVector(test5!.length, 4, 2);
       for (var e in test5!.reversed) {
         e.pack(fbBuilder);
       }
@@ -2228,7 +2246,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int? testOffset = _test?.getOrCreateOffset(fbBuilder);
     final int? test4Offset = _test4 == null
         ? null
-        : fbBuilder.writeListOfStructs(_test4!);
+        : fbBuilder.writeListOfStructs(_test4!, structSize: 4, alignment: 2);
     final int? testarrayofstringOffset = _testarrayofstring == null
         ? null
         : fbBuilder.writeList(
@@ -2256,13 +2274,17 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
           );
     final int? testarrayofsortedstructOffset = _testarrayofsortedstruct == null
         ? null
-        : fbBuilder.writeListOfStructs(_testarrayofsortedstruct!);
+        : fbBuilder.writeListOfStructs(
+            _testarrayofsortedstruct!,
+            structSize: 8,
+            alignment: 4,
+          );
     final int? flexOffset = _flex == null
         ? null
         : fbBuilder.writeListUint8(_flex!);
     final int? test5Offset = _test5 == null
         ? null
-        : fbBuilder.writeListOfStructs(_test5!);
+        : fbBuilder.writeListOfStructs(_test5!, structSize: 4, alignment: 2);
     final int? vectorOfLongsOffset = _vectorOfLongs == null
         ? null
         : fbBuilder.writeListInt64(_vectorOfLongs!);

@@ -243,6 +243,8 @@ public struct MyGame_Example_Test: NativeStruct, FlatbuffersVectorInitializable,
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 2 }
+
   private var _a: Int16
   private var _b: Int8
   private var padding0__: UInt8 = 0
@@ -320,6 +322,8 @@ public struct MyGame_Example_Test_Mutable: FlatBufferStruct, FlatbuffersVectorIn
 public struct MyGame_Example_Vec3: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
+
+  public static var alignment: Int { 8 }
 
   private var _x: Float32
   private var _y: Float32
@@ -443,6 +447,8 @@ public struct MyGame_Example_Ability: NativeStruct, FlatbuffersVectorInitializab
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 4 }
+
   private var _id: UInt32
   private var _distance: UInt32
 
@@ -519,6 +525,8 @@ public struct MyGame_Example_Ability_Mutable: FlatBufferStruct, FlatbuffersVecto
 public struct MyGame_Example_StructOfStructs: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
+
+  public static var alignment: Int { 4 }
 
   private var _a: MyGame_Example_Ability
   private var _b: MyGame_Example_Test
@@ -601,6 +609,8 @@ public struct MyGame_Example_StructOfStructs_Mutable: FlatBufferStruct, Flatbuff
 public struct MyGame_Example_StructOfStructsOfStructs: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
+
+  public static var alignment: Int { 4 }
 
   private var _a: MyGame_Example_StructOfStructs
 
@@ -1290,7 +1300,7 @@ public struct MyGame_Example_Monster: FlatBufferVerifiableTable, FlatbuffersVect
   public static func add(test: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: test, at: VT.test) }
   public static func addVectorOf(test4: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: test4, at: VT.test4) }
   public static func startVectorOfTest4(_ size: Int, in builder: inout FlatBufferBuilder) {
-    builder.startVector(size * MemoryLayout<MyGame_Example_Test>.size, elementSize: MemoryLayout<MyGame_Example_Test>.alignment)
+    builder.startVector(size, elementSize: MemoryLayout<MyGame_Example_Test>.size, alignment: MyGame_Example_Test.alignment)
   }
   public static func addVectorOf(testarrayofstring: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testarrayofstring, at: VT.testarrayofstring) }
   public static func addVectorOf(testarrayoftables: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testarrayoftables, at: VT.testarrayoftables) }
@@ -1314,12 +1324,12 @@ public struct MyGame_Example_Monster: FlatBufferVerifiableTable, FlatbuffersVect
   public static func addVectorOf(testarrayofstring2: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testarrayofstring2, at: VT.testarrayofstring2) }
   public static func addVectorOf(testarrayofsortedstruct: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: testarrayofsortedstruct, at: VT.testarrayofsortedstruct) }
   public static func startVectorOfTestarrayofsortedstruct(_ size: Int, in builder: inout FlatBufferBuilder) {
-    builder.startVector(size * MemoryLayout<MyGame_Example_Ability>.size, elementSize: MemoryLayout<MyGame_Example_Ability>.alignment)
+    builder.startVector(size, elementSize: MemoryLayout<MyGame_Example_Ability>.size, alignment: MyGame_Example_Ability.alignment)
   }
   public static func addVectorOf(flex: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: flex, at: VT.flex) }
   public static func addVectorOf(test5: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: test5, at: VT.test5) }
   public static func startVectorOfTest5(_ size: Int, in builder: inout FlatBufferBuilder) {
-    builder.startVector(size * MemoryLayout<MyGame_Example_Test>.size, elementSize: MemoryLayout<MyGame_Example_Test>.alignment)
+    builder.startVector(size, elementSize: MemoryLayout<MyGame_Example_Test>.size, alignment: MyGame_Example_Test.alignment)
   }
   public static func addVectorOf(vectorOfLongs: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfLongs, at: VT.vectorOfLongs) }
   public static func addVectorOf(vectorOfDoubles: Offset, _ fbb: inout FlatBufferBuilder) { fbb.add(offset: vectorOfDoubles, at: VT.vectorOfDoubles) }
@@ -1518,11 +1528,7 @@ public struct MyGame_Example_Monster: FlatBufferVerifiableTable, FlatbuffersVect
     let __name = builder.create(string: obj.name)
     let __inventory = builder.createVector(obj.inventory)
     let __test = obj.test?.pack(builder: &builder) ?? Offset()
-    MyGame_Example_Monster.startVectorOfTest4(obj.test4.count, in: &builder)
-    for val in obj.test4 {
-      builder.create(struct: val)
-    }
-    let __test4 = builder.endVector(len: obj.test4.count)
+    let __test4 = builder.createVector(ofStructs: obj.test4)
     let __testarrayofstring = builder.createVector(ofStrings: obj.testarrayofstring.compactMap({ $0 }) )
     var __testarrayoftables__: [Offset] = []
     for var i in obj.testarrayoftables {
@@ -1534,17 +1540,9 @@ public struct MyGame_Example_Monster: FlatBufferVerifiableTable, FlatbuffersVect
     let __testempty = MyGame_Example_Stat.pack(&builder, obj: &obj.testempty)
     let __testarrayofbools = builder.createVector(obj.testarrayofbools)
     let __testarrayofstring2 = builder.createVector(ofStrings: obj.testarrayofstring2.compactMap({ $0 }) )
-    MyGame_Example_Monster.startVectorOfTestarrayofsortedstruct(obj.testarrayofsortedstruct.count, in: &builder)
-    for val in obj.testarrayofsortedstruct {
-      builder.create(struct: val)
-    }
-    let __testarrayofsortedstruct = builder.endVector(len: obj.testarrayofsortedstruct.count)
+    let __testarrayofsortedstruct = builder.createVector(ofStructs: obj.testarrayofsortedstruct)
     let __flex = builder.createVector(obj.flex)
-    MyGame_Example_Monster.startVectorOfTest5(obj.test5.count, in: &builder)
-    for val in obj.test5 {
-      builder.create(struct: val)
-    }
-    let __test5 = builder.endVector(len: obj.test5.count)
+    let __test5 = builder.createVector(ofStructs: obj.test5)
     let __vectorOfLongs = builder.createVector(obj.vectorOfLongs)
     let __vectorOfDoubles = builder.createVector(obj.vectorOfDoubles)
     let __parentNamespaceTest = MyGame_InParentNamespace.pack(&builder, obj: &obj.parentNamespaceTest)
