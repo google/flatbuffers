@@ -4385,6 +4385,7 @@ bool Type::Deserialize(const Parser& parser, const reflection::Type* type) {
   fixed_length = type->fixed_length();
   if (type->index() >= 0) {
     bool is_series = type->base_type() == reflection::Vector ||
+                     type->base_type() == reflection::Vector64 ||
                      type->base_type() == reflection::Array;
     if (type->base_type() == reflection::Obj ||
         (is_series && type->element() == reflection::Obj)) {

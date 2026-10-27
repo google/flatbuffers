@@ -259,6 +259,31 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         }
         break;
       }
+      case reflection::Vector64: {
+        // 64-bit vectors hold scalars or structs and are reached through a
+        // 64-bit offset.
+        const auto element = field_def->type()->element();
+        size_t elem_size = 0;
+        if (IsScalar(element)) {
+          elem_size = GetTypeSize(element);
+        } else if (element == reflection::Obj) {
+          auto elem_obj = schema.objects()->Get(field_def->type()->index());
+          if (elem_obj->is_struct()) {
+            elem_size = static_cast<size_t>(elem_obj->bytesize());
+          }
+        }
+        if (!elem_size) return false;
+        if (!(field_def->required()
+                  ? table->VerifyOffset64Required(v, field_def->offset())
+                  : table->VerifyOffset64(v, field_def->offset()))) {
+          return false;
+        }
+        auto vec = table->GetPointer64<const uint8_t*>(field_def->offset());
+        if (vec && !v.VerifyVectorOrString<uoffset64_t>(vec, elem_size)) {
+          return false;
+        }
+        break;
+      }
       default:
         FLATBUFFERS_ASSERT(false);
         break;

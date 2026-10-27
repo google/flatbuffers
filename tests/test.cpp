@@ -1722,6 +1722,100 @@ static void Offset64Tests() {
 #endif
 }
 
+static void CheckVector64OfStructsSchema(const char* schema_src) {
+  const char* json =
+      "{ \"v\": [ { \"a\": 1 }, { \"a\": 2 } ], \"w\": [ 1, 2, 3 ] }";
+
+  // Binary schema produced from the text schema.
+  flatbuffers::Parser text_parser;
+  TEST_EQ(text_parser.Parse(schema_src), true);
+  text_parser.Serialize();
+  const std::vector<uint8_t> bfbs(
+      text_parser.builder_.GetBufferPointer(),
+      text_parser.builder_.GetBufferPointer() + text_parser.builder_.GetSize());
+  flatbuffers::Verifier bfbs_verifier(bfbs.data(), bfbs.size());
+  TEST_EQ(reflection::VerifySchemaBuffer(bfbs_verifier), true);
+
+  // Data produced from the text schema.
+  flatbuffers::Parser data_parser;
+  TEST_EQ(data_parser.Parse(schema_src), true);
+  TEST_EQ(data_parser.Parse(json), true);
+  const std::vector<uint8_t> data(
+      data_parser.builder_.GetBufferPointer(),
+      data_parser.builder_.GetBufferPointer() + data_parser.builder_.GetSize());
+
+  // The reflection verifier accepts the valid data (positive control) and
+  // rejects a vector64 field whose length or offset points past the buffer.
+  const reflection::Schema& schema = *reflection::GetSchema(bfbs.data());
+  const reflection::Object& root = *schema.root_table();
+  TEST_EQ(flatbuffers::Verify(schema, root, data.data(), data.size()), true);
+  const char* field_names[] = {"v", "w"};
+  for (auto name : field_names) {
+    auto field = root.fields()->LookupByKey(name);
+    TEST_NOTNULL(field);
+    if (!field) return;
+    TEST_EQ(field->type()->base_type(), reflection::Vector64);
+    {
+      std::vector<uint8_t> bad = data;
+      auto vec = flatbuffers::GetAnyRoot(bad.data())
+                     ->GetPointer64<uint8_t*>(field->offset());
+      TEST_NOTNULL(vec);
+      if (!vec) return;
+      flatbuffers::WriteScalar<uint64_t>(vec, 0xFFFFFFFFu);
+      TEST_EQ(flatbuffers::Verify(schema, root, bad.data(), bad.size()), false);
+    }
+    {
+      std::vector<uint8_t> bad = data;
+      auto slot =
+          flatbuffers::GetAnyRoot(bad.data())->GetAddressOf(field->offset());
+      TEST_NOTNULL(slot);
+      if (!slot) return;
+      flatbuffers::WriteScalar<uint64_t>(slot,
+                                         static_cast<uint64_t>(bad.size()) * 2);
+      TEST_EQ(flatbuffers::Verify(schema, root, bad.data(), bad.size()), false);
+    }
+  }
+
+  // The binary schema loads back with the vector64 element type resolved to
+  // the struct, and the loaded schema parses the same JSON to the same bytes.
+  flatbuffers::Parser parser;
+  const bool loaded = parser.Deserialize(bfbs.data(), bfbs.size());
+  TEST_EQ(loaded, true);
+  if (!loaded) return;
+  auto table_def = parser.structs_.Lookup("T");
+  auto struct_def = parser.structs_.Lookup("S");
+  TEST_NOTNULL(table_def);
+  TEST_NOTNULL(struct_def);
+  if (!table_def || !struct_def) return;
+  auto v = table_def->fields.Lookup("v");
+  TEST_NOTNULL(v);
+  if (!v) return;
+  TEST_EQ(v->value.type.base_type, BASE_TYPE_VECTOR64);
+  TEST_EQ(v->value.type.element, BASE_TYPE_STRUCT);
+  TEST_ASSERT(v->value.type.struct_def == struct_def);
+  TEST_ASSERT(v->value.type.enum_def == nullptr);
+  // Parsing through an unresolved struct type is not attempted.
+  if (v->value.type.struct_def != struct_def) return;
+  TEST_EQ(parser.Parse(json), true);
+  TEST_EQ(parser.builder_.GetSize(), data.size());
+  TEST_EQ(
+      std::memcmp(parser.builder_.GetBufferPointer(), data.data(), data.size()),
+      0);
+}
+
+void BinarySchemaVector64OfStructsTest() {
+  CheckVector64OfStructsSchema(
+      "struct S { a:int; }\n"
+      "table T { v:[S] (vector64); w:[ubyte] (vector64); }\n"
+      "root_type T;\n");
+  // The struct's object index is also a valid enum index here.
+  CheckVector64OfStructsSchema(
+      "enum E:byte { A, B }\n"
+      "struct S { a:int; }\n"
+      "table T { e:E; v:[S] (vector64); w:[ubyte] (vector64); }\n"
+      "root_type T;\n");
+}
+
 // Test that Pack() generates correctly namespace-qualified Create* calls
 // when referencing tables from different namespaces. (issue #8948)
 void CrossNamespacePackTest() {
@@ -1860,6 +1954,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedSizedStructArrayKeyInStructTest();
   EmbeddedSchemaAccess();
   Offset64Tests();
+  BinarySchemaVector64OfStructsTest();
   UnionUnderlyingTypeTest();
   StructsInHashTableTest();
   DefaultVectorsStringsTest();
