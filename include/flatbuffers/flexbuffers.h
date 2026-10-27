@@ -466,9 +466,9 @@ class Reference {
         case FBT_INDIRECT_UINT:
           return ReadUInt64(Indirect(), byte_width_);
         case FBT_FLOAT:
-          return static_cast<int64_t>(ReadDouble(data_, parent_width_));
+          return ConvertFloatToInt64(ReadDouble(data_, parent_width_));
         case FBT_INDIRECT_FLOAT:
-          return static_cast<int64_t>(ReadDouble(Indirect(), byte_width_));
+          return ConvertFloatToInt64(ReadDouble(Indirect(), byte_width_));
         case FBT_NULL:
           return 0;
         case FBT_STRING:
@@ -502,9 +502,9 @@ class Reference {
         case FBT_INDIRECT_INT:
           return ReadInt64(Indirect(), byte_width_);
         case FBT_FLOAT:
-          return static_cast<uint64_t>(ReadDouble(data_, parent_width_));
+          return ConvertFloatToUInt64(ReadDouble(data_, parent_width_));
         case FBT_INDIRECT_FLOAT:
-          return static_cast<uint64_t>(ReadDouble(Indirect(), byte_width_));
+          return ConvertFloatToUInt64(ReadDouble(Indirect(), byte_width_));
         case FBT_NULL:
           return 0;
         case FBT_STRING:
@@ -816,6 +816,20 @@ class Reference {
   }
 
  private:
+  static int64_t ConvertFloatToInt64(double d) {
+    // [-2^63, 2^63) is the exact range of IEEE-754 doubles whose truncated
+    // integer value fits in int64_t; comparisons with NaN evaluate to false.
+    if (!(d >= -9223372036854775808.0 && d < 9223372036854775808.0)) return 0;
+    return static_cast<int64_t>(d);
+  }
+
+  static uint64_t ConvertFloatToUInt64(double d) {
+    // [0.0, 2^64) is the exact range of non-negative IEEE-754 doubles whose
+    // truncated integer value fits in uint64_t.
+    if (!(d >= 0.0 && d < 18446744073709551616.0)) return 0;
+    return static_cast<uint64_t>(d);
+  }
+
   const uint8_t* Indirect() const {
     return flexbuffers::Indirect(data_, parent_width_);
   }
@@ -1577,7 +1591,11 @@ class Builder FLATBUFFERS_FINAL_CLASS {
   void PushIndirect(T val, Type type, BitWidth bit_width) {
     auto byte_width = Align(bit_width);
     auto iloc = buf_.size();
-    Write(val, byte_width);
+    if (type == FBT_INDIRECT_FLOAT) {
+      WriteDouble(static_cast<double>(val), byte_width);
+    } else {
+      Write(val, byte_width);
+    }
     stack_.push_back(Value(static_cast<uint64_t>(iloc), type, bit_width));
   }
 
@@ -1849,13 +1867,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            // comes at the cost of using additional memory the same size of
            // the buffer being verified, so it is by default off.
            std::vector<uint8_t>* reuse_tracker = nullptr,
-           bool _check_alignment = true, size_t max_depth = 64)
+           bool _check_alignment = true, size_t max_depth = 64,
+           size_t max_vectors = 0)
       : buf_(buf),
         size_(buf_len),
         depth_(0),
         max_depth_(max_depth),
         num_vectors_(0),
-        max_vectors_(buf_len),
+        max_vectors_(max_vectors ? max_vectors : buf_len),
         check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
     FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) <
@@ -1924,14 +1943,14 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyVector(Reference r, const uint8_t* p, Type elem_type) {
     // Any kind of nesting goes thru this function, so guard against that
     // here, both with simple nesting checks, and the reuse tracker if on.
-    depth_++;
-    num_vectors_++;
-    if (!Check(depth_ <= max_depth_ && num_vectors_ <= max_vectors_))
-      return false;
+    if (!Check(depth_ < max_depth_)) return false;
     auto size_byte_width = r.byte_width_;
     if (!VerifyBeforePointer(p, size_byte_width)) return false;
     FLEX_CHECK_VERIFIED(p - size_byte_width,
                         PackedType(Builder::WidthB(size_byte_width), r.type_));
+    depth_++;
+    num_vectors_++;
+    if (!Check(num_vectors_ <= max_vectors_)) return false;
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
@@ -1966,11 +1985,17 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     p -= byte_width * num_prefixed_fields;
     auto off = ReadUInt64(p, byte_width);
     if (!VerifyOffset(off, p)) return false;
-    auto key_byte_with =
-        static_cast<uint8_t>(ReadUInt64(p + byte_width, byte_width));
-    if (!VerifyByteWidth(key_byte_with)) return false;
-    return VerifyVector(Reference(p, byte_width, key_byte_with, FBT_VECTOR_KEY),
-                        p - off, FBT_KEY);
+    const uint64_t raw_key_byte_width =
+        ReadUInt64(p + byte_width, byte_width);
+    if (raw_key_byte_width > sizeof(uint64_t)) return false;
+    const size_t key_byte_with = static_cast<size_t>(raw_key_byte_width);
+    if (!VerifyByteWidth(key_byte_with) ||
+        !VerifyAlignment(p - off, key_byte_with))
+      return false;
+    return VerifyVector(
+        Reference(p, byte_width, static_cast<uint8_t>(key_byte_with),
+                  FBT_VECTOR_KEY),
+        p - off, FBT_KEY);
   }
 
   bool VerifyKey(const uint8_t* p) {
