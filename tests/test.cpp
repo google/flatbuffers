@@ -1774,6 +1774,9 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedLengthArrayJsonTest(tests_data_path, false);
   FixedLengthArrayJsonTest(tests_data_path, true);
   ReflectionTest(tests_data_path, flatbuf.data(), flatbuf.size());
+  ReflectionInvalidObjectIndexTest();
+  CopyTableInvalidObjectIndexTest();
+  ResizeTableInvalidObjectIndexTest();
   ForAllFieldsReverseTest(tests_data_path);
   ParseProtoTest(tests_data_path);
   EvolutionTest(tests_data_path);
