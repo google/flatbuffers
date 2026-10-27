@@ -25,11 +25,9 @@ enum Abc {
     }
   }
 
-  static Abc? _createOrNull(int? value) =>
-      value == null ? null : Abc.fromValue(value);
-
   static const int minValue = 0;
   static const int maxValue = 2;
+
   static const fb.Reader<Abc> reader = _AbcReader();
 }
 
@@ -57,11 +55,9 @@ enum Public {
     }
   }
 
-  static Public? _createOrNull(int? value) =>
-      value == null ? null : Public.fromValue(value);
-
   static const int minValue = 0;
   static const int maxValue = 0;
+
   static const fb.Reader<Public> reader = _PublicReader();
 }
 
@@ -93,12 +89,19 @@ enum KeywordsInUnionTypeId {
     }
   }
 
-  static KeywordsInUnionTypeId? _createOrNull(int? value) =>
-      value == null ? null : KeywordsInUnionTypeId.fromValue(value);
-
   static const int minValue = 0;
   static const int maxValue = 2;
+
   static const fb.Reader<KeywordsInUnionTypeId> reader = _KeywordsInUnionTypeIdReader();
+  fb.Reader? get valueReader => _getKeywordsInUnionTypeIdReader(this);
+}
+
+fb.Reader? _getKeywordsInUnionTypeIdReader(KeywordsInUnionTypeId id) {
+  switch (id.value) {
+      case 1: return KeywordsInTable.reader;
+      case 2: return KeywordsInTable.reader;
+    default: return null;
+  }
 }
 
 class _KeywordsInUnionTypeIdReader extends fb.Reader<KeywordsInUnionTypeId> {
@@ -124,8 +127,8 @@ class KeywordsInTable {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  Abc get $is => Abc.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 4, 0));
-  Public get private => Public.fromValue(const fb.Int32Reader().vTableGet(_bc, _bcOffset, 6, 0));
+  Abc get $is => Abc.reader.vTableGet(_bc, _bcOffset, 4, Abc.$void);
+  Public get private => Public.reader.vTableGet(_bc, _bcOffset, 6, Public.NONE);
   int get type => const fb.Int32Reader().vTableGet(_bc, _bcOffset, 8, 0);
   bool get $default => const fb.BoolReader().vTableGet(_bc, _bcOffset, 10, false);
 
@@ -261,14 +264,8 @@ class Table2 {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  KeywordsInUnionTypeId? get typeType => KeywordsInUnionTypeId._createOrNull(const fb.Uint8Reader().vTableGetNullable(_bc, _bcOffset, 4));
-  dynamic get type {
-    switch (typeType?.value) {
-      case 1: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
-      case 2: return KeywordsInTable.reader.vTableGetNullable(_bc, _bcOffset, 6);
-      default: return null;
-    }
-  }
+  KeywordsInUnionTypeId? get typeType => KeywordsInUnionTypeId.reader.vTableGetNullable(_bc, _bcOffset, 4);
+  dynamic get type => typeType?.valueReader?.vTableGetNullable(_bc, _bcOffset, 6);
 
   @override
   String toString() {
