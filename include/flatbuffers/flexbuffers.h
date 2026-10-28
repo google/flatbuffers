@@ -1848,6 +1848,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            // of larger buffers with many shared keys/strings, but
            // comes at the cost of using additional memory the same size of
            // the buffer being verified, so it is by default off.
+           // Without it, the total verification work (vectors and elements
+           // visited) is capped at the length of the buffer, so a buffer
+           // whose verification would require more work than that, which can
+           // only happen when vectors are shared by many references, is
+           // rejected instead of being verified.
            std::vector<uint8_t>* reuse_tracker = nullptr,
            bool _check_alignment = true, size_t max_depth = 64)
       : buf_(buf),
@@ -1930,8 +1935,20 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
       return false;
     auto size_byte_width = r.byte_width_;
     if (!VerifyBeforePointer(p, size_byte_width)) return false;
-    FLEX_CHECK_VERIFIED(p - size_byte_width,
-                        PackedType(Builder::WidthB(size_byte_width), r.type_));
+    if (reuse_tracker_) {
+      // Same logic as FLEX_CHECK_VERIFIED, except that the early return
+      // must release the depth acquired on entry.
+      auto packed_type =
+          PackedType(Builder::WidthB(size_byte_width), r.type_);
+      auto existing = (*reuse_tracker_)[p - size_byte_width - buf_];
+      if (existing == packed_type) {
+        depth_--;
+        return true;
+      }
+      // Fail verification if already set with different type!
+      if (!Check(existing == 0)) return false;
+      (*reuse_tracker_)[p - size_byte_width - buf_] = packed_type;
+    }
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
@@ -1946,12 +1963,22 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
       // Verify type bytes after the vector.
       if (!VerifyFromPointer(p + byte_size, num_elems)) return false;
       auto v = Vector(p, size_byte_width);
-      for (size_t i = 0; i < num_elems; i++)
+      for (size_t i = 0; i < num_elems; i++) {
+        // Charge the visited element to the vector counter: a vector can be
+        // shared by many references, and when no reuse tracker is used, each
+        // visit walks all of its elements again. Without this charge, the
+        // total amount of verification work is bounded by nothing stronger
+        // than the number of references times the largest vector size, which
+        // is quadratic in the buffer size.
+        if (!Check(++num_vectors_ <= max_vectors_)) return false;
         if (!VerifyRef(v[i])) return false;
+      }
     } else if (elem_type == FBT_KEY) {
       auto v = TypedVector(p, elem_byte_width, FBT_KEY);
-      for (size_t i = 0; i < num_elems; i++)
+      for (size_t i = 0; i < num_elems; i++) {
+        if (!Check(++num_vectors_ <= max_vectors_)) return false;
         if (!VerifyRef(v[i])) return false;
+      }
     } else {
       FLATBUFFERS_ASSERT(IsInline(elem_type));
     }

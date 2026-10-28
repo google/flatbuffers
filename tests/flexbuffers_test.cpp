@@ -187,6 +187,71 @@ void FlexBuffersReuseBugTest() {
           true);
 }
 
+// A valid buffer in which a single vector of M elements is shared by N
+// references. Verifying it without a reuse tracker costs N*M element visits
+// for a buffer of only ~3*M + 5*N bytes: before element visits were charged
+// to the verifier's work counter, this was quadratic in the buffer size while
+// still succeeding, so a small hand-crafted buffer could be used to keep a
+// CPU busy for a long time in the default configuration.
+static std::vector<uint8_t> FlexBuffersSharedVectorBuffer(size_t M, size_t N) {
+  std::vector<uint8_t> b;
+  auto append = [&b](const void* p, size_t n) {
+    const uint8_t* q = reinterpret_cast<const uint8_t*>(p);
+    b.insert(b.end(), q, q + n);
+  };
+  // The shared vector, of byte width 2, containing M inline int children.
+  const uint16_t vsize = static_cast<uint16_t>(M);
+  append(&vsize, 2);
+  const size_t v_data = b.size();  // 2-aligned
+  const uint16_t value = 0x0201;
+  for (size_t i = 0; i < M; i++) append(&value, 2);
+  const uint8_t child_type = flexbuffers::PackedType(flexbuffers::BIT_WIDTH_8,
+                                                     flexbuffers::FBT_INT);
+  for (size_t i = 0; i < M; i++) b.push_back(child_type);
+  // The outer vector, of byte width 4, containing N references to it.
+  while (b.size() % 4) b.push_back(0);
+  const uint32_t osize = static_cast<uint32_t>(N);
+  append(&osize, 4);
+  const size_t o_data = b.size();
+  const size_t o_elems = b.size();
+  for (size_t i = 0; i < N; i++) {
+    const uint32_t off = static_cast<uint32_t>((o_elems + 4 * i) - v_data);
+    append(&off, 4);
+  }
+  const uint8_t ref_type = flexbuffers::PackedType(flexbuffers::BIT_WIDTH_16,
+                                                   flexbuffers::FBT_VECTOR);
+  for (size_t i = 0; i < N; i++) b.push_back(ref_type);
+  // The root reference to the outer vector.
+  const uint32_t root_off = static_cast<uint32_t>(b.size() - o_data);
+  append(&root_off, 4);
+  b.push_back(flexbuffers::PackedType(flexbuffers::BIT_WIDTH_32,
+                                      flexbuffers::FBT_VECTOR));
+  b.push_back(4);
+  return b;
+}
+
+void FlexBuffersVerifierWorkBoundTest() {
+  // 65535 element visits per visit of the shared vector, shared 1000 times:
+  // ~65M element visits for a ~200KB buffer.
+  const std::vector<uint8_t> b = FlexBuffersSharedVectorBuffer(65535, 1000);
+  // Without a tracker, the work counter is capped at the buffer size, so the
+  // buffer is rejected instead of being verified, quickly.
+  TEST_EQ(flexbuffers::VerifyBuffer(b.data(), b.size(), nullptr), false);
+  // With a tracker, the shared vector is verified once, and the buffer, which
+  // is valid, is accepted.
+  std::vector<uint8_t> reuse_tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(b.data(), b.size(), &reuse_tracker), true);
+  // A buffer that does not use sharing still verifies without a tracker.
+  flexbuffers::Builder slb;
+  slb.Vector([&]() {
+    for (int i = 0; i < 100; i++) slb.Add(i);
+  });
+  slb.Finish();
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
+}
+
 void FlexBuffersFloatingPointTest() {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   flexbuffers::Builder slb(512,
