@@ -762,7 +762,8 @@ class Reference {
   }
 
   bool MutateBool(bool b) {
-    return type_ == FBT_BOOL && Mutate(data_, b, parent_width_, BIT_WIDTH_8);
+    return type_ == FBT_BOOL &&
+           Mutate(data_, static_cast<uint64_t>(b), parent_width_, BIT_WIDTH_8);
   }
 
   bool MutateUInt(uint64_t u) {
@@ -1905,6 +1906,11 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            off <= static_cast<uint64_t>(p - buf_);
   }
 
+  bool VerifyNoOverlap(const uint8_t* p1, size_t len1, const uint8_t* p2,
+                       size_t len2) {
+    return Check(p1 + len1 <= p2 || p2 + len2 <= p1);
+  }
+
   bool VerifyAlignment(const uint8_t* p, size_t size) const {
     auto o = static_cast<size_t>(p - buf_);
     return Check((o & (size - 1)) == 0 || !check_alignment_);
@@ -2005,7 +2011,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
       case FBT_INDIRECT_INT:
       case FBT_INDIRECT_UINT:
       case FBT_INDIRECT_FLOAT:
-        return VerifyFromPointer(p, r.byte_width_);
+        return VerifyFromPointer(p, r.byte_width_) &&
+               VerifyNoOverlap(p, r.byte_width_, r.data_, r.parent_width_);
       case FBT_KEY:
         return VerifyKey(p);
       case FBT_MAP:
