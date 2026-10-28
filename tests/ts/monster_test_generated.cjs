@@ -882,7 +882,7 @@ var Monster2 = class _Monster {
   }
   name(optionalEncoding) {
     const offset = this.bb.__offset(this.bb_pos, 10);
-    return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+    return this.bb.__string(this.bb_pos + offset, optionalEncoding);
   }
   inventory(index) {
     const offset = this.bb.__offset(this.bb_pos, 14);
@@ -1274,7 +1274,7 @@ var Monster2 = class _Monster {
   }
   vectorOfEnums(index) {
     const offset = this.bb.__offset(this.bb_pos, 98);
-    return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : 0;
+    return offset ? this.bb.readUint8(this.bb.__vector(this.bb_pos + offset) + index) : null;
   }
   vectorOfEnumsLength() {
     const offset = this.bb.__offset(this.bb_pos, 98);

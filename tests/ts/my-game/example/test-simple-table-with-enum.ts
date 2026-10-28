@@ -9,7 +9,7 @@ import { Color } from './color.js';
 
 export class TestSimpleTableWithEnum implements flatbuffers.IUnpackableObject<TestSimpleTableWithEnumT> {
   bb: flatbuffers.ByteBuffer|null = null;
-  bb_pos = 0;
+  bb_pos: number = 0;
   __init(i:number, bb:flatbuffers.ByteBuffer):TestSimpleTableWithEnum {
   this.bb_pos = i;
   this.bb = bb;
@@ -45,11 +45,11 @@ static getFullyQualifiedName(): "MyGame.Example.TestSimpleTableWithEnum" {
   return 'MyGame.Example.TestSimpleTableWithEnum';
 }
 
-static startTestSimpleTableWithEnum(builder:flatbuffers.Builder) {
+static startTestSimpleTableWithEnum(builder:flatbuffers.Builder):void {
   builder.startObject(1);
 }
 
-static addColor(builder:flatbuffers.Builder, color:Color) {
+static addColor(builder:flatbuffers.Builder, color:Color):void {
   builder.addFieldInt8(0, color, Color.Green);
 }
 

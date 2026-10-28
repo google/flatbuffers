@@ -296,11 +296,11 @@ class TsGenerator : public BaseGenerator {
         auto fully_qualified_type_name =
             it.second.ns->GetFullyQualifiedName(type_name);
         auto is_struct = parser_.structs_.Lookup(fully_qualified_type_name);
-        code += "export { " + type_name;
+        code += "export {" + type_name;
         if (parser_.opts.generate_object_based_api && is_struct) {
           code += ", " + type_name + parser_.opts.object_suffix;
         }
-        code += " } from '";
+        code += "} from '";
         std::string import_extension =
             parser_.opts.ts_no_import_ext ? "" : ".js";
         code += base_name_rel + import_extension + "';\n";
@@ -818,7 +818,7 @@ class TsGenerator : public BaseGenerator {
 
       code += "static finish" + (size_prefixed ? sizePrefixed : "") +
               GetPrefixedName(struct_def) + "Buffer";
-      code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {\n";
+      code += "(builder:flatbuffers.Builder, offset:flatbuffers.Offset):void {\n";
       code += "  builder.finish(offset";
       if (!parser_.file_identifier_.empty()) {
         code += ", '" + parser_.file_identifier_ + "'";
@@ -1040,7 +1040,7 @@ class TsGenerator : public BaseGenerator {
     std::string import_extension = parser_.opts.ts_no_import_ext ? "" : ".js";
     import.import_statement = "import { " + symbols_expression + " } from '" +
                               rel_file_path + import_extension + "';";
-    import.export_statement = "export { " + symbols_expression + " } from '." +
+    import.export_statement = "export {" + symbols_expression + "} from '." +
                               bare_file_path + import_extension + "';";
     import.dependency = &dependency;
     import.dependent = &dependent;
@@ -1703,7 +1703,7 @@ class TsGenerator : public BaseGenerator {
     }
     code += "  bb: flatbuffers.ByteBuffer|" + null_keyword_ + " = " +
             null_keyword_ + ";\n";
-    code += "  bb_pos = 0;\n";
+    code += "  bb_pos: number = 0;\n";
 
     // Generate the __init method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
@@ -2156,7 +2156,7 @@ class TsGenerator : public BaseGenerator {
       GenDocComment(code_ptr);
 
       code += "static start" + GetPrefixedName(struct_def) +
-              "(builder:flatbuffers.Builder) {\n";
+              "(builder:flatbuffers.Builder):void {\n";
 
       code += "  builder.startObject(" +
               NumToString(struct_def.fields.vec.size()) + ");\n";
@@ -2173,7 +2173,7 @@ class TsGenerator : public BaseGenerator {
         GenDocComment(code_ptr);
         code += "static " + namer_.Method("add", field);
         code += "(builder:flatbuffers.Builder, " + argname + ":" +
-                GetArgType(imports, struct_def, field, false) + ") {\n";
+                GetArgType(imports, struct_def, field, false) + "):void {\n";
         code += "  builder.addField" + GenWriteMethod(field.value.type) + "(";
         code += NumToString(it - struct_def.fields.vec.begin()) + ", ";
         if (field.value.type.base_type == BASE_TYPE_BOOL) {
@@ -2245,7 +2245,7 @@ class TsGenerator : public BaseGenerator {
 
           code += "static ";
           code += namer_.Method("start", field, "Vector");
-          code += "(builder:flatbuffers.Builder, numElems:number) {\n";
+          code += "(builder:flatbuffers.Builder, numElems:number):void {\n";
           code += "  builder.startVector(" + NumToString(elem_size);
           code += ", numElems, " + NumToString(alignment) + ");\n";
           code += "}\n\n";
