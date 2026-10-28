@@ -206,8 +206,14 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     // this call and their size is determined at runtime.
     if (!Check(size_ >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
 
-    // If an identifier is provided, check that we have a buffer
-    if (identifier && !Check((size_ >= 2 * sizeof(flatbuffers::uoffset_t) &&
+    // If an identifier is provided, check that we have a buffer large
+    // enough for the identifier read: [start + sizeof(uoffset_t),
+    // start + sizeof(uoffset_t) + kFileIdentifierLength). The previous
+    // 2 * sizeof(uoffset_t) form only covers start == 0 and lets the
+    // identifier scan run past the end of the buffer for size-prefix
+    // layouts with larger SizeT (e.g. uoffset64_t).
+    if (identifier && !Check((size_ >= start + sizeof(flatbuffers::uoffset_t) +
+                                       kFileIdentifierLength &&
                               BufferHasIdentifier(buf_ + start, identifier)))) {
       return false;
     }
