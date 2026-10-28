@@ -1345,6 +1345,35 @@ mod framing_format {
         assert_eq!(m.hp(), 300);
         assert_eq!(m.name(), "bob");
     }
+
+    #[test]
+    fn test_size_prefix_larger_than_buffer_is_rejected() {
+        // A size prefix that promises more bytes than the buffer holds does not
+        // describe this buffer, so verifying it has to fail even though the root
+        // it points at is intact. The C++ verifier rejects it in
+        // VerifySizePrefixedBuffer, and the C# and Swift ones do the same.
+        let mut b = flatbuffers::FlatBufferBuilder::new();
+        let args = &my_game::example::MonsterArgs {
+            mana: 200,
+            hp: 300,
+            name: Some(b.create_string("bob")),
+            ..Default::default()
+        };
+        let mon = my_game::example::Monster::create(&mut b, &args);
+        b.finish_size_prefixed(mon, None);
+
+        let mut buf = b.finished_data().to_vec();
+        // The correct prefix is buf.len() - 4, so buf.len() already overruns by
+        // the four bytes of the prefix itself.
+        for &prefix in [buf.len() as u32, 1_000_000, u32::MAX].iter() {
+            buf[..4].copy_from_slice(&prefix.to_le_bytes());
+            assert!(
+                flatbuffers::size_prefixed_root::<my_game::example::Monster>(&buf).is_err(),
+                "size prefix {} promises more bytes than the buffer holds, yet it verified",
+                prefix
+            );
+        }
+    }
 }
 
 #[cfg(not(feature = "no_std"))]
