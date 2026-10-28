@@ -42,6 +42,8 @@ ts_project(
             "module": "commonjs",
             "declaration": True,
             "moduleResolution": "node",
+            # Suppress TS5107 deprecation error for moduleResolution=node in TypeScript 5.8+.
+            "ignoreDeprecations": "6.0",
             "lib": [
                 "ES2015",
                 "ES2020.BigInt",
@@ -49,6 +51,8 @@ ts_project(
             ],
             "types": ["node"],
             "strict": True,
+            # Skip checking mixed 3rd-party .d.ts files to prevent TS2403 declaration clashes between @types/node and lib.dom.d.ts.
+            "skipLibCheck": True,
         },
     },
     visibility = ["//visibility:public"],
