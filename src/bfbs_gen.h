@@ -20,7 +20,7 @@
 #include <cstdint>
 
 #include "flatbuffers/code_generator.h"
-#include "flatbuffers/reflection_generated.h"
+#include "flatbuffers/reflection.h"
 
 namespace flatbuffers {
 
@@ -61,21 +61,6 @@ static void ForAllDocumentation(
   for (auto it = documentation->cbegin(); it != documentation->cend(); ++it) {
     func(*it);
   }
-}
-
-// Maps the field index into object->fields() to the field's ID (the ith element
-// in the return vector).
-static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
-  std::vector<uint32_t> field_index_by_id;
-  field_index_by_id.resize(object->fields()->size());
-
-  // Create the mapping of field ID to the index into the vector.
-  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
-    auto field = object->fields()->Get(i);
-    field_index_by_id[field->id()] = i;
-  }
-
-  return field_index_by_id;
 }
 
 static bool IsStructOrTable(const reflection::BaseType base_type) {
@@ -186,11 +171,7 @@ class BaseBfbsGenerator : public CodeGenerator {
 
   void ForAllFields(const reflection::Object* object, bool reverse,
                     std::function<void(const reflection::Field*)> func) const {
-    const std::vector<uint32_t> field_to_id_map = FieldIdToIndex(object);
-    for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-      func(object->fields()->Get(
-          field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
-    }
+    flatbuffers::ForAllFields(object, reverse, func);
   }
 
   bool IsTable(const reflection::Type* type, bool use_element = false) const {
