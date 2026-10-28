@@ -21,14 +21,14 @@ export function unionToCharacter(
   type: Character,
   accessor: (obj:Attacker|BookReader|Rapunzel|string) => Attacker|BookReader|Rapunzel|string|null
 ): Attacker|BookReader|Rapunzel|string|null {
-  switch(Character[type]) {
-    case 'NONE': return null; 
-    case 'MuLan': return accessor(new Attacker())! as Attacker;
-    case 'Rapunzel': return accessor(new Rapunzel())! as Rapunzel;
-    case 'Belle': return accessor(new BookReader())! as BookReader;
-    case 'BookFan': return accessor(new BookReader())! as BookReader;
-    case 'Other': return accessor('') as string;
-    case 'Unused': return accessor('') as string;
+  switch(type) {
+    case Character.NONE: return null;
+    case Character.MuLan: return accessor(new Attacker())! as Attacker;
+    case Character.Rapunzel: return accessor(new Rapunzel())! as Rapunzel;
+    case Character.Belle: return accessor(new BookReader())! as BookReader;
+    case Character.BookFan: return accessor(new BookReader())! as BookReader;
+    case Character.Other: return accessor('') as string;
+    case Character.Unused: return accessor('') as string;
     default: return null;
   }
 }
@@ -38,14 +38,14 @@ export function unionListToCharacter(
   accessor: (index: number, obj:Attacker|BookReader|Rapunzel|string) => Attacker|BookReader|Rapunzel|string|null, 
   index: number
 ): Attacker|BookReader|Rapunzel|string|null {
-  switch(Character[type]) {
-    case 'NONE': return null; 
-    case 'MuLan': return accessor(index, new Attacker())! as Attacker;
-    case 'Rapunzel': return accessor(index, new Rapunzel())! as Rapunzel;
-    case 'Belle': return accessor(index, new BookReader())! as BookReader;
-    case 'BookFan': return accessor(index, new BookReader())! as BookReader;
-    case 'Other': return accessor(index, '') as string;
-    case 'Unused': return accessor(index, '') as string;
+  switch(type) {
+    case Character.NONE: return null;
+    case Character.MuLan: return accessor(index, new Attacker())! as Attacker;
+    case Character.Rapunzel: return accessor(index, new Rapunzel())! as Rapunzel;
+    case Character.Belle: return accessor(index, new BookReader())! as BookReader;
+    case Character.BookFan: return accessor(index, new BookReader())! as BookReader;
+    case Character.Other: return accessor(index, '') as string;
+    case Character.Unused: return accessor(index, '') as string;
     default: return null;
   }
 }
