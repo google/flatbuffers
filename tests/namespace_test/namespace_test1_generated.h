@@ -332,7 +332,7 @@ inline bool VerifyUnionInNestedNS(::flatbuffers::VerifierTemplate<B> &verifier, 
     }
     case UnionInNestedNS_TableInNestedNS: {
       auto ptr = reinterpret_cast<const NamespaceA::NamespaceB::TableInNestedNS *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }

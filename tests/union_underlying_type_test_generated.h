@@ -712,15 +712,15 @@ inline bool VerifyABC(::flatbuffers::VerifierTemplate<B> &verifier, const void *
     }
     case ABC::A: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::A *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case ABC::B: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::B *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case ABC::C: {
       auto ptr = reinterpret_cast<const UnionUnderlyingType::C *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }
