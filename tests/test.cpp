@@ -1767,6 +1767,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   SizePrefixedTest();
 
   AlignmentTest();
+  ReflectionEntrySecurityTest();
 
 #ifndef FLATBUFFERS_NO_FILE_TESTS
   ParseAndGenerateTextTest(tests_data_path, false);
