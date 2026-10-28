@@ -16,6 +16,8 @@
 
 #include "flatbuffers/reflection.h"
 
+#include <climits>
+
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -384,7 +386,9 @@ void ForAllFields(const reflection::Object* object, bool reverse,
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+    if (field->id() < field_to_id_map.size()) {
+      field_to_id_map[field->id()] = i;
+    }
   }
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
@@ -598,7 +602,9 @@ void SetString(const reflection::Schema& schema, const std::string& val,
   auto start = str_start + static_cast<uoffset_t>(sizeof(uoffset_t));
   if (delta) {
     // Clear the old string, since we don't want parts of it remaining.
-    memset(flatbuf->data() + start, 0, str->size());
+    if (start + str->size() <= flatbuf->size()) {
+      memset(flatbuf->data() + start, 0, str->size());
+    }
     // Different size, we must expand (or contract).
     ResizeContext ctx(schema, start, delta, flatbuf, root_table);
     // Set the new length.
@@ -613,8 +619,10 @@ uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,
                          const VectorOfAny* vec, uoffset_t num_elems,
                          uoffset_t elem_size, std::vector<uint8_t>* flatbuf,
                          const reflection::Object* root_table) {
-  auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
-  auto delta_bytes = delta_elem * static_cast<int>(elem_size);
+  auto delta_elem =
+      static_cast<int64_t>(newsize) - static_cast<int64_t>(num_elems);
+  auto delta_bytes = delta_elem * static_cast<int64_t>(elem_size);
+  if (delta_bytes < INT_MIN || delta_bytes > INT_MAX) { return nullptr; }
   auto vec_start = reinterpret_cast<const uint8_t*>(vec) - flatbuf->data();
   auto start = static_cast<uoffset_t>(vec_start) +
                static_cast<uoffset_t>(sizeof(uoffset_t)) +
@@ -623,10 +631,11 @@ uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,
     if (delta_elem < 0) {
       // Clear elements we're throwing away, since some might remain in the
       // buffer.
-      auto size_clear = -delta_elem * elem_size;
+      auto size_clear = static_cast<size_t>(-delta_elem) * elem_size;
       memset(flatbuf->data() + start - size_clear, 0, size_clear);
     }
-    ResizeContext ctx(schema, start, delta_bytes, flatbuf, root_table);
+    ResizeContext ctx(schema, start, static_cast<int>(delta_bytes), flatbuf,
+                     root_table);
     WriteScalar(flatbuf->data() + vec_start, newsize);  // Length field.
     // Set new elements to 0.. this can be overwritten by the caller.
     if (delta_elem > 0) {
