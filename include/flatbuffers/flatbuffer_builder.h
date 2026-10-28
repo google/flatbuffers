@@ -692,6 +692,9 @@ class FlatBufferBuilderImpl {
   void StartVector(size_t len, size_t elemsize, size_t alignment) {
     NotNested();
     nested = true;
+    FLATBUFFERS_ASSERT(elemsize == 0 ||
+                       len <= (std::numeric_limits<size_t>::max)() / elemsize);
+    FLATBUFFERS_ASSERT(len <= (std::numeric_limits<LenT>::max)());
     // Align to the Length type of the vector (either 32-bit or 64-bit), so
     // that the length of the buffer can be added without padding.
     PreAlign<LenT>(len * elemsize);
@@ -906,6 +909,8 @@ class FlatBufferBuilderImpl {
     auto distance = std::distance(begin, end);
     FLATBUFFERS_ASSERT(distance >= 0);
     auto size = static_cast<size_t>(distance);
+    FLATBUFFERS_ASSERT(size <= (std::numeric_limits<size_t>::max)() /
+                                   sizeof(Offset<String>));
     auto scratch_buffer_usage = size * sizeof(Offset<String>);
     // If there is not enough space to store the offsets, there definitely won't
     // be enough space to store all the strings. So ensuring space for the
