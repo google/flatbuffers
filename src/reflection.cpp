@@ -16,6 +16,8 @@
 
 #include "flatbuffers/reflection.h"
 
+#include <algorithm>
+
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -378,18 +380,26 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
 
 void ForAllFields(const reflection::Object* object, bool reverse,
                   std::function<void(const reflection::Field*)> func) {
-  std::vector<uint32_t> field_to_id_map;
-  field_to_id_map.resize(object->fields()->size());
-
-  // Create the mapping of field ID to the index into the vector.
-  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
-    auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+  // Field IDs can originate in an untrusted BFBS buffer. Sort field pointers
+  // instead of using those IDs as indexes into a field-count-sized vector.
+  std::vector<const reflection::Field*> fields_by_id;
+  fields_by_id.reserve(object->fields()->size());
+  for (const auto* field : *object->fields()) {
+    fields_by_id.push_back(field);
   }
+  std::sort(fields_by_id.begin(), fields_by_id.end(),
+            [](const reflection::Field* lhs, const reflection::Field* rhs) {
+              return lhs->id() < rhs->id();
+            });
 
-  for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-    func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+  if (reverse) {
+    for (auto it = fields_by_id.rbegin(); it != fields_by_id.rend(); ++it) {
+      func(*it);
+    }
+  } else {
+    for (const auto* field : fields_by_id) {
+      func(field);
+    }
   }
 }
 
