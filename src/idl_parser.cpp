@@ -4538,6 +4538,14 @@ std::string Parser::ConformTo(const Parser& base) {
         struct_def.defined_namespace->GetFullyQualifiedName(struct_def.name);
     auto struct_def_base = base.LookupStruct(qualified_name);
     if (!struct_def_base) continue;
+    if (struct_def.fixed != struct_def_base->fixed) {
+      return "object types differ: " + qualified_name;
+    }
+    if (struct_def.fixed &&
+        (struct_def.minalign != struct_def_base->minalign ||
+         struct_def.bytesize != struct_def_base->bytesize)) {
+      return "struct layout differs: " + qualified_name;
+    }
     std::set<FieldDef*> renamed_fields;
     for (auto fit = struct_def.fields.vec.begin();
          fit != struct_def.fields.vec.end(); ++fit) {
@@ -4550,6 +4558,9 @@ std::string Parser::ConformTo(const Parser& base) {
         }
         if (field.value.constant != field_base->value.constant) {
           return "defaults differ for field: " + qualified_field_name;
+        }
+        if (field.presence != field_base->presence) {
+          return "presence differs for field: " + qualified_field_name;
         }
         if (!EqualByName(field.value.type, field_base->value.type)) {
           return "types differ for field: " + qualified_field_name;
@@ -4607,6 +4618,14 @@ std::string Parser::ConformTo(const Parser& base) {
           return "values differ for enum: " + enum_val.name;
       }
     }
+    for (auto evit = enum_def_base->Vals().begin();
+         evit != enum_def_base->Vals().end(); ++evit) {
+      auto& enum_val_base = **evit;
+      if (!enum_def.Lookup(enum_val_base.name)) {
+        return std::string(enum_def.is_union ? "union" : "enum") +
+               " value deleted: " + qualified_name + "." + enum_val_base.name;
+      }
+    }
     // Check underlying type changes
     if (enum_def_base->underlying_type.base_type !=
         enum_def.underlying_type.base_type) {
@@ -4614,6 +4633,19 @@ std::string Parser::ConformTo(const Parser& base) {
              std::string(enum_def.is_union ? "union: " : "enum: ") +
              qualified_name;
     }
+  }
+  if (root_struct_def_ != nullptr || base.root_struct_def_ != nullptr) {
+    const auto root_name = [](const StructDef* struct_def) {
+      return struct_def ? struct_def->defined_namespace->GetFullyQualifiedName(
+                              struct_def->name)
+                        : std::string();
+    };
+    if (root_name(root_struct_def_) != root_name(base.root_struct_def_)) {
+      return "root types differ";
+    }
+  }
+  if (file_identifier_ != base.file_identifier_) {
+    return "file identifiers differ";
   }
   return "";
 }
