@@ -613,7 +613,6 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float64ListReader().read(buf, 0);
-
     expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
@@ -630,10 +629,58 @@ class BuilderTest {
       builder.finish(offset);
       byteList = builder.buffer;
     }
+
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<double> items = const Float32ListReader().read(buf, 0);
-    expect(items, hasLength(5));
+    expect(items, hasLength(values.length));
+    for (int i = 0; i < values.length; i++) {
+      expect(values[i], closeTo(items[i], .001));
+    }
+  }
+
+  void test_writeList_ofFloat64_withNonZeroOffset() {
+    List<double> values = <double>[1.0, 2.0, 3.0];
+    List<int> byteList;
+    {
+      Builder builder = Builder();
+
+      // Write an int32 first to create non-zero _tail.
+      // This causes Float64 data to be misaligned if _prepare alignment is wrong.
+      builder.putInt32(42);
+
+      int offset = builder.writeListFloat64(values);
+      builder.finish(offset);
+      byteList = builder.buffer;
+    }
+
+    // read and verify
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    List<double> items = const Float64ListReader().read(buf, 0);
+    expect(items, hasLength(values.length));
+    for (int i = 0; i < values.length; i++) {
+      expect(values[i], closeTo(items[i], .001));
+    }
+  }
+
+  void test_writeList_ofFloat32_withNonZeroOffset() {
+    List<double> values = [1.0, 2.23, -3.213];
+    List<int> byteList;
+    {
+      Builder builder = Builder();
+
+      // Write an int16 first to create non-zero _tail.
+      builder.putInt16(42);
+
+      int offset = builder.writeListFloat32(values);
+      builder.finish(offset);
+      byteList = builder.buffer;
+    }
+
+    // read and verify
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    List<double> items = const Float32ListReader().read(buf, 0);
+    expect(items, hasLength(values.length));
     for (int i = 0; i < values.length; i++) {
       expect(values[i], closeTo(items[i], .001));
     }
@@ -728,6 +775,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint32ListReader().read(buf, 0);
+    expect(items is Uint32List, Endian.host == Endian.little);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
   }
@@ -743,6 +791,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<int> items = const Uint16ListReader().read(buf, 0);
+    expect(items is Uint16List, Endian.host == Endian.little);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 60000]));
   }
@@ -760,6 +809,7 @@ class BuilderTest {
     const buffOffset = 8; // 32-bit offset to the list, + 32-bit length
     for (final lazy in [true, false]) {
       List<int> items = Uint8ListReader(lazy: lazy).read(buf, 0);
+      expect(items is Uint8List, true);
       expect(items, hasLength(6));
       expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A, 0xFA]));
 
@@ -769,6 +819,32 @@ class BuilderTest {
 
       // restore the previous value for the next loop
       buf.buffer.setUint8(buffOffset + 1, 2);
+    }
+  }
+
+  void test_writeList_ofInt8() {
+    List<int> byteList;
+    {
+      Builder builder = Builder(initialSize: 0);
+      int offset = builder.writeListInt8(<int>[1, 2, 3, 4, 0x9A, 0xFA]);
+      builder.finish(offset);
+      byteList = builder.buffer;
+    }
+    // read and verify
+    BufferContext buf = BufferContext.fromBytes(byteList);
+    const buffOffset = 8; // 32-bit offset to the list, + 32-bit length
+    for (final lazy in [true, false]) {
+      List<int> items = Int8ListReader(lazy: lazy).read(buf, 0);
+      expect(items is Int8List, true);
+      expect(items, hasLength(6));
+      expect(items, orderedEquals(<int>[1, 2, 3, 4, -102, -6]));
+
+      // overwrite the buffer to verify the laziness
+      buf.buffer.setInt8(buffOffset + 1, 99);
+      expect(items, orderedEquals(<int>[1, lazy ? 99 : 2, 3, 4, -102, -6]));
+
+      // restore the previous value for the next loop
+      buf.buffer.setInt8(buffOffset + 1, 2);
     }
   }
 
