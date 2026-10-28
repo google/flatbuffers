@@ -314,5 +314,20 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersVerifyStringTerminatorTest() {
+  flexbuffers::Builder slb;
+  slb.String("test_string");
+  slb.Finish();
+  auto buf = slb.GetBuffer();
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), true);
+
+  // Corrupt the string terminator byte to non-zero
+  auto root = flexbuffers::GetRoot(buf);
+  auto str = root.AsString();
+  auto term_ptr = const_cast<char*>(str.c_str()) + str.size();
+  *term_ptr = 'X';
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
