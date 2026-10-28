@@ -2,8 +2,9 @@
 // ignore_for_file: unused_import, unused_field, unused_element, unused_local_variable, constant_identifier_names
 
 import 'dart:typed_data' show Uint8List;
-
 import 'package:flat_buffers/flat_buffers.dart' as fb;
+
+
 
 enum OptionsEnum {
   A(1),
@@ -15,14 +16,10 @@ enum OptionsEnum {
 
   factory OptionsEnum.fromValue(int value) {
     switch (value) {
-      case 1:
-        return OptionsEnum.A;
-      case 2:
-        return OptionsEnum.B;
-      case 3:
-        return OptionsEnum.C;
-      default:
-        throw StateError('Invalid value $value for bit flag enum');
+      case 1: return OptionsEnum.A;
+      case 2: return OptionsEnum.B;
+      case 3: return OptionsEnum.C;
+      default: throw StateError('Invalid value $value for bit flag enum');
     }
   }
 
@@ -57,9 +54,7 @@ class MyTable {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  List<OptionsEnum>? get options => const fb.ListReader<OptionsEnum>(
-    OptionsEnum.reader,
-  ).vTableGetNullable(_bc, _bcOffset, 4);
+  List<OptionsEnum>? get options => const fb.ListReader<OptionsEnum>(OptionsEnum.reader).vTableGetNullable(_bc, _bcOffset, 4);
 
   @override
   String toString() {
@@ -67,11 +62,7 @@ class MyTable {
   }
 
   MyTableT unpack() => MyTableT(
-    options: const fb.ListReader<OptionsEnum>(
-      OptionsEnum.reader,
-      lazy: false,
-    ).vTableGetNullable(_bc, _bcOffset, 4),
-  );
+      options: options?.toList());
 
   static int pack(fb.Builder fbBuilder, MyTableT? object) {
     if (object == null) return 0;
@@ -82,12 +73,12 @@ class MyTable {
 class MyTableT implements fb.Packable {
   List<OptionsEnum>? options;
 
-  MyTableT({this.options});
+  MyTableT({
+      this.options});
 
   @override
   int pack(fb.Builder fbBuilder) {
-    final int? optionsOffset = options == null
-        ? null
+    final int? optionsOffset = options == null ? null
         : fbBuilder.writeListUint32(options!.map((f) => f.value).toList());
     fbBuilder.startTable(1);
     fbBuilder.addOffset(0, optionsOffset);
@@ -105,7 +96,7 @@ class _MyTableReader extends fb.TableReader<MyTable> {
 
   @override
   MyTable createObject(fb.BufferContext bc, int offset) =>
-      MyTable._(bc, offset);
+    MyTable._(bc, offset);
 }
 
 class MyTableBuilder {
@@ -130,16 +121,133 @@ class MyTableBuilder {
 class MyTableObjectBuilder extends fb.ObjectBuilder {
   final List<OptionsEnum>? _options;
 
-  MyTableObjectBuilder({List<OptionsEnum>? options}) : _options = options;
+  MyTableObjectBuilder({
+    List<OptionsEnum>? options,
+  })
+      : _options = options;
 
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? optionsOffset = _options == null
-        ? null
+    final int? optionsOffset = _options == null ? null
         : fbBuilder.writeListUint32(_options!.map((f) => f.value).toList());
     fbBuilder.startTable(1);
     fbBuilder.addOffset(0, optionsOffset);
+    return fbBuilder.endTable();
+  }
+
+  /// Convenience method to serialize to byte list.
+  @override
+  Uint8List toBytes([String? fileIdentifier]) {
+    final fbBuilder = fb.Builder(deduplicateTables: false);
+    fbBuilder.finish(finish(fbBuilder), fileIdentifier);
+    return fbBuilder.buffer;
+  }
+}
+class RequiredTable {
+  RequiredTable._(this._bc, this._bcOffset);
+  factory RequiredTable(List<int> bytes) {
+    final rootRef = fb.BufferContext.fromBytes(bytes);
+    return reader.read(rootRef, 0);
+  }
+
+  static const fb.Reader<RequiredTable> reader = _RequiredTableReader();
+
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  String get name => const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 4)!;
+  List<OptionsEnum> get options => const fb.ListReader<OptionsEnum>(OptionsEnum.reader).vTableGetNullable(_bc, _bcOffset, 6)!;
+
+  @override
+  String toString() {
+    return 'RequiredTable{name: ${name}, options: ${options}}';
+  }
+
+  RequiredTableT unpack() => RequiredTableT(
+      name: name,
+      options: options.toList());
+
+  static int pack(fb.Builder fbBuilder, RequiredTableT? object) {
+    if (object == null) return 0;
+    return object.pack(fbBuilder);
+  }
+}
+
+class RequiredTableT implements fb.Packable {
+  String name;
+  List<OptionsEnum> options;
+
+  RequiredTableT({
+      required this.name,
+      required this.options});
+
+  @override
+  int pack(fb.Builder fbBuilder) {
+    final int nameOffset = fbBuilder.writeString(name);
+    final int optionsOffset = fbBuilder.writeListUint32(options.map((f) => f.value).toList());
+    fbBuilder.startTable(2);
+    fbBuilder.addOffset(0, nameOffset);
+    fbBuilder.addOffset(1, optionsOffset);
+    return fbBuilder.endTable();
+  }
+
+  @override
+  String toString() {
+    return 'RequiredTableT{name: ${name}, options: ${options}}';
+  }
+}
+
+class _RequiredTableReader extends fb.TableReader<RequiredTable> {
+  const _RequiredTableReader();
+
+  @override
+  RequiredTable createObject(fb.BufferContext bc, int offset) =>
+    RequiredTable._(bc, offset);
+}
+
+class RequiredTableBuilder {
+  RequiredTableBuilder(this.fbBuilder);
+
+  final fb.Builder fbBuilder;
+
+  void begin() {
+    fbBuilder.startTable(2);
+  }
+
+  int addNameOffset(int offset) {
+    fbBuilder.addOffset(0, offset);
+    return fbBuilder.offset;
+  }
+  int addOptionsOffset(int offset) {
+    fbBuilder.addOffset(1, offset);
+    return fbBuilder.offset;
+  }
+
+  int finish() {
+    return fbBuilder.endTable();
+  }
+}
+
+class RequiredTableObjectBuilder extends fb.ObjectBuilder {
+  final String _name;
+  final List<OptionsEnum> _options;
+
+  RequiredTableObjectBuilder({
+    required String name,
+    required List<OptionsEnum> options,
+  })
+      : _name = name,
+        _options = options;
+
+  /// Finish building, and store into the [fbBuilder].
+  @override
+  int finish(fb.Builder fbBuilder) {
+    final int nameOffset = fbBuilder.writeString(_name);
+    final int optionsOffset = fbBuilder.writeListUint32(_options.map((f) => f.value).toList());
+    fbBuilder.startTable(2);
+    fbBuilder.addOffset(0, nameOffset);
+    fbBuilder.addOffset(1, optionsOffset);
     return fbBuilder.endTable();
   }
 

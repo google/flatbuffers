@@ -18,6 +18,7 @@ main() {
     defineReflectiveTests(CheckOtherLangaugesData);
     defineReflectiveTests(GeneratorTest);
     defineReflectiveTests(ListOfEnumsTest);
+    defineReflectiveTests(RequiredFieldsTest);
   });
 }
 
@@ -1007,6 +1008,24 @@ class ListOfEnumsTest {
     expect(mytable_read.options![0].value, example3.OptionsEnum.A.value);
     expect(mytable_read.options![1].value, example3.OptionsEnum.B.value);
     expect(mytable_read.options![2].value, example3.OptionsEnum.C.value);
+  }
+}
+
+@reflectiveTest
+class RequiredFieldsTest {
+  void test_requiredNonScalars() async {
+    final requiredTable = example3.RequiredTableObjectBuilder(
+      name: 'required',
+      options: [example3.OptionsEnum.B],
+    );
+    final bytes = requiredTable.toBytes();
+    final requiredTableRead = example3.RequiredTable(bytes);
+
+    final String name = requiredTableRead.name;
+    final List<example3.OptionsEnum> options = requiredTableRead.options;
+
+    expect(name, 'required');
+    expect(options.single, example3.OptionsEnum.B);
   }
 }
 
