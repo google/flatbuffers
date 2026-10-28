@@ -160,24 +160,36 @@ pub unsafe fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &
     let sz = size_of::<T>();
     let buf = &buf[loc..loc + sz];
     let ptr = buf.as_ptr() as *const T;
-    // SAFETY
-    // buf contains a value at loc of type T and T has no alignment requirements
-    &*ptr
+    // SAFETY:
+    // The slicing above guarantees `buf` covers `size_of::<T>()` in-bounds bytes
+    // at `loc`, and the caller guarantees those bytes are a valid value of `T`.
+    // `align_of::<T>() == 1` is asserted above, so `ptr` is trivially aligned.
+    // The returned reference borrows `buf`, so it cannot outlive the buffer.
+    unsafe { &*ptr }
 }
 
 impl<'a> Follow<'a> for &'a str {
     type Inner = &'a str;
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        let len = read_scalar_at::<UOffsetT>(buf, loc) as usize;
+        // SAFETY:
+        // The caller guarantees a valid string at `loc`, so `buf` holds a
+        // `UOffsetT` length there.
+        let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) } as usize;
         let slice = &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len];
-        from_utf8_unchecked(slice)
+        // SAFETY:
+        // A valid flatbuffer string is UTF-8; `Verifier` checks this with
+        // `core::str::from_utf8` before any `follow` is permitted.
+        unsafe { from_utf8_unchecked(slice) }
     }
 }
 
 impl<'a> Follow<'a> for &'a [u8] {
     type Inner = &'a [u8];
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        let len = read_scalar_at::<UOffsetT>(buf, loc) as usize;
+        // SAFETY:
+        // The caller guarantees a valid byte vector at `loc`, so `buf` holds a
+        // `UOffsetT` length there.
+        let len = unsafe { read_scalar_at::<UOffsetT>(buf, loc) } as usize;
         &buf[loc + SIZE_UOFFSET..loc + SIZE_UOFFSET + len]
     }
 }
@@ -186,7 +198,10 @@ impl<'a> Follow<'a> for &'a [u8] {
 impl<'a, T: Follow<'a> + 'a> Follow<'a> for Vector<'a, T> {
     type Inner = Vector<'a, T>;
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        Vector::new(buf, loc)
+        // SAFETY:
+        // A valid vector at `loc` is exactly what the caller guarantees, which is
+        // the contract of `Vector::new`.
+        unsafe { Vector::new(buf, loc) }
     }
 }
 
