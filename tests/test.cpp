@@ -64,6 +64,8 @@
 #include "flexbuffers_test.h"
 #include "is_quiet_nan.h"
 #include "monster_test_bfbs_generated.h"  // Generated using --bfbs-comments --bfbs-builtins --cpp --bfbs-gen-embed
+#include "idl_gen_fbs.h"
+#include "map_set_test_generated.h"
 #include "native_type_test_generated.h"
 #include "test_assert.h"
 #include "util_test.h"
@@ -1745,6 +1747,207 @@ void CrossNamespacePackTest() {
   TEST_EQ(unpacked->c2[0]->value, 99);
 }
 
+void MapSetRoundTripTest() {
+  // Test C++ Object API round-trip for map and set fields.
+  using namespace MapSetTest;
+
+  // Build a ConfigT with map and set data.
+  ConfigT config;
+  config.settings["alpha"] = 1;
+  config.settings["beta"] = 2;
+  config.settings["gamma"] = 3;
+
+  config.id_to_name[10] = "ten";
+  config.id_to_name[20] = "twenty";
+
+  config.tags.insert("tag_a");
+  config.tags.insert("tag_b");
+  config.tags.insert("tag_c");
+
+  config.active_ids.insert(100);
+  config.active_ids.insert(200);
+
+  // Pack to binary.
+  flatbuffers::FlatBufferBuilder fbb;
+  auto offset = Config::Pack(fbb, &config);
+  fbb.Finish(offset);
+
+  // Verify the buffer.
+  auto buf = fbb.GetBufferPointer();
+  auto verifier = flatbuffers::Verifier(buf, fbb.GetSize());
+  TEST_EQ(VerifyConfigBuffer(verifier), true);
+
+  // Unpack from binary.
+  auto root = GetConfig(buf);
+  auto unpacked = root->UnPack();
+  TEST_NOTNULL(unpacked);
+
+  // Verify map entries round-tripped correctly.
+  TEST_EQ(unpacked->settings.size(), 3u);
+  TEST_EQ(unpacked->settings["alpha"], 1);
+  TEST_EQ(unpacked->settings["beta"], 2);
+  TEST_EQ(unpacked->settings["gamma"], 3);
+
+  TEST_EQ(unpacked->id_to_name.size(), 2u);
+  TEST_EQ_STR(unpacked->id_to_name[10].c_str(), "ten");
+  TEST_EQ_STR(unpacked->id_to_name[20].c_str(), "twenty");
+
+  // Verify set entries round-tripped correctly.
+  TEST_EQ(unpacked->tags.size(), 3u);
+  TEST_EQ(unpacked->tags.count("tag_a"), 1u);
+  TEST_EQ(unpacked->tags.count("tag_b"), 1u);
+  TEST_EQ(unpacked->tags.count("tag_c"), 1u);
+
+  TEST_EQ(unpacked->active_ids.size(), 2u);
+  TEST_EQ(unpacked->active_ids.count(100), 1u);
+  TEST_EQ(unpacked->active_ids.count(200), 1u);
+
+  // Verify binary has entries sorted by key (FlatBuffers binary search compat).
+  auto settings_vec = root->settings();
+  TEST_NOTNULL(settings_vec);
+  TEST_EQ(settings_vec->size(), 3u);
+  // Keys must be in sorted order: "alpha" < "beta" < "gamma".
+  TEST_EQ_STR(settings_vec->Get(0)->key()->c_str(), "alpha");
+  TEST_EQ_STR(settings_vec->Get(1)->key()->c_str(), "beta");
+  TEST_EQ_STR(settings_vec->Get(2)->key()->c_str(), "gamma");
+
+  auto ids_vec = root->id_to_name();
+  TEST_NOTNULL(ids_vec);
+  TEST_EQ(ids_vec->size(), 2u);
+  TEST_EQ(ids_vec->Get(0)->key(), 10u);
+  TEST_EQ(ids_vec->Get(1)->key(), 20u);
+
+  // Write the binary for cross-language round-trip testing.
+  // Go and TypeScript tests read this file to verify interop.
+  flatbuffers::SaveFile("tests/map_set_test_data.bin",
+                        reinterpret_cast<const char*>(buf),
+                        fbb.GetSize(), /*binary=*/true);
+
+  // Verify empty map round-trip.
+  ConfigT empty;
+  flatbuffers::FlatBufferBuilder fbb2;
+  auto offset2 = Config::Pack(fbb2, &empty);
+  fbb2.Finish(offset2);
+  auto root2 = GetConfig(fbb2.GetBufferPointer());
+  auto unpacked2 = root2->UnPack();
+  TEST_NOTNULL(unpacked2);
+  TEST_EQ(unpacked2->settings.size(), 0u);
+  TEST_EQ(unpacked2->tags.size(), 0u);
+
+  // Duplicate key handling: last-writer-wins (unordered_map semantics).
+  {
+    ConfigT dup;
+    dup.settings["x"] = 1;
+    dup.settings["x"] = 2;  // overwrite
+    flatbuffers::FlatBufferBuilder fbb3;
+    auto off3 = Config::Pack(fbb3, &dup);
+    fbb3.Finish(off3);
+    auto r3 = GetConfig(fbb3.GetBufferPointer());
+    auto u3 = r3->UnPack();
+    TEST_NOTNULL(u3);
+    TEST_EQ(u3->settings.size(), 1u);
+    TEST_EQ(u3->settings["x"], 2);
+  }
+}
+
+void MapSetJsonRoundTripTest() {
+  using namespace MapSetTest;
+
+  // Build a binary with map data using the C++ Object API.
+  ConfigT config;
+  config.settings["gamma"] = 3;
+  config.settings["alpha"] = 1;
+  config.settings["beta"] = 2;
+  config.tags.insert("world");
+  config.tags.insert("hello");
+
+  flatbuffers::FlatBufferBuilder fbb;
+  fbb.Finish(Config::Pack(fbb, &config));
+
+  // Convert binary to JSON text.
+  flatbuffers::Parser parser;
+  const char* schema =
+      "namespace MapSetTest;"
+      "enum Color : byte { Red = 0, Green, Blue }"
+      "table Stats { hp:int; strength:float; }"
+      "table Config {"
+      "  settings:map<string, int>;"
+      "  id_to_name:map<uint, string>;"
+      "  color_scores:map<Color, float>;"
+      "  profiles:map<string, Stats>;"
+      "  tags:set<string>;"
+      "  active_ids:set<int>;"
+      "}"
+      "root_type Config;";
+  TEST_EQ(parser.Parse(schema), true);
+
+  std::string json_text;
+  auto err = flatbuffers::GenText(parser, fbb.GetBufferPointer(), &json_text);
+  TEST_NULL(err);
+
+  // The JSON output should use map object syntax and set array syntax.
+  TEST_ASSERT(json_text.find("alpha") != std::string::npos);
+  TEST_ASSERT(json_text.find("beta") != std::string::npos);
+  TEST_ASSERT(json_text.find("gamma") != std::string::npos);
+  // Map values should be correct integers (not corrupted).
+  TEST_ASSERT(json_text.find(": 1") != std::string::npos);
+  TEST_ASSERT(json_text.find(": 2") != std::string::npos);
+  TEST_ASSERT(json_text.find(": 3") != std::string::npos);
+  // Set values should appear as bare strings in an array.
+  TEST_ASSERT(json_text.find("\"hello\"") != std::string::npos);
+  TEST_ASSERT(json_text.find("\"world\"") != std::string::npos);
+
+  // Parse the generated JSON (map object syntax) back into binary.
+  flatbuffers::Parser parser2;
+  TEST_EQ(parser2.Parse(schema), true);
+  if (!parser2.Parse(json_text.c_str())) {
+    TEST_OUTPUT_LINE("JSON parse error: %s", parser2.error_.c_str());
+    TEST_OUTPUT_LINE("JSON text:\n%s", json_text.c_str());
+  }
+  TEST_EQ(parser2.Parse(json_text.c_str()), true);
+
+  // Unpack and verify all entries survived the full round-trip.
+  auto root = GetConfig(parser2.builder_.GetBufferPointer());
+  auto unpacked = root->UnPack();
+  TEST_NOTNULL(unpacked);
+  TEST_EQ(unpacked->settings.size(), 3u);
+  TEST_EQ(unpacked->settings["alpha"], 1);
+  TEST_EQ(unpacked->settings["beta"], 2);
+  TEST_EQ(unpacked->settings["gamma"], 3);
+  TEST_EQ(unpacked->tags.size(), 2u);
+  TEST_EQ(unpacked->tags.count("hello"), 1u);
+  TEST_EQ(unpacked->tags.count("world"), 1u);
+}
+
+void FbsReEmitTest() {
+  using flatbuffers::Parser;
+  // Parse a schema with map/set syntax, then re-emit it as FBS.
+  // The re-emitted schema should contain map<> / set<> syntax,
+  // NOT the lowered vector form.
+  Parser parser;
+  TEST_EQ(parser.Parse(
+      "namespace ReEmitTest;"
+      "table T { m:map<string, int>; s:set<string>; }"
+      "root_type T;"), true);
+
+  // Generate FBS text from the parsed schema using the FBS code generator.
+  auto fbs_gen = flatbuffers::NewFBSCodeGenerator(/*no_log=*/true);
+  std::string fbs_text;
+  auto status = fbs_gen->GenerateCodeString(parser, "ReEmitTest", fbs_text);
+  TEST_EQ(status, flatbuffers::CodeGenerator::Status::OK);
+
+  // The FBS should contain map<> and set<> syntax.
+  TEST_ASSERT(fbs_text.find("map<string, int>") != std::string::npos);
+  TEST_ASSERT(fbs_text.find("set<string>") != std::string::npos);
+  // It should NOT contain the lowered entry table names.
+  TEST_EQ(fbs_text.find("__Map_") == std::string::npos, true);
+  TEST_EQ(fbs_text.find("__Set_") == std::string::npos, true);
+
+  // Verify the re-emitted FBS can be parsed back.
+  Parser parser2;
+  TEST_EQ(parser2.Parse(fbs_text.c_str()), true);
+}
+
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
@@ -1844,6 +2047,10 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedLengthArrayConstructorTest();
   FixedLengthArrayOperatorEqualTest();
   FieldIdentifierTest();
+  MapSetSyntaxTest();
+  MapSetRoundTripTest();
+  MapSetJsonRoundTripTest();
+  FbsReEmitTest();
   StringVectorDefaultsTest();
   FlexBuffersFloatingPointTest();
   FlatbuffersIteratorsTest();

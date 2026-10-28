@@ -852,6 +852,10 @@ CheckedError Parser::ParseType(Type& type) {
     } else if (IsIdent("string")) {
       type.base_type = BASE_TYPE_STRING;
       NEXT();
+    } else if (IsIdent("map")) {
+      ECHECK(ParseMapType(type, /*is_set=*/false));
+    } else if (IsIdent("set")) {
+      ECHECK(ParseMapType(type, /*is_set=*/true));
     } else {
       ECHECK(ParseTypeIdent(type));
     }
@@ -889,6 +893,89 @@ CheckedError Parser::ParseType(Type& type) {
   } else {
     return Error("illegal type syntax");
   }
+  return NoError();
+}
+
+CheckedError Parser::ParseMapType(Type &type, bool is_set) {
+  NEXT();  // consume "map" or "set" identifier
+  EXPECT('<');
+
+  // Parse key type
+  Type key_type;
+  ECHECK(ParseType(key_type));
+
+  // Reject float/double keys (not stably orderable)
+  if (IsFloat(key_type.base_type)) {
+    return Error("floating-point types cannot be map/set keys");
+  }
+  // Reject non-scalar, non-string key types
+  if (!IsScalar(key_type.base_type) && !IsString(key_type)) {
+    return Error("map/set key type must be a scalar, enum, or string");
+  }
+
+  Type value_type;
+  if (!is_set) {
+    EXPECT(',');
+    ECHECK(ParseType(value_type));
+    // Reject nested vectors/arrays as values
+    if (IsSeries(value_type)) {
+      return Error("map value type cannot be a vector or array");
+    }
+    // Reject union values (require companion UTYPE field)
+    if (value_type.base_type == BASE_TYPE_UNION) {
+      return Error("union types cannot be map values");
+    }
+  }
+
+  EXPECT('>');
+
+  // Build entry table name from type names
+  auto type_name_for = [](const Type &t) -> std::string {
+    if (IsString(t)) return "string";
+    if (t.enum_def) return t.enum_def->name;
+    if (t.struct_def) return t.struct_def->name;
+    return TypeName(t.base_type);
+  };
+
+  std::string entry_name;
+  if (is_set) {
+    entry_name = "__Set_" + type_name_for(key_type) + "_Entry";
+  } else {
+    entry_name = "__Map_" + type_name_for(key_type) + "_" +
+                 type_name_for(value_type) + "_Entry";
+  }
+
+  // Deduplication guard — reuse existing entry table if already created.
+  // Entry structs are stored under their fully-qualified name; look up both.
+  std::string qualified_entry_name =
+      current_namespace_->GetFullyQualifiedName(entry_name);
+  StructDef *entry_struct = LookupStruct(qualified_entry_name);
+  if (!entry_struct) entry_struct = LookupStruct(entry_name);
+  if (!entry_struct || entry_struct->predecl) {
+    ECHECK(StartStruct(entry_name, &entry_struct));
+    entry_struct->has_key = true;
+    entry_struct->sortbysize = false;
+
+    // Add key field (marked as the sort key)
+    FieldDef *key_field;
+    ECHECK(AddField(*entry_struct, "key", key_type, &key_field));
+    key_field->key = true;
+    if (IsString(key_type)) {
+      key_field->presence = FieldDef::kRequired;
+    }
+
+    // Add value field for maps only
+    if (!is_set) {
+      FieldDef *value_field;
+      ECHECK(AddField(*entry_struct, "value", value_type, &value_field));
+      (void)value_field;
+    }
+  }
+
+  type.base_type = BASE_TYPE_VECTOR;
+  type.element = BASE_TYPE_STRUCT;
+  type.struct_def = entry_struct;
+
   return NoError();
 }
 
@@ -1042,6 +1129,24 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
 
   field->doc_comment = dc;
   ECHECK(ParseMetaData(&field->attributes));
+  // Inject map_entry / set_entry attribute for fields parsed via ParseMapType.
+  // These are checked by codegens to emit HashMap/Map/map instead of Vec/[].
+  if (IsVector(type) && type.struct_def) {
+    const auto &sname = type.struct_def->name;
+    if (sname.size() > 6) {
+      if (sname.compare(0, 6, "__Map_") == 0) {
+        if (!field->attributes.Lookup("map_entry")) {
+          auto *val = new Value();
+          field->attributes.Add("map_entry", val);
+        }
+      } else if (sname.compare(0, 6, "__Set_") == 0) {
+        if (!field->attributes.Lookup("set_entry")) {
+          auto *val = new Value();
+          field->attributes.Add("set_entry", val);
+        }
+      }
+    }
+  }
   field->deprecated = field->attributes.Lookup("deprecated") != nullptr;
   auto hash_name = field->attributes.Lookup("hash");
   if (hash_name) {
@@ -1756,8 +1861,279 @@ CheckedError Parser::ParseAlignAttribute(const std::string& align_constant,
                NumToString(FLATBUFFERS_MAX_ALIGNMENT));
 }
 
+// Parse a JSON map object {"key": val, ...} into a vector of entry tables.
+// Each JSON property becomes an entry table with key and value fields.
+// After parsing, the vector is sorted by key (same as normal keyed vectors).
+CheckedError Parser::ParseMapObject(const Type& vector_type, uoffset_t* ovalue,
+                                    FieldDef* field) {
+  (void)field;
+  Type entry_type = vector_type.VectorType();
+  auto& entry_def = *entry_type.struct_def;
+
+  // Find key and value fields in the entry struct.
+  FieldDef* key_field = nullptr;
+  FieldDef* value_field = nullptr;
+  for (auto it = entry_def.fields.vec.begin();
+       it != entry_def.fields.vec.end(); ++it) {
+    if ((*it)->key) key_field = *it;
+    if ((*it)->name == "value") value_field = *it;
+  }
+  FLATBUFFERS_ASSERT(key_field);
+
+  EXPECT('{');
+  size_t count = 0;
+  for (;;) {
+    if ((!opts.strict_json || !count) && Is('}')) break;
+
+    // Parse the JSON property name — this becomes the entry key.
+    std::string key_str = attribute_;
+    if (Is(kTokenStringConstant)) {
+      NEXT();
+    } else {
+      EXPECT(opts.strict_json ? kTokenStringConstant : kTokenIdentifier);
+    }
+    if (!opts.protobuf_ascii_alike) EXPECT(':');
+
+    // Build key value.
+    Offset<void> key_offset{0};
+    std::string key_constant;
+    if (IsString(key_field->value.type)) {
+      key_offset = Offset<void>(builder_.CreateString(key_str).o);
+      key_constant = NumToString(key_offset.o);
+    } else {
+      key_constant = key_str;
+    }
+
+    // Parse the map value.
+    Offset<void> val_offset{0};
+    std::string val_constant;
+    if (value_field) {
+      Value vv;
+      vv.type = value_field->value.type;
+      ECHECK(ParseAnyValue(vv, value_field, 0, &entry_def, 0, false));
+      val_constant = vv.constant;
+    }
+
+    // Build the entry table.
+    auto tbl_start = builder_.StartTable();
+
+    // Add key field.
+    if (IsString(key_field->value.type)) {
+      uoffset_t koff;
+      ECHECK(atot(key_constant.c_str(), *this, &koff));
+      builder_.AddOffset(key_field->value.offset, Offset<void>(koff));
+    } else {
+      // Scalar key — add as element.
+      int64_t ival = 0;
+      StringToNumber(key_constant.c_str(), &ival);
+      switch (SizeOf(key_field->value.type.base_type)) {
+        case 1: builder_.AddElement<int8_t>(key_field->value.offset,
+                    static_cast<int8_t>(ival), 0); break;
+        case 2: builder_.AddElement<int16_t>(key_field->value.offset,
+                    static_cast<int16_t>(ival), 0); break;
+        case 4: builder_.AddElement<int32_t>(key_field->value.offset,
+                    static_cast<int32_t>(ival), 0); break;
+        case 8: builder_.AddElement<int64_t>(key_field->value.offset,
+                    ival, 0); break;
+      }
+    }
+
+    // Add value field.
+    if (value_field) {
+      if (IsScalar(value_field->value.type.base_type)) {
+        int64_t vval = 0;
+        StringToNumber(val_constant.c_str(), &vval);
+        switch (SizeOf(value_field->value.type.base_type)) {
+          case 1: builder_.AddElement<int8_t>(value_field->value.offset,
+                      static_cast<int8_t>(vval), 0); break;
+          case 2: builder_.AddElement<int16_t>(value_field->value.offset,
+                      static_cast<int16_t>(vval), 0); break;
+          case 4: builder_.AddElement<int32_t>(value_field->value.offset,
+                      static_cast<int32_t>(vval), 0); break;
+          case 8: builder_.AddElement<int64_t>(value_field->value.offset,
+                      vval, 0); break;
+        }
+      } else {
+        uoffset_t voff;
+        ECHECK(atot(val_constant.c_str(), *this, &voff));
+        builder_.AddOffset(value_field->value.offset, Offset<void>(voff));
+      }
+    }
+
+    auto entry_offset = builder_.EndTable(tbl_start);
+
+    Value entry_val;
+    entry_val.type = entry_type;
+    entry_val.constant = NumToString(entry_offset);
+    field_stack_.push_back(std::make_pair(entry_val, nullptr));
+    count++;
+
+    if (Is('}')) break;
+    ECHECK(ParseComma());
+  }
+  NEXT();
+
+  // Build the vector from the entry offsets.
+  const size_t alignment = InlineAlignment(entry_type);
+  const size_t elemsize = InlineAlignment(entry_type);
+  builder_.StartVector(count, elemsize, alignment);
+  for (size_t i = 0; i < count; i++) {
+    auto& val = field_stack_.back().first;
+    Offset<void> off;
+    ECHECK(atot(val.constant.c_str(), *this, &off));
+    builder_.PushElement(off);
+    field_stack_.pop_back();
+  }
+  builder_.ClearOffsets();
+  *ovalue = builder_.EndVector(count);
+
+  // Sort by key (same infrastructure as normal keyed vectors in ParseVector).
+  if (entry_type.struct_def->has_key) {
+    auto v = reinterpret_cast<Vector<Offset<Table>>*>(
+        builder_.GetCurrentBufferPointer());
+    if (IsString(key_field->value.type)) {
+      SimpleQsort<Offset<Table>>(
+          v->data(), v->data() + v->size(), 1,
+          [key_field](const Offset<Table>* _a,
+                      const Offset<Table>* _b) -> bool {
+            return CompareTablesByStringKey(_a, _b, *key_field);
+          },
+          SwapSerializedTables);
+    } else {
+      SimpleQsort<Offset<Table>>(
+          v->data(), v->data() + v->size(), 1,
+          [key_field](const Offset<Table>* _a,
+                      const Offset<Table>* _b) -> bool {
+            return CompareTablesByScalarKey(_a, _b, *key_field);
+          },
+          SwapSerializedTables);
+    }
+  }
+
+  return NoError();
+}
+
+// Parse a JSON set array [val1, val2, ...] into a vector of entry tables.
+// Each bare value becomes the key field of an entry table.
+CheckedError Parser::ParseSetArray(const Type& vector_type, uoffset_t* ovalue,
+                                   FieldDef* field) {
+  (void)field;
+  Type entry_type = vector_type.VectorType();
+  auto& entry_def = *entry_type.struct_def;
+
+  FieldDef* key_field = nullptr;
+  for (auto it = entry_def.fields.vec.begin();
+       it != entry_def.fields.vec.end(); ++it) {
+    if ((*it)->key) { key_field = *it; break; }
+  }
+  FLATBUFFERS_ASSERT(key_field);
+
+  EXPECT('[');
+  size_t count = 0;
+  for (;;) {
+    if ((!opts.strict_json || !count) && Is(']')) break;
+
+    // Parse the bare value — this becomes the entry key.
+    Offset<void> key_offset{0};
+    std::string key_constant;
+    if (IsString(key_field->value.type)) {
+      auto str = attribute_;
+      EXPECT(kTokenStringConstant);
+      key_offset = Offset<void>(builder_.CreateString(str).o);
+      key_constant = NumToString(key_offset.o);
+    } else {
+      // Scalar value.
+      Value kv;
+      kv.type = key_field->value.type;
+      ECHECK(ParseSingleValue(nullptr, kv, false));
+      key_constant = kv.constant;
+    }
+
+    // Build the entry table with just the key field.
+    auto tbl_start = builder_.StartTable();
+    if (IsString(key_field->value.type)) {
+      uoffset_t koff;
+      ECHECK(atot(key_constant.c_str(), *this, &koff));
+      builder_.AddOffset(key_field->value.offset, Offset<void>(koff));
+    } else {
+      int64_t ival = 0;
+      StringToNumber(key_constant.c_str(), &ival);
+      switch (SizeOf(key_field->value.type.base_type)) {
+        case 1: builder_.AddElement<int8_t>(key_field->value.offset,
+                    static_cast<int8_t>(ival), 0); break;
+        case 2: builder_.AddElement<int16_t>(key_field->value.offset,
+                    static_cast<int16_t>(ival), 0); break;
+        case 4: builder_.AddElement<int32_t>(key_field->value.offset,
+                    static_cast<int32_t>(ival), 0); break;
+        case 8: builder_.AddElement<int64_t>(key_field->value.offset,
+                    ival, 0); break;
+      }
+    }
+    auto entry_offset = builder_.EndTable(tbl_start);
+
+    Value entry_val;
+    entry_val.type = entry_type;
+    entry_val.constant = NumToString(entry_offset);
+    field_stack_.push_back(std::make_pair(entry_val, nullptr));
+    count++;
+
+    if (Is(']')) break;
+    ECHECK(ParseComma());
+  }
+  NEXT();
+
+  // Build the vector from entry offsets.
+  const size_t alignment = InlineAlignment(entry_type);
+  const size_t elemsize = InlineAlignment(entry_type);
+  builder_.StartVector(count, elemsize, alignment);
+  for (size_t i = 0; i < count; i++) {
+    auto& val = field_stack_.back().first;
+    Offset<void> off;
+    ECHECK(atot(val.constant.c_str(), *this, &off));
+    builder_.PushElement(off);
+    field_stack_.pop_back();
+  }
+  builder_.ClearOffsets();
+  *ovalue = builder_.EndVector(count);
+
+  // Sort by key.
+  if (entry_type.struct_def->has_key) {
+    auto v = reinterpret_cast<Vector<Offset<Table>>*>(
+        builder_.GetCurrentBufferPointer());
+    if (IsString(key_field->value.type)) {
+      SimpleQsort<Offset<Table>>(
+          v->data(), v->data() + v->size(), 1,
+          [key_field](const Offset<Table>* _a,
+                      const Offset<Table>* _b) -> bool {
+            return CompareTablesByStringKey(_a, _b, *key_field);
+          },
+          SwapSerializedTables);
+    } else {
+      SimpleQsort<Offset<Table>>(
+          v->data(), v->data() + v->size(), 1,
+          [key_field](const Offset<Table>* _a,
+                      const Offset<Table>* _b) -> bool {
+            return CompareTablesByScalarKey(_a, _b, *key_field);
+          },
+          SwapSerializedTables);
+    }
+  }
+
+  return NoError();
+}
+
 CheckedError Parser::ParseVector(const Type& vector_type, uoffset_t* ovalue,
                                  FieldDef* field, size_t fieldn) {
+  // Map fields accept JSON object syntax: {"key1": val1, "key2": val2}
+  if (field && field->attributes.Lookup("map_entry") && Is('{')) {
+    return ParseMapObject(vector_type, ovalue, field);
+  }
+
+  // Set fields accept bare value arrays: ["a", "b", "c"]
+  if (field && field->attributes.Lookup("set_entry") && Is('[')) {
+    return ParseSetArray(vector_type, ovalue, field);
+  }
+
   Type type = vector_type.VectorType();
   size_t count = 0;
   auto err = ParseVectorDelimiters(count, [&](size_t&) -> CheckedError {
@@ -2487,6 +2863,12 @@ struct EnumValBuilder {
     return AcceptEnumerator(temp->name);
   }
 
+  // Discard the current enumerator without adding it to the enum.
+  void DiscardEnumerator() {
+    delete temp;
+    temp = nullptr;
+  }
+
   FLATBUFFERS_CHECKED_ERROR AssignEnumeratorValue(const std::string& value) {
     user_value = true;
     auto fit = false;
@@ -2623,6 +3005,7 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef** dest,
       auto full_name = ev.name;
       ev.doc_comment = doc_comment_;
       EXPECT(kTokenIdentifier);
+      bool flattened_union = false;
       if (is_union) {
         ECHECK(ParseNamespacing(&full_name, &ev.name));
         if (opts.union_value_namespacing) {
@@ -2638,32 +3021,62 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef** dest,
               ev.union_type.base_type != BASE_TYPE_STRING)
             return Error("union value type may only be table/struct/string");
         } else {
-          ev.union_type = Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
+          // Check if the name refers to another union — if so, flatten its
+          // members into this union (union-of-unions support).
+          auto inner_union = LookupEnum(full_name);
+          if (inner_union && inner_union->is_union) {
+            // Discard the placeholder enumerator for the union name itself.
+            evb.DiscardEnumerator();
+            // Flatten: copy each non-NONE member from the inner union.
+            for (auto inner_it = inner_union->Vals().begin();
+                 inner_it != inner_union->Vals().end(); ++inner_it) {
+              auto& inner_ev = **inner_it;
+              if (inner_ev.IsZero()) continue;  // skip NONE
+              auto* new_ev = evb.CreateEnumerator(inner_ev.name);
+              new_ev->union_type = inner_ev.union_type;
+              new_ev->doc_comment = inner_ev.doc_comment;
+              if (!enum_def->uses_multiple_type_instances) {
+                auto ins = union_types.insert(std::make_pair(
+                    new_ev->union_type.base_type,
+                    new_ev->union_type.struct_def));
+                enum_def->uses_multiple_type_instances = (false == ins.second);
+              }
+              ECHECK(evb.AcceptEnumerator());
+            }
+            flattened_union = true;
+          } else {
+            ev.union_type =
+                Type(BASE_TYPE_STRUCT, LookupCreateStruct(full_name));
+          }
         }
-        if (!enum_def->uses_multiple_type_instances) {
-          auto ins = union_types.insert(std::make_pair(
-              ev.union_type.base_type, ev.union_type.struct_def));
-          enum_def->uses_multiple_type_instances = (false == ins.second);
+        if (!flattened_union) {
+          if (!enum_def->uses_multiple_type_instances) {
+            auto ins = union_types.insert(std::make_pair(
+                ev.union_type.base_type, ev.union_type.struct_def));
+            enum_def->uses_multiple_type_instances = (false == ins.second);
+          }
         }
       }
 
-      if (Is('=')) {
-        NEXT();
-        ECHECK(evb.AssignEnumeratorValue(attribute_));
-        EXPECT(kTokenIntegerConstant);
-      }
+      if (!flattened_union) {
+        if (Is('=')) {
+          NEXT();
+          ECHECK(evb.AssignEnumeratorValue(attribute_));
+          EXPECT(kTokenIntegerConstant);
+        }
 
-      if (opts.proto_mode && Is('[')) {
-        NEXT();
-        // ignore attributes on enums.
-        while (token_ != ']') NEXT();
-        NEXT();
-      } else {
-        // parse attributes in fbs schema
-        ECHECK(ParseMetaData(&ev.attributes));
-      }
+        if (opts.proto_mode && Is('[')) {
+          NEXT();
+          // ignore attributes on enums.
+          while (token_ != ']') NEXT();
+          NEXT();
+        } else {
+          // parse attributes in fbs schema
+          ECHECK(ParseMetaData(&ev.attributes));
+        }
 
-      ECHECK(evb.AcceptEnumerator());
+        ECHECK(evb.AcceptEnumerator());
+      }
     }
     if (!Is(opts.proto_mode ? ';' : ',')) break;
     NEXT();

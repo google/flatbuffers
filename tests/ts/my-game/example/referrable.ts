@@ -2,96 +2,133 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
-
-
+import * as flatbuffers from "flatbuffers";
 
 export class Referrable implements flatbuffers.IUnpackableObject<ReferrableT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Referrable {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-static getRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrable {
-  return (obj || new Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getSizePrefixedRootAsReferrable(bb:flatbuffers.ByteBuffer, obj?:Referrable):Referrable {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Referrable()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-id():bigint {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
-}
-
-mutate_id(value:bigint):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
+  __init(i: number, bb: flatbuffers.ByteBuffer): Referrable {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
   }
 
-  this.bb!.writeUint64(this.bb_pos + offset, value);
-  return true;
-}
+  static getRootAsReferrable(
+    bb: flatbuffers.ByteBuffer,
+    obj?: Referrable,
+  ): Referrable {
+    return (obj || new Referrable()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static getFullyQualifiedName(): "MyGame.Example.Referrable" {
-  return 'MyGame.Example.Referrable';
-}
+  static getSizePrefixedRootAsReferrable(
+    bb: flatbuffers.ByteBuffer,
+    obj?: Referrable,
+  ): Referrable {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new Referrable()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static startReferrable(builder:flatbuffers.Builder) {
-  builder.startObject(1);
-}
+  id(): bigint {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : 0n;
+  }
 
-static addId(builder:flatbuffers.Builder, id:bigint) {
-  builder.addFieldInt64(0, id, BigInt('0'));
-}
+  mutate_id(value: bigint): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
 
-static endReferrable(builder:flatbuffers.Builder):flatbuffers.Offset {
-  const offset = builder.endObject();
-  return offset;
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static createReferrable(builder:flatbuffers.Builder, id:bigint):flatbuffers.Offset {
-  Referrable.startReferrable(builder);
-  Referrable.addId(builder, id);
-  return Referrable.endReferrable(builder);
-}
+    this.bb!.writeUint64(this.bb_pos + offset, value);
+    return true;
+  }
 
-serialize():Uint8Array {
-  return this.bb!.bytes();
-}
+  static getFullyQualifiedName(): "MyGame.Example.Referrable" {
+    return "MyGame.Example.Referrable";
+  }
 
-static deserialize(buffer: Uint8Array):Referrable {
-  return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer))
-}
+  static startReferrable(builder: flatbuffers.Builder) {
+    builder.startObject(1);
+  }
 
-unpack(): ReferrableT {
-  return new ReferrableT(
-    this.id()
-  );
-}
+  static addId(builder: flatbuffers.Builder, id: bigint) {
+    builder.addFieldInt64(0, id, 0n);
+  }
 
+  static endReferrable(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const offset = builder.endObject();
+    return offset;
+  }
 
-unpackTo(_o: ReferrableT): void {
-  _o.id = this.id();
-}
+  static createReferrable(
+    builder: flatbuffers.Builder,
+    id: bigint,
+  ): flatbuffers.Offset {
+    Referrable.startReferrable(builder);
+    Referrable.addId(builder, id);
+    return Referrable.endReferrable(builder);
+  }
+
+  serialize(): Uint8Array {
+    return this.bb!.bytes();
+  }
+
+  static deserialize(buffer: Uint8Array): Referrable {
+    return Referrable.getRootAsReferrable(new flatbuffers.ByteBuffer(buffer));
+  }
+
+  unpack(): ReferrableT {
+    return new ReferrableT(this.id());
+  }
+
+  unpackTo(_o: ReferrableT): void {
+    _o.id = this.id();
+  }
+
+  unpackFields(...fields: string[]): ReferrableT {
+    const t = new ReferrableT();
+    const fieldSet = new Set(fields);
+    if (fieldSet.has("id")) {
+      t.id = this.id();
+    }
+    return t;
+  }
 }
 
 export class ReferrableT implements flatbuffers.IGeneratedObject {
-constructor(
-  public id: bigint = BigInt('0')
-){}
+  constructor(public id: bigint = 0n) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return Referrable.createReferrable(builder, this.id);
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Referrable.createReferrable(builder,
-    this.id
-  );
+  clone(): ReferrableT {
+    const obj = new ReferrableT();
+    obj.id = this.id;
+    return obj;
+  }
+
+  equals(other: ReferrableT): boolean {
+    if (this.id !== other.id) return false;
+    return true;
+  }
 }
+
+export function verifyReferrable(
+  verifier: flatbuffers.Verifier,
+  tablePos: number,
+): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 8);
+  } finally {
+    verifier.popDepth();
+  }
 }

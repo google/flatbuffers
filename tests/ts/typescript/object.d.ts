@@ -1,11 +1,9 @@
-import * as flatbuffers from 'flatbuffers';
-import {Abc} from '../foobar/abc.js';
-import {class_ as foobar_class_} from '../foobar/class.js';
-import {Schema, SchemaT} from '../reflection/schema.js';
-import {class_} from '../typescript/class.js';
-export declare class Object_
-  implements flatbuffers.IUnpackableObject<Object_T>
-{
+import * as flatbuffers from "flatbuffers";
+import { Abc } from "../foobar/abc.js";
+import { class_ as foobar_class_ } from "../foobar/class.js";
+import { Schema, SchemaT } from "../reflection/schema.js";
+import { class_ } from "../typescript/class.js";
+export declare class Object_ implements flatbuffers.IUnpackableObject<Object_T> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Object_;

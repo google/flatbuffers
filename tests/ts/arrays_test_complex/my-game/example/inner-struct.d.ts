@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class InnerStruct
-  implements flatbuffers.IUnpackableObject<InnerStructT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class InnerStruct implements flatbuffers.IUnpackableObject<InnerStructT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): InnerStruct;

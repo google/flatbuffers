@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {TableB, TableBT} from './my-game/other-name-space/table-b.js';
+import { TableB, TableBT } from "./my-game/other-name-space/table-b.js";
 
 export class TableA implements flatbuffers.IUnpackableObject<TableAT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -44,7 +44,7 @@ export class TableA implements flatbuffers.IUnpackableObject<TableAT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'TableA';
+    return "TableA";
   }
 
   static startTableA(builder: flatbuffers.Builder) {
