@@ -710,7 +710,7 @@ inline bool VerifyEquipment(::flatbuffers::VerifierTemplate<B> &verifier, const 
     }
     case Equipment_Weapon: {
       auto ptr = reinterpret_cast<const MyGame::Sample::Weapon *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }

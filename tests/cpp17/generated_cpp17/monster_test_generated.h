@@ -3459,15 +3459,15 @@ inline bool VerifyAny(::flatbuffers::VerifierTemplate<B> &verifier, const void *
     }
     case Any::Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case Any::TestSimpleTableWithEnum: {
       auto ptr = reinterpret_cast<const MyGame::Example::TestSimpleTableWithEnum *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case Any::MyGame_Example2_Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example2::Monster *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }
@@ -3574,15 +3574,15 @@ inline bool VerifyAnyUniqueAliases(::flatbuffers::VerifierTemplate<B> &verifier,
     }
     case AnyUniqueAliases::M: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case AnyUniqueAliases::TS: {
       auto ptr = reinterpret_cast<const MyGame::Example::TestSimpleTableWithEnum *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case AnyUniqueAliases::M2: {
       auto ptr = reinterpret_cast<const MyGame::Example2::Monster *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }
@@ -3689,15 +3689,15 @@ inline bool VerifyAnyAmbiguousAliases(::flatbuffers::VerifierTemplate<B> &verifi
     }
     case AnyAmbiguousAliases::M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case AnyAmbiguousAliases::M2: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case AnyAmbiguousAliases::M3: {
       auto ptr = reinterpret_cast<const MyGame::Example::Monster *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }

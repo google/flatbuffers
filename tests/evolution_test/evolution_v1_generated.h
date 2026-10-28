@@ -472,11 +472,11 @@ inline bool VerifyUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void
     }
     case Union::TableA: {
       auto ptr = reinterpret_cast<const Evolution::V1::TableA *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case Union::TableB: {
       auto ptr = reinterpret_cast<const Evolution::V1::TableB *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }

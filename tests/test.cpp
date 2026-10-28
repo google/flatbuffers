@@ -70,6 +70,7 @@
 #include "vector_table_naked_ptr_test.h"
 
 void FlatBufferBuilderTest();
+void UnionTypeWithoutValueRejectedTest();
 
 namespace flatbuffers {
 namespace tests {
@@ -1828,6 +1829,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   EndianSwapTest();
   CreateSharedStringTest();
   FlexBuffersTest();
+  UnionTypeWithoutValueRejectedTest();
   FlexBuffersReuseBugTest();
   FlexBuffersDeprecatedTest();
   UninitializedVectorTest();
@@ -1870,6 +1872,41 @@ int FlatBufferTests(const std::string& tests_data_path) {
 }  // namespace tests
 }  // namespace flatbuffers
 
+
+// A union whose type is set but whose value is absent must not verify. The Object API
+// then dereferences a null pointer when the buffer is unpacked and packed again.
+// A union with a value present, and a union with type NONE, must still verify.
+void UnionTypeWithoutValueRejectedTest() {
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    auto name_off = fbb.CreateString("Orc");
+    MyGame::Example::MonsterBuilder mb(fbb);
+    mb.add_name(name_off);
+    mb.add_test_type(MyGame::Example::Any_Monster);
+    fbb.Finish(mb.Finish(), MyGame::Example::MonsterIdentifier());
+    flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), false);
+  }
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    MyGame::Example::MonsterT m;
+    m.name = "Orc";
+    auto child = std::make_unique<MyGame::Example::MonsterT>();
+    child->name = "Kid";
+    m.test.Set(std::move(*child));
+    fbb.Finish(MyGame::Example::CreateMonster(fbb, &m), MyGame::Example::MonsterIdentifier());
+    flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), true);
+  }
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    MyGame::Example::MonsterT m;
+    m.name = "Orc";
+    fbb.Finish(MyGame::Example::CreateMonster(fbb, &m), MyGame::Example::MonsterIdentifier());
+    flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), true);
+  }
+}
 int main(int argc, const char* argv[]) {
   std::string tests_data_path = "tests/";
 

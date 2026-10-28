@@ -862,7 +862,7 @@ inline bool VerifyCharacter(::flatbuffers::VerifierTemplate<B> &verifier, const 
     }
     case Character_MuLan: {
       auto ptr = reinterpret_cast<const Attacker *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case Character_Rapunzel: {
       return verifier.template VerifyField<Rapunzel>(static_cast<const uint8_t *>(obj), 0, 4);
@@ -1040,7 +1040,7 @@ inline bool VerifyGadget(::flatbuffers::VerifierTemplate<B> &verifier, const voi
     }
     case Gadget_HandFan: {
       auto ptr = reinterpret_cast<const HandFan *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }
