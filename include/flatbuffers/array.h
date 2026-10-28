@@ -106,10 +106,13 @@ class Array {
   void CopyFromSpan(flatbuffers::span<const T, length> src) {
     const auto p1 = reinterpret_cast<const uint8_t*>(src.data());
     const auto p2 = Data();
-    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + length)) &&
-                       !(p2 >= p1 && p2 < (p1 + length)));
+    const size_t byte_size = length * sizeof(T);
+    FLATBUFFERS_ASSERT(src.data() != nullptr || length == 0);
+    FLATBUFFERS_ASSERT(!(p1 >= p2 && p1 < (p2 + byte_size)) &&
+                       !(p2 >= p1 && p2 < (p1 + byte_size)));
     (void)p1;
     (void)p2;
+    (void)byte_size;
     CopyFromSpanImpl(flatbuffers::bool_constant<is_span_observable>(), src);
   }
 
@@ -251,6 +254,12 @@ bool operator==(const Array<T, length>& lhs,
   return std::addressof(lhs) == std::addressof(rhs) ||
          (lhs.size() == rhs.size() &&
           std::memcmp(lhs.Data(), rhs.Data(), rhs.size() * sizeof(T)) == 0);
+}
+
+template <typename T, uint16_t length>
+bool operator!=(const Array<T, length>& lhs,
+                const Array<T, length>& rhs) noexcept {
+  return !(lhs == rhs);
 }
 
 }  // namespace flatbuffers
