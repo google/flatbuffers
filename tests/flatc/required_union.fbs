@@ -1,0 +1,11 @@
+table Payload {}
+
+union PayloadUnion {
+  Payload,
+}
+
+table RequiredUnion {
+  payload:PayloadUnion (required);
+}
+
+root_type RequiredUnion;
