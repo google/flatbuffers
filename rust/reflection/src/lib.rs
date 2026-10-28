@@ -56,6 +56,8 @@ pub enum FlatbufferError {
     InvalidUnionEnum,
     #[error("Table or Struct doesn't belong to the buffer")]
     InvalidTableOrStruct,
+    #[error("Buffer location {0} is reachable as two different object types")]
+    ConflictingObjectType(usize),
     #[error("Field not found in the table schema")]
     FieldNotFound,
 }
