@@ -2606,18 +2606,19 @@ class CppGenerator : public BaseGenerator {
     if (is_string) {
       // Compares key against a null-terminated char array.
       code_ += "  int KeyCompareWithValue(const char *_{{FIELD_NAME}}) const {";
-      code_ += "    return strcmp({{FIELD_NAME}}()->c_str(), _{{FIELD_NAME}});";
+      code_ += "    return ::flatbuffers::StringCompare({{FIELD_NAME}}()->c_str(), {{FIELD_NAME}}()->size(), _{{FIELD_NAME}}, strlen(_{{FIELD_NAME}}));";
+      code_ += "  }";
+      code_ += "  int KeyCompareWithValue(char *_{{FIELD_NAME}}) const {";
+      code_ += "    return KeyCompareWithValue(static_cast<const char *>(_{{FIELD_NAME}}));";
       code_ += "  }";
       // Compares key against any string-like object (e.g. std::string_view or
-      // std::string) that implements operator< comparison with const char*.
+      // std::string) that has .data() and .size() methods.
       code_ += "  template<typename StringType>";
       code_ +=
           "  int KeyCompareWithValue(const StringType& _{{FIELD_NAME}}) const "
           "{";
       code_ +=
-          "    if ({{FIELD_NAME}}()->c_str() < _{{FIELD_NAME}}) return -1;";
-      code_ += "    if (_{{FIELD_NAME}} < {{FIELD_NAME}}()->c_str()) return 1;";
-      code_ += "    return 0;";
+          "    return ::flatbuffers::StringCompare({{FIELD_NAME}}()->c_str(), {{FIELD_NAME}}()->size(), _{{FIELD_NAME}}.data(), _{{FIELD_NAME}}.size());";
     } else if (is_array) {
       const auto& elem_type = field.value.type.VectorType();
       std::string input_type = "::flatbuffers::Array<" +
