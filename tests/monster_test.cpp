@@ -898,9 +898,6 @@ void UnPackTo(const uint8_t* flatbuf) {
   TEST_ASSERT(mon.enemy == nullptr);
 }
 
-}  // namespace tests
-}  // namespace flatbuffers
-
 namespace {
 
 DetachedBuffer BuildChainedNestedMonsters(size_t levels) {
@@ -921,6 +918,31 @@ DetachedBuffer BuildChainedNestedMonsters(size_t levels) {
   }
   return current;
 }
+
+DetachedBuffer BuildSiblingNestedMonsters(size_t sibling_count,
+                                          size_t nested_levels) {
+  DetachedBuffer nested = BuildChainedNestedMonsters(nested_levels);
+  FlatBufferBuilder fbb;
+  std::vector<Offset<MyGame::Example::Monster>> children;
+  children.reserve(sibling_count);
+  for (size_t i = 0; i < sibling_count; ++i) {
+    auto nested_bytes = fbb.CreateVector(nested.data(), nested.size());
+    auto child_name = fbb.CreateString("ChildMonster");
+    MyGame::Example::MonsterBuilder child_builder(fbb);
+    child_builder.add_name(child_name);
+    child_builder.add_testnestedflatbuffer(nested_bytes);
+    children.push_back(child_builder.Finish());
+  }
+  auto children_vec = fbb.CreateVector(children);
+  auto root_name = fbb.CreateString("RootMonster");
+  MyGame::Example::MonsterBuilder root_builder(fbb);
+  root_builder.add_name(root_name);
+  root_builder.add_testarrayoftables(children_vec);
+  FinishMonsterBuffer(fbb, root_builder.Finish());
+  return fbb.Release();
+}
+
+}  // namespace
 
 void NestedVerifierBudgetExhausted() {
   DetachedBuffer control_chain = BuildChainedNestedMonsters(2);
@@ -946,7 +968,20 @@ void NestedVerifierBudgetExhausted() {
     Verifier table_limited(chain12.data(), chain12.size(), table_opts);
     TEST_EQ(false, MyGame::Example::VerifyMonsterBuffer(table_limited));
   }
+  // Verify cumulative table count propagates back from each sibling nested
+  // FlatBuffer to the outer verifier (1 root + 3 children + 3 * 3 nested = 13
+  // tables total, while any single branch visits at most 7 tables).
+  DetachedBuffer siblings = BuildSiblingNestedMonsters(3, 3);
+  {
+    Verifier::Options sibling_opts;
+    sibling_opts.max_depth = 64;
+    sibling_opts.max_tables = 8;
+    Verifier sibling_limited(siblings.data(), siblings.size(), sibling_opts);
+    TEST_EQ(false, MyGame::Example::VerifyMonsterBuffer(sibling_limited));
+    Verifier default_verifier(siblings.data(), siblings.size());
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(default_verifier));
+  }
 }
 
-}  // namespace
-
+}  // namespace tests
+}  // namespace flatbuffers
