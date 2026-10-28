@@ -25,6 +25,7 @@
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #include <iomanip>
+#include <locale>
 #include <sstream>
 #else  // FLATBUFFERS_PREFER_PRINTF
 #include <float.h>
@@ -133,6 +134,7 @@ std::string NumToString(T t) {
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << t;
     return ss.str();
   #else // FLATBUFFERS_PREFER_PRINTF
@@ -164,6 +166,7 @@ std::string FloatToString(T t, int precision) {
     // to_string() prints different numbers of digits for floats depending on
     // platform and isn't available on Android, so we use stringstream
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     // Use std::fixed to suppress scientific notation.
     ss << std::fixed;
     // Default precision is 6, we want that to be higher for doubles.
@@ -202,6 +205,7 @@ inline std::string IntToStringHex(int i, int xdigits) {
 
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << std::setw(xdigits) << std::setfill('0') << std::hex << std::uppercase
        << i;
     return ss.str();
