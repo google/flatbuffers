@@ -169,7 +169,7 @@ export class Reference {
   }
 
   numericValue(): number | bigint | null {
-    return this.floatValue() || this.intValue();
+    return this.floatValue() ?? this.intValue();
   }
 
   stringValue(): string | null {
