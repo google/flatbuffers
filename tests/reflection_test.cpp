@@ -188,6 +188,12 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   // rinventory still valid, so lets read from it.
   TEST_EQ(rinventory->Get(10), 50);
 
+  // An oversized request must be rejected without touching the buffer.
+  const auto size_before_oversize = resizingbuf.size();
+  flatbuffers::ResizeVector<uint8_t>(schema, 0xF0000000u, 0, *rinventory,
+                                     &resizingbuf);
+  TEST_EQ(resizingbuf.size(), size_before_oversize);
+  TEST_EQ(rinventory->size(), 110u);
   // For reflection uses not covered already, there is a more powerful way:
   // we can simply generate whatever object we want to add/modify in a
   // FlatBuffer of its own, then add that to an existing FlatBuffer:
@@ -246,6 +252,20 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
                               fbb.GetBufferPointer(), fbb.GetSize()),
           true);
+
+  // A NONE union type with a populated value slot must be ignored, not used
+  // to index the schema.
+  std::vector<uint8_t> none_union_buf(flatbuf, flatbuf + length);
+  auto none_table = flatbuffers::GetAnyRoot(none_union_buf.data());
+  auto& test_type_field = *root_table->fields()->LookupByKey("test_type");
+  TEST_EQ(flatbuffers::SetField<uint8_t>(
+              const_cast<flatbuffers::Table*>(none_table), test_type_field, 0),
+          true);
+  flatbuffers::FlatBufferBuilder none_fbb;
+  auto none_root = flatbuffers::CopyTable(none_fbb, schema, *root_table,
+                                          *none_table, true);
+  none_fbb.Finish(none_root, MonsterIdentifier());
+  TEST_EQ(none_fbb.GetSize() > 0, true);
 }
 
 // Test that ForAllFields with reverse=true iterates fields in descending

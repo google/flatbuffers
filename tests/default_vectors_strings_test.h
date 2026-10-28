@@ -9,6 +9,7 @@ void DefaultVectorsStringsTest_EmptyOnDefault_Mutable();
 void DefaultVectorsStringsTest_EmptyOnDefault();
 void DefaultVectorsStringsTest_WithValues();
 void DefaultVectorsStringsTest_BufferSize();
+void DefaultVectorsStringsTest_VerifierVectorSizeOverflow();
 void DefaultVectorsStringsTest();
 
 }  // namespace tests
