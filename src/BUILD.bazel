@@ -35,6 +35,15 @@ cc_library(
     deps = [":code_generators"],
 )
 
+cc_library(
+    name = "binary_annotator",
+    srcs = ["binary_annotator.cpp"],
+    hdrs = ["binary_annotator.h"],
+    strip_include_prefix = "/src",
+    visibility = ["//:__subpackages__"],
+    deps = [":flatbuffers"],
+)
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",
@@ -77,8 +86,6 @@ cc_library(
         "bfbs_gen_nim.cpp",
         "bfbs_gen_nim.h",
         "bfbs_namer.h",
-        "binary_annotator.cpp",
-        "binary_annotator.h",
         "flatc.cpp",
         "namer.h",
     ],
@@ -88,6 +95,7 @@ cc_library(
     strip_include_prefix = "/include",
     visibility = ["//:__pkg__"],
     deps = [
+        ":binary_annotator",
         ":flatbuffers",
         "//include/codegen:namer",
     ],
