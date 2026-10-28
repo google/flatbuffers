@@ -21,6 +21,7 @@
 #include <map>
 // Used to select STL variant.
 #include "flatbuffers/base.h"
+#include "flatbuffers/stl_emulation.h"
 // We use the basic binary writing functions from the regular FlatBuffers.
 #include "flatbuffers/util.h"
 
@@ -1850,19 +1851,22 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            // the buffer being verified, so it is by default off.
            std::vector<uint8_t>* reuse_tracker = nullptr,
            bool _check_alignment = true, size_t max_depth = 64)
-      : buf_(buf),
-        size_(buf_len),
+      // Single conversion from the raw (pointer, length) constructor
+      // arguments to the span; the two-parameter span construction is
+      // the one remaining -Wunsafe-buffer-usage-in-container site and
+      // is the deliberate entry point of the migration.
+      : buf_(buf, buf_len),
         depth_(0),
         max_depth_(max_depth),
         num_vectors_(0),
         max_vectors_(buf_len),
         check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
-    FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) <
+    FLATBUFFERS_ASSERT(static_cast<int32_t>(buf_.size()) <
                        FLATBUFFERS_MAX_BUFFER_SIZE);
     if (reuse_tracker_) {
       reuse_tracker_->clear();
-      reuse_tracker_->resize(size_, PackedType(BIT_WIDTH_8, FBT_NULL));
+      reuse_tracker_->resize(buf_.size(), PackedType(BIT_WIDTH_8, FBT_NULL));
     }
   }
 
@@ -1877,21 +1881,37 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return ok;
   }
 
+  // Single conversion point from a pointer known to point into the verified
+  // buffer to its offset. All other pointer arithmetic in this class is
+  // expressed as offsets into `buf_`, so that -Wunsafe-buffer-usage no
+  // longer fires inside this class (Safe Buffers migration). Neither the
+  // span polyfill nor std::span add runtime bounds checks here; range
+  // safety comes from the Verify* checks that precede every access.
+  size_t OffsetOf(const uint8_t* p) const {
+    return static_cast<size_t>(p - buf_.data());
+  }
+
+  // Reads the byte at `elem`. The caller must have verified the range
+  // beforehand; the span does not add runtime bounds checks.
+  uint8_t ByteAt(size_t elem) const { return buf_[elem]; }
+
+  // Returns a pointer `elem` bytes into the buffer. The caller must have
+  // verified the range beforehand.
+  const uint8_t* PtrAt(size_t elem) const { return buf_.data() + elem; }
+
   // Verify any range within the buffer.
   bool VerifyFrom(size_t elem, size_t elem_len) const {
-    return Check(elem_len < size_ && elem <= size_ - elem_len);
+    return Check(elem_len < buf_.size() && elem <= buf_.size() - elem_len);
   }
   bool VerifyBefore(size_t elem, size_t elem_len) const {
     return Check(elem_len <= elem);
   }
 
   bool VerifyFromPointer(const uint8_t* p, size_t len) {
-    auto o = static_cast<size_t>(p - buf_);
-    return VerifyFrom(o, len);
+    return VerifyFrom(OffsetOf(p), len);
   }
   bool VerifyBeforePointer(const uint8_t* p, size_t len) {
-    auto o = static_cast<size_t>(p - buf_);
-    return VerifyBefore(o, len);
+    return VerifyBefore(OffsetOf(p), len);
   }
 
   bool VerifyByteWidth(size_t width) {
@@ -1901,24 +1921,25 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   bool VerifyType(int type) { return Check(type >= 0 && type < FBT_MAX_TYPE); }
 
   bool VerifyOffset(uint64_t off, const uint8_t* p) {
-    return Check(off <= static_cast<uint64_t>(size_)) &&
-           off <= static_cast<uint64_t>(p - buf_);
+    return Check(off <= static_cast<uint64_t>(buf_.size())) &&
+           off <= static_cast<uint64_t>(OffsetOf(p));
   }
 
   bool VerifyAlignment(const uint8_t* p, size_t size) const {
-    auto o = static_cast<size_t>(p - buf_);
+    auto o = OffsetOf(p);
     return Check((o & (size - 1)) == 0 || !check_alignment_);
   }
 
 // Macro, since we want to escape from parent function & use lazy args.
-#define FLEX_CHECK_VERIFIED(P, PACKED_TYPE)                     \
+// P_OFF is an offset into the verified buffer.
+#define FLEX_CHECK_VERIFIED(P_OFF, PACKED_TYPE)                 \
   if (reuse_tracker_) {                                         \
     auto packed_type = PACKED_TYPE;                             \
-    auto existing = (*reuse_tracker_)[P - buf_];                \
-    if (existing == packed_type) return true;                   \
+    auto existing = (*reuse_tracker_)[P_OFF];                   \
+    if (existing == packed_type) return true;                    \
     /* Fail verification if already set with different type! */ \
-    if (!Check(existing == 0)) return false;                    \
-    (*reuse_tracker_)[P - buf_] = packed_type;                  \
+    if (!Check(existing == 0)) return false;                     \
+    (*reuse_tracker_)[P_OFF] = packed_type;                     \
   }
 
   bool VerifyVector(Reference r, const uint8_t* p, Type elem_type) {
@@ -1930,7 +1951,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
       return false;
     auto size_byte_width = r.byte_width_;
     if (!VerifyBeforePointer(p, size_byte_width)) return false;
-    FLEX_CHECK_VERIFIED(p - size_byte_width,
+    FLEX_CHECK_VERIFIED(OffsetOf(p) - size_byte_width,
                         PackedType(Builder::WidthB(size_byte_width), r.type_));
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
@@ -1944,7 +1965,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     if (!VerifyFromPointer(p, byte_size)) return false;
     if (elem_type == FBT_NULL) {
       // Verify type bytes after the vector.
-      if (!VerifyFromPointer(p + byte_size, num_elems)) return false;
+      if (!VerifyFrom(OffsetOf(p) + byte_size, num_elems)) return false;
       auto v = Vector(p, size_byte_width);
       for (size_t i = 0; i < num_elems; i++)
         if (!VerifyRef(v[i])) return false;
@@ -1963,20 +1984,26 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     // The vector part of the map has already been verified.
     const size_t num_prefixed_fields = 3;
     if (!VerifyBeforePointer(p, byte_width * num_prefixed_fields)) return false;
-    p -= byte_width * num_prefixed_fields;
-    auto off = ReadUInt64(p, byte_width);
-    if (!VerifyOffset(off, p)) return false;
-    auto key_byte_with =
-        static_cast<uint8_t>(ReadUInt64(p + byte_width, byte_width));
+    // The keys region starts `num_prefixed_fields` before the map data.
+    const size_t keys_off = OffsetOf(p) - byte_width * num_prefixed_fields;
+    auto off = ReadUInt64(PtrAt(keys_off), byte_width);
+    if (!VerifyOffset(off, PtrAt(keys_off))) return false;
+    auto key_byte_with = static_cast<uint8_t>(
+        ReadUInt64(PtrAt(keys_off + byte_width), byte_width));
     if (!VerifyByteWidth(key_byte_with)) return false;
-    return VerifyVector(Reference(p, byte_width, key_byte_with, FBT_VECTOR_KEY),
-                        p - off, FBT_KEY);
+    return VerifyVector(
+        Reference(PtrAt(keys_off), byte_width, key_byte_with,
+                  FBT_VECTOR_KEY),
+        PtrAt(keys_off - off), FBT_KEY);
   }
 
   bool VerifyKey(const uint8_t* p) {
-    FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
-    while (p < buf_ + size_)
-      if (!*p++) return true;
+    FLEX_CHECK_VERIFIED(OffsetOf(p), PackedType(BIT_WIDTH_8, FBT_KEY));
+    // Walk the NUL-terminated key as offsets into the buffer: every read
+    // goes through the span.
+    size_t o = OffsetOf(p);
+    while (o < buf_.size())
+      if (ByteAt(o++) == 0) return true;
     return false;
   }
 
@@ -2050,17 +2077,19 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
  public:
   bool VerifyBuffer() {
-    if (!Check(size_ >= 3)) return false;
-    auto end = buf_ + size_;
-    auto byte_width = *--end;
-    auto packed_type = *--end;
-    return VerifyByteWidth(byte_width) && Check(end - buf_ >= byte_width) &&
-           VerifyRef(Reference(end - byte_width, byte_width, packed_type));
+    // Parse the root backwards as offsets into the span:
+    // last byte is the root byte width, the one before it the packed type.
+    if (!Check(buf_.size() >= 3)) return false;
+    const size_t end = buf_.size() - 1;
+    const auto byte_width = ByteAt(end);
+    const auto packed_type = ByteAt(end - 1);
+    return VerifyByteWidth(byte_width) && Check((end - 1) >= byte_width) &&
+           VerifyRef(Reference(PtrAt((end - 1) - byte_width), byte_width,
+                               packed_type));
   }
 
  private:
-  const uint8_t* buf_;
-  size_t size_;
+  flatbuffers::span<const uint8_t> buf_;
   size_t depth_;
   const size_t max_depth_;
   size_t num_vectors_;
