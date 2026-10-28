@@ -32,6 +32,8 @@ void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary);
 
 void UnPackTo(const uint8_t* flatbuf);
 
+void NestedVerifierBudgetExhausted();
+
 }  // namespace tests
 }  // namespace flatbuffers
 

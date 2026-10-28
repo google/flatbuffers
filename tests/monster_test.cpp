@@ -898,5 +898,90 @@ void UnPackTo(const uint8_t* flatbuf) {
   TEST_ASSERT(mon.enemy == nullptr);
 }
 
+namespace {
+
+DetachedBuffer BuildChainedNestedMonsters(size_t levels) {
+  FlatBufferBuilder inner;
+  FinishMonsterBuffer(
+      inner, MyGame::Example::CreateMonster(
+                 inner, nullptr, 0, 0, inner.CreateString("LeafMonster")));
+  DetachedBuffer current = inner.Release();
+  for (size_t i = 1; i < levels; ++i) {
+    FlatBufferBuilder outer;
+    auto nested_bytes = outer.CreateVector(current.data(), current.size());
+    auto name = outer.CreateString("NestedMonster");
+    MyGame::Example::MonsterBuilder mon_builder(outer);
+    mon_builder.add_name(name);
+    mon_builder.add_testnestedflatbuffer(nested_bytes);
+    FinishMonsterBuffer(outer, mon_builder.Finish());
+    current = outer.Release();
+  }
+  return current;
+}
+
+DetachedBuffer BuildSiblingNestedMonsters(size_t sibling_count,
+                                          size_t nested_levels) {
+  DetachedBuffer nested = BuildChainedNestedMonsters(nested_levels);
+  FlatBufferBuilder fbb;
+  std::vector<Offset<MyGame::Example::Monster>> children;
+  children.reserve(sibling_count);
+  for (size_t i = 0; i < sibling_count; ++i) {
+    auto nested_bytes = fbb.CreateVector(nested.data(), nested.size());
+    auto child_name = fbb.CreateString("ChildMonster");
+    MyGame::Example::MonsterBuilder child_builder(fbb);
+    child_builder.add_name(child_name);
+    child_builder.add_testnestedflatbuffer(nested_bytes);
+    children.push_back(child_builder.Finish());
+  }
+  auto children_vec = fbb.CreateVector(children);
+  auto root_name = fbb.CreateString("RootMonster");
+  MyGame::Example::MonsterBuilder root_builder(fbb);
+  root_builder.add_name(root_name);
+  root_builder.add_testarrayoftables(children_vec);
+  FinishMonsterBuffer(fbb, root_builder.Finish());
+  return fbb.Release();
+}
+
+}  // namespace
+
+void NestedVerifierBudgetExhausted() {
+  DetachedBuffer control_chain = BuildChainedNestedMonsters(2);
+  {
+    Verifier verifier(control_chain.data(), control_chain.size());
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(verifier));
+  }
+  DetachedBuffer chain32 = BuildChainedNestedMonsters(32);
+  {
+    Verifier::Options depth_opts;
+    depth_opts.max_depth = 16;
+    depth_opts.max_tables = 1024;
+    Verifier depth_limited(chain32.data(), chain32.size(), depth_opts);
+    TEST_EQ(false, MyGame::Example::VerifyMonsterBuffer(depth_limited));
+    Verifier default_verifier(chain32.data(), chain32.size());
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(default_verifier));
+  }
+  DetachedBuffer chain12 = BuildChainedNestedMonsters(12);
+  {
+    Verifier::Options table_opts;
+    table_opts.max_depth = 64;
+    table_opts.max_tables = 8;
+    Verifier table_limited(chain12.data(), chain12.size(), table_opts);
+    TEST_EQ(false, MyGame::Example::VerifyMonsterBuffer(table_limited));
+  }
+  // Verify cumulative table count propagates back from each sibling nested
+  // FlatBuffer to the outer verifier (1 root + 3 children + 3 * 3 nested = 13
+  // tables total, while any single branch visits at most 7 tables).
+  DetachedBuffer siblings = BuildSiblingNestedMonsters(3, 3);
+  {
+    Verifier::Options sibling_opts;
+    sibling_opts.max_depth = 64;
+    sibling_opts.max_tables = 8;
+    Verifier sibling_limited(siblings.data(), siblings.size(), sibling_opts);
+    TEST_EQ(false, MyGame::Example::VerifyMonsterBuffer(sibling_limited));
+    Verifier default_verifier(siblings.data(), siblings.size());
+    TEST_EQ(true, MyGame::Example::VerifyMonsterBuffer(default_verifier));
+  }
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
