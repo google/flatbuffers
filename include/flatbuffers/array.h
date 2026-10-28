@@ -90,7 +90,14 @@ class Array {
   }
 
   // Change elements if you have a non-const pointer to this object.
-  void Mutate(uoffset_t i, const T& val) { MutateImpl(scalar_tag(), i, val); }
+  // Returns false (and performs no write) if `i` is out of range, so an
+  // out-of-range caller-supplied index cannot cause an out-of-bounds write
+  // even in a release (NDEBUG) build where FLATBUFFERS_ASSERT is compiled
+  // out. The assert in MutateImpl is kept for early detection in debug
+  // builds.
+  bool Mutate(uoffset_t i, const T& val) {
+    return MutateImpl(scalar_tag(), i, val);
+  }
 
   // The raw data in little endian format. Use with care.
   const uint8_t* Data() const { return data_; }
@@ -114,13 +121,18 @@ class Array {
   }
 
  protected:
-  void MutateImpl(flatbuffers::true_type, uoffset_t i, const T& val) {
+  bool MutateImpl(flatbuffers::true_type, uoffset_t i, const T& val) {
     FLATBUFFERS_ASSERT(i < size());
+    if (i >= size()) return false;
     WriteScalar(data() + i, val);
+    return true;
   }
 
-  void MutateImpl(flatbuffers::false_type, uoffset_t i, const T& val) {
+  bool MutateImpl(flatbuffers::false_type, uoffset_t i, const T& val) {
+    FLATBUFFERS_ASSERT(i < size());
+    if (i >= size()) return false;
     *(GetMutablePointer(i)) = val;
+    return true;
   }
 
   void CopyFromSpanImpl(flatbuffers::true_type,
