@@ -1228,12 +1228,14 @@ impl<T> IndexMut<ReverseIndexRange> for [T] {
 mod tests {
     use super::*;
     use core::sync::atomic::{AtomicUsize, Ordering};
+    #[cfg(feature = "std")]
     use std::alloc::{GlobalAlloc, Layout, System};
 
     static ALLOC_COUNT: AtomicUsize = AtomicUsize::new(0);
 
     struct CountingAllocator;
 
+    #[cfg(feature = "std")]
     unsafe impl GlobalAlloc for CountingAllocator {
         unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
             ALLOC_COUNT.fetch_add(1, Ordering::Relaxed);
@@ -1244,6 +1246,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "std")]
     #[global_allocator]
     static GLOBAL: CountingAllocator = CountingAllocator;
 
