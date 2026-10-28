@@ -459,10 +459,21 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// Fallible version of [`start_vector`](Self::start_vector).
     #[inline]
     pub fn try_start_vector<T: Push>(&mut self, num_items: usize) -> Result<(), A::Error> {
+        self.try_start_vector_raw(num_items, T::size(), T::alignment())
+    }
+
+    /// Fallible version of [`start_vector_raw`](Self::start_vector_raw).
+    #[inline]
+    pub fn try_start_vector_raw(
+        &mut self,
+        num_items: usize,
+        element_size: usize,
+        alignment: PushAlignment,
+    ) -> Result<(), A::Error> {
         self.assert_not_nested(
             "start_vector can not be called when a table or vector is under construction",
         );
-        self.align(num_items * T::size(), T::alignment().max_of(SIZE_UOFFSET))?;
+        self.align(num_items * element_size, alignment.max_of(SIZE_UOFFSET))?;
         self.nested = true;
         Ok(())
     }
@@ -476,13 +487,35 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// function will want to use `push` to add values.
     #[inline]
     pub fn start_vector<T: Push>(&mut self, num_items: usize) {
-        self.try_start_vector::<T>(num_items)
-            .expect("Flatbuffer allocation failure")
+        self.start_vector_raw(num_items, T::size(), T::alignment())
+    }
+
+    /// Start a Vector write with runtime element layout.
+    ///
+    /// Asserts that the builder is not in a nested state.
+    #[inline]
+    pub fn start_vector_raw(
+        &mut self,
+        num_items: usize,
+        element_size: usize,
+        alignment: PushAlignment,
+    ) {
+        self.try_start_vector_raw(num_items, element_size, alignment)
+            .expect("Flatbuffer allocation failure");
     }
 
     /// Fallible version of [`end_vector`](Self::end_vector).
     #[inline]
     pub fn try_end_vector<T: Push>(
+        &mut self,
+        num_elems: usize,
+    ) -> Result<WIPOffset<Vector<'fbb, T>>, A::Error> {
+        self.try_end_vector_raw(num_elems)
+    }
+
+    /// Fallible version of [`end_vector_raw`](Self::end_vector_raw).
+    #[inline]
+    pub fn try_end_vector_raw<T>(
         &mut self,
         num_elems: usize,
     ) -> Result<WIPOffset<Vector<'fbb, T>>, A::Error> {
@@ -500,7 +533,18 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
     /// Asserts that the builder is in a nested state.
     #[inline]
     pub fn end_vector<T: Push>(&mut self, num_elems: usize) -> WIPOffset<Vector<'fbb, T>> {
-        self.try_end_vector::<T>(num_elems)
+        self.end_vector_raw(num_elems)
+    }
+
+    /// End a Vector write.
+    ///
+    /// Note that the `num_elems` parameter is the number of written items, not
+    /// the byte count.
+    ///
+    /// Asserts that the builder is in a nested state.
+    #[inline]
+    pub fn end_vector_raw<T>(&mut self, num_elems: usize) -> WIPOffset<Vector<'fbb, T>> {
+        self.try_end_vector_raw(num_elems)
             .expect("Flatbuffer allocation failure")
     }
 
@@ -822,13 +866,15 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
             .expect("Flatbuffer allocation failure")
     }
 
+    /// Get the current size of the serialized buffer, counting from the end.
     #[inline]
-    fn used_space(&self) -> usize {
+    pub fn used_space(&self) -> usize {
         self.head.distance_to_end()
     }
 
+    /// Track where a field was written, so the vtable can be written later.
     #[inline]
-    fn track_field(&mut self, slot_off: VOffsetT, off: UOffsetT) {
+    pub fn track_field(&mut self, slot_off: VOffsetT, off: UOffsetT) {
         let fl = FieldLoc { id: slot_off, off };
         self.field_locs.push(fl);
     }
@@ -1019,8 +1065,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         Ok(())
     }
 
+    /// Align so `len` bytes can be written before an object with `alignment`.
     #[inline]
-    fn align(&mut self, len: usize, alignment: PushAlignment) -> Result<(), A::Error> {
+    pub fn align(&mut self, len: usize, alignment: PushAlignment) -> Result<(), A::Error> {
         self.track_min_align(alignment.value());
         let s = self.used_space() as usize;
         self.make_space(padding_bytes(s + len, alignment.value()))?;
@@ -1032,8 +1079,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         self.min_align = max(self.min_align, alignment);
     }
 
+    /// Push bytes without writing a length prefix.
     #[inline]
-    fn push_bytes_unprefixed(&mut self, x: &[u8]) -> Result<UOffsetT, A::Error> {
+    pub fn push_bytes_unprefixed(&mut self, x: &[u8]) -> Result<UOffsetT, A::Error> {
         let n = self.make_space(x.len())?;
         self.allocator[n.range_to(n + x.len())].copy_from_slice(x);
 
