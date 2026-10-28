@@ -210,6 +210,9 @@ target_link_libraries(parser_fuzzer PRIVATE flatbuffers_fuzzed)
 add_executable(verifier_fuzzer flatbuffers_verifier_fuzzer.cc)
 target_link_libraries(verifier_fuzzer PRIVATE flatbuffers_fuzzed)
 
+add_executable(reflection_fuzzer flatbuffers_reflection_fuzzer.cc)
+target_link_libraries(reflection_fuzzer PRIVATE flatbuffers_fuzzed)
+
 add_executable(flexverifier_fuzzer flexbuffers_verifier_fuzzer.cc)
 target_link_libraries(flexverifier_fuzzer PRIVATE flatbuffers_fuzzed)
 
@@ -289,6 +292,12 @@ if(BUILD_DEBUGGER)
     monster_debug.cpp
   )
   target_link_libraries(monster_debug PRIVATE flatbuffers_nonfuzz)
+
+  add_executable(reflection_debug
+    flatbuffers_reflection_fuzzer.cc
+    reflection_debug.cpp
+  )
+  target_link_libraries(reflection_debug PRIVATE flatbuffers_nonfuzz)
   add_custom_command(
     TARGET monster_debug PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
