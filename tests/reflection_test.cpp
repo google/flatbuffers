@@ -1,5 +1,6 @@
 #include "reflection_test.h"
 
+#include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
@@ -332,6 +333,65 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
     for (size_t i = 1; i < reverse_ids.size(); ++i) {
       TEST_ASSERT(reverse_ids[i - 1] > reverse_ids[i]);
     }
+  }
+}
+
+// Test that ForAllFields safely handles objects with sparse (non-consecutive)
+// field IDs (e.g. from deprecated fields or manual id attributes) without
+// out-of-bounds heap memory writes, and handles null objects gracefully.
+void ForAllFieldsSparseIdTest() {
+  // Test null safety
+  flatbuffers::ForAllFields(nullptr, false, [](const reflection::Field*) {
+    TEST_ASSERT(false);
+  });
+  flatbuffers::ForAllFields(nullptr, true, [](const reflection::Field*) {
+    TEST_ASSERT(false);
+  });
+
+  // Construct a schema with sparse field IDs (0, 4, 8) where ID exceeds field count (3).
+  // Under the old code, this caused an out-of-bounds write to field_to_id_map[4] and [8].
+  const char* schema_text =
+      "table SparseTable {\n"
+      "  a:int (id: 0);\n"
+      "  b:int (id: 4);\n"
+      "  c:int (id: 8);\n"
+      "}\n"
+      "root_type SparseTable;\n";
+
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse(schema_text), true);
+  auto schema = reflection::GetSchema(parser.builder_.GetBufferPointer());
+  TEST_NOTNULL(schema);
+  auto sparse_table = schema->root_table();
+  TEST_NOTNULL(sparse_table);
+  TEST_EQ(sparse_table->fields()->size(), 3u);
+
+  // Test forward iteration: should be in ascending ID order (0, 4, 8)
+  {
+    std::vector<uint16_t> forward_ids;
+    flatbuffers::ForAllFields(
+        sparse_table, /*reverse=*/false,
+        [&forward_ids](const reflection::Field* field) {
+          forward_ids.push_back(field->id());
+        });
+    TEST_EQ(forward_ids.size(), 3u);
+    TEST_EQ(forward_ids[0], 0);
+    TEST_EQ(forward_ids[1], 4);
+    TEST_EQ(forward_ids[2], 8);
+  }
+
+  // Test reverse iteration: should be in descending ID order (8, 4, 0)
+  {
+    std::vector<uint16_t> reverse_ids;
+    flatbuffers::ForAllFields(
+        sparse_table, /*reverse=*/true,
+        [&reverse_ids](const reflection::Field* field) {
+          reverse_ids.push_back(field->id());
+        });
+    TEST_EQ(reverse_ids.size(), 3u);
+    TEST_EQ(reverse_ids[0], 8);
+    TEST_EQ(reverse_ids[1], 4);
+    TEST_EQ(reverse_ids[2], 0);
   }
 }
 
