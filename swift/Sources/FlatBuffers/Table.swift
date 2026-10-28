@@ -230,14 +230,14 @@ public struct Table {
     let startPos1 = _off1 &+ memorySize
     let startPos2 = _off2 &+ memorySize
     let minValue = min(len1, len2)
-    for i in 0...minValue {
+    for i in 0..<minValue {
       let b1 = fbb.read(def: Int8.self, position: Int(i &+ startPos1))
       let b2 = fbb.read(def: Int8.self, position: Int(i &+ startPos2))
       if b1 != b2 {
         return Int32(b2 &- b1)
       }
     }
-    return len1 &- len2
+    return len2 &- len1
   }
 
   /// Compares two objects at offset A and array of `Bytes` within a ByteBuffer
@@ -312,14 +312,14 @@ public struct Table {
     let startPos1 = _off1 &+ memorySize
     let startPos2 = _off2 &+ memorySize
     let minValue = min(len1, len2)
-    for i in 0...minValue {
+    for i in 0..<minValue {
       let b1 = fbb.read(def: Int8.self, position: Int(i &+ startPos1))
       let b2 = fbb.read(def: Int8.self, position: Int(i &+ startPos2))
       if b1 != b2 {
         return Int32(b2 &- b1)
       }
     }
-    return len1 &- len2
+    return len2 &- len1
   }
 
   /// Compares two objects at offset A and array of `Bytes` within a ByteBuffer

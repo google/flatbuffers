@@ -109,7 +109,7 @@ extension Value {
     if isInline(type) {
       return bitWidth
     } else {
-      for byteWidth in stride(from: 1, to: MemoryLayout<UInt64>.size, by: 2) {
+      for byteWidth in [1, 2, 4, 8] {
         let _offsetLoc: UInt64 = numericCast(
           numericCast(size)
             &+ padding(
