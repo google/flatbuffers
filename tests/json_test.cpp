@@ -203,5 +203,57 @@ root_type JsonUnionStructTest;
   TEST_EQ_STR(json_source, json_generated.c_str());
 }
 
+// A corrupt buffer where a union value is present but its type field is not
+// must produce an error instead of crashing or picking an unrelated field as
+// the union type.
+void JsonUnionMissingTypeTest() {
+  auto schema = R"(
+table Inner { x: int; }
+table Other { s: string; }
+union MyUnion { Inner, Other }
+table Root { a: ubyte; u: MyUnion; v: [MyUnion]; }
+root_type Root;
+)";
+  flatbuffers::Parser parser;
+  TEST_EQ(true, parser.Parse(schema));
+
+  // Parses `json`, then clears the vtable entry of field `field_index` of the
+  // root table (if not negative), making that field absent.
+  auto gen_with_absent_field = [&](const char* json, int field_index,
+                                   std::string* text) -> const char* {
+    TEST_EQ(true, parser.ParseJson(json));
+    std::vector<uint8_t> buf(
+        parser.builder_.GetBufferPointer(),
+        parser.builder_.GetBufferPointer() + parser.builder_.GetSize());
+    if (field_index >= 0) {
+      auto root = ReadScalar<uoffset_t>(buf.data());
+      auto vtable = root - ReadScalar<soffset_t>(buf.data() + root);
+      WriteScalar<voffset_t>(
+          buf.data() + vtable +
+              FieldIndexToOffset(static_cast<voffset_t>(field_index)),
+          0);
+    }
+    return GenText(parser, buf.data(), text);
+  };
+
+  std::string text;
+  // The unmodified buffer still prints fine.
+  TEST_NULL(gen_with_absent_field(R"({ a: 1, u_type: "Inner", u: { x: 42 } })",
+                                  -1, &text));
+  // `u_type` absent and no earlier field present.
+  text.clear();
+  TEST_NOTNULL(
+      gen_with_absent_field(R"({ u_type: "Inner", u: { x: 42 } })", 1, &text));
+  // `u_type` absent, but the earlier field `a` is present. Its value must not
+  // be used as the union type.
+  text.clear();
+  TEST_NOTNULL(gen_with_absent_field(
+      R"({ a: 1, u_type: "Inner", u: { x: 42 } })", 1, &text));
+  // `v_type` absent for a vector of unions.
+  text.clear();
+  TEST_NOTNULL(gen_with_absent_field(R"({ v_type: ["Inner"], v: [{ x: 42 }] })",
+                                     3, &text));
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
