@@ -335,6 +335,54 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   }
 }
 
+// Test that ForAllFields does not write out of bounds when a Field's `id`
+// (which comes from the, possibly untrusted, reflection schema) is >= the
+// object's field count. Reachable via flatc --nim, flatc --lua, and
+// flatc --annotate, all of which call ForAllFields directly on a
+// caller-supplied .bfbs file. Confirmed via AddressSanitizer:
+// heap-buffer-overflow WRITE in field_to_id_map[field->id()] before this
+// fix.
+void ForAllFieldsOutOfRangeIdTest() {
+  flatbuffers::FlatBufferBuilder fbb;
+
+  reflection::TypeBuilder tb(fbb);
+  tb.add_base_type(reflection::Int);
+  auto type_offset = tb.Finish();
+
+  auto field_name = fbb.CreateString("evil_field");
+  reflection::FieldBuilder field_builder(fbb);
+  field_builder.add_name(field_name);
+  field_builder.add_type(type_offset);
+  field_builder.add_id(50);  // out of range: object has only 1 field
+  auto field_offset = field_builder.Finish();
+
+  std::vector<flatbuffers::Offset<reflection::Field>> fields_vec = {
+      field_offset};
+  auto fields = fbb.CreateVectorOfSortedTables(&fields_vec);
+
+  auto object_name = fbb.CreateString("EvilObject");
+  reflection::ObjectBuilder object_builder(fbb);
+  object_builder.add_name(object_name);
+  object_builder.add_fields(fields);
+  auto object_offset = object_builder.Finish();
+  fbb.Finish(object_offset);
+
+  auto* object =
+      flatbuffers::GetRoot<reflection::Object>(fbb.GetBufferPointer());
+  TEST_EQ(object->fields()->size(), 1u);
+  TEST_EQ(object->fields()->Get(0)->id(), 50);
+
+  // Must not crash / write out of bounds. The malformed field is skipped
+  // rather than visited, since it has no valid slot in a
+  // field_count-sized table.
+  int visited = 0;
+  flatbuffers::ForAllFields(object, /*reverse=*/false,
+                            [&visited](const reflection::Field*) {
+                              visited++;
+                            });
+  TEST_EQ(visited, 0);
+}
+
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
   auto s =
       flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());
