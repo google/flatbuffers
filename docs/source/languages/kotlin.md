@@ -5,7 +5,7 @@ Use in Kotlin    {#flatbuffers_guide_use_kotlin}
 
 Before diving into the FlatBuffers usage in Kotlin, it should be noted that
 the [Tutorial](../tutorial.md) page has a complete guide to
-general FlatBuffers usage in all of the supported languages (including K).
+general FlatBuffers usage in all of the supported languages (including Kotlin).
 
 This page is designed to cover the nuances of FlatBuffers usage, specific to Kotlin.
 
@@ -19,19 +19,20 @@ documentation to build `flatc` and should be familiar with
 Code generated for Kotlin currently uses the flatbuffers java runtime library. That means that Kotlin generated code can only have Java virtual machine as target architecture (which includes Android). Kotlin Native and Kotlin.js are currently not supported.
 
 The code for the FlatBuffers Java library can be found at
-`flatbuffers/java/com/google/flatbuffers`. You can browse the library on the
-[FlatBuffers GitHub page](https://github.com/google/flatbuffers/tree/master/
-java/com/google/flatbuffers).
+`flatbuffers/java/src/main/java/com/google/flatbuffers`. You can browse the
+library on the [FlatBuffers GitHub
+page](https://github.com/google/flatbuffers/tree/master/java/src/main/java/com/google/flatbuffers).
 
 ## Testing FlatBuffers Kotlin
 
-The test code for Java is located in [KotlinTest.java](https://github.com/google
-/flatbuffers/blob/master/tests/KotlinTest.kt).
+The test code for Kotlin is located in
+[KotlinTest.kt](https://github.com/google/flatbuffers/blob/master/tests/KotlinTest.kt).
 
-To run the tests, use  [KotlinTest.sh](https://github.com/google/
-flatbuffers/blob/master/tests/KotlinTest.sh) shell script.
+To run the tests, use the
+[KotlinTest.sh](https://github.com/google/flatbuffers/blob/master/tests/KotlinTest.sh)
+shell script.
 
-*Note: These scripts require that [Kotlin](https://kotlinlang.org/) is installed.*
+*Note: This script requires that [Kotlin](https://kotlinlang.org/) is installed.*
 
 ## Using the FlatBuffers Kotlin library
 
@@ -40,7 +41,7 @@ example of how to use FlatBuffers in Kotlin.*
 
 FlatBuffers supports reading and writing binary FlatBuffers in Kotlin.
 
-To use FlatBuffers in your own code, first generate Java classes from your
+To use FlatBuffers in your own code, first generate Kotlin classes from your
 schema with the `--kotlin` option to `flatc`.
 Then you can include both FlatBuffers and the generated code to read
 or write a FlatBuffer.
