@@ -894,6 +894,12 @@ CheckedError Parser::ParseType(Type& type) {
 
 CheckedError Parser::AddField(StructDef& struct_def, const std::string& name,
                               const Type& type, FieldDef** dest) {
+  if (!struct_def.fixed) {
+    if (struct_def.fields.vec.size() >=
+        (flatbuffers::numeric_limits<voffset_t>::max() - 2 * sizeof(voffset_t)) / sizeof(voffset_t)) {
+      return Error("more than " + NumToString((flatbuffers::numeric_limits<voffset_t>::max() - 2 * sizeof(voffset_t)) / sizeof(voffset_t)) + " fields in table " + struct_def.name);
+    }
+  }
   auto& field = *new FieldDef();
   field.value.offset =
       FieldIndexToOffset(static_cast<voffset_t>(struct_def.fields.vec.size()));
@@ -2921,8 +2927,10 @@ CheckedError Parser::ParseDecl(const char* filename) {
       // been specified.
       std::sort(fields.begin(), fields.end(), compareFieldDefs);
       // Verify we have a contiguous set, and reassign vtable offsets.
-      FLATBUFFERS_ASSERT(fields.size() <=
-                         flatbuffers::numeric_limits<voffset_t>::max());
+      if (fields.size() >
+          (flatbuffers::numeric_limits<voffset_t>::max() - 2 * sizeof(voffset_t)) / sizeof(voffset_t)) {
+        return Error("more than " + NumToString((flatbuffers::numeric_limits<voffset_t>::max() - 2 * sizeof(voffset_t)) / sizeof(voffset_t)) + " fields in table " + struct_def->name);
+      }
       for (voffset_t i = 0; i < static_cast<voffset_t>(fields.size()); i++) {
         auto& field = *fields[i];
         const auto& id_str = field.attributes.Lookup("id")->constant;
