@@ -238,6 +238,9 @@ class CppGenerator : public BaseGenerator {
         nullptr,
     };
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
+    // Template parameter of the generated verifiers; schema names must not
+    // shadow it.
+    keywords_.insert("VerifySizePrefixed");
   }
 
   // Adds code to check that the included flatbuffers.h is of the same version
@@ -682,16 +685,20 @@ class CppGenerator : public BaseGenerator {
         code_.SetValue("ID", "nullptr");
       }
 
-      code_ += "template <bool B = false>";
+      code_ += "template <bool VerifySizePrefixed = false>";
       code_ += "inline bool Verify{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::VerifierTemplate<B> &verifier) {";
+      code_ +=
+          "    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) "
+          "{";
       code_ += "  return verifier.template VerifyBuffer<{{CPP_NAME}}>({{ID}});";
       code_ += "}";
       code_ += "";
 
-      code_ += "template <bool B = false>";
+      code_ += "template <bool VerifySizePrefixed = false>";
       code_ += "inline bool VerifySizePrefixed{{STRUCT_NAME}}Buffer(";
-      code_ += "    ::flatbuffers::VerifierTemplate<B> &verifier) {";
+      code_ +=
+          "    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) "
+          "{";
       code_ +=
           "  return "
           "verifier.template "
@@ -1109,17 +1116,21 @@ class CppGenerator : public BaseGenerator {
 
   // For the initial declaration, we specify the template parameters,
   // including template default arguments.
-  std::string UnionVerifyTemplateDecl() { return "template <bool B = false>"; }
+  std::string UnionVerifyTemplateDecl() {
+    return "template <bool VerifySizePrefixed = false>";
+  }
 
   // For the subsequent definition, we must not redeclare the template default
   // arguments.
-  std::string UnionVerifyTemplateDef() { return "template <bool B>"; }
+  std::string UnionVerifyTemplateDef() {
+    return "template <bool VerifySizePrefixed>";
+  }
 
   // Should be used in conjunction with
   // UnionVerifyTemplateDecl()/UnionVerifyTemplateDef().
   std::string UnionVerifySignature(const EnumDef& enum_def) {
     return "bool Verify" + Name(enum_def) +
-           "(::flatbuffers::VerifierTemplate<B> &verifier, " +
+           "(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, " +
            "const void *obj, " + Name(enum_def) + " type)";
   }
 
@@ -1131,7 +1142,7 @@ class CppGenerator : public BaseGenerator {
         opts_.scoped_enums ? name
                            : GenTypeBasic(enum_def.underlying_type, false);
     return "bool Verify" + name + "Vector" +
-           "(::flatbuffers::VerifierTemplate<B> &verifier, " +
+           "(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier, " +
            "const ::flatbuffers::Vector<::flatbuffers::Offset<void>> "
            "*values, " +
            "const ::flatbuffers::Vector<" + type + "> *types)";
@@ -3148,9 +3159,9 @@ class CppGenerator : public BaseGenerator {
 
     // Generate a verifier function that can check a buffer from an untrusted
     // source will never cause reads outside the buffer.
-    code_ += "  template <bool B = false>";
+    code_ += "  template <bool VerifySizePrefixed = false>";
     code_ +=
-        "  bool Verify(::flatbuffers::VerifierTemplate<B> "
+        "  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> "
         "&verifier) const {";
     code_ += "    return VerifyTableStart(verifier)\\";
     for (const auto& field : struct_def.fields.vec) {

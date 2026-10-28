@@ -395,8 +395,8 @@ struct ScalarStuff FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     else if constexpr (Index == 35) return default_enum();
     else static_assert(Index != -1, "Invalid Field Index");
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int8_t>(verifier, VT_JUST_I8, 1) &&
            VerifyField<int8_t>(verifier, VT_MAYBE_I8, 1) &&
@@ -959,15 +959,15 @@ inline bool SizePrefixedScalarStuffBufferHasIdentifier(const void *buf) {
       buf, ScalarStuffIdentifier(), true);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifyScalarStuffBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifyBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifySizePrefixedScalarStuffBuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<optional_scalars::ScalarStuff>(ScalarStuffIdentifier());
 }
 
