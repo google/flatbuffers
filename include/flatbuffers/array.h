@@ -48,7 +48,7 @@ class Array {
   FLATBUFFERS_CONSTEXPR uint16_t size() const { return length; }
 
   return_type Get(uoffset_t i) const {
-    FLATBUFFERS_ASSERT(i < size());
+    FLATBUFFERS_SECURITY_CHECK(i < size());
     return IndirectHelper<T>::Read(Data(), i);
   }
 
@@ -85,7 +85,7 @@ class Array {
   //  automatically converted to the correct endianness.
   typename flatbuffers::conditional<scalar_tag::value, void, T*>::type
   GetMutablePointer(uoffset_t i) const {
-    FLATBUFFERS_ASSERT(i < size());
+    FLATBUFFERS_SECURITY_CHECK(i < size());
     return const_cast<T*>(&data()[i]);
   }
 
@@ -115,7 +115,7 @@ class Array {
 
  protected:
   void MutateImpl(flatbuffers::true_type, uoffset_t i, const T& val) {
-    FLATBUFFERS_ASSERT(i < size());
+    FLATBUFFERS_SECURITY_CHECK(i < size());
     WriteScalar(data() + i, val);
   }
 
