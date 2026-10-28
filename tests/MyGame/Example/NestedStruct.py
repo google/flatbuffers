@@ -86,13 +86,13 @@ class NestedStruct(object):
 
 def CreateNestedStruct(builder, a, b, c, d):
     builder.Prep(8, 32)
-    for _idx0 in range(2 , 0, -1):
+    for _idx0 in range(2, 0, -1):
         builder.PrependInt64(d[_idx0-1])
     builder.Pad(5)
-    for _idx0 in range(2 , 0, -1):
+    for _idx0 in range(2, 0, -1):
         builder.PrependInt8(c[_idx0-1])
     builder.PrependInt8(b)
-    for _idx0 in range(2 , 0, -1):
+    for _idx0 in range(2, 0, -1):
         builder.PrependInt32(a[_idx0-1])
     return builder.Offset()
 
@@ -162,4 +162,13 @@ class NestedStructT(object):
 
     # NestedStructT
     def Pack(self, builder):
-        return CreateNestedStruct(builder, self.a, self.b, self.c, self.d)
+        builder.Prep(8, 32)
+        for _idx0 in range(2, 0, -1):
+            builder.PrependInt64(self.d[_idx0-1])
+        builder.Pad(5)
+        for _idx0 in range(2, 0, -1):
+            builder.PrependInt8(self.c[_idx0-1])
+        builder.PrependInt8(self.b)
+        for _idx0 in range(2, 0, -1):
+            builder.PrependInt32(self.a[_idx0-1])
+        return builder.Offset()

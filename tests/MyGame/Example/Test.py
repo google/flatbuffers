@@ -67,4 +67,8 @@ class TestT(object):
 
     # TestT
     def Pack(self, builder):
-        return CreateTest(builder, self.a, self.b)
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(self.b)
+        builder.PrependInt16(self.a)
+        return builder.Offset()
