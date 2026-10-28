@@ -131,6 +131,16 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
     }
   }
 
+  // The bfbs schema's `root_table` field is optional (see
+  // reflection/reflection.fbs Schema.root_table) and `RootTable()` may also
+  // return null when an explicit root-table-name override is set but the
+  // named table is not present in `schema_->objects()`. Without a root
+  // table we cannot meaningfully annotate the binary, so bail gracefully
+  // instead of dereferencing a null pointer in BuildHeader / BuildTable
+  // below. Mirrors the fix applied to bfbs_gen_lua.cpp in #8770.
+  const reflection::Object* const root = RootTable();
+  if (root == nullptr || root->name() == nullptr) { return {}; }
+
   // The binary is too short to read as a flatbuffers.
   if (binary_length_ < FLATBUFFERS_MIN_BUFFER_SIZE) {
     return {};
