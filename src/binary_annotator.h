@@ -461,6 +461,10 @@ class BinaryAnnotator {
 
   // The annotated binary sections, index by their absolute offset.
   std::map<uint64_t, BinarySection> sections_;
+
+  // Active inline struct recursion stack used to stop cyclic struct traversal.
+  std::vector<const reflection::Object*> active_structs_;
+  bool struct_traversal_aborted_ = false;
 };
 
 }  // namespace flatbuffers
