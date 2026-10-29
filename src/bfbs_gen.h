@@ -72,7 +72,9 @@ static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_index_by_id[field->id()] = i;
+    if (field->id() < field_index_by_id.size()) {
+      field_index_by_id[field->id()] = i;
+    }
   }
 
   return field_index_by_id;
