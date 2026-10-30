@@ -748,6 +748,26 @@ void UnicodeTest() {
   TEST_EQ_STR(jsongen.c_str(),
               "{F: \"\\u20AC\\u00A2\\u30E6\\u30FC\\u30B6\\u30FC"
               "\\u5225\\u30B5\\u30A4\\u30C8\\u20AC\\u0080\\uD83D\\uDE0E\"}");
+
+  parser.opts.natural_utf8 = true;
+  parser.opts.strict_json = true;
+  TEST_EQ(parser.ParseJson(
+              "{\"F\":\"\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006"
+              "\\u0007\\u0008\\u0009\\u000A\\u000B\\u000C\\u000D\\u000E"
+              "\\u000F\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016"
+              "\\u0017\\u0018\\u0019\\u001A\\u001B\\u001C\\u001D\\u001E"
+              "\\u001F\\u20AC\\uD83D\\uDE00\"}"),
+          true);
+  jsongen.clear();
+  result = GenText(parser, parser.builder_.GetBufferPointer(), &jsongen);
+  TEST_NULL(result);
+  TEST_EQ_STR(jsongen.c_str(),
+              "{\"F\": \"\\u0000\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006"
+              "\\u0007\\b\\t\\n\\u000B\\f\\r\\u000E\\u000F\\u0010\\u0011"
+              "\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019"
+              "\\u001A\\u001B\\u001C\\u001D\\u001E\\u001F"
+              "\xE2\x82\xAC\xF0\x9F\x98\x80\"}");
+  TEST_EQ(parser.ParseJson(jsongen.c_str()), true);
 }
 
 void UnicodeTestAllowNonUTF8() {
