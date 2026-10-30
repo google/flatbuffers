@@ -1211,14 +1211,14 @@ bit more directly.
     Offset<Vector<byte>> inventory = builder.EndVector();
 
       // Start building a path vector of length 2.
-    Monster.StartPathVector(fbb, 2);
+    Monster.StartPathVector(builder, 2);
 
     // Serialize the individual Vec3 structs
     Vec3.CreateVec3(builder, 1.0f, 2.0f, 3.0f);
     Vec3.CreateVec3(builder, 4.0f, 5.0f, 6.0f);
 
     // End the vector to get the offset
-    Offset<Vector<Vec3>> path = fbb.EndVector();
+    Offset<Vector<Vec3>> path = builder.EndVector();
     ```
 
 === "Dart"
