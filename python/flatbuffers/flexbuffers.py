@@ -1276,7 +1276,7 @@ class Builder:
 
   def Null(self, key=None):
     """Encodes None value."""
-    if key:
+    if key is not None:
       self.Key(key)
     self._stack.append(Value.Null())
 
@@ -1368,7 +1368,7 @@ class Builder:
 
   @contextlib.contextmanager
   def Vector(self, key=None):
-    if key:
+    if key is not None:
       self.Key(key)
 
     try:
@@ -1390,7 +1390,7 @@ class Builder:
 
   @contextlib.contextmanager
   def TypedVector(self, key=None):
-    if key:
+    if key is not None:
       self.Key(key)
 
     try:
@@ -1504,7 +1504,7 @@ class Builder:
 
   @contextlib.contextmanager
   def Map(self, key=None):
-    if key:
+    if key is not None:
       self.Key(key)
 
     try:
