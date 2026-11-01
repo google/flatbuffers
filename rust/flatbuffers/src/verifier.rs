@@ -1,5 +1,9 @@
 use crate::follow::Follow;
-use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
+use crate::table::Table;
+use crate::{
+    ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET,
+    SIZE_VOFFSET,
+};
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 use core::ops::Range;
@@ -374,6 +378,19 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     ) -> Result<TableVerifier<'ver, 'opts, 'buf>> {
         let vtable_pos = self.deref_soffset(table_pos)?;
         let vtable_len = self.get_u16(vtable_pos)? as usize;
+        // A vtable always contains the two header VOffsetTs (`num_bytes` and
+        // `object_inline_num_bytes`). Anything shorter than that cannot be read
+        // through the safe VTable API, so reject it up front. Without this
+        // check `range_in_buffer(vtable_pos, vtable_len)` below trivially
+        // succeeds for `vtable_len == 0` and the safe read
+        // `VTable::object_inline_num_bytes()` (and `VTable::num_fields`, which
+        // would underflow) escapes the buffer.
+        if vtable_len < 2 * SIZE_VOFFSET {
+            return InvalidFlatbuffer::new_range_oob(
+                vtable_pos,
+                vtable_pos.saturating_add(vtable_len),
+            );
+        }
         self.is_aligned::<VOffsetT>(vtable_pos.saturating_add(vtable_len))?; // i.e. vtable_len is even.
         self.range_in_buffer(vtable_pos, vtable_len)?;
         // Check bounds.
@@ -521,6 +538,23 @@ impl<T: Verifiable> Verifiable for ForwardsUOffset<T> {
     }
 }
 
+/// Verifies that `pos` holds a valid table, without knowing the schema of that
+/// table: it checks the `soffset` at `pos` dereferences in-bounds and that the
+/// vtable it points to lies completely inside the buffer.
+///
+/// This is the fallback used for union values whose discriminant is not one the
+/// reader knows about: the concrete variant cannot be recovered, but a Rust
+/// reader always interprets a union value as `ForwardsUOffset<Table>`
+/// (see the generated `_as_*`/`union` accessors), so the verifier must at least
+/// guarantee that this is a traversable table.
+impl<'a> Verifiable for Table<'a> {
+    #[inline]
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
+        v.visit_table(pos)?.finish();
+        Ok(())
+    }
+}
+
 /// Checks and returns the range containing the flatbuffers vector.
 fn verify_vector_range<T>(v: &mut Verifier, pos: usize) -> Result<core::ops::Range<usize>> {
     let len = v.get_uoffset(pos)? as usize;
@@ -627,3 +661,284 @@ impl_verifiable_for!(f32);
 impl_verifiable_for!(u64);
 impl_verifiable_for!(i64);
 impl_verifiable_for!(f64);
+
+#[cfg(all(test, feature = "std"))]
+mod tests {
+    use super::*;
+    use crate::{FlatBufferBuilder, WIPOffset};
+
+    // ---------------------------------------------------------------------
+    // Stand-ins for what flatc generates for
+    //
+    //     union Any { Leaf, Inner }
+    //     table Leaf { name:string; }
+    //     table Inner { label:string; }
+    //     table Root { req_str:string (required); choice:Any; }
+    //
+    // The field slots used here (18/20 for the union, 26 for the required
+    // string) are the same ones the corrupt buffers below are built with.
+    // Writing the accessors by hand keeps the regression tests free of a
+    // flatc build step.
+    // ---------------------------------------------------------------------
+
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    struct Any(u8);
+
+    impl<'a> Follow<'a> for Any {
+        type Inner = Any;
+
+        #[inline]
+        unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+            Any(buf[loc])
+        }
+    }
+
+    impl Verifiable for Any {
+        #[inline]
+        fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
+            <u8 as Verifiable>::run_verifier(v, pos)
+        }
+    }
+
+    macro_rules! union_member {
+        ($name:ident, $field:literal) => {
+            struct $name<'a> {
+                _tab: Table<'a>,
+            }
+
+            impl<'a> Follow<'a> for $name<'a> {
+                type Inner = $name<'a>;
+
+                #[inline]
+                unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+                    $name { _tab: unsafe { Table::follow(buf, loc) } }
+                }
+            }
+
+            impl<'a> Verifiable for $name<'a> {
+                fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
+                    v.visit_table(pos)?
+                        .visit_field::<ForwardsUOffset<&str>>($field, 4, false)?
+                        .finish();
+                    Ok(())
+                }
+            }
+        };
+    }
+
+    union_member!(Leaf, "name");
+    union_member!(Inner, "label");
+
+    #[derive(Debug)]
+    struct Root<'a> {
+        tab: Table<'a>,
+    }
+
+    impl<'a> Follow<'a> for Root<'a> {
+        type Inner = Root<'a>;
+
+        #[inline]
+        unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+            Root { tab: unsafe { Table::follow(buf, loc) } }
+        }
+    }
+
+    impl<'a> Root<'a> {
+        /// Random access is safe once the verifier accepted the buffer, which
+        /// is exactly the contract of the generated accessors.
+        fn choice_type(&self) -> u8 {
+            unsafe { self.tab.get::<u8>(18, None) }.unwrap_or(0)
+        }
+
+        fn choice(&self) -> Option<Table<'a>> {
+            unsafe { self.tab.get::<ForwardsUOffset<Table<'a>>>(20, None) }
+        }
+    }
+
+    impl<'a> Verifiable for Root<'a> {
+        fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
+            v.visit_table(pos)?
+                .visit_field::<ForwardsUOffset<&str>>("req_str", 26, true)?
+                .visit_union::<Any, _>(
+                    "choice_type",
+                    18,
+                    "choice",
+                    20,
+                    false,
+                    |key, v, pos| match key.0 {
+                        1 => v.verify_union_variant::<ForwardsUOffset<Leaf>>("Any::Leaf", pos),
+                        2 => v.verify_union_variant::<ForwardsUOffset<Inner>>("Any::Inner", pos),
+                        // `src/idl_gen_rust.cpp` now emits this arm instead of
+                        // `Ok(())`: the value of a union with an unknown
+                        // discriminant is still read as a `Table` by the safe
+                        // accessors, so the verifier has to prove it is one.
+                        _ => v.verify_union_variant::<ForwardsUOffset<Table<'static>>>(
+                            "Any::<unknown>",
+                            pos,
+                        ),
+                    },
+                )?
+                .finish();
+            Ok(())
+        }
+    }
+
+    /// A well formed table: `root::<Table>` also has to keep accepting it, now
+    /// that `Table` implements `Verifiable`.
+    #[test]
+    fn valid_table_is_accepted() {
+        let mut builder = FlatBufferBuilder::new();
+        let name = builder.create_string("abcd");
+        let root = {
+            let wip = builder.start_table();
+            builder.push_slot_always::<WIPOffset<&str>>(4, name);
+            builder.end_table(wip)
+        };
+        builder.finish(root, None);
+        let buf = builder.finished_data();
+
+        let tab = crate::root::<Table>(buf).expect("valid table must verify");
+        let vtable = tab.vtable();
+        assert_eq!(vtable.num_bytes(), 6);
+        assert_eq!(vtable.object_inline_num_bytes(), 8);
+    }
+
+    /// A well formed union: a known discriminant whose value is a valid table
+    /// must still verify and stay readable.
+    #[test]
+    fn valid_union_is_accepted() {
+        let mut builder = FlatBufferBuilder::new();
+        let leaf_name = builder.create_string("leaf");
+        let leaf = {
+            let wip = builder.start_table();
+            builder.push_slot_always::<WIPOffset<&str>>(4, leaf_name);
+            builder.end_table(wip)
+        };
+        let req_str = builder.create_string("req");
+        let root = {
+            let wip = builder.start_table();
+            builder.push_slot::<u8>(18, 1, 0); // choice_type = Any::Leaf
+            builder.push_slot_always::<WIPOffset<Leaf>>(20, WIPOffset::new(leaf.value()));
+            builder.push_slot_always::<WIPOffset<&str>>(26, req_str);
+            builder.end_table(wip)
+        };
+        builder.finish(root, None);
+        let buf = builder.finished_data();
+
+        let root = crate::root::<Root>(buf).expect("valid union must verify");
+        assert_eq!(root.choice_type(), 1);
+        let choice = root.choice().expect("verified union value is reachable");
+        assert_eq!(unsafe { choice.get::<ForwardsUOffset<&str>>(4, None) }, Some("leaf"));
+    }
+
+    /// A vtable that declares a length of zero and ends the buffer. The
+    /// verifier used to accept it (a zero length range is trivially in bounds)
+    /// and the safe `VTable::object_inline_num_bytes()` then read two bytes
+    /// past the end of the buffer.
+    #[test]
+    fn zero_length_vtable_is_rejected() {
+        let mut buf = vec![0u8; 14];
+        buf[0..4].copy_from_slice(&4u32.to_le_bytes()); // uoffset -> root table @ 4
+        buf[4..8].copy_from_slice(&(-8i32).to_le_bytes()); // soffset -> vtable @ 12
+        buf[12..14].copy_from_slice(&0u16.to_le_bytes()); // vtable num_bytes == 0
+
+        let err = crate::root::<Table>(&buf).expect_err("zero length vtable must be rejected");
+        assert!(
+            matches!(err, InvalidFlatbuffer::RangeOutOfBounds { .. }),
+            "unexpected error: {:?}",
+            err
+        );
+    }
+
+    /// A vtable that only holds `num_bytes`: the `object_inline_num_bytes`
+    /// header is missing, so this vtable cannot be read safely either.
+    #[test]
+    fn truncated_vtable_header_is_rejected() {
+        let mut buf = vec![0u8; 16];
+        buf[0..4].copy_from_slice(&4u32.to_le_bytes()); // uoffset -> root table @ 4
+        buf[4..8].copy_from_slice(&(-8i32).to_le_bytes()); // soffset -> vtable @ 12
+        buf[12..14].copy_from_slice(&2u16.to_le_bytes()); // vtable num_bytes == one VOffsetT
+
+        let err = crate::root::<Table>(&buf).expect_err("short vtable must be rejected");
+        assert!(
+            matches!(err, InvalidFlatbuffer::RangeOutOfBounds { .. }),
+            "unexpected error: {:?}",
+            err
+        );
+    }
+
+    /// The union value carries an unknown discriminant (99), so the reader
+    /// cannot tell which variant it is, but it still reads the value as a
+    /// `Table`. The verifier used to skip the value entirely (`_ => Ok(())`)
+    /// and the value's `soffset` led to a vtable starting on the last byte of
+    /// the buffer. Rejected because the value must be a traversable table.
+    #[test]
+    fn unknown_union_discriminant_is_rejected() {
+        let mut buf = vec![0u8; 68];
+        buf[0..4].copy_from_slice(&4u32.to_le_bytes()); // uoffset -> root table @ 4
+        buf[4..8].copy_from_slice(&(-36i32).to_le_bytes()); // soffset -> root vtable @ 40
+        buf[8..12].copy_from_slice(&16u32.to_le_bytes()); // req_str @ 26 -> string @ 24
+        buf[12..16].copy_from_slice(&8u32.to_le_bytes()); // choice @ 20 -> value @ 20
+        buf[16] = 99; // discriminant: neither Any::NONE, Any::Leaf nor Any::Inner
+        buf[20..24].copy_from_slice(&(-47i32).to_le_bytes()); // value soffset -> vtable @ 67
+        buf[24..28].copy_from_slice(&4u32.to_le_bytes()); // required string length
+        buf[28..32].copy_from_slice(b"abcd");
+        // root vtable @ 40
+        buf[40..42].copy_from_slice(&28u16.to_le_bytes()); // num_bytes
+        buf[42..44].copy_from_slice(&16u16.to_le_bytes()); // object_inline_num_bytes
+        buf[58..60].copy_from_slice(&12u16.to_le_bytes()); // choice_type @ 18 -> 4 + 12
+        buf[60..62].copy_from_slice(&8u16.to_le_bytes()); // choice @ 20 -> 4 + 8
+        buf[66..68].copy_from_slice(&4u16.to_le_bytes()); // req_str @ 26 -> 4 + 4
+
+        let err = crate::root::<Root>(&buf)
+            .expect_err("a union value with an unknown discriminant must be verified");
+        // The exact flavour of the failure is not the point (the value's vtable
+        // starts on the last byte of the buffer, so reading its `num_bytes` is
+        // either misaligned or out of range): the error has to come from
+        // verifying the union value, which is exactly what used to be skipped.
+        let rejected_in_union_value = match &err {
+            InvalidFlatbuffer::RangeOutOfBounds { error_trace, .. }
+            | InvalidFlatbuffer::Unaligned { error_trace, .. } => error_trace
+                .as_ref()
+                .iter()
+                .any(|detail| matches!(detail, ErrorTraceDetail::UnionVariant { .. })),
+            _ => false,
+        };
+        assert!(
+            rejected_in_union_value,
+            "union value was not verified: {:?}",
+            err
+        );
+    }
+
+    /// A known discriminant (Any::Leaf) whose value is a table with a
+    /// degenerate vtable: `num_bytes == 0`, stored in the last two bytes of
+    /// the buffer. The value used to verify, and the safe
+    /// `VTable::object_inline_num_bytes()` then read past the end.
+    #[test]
+    fn union_value_with_degenerate_vtable_is_rejected() {
+        let mut buf = vec![0u8; 80];
+        buf[0..4].copy_from_slice(&4u32.to_le_bytes()); // uoffset -> root table @ 4
+        buf[4..8].copy_from_slice(&(-38i32).to_le_bytes()); // soffset -> root vtable @ 42
+        buf[12..16].copy_from_slice(&8u32.to_le_bytes()); // choice @ 20 -> value @ 20
+        buf[16] = 1; // choice_type = Any::Leaf
+        buf[32..36].copy_from_slice(&0u32.to_le_bytes()); // empty required string @ 32
+        // root vtable @ 42
+        buf[42..44].copy_from_slice(&36u16.to_le_bytes()); // num_bytes
+        buf[44..46].copy_from_slice(&32u16.to_le_bytes()); // object_inline_num_bytes
+        buf[60..62].copy_from_slice(&12u16.to_le_bytes()); // choice_type @ 18 -> 4 + 12
+        buf[62..64].copy_from_slice(&8u16.to_le_bytes()); // choice @ 20 -> 4 + 8
+        buf[68..70].copy_from_slice(&28u16.to_le_bytes()); // req_str @ 26 -> 4 + 28
+        // union value: table @ 20 whose vtable is the last two bytes
+        buf[20..24].copy_from_slice(&(-58i32).to_le_bytes()); // soffset -> vtable @ 78
+        buf[78..80].copy_from_slice(&0u16.to_le_bytes()); // degenerate vtable
+
+        let err = crate::root::<Root>(&buf)
+            .expect_err("a union value with a degenerate vtable must be rejected");
+        assert!(
+            matches!(err, InvalidFlatbuffer::RangeOutOfBounds { .. }),
+            "unexpected error: {:?}",
+            err
+        );
+    }
+}
