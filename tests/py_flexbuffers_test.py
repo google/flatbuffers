@@ -1473,6 +1473,45 @@ class EncoderTest(unittest.TestCase):
     keys = get_keys(data)
     self.assertEqual(sorted(keys), keys)
 
+  def test_optional_map_keys(self):
+    for method, value in (
+        ('Null', None),
+        ('Vector', [1]),
+        ('TypedVector', [1]),
+        ('Map', {'x': 1}),
+    ):
+      for key in (None, '', b'', bytearray(), 'named', b'named'):
+        for share_keys in (False, True):
+          with self.subTest(method=method, key=key, share_keys=share_keys):
+            fbb = flexbuffers.Builder(share_keys=share_keys)
+
+            def add_value():
+              if method == 'Null':
+                fbb.Null(key)
+              else:
+                with getattr(fbb, method)(key):
+                  if method == 'Map':
+                    fbb.Int('x', 1)
+                  else:
+                    fbb.Int(1)
+
+            if key is None:
+              add_value()
+              expected = value
+            else:
+              decoded_key = key if isinstance(key, str) else key.decode('ascii')
+              with fbb.Map():
+                add_value()
+                fbb.Int('other', 2)
+              expected = {decoded_key: value, 'other': 2}
+
+            data = fbb.Finish()
+            self.assertEqual(flexbuffers.Loads(data), expected)
+            if key is not None:
+              self.assertEqual(
+                  flexbuffers.GetRoot(data).AsMap[decoded_key].Value, value
+              )
+
   def test_map_python(self):
     maps = [
         {},
