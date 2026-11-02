@@ -213,6 +213,9 @@ target_link_libraries(verifier_fuzzer PRIVATE flatbuffers_fuzzed)
 add_executable(flexverifier_fuzzer flexbuffers_verifier_fuzzer.cc)
 target_link_libraries(flexverifier_fuzzer PRIVATE flatbuffers_fuzzed)
 
+add_executable(reflection_fuzzer flatbuffers_reflection_fuzzer.cc)
+target_link_libraries(reflection_fuzzer PRIVATE flatbuffers_fuzzed)
+
 add_executable(monster_fuzzer flatbuffers_monster_fuzzer.cc)
 target_link_libraries(monster_fuzzer PRIVATE flatbuffers_fuzzed)
 
