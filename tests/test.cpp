@@ -1852,6 +1852,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
   SizeVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
+  JsonDeepSortedKeyedVectorTest();
+  ProtoNestedMessageStackTest();
   VectorSpanTest();
   NativeInlineTableVectorTest();
   FixedSizedScalarKeyInStructTest();
