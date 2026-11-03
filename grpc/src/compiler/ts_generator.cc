@@ -504,7 +504,6 @@ grpc::string GenerateInterface(grpc_generator::File* file,
                                const grpc::string& filename) {
   grpc::string output;
 
-  std::set<grpc::string> generated_functions;
   std::map<grpc::string, grpc::string> vars;
 
   vars["PATH"] = file->package();
