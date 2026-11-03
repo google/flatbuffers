@@ -413,7 +413,7 @@ ClassicLocale ClassicLocale::instance_;
   ClassicLocale::~ClassicLocale() { _free_locale(locale_); }
 #else
   ClassicLocale::ClassicLocale()
-    : locale_(newlocale(LC_ALL, "C", (locale_t)0)) {}
+    : locale_(newlocale(LC_ALL, "C", static_cast<locale_t>(0))) {}
   ClassicLocale::~ClassicLocale() { freelocale(locale_); }
 #endif
 // clang-format on
