@@ -15,7 +15,7 @@ swift_library(
     srcs = glob([
         "Sources/FlatBuffers/*.swift",
         "Sources/FlatBuffers/Vectors/*.swift",
-        "Sources/Common/*.swift"
+        "Sources/Common/*.swift",
     ]),
     module_name = "FlatBuffers",
     visibility = ["//visibility:public"],
