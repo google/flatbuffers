@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if os(WASI)
+import WASILibc
+#else
 import Foundation
+#endif
 
 /// FlatBuffersUtils hosts some utility functions that might be useful
 public enum FlatBuffersUtils {

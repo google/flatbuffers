@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if os(WASI)
+import WASILibc
+#else
 import Foundation
+#endif
 
 /// A boolean to see if the system is littleEndian
 public let isLitteEndian: Bool = {
