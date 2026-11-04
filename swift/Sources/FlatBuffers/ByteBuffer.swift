@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if os(WASI)
+import WASILibc
+#else
 import Foundation
+#endif
 
 /// `ByteBuffer` is the interface that stores the data for a `Flatbuffers` object
 /// it allows users to write and read data directly from memory thus the use of its

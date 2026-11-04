@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if os(WASI)
+import WASILibc
+#else
 import Foundation
+#endif
 
 @inline(__always)
 private func verifySizePrefix(
