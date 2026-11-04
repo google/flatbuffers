@@ -41,7 +41,7 @@ static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Mon
 }
 
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
-  return bb.__has_identifier('MONS');
+  return bb.__has_identifier("MONS");
 }
 
 pos(obj?:Vec3):Vec3|null {
@@ -1293,11 +1293,11 @@ static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
 }
 
 static finishMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MONS');
+  builder.finish(offset, "MONS");
 }
 
 static finishSizePrefixedMonsterBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MONS', true);
+  builder.finish(offset, "MONS", true);
 }
 
 

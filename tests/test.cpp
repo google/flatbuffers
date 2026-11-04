@@ -37,6 +37,7 @@
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
 #include "evolution_test.h"
+#include "file_identifier_escape_test.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
@@ -1860,6 +1861,9 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedSizedStructArrayKeyInStructTest();
   EmbeddedSchemaAccess();
   Offset64Tests();
+  FileIdentifierEscapeTest();
+  FileIdentifierBfbsEscapeTest();
+  FileIdentifierBfbsLengthTest();
   UnionUnderlyingTypeTest();
   StructsInHashTableTest();
   DefaultVectorsStringsTest();

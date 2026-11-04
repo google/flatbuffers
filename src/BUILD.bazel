@@ -35,6 +35,50 @@ cc_library(
     deps = [":code_generators"],
 )
 
+# Language code generators (plus their gRPC helpers), linked into tests that
+# inspect the source they emit for a schema (e.g. the file_identifier
+# escaping regression tests).
+cc_library(
+    name = "language_generators",
+    srcs = [
+        "idl_gen_cpp.cpp",
+        "idl_gen_cpp.h",
+        "idl_gen_csharp.cpp",
+        "idl_gen_csharp.h",
+        "idl_gen_go.cpp",
+        "idl_gen_go.h",
+        "idl_gen_grpc.cpp",
+        "idl_gen_java.cpp",
+        "idl_gen_java.h",
+        "idl_gen_kotlin.cpp",
+        "idl_gen_kotlin.h",
+        "idl_gen_kotlin_kmp.cpp",
+        "idl_gen_php.cpp",
+        "idl_gen_php.h",
+        "idl_gen_rust.cpp",
+        "idl_gen_rust.h",
+        "idl_gen_swift.cpp",
+        "idl_gen_swift.h",
+        "idl_gen_ts.cpp",
+        "idl_gen_ts.h",
+        "idl_namer.h",
+        "namer.h",
+    ],
+    strip_include_prefix = "/src",
+    visibility = ["//tests:__subpackages__"],
+    deps = [
+        ":code_generators",
+        "//grpc/src/compiler:cpp_generator",
+        "//grpc/src/compiler:go_generator",
+        "//grpc/src/compiler:java_generator",
+        "//grpc/src/compiler:python_generator",
+        "//grpc/src/compiler:swift_generator",
+        "//grpc/src/compiler:ts_generator",
+        "//include/codegen:namer",
+        "//include/codegen:python",
+    ],
+)
+
 # Public flatc library to compile flatbuffer files at runtime.
 cc_library(
     name = "flatbuffers",

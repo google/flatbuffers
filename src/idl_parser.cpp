@@ -4443,6 +4443,13 @@ bool Parser::Deserialize(const uint8_t* buf, const size_t size) {
 
 bool Parser::Deserialize(const reflection::Schema* schema) {
   file_identifier_ = schema->file_ident() ? schema->file_ident()->str() : "";
+  // A FlatBuffer file identifier is exactly kFileIdentifierLength bytes (the
+  // same rule the .fbs parser enforces for `file_identifier`); reject schemas
+  // whose file_ident cannot be represented instead of embedding it.
+  if (!file_identifier_.empty() &&
+      file_identifier_.length() != flatbuffers::kFileIdentifierLength) {
+    return false;
+  }
   file_extension_ = schema->file_ext() ? schema->file_ext()->str() : "";
   std::map<std::string, Namespace*> namespaces_index;
 

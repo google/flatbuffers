@@ -652,7 +652,8 @@ class CppGenerator : public BaseGenerator {
       if (parser_.file_identifier_.length()) {
         // Return the identifier
         code_ += "inline const char *{{STRUCT_NAME}}Identifier() {";
-        code_ += "  return \"" + parser_.file_identifier_ + "\";";
+        code_ +=
+            "  return " + EscapeStringLiteral(parser_.file_identifier_) + ";";
         code_ += "}";
         code_ += "";
 
