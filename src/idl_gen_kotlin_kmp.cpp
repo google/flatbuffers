@@ -1393,7 +1393,12 @@ class KotlinKMPGenerator : public BaseGenerator {
              ? config->content_line_prefix
              : "///");
     for (auto it = dc.begin(); it != dc.end(); ++it) {
-      writer += line_prefix + *it;
+      std::string line = *it;
+      // A block-comment emitter must not let doc text end the comment early.
+      if (config != nullptr && config->first_line != nullptr) {
+        line = EscapeBlockCommentLine(line);
+      }
+      writer += line_prefix + line;
     }
     if (config != nullptr && config->last_line != nullptr) {
       writer += std::string(config->last_line);

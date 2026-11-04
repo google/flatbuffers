@@ -35,6 +35,8 @@ cc_test(
         "alignment_test_generated.h",
         "default_vectors_strings_test.cpp",
         "default_vectors_strings_test.h",
+        "doc_comment_escape_test.cpp",
+        "doc_comment_escape_test.h",
         "evolution_test.cpp",
         "evolution_test.h",
         "evolution_test/evolution_v1_generated.h",
@@ -144,6 +146,7 @@ cc_test(
         ":native_type_test_cc_fbs",
         "//:flatbuffers",
         "//src:generate_fbs",
+        "//src:language_generators",
     ],
 )
 
