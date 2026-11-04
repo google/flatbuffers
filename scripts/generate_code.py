@@ -379,6 +379,13 @@ flatc(
 )
 
 flatc(
+    ["--cpp", "--gen-compare", "--gen-mutable", "--gen-object-api", "--reflect-names",
+     "--bfbs-gen-embed"],
+    prefix="64bit",
+    schema="64bit/test_64bit.fbs",
+)
+
+flatc(
     ["--cpp", "--gen-compare", "--gen-mutable", "--gen-object-api", "--reflect-names"],
     schema="native_type_test.fbs",
 )

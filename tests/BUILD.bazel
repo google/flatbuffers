@@ -33,6 +33,7 @@ cc_test(
         "alignment_test.cpp",
         "alignment_test.h",
         "alignment_test_generated.h",
+        "cross_namespace_pack_test_generated.h",
         "default_vectors_strings_test.cpp",
         "default_vectors_strings_test.h",
         "evolution_test.cpp",
@@ -52,7 +53,6 @@ cc_test(
         "monster_test.cpp",
         "monster_test.h",
         "monster_test_bfbs_generated.h",
-        "cross_namespace_pack_test_generated.h",
         "namespace_test/namespace_test1_generated.h",
         "namespace_test/namespace_test2_generated.h",
         "native_inline_table_test_generated.h",
@@ -77,8 +77,8 @@ cc_test(
         "util_test.cpp",
         "util_test.h",
         "vector_table_naked_ptr/vector_table_naked_ptr_generated.h",
-        "vector_table_naked_ptr_test.h",
         "vector_table_naked_ptr_test.cpp",
+        "vector_table_naked_ptr_test.h",
     ],
     copts = [
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
@@ -292,6 +292,7 @@ flatbuffer_cc_library(
 flatbuffer_cc_library(
     name = "default_vectors_strings_test_cc_fbs",
     srcs = ["default_vectors_strings_test.fbs"],
+    filename_suffix = ".fbs",
     flatc_args = [
         "--gen-compare",
         "--gen-mutable",
@@ -299,5 +300,4 @@ flatbuffer_cc_library(
         "--reflect-names",
         "--filename-suffix .fbs",
     ],
-    filename_suffix = ".fbs"
 )
