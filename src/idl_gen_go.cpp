@@ -318,8 +318,8 @@ class GoGenerator : public BaseGenerator {
                                parser_.file_identifier_.length();
 
     if (has_file_identifier) {
-      code += "const " + struct_type + "Identifier = \"" +
-              parser_.file_identifier_ + "\"\n\n";
+      code += "const " + struct_type + "Identifier = " +
+              EscapeStringLiteral(parser_.file_identifier_) + "\n\n";
     }
 
     for (int i = 0; i < 2; i++) {

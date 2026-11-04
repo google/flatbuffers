@@ -29,7 +29,7 @@ static getSizePrefixedRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
 }
 
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
-  return bb.__has_identifier('MOVI');
+  return bb.__has_identifier("MOVI");
 }
 
 mainCharacterType():Character {
@@ -121,11 +121,11 @@ static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
 }
 
 static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MOVI');
+  builder.finish(offset, "MOVI");
 }
 
 static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MOVI', true);
+  builder.finish(offset, "MOVI", true);
 }
 
 static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {

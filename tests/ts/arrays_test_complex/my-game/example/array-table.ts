@@ -37,7 +37,7 @@ export class ArrayTable implements flatbuffers.IUnpackableObject<ArrayTableT> {
   }
 
   static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
-    return bb.__has_identifier('RHUB');
+    return bb.__has_identifier("RHUB");
   }
 
   a(): string | null;
@@ -84,14 +84,14 @@ export class ArrayTable implements flatbuffers.IUnpackableObject<ArrayTableT> {
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'RHUB');
+    builder.finish(offset, "RHUB");
   }
 
   static finishSizePrefixedArrayTableBuffer(
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'RHUB', true);
+    builder.finish(offset, "RHUB", true);
   }
 
   unpack(): ArrayTableT {

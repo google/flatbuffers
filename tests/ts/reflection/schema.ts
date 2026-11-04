@@ -37,7 +37,7 @@ export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
   }
 
   static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
-    return bb.__has_identifier('BFBS');
+    return bb.__has_identifier("BFBS");
   }
 
   objects(index: number, obj?: Object_): Object_ | null {
@@ -291,14 +291,14 @@ export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'BFBS');
+    builder.finish(offset, "BFBS");
   }
 
   static finishSizePrefixedSchemaBuffer(
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'BFBS', true);
+    builder.finish(offset, "BFBS", true);
   }
 
   unpack(): SchemaT {

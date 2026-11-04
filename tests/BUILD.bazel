@@ -39,6 +39,8 @@ cc_test(
         "evolution_test.h",
         "evolution_test/evolution_v1_generated.h",
         "evolution_test/evolution_v2_generated.h",
+        "file_identifier_escape_test.cpp",
+        "file_identifier_escape_test.h",
         "flexbuffers_test.cpp",
         "flexbuffers_test.h",
         "fuzz_test.cpp",
@@ -144,6 +146,7 @@ cc_test(
         ":native_type_test_cc_fbs",
         "//:flatbuffers",
         "//src:generate_fbs",
+        "//src:language_generators",
     ],
 )
 

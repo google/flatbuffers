@@ -566,8 +566,9 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "private var {{ACCESS}}: {{OBJECTTYPE}}\n";
     if (!struct_def.fixed) {
       if (parser_.file_identifier_.length()) {
-        code_.SetValue("FILENAME", parser_.file_identifier_);
-        code_ += "{{ACCESS_TYPE}} static var id: String { \"{{FILENAME}}\" } ";
+        code_.SetValue("FILENAME",
+                       EscapeStringLiteral(parser_.file_identifier_));
+        code_ += "{{ACCESS_TYPE}} static var id: String { {{FILENAME}} } ";
         code_ +=
             "{{ACCESS_TYPE}} static func finish(_ fbb: inout "
             "FlatBufferBuilder, end: "

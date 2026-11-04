@@ -820,7 +820,10 @@ class KotlinKMPGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      id = ", " + EscapeStringLiteral(identifier);
+    }
     auto gen_type = "Offset<" + namer_.Type(struct_def.name) + ">";
     auto params = "builder: FlatBufferBuilder, offset: " + gen_type;
     auto method_name =
@@ -834,7 +837,10 @@ class KotlinKMPGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      id = ", " + EscapeStringLiteral(identifier);
+    }
     auto gen_type = "Offset<" + namer_.Type(struct_def.name) + ">";
     auto params = "builder: FlatBufferBuilder, offset: " + gen_type;
     auto method_name =
@@ -1061,7 +1067,8 @@ class KotlinKMPGenerator : public BaseGenerator {
         writer, name + "BufferHasIdentifier", "buffer: ReadWriteBuffer",
         "Boolean",
         [&]() {
-          writer += "hasIdentifier(buffer, \"" + file_identifier + "\")";
+          writer += "hasIdentifier(buffer, " +
+                    EscapeStringLiteral(file_identifier) + ")";
         },
         options.gen_jvmstatic);
   }

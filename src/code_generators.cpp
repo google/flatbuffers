@@ -219,6 +219,14 @@ void GenComment(const std::vector<std::string>& dc, std::string* code_ptr,
   }
 }
 
+std::string EscapeStringLiteral(const std::string& s) {
+  std::string literal;
+  // allow_non_utf8=true: a literal is always emitted (odd bytes become \xNN),
+  // natural_utf8=false: non-ASCII is \uXXXX-encoded.
+  EscapeString(s.c_str(), s.length(), &literal, true, false);
+  return literal;
+}
+
 template <typename T>
 std::string FloatConstantGenerator::GenFloatConstantImpl(
     const FieldDef& field) const {

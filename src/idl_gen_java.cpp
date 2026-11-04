@@ -758,9 +758,9 @@ class JavaGenerator : public BaseGenerator {
                   namer_.LegacyJavaMethod2(
                       "", struct_def, "BufferHasIdentifier(ByteBuffer _bb)") +
                   " { return ";
-          code += "__has_identifier(_bb, \"";
-          code += parser_.file_identifier_;
-          code += "\"); }\n";
+          code += "__has_identifier(_bb, ";
+          code += EscapeStringLiteral(parser_.file_identifier_);
+          code += "); }\n";
         }
       }
     }
@@ -1264,7 +1264,7 @@ class JavaGenerator : public BaseGenerator {
           code += " builder.finish" + size_prefix[i] + "(offset";
 
           if (parser_.file_identifier_.length())
-            code += ", \"" + parser_.file_identifier_ + "\"";
+            code += ", " + EscapeStringLiteral(parser_.file_identifier_);
           code += "); }\n";
         }
       }

@@ -37,7 +37,7 @@ export class ScalarStuff {
   }
 
   static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
-    return bb.__has_identifier('NULL');
+    return bb.__has_identifier("NULL");
   }
 
   justI8(): number {
@@ -384,14 +384,14 @@ export class ScalarStuff {
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'NULL');
+    builder.finish(offset, "NULL");
   }
 
   static finishSizePrefixedScalarStuffBuffer(
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'NULL', true);
+    builder.finish(offset, "NULL", true);
   }
 
   static createScalarStuff(
