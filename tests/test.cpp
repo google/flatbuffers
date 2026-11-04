@@ -36,6 +36,7 @@
 #include "alignment_test.h"
 #include "cross_namespace_pack_test_generated.h"
 #include "default_vectors_strings_test.h"
+#include "doc_comment_escape_test.h"
 #include "evolution_test.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
@@ -1862,6 +1863,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   Offset64Tests();
   UnionUnderlyingTypeTest();
   StructsInHashTableTest();
+  DocCommentEscapeTest();
   DefaultVectorsStringsTest();
   CrossNamespacePackTest();
   return 0;
