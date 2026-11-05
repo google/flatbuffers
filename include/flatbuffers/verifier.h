@@ -160,11 +160,26 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return Verify(vec_offset, byte_size);
   }
 
+  // Resolve the target of a single offset element inside a vector of tables or
+  // strings. The offset is validated with VerifyOffset() (which checks bounds
+  // arithmetically) before any pointer is formed, so the verifier never
+  // dereferences or even materialises a pointer outside the buffer. Returns
+  // nullptr when the element is out of range, which fails verification.
+  const uint8_t* VerifyVectorElement(const size_t elem_location) const {
+    const size_t o = VerifyOffset<uoffset_t>(elem_location);
+    if (!o) return nullptr;
+    return buf_ + elem_location + o;
+  }
+
   // Special case for string contents, after the above has been called.
   bool VerifyVectorOfStrings(const Vector<Offset<String>>* const vec) const {
     if (vec) {
+      const size_t datao = static_cast<size_t>(vec->Data() - buf_);
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!VerifyString(vec->Get(i))) return false;
+        const uint8_t* const str =
+            VerifyVectorElement(datao + i * sizeof(uoffset_t));
+        if (!str || !VerifyString(reinterpret_cast<const String*>(str)))
+          return false;
       }
     }
     return true;
@@ -174,8 +189,12 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <typename T>
   bool VerifyVectorOfTables(const Vector<Offset<T>>* const vec) {
     if (vec) {
+      const size_t datao = static_cast<size_t>(vec->Data() - buf_);
       for (uoffset_t i = 0; i < vec->size(); i++) {
-        if (!vec->Get(i)->Verify(*this)) return false;
+        const uint8_t* const elem =
+            VerifyVectorElement(datao + i * sizeof(uoffset_t));
+        if (!elem || !reinterpret_cast<const T*>(elem)->Verify(*this))
+          return false;
       }
     }
     return true;
