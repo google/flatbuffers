@@ -1748,6 +1748,29 @@ void CrossNamespacePackTest() {
 int FlatBufferTests(const std::string& tests_data_path) {
   // Run our various test suites:
 
+  // A non-NONE union discriminator requires a payload for every alternative.
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    const auto movie = CreateMovie(fbb, Character_Other, {});
+    FinishMovieBuffer(fbb, movie);
+    flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+    TEST_EQ(VerifyMovieBuffer(verifier), false);
+  }
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    const auto movie = CreateMovie(
+        fbb, Character_Other, fbb.CreateString("present").Union());
+    FinishMovieBuffer(fbb, movie);
+    flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+    TEST_EQ(VerifyMovieBuffer(verifier), true);
+    auto native = std::unique_ptr<MovieT>(
+        GetMovie(fbb.GetBufferPointer())->UnPack());
+    flatbuffers::FlatBufferBuilder roundtrip;
+    FinishMovieBuffer(roundtrip, CreateMovie(roundtrip, native.get()));
+    flatbuffers::Verifier roundtrip_verifier(roundtrip.GetBufferPointer(),
+                                              roundtrip.GetSize());
+    TEST_EQ(VerifyMovieBuffer(roundtrip_verifier), true);
+  }
   std::string rawbuf;
   auto flatbuf1 = CreateFlatBufferTest(rawbuf);
   auto flatbuf = std::move(flatbuf1);  // Test move assignment.
