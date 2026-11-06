@@ -374,6 +374,17 @@ void Offset64SizePrefix() {
 
   // Verify the fields.
   TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
+
+  std::vector<uint8_t> tampered(builder.GetBufferPointer(),
+                                builder.GetBufferPointer() + builder.GetSize());
+  WriteScalar<uoffset64_t>(tampered.data(),
+                           (std::numeric_limits<uoffset64_t>::max)());
+
+  Verifier::Options tampered_options = options;
+  tampered_options.assert = false;
+  Verifier tampered_verifier(tampered.data(), tampered.size(),
+                             tampered_options);
+  TEST_EQ(VerifySizePrefixedRootTableBuffer(tampered_verifier), false);
 }
 
 void Offset64ManyVectors() {
