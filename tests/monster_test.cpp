@@ -1,5 +1,7 @@
 #include "monster_test.h"
 
+#include <cstdint>
+#include <cstring>
 #include <limits>
 #include <vector>
 
@@ -633,6 +635,35 @@ void SizePrefixedTest() {
                                            fbb.GetSize() - 10);
     TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_smaller), false);
   }
+
+  {
+    std::vector<uint8_t> corrupted(fbb.GetBufferPointer(),
+                                   fbb.GetBufferPointer() + fbb.GetSize());
+    const size_t buffer_size = corrupted.size();
+    // Mutate only the prefix. Payload remains valid.
+    const uoffset_t invalid_prefix =
+      buffer_size < static_cast<size_t>(std::numeric_limits<uoffset_t>::max())
+        ? static_cast<uoffset_t>(buffer_size) + static_cast<uoffset_t>(1)
+        : std::numeric_limits<uoffset_t>::max();
+    std::memcpy(corrupted.data(), &invalid_prefix, sizeof(invalid_prefix));
+
+    flatbuffers::Verifier verifier_invalid(corrupted.data(), corrupted.size());
+    // The declared payload size must not exceed the bytes after the prefix.
+    TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_invalid), false);
+  }
+
+#if UINTPTR_MAX == 0xffffffffu
+  {
+    std::vector<uint8_t> corrupted(fbb.GetBufferPointer(),
+                                   fbb.GetBufferPointer() + fbb.GetSize());
+    const uoffset_t overflow_prefix = std::numeric_limits<uoffset_t>::max();
+    std::memcpy(corrupted.data(), &overflow_prefix, sizeof(overflow_prefix));
+
+    flatbuffers::Verifier verifier_overflow(corrupted.data(), corrupted.size());
+    // On 32-bit builds, this documents the old wraparound behavior.
+    TEST_EQ(VerifySizePrefixedMonsterBuffer(verifier_overflow), false);
+  }
+#endif
 }
 
 void TestMonsterExtraFloats(const std::string& tests_data_path) {
