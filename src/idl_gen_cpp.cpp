@@ -1682,7 +1682,7 @@ class CppGenerator : public BaseGenerator {
           }
         } else if (IsString(ev.union_type)) {
           code_ += getptr;
-          code_ += "      return verifier.VerifyString(ptr);";
+          code_ += "      return ptr && verifier.VerifyString(ptr);";
         } else {
           FLATBUFFERS_ASSERT(false);
         }

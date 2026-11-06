@@ -875,11 +875,11 @@ inline bool VerifyCharacter(::flatbuffers::VerifierTemplate<B> &verifier, const 
     }
     case Character_Other: {
       auto ptr = reinterpret_cast<const ::flatbuffers::String *>(obj);
-      return verifier.VerifyString(ptr);
+      return ptr && verifier.VerifyString(ptr);
     }
     case Character_Unused: {
       auto ptr = reinterpret_cast<const ::flatbuffers::String *>(obj);
-      return verifier.VerifyString(ptr);
+      return ptr && verifier.VerifyString(ptr);
     }
     default: return true;
   }
