@@ -1080,7 +1080,7 @@ class Builder:
     self._Write(U, value.StoredPackedType(), byte_width=1)  # Root type
     self._Write(U, byte_width, byte_width=1)  # Root size
 
-    self.finished = True
+    self._finished = True
     return self._buf
 
   def _ReadKey(self, offset):
