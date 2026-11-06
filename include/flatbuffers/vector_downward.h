@@ -276,11 +276,25 @@ class vector_downward {
   uint8_t* scratch_;  // Points to the end of the scratchpad in use.
 
   void reallocate(size_t len) {
-    auto old_reserved = reserved_;
-    auto old_size = size();
-    auto old_scratch_size = scratch_size();
-    reserved_ +=
+    const auto old_reserved = reserved_;
+    const auto old_size = size();
+    const auto old_scratch_size = scratch_size();
+    const size_t grow =
         (std::max)(len, old_reserved ? old_reserved / 2 : initial_size_);
+    // Prevent size_t wrap-around on overflow-prone platforms (e.g. 32-bit
+    // builds with a 64-bit builder, or adversarially large `len` values).
+    // Clamp to `max_before_align` so that the alignment rounding step below
+    // is also guaranteed not to overflow (buffer_minalign_ is always a power
+    // of two, so the headroom needed is exactly buffer_minalign_ - 1).
+    // A clamped value near SIZE_MAX will cause the subsequent Allocate() /
+    // ReallocateDownward() call to fail (throw std::bad_alloc or return
+    // nullptr), which is a safe, deterministic failure rather than silent
+    // heap corruption from a wrapped allocation size.
+    const size_t max_before_align =
+        std::numeric_limits<size_t>::max() - (buffer_minalign_ - 1);
+    reserved_ = (grow <= max_before_align - reserved_)
+                    ? reserved_ + grow
+                    : max_before_align;
     reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
     if (buf_) {
       buf_ = ReallocateDownward(allocator_, buf_, old_reserved, reserved_,
