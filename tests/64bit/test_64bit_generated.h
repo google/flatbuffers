@@ -536,17 +536,17 @@ inline ::flatbuffers::Offset<RootTable> RootTable::Pack(::flatbuffers::FlatBuffe
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder64 *__fbb; const RootTableT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _far_vector = _o->far_vector.size() ? _fbb.CreateVector64<::flatbuffers::Vector>(_o->far_vector) : 0;
-  auto _a = _o->a;
   auto _far_string = _o->far_string.empty() ? 0 : _fbb.CreateString<::flatbuffers::Offset64>(_o->far_string);
   auto _big_bool_vector = _o->big_bool_vector.size() ? _fbb.CreateVector64(_o->big_bool_vector) : 0;
   auto _big_vector = _o->big_vector.size() ? _fbb.CreateVector64(_o->big_vector) : 0;
-  auto _near_string = _o->near_string.empty() ? 0 : _fbb.CreateString(_o->near_string);
   auto _nested_root = _o->nested_root.size() ? _fbb.CreateVector64(_o->nested_root) : 0;
   auto _far_struct_vector = _o->far_struct_vector.size() ? _fbb.CreateVectorOfStructs64<::flatbuffers::Vector>(_o->far_struct_vector) : 0;
   auto _big_struct_vector = _o->big_struct_vector.size() ? _fbb.CreateVectorOfStructs64(_o->big_struct_vector) : 0;
-  auto _many_vectors = _o->many_vectors.size() ? _fbb.CreateVector<::flatbuffers::Offset<WrapperTable>> (_o->many_vectors.size(), [](size_t i, _VectorArgs *__va) { return CreateWrapperTable(*__va->__fbb, __va->__o->many_vectors[i].get(), __va->__rehasher); }, &_va ) : 0;
-  _fbb.ForceVectorAlignment64(_o->forced_aligned_vector.size(), sizeof(uint8_t), 32);
+  if (_o->forced_aligned_vector.size()) { _fbb.ForceVectorAlignment64(_o->forced_aligned_vector.size(), sizeof(uint8_t), 32); }
   auto _forced_aligned_vector = _o->forced_aligned_vector.size() ? _fbb.CreateVector64(_o->forced_aligned_vector) : 0;
+  auto _a = _o->a;
+  auto _near_string = _o->near_string.empty() ? 0 : _fbb.CreateString(_o->near_string);
+  auto _many_vectors = _o->many_vectors.size() ? _fbb.CreateVector<::flatbuffers::Offset<WrapperTable>> (_o->many_vectors.size(), [](size_t i, _VectorArgs *__va) { return CreateWrapperTable(*__va->__fbb, __va->__o->many_vectors[i].get(), __va->__rehasher); }, &_va ) : 0;
   return CreateRootTable(
       _fbb,
       _far_vector,

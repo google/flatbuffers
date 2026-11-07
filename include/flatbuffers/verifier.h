@@ -196,7 +196,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
                           sizeof(voffset_t))))
       return false;
     const auto vsize = ReadScalar<voffset_t>(buf_ + vtableo);
-    return Check((vsize & 1) == 0) && Verify(vtableo, vsize);
+    return Check(vsize >= 2 * sizeof(voffset_t) && (vsize & 1) == 0) &&
+           Verify(vtableo, vsize);
   }
 
   template <typename T>
