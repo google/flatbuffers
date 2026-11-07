@@ -337,18 +337,19 @@ class Sized(Object):
 
   __slots__ = ('_size',)
 
-  def __init__(self, buf, byte_width, size=0):
+  def __init__(self, buf: "Buf", byte_width: int, size: int = 0) -> None:
     super().__init__(buf, byte_width)
     if size == 0:
-      self._size = _Unpack(U, self.SizeBytes)
+      # Assumes _Unpack and U are in scope from previous definitions
+      self._size = int(_Unpack(U, self.SizeBytes))
     else:
       self._size = size
 
   @property
-  def SizeBytes(self):
+  def SizeBytes(self) -> Union[bytes, bytearray]:
     return self._buf[-self._byte_width : 0]
 
-  def __len__(self):
+  def __len__(self) -> int:
     return self._size
 
 
@@ -358,10 +359,10 @@ class Blob(Sized):
   __slots__ = ()
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[0 : len(self)]
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Blob(%s, size=%d)' % (self._buf, len(self))
 
 
@@ -371,10 +372,10 @@ class String(Sized):
   __slots__ = ()
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[0 : len(self)]
 
-  def Mutate(self, value):
+  def Mutate(self, value: str) -> bool:
     """Mutates underlying string bytes in place.
 
     Args:
@@ -390,14 +391,15 @@ class String(Sized):
     if n <= len(self):
       self._buf[-self._byte_width : 0] = _Pack(U, n, self._byte_width)
       self._buf[0:n] = encoded
+      # Zero-pad the remaining space if the new string is shorter
       self._buf[n : len(self)] = bytearray(len(self) - n)
       return True
     return False
 
-  def __str__(self):
+  def __str__(self) -> str:
     return self.Bytes.decode('utf-8')
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'String(%s, size=%d)' % (self._buf, len(self))
 
 
@@ -406,21 +408,22 @@ class Key(Object):
 
   __slots__ = ()
 
-  def __init__(self, buf, byte_width):
+  def __init__(self, buf: "Buf", byte_width: int) -> None:
     assert byte_width == 1
     super().__init__(buf, byte_width)
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[0 : len(self)]
 
-  def __len__(self):
+  def __len__(self) -> int:
+    # Finds the null-terminator byte to determine key length
     return self._buf.Find(0)
 
-  def __str__(self):
+  def __str__(self) -> str:
     return self.Bytes.decode('ascii')
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Key(%s, size=%d)' % (self._buf, len(self))
 
 
