@@ -237,8 +237,21 @@ const static FlatCOption flatc_options[] = {
     {"", "flexbuffers", "",
      "Used with \"binary\" and \"json\" options, it generates data using "
      "schema-less FlexBuffers."},
-    {"", "no-warnings", "", "Inhibit all warnings messages."},
-    {"", "warnings-as-errors", "", "Treat all warnings as errors."},
+    {"", "no-warnings", "[=WARNING,...]",
+     "Inhibit warning messages. Without an argument all warnings are "
+     "inhibited. With a comma separated list of keys only the named warnings "
+     "are inhibited. Supported WARNING values: * 'all' - all of the warnings "
+     "below * 'strict-field-names' - a field name is not lowercase snake_case "
+     "* 'implied-attribute' - an attribute is already implied by another "
+     "attribute on the same field * 'repeated-attribute' - an attribute is "
+     "given more than once on the same declaration * 'unsigned-bit-flags' - a "
+     "bit_flags enum has a signed underlying type."},
+    {"", "warnings-as-errors", "[=WARNING,...]",
+     "Treat warnings as errors. Without an argument all warnings are treated "
+     "as errors. With a comma separated list of keys only the named warnings "
+     "are. Accepts the same WARNING values as --no-warnings. A warning "
+     "inhibited by --no-warnings is not reported and therefore never becomes "
+     "an error."},
     {"", "cs-global-alias", "",
      "Prepend \"global::\" to all user generated csharp classes and "
      "structs."},
@@ -283,6 +296,51 @@ const static FlatCOption flatc_options[] = {
      "Generate gRPC code using the callback (reactor) API instead of legacy "
      "sync/async."},
 };
+
+// Maps the keys accepted by `--no-warnings=` onto the warnings they inhibit.
+// Keep in sync with the help text of the `no-warnings` option above.
+struct WarningOption {
+  const char* key;
+  IDLOptions::Warning flag;
+};
+
+const static WarningOption warning_options[] = {
+    {"all", IDLOptions::kAllWarnings},
+    {"strict-field-names", IDLOptions::kStrictFieldNames},
+    {"implied-attribute", IDLOptions::kImpliedAttribute},
+    {"repeated-attribute", IDLOptions::kRepeatedAttribute},
+    {"unsigned-bit-flags", IDLOptions::kUnsignedBitFlags},
+};
+
+IDLOptions::WarningFlags FlatCompiler::ParseWarnings(
+    const std::string& keys) const {
+  IDLOptions::WarningFlags flags = 0;
+
+  for (size_t pos = 0; pos <= keys.size();) {
+    const size_t separator = std::min(keys.find(',', pos), keys.size());
+    const std::string key = keys.substr(pos, separator - pos);
+    pos = separator + 1;
+
+    const WarningOption* found = nullptr;
+    for (const WarningOption& option : warning_options) {
+      if (key == option.key) {
+        found = &option;
+        break;
+      }
+    }
+
+    if (!found) {
+      // Report unknown keys instead of silently ignoring them: a typo would
+      // leave the warning enabled, rendering the option useless in a CI setup.
+      Error("unknown warning: " + key, true);
+      return 0;
+    }
+
+    flags |= found->flag;
+  }
+
+  return flags;
+}
 
 auto cmp = [](FlatCOption a, FlatCOption b) { return a.long_opt < b.long_opt; };
 static std::set<FlatCOption, decltype(cmp)> language_options(cmp);
@@ -666,9 +724,17 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
       } else if (arg == "--gen-jvmstatic") {
         opts.gen_jvmstatic = true;
       } else if (arg == "--no-warnings") {
-        opts.no_warnings = true;
+        opts.disabled_warnings = IDLOptions::kAllWarnings;
+      } else if (arg.rfind("--no-warnings=", 0) == 0) {
+        // Only the `=` form can take an argument: `--no-warnings FILE.fbs` is
+        // valid usage and must keep treating FILE.fbs as an input file.
+        opts.disabled_warnings |=
+            ParseWarnings(arg.substr(std::string("--no-warnings=").size()));
       } else if (arg == "--warnings-as-errors") {
-        opts.warnings_as_errors = true;
+        opts.warnings_as_errors = IDLOptions::kAllWarnings;
+      } else if (arg.rfind("--warnings-as-errors=", 0) == 0) {
+        opts.warnings_as_errors |= ParseWarnings(
+            arg.substr(std::string("--warnings-as-errors=").size()));
       } else if (arg == "--cpp-std") {
         if (++argi >= argc)
           Error("missing C++ standard specification" + arg, true);

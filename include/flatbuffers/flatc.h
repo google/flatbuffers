@@ -110,6 +110,8 @@ class FlatCompiler {
   void Error(const std::string& err, bool usage = true,
              bool show_exe_name = true) const;
 
+  IDLOptions::WarningFlags ParseWarnings(const std::string& keys) const;
+
   void AnnotateBinaries(const uint8_t* binary_schema,
                         uint64_t binary_schema_size,
                         const FlatCOptions& options);

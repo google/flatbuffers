@@ -400,10 +400,16 @@ void Parser::Message(const std::string& msg) {
 }
 
 void Parser::Warning(const std::string& msg) {
-  if (!opts.no_warnings) {
-    Message("warning: " + msg);
-    has_warning_ = true;  // for opts.warnings_as_errors
-  }
+  // Warnings that carry no IDLOptions::Warning key cannot be inhibited
+  // individually, only by inhibiting every known warning at once, which is
+  // what a bare `--no-warnings` does.
+  Warning(IDLOptions::kAllWarnings, msg);
+}
+
+void Parser::Warning(IDLOptions::Warning id, const std::string& msg) {
+  if ((opts.disabled_warnings & id) == id) return;
+  if ((opts.warnings_as_errors & id) == id) has_critical_warning_ = true;
+  Message("warning: " + msg);
 }
 
 CheckedError Parser::Error(const std::string& msg) {
@@ -923,7 +929,8 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     return Error("field name can not be the same as table/struct name");
 
   if (!IsLowerSnakeCase(name)) {
-    Warning("field names should be lowercase snake_case, got: " + name);
+    Warning(IDLOptions::kStrictFieldNames,
+            "field names should be lowercase snake_case, got: " + name);
   }
 
   std::vector<std::string> dc = doc_comment_;
@@ -1098,7 +1105,8 @@ CheckedError Parser::ParseField(StructDef& struct_def) {
     // TODO(derekbailey): would be nice to have this be a recommendation or hint
     // instead of a warning.
     if (type.base_type == BASE_TYPE_VECTOR64) {
-      Warning("attribute `vector64` implies `offset64` and isn't required.");
+      Warning(IDLOptions::kImpliedAttribute,
+              "attribute `vector64` implies `offset64` and isn't required.");
     }
 
     field->offset64 = true;
@@ -1987,7 +1995,9 @@ CheckedError Parser::ParseMetaData(SymbolTable<Value>* attributes) {
                      name);
       NEXT();
       auto e = new Value();
-      if (attributes->Add(name, e)) Warning("attribute already found: " + name);
+      if (attributes->Add(name, e))
+        Warning(IDLOptions::kRepeatedAttribute,
+                "attribute already found: " + name);
       if (Is(':')) {
         NEXT();
         ECHECK(ParseSingleValue(&name, *e, true));
@@ -2602,7 +2612,8 @@ CheckedError Parser::ParseEnum(const bool is_union, EnumDef** dest,
   if (enum_def->attributes.Lookup("bit_flags") &&
       !IsUnsigned(underlying_type)) {
     // todo: Convert to the Error in the future?
-    Warning("underlying type of bit_flags enum must be unsigned");
+    Warning(IDLOptions::kUnsignedBitFlags,
+            "underlying type of bit_flags enum must be unsigned");
   }
   if (enum_def->attributes.Lookup("force_align")) {
     return Error("`force_align` is not a valid attribute for Enums. ");
@@ -3931,7 +3942,7 @@ CheckedError Parser::DoParse(const char* source, const char** include_paths,
     }
   }
   EXPECT(kTokenEof);
-  if (opts.warnings_as_errors && has_warning_) {
+  if (opts.warnings_as_errors && has_critical_warning_) {
     return Error("treating warnings as errors, failed due to above warnings");
   }
   return NoError();
