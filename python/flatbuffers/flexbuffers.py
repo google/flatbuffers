@@ -27,7 +27,7 @@ import contextlib
 import enum
 import struct
 
-from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable, List, Optional
+from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable, List, Optional, Iterator
 
 __all__ = ('Type', 'Builder', 'GetRoot', 'Dumps', 'Loads')
 
@@ -1115,7 +1115,7 @@ class Builder:
     self._buf.extend(_Pack(fmt, value, byte_width))
 
   def _WriteVector(
-      self, fmt: Dict[int, str], values: Iterable[Union[int, float]], byte_width: int
+      self, fmt: Dict[int, str], values: Sequence[PackableValue], byte_width: int
   ) -> None:
     self._buf.extend(_PackVector(fmt, values, byte_width))
 
@@ -1400,7 +1400,7 @@ class Builder:
     return vec.Value
 
   @contextlib.contextmanager
-  def Vector(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterable["Builder"]:
+  def Vector(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterator["Builder"]:
     if key:
       self.Key(key)
 
@@ -1422,7 +1422,7 @@ class Builder:
         self.Add(e)
 
   @contextlib.contextmanager
-  def TypedVector(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterable["Builder"]:
+  def TypedVector(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterator["Builder"]:
     if key:
       self.Key(key)
 
@@ -1541,7 +1541,7 @@ class Builder:
     return values.Value
 
   @contextlib.contextmanager
-  def Map(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterable["Builder"]:
+  def Map(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterator["Builder"]:
     if key:
       self.Key(key)
 
