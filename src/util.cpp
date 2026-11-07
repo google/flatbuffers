@@ -112,11 +112,12 @@ static std::string ToSnakeCase(const std::string& input, bool screaming) {
       s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
     } else if (input[i] == '_') {
       s += '_';
-    } else if (!islower(input[i])) {
+    } else if (!islower(static_cast<unsigned char>(input[i]))) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1]) ||
-          (isdigit(input[i - 1]) && !isdigit(input[i]))) {
+      if (islower(static_cast<unsigned char>(input[i - 1])) ||
+          (isdigit(static_cast<unsigned char>(input[i - 1])) &&
+           !isdigit(static_cast<unsigned char>(input[i])))) {
         s += '_';
       }
       s += screaming ? CharToUpper(input[i]) : CharToLower(input[i]);
@@ -143,11 +144,12 @@ std::string CamelToSnake(const std::string& input) {
       s += CharToLower(input[i]);
     } else if (input[i] == '_') {
       s += '_';
-    } else if (!islower(input[i])) {
+    } else if (!islower(static_cast<unsigned char>(input[i]))) {
       // Prevent duplicate underscores for Upper_Snake_Case strings
       // and UPPERCASE strings.
-      if (islower(input[i - 1]) ||
-          (isdigit(input[i - 1]) && !isdigit(input[i]))) {
+      if (islower(static_cast<unsigned char>(input[i - 1])) ||
+          (isdigit(static_cast<unsigned char>(input[i - 1])) &&
+           !isdigit(static_cast<unsigned char>(input[i])))) {
         s += '_';
       }
       s += CharToLower(input[i]);
@@ -181,7 +183,8 @@ std::string ToDasher(const std::string& input) {
           // because ThisExample3 would be converted to this_example_3 in the
           // CamelToSnake conversion, and then dasher would do this-example-3,
           // but it expects this-example3.
-          !(i + 1 < input.length() && isdigit(input[i + 1])))
+          !(i + 1 < input.length() &&
+            isdigit(static_cast<unsigned char>(input[i + 1]))))
         s += "-";
     } else {
       s += c;
@@ -197,13 +200,15 @@ std::string SnakeToSnake2(const std::string& s) {
   std::string result;
   result.reserve(s.size());
   for (size_t i = 0; i < s.length() - 1; i++) {
-    if (s[i] == '_' && isdigit(s[i + 1])) {
+    if (s[i] == '_' && isdigit(static_cast<unsigned char>(s[i + 1]))) {
       continue;  // Move the `_` until after the digits.
     }
 
     result.push_back(s[i]);
 
-    if (isdigit(s[i]) && isalpha(s[i + 1]) && islower(s[i + 1])) {
+    if (isdigit(static_cast<unsigned char>(s[i])) &&
+        isalpha(static_cast<unsigned char>(s[i + 1])) &&
+        islower(static_cast<unsigned char>(s[i + 1]))) {
       result.push_back('_');
     }
   }
@@ -372,8 +377,11 @@ std::string AbsolutePath(const std::string& filepath) {
 std::string RelativeToRootPath(const std::string& project,
                                const std::string& filepath) {
   std::string absolute_project = PosixPath(AbsolutePath(project));
-  if (absolute_project.back() != '/') absolute_project += "/";
   std::string absolute_filepath = PosixPath(AbsolutePath(filepath));
+  if (absolute_project.empty() || absolute_filepath.empty()) {
+    return "//" + absolute_filepath;
+  }
+  if (absolute_project.back() != '/') absolute_project += "/";
 
   // Find the first character where they disagree.
   // The previous directory is the lowest common ancestor;

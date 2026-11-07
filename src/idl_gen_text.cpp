@@ -189,7 +189,9 @@ struct JsonPrinter {
         if (vector_index >= 0) {
           auto type_vec = reinterpret_cast<const Vector<uint8_t>*>(
               prev_val + ReadScalar<uoffset_t>(prev_val));
-          union_type_byte = type_vec->Get(static_cast<uoffset_t>(vector_index));
+          const auto index = static_cast<uoffset_t>(vector_index);
+          if (index >= type_vec->size()) return "union type vector too short";
+          union_type_byte = type_vec->Get(index);
         }
         auto enum_val = type.enum_def->ReverseLookup(union_type_byte, true);
         if (enum_val) {
@@ -288,13 +290,10 @@ struct JsonPrinter {
       val = reinterpret_cast<const Struct*>(table)->GetStruct<const void*>(
           fd.value.offset);
     } else if (fd.flexbuffer && opts.json_nested_flexbuffers) {
-      // We could verify this FlexBuffer before access, but since this sits
-      // inside a FlatBuffer that we don't know wether it has been verified or
-      // not, there is little point making this part safer than the parent..
-      // The caller should really be verifying the whole.
-      // If the whole buffer is corrupt, we likely crash before we even get
-      // here.
       auto vec = table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
+      if (!flexbuffers::VerifyBuffer(vec->data(), vec->size())) {
+        return "invalid nested flexbuffer";
+      }
       auto root = flexbuffers::GetRoot(vec->data(), vec->size());
       root.ToString(true, opts.strict_json, text);
       return nullptr;
@@ -394,7 +393,7 @@ static const char* GenerateTextImpl(const Parser& parser, const Table* table,
 // Deprecated: please use `GenTextFromTable`
 bool GenerateTextFromTable(const Parser& parser, const void* table,
                            const std::string& table_name, std::string* _text) {
-  return GenTextFromTable(parser, table, table_name, _text) != nullptr;
+  return GenTextFromTable(parser, table, table_name, _text) == nullptr;
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
