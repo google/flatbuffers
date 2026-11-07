@@ -185,6 +185,157 @@ void FlexBuffersReuseBugTest() {
   TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
                                     slb.GetBuffer().size(), &reuse_tracker),
           true);
+
+  // Verify that reused vectors/strings early-returning through
+  // FLEX_CHECK_VERIFIED do not leak depth_ or over-count num_vectors_ across
+  // sibling references when reuse_tracker is supplied.
+  flexbuffers::Builder shared_slb(
+      512, flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+  shared_slb.Vector([&]() {
+    for (int i = 0; i < 100; ++i) {
+      shared_slb.String("shared_str");
+    }
+  });
+  shared_slb.Finish();
+  reuse_tracker.clear();
+  TEST_EQ(
+      flexbuffers::VerifyBuffer(shared_slb.GetBuffer().data(),
+                                shared_slb.GetBuffer().size(), &reuse_tracker),
+      true);
+  TEST_EQ(flexbuffers::Verifier(shared_slb.GetBuffer().data(),
+                                shared_slb.GetBuffer().size(), &reuse_tracker,
+                                true, /*max_depth=*/2, /*max_vectors=*/64)
+              .VerifyBuffer(),
+          true);
+  TEST_EQ(flexbuffers::Verifier(shared_slb.GetBuffer().data(),
+                                shared_slb.GetBuffer().size(), &reuse_tracker,
+                                true, /*max_depth=*/1, /*max_vectors=*/64)
+              .VerifyBuffer(),
+          false);
+  TEST_EQ(flexbuffers::Verifier(shared_slb.GetBuffer().data(),
+                                shared_slb.GetBuffer().size(), nullptr, true,
+                                /*max_depth=*/64, /*max_vectors=*/64)
+              .VerifyBuffer(),
+          false);
+
+  flexbuffers::Builder shared_maps_slb(
+      512, flexbuffers::BUILDER_FLAG_SHARE_KEYS_AND_STRINGS);
+  shared_maps_slb.Vector([&]() {
+    for (int i = 0; i < 70; ++i) {
+      shared_maps_slb.Map(
+          [&]() { shared_maps_slb.String("shared_key", "shared_str"); });
+    }
+  });
+  shared_maps_slb.Finish();
+  reuse_tracker.clear();
+  TEST_EQ(flexbuffers::VerifyBuffer(shared_maps_slb.GetBuffer().data(),
+                                    shared_maps_slb.GetBuffer().size(),
+                                    &reuse_tracker),
+          true);
+
+  // Verify that a shared vector visited first at depth 2 and reused inside a
+  // nested vector at depth 3 still enforces max_depth before early-returning
+  // through FLEX_CHECK_VERIFIED.
+  // clang-format off
+  const uint8_t shared_depth_buf[] = {
+      1,   // 0: leaf vec size = 1
+      7,   // 1: leaf vec[0] = 7
+      1,   // 2: mid vec size = 1
+      2,   // 3: mid vec[0] offset = 2 -> 3 - 2 = 1 (leaf vec)
+      flexbuffers::PackedType(flexbuffers::BIT_WIDTH_8,
+                              flexbuffers::FBT_VECTOR_INT),  // 4: mid vec[0] type
+      2,   // 5: root vec size = 2
+      5,   // 6: root vec[0] offset = 5 -> 6 - 5 = 1 (leaf vec at depth 2)
+      4,   // 7: root vec[1] offset = 4 -> 7 - 4 = 3 (mid vec at depth 2 -> leaf at depth 3)
+      flexbuffers::PackedType(flexbuffers::BIT_WIDTH_8,
+                              flexbuffers::FBT_VECTOR_INT),  // 8: root vec[0] type
+      flexbuffers::PackedType(flexbuffers::BIT_WIDTH_8,
+                              flexbuffers::FBT_VECTOR),      // 9: root vec[1] type
+      4,   // 10: root offset = 4 -> 10 - 4 = 6
+      flexbuffers::PackedType(flexbuffers::BIT_WIDTH_8,
+                              flexbuffers::FBT_VECTOR),      // 11: root type
+      1    // 12: root byte_width = 1
+  };
+  // clang-format on
+  reuse_tracker.clear();
+  TEST_EQ(flexbuffers::Verifier(shared_depth_buf, sizeof(shared_depth_buf),
+                                &reuse_tracker, true, /*max_depth=*/3)
+              .VerifyBuffer(),
+          true);
+  reuse_tracker.clear();
+  TEST_EQ(flexbuffers::Verifier(shared_depth_buf, sizeof(shared_depth_buf),
+                                &reuse_tracker, true, /*max_depth=*/2)
+              .VerifyBuffer(),
+          false);
+
+  // Verify that VerifyKeys rejects multi-byte key_byte_width values whose high
+  // bytes are non-zero (instead of truncating to uint8_t or 32-bit size_t
+  // before VerifyByteWidth) and enforces alignment on the keys vector pointer.
+  flexbuffers::Builder map_slb;
+  map_slb.Map([&]() { map_slb.Int("k", 1000); });
+  map_slb.Finish();
+  std::vector<uint8_t> bad_key_width_buf = map_slb.GetBuffer();
+  TEST_EQ(flexbuffers::VerifyBuffer(bad_key_width_buf.data(),
+                                    bad_key_width_buf.size(), nullptr),
+          true);
+  // Corrupt the high byte of the 16-bit keys_width prefix field (0x0001 ->
+  // 0x0101).
+  bad_key_width_buf[7] = 1;
+  TEST_EQ(flexbuffers::VerifyBuffer(bad_key_width_buf.data(),
+                                    bad_key_width_buf.size(), nullptr),
+          false);
+
+  // 64-bit map prefix with keys_width = 0x0000000100000001ULL (low 32 bits ==
+  // 1, so narrowing to a 32-bit size_t without checking the 64-bit value first
+  // would pass VerifyByteWidth).
+  uint8_t truncating_keys_width_map[52] = {};
+  truncating_keys_width_map[24] = 8;  // keys_offset = 8 -> 24 - 8 = 16
+  truncating_keys_width_map[32] = 1;  // keys_width low 32 bits = 1
+  truncating_keys_width_map[36] = 1;  // keys_width high 32 bits = 1
+  truncating_keys_width_map[49] = 1;  // root offset = 1 -> 49 - 1 = 48
+  truncating_keys_width_map[50] = flexbuffers::PackedType(
+      flexbuffers::BIT_WIDTH_64, flexbuffers::FBT_MAP);
+  truncating_keys_width_map[51] = 1;  // root byte_width = 1
+  TEST_EQ(flexbuffers::Verifier(truncating_keys_width_map,
+                                sizeof(truncating_keys_width_map), nullptr,
+                                false)
+              .VerifyBuffer(),
+          false);
+
+  // Craft a minimal map buffer whose keys vector has key_byte_width=2 at an
+  // odd (unaligned) offset (index 5), with its 2-byte size (1) at [3..4] and
+  // key[0] offset (5) at [5..6] pointing to "k\0" at [0..1].
+  // clang-format off
+  const uint8_t unaligned_keys_map[] = {
+      'k', 0,  // 0..1: FBT_KEY "k\0"
+      0,       // 2: padding so keys_vec is at odd index 5
+      1,   0,  // 3..4: keys size = 1 (uint16_t)
+      5,   0,  // 5..6: keys_vec at index 5: key[0] offset = 5 -> 5 - 5 = 0
+      2,       // 7: keys_offset = 2 -> (10 - 3) - 2 = 5 (odd!)
+      2,       // 8: keys_width = 2
+      1,       // 9: values size = 1
+      42,      // 10: value[0] = 42
+      flexbuffers::PackedType(flexbuffers::BIT_WIDTH_8,
+                              flexbuffers::FBT_INT),  // 11: value[0] type
+      2,       // 12: root offset = 2 -> 12 - 2 = 10
+      flexbuffers::PackedType(flexbuffers::BIT_WIDTH_8,
+                              flexbuffers::FBT_MAP),  // 13: root type = MAP
+      1        // 14: root width = 1
+  };
+  // clang-format on
+  TEST_EQ(flexbuffers::Verifier(unaligned_keys_map, sizeof(unaligned_keys_map),
+                                nullptr, true)
+              .VerifyBuffer(),
+          false);
+  TEST_EQ(flexbuffers::Verifier(unaligned_keys_map, sizeof(unaligned_keys_map),
+                                nullptr, false)
+              .VerifyBuffer(),
+          true);
+  auto unaligned_map =
+      flexbuffers::GetRoot(unaligned_keys_map, sizeof(unaligned_keys_map))
+          .AsMap();
+  TEST_EQ(unaligned_map.Keys().size(), 1);
+  TEST_EQ(unaligned_map["k"].AsInt64(), 42);
 }
 
 void FlexBuffersFloatingPointTest() {
@@ -212,6 +363,50 @@ void FlexBuffersFloatingPointTest() {
   TEST_EQ(+infinity_d, jvec[5].AsDouble());
   TEST_EQ(-infinity_d, jvec[6].AsDouble());
   TEST_EQ(8.0, jvec[7].AsDouble());
+
+  // Safe integer conversions on NaN, +/-Inf, negative, and out-of-range floats.
+  TEST_EQ(1, jvec[0].AsInt64());
+  TEST_EQ(1, jvec[0].AsUInt64());
+  for (size_t i = 1; i <= 6; ++i) {
+    TEST_EQ(0, jvec[i].AsInt64());
+    TEST_EQ(0, jvec[i].AsUInt64());
+  }
+  TEST_EQ(8, jvec[7].AsInt64());
+  TEST_EQ(8, jvec[7].AsUInt64());
+
+  slb.Clear();
+  slb.Vector([&]() {
+    slb.Add(std::numeric_limits<double>::quiet_NaN());
+    slb.Add(std::numeric_limits<double>::infinity());
+    slb.Add(-std::numeric_limits<double>::infinity());
+    slb.Add(1e30);
+    slb.Add(-1e30);
+    slb.Add(-1.0);
+    slb.IndirectDouble(std::numeric_limits<double>::quiet_NaN());
+    slb.IndirectDouble(std::numeric_limits<double>::infinity());
+    slb.IndirectDouble(-std::numeric_limits<double>::infinity());
+    slb.IndirectDouble(1e30);
+    slb.IndirectDouble(-1.0);
+  });
+  slb.Finish();
+  TEST_EQ(flexbuffers::VerifyBuffer(slb.GetBuffer().data(),
+                                    slb.GetBuffer().size(), nullptr),
+          true);
+  auto fvec = flexbuffers::GetRoot(slb.GetBuffer()).AsVector();
+  TEST_EQ(11, fvec.size());
+  TEST_ASSERT(is_quiet_nan(fvec[6].AsDouble()));
+  TEST_EQ(infinity_d, fvec[7].AsDouble());
+  TEST_EQ(-infinity_d, fvec[8].AsDouble());
+  TEST_EQ(1e30, fvec[9].AsDouble());
+  TEST_EQ(-1.0, fvec[10].AsDouble());
+  for (size_t i = 0; i < fvec.size(); ++i) {
+    if (i == 5 || i == 10) {
+      TEST_EQ(-1, fvec[i].AsInt64());
+    } else {
+      TEST_EQ(0, fvec[i].AsInt64());
+    }
+    TEST_EQ(0, fvec[i].AsUInt64());
+  }
 #endif
 }
 
