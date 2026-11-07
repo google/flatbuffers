@@ -1154,7 +1154,7 @@ class Builder:
       self,
       element_type: "Type",
       byte_width: int,
-      elements: Iterable[Union[int, float]],
+      elements: Sequence[PackableValue],
       fixed: bool,
   ) -> int:
     """Writes scalar vector elements to the underlying buffer."""
@@ -1162,12 +1162,12 @@ class Builder:
     # If you get this exception, you're trying to write a vector with a size
     # field that is bigger than the scalars you're trying to write (e.g. a
     # byte vector > 255 elements). For such types, write a "blob" instead.
-    if BitWidth.U(len(list(elements))) > bit_width:  # Force consume length
+    if BitWidth.U(len(elements)) > bit_width:  # Force consume length
       raise ValueError('too many elements for the given byte_width')
 
     self._Align(bit_width)
     if not fixed:
-      self._Write(U, len(list(elements)), byte_width)
+      self._Write(U, len(elements), byte_width)
 
     loc = len(self._buf)
 
@@ -1177,7 +1177,7 @@ class Builder:
     self._WriteVector(fmt, elements, byte_width)
 
     # Need length for vector typing logic
-    length = len(list(elements))
+    length = len(elements)
     type_ = Type.ToTypedVector(element_type, length if fixed else 0)
     self._stack.append(Value(loc, type_, bit_width))
     return loc
