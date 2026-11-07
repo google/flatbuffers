@@ -27,7 +27,7 @@ import contextlib
 import enum
 import struct
 
-from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable, List
+from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable, List, Optional
 
 __all__ = ('Type', 'Builder', 'GetRoot', 'Dumps', 'Loads')
 
@@ -904,30 +904,30 @@ class Value:
   """Class to represent given value during the encoding process."""
 
   @staticmethod
-  def Null():
+  def Null() -> "Value":
     return Value(0, Type.NULL, BitWidth.W8)
 
   @staticmethod
-  def Bool(value):
+  def Bool(value: bool) -> "Value":
     return Value(value, Type.BOOL, BitWidth.W8)
 
   @staticmethod
-  def Int(value, bit_width):
+  def Int(value: int, bit_width: int) -> "Value":
     return Value(value, Type.INT, bit_width)
 
   @staticmethod
-  def UInt(value, bit_width):
+  def UInt(value: int, bit_width: int) -> "Value":
     return Value(value, Type.UINT, bit_width)
 
   @staticmethod
-  def Float(value, bit_width):
+  def Float(value: float, bit_width: int) -> "Value":
     return Value(value, Type.FLOAT, bit_width)
 
   @staticmethod
-  def Key(offset):
+  def Key(offset: int) -> "Value":
     return Value(offset, Type.KEY, BitWidth.W8)
 
-  def __init__(self, value, type_, min_bit_width):
+  def __init__(self, value: Union[int, float], type_: "Type", min_bit_width: int) -> None:
     self._value = value
     self._type = type_
 
@@ -935,18 +935,18 @@ class Value:
     self._min_bit_width = min_bit_width
 
   @property
-  def Value(self):
+  def Value(self) -> Union[int, float]:
     return self._value
 
   @property
-  def Type(self):
+  def Type(self) -> "Type":
     return self._type
 
   @property
-  def MinBitWidth(self):
+  def MinBitWidth(self) -> int:
     return self._min_bit_width
 
-  def StoredPackedType(self, parent_bit_width=BitWidth.W8):
+  def StoredPackedType(self, parent_bit_width: int = BitWidth.W8) -> int:
     return Type.Pack(self._type, self.StoredWidth(parent_bit_width))
 
   # We have an absolute offset, but want to store a relative offset
@@ -954,7 +954,7 @@ class Value:
   # the relative offset fits in a certain byte_width depends on
   # the size of the elements before it (and their alignment), we have
   # to test for each size in turn.
-  def ElemWidth(self, buf_size, elem_index=0):
+  def ElemWidth(self, buf_size: int, elem_index: int = 0) -> int:
     if Type.IsInline(self._type):
       return self._min_bit_width
     for byte_width in 1, 2, 4, 8:
@@ -968,20 +968,20 @@ class Value:
         return bit_width
     raise ValueError('relative offset is too big')
 
-  def StoredWidth(self, parent_bit_width=BitWidth.W8):
+  def StoredWidth(self, parent_bit_width: int = BitWidth.W8) -> int:
     if Type.IsInline(self._type):
       return max(self._min_bit_width, parent_bit_width)
     return self._min_bit_width
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Value(%s, %s, %s)' % (self._value, self._type, self._min_bit_width)
 
-  def __str__(self):
+  def __str__(self) -> str:
     return str(self._value)
 
 
-def InMap(func):
-  def wrapper(self, *args, **kwargs):
+def InMap(func: Callable[..., Any]) -> Callable[..., Any]:
+  def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
     if isinstance(args[0], str):
       self.Key(args[0])
       func(self, *args[1:], **kwargs)
@@ -991,8 +991,8 @@ def InMap(func):
   return wrapper
 
 
-def InMapForString(func):
-  def wrapper(self, *args):
+def InMapForString(func: Callable[..., Any]) -> Callable[..., Any]:
+  def wrapper(self: Any, *args: Any) -> Any:
     if len(args) == 1:
       func(self, args[0])
     elif len(args) == 2:
@@ -1007,10 +1007,11 @@ def InMapForString(func):
 class Pool:
   """Collection of (data, offset) pairs sorted by data for quick access."""
 
-  def __init__(self):
-    self._pool = []  # sorted list of (data, offset) tuples
+  def __init__(self) -> None:
+    # Explicitly hint the inner list to maintain types of tuples inside _pool
+    self._pool: List[Tuple[Union[bytes, bytearray], int]] = []
 
-  def FindOrInsert(self, data, offset):
+  def FindOrInsert(self, data: Union[bytes, bytearray], offset: int) -> Optional[int]:
     do = data, offset
     index = _BinarySearch(self._pool, do, lambda a, b: a[0] < b[0])
     if index != -1:
@@ -1019,13 +1020,12 @@ class Pool:
     self._pool.insert(index, do)
     return None
 
-  def Clear(self):
+  def Clear(self) -> None:
     self._pool = []
 
   @property
-  def Elements(self):
+  def Elements(self) -> List[Union[bytes, bytearray]]:
     return [data for data, _ in self._pool]
-
 
 class Builder:
   """Helper class to encode structural data into flexbuffers format."""
