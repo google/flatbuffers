@@ -1792,6 +1792,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedLengthArraySpanTest(tests_data_path);
   DoNotRequireEofTest(tests_data_path);
   JsonUnionStructTest();
+  JsonUnionMissingTypeTest();
   VectorTableNakedPtrTest();
 #else
   // Guard against -Wunused-parameter.
