@@ -1849,6 +1849,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersIteratorsTest();
   WarningsAsErrorsTest();
   NestedVerifierTest();
+  NestedVerifierBudgetExhausted();
   SizeVerifierTest();
   PrivateAnnotationsLeaks();
   JsonUnsortedArrayTest();
