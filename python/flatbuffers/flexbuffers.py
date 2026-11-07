@@ -27,8 +27,15 @@ import contextlib
 import enum
 import struct
 
+from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable, List, Optional, Iterator
+
 __all__ = ('Type', 'Builder', 'GetRoot', 'Dumps', 'Loads')
 
+# Type variables for generic search algorithms
+T = TypeVar('T')
+
+# A type alias for values that can be packed/unpacked
+PackableValue = Union[int, float]
 
 class BitWidth(enum.IntEnum):
   """Supported bit widths of value types.
@@ -43,7 +50,7 @@ class BitWidth(enum.IntEnum):
   W64 = 3  # 2^3 = 8 bytes
 
   @staticmethod
-  def U(value):
+  def U(value: int) -> "BitWidth":
     """Returns the minimum `BitWidth` to encode unsigned integer value."""
     assert value >= 0
 
@@ -59,7 +66,7 @@ class BitWidth(enum.IntEnum):
       raise ValueError('value is too big to encode: %s' % value)
 
   @staticmethod
-  def I(value):
+  def I(value: int) -> "BitWidth":
     """Returns the minimum `BitWidth` to encode signed integer value."""
     # -2^(n-1) <=     value < 2^(n-1)
     # -2^n     <= 2 * value < 2^n
@@ -74,64 +81,59 @@ class BitWidth(enum.IntEnum):
     return BitWidth.U(value if value >= 0 else ~value)
 
   @staticmethod
-  def F(value):
+  def F(value: float) -> "BitWidth":
     """Returns the `BitWidth` to encode floating point value."""
     if struct.unpack('<f', struct.pack('<f', value))[0] == value:
       return BitWidth.W32
     return BitWidth.W64
 
   @staticmethod
-  def B(byte_width):
-    return {1: BitWidth.W8, 2: BitWidth.W16, 4: BitWidth.W32, 8: BitWidth.W64}[
-        byte_width
-    ]
+  def B(byte_width: int) -> "BitWidth":
+    """Returns the `BitWidth` for a given byte size."""
+    widths = {1: BitWidth.W8, 2: BitWidth.W16, 4: BitWidth.W32, 8: BitWidth.W64}
+    if byte_width not in widths:
+      raise ValueError(f"Unsupported byte width: {byte_width}")
+    return widths[byte_width]
 
 
-I = {1: 'b', 2: 'h', 4: 'i', 8: 'q'}  # Integer formats
-U = {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}  # Unsigned integer formats
-F = {4: 'f', 8: 'd'}  # Floating point formats
+I: Dict[int, str] = {1: 'b', 2: 'h', 4: 'i', 8: 'q'}  # Integer formats
+U: Dict[int, str] = {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}  # Unsigned integer formats
+F: Dict[int, str] = {4: 'f', 8: 'd'}  # Floating point formats
 
 
-def _Unpack(fmt, buf):
+def _Unpack(fmt: Dict[int, str], buf: bytes) -> PackableValue:
   return struct.unpack('<%s' % fmt[len(buf)], buf)[0]
 
-
-def _UnpackVector(fmt, buf, length):
+def _UnpackVector(fmt: Dict[int, str], buf: bytes, length: int) -> Tuple[PackableValue, ...]:
   byte_width = len(buf) // length
   return struct.unpack('<%d%s' % (length, fmt[byte_width]), buf)
 
-
-def _Pack(fmt, value, byte_width):
+def _Pack(fmt: Dict[int, str], value: PackableValue, byte_width: int) -> bytes:
   return struct.pack('<%s' % fmt[byte_width], value)
 
-
-def _PackVector(fmt, values, byte_width):
+def _PackVector(fmt: Dict[int, str], values: Sequence[PackableValue], byte_width: int) -> bytes:
   return struct.pack('<%d%s' % (len(values), fmt[byte_width]), *values)
 
-
-def _Mutate(fmt, buf, value, byte_width, value_bit_width):
+def _Mutate(fmt: Dict[int, str], buf: bytearray, value: PackableValue, byte_width: int, value_bit_width: int) -> bool:
   if (1 << value_bit_width) <= byte_width:
     buf[:byte_width] = _Pack(fmt, value, byte_width)
     return True
   return False
 
-
 # Computes how many bytes you'd have to pad to be able to write an
 # "scalar_size" scalar if the buffer had grown to "buf_size",
 # "scalar_size" is a power of two.
-def _PaddingBytes(buf_size, scalar_size):
+def _PaddingBytes(buf_size: int, scalar_size: int) -> int:
   # ((buf_size + (scalar_size - 1)) // scalar_size) * scalar_size - buf_size
   return -buf_size & (scalar_size - 1)
 
-
-def _ShiftSlice(s, offset, length):
+def _ShiftSlice(s: slice, offset: int, length: int) -> slice:
   start = offset + (0 if s.start is None else s.start)
   stop = offset + (length if s.stop is None else s.stop)
   return slice(start, stop, s.step)
 
-
 # https://en.cppreference.com/w/cpp/algorithm/lower_bound
-def _LowerBound(values, value, pred):
+def _LowerBound(values: Sequence[T], value: T, pred: Callable[[T, T], bool]) -> int:
   """Implementation of C++ std::lower_bound() algorithm."""
   first, last = 0, len(values)
   count = last - first
@@ -149,7 +151,7 @@ def _LowerBound(values, value, pred):
 
 
 # https://en.cppreference.com/w/cpp/algorithm/binary_search
-def _BinarySearch(values, value, pred=lambda x, y: x < y):
+def _BinarySearch(values: Sequence[T], value: T, pred: Callable[[T, T], bool] = lambda x, y: x < y) -> int:
   """Implementation of C++ std::binary_search() algorithm."""
   index = _LowerBound(values, value, pred)
   if index != len(values) and not pred(value, values[index]):
@@ -200,45 +202,45 @@ class Type(enum.IntEnum):
   VECTOR_BOOL = 36  # To do the same type of conversion of type to vector type
 
   @staticmethod
-  def Pack(type_, bit_width):
+  def Pack(type_: "Type", bit_width: int) -> int:
     return (int(type_) << 2) | bit_width
 
   @staticmethod
-  def Unpack(packed_type):
+  def Unpack(packed_type: int) -> Tuple[int, "Type"]:
     return 1 << (packed_type & 0b11), Type(packed_type >> 2)
 
   @staticmethod
-  def IsInline(type_):
+  def IsInline(type_: "Type") -> bool:
     return type_ <= Type.FLOAT or type_ == Type.BOOL
 
   @staticmethod
-  def IsTypedVector(type_):
+  def IsTypedVector(type_: "Type") -> bool:
     return (
-        Type.VECTOR_INT <= type_ <= Type.VECTOR_STRING_DEPRECATED
-        or type_ == Type.VECTOR_BOOL
+      Type.VECTOR_INT <= type_ <= Type.VECTOR_STRING_DEPRECATED
+      or type_ == Type.VECTOR_BOOL
     )
 
   @staticmethod
-  def IsTypedVectorElementType(type_):
+  def IsTypedVectorElementType(type_: "Type") -> bool:
     return Type.INT <= type_ <= Type.STRING or type_ == Type.BOOL
 
   @staticmethod
-  def ToTypedVectorElementType(type_):
+  def ToTypedVectorElementType(type_: "Type") -> "Type":
     if not Type.IsTypedVector(type_):
       raise ValueError('must be typed vector type')
 
     return Type(type_ - Type.VECTOR_INT + Type.INT)
 
   @staticmethod
-  def IsFixedTypedVector(type_):
+  def IsFixedTypedVector(type_: "Type") -> bool:
     return Type.VECTOR_INT2 <= type_ <= Type.VECTOR_FLOAT4
 
   @staticmethod
-  def IsFixedTypedVectorElementType(type_):
+  def IsFixedTypedVectorElementType(type_: "Type") -> bool:
     return Type.INT <= type_ <= Type.FLOAT
 
   @staticmethod
-  def ToFixedTypedVectorElementType(type_):
+  def ToFixedTypedVectorElementType(type_: "Type") -> Tuple["Type", int]:
     if not Type.IsFixedTypedVector(type_):
       raise ValueError('must be fixed typed vector type')
 
@@ -247,7 +249,7 @@ class Type(enum.IntEnum):
     return Type(fixed_type % 3 + Type.INT), fixed_type // 3 + 2
 
   @staticmethod
-  def ToTypedVector(element_type, fixed_len=0):
+  def ToTypedVector(element_type: "Type", fixed_len: int = 0) -> "Type":
     """Converts element type to corresponding vector type.
 
     Args:
@@ -257,7 +259,7 @@ class Type(enum.IntEnum):
 
     Returns:
       Typed vector type or fixed typed vector type.
-    """
+      """
     if fixed_len == 0:
       if not Type.IsTypedVectorElementType(element_type):
         raise ValueError('must be typed vector element type')
@@ -277,16 +279,15 @@ class Type(enum.IntEnum):
     else:
       raise ValueError('unsupported fixed_len: %s' % fixed_len)
 
-
 class Buf:
   """Class to access underlying buffer object starting from the given offset."""
 
-  def __init__(self, buf, offset):
+  def __init__(self, buf: Union[bytes, bytearray], offset: int) -> None:
     self._buf = buf
     self._offset = offset if offset >= 0 else len(buf) + offset
     self._length = len(buf) - self._offset
 
-  def __getitem__(self, key):
+  def __getitem__(self, key: Union[int, slice]) -> Union[int, bytes, bytearray]:
     if isinstance(key, slice):
       return self._buf[_ShiftSlice(key, self._offset, self._length)]
     elif isinstance(key, int):
@@ -294,41 +295,40 @@ class Buf:
     else:
       raise TypeError('invalid key type')
 
-  def __setitem__(self, key, value):
+  def __setitem__(self, key: Union[int, slice], value: Union[int, Iterable[int]]) -> None:
     if isinstance(key, slice):
       self._buf[_ShiftSlice(key, self._offset, self._length)] = value
     elif isinstance(key, int):
-      self._buf[self._offset + key] = key
+      self._buf[self._offset + key] = value  # FIXED: was assigned to 'key'
     else:
       raise TypeError('invalid key type')
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'buf[%d:]' % self._offset
 
-  def Find(self, sub):
+  def Find(self, sub: Union[bytes, bytearray]) -> int:
     """Returns the lowest index where the sub subsequence is found."""
     return self._buf[self._offset :].find(sub)
 
-  def Slice(self, offset):
+  def Slice(self, offset: int) -> "Buf":
     """Returns new `Buf` which starts from the given offset."""
     return Buf(self._buf, self._offset + offset)
 
-  def Indirect(self, offset, byte_width):
+  def Indirect(self, offset: int, byte_width: int) -> "Buf":
     """Return new `Buf` based on the encoded offset (indirect encoding)."""
     return self.Slice(offset - _Unpack(U, self[offset : offset + byte_width]))
-
 
 class Object:
   """Base class for all non-trivial data accessors."""
 
-  __slots__ = '_buf', '_byte_width'
+  __slots__ = ('_buf', '_byte_width')
 
-  def __init__(self, buf, byte_width):
+  def __init__(self, buf: "Buf", byte_width: int) -> None:
     self._buf = buf
     self._byte_width = byte_width
 
   @property
-  def ByteWidth(self):
+  def ByteWidth(self) -> int:
     return self._byte_width
 
 
@@ -337,18 +337,19 @@ class Sized(Object):
 
   __slots__ = ('_size',)
 
-  def __init__(self, buf, byte_width, size=0):
+  def __init__(self, buf: "Buf", byte_width: int, size: int = 0) -> None:
     super().__init__(buf, byte_width)
     if size == 0:
-      self._size = _Unpack(U, self.SizeBytes)
+      # Assumes _Unpack and U are in scope from previous definitions
+      self._size = int(_Unpack(U, self.SizeBytes))
     else:
       self._size = size
 
   @property
-  def SizeBytes(self):
+  def SizeBytes(self) -> Union[bytes, bytearray]:
     return self._buf[-self._byte_width : 0]
 
-  def __len__(self):
+  def __len__(self) -> int:
     return self._size
 
 
@@ -358,10 +359,10 @@ class Blob(Sized):
   __slots__ = ()
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[0 : len(self)]
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Blob(%s, size=%d)' % (self._buf, len(self))
 
 
@@ -371,10 +372,10 @@ class String(Sized):
   __slots__ = ()
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[0 : len(self)]
 
-  def Mutate(self, value):
+  def Mutate(self, value: str) -> bool:
     """Mutates underlying string bytes in place.
 
     Args:
@@ -390,14 +391,15 @@ class String(Sized):
     if n <= len(self):
       self._buf[-self._byte_width : 0] = _Pack(U, n, self._byte_width)
       self._buf[0:n] = encoded
+      # Zero-pad the remaining space if the new string is shorter
       self._buf[n : len(self)] = bytearray(len(self) - n)
       return True
     return False
 
-  def __str__(self):
+  def __str__(self) -> str:
     return self.Bytes.decode('utf-8')
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'String(%s, size=%d)' % (self._buf, len(self))
 
 
@@ -406,21 +408,22 @@ class Key(Object):
 
   __slots__ = ()
 
-  def __init__(self, buf, byte_width):
+  def __init__(self, buf: "Buf", byte_width: int) -> None:
     assert byte_width == 1
     super().__init__(buf, byte_width)
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[0 : len(self)]
 
-  def __len__(self):
+  def __len__(self) -> int:
+    # Finds the null-terminator byte to determine key length
     return self._buf.Find(0)
 
-  def __str__(self):
+  def __str__(self) -> str:
     return self.Bytes.decode('ascii')
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Key(%s, size=%d)' % (self._buf, len(self))
 
 
@@ -429,7 +432,7 @@ class Vector(Sized):
 
   __slots__ = ()
 
-  def __getitem__(self, index):
+  def __getitem__(self, index: int) -> "Ref":
     if index < 0 or index >= len(self):
       raise IndexError(
           'vector index %s is out of [0, %d) range' % (index, len(self))
@@ -440,24 +443,24 @@ class Vector(Sized):
     return Ref.PackedType(buf, self._byte_width, packed_type)
 
   @property
-  def Value(self):
+  def Value(self) -> List[Any]:
     """Returns the underlying encoded data as a list object."""
     return [e.Value for e in self]
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Vector(%s, byte_width=%d, size=%d)' % (
-        self._buf,
-        self._byte_width,
-        self._size,
+      self._buf,
+      self._byte_width,
+      self._size,
     )
 
 
 class TypedVector(Sized):
   """Data accessor for the encoded typed vector or fixed typed vector bytes."""
 
-  __slots__ = '_element_type', '_size'
+  __slots__ = ('_element_type', '_size')
 
-  def __init__(self, buf, byte_width, element_type, size=0):
+  def __init__(self, buf: "Buf", byte_width: int, element_type: "Type", size: int = 0) -> None:
     super().__init__(buf, byte_width, size)
 
     if element_type == Type.STRING:
@@ -472,14 +475,14 @@ class TypedVector(Sized):
     self._element_type = element_type
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[: self._byte_width * len(self)]
 
   @property
-  def ElementType(self):
+  def ElementType(self) -> "Type":
     return self._element_type
 
-  def __getitem__(self, index):
+  def __getitem__(self, index: int) -> "Ref":
     if index < 0 or index >= len(self):
       raise IndexError(
           'vector index %s is out of [0, %d) range' % (index, len(self))
@@ -489,7 +492,7 @@ class TypedVector(Sized):
     return Ref(buf, self._byte_width, 1, self._element_type)
 
   @property
-  def Value(self):
+  def Value(self) -> List[Any]:
     """Returns underlying data as list object."""
     if not self:
       return []
@@ -509,27 +512,26 @@ class TypedVector(Sized):
     else:
       raise TypeError('unsupported element_type: %s' % self._element_type)
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'TypedVector(%s, byte_width=%d, element_type=%s, size=%d)' % (
-        self._buf,
-        self._byte_width,
-        self._element_type,
-        self._size,
+      self._buf,
+      self._byte_width,
+      self._element_type,
+      self._size,
     )
-
 
 class Map(Vector):
   """Data accessor for the encoded map bytes."""
 
   @staticmethod
-  def CompareKeys(a, b):
+  def CompareKeys(a: Union["Ref", bytes, bytearray], b: Union["Ref", bytes, bytearray]) -> bool:
     if isinstance(a, Ref):
       a = a.AsKeyBytes
     if isinstance(b, Ref):
       b = b.AsKeyBytes
     return a < b
 
-  def __getitem__(self, key):
+  def __getitem__(self, key: Union[int, str]) -> "Ref":
     if isinstance(key, int):
       return super().__getitem__(key)
 
@@ -540,7 +542,7 @@ class Map(Vector):
     raise KeyError(key)
 
   @property
-  def Keys(self):
+  def Keys(self) -> TypedVector:
     byte_width = _Unpack(
         U, self._buf[-2 * self._byte_width : -self._byte_width]
     )
@@ -548,16 +550,15 @@ class Map(Vector):
     return TypedVector(buf, byte_width, Type.KEY)
 
   @property
-  def Values(self):
+  def Values(self) -> Vector:
     return Vector(self._buf, self._byte_width)
 
   @property
-  def Value(self):
+  def Value(self) -> Dict[str, Any]:
     return {k.Value: v.Value for k, v in zip(self.Keys, self.Values)}
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Map(%s, size=%d)' % (self._buf, len(self))
-
 
 class Ref:
   """Data accessor for the encoded data bytes."""
@@ -565,17 +566,19 @@ class Ref:
   __slots__ = '_buf', '_parent_width', '_byte_width', '_type'
 
   @staticmethod
-  def PackedType(buf, parent_width, packed_type):
+  def PackedType(buf: "Buf", parent_width: int, packed_type: int) -> "Ref":
     byte_width, type_ = Type.Unpack(packed_type)
     return Ref(buf, parent_width, byte_width, type_)
 
-  def __init__(self, buf, parent_width, byte_width, type_):
+  def __init__(
+      self, buf: "Buf", parent_width: int, byte_width: int, type_: "Type"
+  ) -> None:
     self._buf = buf
     self._parent_width = parent_width
     self._byte_width = byte_width
     self._type = type_
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Ref(%s, parent_width=%d, byte_width=%d, type_=%s)' % (
         self._buf,
         self._parent_width,
@@ -584,31 +587,31 @@ class Ref:
     )
 
   @property
-  def _Bytes(self):
+  def _Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[: self._parent_width]
 
-  def _ConvertError(self, target_type):
+  def _ConvertError(self, target_type: Union["Type", str]) -> TypeError:
     raise TypeError('cannot convert %s to %s' % (self._type, target_type))
 
-  def _Indirect(self):
+  def _Indirect(self) -> "Buf":
     return self._buf.Indirect(0, self._parent_width)
 
   @property
-  def IsNull(self):
+  def IsNull(self) -> bool:
     return self._type is Type.NULL
 
   @property
-  def IsBool(self):
+  def IsBool(self) -> bool:
     return self._type is Type.BOOL
 
   @property
-  def AsBool(self):
+  def AsBool(self) -> bool:
     if self._type is Type.BOOL:
       return bool(_Unpack(U, self._Bytes))
     else:
       return self.AsInt != 0
 
-  def MutateBool(self, value):
+  def MutateBool(self, value: bool) -> bool:
     """Mutates underlying boolean value bytes in place.
 
     Args:
@@ -622,11 +625,11 @@ class Ref:
     )
 
   @property
-  def IsNumeric(self):
+  def IsNumeric(self) -> bool:
     return self.IsInt or self.IsFloat
 
   @property
-  def IsInt(self):
+  def IsInt(self) -> bool:
     return self._type in (
         Type.INT,
         Type.INDIRECT_INT,
@@ -635,7 +638,7 @@ class Ref:
     )
 
   @property
-  def AsInt(self):
+  def AsInt(self) -> int:
     """Returns current reference as integer value."""
     if self.IsNull:
       return 0
@@ -664,7 +667,7 @@ class Ref:
     else:
       raise self._ConvertError(Type.INT)
 
-  def MutateInt(self, value):
+  def MutateInt(self, value: int) -> bool:
     """Mutates underlying integer value bytes in place.
 
     Args:
@@ -690,11 +693,11 @@ class Ref:
       return False
 
   @property
-  def IsFloat(self):
+  def IsFloat(self) -> bool:
     return self._type in (Type.FLOAT, Type.INDIRECT_FLOAT)
 
   @property
-  def AsFloat(self):
+  def AsFloat(self) -> float:
     """Returns current reference as floating point value."""
     if self.IsNull:
       return 0.0
@@ -717,7 +720,7 @@ class Ref:
     else:
       raise self._ConvertError(Type.FLOAT)
 
-  def MutateFloat(self, value):
+  def MutateFloat(self, value: float) -> bool:
     """Mutates underlying floating point value bytes in place.
 
     Args:
@@ -747,29 +750,29 @@ class Ref:
       return False
 
   @property
-  def IsKey(self):
+  def IsKey(self) -> bool:
     return self._type is Type.KEY
 
   @property
-  def AsKeyBytes(self):
+  def AsKeyBytes(self) -> Union[bytes, bytearray]:
     if self.IsKey:
       return Key(self._Indirect(), self._byte_width).Bytes
     else:
       raise self._ConvertError(Type.KEY)
 
   @property
-  def AsKey(self):
+  def AsKey(self) -> str:
     if self.IsKey:
       return str(Key(self._Indirect(), self._byte_width))
     else:
       raise self._ConvertError(Type.KEY)
 
   @property
-  def IsString(self):
+  def IsString(self) -> bool:
     return self._type is Type.STRING
 
   @property
-  def AsStringBytes(self):
+  def AsStringBytes(self) -> Union[bytes, bytearray]:
     if self.IsString:
       return String(self._Indirect(), self._byte_width).Bytes
     elif self.IsKey:
@@ -778,7 +781,7 @@ class Ref:
       raise self._ConvertError(Type.STRING)
 
   @property
-  def AsString(self):
+  def AsString(self) -> str:
     if self.IsString:
       return str(String(self._Indirect(), self._byte_width))
     elif self.IsKey:
@@ -786,41 +789,41 @@ class Ref:
     else:
       raise self._ConvertError(Type.STRING)
 
-  def MutateString(self, value):
+  def MutateString(self, value: str) -> bool:
     return String(self._Indirect(), self._byte_width).Mutate(value)
 
   @property
-  def IsBlob(self):
+  def IsBlob(self) -> bool:
     return self._type is Type.BLOB
 
   @property
-  def AsBlob(self):
+  def AsBlob(self) -> Union[bytes, bytearray]:
     if self.IsBlob:
       return Blob(self._Indirect(), self._byte_width).Bytes
     else:
       raise self._ConvertError(Type.BLOB)
 
   @property
-  def IsAnyVector(self):
+  def IsAnyVector(self) -> bool:
     return self.IsVector or self.IsTypedVector or self.IsFixedTypedVector()
 
   @property
-  def IsVector(self):
+  def IsVector(self) -> bool:
     return self._type in (Type.VECTOR, Type.MAP)
 
   @property
-  def AsVector(self):
+  def AsVector(self) -> Vector:
     if self.IsVector:
       return Vector(self._Indirect(), self._byte_width)
     else:
       raise self._ConvertError(Type.VECTOR)
 
   @property
-  def IsTypedVector(self):
+  def IsTypedVector(self) -> bool:
     return Type.IsTypedVector(self._type)
 
   @property
-  def AsTypedVector(self):
+  def AsTypedVector(self) -> TypedVector:
     if self.IsTypedVector:
       return TypedVector(
           self._Indirect(),
@@ -831,11 +834,11 @@ class Ref:
       raise self._ConvertError('TYPED_VECTOR')
 
   @property
-  def IsFixedTypedVector(self):
+  def IsFixedTypedVector(self) -> bool:
     return Type.IsFixedTypedVector(self._type)
 
   @property
-  def AsFixedTypedVector(self):
+  def AsFixedTypedVector(self) -> TypedVector:
     if self.IsFixedTypedVector:
       element_type, size = Type.ToFixedTypedVectorElementType(self._type)
       return TypedVector(self._Indirect(), self._byte_width, element_type, size)
@@ -843,18 +846,18 @@ class Ref:
       raise self._ConvertError('FIXED_TYPED_VECTOR')
 
   @property
-  def IsMap(self):
+  def IsMap(self) -> bool:
     return self._type is Type.MAP
 
   @property
-  def AsMap(self):
+  def AsMap(self) -> Map:
     if self.IsMap:
       return Map(self._Indirect(), self._byte_width)
     else:
       raise self._ConvertError(Type.MAP)
 
   @property
-  def Value(self):
+  def Value(self) -> Any:
     """Converts current reference to value of corresponding type.
 
     This is equivalent to calling `AsInt` for integer values, `AsFloat` for
@@ -889,7 +892,7 @@ class Ref:
       raise TypeError('cannot convert %r to value' % self)
 
 
-def _IsIterable(obj):
+def _IsIterable(obj: Any) -> bool:
   try:
     iter(obj)
     return True
@@ -901,30 +904,30 @@ class Value:
   """Class to represent given value during the encoding process."""
 
   @staticmethod
-  def Null():
+  def Null() -> "Value":
     return Value(0, Type.NULL, BitWidth.W8)
 
   @staticmethod
-  def Bool(value):
+  def Bool(value: bool) -> "Value":
     return Value(value, Type.BOOL, BitWidth.W8)
 
   @staticmethod
-  def Int(value, bit_width):
+  def Int(value: int, bit_width: int) -> "Value":
     return Value(value, Type.INT, bit_width)
 
   @staticmethod
-  def UInt(value, bit_width):
+  def UInt(value: int, bit_width: int) -> "Value":
     return Value(value, Type.UINT, bit_width)
 
   @staticmethod
-  def Float(value, bit_width):
+  def Float(value: float, bit_width: int) -> "Value":
     return Value(value, Type.FLOAT, bit_width)
 
   @staticmethod
-  def Key(offset):
+  def Key(offset: int) -> "Value":
     return Value(offset, Type.KEY, BitWidth.W8)
 
-  def __init__(self, value, type_, min_bit_width):
+  def __init__(self, value: Union[int, float], type_: "Type", min_bit_width: int) -> None:
     self._value = value
     self._type = type_
 
@@ -932,18 +935,18 @@ class Value:
     self._min_bit_width = min_bit_width
 
   @property
-  def Value(self):
+  def Value(self) -> Union[int, float]:
     return self._value
 
   @property
-  def Type(self):
+  def Type(self) -> "Type":
     return self._type
 
   @property
-  def MinBitWidth(self):
+  def MinBitWidth(self) -> int:
     return self._min_bit_width
 
-  def StoredPackedType(self, parent_bit_width=BitWidth.W8):
+  def StoredPackedType(self, parent_bit_width: int = BitWidth.W8) -> int:
     return Type.Pack(self._type, self.StoredWidth(parent_bit_width))
 
   # We have an absolute offset, but want to store a relative offset
@@ -951,7 +954,7 @@ class Value:
   # the relative offset fits in a certain byte_width depends on
   # the size of the elements before it (and their alignment), we have
   # to test for each size in turn.
-  def ElemWidth(self, buf_size, elem_index=0):
+  def ElemWidth(self, buf_size: int, elem_index: int = 0) -> int:
     if Type.IsInline(self._type):
       return self._min_bit_width
     for byte_width in 1, 2, 4, 8:
@@ -965,20 +968,20 @@ class Value:
         return bit_width
     raise ValueError('relative offset is too big')
 
-  def StoredWidth(self, parent_bit_width=BitWidth.W8):
+  def StoredWidth(self, parent_bit_width: int = BitWidth.W8) -> int:
     if Type.IsInline(self._type):
       return max(self._min_bit_width, parent_bit_width)
     return self._min_bit_width
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Value(%s, %s, %s)' % (self._value, self._type, self._min_bit_width)
 
-  def __str__(self):
+  def __str__(self) -> str:
     return str(self._value)
 
 
-def InMap(func):
-  def wrapper(self, *args, **kwargs):
+def InMap(func: Callable[..., Any]) -> Callable[..., Any]:
+  def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
     if isinstance(args[0], str):
       self.Key(args[0])
       func(self, *args[1:], **kwargs)
@@ -988,8 +991,8 @@ def InMap(func):
   return wrapper
 
 
-def InMapForString(func):
-  def wrapper(self, *args):
+def InMapForString(func: Callable[..., Any]) -> Callable[..., Any]:
+  def wrapper(self: Any, *args: Any) -> Any:
     if len(args) == 1:
       func(self, args[0])
     elif len(args) == 2:
@@ -1004,10 +1007,11 @@ def InMapForString(func):
 class Pool:
   """Collection of (data, offset) pairs sorted by data for quick access."""
 
-  def __init__(self):
-    self._pool = []  # sorted list of (data, offset) tuples
+  def __init__(self) -> None:
+    # Explicitly hint the inner list to maintain types of tuples inside _pool
+    self._pool: List[Tuple[Union[bytes, bytearray], int]] = []
 
-  def FindOrInsert(self, data, offset):
+  def FindOrInsert(self, data: Union[bytes, bytearray], offset: int) -> Optional[int]:
     do = data, offset
     index = _BinarySearch(self._pool, do, lambda a, b: a[0] < b[0])
     if index != -1:
@@ -1016,23 +1020,36 @@ class Pool:
     self._pool.insert(index, do)
     return None
 
-  def Clear(self):
+  def Clear(self) -> None:
     self._pool = []
 
   @property
-  def Elements(self):
+  def Elements(self) -> List[Union[bytes, bytearray]]:
     return [data for data, _ in self._pool]
 
+# Type aliases for valid input data shapes
+_AddableType = Union[
+    None,
+    bool,
+    int,
+    float,
+    str,
+    bytes,
+    bytearray,
+    "array.array[Any]",
+    Dict[str, Any],
+    Iterable[Any],
+]
 
 class Builder:
   """Helper class to encode structural data into flexbuffers format."""
 
   def __init__(
       self,
-      share_strings=False,
-      share_keys=True,
-      force_min_bit_width=BitWidth.W8,
-  ):
+      share_strings: bool = False,
+      share_keys: bool = True,
+      force_min_bit_width: int = BitWidth.W8,
+  ) -> None:
     self._share_strings = share_strings
     self._share_keys = share_keys
     self._force_min_bit_width = force_min_bit_width
@@ -1042,27 +1059,27 @@ class Builder:
 
     self._finished = False
     self._buf = bytearray()
-    self._stack = []
+    self._stack: List["Value"] = []
 
-  def __len__(self):
+  def __len__(self) -> int:
     return len(self._buf)
 
   @property
-  def StringPool(self):
+  def StringPool(self) -> Pool:
     return self._string_pool
 
   @property
-  def KeyPool(self):
+  def KeyPool(self) -> Pool:
     return self._key_pool
 
-  def Clear(self):
+  def Clear(self) -> None:
     self._string_pool.Clear()
     self._key_pool.Clear()
     self._finished = False
     self._buf = bytearray()
     self._stack = []
 
-  def Finish(self):
+  def Finish(self) -> bytearray:
     """Finishes encoding process and returns underlying buffer."""
     if self._finished:
       raise RuntimeError('builder has been already finished')
@@ -1080,30 +1097,34 @@ class Builder:
     self._Write(U, value.StoredPackedType(), byte_width=1)  # Root type
     self._Write(U, byte_width, byte_width=1)  # Root size
 
-    self.finished = True
+    self._finished = True
     return self._buf
 
-  def _ReadKey(self, offset):
+  def _ReadKey(self, offset: int) -> bytearray:
     key = self._buf[offset:]
     return key[: key.find(0)]
 
-  def _Align(self, alignment):
+  def _Align(self, alignment: int) -> int:
     byte_width = 1 << alignment
     self._buf.extend(b'\x00' * _PaddingBytes(len(self._buf), byte_width))
     return byte_width
 
-  def _Write(self, fmt, value, byte_width):
+  def _Write(
+      self, fmt: Dict[int, str], value: Union[int, float], byte_width: int
+  ) -> None:
     self._buf.extend(_Pack(fmt, value, byte_width))
 
-  def _WriteVector(self, fmt, values, byte_width):
+  def _WriteVector(
+      self, fmt: Dict[int, str], values: Sequence[PackableValue], byte_width: int
+  ) -> None:
     self._buf.extend(_PackVector(fmt, values, byte_width))
 
-  def _WriteOffset(self, offset, byte_width):
+  def _WriteOffset(self, offset: int, byte_width: int) -> None:
     relative_offset = len(self._buf) - offset
     assert byte_width == 8 or relative_offset < (1 << (8 * byte_width))
     self._Write(U, relative_offset, byte_width)
 
-  def _WriteAny(self, value, byte_width):
+  def _WriteAny(self, value: "Value", byte_width: int) -> None:
     fmt = {
         Type.NULL: U,
         Type.BOOL: U,
@@ -1114,9 +1135,11 @@ class Builder:
     if fmt:
       self._Write(fmt, value.Value, byte_width)
     else:
-      self._WriteOffset(value.Value, byte_width)
+      self._WriteOffset(int(value.Value), byte_width)
 
-  def _WriteBlob(self, data, append_zero, type_):
+  def _WriteBlob(
+      self, data: Union[bytes, bytearray], append_zero: bool, type_: "Type"
+  ) -> int:
     bit_width = BitWidth.U(len(data))
     byte_width = self._Align(bit_width)
     self._Write(U, len(data), byte_width)
@@ -1127,13 +1150,19 @@ class Builder:
     self._stack.append(Value(loc, type_, bit_width))
     return loc
 
-  def _WriteScalarVector(self, element_type, byte_width, elements, fixed):
+  def _WriteScalarVector(
+      self,
+      element_type: "Type",
+      byte_width: int,
+      elements: Sequence[PackableValue],
+      fixed: bool,
+  ) -> int:
     """Writes scalar vector elements to the underlying buffer."""
     bit_width = BitWidth.B(byte_width)
     # If you get this exception, you're trying to write a vector with a size
     # field that is bigger than the scalars you're trying to write (e.g. a
     # byte vector > 255 elements). For such types, write a "blob" instead.
-    if BitWidth.U(len(elements)) > bit_width:
+    if BitWidth.U(len(elements)) > bit_width:  # Force consume length
       raise ValueError('too many elements for the given byte_width')
 
     self._Align(bit_width)
@@ -1147,11 +1176,15 @@ class Builder:
       raise TypeError('unsupported element_type')
     self._WriteVector(fmt, elements, byte_width)
 
-    type_ = Type.ToTypedVector(element_type, len(elements) if fixed else 0)
+    # Need length for vector typing logic
+    length = len(elements)
+    type_ = Type.ToTypedVector(element_type, length if fixed else 0)
     self._stack.append(Value(loc, type_, bit_width))
     return loc
 
-  def _CreateVector(self, elements, typed, fixed, keys=None):
+  def _CreateVector(
+      self, elements: List["Value"], typed: bool, fixed: bool, keys: Optional["Value"] = None
+  ) -> "Value":
     """Writes vector elements to the underlying buffer."""
     length = len(elements)
 
@@ -1183,7 +1216,7 @@ class Builder:
     byte_width = self._Align(bit_width)
     # Write vector. First the keys width/offset if available, and size.
     if keys:
-      self._WriteOffset(keys.Value, byte_width)
+      self._WriteOffset(int(keys.Value), byte_width)
       self._Write(U, 1 << keys.MinBitWidth, byte_width)
 
     if not fixed:
@@ -1209,7 +1242,7 @@ class Builder:
 
     return Value(loc, type_, bit_width)
 
-  def _PushIndirect(self, value, type_, bit_width):
+  def _PushIndirect(self, value: Union[int, float], type_: "Type", bit_width: int) -> None:
     byte_width = self._Align(bit_width)
     loc = len(self._buf)
     fmt = {Type.INDIRECT_INT: I, Type.INDIRECT_UINT: U, Type.INDIRECT_FLOAT: F}[
@@ -1219,7 +1252,7 @@ class Builder:
     self._stack.append(Value(loc, type_, bit_width))
 
   @InMapForString
-  def String(self, value):
+  def String(self, value: str) -> int:
     """Encodes string value."""
     reset_to = len(self._buf)
     encoded = value.encode('utf-8')
@@ -1233,7 +1266,7 @@ class Builder:
     return loc
 
   @InMap
-  def Blob(self, value):
+  def Blob(self, value: Union[bytes, bytearray]) -> int:
     """Encodes binary blob value.
 
     Args:
@@ -1244,7 +1277,7 @@ class Builder:
     """
     return self._WriteBlob(value, append_zero=False, type_=Type.BLOB)
 
-  def Key(self, value):
+  def Key(self, value: Union[bytes, bytearray, str]) -> int:
     """Encodes key value.
 
     Args:
@@ -1255,9 +1288,9 @@ class Builder:
       Offset of the encoded value in the underlying byte buffer.
     """
     if isinstance(value, (bytes, bytearray)):
-      encoded = value
+      encoded = bytearray(value)
     else:
-      encoded = value.encode('ascii')
+      encoded = bytearray(value.encode('ascii'))
 
     if 0 in encoded:
       raise ValueError('key contains zero byte')
@@ -1274,14 +1307,14 @@ class Builder:
     self._stack.append(Value.Key(loc))
     return loc
 
-  def Null(self, key=None):
+  def Null(self, key: Optional[Union[str, bytes, bytearray]] = None) -> None:
     """Encodes None value."""
     if key:
       self.Key(key)
     self._stack.append(Value.Null())
 
   @InMap
-  def Bool(self, value):
+  def Bool(self, value: bool) -> None:
     """Encodes boolean value.
 
     Args:
@@ -1290,7 +1323,7 @@ class Builder:
     self._stack.append(Value.Bool(value))
 
   @InMap
-  def Int(self, value, byte_width=0):
+  def Int(self, value: int, byte_width: int = 0) -> None:
     """Encodes signed integer value.
 
     Args:
@@ -1301,7 +1334,7 @@ class Builder:
     self._stack.append(Value.Int(value, bit_width))
 
   @InMap
-  def IndirectInt(self, value, byte_width=0):
+  def IndirectInt(self, value: int, byte_width: int = 0) -> None:
     """Encodes signed integer value indirectly.
 
     Args:
@@ -1312,7 +1345,7 @@ class Builder:
     self._PushIndirect(value, Type.INDIRECT_INT, bit_width)
 
   @InMap
-  def UInt(self, value, byte_width=0):
+  def UInt(self, value: int, byte_width: int = 0) -> None:
     """Encodes unsigned integer value.
 
     Args:
@@ -1323,7 +1356,7 @@ class Builder:
     self._stack.append(Value.UInt(value, bit_width))
 
   @InMap
-  def IndirectUInt(self, value, byte_width=0):
+  def IndirectUInt(self, value: int, byte_width: int = 0) -> None:
     """Encodes unsigned integer value indirectly.
 
     Args:
@@ -1334,7 +1367,7 @@ class Builder:
     self._PushIndirect(value, Type.INDIRECT_UINT, bit_width)
 
   @InMap
-  def Float(self, value, byte_width=0):
+  def Float(self, value: float, byte_width: int = 0) -> None:
     """Encodes floating point value.
 
     Args:
@@ -1345,7 +1378,7 @@ class Builder:
     self._stack.append(Value.Float(value, bit_width))
 
   @InMap
-  def IndirectFloat(self, value, byte_width=0):
+  def IndirectFloat(self, value: float, byte_width: int = 0) -> None:
     """Encodes floating point value indirectly.
 
     Args:
@@ -1355,11 +1388,11 @@ class Builder:
     bit_width = BitWidth.F(value) if byte_width == 0 else BitWidth.B(byte_width)
     self._PushIndirect(value, Type.INDIRECT_FLOAT, bit_width)
 
-  def _StartVector(self):
+  def _StartVector(self) -> int:
     """Starts vector construction."""
     return len(self._stack)
 
-  def _EndVector(self, start, typed, fixed):
+  def _EndVector(self, start: int, typed: bool, fixed: bool) -> Union[int, float]:
     """Finishes vector construction by encodung its elements."""
     vec = self._CreateVector(self._stack[start:], typed, fixed)
     del self._stack[start:]
@@ -1367,7 +1400,7 @@ class Builder:
     return vec.Value
 
   @contextlib.contextmanager
-  def Vector(self, key=None):
+  def Vector(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterator["Builder"]:
     if key:
       self.Key(key)
 
@@ -1378,7 +1411,7 @@ class Builder:
       self._EndVector(start, typed=False, fixed=False)
 
   @InMap
-  def VectorFromElements(self, elements):
+  def VectorFromElements(self, elements: Iterable[_AddableType]) -> None:
     """Encodes sequence of any elements as a vector.
 
     Args:
@@ -1389,7 +1422,7 @@ class Builder:
         self.Add(e)
 
   @contextlib.contextmanager
-  def TypedVector(self, key=None):
+  def TypedVector(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterator["Builder"]:
     if key:
       self.Key(key)
 
@@ -1400,7 +1433,9 @@ class Builder:
       self._EndVector(start, typed=True, fixed=False)
 
   @InMap
-  def TypedVectorFromElements(self, elements, element_type=None):
+  def TypedVectorFromElements(
+      self, elements: Iterable[_AddableType], element_type: Optional["Type"] = None
+  ) -> None:
     """Encodes sequence of elements of the same type as typed vector.
 
     Args:
@@ -1431,8 +1466,11 @@ class Builder:
 
   @InMap
   def FixedTypedVectorFromElements(
-      self, elements, element_type=None, byte_width=0
-  ):
+      self,
+      elements: List[Union[int, float]],
+      element_type: Optional["Type"] = None,
+      byte_width: int = 0,
+  ) -> None:
     """Encodes sequence of elements of the same type as fixed typed vector.
 
     Args:
@@ -1470,11 +1508,11 @@ class Builder:
 
     self._WriteScalarVector(element_type, byte_width, elements, fixed=True)
 
-  def _StartMap(self):
+  def _StartMap(self) -> int:
     """Starts map construction."""
     return len(self._stack)
 
-  def _EndMap(self, start):
+  def _EndMap(self, start: int) -> Union[int, float]:
     """Finishes map construction by encodung its elements."""
     # Interleaved keys and values on the stack.
     stack = self._stack[start:]
@@ -1487,10 +1525,10 @@ class Builder:
         raise RuntimeError('all map keys must be of %s type' % Type.KEY)
 
     pairs = zip(stack[::2], stack[1::2])  # [(key, value), ...]
-    pairs = sorted(pairs, key=lambda pair: self._ReadKey(pair[0].Value))
+    pairs_list = sorted(pairs, key=lambda pair: self._ReadKey(int(pair[0].Value)))
 
     del self._stack[start:]
-    for pair in pairs:
+    for pair in pairs_list:
       self._stack.extend(pair)
 
     keys = self._CreateVector(self._stack[start::2], typed=True, fixed=False)
@@ -1503,7 +1541,7 @@ class Builder:
     return values.Value
 
   @contextlib.contextmanager
-  def Map(self, key=None):
+  def Map(self, key: Optional[Union[str, bytes, bytearray]] = None) -> Iterator["Builder"]:
     if key:
       self.Key(key)
 
@@ -1513,14 +1551,14 @@ class Builder:
     finally:
       self._EndMap(start)
 
-  def MapFromElements(self, elements):
+  def MapFromElements(self, elements: Dict[str, _AddableType]) -> None:
     start = self._StartMap()
     for k, v in elements.items():
       self.Key(k)
       self.Add(v)
     self._EndMap(start)
 
-  def Adder(self, type_):
+  def Adder(self, type_: "Type") -> Callable[..., Any]:
     return {
         Type.BOOL: self.Bool,
         Type.INT: self.Int,
@@ -1535,7 +1573,7 @@ class Builder:
     }[type_]
 
   @InMapForString
-  def Add(self, value):
+  def Add(self, value: _AddableType) -> None:
     """Encodes value of any supported type."""
     if value is None:
       self.Null()
@@ -1562,15 +1600,14 @@ class Builder:
       raise TypeError('unsupported python type: %s' % type(value))
 
   @property
-  def LastValue(self):
+  def LastValue(self) -> "Value":
     return self._stack[-1]
 
   @InMap
-  def ReuseValue(self, value):
+  def ReuseValue(self, value: "Value") -> None:
     self._stack.append(value)
 
-
-def GetRoot(buf):
+def GetRoot(buf: Union[bytes, bytearray]) -> "Ref":
   """Returns root `Ref` object for the given buffer."""
   if len(buf) < 3:
     raise ValueError('buffer is too small')
@@ -1580,13 +1617,13 @@ def GetRoot(buf):
   )
 
 
-def Dumps(obj):
+def Dumps(obj: _AddableType) -> bytearray:
   """Returns bytearray with the encoded python object."""
   fbb = Builder()
   fbb.Add(obj)
   return fbb.Finish()
 
 
-def Loads(buf):
+def Loads(buf: Union[bytes, bytearray]) -> Any:
   """Returns python object decoded from the buffer."""
   return GetRoot(buf).Value
