@@ -55,6 +55,9 @@ static bool VerifyVectorOfStructs(flatbuffers::Verifier& v,
   if (required && !p) {
     return false;
   }
+  if (obj.bytesize() <= 0) {
+    return false;
+  }
 
   return !p || v.VerifyVectorOrString(p, obj.bytesize());
 }
