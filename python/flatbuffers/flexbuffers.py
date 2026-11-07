@@ -27,7 +27,7 @@ import contextlib
 import enum
 import struct
 
-from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable
+from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable, List
 
 __all__ = ('Type', 'Builder', 'GetRoot', 'Dumps', 'Loads')
 
@@ -432,7 +432,7 @@ class Vector(Sized):
 
   __slots__ = ()
 
-  def __getitem__(self, index):
+  def __getitem__(self, index: int) -> "Ref":
     if index < 0 or index >= len(self):
       raise IndexError(
           'vector index %s is out of [0, %d) range' % (index, len(self))
@@ -443,24 +443,24 @@ class Vector(Sized):
     return Ref.PackedType(buf, self._byte_width, packed_type)
 
   @property
-  def Value(self):
+  def Value(self) -> List[Any]:
     """Returns the underlying encoded data as a list object."""
     return [e.Value for e in self]
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Vector(%s, byte_width=%d, size=%d)' % (
-        self._buf,
-        self._byte_width,
-        self._size,
+      self._buf,
+      self._byte_width,
+      self._size,
     )
 
 
 class TypedVector(Sized):
   """Data accessor for the encoded typed vector or fixed typed vector bytes."""
 
-  __slots__ = '_element_type', '_size'
+  __slots__ = ('_element_type', '_size')
 
-  def __init__(self, buf, byte_width, element_type, size=0):
+  def __init__(self, buf: "Buf", byte_width: int, element_type: "Type", size: int = 0) -> None:
     super().__init__(buf, byte_width, size)
 
     if element_type == Type.STRING:
@@ -475,14 +475,14 @@ class TypedVector(Sized):
     self._element_type = element_type
 
   @property
-  def Bytes(self):
+  def Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[: self._byte_width * len(self)]
 
   @property
-  def ElementType(self):
+  def ElementType(self) -> "Type":
     return self._element_type
 
-  def __getitem__(self, index):
+  def __getitem__(self, index: int) -> "Ref":
     if index < 0 or index >= len(self):
       raise IndexError(
           'vector index %s is out of [0, %d) range' % (index, len(self))
@@ -492,7 +492,7 @@ class TypedVector(Sized):
     return Ref(buf, self._byte_width, 1, self._element_type)
 
   @property
-  def Value(self):
+  def Value(self) -> List[Any]:
     """Returns underlying data as list object."""
     if not self:
       return []
@@ -512,27 +512,26 @@ class TypedVector(Sized):
     else:
       raise TypeError('unsupported element_type: %s' % self._element_type)
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'TypedVector(%s, byte_width=%d, element_type=%s, size=%d)' % (
-        self._buf,
-        self._byte_width,
-        self._element_type,
-        self._size,
+      self._buf,
+      self._byte_width,
+      self._element_type,
+      self._size,
     )
-
 
 class Map(Vector):
   """Data accessor for the encoded map bytes."""
 
   @staticmethod
-  def CompareKeys(a, b):
+  def CompareKeys(a: Union["Ref", bytes, bytearray], b: Union["Ref", bytes, bytearray]) -> bool:
     if isinstance(a, Ref):
       a = a.AsKeyBytes
     if isinstance(b, Ref):
       b = b.AsKeyBytes
     return a < b
 
-  def __getitem__(self, key):
+  def __getitem__(self, key: Union[int, str]) -> "Ref":
     if isinstance(key, int):
       return super().__getitem__(key)
 
@@ -543,7 +542,7 @@ class Map(Vector):
     raise KeyError(key)
 
   @property
-  def Keys(self):
+  def Keys(self) -> TypedVector:
     byte_width = _Unpack(
         U, self._buf[-2 * self._byte_width : -self._byte_width]
     )
@@ -551,16 +550,15 @@ class Map(Vector):
     return TypedVector(buf, byte_width, Type.KEY)
 
   @property
-  def Values(self):
+  def Values(self) -> Vector:
     return Vector(self._buf, self._byte_width)
 
   @property
-  def Value(self):
+  def Value(self) -> Dict[str, Any]:
     return {k.Value: v.Value for k, v in zip(self.Keys, self.Values)}
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Map(%s, size=%d)' % (self._buf, len(self))
-
 
 class Ref:
   """Data accessor for the encoded data bytes."""
@@ -568,17 +566,19 @@ class Ref:
   __slots__ = '_buf', '_parent_width', '_byte_width', '_type'
 
   @staticmethod
-  def PackedType(buf, parent_width, packed_type):
+  def PackedType(buf: "Buf", parent_width: int, packed_type: int) -> "Ref":
     byte_width, type_ = Type.Unpack(packed_type)
     return Ref(buf, parent_width, byte_width, type_)
 
-  def __init__(self, buf, parent_width, byte_width, type_):
+  def __init__(
+      self, buf: "Buf", parent_width: int, byte_width: int, type_: "Type"
+  ) -> None:
     self._buf = buf
     self._parent_width = parent_width
     self._byte_width = byte_width
     self._type = type_
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'Ref(%s, parent_width=%d, byte_width=%d, type_=%s)' % (
         self._buf,
         self._parent_width,
@@ -587,31 +587,31 @@ class Ref:
     )
 
   @property
-  def _Bytes(self):
+  def _Bytes(self) -> Union[bytes, bytearray]:
     return self._buf[: self._parent_width]
 
-  def _ConvertError(self, target_type):
+  def _ConvertError(self, target_type: Union["Type", str]) -> TypeError:
     raise TypeError('cannot convert %s to %s' % (self._type, target_type))
 
-  def _Indirect(self):
+  def _Indirect(self) -> "Buf":
     return self._buf.Indirect(0, self._parent_width)
 
   @property
-  def IsNull(self):
+  def IsNull(self) -> bool:
     return self._type is Type.NULL
 
   @property
-  def IsBool(self):
+  def IsBool(self) -> bool:
     return self._type is Type.BOOL
 
   @property
-  def AsBool(self):
+  def AsBool(self) -> bool:
     if self._type is Type.BOOL:
       return bool(_Unpack(U, self._Bytes))
     else:
       return self.AsInt != 0
 
-  def MutateBool(self, value):
+  def MutateBool(self, value: bool) -> bool:
     """Mutates underlying boolean value bytes in place.
 
     Args:
@@ -625,11 +625,11 @@ class Ref:
     )
 
   @property
-  def IsNumeric(self):
+  def IsNumeric(self) -> bool:
     return self.IsInt or self.IsFloat
 
   @property
-  def IsInt(self):
+  def IsInt(self) -> bool:
     return self._type in (
         Type.INT,
         Type.INDIRECT_INT,
@@ -638,7 +638,7 @@ class Ref:
     )
 
   @property
-  def AsInt(self):
+  def AsInt(self) -> int:
     """Returns current reference as integer value."""
     if self.IsNull:
       return 0
@@ -667,7 +667,7 @@ class Ref:
     else:
       raise self._ConvertError(Type.INT)
 
-  def MutateInt(self, value):
+  def MutateInt(self, value: int) -> bool:
     """Mutates underlying integer value bytes in place.
 
     Args:
@@ -693,11 +693,11 @@ class Ref:
       return False
 
   @property
-  def IsFloat(self):
+  def IsFloat(self) -> bool:
     return self._type in (Type.FLOAT, Type.INDIRECT_FLOAT)
 
   @property
-  def AsFloat(self):
+  def AsFloat(self) -> float:
     """Returns current reference as floating point value."""
     if self.IsNull:
       return 0.0
@@ -720,7 +720,7 @@ class Ref:
     else:
       raise self._ConvertError(Type.FLOAT)
 
-  def MutateFloat(self, value):
+  def MutateFloat(self, value: float) -> bool:
     """Mutates underlying floating point value bytes in place.
 
     Args:
@@ -750,29 +750,29 @@ class Ref:
       return False
 
   @property
-  def IsKey(self):
+  def IsKey(self) -> bool:
     return self._type is Type.KEY
 
   @property
-  def AsKeyBytes(self):
+  def AsKeyBytes(self) -> Union[bytes, bytearray]:
     if self.IsKey:
       return Key(self._Indirect(), self._byte_width).Bytes
     else:
       raise self._ConvertError(Type.KEY)
 
   @property
-  def AsKey(self):
+  def AsKey(self) -> str:
     if self.IsKey:
       return str(Key(self._Indirect(), self._byte_width))
     else:
       raise self._ConvertError(Type.KEY)
 
   @property
-  def IsString(self):
+  def IsString(self) -> bool:
     return self._type is Type.STRING
 
   @property
-  def AsStringBytes(self):
+  def AsStringBytes(self) -> Union[bytes, bytearray]:
     if self.IsString:
       return String(self._Indirect(), self._byte_width).Bytes
     elif self.IsKey:
@@ -781,7 +781,7 @@ class Ref:
       raise self._ConvertError(Type.STRING)
 
   @property
-  def AsString(self):
+  def AsString(self) -> str:
     if self.IsString:
       return str(String(self._Indirect(), self._byte_width))
     elif self.IsKey:
@@ -789,41 +789,41 @@ class Ref:
     else:
       raise self._ConvertError(Type.STRING)
 
-  def MutateString(self, value):
+  def MutateString(self, value: str) -> bool:
     return String(self._Indirect(), self._byte_width).Mutate(value)
 
   @property
-  def IsBlob(self):
+  def IsBlob(self) -> bool:
     return self._type is Type.BLOB
 
   @property
-  def AsBlob(self):
+  def AsBlob(self) -> Union[bytes, bytearray]:
     if self.IsBlob:
       return Blob(self._Indirect(), self._byte_width).Bytes
     else:
       raise self._ConvertError(Type.BLOB)
 
   @property
-  def IsAnyVector(self):
+  def IsAnyVector(self) -> bool:
     return self.IsVector or self.IsTypedVector or self.IsFixedTypedVector()
 
   @property
-  def IsVector(self):
+  def IsVector(self) -> bool:
     return self._type in (Type.VECTOR, Type.MAP)
 
   @property
-  def AsVector(self):
+  def AsVector(self) -> Vector:
     if self.IsVector:
       return Vector(self._Indirect(), self._byte_width)
     else:
       raise self._ConvertError(Type.VECTOR)
 
   @property
-  def IsTypedVector(self):
+  def IsTypedVector(self) -> bool:
     return Type.IsTypedVector(self._type)
 
   @property
-  def AsTypedVector(self):
+  def AsTypedVector(self) -> TypedVector:
     if self.IsTypedVector:
       return TypedVector(
           self._Indirect(),
@@ -834,11 +834,11 @@ class Ref:
       raise self._ConvertError('TYPED_VECTOR')
 
   @property
-  def IsFixedTypedVector(self):
+  def IsFixedTypedVector(self) -> bool:
     return Type.IsFixedTypedVector(self._type)
 
   @property
-  def AsFixedTypedVector(self):
+  def AsFixedTypedVector(self) -> TypedVector:
     if self.IsFixedTypedVector:
       element_type, size = Type.ToFixedTypedVectorElementType(self._type)
       return TypedVector(self._Indirect(), self._byte_width, element_type, size)
@@ -846,18 +846,18 @@ class Ref:
       raise self._ConvertError('FIXED_TYPED_VECTOR')
 
   @property
-  def IsMap(self):
+  def IsMap(self) -> bool:
     return self._type is Type.MAP
 
   @property
-  def AsMap(self):
+  def AsMap(self) -> Map:
     if self.IsMap:
       return Map(self._Indirect(), self._byte_width)
     else:
       raise self._ConvertError(Type.MAP)
 
   @property
-  def Value(self):
+  def Value(self) -> Any:
     """Converts current reference to value of corresponding type.
 
     This is equivalent to calling `AsInt` for integer values, `AsFloat` for
@@ -892,7 +892,7 @@ class Ref:
       raise TypeError('cannot convert %r to value' % self)
 
 
-def _IsIterable(obj):
+def _IsIterable(obj: Any) -> bool:
   try:
     iter(obj)
     return True
