@@ -8,6 +8,13 @@
 #include "test_assert.h"
 
 namespace flatbuffers {
+
+struct ParserTestAccess {
+  static size_t FieldStackSize(const Parser& parser) {
+    return parser.field_stack_.size();
+  }
+};
+
 namespace tests {
 
 using namespace MyGame::Example;
@@ -144,6 +151,26 @@ void ParseIncorrectMonsterJsonTest(const std::string& tests_data_path) {
   TEST_EQ(parser.ParseJson("{name:-1}"), false);
   TEST_EQ(parser.ParseJson("{name:-f}"), false);
   TEST_EQ(parser.ParseJson("{name:+f}"), false);
+
+  // A failed JSON vector parse leaves temporary entries in field_stack_.
+  // Starting the next independent ParseJson call must discard those entries
+  // instead of accumulating them across documents.
+  flatbuffers::Parser vector_parser;
+  TEST_EQ(vector_parser.Parse("table A { v:[int]; } root_type A;"), true);
+
+  const char* malformed_vector = "{v:[0,0";
+
+  TEST_EQ(vector_parser.ParseJson(malformed_vector), false);
+  const auto retained_after_first =
+      ParserTestAccess::FieldStackSize(vector_parser);
+  TEST_NE(retained_after_first, 0);
+
+  TEST_EQ(vector_parser.ParseJson(malformed_vector), false);
+  TEST_EQ(ParserTestAccess::FieldStackSize(vector_parser),
+          retained_after_first);
+
+  TEST_EQ(vector_parser.ParseJson("{v:[0]}"), true);
+  TEST_EQ(ParserTestAccess::FieldStackSize(vector_parser), 0);
 }
 
 void JsonUnsortedArrayTest() {
