@@ -658,10 +658,20 @@ class SwiftGenerator : public BaseGenerator {
                "_ fbb: inout FlatBufferBuilder) -> Offset {";
       Indent();
       code_ += spacing + "var off = offsets";
-      code_ += spacing +
-               "off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: "
-               "{{VOFFSET}}, fbb: &fbb), Table.offset(Int32($0.o), vOffset: "
-               "{{VOFFSET}}, fbb: &fbb), fbb: &fbb) < 0 } ";
+      if (IsString(key_field->value.type)) {
+        code_ += spacing +
+                 "off.sort { Table.compare(Table.offset(Int32($1.o), vOffset: "
+                 "{{VOFFSET}}, fbb: &fbb), Table.offset(Int32($0.o), vOffset: "
+                 "{{VOFFSET}}, fbb: &fbb), fbb: &fbb) < 0 } ";
+      } else {
+        code_.SetValue("KEYTYPE", GenType(key_field->value.type));
+        code_ += spacing +
+                 "off.sort { fbb.read(def: {{KEYTYPE}}.self, position: "
+                 "Int(Table.offset(Int32($0.o), vOffset: {{VOFFSET}}, fbb: "
+                 "&fbb))) < fbb.read(def: {{KEYTYPE}}.self, position: "
+                 "Int(Table.offset(Int32($1.o), vOffset: {{VOFFSET}}, fbb: "
+                 "&fbb))) } ";
+      }
       code_ += spacing + "return fbb.createVector(ofOffsets: off)";
       Outdent();
       code_ += "}";
@@ -1871,8 +1881,22 @@ class SwiftGenerator : public BaseGenerator {
     if (IsString(key_field.value.type)) {
       code_ += "let comp = Table.compare(" + offset_reader + ", key, fbb: fbb)";
     } else {
-      code_ += "let comp = fbb.read(def: {{TYPE}}.self, position: Int(" +
+      code_ += "let comp: Int32";
+      code_ += "let value = fbb.read(def: {{TYPE}}.self, position: Int(" +
                offset_reader + "))";
+      code_ += "if value > key {";
+      Indent();
+      code_ += "comp = 1";
+      Outdent();
+      code_ += "} else if value < key {";
+      Indent();
+      code_ += "comp = -1";
+      Outdent();
+      code_ += "} else {";
+      Indent();
+      code_ += "comp = 0";
+      Outdent();
+      code_ += "}";
     }
 
     code_ += "if comp > 0 {";

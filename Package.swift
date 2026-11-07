@@ -86,6 +86,11 @@ extension Array where Element == Package.Dependency {
       .package(
         url: "https://github.com/apple/swift-crypto.git",
         "4.0.0" ..< "4.4.0"),
+      // swift-log 1.17.0+ declares swift-tools-version 6.2 while using
+      // `@nonexhaustive`, which the 6.2.x release toolchains reject.
+      .package(
+        url: "https://github.com/apple/swift-log.git",
+        "1.6.0" ..< "1.17.0"),
     ]
     #endif
   }
