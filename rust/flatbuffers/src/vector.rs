@@ -65,6 +65,24 @@ impl<'a, T: 'a> Vector<'a, T> {
     ///
     /// - UOffsetT element count
     /// - Consecutive list of `T` elements
+    ///
+    /// # Examples
+    ///
+    /// Constructing a vector requires the caller to establish the safety
+    /// conditions, even when the buffer happens to contain an empty vector:
+    ///
+    /// ```compile_fail
+    /// let bytes = [0_u8; 4];
+    /// let _vector = flatbuffers::Vector::<u8>::new(&bytes, 0);
+    /// ```
+    ///
+    /// ```
+    /// let bytes = [0_u8; 4];
+    /// // SAFETY: The four bytes encode a zero element count, so no element
+    /// // storage is required after the count.
+    /// let vector = unsafe { flatbuffers::Vector::<u8>::new(&bytes, 0) };
+    /// assert!(vector.is_empty());
+    /// ```
     #[inline(always)]
     pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
         Vector(buf, loc, PhantomData)
@@ -155,6 +173,23 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
 /// # Safety
 ///
 /// `buf` must contain a value of T at `loc` and have alignment of 1
+///
+/// # Examples
+///
+/// The caller must establish the safety conditions before forming a reference:
+///
+/// ```compile_fail
+/// let bytes = [1_u8, 2, 3, 4];
+/// let _value: &[u8; 4] = flatbuffers::follow_cast_ref(&bytes, 0);
+/// ```
+///
+/// ```
+/// let bytes = [1_u8, 2, 3, 4];
+/// // SAFETY: [u8; 4] has alignment one, all its bit patterns are valid, and
+/// // the buffer contains all four bytes for the lifetime of the reference.
+/// let value: &[u8; 4] = unsafe { flatbuffers::follow_cast_ref(&bytes, 0) };
+/// assert_eq!(value, &bytes);
+/// ```
 pub unsafe fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
     assert_eq!(align_of::<T>(), 1);
     let sz = size_of::<T>();
@@ -219,6 +254,23 @@ impl<'a, T: 'a> VectorIter<'a, T> {
     ///
     /// buf must contain a contiguous sequence of `items_num` values of `T`
     ///
+    /// # Examples
+    ///
+    /// A raw-slice iterator also requires an explicit unsafe call:
+    ///
+    /// ```compile_fail
+    /// let bytes = [1_u8, 2, 3];
+    /// let _iter = flatbuffers::VectorIter::<u8>::from_slice(&bytes, bytes.len());
+    /// ```
+    ///
+    /// ```
+    /// let bytes = [1_u8, 2, 3];
+    /// // SAFETY: The slice contains exactly three contiguous u8 values.
+    /// let iter = unsafe {
+    ///     flatbuffers::VectorIter::<u8>::from_slice(&bytes, bytes.len())
+    /// };
+    /// assert!(iter.eq(bytes.iter().copied()));
+    /// ```
     #[inline]
     pub unsafe fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
         VectorIter { buf, loc: 0, remaining: items_num, phantom: PhantomData }
