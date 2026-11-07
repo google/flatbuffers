@@ -187,6 +187,61 @@ void FlexBuffersReuseBugTest() {
           true);
 }
 
+// A string's terminator must actually be NUL, not merely in-bounds.
+// VerifyTerminator used to check only that the byte was inside the buffer, so a
+// crafted FlexBuffer with a non-NUL terminator passed VerifyBuffer; consumers
+// that then treat the value as a C string (String::c_str() + strlen/strcmp, which
+// is what Reference::ToString and Map::operator[] do) read past the end of the
+// buffer. Reproduced as an ASan heap-buffer-overflow READ on a 22-byte buffer.
+void FlexBuffersStringTerminatorTest() {
+  // Build a legitimate map with one string value.
+  flexbuffers::Builder slb;
+  slb.Map([&]() { slb.String("spec", "value"); });
+  slb.Finish();
+  std::vector<uint8_t> buf(slb.GetBuffer().begin(), slb.GetBuffer().end());
+
+  std::vector<uint8_t> tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), &tracker), true);
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), true);
+
+  // Locate the "value" string and flip its terminator byte. The string is stored
+  // as <len> then the bytes then a NUL, so the NUL is directly after 'e'.
+  auto flip_terminator = [&](const char* s, std::vector<uint8_t>& b) {
+    const size_t n = strlen(s);
+    for (size_t i = 0; i + n < b.size(); i++) {
+      if (memcmp(&b[i], s, n) == 0 && b[i + n] == 0) {
+        b[i + n] = 0x42;  // 'B' -- no terminator now
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Value string: must be rejected once its terminator is not NUL.
+  {
+    std::vector<uint8_t> bad = buf;
+    TEST_EQ(flip_terminator("value", bad), true);
+    std::vector<uint8_t> bad_tracker;
+    TEST_EQ(flexbuffers::VerifyBuffer(bad.data(), bad.size(), &bad_tracker), false);
+    TEST_EQ(flexbuffers::VerifyBuffer(bad.data(), bad.size(), nullptr), false);
+  }
+
+  // Note on keys: VerifyKey scans forward for *any* NUL at or past the key, so a
+  // corrupted key terminator is generally accepted and strlen then reads to a
+  // later in-buffer NUL -- wrong content, but not an out-of-bounds read. The
+  // out-of-bounds case is the value-string terminator covered above, so keys are
+  // deliberately not asserted here.
+
+  // Control: an unmodified buffer must still verify after the checks above.
+  {
+    std::vector<uint8_t> ok_tracker;
+    TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), &ok_tracker), true);
+    auto root = flexbuffers::GetRoot(buf).AsMap();
+    TEST_EQ(root["spec"].AsString().IsTheEmptyString(), false);
+    TEST_EQ_STR(root["spec"].AsString().c_str(), "value");
+  }
+}
+
 void FlexBuffersFloatingPointTest() {
 #if defined(FLATBUFFERS_HAS_NEW_STRTOD) && (FLATBUFFERS_HAS_NEW_STRTOD > 0)
   flexbuffers::Builder slb(512,

@@ -1983,8 +1983,13 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 #undef FLEX_CHECK_VERIFIED
 
   bool VerifyTerminator(const String& s) {
-    return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
-                             s.size() + 1);
+    auto data = reinterpret_cast<const uint8_t*>(s.c_str());
+    // The byte after the string data has to be inside the buffer AND actually be
+    // NUL. Checking only the bounds let a non-NUL terminator verify, after which
+    // any consumer that treats the value as a C string -- String::c_str() plus
+    // strlen/strcmp, which is what Reference::ToString and Map::operator[] do --
+    // reads past the end of the buffer.
+    return VerifyFromPointer(data, s.size() + 1) && Check(data[s.size()] == 0);
   }
 
   bool VerifyRef(Reference r) {
