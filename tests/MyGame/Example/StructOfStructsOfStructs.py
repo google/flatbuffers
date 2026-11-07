@@ -79,4 +79,16 @@ class StructOfStructsOfStructsT(object):
 
     # StructOfStructsOfStructsT
     def Pack(self, builder):
-        return CreateStructOfStructsOfStructs(builder, self.a.a.id, self.a.a.distance, self.a.b.a, self.a.b.b, self.a.c.id, self.a.c.distance)
+        builder.Prep(4, 20)
+        builder.Prep(4, 20)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.a.c.distance)
+        builder.PrependUint32(self.a.c.id)
+        builder.Prep(2, 4)
+        builder.Pad(1)
+        builder.PrependInt8(self.a.b.b)
+        builder.PrependInt16(self.a.b.a)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.a.a.distance)
+        builder.PrependUint32(self.a.a.id)
+        return builder.Offset()

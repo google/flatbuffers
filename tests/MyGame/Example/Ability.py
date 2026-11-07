@@ -66,4 +66,7 @@ class AbilityT(object):
 
     # AbilityT
     def Pack(self, builder):
-        return CreateAbility(builder, self.id, self.distance)
+        builder.Prep(4, 8)
+        builder.PrependUint32(self.distance)
+        builder.PrependUint32(self.id)
+        return builder.Offset()
