@@ -871,9 +871,24 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
                                       std::vector<BinaryRegion>& regions,
                                       const std::string referring_field_name,
                                       const reflection::Object* const object) {
-  if (!object->is_struct()) {
+  if (object == nullptr || !object->is_struct()) {
     return struct_offset;
   }
+  if (active_structs_.empty()) {
+    struct_traversal_aborted_ = false;
+  }
+  // Keep a rejected traversal from restarting in a fixed-array sibling.
+  if (struct_traversal_aborted_ || !IsValidOffset(struct_offset) ||
+      std::find(active_structs_.begin(), active_structs_.end(), object) !=
+          active_structs_.end()) {
+    struct_traversal_aborted_ = true;
+    return struct_offset;
+  }
+  active_structs_.push_back(object);
+  struct StructScope {
+    std::vector<const reflection::Object*>& active_structs;
+    ~StructScope() { active_structs.pop_back(); }
+  } scope{active_structs_};
   uint64_t offset = struct_offset;
 
   // Loop over all the fields in increasing order
@@ -982,6 +997,9 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
     }
   });
 
+  if (offset == struct_offset) {
+    struct_traversal_aborted_ = true;
+  }
   return offset;
 }
 
@@ -1104,18 +1122,26 @@ void BinaryAnnotator::BuildVector(
   }
 
   // Validate there are enough bytes left in the binary to process all the
-  // items.
-  const uint64_t last_item_offset =
-      vector_offset + vector_length_size_type +
-      vector_length.value() * GetElementSize(field);
+  // items without overflowing uint64_t on Vector64 element counts.
+  const uint64_t data_offset = vector_offset + vector_length_size_type;
+  const uint64_t element_size = GetElementSize(field);
+  const uint64_t available_bytes =
+      (data_offset >= vector_offset && data_offset <= binary_length_)
+          ? (binary_length_ - data_offset)
+          : 0;
+  const bool length_too_long =
+      data_offset < vector_offset || data_offset > binary_length_ ||
+      (element_size == 0
+           ? vector_length.value() > available_bytes
+           : vector_length.value() > available_bytes / element_size);
 
-  if (!IsValidOffset(last_item_offset - 1)) {
+  if (length_too_long) {
     SetError(vector_length_comment, BinaryRegionStatus::ERROR_LENGTH_TOO_LONG);
     AddSection(
         vector_offset,
         MakeSingleRegionBinarySection(
             std::string(table->name()->c_str()) + "." + field->name()->c_str(),
-            BinarySectionType::Vector,
+            section_type,
             MakeBinaryRegion(vector_offset, vector_length_size_type,
                              region_type, 0, 0, vector_length_comment)));
 
@@ -1262,15 +1288,27 @@ void BinaryAnnotator::BuildVector(
       const uint64_t union_type_vector_field_offset =
           parent_table_offset + vtable_entry->second.offset_from_table;
 
-      const auto union_type_vector_field_relative_offset =
-          ReadScalar<uint16_t>(union_type_vector_field_offset);
+      const bool is_64_bit_type_offset =
+          vtable_entry->second.field != nullptr &&
+          vtable_entry->second.field->offset64();
+      flatbuffers::Optional<uint64_t> union_type_vector_field_relative_offset;
+      if (is_64_bit_type_offset) {
+        union_type_vector_field_relative_offset =
+            ReadScalar<uint64_t>(union_type_vector_field_offset);
+      } else {
+        auto rel32 = ReadScalar<uint32_t>(union_type_vector_field_offset);
+        if (rel32.has_value()) {
+          union_type_vector_field_relative_offset = rel32.value();
+        }
+      }
 
       if (!union_type_vector_field_relative_offset.has_value()) {
         const uint64_t remaining = RemainingBytes(offset);
         BinaryRegionComment vector_union_comment;
         vector_union_comment.type = BinaryRegionCommentType::VectorUnionValue;
         SetError(vector_union_comment,
-                 BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "2");
+                 BinaryRegionStatus::ERROR_INCOMPLETE_BINARY,
+                 is_64_bit_type_offset ? "8" : "4");
 
         regions.push_back(MakeBinaryRegion(offset, remaining,
                                            BinaryRegionType::Unknown, remaining,
@@ -1279,12 +1317,21 @@ void BinaryAnnotator::BuildVector(
         break;
       }
 
-      // Get the offset to the first type (the + sizeof(uint32_t) is to skip
-      // over the vector length which we already know). Validation happens
-      // within the loop below.
-      const uint64_t union_type_vector_data_offset =
+      const uint64_t type_vector_length_size =
+          (vtable_entry->second.field != nullptr &&
+           vtable_entry->second.field->type()->base_type() ==
+               reflection::BaseType::Vector64)
+              ? sizeof(uint64_t)
+              : sizeof(uint32_t);
+      const uint64_t union_type_vector_offset =
           union_type_vector_field_offset +
-          union_type_vector_field_relative_offset.value() + sizeof(uint32_t);
+          union_type_vector_field_relative_offset.value();
+      const uint64_t union_type_vector_data_offset =
+          union_type_vector_offset + type_vector_length_size;
+      const bool valid_type_vector_base =
+          union_type_vector_offset >= union_type_vector_field_offset &&
+          union_type_vector_data_offset >= union_type_vector_offset &&
+          union_type_vector_data_offset <= binary_length_;
 
       for (size_t i = 0; i < vector_length.value(); ++i) {
         BinaryRegionComment comment;
@@ -1307,22 +1354,28 @@ void BinaryAnnotator::BuildVector(
         // The union offset is relative from the offset location itself.
         const uint64_t union_offset = offset + union_relative_offset.value();
 
-        if (!IsValidOffset(union_offset)) {
+        if (union_offset < offset || !IsValidOffset(union_offset)) {
           SetError(comment, BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY);
 
           regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
                                              BinaryRegionType::UOffset, 0,
                                              union_offset, comment));
+          offset += sizeof(uint32_t);
           continue;
         }
 
-        const auto realized_type =
-            ReadScalar<uint8_t>(union_type_vector_data_offset + i);
+        const flatbuffers::Optional<uint8_t> realized_type =
+            (valid_type_vector_base &&
+             i < binary_length_ - union_type_vector_data_offset)
+                ? ReadScalar<uint8_t>(union_type_vector_data_offset + i)
+                : flatbuffers::nullopt;
 
         if (!realized_type.has_value()) {
           SetError(comment, BinaryRegionStatus::ERROR_INCOMPLETE_BINARY, "1");
-          regions.push_back(MakeBinaryRegion(
-              offset, 0, BinaryRegionType::Unknown, 0, 0, comment));
+          regions.push_back(MakeBinaryRegion(offset, sizeof(uint32_t),
+                                             BinaryRegionType::UOffset, 0,
+                                             union_offset, comment));
+          offset += sizeof(uint32_t);
           continue;
         }
 
@@ -1497,9 +1550,13 @@ void BinaryAnnotator::FixMissingSections() {
 
   std::vector<BinarySection> sections_to_insert;
 
-  for (auto& current_section : sections_) {
-    BinarySection& section = current_section.second;
-    const uint64_t section_start_offset = current_section.first;
+  for (auto it = sections_.begin(); it != sections_.end();) {
+    BinarySection& section = it->second;
+    if (section.regions.empty()) {
+      it = sections_.erase(it);
+      continue;
+    }
+    const uint64_t section_start_offset = it->first;
     const uint64_t section_end_offset =
         section.regions.back().offset + section.regions.back().length;
 
@@ -1511,6 +1568,7 @@ void BinaryAnnotator::FixMissingSections() {
           GenerateMissingSection(offset - 1, pad_bytes, binary_));
     }
     offset = section_end_offset + 1;
+    ++it;
   }
 
   // Handle the case where there are still bytes left in the binary that are
@@ -1541,6 +1599,9 @@ bool BinaryAnnotator::ContainsSection(const uint64_t offset) {
 
   // Go back one section.
   --it;
+  if (it->second.regions.empty()) {
+    return false;
+  }
 
   // And check that if the offset is covered by the section.
   return offset >= it->first && offset < it->second.regions.back().offset +

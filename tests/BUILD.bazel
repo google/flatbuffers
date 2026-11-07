@@ -143,6 +143,7 @@ cc_test(
         ":monster_test_cc_fbs",
         ":native_type_test_cc_fbs",
         "//:flatbuffers",
+        "//src:binary_annotator",
         "//src:generate_fbs",
     ],
 )

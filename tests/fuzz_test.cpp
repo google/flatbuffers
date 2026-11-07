@@ -2,8 +2,10 @@
 
 #include <algorithm>
 
+#include "binary_annotator.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
+#include "flatbuffers/reflection.h"
 #include "test_assert.h"
 
 namespace flatbuffers {
@@ -25,6 +27,552 @@ static void CompareTableFieldValue(flatbuffers::Table* table,
                                    flatbuffers::voffset_t voffset, T val) {
   T read = table->GetField(voffset, static_cast<T>(0));
   TEST_EQ(read, val);
+}
+
+}  // namespace
+
+namespace {
+
+// An empty union section must not hide a later string section.
+void BinaryAnnotatorEmptySectionTest() {
+  flatbuffers::FlatBufferBuilder sb;
+  auto empty_fields =
+      sb.CreateVectorOfSortedTables<reflection::Field>(nullptr, 0);
+  auto empty_struct = reflection::CreateObject(sb, sb.CreateString("EmptyS"),
+                                               empty_fields, true, 1, 0);
+
+  auto utype_t = reflection::CreateType(sb, reflection::BaseType::UType,
+                                        reflection::BaseType::None, 0);
+  auto string_t = reflection::CreateType(sb, reflection::BaseType::String);
+  auto union_t = reflection::CreateType(sb, reflection::BaseType::Union,
+                                        reflection::BaseType::None, 0);
+  std::vector<flatbuffers::Offset<reflection::Field>> holder_f_vec = {
+      reflection::CreateField(sb, sb.CreateString("later"), string_t, 2, 8),
+      reflection::CreateField(sb, sb.CreateString("u"), union_t, 1, 6),
+      reflection::CreateField(sb, sb.CreateString("u_type"), utype_t, 0, 4),
+  };
+  auto holder_fields = sb.CreateVectorOfSortedTables(&holder_f_vec);
+  auto holder_obj = reflection::CreateObject(sb, sb.CreateString("Holder"),
+                                             holder_fields, false, 4, 0);
+
+  auto none_t = reflection::CreateType(sb, reflection::BaseType::None);
+  auto empty_obj_t = reflection::CreateType(sb, reflection::BaseType::Obj,
+                                            reflection::BaseType::None, 0);
+  std::vector<flatbuffers::Offset<reflection::EnumVal>> ev_vec = {
+      reflection::CreateEnumVal(sb, sb.CreateString("NONE"), 0, none_t),
+      reflection::CreateEnumVal(sb, sb.CreateString("EmptyS"), 1, empty_obj_t),
+  };
+  auto evs = sb.CreateVector(ev_vec);
+  auto u_enum =
+      reflection::CreateEnum(sb, sb.CreateString("AnyU"), evs, true, utype_t);
+
+  std::vector<flatbuffers::Offset<reflection::Object>> objs_vec = {empty_struct,
+                                                                   holder_obj};
+  auto objs = sb.CreateVectorOfSortedTables(&objs_vec);
+  std::vector<flatbuffers::Offset<reflection::Enum>> enums_vec = {u_enum};
+  auto enums = sb.CreateVectorOfSortedTables(&enums_vec);
+  auto schema =
+      reflection::CreateSchema(sb, objs, enums, sb.CreateString("BFBS"),
+                               sb.CreateString("fbs"), holder_obj);
+  reflection::FinishSchemaBuffer(sb, schema);
+
+  flatbuffers::Verifier ver(sb.GetBufferPointer(), sb.GetSize());
+  TEST_EQ(reflection::VerifySchemaBuffer(ver), true);
+
+  // Visit the empty union first, then a string at a greater binary offset.
+  flatbuffers::FlatBufferBuilder data;
+  const auto later = data.CreateString("tail");
+  data.PushElement<uint8_t>(0);
+  const auto empty = flatbuffers::Offset<void>(data.GetSize());
+  const auto table_start = data.StartTable();
+  data.AddOffset(8, later);
+  data.AddOffset(6, empty);
+  data.AddElement<uint8_t>(4, 1, 0);
+  data.Finish(
+      flatbuffers::Offset<flatbuffers::Table>(data.EndTable(table_start)));
+  const uint64_t later_offset = data.GetSize() - later.o;
+
+  flatbuffers::BinaryAnnotator annotator(sb.GetBufferPointer(), sb.GetSize(),
+                                         data.GetBufferPointer(),
+                                         data.GetSize(), false);
+  for (int call = 0; call < 2; ++call) {
+    const auto sections = annotator.Annotate();
+    const auto it = sections.find(later_offset);
+    TEST_EQ(it != sections.end(), true);
+    if (it == sections.end()) return;
+    TEST_EQ_STR(it->second.name.c_str(), "Holder.later");
+    TEST_EQ(it->second.regions.size(), static_cast<size_t>(3));
+    for (const auto& region : it->second.regions) {
+      TEST_EQ(region.comment.status == flatbuffers::BinaryRegionStatus::OK,
+              true);
+    }
+    for (const auto& entry : sections) {
+      TEST_EQ(entry.second.regions.empty(), false);
+    }
+  }
+}
+
+void BinaryAnnotatorUnionOffset64Test() {
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Parse("table Note { value:uint; } union Item { Note } "
+                       "table Root { items:[Item]; } root_type Root;"),
+          true);
+  // Supply reflection metadata for a 64-bit union companion field.
+  auto* type_field = parser.root_struct_def_->fields.Lookup("items_type");
+  TEST_NOTNULL(type_field);
+  if (type_field == nullptr) return;
+  type_field->offset64 = true;
+  type_field->value.type.base_type = flatbuffers::BASE_TYPE_VECTOR64;
+  parser.Serialize();
+
+  std::vector<uint8_t> bin(64, 0);
+  flatbuffers::WriteScalar<uint32_t>(bin.data(), 16);
+  flatbuffers::WriteScalar<uint16_t>(bin.data() + 4, 8);
+  flatbuffers::WriteScalar<uint16_t>(bin.data() + 6, 16);
+  flatbuffers::WriteScalar<uint16_t>(bin.data() + 8, 8);
+  flatbuffers::WriteScalar<uint16_t>(bin.data() + 10, 4);
+  flatbuffers::WriteScalar<int32_t>(bin.data() + 16, 12);
+  flatbuffers::WriteScalar<uint32_t>(bin.data() + 20, 12);
+  flatbuffers::WriteScalar<uint64_t>(bin.data() + 24, 24);
+  flatbuffers::WriteScalar<uint32_t>(bin.data() + 32, 1);
+  flatbuffers::WriteScalar<uint32_t>(bin.data() + 36, 4);
+  flatbuffers::WriteScalar<uint64_t>(bin.data() + 48, 1);
+  flatbuffers::WriteScalar<int32_t>(bin.data() + 40, -20);
+  flatbuffers::WriteScalar<uint16_t>(bin.data() + 60, 4);
+  flatbuffers::WriteScalar<uint16_t>(bin.data() + 62, 4);
+  bin[56] = 1;  // Item::Note, after the eight-byte length prefix.
+
+  for (int variant = 0; variant < 3; ++variant) {
+    if (variant == 1) {
+      // The low 32 bits still point into the buffer, but the full offset does
+      // not.
+      flatbuffers::WriteScalar<uint64_t>(bin.data() + 24, (1ULL << 32) + 24);
+    } else if (variant == 2) {
+      // Only four bytes remain at the eight-byte companion offset slot.
+      flatbuffers::WriteScalar<uint16_t>(bin.data() + 6, 48);
+      flatbuffers::WriteScalar<uint16_t>(bin.data() + 8, 44);
+    }
+    flatbuffers::BinaryAnnotator annotator(parser.builder_.GetBufferPointer(),
+                                           parser.builder_.GetSize(),
+                                           bin.data(), bin.size(), false);
+    const auto sections = annotator.Annotate();
+    const auto it = sections.find(32);
+    TEST_EQ(it != sections.end(), true);
+    if (it == sections.end()) return;
+    TEST_EQ(it->second.regions.size(), static_cast<size_t>(2));
+    if (it->second.regions.size() != 2) return;
+    const auto& value = it->second.regions[1];
+    TEST_EQ(value.offset, static_cast<uint64_t>(36));
+    TEST_EQ(value.comment.type ==
+                flatbuffers::BinaryRegionCommentType::VectorUnionValue,
+            true);
+    TEST_EQ(
+        value.comment.status ==
+            (variant == 0
+                 ? flatbuffers::BinaryRegionStatus::OK
+                 : flatbuffers::BinaryRegionStatus::ERROR_INCOMPLETE_BINARY),
+        true);
+    if (variant == 0) {
+      TEST_EQ_STR(value.comment.default_value.c_str(), "(`Note`)");
+      const auto types = sections.find(48);
+      TEST_EQ(types != sections.end(), true);
+      if (types == sections.end()) return;
+      TEST_EQ(types->second.type == flatbuffers::BinarySectionType::Vector64,
+              true);
+      TEST_EQ(types->second.regions.front().length,
+              static_cast<uint64_t>(sizeof(uint64_t)));
+    } else {
+      TEST_EQ(value.comment.status_message.find(variant == 1 ? "1" : "8") !=
+                  std::string::npos,
+              true);
+    }
+  }
+}
+
+void BinaryAnnotatorBoundsTest() {
+  // Valid inline arrays and repeated calls must preserve traversal state.
+  {
+    const char* schema_text =
+        "struct Leaf { value:int; } "
+        "struct Pair { items:[Leaf:2]; tail:Leaf; } "
+        "table Root { first:Pair; second:Pair; } root_type Root;";
+    flatbuffers::Parser schema_parser;
+    TEST_EQ(schema_parser.Parse(schema_text), true);
+    schema_parser.Serialize();
+    flatbuffers::Parser data_parser;
+    TEST_EQ(data_parser.Parse(schema_text), true);
+    TEST_EQ(data_parser.Parse(
+                "{ first: { items: [{value:1}, {value:2}], tail:{value:3} }, "
+                "second: { items: [{value:4}, {value:5}], tail:{value:6} } }"),
+            true);
+    flatbuffers::BinaryAnnotator annotator(
+        schema_parser.builder_.GetBufferPointer(),
+        schema_parser.builder_.GetSize(),
+        data_parser.builder_.GetBufferPointer(), data_parser.builder_.GetSize(),
+        false);
+    for (int call = 0; call < 2; ++call) {
+      const auto sections = annotator.Annotate();
+      size_t scalar_fields = 0;
+      for (const auto& section : sections) {
+        for (const auto& region : section.second.regions) {
+          if (region.comment.type ==
+              flatbuffers::BinaryRegionCommentType::StructField) {
+            TEST_EQ(
+                region.comment.status == flatbuffers::BinaryRegionStatus::OK,
+                true);
+            ++scalar_fields;
+          }
+        }
+      }
+      TEST_EQ(scalar_fields, static_cast<size_t>(6));
+    }
+  }
+
+  // A truncated nested array stops producing regions once its bytes end.
+  {
+    const char* schema_text =
+        "struct Leaf { value:int; } struct Row { items:[Leaf:4]; } "
+        "struct Block { rows:[Row:4]; } "
+        "table Root { block:Block; } root_type Root;";
+    flatbuffers::Parser schema_parser;
+    TEST_EQ(schema_parser.Parse(schema_text), true);
+    schema_parser.Serialize();
+    const std::string row =
+        "{ items:[{value:1},{value:2},{value:3},{value:4}] }";
+    const std::string json =
+        "{ block:{ rows:[" + row + "," + row + "," + row + "," + row + "] } }";
+    flatbuffers::Parser data_parser;
+    TEST_EQ(data_parser.Parse(schema_text), true);
+    TEST_EQ(data_parser.Parse(json.c_str()), true);
+    flatbuffers::BinaryAnnotator complete(
+        schema_parser.builder_.GetBufferPointer(),
+        schema_parser.builder_.GetSize(),
+        data_parser.builder_.GetBufferPointer(), data_parser.builder_.GetSize(),
+        false);
+    const auto complete_sections = complete.Annotate();
+    uint64_t first_scalar = data_parser.builder_.GetSize();
+    size_t scalar_count = 0;
+    for (const auto& section : complete_sections) {
+      for (const auto& region : section.second.regions) {
+        if (region.comment.type ==
+            flatbuffers::BinaryRegionCommentType::StructField) {
+          first_scalar = std::min(first_scalar, region.offset);
+          ++scalar_count;
+        }
+      }
+    }
+    TEST_EQ(scalar_count, static_cast<size_t>(16));
+    if (scalar_count != 16) return;
+    flatbuffers::BinaryAnnotator truncated(
+        schema_parser.builder_.GetBufferPointer(),
+        schema_parser.builder_.GetSize(),
+        data_parser.builder_.GetBufferPointer(),
+        first_scalar + sizeof(int32_t) + 1, false);
+    const auto truncated_sections = truncated.Annotate();
+    scalar_count = 0;
+    size_t incomplete_count = 0;
+    for (const auto& section : truncated_sections) {
+      for (const auto& region : section.second.regions) {
+        if (region.comment.type ==
+            flatbuffers::BinaryRegionCommentType::StructField) {
+          ++scalar_count;
+          if (region.comment.status ==
+              flatbuffers::BinaryRegionStatus::ERROR_INCOMPLETE_BINARY) {
+            ++incomplete_count;
+          }
+        }
+      }
+    }
+    TEST_EQ(scalar_count, static_cast<size_t>(2));
+    TEST_EQ(incomplete_count, static_cast<size_t>(1));
+  }
+
+  // 1. Positive control + Vector64 length multiplication overflow check.
+  {
+    const char* vec64_fbs =
+        "table Vec64Root { data:[ulong] (vector64); empty_tail:[uint]; }\n"
+        "root_type Vec64Root;\n";
+    flatbuffers::Parser schema_parser;
+    TEST_EQ(schema_parser.Parse(vec64_fbs), true);
+    schema_parser.Serialize();
+    const uint8_t* bfbs = schema_parser.builder_.GetBufferPointer();
+    const uint64_t bfbs_len = schema_parser.builder_.GetSize();
+
+    flatbuffers::Parser data_parser;
+    data_parser.builder_.ForceDefaults(true);
+    TEST_EQ(data_parser.Parse(vec64_fbs), true);
+    TEST_EQ(data_parser.Parse("{ data: [11, 22], empty_tail: [] }"), true);
+    const std::vector<uint8_t> valid_bin(
+        data_parser.builder_.GetBufferPointer(),
+        data_parser.builder_.GetBufferPointer() +
+            data_parser.builder_.GetSize());
+
+    // Valid positive control: Vector64 and empty trailing vector annotate OK.
+    flatbuffers::BinaryAnnotator valid_annotator(
+        bfbs, bfbs_len, valid_bin.data(), valid_bin.size(), false);
+    const auto valid_sections = valid_annotator.Annotate();
+    uint64_t vec64_offset = 0;
+    bool found_vec64 = false;
+    bool found_empty_tail = false;
+    for (const auto& entry : valid_sections) {
+      if (entry.second.name == "Vec64Root.data") {
+        found_vec64 = true;
+        vec64_offset = entry.first;
+        TEST_EQ(entry.second.type == flatbuffers::BinarySectionType::Vector64,
+                true);
+        TEST_EQ(entry.second.regions.size(), static_cast<size_t>(3));
+        TEST_EQ(entry.second.regions[0].comment.status ==
+                    flatbuffers::BinaryRegionStatus::OK,
+                true);
+      } else if (entry.second.name == "Vec64Root.empty_tail") {
+        found_empty_tail = true;
+        TEST_EQ(entry.second.regions[0].comment.status ==
+                    flatbuffers::BinaryRegionStatus::OK,
+                true);
+      }
+    }
+    TEST_EQ(found_vec64, true);
+    TEST_EQ(found_empty_tail, true);
+
+    // Negative overflow check: 2^61 * sizeof(uint64_t) wraps uint64_t to 0.
+    std::vector<uint8_t> overflow_bin = valid_bin;
+    flatbuffers::WriteScalar<uint64_t>(overflow_bin.data() + vec64_offset,
+                                       0x2000000000000000ULL);
+    flatbuffers::BinaryAnnotator overflow_annotator(
+        bfbs, bfbs_len, overflow_bin.data(), overflow_bin.size(), false);
+    const auto overflow_sections = overflow_annotator.Annotate();
+    const auto ov_it = overflow_sections.find(vec64_offset);
+    TEST_EQ(ov_it != overflow_sections.end(), true);
+    if (ov_it != overflow_sections.end()) {
+      TEST_EQ(ov_it->second.type == flatbuffers::BinarySectionType::Vector64,
+              true);
+      TEST_EQ(ov_it->second.regions.size(), static_cast<size_t>(1));
+      TEST_EQ(ov_it->second.regions[0].comment.status ==
+                  flatbuffers::BinaryRegionStatus::ERROR_LENGTH_TOO_LONG,
+              true);
+    }
+  }
+
+  // 2. Union vector: 32-bit _type field relative offset >= 64 KiB and
+  // per-element offset advancement on invalid elements.
+  {
+    const char* bag_fbs =
+        "table Note { tag:uint = 0; }\n"
+        "union AnyItem { Note }\n"
+        "table Bag { items:[AnyItem]; }\n"
+        "root_type Bag;\n";
+    flatbuffers::Parser bag_parser;
+    TEST_EQ(bag_parser.Parse(bag_fbs), true);
+    bag_parser.Serialize();
+    const uint8_t* bfbs = bag_parser.builder_.GetBufferPointer();
+    const uint64_t bfbs_len = bag_parser.builder_.GetSize();
+    const reflection::Schema* bag_schema = reflection::GetSchema(bfbs);
+
+    // Valid wire buffer (> 64 KiB) where items_type sits at relative offset
+    // 0x00010020 from field slot 0x14 (0x10034), while truncated uint16_t
+    // 0x0020 would read poison byte 0xFF at 0x38.
+    std::vector<uint8_t> large_bag(0x10040, 0);
+    flatbuffers::WriteScalar<uint32_t>(large_bag.data() + 0x00, 0x10);
+    flatbuffers::WriteScalar<uint16_t>(large_bag.data() + 0x04, 8);
+    flatbuffers::WriteScalar<uint16_t>(large_bag.data() + 0x06, 12);
+    flatbuffers::WriteScalar<uint16_t>(large_bag.data() + 0x08, 4);
+    flatbuffers::WriteScalar<uint16_t>(large_bag.data() + 0x0A, 8);
+    flatbuffers::WriteScalar<int32_t>(large_bag.data() + 0x10, 12);
+    flatbuffers::WriteScalar<uint32_t>(large_bag.data() + 0x14, 0x00010020U);
+    flatbuffers::WriteScalar<uint32_t>(large_bag.data() + 0x18, 0x00000008U);
+    flatbuffers::WriteScalar<uint32_t>(large_bag.data() + 0x20, 1);
+    flatbuffers::WriteScalar<uint32_t>(large_bag.data() + 0x24, 0x0000002CU);
+    large_bag[0x38] = 0xFF;  // Invalid union tag at 16-bit truncated offset.
+    flatbuffers::WriteScalar<uint16_t>(large_bag.data() + 0x44, 6);
+    flatbuffers::WriteScalar<uint16_t>(large_bag.data() + 0x46, 8);
+    flatbuffers::WriteScalar<uint16_t>(large_bag.data() + 0x48, 4);
+    flatbuffers::WriteScalar<int32_t>(large_bag.data() + 0x50, 12);
+    flatbuffers::WriteScalar<uint32_t>(large_bag.data() + 0x54, 0x12345678U);
+    flatbuffers::WriteScalar<uint32_t>(large_bag.data() + 0x10034, 1);
+    large_bag[0x10038] = 1;  // AnyItem::Note
+    TEST_EQ(flatbuffers::Verify(*bag_schema, *bag_schema->root_table(),
+                                large_bag.data(), large_bag.size()),
+            true);
+
+    flatbuffers::BinaryAnnotator large_annotator(
+        bfbs, bfbs_len, large_bag.data(), large_bag.size(), false);
+    const auto large_sections = large_annotator.Annotate();
+    const auto items_it = large_sections.find(0x20);
+    TEST_EQ(items_it != large_sections.end(), true);
+    if (items_it != large_sections.end()) {
+      TEST_EQ(items_it->second.regions.size(), static_cast<size_t>(2));
+      if (items_it->second.regions.size() == 2) {
+        TEST_EQ(items_it->second.regions[1].comment.status ==
+                    flatbuffers::BinaryRegionStatus::OK,
+                true);
+      }
+    }
+    TEST_EQ(large_sections.find(0x50) != large_sections.end(), true);
+
+    // Negative malformed union vector: element 0 has out-of-bounds offset,
+    // element 1 points to valid Note table at 0x50.
+    std::vector<uint8_t> mixed_bag(0x80, 0);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x00, 0x10);
+    flatbuffers::WriteScalar<uint16_t>(mixed_bag.data() + 0x04, 8);
+    flatbuffers::WriteScalar<uint16_t>(mixed_bag.data() + 0x06, 12);
+    flatbuffers::WriteScalar<uint16_t>(mixed_bag.data() + 0x08, 4);
+    flatbuffers::WriteScalar<uint16_t>(mixed_bag.data() + 0x0A, 8);
+    flatbuffers::WriteScalar<int32_t>(mixed_bag.data() + 0x10, 12);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x14, 0x0000004CU);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x18, 0x00000008U);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x20, 2);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x24, 0x00F00000U);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x28, 0x00000028U);
+    flatbuffers::WriteScalar<uint16_t>(mixed_bag.data() + 0x44, 6);
+    flatbuffers::WriteScalar<uint16_t>(mixed_bag.data() + 0x46, 8);
+    flatbuffers::WriteScalar<uint16_t>(mixed_bag.data() + 0x48, 4);
+    flatbuffers::WriteScalar<int32_t>(mixed_bag.data() + 0x50, 12);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x54, 0xCAFEBABEU);
+    flatbuffers::WriteScalar<uint32_t>(mixed_bag.data() + 0x60, 2);
+    mixed_bag[0x64] = 1;
+    mixed_bag[0x65] = 1;
+
+    flatbuffers::BinaryAnnotator mixed_annotator(
+        bfbs, bfbs_len, mixed_bag.data(), mixed_bag.size(), false);
+    const auto mixed_sections = mixed_annotator.Annotate();
+    const auto mixed_it = mixed_sections.find(0x20);
+    TEST_EQ(mixed_it != mixed_sections.end(), true);
+    if (mixed_it != mixed_sections.end()) {
+      TEST_EQ(mixed_it->second.regions.size(), static_cast<size_t>(3));
+      if (mixed_it->second.regions.size() == 3) {
+        TEST_EQ(mixed_it->second.regions[1].offset,
+                static_cast<uint64_t>(0x24));
+        TEST_EQ(mixed_it->second.regions[1].comment.status ==
+                    flatbuffers::BinaryRegionStatus::ERROR_OFFSET_OUT_OF_BINARY,
+                true);
+        TEST_EQ(mixed_it->second.regions[2].offset,
+                static_cast<uint64_t>(0x28));
+        TEST_EQ(mixed_it->second.regions[2].comment.status ==
+                    flatbuffers::BinaryRegionStatus::OK,
+                true);
+      }
+    }
+    TEST_EQ(mixed_sections.find(0x50) != mixed_sections.end(), true);
+
+    // Truncated _type vector data: element offsets still advance monotonically.
+    std::vector<uint8_t> trunc_type_bag(mixed_bag.begin(),
+                                        mixed_bag.begin() + 0x64);
+    flatbuffers::WriteScalar<uint32_t>(trunc_type_bag.data() + 0x24,
+                                       0x0000002CU);
+    flatbuffers::BinaryAnnotator trunc_annotator(
+        bfbs, bfbs_len, trunc_type_bag.data(), trunc_type_bag.size(), false);
+    const auto trunc_sections = trunc_annotator.Annotate();
+    const auto trunc_it = trunc_sections.find(0x20);
+    TEST_EQ(trunc_it != trunc_sections.end(), true);
+    if (trunc_it != trunc_sections.end()) {
+      TEST_EQ(trunc_it->second.regions.size(), static_cast<size_t>(3));
+      if (trunc_it->second.regions.size() == 3) {
+        TEST_EQ(trunc_it->second.regions[1].offset,
+                static_cast<uint64_t>(0x24));
+        TEST_EQ(trunc_it->second.regions[1].length,
+                static_cast<uint64_t>(sizeof(uint32_t)));
+        TEST_EQ(trunc_it->second.regions[2].offset,
+                static_cast<uint64_t>(0x28));
+        TEST_EQ(trunc_it->second.regions[2].length,
+                static_cast<uint64_t>(sizeof(uint32_t)));
+      }
+    }
+  }
+
+  // 4. Crafted negative schemas: direct and mutual fixed-array inline struct
+  // cycles in BuildStruct.
+  {
+    // 4a. Direct self-referential struct (LoopS.self -> LoopS).
+    flatbuffers::FlatBufferBuilder sb;
+    auto self_t = reflection::CreateType(sb, reflection::BaseType::Obj,
+                                         reflection::BaseType::None, 0);
+    std::vector<flatbuffers::Offset<reflection::Field>> loop_f_vec = {
+        reflection::CreateField(sb, sb.CreateString("self"), self_t, 0, 0),
+    };
+    auto loop_fields = sb.CreateVectorOfSortedTables(&loop_f_vec);
+    auto loop_struct = reflection::CreateObject(sb, sb.CreateString("LoopS"),
+                                                loop_fields, true, 1, 4);
+
+    auto root_s_t = reflection::CreateType(sb, reflection::BaseType::Obj,
+                                           reflection::BaseType::None, 0);
+    std::vector<flatbuffers::Offset<reflection::Field>> root_f_vec = {
+        reflection::CreateField(sb, sb.CreateString("s"), root_s_t, 0, 4),
+    };
+    auto root_fields = sb.CreateVectorOfSortedTables(&root_f_vec);
+    auto root_obj = reflection::CreateObject(sb, sb.CreateString("RootT"),
+                                             root_fields, false, 4, 0);
+
+    std::vector<flatbuffers::Offset<reflection::Object>> objs_vec = {
+        loop_struct, root_obj};
+    auto objs = sb.CreateVectorOfSortedTables(&objs_vec);
+    auto enums = sb.CreateVectorOfSortedTables<reflection::Enum>(nullptr, 0);
+    auto schema =
+        reflection::CreateSchema(sb, objs, enums, sb.CreateString("BFBS"),
+                                 sb.CreateString("fbs"), root_obj);
+    reflection::FinishSchemaBuffer(sb, schema);
+
+    flatbuffers::Verifier ver(sb.GetBufferPointer(), sb.GetSize());
+    TEST_EQ(reflection::VerifySchemaBuffer(ver), true);
+
+    std::vector<uint8_t> bin(24, 0);
+    flatbuffers::WriteScalar<uint32_t>(bin.data() + 0, 12);
+    flatbuffers::WriteScalar<uint16_t>(bin.data() + 4, 6);
+    flatbuffers::WriteScalar<uint16_t>(bin.data() + 6, 8);
+    flatbuffers::WriteScalar<uint16_t>(bin.data() + 8, 4);
+    flatbuffers::WriteScalar<int32_t>(bin.data() + 12, 8);
+
+    flatbuffers::BinaryAnnotator annotator(sb.GetBufferPointer(), sb.GetSize(),
+                                           bin.data(), bin.size(), false);
+    const auto sections = annotator.Annotate();
+    TEST_EQ(sections.empty(), false);
+
+    // 4b. Mutual 2-struct fixed-array cycle (CycleA[65535] <-> CycleB[65535]).
+    flatbuffers::FlatBufferBuilder sb2;
+    // Sorted object order by name: CycleA (0), CycleB (1), RootT (2).
+    auto arr_to_b = reflection::CreateType(sb2, reflection::BaseType::Array,
+                                           reflection::BaseType::Obj, 1, 65535);
+    std::vector<flatbuffers::Offset<reflection::Field>> ca_f_vec = {
+        reflection::CreateField(sb2, sb2.CreateString("b"), arr_to_b, 0, 0),
+    };
+    auto ca_obj = reflection::CreateObject(
+        sb2, sb2.CreateString("CycleA"),
+        sb2.CreateVectorOfSortedTables(&ca_f_vec), true, 1, 4);
+
+    auto arr_to_a = reflection::CreateType(sb2, reflection::BaseType::Array,
+                                           reflection::BaseType::Obj, 0, 65535);
+    std::vector<flatbuffers::Offset<reflection::Field>> cb_f_vec = {
+        reflection::CreateField(sb2, sb2.CreateString("a"), arr_to_a, 0, 0),
+    };
+    auto cb_obj = reflection::CreateObject(
+        sb2, sb2.CreateString("CycleB"),
+        sb2.CreateVectorOfSortedTables(&cb_f_vec), true, 1, 4);
+
+    auto root2_s_t = reflection::CreateType(sb2, reflection::BaseType::Obj,
+                                            reflection::BaseType::None, 0);
+    std::vector<flatbuffers::Offset<reflection::Field>> r2_f_vec = {
+        reflection::CreateField(sb2, sb2.CreateString("s"), root2_s_t, 0, 4),
+    };
+    auto r2_obj = reflection::CreateObject(
+        sb2, sb2.CreateString("RootT"),
+        sb2.CreateVectorOfSortedTables(&r2_f_vec), false, 4, 0);
+
+    std::vector<flatbuffers::Offset<reflection::Object>> objs2_vec = {
+        ca_obj, cb_obj, r2_obj};
+    auto objs2 = sb2.CreateVectorOfSortedTables(&objs2_vec);
+    auto enums2 = sb2.CreateVectorOfSortedTables<reflection::Enum>(nullptr, 0);
+    auto schema2 =
+        reflection::CreateSchema(sb2, objs2, enums2, sb2.CreateString("BFBS"),
+                                 sb2.CreateString("fbs"), r2_obj);
+    reflection::FinishSchemaBuffer(sb2, schema2);
+
+    flatbuffers::Verifier ver2(sb2.GetBufferPointer(), sb2.GetSize());
+    TEST_EQ(reflection::VerifySchemaBuffer(ver2), true);
+
+    flatbuffers::BinaryAnnotator annotator2(
+        sb2.GetBufferPointer(), sb2.GetSize(), bin.data(), bin.size(), false);
+    const auto sections2 = annotator2.Annotate();
+    TEST_EQ(sections2.empty(), false);
+  }
 }
 
 }  // namespace
@@ -344,6 +892,10 @@ void FuzzTest2() {
                      static_cast<int>(json.length() / 1024));
   #endif
   // clang-format on
+
+  BinaryAnnotatorEmptySectionTest();
+  BinaryAnnotatorUnionOffset64Test();
+  BinaryAnnotatorBoundsTest();
 }
 
 }  // namespace tests
