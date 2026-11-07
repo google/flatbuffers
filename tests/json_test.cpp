@@ -7,6 +7,10 @@
 #include "optional_scalars_generated.h"
 #include "test_assert.h"
 
+#if !defined(_WIN32)
+#include <pthread.h>
+#endif
+
 namespace flatbuffers {
 namespace tests {
 
@@ -168,6 +172,91 @@ void JsonUnsortedArrayTest() {
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("aaa"));
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("bbb"));
   TEST_NOTNULL(monster->testarrayoftables()->LookupByKey("ccc"));
+}
+
+
+namespace {
+struct DeepSortedKeyedVectorArgs {
+  bool ok;
+  bool sorted;
+};
+
+void DeepSortedKeyedVectorRun(DeepSortedKeyedVectorArgs *args) {
+  args->ok = false;
+  args->sorted = false;
+  // Text-schema route: keyed table vector, so Parser::ParseVector sorts the
+  // serialized element offsets with SimpleQsort (src/idl_parser.cpp).
+  const char *schema =
+      "table K { k:int (key); } table W { v:[K]; } root_type W;";
+  flatbuffers::Parser parser;
+  args->ok = parser.Parse(schema);
+  if (!args->ok) return;
+  // Order [max, 0..n-4, third-largest, second-largest]: every Hoare
+  // partition in SimpleQsort peels one element into the tail-side, so the
+  // non-tail recursive call keeps n-1 elements, i.e. O(n) recursion depth.
+  const size_t n = 20000;
+  std::string json = "{v:[";
+  for (size_t i = 0; i < n; i++) {
+    size_t id;
+    if (i == 0) {
+      id = n - 1;
+    } else if (i == n - 2) {
+      id = n - 3;
+    } else if (i == n - 1) {
+      id = n - 2;
+    } else {
+      id = i - 1;
+    }
+    if (i) json += ',';
+    json += "{k:";
+    json += flatbuffers::NumToString(id);
+    json += "}";
+  }
+  json += "]}";
+  args->ok = parser.ParseJson(json.c_str());
+  if (args->ok) {
+    // Walk the parsed buffer: W.v is W's first field (voffset 4) and K.k is
+    // K's first field (voffset 4). Keys are 0..n-1, so element i must carry
+    // key i once the keyed vector is sorted.
+    auto root = flatbuffers::GetRoot<flatbuffers::Table>(
+        parser.builder_.GetBufferPointer());
+    auto v = root->GetPointer<
+        const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::Table>> *>(
+        4);
+    args->sorted = (v != nullptr) && (v->size() == n);
+    for (size_t i = 0; args->sorted && i < n; i++) {
+      if (v->Get(static_cast<uoffset_t>(i))->GetField<int32_t>(4, 0) !=
+          static_cast<int32_t>(i)) {
+        args->sorted = false;
+      }
+    }
+  }
+}
+}  // namespace
+
+void JsonDeepSortedKeyedVectorTest() {
+  DeepSortedKeyedVectorArgs args;
+#if !defined(_WIN32)
+  // Parsing runs on a thread with a small stack so the unbounded recursion
+  // depth of SimpleQsort overflows deterministically.
+  pthread_attr_t attr;
+  TEST_EQ(pthread_attr_init(&attr), 0);
+  TEST_EQ(pthread_attr_setstacksize(&attr, 256 * 1024), 0);
+  pthread_t thread;
+  TEST_EQ(pthread_create(&thread, &attr,
+                         [](void *p) -> void * {
+                           DeepSortedKeyedVectorRun(
+                               static_cast<DeepSortedKeyedVectorArgs *>(p));
+                           return nullptr;
+                         },
+                         &args),
+          0);
+  TEST_EQ(pthread_join(thread, nullptr), 0);
+#else
+  DeepSortedKeyedVectorRun(&args);
+#endif
+  TEST_EQ(args.ok, true);
+  TEST_EQ(args.sorted, true);
 }
 
 void JsonUnionStructTest() {

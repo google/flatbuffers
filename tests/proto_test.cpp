@@ -4,6 +4,11 @@
 #include "idl_gen_fbs.h"
 #include "test_assert.h"
 
+#if !defined(_WIN32)
+#include <pthread.h>
+#endif
+#include <cstring>
+
 namespace flatbuffers {
 namespace tests {
 
@@ -329,6 +334,61 @@ void ParseProtoBufAsciiTest() {
   TEST_NULL(err);
   TEST_EQ_STR(text.c_str(),
               "{\n  A [\n    1\n    2\n  ]\n  C {\n    B: 2\n  }\n}\n");
+}
+
+
+namespace {
+struct NestedProtoArgs {
+  bool ok;
+  std::string error;
+};
+
+void NestedProtoRun(NestedProtoArgs *args, size_t depth) {
+  std::string proto;
+  proto.reserve(depth * 24);
+  for (size_t i = 0; i < depth; i++) {
+    proto += "message M";
+    proto += flatbuffers::NumToString(i);
+    proto += " { int32 f = 1;";
+  }
+  for (size_t i = 0; i < depth; i++) proto += "}";
+  flatbuffers::IDLOptions opts;
+  opts.proto_mode = true;
+  flatbuffers::Parser parser(opts);
+  args->ok = parser.Parse(proto.c_str(), nullptr, nullptr);
+  args->error = parser.error_;
+}
+}  // namespace
+
+void ProtoNestedMessageStackTest() {
+  // Shallow nesting keeps parsing fine.
+  NestedProtoArgs shallow;
+  NestedProtoRun(&shallow, 8);
+  TEST_EQ(shallow.ok, true);
+
+  // Deep nesting: ParseProtoDecl/ParseProtoFields recurse without a depth
+  // guard. On a small stack this crashes at HEAD; with a ParseDepthGuard it
+  // must fail gracefully with a "maximum parsing depth" error instead.
+  NestedProtoArgs deep;
+#if !defined(_WIN32)
+  pthread_attr_t attr;
+  TEST_EQ(pthread_attr_init(&attr), 0);
+  TEST_EQ(pthread_attr_setstacksize(&attr, 256 * 1024), 0);
+  pthread_t thread;
+  TEST_EQ(pthread_create(&thread, &attr,
+                         [](void *p) -> void * {
+                           NestedProtoRun(static_cast<NestedProtoArgs *>(p),
+                                          10000);
+                           return nullptr;
+                         },
+                         &deep),
+          0);
+  TEST_EQ(pthread_join(thread, nullptr), 0);
+#else
+  NestedProtoRun(&deep, 10000);
+#endif
+  TEST_EQ(deep.ok, false);
+  TEST_NOTNULL(strstr(deep.error.c_str(), "maximum parsing depth"));
 }
 
 }  // namespace tests

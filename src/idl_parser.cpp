@@ -275,21 +275,29 @@ static void SwapSerializedTables(Offset<Table>* a, Offset<Table>* b) {
 template <typename T, typename F, typename S>
 static void SimpleQsort(T* begin, T* end, size_t width, F comparator,
                         S swapper) {
-  if (end - begin <= static_cast<ptrdiff_t>(width)) return;
-  auto l = begin + width;
-  auto r = end;
-  while (l < r) {
-    if (comparator(begin, l)) {
-      r -= width;
-      swapper(l, r);
+  while (end - begin > static_cast<ptrdiff_t>(width)) {
+    auto l = begin + width;
+    auto r = end;
+    while (l < r) {
+      if (comparator(begin, l)) {
+        r -= width;
+        swapper(l, r);
+      } else {
+        l += width;
+      }
+    }
+    l -= width;
+    swapper(begin, l);
+    // Recurse into the smaller partition and loop on the larger one, so the
+    // worst-case recursion depth is O(log n) instead of O(n).
+    if (l - begin < end - r) {
+      SimpleQsort(begin, l, width, comparator, swapper);
+      begin = r;
     } else {
-      l += width;
+      SimpleQsort(r, end, width, comparator, swapper);
+      end = l;
     }
   }
-  l -= width;
-  swapper(begin, l);
-  SimpleQsort(begin, l, width, comparator, swapper);
-  SimpleQsort(r, end, width, comparator, swapper);
 }
 
 template <typename T>
@@ -3054,6 +3062,8 @@ CheckedError Parser::ParseNamespace() {
 // We parse everything as identifiers instead of keywords, since we don't
 // want protobuf keywords to become invalid identifiers in FlatBuffers.
 CheckedError Parser::ParseProtoDecl() {
+  ParseDepthGuard depth_guard(this);
+  ECHECK(depth_guard.Check());
   bool isextend = IsIdent("extend");
   if (IsIdent("package")) {
     // These are identical in syntax to FlatBuffer's namespace decl.
