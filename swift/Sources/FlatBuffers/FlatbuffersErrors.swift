@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if os(WASI)
+import WASILibc
+#else
 import Foundation
+#endif
 
 /// Collection of thrown from the Flatbuffer verifier
 public enum FlatbuffersErrors: Error, Equatable {

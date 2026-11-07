@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if os(WASI)
+import WASILibc
+#else
 import Foundation
+#endif
 
 public struct FlatbufferVector<
   Element: FlatbuffersVectorInitializable

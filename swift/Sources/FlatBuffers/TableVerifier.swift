@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+#if os(WASI)
+import WASILibc
+#else
 import Foundation
+#endif
 
 /// `TableVerifier` verifies a table object is within a provided memory.
 /// It checks if all the objects for a specific generated table, are within
