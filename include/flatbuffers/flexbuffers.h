@@ -1983,8 +1983,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 #undef FLEX_CHECK_VERIFIED
 
   bool VerifyTerminator(const String& s) {
-    return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
-                             s.size() + 1);
+    const uint8_t* ptr = reinterpret_cast<const uint8_t*>(s.c_str());
+    return VerifyFromPointer(ptr, s.size() + 1) && ptr[s.size()] == '\0';
   }
 
   bool VerifyRef(Reference r) {
