@@ -2,6 +2,11 @@
 
 #include <memory>
 #include <limits>
+#ifndef _WIN32
+  #include <sys/types.h>
+  #include <sys/wait.h>
+  #include <unistd.h>
+#endif
 
 #include "flatbuffers/flexbuffers.h"
 #include "flatbuffers/idl.h"
@@ -312,6 +317,86 @@ void ParseFlexbuffersFromJsonWithNullTest() {
     TEST_ASSERT(root.AsMap()["opt_field"].IsNull());
     TEST_EQ(root.ToString(), std::string("{ opt_field: null }"));
   }
+}
+
+// Probe helpers for FlexBuffersToStringRecursionTest() below. Each returns 0
+// when ToString produced bounded, depth-truncated output, non-zero otherwise.
+// They run in a forked child (see RunToStringProbeInChild) so that a build
+// without the depth cap stack-overflows the child instead of the test runner.
+
+// A 6-byte FlexBuffer holding a 1-element vector whose single element points
+// at the vector itself. VerifyBuffer() accepts this whenever a reuse tracker
+// is supplied (the flatc --flexbuffers --json path), so ToString() must not
+// trust verification to bound its recursion. Bytes:
+//   [0]=0x01 vector size=1, [1]=0x00 element offset=0 (self), [2]=0x28
+//   element packed type (FBT_VECTOR, 1-byte width), [3]=0x02 root offset,
+//   [4]=0x28 root packed type, [5]=0x01 root byte width.
+static int ToStringCyclicProbe() {
+  static const uint8_t cyclic[] = { 0x01, 0x00, 0x28, 0x02, 0x28, 0x01 };
+  std::string s;
+  flexbuffers::GetRoot(cyclic, sizeof(cyclic)).ToString(true, false, s);
+  if (s.size() > 4096) return 1;
+  return s.find("...") == std::string::npos ? 1 : 0;
+}
+
+// A vector nested 100 levels deep (well past the depth cap). Acyclic, so it
+// is a second, verifier-independent way to reach unbounded printer recursion.
+static int ToStringDeepNestingProbe() {
+  flexbuffers::Builder b;
+  std::vector<size_t> marks;
+  for (size_t i = 0; i < 100; i++) marks.push_back(b.StartVector());
+  for (size_t i = 100; i-- > 0;) b.EndVector(marks[i], false, false);
+  b.Finish();
+  std::string s;
+  flexbuffers::GetRoot(b.GetBuffer()).ToString(true, false, s);
+  if (s.size() > 4096) return 1;
+  return s.find("...") == std::string::npos ? 1 : 0;
+}
+
+static bool RunToStringProbeInChild(int (*probe)()) {
+#ifndef _WIN32
+  pid_t pid = fork();
+  if (pid < 0) return false;
+  if (pid == 0) {
+    // Child: run the probe and report its verdict via the exit status, so
+    // that a stack-exhaustion crash (SIGSEGV) shows up as a failed test
+    // instead of taking down the whole test binary.
+    _exit(probe());
+  }
+  int status = 0;
+  if (waitpid(pid, &status, 0) != pid) return false;
+  return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+#else
+  // No fork() on Windows. A build with the depth cap is bounded and passes
+  // in-process; a build without it stack-overflows here, which is exactly
+  // the regression this test pins.
+  return probe() == 0;
+#endif
+}
+
+// ToString() and AppendToString() recurse into each other for nested
+// containers with no depth bound, so a cyclic or deeply nested FlexBuffer
+// exhausts the stack (see issue #9074). The printer now caps its recursion
+// depth and truncates with "..." instead of crashing.
+void FlexBuffersToStringRecursionTest() {
+  // Control: a shallow nested buffer renders exactly as it always has.
+  {
+    flexbuffers::Builder b;
+    auto outer = b.StartVector();
+    b.Int(1);
+    auto inner = b.StartVector();
+    b.Int(2);
+    b.EndVector(inner, false, false);
+    b.EndVector(outer, false, false);
+    b.Finish();
+    std::string s;
+    flexbuffers::GetRoot(b.GetBuffer()).ToString(true, false, s);
+    TEST_EQ_STR(s.c_str(), "[ 1, [ 2 ] ]");
+  }
+  // Cyclic self-reference: must truncate, not recurse until the stack dies.
+  TEST_ASSERT(RunToStringProbeInChild(ToStringCyclicProbe));
+  // Deep nesting past the cap: must truncate, not render unbounded.
+  TEST_ASSERT(RunToStringProbeInChild(ToStringDeepNestingProbe));
 }
 
 }  // namespace tests
