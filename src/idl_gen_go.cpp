@@ -318,8 +318,12 @@ class GoGenerator : public BaseGenerator {
                                parser_.file_identifier_.length();
 
     if (has_file_identifier) {
-      code += "const " + struct_type + "Identifier = \"" +
-              parser_.file_identifier_ + "\"\n\n";
+      std::string escaped_ident;
+      flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                parser_.file_identifier_.length(),
+                                &escaped_ident, true, false);
+      code += "const " + struct_type + "Identifier = " +
+              escaped_ident + "\n\n";
     }
 
     for (int i = 0; i < 2; i++) {

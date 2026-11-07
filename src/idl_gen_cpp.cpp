@@ -652,7 +652,11 @@ class CppGenerator : public BaseGenerator {
       if (parser_.file_identifier_.length()) {
         // Return the identifier
         code_ += "inline const char *{{STRUCT_NAME}}Identifier() {";
-        code_ += "  return \"" + parser_.file_identifier_ + "\";";
+        std::string escaped_ident;
+        flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                  parser_.file_identifier_.length(),
+                                  &escaped_ident, true, false);
+        code_ += "  return " + escaped_ident + ";";
         code_ += "}";
         code_ += "";
 

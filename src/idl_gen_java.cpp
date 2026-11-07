@@ -758,9 +758,13 @@ class JavaGenerator : public BaseGenerator {
                   namer_.LegacyJavaMethod2(
                       "", struct_def, "BufferHasIdentifier(ByteBuffer _bb)") +
                   " { return ";
-          code += "__has_identifier(_bb, \"";
-          code += parser_.file_identifier_;
-          code += "\"); }\n";
+          std::string escaped_ident;
+          flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                    parser_.file_identifier_.length(),
+                                    &escaped_ident, true, false);
+          code += "__has_identifier(_bb, ";
+          code += escaped_ident;
+          code += "); }\n";
         }
       }
     }
@@ -1263,8 +1267,13 @@ class JavaGenerator : public BaseGenerator {
           code += " offset) {";
           code += " builder.finish" + size_prefix[i] + "(offset";
 
-          if (parser_.file_identifier_.length())
-            code += ", \"" + parser_.file_identifier_ + "\"";
+          if (parser_.file_identifier_.length()) {
+            std::string escaped_ident;
+            flatbuffers::EscapeString(parser_.file_identifier_.c_str(),
+                                      parser_.file_identifier_.length(),
+                                      &escaped_ident, true, false);
+            code += ", " + escaped_ident;
+          }
           code += "); }\n";
         }
       }
