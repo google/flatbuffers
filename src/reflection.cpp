@@ -16,6 +16,7 @@
 
 #include "flatbuffers/reflection.h"
 
+#include "flatbuffers/flex_flat_util.h"
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -65,6 +66,25 @@ static bool VerifyObject(flatbuffers::Verifier& v,
                          const reflection::Object& obj,
                          const flatbuffers::Table* table, bool required);
 
+static const reflection::Object* LookupObjectByName(
+    const reflection::Schema& schema, const reflection::Object& parent_obj,
+    const char* name) {
+  if (!name || !schema.objects()) return nullptr;
+  if (parent_obj.name()) {
+    const std::string parent_name = parent_obj.name()->str();
+    size_t dot = parent_name.find_last_of('.');
+    while (dot != std::string::npos) {
+      const std::string qualified = parent_name.substr(0, dot + 1) + name;
+      if (auto* obj = schema.objects()->LookupByKey(qualified.c_str())) {
+        return obj;
+      }
+      if (dot == 0) break;
+      dot = parent_name.find_last_of('.', dot - 1);
+    }
+  }
+  return schema.objects()->LookupByKey(name);
+}
+
 static bool VerifyUnion(flatbuffers::Verifier& v,
                         const reflection::Schema& schema, uint8_t utype,
                         const uint8_t* elem,
@@ -93,6 +113,7 @@ static bool VerifyUnion(flatbuffers::Verifier& v,
 
 static bool VerifyVector(flatbuffers::Verifier& v,
                          const reflection::Schema& schema,
+                         const reflection::Object& parent_obj,
                          const flatbuffers::Table& table,
                          const reflection::Field& vec_field) {
   FLATBUFFERS_ASSERT(vec_field.type()->base_type() == reflection::Vector);
@@ -104,8 +125,33 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       return v.VerifyVector(flatbuffers::GetFieldV<uint8_t>(table, vec_field));
     case reflection::Bool:
     case reflection::Byte:
-    case reflection::UByte:
       return v.VerifyVector(flatbuffers::GetFieldV<int8_t>(table, vec_field));
+    case reflection::UByte: {
+      auto vec = flatbuffers::GetFieldV<uint8_t>(table, vec_field);
+      if (!v.VerifyVector(vec)) return false;
+      if (!vec || !vec_field.attributes()) return true;
+      if (auto* nested_attr =
+              vec_field.attributes()->LookupByKey("nested_flatbuffer")) {
+        if (!nested_attr->value()) return false;
+        auto* nested_obj = LookupObjectByName(schema, parent_obj,
+                                              nested_attr->value()->c_str());
+        if (!nested_obj || nested_obj->is_struct()) return false;
+        if (!v.Check(vec->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
+        Verifier nested_v(vec->Data(), vec->size());
+        nested_v.SetFlexReuseTracker(v.GetFlexReuseTracker());
+        if (!nested_v.VerifyOffset<uoffset_t>(0)) return false;
+        if (!VerifyObject(nested_v, schema, *nested_obj,
+                          flatbuffers::GetAnyRoot(vec->Data()),
+                          /*required=*/true)) {
+          return false;
+        }
+      } else if (vec_field.attributes()->LookupByKey("flexbuffer")) {
+        if (!flexbuffers::VerifyNestedFlexBuffer(vec, v)) {
+          return false;
+        }
+      }
+      return true;
+    }
     case reflection::Short:
     case reflection::UShort:
       return v.VerifyVector(flatbuffers::GetFieldV<int16_t>(table, vec_field));
@@ -230,7 +276,7 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         }
         break;
       case reflection::Vector:
-        if (!VerifyVector(v, schema, *table, *field_def)) return false;
+        if (!VerifyVector(v, schema, obj, *table, *field_def)) return false;
         break;
       case reflection::Obj: {
         auto child_obj = schema.objects()->Get(field_def->type()->index());
