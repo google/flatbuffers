@@ -56,7 +56,7 @@ def flatbuffer_library_public(
 
     Args:
       name: Rule name.
-      srcs: Source .fbs files. Sent in order to the compiler.
+      srcs: Source .fbs files or filegroups containing .fbs files. Sent in order to the compiler.
       outs: Output files from flatc.
       language_flag: Target language flag. One of [-c, -j, -js].
       out_prefix: Prepend this path to the front of all generated files except on
@@ -86,6 +86,9 @@ def flatbuffer_library_public(
     This rule creates a filegroup(name) with all generated source files, and
     optionally a Fileset([reflection_name]) with all generated reflection
     binaries.
+
+    Note: srcs can now be filegroups (as requested in issue #8941). The rule
+    will automatically expand filegroups to their constituent .fbs files.
     """
     if flatc_path == None:
         flatc_path = TRUE_FLATC_PATH
@@ -102,18 +105,19 @@ def flatbuffer_library_public(
     # '$(@D)' when given a single source target will give the appropriate
     # directory. Appending 'out_prefix' is only necessary when given a build
     # target with multiple sources.
+    # Use a fixed loop that processes all expanded sources from $(SRCS)
     output_directory = (
         ("-o $(@D)/%s" % (out_prefix)) if len(srcs) > 1 else ("-o $(@D)")
     )
     genrule_cmd = " ".join([
         "SRCS=($(SRCS));",
-        "for f in $${SRCS[@]:0:%s}; do" % len(srcs),
+        "for f in \"$${SRCS[@]}\"; do",
         "OUTPUT_FILE=\"$(OUTS)\" %s $(location %s)" % (extra_env, flatc_path),
         " ".join(include_paths_cmd),
         " ".join(flatc_args),
         language_flag,
         output_directory,
-        "$$f;",
+        "\"$$f\";",
         "done",
     ])
     native.genrule(
@@ -135,16 +139,16 @@ def flatbuffer_library_public(
         reflection_include_paths_cmd = ["-I %s" % (s) for s in reflection_include_paths]
         reflection_genrule_cmd = " ".join([
             "SRCS=($(SRCS));",
-            "for f in $${SRCS[@]:0:%s}; do" % len(srcs),
+            "for f in \"$${SRCS[@]}\"; do",
             # Move the .fbs file into the current package if it is not there already
-            'if [[ $$(dirname $$f) != "{0}" ]]; then s="$$f"; f="{0}/$$(basename "$$f")"; mkdir -p "{0}"; mv "$$s" "$$f"; fi;'.format(native.package_relative_label(":invalid").package),
+            'if [[ $$(dirname "$$f") != "{0}" ]]; then s="$$f"; f="{0}/$$(basename "$$f")"; mkdir -p "{0}"; mv "$$s" "$$f"; fi;'.format(native.package_relative_label(":invalid").package),
             "$(location %s)" % (TRUE_FLATC_PATH),
             "-b --schema",
             " ".join(flatc_args),
             " ".join(reflection_include_paths_cmd),
             language_flag,
             output_directory,
-            "$$f;",
+            "\"$$f\";",
             "done",
         ])
         reflection_outs = [
@@ -195,7 +199,7 @@ def flatbuffer_cc_library(
 
     Args:
       name: Rule name.
-      srcs: Source .fbs files. Sent in order to the compiler.
+      srcs: Source .fbs files or filegroups containing .fbs files. Sent in order to the compiler.
       srcs_filegroup_name: Name of the output filegroup that holds srcs. Pass this
           filegroup into the `includes` parameter of any other
           flatbuffer_cc_library that depends on this one's schemas.
@@ -230,6 +234,9 @@ def flatbuffer_cc_library(
           parameter, if they depend on the schemas in this library.
       Fileset([name]_reflection): (Optional) all generated reflection binaries.
       cc_library([name]): library with sources and flatbuffers deps.
+
+    Note: srcs can now be filegroups (as requested in issue #8941). The rule
+    will automatically expand filegroups to their constituent .fbs files.
     """
 
     output_headers = []

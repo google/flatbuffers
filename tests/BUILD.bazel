@@ -301,3 +301,30 @@ flatbuffer_cc_library(
     ],
     filename_suffix = ".fbs"
 )
+
+# Test: filegroup as source for flatbuffer_cc_library
+# This tests the feature requested in issue #8941 - accepting filegroups as source arguments
+
+filegroup(
+    name = "test_filegroup_sources",
+    srcs = [
+        "bazel_filegroup_test.fbs",
+        "bazel_filegroup_test2.fbs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+flatbuffer_cc_library(
+    name = "test_filegroup_cc_fbs",
+    srcs = [":test_filegroup_sources"],
+    deps = [],
+)
+
+cc_test(
+    name = "filegroup_sources_test",
+    srcs = ["filegroup_sources_test.cpp"],
+    deps = [
+        ":test_filegroup_cc_fbs",
+        "//:flatbuffers",
+    ],
+)

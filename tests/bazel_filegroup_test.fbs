@@ -1,0 +1,9 @@
+// Test schema for filegroup sources test
+namespace TestFilegroup;
+
+table TestMessage {
+  id: ulong;
+  name: string;
+}
+
+root_type TestMessage;
