@@ -6,6 +6,7 @@ namespace tests {
 
 void FlexBuffersTest();
 void FlexBuffersReuseBugTest();
+void FlexBuffersVerifierWorkBoundTest();
 void FlexBuffersFloatingPointTest();
 void FlexBuffersDeprecatedTest();
 void ParseFlexbuffersFromJsonWithNullTest();
