@@ -679,7 +679,7 @@ inline bool EscapeString(const char* s, size_t length, std::string* _text,
               return false;
             }
           } else {
-            if (natural_utf8) {
+            if (natural_utf8 && ucc >= 0x20) {
               // utf8 points to past all utf-8 bytes parsed
               text.append(s + i, static_cast<size_t>(utf8 - s - i));
             } else if (ucc <= 0xFFFF) {
