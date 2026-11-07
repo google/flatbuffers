@@ -440,6 +440,36 @@ void UninitializedVectorTest() {
   TEST_EQ(test_1->b(), 40);
 }
 
+
+void ObjectApiUnionTypeWithoutValueTest() {
+  // Regression test for https://github.com/google/flatbuffers/issues/9416
+  // A union whose type is set but whose value is absent passes the
+  // verifier; UnPack leaves type set with a null value, and the generated
+  // union Pack must not dereference it.
+  flatbuffers::FlatBufferBuilder fbb;
+  auto name = fbb.CreateString("m");
+  MonsterBuilder mb(fbb);
+  mb.add_name(name);
+  mb.add_test_type(Any_Monster);  // type set, no value
+  FinishMonsterBuffer(fbb, mb.Finish());
+
+  flatbuffers::Verifier verifier(fbb.GetBufferPointer(), fbb.GetSize());
+  TEST_ASSERT(VerifyMonsterBuffer(verifier));
+
+  auto unpacked = std::unique_ptr<MonsterT>(
+      GetMonster(fbb.GetBufferPointer())->UnPack());
+  TEST_EQ(unpacked->test.type, Any_Monster);
+  TEST_ASSERT(unpacked->test.value == nullptr);
+
+  // Packing the native object must not crash, and the round-trip preserves
+  // "type set, value absent".
+  flatbuffers::FlatBufferBuilder fbb2;
+  fbb2.Finish(Monster::Pack(fbb2, unpacked.get()));
+  auto *repacked = GetMonster(fbb2.GetBufferPointer());
+  TEST_EQ(repacked->test_type(), Any_Monster);
+  TEST_ASSERT(repacked->test() == nullptr);
+}
+
 void EqualOperatorTest() {
   MonsterT a;
   MonsterT b;
@@ -1832,6 +1862,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlexBuffersDeprecatedTest();
   UninitializedVectorTest();
   EqualOperatorTest();
+  ObjectApiUnionTypeWithoutValueTest();
   NumericUtilsTest();
   IsAsciiUtilsTest();
   ValidFloatTest();

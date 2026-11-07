@@ -1751,6 +1751,7 @@ class CppGenerator : public BaseGenerator {
 
       code_ += "inline " + UnionPackSignature(enum_def, false) + " {";
       code_ += "  (void)_rehasher;";
+      code_ += "  if (!value) { return 0; }";
       code_ += "  switch (type) {";
       for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
            ++it) {

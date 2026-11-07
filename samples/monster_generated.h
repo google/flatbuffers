@@ -742,6 +742,7 @@ inline void *EquipmentUnion::UnPack(const void *obj, Equipment type, const ::fla
 
 inline ::flatbuffers::Offset<void> EquipmentUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
+  if (!value) { return 0; }
   switch (type) {
     case Equipment_Weapon: {
       auto ptr = reinterpret_cast<const MyGame::Sample::WeaponT *>(value);

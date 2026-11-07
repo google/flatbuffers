@@ -3480,6 +3480,7 @@ inline void *AnyUnion::UnPack(const void *obj, Any type, const ::flatbuffers::re
 
 inline ::flatbuffers::Offset<void> AnyUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
+  if (!value) { return 0; }
   switch (type) {
     case Any_Monster: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3595,6 +3596,7 @@ inline void *AnyUniqueAliasesUnion::UnPack(const void *obj, AnyUniqueAliases typ
 
 inline ::flatbuffers::Offset<void> AnyUniqueAliasesUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
+  if (!value) { return 0; }
   switch (type) {
     case AnyUniqueAliases_M: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
@@ -3710,6 +3712,7 @@ inline void *AnyAmbiguousAliasesUnion::UnPack(const void *obj, AnyAmbiguousAlias
 
 inline ::flatbuffers::Offset<void> AnyAmbiguousAliasesUnion::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ::flatbuffers::rehasher_function_t *_rehasher) const {
   (void)_rehasher;
+  if (!value) { return 0; }
   switch (type) {
     case AnyAmbiguousAliases_M1: {
       auto ptr = reinterpret_cast<const MyGame::Example::MonsterT *>(value);
