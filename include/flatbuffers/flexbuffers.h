@@ -1930,8 +1930,18 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
       return false;
     auto size_byte_width = r.byte_width_;
     if (!VerifyBeforePointer(p, size_byte_width)) return false;
-    FLEX_CHECK_VERIFIED(p - size_byte_width,
-                        PackedType(Builder::WidthB(size_byte_width), r.type_));
+    // Mark this vector as in progress before its children are verified. A child
+    // that refers back to it finds the marker and fails verification. Previously
+    // the vector was marked as verified up front, so a cycle was accepted and
+    // ToString recursed without bound. 0xFF cannot be a packed type (max 147).
+    const uint8_t verified_type =
+        PackedType(Builder::WidthB(size_byte_width), r.type_);
+    if (reuse_tracker_) {
+      auto& slot = (*reuse_tracker_)[p - size_byte_width - buf_];
+      if (slot == verified_type) return true;
+      if (!Check(slot == 0)) return false;
+      slot = 0xFF;
+    }
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
@@ -1954,6 +1964,9 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         if (!VerifyRef(v[i])) return false;
     } else {
       FLATBUFFERS_ASSERT(IsInline(elem_type));
+    }
+    if (reuse_tracker_) {
+      (*reuse_tracker_)[p - size_byte_width - buf_] = verified_type;
     }
     depth_--;
     return true;

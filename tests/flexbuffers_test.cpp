@@ -314,5 +314,21 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+
+// A vector whose first element refers back to the vector itself is a cycle and
+// must not verify, with or without a reuse tracker. With a tracker, the vector
+// used to be marked as verified before its children were checked, so the cycle
+// was accepted and ToString recursed without bound (flatc --json crashed).
+void FlexBuffersCycleRejectedTest() {
+  const std::vector<uint8_t> cyclic = {
+      0x76, 0x65, 0x63, 0x65, 0x46, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
+      0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x62, 0x6f,
+      0x6f, 0x6c, 0x73, 0x00, 0x04, 0x01, 0x00, 0x28, 0x01,
+  };
+  std::vector<uint8_t> reuse_tracker;
+  TEST_EQ(flexbuffers::VerifyBuffer(cyclic.data(), cyclic.size(), &reuse_tracker),
+          false);
+  TEST_EQ(flexbuffers::VerifyBuffer(cyclic.data(), cyclic.size()), false);
+}
 }  // namespace tests
 }  // namespace flatbuffers
