@@ -246,6 +246,98 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
                               fbb.GetBufferPointer(), fbb.GetSize()),
           true);
+
+  // Test Verify and VerifySizePrefixed reject truncated, null, and out-of-frame
+  // buffers without reading out of bounds.
+  {
+    const uint8_t tiny[2] = {0, 0};
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, nullptr, 0), false);
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, tiny, sizeof(tiny)),
+            false);
+    const uint8_t tiny_prefixed[4] = {0, 0, 0, 0};
+    TEST_EQ(flatbuffers::VerifySizePrefixed(schema, *root_table, nullptr, 0),
+            false);
+    TEST_EQ(flatbuffers::VerifySizePrefixed(schema, *root_table, tiny_prefixed,
+                                            sizeof(tiny_prefixed)),
+            false);
+
+    flatbuffers::FlatBufferBuilder sp_fbb;
+    auto sp_root = flatbuffers::CopyTable(
+        sp_fbb, schema, *root_table, *flatbuffers::GetAnyRoot(flatbuf), true);
+    sp_fbb.FinishSizePrefixed(sp_root, MonsterIdentifier());
+    TEST_EQ(flatbuffers::VerifySizePrefixed(
+                schema, *root_table, sp_fbb.GetBufferPointer(),
+                sp_fbb.GetSize()),
+            true);
+
+    std::vector<uint8_t> prefixed_buf(
+        sp_fbb.GetBufferPointer(),
+        sp_fbb.GetBufferPointer() + sp_fbb.GetSize());
+    // Declared size prefix larger than buffer length must fail.
+    flatbuffers::WriteScalar<uoffset_t>(prefixed_buf.data(),
+                                        sp_fbb.GetSize() + 16);
+    TEST_EQ(flatbuffers::VerifySizePrefixed(
+                schema, *root_table, prefixed_buf.data(), prefixed_buf.size()),
+            false);
+    // Declared size prefix smaller than the root payload must fail.
+    flatbuffers::WriteScalar<uoffset_t>(prefixed_buf.data(), 16);
+    TEST_EQ(flatbuffers::VerifySizePrefixed(
+                schema, *root_table, prefixed_buf.data(), prefixed_buf.size()),
+            false);
+  }
+
+  // Test VerifyObject rejects out-of-bounds vtable entries on sub-table (Obj)
+  // and Union fields, missing required String fields, and inconsistent union
+  // type/value pairs.
+  {
+    auto make_minimal_monster_table = [](voffset_t vtable_size) {
+      std::vector<uint8_t> buf(64, 0);
+      flatbuffers::WriteScalar<uoffset_t>(buf.data(), 4);
+      flatbuffers::WriteScalar<soffset_t>(buf.data() + 4, -4);
+      flatbuffers::WriteScalar<voffset_t>(buf.data() + 8, vtable_size);
+      flatbuffers::WriteScalar<voffset_t>(buf.data() + 10, 8);
+      return buf;
+    };
+
+    // Required "name" field omitted -> must fail.
+    auto missing_name_buf = make_minimal_monster_table(32);
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, missing_name_buf.data(),
+                                missing_name_buf.size()),
+            false);
+
+    // Out-of-bounds vtable offset on sub-table field "enemy" (vtable slot 28).
+    auto oob_obj_buf = make_minimal_monster_table(32);
+    flatbuffers::WriteScalar<voffset_t>(oob_obj_buf.data() + 8 + 28, 0x0200);
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, oob_obj_buf.data(),
+                                oob_obj_buf.size()),
+            false);
+
+    // Out-of-bounds vtable offset on union type "test_type" (vtable slot 18).
+    auto oob_utype_buf = make_minimal_monster_table(24);
+    flatbuffers::WriteScalar<voffset_t>(oob_utype_buf.data() + 8 + 18, 0x0200);
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, oob_utype_buf.data(),
+                                oob_utype_buf.size()),
+            false);
+
+    // Out-of-bounds vtable offset on union value "test" (vtable slot 20).
+    auto oob_uval_buf = make_minimal_monster_table(24);
+    flatbuffers::WriteScalar<voffset_t>(oob_uval_buf.data() + 8 + 20, 0x0200);
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, oob_uval_buf.data(),
+                                oob_uval_buf.size()),
+            false);
+
+    // Mutate a valid Monster copy so test_type == 0 (NONE) while test offset
+    // remains present in the vtable -> must fail verification.
+    std::vector<uint8_t> corrupt_union_buf(
+        fbb.GetBufferPointer(), fbb.GetBufferPointer() + fbb.GetSize());
+    auto* mutable_root = flatbuffers::GetAnyRoot(corrupt_union_buf.data());
+    auto* test_type_field = fields->LookupByKey("test_type");
+    TEST_NOTNULL(test_type_field);
+    flatbuffers::SetField<uint8_t>(mutable_root, *test_type_field, 0);
+    TEST_EQ(flatbuffers::Verify(schema, *root_table, corrupt_union_buf.data(),
+                                corrupt_union_buf.size()),
+            false);
+  }
 }
 
 // Test that ForAllFields with reverse=true iterates fields in descending
