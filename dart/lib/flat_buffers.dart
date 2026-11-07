@@ -545,18 +545,40 @@ class Builder {
 
   /// Write the given list of 32-bit float [values].
   int writeListFloat32(List<double> values) {
-    assert(!_inVTable);
-    _prepare(_sizeofFloat32, 1 + values.length);
-    final result = _tail;
-    var tail = _tail;
-    _setUint32AtTail(tail, values.length);
-    tail -= _sizeofUint32;
+  assert(!_inVTable);
+  _prepare(_sizeofFloat32, 1 + values.length);
+  final result = _tail;
+  var tail = _tail;
+  _setUint32AtTail(tail, values.length);
+  tail -= _sizeofUint32;
+
+  if (values is Float32List && Endian.host == Endian.little) {
+    final floatBytes = values.buffer.asUint8List(
+      values.offsetInBytes,
+      values.lengthInBytes,
+    );
+
+    final targetOffset = _buf.lengthInBytes - tail;
+    final targetBytes = _buf.buffer.asUint8List(
+      _buf.offsetInBytes,
+    );
+
+    targetBytes.setRange(
+      targetOffset,
+      targetOffset + floatBytes.length,
+      floatBytes,
+    );
+
+    tail -= floatBytes.length;
+  } else {
     for (final value in values) {
       _setFloat32AtTail(tail, value);
       tail -= _sizeofFloat32;
     }
-    return result;
   }
+
+  return result;
+}
 
   /// Write the given list of signed 64-bit integer [values].
   int writeListInt64(List<int> values) {
