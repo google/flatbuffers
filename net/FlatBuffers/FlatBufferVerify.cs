@@ -236,26 +236,18 @@ namespace Google.FlatBuffers
     private short GetVRelOffset(int pos, short vtableOffset)
     {
       short VOffset = 0;
-      // Used try/catch because pos typa as int 32bit
-      try
+
+      // First, get vtable offset
+      int vtable = pos - ReadSOffsetT(verifier_buffer, pos);
+      // Check that offset points to vtable area (is smaller than vtable size)
+      if (vtableOffset < ReadVOffsetT(verifier_buffer, vtable))
       {
-        // First, get vtable offset
-        short vtable = Convert.ToInt16(pos - ReadSOffsetT(verifier_buffer, pos));
-        // Check that offset points to vtable area (is smaller than vtable size)
-        if (vtableOffset < ReadVOffsetT(verifier_buffer, vtable))
-        {
           // Now, we can read offset value - TODO check this value against size of table data
           VOffset = ReadVOffsetT(verifier_buffer, vtable + vtableOffset);
-        }
-        else
-        {
-          VOffset = 0;
-        }
       }
-      catch (Exception e)
+      else
       {
-        Console.WriteLine("Exception: {0}", e);
-        return VOffset;
+          VOffset = 0;
       }
       return VOffset;
 
