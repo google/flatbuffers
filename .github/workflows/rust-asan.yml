@@ -1,0 +1,37 @@
+name: Rust AddressSanitizer
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: '15 5 * * *'
+
+jobs:
+  build-rust-linux-asan:
+    name: Build Rust Linux ASan
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Install nightly Rust with rust-src
+        run: rustup toolchain install nightly --profile minimal --component rust-src
+
+      - name: Test Rust with AddressSanitizer
+        env:
+          RUSTFLAGS: -Zsanitizer=address
+          RUSTDOCFLAGS: -Zsanitizer=address
+        run: |
+          cargo +nightly test \
+            -Zbuild-std \
+            --target x86_64-unknown-linux-gnu \
+            --manifest-path tests/rust_usage_test/Cargo.toml
