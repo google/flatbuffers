@@ -434,6 +434,28 @@ machines, so only use tricks like this if you can guarantee you're not
 shipping on a big endian machine (an `assert(FLATBUFFERS_LITTLEENDIAN)`
 would be wise).
 
+### Optional memcpy-based scalar access
+
+Define `FLATBUFFERS_STRICT_MEMCPY` to implement `ReadScalar` and `WriteScalar`
+using `memcpy` into and out of scalar objects. This avoids typed loads and
+stores through pointers to byte storage, and these helpers do not suppress
+alignment sanitizer checks in this mode. Their endian conversion and serialized
+representation are unchanged.
+
+Define the macro consistently in every translation unit using FlatBuffers,
+including any compiled FlatBuffers libraries linked into the same program.
+For the project's CMake build, pass
+`-DFLATBUFFERS_CXX_FLAGS=-DFLATBUFFERS_STRICT_MEMCPY`. The existing scalar access
+implementation remains the default. Optimization and performance can differ
+between the paths, including possible out-of-line `memcpy` calls; measure
+performance on your targets before enabling the option.
+
+The option affects only these scalar helpers. It does not validate buffer sizes
+or object lifetimes, make all runtime accesses alignment-independent, or remove
+the need to verify untrusted buffers before accessing them. Callers must still
+provide accessible storage for a complete scalar and a valid representation of
+its type.
+
 ## Access of untrusted buffers
 
 The generated accessor functions access fields over offsets, which is

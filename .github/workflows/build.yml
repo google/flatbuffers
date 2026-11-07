@@ -64,6 +64,24 @@ jobs:
       id: hash-gcc
       run: echo "hashes=$(sha256sum Linux.flatc.binary.${{ matrix.cxx }}.zip | base64 -w0)" >> $GITHUB_OUTPUT
 
+  build-linux-strict-memcpy:
+    name: Build Linux with memcpy scalar access and sanitizers
+    runs-on: ubuntu-24.04
+    env:
+      UBSAN_OPTIONS: halt_on_error=1
+    steps:
+    - uses: actions/checkout@v6
+    - name: cmake
+      run: >
+        CXX=clang++-18 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_CXX_STANDARD=17 -DFLATBUFFERS_STRICT_MODE=ON
+        -DFLATBUFFERS_LIBCXX_WITH_CLANG=OFF -DFLATBUFFERS_CODE_SANITIZE=ON
+        -DFLATBUFFERS_CXX_FLAGS=-DFLATBUFFERS_STRICT_MEMCPY
+    - name: build
+      run: cmake --build build --target flattests --parallel 2
+    - name: test
+      run: ctest --test-dir build --output-on-failure
+
   build-linux-no-file-tests:
     name: Build Linux with -DFLATBUFFERS_NO_FILE_TESTS
     runs-on: ubuntu-24.04

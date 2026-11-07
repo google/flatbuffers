@@ -67,6 +67,8 @@ cc_test(
         "proto_test.h",
         "reflection_test.cpp",
         "reflection_test.h",
+        "scalar_test.cpp",
+        "scalar_test.h",
         "test.cpp",
         "test_assert.cpp",
         "test_assert.h",
