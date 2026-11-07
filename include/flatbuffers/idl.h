@@ -245,9 +245,11 @@ class SymbolTable {
   }
 
   bool Add(const std::string& name, T* e) {
-    vec.emplace_back(e);
+    // Check for duplicate before adding to vec to avoid use-after-free:
+    // if caller deletes `e` on duplicate, the pointer must not remain in vec.
     auto it = dict.find(name);
     if (it != dict.end()) return true;
+    vec.emplace_back(e);
     dict[name] = e;
     return false;
   }
