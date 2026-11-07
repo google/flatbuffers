@@ -1930,8 +1930,25 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
       return false;
     auto size_byte_width = r.byte_width_;
     if (!VerifyBeforePointer(p, size_byte_width)) return false;
-    FLEX_CHECK_VERIFIED(p - size_byte_width,
-                        PackedType(Builder::WidthB(size_byte_width), r.type_));
+    // Cycle-aware reuse tracking. A node that is still being verified (i.e.
+    // present on the current verification path) is a cycle and must be
+    // rejected; a fully-verified node with the same type is a legitimate
+    // shared (DAG) reference and can be skipped. Distinguishing the two
+    // prevents cyclic buffers from passing verification -- which otherwise
+    // caused unbounded recursion / stack exhaustion in accessors such as
+    // Reference::ToString() -- while preserving the DAG de-duplication the
+    // reuse tracker exists for.
+    const uint8_t kInProgressMarker = 0xFF;  // not a valid PackedType value.
+    const auto vpacked = PackedType(Builder::WidthB(size_byte_width), r.type_);
+    const size_t vpos = static_cast<size_t>((p - size_byte_width) - buf_);
+    if (reuse_tracker_) {
+      FLATBUFFERS_ASSERT(vpos < reuse_tracker_->size());
+      auto existing = (*reuse_tracker_)[vpos];
+      if (existing == kInProgressMarker) return false;     // cycle detected.
+      if (existing == vpacked) return true;                // shared (DAG) node.
+      if (!Check(existing == 0)) return false;             // type mismatch.
+      (*reuse_tracker_)[vpos] = kInProgressMarker;
+    }
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
@@ -1955,6 +1972,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     } else {
       FLATBUFFERS_ASSERT(IsInline(elem_type));
     }
+    if (reuse_tracker_) (*reuse_tracker_)[vpos] = vpacked;  // fully verified.
     depth_--;
     return true;
   }
