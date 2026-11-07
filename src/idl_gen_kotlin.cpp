@@ -1410,7 +1410,15 @@ class KotlinGenerator : public BaseGenerator {
              ? config->content_line_prefix
              : "///");
     for (auto it = dc.begin(); it != dc.end(); ++it) {
-      writer += line_prefix + *it;
+      std::string line = *it;
+      if (config != nullptr && config->first_line != nullptr) {
+        for (size_t pos = 0;
+             (pos = line.find("*/", pos)) != std::string::npos;) {
+          line.replace(pos, 2, "*\\/");
+          pos += 3;
+        }
+      }
+      writer += line_prefix + line;
     }
     if (config != nullptr && config->last_line != nullptr) {
       writer += std::string(config->last_line);
