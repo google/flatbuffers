@@ -1,5 +1,6 @@
 #include "reflection_test.h"
 
+#include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
@@ -407,6 +408,86 @@ void MiniReflectFixedLengthArrayTest() {
       "}",
       s.c_str());
 #endif
+}
+
+// Regression test for a heap out-of-bounds write in ResizeContext (reached via
+// SetString) when shrinking. SetString computes the erase range as
+// start = str_start + 4 and removes the full old length; when a string is longer
+// than its own byte offset + 4 + the replacement length, the first erase
+// iterator (buf.begin() + start + delta) underflows below begin(), and
+// std::vector::erase memmoves to a destination before the allocation. A buffer
+// that passes Verify() is sufficient to trigger it. After the fix the dangerous
+// shrink is rejected and the buffer is left intact. The bounds check lives in
+// the shared ResizeContext, so this also confirms a legitimate vector shrink
+// still works.
+void ResizeContextShrinkBoundsTest() {
+  // (1) SetString: a single large string near the front of the buffer makes
+  //     old_len > str_start + 4 + new_len, the precondition for the underflow.
+  {
+    flatbuffers::Parser schema_parser;
+    TEST_EQ(schema_parser.Parse("table Root { name:string; } root_type Root;"),
+            true);
+    schema_parser.Serialize();
+    const auto &schema =
+        *reflection::GetSchema(schema_parser.builder_.GetBufferPointer());
+
+    flatbuffers::Parser data_parser;
+    TEST_EQ(data_parser.Parse("table Root { name:string; } root_type Root;"),
+            true);
+    const std::string big_string(1000, 'A');
+    TEST_EQ(data_parser.Parse(("{ name: \"" + big_string + "\" }").c_str()),
+            true);
+    std::vector<uint8_t> buf(data_parser.builder_.GetBufferPointer(),
+                             data_parser.builder_.GetBufferPointer() +
+                                 data_parser.builder_.GetSize());
+
+    // The crafted buffer is well-formed and passes verification.
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), buf.data(),
+                                buf.size()),
+            true);
+
+    auto &name_field = *schema.root_table()->fields()->LookupByKey("name");
+    auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(buf.data()), buf);
+    // Pre-fix: out-of-bounds write (caught by AddressSanitizer).
+    // Post-fix: the dangerous shrink is rejected; the buffer stays valid.
+    flatbuffers::SetString(schema, "x",
+                           flatbuffers::GetFieldS(**rroot, name_field), &buf);
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), buf.data(),
+                                buf.size()),
+            true);
+  }
+
+  // (2) A legitimate vector shrink must still succeed after the bounds check
+  //     (the check lives in the shared ResizeContext used by ResizeAnyVector).
+  {
+    flatbuffers::Parser schema_parser;
+    TEST_EQ(schema_parser.Parse("table Root { data:[ubyte]; } root_type Root;"),
+            true);
+    schema_parser.Serialize();
+    const auto &schema =
+        *reflection::GetSchema(schema_parser.builder_.GetBufferPointer());
+
+    flatbuffers::Parser data_parser;
+    TEST_EQ(data_parser.Parse("table Root { data:[ubyte]; } root_type Root;"),
+            true);
+    std::string json = "{ data: [";
+    for (int i = 0; i < 1000; i++) json += (i ? ",7" : "7");
+    json += "] }";
+    TEST_EQ(data_parser.Parse(json.c_str()), true);
+    std::vector<uint8_t> buf(data_parser.builder_.GetBufferPointer(),
+                             data_parser.builder_.GetBufferPointer() +
+                                 data_parser.builder_.GetSize());
+
+    auto &data_field = *schema.root_table()->fields()->LookupByKey("data");
+    auto rroot = flatbuffers::piv(flatbuffers::GetAnyRoot(buf.data()), buf);
+    auto rvec = flatbuffers::piv(
+        flatbuffers::GetFieldV<uint8_t>(**rroot, data_field), buf);
+    flatbuffers::ResizeVector<uint8_t>(schema, 10, 0, *rvec, &buf);
+    TEST_EQ(rvec->size(), 10);
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), buf.data(),
+                                buf.size()),
+            true);
+  }
 }
 
 }  // namespace tests
