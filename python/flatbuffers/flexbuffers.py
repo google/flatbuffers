@@ -27,8 +27,15 @@ import contextlib
 import enum
 import struct
 
+from typing import Dict, Tuple, Union, Sequence, Callable, TypeVar, Any, Iterable
+
 __all__ = ('Type', 'Builder', 'GetRoot', 'Dumps', 'Loads')
 
+# Type variables for generic search algorithms
+T = TypeVar('T')
+
+# A type alias for values that can be packed/unpacked
+PackableValue = Union[int, float]
 
 class BitWidth(enum.IntEnum):
   """Supported bit widths of value types.
@@ -43,7 +50,7 @@ class BitWidth(enum.IntEnum):
   W64 = 3  # 2^3 = 8 bytes
 
   @staticmethod
-  def U(value):
+  def U(value: int) -> "BitWidth":
     """Returns the minimum `BitWidth` to encode unsigned integer value."""
     assert value >= 0
 
@@ -59,7 +66,7 @@ class BitWidth(enum.IntEnum):
       raise ValueError('value is too big to encode: %s' % value)
 
   @staticmethod
-  def I(value):
+  def I(value: int) -> "BitWidth":
     """Returns the minimum `BitWidth` to encode signed integer value."""
     # -2^(n-1) <=     value < 2^(n-1)
     # -2^n     <= 2 * value < 2^n
@@ -74,64 +81,59 @@ class BitWidth(enum.IntEnum):
     return BitWidth.U(value if value >= 0 else ~value)
 
   @staticmethod
-  def F(value):
+  def F(value: float) -> "BitWidth":
     """Returns the `BitWidth` to encode floating point value."""
     if struct.unpack('<f', struct.pack('<f', value))[0] == value:
       return BitWidth.W32
     return BitWidth.W64
 
   @staticmethod
-  def B(byte_width):
-    return {1: BitWidth.W8, 2: BitWidth.W16, 4: BitWidth.W32, 8: BitWidth.W64}[
-        byte_width
-    ]
+  def B(byte_width: int) -> "BitWidth":
+    """Returns the `BitWidth` for a given byte size."""
+    widths = {1: BitWidth.W8, 2: BitWidth.W16, 4: BitWidth.W32, 8: BitWidth.W64}
+    if byte_width not in widths:
+      raise ValueError(f"Unsupported byte width: {byte_width}")
+    return widths[byte_width]
 
 
-I = {1: 'b', 2: 'h', 4: 'i', 8: 'q'}  # Integer formats
-U = {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}  # Unsigned integer formats
-F = {4: 'f', 8: 'd'}  # Floating point formats
+I: Dict[int, str] = {1: 'b', 2: 'h', 4: 'i', 8: 'q'}  # Integer formats
+U: Dict[int, str] = {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}  # Unsigned integer formats
+F: Dict[int, str] = {4: 'f', 8: 'd'}  # Floating point formats
 
 
-def _Unpack(fmt, buf):
+def _Unpack(fmt: Dict[int, str], buf: bytes) -> PackableValue:
   return struct.unpack('<%s' % fmt[len(buf)], buf)[0]
 
-
-def _UnpackVector(fmt, buf, length):
+def _UnpackVector(fmt: Dict[int, str], buf: bytes, length: int) -> Tuple[PackableValue, ...]:
   byte_width = len(buf) // length
   return struct.unpack('<%d%s' % (length, fmt[byte_width]), buf)
 
-
-def _Pack(fmt, value, byte_width):
+def _Pack(fmt: Dict[int, str], value: PackableValue, byte_width: int) -> bytes:
   return struct.pack('<%s' % fmt[byte_width], value)
 
-
-def _PackVector(fmt, values, byte_width):
+def _PackVector(fmt: Dict[int, str], values: Sequence[PackableValue], byte_width: int) -> bytes:
   return struct.pack('<%d%s' % (len(values), fmt[byte_width]), *values)
 
-
-def _Mutate(fmt, buf, value, byte_width, value_bit_width):
+def _Mutate(fmt: Dict[int, str], buf: bytearray, value: PackableValue, byte_width: int, value_bit_width: int) -> bool:
   if (1 << value_bit_width) <= byte_width:
     buf[:byte_width] = _Pack(fmt, value, byte_width)
     return True
   return False
 
-
 # Computes how many bytes you'd have to pad to be able to write an
 # "scalar_size" scalar if the buffer had grown to "buf_size",
 # "scalar_size" is a power of two.
-def _PaddingBytes(buf_size, scalar_size):
+def _PaddingBytes(buf_size: int, scalar_size: int) -> int:
   # ((buf_size + (scalar_size - 1)) // scalar_size) * scalar_size - buf_size
   return -buf_size & (scalar_size - 1)
 
-
-def _ShiftSlice(s, offset, length):
+def _ShiftSlice(s: slice, offset: int, length: int) -> slice:
   start = offset + (0 if s.start is None else s.start)
   stop = offset + (length if s.stop is None else s.stop)
   return slice(start, stop, s.step)
 
-
 # https://en.cppreference.com/w/cpp/algorithm/lower_bound
-def _LowerBound(values, value, pred):
+def _LowerBound(values: Sequence[T], value: T, pred: Callable[[T, T], bool]) -> int:
   """Implementation of C++ std::lower_bound() algorithm."""
   first, last = 0, len(values)
   count = last - first
@@ -149,7 +151,7 @@ def _LowerBound(values, value, pred):
 
 
 # https://en.cppreference.com/w/cpp/algorithm/binary_search
-def _BinarySearch(values, value, pred=lambda x, y: x < y):
+def _BinarySearch(values: Sequence[T], value: T, pred: Callable[[T, T], bool] = lambda x, y: x < y) -> int:
   """Implementation of C++ std::binary_search() algorithm."""
   index = _LowerBound(values, value, pred)
   if index != len(values) and not pred(value, values[index]):
@@ -200,45 +202,45 @@ class Type(enum.IntEnum):
   VECTOR_BOOL = 36  # To do the same type of conversion of type to vector type
 
   @staticmethod
-  def Pack(type_, bit_width):
+  def Pack(type_: "Type", bit_width: int) -> int:
     return (int(type_) << 2) | bit_width
 
   @staticmethod
-  def Unpack(packed_type):
+  def Unpack(packed_type: int) -> Tuple[int, "Type"]:
     return 1 << (packed_type & 0b11), Type(packed_type >> 2)
 
   @staticmethod
-  def IsInline(type_):
+  def IsInline(type_: "Type") -> bool:
     return type_ <= Type.FLOAT or type_ == Type.BOOL
 
   @staticmethod
-  def IsTypedVector(type_):
+  def IsTypedVector(type_: "Type") -> bool:
     return (
-        Type.VECTOR_INT <= type_ <= Type.VECTOR_STRING_DEPRECATED
-        or type_ == Type.VECTOR_BOOL
+      Type.VECTOR_INT <= type_ <= Type.VECTOR_STRING_DEPRECATED
+      or type_ == Type.VECTOR_BOOL
     )
 
   @staticmethod
-  def IsTypedVectorElementType(type_):
+  def IsTypedVectorElementType(type_: "Type") -> bool:
     return Type.INT <= type_ <= Type.STRING or type_ == Type.BOOL
 
   @staticmethod
-  def ToTypedVectorElementType(type_):
+  def ToTypedVectorElementType(type_: "Type") -> "Type":
     if not Type.IsTypedVector(type_):
       raise ValueError('must be typed vector type')
 
     return Type(type_ - Type.VECTOR_INT + Type.INT)
 
   @staticmethod
-  def IsFixedTypedVector(type_):
+  def IsFixedTypedVector(type_: "Type") -> bool:
     return Type.VECTOR_INT2 <= type_ <= Type.VECTOR_FLOAT4
 
   @staticmethod
-  def IsFixedTypedVectorElementType(type_):
+  def IsFixedTypedVectorElementType(type_: "Type") -> bool:
     return Type.INT <= type_ <= Type.FLOAT
 
   @staticmethod
-  def ToFixedTypedVectorElementType(type_):
+  def ToFixedTypedVectorElementType(type_: "Type") -> Tuple["Type", int]:
     if not Type.IsFixedTypedVector(type_):
       raise ValueError('must be fixed typed vector type')
 
@@ -247,7 +249,7 @@ class Type(enum.IntEnum):
     return Type(fixed_type % 3 + Type.INT), fixed_type // 3 + 2
 
   @staticmethod
-  def ToTypedVector(element_type, fixed_len=0):
+  def ToTypedVector(element_type: "Type", fixed_len: int = 0) -> "Type":
     """Converts element type to corresponding vector type.
 
     Args:
@@ -257,7 +259,7 @@ class Type(enum.IntEnum):
 
     Returns:
       Typed vector type or fixed typed vector type.
-    """
+      """
     if fixed_len == 0:
       if not Type.IsTypedVectorElementType(element_type):
         raise ValueError('must be typed vector element type')
@@ -277,16 +279,15 @@ class Type(enum.IntEnum):
     else:
       raise ValueError('unsupported fixed_len: %s' % fixed_len)
 
-
 class Buf:
   """Class to access underlying buffer object starting from the given offset."""
 
-  def __init__(self, buf, offset):
+  def __init__(self, buf: Union[bytes, bytearray], offset: int) -> None:
     self._buf = buf
     self._offset = offset if offset >= 0 else len(buf) + offset
     self._length = len(buf) - self._offset
 
-  def __getitem__(self, key):
+  def __getitem__(self, key: Union[int, slice]) -> Union[int, bytes, bytearray]:
     if isinstance(key, slice):
       return self._buf[_ShiftSlice(key, self._offset, self._length)]
     elif isinstance(key, int):
@@ -294,41 +295,40 @@ class Buf:
     else:
       raise TypeError('invalid key type')
 
-  def __setitem__(self, key, value):
+  def __setitem__(self, key: Union[int, slice], value: Union[int, Iterable[int]]) -> None:
     if isinstance(key, slice):
       self._buf[_ShiftSlice(key, self._offset, self._length)] = value
     elif isinstance(key, int):
-      self._buf[self._offset + key] = key
+      self._buf[self._offset + key] = value  # FIXED: was assigned to 'key'
     else:
       raise TypeError('invalid key type')
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     return 'buf[%d:]' % self._offset
 
-  def Find(self, sub):
+  def Find(self, sub: Union[bytes, bytearray]) -> int:
     """Returns the lowest index where the sub subsequence is found."""
     return self._buf[self._offset :].find(sub)
 
-  def Slice(self, offset):
+  def Slice(self, offset: int) -> "Buf":
     """Returns new `Buf` which starts from the given offset."""
     return Buf(self._buf, self._offset + offset)
 
-  def Indirect(self, offset, byte_width):
+  def Indirect(self, offset: int, byte_width: int) -> "Buf":
     """Return new `Buf` based on the encoded offset (indirect encoding)."""
     return self.Slice(offset - _Unpack(U, self[offset : offset + byte_width]))
-
 
 class Object:
   """Base class for all non-trivial data accessors."""
 
-  __slots__ = '_buf', '_byte_width'
+  __slots__ = ('_buf', '_byte_width')
 
-  def __init__(self, buf, byte_width):
+  def __init__(self, buf: "Buf", byte_width: int) -> None:
     self._buf = buf
     self._byte_width = byte_width
 
   @property
-  def ByteWidth(self):
+  def ByteWidth(self) -> int:
     return self._byte_width
 
 

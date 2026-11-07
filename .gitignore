@@ -160,3 +160,8 @@ docs/site
 
 # Ignore generated files
 *.fbs.h
+
+# IDE specific files
+.idea/
+.vscode/
+*.iml
