@@ -1847,7 +1847,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
            // Supplying this vector likely results in faster verification
            // of larger buffers with many shared keys/strings, but
            // comes at the cost of using additional memory the same size of
-           // the buffer being verified, so it is by default off.
+           // the buffer being verified, so it is by default off. It also
+           // permits highly shared buffers to exceed the default work limit.
            std::vector<uint8_t>* reuse_tracker = nullptr,
            bool _check_alignment = true, size_t max_depth = 64)
       : buf_(buf),
@@ -1856,6 +1857,10 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         max_depth_(max_depth),
         num_vectors_(0),
         max_vectors_(buf_len),
+        verification_work_(0),
+        max_verification_work_(max_depth && buf_len > SIZE_MAX / max_depth
+                                   ? SIZE_MAX
+                                   : buf_len * max_depth),
         check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
     FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) <
@@ -1875,6 +1880,17 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     #endif
     // clang-format on
     return ok;
+  }
+
+  bool CheckWork(size_t amount) {
+    // A tree-shaped buffer visits each stored element at most once. Bound the
+    // extra work caused by shared references; callers expecting heavily shared
+    // DAGs can provide the reuse tracker above.
+    if (!Check(amount <= max_verification_work_ - verification_work_)) {
+      return false;
+    }
+    verification_work_ += amount;
+    return true;
   }
 
   // Verify any range within the buffer.
@@ -1934,6 +1950,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
                         PackedType(Builder::WidthB(size_byte_width), r.type_));
     auto sized = Sized(p, size_byte_width);
     auto num_elems = sized.size();
+    if (!CheckWork(num_elems)) return false;
     auto elem_byte_width = r.type_ == FBT_STRING || r.type_ == FBT_BLOB
                                ? uint8_t(1)
                                : r.byte_width_;
@@ -1975,9 +1992,15 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   bool VerifyKey(const uint8_t* p) {
     FLEX_CHECK_VERIFIED(p, PackedType(BIT_WIDTH_8, FBT_KEY));
-    while (p < buf_ + size_)
-      if (!*p++) return true;
-    return false;
+    const auto available = static_cast<size_t>(buf_ + size_ - p);
+    const auto remaining_work = max_verification_work_ - verification_work_;
+    const auto scan_size = (std::min)(available, remaining_work);
+    const auto* terminator =
+        static_cast<const uint8_t*>(memchr(p, 0, scan_size));
+    const auto scanned =
+        terminator ? static_cast<size_t>(terminator - p) + 1 : scan_size;
+    if (!CheckWork(scanned)) return false;
+    return Check(terminator != nullptr);
   }
 
 #undef FLEX_CHECK_VERIFIED
@@ -2065,6 +2088,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   const size_t max_depth_;
   size_t num_vectors_;
   const size_t max_vectors_;
+  size_t verification_work_;
+  const size_t max_verification_work_;
   bool check_alignment_;
   std::vector<uint8_t>* reuse_tracker_;
 };
