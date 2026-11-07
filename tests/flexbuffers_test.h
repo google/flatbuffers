@@ -5,6 +5,7 @@ namespace flatbuffers {
 namespace tests {
 
 void FlexBuffersTest();
+void FlexBuffersVerifierSpanTest();
 void FlexBuffersReuseBugTest();
 void FlexBuffersFloatingPointTest();
 void FlexBuffersDeprecatedTest();
