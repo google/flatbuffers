@@ -239,8 +239,10 @@ namespace Google.FlatBuffers
       // Used try/catch because pos typa as int 32bit
       try
       {
-        // First, get vtable offset
-        short vtable = Convert.ToInt16(pos - ReadSOffsetT(verifier_buffer, pos));
+        // First, get vtable offset. This is an absolute buffer position and can
+        // exceed the range of a 16-bit integer, so keep it as an int to match
+        // the runtime accessor Table.__offset.
+        int vtable = pos - ReadSOffsetT(verifier_buffer, pos);
         // Check that offset points to vtable area (is smaller than vtable size)
         if (vtableOffset < ReadVOffsetT(verifier_buffer, vtable))
         {
