@@ -55,6 +55,7 @@ import MyGame.Example.NestedUnion.Color  # refers to generated code
 import monster_test_generated  # the one-file version
 import optional_scalars
 import optional_scalars.ScalarStuff
+import StringVecTable  # refers to generated code
 import union_name_test.Container  # refers to generated code
 import union_name_test.Foo  # refers to generated code
 import union_name_test.Bar  # refers to generated code
@@ -339,6 +340,26 @@ class TestObjectBasedAPI(unittest.TestCase):
     self.assertTrue(optsT2.justU16 == 0)
     self.assertTrue(optsT2.maybeEnum is None)
     self.assertTrue(optsT2.defaultU64 == 42)
+
+  def test_string_vector_decode_with_object_api(self):
+    """Vector of strings should decode to str like a single string.
+
+    string_vec_test.fbs is generated with --python-decode-obj-api-strings
+    in PythonTest.sh (issue #9059).
+    """
+    t = StringVecTable.StringVecTableT()
+    t.names = ['alpha', 'beta']
+    t.single = 'gamma'
+
+    b = flatbuffers.Builder(0)
+    b.Finish(t.Pack(b))
+
+    table = StringVecTable.StringVecTable.GetRootAs(b.Bytes, b.Head())
+    t2 = StringVecTable.StringVecTableT.InitFromObj(table)
+    self.assertEqual(t2.names, ['alpha', 'beta'])
+    self.assertEqual(t2.single, 'gamma')
+    self.assertTrue(all(isinstance(name, str) for name in t2.names))
+    self.assertIsInstance(t2.single, str)
 
 
 class TestAllMutableCodePathsOfExampleSchema(unittest.TestCase):
