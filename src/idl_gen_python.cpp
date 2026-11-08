@@ -478,8 +478,17 @@ class PythonStubGenerator {
                 }
                 break;
             }
-            stub << "  def " << name << "Length(self) -> int: ...\n";
-            stub << "  def " << name << "IsNone(self) -> bool: ...\n";
+            const bool is_array = field_type.base_type == BASE_TYPE_ARRAY;
+            if (is_array) {
+              stub << "  @staticmethod\n";
+            }
+            stub << "  def " << name << "Length(" << (is_array ? "" : "self")
+                 << ") -> int: ...\n";
+            if (is_array) {
+              stub << "  @staticmethod\n";
+            }
+            stub << "  def " << name << "IsNone(" << (is_array ? "" : "self")
+                 << ") -> bool: ...\n";
             break;
           }
           case BASE_TYPE_UNION: {
@@ -805,13 +814,15 @@ class PythonGenerator : public BaseGenerator {
                     std::string* code_ptr) const {
     auto& code = *code_ptr;
 
-    GenReceiver(struct_def, code_ptr);
-    code += namer_.Method(field) + "Length(self)";
+    const bool is_array = IsArray(field.value.type);
+    GenReceiver(struct_def, code_ptr, is_array);
+    code += namer_.Method(field) + "Length(" +
+            (is_array ? std::string() : "self") + ")";
     if (parser_.opts.python_typing) {
       code += " -> int";
     }
     code += ":";
-    if (!IsArray(field.value.type)) {
+    if (!is_array) {
       code += OffsetPrefix(field, false);
       code += GenIndents(3) + "return self._tab.VectorLen(o)";
       code += GenIndents(2) + "return 0\n\n";
@@ -826,13 +837,15 @@ class PythonGenerator : public BaseGenerator {
                        std::string* code_ptr) const {
     auto& code = *code_ptr;
 
-    GenReceiver(struct_def, code_ptr);
-    code += namer_.Method(field) + "IsNone(self)";
+    const bool is_array = IsArray(field.value.type);
+    GenReceiver(struct_def, code_ptr, is_array);
+    code += namer_.Method(field) + "IsNone(" +
+            (is_array ? std::string() : "self") + ")";
     if (parser_.opts.python_typing) {
       code += " -> bool";
     }
     code += ":";
-    if (!IsArray(field.value.type)) {
+    if (!is_array) {
       code += GenIndents(2) +
               "o = flatbuffers.number_types.UOffsetTFlags.py_type" +
               "(self._tab.Offset(" + NumToString(field.value.offset) + "))";
@@ -1599,9 +1612,13 @@ class PythonGenerator : public BaseGenerator {
   }
 
   // Generate the receiver for function signatures.
-  void GenReceiver(const StructDef& struct_def, std::string* code_ptr) const {
+  void GenReceiver(const StructDef& struct_def, std::string* code_ptr,
+                   bool is_static = false) const {
     auto& code = *code_ptr;
     code += Indent + "# " + namer_.Type(struct_def) + "\n";
+    if (is_static) {
+      code += Indent + "@staticmethod\n";
+    }
     code += Indent + "def ";
   }
 

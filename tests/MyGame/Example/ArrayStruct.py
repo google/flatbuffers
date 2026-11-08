@@ -35,11 +35,13 @@ class ArrayStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int32Flags, self._tab.Pos + 4, self.BLength())
 
     # ArrayStruct
-    def BLength(self) -> int:
+    @staticmethod
+    def BLength() -> int:
         return 15
 
     # ArrayStruct
-    def BIsNone(self) -> bool:
+    @staticmethod
+    def BIsNone() -> bool:
         return False
 
     # ArrayStruct
@@ -51,11 +53,13 @@ class ArrayStruct(object):
         return obj
 
     # ArrayStruct
-    def DLength(self) -> int:
+    @staticmethod
+    def DLength() -> int:
         return 2
 
     # ArrayStruct
-    def DIsNone(self) -> bool:
+    @staticmethod
+    def DIsNone() -> bool:
         return False
 
     # ArrayStruct
@@ -74,11 +78,13 @@ class ArrayStruct(object):
         return self._tab.GetArrayAsNumpy(flatbuffers.number_types.Int64Flags, self._tab.Pos + 144, self.FLength())
 
     # ArrayStruct
-    def FLength(self) -> int:
+    @staticmethod
+    def FLength() -> int:
         return 2
 
     # ArrayStruct
-    def FIsNone(self) -> bool:
+    @staticmethod
+    def FIsNone() -> bool:
         return False
 
 

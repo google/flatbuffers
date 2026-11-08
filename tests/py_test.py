@@ -2871,6 +2871,16 @@ class TestExceptions(unittest.TestCase):
 
 class TestFixedLengthArrays(unittest.TestCase):
 
+  def test_fixed_array_metadata_accessors_are_static(self):
+    array_struct_type = MyGame.Example.ArrayStruct.ArrayStruct
+
+    self.assertEqual(array_struct_type.BLength(), 15)
+    self.assertFalse(array_struct_type.BIsNone())
+
+    array_struct = array_struct_type()
+    self.assertEqual(array_struct.BLength(), 15)
+    self.assertFalse(array_struct.BIsNone())
+
   def test_fixed_length_array(self):
     builder = flatbuffers.Builder(0)
 
