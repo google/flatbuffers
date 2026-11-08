@@ -72,6 +72,11 @@ static std::vector<uint32_t> FieldIdToIndex(const reflection::Object* object) {
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
+    // Bounds check: field->id() is a uint16_t from the schema and could
+    // exceed fields()->size() in a malformed schema.
+    if (field->id() >= object->fields()->size()) {
+      return {};  // Malformed schema, return empty.
+    }
     field_index_by_id[field->id()] = i;
   }
 

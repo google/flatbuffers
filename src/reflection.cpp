@@ -250,6 +250,10 @@ static bool VerifyObject(flatbuffers::Verifier& v,
       }
       case reflection::Union: {
         //  get union type from the prev field
+        // Bounds check: offset must be >= sizeof(voffset_t) to avoid underflow
+        if (field_def->offset() < sizeof(voffset_t)) {
+          return false;
+        }
         voffset_t utype_offset = field_def->offset() - sizeof(voffset_t);
         auto utype = table->GetField<uint8_t>(utype_offset, 0);
         auto uval = reinterpret_cast<const uint8_t*>(
@@ -384,6 +388,11 @@ void ForAllFields(const reflection::Object* object, bool reverse,
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
+    // Bounds check: field->id() is a uint16_t from the schema and could
+    // exceed fields()->size() in a malformed schema.
+    if (field->id() >= object->fields()->size()) {
+      return;  // Malformed schema, abort.
+    }
     field_to_id_map[field->id()] = i;
   }
 
