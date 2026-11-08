@@ -416,12 +416,38 @@ const char* GenerateText(const Parser& parser, const void* flatbuffer,
 }
 
 // Generate a text representation of a flatbuffer in JSON format.
+// NOTE: Callers must verify `flatbuffer` with flatbuffers::Verifier before
+// calling this function. Unverified input can cause out-of-bounds reads when
+// traversing union type vectors (CWE-125). Use GenTextWithVerify for a
+// bounds-safe alternative.
 const char* GenText(const Parser& parser, const void* flatbuffer,
                     std::string* _text) {
   FLATBUFFERS_ASSERT(parser.root_struct_def_);  // call SetRootType()
   auto root = parser.opts.size_prefixed ? GetSizePrefixedRoot<Table>(flatbuffer)
                                         : GetRoot<Table>(flatbuffer);
   return GenerateTextImpl(parser, root, *parser.root_struct_def_, _text);
+}
+
+// Verified overload: performs basic structural checks on the buffer before
+// generating text. Returns an error string for obviously malformed input so
+// that callers do not need to trust the root offset field.
+// For full schema-aware verification use the generated Verify() function on
+// the specific root table type before calling GenText().
+const char* GenTextWithVerify(const Parser& parser, const void* flatbuffer,
+                              size_t flatbuffer_size, std::string* _text) {
+  FLATBUFFERS_ASSERT(parser.root_struct_def_);
+  auto buf = static_cast<const uint8_t*>(flatbuffer);
+  // Minimum buffer: at least a root offset field plus a minimal table.
+  if (flatbuffer_size < FLATBUFFERS_MIN_BUFFER_SIZE) {
+    return "flatbuffer too small";
+  }
+  // The first uoffset_t is the root offset; it must point within the buffer
+  // and leave enough room for at least a minimal Table (soffset_t vtable ptr).
+  const auto root_offset = ReadScalar<uoffset_t>(buf);
+  if (root_offset + sizeof(flatbuffers::soffset_t) > flatbuffer_size) {
+    return "flatbuffer root offset out of bounds";
+  }
+  return GenText(parser, flatbuffer, _text);
 }
 
 static std::string TextFileName(const std::string& path,
