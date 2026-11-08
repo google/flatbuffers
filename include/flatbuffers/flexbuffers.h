@@ -1569,7 +1569,7 @@ class Builder FLATBUFFERS_FINAL_CLASS {
 
   void WriteOffset(uint64_t o, uint8_t byte_width) {
     auto reloff = buf_.size() - o;
-    FLATBUFFERS_ASSERT(byte_width == 8 || reloff < 1ULL << (byte_width * 8));
+    FLATBUFFERS_SECURITY_CHECK(byte_width == 8 || reloff < 1ULL << (byte_width * 8));
     Write(reloff, byte_width);
   }
 
@@ -1858,8 +1858,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
         max_vectors_(buf_len),
         check_alignment_(_check_alignment),
         reuse_tracker_(reuse_tracker) {
-    FLATBUFFERS_ASSERT(static_cast<int32_t>(size_) <
-                       FLATBUFFERS_MAX_BUFFER_SIZE);
+    FLATBUFFERS_SECURITY_CHECK(static_cast<int32_t>(size_) <
+                               FLATBUFFERS_MAX_BUFFER_SIZE);
     if (reuse_tracker_) {
       reuse_tracker_->clear();
       reuse_tracker_->resize(size_, PackedType(BIT_WIDTH_8, FBT_NULL));

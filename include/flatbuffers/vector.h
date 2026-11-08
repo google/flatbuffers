@@ -38,7 +38,8 @@ struct VectorIterator {
 
   static const SizeT element_stride = IndirectHelper<T>::element_stride;
 
-  VectorIterator(Data data, SizeT i) : data_(data + element_stride * i) {}
+  VectorIterator(Data data, SizeT i)
+      : data_(data + static_cast<size_t>(element_stride) * i) {}
   VectorIterator(const VectorIterator& other) : data_(other.data_) {}
   VectorIterator() : data_(nullptr) {}
 
@@ -100,11 +101,12 @@ struct VectorIterator {
   }
 
   VectorIterator operator+(const SizeT& offset) const {
-    return VectorIterator(data_ + offset * element_stride, 0);
+    return VectorIterator(data_ + static_cast<size_t>(offset) * element_stride,
+                          0);
   }
 
   VectorIterator& operator+=(const SizeT& offset) {
-    data_ += offset * element_stride;
+    data_ += static_cast<size_t>(offset) * element_stride;
     return *this;
   }
 
@@ -120,11 +122,12 @@ struct VectorIterator {
   }
 
   VectorIterator operator-(const SizeT& offset) const {
-    return VectorIterator(data_ - offset * element_stride, 0);
+    return VectorIterator(data_ - static_cast<size_t>(offset) * element_stride,
+                          0);
   }
 
   VectorIterator& operator-=(const SizeT& offset) {
-    data_ -= offset * element_stride;
+    data_ -= static_cast<size_t>(offset) * element_stride;
     return *this;
   }
 
@@ -192,7 +195,7 @@ class Vector {
   typedef return_type value_type;
 
   return_type Get(SizeT i) const {
-    FLATBUFFERS_ASSERT(i < size());
+    FLATBUFFERS_SECURITY_CHECK(i < size());
     return IndirectHelper<T>::Read(Data(), i);
   }
 
@@ -250,7 +253,7 @@ class Vector {
   // Change elements if you have a non-const pointer to this object.
   // Scalars only. See reflection.h, and the documentation.
   void Mutate(SizeT i, const T& val) {
-    FLATBUFFERS_ASSERT(i < size());
+    FLATBUFFERS_SECURITY_CHECK(i < size());
     WriteScalar(data() + i, val);
   }
 
@@ -258,7 +261,7 @@ class Vector {
   // "val" points to the new table/string, as you can obtain from
   // e.g. reflection::AddFlatBuffer().
   void MutateOffset(SizeT i, const uint8_t* val) {
-    FLATBUFFERS_ASSERT(i < size());
+    FLATBUFFERS_SECURITY_CHECK(i < size());
     static_assert(sizeof(T) == sizeof(SizeT), "Unrelated types");
     WriteScalar(data() + i,
                 static_cast<SizeT>(val - (Data() + i * sizeof(SizeT))));
@@ -266,7 +269,7 @@ class Vector {
 
   // Get a mutable pointer to tables/strings inside this vector.
   mutable_return_type GetMutableObject(SizeT i) const {
-    FLATBUFFERS_ASSERT(i < size());
+    FLATBUFFERS_SECURITY_CHECK(i < size());
     return const_cast<mutable_return_type>(IndirectHelper<T>::Read(Data(), i));
   }
 
@@ -349,7 +352,10 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<uint8_t> make_bytes_span(
     Vector<U>& vec) FLATBUFFERS_NOEXCEPT {
   static_assert(Vector<U>::scalar_tag::value,
                 "wrong type U, only LE-scalar, or byte types are allowed");
-  return span<uint8_t>(vec.Data(), vec.size() * sizeof(U));
+  FLATBUFFERS_SECURITY_CHECK(
+      sizeof(U) == 1 || vec.size() <= SIZE_MAX / sizeof(U));
+  return span<uint8_t>(vec.Data(),
+                       static_cast<size_t>(vec.size()) * sizeof(U));
 }
 
 template <class U>
@@ -357,7 +363,10 @@ FLATBUFFERS_CONSTEXPR_CPP11 flatbuffers::span<const uint8_t> make_bytes_span(
     const Vector<U>& vec) FLATBUFFERS_NOEXCEPT {
   static_assert(Vector<U>::scalar_tag::value,
                 "wrong type U, only LE-scalar, or byte types are allowed");
-  return span<const uint8_t>(vec.Data(), vec.size() * sizeof(U));
+  FLATBUFFERS_SECURITY_CHECK(
+      sizeof(U) == 1 || vec.size() <= SIZE_MAX / sizeof(U));
+  return span<const uint8_t>(vec.Data(),
+                             static_cast<size_t>(vec.size()) * sizeof(U));
 }
 
 #if FLATBUFFERS_LITTLEENDIAN

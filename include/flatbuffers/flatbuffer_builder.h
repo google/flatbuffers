@@ -445,7 +445,7 @@ class FlatBufferBuilderImpl {
     buf_.fill_big(max_voffset_);
     const uoffset_t table_object_size = vtable_offset_loc - start;
     // Vtable use 16bit offsets.
-    FLATBUFFERS_ASSERT(table_object_size < 0x10000);
+    FLATBUFFERS_SECURITY_CHECK(table_object_size < 0x10000);
     WriteScalar<voffset_t>(buf_.data() + sizeof(voffset_t),
                            static_cast<voffset_t>(table_object_size));
     WriteScalar<voffset_t>(buf_.data(), max_voffset_);
@@ -692,10 +692,13 @@ class FlatBufferBuilderImpl {
   void StartVector(size_t len, size_t elemsize, size_t alignment) {
     NotNested();
     nested = true;
+    FLATBUFFERS_SECURITY_CHECK(elemsize == 0 ||
+                               len <= SIZE_MAX / elemsize);
+    auto byte_size = len * elemsize;
     // Align to the Length type of the vector (either 32-bit or 64-bit), so
     // that the length of the buffer can be added without padding.
-    PreAlign<LenT>(len * elemsize);
-    PreAlign(len * elemsize, alignment);  // Just in case elemsize > uoffset_t.
+    PreAlign<LenT>(byte_size);
+    PreAlign(byte_size, alignment);  // Just in case elemsize > uoffset_t.
   }
 
   template <typename T, template <typename> class OffsetT = Offset,
@@ -713,6 +716,8 @@ class FlatBufferBuilderImpl {
                             const size_t alignment) {
     if (len == 0) return;
     FLATBUFFERS_ASSERT(VerifyAlignmentRequirements(alignment));
+    FLATBUFFERS_SECURITY_CHECK(elemsize == 0 ||
+                               len <= SIZE_MAX / elemsize);
     PreAlign(len * elemsize, alignment);
   }
 
@@ -1197,6 +1202,8 @@ class FlatBufferBuilderImpl {
                                       size_t alignment, uint8_t** buf) {
     NotNested();
     StartVector(len, elemsize, alignment);
+    FLATBUFFERS_SECURITY_CHECK(elemsize == 0 ||
+                               len <= SIZE_MAX / elemsize);
     buf_.make_space(len * elemsize);
     const uoffset_t vec_start = GetSizeRelative32BitRegion();
     auto vec_end = EndVector(len);
