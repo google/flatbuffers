@@ -4517,16 +4517,22 @@ bool Parser::Deserialize(const reflection::Schema* schema) {
   }
   advanced_features_ = schema->advanced_features();
 
-  if (schema->fbs_files())
+  if (schema->fbs_files()) {
     for (auto s = schema->fbs_files()->begin(); s != schema->fbs_files()->end();
          ++s) {
-      for (auto f = s->included_filenames()->begin();
-           f != s->included_filenames()->end(); ++f) {
-        IncludedFile included_file;
-        included_file.filename = f->str();
-        files_included_per_file_[s->filename()->str()].insert(included_file);
+      if (!s->filename()) continue;
+      auto& file_entry = files_included_per_file_[s->filename()->str()];
+      if (s->included_filenames()) {
+        for (auto f = s->included_filenames()->begin();
+             f != s->included_filenames()->end(); ++f) {
+          if (!*f) continue;
+          IncludedFile included_file;
+          included_file.filename = (*f)->str();
+          file_entry.insert(included_file);
+        }
       }
     }
+  }
 
   return true;
 }

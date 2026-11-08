@@ -16,6 +16,8 @@
 
 #include "flatbuffers/reflection.h"
 
+#include <algorithm>
+
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -70,12 +72,28 @@ static bool VerifyUnion(flatbuffers::Verifier& v,
                         const uint8_t* elem,
                         const reflection::Field& union_field) {
   if (!utype) return true;  // Not present.
-  auto fb_enum = schema.enums()->Get(union_field.type()->index());
-  if (utype >= fb_enum->values()->size()) return false;
-  auto elem_type = fb_enum->values()->Get(utype)->union_type();
+  if (!schema.enums()) return false;
+  auto field_type = union_field.type();
+  if (!field_type || field_type->index() < 0 ||
+      static_cast<size_t>(field_type->index()) >= schema.enums()->size()) {
+    return false;
+  }
+  auto fb_enum = schema.enums()->Get(field_type->index());
+  if (!fb_enum || !fb_enum->values() || utype >= fb_enum->values()->size()) {
+    return false;
+  }
+  auto val = fb_enum->values()->Get(utype);
+  if (!val) return false;
+  auto elem_type = val->union_type();
+  if (!elem_type) return false;
   switch (elem_type->base_type()) {
     case reflection::Obj: {
+      if (!schema.objects() || elem_type->index() < 0 ||
+          static_cast<size_t>(elem_type->index()) >= schema.objects()->size()) {
+        return false;
+      }
       auto elem_obj = schema.objects()->Get(elem_type->index());
+      if (!elem_obj) return false;
       if (elem_obj->is_struct()) {
         return v.VerifyFromPointer(elem, elem_obj->bytesize());
       } else {
@@ -130,7 +148,13 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       }
     }
     case reflection::Obj: {
+      if (!schema.objects() || vec_field.type()->index() < 0 ||
+          static_cast<size_t>(vec_field.type()->index()) >=
+              schema.objects()->size()) {
+        return false;
+      }
       auto obj = schema.objects()->Get(vec_field.type()->index());
+      if (!obj) return false;
       if (obj->is_struct()) {
         return VerifyVectorOfStructs(v, table, vec_field.offset(), *obj,
                                      vec_field.required());
@@ -233,7 +257,13 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         if (!VerifyVector(v, schema, *table, *field_def)) return false;
         break;
       case reflection::Obj: {
+        if (!schema.objects() || field_def->type()->index() < 0 ||
+            static_cast<size_t>(field_def->type()->index()) >=
+                schema.objects()->size()) {
+          return false;
+        }
         auto child_obj = schema.objects()->Get(field_def->type()->index());
+        if (!child_obj) return false;
         if (child_obj->is_struct()) {
           if (!VerifyStruct(v, *table, field_def->offset(), *child_obj,
                             field_def->required())) {
@@ -378,18 +408,22 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
 
 void ForAllFields(const reflection::Object* object, bool reverse,
                   std::function<void(const reflection::Field*)> func) {
-  std::vector<uint32_t> field_to_id_map;
-  field_to_id_map.resize(object->fields()->size());
-
-  // Create the mapping of field ID to the index into the vector.
-  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
-    auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+  if (!object || !object->fields()) return;
+  const auto field_count = object->fields()->size();
+  std::vector<uint32_t> field_indices(field_count);
+  for (uint32_t i = 0; i < field_count; ++i) {
+    field_indices[i] = i;
   }
 
-  for (size_t i = 0; i < field_to_id_map.size(); ++i) {
+  std::sort(field_indices.begin(), field_indices.end(),
+            [object](uint32_t a, uint32_t b) {
+              return object->fields()->Get(a)->id() <
+                     object->fields()->Get(b)->id();
+            });
+
+  for (size_t i = 0; i < field_indices.size(); ++i) {
     func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+        field_indices[reverse ? field_indices.size() - (i + 1) : i]));
   }
 }
 
