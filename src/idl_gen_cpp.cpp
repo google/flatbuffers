@@ -1678,7 +1678,7 @@ class CppGenerator : public BaseGenerator {
                 "static_cast<const uint8_t *>(obj), 0, {{ALIGN}});";
           } else {
             code_ += getptr;
-            code_ += "      return verifier.VerifyTable(ptr);";
+            code_ += "      return ptr && verifier.VerifyTable(ptr);";
           }
         } else if (IsString(ev.union_type)) {
           code_ += getptr;

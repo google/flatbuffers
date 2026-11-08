@@ -556,15 +556,15 @@ inline bool VerifyUnion(::flatbuffers::VerifierTemplate<B> &verifier, const void
     }
     case Union::TableA: {
       auto ptr = reinterpret_cast<const Evolution::V2::TableA *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case Union::TableB: {
       auto ptr = reinterpret_cast<const Evolution::V2::TableB *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     case Union::TableC: {
       auto ptr = reinterpret_cast<const Evolution::V2::TableC *>(obj);
-      return verifier.VerifyTable(ptr);
+      return ptr && verifier.VerifyTable(ptr);
     }
     default: return true;
   }
