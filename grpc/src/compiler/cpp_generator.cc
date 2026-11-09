@@ -983,11 +983,11 @@ static void PrintHeaderService(grpc_generator::Printer* printer,
                                       false);
   }
   printer->Outdent();
+  printer->Print("};\n");
   // Forward declaration of nested CallbackService if callback API enabled.
   if ((*vars)["generate_callback_api"] == "1") {
     printer->Print("class CallbackService;\n");
   }
-  printer->Print("};\n");
   printer->Print(
       "class Stub final : public StubInterface"
       " {\n public:\n");
