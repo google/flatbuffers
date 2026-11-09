@@ -2737,7 +2737,6 @@ class CppGenerator : public BaseGenerator {
     if (!field.IsScalarOptional()) {
       const bool is_scalar = IsScalar(type.base_type);
       std::string accessor;
-      std::string offset_size = "";
       if (is_scalar) {
         accessor = "GetField<";
       } else if (IsStruct(type)) {
@@ -2815,7 +2814,6 @@ class CppGenerator : public BaseGenerator {
 
   void GenTableFieldType(const FieldDef& field) {
     const auto& type = field.value.type;
-    const auto offset_str = GenFieldOffsetName(field);
     if (!field.IsScalarOptional()) {
       std::string afterptr = " *" + NullableExtension();
       code_.SetValue("FIELD_TYPE",

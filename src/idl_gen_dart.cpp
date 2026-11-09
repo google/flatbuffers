@@ -1149,8 +1149,6 @@ static bool GenerateDart(const Parser& parser, const std::string& path,
 
 static std::string DartMakeRule(const Parser& parser, const std::string& path,
                                 const std::string& file_name) {
-  auto filebase =
-      flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   dart::DartGenerator generator(parser, path, file_name);
   auto make_rule = generator.Filename("") + ": ";
 
