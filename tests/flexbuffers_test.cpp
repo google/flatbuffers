@@ -290,7 +290,10 @@ void ParseFlexbuffersFromJsonWithNullTest() {
     char json[] = "{\"opt_field\": 123 }";
     flatbuffers::Parser parser;
     flexbuffers::Builder flexbuild;
-    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    TEST_EQ(parser.ParseFlexBuffer(json, nullptr, &flexbuild), true);
+    TEST_EQ(flexbuffers::VerifyBuffer(flexbuild.GetBuffer().data(),
+                                      flexbuild.GetBuffer().size(), nullptr),
+            true);
     auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
     TEST_EQ(root.AsMap()["opt_field"].AsInt64(), 123);
   }
@@ -298,7 +301,10 @@ void ParseFlexbuffersFromJsonWithNullTest() {
     char json[] = "{\"opt_field\": 123.4 }";
     flatbuffers::Parser parser;
     flexbuffers::Builder flexbuild;
-    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    TEST_EQ(parser.ParseFlexBuffer(json, nullptr, &flexbuild), true);
+    TEST_EQ(flexbuffers::VerifyBuffer(flexbuild.GetBuffer().data(),
+                                      flexbuild.GetBuffer().size(), nullptr),
+            true);
     auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
     TEST_EQ(root.AsMap()["opt_field"].AsDouble(), 123.4);
   }
@@ -306,7 +312,10 @@ void ParseFlexbuffersFromJsonWithNullTest() {
     char json[] = "{\"opt_field\": null }";
     flatbuffers::Parser parser;
     flexbuffers::Builder flexbuild;
-    parser.ParseFlexBuffer(json, nullptr, &flexbuild);
+    TEST_EQ(parser.ParseFlexBuffer(json, nullptr, &flexbuild), true);
+    TEST_EQ(flexbuffers::VerifyBuffer(flexbuild.GetBuffer().data(),
+                                      flexbuild.GetBuffer().size(), nullptr),
+            true);
     auto root = flexbuffers::GetRoot(flexbuild.GetBuffer());
     TEST_ASSERT(!root.AsMap().IsTheEmptyMap());
     TEST_ASSERT(root.AsMap()["opt_field"].IsNull());
