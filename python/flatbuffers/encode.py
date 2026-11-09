@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from struct import Struct
+
 from . import number_types as N
 from . import packer
 from .compat import memoryview_type
@@ -24,6 +26,15 @@ FILE_IDENTIFIER_LENGTH = 4
 
 def Get(packer_type, buf, head):
   """Get decodes a value at buf[head] using `packer_type`."""
+  # Exact built-in buffers need no temporary memoryview. Keep the old
+  # path for custom packers and offsets, including conversion side effects.
+  buffer_type = type(buf)
+  if (
+      (buffer_type is bytes or buffer_type is bytearray)
+      and type(head) is int
+      and type(packer_type) is Struct
+  ):
+    return packer_type.unpack_from(buf, head)[0]
   return packer_type.unpack_from(memoryview_type(buf), head)[0]
 
 
