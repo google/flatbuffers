@@ -24,6 +24,32 @@ namespace flatbuffers {
 
 namespace {
 
+// Safely look up a reflection::Object by its index in the schema. Returns
+// nullptr if the schema has no objects vector, the index is negative (the
+// default for a missing reflection::Type::index field is -1), or the index
+// is past the end of the objects vector. Matches the defensive pattern
+// already used by GetObjectByIndex in src/bfbs_gen.h.
+static inline const reflection::Object* GetObjectByIndex(
+    const reflection::Schema& schema, int32_t index) {
+  if (!schema.objects() || index < 0 ||
+      index >= static_cast<int32_t>(schema.objects()->size())) {
+    return nullptr;
+  }
+  return schema.objects()->Get(static_cast<uoffset_t>(index));
+}
+
+// Safely look up a reflection::Enum by its index in the schema. Returns
+// nullptr if the schema has no enums vector, the index is negative, or the
+// index is past the end of the enums vector.
+static inline const reflection::Enum* GetEnumByIndex(
+    const reflection::Schema& schema, int32_t index) {
+  if (!schema.enums() || index < 0 ||
+      index >= static_cast<int32_t>(schema.enums()->size())) {
+    return nullptr;
+  }
+  return schema.enums()->Get(static_cast<uoffset_t>(index));
+}
+
 static void CopyInline(FlatBufferBuilder& fbb,
                        const reflection::Field& fielddef, const Table& table,
                        size_t align, size_t size) {
@@ -70,12 +96,14 @@ static bool VerifyUnion(flatbuffers::Verifier& v,
                         const uint8_t* elem,
                         const reflection::Field& union_field) {
   if (!utype) return true;  // Not present.
-  auto fb_enum = schema.enums()->Get(union_field.type()->index());
+  auto fb_enum = GetEnumByIndex(schema, union_field.type()->index());
+  if (!fb_enum) return false;
   if (utype >= fb_enum->values()->size()) return false;
   auto elem_type = fb_enum->values()->Get(utype)->union_type();
   switch (elem_type->base_type()) {
     case reflection::Obj: {
-      auto elem_obj = schema.objects()->Get(elem_type->index());
+      auto elem_obj = GetObjectByIndex(schema, elem_type->index());
+      if (!elem_obj) return false;
       if (elem_obj->is_struct()) {
         return v.VerifyFromPointer(elem, elem_obj->bytesize());
       } else {
@@ -130,7 +158,8 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       }
     }
     case reflection::Obj: {
-      auto obj = schema.objects()->Get(vec_field.type()->index());
+      auto obj = GetObjectByIndex(schema, vec_field.type()->index());
+      if (!obj) return false;
       if (obj->is_struct()) {
         return VerifyVectorOfStructs(v, table, vec_field.offset(), *obj,
                                      vec_field.required());
@@ -233,7 +262,8 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         if (!VerifyVector(v, schema, *table, *field_def)) return false;
         break;
       case reflection::Obj: {
-        auto child_obj = schema.objects()->Get(field_def->type()->index());
+        auto child_obj = GetObjectByIndex(schema, field_def->type()->index());
+        if (!child_obj) return false;
         if (child_obj->is_struct()) {
           if (!VerifyStruct(v, *table, field_def->offset(), *child_obj,
                             field_def->required())) {
