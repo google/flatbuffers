@@ -1,0 +1,31 @@
+// Exercises the accessors generated for Rust structs: scalars, enums wider
+// than one byte, fixed-size arrays of scalars/enums/structs, and nested
+// structs. The tests check the exact little-endian wire bytes, so they also
+// catch endianness bugs when run on big-endian targets.
+
+namespace RustStructAccessorsTest;
+
+enum WideEnum : short { Zero = 0, A = 1, B = 258, C = -2 }
+
+enum HugeEnum : ulong { Zero = 0, X = 1, Y = 72623859790382856 }
+
+struct Inner {
+  v:ushort;
+}
+
+struct Accessors {
+  e:[WideEnum:3];
+  h:[HugeEnum:2];
+  inners:[Inner:2];
+  f:float;
+  flags:[bool:2];
+  one:WideEnum;
+  nested:Inner;
+  d:double;
+}
+
+table Holder {
+  a:Accessors;
+}
+
+root_type Holder;

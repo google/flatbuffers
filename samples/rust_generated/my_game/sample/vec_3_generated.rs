@@ -49,8 +49,7 @@ impl<'b> ::flatbuffers::Push for Vec3 {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const Vec3 as *const u8, <Self as ::flatbuffers::Push>::size()) };
-        dst.copy_from_slice(src);
+        dst.copy_from_slice(&self.0);
     }
 
     #[inline]
@@ -86,91 +85,49 @@ impl<'a> Vec3 {
         "MyGame.Sample.Vec3"
     }
 
+    #[allow(clippy::identity_op)]
     pub fn x(&self) -> f32 {
-        let mut mem = ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        ::flatbuffers::EndianScalar::from_little_endian(unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                self.0[0..].as_ptr(),
-                mem.as_mut_ptr() as *mut u8,
-                ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-            mem.assume_init()
-        })
+        let mut bytes = [0u8; 4];
+        bytes.copy_from_slice(&self.0[0..0 + 4]);
+        ::flatbuffers::EndianScalar::from_little_endian(
+            <<f32 as ::flatbuffers::EndianScalar>::Scalar>::from_ne_bytes(bytes),
+        )
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_x(&mut self, x: f32) {
         let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                &x_le as *const _ as *const u8,
-                self.0[0..].as_mut_ptr(),
-                ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-        }
+        self.0[0..0 + 4].copy_from_slice(&x_le.to_ne_bytes());
     }
 
+    #[allow(clippy::identity_op)]
     pub fn y(&self) -> f32 {
-        let mut mem = ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        ::flatbuffers::EndianScalar::from_little_endian(unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                self.0[4..].as_ptr(),
-                mem.as_mut_ptr() as *mut u8,
-                ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-            mem.assume_init()
-        })
+        let mut bytes = [0u8; 4];
+        bytes.copy_from_slice(&self.0[4..4 + 4]);
+        ::flatbuffers::EndianScalar::from_little_endian(
+            <<f32 as ::flatbuffers::EndianScalar>::Scalar>::from_ne_bytes(bytes),
+        )
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_y(&mut self, x: f32) {
         let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                &x_le as *const _ as *const u8,
-                self.0[4..].as_mut_ptr(),
-                ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-        }
+        self.0[4..4 + 4].copy_from_slice(&x_le.to_ne_bytes());
     }
 
+    #[allow(clippy::identity_op)]
     pub fn z(&self) -> f32 {
-        let mut mem = ::core::mem::MaybeUninit::<<f32 as ::flatbuffers::EndianScalar>::Scalar>::uninit();
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        ::flatbuffers::EndianScalar::from_little_endian(unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                self.0[8..].as_ptr(),
-                mem.as_mut_ptr() as *mut u8,
-                ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-            mem.assume_init()
-        })
+        let mut bytes = [0u8; 4];
+        bytes.copy_from_slice(&self.0[8..8 + 4]);
+        ::flatbuffers::EndianScalar::from_little_endian(
+            <<f32 as ::flatbuffers::EndianScalar>::Scalar>::from_ne_bytes(bytes),
+        )
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_z(&mut self, x: f32) {
         let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                &x_le as *const _ as *const u8,
-                self.0[8..].as_mut_ptr(),
-                ::core::mem::size_of::<<f32 as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-        }
+        self.0[8..8 + 4].copy_from_slice(&x_le.to_ne_bytes());
     }
 
     pub fn unpack(&self) -> Vec3T {

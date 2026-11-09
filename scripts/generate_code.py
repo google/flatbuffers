@@ -412,6 +412,12 @@ flatc(
 )
 
 flatc(
+    RUST_OPTS,
+    prefix="rust_struct_accessors_test",
+    schema="rust_struct_accessors_test.fbs",
+)
+
+flatc(
     BASE_OPTS + PYTHON_OPTS,
     schema="arrays_test.fbs",
 )
