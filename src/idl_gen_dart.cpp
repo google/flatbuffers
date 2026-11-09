@@ -452,6 +452,11 @@ class DartGenerator : public BaseGenerator {
     return typeName;
   }
 
+  bool FieldIsNullable(const StructDef& struct_def, const FieldDef& field,
+                       const std::string& default_value) const {
+    return default_value.empty() && !struct_def.fixed && !field.IsRequired();
+  }
+
   std::string MaybeWrapNamespace(const std::string& type_name,
                                  Namespace* current_ns,
                                  const FieldDef& field) const {
@@ -562,16 +567,18 @@ class DartGenerator : public BaseGenerator {
 
       const std::string field_name = namer_.Field(field);
       const std::string defaultValue = getDefaultValue(field.value);
+      const bool isNullable = FieldIsNullable(struct_def, field, defaultValue);
       const std::string type_name =
           GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
-                          defaultValue.empty() && !struct_def.fixed, "T");
+                          isNullable, "T");
 
       GenDocComment(field.doc_comment, "  ", code);
       code += "  " + type_name + " " + field_name + ";\n";
 
       if (!constructor_args.empty()) constructor_args += ",\n";
       constructor_args += "      ";
-      constructor_args += (struct_def.fixed ? "required " : "");
+      constructor_args +=
+          (struct_def.fixed || field.IsRequired() ? "required " : "");
       constructor_args += "this." + field_name;
       if (!struct_def.fixed && !defaultValue.empty()) {
         if (IsEnum(field.value.type)) {
@@ -614,7 +621,7 @@ class DartGenerator : public BaseGenerator {
 
       const Type& type = field.value.type;
       std::string defaultValue = getDefaultValue(field.value);
-      bool isNullable = defaultValue.empty() && !struct_def.fixed;
+      bool isNullable = FieldIsNullable(struct_def, field, defaultValue);
       std::string nullableValueAccessOperator = isNullable ? "?" : "";
       if (type.base_type == BASE_TYPE_STRUCT ||
           type.base_type == BASE_TYPE_UNION) {
@@ -675,7 +682,9 @@ class DartGenerator : public BaseGenerator {
 
       const std::string field_name = namer_.Field(field);
       const std::string defaultValue = getDefaultValue(field.value);
-      const bool isNullable = defaultValue.empty() && !struct_def.fixed;
+      const bool isNullable = FieldIsNullable(struct_def, field, defaultValue);
+      const bool useNullableAccessor =
+          defaultValue.empty() && !struct_def.fixed;
       const std::string type_name =
           GenDartTypeName(field.value.type, struct_def.defined_namespace, field,
                           isNullable, "");
@@ -716,8 +725,11 @@ class DartGenerator : public BaseGenerator {
         } else {
           code += ".vTableGet";
           std::string offset = NumToString(field.value.offset);
-          if (isNullable) {
+          if (useNullableAccessor) {
             code += "Nullable(_bc, _bcOffset, " + offset + ")";
+            if (!isNullable) {
+              code += "!";
+            }
           } else {
             code += "(_bc, _bcOffset, " + offset + ", " + defaultValue + ")";
           }
@@ -804,7 +816,7 @@ class DartGenerator : public BaseGenerator {
     }
     code += "  @override\n";
     code += "  " + struct_type +
-            " createObject(fb.BufferContext bc, int offset) => \n    " +
+            " createObject(fb.BufferContext bc, int offset) =>\n    " +
             struct_type + "._(bc, offset);\n";
     code += "}\n\n";
   }
@@ -892,6 +904,8 @@ class DartGenerator : public BaseGenerator {
       const auto offset = it->first;
       const std::string add_field = namer_.Method("add", field);
       const std::string field_var = namer_.Variable(field);
+      const std::string defaultValue = getDefaultValue(field.value);
+      const bool isNullable = FieldIsNullable(struct_def, field, defaultValue);
 
       if (IsScalar(field.value.type.base_type)) {
         code += "  int " + add_field + "(";
@@ -910,7 +924,8 @@ class DartGenerator : public BaseGenerator {
         code +=
             "    fbBuilder.addStruct(" + NumToString(offset) + ", offset);\n";
       } else {
-        code += "  int " + add_field + "Offset(int? offset) {\n";
+        code += "  int " + add_field + "Offset(" +
+                (isNullable ? "int?" : "int") + " offset) {\n";
         code +=
             "    fbBuilder.addOffset(" + NumToString(offset) + ", offset);\n";
       }
@@ -932,10 +947,12 @@ class DartGenerator : public BaseGenerator {
     for (auto it = non_deprecated_fields.begin();
          it != non_deprecated_fields.end(); ++it) {
       const FieldDef& field = *it->second;
+      const std::string defaultValue = getDefaultValue(field.value);
+      const bool isNullable = FieldIsNullable(struct_def, field, defaultValue);
 
       code += "  final " +
               GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                              field, !struct_def.fixed, "ObjectBuilder") +
+                              field, isNullable, "ObjectBuilder") +
               " _" + namer_.Variable(field) + ";\n";
     }
     code += "\n";
@@ -946,11 +963,14 @@ class DartGenerator : public BaseGenerator {
       for (auto it = non_deprecated_fields.begin();
            it != non_deprecated_fields.end(); ++it) {
         const FieldDef& field = *it->second;
+        const std::string defaultValue = getDefaultValue(field.value);
+        const bool isNullable =
+            FieldIsNullable(struct_def, field, defaultValue);
 
         code += "    ";
-        code += (struct_def.fixed ? "required " : "") +
+        code += (struct_def.fixed || field.IsRequired() ? "required " : "") +
                 GenDartTypeName(field.value.type, struct_def.defined_namespace,
-                                field, !struct_def.fixed, "ObjectBuilder") +
+                                field, isNullable, "ObjectBuilder") +
                 " " + namer_.Variable(field) + ",\n";
       }
       code += "  })\n";
@@ -1002,6 +1022,10 @@ class DartGenerator : public BaseGenerator {
       std::string offset_name = namer_.Variable(field) + "Offset";
       std::string field_name =
           (prependUnderscore ? "_" : "") + namer_.Variable(field);
+      const std::string defaultValue = getDefaultValue(field.value);
+      const bool isNullable = FieldIsNullable(struct_def, field, defaultValue);
+      const std::string field_value =
+          isNullable ? field_name + "!" : field_name;
       // custom handling for fixed-sized struct in pack()
       if (pack && IsVector(field.value.type) &&
           field.value.type.VectorType().base_type == BASE_TYPE_STRUCT &&
@@ -1017,37 +1041,45 @@ class DartGenerator : public BaseGenerator {
         continue;
       }
 
-      code += "    final int? " + offset_name;
+      code += "    final " + std::string(isNullable ? "int? " : "int ") +
+              offset_name;
       if (IsVector(field.value.type)) {
-        code += " = " + field_name + " == null ? null\n";
-        code += "        : fbBuilder.writeList";
+        if (isNullable) {
+          code += " = " + field_name + " == null ? null\n";
+          code += "        : fbBuilder.writeList";
+        } else {
+          code += " = fbBuilder.writeList";
+        }
         switch (field.value.type.VectorType().base_type) {
           case BASE_TYPE_STRING:
             code +=
-                "(" + field_name + "!.map(fbBuilder.writeString).toList());\n";
+                "(" + field_value + ".map(fbBuilder.writeString).toList());\n";
             break;
           case BASE_TYPE_STRUCT:
             if (field.value.type.struct_def->fixed) {
-              code += "OfStructs(" + field_name + "!);\n";
+              code += "OfStructs(" + field_value + ");\n";
             } else {
-              code += "(" + field_name + "!.map((b) => b." +
+              code += "(" + field_value + ".map((b) => b." +
                       (pack ? "pack" : "getOrCreateOffset") +
                       "(fbBuilder)).toList());\n";
             }
             break;
           default:
-            code +=
-                GenType(field.value.type.VectorType()) + "(" + field_name + "!";
+            code += GenType(field.value.type.VectorType()) + "(" + field_value;
             if (field.value.type.enum_def) {
               code += ".map((f) => f.value).toList()";
             }
             code += ");\n";
         }
       } else if (IsString(field.value.type)) {
-        code += " = " + field_name + " == null ? null\n";
-        code += "        : fbBuilder.writeString(" + field_name + "!);\n";
+        if (isNullable) {
+          code += " = " + field_name + " == null ? null\n";
+          code += "        : fbBuilder.writeString(" + field_value + ");\n";
+        } else {
+          code += " = fbBuilder.writeString(" + field_value + ");\n";
+        }
       } else {
-        code += " = " + field_name + "?." +
+        code += " = " + field_name + (isNullable ? "?." : ".") +
                 (pack ? "pack" : "getOrCreateOffset") + "(fbBuilder);\n";
       }
     }
