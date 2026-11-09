@@ -12,11 +12,11 @@ bazel_dep(
 )
 bazel_dep(
     name = "aspect_rules_js",
-    version = "2.1.3",
+    version = "3.0.3",
 )
 bazel_dep(
     name = "aspect_rules_ts",
-    version = "3.4.0",
+    version = "3.9.1",
 )
 bazel_dep(
     name = "rules_nodejs",

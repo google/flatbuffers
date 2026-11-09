@@ -10,7 +10,6 @@ package(default_visibility = ["//visibility:private"])
 npm_link_package(
     name = "node_modules/flatbuffers",
     src = "//ts:flatbuffers",
-    root_package = "tests/ts",
 )
 
 flatbuffer_ts_library(
