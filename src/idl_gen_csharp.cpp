@@ -920,9 +920,9 @@ class CSharpGenerator : public BaseGenerator {
           code += "  public static ";
           code += "bool " + struct_def.name;
           code += "BufferHasIdentifier(ByteBuffer _bb) { return ";
-          code += "Table.__has_identifier(_bb, \"";
-          code += parser_.file_identifier_;
-          code += "\"); }\n";
+          code += "Table.__has_identifier(_bb, ";
+          code += EscapeStringLiteral(parser_.file_identifier_);
+          code += "); }\n";
         }
 
         // Generate the Verify method that checks if a ByteBuffer is save to
@@ -931,9 +931,9 @@ class CSharpGenerator : public BaseGenerator {
         code += "bool Verify" + struct_def.name + "(ByteBuffer _bb) {";
         code += "Google.FlatBuffers.Verifier verifier = new ";
         code += "Google.FlatBuffers.Verifier(_bb); ";
-        code += "return verifier.VerifyBuffer(\"";
-        code += parser_.file_identifier_;
-        code += "\", false, " + struct_def.name + "Verify.Verify);";
+        code += "return verifier.VerifyBuffer(";
+        code += EscapeStringLiteral(parser_.file_identifier_);
+        code += ", false, " + struct_def.name + "Verify.Verify);";
         code += " }\n";
       }
     }
@@ -1609,7 +1609,7 @@ class CSharpGenerator : public BaseGenerator {
           code += ".Value";
 
           if (parser_.file_identifier_.length())
-            code += ", \"" + parser_.file_identifier_ + "\"";
+            code += ", " + EscapeStringLiteral(parser_.file_identifier_);
           code += "); }\n";
         }
       }

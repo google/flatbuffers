@@ -26,7 +26,7 @@ static getSizePrefixedRootAsScalarStuff(bb:flatbuffers.ByteBuffer, obj?:ScalarSt
 }
 
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
-  return bb.__has_identifier('NULL');
+  return bb.__has_identifier("NULL");
 }
 
 justI8():number {
@@ -363,11 +363,11 @@ static endScalarStuff(builder:flatbuffers.Builder):flatbuffers.Offset {
 }
 
 static finishScalarStuffBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'NULL');
+  builder.finish(offset, "NULL");
 }
 
 static finishSizePrefixedScalarStuffBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'NULL', true);
+  builder.finish(offset, "NULL", true);
 }
 
 static createScalarStuff(builder:flatbuffers.Builder, justI8:number, maybeI8:number|undefined, defaultI8:number, justU8:number, maybeU8:number|undefined, defaultU8:number, justI16:number, maybeI16:number|undefined, defaultI16:number, justU16:number, maybeU16:number|undefined, defaultU16:number, justI32:number, maybeI32:number|undefined, defaultI32:number, justU32:number, maybeU32:number|undefined, defaultU32:number, justI64:bigint, maybeI64:bigint|undefined, defaultI64:bigint, justU64:bigint, maybeU64:bigint|undefined, defaultU64:bigint, justF32:number, maybeF32:number|undefined, defaultF32:number, justF64:number, maybeF64:number|undefined, defaultF64:number, justBool:boolean, maybeBool:boolean|undefined, defaultBool:boolean, justEnum:OptionalByte, maybeEnum:OptionalByte|undefined, defaultEnum:OptionalByte):flatbuffers.Offset {

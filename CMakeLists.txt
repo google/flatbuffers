@@ -218,9 +218,31 @@ set(FlatHash_SRCS
 set(FlatBuffers_Tests_SRCS
   ${FlatBuffers_Library_SRCS}
   src/idl_gen_fbs.cpp
+  # Language generators (plus their gRPC helpers), so tests can inspect the
+  # source they emit for a schema. See tests/file_identifier_escape_test.cpp.
+  src/idl_gen_grpc.cpp
+  src/idl_gen_cpp.cpp
+  src/idl_gen_csharp.cpp
+  src/idl_gen_go.cpp
+  src/idl_gen_java.cpp
+  src/idl_gen_kotlin.cpp
+  src/idl_gen_kotlin_kmp.cpp
+  src/idl_gen_php.cpp
+  src/idl_gen_rust.cpp
+  src/idl_gen_swift.cpp
+  src/idl_gen_ts.cpp
+  grpc/src/compiler/cpp_generator.cc
+  grpc/src/compiler/go_generator.cc
+  grpc/src/compiler/java_generator.cc
+  grpc/src/compiler/python_generator.cc
+  grpc/src/compiler/swift_generator.cc
+  grpc/src/compiler/ts_generator.cc
+  include/codegen/python.cc
   tests/default_vectors_strings_test.cpp
   tests/default_vectors_strings_test.h
   tests/evolution_test.cpp
+  tests/file_identifier_escape_test.cpp
+  tests/file_identifier_escape_test.h
   tests/flexbuffers_test.cpp
   tests/fuzz_test.cpp
   tests/json_test.cpp

@@ -161,6 +161,14 @@ extern void GenComment(const std::vector<std::string>& dc,
                        std::string* code_ptr, const CommentConfig* config,
                        const char* prefix = "");
 
+// Encodes `s` as a string literal for generated source code: the returned
+// text includes the enclosing quotes and escapes quotes, backslashes and
+// control characters, so the emitted literal is always well-formed and the
+// bytes of `s` round-trip exactly. Non-UTF-8 bytes are encoded as \xNN
+// escapes. This is the canonical form for embedding schema-provided strings
+// (like the file identifier) into generated code.
+extern std::string EscapeStringLiteral(const std::string& s);
+
 class FloatConstantGenerator {
  public:
   virtual ~FloatConstantGenerator() {}

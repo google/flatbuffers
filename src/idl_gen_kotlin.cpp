@@ -669,7 +669,10 @@ class KotlinGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      id = ", " + EscapeStringLiteral(identifier);
+    }
     auto params = "builder: FlatBufferBuilder, offset: Int";
     auto method_name =
         namer_.LegacyJavaMethod2("finishSizePrefixed", struct_def, "Buffer");
@@ -682,7 +685,10 @@ class KotlinGenerator : public BaseGenerator {
                                   const std::string& identifier,
                                   CodeWriter& writer,
                                   const IDLOptions options) const {
-    auto id = identifier.length() > 0 ? ", \"" + identifier + "\"" : "";
+    std::string id;
+    if (identifier.length() > 0) {
+      id = ", " + EscapeStringLiteral(identifier);
+    }
     auto params = "builder: FlatBufferBuilder, offset: Int";
     auto method_name =
         namer_.LegacyKotlinMethod("finish", struct_def, "Buffer");
@@ -944,7 +950,9 @@ class KotlinGenerator : public BaseGenerator {
     GenerateFunOneLine(
         writer, name + "BufferHasIdentifier", "_bb: ByteBuffer", "Boolean",
         [&]() {
-          writer += "__has_identifier(_bb, \"" + file_identifier + "\")";
+          writer +=
+              "__has_identifier(_bb, " + EscapeStringLiteral(file_identifier) +
+              ")";
         },
         options.gen_jvmstatic);
   }
