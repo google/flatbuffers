@@ -135,6 +135,7 @@ class FooPropertiesT implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prep(1, 2);
     fbBuilder.putBool(b);
     fbBuilder.putBool(a);
     return fbBuilder.offset;
@@ -163,6 +164,7 @@ class FooPropertiesBuilder {
   final fb.Builder fbBuilder;
 
   int finish(bool a, bool b) {
+    fbBuilder.prep(1, 2);
     fbBuilder.putBool(b);
     fbBuilder.putBool(a);
     return fbBuilder.offset;
@@ -180,6 +182,7 @@ class FooPropertiesObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prep(1, 2);
     fbBuilder.putBool(_b);
     fbBuilder.putBool(_a);
     return fbBuilder.offset;

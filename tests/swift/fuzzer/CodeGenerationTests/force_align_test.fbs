@@ -1,0 +1,40 @@
+// Structs whose required FlatBuffers alignment is larger than the natural
+// alignment of the generated Swift struct. Used to check that the Swift
+// builder aligns structs (in tables and in vectors) to the struct's minalign,
+// including `force_align`, instead of `MemoryLayout<T>.alignment`.
+namespace Swift.Tests.ForceAlign;
+
+// The generated Swift struct is an Int32 followed by UInt32/UInt64 padding,
+// so its natural alignment is 8, but FlatBuffers requires 16.
+struct Aligned16 (force_align: 16) {
+  a:int;
+}
+
+// Natural Swift alignment is 4, FlatBuffers requires 8.
+struct Aligned8 (force_align: 8) {
+  a:int;
+  b:int;
+}
+
+// Has no `force_align` itself, but inherits a 16 byte alignment from `inner`.
+struct Outer {
+  b:byte;
+  inner:Aligned16;
+}
+
+// 2 byte aligned struct whose size is not a multiple of 4.
+struct Aligned2 {
+  a:short;
+}
+
+table Holder {
+  bytes:[ubyte];
+  single:Aligned16;
+  outer:Outer;
+  vec16:[Aligned16];
+  vec8:[Aligned8];
+  outers:[Outer];
+  vec2:[Aligned2];
+}
+
+root_type Holder;

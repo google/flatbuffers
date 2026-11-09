@@ -6,6 +6,8 @@ public struct BytesCount: NativeStruct, FlatbuffersVectorInitializable, Verifiab
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 8 }
+
   private var _x: Int64
 
   public init(_ bb: ByteBuffer, o: Int32) {

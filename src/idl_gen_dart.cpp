@@ -852,6 +852,7 @@ class DartGenerator : public BaseGenerator {
       }
     }
     code += ") {\n";
+    code += GenStructPrep(struct_def);
 
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {
@@ -1008,6 +1009,10 @@ class DartGenerator : public BaseGenerator {
           field.value.type.struct_def->fixed) {
         code += "    int? " + offset_name + ";\n";
         code += "    if (" + field_name + " != null) {\n";
+        const StructDef& elem_def = *field.value.type.struct_def;
+        code += "      fbBuilder.startStructVector(" + field_name +
+                "!.length, " + NumToString(elem_def.bytesize) + ", " +
+                NumToString(elem_def.minalign) + ");\n";
         code += "      for (var e in " + field_name +
                 "!.reversed) { e.pack(fbBuilder); }\n";
         code += "      " + namer_.Variable(field) +
@@ -1028,7 +1033,10 @@ class DartGenerator : public BaseGenerator {
             break;
           case BASE_TYPE_STRUCT:
             if (field.value.type.struct_def->fixed) {
-              code += "OfStructs(" + field_name + "!);\n";
+              const StructDef& elem_def = *field.value.type.struct_def;
+              code += "OfStructs(" + field_name +
+                      "!, structSize: " + NumToString(elem_def.bytesize) +
+                      ", alignment: " + NumToString(elem_def.minalign) + ");\n";
             } else {
               code += "(" + field_name + "!.map((b) => b." +
                       (pack ? "pack" : "getOrCreateOffset") +
@@ -1053,8 +1061,8 @@ class DartGenerator : public BaseGenerator {
     }
 
     if (struct_def.fixed) {
-      code += StructObjectBuilderBody(non_deprecated_fields, prependUnderscore,
-                                      pack);
+      code += StructObjectBuilderBody(struct_def, non_deprecated_fields,
+                                      prependUnderscore, pack);
     } else {
       code += TableObjectBuilderBody(struct_def, non_deprecated_fields,
                                      prependUnderscore, pack);
@@ -1062,10 +1070,18 @@ class DartGenerator : public BaseGenerator {
     return code;
   }
 
+  // Aligns the builder for a struct about to be written, so that the struct
+  // (and therefore each of its fields) ends up correctly aligned.
+  std::string GenStructPrep(const StructDef& struct_def) {
+    return "    fbBuilder.prep(" + NumToString(struct_def.minalign) + ", " +
+           NumToString(struct_def.bytesize) + ");\n";
+  }
+
   std::string StructObjectBuilderBody(
+      const StructDef& struct_def,
       const std::vector<std::pair<int, FieldDef*>>& non_deprecated_fields,
       bool prependUnderscore = true, bool pack = false) {
-    std::string code;
+    std::string code = GenStructPrep(struct_def);
 
     for (auto it = non_deprecated_fields.rbegin();
          it != non_deprecated_fields.rend(); ++it) {

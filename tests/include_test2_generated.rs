@@ -216,6 +216,11 @@ pub mod my_game {
             unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
                 unsafe { ::flatbuffers::emplace_scalar::<i64>(dst, self.0) };
             }
+
+            #[inline]
+            fn alignment() -> ::flatbuffers::PushAlignment {
+                <i64 as ::flatbuffers::Push>::alignment()
+            }
         }
 
         impl ::flatbuffers::EndianScalar for FromInclude {

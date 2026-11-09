@@ -411,10 +411,36 @@ public struct FlatBufferBuilder {
   ///   - elementSize: Size of object type to be written
   @inline(__always)
   mutating public func startVector(_ len: Int, elementSize: Int) {
+    startVector(len, elementSize: elementSize, alignment: elementSize)
+  }
+
+  /// ``startVector(_:elementSize:alignment:)`` creates a new vector within
+  /// the buffer, whose elements require a different alignment than their size
+  ///
+  /// This is used for vectors of structs, where the elements have to be
+  /// aligned to the struct's alignment (see ``NativeStruct/alignment``)
+  /// while the length is still placed right before the first element.
+  /// ```swift
+  /// builder.startVector(
+  ///   structs.count,
+  ///   elementSize: MemoryLayout<Vec3>.size,
+  ///   alignment: Vec3.alignment)
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - len: Length of vector to be created
+  ///   - elementSize: Size of object type to be written
+  ///   - alignment: Alignment of the elements, must be a power of two
+  @inline(__always)
+  mutating public func startVector(
+    _ len: Int,
+    elementSize: Int,
+    alignment: Int)
+  {
     notNested()
     isNested = true
     preAlign(len: len &* elementSize, type: UOffset.self)
-    preAlign(len: len &* elementSize, alignment: elementSize)
+    preAlign(len: len &* elementSize, alignment: alignment)
   }
 
   /// ``endVector(len:)`` ends the currently created vector
@@ -630,8 +656,9 @@ public struct FlatBufferBuilder {
     -> Offset
   {
     startVector(
-      structs.count * MemoryLayout<T>.size,
-      elementSize: MemoryLayout<T>.alignment)
+      structs.count,
+      elementSize: MemoryLayout<T>.size,
+      alignment: T.alignment)
     _bb.push(elements: structs)
     return endVector(len: structs.count)
   }
@@ -684,7 +711,7 @@ public struct FlatBufferBuilder {
     struct s: T) -> Offset
   {
     let size = MemoryLayout<T>.size
-    preAlign(len: size, alignment: MemoryLayout<T>.alignment)
+    preAlign(len: size, alignment: T.alignment)
     _bb.push(struct: s, size: size)
     return Offset(offset: _bb.size)
   }

@@ -1207,7 +1207,10 @@ class FlatBufferBuilderImpl {
   FLATBUFFERS_ATTRIBUTE([[deprecated("call the version above instead")]])
   uoffset_t CreateUninitializedVector(size_t len, size_t elemsize,
                                       uint8_t** buf) {
-    return CreateUninitializedVector(len, elemsize, elemsize, buf);
+    // Align to the largest power of two dividing elemsize: alignments must be
+    // powers of two, and this is never less than the element's own alignment.
+    return CreateUninitializedVector(len, elemsize, elemsize & (~elemsize + 1),
+                                     buf);
   }
 
   /// @brief Specialized version of `CreateVector` for non-copying use cases.

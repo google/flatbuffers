@@ -496,7 +496,26 @@ class Builder {
     _currentTableEndTail = _tail;
   }
 
+  /// Start a Struct vector of [count] structs, each [structSize] bytes long and
+  /// aligned to [alignment] bytes (the struct's minimum alignment, including
+  /// any `force_align`).
+  ///
+  /// This pads the buffer so that, once the structs have been written (in
+  /// reverse order), the first struct is aligned to [alignment] and the 32-bit
+  /// vector length written by [endStructVector] immediately precedes it, the
+  /// same way `FlatBufferBuilder::StartVector` does in C++.
+  ///
+  /// Most callers should prefer [writeListOfStructs].
+  void startStructVector(int count, int structSize, int alignment) {
+    assert(!_inVTable);
+    prep(_sizeofUint32, count * structSize);
+    prep(alignment, count * structSize);
+  }
+
   /// Finish a Struct vector.  Most callers should preferto use [writeListOfStructs].
+  ///
+  /// Call [startStructVector] before writing the [count] structs, otherwise
+  /// the vector may not be correctly aligned.
   ///
   /// Most callers should prefer [writeListOfStructs].
   int endStructVector(int count) {
@@ -505,8 +524,20 @@ class Builder {
   }
 
   /// Writes a list of Structs to the buffer, returning the offset
-  int writeListOfStructs(List<ObjectBuilder> structBuilders) {
+  ///
+  /// [structSize] and [alignment] describe the struct type (see
+  /// [startStructVector]); they are required to align the list correctly, and
+  /// generated code always passes them. If [structSize] is omitted, the list is
+  /// not aligned, as in previous versions.
+  int writeListOfStructs(
+    List<ObjectBuilder> structBuilders, {
+    int structSize = 0,
+    int alignment = 1,
+  }) {
     assert(!_inVTable);
+    if (structSize > 0) {
+      startStructVector(structBuilders.length, structSize, alignment);
+    }
     for (var i = structBuilders.length - 1; i >= 0; i--) {
       structBuilders[i].finish(this);
     }
@@ -531,7 +562,10 @@ class Builder {
   /// Write the given list of 64-bit float [values].
   int writeListFloat64(List<double> values) {
     assert(!_inVTable);
-    _prepare(_sizeofFloat64, values.length, additionalBytes: _sizeofUint32);
+    // Align the elements (not the length) to 8 bytes; the 32-bit length is
+    // then placed immediately before the first element.
+    _prepare(_sizeofFloat64, values.length);
+    _prepare(_sizeofUint32, 1);
     final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
@@ -561,7 +595,10 @@ class Builder {
   /// Write the given list of signed 64-bit integer [values].
   int writeListInt64(List<int> values) {
     assert(!_inVTable);
-    _prepare(_sizeofInt64, values.length, additionalBytes: _sizeofUint32);
+    // Align the elements (not the length) to 8 bytes; the 32-bit length is
+    // then placed immediately before the first element.
+    _prepare(_sizeofInt64, values.length);
+    _prepare(_sizeofUint32, 1);
     final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
@@ -576,7 +613,10 @@ class Builder {
   /// Write the given list of signed 64-bit integer [values].
   int writeListUint64(List<int> values) {
     assert(!_inVTable);
-    _prepare(_sizeofUint64, values.length, additionalBytes: _sizeofUint32);
+    // Align the elements (not the length) to 8 bytes; the 32-bit length is
+    // then placed immediately before the first element.
+    _prepare(_sizeofUint64, values.length);
+    _prepare(_sizeofUint32, 1);
     final result = _tail;
     var tail = _tail;
     _setUint32AtTail(tail, values.length);
@@ -773,6 +813,19 @@ class Builder {
     for (var i = 0; i < howManyBytes; i++) {
       putUint8(0);
     }
+  }
+
+  /// Prepare to write an element of [size] bytes after [additionalBytes] have
+  /// been written: zero-pads the buffer so that, once [additionalBytes] more
+  /// bytes are written, the result is aligned to [size] (a power of two).
+  ///
+  /// Generated code calls `prep(structAlignment, structSize)` before writing a
+  /// struct, so that the struct and all of its fields are correctly aligned.
+  @pragma('vm:prefer-inline')
+  void prep(int size, int additionalBytes) {
+    // Reserve the padding plus [additionalBytes], but only consume the padding.
+    _prepare(size, 0, additionalBytes: additionalBytes);
+    _tail -= additionalBytes;
   }
 
   /// Prepare for writing the given `count` of scalars of the given `size`.

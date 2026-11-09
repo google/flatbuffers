@@ -12,6 +12,8 @@ public struct Property: NativeStruct, FlatbuffersVectorInitializable, Verifiable
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 1 }
+
   private var _property: Bool
 
   public init(_ bb: ByteBuffer, o: Int32) {

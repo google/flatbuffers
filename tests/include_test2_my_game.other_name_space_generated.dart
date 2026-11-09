@@ -73,6 +73,7 @@ class UnusedT implements fb.Packable {
 
   @override
   int pack(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 4);
     fbBuilder.putInt32(a);
     return fbBuilder.offset;
   }
@@ -100,6 +101,7 @@ class UnusedBuilder {
   final fb.Builder fbBuilder;
 
   int finish(int a) {
+    fbBuilder.prep(4, 4);
     fbBuilder.putInt32(a);
     return fbBuilder.offset;
   }
@@ -117,6 +119,7 @@ class UnusedObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
+    fbBuilder.prep(4, 4);
     fbBuilder.putInt32(_a);
     return fbBuilder.offset;
   }

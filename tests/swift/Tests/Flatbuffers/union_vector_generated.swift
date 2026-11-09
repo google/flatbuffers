@@ -126,6 +126,8 @@ public struct Rapunzel: NativeStruct, FlatbuffersVectorInitializable, Verifiable
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 4 }
+
   private var _hairLength: Int32
 
   public init(_ bb: ByteBuffer, o: Int32) {
@@ -192,6 +194,8 @@ public struct BookReader: NativeStruct, FlatbuffersVectorInitializable, Verifiab
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 4 }
+
   private var _booksRead: Int32
 
   public init(_ bb: ByteBuffer, o: Int32) {
@@ -257,6 +261,8 @@ public struct BookReader_Mutable: FlatBufferStruct, FlatbuffersVectorInitializab
 public struct FallingTub: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
+
+  public static var alignment: Int { 4 }
 
   private var _weight: Int32
 

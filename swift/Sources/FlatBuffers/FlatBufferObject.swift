@@ -18,7 +18,20 @@ import Foundation
 
 /// NativeStruct is a protocol that indicates if the struct is a native `swift` struct
 /// since now we will be serializing native structs into the buffer.
-public protocol NativeStruct: BitwiseCopyable {}
+public protocol NativeStruct: BitwiseCopyable {
+  /// The alignment of the struct within a FlatBuffer, which is the
+  /// struct's `minalign` in the schema, including any `force_align`.
+  ///
+  /// Swift can't express `force_align`, so this can be larger than
+  /// `MemoryLayout<Self>.alignment`. The generated code implements it;
+  /// the default implementation returns `MemoryLayout<Self>.alignment`.
+  static var alignment: Int { get }
+}
+
+extension NativeStruct {
+  @inlinable
+  public static var alignment: Int { MemoryLayout<Self>.alignment }
+}
 
 public protocol FlatBufferVerifiableNativeStruct: NativeStruct, Verifiable {}
 

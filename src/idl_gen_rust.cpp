@@ -906,6 +906,13 @@ class RustGenerator : public BaseGenerator {
         "        unsafe { ::flatbuffers::emplace_scalar::<{{BASE_TYPE}}>(dst, "
         "{{INTO_BASE}}) };";
     code_ += "    }";
+    code_ += "";
+    // Align like the underlying scalar (i.e. to its size), not to the
+    // target-dependent align_of, which is only 4 for 64-bit types on e.g. i686.
+    code_ += "    #[inline]";
+    code_ += "    fn alignment() -> ::flatbuffers::PushAlignment {";
+    code_ += "        <{{BASE_TYPE}} as ::flatbuffers::Push>::alignment()";
+    code_ += "    }";
     code_ += "}";
     code_ += "";
     code_ += "impl ::flatbuffers::EndianScalar for {{ENUM_TY}} {";

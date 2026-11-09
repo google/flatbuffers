@@ -620,6 +620,168 @@ class BuilderTest {
     }
   }
 
+  void test_writeList_of64BitScalars_alignment() {
+    // The elements of a vector of 64-bit scalars must be 8-byte aligned
+    // (relative to the start of the buffer), with the 32-bit length right
+    // before the first element.
+    for (int prefix = 0; prefix < 8; prefix++) {
+      for (int length = 0; length < 4; length++) {
+        final doubles = List<double>.generate(length, (i) => i - 0.5);
+        final ints = List<int>.generate(length, (i) => -1 - i);
+        final uints = List<int>.generate(length, (i) => 0x123456789A + i);
+
+        void verify(
+          String name,
+          int Function(Builder) write,
+          Reader<List<Object>> reader,
+          List<Object> values,
+        ) {
+          final reason =
+              'writeList$name: $prefix byte(s) written before, '
+              '$length element(s)';
+          final builder = Builder(initialSize: 0);
+          for (int i = 0; i < prefix; i++) {
+            builder.putUint8(0xAA);
+          }
+          builder.finish(write(builder));
+          final buf = BufferContext.fromBytes(builder.buffer);
+          final vector = buf.derefObject(0);
+          expect(builder.buffer.length % 8, 0, reason: reason);
+          expect(vector % 4, 0, reason: reason);
+          expect((vector + 4) % 8, 0, reason: reason);
+          expect(reader.read(buf, 0), orderedEquals(values), reason: reason);
+        }
+
+        verify(
+          'Float64',
+          (b) => b.writeListFloat64(doubles),
+          const Float64ListReader(),
+          doubles,
+        );
+        verify(
+          'Int64',
+          (b) => b.writeListInt64(ints),
+          const ListReader<int>(Int64Reader()),
+          ints,
+        );
+        verify(
+          'Uint64',
+          (b) => b.writeListUint64(uints),
+          const ListReader<int>(Uint64Reader()),
+          uints,
+        );
+      }
+    }
+  }
+
+  void test_writeListOfStructs_alignment() {
+    // The first element of a vector of structs must be aligned to the struct's
+    // alignment (force_align: 8 for Vec3, 2 for Test), with the 32-bit length
+    // right before it.
+    example.Vec3ObjectBuilder vec3(int i) => example.Vec3ObjectBuilder(
+      x: i + 0.25,
+      y: i + 0.5,
+      z: i + 0.75,
+      test1: -i - 0.5,
+      test2: example.Color.Blue,
+      test3: example.TestObjectBuilder(a: 1000 + i, b: i),
+    );
+    example.TestObjectBuilder test(int i) =>
+        example.TestObjectBuilder(a: -1000 - i, b: -i);
+
+    for (int prefix = 0; prefix < 8; prefix++) {
+      for (int length = 1; length < 4; length++) {
+        void verify<T>(
+          String name,
+          int alignment,
+          int Function(Builder) write,
+          Reader<T> elementReader,
+          String expected,
+        ) {
+          final reason =
+              '$name: $prefix byte(s) written before, '
+              '$length element(s)';
+          final builder = Builder(initialSize: 0);
+          for (int i = 0; i < prefix; i++) {
+            builder.putUint8(0xAA);
+          }
+          builder.finish(write(builder));
+          final buf = BufferContext.fromBytes(builder.buffer);
+          final vector = buf.derefObject(0);
+          expect(vector % 4, 0, reason: reason);
+          expect((vector + 4) % alignment, 0, reason: reason);
+          expect(
+            ListReader<T>(elementReader).read(buf, 0).toString(),
+            expected,
+            reason: reason,
+          );
+        }
+
+        final vec3s = List.generate(length, vec3);
+        final tests = List.generate(length, test);
+        final vec3sString = List.generate(
+          length,
+          (i) =>
+              'Vec3{x: ${i + 0.25}, y: ${i + 0.5}, z: ${i + 0.75}, '
+              'test1: ${-i - 0.5}, test2: Color.Blue, '
+              'test3: Test{a: ${1000 + i}, b: $i}}',
+        ).toString();
+        final testsString = List.generate(
+          length,
+          (i) => 'Test{a: ${-1000 - i}, b: ${-i}}',
+        ).toString();
+
+        verify(
+          'writeListOfStructs(Vec3)',
+          8,
+          (b) => b.writeListOfStructs(vec3s, structSize: 32, alignment: 8),
+          example.Vec3.reader,
+          vec3sString,
+        );
+        verify(
+          'writeListOfStructs(Test)',
+          2,
+          (b) => b.writeListOfStructs(tests, structSize: 4, alignment: 2),
+          example.Test.reader,
+          testsString,
+        );
+        verify(
+          'startStructVector(Vec3)',
+          8,
+          (b) {
+            b.startStructVector(length, 32, 8);
+            for (int i = length - 1; i >= 0; i--) {
+              example.Vec3Builder(b).finish(
+                i + 0.25,
+                i + 0.5,
+                i + 0.75,
+                -i - 0.5,
+                example.Color.Blue,
+                () => example.TestBuilder(b).finish(1000 + i, i),
+              );
+            }
+            return b.endStructVector(length);
+          },
+          example.Vec3.reader,
+          vec3sString,
+        );
+        verify(
+          'startStructVector(Test)',
+          2,
+          (b) {
+            b.startStructVector(length, 4, 2);
+            for (int i = length - 1; i >= 0; i--) {
+              example.TestBuilder(b).finish(-1000 - i, -i);
+            }
+            return b.endStructVector(length);
+          },
+          example.Test.reader,
+          testsString,
+        );
+      }
+    }
+  }
+
   void test_writeList_ofFloat32() {
     List<double> values = [1.0, 2.23, -3.213, 7.8, 12.13];
     // write
@@ -904,6 +1066,108 @@ class ObjectAPITest {
     expect(monster3.toString(), monster.toString());
   }
 
+  void test_tableMonster_alignment() {
+    // Inline structs, vectors of structs and vectors of 64-bit scalars written
+    // by generated code must be correctly aligned regardless of what was
+    // written before them. Varying the length of the name (written first)
+    // shifts everything written after it.
+    for (int nameLength = 0; nameLength < 8; nameLength++) {
+      final monster = example.MonsterT(
+        pos: example.Vec3T(
+          x: 1,
+          y: 2,
+          z: 3,
+          test1: 4.5,
+          test2: example.Color.Blue,
+          test3: example.TestT(a: 5, b: 6),
+        ),
+        name: 'n' * nameLength,
+        // A table with a 6-byte vtable, so what follows starts at 2 mod 4.
+        testType: example.AnyTypeId.TestSimpleTableWithEnum,
+        test: example.TestSimpleTableWithEnumT(color: example.Color.Red),
+        test4: [example.TestT(a: 10, b: 20), example.TestT(a: 30, b: 40)],
+        testarrayofsortedstruct: [example.AbilityT(id: 1, distance: 5)],
+        vectorOfLongs: [5, 6, 7],
+        vectorOfDoubles: [8.9, 9.0],
+        vectorOfWeakReferences: [11, 12],
+        nativeInline: example.TestT(a: 7, b: 8),
+        testf: 2.5, // exactly representable as a float32
+      );
+      final monsterBuilder = example.MonsterObjectBuilder(
+        pos: example.Vec3ObjectBuilder(
+          x: 1,
+          y: 2,
+          z: 3,
+          test1: 4.5,
+          test2: example.Color.Blue,
+          test3: example.TestObjectBuilder(a: 5, b: 6),
+        ),
+        name: 'n' * nameLength,
+        testType: example.AnyTypeId.TestSimpleTableWithEnum,
+        test: example.TestSimpleTableWithEnumObjectBuilder(
+          color: example.Color.Red,
+        ),
+        test4: [
+          example.TestObjectBuilder(a: 10, b: 20),
+          example.TestObjectBuilder(a: 30, b: 40),
+        ],
+        testarrayofsortedstruct: [
+          example.AbilityObjectBuilder(id: 1, distance: 5),
+        ],
+        vectorOfLongs: [5, 6, 7],
+        vectorOfDoubles: [8.9, 9.0],
+        vectorOfWeakReferences: [11, 12],
+        nativeInline: example.TestObjectBuilder(a: 7, b: 8),
+        testf: 2.5,
+      );
+
+      final fbBuilder = Builder();
+      fbBuilder.finish(monster.pack(fbBuilder));
+      final buffers = {
+        'MonsterT.pack': fbBuilder.buffer,
+        'MonsterObjectBuilder': monsterBuilder.toBytes(),
+      };
+      buffers.forEach((api, data) {
+        final reason = '$api, name length $nameLength';
+        expect(
+          example.Monster(data).unpack().toString(),
+          monster.toString(),
+          reason: reason,
+        );
+
+        final buf = BufferContext.fromBytes(data);
+        final table = buf.derefObject(0);
+        int field(int vTableOffset) {
+          final position = const _FieldPositionReader().vTableGet(
+            buf,
+            table,
+            vTableOffset,
+            0,
+          );
+          expect(position, isNot(0), reason: '$reason: field @$vTableOffset');
+          return position;
+        }
+
+        int vector(int vTableOffset) => buf.derefObject(field(vTableOffset));
+
+        expect(field(4) % 8, 0, reason: '$reason: pos'); // Vec3
+        expect(field(106) % 2, 0, reason: '$reason: nativeInline'); // Test
+        expect(vector(22) % 4, 0, reason: '$reason: test4');
+        expect((vector(22) + 4) % 2, 0, reason: '$reason: test4');
+        expect(vector(62) % 4, 0, reason: '$reason: testarrayofsortedstruct');
+        for (final offset in [68, 70, 78]) {
+          // vectorOfLongs, vectorOfDoubles, vectorOfWeakReferences
+          expect(vector(offset) % 4, 0, reason: '$reason: field @$offset');
+          expect(
+            (vector(offset) + 4) % 8,
+            0,
+            reason: '$reason: field @$offset',
+          );
+        }
+      });
+    }
+  }
+
   void test_Lists() {
     // Ensure unpack() reads lists eagerly by reusing the same builder and
     // overwriting data. Why: because standard reader reads lists lazily...
@@ -972,6 +1236,17 @@ class TestPointReader extends TableReader<TestPointImpl> {
   TestPointImpl createObject(BufferContext object, int offset) {
     return TestPointImpl(object, offset);
   }
+}
+
+/// Reads the position of a field in the buffer, instead of its value.
+class _FieldPositionReader extends Reader<int> {
+  const _FieldPositionReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  int read(BufferContext bc, int offset) => offset;
 }
 
 @reflectiveTest

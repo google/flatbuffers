@@ -37,6 +37,8 @@ public struct MyGame_Example_NestedStruct: NativeStruct, FlatbuffersVectorInitia
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
 
+  public static var alignment: Int { 8 }
+
   private var _a: InlineArray<2, Int32>
   private var _b: Int8
   private var _c: InlineArray<2, Int8>
@@ -146,6 +148,8 @@ public struct MyGame_Example_NestedStruct_Mutable: FlatBufferStruct, Flatbuffers
 public struct MyGame_Example_ArrayStruct: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
+
+  public static var alignment: Int { 8 }
 
   private var _a: Float32
   private var _b: InlineArray<15, Int32>
@@ -279,6 +283,8 @@ public struct MyGame_Example_ArrayStruct_Mutable: FlatBufferStruct, FlatbuffersV
 public struct MyGame_Example_LargeArrayStruct: NativeStruct, FlatbuffersVectorInitializable, Verifiable, FlatbuffersInitializable, NativeObject {
 
   static func validateVersion() { FlatBuffersVersion_25_12_19() }
+
+  public static var alignment: Int { 8 }
 
   private var _d: InlineArray<64, UInt8>
   private var _e: InlineArray<64, Float32>

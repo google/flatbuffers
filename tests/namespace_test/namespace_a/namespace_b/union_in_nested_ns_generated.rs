@@ -69,6 +69,11 @@ impl ::flatbuffers::Push for UnionInNestedNS {
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
         unsafe { ::flatbuffers::emplace_scalar::<u8>(dst, self.0) };
     }
+
+    #[inline]
+    fn alignment() -> ::flatbuffers::PushAlignment {
+        <u8 as ::flatbuffers::Push>::alignment()
+    }
 }
 
 impl ::flatbuffers::EndianScalar for UnionInNestedNS {
