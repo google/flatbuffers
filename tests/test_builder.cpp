@@ -139,6 +139,25 @@ void FlatBufferBuilderTest() {
       TestSelector(tests, tests + 4));
   BuilderReuseTests<GrpcLikeMessageBuilder, GrpcLikeMessageBuilder>::run_tests(
       TestSelector(tests, tests + 4));
+
+  {
+    FlatBufferBuilder fbb;
+    std::vector<std::string> empty_strings;
+    auto vec_offset =
+        fbb.CreateVectorOfStrings(empty_strings.begin(), empty_strings.end());
+    fbb.Finish(vec_offset);
+    TEST_ASSERT(fbb.GetSize() > 0);
+  }
+  {
+    FlatBufferBuilder fbb;
+    std::vector<std::string> strings;
+    strings.push_back("hello");
+    strings.push_back("world");
+    auto vec_offset =
+        fbb.CreateVectorOfStrings(strings.begin(), strings.end());
+    fbb.Finish(vec_offset);
+    TEST_ASSERT(fbb.GetSize() > 0);
+  }
 }
 
 // forward-declared in test_builder.h
