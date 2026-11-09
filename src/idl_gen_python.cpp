@@ -62,7 +62,6 @@ class PythonStubGenerator {
       Imports imports;
       std::stringstream stub;
 
-      DeclareUOffset(stub, &imports);
       for (const EnumDef* def : parser_.enums_.vec) {
         if (def->generated) continue;
         GenerateEnumStub(stub, def, &imports);
@@ -86,7 +85,6 @@ class PythonStubGenerator {
       Imports imports;
       std::stringstream stub;
 
-      DeclareUOffset(stub, &imports);
       GenerateEnumStub(stub, def, &imports);
 
       std::string filename = namer_.Directories(*def->defined_namespace) +
@@ -100,7 +98,6 @@ class PythonStubGenerator {
       Imports imports;
       std::stringstream stub;
 
-      DeclareUOffset(stub, &imports);
       GenerateStructStub(stub, def, &imports);
 
       std::string filename = namer_.Directories(*def->defined_namespace) +
@@ -121,14 +118,6 @@ class PythonStubGenerator {
 
     EnsureDirExists(StripFileName(filename));
     return parser_.opts.file_saver->SaveFile(filename.c_str(), ss.str(), false);
-  }
-
-  static void DeclareUOffset(std::stringstream& stub, Imports* imports) {
-    imports->Import("flatbuffers");
-    imports->Import("typing");
-    stub << "uoffset: typing.TypeAlias = "
-            "flatbuffers.number_types.UOffsetTFlags.py_type\n"
-         << '\n';
   }
 
   std::string ModuleForFile(const std::string& file) const {
@@ -464,8 +453,9 @@ class PythonStubGenerator {
                      << TypeOf(field_type, imports) << ": ...\n";
 
                 if (parser_.opts.python_gen_numpy) {
+                  imports->Import("numpy");
                   stub << "  def " << name
-                       << "AsNumpy(self) -> np.ndarray: ...\n";
+                       << "AsNumpy(self) -> numpy.ndarray: ...\n";
                 }
 
                 const StructDef* nested_def = GetNestedStruct(field);
@@ -535,7 +525,7 @@ class PythonStubGenerator {
     for (const std::string& arg : args) {
       stub << ", " << arg;
     }
-    stub << ") -> uoffset: ...\n";
+    stub << ") -> int: ...\n";
   }
 
   void GenerateTableBuilderStub(std::stringstream& stub,
@@ -565,7 +555,7 @@ class PythonStubGenerator {
       } else if (IsArray(field->value.type)) {
         stub << TypeOf(field->value.type.VectorType(), imports);
       } else {
-        stub << "uoffset";
+        stub << "int";
       }
       stub << ") -> None: ...\n";
 
@@ -574,23 +564,23 @@ class PythonStubGenerator {
         if (!parser_.opts.python_no_type_prefix_suffix) stub << type;
         stub << "Start" << namer_.Method(*field)
              << "Vector(builder: flatbuffers.Builder, num_elems: int) -> "
-                "uoffset: ...\n";
+                "int: ...\n";
 
         if (!parser_.opts.one_file &&
             !parser_.opts.python_no_type_prefix_suffix) {
           stub << "def Start" << namer_.Method(*field)
                << "Vector(builder: flatbuffers.Builder, num_elems: int) -> "
-                  "uoffset: ...\n";
+                  "int: ...\n";
         }
 
         if (GetNestedStruct(field) != nullptr) {
           stub << "def " << type << "Make" << namer_.Method(*field)
                << "VectorFromBytes(builder: flatbuffers.Builder, buf: "
-                  "bytes) -> uoffset: ...\n";
+                  "bytes) -> int: ...\n";
           if (!parser_.opts.one_file) {
             stub << "def Make" << namer_.Method(*field)
                  << "VectorFromBytes(builder: flatbuffers.Builder, buf: "
-                    "bytes) -> uoffset: ...\n";
+                    "bytes) -> int: ...\n";
           }
         }
 
@@ -598,12 +588,12 @@ class PythonStubGenerator {
         if (!parser_.opts.python_no_type_prefix_suffix) stub << type;
         stub << "Create" << namer_.Method(*field)
              << "Vector(builder: flatbuffers.Builder, data: typing.Iterable["
-                "typing.Any]) -> uoffset: ...\n";
+                "typing.Any]) -> int: ...\n";
         if (!parser_.opts.one_file &&
             !parser_.opts.python_no_type_prefix_suffix) {
           stub << "def Create" << namer_.Method(*field)
                << "Vector(builder: flatbuffers.Builder, data: "
-                  "typing.Iterable[typing.Any]) -> uoffset: ...\n";
+                  "typing.Iterable[typing.Any]) -> int: ...\n";
         }
       }
     }
@@ -611,9 +601,9 @@ class PythonStubGenerator {
     /***************************** def TableEnd *****************************/
     stub << "def ";
     if (!parser_.opts.python_no_type_prefix_suffix) stub << type;
-    stub << "End(builder: flatbuffers.Builder) -> uoffset: ...\n";
+    stub << "End(builder: flatbuffers.Builder) -> int: ...\n";
     if (!parser_.opts.one_file && !parser_.opts.python_no_type_prefix_suffix) {
-      stub << "def End(builder: flatbuffers.Builder) -> uoffset: ...\n";
+      stub << "def End(builder: flatbuffers.Builder) -> int: ...\n";
     }
   }
 
@@ -650,9 +640,6 @@ class PythonStubGenerator {
     ss << "from __future__ import annotations\n";
     ss << '\n';
     ss << "import flatbuffers\n";
-    if (parser_.opts.python_gen_numpy) {
-      ss << "import numpy as np\n";
-    }
     ss << '\n';
 
     std::set<std::string> modules;

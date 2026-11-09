@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 import flatbuffers
-import numpy as np
 
-import typing
-
-uoffset: typing.TypeAlias = flatbuffers.number_types.UOffsetTFlags.py_type
 
 class Test(object):
   @classmethod
@@ -31,5 +27,5 @@ class TestT(object):
   def _UnPack(self, test: Test) -> None: ...
   def Pack(self, builder: flatbuffers.Builder) -> None: ...
 
-def CreateTest(builder: flatbuffers.Builder, a: int, b: int) -> uoffset: ...
+def CreateTest(builder: flatbuffers.Builder, a: int, b: int) -> int: ...
 
