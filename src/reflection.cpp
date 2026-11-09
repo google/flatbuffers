@@ -65,17 +65,54 @@ static bool VerifyObject(flatbuffers::Verifier& v,
                          const reflection::Object& obj,
                          const flatbuffers::Table* table, bool required);
 
+// Bounds-checked accessors for schema cross-references.  A schema that has not
+// been cross-validated (see SchemaIsValid below) may carry Type.index values
+// that are out of range; these helpers make every consumer safe regardless.
+inline const reflection::Object* GetSchemaObject(const reflection::Schema& s,
+                                                 int32_t index) {
+  if (index < 0 || index >= static_cast<int32_t>(s.objects()->size()))
+    return nullptr;
+  return s.objects()->Get(index);
+}
+
+inline const reflection::Enum* GetSchemaEnum(const reflection::Schema& s,
+                                             int32_t index) {
+  if (index < 0 || index >= static_cast<int32_t>(s.enums()->size()))
+    return nullptr;
+  return s.enums()->Get(index);
+}
+
 static bool VerifyUnion(flatbuffers::Verifier& v,
-                        const reflection::Schema& schema, uint8_t utype,
+                        const reflection::Schema& schema, int64_t utype,
                         const uint8_t* elem,
                         const reflection::Field& union_field) {
   if (!utype) return true;  // Not present.
-  auto fb_enum = schema.enums()->Get(union_field.type()->index());
-  if (utype >= fb_enum->values()->size()) return false;
-  auto elem_type = fb_enum->values()->Get(utype)->union_type();
+  auto fb_enum = GetSchemaEnum(schema, union_field.type()->index());
+  if (!fb_enum) return false;
+  // The wire discriminator is the enum VALUE, not a position in values().
+  // Resolve the member by matching the declared EnumVal.value, exactly like
+  // the generated per-schema union verifiers do (see the switch in
+  // tests/union_underlying_type_test_generated.h).  No matching member value
+  // means the tag is not a declared member: reject.
+  const reflection::EnumVal* matched = nullptr;
+  for (uoffset_t i = 0; i < fb_enum->values()->size(); i++) {
+    auto cand = fb_enum->values()->Get(i);
+    if (cand->value() == utype) {
+      matched = cand;
+      break;
+    }
+  }
+  if (!matched) return false;
+  auto elem_type = matched->union_type();
+  if (!elem_type) return false;
   switch (elem_type->base_type()) {
     case reflection::Obj: {
-      auto elem_obj = schema.objects()->Get(elem_type->index());
+      // Type.index is attacker-controlled schema data; never trust it without
+      // a bounds check against objects().size().
+      const auto index = elem_type->index();
+      if (index < 0 || index >= static_cast<int32_t>(schema.objects()->size()))
+        return false;
+      auto elem_obj = schema.objects()->Get(index);
       if (elem_obj->is_struct()) {
         return v.VerifyFromPointer(elem, elem_obj->bytesize());
       } else {
@@ -130,7 +167,8 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       }
     }
     case reflection::Obj: {
-      auto obj = schema.objects()->Get(vec_field.type()->index());
+      auto obj = GetSchemaObject(schema, vec_field.type()->index());
+      if (!obj) return false;
       if (obj->is_struct()) {
         return VerifyVectorOfStructs(v, table, vec_field.offset(), *obj,
                                      vec_field.required());
@@ -154,7 +192,7 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       if (!v.VerifyVector(vec)) return false;
       if (!vec) return true;
       auto type_vec = table.GetPointer<Vector<uint8_t>*>(vec_field.offset() -
-                                                         sizeof(voffset_t));
+                                                          sizeof(voffset_t));
       if (!v.VerifyVector(type_vec)) return false;
       if (type_vec->size() != vec->size()) return false;
       for (uoffset_t j = 0; j < vec->size(); j++) {
@@ -233,7 +271,8 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         if (!VerifyVector(v, schema, *table, *field_def)) return false;
         break;
       case reflection::Obj: {
-        auto child_obj = schema.objects()->Get(field_def->type()->index());
+        auto child_obj = GetSchemaObject(schema, field_def->type()->index());
+        if (!child_obj) return false;
         if (child_obj->is_struct()) {
           if (!VerifyStruct(v, *table, field_def->offset(), *child_obj,
                             field_def->required())) {
@@ -249,9 +288,31 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         break;
       }
       case reflection::Union: {
-        //  get union type from the prev field
+        // get union type from the prev field
         voffset_t utype_offset = field_def->offset() - sizeof(voffset_t);
-        auto utype = table->GetField<uint8_t>(utype_offset, 0);
+        // The discriminator is stored in the width of the union enum's
+        // underlying type (e.g. int32 for `union ABC : int { A = 555, ... }`),
+        // not always a single byte.  Read it at that width so declared member
+        // values larger than 255 are compared exactly.
+        const reflection::Type* utype_type = field_def->type();
+        const reflection::Enum* utype_enum = nullptr;
+        if (utype_type && utype_type->index() >= 0 &&
+            utype_type->index() <
+                static_cast<int32_t>(schema.enums()->size())) {
+          utype_enum = schema.enums()->Get(utype_type->index());
+        }
+        const reflection::Type* underlying = utype_enum
+                                                 ? utype_enum->underlying_type()
+                                                 : nullptr;
+        const size_t base_size = underlying ? underlying->base_size() : 1;
+        int64_t utype = 0;
+        switch (base_size) {
+          case 1: utype = table->GetField<uint8_t>(utype_offset, 0); break;
+          case 2: utype = table->GetField<uint16_t>(utype_offset, 0); break;
+          case 4: utype = table->GetField<uint32_t>(utype_offset, 0); break;
+          case 8: utype = table->GetField<uint64_t>(utype_offset, 0); break;
+          default: utype = table->GetField<uint8_t>(utype_offset, 0); break;
+        }
         auto uval = reinterpret_cast<const uint8_t*>(
             flatbuffers::GetFieldT(*table, *field_def));
         if (!VerifyUnion(v, schema, utype, uval, *field_def)) {
@@ -271,6 +332,67 @@ static bool VerifyObject(flatbuffers::Verifier& v,
 }
 
 }  // namespace
+
+// Cross-reference validation of a reflection schema.  The structural verifier
+// (reflection::VerifySchemaBuffer) only checks per-object buffer structure; it
+// does NOT verify that a Type.index is a valid index into schema.objects() /
+// schema.enums().  Every reflection consumer that follows such an index
+// (VerifyUnion, CopyTable, ResizeTable, GetUnionType, code generators) would
+// otherwise trust attacker-controlled index data.  This pass rejects any schema
+// whose cross-references are out of range.  It is called at the entry of
+// reflection::Verify / VerifySizePrefixed and can be used by other consumers
+// (e.g. BinaryAnnotator) before walking the schema.
+bool SchemaIsValid(const reflection::Schema& schema) {
+  const auto object_count = static_cast<int32_t>(schema.objects()->size());
+  const auto enum_count = static_cast<int32_t>(schema.enums()->size());
+  auto type_index_ok = [object_count, enum_count](const reflection::Type* t) {
+    if (!t) return true;  // absent optional Type is fine
+    switch (t->base_type()) {
+      case reflection::Obj:
+      case reflection::Union:
+        return t->index() >= 0 && t->index() < object_count;
+      case reflection::Vector:
+        if (t->element() == reflection::Obj ||
+            t->element() == reflection::Union) {
+          return t->index() >= 0 && t->index() < object_count;
+        }
+        return true;
+      default:
+        // Integral/enum-derived types index into enums; scalar types have no
+        // cross-reference.
+        if (t->base_type() >= reflection::UType &&
+            t->base_type() <= reflection::ULong) {
+          return true;
+        }
+        if (t->index() >= 0) return t->index() < enum_count;
+        return true;
+    }
+  };
+  for (uoffset_t o = 0; o < schema.objects()->size(); o++) {
+    auto obj = schema.objects()->Get(o);
+    if (!obj) return false;
+    for (uoffset_t f = 0; f < obj->fields()->size(); f++) {
+      auto field = obj->fields()->Get(f);
+      if (!field || !type_index_ok(field->type())) return false;
+    }
+  }
+  for (uoffset_t e = 0; e < schema.enums()->size(); e++) {
+    auto en = schema.enums()->Get(e);
+    if (!en) return false;
+    if (en->is_union()) {
+      for (uoffset_t v = 0; v < en->values()->size(); v++) {
+        auto ev = en->values()->Get(v);
+        if (!ev) return false;
+        auto ut = ev->union_type();
+        if (ut && (ut->base_type() == reflection::Obj ||
+                   ut->base_type() == reflection::Union)) {
+          if (ut->index() < 0 || ut->index() >= object_count) return false;
+        }
+      }
+    }
+  }
+  return true;
+}
 
 int64_t GetAnyValueI(reflection::BaseType type, const uint8_t* data) {
   // clang-format off
@@ -333,7 +455,8 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
       return s ? s->c_str() : "";
     }
     case reflection::Obj:
-      if (schema) {
+      if (schema && type_index >= 0 &&
+          type_index < static_cast<int32_t>(schema->objects()->size())) {
         // Convert the table to a string. This is mostly for debugging purposes,
         // and does NOT promise to be JSON compliant.
         // Also prefixes the type.
@@ -527,7 +650,7 @@ class ResizeContext {
         // Ignore structs.
         auto subobjectdef =
             base_type == reflection::Obj
-                ? schema_.objects()->Get(fielddef.type()->index())
+                ? GetSchemaObject(schema_, fielddef.type()->index())
                 : nullptr;
         if (subobjectdef && subobjectdef->is_struct()) continue;
         // Get this fields' offset, and read it if safe.
@@ -550,7 +673,7 @@ class ResizeContext {
             auto vec = reinterpret_cast<Vector<uoffset_t>*>(ref);
             auto elemobjectdef =
                 elem_type == reflection::Obj
-                    ? schema_.objects()->Get(fielddef.type()->index())
+                    ? GetSchemaObject(schema_, fielddef.type()->index())
                     : nullptr;
             if (elemobjectdef && elemobjectdef->is_struct()) break;
             for (uoffset_t i = 0; i < vec->size(); i++) {
@@ -564,8 +687,11 @@ class ResizeContext {
             break;
           }
           case reflection::Union: {
-            ResizeTable(GetUnionType(schema_, objectdef, fielddef, *table),
-                        reinterpret_cast<Table*>(ref));
+            const reflection::Object* subobj = nullptr;
+            if (GetUnionType(schema_, objectdef, fielddef, *table, &subobj) &&
+                subobj) {
+              ResizeTable(*subobj, reinterpret_cast<Table*>(ref));
+            }
             break;
           }
           case reflection::String:
@@ -661,8 +787,11 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
                                const reflection::Object& objectdef,
                                const Table& table, bool use_string_pooling) {
   // Before we can construct the table, we have to first generate any
-  // subobjects, and collect their offsets.
-  std::vector<uoffset_t> offsets;
+  // subobjects, and collect their offsets.  Generated offsets are keyed by the
+  // field's voffset so the second pass can consume them exactly for the fields
+  // that produced one (fields that cannot be produced, e.g. an unresolvable
+  // union member, are simply skipped instead of desyncing the stream).
+  std::vector<std::pair<voffset_t, uoffset_t>> generated;
   auto fielddefs = objectdef.fields();
   for (auto it = fielddefs->begin(); it != fielddefs->end(); ++it) {
     auto& fielddef = **it;
@@ -677,19 +806,23 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         break;
       }
       case reflection::Obj: {
-        auto& subobjectdef = *schema.objects()->Get(fielddef.type()->index());
-        if (!subobjectdef.is_struct()) {
-          offset = CopyTable(fbb, schema, subobjectdef,
-                             *GetFieldT(table, fielddef), use_string_pooling)
-                       .o;
+        auto subobjectdef = GetSchemaObject(schema, fielddef.type()->index());
+        if (subobjectdef && !subobjectdef->is_struct()) {
+          offset =
+              CopyTable(fbb, schema, *subobjectdef,
+                        *GetFieldT(table, fielddef), use_string_pooling)
+                  .o;
         }
         break;
       }
       case reflection::Union: {
-        auto& subobjectdef = GetUnionType(schema, objectdef, fielddef, table);
-        offset = CopyTable(fbb, schema, subobjectdef,
-                           *GetFieldT(table, fielddef), use_string_pooling)
-                     .o;
+        const reflection::Object* subobj = nullptr;
+        if (GetUnionType(schema, objectdef, fielddef, table, &subobj) &&
+            subobj) {
+          offset = CopyTable(fbb, schema, *subobj,
+                             *GetFieldT(table, fielddef), use_string_pooling)
+                       .o;
+        }
         break;
       }
       case reflection::Vector: {
@@ -698,7 +831,7 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         auto element_base_type = fielddef.type()->element();
         auto elemobjectdef =
             element_base_type == reflection::Obj
-                ? schema.objects()->Get(fielddef.type()->index())
+                ? GetSchemaObject(schema, fielddef.type()->index())
                 : nullptr;
         switch (element_base_type) {
           case reflection::String: {
@@ -741,32 +874,45 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         break;
     }
     if (offset) {
-      offsets.push_back(offset);
+      generated.emplace_back(fielddef.offset(), offset);
     }
   }
   // Now we can build the actual table from either offsets or scalar data.
   auto start = objectdef.is_struct() ? fbb.StartStruct(objectdef.minalign())
                                      : fbb.StartTable();
-  size_t offset_idx = 0;
+  size_t gen_idx = 0;
   for (auto it = fielddefs->begin(); it != fielddefs->end(); ++it) {
     auto& fielddef = **it;
     if (!table.CheckField(fielddef.offset())) continue;
     auto base_type = fielddef.type()->base_type();
     switch (base_type) {
       case reflection::Obj: {
-        auto& subobjectdef = *schema.objects()->Get(fielddef.type()->index());
-        if (subobjectdef.is_struct()) {
-          CopyInline(fbb, fielddef, table, subobjectdef.minalign(),
-                     subobjectdef.bytesize());
+        auto subobjectdef = GetSchemaObject(schema, fielddef.type()->index());
+        if (subobjectdef && subobjectdef->is_struct()) {
+          CopyInline(fbb, fielddef, table, subobjectdef->minalign(),
+                     subobjectdef->bytesize());
           break;
         }
       }
         FLATBUFFERS_FALLTHROUGH();  // fall thru
       case reflection::Union:
       case reflection::String:
-      case reflection::Vector:
-        fbb.AddOffset(fielddef.offset(), Offset<void>(offsets[offset_idx++]));
+      case reflection::Vector: {
+        // Consume the offset generated in the first pass for THIS field.  A
+        // field that produced no offset (e.g. an unresolvable union member) is
+        // skipped rather than desyncing the stream.
+        auto it2 = std::find_if(
+            generated.begin() + static_cast<ptrdiff_t>(gen_idx),
+            generated.end(),
+            [&](const std::pair<voffset_t, uoffset_t>& p) {
+              return p.first == fielddef.offset();
+            });
+        if (it2 != generated.end()) {
+          fbb.AddOffset(fielddef.offset(), Offset<void>(it2->second));
+          gen_idx = static_cast<size_t>(it2 - generated.begin()) + 1;
+        }
         break;
+      }
       default: {  // Scalars.
         auto size = GetTypeSize(base_type);
         CopyInline(fbb, fielddef, table, size, size);
@@ -774,7 +920,8 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
       }
     }
   }
-  FLATBUFFERS_ASSERT(offset_idx == offsets.size());
+  FLATBUFFERS_ASSERT(gen_idx == generated.size() ||
+                     generated.empty());
   if (objectdef.is_struct()) {
     fbb.ClearOffsets();
     return fbb.EndStruct();
@@ -786,6 +933,7 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
 bool Verify(const reflection::Schema& schema, const reflection::Object& root,
             const uint8_t* const buf, const size_t length,
             const uoffset_t max_depth, const uoffset_t max_tables) {
+  if (!SchemaIsValid(schema)) return false;
   Verifier v(buf, length, max_depth, max_tables);
   return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf),
                       /*required=*/true);
@@ -795,6 +943,7 @@ bool VerifySizePrefixed(const reflection::Schema& schema,
                         const reflection::Object& root,
                         const uint8_t* const buf, const size_t length,
                         const uoffset_t max_depth, const uoffset_t max_tables) {
+  if (!SchemaIsValid(schema)) return false;
   Verifier v(buf, length, max_depth, max_tables);
   return VerifyObject(v, schema, root, flatbuffers::GetAnySizePrefixedRoot(buf),
                       /*required=*/true);

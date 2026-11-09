@@ -130,6 +130,12 @@ std::map<uint64_t, BinarySection> BinaryAnnotator::Annotate() {
       return {};
     }
   }
+  // VerifySchemaBuffer is structural only; it does not cross-check Type.index
+  // against objects()/enums().  Reject schemas with out-of-range
+  // cross-references before walking them (applies to both constructors).
+  if (schema_ && !SchemaIsValid(*schema_)) {
+    return {};
+  }
 
   // The binary is too short to read as a flatbuffers.
   if (binary_length_ < FLATBUFFERS_MIN_BUFFER_SIZE) {
@@ -1408,10 +1414,26 @@ void BinaryAnnotator::BuildVector(
 std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
                                         const uint8_t realized_type,
                                         const reflection::Field* const field) {
-  const reflection::Enum* next_enum =
-      schema_->enums()->Get(field->type()->index());
+  const auto enum_index = field->type()->index();
+  if (enum_index < 0 ||
+      enum_index >= static_cast<int32_t>(schema_->enums()->size())) {
+    return "unknown";
+  }
+  const reflection::Enum* next_enum = schema_->enums()->Get(enum_index);
 
-  const reflection::EnumVal* enum_val = next_enum->values()->Get(realized_type);
+  // The discriminator is the enum VALUE; find the member by value, not by
+  // position in values().
+  const reflection::EnumVal* enum_val = nullptr;
+  for (uoffset_t i = 0; i < next_enum->values()->size(); i++) {
+    auto cand = next_enum->values()->Get(i);
+    if (cand && cand->value() == realized_type) {
+      enum_val = cand;
+      break;
+    }
+  }
+  if (!enum_val) {
+    return "unknown";
+  }
 
   if (ContainsSection(union_offset)) {
     return enum_val->name()->c_str();
@@ -1419,23 +1441,27 @@ std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
 
   const reflection::Type* union_type = enum_val->union_type();
 
-  if (union_type->base_type() == reflection::BaseType::Obj) {
-    const reflection::Object* object =
-        schema_->objects()->Get(union_type->index());
+  if (union_type && union_type->base_type() == reflection::BaseType::Obj) {
+    const auto object_index = union_type->index();
+    if (object_index >= 0 &&
+        object_index < static_cast<int32_t>(schema_->objects()->size())) {
+      const reflection::Object* object =
+          schema_->objects()->Get(object_index);
 
-    if (object->is_struct()) {
-      // Union of vectors point to a new Binary section
-      std::vector<BinaryRegion> regions;
+      if (object->is_struct()) {
+        // Union of vectors point to a new Binary section
+        std::vector<BinaryRegion> regions;
 
-      BuildStruct(union_offset, regions, field->name()->c_str(), object);
+        BuildStruct(union_offset, regions, field->name()->c_str(), object);
 
-      AddSection(
-          union_offset,
-          MakeBinarySection(std::string(object->name()->c_str()) + "." +
-                                field->name()->c_str(),
-                            BinarySectionType::Union, std::move(regions)));
-    } else {
-      BuildTable(union_offset, BinarySectionType::Table, object);
+        AddSection(
+            union_offset,
+            MakeBinarySection(std::string(object->name()->c_str()) + "." +
+                                  field->name()->c_str(),
+                              BinarySectionType::Union, std::move(regions)));
+      } else {
+        BuildTable(union_offset, BinarySectionType::Table, object);
+      }
     }
   }
   // TODO(dbaileychess): handle the other union types.

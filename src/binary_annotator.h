@@ -391,7 +391,12 @@ class BinaryAnnotator {
 
   bool IsInlineField(const reflection::Field* const field) {
     if (field->type()->base_type() == reflection::BaseType::Obj) {
-      return schema_->objects()->Get(field->type()->index())->is_struct();
+      const auto index = field->type()->index();
+      if (index < 0 ||
+          index >= static_cast<int32_t>(schema_->objects()->size())) {
+        return false;
+      }
+      return schema_->objects()->Get(index)->is_struct();
     }
     return IsScalar(field->type()->base_type());
   }
@@ -423,7 +428,14 @@ class BinaryAnnotator {
       return false;
     }
 
-    return value < enum_def->values()->size();
+    // The discriminator is the enum VALUE, not a position in values().
+    // Match it against declared member values; a tag that matches no declared
+    // member is not a valid union value.
+    for (uoffset_t i = 0; i < enum_def->values()->size(); i++) {
+      const reflection::EnumVal* ev = enum_def->values()->Get(i);
+      if (ev && ev->value() == value) return true;
+    }
+    return false;
   }
 
   uint64_t GetElementSize(const reflection::Field* const field) {
@@ -433,7 +445,12 @@ class BinaryAnnotator {
 
     switch (field->type()->element()) {
       case reflection::BaseType::Obj: {
-        auto obj = schema_->objects()->Get(field->type()->index());
+        const auto index = field->type()->index();
+        if (index < 0 ||
+            index >= static_cast<int32_t>(schema_->objects()->size())) {
+          return sizeof(uint32_t);
+        }
+        auto obj = schema_->objects()->Get(index);
         return obj->is_struct() ? obj->bytesize() : sizeof(uint32_t);
       }
       default:

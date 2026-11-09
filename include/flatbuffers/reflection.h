@@ -425,17 +425,76 @@ pointer_inside_vector<T, U> piv(T* ptr, std::vector<U>& vec) {
 constexpr const char* UnionTypeFieldSuffix() { return "_type"; }
 
 // Helper to figure out the actual table type a union refers to.
-inline const reflection::Object& GetUnionType(
-    const reflection::Schema& schema, const reflection::Object& parent,
-    const reflection::Field& unionfield, const Table& table) {
-  auto enumdef = schema.enums()->Get(unionfield.type()->index());
+// The union discriminator is the enum VALUE, matched against declared member
+// values; a tag that is not a declared value, or whose member type index is
+// out of range, yields failure instead of an out-of-bounds / null read.
+// Returns false (and leaves *out_obj untouched) if the member cannot be
+// resolved safely.
+inline bool GetUnionType(const reflection::Schema& schema,
+                         const reflection::Object& parent,
+                         const reflection::Field& unionfield,
+                         const Table& table,
+                         const reflection::Object** out_obj) {
+  const auto enum_index = unionfield.type()->index();
+  if (enum_index < 0 || enum_index >= static_cast<int32_t>(schema.enums()->size()))
+    return false;
+  auto enumdef = schema.enums()->Get(enum_index);
   // TODO: this is clumsy and slow, but no other way to find it?
   auto type_field = parent.fields()->LookupByKey(
       (unionfield.name()->str() + UnionTypeFieldSuffix()).c_str());
-  FLATBUFFERS_ASSERT(type_field);
-  auto union_type = GetFieldI<uint8_t>(table, *type_field);
-  auto enumval = enumdef->values()->LookupByKey(union_type);
-  return *schema.objects()->Get(enumval->union_type()->index());
+  if (!type_field) return false;
+  // Read the discriminator at the union enum's underlying width so declared
+  // member values larger than 255 compare exactly (mirrors the generated code,
+  // which reads the _type field as e.g. int32).  Note the reflection schema
+  // marks the _type field as base_type UType while the wire stores it at the
+  // enum's underlying width, so read directly (GetFieldI would assert on the
+  // UType/width mismatch).
+  const reflection::Type* underlying = enumdef->underlying_type();
+  const size_t base_size = underlying ? underlying->base_size() : 1;
+  int64_t union_type = 0;
+  switch (base_size) {
+    case 1: union_type = table.GetField<uint8_t>(type_field->offset(), 0); break;
+    case 2: union_type = table.GetField<uint16_t>(type_field->offset(), 0); break;
+    case 4: union_type = table.GetField<uint32_t>(type_field->offset(), 0); break;
+    case 8: union_type = table.GetField<uint64_t>(type_field->offset(), 0); break;
+    default:
+      union_type = table.GetField<uint8_t>(type_field->offset(), 0);
+      break;
+  }
+  // Match by value (the generated per-schema verifiers switch on real values).
+  const reflection::EnumVal* matched = nullptr;
+  for (uoffset_t i = 0; i < enumdef->values()->size(); i++) {
+    auto cand = enumdef->values()->Get(i);
+    if (cand->value() == union_type) {
+      matched = cand;
+      break;
+    }
+  }
+  if (!matched) return false;
+  auto ut = matched->union_type();
+  if (!ut) return false;
+  const auto obj_index = ut->index();
+  if (obj_index < 0 ||
+      obj_index >= static_cast<int32_t>(schema.objects()->size()))
+    return false;
+  *out_obj = schema.objects()->Get(obj_index);
+  return true;
+}
+
+// Legacy reference-returning helper.  Only safe on a schema+table pair that has
+// already been validated (e.g. after reflection::Verify); kept for source
+// compatibility.  Prefer the bool overload above in new code.
+inline const reflection::Object& GetUnionType(
+    const reflection::Schema& schema, const reflection::Object& parent,
+    const reflection::Field& unionfield, const Table& table) {
+  const reflection::Object* obj = nullptr;
+  if (!GetUnionType(schema, parent, unionfield, table, &obj)) {
+    // Cannot fail safely while returning a reference; this matches the old
+    // contract (callers only reach here on verified buffers).
+    FLATBUFFERS_ASSERT(false);
+    obj = schema.objects()->Get(0);
+  }
+  return *obj;
 }
 
 // Changes the contents of a string inside a FlatBuffer. FlatBuffer must
@@ -524,6 +583,13 @@ bool VerifySizePrefixed(const reflection::Schema& schema,
                         const reflection::Object& root, const uint8_t* buf,
                         size_t length, uoffset_t max_depth = 64,
                         uoffset_t max_tables = 1000000);
+
+// Validates the cross-references of a reflection schema: every Type.index that
+// points into schema.objects() / schema.enums() must be in range.  The
+// structural verifier (reflection::VerifySchemaBuffer) does not perform these
+// checks, so callers that follow Type.index on possibly-untrusted schemas
+// should run this first.
+bool SchemaIsValid(const reflection::Schema& schema);
 
 }  // namespace flatbuffers
 
