@@ -161,6 +161,11 @@ extern void GenComment(const std::vector<std::string>& dc,
                        std::string* code_ptr, const CommentConfig* config,
                        const char* prefix = "");
 
+// Neutralizes the block-comment terminator inside `line` (the trailing slash
+// is escaped), so a doc line can be emitted inside a /* ... */ style comment
+// without ending it early. Returns other lines unchanged.
+extern std::string EscapeBlockCommentLine(const std::string& line);
+
 class FloatConstantGenerator {
  public:
   virtual ~FloatConstantGenerator() {}

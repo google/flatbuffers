@@ -212,11 +212,25 @@ void GenComment(const std::vector<std::string>& dc, std::string* code_ptr,
            ? config->content_line_prefix
            : "///");
   for (auto it = dc.begin(); it != dc.end(); ++it) {
-    code += line_prefix + *it + "\n";
+    std::string line = *it;
+    // A block-comment emitter must not let doc text end the comment early.
+    if (config != nullptr && config->first_line != nullptr) {
+      line = EscapeBlockCommentLine(line);
+    }
+    code += line_prefix + line + "\n";
   }
   if (config != nullptr && config->last_line != nullptr) {
     code += std::string(prefix) + std::string(config->last_line) + "\n";
   }
+}
+
+std::string EscapeBlockCommentLine(const std::string& line) {
+  std::string escaped = line;
+  for (size_t pos = 0; (pos = escaped.find("*/", pos)) != std::string::npos;) {
+    escaped.replace(pos, 2, "*\\/");
+    pos += 3;
+  }
+  return escaped;
 }
 
 template <typename T>
