@@ -49,8 +49,7 @@ impl<'b> ::flatbuffers::Push for StructOfStructsOfStructs {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const StructOfStructsOfStructs as *const u8, <Self as ::flatbuffers::Push>::size()) };
-        dst.copy_from_slice(src);
+        dst.copy_from_slice(&self.0);
     }
 
     #[inline]
@@ -95,9 +94,10 @@ impl<'a> StructOfStructsOfStructs {
 
     pub fn a(&self) -> &StructOfStructs {
         // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid struct in this slot
-        unsafe { &*(self.0[0..].as_ptr() as *const StructOfStructs) }
+        // `StructOfStructs` is a `#[repr(transparent)]`
+        // wrapper around `[u8; 20]` (alignment 1)
+        // and `follow_cast_ref` bounds-checks the bytes.
+        unsafe { ::flatbuffers::follow_cast_ref::<StructOfStructs>(&self.0, 0) }
     }
 
     #[allow(clippy::identity_op)]

@@ -51,8 +51,7 @@ impl<'b> ::flatbuffers::Push for StructOfStructs {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const StructOfStructs as *const u8, <Self as ::flatbuffers::Push>::size()) };
-        dst.copy_from_slice(src);
+        dst.copy_from_slice(&self.0);
     }
 
     #[inline]
@@ -103,9 +102,10 @@ impl<'a> StructOfStructs {
 
     pub fn a(&self) -> &Ability {
         // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid struct in this slot
-        unsafe { &*(self.0[0..].as_ptr() as *const Ability) }
+        // `Ability` is a `#[repr(transparent)]`
+        // wrapper around `[u8; 8]` (alignment 1)
+        // and `follow_cast_ref` bounds-checks the bytes.
+        unsafe { ::flatbuffers::follow_cast_ref::<Ability>(&self.0, 0) }
     }
 
     #[allow(clippy::identity_op)]
@@ -115,9 +115,10 @@ impl<'a> StructOfStructs {
 
     pub fn b(&self) -> &Test {
         // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid struct in this slot
-        unsafe { &*(self.0[8..].as_ptr() as *const Test) }
+        // `Test` is a `#[repr(transparent)]`
+        // wrapper around `[u8; 4]` (alignment 1)
+        // and `follow_cast_ref` bounds-checks the bytes.
+        unsafe { ::flatbuffers::follow_cast_ref::<Test>(&self.0, 8) }
     }
 
     #[allow(clippy::identity_op)]
@@ -127,9 +128,10 @@ impl<'a> StructOfStructs {
 
     pub fn c(&self) -> &Ability {
         // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid struct in this slot
-        unsafe { &*(self.0[12..].as_ptr() as *const Ability) }
+        // `Ability` is a `#[repr(transparent)]`
+        // wrapper around `[u8; 8]` (alignment 1)
+        // and `follow_cast_ref` bounds-checks the bytes.
+        unsafe { ::flatbuffers::follow_cast_ref::<Ability>(&self.0, 12) }
     }
 
     #[allow(clippy::identity_op)]

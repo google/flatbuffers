@@ -50,8 +50,7 @@ impl<'b> ::flatbuffers::Push for NestedStruct {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const NestedStruct as *const u8, <Self as ::flatbuffers::Push>::size()) };
-        dst.copy_from_slice(src);
+        dst.copy_from_slice(&self.0);
     }
 
     #[inline]
@@ -97,40 +96,28 @@ impl<'a> NestedStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 0) }
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_a(&mut self, items: &[i32; 2]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe { ::flatbuffers::emplace_scalar_array(&mut self.0, 0, items) };
+        let dst = &mut self.0[0..0 + 8];
+        for (chunk, item) in dst.chunks_exact_mut(4).zip(items.iter()) {
+            let item_le = ::flatbuffers::EndianScalar::to_little_endian(*item);
+            chunk.copy_from_slice(&item_le.to_ne_bytes());
+        }
     }
 
+    #[allow(clippy::identity_op)]
     pub fn b(&self) -> TestEnum {
-        let mut mem = ::core::mem::MaybeUninit::<<TestEnum as ::flatbuffers::EndianScalar>::Scalar>::uninit();
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        ::flatbuffers::EndianScalar::from_little_endian(unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                self.0[8..].as_ptr(),
-                mem.as_mut_ptr() as *mut u8,
-                ::core::mem::size_of::<<TestEnum as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-            mem.assume_init()
-        })
+        let mut bytes = [0u8; 1];
+        bytes.copy_from_slice(&self.0[8..8 + 1]);
+        ::flatbuffers::EndianScalar::from_little_endian(
+            <<TestEnum as ::flatbuffers::EndianScalar>::Scalar>::from_ne_bytes(bytes),
+        )
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_b(&mut self, x: TestEnum) {
         let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid value in this slot
-        unsafe {
-            ::core::ptr::copy_nonoverlapping(
-                &x_le as *const _ as *const u8,
-                self.0[8..].as_mut_ptr(),
-                ::core::mem::size_of::<<TestEnum as ::flatbuffers::EndianScalar>::Scalar>(),
-            );
-        }
+        self.0[8..8 + 1].copy_from_slice(&x_le.to_ne_bytes());
     }
 
     pub fn c(&'a self) -> ::flatbuffers::Array<'a, TestEnum, 2> {
@@ -141,16 +128,12 @@ impl<'a> NestedStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 9) }
     }
 
-    pub fn set_c(&mut self, x: &[TestEnum; 2]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe {
-            ::core::ptr::copy(
-                x.as_ptr() as *const u8,
-                self.0.as_mut_ptr().add(9),
-                2,
-            );
+    #[allow(clippy::identity_op)]
+    pub fn set_c(&mut self, items: &[TestEnum; 2]) {
+        let dst = &mut self.0[9..9 + 2];
+        for (chunk, item) in dst.chunks_exact_mut(1).zip(items.iter()) {
+            let item_le = ::flatbuffers::EndianScalar::to_little_endian(*item);
+            chunk.copy_from_slice(&item_le.to_ne_bytes());
         }
     }
 
@@ -162,11 +145,13 @@ impl<'a> NestedStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 16) }
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_d(&mut self, items: &[i64; 2]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe { ::flatbuffers::emplace_scalar_array(&mut self.0, 16, items) };
+        let dst = &mut self.0[16..16 + 16];
+        for (chunk, item) in dst.chunks_exact_mut(8).zip(items.iter()) {
+            let item_le = ::flatbuffers::EndianScalar::to_little_endian(*item);
+            chunk.copy_from_slice(&item_le.to_ne_bytes());
+        }
     }
 
     pub fn unpack(&self) -> NestedStructT {

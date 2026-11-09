@@ -2819,11 +2819,10 @@ class RustGenerator : public BaseGenerator {
     code_ += "";
     code_ += "    #[inline]";
     code_ += "    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {";
-    code_ +=
-        "        let src = unsafe { ::core::slice::from_raw_parts(self as "
-        "*const "
-        "{{STRUCT_TY}} as *const u8, <Self as ::flatbuffers::Push>::size()) };";
-    code_ += "        dst.copy_from_slice(src);";
+    // Structs are `#[repr(transparent)]` wrappers around their little-endian
+    // wire bytes, so they can be pushed without reinterpreting `self` through
+    // a raw pointer.
+    code_ += "        dst.copy_from_slice(&self.0);";
     code_ += "    }";
     code_ += "";
 
@@ -2900,18 +2899,26 @@ class RustGenerator : public BaseGenerator {
     }
 
     // Generate accessor methods for the struct.
+    //
+    // Struct accessors only ever touch `self.0`, a fixed-size `[u8; N]`, at
+    // offsets computed by the schema compiler. They are generated without raw
+    // pointer arithmetic: every byte range is an explicit, bounds-checked
+    // slice of `self.0` and scalar conversion goes through `{to,from}_ne_bytes`
+    // on the type's `EndianScalar::Scalar`. A wrong offset or size can then
+    // only cause a compile error or a panic, never an out-of-bounds access.
     ForAllStructFields(struct_def, [&](const FieldDef& field) {
       this->GenComment(field.doc_comment);
+      code_.SetValue("FIELD_SIZE", NumToString(InlineSize(field.value.type)));
       // Getter.
       if (IsStruct(field.value.type)) {
         code_ += "pub fn {{FIELD}}(&self) -> &{{FIELD_TYPE}} {";
         code_ += "    // Safety:";
-        code_ += "    // Created from a valid Table for this object";
-        code_ += "    // Which contains a valid struct in this slot";
+        code_ += "    // `{{FIELD_TYPE}}` is a `#[repr(transparent)]`";
+        code_ += "    // wrapper around `[u8; {{FIELD_SIZE}}]` (alignment 1)";
+        code_ += "    // and `follow_cast_ref` bounds-checks the bytes.";
         code_ +=
-            "    unsafe {"
-            " &*(self.0[{{FIELD_OFFSET}}..].as_ptr() as *const"
-            " {{FIELD_TYPE}}) }";
+            "    unsafe { ::flatbuffers::follow_cast_ref::<{{FIELD_TYPE}}>("
+            "&self.0, {{FIELD_OFFSET}}) }";
       } else if (IsArray(field.value.type)) {
         code_.SetValue("ARRAY_SIZE",
                        NumToString(field.value.type.fixed_length));
@@ -2928,81 +2935,67 @@ class RustGenerator : public BaseGenerator {
             "{{FIELD_OFFSET}}) "
             "}";
       } else {
+        code_ += "#[allow(clippy::identity_op)]";  // If FIELD_OFFSET=0.
         code_ += "pub fn {{FIELD}}(&self) -> {{FIELD_TYPE}} {";
+        code_ += "    let mut bytes = [0u8; {{FIELD_SIZE}}];";
         code_ +=
-            "    let mut mem = ::core::mem::MaybeUninit::"
-            "<<{{FIELD_TYPE}} as "
-            "::flatbuffers::EndianScalar>::Scalar>::uninit();";
-        code_ += "    // Safety:";
-        code_ += "    // Created from a valid Table for this object";
-        code_ += "    // Which contains a valid value in this slot";
-        code_ += "    ::flatbuffers::EndianScalar::from_little_endian(unsafe {";
-        code_ += "        ::core::ptr::copy_nonoverlapping(";
-        code_ += "            self.0[{{FIELD_OFFSET}}..].as_ptr(),";
-        code_ += "            mem.as_mut_ptr() as *mut u8,";
+            "    bytes.copy_from_slice("
+            "&self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}} + {{FIELD_SIZE}}]);";
+        code_ += "    ::flatbuffers::EndianScalar::from_little_endian(";
         code_ +=
-            "            ::core::mem::size_of::<<{{FIELD_TYPE}} as "
-            "::flatbuffers::EndianScalar>::Scalar>(),";
-        code_ += "        );";
-        code_ += "        mem.assume_init()";
-        code_ += "    })";
+            "        <<{{FIELD_TYPE}} as ::flatbuffers::EndianScalar>::Scalar>"
+            "::from_ne_bytes(bytes),";
+        code_ += "    )";
       }
       code_ += "}\n";
       // Setter.
       if (IsStruct(field.value.type)) {
-        code_.SetValue("FIELD_SIZE", NumToString(InlineSize(field.value.type)));
         code_ += "#[allow(clippy::identity_op)]";  // If FIELD_OFFSET=0.
         code_ += "pub fn set_{{FIELD}}(&mut self, x: &{{FIELD_TYPE}}) {";
         code_ +=
             "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}} + {{FIELD_SIZE}}]"
             ".copy_from_slice(&x.0)";
       } else if (IsArray(field.value.type)) {
-        if (GetFullType(field.value.type) == ftArrayOfBuiltin) {
-          code_.SetValue("ARRAY_ITEM",
-                         GetTypeGet(field.value.type.VectorType()));
-          code_.SetValue(
-              "ARRAY_ITEM_SIZE",
-              NumToString(InlineSize(field.value.type.VectorType())));
+        code_.SetValue("ARRAY_ITEM_SIZE",
+                       NumToString(InlineSize(field.value.type.VectorType())));
+        code_ += "#[allow(clippy::identity_op)]";  // If FIELD_OFFSET=0.
+        if (GetFullType(field.value.type) == ftArrayOfStruct) {
+          // Struct elements already hold their little-endian wire bytes.
+          code_ += "pub fn set_{{FIELD}}(&mut self, x: &{{FIELD_TYPE}}) {";
+          code_ +=
+              "    let dst = &mut self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}} + "
+              "{{FIELD_SIZE}}];";
+          code_ +=
+              "    for (chunk, item) in "
+              "dst.chunks_exact_mut({{ARRAY_ITEM_SIZE}}).zip(x.iter()) {";
+          code_ += "        chunk.copy_from_slice(&item.0);";
+          code_ += "    }";
+        } else {
+          // Scalars and enums are converted to little-endian element by
+          // element, so the wire format is correct on big-endian hosts too.
           code_ +=
               "pub fn set_{{FIELD}}(&mut self, items: &{{FIELD_TYPE}}) "
               "{";
-          code_ += "    // Safety:";
-          code_ += "    // Created from a valid Table for this object";
-          code_ += "    // Which contains a valid array in this slot";
           code_ +=
-              "    unsafe { ::flatbuffers::emplace_scalar_array(&mut self.0, "
-              "{{FIELD_OFFSET}}, items) };";
-        } else {
-          code_.SetValue("FIELD_SIZE",
-                         NumToString(InlineSize(field.value.type)));
-          code_ += "pub fn set_{{FIELD}}(&mut self, x: &{{FIELD_TYPE}}) {";
-          code_ += "    // Safety:";
-          code_ += "    // Created from a valid Table for this object";
-          code_ += "    // Which contains a valid array in this slot";
-          code_ += "    unsafe {";
-          code_ += "        ::core::ptr::copy(";
-          code_ += "            x.as_ptr() as *const u8,";
-          code_ += "            self.0.as_mut_ptr().add({{FIELD_OFFSET}}),";
-          code_ += "            {{FIELD_SIZE}},";
-          code_ += "        );";
+              "    let dst = &mut self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}} + "
+              "{{FIELD_SIZE}}];";
+          code_ +=
+              "    for (chunk, item) in "
+              "dst.chunks_exact_mut({{ARRAY_ITEM_SIZE}}).zip(items.iter()) {";
+          code_ +=
+              "        let item_le = "
+              "::flatbuffers::EndianScalar::to_little_endian(*item);";
+          code_ += "        chunk.copy_from_slice(&item_le.to_ne_bytes());";
           code_ += "    }";
         }
       } else {
+        code_ += "#[allow(clippy::identity_op)]";  // If FIELD_OFFSET=0.
         code_ += "pub fn set_{{FIELD}}(&mut self, x: {{FIELD_TYPE}}) {";
         code_ +=
             "    let x_le = ::flatbuffers::EndianScalar::to_little_endian(x);";
-        code_ += "    // Safety:";
-        code_ += "    // Created from a valid Table for this object";
-        code_ += "    // Which contains a valid value in this slot";
-        code_ += "    unsafe {";
-        code_ += "        ::core::ptr::copy_nonoverlapping(";
-        code_ += "            &x_le as *const _ as *const u8,";
-        code_ += "            self.0[{{FIELD_OFFSET}}..].as_mut_ptr(),";
         code_ +=
-            "            ::core::mem::size_of::<<{{FIELD_TYPE}} as "
-            "::flatbuffers::EndianScalar>::Scalar>(),";
-        code_ += "        );";
-        code_ += "    }";
+            "    self.0[{{FIELD_OFFSET}}..{{FIELD_OFFSET}} + {{FIELD_SIZE}}]"
+            ".copy_from_slice(&x_le.to_ne_bytes());";
       }
       code_ += "}\n";
 

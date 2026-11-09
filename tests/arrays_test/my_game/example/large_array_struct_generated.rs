@@ -51,8 +51,7 @@ impl<'b> ::flatbuffers::Push for LargeArrayStruct {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = unsafe { ::core::slice::from_raw_parts(self as *const LargeArrayStruct as *const u8, <Self as ::flatbuffers::Push>::size()) };
-        dst.copy_from_slice(src);
+        dst.copy_from_slice(&self.0);
     }
 
     #[inline]
@@ -100,11 +99,13 @@ impl<'a> LargeArrayStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 0) }
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_d(&mut self, items: &[u8; 64]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe { ::flatbuffers::emplace_scalar_array(&mut self.0, 0, items) };
+        let dst = &mut self.0[0..0 + 64];
+        for (chunk, item) in dst.chunks_exact_mut(1).zip(items.iter()) {
+            let item_le = ::flatbuffers::EndianScalar::to_little_endian(*item);
+            chunk.copy_from_slice(&item_le.to_ne_bytes());
+        }
     }
 
     pub fn e(&'a self) -> ::flatbuffers::Array<'a, f32, 64> {
@@ -115,11 +116,13 @@ impl<'a> LargeArrayStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 64) }
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_e(&mut self, items: &[f32; 64]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe { ::flatbuffers::emplace_scalar_array(&mut self.0, 64, items) };
+        let dst = &mut self.0[64..64 + 256];
+        for (chunk, item) in dst.chunks_exact_mut(4).zip(items.iter()) {
+            let item_le = ::flatbuffers::EndianScalar::to_little_endian(*item);
+            chunk.copy_from_slice(&item_le.to_ne_bytes());
+        }
     }
 
     pub fn f(&'a self) -> ::flatbuffers::Array<'a, bool, 64> {
@@ -130,11 +133,13 @@ impl<'a> LargeArrayStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 320) }
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_f(&mut self, items: &[bool; 64]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe { ::flatbuffers::emplace_scalar_array(&mut self.0, 320, items) };
+        let dst = &mut self.0[320..320 + 64];
+        for (chunk, item) in dst.chunks_exact_mut(1).zip(items.iter()) {
+            let item_le = ::flatbuffers::EndianScalar::to_little_endian(*item);
+            chunk.copy_from_slice(&item_le.to_ne_bytes());
+        }
     }
 
     pub fn g(&'a self) -> ::flatbuffers::Array<'a, NestedStruct, 64> {
@@ -145,16 +150,11 @@ impl<'a> LargeArrayStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 384) }
     }
 
+    #[allow(clippy::identity_op)]
     pub fn set_g(&mut self, x: &[NestedStruct; 64]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe {
-            ::core::ptr::copy(
-                x.as_ptr() as *const u8,
-                self.0.as_mut_ptr().add(384),
-                2048,
-            );
+        let dst = &mut self.0[384..384 + 2048];
+        for (chunk, item) in dst.chunks_exact_mut(32).zip(x.iter()) {
+            chunk.copy_from_slice(&item.0);
         }
     }
 
@@ -166,16 +166,12 @@ impl<'a> LargeArrayStruct {
         unsafe { ::flatbuffers::Array::follow(&self.0, 2432) }
     }
 
-    pub fn set_h(&mut self, x: &[TestEnum; 64]) {
-        // Safety:
-        // Created from a valid Table for this object
-        // Which contains a valid array in this slot
-        unsafe {
-            ::core::ptr::copy(
-                x.as_ptr() as *const u8,
-                self.0.as_mut_ptr().add(2432),
-                64,
-            );
+    #[allow(clippy::identity_op)]
+    pub fn set_h(&mut self, items: &[TestEnum; 64]) {
+        let dst = &mut self.0[2432..2432 + 64];
+        for (chunk, item) in dst.chunks_exact_mut(1).zip(items.iter()) {
+            let item_le = ::flatbuffers::EndianScalar::to_little_endian(*item);
+            chunk.copy_from_slice(&item_le.to_ne_bytes());
         }
     }
 
