@@ -1595,5 +1595,37 @@ class EncoderTest(unittest.TestCase):
     fbb.Finish()
 
 
+class BufTest(unittest.TestCase):
+
+  def test_setitem_int_writes_value(self):
+    # regression: __setitem__ previously assigned the key instead of the
+    # value for integer indices
+    buf = bytearray(b'abcd')
+    b = flexbuffers.Buf(buf, 0)
+    b[1] = 0x59
+    self.assertEqual(bytes(buf), b'aYcd')
+
+  def test_setitem_slice_writes_value(self):
+    buf = bytearray(b'abcd')
+    b = flexbuffers.Buf(buf, 0)
+    b[0:2] = b'XY'
+    self.assertEqual(bytes(buf), b'XYcd')
+
+  def test_offset_past_end_raises(self):
+    buf = bytearray(b'abcd')
+    with self.assertRaises(IndexError):
+      flexbuffers.Buf(buf, 5)
+
+  def test_offset_before_start_raises(self):
+    buf = bytearray(b'abcd')
+    with self.assertRaises(IndexError):
+      flexbuffers.Buf(buf, -5)
+
+  def test_negative_offset_from_end_still_works(self):
+    buf = bytearray(b'abcd')
+    b = flexbuffers.Buf(buf, -2)
+    self.assertEqual(bytes(b[0:2]), b'cd')
+
+
 if __name__ == '__main__':
   unittest.main()

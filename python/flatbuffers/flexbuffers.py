@@ -284,6 +284,10 @@ class Buf:
   def __init__(self, buf, offset):
     self._buf = buf
     self._offset = offset if offset >= 0 else len(buf) + offset
+    if self._offset < 0 or self._offset > len(buf):
+      raise IndexError(
+          'FlexBuffers: offset %d is outside the buffer of %d byte(s)'
+          % (offset, len(buf)))
     self._length = len(buf) - self._offset
 
   def __getitem__(self, key):
@@ -298,7 +302,7 @@ class Buf:
     if isinstance(key, slice):
       self._buf[_ShiftSlice(key, self._offset, self._length)] = value
     elif isinstance(key, int):
-      self._buf[self._offset + key] = key
+      self._buf[self._offset + key] = value
     else:
       raise TypeError('invalid key type')
 
