@@ -50,8 +50,8 @@ struct B FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool mutate_id(int32_t _id = 0) {
     return SetField<int32_t>(VT_ID, _id, 0);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_ID, 4) &&
            verifier.EndTable();
@@ -113,8 +113,8 @@ struct A FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   ::flatbuffers::Vector<::flatbuffers::Offset<B>> *mutable_b() {
     return GetPointer<::flatbuffers::Vector<::flatbuffers::Offset<B>> *>(VT_B);
   }
-  template <bool B = false>
-  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+  template <bool VerifySizePrefixed = false>
+  bool Verify(::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_B) &&
            verifier.VerifyVector(b()) &&
@@ -292,15 +292,15 @@ inline A *GetMutableSizePrefixedA(void *buf) {
   return ::flatbuffers::GetMutableSizePrefixedRoot<A>(buf);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifyABuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifyBuffer<A>(nullptr);
 }
 
-template <bool B = false>
+template <bool VerifySizePrefixed = false>
 inline bool VerifySizePrefixedABuffer(
-    ::flatbuffers::VerifierTemplate<B> &verifier) {
+    ::flatbuffers::VerifierTemplate<VerifySizePrefixed> &verifier) {
   return verifier.template VerifySizePrefixedBuffer<A>(nullptr);
 }
 
