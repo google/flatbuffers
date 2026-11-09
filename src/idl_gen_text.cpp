@@ -321,6 +321,9 @@ struct JsonPrinter {
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
       FieldDef& fd = **it;
+      // Generated verifiers skip deprecated fields, so their vtable slots are
+      // not covered by a successful Verify().
+      if (fd.deprecated) continue;
       auto is_present = struct_def.fixed || table->CheckField(fd.value.offset);
       auto output_anyway = (opts.output_default_scalars_in_json || fd.key) &&
                            IsScalar(fd.value.type.base_type) && !fd.deprecated;
