@@ -190,6 +190,96 @@ void MultiFileNameClashTest(const std::string& tests_data_path) {
       false);
 }
 
+// Build a Monster with the given string-vector and table-vector fields, then
+// return a mutable copy of the finished buffer so the test can corrupt
+// individual offset elements in place.
+static std::vector<uint8_t> BuildMonsterWithVectors(
+    const std::vector<std::string>& strings, bool with_tables) {
+  flatbuffers::FlatBufferBuilder fbb;
+  auto name = fbb.CreateString("verifier_element_test");
+
+  std::vector<flatbuffers::Offset<flatbuffers::String>> str_offsets;
+  for (const auto& s : strings) str_offsets.push_back(fbb.CreateString(s));
+
+  std::vector<flatbuffers::Offset<MyGame::Example::Monster>> table_offsets;
+  if (with_tables) {
+    for (int i = 0; i < 2; ++i) {
+      auto inner_name = fbb.CreateString("inner");
+      MyGame::Example::MonsterBuilder inner(fbb);
+      inner.add_name(inner_name);
+      table_offsets.push_back(inner.Finish());
+    }
+  }
+
+  // Create the vectors before opening the outer Monster builder.
+  auto str_vec = fbb.CreateVector(str_offsets);
+  flatbuffers::Offset<
+      flatbuffers::Vector<flatbuffers::Offset<MyGame::Example::Monster>>>
+      table_vec(0);
+  if (with_tables) table_vec = fbb.CreateVector(table_offsets);
+
+  MyGame::Example::MonsterBuilder mb(fbb);
+  mb.add_name(name);
+  mb.add_testarrayofstring(str_vec);
+  if (with_tables) {
+    mb.add_testarrayoftables(table_vec);
+  }
+  auto mon = mb.Finish();
+  fbb.Finish(mon, MyGame::Example::MonsterIdentifier());
+
+  return std::vector<uint8_t>(fbb.GetBufferPointer(),
+                              fbb.GetBufferPointer() + fbb.GetSize());
+}
+
+// Verifying a vector of tables or strings must reject element offsets that
+// would point outside the buffer, and it must do so without forming a pointer
+// outside the buffer (which is undefined behaviour). The corrupted-offset
+// cases here are what exercise that code path; when this test is built with
+// ASan/UBSan a regression that materialises an out-of-bounds pointer is
+// reported as a sanitizer error rather than merely a wrong return value.
+void VerifyVectorElementBoundsTest() {
+  // Sanity: buffers with valid vectors verify successfully.
+  {
+    auto buf = BuildMonsterWithVectors({"alpha", "beta", "gamma"}, true);
+    flatbuffers::Verifier verifier(buf.data(), buf.size());
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), true);
+  }
+
+  // A string-vector element offset of 0xFFFFFFFF must be rejected.
+  {
+    auto buf = BuildMonsterWithVectors({"alpha", "beta", "gamma"}, false);
+    auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(buf.data());
+    const auto* strings = monster->testarrayofstring();
+    TEST_NOTNULL(strings);
+    TEST_EQ(strings->size(), 3);
+
+    // The first element offset lives at Data(); overwrite it with a value that
+    // cannot point at a valid string inside the buffer.
+    auto* element = const_cast<uint8_t*>(
+        reinterpret_cast<const uint8_t*>(strings->Data()));
+    flatbuffers::WriteScalar<flatbuffers::uoffset_t>(element, 0xFFFFFFFFu);
+
+    flatbuffers::Verifier verifier(buf.data(), buf.size());
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), false);
+  }
+
+  // A table-vector element offset of 0xFFFFFFFF must be rejected the same way.
+  {
+    auto buf = BuildMonsterWithVectors({"alpha"}, true);
+    auto monster = flatbuffers::GetRoot<MyGame::Example::Monster>(buf.data());
+    const auto* tables = monster->testarrayoftables();
+    TEST_NOTNULL(tables);
+    TEST_EQ(tables->size(), 2);
+
+    auto* element = const_cast<uint8_t*>(
+        reinterpret_cast<const uint8_t*>(tables->Data()));
+    flatbuffers::WriteScalar<flatbuffers::uoffset_t>(element, 0xFFFFFFFFu);
+
+    flatbuffers::Verifier verifier(buf.data(), buf.size());
+    TEST_EQ(MyGame::Example::VerifyMonsterBuffer(verifier), false);
+  }
+}
+
 void InvalidNestedFlatbufferTest(const std::string& tests_data_path) {
   // First, load and parse FlatBuffer schema (.fbs)
   std::string schemafile;
@@ -1802,6 +1892,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
 
   FuzzTest1();
   FuzzTest2();
+
+  VerifyVectorElementBoundsTest();
 
   TriviallyCopyableTest();
   ErrorTest();
