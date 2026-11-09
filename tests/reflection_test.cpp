@@ -333,6 +333,50 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
       TEST_ASSERT(reverse_ids[i - 1] > reverse_ids[i]);
     }
   }
+
+  // A structurally valid BFBS can contain a field ID that is larger than the
+  // number of fields. Iteration must not use that untrusted ID as a vector
+  // index.
+  {
+    std::string crafted_bfbs = bfbsfile;
+    auto crafted_schema = reflection::GetSchema(crafted_bfbs.data());
+    auto crafted_object =
+        crafted_schema->objects()->LookupByKey("MyGame.Example.Stat");
+    TEST_NOTNULL(crafted_object);
+    const reflection::Field* crafted_field = nullptr;
+    for (const auto* field : *crafted_object->fields()) {
+      if (field->id() != 0) {
+        crafted_field = field;
+        break;
+      }
+    }
+    TEST_NOTNULL(crafted_field);
+
+    auto field_table = reinterpret_cast<uint8_t*>(
+        const_cast<reflection::Field*>(crafted_field));
+    auto field_vtable = field_table - ReadScalar<soffset_t>(field_table);
+    auto id_offset =
+        ReadScalar<voffset_t>(field_vtable + reflection::Field::VT_ID);
+    TEST_NE(id_offset, 0);
+    WriteScalar<uint16_t>(field_table + id_offset, 0xffff);
+
+    flatbuffers::Verifier crafted_verifier(
+        reinterpret_cast<const uint8_t*>(crafted_bfbs.data()),
+        crafted_bfbs.size());
+    TEST_EQ(reflection::VerifySchemaBuffer(crafted_verifier), true);
+
+    std::vector<uint16_t> field_ids;
+    flatbuffers::ForAllFields(
+        crafted_object, /*reverse=*/false,
+        [&field_ids](const reflection::Field* field) {
+          field_ids.push_back(field->id());
+        });
+    TEST_EQ(field_ids.size(), 3u);
+    TEST_EQ(field_ids[0], 0);
+    TEST_ASSERT(field_ids[0] < field_ids[1]);
+    TEST_ASSERT(field_ids[1] < field_ids[2]);
+    TEST_EQ(field_ids[2], 0xffff);
+  }
 }
 
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
