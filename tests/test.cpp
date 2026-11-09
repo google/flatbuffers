@@ -161,6 +161,80 @@ void GenerateTableTextTest(const std::string& tests_data_path) {
   TEST_EQ_STR(jsongen.c_str(), "{a: 10,b: 20}");
 }
 
+// The generated Verify() skips deprecated fields, so a buffer that verifies can
+// hold any offset in the vtable slot of a deprecated field. GenText() must not
+// read through that slot.
+//
+// Monster.friendly (id: 4) is deprecated. Setting inventory (id: 5) makes the
+// vtable long enough to contain the slot for id 4. The returned vector holds
+// the buffer followed by 8 readable bytes of 0xA7, so a read past the verified
+// region does not fault and returns a non-zero byte.
+struct DeprecatedSlotMonster {
+  std::vector<uint8_t> buf;
+  size_t size;  // bytes given to the verifier
+  size_t root;  // position of the root table
+  size_t slot;  // position of the vtable entry for `friendly`
+};
+
+DeprecatedSlotMonster MakeDeprecatedSlotMonster() {
+  flatbuffers::FlatBufferBuilder fbb;
+  const auto name = fbb.CreateString("x");
+  const std::vector<uint8_t> inv = {1};
+  const auto inventory = fbb.CreateVector(inv);
+  MonsterBuilder mb(fbb);
+  mb.add_name(name);
+  mb.add_inventory(inventory);
+  FinishMonsterBuffer(fbb, mb.Finish());
+
+  DeprecatedSlotMonster m;
+  m.size = fbb.GetSize();
+  m.buf.assign(m.size + 8, 0xA7);
+  memcpy(m.buf.data(), fbb.GetBufferPointer(), m.size);
+  m.root = flatbuffers::ReadScalar<uoffset_t>(m.buf.data());
+  const auto vtable =
+      m.root - flatbuffers::ReadScalar<soffset_t>(m.buf.data() + m.root);
+  m.slot = vtable + flatbuffers::FieldIndexToOffset(4);
+  TEST_EQ(flatbuffers::ReadScalar<voffset_t>(m.buf.data() + m.slot), 0);
+  return m;
+}
+
+// Verifies the buffer, then returns the JSON text generated from it.
+std::string VerifiedMonsterText(const std::string& tests_data_path,
+                                const DeprecatedSlotMonster& m) {
+  std::string schemafile;
+  TEST_ASSERT(flatbuffers::LoadFile(
+      (tests_data_path + "monster_test.fbs").c_str(), false, &schemafile));
+  const auto include_test_path =
+      flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
+  const char* include_directories[] = {tests_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr};
+  flatbuffers::Parser parser;
+  TEST_ASSERT(parser.Parse(schemafile.c_str(), include_directories));
+
+  flatbuffers::Verifier verifier(m.buf.data(), m.size);
+  TEST_ASSERT(VerifyMonsterBuffer(verifier));
+  std::string json;
+  TEST_NULL(GenText(parser, m.buf.data(), &json));
+  return json;
+}
+
+void GenTextValidBufferControlTest(const std::string& tests_data_path) {
+  const auto m = MakeDeprecatedSlotMonster();
+  const auto json = VerifiedMonsterText(tests_data_path, m);
+  TEST_ASSERT(json.find("name") != std::string::npos);
+  TEST_ASSERT(json.find("friendly") == std::string::npos);
+}
+
+void GenTextCraftedDeprecatedSlotTest(const std::string& tests_data_path) {
+  auto m = MakeDeprecatedSlotMonster();
+  // Point the deprecated slot at the first byte after the buffer.
+  flatbuffers::WriteScalar<voffset_t>(m.buf.data() + m.slot,
+                                      static_cast<voffset_t>(m.size - m.root));
+  const auto json = VerifiedMonsterText(tests_data_path, m);
+  TEST_ASSERT(json.find("name") != std::string::npos);
+  TEST_ASSERT(json.find("friendly") == std::string::npos);
+}
+
 void MultiFileNameClashTest(const std::string& tests_data_path) {
   const auto name_clash_path =
       flatbuffers::ConCatPathFileName(tests_data_path, "name_clash_test");
@@ -1780,6 +1854,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
   UnionDeprecationTest(tests_data_path);
   UnionVectorTest(tests_data_path);
   GenerateTableTextTest(tests_data_path);
+  GenTextValidBufferControlTest(tests_data_path);
+  GenTextCraftedDeprecatedSlotTest(tests_data_path);
   TestEmbeddedBinarySchema(tests_data_path);
   JsonOptionalTest(tests_data_path, false);
   JsonOptionalTest(tests_data_path, true);
