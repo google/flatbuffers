@@ -143,12 +143,13 @@ class vector_downward {
 
   size_t ensure_space(size_t len) {
     FLATBUFFERS_ASSERT(cur_ >= scratch_ && scratch_ >= buf_);
+    FLATBUFFERS_ASSERT(len <= static_cast<size_t>(max_size_ - size()));
     // If the length is larger than the unused part of the buffer, we need to
     // grow.
     if (len > unused_buffer_size()) {
       reallocate(len);
     }
-    FLATBUFFERS_ASSERT(size() < max_size_);
+    FLATBUFFERS_ASSERT(size() <= max_size_);
     return len;
   }
 
@@ -279,8 +280,11 @@ class vector_downward {
     auto old_reserved = reserved_;
     auto old_size = size();
     auto old_scratch_size = scratch_size();
-    reserved_ +=
+    const size_t growth =
         (std::max)(len, old_reserved ? old_reserved / 2 : initial_size_);
+    FLATBUFFERS_ASSERT(old_reserved <= (std::numeric_limits<size_t>::max)() - growth);
+    reserved_ += growth;
+    FLATBUFFERS_ASSERT(reserved_ <= (std::numeric_limits<size_t>::max)() - (buffer_minalign_ - 1));
     reserved_ = (reserved_ + buffer_minalign_ - 1) & ~(buffer_minalign_ - 1);
     if (buf_) {
       buf_ = ReallocateDownward(allocator_, buf_, old_reserved, reserved_,
