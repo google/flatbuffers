@@ -235,6 +235,7 @@ class Optional FLATBUFFERS_FINAL_CLASS {
   }
 
   FLATBUFFERS_CONSTEXPR_CPP11 const T& operator*() const FLATBUFFERS_NOEXCEPT {
+    FLATBUFFERS_ASSERT(has_value());
     return value_;
   }
 
@@ -381,6 +382,7 @@ class span FLATBUFFERS_FINAL_CLASS {
   // Returns a reference to the idx-th element of the sequence.
   // The behavior is undefined if the idx is greater than or equal to size().
   FLATBUFFERS_CONSTEXPR_CPP11 reference operator[](size_type idx) const {
+    FLATBUFFERS_ASSERT(idx < size());
     return data()[idx];
   }
 
@@ -391,6 +393,7 @@ class span FLATBUFFERS_FINAL_CLASS {
       FLATBUFFERS_NOEXCEPT {
     data_ = other.data_;
     count_ = other.count_;
+    return *this;
   }
 
   // Limited implementation of
@@ -468,7 +471,7 @@ class span FLATBUFFERS_FINAL_CLASS {
 
  private:
   // This is a naive implementation with 'count_' member even if (Extent != dynamic_extent).
-  pointer const data_;
+  pointer data_;
   size_type count_;
 };
 #endif  // defined(FLATBUFFERS_USE_STD_SPAN)
@@ -498,13 +501,13 @@ flatbuffers::span<const ElementType, Extent> make_span(const std::array<ElementT
   return span<const ElementType, Extent>(arr);
 }
 
-template<class ElementType, std::size_t Extent>
+template<class ElementType>
 FLATBUFFERS_CONSTEXPR_CPP11
 flatbuffers::span<ElementType, dynamic_extent> make_span(ElementType *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
   return span<ElementType, dynamic_extent>(first, count);
 }
 
-template<class ElementType, std::size_t Extent>
+template<class ElementType>
 FLATBUFFERS_CONSTEXPR_CPP11
 flatbuffers::span<const ElementType, dynamic_extent> make_span(const ElementType *first, std::size_t count) FLATBUFFERS_NOEXCEPT {
   return span<const ElementType, dynamic_extent>(first, count);

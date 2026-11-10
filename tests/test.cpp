@@ -913,6 +913,39 @@ void FixedLengthArrayOperatorEqualTest() {
   TEST_ASSERT(arr_struct[1] != arr_struct[2]);
 }
 
+void StlEmulationSafetyTest() {
+  int data1[] = { 10, 20, 30 };
+  int data2[] = { 40, 50 };
+
+  auto s1 = flatbuffers::make_span(data1, 3);
+  auto s2 = flatbuffers::make_span(data2, 2);
+
+  TEST_EQ(s1.size(), 3);
+  TEST_EQ(s1[0], 10);
+  TEST_EQ(s1[2], 30);
+
+  // Test span copy-assignment rebinding and operator= return
+  s1 = s2;
+  TEST_EQ(s1.size(), 2);
+  TEST_EQ(s1[0], 40);
+  TEST_EQ(s1[1], 50);
+
+  // Test const pointer make_span overload deduction
+  const int cdata[] = { 100, 200 };
+  auto cs = flatbuffers::make_span(cdata, 2);
+  TEST_EQ(cs.size(), 2);
+  TEST_EQ(cs[0], 100);
+
+  // Test Optional
+  flatbuffers::Optional<int> opt(42);
+  TEST_EQ(opt.has_value(), true);
+  TEST_EQ(*opt, 42);
+  TEST_EQ(opt.value(), 42);
+  opt.reset();
+  TEST_EQ(opt.has_value(), false);
+  TEST_EQ(opt.value_or(99), 99);
+}
+
 void NativeTypeTest() {
   const int N = 3;
 
@@ -1843,6 +1876,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FlatbuffersSpanTest();
   FixedLengthArrayConstructorTest();
   FixedLengthArrayOperatorEqualTest();
+  StlEmulationSafetyTest();
   FieldIdentifierTest();
   StringVectorDefaultsTest();
   FlexBuffersFloatingPointTest();
