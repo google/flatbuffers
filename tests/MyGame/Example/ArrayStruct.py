@@ -179,4 +179,4 @@ class ArrayStructT(object):
 
     # ArrayStructT
     def Pack(self, builder):
-        return CreateArrayStruct(builder, self.a, self.b, self.c, self.d.a, self.d.b, self.d.c, self.d.d, self.e, self.f)
+        return CreateArrayStruct(builder, self.a, self.b, self.c, [_item0.a for _item0 in self.d], [_item0.b for _item0 in self.d], [_item0.c for _item0 in self.d], [_item0.d for _item0 in self.d], self.e, self.f)

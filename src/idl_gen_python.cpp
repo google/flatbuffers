@@ -504,19 +504,32 @@ class PythonStubGenerator {
     }
   }
 
+  std::string BuilderArgType(const Type& type, size_t array_depth,
+                             Imports* imports) const {
+    std::string result = TypeOf(type, imports);
+    if (array_depth > 0) imports->Import("typing");
+    for (size_t i = 0; i < array_depth; ++i) {
+      result = "typing.List[" + result + "]";
+    }
+    return result;
+  }
+
   void StructBuilderArgs(const StructDef& struct_def, const std::string prefix,
-                         Imports* imports,
+                         size_t array_depth, Imports* imports,
                          std::vector<std::string>* args) const {
     for (const FieldDef* field : struct_def.fields.vec) {
       const Type type = IsArray(field->value.type)
                             ? field->value.type.VectorType()
                             : field->value.type;
+      const size_t field_array_depth =
+          array_depth + (IsArray(field->value.type) ? 1 : 0);
       if (type.base_type == BASE_TYPE_STRUCT) {
         StructBuilderArgs(*field->value.type.struct_def,
-                          prefix + namer_.Field(*field) + "_", imports, args);
+                          prefix + namer_.Field(*field) + "_",
+                          field_array_depth, imports, args);
       } else {
         args->push_back(prefix + namer_.Field(*field) + ": " +
-                        TypeOf(type, imports));
+                        BuilderArgType(type, field_array_depth, imports));
       }
     }
   }
@@ -527,7 +540,7 @@ class PythonStubGenerator {
     imports->Import("flatbuffers");
 
     std::vector<std::string> args;
-    StructBuilderArgs(*struct_def, "", imports, &args);
+    StructBuilderArgs(*struct_def, "", 0, imports, &args);
 
     stub << '\n';
     stub << "def Create" + namer_.Type(*struct_def)
@@ -2303,6 +2316,44 @@ class PythonGenerator : public BaseGenerator {
     code_base += "\n";
   }
 
+  static std::string PackArgExpression(
+      const std::string& expression,
+      const std::vector<std::pair<std::string, std::string> >&
+          array_contexts) {
+    std::string result = expression;
+    for (auto it = array_contexts.rbegin(); it != array_contexts.rend(); ++it) {
+      result = "[" + result + " for " + it->first + " in " + it->second + "]";
+    }
+    return result;
+  }
+
+  void StructPackArgs(
+      const StructDef& struct_def, const std::string& value_expr,
+      const std::vector<std::pair<std::string, std::string> >& array_contexts,
+      std::vector<std::string>* args) const {
+    for (const FieldDef* field : struct_def.fields.vec) {
+      const Type& field_type = field->value.type;
+      const Type type =
+          IsArray(field_type) ? field_type.VectorType() : field_type;
+      const std::string field_expr = value_expr + "." + namer_.Field(*field);
+      if (IsStruct(type)) {
+        if (IsArray(field_type)) {
+          const std::string item_var =
+              "_item" + NumToString(array_contexts.size());
+          auto nested_contexts = array_contexts;
+          nested_contexts.push_back(std::make_pair(item_var, field_expr));
+          StructPackArgs(*field_type.struct_def, item_var, nested_contexts,
+                         args);
+        } else {
+          StructPackArgs(*field_type.struct_def, field_expr, array_contexts,
+                         args);
+        }
+      } else {
+        args->push_back(PackArgExpression(field_expr, array_contexts));
+      }
+    }
+  }
+
   void GenPackForStruct(const StructDef& struct_def,
                         std::string* code_ptr) const {
     auto& code = *code_ptr;
@@ -2312,11 +2363,12 @@ class PythonGenerator : public BaseGenerator {
     code += "Pack(self, builder):";
     code += GenIndents(2) + "return Create" + struct_fn + "(builder";
 
-    StructBuilderArgs(struct_def,
-                      /* nameprefix = */ "self.",
-                      /* namesuffix = */ "",
-                      /* has_field_name = */ true,
-                      /* fieldname_suffix = */ ".", code_ptr);
+    std::vector<std::string> args;
+    std::vector<std::pair<std::string, std::string> > array_contexts;
+    StructPackArgs(struct_def, "self", array_contexts, &args);
+    for (const auto& arg : args) {
+      code += ", " + arg;
+    }
     code += ")\n";
   }
 

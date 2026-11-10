@@ -223,4 +223,4 @@ class LargeArrayStructT(object):
 
     # LargeArrayStructT
     def Pack(self, builder):
-        return CreateLargeArrayStruct(builder, self.d, self.e, self.f, self.g.a, self.g.b, self.g.c, self.g.d, self.h)
+        return CreateLargeArrayStruct(builder, self.d, self.e, self.f, [_item0.a for _item0 in self.g], [_item0.b for _item0 in self.g], [_item0.c for _item0 in self.g], [_item0.d for _item0 in self.g], self.h)
