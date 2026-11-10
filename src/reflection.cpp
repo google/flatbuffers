@@ -16,6 +16,8 @@
 
 #include "flatbuffers/reflection.h"
 
+#include <limits>
+
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -23,6 +25,16 @@
 namespace flatbuffers {
 
 namespace {
+
+// A NONE (0) union type means the value slot is unused, even if present.
+static bool UnionHasValue(const reflection::Object& parent,
+                          const reflection::Field& unionfield,
+                          const Table& table) {
+  auto type_field = parent.fields()->LookupByKey(
+      (unionfield.name()->str() + UnionTypeFieldSuffix()).c_str());
+  if (!type_field) return false;
+  return GetFieldI<uint8_t>(table, *type_field) != 0;
+}
 
 static void CopyInline(FlatBufferBuilder& fbb,
                        const reflection::Field& fielddef, const Table& table,
@@ -564,6 +576,7 @@ class ResizeContext {
             break;
           }
           case reflection::Union: {
+            if (!UnionHasValue(objectdef, fielddef, *table)) break;
             ResizeTable(GetUnionType(schema_, objectdef, fielddef, *table),
                         reinterpret_cast<Table*>(ref));
             break;
@@ -613,6 +626,13 @@ uint8_t* ResizeAnyVector(const reflection::Schema& schema, uoffset_t newsize,
                          const VectorOfAny* vec, uoffset_t num_elems,
                          uoffset_t elem_size, std::vector<uint8_t>* flatbuf,
                          const reflection::Object* root_table) {
+  // delta_bytes and the aligned resize are computed in int; reject sizes
+  // whose byte count cannot be represented.
+  if (elem_size == 0 ||
+      newsize > (static_cast<size_t>(std::numeric_limits<int>::max()) - 8) /
+                    elem_size) {
+    return nullptr;
+  }
   auto delta_elem = static_cast<int>(newsize) - static_cast<int>(num_elems);
   auto delta_bytes = delta_elem * static_cast<int>(elem_size);
   auto vec_start = reinterpret_cast<const uint8_t*>(vec) - flatbuf->data();
@@ -686,6 +706,7 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         break;
       }
       case reflection::Union: {
+        if (!UnionHasValue(objectdef, fielddef, table)) break;
         auto& subobjectdef = GetUnionType(schema, objectdef, fielddef, table);
         offset = CopyTable(fbb, schema, subobjectdef,
                            *GetFieldT(table, fielddef), use_string_pooling)
@@ -762,10 +783,15 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
         }
       }
         FLATBUFFERS_FALLTHROUGH();  // fall thru
-      case reflection::Union:
       case reflection::String:
       case reflection::Vector:
         fbb.AddOffset(fielddef.offset(), Offset<void>(offsets[offset_idx++]));
+        break;
+      case reflection::Union:
+        if (UnionHasValue(objectdef, fielddef, table)) {
+          fbb.AddOffset(fielddef.offset(),
+                        Offset<void>(offsets[offset_idx++]));
+        }
         break;
       default: {  // Scalars.
         auto size = GetTypeSize(base_type);
