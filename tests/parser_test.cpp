@@ -97,6 +97,8 @@ void ErrorTest() {
             "datatype already");
   TestError("struct X (force_align: 7) { Y:int; }", "force_align");
   TestError("struct X {}", "size 0");
+  TestError("struct Huge { a:[ubyte:60000]; b:[ubyte:10000]; c:int; }",
+            "16-bit limits");
   TestError("{}", "no root");
   TestError("table X { Y:byte; } root_type X; { Y:1 } { Y:1 }", "end of file");
   TestError("table X { Y:byte; } root_type X; { Y:1 } table Y{ Z:int }",
