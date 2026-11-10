@@ -240,6 +240,9 @@ static bool VerifyObject(flatbuffers::Verifier& v,
             return false;
           }
         } else {
+          if (!table->VerifyField<uoffset_t>(v, field_def->offset(),
+                                             sizeof(uoffset_t)))
+            return false;
           if (!VerifyObject(v, schema, *child_obj,
                             flatbuffers::GetFieldT(*table, *field_def),
                             field_def->required())) {
@@ -249,6 +252,9 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         break;
       }
       case reflection::Union: {
+        if (!table->VerifyField<uoffset_t>(v, field_def->offset(),
+                                           sizeof(uoffset_t)))
+          return false;
         //  get union type from the prev field
         voffset_t utype_offset = field_def->offset() - sizeof(voffset_t);
         auto utype = table->GetField<uint8_t>(utype_offset, 0);
@@ -786,6 +792,7 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
 bool Verify(const reflection::Schema& schema, const reflection::Object& root,
             const uint8_t* const buf, const size_t length,
             const uoffset_t max_depth, const uoffset_t max_tables) {
+  if (length < sizeof(uoffset_t)) return false;
   Verifier v(buf, length, max_depth, max_tables);
   return VerifyObject(v, schema, root, flatbuffers::GetAnyRoot(buf),
                       /*required=*/true);
@@ -795,6 +802,7 @@ bool VerifySizePrefixed(const reflection::Schema& schema,
                         const reflection::Object& root,
                         const uint8_t* const buf, const size_t length,
                         const uoffset_t max_depth, const uoffset_t max_tables) {
+  if (length < sizeof(uoffset_t) * 2) return false;
   Verifier v(buf, length, max_depth, max_tables);
   return VerifyObject(v, schema, root, flatbuffers::GetAnySizePrefixedRoot(buf),
                       /*required=*/true);
