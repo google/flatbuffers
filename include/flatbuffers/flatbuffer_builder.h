@@ -439,6 +439,8 @@ class FlatBufferBuilderImpl {
     // by the offsets themselves. In reverse:
     // Include space for the last offset and ensure empty tables have a
     // minimum size.
+    FLATBUFFERS_ASSERT(max_voffset_ <=
+                       (std::numeric_limits<voffset_t>::max)() - sizeof(voffset_t));
     max_voffset_ =
         (std::max)(static_cast<voffset_t>(max_voffset_ + sizeof(voffset_t)),
                    FieldIndexToOffset(0));
@@ -450,6 +452,8 @@ class FlatBufferBuilderImpl {
                            static_cast<voffset_t>(table_object_size));
     WriteScalar<voffset_t>(buf_.data(), max_voffset_);
     // Write the offsets into the table
+    FLATBUFFERS_ASSERT(num_field_loc <=
+                       (std::numeric_limits<size_t>::max)() / sizeof(FieldLoc));
     for (auto it = buf_.scratch_end() - num_field_loc * sizeof(FieldLoc);
          it < buf_.scratch_end(); it += sizeof(FieldLoc)) {
       auto field_location = reinterpret_cast<FieldLoc*>(it);
