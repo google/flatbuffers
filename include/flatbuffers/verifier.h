@@ -146,6 +146,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <typename LenT = uoffset_t>
   bool VerifyVectorOrString(const uint8_t* const vec, const size_t elem_size,
                             size_t* const end = nullptr) const {
+    if (elem_size == 0) return false;
     const auto vec_offset = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<LenT>(vec_offset)) return false;
@@ -156,7 +157,12 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     if (!Check(size < max_elems))
       return false;  // Protect against byte_size overflowing.
     const auto byte_size = sizeof(LenT) + elem_size * size;
-    if (end) *end = vec_offset + byte_size;
+    if (end) {
+      if (vec_offset > (std::numeric_limits<size_t>::max)() - byte_size) {
+        return false;
+      }
+      *end = vec_offset + byte_size;
+    }
     return Verify(vec_offset, byte_size);
   }
 
@@ -306,9 +312,13 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   // is false, this fails at runtime or returns zero.
   size_t GetComputedSize() const {
     if (TrackVerifierBufferSize) {
-      uintptr_t size = upper_bound_;
-      // Align the size to uoffset_t
-      size = (size - 1 + sizeof(uoffset_t)) & ~(sizeof(uoffset_t) - 1);
+      if (upper_bound_ == 0 || upper_bound_ > size_) { return 0; }
+      if (upper_bound_ >
+          (std::numeric_limits<uintptr_t>::max)() - (sizeof(uoffset_t) - 1)) {
+        return 0;
+      }
+      uintptr_t size =
+          (upper_bound_ + sizeof(uoffset_t) - 1) & ~(sizeof(uoffset_t) - 1);
       return (size > size_) ? 0 : size;
     }
     // Must use SizeVerifier, or (deprecated) turn on

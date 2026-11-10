@@ -1317,6 +1317,15 @@ void SizeVerifierTest() {
 
   // Verify that the size verifier computed the correct size.
   TEST_EQ(length, size_verifier.GetComputedSize());
+
+  // Test VerifyVectorOrString boundary behavior with checked element size arithmetic.
+  size_t end_loc = 0;
+  TEST_EQ(false, size_verifier.VerifyVectorOrString(data, 0, &end_loc));
+  TEST_EQ(true, size_verifier.VerifyVectorOrString(data, 1, &end_loc));
+
+  // Test GetComputedSize boundary on unverified / zero upper_bound_ verifier.
+  flatbuffers::SizeVerifier unverified_verifier(data, length);
+  TEST_EQ(static_cast<size_t>(0), unverified_verifier.GetComputedSize());
 }
 
 template <class T, class Container>
