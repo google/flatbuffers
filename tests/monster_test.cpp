@@ -23,6 +23,19 @@ static const auto infinity_d = std::numeric_limits<double>::infinity();
 
 using namespace MyGame::Example;
 
+std::vector<uint8_t> HexToBytes(const char* hex) {
+  auto hex_digit = [](char c) -> uint8_t {
+    return static_cast<uint8_t>(c >= 'a' ? c - 'a' + 10 : c - '0');
+  };
+
+  std::vector<uint8_t> bytes;
+  for (const char* p = hex; *p; p += 2) {
+    bytes.push_back(static_cast<uint8_t>((hex_digit(p[0]) << 4) |
+                                         hex_digit(p[1])));
+  }
+  return bytes;
+}
+
 // example of how to build up a serialized buffer algorithmically:
 flatbuffers::DetachedBuffer CreateFlatBufferTest(std::string& buffer) {
   flatbuffers::FlatBufferBuilder builder;
@@ -773,6 +786,21 @@ void TypeAliasesTest() {
   static_assert(is_same<decltype(ta->f64()), double>::value, "invalid type");
 }
 
+void DeserializeInvalidBinarySchemaTest() {
+  auto schema = HexToBytes(
+      "100000004246425308000c0004000800080000000c0000000400000000000000"
+      "01000000100000000c00140008000c00070010000c0000000000000140000000"
+      "0800000001000000010000000c00000008000e00040008000800000018000000"
+      "0c0000000000060008000700060000000000000f010000006600000001000000"
+      "53000000");
+
+  flatbuffers::Verifier verifier(schema.data(), schema.size());
+  TEST_EQ(reflection::VerifySchemaBuffer(verifier), true);
+
+  flatbuffers::Parser parser;
+  TEST_EQ(parser.Deserialize(schema.data(), schema.size()), false);
+}
+
 // example of parsing text straight into a buffer, and generating
 // text back from it:
 void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary) {
@@ -806,6 +834,7 @@ void ParseAndGenerateTextTest(const std::string& tests_data_path, bool binary) {
         parser.Deserialize(reinterpret_cast<const uint8_t*>(schemafile.c_str()),
                            schemafile.size()),
         true);
+    DeserializeInvalidBinarySchemaTest();
   } else {
     TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
   }
