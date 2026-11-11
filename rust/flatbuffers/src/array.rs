@@ -95,22 +95,18 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> Follow<'a> for Array<'a, T, N> {
 
 /// Place an array of EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() >= size_of::<[T; N]>()`
-pub unsafe fn emplace_scalar_array<T: EndianScalar, const N: usize>(
+/// # Panics
+/// Panics if the range starting at `loc` with length `size_of::<[T; N]>()` is
+/// not within `buf`. (This function used to be `unsafe` and treated an
+/// out-of-bounds range as undefined behavior; see `emplace_scalar`.)
+pub fn emplace_scalar_array<T: EndianScalar, const N: usize>(
     buf: &mut [u8],
     loc: usize,
     src: &[T; N],
 ) {
-    let mut buf_ptr = buf[loc..].as_mut_ptr();
-    for item in src.iter() {
-        let item_le = item.to_little_endian();
-        core::ptr::copy_nonoverlapping(
-            &item_le as *const T::Scalar as *const u8,
-            buf_ptr,
-            size_of::<T::Scalar>(),
-        );
-        buf_ptr = buf_ptr.add(size_of::<T::Scalar>());
+    let size = size_of::<T::Scalar>();
+    for (i, item) in src.iter().enumerate() {
+        crate::endian_scalar::emplace_scalar::<T>(&mut buf[loc + i * size..], *item);
     }
 }
 

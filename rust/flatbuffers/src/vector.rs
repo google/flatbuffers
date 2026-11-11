@@ -72,9 +72,7 @@ impl<'a, T: 'a> Vector<'a, T> {
 
     #[inline(always)]
     pub fn len(&self) -> usize {
-        // Safety:
-        // Valid vector at time of construction starting with UOffsetT element count
-        unsafe { read_scalar_at::<UOffsetT>(self.0, self.1) as usize }
+        read_scalar_at::<UOffsetT>(self.0, self.1) as usize
     }
 
     #[inline(always)]
