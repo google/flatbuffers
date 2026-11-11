@@ -475,7 +475,7 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         options.include_directories.push_back(
             options.include_directories_storage.back().c_str());
       } else if (arg == "--bfbs-filenames") {
-        if (++argi > argc) Error("missing path following: " + arg, true);
+        if (++argi >= argc) Error("missing path following: " + arg, true);
         opts.project_root = argv[argi];
         if (!DirExists(opts.project_root.c_str()))
           Error(arg + " is not a directory: " + opts.project_root);
