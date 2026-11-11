@@ -20,6 +20,7 @@ import Foundation
 enum FlexBuffersErrors: Error {
   case sizeOfBufferIsTooSmall
   case typeCouldNotBeDetermined
+  case invalidByteWidth(width: UInt8)
 }
 
 @inline(__always)
@@ -35,7 +36,15 @@ public func getRoot(buffer: ByteBuffer) throws -> Reference? {
 
   let byteWidth = buffer.read(def: UInt8.self, position: end &- 1)
   let packedType = buffer.read(def: UInt8.self, position: end &- 2)
+
+  guard isValidByteWidth(byteWidth) else {
+    throw FlexBuffersErrors.invalidByteWidth(width: byteWidth)
+  }
+
   let offset = end &- 2 &- numericCast(byteWidth)
+  guard offset >= 0 else {
+    throw FlexBuffersErrors.sizeOfBufferIsTooSmall
+  }
 
   return Reference(
     byteBuffer: buffer,

@@ -30,13 +30,15 @@ public struct TypedVector: FlexBufferVector {
     byteBuffer: ByteBuffer,
     offset: Int,
     byteWidth: UInt8,
-    type: FlexBufferType)
+    type: FlexBufferType,
+    count providedCount: Int? = nil)
   {
     self.byteBuffer = byteBuffer
     self.offset = offset
     self.byteWidth = byteWidth
     self.type = type
-    count = getCount(buffer: byteBuffer, offset: offset, byteWidth: byteWidth)
+    count = providedCount
+      ?? getCount(buffer: byteBuffer, offset: offset, byteWidth: byteWidth)
   }
 
   @inline(__always)
@@ -68,15 +70,38 @@ public struct TypedVector: FlexBufferVector {
       offset: keysOffset &+ numericCast(byteWidth),
       byteWidth: byteWidth)
 
+    // A corrupted buffer may report a child byte width that is not one of
+    // the valid flexbuffers widths (1, 2, 4, 8), or a keys location that
+    // lies outside of the buffer. Treat such a map as if it had no
+    // readable keys, instead of reading out of bounds.
+    guard
+      let width = UInt8(exactly: childByteWidth),
+      isValidByteWidth(width),
+      indirectOffset >= numericCast(width),
+      indirectOffset <= byteBuffer.count
+    else {
+      return TypedVector(
+        byteBuffer: byteBuffer,
+        offset: offset,
+        byteWidth: 1,
+        type: .key,
+        count: 0)
+    }
+
     return TypedVector(
       byteBuffer: byteBuffer,
       offset: indirectOffset,
-      byteWidth: numericCast(childByteWidth),
+      byteWidth: width,
       type: .key)
   }
 }
 
 extension TypedVector {
+  /// Compares a key within the vector to a target string.
+  ///
+  /// The comparison is bounded by the end of the hosting buffer so that a
+  /// corrupted buffer without a string terminator cannot cause an
+  /// out-of-bounds read past the end of the buffer.
   @inline(__always)
   func compare(offset off: Int, target: String) -> Int {
 
@@ -87,12 +112,41 @@ extension TypedVector {
       offset: elementOffset,
       byteWidth)
 
+    guard indirectoffset >= 0, indirectoffset < byteBuffer.capacity else {
+      return -1
+    }
+
+    let maxLength = byteBuffer.capacity &- indirectoffset
     return byteBuffer.readWithUnsafeRawPointer(
       position: indirectoffset)
     { bufPointer in
       target.withCString { strPointer in
-        Int(strcmp(bufPointer, strPointer))
+        boundedStrcmp(bufPointer, strPointer, maxLength: maxLength)
       }
     }
   }
+}
+
+@inline(__always)
+private func boundedStrcmp(
+  _ lhs: UnsafeRawPointer,
+  _ rhs: UnsafePointer<CChar>,
+  maxLength: Int) -> Int
+{
+  var i = 0
+  while i < maxLength {
+    let l = UInt8(bitPattern: lhs.load(fromByteOffset: i, as: Int8.self))
+    let r = UInt8(bitPattern: rhs[i])
+    if l != r {
+      return Int(l) &- Int(r)
+    }
+    if l == 0 {
+      return 0
+    }
+    i &+= 1
+  }
+  // The readable bytes ran out before a terminator or a difference was
+  // found: the target is either equal (it ended as well) or longer than
+  // the readable bytes.
+  return rhs[i] == 0 ? 0 : -1
 }

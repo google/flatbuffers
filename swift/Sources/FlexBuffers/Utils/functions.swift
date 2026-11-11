@@ -141,12 +141,17 @@ func toFixedTypedVectorElementType(type: FlexBufferType)
 // MARK: - Reader functions
 
 @inline(__always)
+func isValidByteWidth(_ width: UInt8) -> Bool {
+  width == 1 || width == 2 || width == 4 || width == 8
+}
+
+@inline(__always)
 func binarySearch(
   vector: TypedVector,
   target: String) -> Int?
 {
   var left = 0
-  var right = vector.count
+  var right = vector.count &- 1
 
   while left <= right {
     let mid = left &+ (right &- left) / 2
