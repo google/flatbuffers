@@ -737,8 +737,12 @@ class LuaBfbsGenerator : public BaseBfbsGenerator {
 
     // TODO(derekbailey): figure out a save file without depending on util.h
     EnsureDirExists(path);
-    const std::string file_name =
-        options_.output_path + path + "/" + namer_.File(name);
+    const std::string output_path =
+        options_.output_path.empty()
+            ? "."
+            : options_.output_path + path + "/";
+    EnsureDirExists(output_path);
+    const std::string file_name = output_path + namer_.File(name);
     options_.file_saver->SaveFile(file_name.c_str(), code, false);
   }
 
