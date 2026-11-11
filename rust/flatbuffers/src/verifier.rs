@@ -566,7 +566,18 @@ impl<T: SimpleToVerifyInSlice> Verifiable for Vector<'_, T> {
 impl<T: Verifiable> Verifiable for SkipSizePrefix<T> {
     #[inline]
     fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
-        T::run_verifier(v, pos.saturating_add(crate::SIZE_SIZEPREFIX))
+        // The size prefix says how many bytes follow it. Check that they are
+        // there before skipping over it: a buffer whose prefix overruns it is
+        // not a valid size prefixed buffer, even when the root it points at
+        // verifies on its own. The C++ verifier makes the same check in
+        // VerifySizePrefixedBuffer, and the Swift one gained it in #9196.
+        let size = v.get_uoffset(pos)? as usize;
+        let start = pos.saturating_add(crate::SIZE_SIZEPREFIX);
+        let end = start.saturating_add(size);
+        if end > v.buffer.len() {
+            return InvalidFlatbuffer::new_range_oob(start, end);
+        }
+        T::run_verifier(v, start)
     }
 }
 
