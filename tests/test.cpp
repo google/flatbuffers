@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <string>
@@ -351,6 +352,100 @@ void UnionVectorTest(const std::string& tests_data_path) {
               "    \"Unused\"\n"
               "  ]\n"
               "}");
+
+  // MiniReflect should handle NONE and unknown union states without resolving
+  // them as concrete union members or forwarding resolved OOB pointers.
+  auto TestMiniReflectUnknownUnion = [](const uint8_t* buf, size_t size,
+                                        bool size_prefixed) {
+    flatbuffers::Verifier verifier(buf, size);
+    TEST_EQ(size_prefixed ? VerifySizePrefixedMovieBuffer(verifier)
+                          : VerifyMovieBuffer(verifier),
+            true);
+    auto text = flatbuffers::FlatBufferToString(
+        size_prefixed ? buf + sizeof(flatbuffers::uoffset_t) : buf,
+        MovieTypeTable());
+    TEST_EQ(text.find("(?)") != std::string::npos, true);
+  };
+
+  {
+    flatbuffers::FlatBufferBuilder unknown_fbb;
+    unknown_fbb.ForceDefaults(true);
+    auto unknown_val = unknown_fbb.CreateString("single none").Union();
+    FinishMovieBuffer(unknown_fbb, CreateMovie(unknown_fbb, Character_NONE,
+                                               unknown_val, 0, 0));
+    TestMiniReflectUnknownUnion(unknown_fbb.GetBufferPointer(),
+                                unknown_fbb.GetSize(), false);
+  }
+
+  {
+    flatbuffers::FlatBufferBuilder unknown_fbb;
+    unknown_fbb.ForceDefaults(true);
+    std::vector<uint8_t> unknown_types = {static_cast<uint8_t>(Character_NONE)};
+    std::vector<flatbuffers::Offset<void>> unknown_values = {
+        unknown_fbb.CreateString("vector none").Union()};
+    FinishMovieBuffer(unknown_fbb,
+                      CreateMovie(unknown_fbb, Character_NONE, 0,
+                                  unknown_fbb.CreateVector(unknown_types),
+                                  unknown_fbb.CreateVector(unknown_values)));
+    TestMiniReflectUnknownUnion(unknown_fbb.GetBufferPointer(),
+                                unknown_fbb.GetSize(), false);
+  }
+
+  {
+    flatbuffers::FlatBufferBuilder unknown_fbb;
+    unknown_fbb.ForceDefaults(true);
+    std::vector<uint8_t> unknown_types = {static_cast<uint8_t>(Character_NONE)};
+    std::vector<flatbuffers::Offset<void>> unknown_values = {
+        unknown_fbb.CreateString("vector none size-prefixed").Union()};
+    FinishSizePrefixedMovieBuffer(
+        unknown_fbb, CreateMovie(unknown_fbb, Character_NONE, 0,
+                                 unknown_fbb.CreateVector(unknown_types),
+                                 unknown_fbb.CreateVector(unknown_values)));
+    TestMiniReflectUnknownUnion(unknown_fbb.GetBufferPointer(),
+                                unknown_fbb.GetSize(), true);
+  }
+
+  struct UnknownPointerVisitor : public flatbuffers::IterationVisitor {
+    const uint8_t* base;
+    size_t size;
+    bool seen_unknown;
+    bool unknown_in_bounds;
+    UnknownPointerVisitor(const uint8_t* b, size_t s)
+        : base(b), size(s), seen_unknown(false), unknown_in_bounds(false) {}
+    void Unknown(const uint8_t* p) override {
+      seen_unknown = true;
+      unknown_in_bounds = p >= base && p < base + size;
+    }
+  };
+
+  {
+    flatbuffers::FlatBufferBuilder unknown_fbb;
+    unknown_fbb.ForceDefaults(true);
+    std::vector<uint8_t> unknown_types = {250};
+    std::vector<flatbuffers::Offset<void>> unknown_values = {
+        unknown_fbb.CreateString("unknown type").Union()};
+    FinishMovieBuffer(unknown_fbb,
+                      CreateMovie(unknown_fbb, Character_NONE, 0,
+                                  unknown_fbb.CreateVector(unknown_types),
+                                  unknown_fbb.CreateVector(unknown_values)));
+    std::vector<uint8_t> unknown_buf(
+        unknown_fbb.GetBufferPointer(),
+        unknown_fbb.GetBufferPointer() + unknown_fbb.GetSize());
+    auto unknown_movie = GetMovie(unknown_buf.data());
+    auto offset_slot =
+        reinterpret_cast<const uint8_t*>(unknown_movie->characters()->Data()) -
+        unknown_buf.data();
+    const uint32_t invalid_offset = 0x7fffffffU;
+    std::memcpy(unknown_buf.data() + offset_slot, &invalid_offset,
+                sizeof(invalid_offset));
+    flatbuffers::Verifier verifier(unknown_buf.data(), unknown_buf.size());
+    TEST_EQ(VerifyMovieBuffer(verifier), true);
+    UnknownPointerVisitor unknown_visitor(unknown_buf.data(),
+                                          unknown_buf.size());
+    IterateFlatBuffer(unknown_buf.data(), MovieTypeTable(), &unknown_visitor);
+    TEST_EQ(unknown_visitor.seen_unknown, true);
+    TEST_EQ(unknown_visitor.unknown_in_bounds, true);
+  }
 
   // Generate text using parsed schema.
   std::string jsongen;
@@ -796,7 +891,7 @@ void FixedLengthArrayTest() {
   }
 }
 #else
-void FixedLengthArrayTest() {}
+void FixedLengthArrayTest(){}
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1700
 
 #if !defined(FLATBUFFERS_SPAN_MINIMAL) && \
@@ -864,7 +959,8 @@ void FixedLengthArrayConstructorTest() {
   }
 }
 #else
-void FixedLengthArrayConstructorTest() {}
+void FixedLengthArrayConstructorTest() {
+}
 #endif
 
 void FixedLengthArrayOperatorEqualTest() {
@@ -1304,12 +1400,8 @@ void SizeVerifierTest() {
   // to ensure that all of these APIs are tested.
   flatbuffers::SizeVerifier size_verifier(data,
                                           FLATBUFFERS_MAX_BUFFER_SIZE - 1);
-  {
-    TEST_EQ(true, VerifyMonsterBuffer(size_verifier));
-  }
-  {
-    TEST_EQ(true, size_verifier.VerifyBuffer<Monster>());
-  }
+  { TEST_EQ(true, VerifyMonsterBuffer(size_verifier)); }
+  { TEST_EQ(true, size_verifier.VerifyBuffer<Monster>()); }
   {
     const MyGame::Example::Monster* my_buffer = GetMonster(data);
     TEST_EQ(true, my_buffer->Verify(size_verifier));
