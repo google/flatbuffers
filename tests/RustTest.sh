@@ -49,6 +49,11 @@ check_test_result "Rust tests"
 cargo test $TARGET_FLAG --no-default-features -- --quiet
 check_test_result "Rust tests (no_std)"
 
+cd ../../rust/reflection
+cargo test $TARGET_FLAG -- --quiet
+check_test_result "Rust reflection tests"
+
+cd ../../tests/rust_usage_test
 cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
 check_test_result "Rust flatbuffers heap alloc test"
 

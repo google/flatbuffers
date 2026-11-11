@@ -181,7 +181,7 @@ fn verify_struct(
             let child_obj = schema.objects().get(obj_idx.try_into()?);
             if child_obj.is_struct() {
                 let field_pos = struct_pos.saturating_add(field.offset().into());
-                buf_loc_to_obj_idx.insert(field_pos, obj_idx);
+                buf_loc_to_obj_idx.entry(field_pos).or_insert(obj_idx);
                 verify_struct(verifier, &child_obj, field_pos, schema, buf_loc_to_obj_idx)?;
             }
         }
@@ -358,12 +358,20 @@ fn verify_union<'a, 'b, 'c>(
 
     let enum_offset = field.offset() - u16::try_from(SIZE_VOFFSET)?;
     if let Some(enum_pos) = table_verifier.deref(enum_offset)? {
-        let enum_value = table_verifier.verifier().get_u8(enum_pos)?;
-        let enum_type = union_enum
-            .values()
-            .get(enum_value.into())
-            .union_type()
-            .ok_or(FlatbufferError::InvalidUnionEnum)?;
+let enum_value = table_verifier.verifier().get_u8(enum_pos)?;
+            // `enum_value` comes from the untrusted buffer and is used to index the
+            // schema's union enum values, so it must be range-checked first. Otherwise
+            // a buffer whose union discriminant exceeds the enum's value count panics
+            // (`Vector::get` asserts) from inside the safe `SafeBuffer::new`.
+            let enum_idx = usize::from(enum_value);
+            if enum_idx >= union_enum.values().len() {
+                return Err(FlatbufferError::InvalidUnionEnum);
+            }
+            let enum_type = union_enum
+                .values()
+                .get(enum_idx)
+                .union_type()
+                .ok_or(FlatbufferError::InvalidUnionEnum)?;
 
         match enum_type.base_type() {
             BaseType::String => <&str>::run_verifier(table_verifier.verifier(), union_pos)?,
