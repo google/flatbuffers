@@ -1221,7 +1221,7 @@ namespace Google.FlatBuffers.Test
             Monster.AddTest(fbb, monster_inner.Value);
             Monster.AddTestType(fbb, Any.Monster);
             var monster_outer = Monster.EndMonster(fbb);
-            fbb.Finish(monster_outer.Value);
+            Monster.FinishMonsterBuffer(fbb, monster_outer);
             var bytes = fbb.SizedByteArray();
             var bytes_to_corrupt_inner_name = fbb.SizedByteArray();
             var bytes_to_corrupt_outer_name = fbb.SizedByteArray();
