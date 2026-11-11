@@ -41,11 +41,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_vtable_byte_length(&mut self, n: VOffsetT) {
         let buf = &mut self.buf[..SIZE_VOFFSET];
-        // Safety:
-        // Validated range above
-        unsafe {
-            emplace_scalar::<VOffsetT>(buf, n);
-        }
+        emplace_scalar::<VOffsetT>(buf, n);
         debug_assert_eq!(n as usize, self.buf.len());
     }
 
@@ -53,11 +49,7 @@ impl<'a> VTableWriter<'a> {
     #[inline(always)]
     pub fn write_object_inline_size(&mut self, n: VOffsetT) {
         let buf = &mut self.buf[SIZE_VOFFSET..2 * SIZE_VOFFSET];
-        // Safety:
-        // Validated range above
-        unsafe {
-            emplace_scalar::<VOffsetT>(buf, n);
-        }
+        emplace_scalar::<VOffsetT>(buf, n);
     }
 
     /// Writes an object field offset into the vtable.
@@ -68,11 +60,7 @@ impl<'a> VTableWriter<'a> {
     pub fn write_field_offset(&mut self, vtable_offset: VOffsetT, object_data_offset: VOffsetT) {
         let idx = vtable_offset as usize;
         let buf = &mut self.buf[idx..idx + SIZE_VOFFSET];
-        // Safety:
-        // Validated range above
-        unsafe {
-            emplace_scalar::<VOffsetT>(buf, object_data_offset);
-        }
+        emplace_scalar::<VOffsetT>(buf, object_data_offset);
     }
 
     /// Clears all data in this VTableWriter. Used to cleanly undo a
