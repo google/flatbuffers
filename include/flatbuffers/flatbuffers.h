@@ -41,7 +41,11 @@ namespace flatbuffers {
 /// it is the opposite transformation of GetRoot().
 /// This may be useful if you want to pass on a root and have the recipient
 /// delete the buffer afterwards.
-inline const uint8_t* GetBufferStartFromRootPointer(const void* root) {
+/// @param buf_start Optional pointer to the start of the buffer allocation.
+/// When provided, the search will not walk before this address, preventing
+/// out-of-bounds reads on malformed or truncated buffers.
+inline const uint8_t* GetBufferStartFromRootPointer(
+    const void* root, const uint8_t* buf_start = nullptr) {
   auto table = reinterpret_cast<const Table*>(root);
   auto vtable = table->GetVTable();
   // Either the vtable is before the root or after the root.
@@ -62,6 +66,8 @@ inline const uint8_t* GetBufferStartFromRootPointer(const void* root) {
                 "file_identifier is assumed to be the same size as uoffset_t");
   for (auto possible_roots = FLATBUFFERS_MAX_ALIGNMENT / sizeof(uoffset_t) + 1;
        possible_roots; possible_roots--) {
+    // Do not walk before the known start of the allocation.
+    if (buf_start != nullptr && start < buf_start + sizeof(uoffset_t)) break;
     start -= sizeof(uoffset_t);
     if (ReadScalar<uoffset_t>(start) + start ==
         reinterpret_cast<const uint8_t*>(root))
