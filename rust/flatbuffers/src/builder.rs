@@ -937,23 +937,16 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         // Write signed offset from table to its vtable.
         let table_pos = self.allocator.len() - object_revloc_to_vtable.value() as usize;
         if cfg!(debug_assertions) {
-            // Safety:
-            // Verified slice length
-            let tmp_soffset_to_vt = unsafe {
-                read_scalar::<UOffsetT>(&self.allocator[table_pos..table_pos + SIZE_UOFFSET])
-            };
+            let tmp_soffset_to_vt =
+                read_scalar::<UOffsetT>(&self.allocator[table_pos..table_pos + SIZE_UOFFSET]);
             assert_eq!(tmp_soffset_to_vt, 0xF0F0_F0F0);
         }
 
         let buf = &mut self.allocator[table_pos..table_pos + SIZE_SOFFSET];
-        // Safety:
-        // Verified length of buf above
-        unsafe {
-            emplace_scalar::<SOffsetT>(
-                buf,
-                final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
-            );
-        }
+        emplace_scalar::<SOffsetT>(
+            buf,
+            final_vtable_revpos as SOffsetT - object_revloc_to_vtable.value() as SOffsetT,
+        );
 
         self.field_locs.clear();
 
