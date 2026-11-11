@@ -130,6 +130,10 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 	}
 	b.vtable = b.vtable[:i+1]
 
+	// The object size is part of the vtable, so two objects may only share a
+	// vtable if both their field offsets and their sizes match.
+	objectSize := objectOffset - b.objectEnd
+
 	// Search backwards through existing vtables, because similar vtables
 	// are likely to have been recently appended. See
 	// BenchmarkVtableDeduplication for a case in which this heuristic
@@ -140,6 +144,10 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 		vt2Offset := b.vtables[i]
 		vt2Start := len(b.Bytes) - int(vt2Offset)
 		vt2Len := GetVOffsetT(b.Bytes[vt2Start:])
+		vt2ObjectSize := GetVOffsetT(b.Bytes[vt2Start+SizeVOffsetT:])
+		if vt2ObjectSize != VOffsetT(objectSize) {
+			continue
+		}
 
 		metadata := VtableMetadataFields * SizeVOffsetT
 		vt2End := vt2Start + int(vt2Len)
@@ -172,7 +180,6 @@ func (b *Builder) WriteVtable() (n UOffsetT) {
 		// The two metadata fields are written last.
 
 		// First, store the object bytesize:
-		objectSize := objectOffset - b.objectEnd
 		b.PrependVOffsetT(VOffsetT(objectSize))
 
 		// Second, store the vtable bytesize:

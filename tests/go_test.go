@@ -176,6 +176,7 @@ func TestAll(t *testing.T) {
 
 	// Verify that vtables are deduplicated when written:
 	CheckVtableDeduplication(t.Fatalf)
+	CheckVtableDeduplicationObjectSize(t.Fatalf)
 
 	// Verify the enum names
 	CheckEnumNames(t.Fatalf)
@@ -1580,6 +1581,44 @@ func CheckVtableDeduplication(fail func(string, ...interface{})) {
 	testTable(table0, 0, 11, 22, 33)
 	testTable(table1, 0, 44, 55, 66)
 	testTable(table2, 0, 77, 88, 99)
+}
+
+// CheckVtableDeduplicationObjectSize verifies that a vtable is only reused by
+// an object of the same size: the object size is part of the vtable, and a
+// field must never extend past the object size its vtable declares.
+func CheckVtableDeduplicationObjectSize(fail func(string, ...interface{})) {
+	b := flatbuffers.NewBuilder(0)
+
+	// Both objects place slot 0 at offset 4, but the second one is larger.
+	b.StartObject(1)
+	b.PrependInt32Slot(0, 1, 0)
+	obj0 := b.EndObject()
+
+	b.StartObject(1)
+	b.PrependInt64Slot(0, 2, 0)
+	obj1 := b.EndObject()
+
+	table0 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj0}
+	table1 := &flatbuffers.Table{Bytes: b.Bytes, Pos: flatbuffers.UOffsetT(len(b.Bytes)) - obj1}
+
+	if got := table0.GetInt32Slot(4, 0); got != 1 {
+		fail("table0 slot 0: want 1, got %d", got)
+	}
+	if got := table1.GetInt64Slot(4, 0); got != 2 {
+		fail("table1 slot 0: want 2, got %d", got)
+	}
+	// The object size (vtable entry 1) must cover the soffset and the field.
+	if got := table0.GetVOffsetTSlot(2, 0); got != 8 {
+		fail("table0 object size: want 8, got %d", got)
+	}
+	if got := table1.GetVOffsetTSlot(2, 0); got < 12 {
+		fail("table1 object size: want >= 12, got %d", got)
+	}
+	vtable0 := flatbuffers.SOffsetT(table0.Pos) - table0.GetSOffsetT(table0.Pos)
+	vtable1 := flatbuffers.SOffsetT(table1.Pos) - table1.GetSOffsetT(table1.Pos)
+	if vtable0 == vtable1 {
+		fail("objects of different sizes must not share a vtable")
+	}
 }
 
 // CheckNotInObjectError verifies that `EndObject` fails if not inside an
