@@ -447,6 +447,25 @@ const char* GenTextFile(const Parser& parser, const std::string& path,
                : "SaveFile failed";
   }
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return nullptr;
+  // Verify buffer integrity before text generation to prevent OOB reads
+  // from corrupted vector lengths or field offsets (see #9051).
+  {
+    flatbuffers::Verifier verifier(parser.builder_.GetBufferPointer(),
+                                   parser.builder_.GetSize());
+    if (!parser.root_struct_def_->fixed
+            ? !verifier.VerifyBuffer<flatbuffers::Table>(
+                  parser.file_identifier_.length()
+                      ? parser.file_identifier_.c_str()
+                      : nullptr)
+            : !verifier.VerifyBufferFromStart<flatbuffers::Table>(
+                  parser.file_identifier_.length()
+                      ? parser.file_identifier_.c_str()
+                      : nullptr,
+                  parser.builder_.GetSize())) {
+      return "buffer failed verification, refusing to generate JSON from "
+             "potentially corrupt data";
+    }
+  }
   std::string text;
   auto err = GenText(parser, parser.builder_.GetBufferPointer(), &text);
   if (err) return err;
