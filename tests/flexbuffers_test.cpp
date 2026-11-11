@@ -106,6 +106,13 @@ void FlexBuffersTest() {
   auto tvec3 = map["bar3"].AsFixedTypedVector();
   TEST_EQ(tvec3.size(), 3);
   TEST_EQ(tvec3[2].AsInt8(), 3);
+  std::string vector_text;
+  flexbuffers::AppendToString(vector_text, tvec, false);
+  TEST_EQ_STR("[ 1, 2, 3 ]", vector_text.c_str());
+  vector_text.clear();
+  flexbuffers::AppendToString(vector_text, map["bar3"].AsFixedTypedVector(),
+                              false);
+  TEST_EQ_STR("[ 1, 2, 3 ]", vector_text.c_str());
   TEST_EQ(map["bool"].AsBool(), true);
   auto tvecb = map["bools"].AsTypedVector();
   TEST_EQ(tvecb.ElementType(), flexbuffers::FBT_BOOL);

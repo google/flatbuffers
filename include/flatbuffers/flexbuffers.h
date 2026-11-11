@@ -398,7 +398,7 @@ void AppendToString(std::string& s, T&& v, bool keys_quoted, bool indented,
 
 template <typename T>
 void AppendToString(std::string& s, T&& v, bool keys_quoted) {
-  AppendToString(s, v, keys_quoted);
+  AppendToString(s, v, keys_quoted, false, 0, "", false);
 }
 
 class Reference {
