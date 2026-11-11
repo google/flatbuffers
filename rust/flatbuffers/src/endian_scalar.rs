@@ -17,7 +17,11 @@
 
 use core::mem::size_of;
 
+use private::ScalarBytes;
+
 mod private {
+    use core::convert::TryInto;
+
     /// Types that are trivially transmutable are those where any combination of bits
     /// represents a valid value of that type
     ///
@@ -33,6 +37,53 @@ mod private {
     impl TriviallyTransmutable for u16 {}
     impl TriviallyTransmutable for u32 {}
     impl TriviallyTransmutable for u64 {}
+
+    /// Byte-level access to a scalar's in-memory (native-endian) representation.
+    ///
+    /// This is sealed, like `TriviallyTransmutable`: it is only implemented for
+    /// the primitive integer types that can appear as an `EndianScalar`'s
+    /// `Scalar`. It exists so that `read_scalar` and `emplace_scalar` can move
+    /// bytes between a slice and a scalar value without any `unsafe` code:
+    /// interpreting a byte slice as the native-endian representation of the
+    /// scalar, and letting `EndianScalar::{to,from}_little_endian` perform the
+    /// endian conversion, is exactly equivalent to the previous raw pointer
+    /// copy, on both little-endian and big-endian hosts.
+    pub trait ScalarBytes: Copy {
+        /// Reconstruct the scalar whose native-endian byte representation is
+        /// `bytes`. Callers must pass exactly `size_of::<Self>()` bytes.
+        fn from_ne_slice(bytes: &[u8]) -> Self;
+        /// Write this scalar's native-endian byte representation into `dst`.
+        /// Callers must pass exactly `size_of::<Self>()` bytes.
+        fn to_ne_slice(self, dst: &mut [u8]);
+    }
+
+    macro_rules! impl_scalar_bytes {
+        ($ty:ident) => {
+            impl ScalarBytes for $ty {
+                #[inline]
+                fn from_ne_slice(bytes: &[u8]) -> Self {
+                    Self::from_ne_bytes(
+                        bytes
+                            .try_into()
+                            .expect("slice length must equal scalar size"),
+                    )
+                }
+                #[inline]
+                fn to_ne_slice(self, dst: &mut [u8]) {
+                    dst.copy_from_slice(&self.to_ne_bytes());
+                }
+            }
+        };
+    }
+
+    impl_scalar_bytes!(i8);
+    impl_scalar_bytes!(i16);
+    impl_scalar_bytes!(i32);
+    impl_scalar_bytes!(i64);
+    impl_scalar_bytes!(u8);
+    impl_scalar_bytes!(u16);
+    impl_scalar_bytes!(u32);
+    impl_scalar_bytes!(u64);
 }
 
 /// Trait for values that must be stored in little-endian byte order, but
@@ -46,7 +97,7 @@ mod private {
 /// "too much". For example, num-traits provides i128 support, but that is an
 /// invalid FlatBuffers type.
 pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
-    type Scalar: private::TriviallyTransmutable;
+    type Scalar: private::TriviallyTransmutable + private::ScalarBytes;
 
     fn to_little_endian(self) -> Self::Scalar;
 
@@ -134,51 +185,41 @@ impl EndianScalar for f64 {
 
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() >= size_of::<T>()`
+/// # Panics
+/// Panics if `s.len() < size_of::<T>()`. (Previous versions of this function
+/// were `unsafe` and treated a too-short slice as undefined behavior; failing
+/// loudly with a panic is the soundness improvement made by making this
+/// function safe.)
 #[inline]
-pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
+pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let size = size_of::<T::Scalar>();
-    debug_assert!(
-        s.len() >= size,
-        "insufficient capacity for emplace_scalar, needed {} got {}",
-        size,
-        s.len()
-    );
 
-    let x_le = x.to_little_endian();
-    core::ptr::copy_nonoverlapping(
-        &x_le as *const T::Scalar as *const u8,
-        s.as_mut_ptr() as *mut u8,
-        size,
-    );
+    x.to_little_endian().to_ne_slice(&mut s[..size]);
 }
 
 /// Read an EndianScalar from the provided byte slice at the specified location.
 /// Performs endian conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() >= loc + size_of::<T>()`.
+/// # Panics
+/// Panics if `s.len() < loc + size_of::<T>()`. (See `emplace_scalar` for why
+/// this used to be `unsafe` and now panics instead.)
 #[inline]
-pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
+pub fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
     read_scalar(&s[loc..])
 }
 
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`.
+/// # Panics
+/// Panics if `s.len() < size_of::<T>()`. (See `emplace_scalar` for why this
+/// used to be `unsafe` and now panics instead.)
 #[inline]
-pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
+pub fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
     let size = size_of::<T::Scalar>();
-    debug_assert!(
-        s.len() >= size,
-        "insufficient capacity for emplace_scalar, needed {} got {}",
-        size,
-        s.len()
-    );
 
-    let mut mem = core::mem::MaybeUninit::<T::Scalar>::uninit();
-    // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size);
-    T::from_little_endian(mem.assume_init())
+    // Since [u8] has alignment 1, we cannot read a `T::Scalar` (which may have
+    // higher alignment) directly out of the slice. Reconstructing the scalar
+    // from its native-endian byte representation performs the same byte copy
+    // the previous `unsafe` implementation did with a raw pointer, and
+    // `from_little_endian` then applies the endian conversion.
+    T::from_little_endian(T::Scalar::from_ne_slice(&s[..size]))
 }
