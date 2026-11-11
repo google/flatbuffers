@@ -193,7 +193,6 @@ impl EndianScalar for f64 {
 #[inline]
 pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
     let size = size_of::<T::Scalar>();
-
     x.to_little_endian().to_ne_slice(&mut s[..size]);
 }
 
@@ -215,7 +214,6 @@ pub fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
 #[inline]
 pub fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
     let size = size_of::<T::Scalar>();
-
     // Since [u8] has alignment 1, we cannot read a `T::Scalar` (which may have
     // higher alignment) directly out of the slice. Reconstructing the scalar
     // from its native-endian byte representation performs the same byte copy
