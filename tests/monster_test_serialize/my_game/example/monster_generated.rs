@@ -1073,7 +1073,7 @@ impl ::flatbuffers::Verifiable for Monster<'_> {
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<&'_ str>>>>("testarrayofstring", Self::VT_TESTARRAYOFSTRING, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<Monster>>>>("testarrayoftables", Self::VT_TESTARRAYOFTABLES, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<Monster>>("enemy", Self::VT_ENEMY, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u8>>>("testnestedflatbuffer", Self::VT_TESTNESTEDFLATBUFFER, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::NestedFlatBuffer<Monster>>>("testnestedflatbuffer", Self::VT_TESTNESTEDFLATBUFFER, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<Stat>>("testempty", Self::VT_TESTEMPTY, false)?
             .visit_field::<bool>("testbool", Self::VT_TESTBOOL, false)?
             .visit_field::<i32>("testhashs32_fnv1", Self::VT_TESTHASHS32_FNV1, false)?
@@ -1121,7 +1121,7 @@ impl ::flatbuffers::Verifiable for Monster<'_> {
             })?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, Color>>>("vector_of_enums", Self::VT_VECTOR_OF_ENUMS, false)?
             .visit_field::<Race>("signed_enum", Self::VT_SIGNED_ENUM, false)?
-            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, u8>>>("testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
+            .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::NestedFlatBuffer<Monster>>>("testrequirednestedflatbuffer", Self::VT_TESTREQUIREDNESTEDFLATBUFFER, false)?
             .visit_field::<::flatbuffers::ForwardsUOffset<::flatbuffers::Vector<'_, ::flatbuffers::ForwardsUOffset<Stat>>>>("scalar_key_sorted_tables", Self::VT_SCALAR_KEY_SORTED_TABLES, false)?
             .visit_field::<Test>("native_inline", Self::VT_NATIVE_INLINE, false)?
             .visit_field::<LongEnum>("long_enum_non_enum_default", Self::VT_LONG_ENUM_NON_ENUM_DEFAULT, false)?

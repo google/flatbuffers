@@ -2,6 +2,7 @@ use crate::follow::Follow;
 use crate::{ForwardsUOffset, SOffsetT, SkipSizePrefix, UOffsetT, VOffsetT, Vector, SIZE_UOFFSET};
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
+use core::marker::PhantomData;
 use core::ops::Range;
 use core::option::Option;
 
@@ -242,9 +243,17 @@ pub struct VerifierOptions {
     /// Ignore errors where a string is missing its null terminator.
     /// This is mostly a problem if the message will be sent to a client using old c-strings.
     pub ignore_missing_null_terminator: bool,
+    /// Verify the contents of fields carrying the `nested_flatbuffer` schema
+    /// attribute, rather than only checking that the byte vector holding them is
+    /// in bounds.
+    ///
+    /// This defaults to `true`, matching `check_nested_flatbuffers` in the C++
+    /// implementation. Turning it off makes the generated
+    /// `..._nested_flatbuffer()` accessors unsound for untrusted input, because
+    /// they follow those bytes without any further checking.
+    pub check_nested_flatbuffers: bool,
     // probably want an option to ignore utf8 errors since strings come from c++
     // options to error un-recognized enums and unions? possible footgun.
-    // Ignore nested flatbuffers, etc?
 }
 
 impl Default for VerifierOptions {
@@ -255,6 +264,7 @@ impl Default for VerifierOptions {
             // size_ might do something different.
             max_apparent_size: 1 << 31,
             ignore_missing_null_terminator: false,
+            check_nested_flatbuffers: true,
         }
     }
 }
@@ -386,6 +396,35 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
             return Err(InvalidFlatbuffer::DepthLimitReached);
         }
         Ok(TableVerifier { pos: table_pos, vtable: vtable_pos, vtable_len, verifier: self })
+    }
+
+    /// Verifies the contents of a nested FlatBuffer: the bytes of a `[ubyte]`
+    /// field carrying the `nested_flatbuffer` schema attribute, whose root type
+    /// is `T`.
+    fn verify_nested_buffer<T: Verifiable>(&mut self, range: Range<usize>) -> Result<()> {
+        // `range` was produced by `verify_vector_range`, which has already
+        // bounds checked it. It is re-checked here rather than indexed because
+        // the verifier must not panic on any input, however malformed, and a
+        // future caller of this helper should not be able to turn a mistake into
+        // a panic.
+        let nested = match self.buffer.get(range.clone()) {
+            Some(nested) => nested,
+            None => return InvalidFlatbuffer::new_range_oob(range.start, range.end),
+        };
+
+        // Offsets inside the nested buffer are relative to its own start, so the
+        // verifier has to run against the nested slice rather than adjust a
+        // position. The buffer is swapped in place instead of building a second
+        // `Verifier` so that every budget -- `depth`, `num_tables`,
+        // `apparent_size`, and any added later -- keeps accumulating in `self`.
+        // A chain of nested buffers therefore cannot escape `max_tables` or
+        // `max_apparent_size` by starting each level from zero, and the accounting
+        // cannot silently drift if a new budget field is added, since there is no
+        // per-field copy to keep in sync.
+        let outer = core::mem::replace(&mut self.buffer, nested);
+        let res = <ForwardsUOffset<T>>::run_verifier(self, 0);
+        self.buffer = outer;
+        res
     }
 
     /// Runs the union variant's type's verifier assuming the variant is at the given position,
@@ -560,6 +599,32 @@ impl<T: SimpleToVerifyInSlice> Verifiable for Vector<'_, T> {
     fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
         verify_vector_range::<T>(v, pos)?;
         Ok(())
+    }
+}
+
+/// Verification marker for the `nested_flatbuffer` schema attribute: a `[ubyte]`
+/// field whose contents are themselves a FlatBuffer with root type `T`.
+///
+/// The generated `..._nested_flatbuffer()` accessor follows those bytes without
+/// any further bounds checking, so verifying the field only as `Vector<u8>`
+/// leaves that accessor reading unverified data. Verifying it as
+/// `NestedFlatBuffer<T>` checks the byte vector and then the buffer inside it,
+/// mirroring `VerifyNestedFlatBuffer` in the C++ implementation.
+///
+/// Unlike the other `Verifiable` types this deliberately does not implement
+/// `Follow`: the accessor reads the nested buffer through `ForwardsUOffset<T>`,
+/// so this marker exists only to carry the extra verification and can never be
+/// used to read data.
+pub struct NestedFlatBuffer<T>(PhantomData<T>);
+
+impl<T: Verifiable> Verifiable for NestedFlatBuffer<T> {
+    #[inline]
+    fn run_verifier(v: &mut Verifier, pos: usize) -> Result<()> {
+        let range = verify_vector_range::<u8>(v, pos)?;
+        if !v.opts.check_nested_flatbuffers {
+            return Ok(());
+        }
+        v.verify_nested_buffer::<T>(range)
     }
 }
 
