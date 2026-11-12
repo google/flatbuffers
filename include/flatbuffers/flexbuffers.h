@@ -1983,8 +1983,12 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 #undef FLEX_CHECK_VERIFIED
 
   bool VerifyTerminator(const String& s) {
+    // Range-check size + 1 bytes, then require the terminating byte to be NUL
+    // so NUL-scanning consumers of String::c_str() cannot read out of bounds
+    // (matches flatbuffers::Verifier::VerifyString).
     return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
-                             s.size() + 1);
+                             s.size() + 1) &&
+           s.c_str()[s.size()] == '\0';
   }
 
   bool VerifyRef(Reference r) {
