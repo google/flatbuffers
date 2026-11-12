@@ -8,6 +8,7 @@ void FlexBuffersTest();
 void FlexBuffersReuseBugTest();
 void FlexBuffersFloatingPointTest();
 void FlexBuffersDeprecatedTest();
+void FlexBuffersVerifyStringTerminatorTest();
 void ParseFlexbuffersFromJsonWithNullTest();
 
 }  // namespace tests

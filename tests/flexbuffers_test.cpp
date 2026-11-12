@@ -314,5 +314,23 @@ void ParseFlexbuffersFromJsonWithNullTest() {
   }
 }
 
+void FlexBuffersVerifyStringTerminatorTest() {
+  // A string must be null terminated so c_str() is a bounded C string. Build a
+  // valid buffer, then flip the terminator to a non-zero byte: the verifier
+  // must reject it, otherwise strlen(c_str()) reads past the buffer.
+  flexbuffers::Builder slb;
+  slb.String("abcdefgh");
+  slb.Finish();
+  auto buf = slb.GetBuffer();
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), true);
+
+  auto s = flexbuffers::GetRoot(buf.data(), buf.size()).AsString();
+  auto term = static_cast<size_t>(s.c_str() -
+                                  reinterpret_cast<const char*>(buf.data())) +
+              s.size();
+  buf[term] = 'X';
+  TEST_EQ(flexbuffers::VerifyBuffer(buf.data(), buf.size(), nullptr), false);
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
