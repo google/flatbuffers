@@ -621,19 +621,36 @@ class FlatBufferBuilderImpl {
       string_pool = new StringOffsetMap(StringOffsetCompare(buf_));
     }
 
+#if defined(__cpp_lib_generic_associative_lookup) && \
+    __cpp_lib_generic_associative_lookup >= 201304L
+    NotNested();
+    // Search the offset pool using the input bytes before copying them into
+    // the buffer. A duplicate should not require temporary serialization or
+    // force the buffer to grow just to discard those bytes again.
+    auto hint = string_pool->end();
+    if (len <= (std::numeric_limits<uoffset_t>::max)()) {
+      const StringLookup lookup = {len ? str : "", static_cast<uoffset_t>(len)};
+      hint = string_pool->lower_bound(lookup);
+      if (hint != string_pool->end() &&
+          !string_pool->key_comp()(lookup, *hint)) {
+        return *hint;
+      }
+    }
+    const Offset<String> off = CreateString<Offset>(str, len);
+    // The lookup already found the insertion position for a new string.
+    string_pool->insert(hint, off);
+#else
     const size_t size_before_string = buf_.size();
-    // Must first serialize the string, since the set is all offsets into
-    // buffer.
+    // Without heterogeneous lookup, the set key must be a serialized offset.
     const Offset<String> off = CreateString<Offset>(str, len);
     auto it = string_pool->find(off);
-    // If it exists we reuse existing serialized data!
     if (it != string_pool->end()) {
-      // We can remove the string we serialized.
       buf_.pop(buf_.size() - size_before_string);
       return *it;
     }
     // Record this string for future use.
     string_pool->insert(off);
+#endif
     return off;
   }
 
@@ -1365,7 +1382,27 @@ class FlatBufferBuilderImpl {
 
   bool dedup_vtables_;
 
+#if defined(__cpp_lib_generic_associative_lookup) && \
+    __cpp_lib_generic_associative_lookup >= 201304L
+  struct StringLookup {
+    const char* data;
+    uoffset_t size;
+  };
+#endif
+
   struct StringOffsetCompare {
+#if defined(__cpp_lib_generic_associative_lookup) && \
+    __cpp_lib_generic_associative_lookup >= 201304L
+    typedef void is_transparent;
+    bool operator()(const Offset<String>& a, const StringLookup& b) const {
+      auto str = reinterpret_cast<const String*>(buf_->data_at(a.o));
+      return StringLessThan(str->data(), str->size(), b.data, b.size);
+    }
+    bool operator()(const StringLookup& a, const Offset<String>& b) const {
+      auto str = reinterpret_cast<const String*>(buf_->data_at(b.o));
+      return StringLessThan(a.data, a.size, str->data(), str->size());
+    }
+#endif
     explicit StringOffsetCompare(const vector_downward<SizeT>& buf)
         : buf_(&buf) {}
     bool operator()(const Offset<String>& a, const Offset<String>& b) const {
