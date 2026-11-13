@@ -384,6 +384,11 @@ void ForAllFields(const reflection::Object* object, bool reverse,
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
+    if (field->id() >= field_to_id_map.size()) {
+      // A malformed schema can carry a field id that does not fit in the
+      // id -> index map, skip it instead of writing out of bounds.
+      continue;
+    }
     field_to_id_map[field->id()] = i;
   }
 
