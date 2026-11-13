@@ -391,7 +391,9 @@ class BinaryAnnotator {
 
   bool IsInlineField(const reflection::Field* const field) {
     if (field->type()->base_type() == reflection::BaseType::Obj) {
-      return schema_->objects()->Get(field->type()->index())->is_struct();
+      const reflection::Object* object = GetObject(field);
+      if (object == nullptr) return false;
+      return object->is_struct();
     }
     return IsScalar(field->type()->base_type());
   }
@@ -426,6 +428,29 @@ class BinaryAnnotator {
     return value < enum_def->values()->size();
   }
 
+  // Returns the Object referenced by `field`, or nullptr if the index is out of
+  // bounds. The .bfbs file is user-controlled; without this check the
+  // BinaryAnnotator dereferences out-of-bounds memory.
+  const reflection::Object* GetObject(const reflection::Field* const field) {
+    const int32_t index = field->type()->index();
+    if (index < 0 ||
+        static_cast<uint32_t>(index) >= schema_->objects()->size()) {
+      return nullptr;
+    }
+    return schema_->objects()->Get(static_cast<uint32_t>(index));
+  }
+
+  // Returns the Enum referenced by `field`, or nullptr if the index is out of
+  // bounds.
+  const reflection::Enum* GetEnum(const reflection::Field* const field) {
+    const int32_t index = field->type()->index();
+    if (index < 0 ||
+        static_cast<uint32_t>(index) >= schema_->enums()->size()) {
+      return nullptr;
+    }
+    return schema_->enums()->Get(static_cast<uint32_t>(index));
+  }
+
   uint64_t GetElementSize(const reflection::Field* const field) {
     if (IsScalar(field->type()->element())) {
       return GetTypeSize(field->type()->element());
@@ -433,7 +458,8 @@ class BinaryAnnotator {
 
     switch (field->type()->element()) {
       case reflection::BaseType::Obj: {
-        auto obj = schema_->objects()->Get(field->type()->index());
+        const reflection::Object* obj = GetObject(field);
+        if (obj == nullptr) return sizeof(uint32_t);
         return obj->is_struct() ? obj->bytesize() : sizeof(uint32_t);
       }
       default:

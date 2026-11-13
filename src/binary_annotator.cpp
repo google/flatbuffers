@@ -753,8 +753,16 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
 
     switch (field->type()->base_type()) {
       case reflection::BaseType::Obj: {
-        const reflection::Object* next_object =
-            schema_->objects()->Get(field->type()->index());
+        const reflection::Object* next_object = GetObject(field);
+        if (next_object == nullptr) {
+          // Field references a non-existent Object in the schema. Treat as a
+          // generic offset field annotation.
+          offset_field_comment.default_value = "(unknown)";
+          regions.push_back(MakeBinaryRegion(field_offset, length, region_type,
+                                             0, offset_of_next_item,
+                                             offset_field_comment));
+          break;
+        }
 
         if (next_object->is_struct()) {
           // Structs are stored inline.
@@ -911,9 +919,14 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
       offset += type_size;
     } else if (field->type()->base_type() == reflection::BaseType::Obj) {
       // Structs are stored inline, even when nested.
+      const reflection::Object* nested = GetObject(field);
+      if (nested == nullptr) {
+        // OOB Object index; skip further traversal.
+        return;
+      }
       offset = BuildStruct(offset, regions,
                            referring_field_name + "." + field->name()->str(),
-                           schema_->objects()->Get(field->type()->index()));
+                           nested);
     } else if (field->type()->base_type() == reflection::BaseType::Array) {
       const bool is_scalar = IsScalar(field->type()->element());
       const uint64_t type_size = GetTypeSize(field->type()->element());
@@ -961,10 +974,15 @@ uint64_t BinaryAnnotator::BuildStruct(const uint64_t struct_offset,
           // TODO(dbaileychess): This works, but the comments on the fields lose
           // some context. Need to figure a way how to plumb the nested arrays
           // comments together that isn't too confusing.
+          const reflection::Object* nested = GetObject(field);
+          if (nested == nullptr) {
+            // OOB Object index; skip further traversal.
+            break;
+          }
           offset =
               BuildStruct(offset, regions,
                           referring_field_name + "." + field->name()->str(),
-                          schema_->objects()->Get(field->type()->index()));
+                          nested);
         }
       }
     }
@@ -1131,8 +1149,11 @@ void BinaryAnnotator::BuildVector(
 
   switch (field->type()->element()) {
     case reflection::BaseType::Obj: {
-      const reflection::Object* object =
-          schema_->objects()->Get(field->type()->index());
+      const reflection::Object* object = GetObject(field);
+      if (object == nullptr) {
+        // OOB Object index; cannot annotate further.
+        return;
+      }
 
       if (object->is_struct()) {
         // Vector of structs
@@ -1408,8 +1429,11 @@ void BinaryAnnotator::BuildVector(
 std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
                                         const uint8_t realized_type,
                                         const reflection::Field* const field) {
-  const reflection::Enum* next_enum =
-      schema_->enums()->Get(field->type()->index());
+  const reflection::Enum* next_enum = GetEnum(field);
+  if (next_enum == nullptr) {
+    // OOB Enum index; cannot annotate further.
+    return "";
+  }
 
   const reflection::EnumVal* enum_val = next_enum->values()->Get(realized_type);
 
@@ -1420,8 +1444,13 @@ std::string BinaryAnnotator::BuildUnion(const uint64_t union_offset,
   const reflection::Type* union_type = enum_val->union_type();
 
   if (union_type->base_type() == reflection::BaseType::Obj) {
+    const int32_t union_index = union_type->index();
+    if (union_index < 0 ||
+        static_cast<uint32_t>(union_index) >= schema_->objects()->size()) {
+      return enum_val->name()->c_str();
+    }
     const reflection::Object* object =
-        schema_->objects()->Get(union_type->index());
+        schema_->objects()->Get(static_cast<uint32_t>(union_index));
 
     if (object->is_struct()) {
       // Union of vectors point to a new Binary section
