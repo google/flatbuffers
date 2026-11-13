@@ -389,9 +389,27 @@ class BinaryAnnotator {
     sections_.insert(std::make_pair(offset, section));
   }
 
+  // Returns nullptr if the index is out of range.
+  const reflection::Object* GetObjectByIndex(int32_t index) const {
+    if (index < 0 ||
+        static_cast<uint32_t>(index) >= schema_->objects()->size()) {
+      return nullptr;
+    }
+    return schema_->objects()->Get(static_cast<uint32_t>(index));
+  }
+
+  const reflection::Enum* GetEnumByIndex(int32_t index) const {
+    if (index < 0 ||
+        static_cast<uint32_t>(index) >= schema_->enums()->size()) {
+      return nullptr;
+    }
+    return schema_->enums()->Get(static_cast<uint32_t>(index));
+  }
+
   bool IsInlineField(const reflection::Field* const field) {
     if (field->type()->base_type() == reflection::BaseType::Obj) {
-      return schema_->objects()->Get(field->type()->index())->is_struct();
+      const auto* obj = GetObjectByIndex(field->type()->index());
+      return obj && obj->is_struct();
     }
     return IsScalar(field->type()->base_type());
   }
@@ -433,7 +451,8 @@ class BinaryAnnotator {
 
     switch (field->type()->element()) {
       case reflection::BaseType::Obj: {
-        auto obj = schema_->objects()->Get(field->type()->index());
+        const auto* obj = GetObjectByIndex(field->type()->index());
+        if (!obj) return sizeof(uint32_t);
         return obj->is_struct() ? obj->bytesize() : sizeof(uint32_t);
       }
       default:
