@@ -335,6 +335,64 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   }
 }
 
+// Regression test: SetString (and ResizeAnyVector) trigger a full
+// object-graph traversal from the root via ResizeContext::ResizeTable,
+// which previously formed a pointer from an unvalidated stored offset for
+// every object-typed field encountered along the way -- not just the field
+// being directly resized. A malformed offset in any such field (e.g. in a
+// buffer that was verified once but not re-verified immediately before this
+// call) produced a wild pointer that was then dereferenced in the recursive
+// calls, causing a crash. This resizes an unrelated "name" string while a
+// sibling "enemy" object field carries a corrupted offset, and checks that
+// the corrupted field is safely skipped rather than dereferenced.
+void ResizeTableMalformedOffsetTest(const std::string& tests_data_path) {
+  flatbuffers::FlatBufferBuilder fbb;
+  auto enemy_name = fbb.CreateString("enemy");
+  MonsterBuilder enemy_builder(fbb);
+  enemy_builder.add_name(enemy_name);
+  auto enemy_offset = enemy_builder.Finish();
+  auto name = fbb.CreateString("victim");
+  MonsterBuilder mb(fbb);
+  mb.add_name(name);
+  mb.add_enemy(enemy_offset);
+  auto monster = mb.Finish();
+  FinishMonsterBuffer(fbb, monster);
+
+  std::vector<uint8_t> buf(fbb.GetBufferPointer(),
+                           fbb.GetBufferPointer() + fbb.GetSize());
+
+  std::string bfbsfile;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.bfbs").c_str(),
+                                true, &bfbsfile),
+          true);
+  flatbuffers::Verifier schema_verifier(
+      reinterpret_cast<const uint8_t*>(bfbsfile.c_str()), bfbsfile.length());
+  TEST_EQ(reflection::VerifySchemaBuffer(schema_verifier), true);
+  auto& schema = *reflection::GetSchema(bfbsfile.c_str());
+  auto root_table_def = schema.root_table();
+
+  auto* root_table =
+      flatbuffers::GetMutableRoot<flatbuffers::Table>(buf.data());
+  auto name_field_def = root_table_def->fields()->LookupByKey("name");
+  auto enemy_field_def = root_table_def->fields()->LookupByKey("enemy");
+  auto enemy_offset_in_table =
+      root_table->GetOptionalFieldOffset(enemy_field_def->offset());
+
+  // Corrupt the stored offset for "enemy" to a value that would produce a
+  // pointer far outside the buffer if used without validation.
+  auto* enemy_offset_loc =
+      reinterpret_cast<uint8_t*>(root_table) + enemy_offset_in_table;
+  uint32_t wild_value = 0x7FFFFFFFu;
+  memcpy(enemy_offset_loc, &wild_value, sizeof(wild_value));
+
+  auto name_ptr = flatbuffers::GetFieldS(*root_table, *name_field_def);
+
+  // Must not crash: the malformed "enemy" offset encountered during the
+  // traversal triggered by resizing "name" must be safely skipped.
+  flatbuffers::SetString(schema, "a longer replacement name forcing a resize",
+                         name_ptr, &buf, root_table_def);
+}
+
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
   auto s =
       flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());
@@ -411,3 +469,4 @@ void MiniReflectFixedLengthArrayTest() {
 
 }  // namespace tests
 }  // namespace flatbuffers
+

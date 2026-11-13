@@ -533,7 +533,22 @@ class ResizeContext {
         // Get this fields' offset, and read it if safe.
         auto offsetloc = tableloc + offset;
         if (DagCheck(offsetloc)) continue;  // This offset already visited.
-        auto ref = offsetloc + ReadScalar<uoffset_t>(offsetloc);
+        auto raw_offset = ReadScalar<uoffset_t>(offsetloc);
+        // Validate the offset stays within the buffer before forming a
+        // pointer from it. A malformed/corrupted offset (e.g. in a buffer
+        // that was verified once but mutated or otherwise not re-verified
+        // before this call) could otherwise produce a wild pointer via
+        // pointer arithmetic that overflows the buffer's bounds, which is
+        // then dereferenced in the recursive calls below. Checked via
+        // subtraction to avoid overflow in the addition itself. Mirrors the
+        // root-offset validation already applied in AddFlatBuffer.
+        auto offsetloc_pos = static_cast<size_t>(offsetloc - buf_.data());
+        if (static_cast<size_t>(raw_offset) > buf_.size() ||
+            offsetloc_pos > buf_.size() - static_cast<size_t>(raw_offset)) {
+          continue;  // Malformed offset -- skip this field rather than form
+                      // an out-of-bounds pointer.
+        }
+        auto ref = offsetloc + raw_offset;
         Straddle<uoffset_t, 1>(offsetloc, ref, offsetloc);
         // Recurse.
         switch (base_type) {
@@ -801,3 +816,4 @@ bool VerifySizePrefixed(const reflection::Schema& schema,
 }
 
 }  // namespace flatbuffers
+
