@@ -378,18 +378,28 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
 
 void ForAllFields(const reflection::Object* object, bool reverse,
                   std::function<void(const reflection::Field*)> func) {
-  std::vector<uint32_t> field_to_id_map;
-  field_to_id_map.resize(object->fields()->size());
+  const uint32_t field_count = object->fields()->size();
+  std::vector<uint32_t> field_to_id_map(field_count, UINT32_MAX);
 
-  // Create the mapping of field ID to the index into the vector.
-  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
+  // Create the mapping of field ID to the index into the vector. Field IDs
+  // come from the (possibly untrusted) reflection schema and are not
+  // guaranteed to be < field_count -- skip any field whose ID does not
+  // correspond to a valid slot, matching the validation
+  // StructDef::Deserialize already applies to this same untrusted data
+  // (see idl_parser.cpp).
+  for (uint32_t i = 0; i < field_count; ++i) {
     auto field = object->fields()->Get(i);
+    if (field->id() >= field_count) {
+      continue;
+    }
     field_to_id_map[field->id()] = i;
   }
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-    func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+    uint32_t idx =
+        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i];
+    if (idx == UINT32_MAX) continue;  // slot never filled: invalid/duplicate id
+    func(object->fields()->Get(idx));
   }
 }
 
