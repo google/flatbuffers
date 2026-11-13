@@ -124,7 +124,8 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <int&..., typename T, typename LenT>
   bool VerifyVector(const Vector<T, LenT>* const vec) const {
     return !vec || VerifyVectorOrString<LenT>(
-                       reinterpret_cast<const uint8_t*>(vec), sizeof(T));
+                       reinterpret_cast<const uint8_t*>(vec), sizeof(T),
+                       nullptr, AlignOf<T>());
   }
 
   // Verify a pointer (may be NULL) of a vector to struct.
@@ -145,10 +146,18 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   // Common code between vectors and strings.
   template <typename LenT = uoffset_t>
   bool VerifyVectorOrString(const uint8_t* const vec, const size_t elem_size,
-                            size_t* const end = nullptr) const {
+                            size_t* const end = nullptr,
+                            const size_t elem_align = 0) const {
     const auto vec_offset = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<LenT>(vec_offset)) return false;
+    // Verify<LenT>() only aligns the length prefix to sizeof(LenT). The element
+    // data starts after that prefix and is read by Vector<T>::Get() through a
+    // typed load, so it must be aligned for the element type as well -- a
+    // 4-aligned prefix leaves 8-byte elements misaligned half the time.
+    if (elem_align > 1 &&
+        !VerifyAlignment(vec_offset + sizeof(LenT), elem_align))
+      return false;
     // Check the whole array. If this is a string, the byte past the array must
     // be 0.
     const LenT size = ReadScalar<LenT>(vec);
