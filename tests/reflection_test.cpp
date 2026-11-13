@@ -409,5 +409,80 @@ void MiniReflectFixedLengthArrayTest() {
 #endif
 }
 
+// Regression test for a NULL pointer dereference (CWE-476) in the reflection
+// verifier's "vector of unions" handling (src/reflection.cpp, VerifyVector(),
+// case reflection::Union). A crafted buffer whose union value-vector field is
+// present but whose implicit companion type-vector field is absent from the
+// vtable used to pass VerifyVector(type_vec) (VerifyVector(nullptr) == true)
+// and then dereference the null type_vec in `type_vec->size()`. It must now be
+// rejected safely (return false) instead of crashing.
+//
+// Related to, but distinct from, the already-fixed issue #8567 (which added the
+// type_vec/value-vec length check but never null-checked type_vec itself).
+void UnionVectorMissingTypeVectorVerifyTest() {
+  // Minimal reflection schema equivalent to:  table Root { items: [<union>]; }
+  // The value vector "items" lives at vtable slot 6; its implicit companion
+  // type vector "items_type" would normally live at slot 4.
+  flatbuffers::FlatBufferBuilder schema_fbb;
+  {
+    auto items_type = reflection::CreateType(schema_fbb, reflection::Vector,
+                                             reflection::Union, /*index=*/0);
+    auto items_name = schema_fbb.CreateString("items");
+    auto items_field =
+        reflection::CreateField(schema_fbb, items_name, items_type, /*id=*/0,
+                                /*offset=*/6);  // vtable slot 6
+    std::vector<flatbuffers::Offset<reflection::Field>> fields_vec{items_field};
+    auto fields = schema_fbb.CreateVectorOfSortedTables(&fields_vec);
+    auto root_name = schema_fbb.CreateString("Root");
+    auto root_obj = reflection::CreateObject(schema_fbb, root_name, fields,
+                                             /*is_struct=*/false,
+                                             /*minalign=*/4, /*bytesize=*/8);
+    std::vector<flatbuffers::Offset<reflection::Object>> objects_vec{root_obj};
+    auto objects = schema_fbb.CreateVectorOfSortedTables(&objects_vec);
+    std::vector<flatbuffers::Offset<reflection::Enum>> enums_vec;  // unused
+    auto enums = schema_fbb.CreateVectorOfSortedTables(&enums_vec);
+    auto schema = reflection::CreateSchema(schema_fbb, objects, enums,
+                                           /*file_ident=*/0, /*file_ext=*/0,
+                                           root_obj);
+    schema_fbb.Finish(schema);
+  }
+  auto schema = reflection::GetSchema(schema_fbb.GetBufferPointer());
+
+  // Negative control: a well-formed buffer with BOTH the type vector (slot 4)
+  // and the value vector (slot 6) present must verify successfully. This proves
+  // the schema/harness are not simply rejecting everything.
+  {
+    flatbuffers::FlatBufferBuilder data_fbb;
+    std::vector<flatbuffers::Offset<void>> empty_items;
+    auto items_vec = data_fbb.CreateVector(empty_items);
+    std::vector<uint8_t> empty_types;
+    auto types_vec = data_fbb.CreateVector(empty_types);
+    auto start = data_fbb.StartTable();
+    data_fbb.AddOffset(/*field=*/4, types_vec);  // type vector present
+    data_fbb.AddOffset(/*field=*/6, items_vec);  // value vector present
+    data_fbb.Finish(
+        flatbuffers::Offset<flatbuffers::Table>(data_fbb.EndTable(start)));
+    TEST_EQ(flatbuffers::Verify(*schema, *schema->root_table(),
+                                data_fbb.GetBufferPointer(), data_fbb.GetSize()),
+            true);
+  }
+
+  // Regression case: value vector (slot 6) present but companion type vector
+  // (slot 4) absent. Before the fix this dereferenced a NULL type_vec and
+  // crashed the process; it must now be rejected safely.
+  {
+    flatbuffers::FlatBufferBuilder data_fbb;
+    std::vector<flatbuffers::Offset<void>> empty_items;
+    auto items_vec = data_fbb.CreateVector(empty_items);
+    auto start = data_fbb.StartTable();
+    data_fbb.AddOffset(/*field=*/6, items_vec);  // slot 4 intentionally absent
+    data_fbb.Finish(
+        flatbuffers::Offset<flatbuffers::Table>(data_fbb.EndTable(start)));
+    TEST_EQ(flatbuffers::Verify(*schema, *schema->root_table(),
+                                data_fbb.GetBufferPointer(), data_fbb.GetSize()),
+            false);
+  }
+}
+
 }  // namespace tests
 }  // namespace flatbuffers
