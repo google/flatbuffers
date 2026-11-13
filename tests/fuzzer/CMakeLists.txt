@@ -250,6 +250,20 @@ add_custom_command(
   ${CMAKE_CURRENT_BINARY_DIR}/seed_64bit/test_64bit.bin
 )
 
+# Mini-reflection fuzzer for union vector OOB testing
+add_executable(minireflect_fuzzer flatbuffers_minireflect_fuzzer.cc)
+target_link_libraries(minireflect_fuzzer PRIVATE flatbuffers_fuzzed)
+
+# Copy seed corpus for minireflect fuzzer
+add_custom_command(
+  TARGET minireflect_fuzzer PRE_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+    ${CMAKE_CURRENT_BINARY_DIR}/seed_minireflect
+  COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_SOURCE_DIR}/../fuzzer/seed_minireflect/movie_seed.bin
+    ${CMAKE_CURRENT_BINARY_DIR}/seed_minireflect/movie_seed.bin
+)
+
 # Build debugger for weird cases found with fuzzer.
 if(BUILD_DEBUGGER)
   add_library(flatbuffers_nonfuzz STATIC ${FlatBuffers_Library_SRCS})
