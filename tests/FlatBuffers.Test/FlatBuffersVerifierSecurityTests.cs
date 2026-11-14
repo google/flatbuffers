@@ -39,6 +39,26 @@ namespace Google.FlatBuffers.Test
         }
 
         [FlatBuffersTestMethod]
+        public void TruncatedNestedBufferOffsetFieldIsRejectedWithoutThrowing()
+        {
+            var bytes = BuildNestedBufferTable();
+            bytes[8] = 13; // field starts at byte 25; only three bytes remain.
+            var verifier = new Verifier(new ByteBuffer(bytes));
+            Assert.IsTrue(verifier.VerifyTableStart(12));
+            Assert.IsFalse(verifier.VerifyNestedBuffer(12, 4, null, true));
+        }
+
+        [FlatBuffersTestMethod]
+        public void AbsentRequiredNestedBufferIsRejected()
+        {
+            var bytes = BuildNestedBufferTable();
+            bytes[8] = 0; // A required field must not be absent.
+            var verifier = new Verifier(new ByteBuffer(bytes));
+            Assert.IsTrue(verifier.VerifyTableStart(12));
+            Assert.IsFalse(verifier.VerifyNestedBuffer(12, 4, null, true));
+        }
+
+        [FlatBuffersTestMethod]
         public void SelfReferentialNestedBufferOffsetIsRejected()
         {
             var bytes = BuildNestedBufferTable();
