@@ -776,11 +776,14 @@ class CSharpGenerator : public BaseGenerator {
               code_.SetValue(
                   "VECTOR_ELEM_INLINESIZE",
                   NumToString(InlineSize(field.value.type.VectorType())));
+              code_.SetValue(
+                  "VECTOR_ELEM_ALIGNMENT",
+                  NumToString(InlineAlignment(field.value.type.VectorType())));
               code_ +=
                   "{{PRE}}      && "
                   "verifier.VerifyVectorOfData(tablePos, "
                   "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} "
-                  "/*{{TYPE}}*/, {{REQUIRED_FLAG}})";
+                  "/*{{TYPE}}*/, {{VECTOR_ELEM_ALIGNMENT}}, {{REQUIRED_FLAG}})";
             }
             break;
           }
@@ -807,10 +810,13 @@ class CSharpGenerator : public BaseGenerator {
               code_.SetValue(
                   "VECTOR_ELEM_INLINESIZE",
                   NumToString(InlineSize(field.value.type.VectorType())));
+              code_.SetValue(
+                  "VECTOR_ELEM_ALIGNMENT",
+                  NumToString(InlineAlignment(field.value.type.VectorType())));
               code_ +=
                   "{{PRE}}      && verifier.VerifyVectorOfData(tablePos, "
                   "{{OFFSET}} /*{{NAME}}*/, {{VECTOR_ELEM_INLINESIZE}} "
-                  "/*{{TYPE}}*/, {{REQUIRED_FLAG}})";
+                  "/*{{TYPE}}*/, {{VECTOR_ELEM_ALIGNMENT}}, {{REQUIRED_FLAG}})";
             }
             break;
         }
