@@ -278,7 +278,7 @@ impl<'opts, 'buf> Verifier<'opts, 'buf> {
     pub fn reset(&mut self) {
         self.depth = 0;
         self.num_tables = 0;
-        self.num_tables = 0;
+        self.apparent_size = 0;
     }
     /// Checks `pos` is aligned to T's alignment. This does not mean `buffer[pos]` is aligned w.r.t
     /// memory since `buffer: &[u8]` has alignment 1.
@@ -627,3 +627,30 @@ impl_verifiable_for!(f32);
 impl_verifiable_for!(u64);
 impl_verifiable_for!(i64);
 impl_verifiable_for!(f64);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `reset()` must clear every field it is documented to reset. Previously
+    /// `apparent_size` was left untouched (the `num_tables` assignment was
+    /// duplicated), so a reused `Verifier` accumulated size across resets and
+    /// eventually rejected every buffer with `ApparentSizeTooLarge`.
+    #[test]
+    fn reset_clears_apparent_size() {
+        let opts = VerifierOptions {
+            max_apparent_size: 100,
+            ..Default::default()
+        };
+        let buffer = [0u8; 64];
+        let mut verifier = Verifier::new(&opts, &buffer);
+
+        verifier
+            .range_in_buffer(0, 60)
+            .expect("60 bytes is within the 100 byte limit");
+        verifier.reset();
+        verifier
+            .range_in_buffer(0, 60)
+            .expect("after reset the same range must fit again");
+    }
+}
