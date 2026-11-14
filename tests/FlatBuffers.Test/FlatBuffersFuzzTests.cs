@@ -24,6 +24,42 @@ namespace Google.FlatBuffers.Test
     {
         private readonly Lcg _lcg = new Lcg();
 
+
+        // Regression for verifying the alignment of vector element data.
+        // The serialized length prefix is 4-aligned in both cases; only the
+        // first element's required 8-byte alignment differs.
+        [FlatBuffersTestMethod]
+        public void TestVerifyVectorPayloadAlignment()
+        {
+            Func<int, byte[]> buildBuffer = vectorPosition =>
+            {
+                byte[] data = new byte[48];
+                data[4] = 6;    // vtable size
+                data[6] = 8;    // table size
+                data[8] = 4;    // first field is the vector offset
+                data[12] = 8;   // relative offset to vtable
+                data[16] = (byte)(vectorPosition - 16);
+                data[vectorPosition] = 1; // vector length: one 8-byte element
+                data[vectorPosition + 4] = 0x42;
+                return data;
+            };
+
+            var misaligned = new Verifier(new ByteBuffer(buildBuffer(24)));
+            Assert.IsFalse(misaligned.VerifyVectorOfData(12, 4, 8, 8, true));
+
+            var aligned = new Verifier(new ByteBuffer(buildBuffer(28)));
+            Assert.IsTrue(aligned.VerifyVectorOfData(12, 4, 8, 8, true));
+
+            // A fixed struct can be eight bytes long but require only four
+            // bytes of alignment; do not incorrectly enforce sizeof(struct).
+            Assert.IsTrue(misaligned.VerifyVectorOfData(12, 4, 8, 4, true));
+
+            var relaxed = new Verifier(new ByteBuffer(buildBuffer(24)),
+                                       new Options(64, 1000000, true, false));
+            Assert.IsTrue(relaxed.VerifyVectorOfData(12, 4, 8, 8, true));
+            Assert.IsFalse(aligned.VerifyVectorOfData(12, 4, 0, 8, true));
+        }
+
         [FlatBuffersTestMethod]
         public void TestObjects()
         {
