@@ -384,6 +384,9 @@ void ForAllFields(const reflection::Object* object, bool reverse,
   // Create the mapping of field ID to the index into the vector.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
+    // A field id past the field count would index out of bounds. The schema
+    // verifier does not enforce this, so guard against a malformed schema.
+    if (field->id() >= field_to_id_map.size()) continue;
     field_to_id_map[field->id()] = i;
   }
 
