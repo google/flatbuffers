@@ -621,6 +621,12 @@ namespace Google.FlatBuffers
       {
         return !required;
       }
+      // Validate the field's uoffset before reading it. A malformed vtable
+      // can point outside the buffer even when the table header is valid.
+      if (!CheckIndirectOffset(offset))
+      {
+        return false;
+      }
       uint vecOffset = GetIndirectOffset(offset);
       if (!CheckVector(vecOffset, SIZE_BYTE))
       {
