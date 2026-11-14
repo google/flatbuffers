@@ -37,5 +37,49 @@ namespace Google.FlatBuffers.Test
             Assert.IsTrue(verifier.VerifyTableStart(12));
             Assert.IsFalse(verifier.VerifyNestedBuffer(12, 4, null, true));
         }
+
+        [FlatBuffersTestMethod]
+        public void SelfReferentialNestedBufferOffsetIsRejected()
+        {
+            var bytes = BuildNestedBufferTable();
+            bytes[16] = 0; // A present vector may not point at its own offset.
+            var verifier = new Verifier(new ByteBuffer(bytes));
+            Assert.IsTrue(verifier.VerifyTableStart(12));
+            Assert.IsFalse(verifier.VerifyNestedBuffer(12, 4, null, true));
+        }
+
+        [FlatBuffersTestMethod]
+        public void WrappedBackwardNestedBufferOffsetIsRejected()
+        {
+            var bytes = BuildNestedBufferTable();
+            // uint wrap: field position 16 + 0xfffffff0 == 0.
+            bytes[16] = 0xf0;
+            bytes[17] = 0xff;
+            bytes[18] = 0xff;
+            bytes[19] = 0xff;
+            var verifier = new Verifier(new ByteBuffer(bytes));
+            Assert.IsTrue(verifier.VerifyTableStart(12));
+            Assert.IsFalse(verifier.VerifyNestedBuffer(12, 4, null, true));
+        }
+
+        [FlatBuffersTestMethod]
+        public void AbsentOptionalNestedBufferIsAccepted()
+        {
+            var bytes = BuildNestedBufferTable();
+            bytes[8] = 0; // Zero vtable slot means optional field is absent.
+            var verifier = new Verifier(new ByteBuffer(bytes));
+            Assert.IsTrue(verifier.VerifyTableStart(12));
+            Assert.IsTrue(verifier.VerifyNestedBuffer(12, 4, null, false));
+        }
+
+        [FlatBuffersTestMethod]
+        public void OutOfBoundsNestedVectorTargetIsRejected()
+        {
+            var bytes = BuildNestedBufferTable();
+            bytes[16] = 100; // Valid field location; invalid target location.
+            var verifier = new Verifier(new ByteBuffer(bytes));
+            Assert.IsTrue(verifier.VerifyTableStart(12));
+            Assert.IsFalse(verifier.VerifyNestedBuffer(12, 4, null, true));
+        }
     }
 }
