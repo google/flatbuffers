@@ -1,0 +1,7 @@
+namespace PhpKeywordTest;
+
+table Bool {
+  value:bool;
+}
+
+root_type Bool;
