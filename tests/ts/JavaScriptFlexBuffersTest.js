@@ -7,6 +7,7 @@ function main() {
   testSingleValueBuffers();
   testGoldBuffer();
   testEncode();
+  testArrayBufferViewBlobBounds();
   testIndirectAdd();
   testIndirectWithCache();
   testMapBuilder();
@@ -137,6 +138,25 @@ function testEncode() {
     115, 111, 109, 101, 116, 104, 105, 110, 103, 0, 1,  11, 1, 1,  1,
     12,  4,   6,   1,   1,   45,  4,   2,   8,   4, 36, 36, 4, 40, 1
   ]);
+}
+
+function testArrayBufferViewBlobBounds() {
+  const encoder = new TextEncoder();
+  const prefix = 'PREFIX_SECRET:';
+  const publicData = 'PUBLIC';
+  const suffix = ':SUFFIX_SECRET';
+  const backing = encoder.encode(prefix + publicData + suffix);
+  const publicOffset = prefix.length;
+  const publicLength = publicData.length;
+  const expected = encoder.encode(publicData);
+
+  function _assertView(value) {
+    const buffer = flexbuffers.encode(value).buffer;
+    assert.deepStrictEqual(flexbuffers.toObject(buffer), expected);
+  }
+
+  _assertView(backing.subarray(publicOffset, publicOffset + publicLength));
+  _assertView(new DataView(backing.buffer, publicOffset, publicLength));
 }
 
 function testDeduplicationOff() {
