@@ -4153,7 +4153,7 @@ bool StructDef::Deserialize(Parser& parser, const reflection::Object* object) {
     if (field_def->key) {
       if (has_key) {
         // only one field may be set as key
-        delete field_def;
+        // fields already owns field_def and will delete it during cleanup.
         return false;
       }
       has_key = true;
