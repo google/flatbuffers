@@ -17,6 +17,40 @@ from flatc_test import *
 
 class CppTests:
 
+  def OutputDirectoryCreationFailure(self):
+    # A file in the middle of the output path makes the directory impossible
+    # to create; flatc must fail instead of reporting success.
+    blocker = Path(script_path, "output_blocker")
+    blocker.write_text("not a directory")
+    try:
+      result = subprocess.run(
+          [str(flatc_path), "--cpp", "-o", str(blocker / "nested"), "foo.fbs"],
+          cwd=str(script_path),
+          capture_output=True,
+          text=True,
+      )
+      assert result.returncode != 0, "flatc succeeded: " + result.stdout
+      assert not Path(blocker, "nested").exists()
+    finally:
+      blocker.unlink()
+
+  def FileNamesOnlyWithUncreatableOutputDirectory(self):
+    # --file-names-only writes nothing, so the output directory is not needed.
+    blocker = Path(script_path, "output_blocker")
+    blocker.write_text("not a directory")
+    try:
+      result = subprocess.run(
+          [str(flatc_path), "--file-names-only", "--cpp", "-o",
+           str(blocker / "nested"), "foo.fbs"],
+          cwd=str(script_path),
+          capture_output=True,
+          text=True,
+      )
+      assert result.returncode == 0, "flatc failed: " + result.stderr
+      assert "foo_generated.h" in result.stdout
+    finally:
+      blocker.unlink()
+
   def Flatten(self):
     # Generate just foo with a "flatten" import of bar.
     flatc(["--cpp", "foo.fbs"])
