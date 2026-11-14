@@ -223,8 +223,8 @@ static public class TypeAliasesVerify
       && verifier.VerifyField(tablePos, 18 /*U64*/, 8 /*ulong*/, 8, false)
       && verifier.VerifyField(tablePos, 20 /*F32*/, 4 /*float*/, 4, false)
       && verifier.VerifyField(tablePos, 22 /*F64*/, 8 /*double*/, 8, false)
-      && verifier.VerifyVectorOfData(tablePos, 24 /*V8*/, 1 /*sbyte*/, false)
-      && verifier.VerifyVectorOfData(tablePos, 26 /*Vf64*/, 8 /*double*/, false)
+      && verifier.VerifyVectorOfData(tablePos, 24 /*V8*/, 1 /*sbyte*/, 1, false)
+      && verifier.VerifyVectorOfData(tablePos, 26 /*Vf64*/, 8 /*double*/, 8, false)
       && verifier.VerifyTableEnd(tablePos);
   }
 }
