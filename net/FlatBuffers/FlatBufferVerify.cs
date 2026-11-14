@@ -319,7 +319,7 @@ namespace Google.FlatBuffers
       return (CheckScalar(offset, SIZE_U_OFFSET));
     }
 
-    private checkElementStruct CheckVectorOrString(uint pos, ulong elementSize)
+    private checkElementStruct CheckVectorOrString(uint pos, ulong elementSize, ulong elementAlignment = 1)
     {
       var result = new checkElementStruct
       {
@@ -328,10 +328,24 @@ namespace Google.FlatBuffers
       };
 
       uint vectorPos = pos;
+      // All element widths and alignments must be valid. In particular, zero
+      // sizes must be rejected before dividing by the element size below.
+      if (elementSize == 0 || elementAlignment == 0 ||
+          (elementAlignment & (elementAlignment - 1)) != 0)
+      {
+        return result;
+      }
       // Check we can read the vector/string size field (it is of uoffset size)
       if (!CheckScalar(vectorPos, SIZE_U_OFFSET))
       {
         // result.elementValid = false; result.elementOffset = 0;
+        return result;
+      }
+      // Checking the length prefix alone only enforces 4-byte alignment.
+      // Elements may need a larger alignment (for example, 8-byte scalars).
+      // The element alignment is distinct from the element size for structs.
+      if (!CheckAlignment(vectorPos + SIZE_U_OFFSET, elementAlignment))
+      {
         return result;
       }
       // Check the whole array. If this is a string, the byte past the array
@@ -365,9 +379,9 @@ namespace Google.FlatBuffers
     }
 
     /// <summary> Verify the vector of elements of given size </summary>
-    private bool CheckVector(uint pos, ulong elementSize)
+    private bool CheckVector(uint pos, ulong elementSize, ulong elementAlignment = 1)
     {
-      var result = CheckVectorOrString(pos, elementSize);
+      var result = CheckVectorOrString(pos, elementSize, elementAlignment);
       return result.elementValid;
     }
     /// <summary> Verify table content using structure dependent generated function </summary>
@@ -528,7 +542,15 @@ namespace Google.FlatBuffers
     /// <param name="required"> Required Value when the offset == 0 </param>
     /// <returns>Return True when the verification of the Vector of Data passed</returns>
     // (this method is used internally by generated verification functions)
+    // Compatibility overload for callers generated before vector alignment
+    // checks were introduced. New generated verifiers pass the wire alignment.
     public bool VerifyVectorOfData(uint tablePos, short vOffset, ulong elementSize, bool required)
+    {
+      return VerifyVectorOfData(tablePos, vOffset, elementSize, 1, required);
+    }
+
+    /// <summary>Verify a vector of fixed-size elements, including the wire alignment of each element.</summary>
+    public bool VerifyVectorOfData(uint tablePos, short vOffset, ulong elementSize, ulong elementAlignment, bool required)
     {
       var offset = GetVOffset(tablePos, vOffset);
       if (offset == 0)
@@ -540,7 +562,7 @@ namespace Google.FlatBuffers
         return false;
       }
       var vecOffset = GetIndirectOffset(offset);
-      return  CheckVector(vecOffset, elementSize);
+      return CheckVector(vecOffset, elementSize, elementAlignment);
     }
 
     /// <summary> Verify array of strings </summary>
