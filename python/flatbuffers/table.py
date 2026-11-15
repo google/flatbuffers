@@ -58,27 +58,53 @@ class Table(object):
   def VectorLen(self, off):
     """VectorLen retrieves the length of the vector whose offset is stored
 
-    at "off" in this object.
+    at "off" in this object. Returns 0 if the buffer is too short to safely
+    contain the vector's relative offset or length field at the computed
+    position, or if the claimed length could not possibly fit in the
+    remaining buffer even for the smallest (1-byte) element type, instead
+    of trusting an attacker-controlled value with no validation.
     """
     N.enforce_number(off, N.UOffsetTFlags)
 
+    bytewidth = N.UOffsetTFlags.bytewidth
+    buf_len = len(self.Bytes)
+    if off < 0 or self.Pos < 0 or self.Pos > buf_len - off or buf_len - self.Pos - off < bytewidth:
+      return 0
     off += self.Pos
-    off += encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    rel = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    if rel < 0 or rel > buf_len - off or buf_len - off - rel < bytewidth:
+      return 0
+    off += rel
     ret = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    # A vector cannot have more elements than there are bytes remaining
+    # in the buffer after its length field, even assuming 1-byte elements.
+    if ret < 0 or ret > buf_len - (off + bytewidth):
+      return 0
     return ret
 
   def Vector(self, off):
     """Vector retrieves the start of data of the vector whose offset is
 
-    stored at "off" in this object.
+    stored at "off" in this object. Returns len(self.Bytes) (a position
+    past the end of the buffer, so any subsequent read through it fails
+    safely) if the buffer is too short to safely contain the vector's
+    relative offset field at the computed position, instead of trusting
+    an attacker-controlled value with no validation.
     """
     N.enforce_number(off, N.UOffsetTFlags)
 
+    bytewidth = N.UOffsetTFlags.bytewidth
+    buf_len = len(self.Bytes)
+    if off < 0 or self.Pos < 0 or self.Pos > buf_len - off or buf_len - self.Pos - off < bytewidth:
+      return buf_len
     off += self.Pos
-    x = off + self.Get(N.UOffsetTFlags, off)
+    rel = encode.Get(N.UOffsetTFlags.packer_type, self.Bytes, off)
+    if rel < 0 or rel > buf_len - off or buf_len - off - rel < bytewidth:
+      return buf_len
+    off += rel
     # data starts after metadata containing the vector length
-    x += N.UOffsetTFlags.bytewidth
-    return x
+    off += bytewidth
+    return off
 
   def Union(self, t2, off):
     """Union initializes any Table-derived type to point to the union at

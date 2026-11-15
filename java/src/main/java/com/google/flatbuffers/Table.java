@@ -122,23 +122,42 @@ public class Table {
    * Get the length of a vector.
    *
    * @param offset An `int` index into the Table's ByteBuffer.
-   * @return Returns the length of the vector whose offset is stored at `offset`.
+   * @return Returns the length of the vector whose offset is stored at `offset`, or 0
+   *     if the buffer is too short to safely contain the vector's relative offset or
+   *     length field at the computed position, or if the claimed length could not
+   *     possibly fit in the remaining buffer even for the smallest (1-byte) element
+   *     type, instead of trusting an attacker-controlled value with no validation.
    */
   protected int __vector_len(int offset) {
+    int bufLen = bb.capacity();
+    if (offset < 0 || bb_pos < 0 || bb_pos > bufLen - offset || bufLen - bb_pos - offset < SIZEOF_INT) return 0;
     offset += bb_pos;
-    offset += bb.getInt(offset);
-    return bb.getInt(offset);
+    int rel = bb.getInt(offset);
+    if (rel < 0 || rel > bufLen - offset || bufLen - offset - rel < SIZEOF_INT) return 0;
+    offset += rel;
+    int length = bb.getInt(offset);
+    if (length < 0 || length > bufLen - (offset + SIZEOF_INT)) return 0;
+    return length;
   }
 
   /**
    * Get the start data of a vector.
    *
    * @param offset An `int` index into the Table's ByteBuffer.
-   * @return Returns the start of the vector data whose offset is stored at `offset`.
+   * @return Returns the start of the vector data whose offset is stored at `offset`,
+   *     or bufLen (a position past the end of the buffer, so any subsequent read
+   *     through it fails safely) if the buffer is too short to safely contain the
+   *     vector's relative offset field at the computed position, instead of trusting
+   *     an attacker-controlled value with no validation.
    */
   protected int __vector(int offset) {
+    int bufLen = bb.capacity();
+    if (offset < 0 || bb_pos < 0 || bb_pos > bufLen - offset || bufLen - bb_pos - offset < SIZEOF_INT) return bufLen;
     offset += bb_pos;
-    return offset + bb.getInt(offset) + SIZEOF_INT; // data starts after the length
+    int rel = bb.getInt(offset);
+    if (rel < 0 || rel > bufLen - offset || bufLen - offset - rel < SIZEOF_INT) return bufLen;
+    offset += rel;
+    return offset + SIZEOF_INT;
   }
 
   /**

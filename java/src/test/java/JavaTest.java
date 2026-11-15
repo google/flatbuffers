@@ -69,6 +69,59 @@ public class JavaTest {
   }
 
   @org.junit.Test
+  @Test
+  public void testVectorLenRejectsCorruptedLength() {
+    byte[] good = {0x14,0x00,0x00,0x00,0x10,0x00,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+        0x00,0x00,0x04,0x00,0x10,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x03,0x00,0x00,0x00,0x01,0x02,0x03,0x00};
+    byte[] evilLength = {0x14,0x00,0x00,0x00,0x10,0x00,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+        0x00,0x00,0x04,0x00,0x10,0x00,0x00,0x00,0x04,0x00,0x00,0x00,(byte)0xff,(byte)0xff,(byte)0xff,0x7f,0x01,0x02,0x03,0x00};
+    byte[] evilOffset = {0x14,0x00,0x00,0x00,0x10,0x00,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+        0x00,0x00,0x04,0x00,0x10,0x00,0x00,0x00,(byte)0xff,(byte)0xff,(byte)0xff,0x7f,0x03,0x00,0x00,0x00,0x01,0x02,0x03,0x00};
+
+    ByteBuffer goodBb = ByteBuffer.wrap(good);
+    goodBb.order(ByteOrder.LITTLE_ENDIAN);
+    Monster goodMonster = Monster.getRootAsMonster(goodBb);
+    assertThat(goodMonster.inventoryLength()).isEqualTo(3);
+
+    ByteBuffer evilLengthBb = ByteBuffer.wrap(evilLength);
+    evilLengthBb.order(ByteOrder.LITTLE_ENDIAN);
+    Monster evilLengthMonster = Monster.getRootAsMonster(evilLengthBb);
+    assertThat(evilLengthMonster.inventoryLength()).isEqualTo(0);
+
+    ByteBuffer evilOffsetBb = ByteBuffer.wrap(evilOffset);
+    evilOffsetBb.order(ByteOrder.LITTLE_ENDIAN);
+    Monster evilOffsetMonster = Monster.getRootAsMonster(evilOffsetBb);
+    assertThat(evilOffsetMonster.inventoryLength()).isEqualTo(0);
+  }
+
+  private static final class RawTable extends com.google.flatbuffers.Table {
+    RawTable(byte[] buf, int pos) {
+      bb = ByteBuffer.wrap(buf);
+      bb.order(ByteOrder.LITTLE_ENDIAN);
+      bb_pos = pos;
+    }
+
+    int vectorLen(int off) {
+      return __vector_len(off);
+    }
+
+    int vector(int off) {
+      return __vector(off);
+    }
+  }
+
+  @Test
+  public void testVectorLenRejectsPosWraparound() {
+    byte[] buf = new byte[20];
+    buf[4] = 4;
+    buf[8] = 3;
+    buf[12] = 1; buf[13] = 2; buf[14] = 3;
+
+    RawTable t = new RawTable(buf, 0xFFFFFFF0);
+    assertThat(t.vectorLen(20)).isEqualTo(0);
+    assertThat(t.vector(20)).isEqualTo(buf.length);
+  }
+
   public void testFlatBufferBuilder() {
     // We use an initial size of 1 to exercise the reallocation algorithm,
     // normally a size larger than the typical FlatBuffer you generate would be

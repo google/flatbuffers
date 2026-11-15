@@ -135,6 +135,7 @@ func TestAll(t *testing.T) {
 
 	// Verify bounds checking
 	CheckByteVectorBoundsChecking(t.Fatalf)
+	CheckVectorLenBoundsChecking(t.Fatalf)
 
 	CheckSharedStrings(t.Fatalf)
 	CheckEmptiedBuilder(t.Fatalf)
@@ -2693,4 +2694,46 @@ func BenchmarkBuildAllocations(b *testing.B) {
 			b.Fatalf("expected buffer size=256, got %d", len(bldr.Bytes))
 		}
 	}
+}
+
+// CheckVectorLenBoundsChecking ensures VectorLen and Vector handle malformed
+// input safely.
+func CheckVectorLenBoundsChecking(fail func(string, ...interface{})) {
+        good := []byte{0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x04, 0x00, 0x10, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x00}
+        evilLength := []byte{0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x04, 0x00, 0x10, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x7f, 0x01, 0x02, 0x03, 0x00}
+        evilOffset := []byte{0x14, 0x00, 0x00, 0x00, 0x10, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x04, 0x00, 0x10, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x7f, 0x03, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x00}
+
+        goodTable := &flatbuffers.Table{Bytes: good, Pos: flatbuffers.GetUOffsetT(good)}
+        if got := goodTable.VectorLen(flatbuffers.UOffsetT(goodTable.Offset(14))); got != 3 {
+                fail("VectorLen on well-formed buffer: want 3, got %d", got)
+        }
+
+        lenTable := &flatbuffers.Table{Bytes: evilLength, Pos: flatbuffers.GetUOffsetT(evilLength)}
+        if got := lenTable.VectorLen(flatbuffers.UOffsetT(lenTable.Offset(14))); got != 0 {
+                fail("VectorLen on corrupted-length buffer: want 0, got %d", got)
+        }
+
+        offTable := &flatbuffers.Table{Bytes: evilOffset, Pos: flatbuffers.GetUOffsetT(evilOffset)}
+        o := flatbuffers.UOffsetT(offTable.Offset(14))
+        if got := offTable.VectorLen(o); got != 0 {
+                fail("VectorLen on corrupted-offset buffer: want 0, got %d", got)
+        }
+        if got := offTable.Vector(o); got != flatbuffers.UOffsetT(len(evilOffset)) {
+                fail("Vector on corrupted-offset buffer: want %d, got %d", len(evilOffset), got)
+        }
+
+        wrapBuf := make([]byte, 20)
+        copy(wrapBuf[4:8], []byte{4, 0, 0, 0})
+        copy(wrapBuf[8:12], []byte{3, 0, 0, 0})
+        copy(wrapBuf[12:15], []byte{1, 2, 3})
+        wrapTable := &flatbuffers.Table{Bytes: wrapBuf, Pos: flatbuffers.UOffsetT(0xFFFFFFF0)}
+        if got := wrapTable.VectorLen(20); got != 0 {
+                fail("VectorLen on wraparound-crafted buffer: want 0, got %d", got)
+        }
+        if got := wrapTable.Vector(20); got != flatbuffers.UOffsetT(len(wrapBuf)) {
+                fail("Vector on wraparound-crafted buffer: want %d, got %d", len(wrapBuf), got)
+        }
 }
