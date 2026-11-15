@@ -17,6 +17,7 @@
 #ifndef FLATBUFFERS_VERIFIER_H_
 #define FLATBUFFERS_VERIFIER_H_
 
+#include <limits>
 #include "flatbuffers/base.h"
 #include "flatbuffers/vector.h"
 
@@ -154,7 +155,12 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     const LenT size = ReadScalar<LenT>(vec);
     const auto max_elems = opts_.max_size / elem_size;
     if (!Check(size < max_elems))
-      return false;  // Protect against byte_size overflowing.
+      return false;
+    // Reserve space for the length prefix before computing byte_size.
+    // The configured maximum alone does not prevent size_t overflow.
+    const auto safe_elems =
+        (std::numeric_limits<size_t>::max() - sizeof(LenT)) / elem_size;
+    if (!Check(size <= safe_elems)) return false;
     const auto byte_size = sizeof(LenT) + elem_size * size;
     if (end) *end = vec_offset + byte_size;
     return Verify(vec_offset, byte_size);
