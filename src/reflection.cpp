@@ -16,6 +16,8 @@
 
 #include "flatbuffers/reflection.h"
 
+#include <map>
+
 #include "flatbuffers/util.h"
 
 // Helper functionality for reflection.
@@ -378,18 +380,16 @@ std::string GetAnyValueS(reflection::BaseType type, const uint8_t* data,
 
 void ForAllFields(const reflection::Object* object, bool reverse,
                   std::function<void(const reflection::Field*)> func) {
-  std::vector<uint32_t> field_to_id_map;
-  field_to_id_map.resize(object->fields()->size());
+  std::map<uint32_t, uint32_t> field_to_id_map;
+  for (uint32_t i = 0; i < object->fields()->size(); ++i)
+    field_to_id_map[object->fields()->Get(i)->id()] = i;
 
-  // Create the mapping of field ID to the index into the vector.
-  for (uint32_t i = 0; i < object->fields()->size(); ++i) {
-    auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
-  }
-
-  for (size_t i = 0; i < field_to_id_map.size(); ++i) {
-    func(object->fields()->Get(
-        field_to_id_map[reverse ? field_to_id_map.size() - (i + 1) : i]));
+  if (!reverse) {
+    for (auto it = field_to_id_map.begin(); it != field_to_id_map.end(); ++it)
+      func(object->fields()->Get(it->second));
+  } else {
+    for (auto it = field_to_id_map.rbegin(); it != field_to_id_map.rend(); ++it)
+      func(object->fields()->Get(it->second));
   }
 }
 
