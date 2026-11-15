@@ -1,4 +1,4 @@
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 export declare class A implements flatbuffers.IUnpackableObject<AT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

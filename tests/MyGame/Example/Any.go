@@ -40,7 +40,7 @@ func (v Any) String() string {
 }
 
 type AnyT struct {
-	Type Any
+	Type  Any
 	Value interface{}
 }
 
@@ -75,4 +75,31 @@ func (rcv Any) UnPack(table flatbuffers.Table) *AnyT {
 		return &AnyT{Type: AnyMyGame_Example2_Monster, Value: x.UnPack()}
 	}
 	return nil
+}
+
+// Match dispatches to the appropriate callback based on the union variant.
+// Each callback receives the correctly typed value. If the variant is NONE
+// or unrecognized, no callback is invoked.
+func (u *AnyT) Match(
+	onMonster func(*MonsterT),
+	onTestSimpleTableWithEnum func(*TestSimpleTableWithEnumT),
+	onMyGame_Example2_Monster func(*MyGame__Example2.MonsterT),
+) {
+	if u == nil {
+		return
+	}
+	switch u.Type {
+	case AnyMonster:
+		if v, ok := u.Value.(*MonsterT); ok {
+			onMonster(v)
+		}
+	case AnyTestSimpleTableWithEnum:
+		if v, ok := u.Value.(*TestSimpleTableWithEnumT); ok {
+			onTestSimpleTableWithEnum(v)
+		}
+	case AnyMyGame_Example2_Monster:
+		if v, ok := u.Value.(*MyGame__Example2.MonsterT); ok {
+			onMyGame_Example2_Monster(v)
+		}
+	}
 }

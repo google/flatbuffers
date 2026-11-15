@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import {A, AT} from '../union-underlying-type/a.js';
-import {B, BT} from '../union-underlying-type/b.js';
-import {C, CT} from '../union-underlying-type/c.js';
+import { A, AT } from "../union-underlying-type/a.js";
+import { B, BT } from "../union-underlying-type/b.js";
+import { C, CT } from "../union-underlying-type/c.js";
 
 export enum ABC {
   NONE = 0,
@@ -18,13 +18,13 @@ export function unionToAbc(
   accessor: (obj: A | B | C) => A | B | C | null,
 ): A | B | C | null {
   switch (ABC[type]) {
-    case 'NONE':
+    case "NONE":
       return null;
-    case 'A':
+    case "A":
       return accessor(new A())! as A;
-    case 'B':
+    case "B":
       return accessor(new B())! as B;
-    case 'C':
+    case "C":
       return accessor(new C())! as C;
     default:
       return null;
@@ -37,13 +37,13 @@ export function unionListToAbc(
   index: number,
 ): A | B | C | null {
   switch (ABC[type]) {
-    case 'NONE':
+    case "NONE":
       return null;
-    case 'A':
+    case "A":
       return accessor(index, new A())! as A;
-    case 'B':
+    case "B":
       return accessor(index, new B())! as B;
-    case 'C':
+    case "C":
       return accessor(index, new C())! as C;
     default:
       return null;

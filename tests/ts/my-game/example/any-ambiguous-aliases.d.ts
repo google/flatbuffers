@@ -1,4 +1,4 @@
-import {Monster} from '../../my-game/example/monster.js';
+import { Monster } from "../../my-game/example/monster.js";
 export declare enum AnyAmbiguousAliases {
   NONE = 0,
   M1 = 1,

@@ -1,8 +1,8 @@
-import * as flatbuffers from 'flatbuffers';
-import {AT} from '../union-underlying-type/a.js';
-import {ABC} from '../union-underlying-type/abc.js';
-import {BT} from '../union-underlying-type/b.js';
-import {CT} from '../union-underlying-type/c.js';
+import * as flatbuffers from "flatbuffers";
+import { AT } from "../union-underlying-type/a.js";
+import { ABC } from "../union-underlying-type/abc.js";
+import { BT } from "../union-underlying-type/b.js";
+import { CT } from "../union-underlying-type/c.js";
 export declare class D implements flatbuffers.IUnpackableObject<DT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

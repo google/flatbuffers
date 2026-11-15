@@ -7,7 +7,7 @@ import (
 )
 
 type ReferrableT struct {
-	Id uint64 `json:"id"`
+	Id uint64 `json:"id,omitempty"`
 }
 
 func (t *ReferrableT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -29,6 +29,26 @@ func (rcv *Referrable) UnPack() *ReferrableT {
 	}
 	t := &ReferrableT{}
 	rcv.UnPackTo(t)
+	return t
+}
+
+const (
+	ReferrableFieldId = "id"
+)
+
+// UnpackFields returns a partial *ReferrableT with only the named fields populated.
+// Fields not in the list are left at their zero/default values.
+// This avoids materializing the entire table tree. Pass the
+// generated ReferrableField* constants rather than raw strings.
+func (rcv *Referrable) UnpackFields(fields ...string) *ReferrableT {
+	t := &ReferrableT{}
+	fieldSet := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		fieldSet[f] = true
+	}
+	if fieldSet["id"] {
+		t.Id = rcv.Id()
+	}
 	return t
 }
 
@@ -58,6 +78,37 @@ func FinishSizePrefixedReferrableBuffer(builder *flatbuffers.Builder, offset fla
 	builder.FinishSizePrefixed(offset)
 }
 
+func VerifyRootAsReferrable(buf []byte, opts *flatbuffers.VerifierOptions) error {
+	v := flatbuffers.NewVerifier(buf, opts)
+	tablePos, err := v.CheckUOffsetT(0)
+	if err != nil {
+		return err
+	}
+	return verifyReferrable(v, int(tablePos))
+}
+
+func VerifyReferrable(v *flatbuffers.Verifier, tablePos int) error {
+	return verifyReferrable(v, tablePos)
+}
+
+func verifyReferrable(v *flatbuffers.Verifier, tablePos int) error {
+	if err := v.CheckTable(tablePos); err != nil {
+		return err
+	}
+	if err := v.CountTable(); err != nil {
+		return err
+	}
+	if err := v.PushDepth(); err != nil {
+		return err
+	}
+	defer v.PopDepth()
+
+	if err := v.CheckScalarField(tablePos, 4, 8); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (rcv *Referrable) Init(buf []byte, i flatbuffers.UOffsetT) {
 	rcv._tab.Bytes = buf
 	rcv._tab.Pos = i
@@ -80,8 +131,7 @@ func (rcv *Referrable) MutateId(n uint64) bool {
 }
 
 func ReferrableKeyCompare(o1, o2 flatbuffers.UOffsetT, buf []byte) bool {
-	obj1 := &Referrable{}
-	obj2 := &Referrable{}
+	var obj1, obj2 Referrable
 	obj1.Init(buf, flatbuffers.UOffsetT(len(buf))-o1)
 	obj2.Init(buf, flatbuffers.UOffsetT(len(buf))-o2)
 	return obj1.Id() < obj2.Id()
@@ -93,7 +143,7 @@ func (rcv *Referrable) LookupByKey(key uint64, vectorLocation flatbuffers.UOffse
 	for span != 0 {
 		middle := span / 2
 		tableOffset := flatbuffers.GetIndirectOffset(buf, vectorLocation+4*(start+middle))
-		obj := &Referrable{}
+		var obj Referrable
 		obj.Init(buf, tableOffset)
 		val := obj.Id()
 		comp := 0

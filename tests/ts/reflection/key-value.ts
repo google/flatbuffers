@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
 export class KeyValue implements flatbuffers.IUnpackableObject<KeyValueT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -53,7 +53,7 @@ export class KeyValue implements flatbuffers.IUnpackableObject<KeyValueT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.KeyValue';
+    return "reflection.KeyValue";
   }
 
   static startKeyValue(builder: flatbuffers.Builder) {

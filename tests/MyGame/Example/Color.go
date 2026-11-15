@@ -4,16 +4,16 @@ package Example
 
 import "strconv"
 
-/// Composite components of Monster color.
+// / Composite components of Monster color.
 type Color byte
 
 const (
-	ColorRed   Color = 1
+	ColorRed Color = 1
 	/// \brief color Green
 	/// Green is bit_flag with value (1u << 1)
 	ColorGreen Color = 2
 	/// \brief color Blue (1u << 3)
-	ColorBlue  Color = 8
+	ColorBlue Color = 8
 )
 
 var EnumNamesColor = map[Color]string{

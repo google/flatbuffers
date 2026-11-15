@@ -2,10 +2,10 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-import {Type, TypeT} from '../reflection/type.js';
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+import { Type, TypeT } from "../reflection/type.js";
 
 export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -45,7 +45,7 @@ export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
 
   value(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 6);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
   }
 
   mutate_value(value: bigint): boolean {
@@ -110,7 +110,7 @@ export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.EnumVal';
+    return "reflection.EnumVal";
   }
 
   static startEnumVal(builder: flatbuffers.Builder) {
@@ -122,7 +122,7 @@ export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
   }
 
   static addValue(builder: flatbuffers.Builder, value: bigint) {
-    builder.addFieldInt64(1, value, BigInt('0'));
+    builder.addFieldInt64(1, value, BigInt("0"));
   }
 
   static addUnionType(
@@ -220,7 +220,7 @@ export class EnumVal implements flatbuffers.IUnpackableObject<EnumValT> {
 export class EnumValT implements flatbuffers.IGeneratedObject {
   constructor(
     public name: string | Uint8Array | null = null,
-    public value: bigint = BigInt('0'),
+    public value: bigint = BigInt("0"),
     public unionType: TypeT | null = null,
     public documentation: string[] = [],
     public attributes: KeyValueT[] = [],

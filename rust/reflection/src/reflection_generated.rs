@@ -253,7 +253,9 @@ pub mod reflection {
         type Inner = Type<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -294,14 +296,22 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<BaseType>(Type::VT_BASE_TYPE, Some(BaseType::None)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<BaseType>(Type::VT_BASE_TYPE, Some(BaseType::None))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn element(&self) -> BaseType {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<BaseType>(Type::VT_ELEMENT, Some(BaseType::None)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<BaseType>(Type::VT_ELEMENT, Some(BaseType::None))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn index(&self) -> i32 {
@@ -315,7 +325,11 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<u16>(Type::VT_FIXED_LENGTH, Some(0)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<u16>(Type::VT_FIXED_LENGTH, Some(0))
+                    .unwrap()
+            }
         }
         /// The size (octets) of the `base_type` field.
         #[inline]
@@ -331,7 +345,11 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<u32>(Type::VT_ELEMENT_SIZE, Some(0)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<u32>(Type::VT_ELEMENT_SIZE, Some(0))
+                    .unwrap()
+            }
         }
     }
 
@@ -382,11 +400,13 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> TypeBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_base_type(&mut self, base_type: BaseType) {
-            self.fbb_.push_slot::<BaseType>(Type::VT_BASE_TYPE, base_type, BaseType::None);
+            self.fbb_
+                .push_slot::<BaseType>(Type::VT_BASE_TYPE, base_type, BaseType::None);
         }
         #[inline]
         pub fn add_element(&mut self, element: BaseType) {
-            self.fbb_.push_slot::<BaseType>(Type::VT_ELEMENT, element, BaseType::None);
+            self.fbb_
+                .push_slot::<BaseType>(Type::VT_ELEMENT, element, BaseType::None);
         }
         #[inline]
         pub fn add_index(&mut self, index: i32) {
@@ -394,7 +414,8 @@ pub mod reflection {
         }
         #[inline]
         pub fn add_fixed_length(&mut self, fixed_length: u16) {
-            self.fbb_.push_slot::<u16>(Type::VT_FIXED_LENGTH, fixed_length, 0);
+            self.fbb_
+                .push_slot::<u16>(Type::VT_FIXED_LENGTH, fixed_length, 0);
         }
         #[inline]
         pub fn add_base_size(&mut self, base_size: u32) {
@@ -402,12 +423,16 @@ pub mod reflection {
         }
         #[inline]
         pub fn add_element_size(&mut self, element_size: u32) {
-            self.fbb_.push_slot::<u32>(Type::VT_ELEMENT_SIZE, element_size, 0);
+            self.fbb_
+                .push_slot::<u32>(Type::VT_ELEMENT_SIZE, element_size, 0);
         }
         #[inline]
         pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> TypeBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            TypeBuilder { fbb_: _fbb, start_: start }
+            TypeBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<Type<'a>> {
@@ -439,7 +464,9 @@ pub mod reflection {
         type Inner = KeyValue<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -477,7 +504,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(KeyValue::VT_KEY, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(KeyValue::VT_KEY, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -495,7 +524,10 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(KeyValue::VT_VALUE, None) }
+            unsafe {
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(KeyValue::VT_VALUE, None)
+            }
         }
     }
 
@@ -534,18 +566,23 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> KeyValueBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_key(&mut self, key: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(KeyValue::VT_KEY, key);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(KeyValue::VT_KEY, key);
         }
         #[inline]
         pub fn add_value(&mut self, value: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(KeyValue::VT_VALUE, value);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(KeyValue::VT_VALUE, value);
         }
         #[inline]
         pub fn new(
             _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
         ) -> KeyValueBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            KeyValueBuilder { fbb_: _fbb, start_: start }
+            KeyValueBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<KeyValue<'a>> {
@@ -574,7 +611,9 @@ pub mod reflection {
         type Inner = EnumVal<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -622,7 +661,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(EnumVal::VT_NAME, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(EnumVal::VT_NAME, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -648,7 +689,8 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<Type>>(EnumVal::VT_UNION_TYPE, None)
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<Type>>(EnumVal::VT_UNION_TYPE, None)
             }
         }
         #[inline]
@@ -737,7 +779,8 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> EnumValBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(EnumVal::VT_NAME, name);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(EnumVal::VT_NAME, name);
         }
         #[inline]
         pub fn add_value(&mut self, value: i64) {
@@ -777,7 +820,10 @@ pub mod reflection {
             _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
         ) -> EnumValBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            EnumValBuilder { fbb_: _fbb, start_: start }
+            EnumValBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<EnumVal<'a>> {
@@ -809,7 +855,9 @@ pub mod reflection {
         type Inner = Enum<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -865,7 +913,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Enum::VT_NAME, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(Enum::VT_NAME, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -896,7 +946,11 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<bool>(Enum::VT_IS_UNION, Some(false)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<bool>(Enum::VT_IS_UNION, Some(false))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn underlying_type(&self) -> Type<'a> {
@@ -942,7 +996,8 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Enum::VT_DECLARATION_FILE, None)
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(Enum::VT_DECLARATION_FILE, None)
             }
         }
     }
@@ -1021,7 +1076,8 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> EnumBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Enum::VT_NAME, name);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Enum::VT_NAME, name);
         }
         #[inline]
         pub fn add_values(
@@ -1030,11 +1086,13 @@ pub mod reflection {
                 flatbuffers::Vector<'b, flatbuffers::ForwardsUOffset<EnumVal<'b>>>,
             >,
         ) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Enum::VT_VALUES, values);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Enum::VT_VALUES, values);
         }
         #[inline]
         pub fn add_is_union(&mut self, is_union: bool) {
-            self.fbb_.push_slot::<bool>(Enum::VT_IS_UNION, is_union, false);
+            self.fbb_
+                .push_slot::<bool>(Enum::VT_IS_UNION, is_union, false);
         }
         #[inline]
         pub fn add_underlying_type(&mut self, underlying_type: flatbuffers::WIPOffset<Type<'b>>) {
@@ -1075,14 +1133,18 @@ pub mod reflection {
         #[inline]
         pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> EnumBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            EnumBuilder { fbb_: _fbb, start_: start }
+            EnumBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<Enum<'a>> {
             let o = self.fbb_.end_table(self.start_);
             self.fbb_.required(o, Enum::VT_NAME, "name");
             self.fbb_.required(o, Enum::VT_VALUES, "values");
-            self.fbb_.required(o, Enum::VT_UNDERLYING_TYPE, "underlying_type");
+            self.fbb_
+                .required(o, Enum::VT_UNDERLYING_TYPE, "underlying_type");
             flatbuffers::WIPOffset::new(o.value())
         }
     }
@@ -1111,7 +1173,9 @@ pub mod reflection {
         type Inner = Field<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -1177,7 +1241,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Field::VT_NAME, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(Field::VT_NAME, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -1196,7 +1262,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<Type>>(Field::VT_TYPE_, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<Type>>(Field::VT_TYPE_, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -1218,28 +1286,44 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<i64>(Field::VT_DEFAULT_INTEGER, Some(0)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<i64>(Field::VT_DEFAULT_INTEGER, Some(0))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn default_real(&self) -> f64 {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<f64>(Field::VT_DEFAULT_REAL, Some(0.0)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<f64>(Field::VT_DEFAULT_REAL, Some(0.0))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn deprecated(&self) -> bool {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<bool>(Field::VT_DEPRECATED, Some(false)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<bool>(Field::VT_DEPRECATED, Some(false))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn required(&self) -> bool {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<bool>(Field::VT_REQUIRED, Some(false)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<bool>(Field::VT_REQUIRED, Some(false))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn key(&self) -> bool {
@@ -1279,7 +1363,11 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<bool>(Field::VT_OPTIONAL, Some(false)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<bool>(Field::VT_OPTIONAL, Some(false))
+                    .unwrap()
+            }
         }
         /// Number of padding octets to always add after this field. Structs only.
         #[inline]
@@ -1295,7 +1383,11 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<bool>(Field::VT_OFFSET64, Some(false)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<bool>(Field::VT_OFFSET64, Some(false))
+                    .unwrap()
+            }
         }
     }
 
@@ -1380,11 +1472,13 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> FieldBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Field::VT_NAME, name);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Field::VT_NAME, name);
         }
         #[inline]
         pub fn add_type_(&mut self, type_: flatbuffers::WIPOffset<Type<'b>>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<Type>>(Field::VT_TYPE_, type_);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<Type>>(Field::VT_TYPE_, type_);
         }
         #[inline]
         pub fn add_id(&mut self, id: u16) {
@@ -1396,19 +1490,23 @@ pub mod reflection {
         }
         #[inline]
         pub fn add_default_integer(&mut self, default_integer: i64) {
-            self.fbb_.push_slot::<i64>(Field::VT_DEFAULT_INTEGER, default_integer, 0);
+            self.fbb_
+                .push_slot::<i64>(Field::VT_DEFAULT_INTEGER, default_integer, 0);
         }
         #[inline]
         pub fn add_default_real(&mut self, default_real: f64) {
-            self.fbb_.push_slot::<f64>(Field::VT_DEFAULT_REAL, default_real, 0.0);
+            self.fbb_
+                .push_slot::<f64>(Field::VT_DEFAULT_REAL, default_real, 0.0);
         }
         #[inline]
         pub fn add_deprecated(&mut self, deprecated: bool) {
-            self.fbb_.push_slot::<bool>(Field::VT_DEPRECATED, deprecated, false);
+            self.fbb_
+                .push_slot::<bool>(Field::VT_DEPRECATED, deprecated, false);
         }
         #[inline]
         pub fn add_required(&mut self, required: bool) {
-            self.fbb_.push_slot::<bool>(Field::VT_REQUIRED, required, false);
+            self.fbb_
+                .push_slot::<bool>(Field::VT_REQUIRED, required, false);
         }
         #[inline]
         pub fn add_key(&mut self, key: bool) {
@@ -1438,7 +1536,8 @@ pub mod reflection {
         }
         #[inline]
         pub fn add_optional(&mut self, optional: bool) {
-            self.fbb_.push_slot::<bool>(Field::VT_OPTIONAL, optional, false);
+            self.fbb_
+                .push_slot::<bool>(Field::VT_OPTIONAL, optional, false);
         }
         #[inline]
         pub fn add_padding(&mut self, padding: u16) {
@@ -1446,12 +1545,16 @@ pub mod reflection {
         }
         #[inline]
         pub fn add_offset64(&mut self, offset64: bool) {
-            self.fbb_.push_slot::<bool>(Field::VT_OFFSET64, offset64, false);
+            self.fbb_
+                .push_slot::<bool>(Field::VT_OFFSET64, offset64, false);
         }
         #[inline]
         pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>) -> FieldBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            FieldBuilder { fbb_: _fbb, start_: start }
+            FieldBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<Field<'a>> {
@@ -1493,7 +1596,9 @@ pub mod reflection {
         type Inner = Object<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -1549,7 +1654,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Object::VT_NAME, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(Object::VT_NAME, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -1580,7 +1687,11 @@ pub mod reflection {
             // Safety:
             // Created from valid Table for this object
             // which contains a valid value in this slot
-            unsafe { self._tab.get::<bool>(Object::VT_IS_STRUCT, Some(false)).unwrap() }
+            unsafe {
+                self._tab
+                    .get::<bool>(Object::VT_IS_STRUCT, Some(false))
+                    .unwrap()
+            }
         }
         #[inline]
         pub fn minalign(&self) -> i32 {
@@ -1708,7 +1819,8 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ObjectBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Object::VT_NAME, name);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Object::VT_NAME, name);
         }
         #[inline]
         pub fn add_fields(
@@ -1717,11 +1829,13 @@ pub mod reflection {
                 flatbuffers::Vector<'b, flatbuffers::ForwardsUOffset<Field<'b>>>,
             >,
         ) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Object::VT_FIELDS, fields);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Object::VT_FIELDS, fields);
         }
         #[inline]
         pub fn add_is_struct(&mut self, is_struct: bool) {
-            self.fbb_.push_slot::<bool>(Object::VT_IS_STRUCT, is_struct, false);
+            self.fbb_
+                .push_slot::<bool>(Object::VT_IS_STRUCT, is_struct, false);
         }
         #[inline]
         pub fn add_minalign(&mut self, minalign: i32) {
@@ -1765,7 +1879,10 @@ pub mod reflection {
             _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
         ) -> ObjectBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            ObjectBuilder { fbb_: _fbb, start_: start }
+            ObjectBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<Object<'a>> {
@@ -1801,7 +1918,9 @@ pub mod reflection {
         type Inner = RPCCall<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -1851,7 +1970,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(RPCCall::VT_NAME, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(RPCCall::VT_NAME, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -1976,7 +2097,8 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> RPCCallBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(RPCCall::VT_NAME, name);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(RPCCall::VT_NAME, name);
         }
         #[inline]
         pub fn add_request(&mut self, request: flatbuffers::WIPOffset<Object<'b>>) {
@@ -2015,7 +2137,10 @@ pub mod reflection {
             _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
         ) -> RPCCallBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            RPCCallBuilder { fbb_: _fbb, start_: start }
+            RPCCallBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<RPCCall<'a>> {
@@ -2049,7 +2174,9 @@ pub mod reflection {
         type Inner = Service<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -2099,7 +2226,9 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Service::VT_NAME, None).unwrap()
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(Service::VT_NAME, None)
+                    .unwrap()
             }
         }
         #[inline]
@@ -2228,7 +2357,8 @@ pub mod reflection {
     impl<'a: 'b, 'b, A: flatbuffers::Allocator + 'a> ServiceBuilder<'a, 'b, A> {
         #[inline]
         pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Service::VT_NAME, name);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Service::VT_NAME, name);
         }
         #[inline]
         pub fn add_calls(
@@ -2237,7 +2367,8 @@ pub mod reflection {
                 flatbuffers::Vector<'b, flatbuffers::ForwardsUOffset<RPCCall<'b>>>,
             >,
         ) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Service::VT_CALLS, calls);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Service::VT_CALLS, calls);
         }
         #[inline]
         pub fn add_attributes(
@@ -2273,7 +2404,10 @@ pub mod reflection {
             _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
         ) -> ServiceBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            ServiceBuilder { fbb_: _fbb, start_: start }
+            ServiceBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<Service<'a>> {
@@ -2308,7 +2442,9 @@ pub mod reflection {
         type Inner = SchemaFile<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -2441,7 +2577,10 @@ pub mod reflection {
             _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
         ) -> SchemaFileBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            SchemaFileBuilder { fbb_: _fbb, start_: start }
+            SchemaFileBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<SchemaFile<'a>> {
@@ -2470,7 +2609,9 @@ pub mod reflection {
         type Inner = Schema<'a>;
         #[inline]
         unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-            Self { _tab: flatbuffers::Table::new(buf, loc) }
+            Self {
+                _tab: flatbuffers::Table::new(buf, loc),
+            }
         }
     }
 
@@ -2556,7 +2697,8 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Schema::VT_FILE_IDENT, None)
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(Schema::VT_FILE_IDENT, None)
             }
         }
         #[inline]
@@ -2565,7 +2707,8 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Schema::VT_FILE_EXT, None)
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<&str>>(Schema::VT_FILE_EXT, None)
             }
         }
         #[inline]
@@ -2574,7 +2717,8 @@ pub mod reflection {
             // Created from valid Table for this object
             // which contains a valid value in this slot
             unsafe {
-                self._tab.get::<flatbuffers::ForwardsUOffset<Object>>(Schema::VT_ROOT_TABLE, None)
+                self._tab
+                    .get::<flatbuffers::ForwardsUOffset<Object>>(Schema::VT_ROOT_TABLE, None)
             }
         }
         #[inline]
@@ -2714,7 +2858,8 @@ pub mod reflection {
                 flatbuffers::Vector<'b, flatbuffers::ForwardsUOffset<Object<'b>>>,
             >,
         ) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_OBJECTS, objects);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_OBJECTS, objects);
         }
         #[inline]
         pub fn add_enums(
@@ -2723,7 +2868,8 @@ pub mod reflection {
                 flatbuffers::Vector<'b, flatbuffers::ForwardsUOffset<Enum<'b>>>,
             >,
         ) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_ENUMS, enums);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_ENUMS, enums);
         }
         #[inline]
         pub fn add_file_ident(&mut self, file_ident: flatbuffers::WIPOffset<&'b str>) {
@@ -2732,14 +2878,16 @@ pub mod reflection {
         }
         #[inline]
         pub fn add_file_ext(&mut self, file_ext: flatbuffers::WIPOffset<&'b str>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_FILE_EXT, file_ext);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_FILE_EXT, file_ext);
         }
         #[inline]
         pub fn add_root_table(&mut self, root_table: flatbuffers::WIPOffset<Object<'b>>) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<Object>>(
-                Schema::VT_ROOT_TABLE,
-                root_table,
-            );
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<Object>>(
+                    Schema::VT_ROOT_TABLE,
+                    root_table,
+                );
         }
         #[inline]
         pub fn add_services(
@@ -2748,7 +2896,8 @@ pub mod reflection {
                 flatbuffers::Vector<'b, flatbuffers::ForwardsUOffset<Service<'b>>>,
             >,
         ) {
-            self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_SERVICES, services);
+            self.fbb_
+                .push_slot_always::<flatbuffers::WIPOffset<_>>(Schema::VT_SERVICES, services);
         }
         #[inline]
         pub fn add_advanced_features(&mut self, advanced_features: AdvancedFeatures) {
@@ -2773,7 +2922,10 @@ pub mod reflection {
             _fbb: &'b mut flatbuffers::FlatBufferBuilder<'a, A>,
         ) -> SchemaBuilder<'a, 'b, A> {
             let start = _fbb.start_table();
-            SchemaBuilder { fbb_: _fbb, start_: start }
+            SchemaBuilder {
+                fbb_: _fbb,
+                start_: start,
+            }
         }
         #[inline]
         pub fn finish(self) -> flatbuffers::WIPOffset<Schema<'a>> {

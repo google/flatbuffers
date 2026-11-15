@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class InParentNamespace
-  implements flatbuffers.IUnpackableObject<InParentNamespaceT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class InParentNamespace implements flatbuffers.IUnpackableObject<InParentNamespaceT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): InParentNamespace;

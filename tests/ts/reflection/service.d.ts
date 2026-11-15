@@ -1,9 +1,7 @@
-import * as flatbuffers from 'flatbuffers';
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-import {RPCCall, RPCCallT} from '../reflection/rpccall.js';
-export declare class Service
-  implements flatbuffers.IUnpackableObject<ServiceT>
-{
+import * as flatbuffers from "flatbuffers";
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+import { RPCCall, RPCCallT } from "../reflection/rpccall.js";
+export declare class Service implements flatbuffers.IUnpackableObject<ServiceT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Service;

@@ -1,26 +1,24 @@
-import * as flatbuffers from 'flatbuffers';
-import {Ability, AbilityT} from '../../my-game/example/ability.js';
-import {AnyAmbiguousAliases} from '../../my-game/example/any-ambiguous-aliases.js';
-import {AnyUniqueAliases} from '../../my-game/example/any-unique-aliases.js';
-import {Any} from '../../my-game/example/any.js';
-import {Color} from '../../my-game/example/color.js';
-import {Race} from '../../my-game/example/race.js';
-import {Referrable, ReferrableT} from '../../my-game/example/referrable.js';
-import {Stat, StatT} from '../../my-game/example/stat.js';
-import {TestSimpleTableWithEnumT} from '../../my-game/example/test-simple-table-with-enum.js';
-import {Test, TestT} from '../../my-game/example/test.js';
-import {Vec3, Vec3T} from '../../my-game/example/vec3.js';
-import {MonsterT as MyGame_Example2_MonsterT} from '../../my-game/example2/monster.js';
+import * as flatbuffers from "flatbuffers";
+import { Ability, AbilityT } from "../../my-game/example/ability.js";
+import { AnyAmbiguousAliases } from "../../my-game/example/any-ambiguous-aliases.js";
+import { AnyUniqueAliases } from "../../my-game/example/any-unique-aliases.js";
+import { Any } from "../../my-game/example/any.js";
+import { Color } from "../../my-game/example/color.js";
+import { Race } from "../../my-game/example/race.js";
+import { Referrable, ReferrableT } from "../../my-game/example/referrable.js";
+import { Stat, StatT } from "../../my-game/example/stat.js";
+import { TestSimpleTableWithEnumT } from "../../my-game/example/test-simple-table-with-enum.js";
+import { Test, TestT } from "../../my-game/example/test.js";
+import { Vec3, Vec3T } from "../../my-game/example/vec3.js";
+import { MonsterT as MyGame_Example2_MonsterT } from "../../my-game/example2/monster.js";
 import {
   InParentNamespace,
   InParentNamespaceT,
-} from '../../my-game/in-parent-namespace.js';
+} from "../../my-game/in-parent-namespace.js";
 /**
  * an example documentation comment: "monster object"
  */
-export declare class Monster
-  implements flatbuffers.IUnpackableObject<MonsterT>
-{
+export declare class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Monster;

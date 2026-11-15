@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {BaseType} from '../reflection/base-type.js';
+import { BaseType } from "../reflection/base-type.js";
 
 export class Type implements flatbuffers.IUnpackableObject<TypeT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -136,7 +136,7 @@ export class Type implements flatbuffers.IUnpackableObject<TypeT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.Type';
+    return "reflection.Type";
   }
 
   static startType(builder: flatbuffers.Builder) {

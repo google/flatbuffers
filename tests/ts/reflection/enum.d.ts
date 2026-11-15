@@ -1,7 +1,7 @@
-import * as flatbuffers from 'flatbuffers';
-import {EnumVal, EnumValT} from '../reflection/enum-val.js';
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-import {Type, TypeT} from '../reflection/type.js';
+import * as flatbuffers from "flatbuffers";
+import { EnumVal, EnumValT } from "../reflection/enum-val.js";
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+import { Type, TypeT } from "../reflection/type.js";
 export declare class Enum implements flatbuffers.IUnpackableObject<EnumT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;

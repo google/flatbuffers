@@ -2,10 +2,10 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-import {Type, TypeT} from '../reflection/type.js';
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+import { Type, TypeT } from "../reflection/type.js";
 
 export class Field implements flatbuffers.IUnpackableObject<FieldT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -87,7 +87,7 @@ export class Field implements flatbuffers.IUnpackableObject<FieldT> {
 
   defaultInteger(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 12);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
   }
 
   mutate_default_integer(value: bigint): boolean {
@@ -260,7 +260,7 @@ export class Field implements flatbuffers.IUnpackableObject<FieldT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.Field';
+    return "reflection.Field";
   }
 
   static startField(builder: flatbuffers.Builder) {
@@ -287,7 +287,7 @@ export class Field implements flatbuffers.IUnpackableObject<FieldT> {
     builder: flatbuffers.Builder,
     defaultInteger: bigint,
   ) {
-    builder.addFieldInt64(4, defaultInteger, BigInt('0'));
+    builder.addFieldInt64(4, defaultInteger, BigInt("0"));
   }
 
   static addDefaultReal(builder: flatbuffers.Builder, defaultReal: number) {
@@ -427,7 +427,7 @@ export class FieldT implements flatbuffers.IGeneratedObject {
     public type: TypeT | null = null,
     public id: number = 0,
     public offset: number = 0,
-    public defaultInteger: bigint = BigInt('0'),
+    public defaultInteger: bigint = BigInt("0"),
     public defaultReal: number = 0.0,
     public deprecated: boolean = false,
     public required: boolean = false,

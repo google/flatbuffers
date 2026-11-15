@@ -1,7 +1,7 @@
-import {FILE_IDENTIFIER_LENGTH, SIZEOF_INT} from './constants.js';
-import {Encoding} from './encoding.js';
-import {IGeneratedObject, IUnpackableObject, Offset, Table} from './types.js';
-import {float32, float64, int32, isLittleEndian} from './utils.js';
+import { FILE_IDENTIFIER_LENGTH, SIZEOF_INT } from "./constants.js";
+import { Encoding } from "./encoding.js";
+import { IGeneratedObject, IUnpackableObject, Offset, Table } from "./types.js";
+import { float32, float64, int32, isLittleEndian } from "./utils.js";
 
 export class ByteBuffer {
   private position_ = 0;
@@ -174,10 +174,10 @@ export class ByteBuffer {
       this.position_ + SIZEOF_INT + FILE_IDENTIFIER_LENGTH
     ) {
       throw new Error(
-        'FlatBuffers: ByteBuffer is too short to contain an identifier.',
+        "FlatBuffers: ByteBuffer is too short to contain an identifier.",
       );
     }
-    let result = '';
+    let result = "";
     for (let i = 0; i < FILE_IDENTIFIER_LENGTH; i++) {
       result += String.fromCharCode(
         this.readInt8(this.position_ + SIZEOF_INT + i),
@@ -234,7 +234,7 @@ export class ByteBuffer {
    * makes the behaviour of __union_with_string different compared to __union
    */
   __union_with_string(o: Table | string, offset: number): Table | string {
-    if (typeof o === 'string') {
+    if (typeof o === "string") {
       return this.__string(offset) as string;
     }
     return this.__union(o, offset);
@@ -264,7 +264,7 @@ export class ByteBuffer {
   __has_identifier(ident: string): boolean {
     if (ident.length != FILE_IDENTIFIER_LENGTH) {
       throw new Error(
-        'FlatBuffers: file identifier must be length ' + FILE_IDENTIFIER_LENGTH,
+        "FlatBuffers: file identifier must be length " + FILE_IDENTIFIER_LENGTH,
       );
     }
     for (let i = 0; i < FILE_IDENTIFIER_LENGTH; i++) {

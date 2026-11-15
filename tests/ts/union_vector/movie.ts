@@ -2,212 +2,484 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import { Attacker, AttackerT } from './attacker.js';
-import { BookReader, BookReaderT } from './book-reader.js';
-import { Character, unionToCharacter, unionListToCharacter } from './character.js';
-import { Rapunzel, RapunzelT } from './rapunzel.js';
-
+import { Attacker, AttackerT, verifyAttacker } from "./attacker.js";
+import { BookReader, BookReaderT } from "./book-reader.js";
+import {
+  Character,
+  unionToCharacter,
+  unionListToCharacter,
+} from "./character.js";
+import { Rapunzel, RapunzelT } from "./rapunzel.js";
 
 export class Movie implements flatbuffers.IUnpackableObject<MovieT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Movie {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-static getRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
-  return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getSizePrefixedRootAsMovie(bb:flatbuffers.ByteBuffer, obj?:Movie):Movie {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Movie()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
-  return bb.__has_identifier('MOVI');
-}
-
-mainCharacterType():Character {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : Character.NONE;
-}
-
-mainCharacter<T extends flatbuffers.Table>(obj:any|string):any|string|null {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.__union_with_string(obj, this.bb_pos + offset) : null;
-}
-
-charactersType(index: number):Character|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index) : null;
-}
-
-charactersTypeLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-charactersTypeArray():Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? new Uint8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
-}
-
-characters(index: number, obj:any|string):any|string|null {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__union_with_string(obj, this.bb!.__vector(this.bb_pos + offset) + index * 4) : null;
-}
-
-charactersLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
-}
-
-static getFullyQualifiedName(): "Movie" {
-  return 'Movie';
-}
-
-static startMovie(builder:flatbuffers.Builder) {
-  builder.startObject(4);
-}
-
-static addMainCharacterType(builder:flatbuffers.Builder, mainCharacterType:Character) {
-  builder.addFieldInt8(0, mainCharacterType, Character.NONE);
-}
-
-static addMainCharacter(builder:flatbuffers.Builder, mainCharacterOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(1, mainCharacterOffset, 0);
-}
-
-static addCharactersType(builder:flatbuffers.Builder, charactersTypeOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, charactersTypeOffset, 0);
-}
-
-static createCharactersTypeVector(builder:flatbuffers.Builder, data:Character[]):flatbuffers.Offset {
-  builder.startVector(1, data.length, 1);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addInt8(data[i]!);
+  __init(i: number, bb: flatbuffers.ByteBuffer): Movie {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
   }
-  return builder.endVector();
-}
 
-static startCharactersTypeVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(1, numElems, 1);
-}
-
-static addCharacters(builder:flatbuffers.Builder, charactersOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, charactersOffset, 0);
-}
-
-static createCharactersVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
-  builder.startVector(4, data.length, 4);
-  for (let i = data.length - 1; i >= 0; i--) {
-    builder.addOffset(data[i]!);
+  static getRootAsMovie(bb: flatbuffers.ByteBuffer, obj?: Movie): Movie {
+    return (obj || new Movie()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
   }
-  return builder.endVector();
-}
 
-static startCharactersVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(4, numElems, 4);
-}
+  static getSizePrefixedRootAsMovie(
+    bb: flatbuffers.ByteBuffer,
+    obj?: Movie,
+  ): Movie {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new Movie()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static endMovie(builder:flatbuffers.Builder):flatbuffers.Offset {
-  const offset = builder.endObject();
-  return offset;
-}
+  static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
+    return bb.__has_identifier("MOVI");
+  }
 
-static finishMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MOVI');
-}
+  mainCharacterType(): Character {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
+    return offset ? this.bb!.readUint8(this.bb_pos + offset) : Character.NONE;
+  }
 
-static finishSizePrefixedMovieBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'MOVI', true);
-}
+  mainCharacter<T extends flatbuffers.Table>(
+    obj: any | string,
+  ): any | string | null {
+    const offset = this.bb!.__offset(this.bb_pos, 6);
+    return offset
+      ? this.bb!.__union_with_string(obj, this.bb_pos + offset)
+      : null;
+  }
 
-static createMovie(builder:flatbuffers.Builder, mainCharacterType:Character, mainCharacterOffset:flatbuffers.Offset, charactersTypeOffset:flatbuffers.Offset, charactersOffset:flatbuffers.Offset):flatbuffers.Offset {
-  Movie.startMovie(builder);
-  Movie.addMainCharacterType(builder, mainCharacterType);
-  Movie.addMainCharacter(builder, mainCharacterOffset);
-  Movie.addCharactersType(builder, charactersTypeOffset);
-  Movie.addCharacters(builder, charactersOffset);
-  return Movie.endMovie(builder);
-}
+  charactersType(index: number): Character | null {
+    const offset = this.bb!.__offset(this.bb_pos, 8);
+    return offset
+      ? this.bb!.readUint8(this.bb!.__vector(this.bb_pos + offset) + index)
+      : null;
+  }
 
-unpack(): MovieT {
-  return new MovieT(
-    this.mainCharacterType(),
-    (() => {
-      const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
-      if(temp === null) { return null; }
-      if(typeof temp === 'string') { return temp; }
-      return temp.unpack()
-  })(),
-    this.bb!.createScalarList<Character>(this.charactersType.bind(this), this.charactersTypeLength()),
-    (() => {
-    const ret: (AttackerT|BookReaderT|RapunzelT|string)[] = [];
-    for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
-      const targetEnum = this.charactersType(targetEnumIndex);
-      if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
+  charactersTypeLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 8);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
 
-      const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
-      if(temp === null) { continue; }
-      if(typeof temp === 'string') { ret.push(temp); continue; }
-      ret.push(temp.unpack());
+  charactersTypeArray(): Uint8Array | null {
+    const offset = this.bb!.__offset(this.bb_pos, 8);
+    return offset
+      ? new Uint8Array(
+          this.bb!.bytes().buffer,
+          this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset),
+          this.bb!.__vector_len(this.bb_pos + offset),
+        )
+      : null;
+  }
+
+  characters(index: number, obj: any | string): any | string | null {
+    const offset = this.bb!.__offset(this.bb_pos, 10);
+    return offset
+      ? this.bb!.__union_with_string(
+          obj,
+          this.bb!.__vector(this.bb_pos + offset) + index * 4,
+        )
+      : null;
+  }
+
+  charactersLength(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 10);
+    return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+  }
+
+  static getFullyQualifiedName(): "Movie" {
+    return "Movie";
+  }
+
+  static startMovie(builder: flatbuffers.Builder) {
+    builder.startObject(4);
+  }
+
+  static addMainCharacterType(
+    builder: flatbuffers.Builder,
+    mainCharacterType: Character,
+  ) {
+    builder.addFieldInt8(0, mainCharacterType, Character.NONE);
+  }
+
+  static addMainCharacter(
+    builder: flatbuffers.Builder,
+    mainCharacterOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(1, mainCharacterOffset, 0);
+  }
+
+  static addCharactersType(
+    builder: flatbuffers.Builder,
+    charactersTypeOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(2, charactersTypeOffset, 0);
+  }
+
+  static createCharactersTypeVector(
+    builder: flatbuffers.Builder,
+    data: Character[],
+  ): flatbuffers.Offset {
+    builder.startVector(1, data.length, 1);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addInt8(data[i]!);
     }
-    return ret;
-  })()
-  );
-}
+    return builder.endVector();
+  }
 
+  static startCharactersTypeVector(
+    builder: flatbuffers.Builder,
+    numElems: number,
+  ) {
+    builder.startVector(1, numElems, 1);
+  }
 
-unpackTo(_o: MovieT): void {
-  _o.mainCharacterType = this.mainCharacterType();
-  _o.mainCharacter = (() => {
-      const temp = unionToCharacter(this.mainCharacterType(), this.mainCharacter.bind(this));
-      if(temp === null) { return null; }
-      if(typeof temp === 'string') { return temp; }
-      return temp.unpack()
-  })();
-  _o.charactersType = this.bb!.createScalarList<Character>(this.charactersType.bind(this), this.charactersTypeLength());
-  _o.characters = (() => {
-    const ret: (AttackerT|BookReaderT|RapunzelT|string)[] = [];
-    for(let targetEnumIndex = 0; targetEnumIndex < this.charactersTypeLength(); ++targetEnumIndex) {
-      const targetEnum = this.charactersType(targetEnumIndex);
-      if(targetEnum === null || Character[targetEnum!] === 'NONE') { continue; }
+  static addCharacters(
+    builder: flatbuffers.Builder,
+    charactersOffset: flatbuffers.Offset,
+  ) {
+    builder.addFieldOffset(3, charactersOffset, 0);
+  }
 
-      const temp = unionListToCharacter(targetEnum, this.characters.bind(this), targetEnumIndex);
-      if(temp === null) { continue; }
-      if(typeof temp === 'string') { ret.push(temp); continue; }
-      ret.push(temp.unpack());
+  static createCharactersVector(
+    builder: flatbuffers.Builder,
+    data: flatbuffers.Offset[],
+  ): flatbuffers.Offset {
+    builder.startVector(4, data.length, 4);
+    for (let i = data.length - 1; i >= 0; i--) {
+      builder.addOffset(data[i]!);
     }
-    return ret;
-  })();
-}
+    return builder.endVector();
+  }
+
+  static startCharactersVector(builder: flatbuffers.Builder, numElems: number) {
+    builder.startVector(4, numElems, 4);
+  }
+
+  static endMovie(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const offset = builder.endObject();
+    return offset;
+  }
+
+  static finishMovieBuffer(
+    builder: flatbuffers.Builder,
+    offset: flatbuffers.Offset,
+  ) {
+    builder.finish(offset, "MOVI");
+  }
+
+  static finishSizePrefixedMovieBuffer(
+    builder: flatbuffers.Builder,
+    offset: flatbuffers.Offset,
+  ) {
+    builder.finish(offset, "MOVI", true);
+  }
+
+  static createMovie(
+    builder: flatbuffers.Builder,
+    mainCharacterType: Character,
+    mainCharacterOffset: flatbuffers.Offset,
+    charactersTypeOffset: flatbuffers.Offset,
+    charactersOffset: flatbuffers.Offset,
+  ): flatbuffers.Offset {
+    Movie.startMovie(builder);
+    Movie.addMainCharacterType(builder, mainCharacterType);
+    Movie.addMainCharacter(builder, mainCharacterOffset);
+    Movie.addCharactersType(builder, charactersTypeOffset);
+    Movie.addCharacters(builder, charactersOffset);
+    return Movie.endMovie(builder);
+  }
+
+  unpack(): MovieT {
+    return new MovieT(
+      this.mainCharacterType(),
+      (() => {
+        const temp = unionToCharacter(
+          this.mainCharacterType(),
+          this.mainCharacter.bind(this),
+        );
+        if (temp === null) {
+          return null;
+        }
+        if (typeof temp === "string") {
+          return temp;
+        }
+        return temp.unpack();
+      })(),
+      this.bb!.createScalarList<Character>(
+        this.charactersType.bind(this),
+        this.charactersTypeLength(),
+      ),
+      (() => {
+        const ret: (AttackerT | BookReaderT | RapunzelT | string)[] = [];
+        for (
+          let targetEnumIndex = 0;
+          targetEnumIndex < this.charactersTypeLength();
+          ++targetEnumIndex
+        ) {
+          const targetEnum = this.charactersType(targetEnumIndex);
+          if (targetEnum === null || Character[targetEnum!] === "NONE") {
+            continue;
+          }
+
+          const temp = unionListToCharacter(
+            targetEnum,
+            this.characters.bind(this),
+            targetEnumIndex,
+          );
+          if (temp === null) {
+            continue;
+          }
+          if (typeof temp === "string") {
+            ret.push(temp);
+            continue;
+          }
+          ret.push(temp.unpack());
+        }
+        return ret;
+      })(),
+    );
+  }
+
+  unpackTo(_o: MovieT): void {
+    _o.mainCharacterType = this.mainCharacterType();
+    _o.mainCharacter = (() => {
+      const temp = unionToCharacter(
+        this.mainCharacterType(),
+        this.mainCharacter.bind(this),
+      );
+      if (temp === null) {
+        return null;
+      }
+      if (typeof temp === "string") {
+        return temp;
+      }
+      return temp.unpack();
+    })();
+    _o.charactersType = this.bb!.createScalarList<Character>(
+      this.charactersType.bind(this),
+      this.charactersTypeLength(),
+    );
+    _o.characters = (() => {
+      const ret: (AttackerT | BookReaderT | RapunzelT | string)[] = [];
+      for (
+        let targetEnumIndex = 0;
+        targetEnumIndex < this.charactersTypeLength();
+        ++targetEnumIndex
+      ) {
+        const targetEnum = this.charactersType(targetEnumIndex);
+        if (targetEnum === null || Character[targetEnum!] === "NONE") {
+          continue;
+        }
+
+        const temp = unionListToCharacter(
+          targetEnum,
+          this.characters.bind(this),
+          targetEnumIndex,
+        );
+        if (temp === null) {
+          continue;
+        }
+        if (typeof temp === "string") {
+          ret.push(temp);
+          continue;
+        }
+        ret.push(temp.unpack());
+      }
+      return ret;
+    })();
+  }
+
+  unpackFields(...fields: string[]): MovieT {
+    const t = new MovieT();
+    const fieldSet = new Set(fields);
+    if (fieldSet.has("main_character_type")) {
+      t.mainCharacterType = this.mainCharacterType();
+    }
+    if (fieldSet.has("main_character")) {
+      t.mainCharacter = (() => {
+        const temp = unionToCharacter(
+          this.mainCharacterType(),
+          this.mainCharacter.bind(this),
+        );
+        if (temp === null) {
+          return null;
+        }
+        if (typeof temp === "string") {
+          return temp;
+        }
+        return temp.unpack();
+      })();
+    }
+    if (fieldSet.has("characters_type")) {
+      t.charactersType = this.bb!.createScalarList<Character>(
+        this.charactersType.bind(this),
+        this.charactersTypeLength(),
+      );
+    }
+    if (fieldSet.has("characters")) {
+      t.characters = (() => {
+        const ret: (AttackerT | BookReaderT | RapunzelT | string)[] = [];
+        for (
+          let targetEnumIndex = 0;
+          targetEnumIndex < this.charactersTypeLength();
+          ++targetEnumIndex
+        ) {
+          const targetEnum = this.charactersType(targetEnumIndex);
+          if (targetEnum === null || Character[targetEnum!] === "NONE") {
+            continue;
+          }
+
+          const temp = unionListToCharacter(
+            targetEnum,
+            this.characters.bind(this),
+            targetEnumIndex,
+          );
+          if (temp === null) {
+            continue;
+          }
+          if (typeof temp === "string") {
+            ret.push(temp);
+            continue;
+          }
+          ret.push(temp.unpack());
+        }
+        return ret;
+      })();
+    }
+    return t;
+  }
 }
 
 export class MovieT implements flatbuffers.IGeneratedObject {
-constructor(
-  public mainCharacterType: Character = Character.NONE,
-  public mainCharacter: AttackerT|BookReaderT|RapunzelT|string|null = null,
-  public charactersType: (Character)[] = [],
-  public characters: (AttackerT|BookReaderT|RapunzelT|string)[] = []
-){}
+  constructor(
+    public mainCharacterType: Character = Character.NONE,
+    public mainCharacter:
+      | AttackerT
+      | BookReaderT
+      | RapunzelT
+      | string
+      | null = null,
+    public charactersType: Character[] = [],
+    public characters: (AttackerT | BookReaderT | RapunzelT | string)[] = [],
+  ) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const mainCharacter = builder.createObjectOffset(this.mainCharacter);
+    const charactersType = Movie.createCharactersTypeVector(
+      builder,
+      this.charactersType,
+    );
+    const characters = Movie.createCharactersVector(
+      builder,
+      builder.createObjectOffsetList(this.characters),
+    );
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  const mainCharacter = builder.createObjectOffset(this.mainCharacter);
-  const charactersType = Movie.createCharactersTypeVector(builder, this.charactersType);
-  const characters = Movie.createCharactersVector(builder, builder.createObjectOffsetList(this.characters));
+    return Movie.createMovie(
+      builder,
+      this.mainCharacterType,
+      mainCharacter,
+      charactersType,
+      characters,
+    );
+  }
 
-  return Movie.createMovie(builder,
-    this.mainCharacterType,
-    mainCharacter,
-    charactersType,
-    characters
-  );
+  clone(): MovieT {
+    const obj = new MovieT();
+    obj.mainCharacterType = this.mainCharacterType;
+    obj.mainCharacter =
+      this.mainCharacter !== null &&
+      typeof (this.mainCharacter as any).clone === "function"
+        ? (this.mainCharacter as any).clone()
+        : this.mainCharacter;
+    obj.charactersType = [...this.charactersType];
+    obj.characters = [...this.characters];
+    return obj;
+  }
+
+  equals(other: MovieT): boolean {
+    if (this.mainCharacterType !== other.mainCharacterType) return false;
+    if (this.mainCharacter !== null && other.mainCharacter !== null) {
+      if (typeof (this.mainCharacter as any).equals === "function") {
+        if (!(this.mainCharacter as any).equals(other.mainCharacter))
+          return false;
+      } else if (this.mainCharacter !== other.mainCharacter) return false;
+    } else if (this.mainCharacter !== other.mainCharacter) return false;
+    if (this.charactersType.length !== other.charactersType.length)
+      return false;
+    for (let i = 0; i < this.charactersType.length; i++) {
+      if (this.charactersType[i] !== other.charactersType[i]) return false;
+    }
+    if (this.characters.length !== other.characters.length) return false;
+    for (let i = 0; i < this.characters.length; i++) {
+      if (this.characters[i] !== other.characters[i]) return false;
+    }
+    return true;
+  }
 }
+
+export function verifyMovie(
+  verifier: flatbuffers.Verifier,
+  tablePos: number,
+): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 1);
+    verifier.checkUnionConsistency(tablePos, 4, 6, "main_character");
+    {
+      const pos = verifier.checkOffsetField(tablePos, 6);
+      if (pos !== 0) {
+        const uType = verifier.readFieldUint8(tablePos, 4);
+        switch (uType) {
+          case 1: // MuLan
+            {
+              const o = verifier.readInt32(pos);
+              verifyAttacker(verifier, pos + o);
+            }
+            break;
+          case 2: // Rapunzel
+            verifier.checkRange(pos, 4);
+            break;
+          case 3: // Belle
+            verifier.checkRange(pos, 4);
+            break;
+          case 4: // BookFan
+            verifier.checkRange(pos, 4);
+            break;
+        }
+      }
+    }
+    {
+      const pos = verifier.checkOffsetField(tablePos, 8);
+      if (pos !== 0) {
+        verifier.checkVector(pos, 1);
+      }
+    }
+    {
+      const pos = verifier.checkOffsetField(tablePos, 10);
+      if (pos !== 0) {
+        verifier.checkVector(pos, 4);
+      }
+    }
+  } finally {
+    verifier.popDepth();
+  }
+}
+
+export function verifyRootAsMovie(
+  buf: DataView,
+  opts?: flatbuffers.VerifierOptions,
+): void {
+  const verifier = new flatbuffers.Verifier(buf, opts);
+  const tablePos = verifier.readUint32(0);
+  verifyMovie(verifier, tablePos);
 }

@@ -1,4 +1,4 @@
-import {ValueType} from './value-type.js';
+import { ValueType } from "./value-type.js";
 
 export function isInline(value: ValueType): boolean {
   return value === ValueType.BOOL || value <= ValueType.FLOAT;
@@ -44,7 +44,7 @@ export function toTypedVector(valueType: ValueType, length: number): ValueType {
   if (length === 2) return valueType - ValueType.INT + ValueType.VECTOR_INT2;
   if (length === 3) return valueType - ValueType.INT + ValueType.VECTOR_INT3;
   if (length === 4) return valueType - ValueType.INT + ValueType.VECTOR_INT4;
-  throw 'Unexpected length ' + length;
+  throw "Unexpected length " + length;
 }
 
 export function typedVectorElementType(valueType: ValueType): ValueType {

@@ -14,69 +14,188 @@
  * limitations under the License.
  */
 
+//! Schema-driven dynamic field access for FlatBuffers.
+//!
+//! This crate provides runtime reflection over FlatBuffer binary data using a
+//! companion `.bfbs` (binary FlatBuffers schema) file. Instead of relying on
+//! statically generated types, you can access fields by name at runtime — useful
+//! for generic message inspection, logging, and protocol translation.
+//!
+//! # Two usage tiers
+//!
+//! ## Safe tier — [`SafeBuffer`]
+//!
+//! [`SafeBuffer`] verifies the buffer against the schema on construction and
+//! exposes field accessors that cannot produce memory-unsafe behavior:
+//!
+//! ```no_run
+//! # use flatbuffers_reflection::{SafeBuffer, FlatbufferResult};
+//! # use flatbuffers_reflection::reflection::Schema;
+//! # fn example(schema_bytes: &[u8], message_bytes: &[u8]) -> FlatbufferResult<()> {
+//! let schema = flatbuffers::root::<Schema>(schema_bytes).unwrap();
+//! let safe = SafeBuffer::new(message_bytes, &schema)?;
+//! let root = safe.get_root();
+//! if let Some(name) = root.get_field_string("name")? {
+//!     println!("name = {name}");
+//! }
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ## Low-level unsafe tier
+//!
+//! The free functions in this module (`get_field_integer`, `get_any_field_float`,
+//! etc.) operate directly on raw [`flatbuffers::Table`] and [`Struct`] values.
+//! They are `unsafe` because they skip the upfront buffer verification.  Prefer
+//! [`SafeBuffer`] for new code.
+//!
+//! # Error handling
+//!
+//! All fallible operations return [`FlatbufferResult`], which is an alias for
+//! `Result<T, `[`FlatbufferError`]`>`.
+
+pub mod chunked_builder;
 mod reflection_generated;
 mod reflection_verifier;
 mod safe_buffer;
 mod r#struct;
-pub use crate::r#struct::Struct;
 pub use crate::reflection_generated::reflection;
-pub use crate::safe_buffer::SafeBuffer;
+pub use crate::safe_buffer::{FieldValue, SafeBuffer, SafeStruct, SafeTable};
+pub use crate::r#struct::Struct;
 
 use flatbuffers::{
-    emplace_scalar, read_scalar, EndianScalar, Follow, ForwardsUOffset, InvalidFlatbuffer,
-    SOffsetT, Table, UOffsetT, VOffsetT, Vector, SIZE_SOFFSET, SIZE_UOFFSET,
+    EndianScalar, Follow, ForwardsUOffset, InvalidFlatbuffer, SIZE_SOFFSET, SIZE_UOFFSET, SOffsetT,
+    Table, UOffsetT, VOffsetT, Vector, emplace_scalar, read_scalar,
 };
 use reflection_generated::reflection::{BaseType, Field, Object, Schema};
 
 use core::mem::size_of;
+use num_traits::FromPrimitive;
 use num_traits::float::Float;
 use num_traits::int::PrimInt;
-use num_traits::FromPrimitive;
 use thiserror::Error;
 
+/// Errors that can occur during FlatBuffer reflection operations.
+///
+/// Most variants map to a specific failure mode encountered when accessing or
+/// mutating fields at runtime.  [`FlatbufferError::VerificationError`] wraps the
+/// upstream [`flatbuffers::InvalidFlatbuffer`] type so callers do not need to
+/// import it separately.
+///
+/// # Examples
+///
+/// Constructing and matching on error variants returned by field accessors:
+///
+/// ```
+/// use flatbuffers_reflection::FlatbufferError;
+///
+/// // Variants with no payload can be constructed directly.
+/// let err = FlatbufferError::FieldNotFound;
+/// assert_eq!(err.to_string(), "Field not found in the table schema");
+///
+/// // Pattern-match to distinguish failure modes.
+/// match err {
+///     FlatbufferError::FieldNotFound => println!("field missing from schema"),
+///     FlatbufferError::FieldTypeMismatch(rust_ty, schema_ty) => {
+///         println!("type mismatch: Rust {rust_ty} vs schema {schema_ty}");
+///     }
+///     FlatbufferError::InvalidSchema => println!("wrong schema for this buffer"),
+///     other => println!("other error: {other}"),
+/// }
+///
+/// // FieldTypeMismatch carries the Rust type name and the schema type name.
+/// let mismatch = FlatbufferError::FieldTypeMismatch(
+///     "i64".to_string(),
+///     "Int".to_string(),
+/// );
+/// assert!(mismatch.to_string().contains("i64"));
+/// assert!(mismatch.to_string().contains("Int"));
+///
+/// // Errors implement PartialEq for use in tests.
+/// assert_eq!(FlatbufferError::InvalidSchema, FlatbufferError::InvalidSchema);
+/// assert_ne!(FlatbufferError::FieldNotFound, FlatbufferError::InvalidSchema);
+/// ```
 #[derive(Error, Debug, PartialEq)]
 pub enum FlatbufferError {
+    /// The buffer failed low-level FlatBuffers structural verification.
     #[error(transparent)]
     VerificationError(#[from] flatbuffers::InvalidFlatbuffer),
+    /// The Rust type requested (`{0}`) does not match the schema field type (`{1}`).
     #[error("Failed to convert between data type {0} and field type {1}")]
     FieldTypeMismatch(String, String),
+    /// A set operation was attempted on a field that is absent, not scalar, or
+    /// otherwise does not support in-place mutation.
     #[error("Set field value not supported for non-populated or non-scalar fields")]
     SetValueNotSupported,
+    /// A string value could not be parsed as a floating-point number.
     #[error(transparent)]
     ParseFloatError(#[from] std::num::ParseFloatError),
+    /// An integer conversion (e.g. `usize` ↔ `i32`) overflowed.
     #[error(transparent)]
     TryFromIntError(#[from] std::num::TryFromIntError),
+    /// A string mutation was aborted because the internal offset cache was in an
+    /// inconsistent state.
     #[error("Couldn't set string because cache vector is polluted")]
     SetStringPolluted,
+    /// The schema could not be matched to the buffer root — either the buffer is
+    /// malformed or the wrong schema was supplied.
     #[error("Invalid schema: Polluted buffer or the schema doesn't match the buffer.")]
     InvalidSchema,
+    /// The field's `BaseType` has no reflection implementation (e.g. `None`).
     #[error("Type not supported: {0}")]
     TypeNotSupported(String),
+    /// The union type field referenced an enum entry with no associated type.
     #[error("No type or invalid type found in union enum")]
     InvalidUnionEnum,
+    /// A [`SafeBuffer`] lookup found a buffer location that was not registered
+    /// during verification — the table or struct does not belong to this buffer.
     #[error("Table or Struct doesn't belong to the buffer")]
     InvalidTableOrStruct,
+    /// The requested field name was not found in the schema object's field list.
     #[error("Field not found in the table schema")]
     FieldNotFound,
 }
 
+/// Convenience alias for `Result<T, `[`FlatbufferError`]`>`.
+///
+/// All fallible functions in this crate return this type.
 pub type FlatbufferResult<T, E = FlatbufferError> = core::result::Result<T, E>;
 
-/// Gets the root table from a trusted Flatbuffer.
+/// Returns the root [`Table`] from a trusted FlatBuffer byte slice.
+///
+/// The root offset is stored at byte 0 of every FlatBuffer.  This function
+/// follows that offset and returns the table without performing any validation.
+///
+/// Prefer [`SafeBuffer::get_root`] in almost all cases — it verifies the entire
+/// buffer before returning the root, eliminating the need to reason about safety
+/// at each subsequent field access.
 ///
 /// # Safety
 ///
-/// Flatbuffers accessors do not perform validation checks before accessing. Users
-/// must trust [data] contains a valid flatbuffer. Reading unchecked buffers may cause panics or even UB.
+/// `data` must contain a structurally valid FlatBuffer whose root table is
+/// reachable via the offset at byte 0.  Passing an unverified or truncated
+/// buffer may cause out-of-bounds reads or undefined behaviour in the
+/// [`flatbuffers`] runtime.
 pub unsafe fn get_any_root(data: &[u8]) -> Table {
     <ForwardsUOffset<Table>>::follow(data, 0)
 }
 
-/// Gets an integer table field given its exact type. Returns default integer value if the field is not set. Returns [None] if no default value is found. Returns error if the type size doesn't match.
+/// Reads an integer field from a raw [`Table`], returning `T` as its exact type.
+///
+/// Returns the schema's `default_integer` when the field is absent from the
+/// vtable, cast to `T` via [`num_traits::FromPrimitive`].  Returns `None` if
+/// the default value cannot be represented in `T`.  Returns
+/// [`FlatbufferError::FieldTypeMismatch`] if `size_of::<T>()` does not match the
+/// field's declared `BaseType` size.
+///
+/// For name-based access without managing raw tables, use
+/// [`SafeTable::get_field_integer`] instead.
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type T
+/// `table` must have been obtained from a verified FlatBuffer whose layout
+/// matches the supplied `field` schema entry.  The vtable slot at
+/// `field.offset()` must contain a value of type `T` when present.
 pub unsafe fn get_field_integer<T: for<'a> Follow<'a, Inner = T> + PrimInt + FromPrimitive>(
     table: &Table,
     field: &Field,
@@ -84,7 +203,12 @@ pub unsafe fn get_field_integer<T: for<'a> Follow<'a, Inner = T> + PrimInt + Fro
     if size_of::<T>() != get_type_size(field.type_().base_type()) {
         return Err(FlatbufferError::FieldTypeMismatch(
             std::any::type_name::<T>().to_string(),
-            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
         ));
     }
 
@@ -92,11 +216,20 @@ pub unsafe fn get_field_integer<T: for<'a> Follow<'a, Inner = T> + PrimInt + Fro
     Ok(table.get::<T>(field.offset(), default))
 }
 
-/// Gets a floating point table field given its exact type. Returns default float value if the field is not set. Returns [None] if no default value is found. Returns error if the type doesn't match.
+/// Reads a floating-point field from a raw [`Table`], returning `T` as its exact type.
+///
+/// Returns the schema's `default_real` when the field is absent, converted to
+/// `T` via `num_traits::Float::from`.  Returns
+/// [`FlatbufferError::FieldTypeMismatch`] if `size_of::<T>()` does not match the
+/// field's `BaseType` size (e.g. requesting `f64` for an `f32` field).
+///
+/// For name-based access, prefer [`SafeTable::get_field_float`].
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type T
+/// `table` must be from a verified FlatBuffer and `field` must describe a
+/// floating-point slot.  The vtable slot at `field.offset()` must hold a value
+/// of type `T` when present.
 pub unsafe fn get_field_float<T: for<'a> Follow<'a, Inner = T> + Float>(
     table: &Table,
     field: &Field,
@@ -104,7 +237,12 @@ pub unsafe fn get_field_float<T: for<'a> Follow<'a, Inner = T> + Float>(
     if size_of::<T>() != get_type_size(field.type_().base_type()) {
         return Err(FlatbufferError::FieldTypeMismatch(
             std::any::type_name::<T>().to_string(),
-            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
         ));
     }
 
@@ -112,11 +250,20 @@ pub unsafe fn get_field_float<T: for<'a> Follow<'a, Inner = T> + Float>(
     Ok(table.get::<T>(field.offset(), default))
 }
 
-/// Gets a String table field given its exact type. Returns empty string if the field is not set. Returns [None] if no default value is found. Returns error if the type size doesn't match.
+/// Reads a string field from a raw [`Table`].
+///
+/// Returns `Some("")` (the FlatBuffers default for strings) when the field is
+/// absent.  Returns [`FlatbufferError::FieldTypeMismatch`] if the field's
+/// `BaseType` is not `String`.
+///
+/// The returned `&str` borrows from the same buffer as `table`.
+///
+/// For name-based access, prefer [`SafeTable::get_field_string`].
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type String
+/// `table` must be from a verified FlatBuffer and the slot at `field.offset()`
+/// must contain a forward offset to a valid UTF-8 string when present.
 pub unsafe fn get_field_string<'a>(
     table: &Table<'a>,
     field: &Field,
@@ -124,18 +271,35 @@ pub unsafe fn get_field_string<'a>(
     if field.type_().base_type() != BaseType::String {
         return Err(FlatbufferError::FieldTypeMismatch(
             String::from("String"),
-            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
         ));
     }
 
     Ok(table.get::<ForwardsUOffset<&'a str>>(field.offset(), Some("")))
 }
 
-/// Gets a [Struct] table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
+/// Reads a struct field from a raw [`Table`], returning a [`Struct`] view.
+///
+/// Returns `None` if the field is absent from the vtable.  Returns
+/// [`FlatbufferError::FieldTypeMismatch`] if the field's `BaseType` is not
+/// `Obj`.
+///
+/// > **Note (inherited from C++):** This does not distinguish between table
+/// > fields and struct fields — both have `BaseType::Obj`.  Schema-aware callers
+/// > should check `field.type_().index()` against the schema object's
+/// > `is_struct()` flag.
+///
+/// For name-based access, prefer [`SafeTable::get_field_struct`].
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type Struct
+/// `table` must be from a verified FlatBuffer.  The slot at `field.offset()`
+/// must point to a valid inline struct when present.
 pub unsafe fn get_field_struct<'a>(
     table: &Table<'a>,
     field: &Field,
@@ -145,18 +309,32 @@ pub unsafe fn get_field_struct<'a>(
     if field.type_().base_type() != BaseType::Obj {
         return Err(FlatbufferError::FieldTypeMismatch(
             String::from("Obj"),
-            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
         ));
     }
 
     Ok(table.get::<Struct>(field.offset(), None))
 }
 
-/// Gets a Vector table field given its exact type. Returns empty vector if the field is not set. Returns error if the type doesn't match.
+/// Reads a vector field from a raw [`Table`], returning a typed [`Vector`] view.
+///
+/// Returns an empty `Vector` default when the field is absent.  Returns
+/// [`FlatbufferError::FieldTypeMismatch`] if the field's `BaseType` is not
+/// `Vector`, or if `size_of::<T>()` does not match the element type size.
+///
+/// The returned [`Vector`] borrows from the same buffer as `table`.
+///
+/// For name-based access, prefer [`SafeTable::get_field_vector`].
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type Vector
+/// `table` must be from a verified FlatBuffer.  The slot at `field.offset()`
+/// must contain a forward offset to a valid vector of `T` elements when present.
 pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
     table: &Table<'a>,
     field: &Field,
@@ -166,18 +344,33 @@ pub unsafe fn get_field_vector<'a, T: Follow<'a, Inner = T>>(
     {
         return Err(FlatbufferError::FieldTypeMismatch(
             std::any::type_name::<T>().to_string(),
-            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
         ));
     }
 
     Ok(table.get::<ForwardsUOffset<Vector<'a, T>>>(field.offset(), Some(Vector::<T>::default())))
 }
 
-/// Gets a Table table field given its exact type. Returns [None] if the field is not set. Returns error if the type doesn't match.
+/// Reads a nested table field from a raw [`Table`].
+///
+/// Returns `None` when the field is absent.  Returns
+/// [`FlatbufferError::FieldTypeMismatch`] if the field's `BaseType` is not
+/// `Obj`.
+///
+/// See the note on [`get_field_struct`] — both tables and structs share
+/// `BaseType::Obj`; schema context is required to distinguish them.
+///
+/// For name-based access, prefer [`SafeTable::get_field_table`].
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type Table
+/// `table` must be from a verified FlatBuffer.  The slot at `field.offset()`
+/// must contain a forward offset to a valid nested table when present.
 pub unsafe fn get_field_table<'a>(
     table: &Table<'a>,
     field: &Field,
@@ -185,19 +378,33 @@ pub unsafe fn get_field_table<'a>(
     if field.type_().base_type() != BaseType::Obj {
         return Err(FlatbufferError::FieldTypeMismatch(
             String::from("Obj"),
-            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
         ));
     }
 
     Ok(table.get::<ForwardsUOffset<Table<'a>>>(field.offset(), None))
 }
 
-/// Returns the value of any table field as a 64-bit int, regardless of what type it is. Returns default integer if the field is not set or error if the value cannot be parsed as integer.
-/// [num_traits](https://docs.rs/num-traits/latest/num_traits/cast/trait.NumCast.html) is used for number casting.
+/// Reads any table field as a 64-bit signed integer, regardless of its declared type.
+///
+/// Scalar types are widened/narrowed using
+/// [`num_traits::NumCast`](https://docs.rs/num-traits/latest/num_traits/cast/trait.NumCast.html).
+/// String fields are parsed with [`str::parse`].  Tables, vectors, and arrays
+/// return [`FlatbufferError::FieldTypeMismatch`].
+///
+/// Returns `field.default_integer()` when the field is absent from the vtable.
+///
+/// For name-based access on a safe buffer, use [`SafeTable::get_any_field_integer`].
 ///
 /// # Safety
 ///
-/// [table] must contain recursively valid offsets that match the [field].
+/// `table` must be from a verified FlatBuffer whose layout matches `field`.
+/// Offsets inside the table must be valid for the declared field types.
 pub unsafe fn get_any_field_integer(table: &Table, field: &Field) -> FlatbufferResult<i64> {
     if let Some(field_loc) = get_field_loc(table, field) {
         get_any_value_integer(field.type_().base_type(), table.buf(), field_loc)
@@ -206,11 +413,19 @@ pub unsafe fn get_any_field_integer(table: &Table, field: &Field) -> FlatbufferR
     }
 }
 
-/// Returns the value of any table field as a 64-bit floating point, regardless of what type it is. Returns default float if the field is not set or error if the value cannot be parsed as float.
+/// Reads any table field as a 64-bit floating-point value, regardless of its declared type.
+///
+/// Scalar types are promoted using [`num_traits::NumCast`].  String fields are
+/// parsed with [`str::parse`].  Tables, vectors, and arrays return
+/// [`FlatbufferError::FieldTypeMismatch`].
+///
+/// Returns `field.default_real()` when the field is absent from the vtable.
+///
+/// For name-based access on a safe buffer, use [`SafeTable::get_any_field_float`].
 ///
 /// # Safety
 ///
-/// [table] must contain recursively valid offsets that match the [field].
+/// `table` must be from a verified FlatBuffer whose layout matches `field`.
 pub unsafe fn get_any_field_float(table: &Table, field: &Field) -> FlatbufferResult<f64> {
     if let Some(field_loc) = get_field_loc(table, field) {
         get_any_value_float(field.type_().base_type(), table.buf(), field_loc)
@@ -219,11 +434,24 @@ pub unsafe fn get_any_field_float(table: &Table, field: &Field) -> FlatbufferRes
     }
 }
 
-/// Returns the value of any table field as a string, regardless of what type it is. Returns empty string if the field is not set.
+/// Reads any table field and returns a human-readable string representation.
+///
+/// - Scalar types are formatted via their numeric value.
+/// - `String` fields are returned as-is (raw UTF-8 bytes, lossily decoded).
+/// - `Obj` fields produce a debug-style `TypeName { field: value, ... }` string.
+/// - `Vector` and `Union` fields return placeholder strings (not yet implemented).
+///
+/// Returns an empty string when the field is absent from the vtable.
+///
+/// The `schema` argument is required to resolve object/enum names for composite
+/// types.
+///
+/// For name-based access on a safe buffer, use [`SafeTable::get_any_field_string`].
 ///
 /// # Safety
 ///
-/// [table] must contain recursively valid offsets that match the [field].
+/// `table` must be from a verified FlatBuffer whose layout matches `field`.
+/// The `schema` must correspond to the same `.fbs` schema used to produce the buffer.
 pub unsafe fn get_any_field_string(table: &Table, field: &Field, schema: &Schema) -> String {
     if let Some(field_loc) = get_field_loc(table, field) {
         get_any_value_string(
@@ -238,11 +466,21 @@ pub unsafe fn get_any_field_string(table: &Table, field: &Field, schema: &Schema
     }
 }
 
-/// Gets a [Struct] struct field given its exact type. Returns error if the type doesn't match.
+/// Reads a nested struct field from an inline FlatBuffer [`Struct`].
+///
+/// Unlike tables, structs store all fields inline without vtable indirection.
+/// This function computes the field's byte offset relative to the struct's
+/// start and returns a [`Struct`] view over those bytes.
+///
+/// Returns [`FlatbufferError::FieldTypeMismatch`] if the field's `BaseType` is
+/// not `Obj`.
+///
+/// For name-based access on a safe buffer, use [`SafeStruct::get_field_struct`].
 ///
 /// # Safety
 ///
-/// The value of the corresponding slot must have type Struct.
+/// `st` must be from a verified FlatBuffer.  `field` must describe an inline
+/// struct field within the same parent struct's schema object.
 pub unsafe fn get_field_struct_in_struct<'a>(
     st: &Struct<'a>,
     field: &Field,
@@ -252,40 +490,71 @@ pub unsafe fn get_field_struct_in_struct<'a>(
     if field.type_().base_type() != BaseType::Obj {
         return Err(FlatbufferError::FieldTypeMismatch(
             String::from("Obj"),
-            field.type_().base_type().variant_name().unwrap_or_default().to_string(),
+            field
+                .type_()
+                .base_type()
+                .variant_name()
+                .unwrap_or_default()
+                .to_string(),
         ));
     }
 
     Ok(st.get::<Struct>(field.offset() as usize))
 }
 
-/// Returns the value of any struct field as a 64-bit int, regardless of what type it is. Returns error if the value cannot be parsed as integer.
+/// Reads any field from an inline FlatBuffer [`Struct`] as a 64-bit signed integer.
+///
+/// Identical type-widening logic as [`get_any_field_integer`], but operates on
+/// inline struct data rather than a vtable-indexed table.
+///
+/// Unlike table fields, struct fields are always present (no default fallback
+/// path).  Returns [`FlatbufferError::FieldTypeMismatch`] when the value cannot
+/// be interpreted as `i64`.
+///
+/// For name-based access on a safe buffer, use [`SafeStruct::get_any_field_integer`].
 ///
 /// # Safety
 ///
-/// [st] must contain valid offsets that match the [field].
+/// `st` must be from a verified FlatBuffer.  `field` must belong to the schema
+/// object that describes `st`'s layout.
 pub unsafe fn get_any_field_integer_in_struct(st: &Struct, field: &Field) -> FlatbufferResult<i64> {
     let field_loc = st.loc() + field.offset() as usize;
 
     get_any_value_integer(field.type_().base_type(), st.buf(), field_loc)
 }
 
-/// Returns the value of any struct field as a 64-bit floating point, regardless of what type it is. Returns error if the value cannot be parsed as float.
+/// Reads any field from an inline FlatBuffer [`Struct`] as a 64-bit floating-point value.
+///
+/// Identical type-promotion logic as [`get_any_field_float`], but operates on
+/// inline struct data rather than a vtable-indexed table.
+///
+/// Returns [`FlatbufferError::FieldTypeMismatch`] when the value cannot be
+/// represented as `f64`.
+///
+/// For name-based access on a safe buffer, use [`SafeStruct::get_any_field_float`].
 ///
 /// # Safety
 ///
-/// [st] must contain valid offsets that match the [field].
+/// `st` must be from a verified FlatBuffer.  `field` must belong to the schema
+/// object that describes `st`'s layout.
 pub unsafe fn get_any_field_float_in_struct(st: &Struct, field: &Field) -> FlatbufferResult<f64> {
     let field_loc = st.loc() + field.offset() as usize;
 
     get_any_value_float(field.type_().base_type(), st.buf(), field_loc)
 }
 
-/// Returns the value of any struct field as a string, regardless of what type it is.
+/// Reads any field from an inline FlatBuffer [`Struct`] and returns a human-readable string.
+///
+/// Same formatting rules as [`get_any_field_string`], applied to inline struct
+/// byte data instead of a vtable-indexed table.
+///
+/// For name-based access on a safe buffer, use [`SafeStruct::get_any_field_string`].
 ///
 /// # Safety
 ///
-/// [st] must contain valid offsets that match the [field].
+/// `st` must be from a verified FlatBuffer.  `field` must belong to the schema
+/// object that describes `st`'s layout.  `schema` must correspond to the `.fbs`
+/// schema used to produce the buffer.
 pub unsafe fn get_any_field_string_in_struct(
     st: &Struct,
     field: &Field,
@@ -306,7 +575,7 @@ pub unsafe fn get_any_field_string_in_struct(
 ///
 /// # Safety
 ///
-/// [buf] must contain a valid root table and valid offset to it.
+/// `buf` must contain a valid root table and valid offset to it.
 pub unsafe fn set_any_field_integer(
     buf: &mut [u8],
     table_loc: usize,
@@ -331,7 +600,7 @@ pub unsafe fn set_any_field_integer(
 ///
 /// # Safety
 ///
-/// [buf] must contain a valid root table and valid offset to it.
+/// `buf` must contain a valid root table and valid offset to it.
 pub unsafe fn set_any_field_float(
     buf: &mut [u8],
     table_loc: usize,
@@ -356,7 +625,7 @@ pub unsafe fn set_any_field_float(
 ///
 /// # Safety
 ///
-/// [buf] must contain a valid root table and valid offset to it.
+/// `buf` must contain a valid root table and valid offset to it.
 pub unsafe fn set_any_field_string(
     buf: &mut [u8],
     table_loc: usize,
@@ -381,7 +650,7 @@ pub unsafe fn set_any_field_string(
 ///
 /// # Safety
 ///
-/// [buf] must contain a valid root table and valid offset to it.
+/// `buf` must contain a valid root table and valid offset to it.
 pub unsafe fn set_field<T: EndianScalar>(
     buf: &mut [u8],
     table_loc: usize,
@@ -407,24 +676,26 @@ pub unsafe fn set_field<T: EndianScalar>(
     };
 
     if buf.len() < field_loc.saturating_add(get_type_size(field_type)) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: field_loc,
-                end: field_loc.saturating_add(get_type_size(field_type)),
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(field_type)),
+                },
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
 
     // SAFETY: the buffer range was verified above.
     unsafe { Ok(emplace_scalar::<T>(&mut buf[field_loc..], v)) }
 }
 
-/// Sets a string field to a new value. Returns error if the field is not originally set or is not of string type in which cases the [buf] stays intact. Returns error if the [buf] fails to be updated.
+/// Sets a string field to a new value. Returns error if the field is not originally set or is not of string type in which cases `buf` stays intact. Returns error if `buf` fails to be updated.
 ///
 /// # Safety
 ///
-/// [buf] must contain a valid root table and valid offset to it and conform to the [schema].
+/// `buf` must contain a valid root table and valid offset to it and conform to the `schema`.
 pub unsafe fn set_string(
     buf: &mut Vec<u8>,
     table_loc: usize,
@@ -451,37 +722,49 @@ pub unsafe fn set_string(
     };
 
     if buf.len() < field_loc + get_type_size(field_type) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: field_loc,
-                end: field_loc.saturating_add(get_type_size(field_type)),
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(field_type)),
+                },
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
 
     // SAFETY: the buffer range was verified above.
     let string_loc = unsafe { deref_uoffset(buf, field_loc)? };
     if buf.len() < string_loc.saturating_add(SIZE_UOFFSET) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: string_loc,
-                end: string_loc.saturating_add(SIZE_UOFFSET),
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: string_loc,
+                    end: string_loc.saturating_add(SIZE_UOFFSET),
+                },
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
 
     // SAFETY: the buffer range was verified above.
     let len_old = unsafe { read_uoffset(buf, string_loc) };
-    if buf.len() < string_loc.saturating_add(SIZE_UOFFSET).saturating_add(len_old.try_into()?) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: string_loc,
-                end: string_loc.saturating_add(SIZE_UOFFSET).saturating_add(len_old.try_into()?),
+    if buf.len()
+        < string_loc
+            .saturating_add(SIZE_UOFFSET)
+            .saturating_add(len_old.try_into()?)
+    {
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: string_loc,
+                    end: string_loc
+                        .saturating_add(SIZE_UOFFSET)
+                        .saturating_add(len_old.try_into()?),
+                },
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
 
     let len_new = v.len();
@@ -526,8 +809,15 @@ pub unsafe fn set_string(
     Ok(())
 }
 
-/// Returns the size of a scalar type in the `BaseType` enum. In the case of structs, returns the size of their offset (`UOffsetT`) in the buffer.
-fn get_type_size(base_type: BaseType) -> usize {
+/// Returns the in-buffer byte size of a scalar [`BaseType`].
+///
+/// For `Obj`, `String`, `Vector`, and `Union` the return value is
+/// `SIZE_UOFFSET` (4) — the size of the forward offset that points to the
+/// actual data.  For `Array` and `None` the return value is 0; callers that
+/// deal with arrays must compute the total size separately.
+///
+/// Used internally to validate field type sizes before raw reads and writes.
+pub(crate) fn get_type_size(base_type: BaseType) -> usize {
     match base_type {
         BaseType::UType | BaseType::Bool | BaseType::Byte | BaseType::UByte => 1,
         BaseType::Short | BaseType::UShort => 2,
@@ -579,7 +869,9 @@ unsafe fn get_any_value_integer(
         BaseType::ULong => i64::from_u64(u64::follow(buf, loc)),
         BaseType::Float => i64::from_f32(f32::follow(buf, loc)),
         BaseType::Double => i64::from_f64(f64::follow(buf, loc)),
-        BaseType::String => ForwardsUOffset::<&str>::follow(buf, loc).parse::<i64>().ok(),
+        BaseType::String => ForwardsUOffset::<&str>::follow(buf, loc)
+            .parse::<i64>()
+            .ok(),
         _ => None, // Tables & vectors do not make sense.
     }
     .ok_or(FlatbufferError::FieldTypeMismatch(
@@ -610,7 +902,9 @@ unsafe fn get_any_value_float(
         BaseType::ULong => f64::from_u64(u64::follow(buf, loc)),
         BaseType::Float => f64::from_f32(f32::follow(buf, loc)),
         BaseType::Double => Some(f64::follow(buf, loc)),
-        BaseType::String => ForwardsUOffset::<&str>::follow(buf, loc).parse::<f64>().ok(),
+        BaseType::String => ForwardsUOffset::<&str>::follow(buf, loc)
+            .parse::<f64>()
+            .ok(),
         _ => None,
     }
     .ok_or(FlatbufferError::FieldTypeMismatch(
@@ -632,9 +926,9 @@ unsafe fn get_any_value_string(
     type_index: usize,
 ) -> String {
     match base_type {
-        BaseType::Float | BaseType::Double => {
-            get_any_value_float(base_type, buf, loc).unwrap_or_default().to_string()
-        }
+        BaseType::Float | BaseType::Double => get_any_value_float(base_type, buf, loc)
+            .unwrap_or_default()
+            .to_string(),
         BaseType::String => {
             String::from_utf8_lossy(ForwardsUOffset::<&[u8]>::follow(buf, loc)).to_string()
         }
@@ -675,7 +969,9 @@ unsafe fn get_any_value_string(
         }
         BaseType::Vector => String::from("[(elements)]"), // TODO inherited from C++: implement this as well.
         BaseType::Union => String::from("(union)"), // TODO inherited from C++: implement this as well.
-        _ => get_any_value_integer(base_type, buf, loc).unwrap_or_default().to_string(),
+        _ => get_any_value_integer(base_type, buf, loc)
+            .unwrap_or_default()
+            .to_string(),
     }
 }
 
@@ -687,13 +983,15 @@ fn set_any_value_integer(
     v: i64,
 ) -> FlatbufferResult<()> {
     if buf.len() < get_type_size(base_type) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: field_loc,
-                end: field_loc.saturating_add(get_type_size(base_type)),
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(base_type)),
+                },
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
     let buf = &mut buf[field_loc..];
     let type_name = base_type.variant_name().unwrap_or_default().to_string();
@@ -704,7 +1002,10 @@ fn set_any_value_integer(
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe { Ok(emplace_scalar::<$ty>(buf, v)) }
             } else {
-                Err(FlatbufferError::FieldTypeMismatch(String::from("i64"), type_name))
+                Err(FlatbufferError::FieldTypeMismatch(
+                    String::from("i64"),
+                    type_name,
+                ))
             }
         };
     }
@@ -744,7 +1045,10 @@ fn set_any_value_integer(
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe { Ok(emplace_scalar::<f32>(buf, value)) }
             } else {
-                Err(FlatbufferError::FieldTypeMismatch(String::from("i64"), type_name))
+                Err(FlatbufferError::FieldTypeMismatch(
+                    String::from("i64"),
+                    type_name,
+                ))
             }
         }
         BaseType::Double => {
@@ -752,7 +1056,10 @@ fn set_any_value_integer(
                 // SAFETY: buffer size is verified at the beginning of this function.
                 unsafe { Ok(emplace_scalar::<f64>(buf, value)) }
             } else {
-                Err(FlatbufferError::FieldTypeMismatch(String::from("i64"), type_name))
+                Err(FlatbufferError::FieldTypeMismatch(
+                    String::from("i64"),
+                    type_name,
+                ))
             }
         }
         _ => Err(FlatbufferError::SetValueNotSupported),
@@ -767,13 +1074,15 @@ fn set_any_value_float(
     v: f64,
 ) -> FlatbufferResult<()> {
     if buf.len() < get_type_size(base_type) {
-        return Err(FlatbufferError::VerificationError(InvalidFlatbuffer::RangeOutOfBounds {
-            range: core::ops::Range {
-                start: field_loc,
-                end: field_loc.saturating_add(get_type_size(base_type)),
+        return Err(FlatbufferError::VerificationError(
+            InvalidFlatbuffer::RangeOutOfBounds {
+                range: core::ops::Range {
+                    start: field_loc,
+                    end: field_loc.saturating_add(get_type_size(base_type)),
+                },
+                error_trace: Default::default(),
             },
-            error_trace: Default::default(),
-        }));
+        ));
     }
     let buf = &mut buf[field_loc..];
     let type_name = base_type.variant_name().unwrap_or_default().to_string();
@@ -868,7 +1177,10 @@ fn set_any_value_float(
         }
         _ => return Err(FlatbufferError::SetValueNotSupported),
     }
-    return Err(FlatbufferError::FieldTypeMismatch(String::from("f64"), type_name));
+    return Err(FlatbufferError::FieldTypeMismatch(
+        String::from("f64"),
+        type_name,
+    ));
 }
 
 fn is_scalar(base_type: BaseType) -> bool {
@@ -931,7 +1243,10 @@ unsafe fn update_offset(
         }
 
         if field_type == BaseType::Obj
-            && schema.objects().get(field.type_().index().try_into()?).is_struct()
+            && schema
+                .objects()
+                .get(field.type_().index().try_into()?)
+                .is_struct()
         {
             continue;
         }
@@ -967,7 +1282,10 @@ unsafe fn update_offset(
                     continue;
                 }
                 if elem_type == BaseType::Obj
-                    && schema.objects().get(field.type_().index().try_into()?).is_struct()
+                    && schema
+                        .objects()
+                        .get(field.type_().index().try_into()?)
+                        .is_struct()
                 {
                     continue;
                 }

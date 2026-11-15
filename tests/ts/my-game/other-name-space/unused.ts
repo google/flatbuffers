@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
 export class Unused implements flatbuffers.IUnpackableObject<UnusedT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -23,7 +23,7 @@ export class Unused implements flatbuffers.IUnpackableObject<UnusedT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'MyGame.OtherNameSpace.Unused';
+    return "MyGame.OtherNameSpace.Unused";
   }
 
   static sizeOf(): number {

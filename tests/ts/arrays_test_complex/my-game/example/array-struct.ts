@@ -2,17 +2,18 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
 import {
   NestedStruct,
   NestedStructT,
-} from '../../my-game/example/nested-struct.js';
-import {OuterStruct, OuterStructT} from '../../my-game/example/outer-struct.js';
+} from "../../my-game/example/nested-struct.js";
+import {
+  OuterStruct,
+  OuterStructT,
+} from "../../my-game/example/outer-struct.js";
 
-export class ArrayStruct
-  implements flatbuffers.IUnpackableObject<ArrayStructT>
-{
+export class ArrayStruct implements flatbuffers.IUnpackableObject<ArrayStructT> {
   bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
   __init(i: number, bb: flatbuffers.ByteBuffer): ArrayStruct {
@@ -56,7 +57,7 @@ export class ArrayStruct
   }
 
   static getFullyQualifiedName(): string {
-    return 'MyGame.Example.ArrayStruct';
+    return "MyGame.Example.ArrayStruct";
   }
 
   static sizeOf(): number {

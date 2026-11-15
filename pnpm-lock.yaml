@@ -26,6 +26,9 @@ importers:
       eslint:
         specifier: ^9.29.0
         version: 9.29.0
+      prettier:
+        specifier: 3.8.4
+        version: 3.8.4
       typescript:
         specifier: 5.8.3
         version: 5.8.3
@@ -621,6 +624,11 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  prettier@3.8.4:
+    resolution: {integrity: sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==}
+    engines: {node: '>=14'}
+    hasBin: true
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -1264,6 +1272,8 @@ snapshots:
   picomatch@2.3.1: {}
 
   prelude-ls@1.2.1: {}
+
+  prettier@3.8.4: {}
 
   punycode@2.3.1: {}
 

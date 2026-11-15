@@ -58,3 +58,17 @@ static deserialize(buffer: Uint8Array):HelloReply {
   return HelloReply.getRootAsHelloReply(new flatbuffers.ByteBuffer(buffer))
 }
 }
+
+export function verifyHelloReply(verifier: flatbuffers.Verifier, tablePos: number): void {
+  verifier.checkTable(tablePos);
+  try {
+    {
+      const pos = verifier.checkOffsetField(tablePos, 4);
+      if (pos !== 0) {
+        verifier.checkString(pos);
+      }
+    }
+  } finally {
+    verifier.popDepth();
+  }
+}

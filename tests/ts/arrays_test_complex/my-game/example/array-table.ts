@@ -2,9 +2,12 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {ArrayStruct, ArrayStructT} from '../../my-game/example/array-struct.js';
+import {
+  ArrayStruct,
+  ArrayStructT,
+} from "../../my-game/example/array-struct.js";
 
 export class ArrayTable implements flatbuffers.IUnpackableObject<ArrayTableT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -37,7 +40,7 @@ export class ArrayTable implements flatbuffers.IUnpackableObject<ArrayTableT> {
   }
 
   static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
-    return bb.__has_identifier('RHUB');
+    return bb.__has_identifier("RHUB");
   }
 
   a(): string | null;
@@ -57,7 +60,7 @@ export class ArrayTable implements flatbuffers.IUnpackableObject<ArrayTableT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'MyGame.Example.ArrayTable';
+    return "MyGame.Example.ArrayTable";
   }
 
   static startArrayTable(builder: flatbuffers.Builder) {
@@ -84,14 +87,14 @@ export class ArrayTable implements flatbuffers.IUnpackableObject<ArrayTableT> {
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'RHUB');
+    builder.finish(offset, "RHUB");
   }
 
   static finishSizePrefixedArrayTableBuffer(
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'RHUB', true);
+    builder.finish(offset, "RHUB", true);
   }
 
   unpack(): ArrayTableT {

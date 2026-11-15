@@ -2,88 +2,122 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
-
-
+import * as flatbuffers from "flatbuffers";
 
 export class HandFan implements flatbuffers.IUnpackableObject<HandFanT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):HandFan {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
-
-static getRootAsHandFan(bb:flatbuffers.ByteBuffer, obj?:HandFan):HandFan {
-  return (obj || new HandFan()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-static getSizePrefixedRootAsHandFan(bb:flatbuffers.ByteBuffer, obj?:HandFan):HandFan {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new HandFan()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
-
-length():number {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
-}
-
-mutate_length(value:number):boolean {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
+  __init(i: number, bb: flatbuffers.ByteBuffer): HandFan {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
   }
 
-  this.bb!.writeInt32(this.bb_pos + offset, value);
-  return true;
-}
+  static getRootAsHandFan(bb: flatbuffers.ByteBuffer, obj?: HandFan): HandFan {
+    return (obj || new HandFan()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static getFullyQualifiedName(): "HandFan" {
-  return 'HandFan';
-}
+  static getSizePrefixedRootAsHandFan(
+    bb: flatbuffers.ByteBuffer,
+    obj?: HandFan,
+  ): HandFan {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new HandFan()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static startHandFan(builder:flatbuffers.Builder) {
-  builder.startObject(1);
-}
+  length(): number {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
+    return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+  }
 
-static addLength(builder:flatbuffers.Builder, length:number) {
-  builder.addFieldInt32(0, length, 0);
-}
+  mutate_length(value: number): boolean {
+    const offset = this.bb!.__offset(this.bb_pos, 4);
 
-static endHandFan(builder:flatbuffers.Builder):flatbuffers.Offset {
-  const offset = builder.endObject();
-  return offset;
-}
+    if (offset === 0) {
+      return false;
+    }
 
-static createHandFan(builder:flatbuffers.Builder, length:number):flatbuffers.Offset {
-  HandFan.startHandFan(builder);
-  HandFan.addLength(builder, length);
-  return HandFan.endHandFan(builder);
-}
+    this.bb!.writeInt32(this.bb_pos + offset, value);
+    return true;
+  }
 
-unpack(): HandFanT {
-  return new HandFanT(
-    this.length()
-  );
-}
+  static getFullyQualifiedName(): "HandFan" {
+    return "HandFan";
+  }
 
+  static startHandFan(builder: flatbuffers.Builder) {
+    builder.startObject(1);
+  }
 
-unpackTo(_o: HandFanT): void {
-  _o.length = this.length();
-}
+  static addLength(builder: flatbuffers.Builder, length: number) {
+    builder.addFieldInt32(0, length, 0);
+  }
+
+  static endHandFan(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const offset = builder.endObject();
+    return offset;
+  }
+
+  static createHandFan(
+    builder: flatbuffers.Builder,
+    length: number,
+  ): flatbuffers.Offset {
+    HandFan.startHandFan(builder);
+    HandFan.addLength(builder, length);
+    return HandFan.endHandFan(builder);
+  }
+
+  unpack(): HandFanT {
+    return new HandFanT(this.length());
+  }
+
+  unpackTo(_o: HandFanT): void {
+    _o.length = this.length();
+  }
+
+  unpackFields(...fields: string[]): HandFanT {
+    const t = new HandFanT();
+    const fieldSet = new Set(fields);
+    if (fieldSet.has("length")) {
+      t.length = this.length();
+    }
+    return t;
+  }
 }
 
 export class HandFanT implements flatbuffers.IGeneratedObject {
-constructor(
-  public length: number = 0
-){}
+  constructor(public length: number = 0) {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return HandFan.createHandFan(builder, this.length);
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return HandFan.createHandFan(builder,
-    this.length
-  );
+  clone(): HandFanT {
+    const obj = new HandFanT();
+    obj.length = this.length;
+    return obj;
+  }
+
+  equals(other: HandFanT): boolean {
+    if (this.length !== other.length) return false;
+    return true;
+  }
 }
+
+export function verifyHandFan(
+  verifier: flatbuffers.Verifier,
+  tablePos: number,
+): void {
+  verifier.checkTable(tablePos);
+  try {
+    verifier.checkScalarField(tablePos, 4, 4);
+  } finally {
+    verifier.popDepth();
+  }
 }

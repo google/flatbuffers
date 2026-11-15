@@ -2,12 +2,12 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {Enum, EnumT} from '../reflection/enum.js';
-import {Object_, Object_T} from '../reflection/object.js';
-import {SchemaFile, SchemaFileT} from '../reflection/schema-file.js';
-import {Service, ServiceT} from '../reflection/service.js';
+import { Enum, EnumT } from "../reflection/enum.js";
+import { Object_, Object_T } from "../reflection/object.js";
+import { SchemaFile, SchemaFileT } from "../reflection/schema-file.js";
+import { Service, ServiceT } from "../reflection/service.js";
 
 export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -37,7 +37,7 @@ export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
   }
 
   static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
-    return bb.__has_identifier('BFBS');
+    return bb.__has_identifier("BFBS");
   }
 
   objects(index: number, obj?: Object_): Object_ | null {
@@ -121,7 +121,7 @@ export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
 
   advancedFeatures(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 16);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
   }
 
   mutate_advanced_features(value: bigint): boolean {
@@ -157,7 +157,7 @@ export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.Schema';
+    return "reflection.Schema";
   }
 
   static startSchema(builder: flatbuffers.Builder) {
@@ -255,7 +255,7 @@ export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
     builder: flatbuffers.Builder,
     advancedFeatures: bigint,
   ) {
-    builder.addFieldInt64(6, advancedFeatures, BigInt('0'));
+    builder.addFieldInt64(6, advancedFeatures, BigInt("0"));
   }
 
   static addFbsFiles(
@@ -291,14 +291,14 @@ export class Schema implements flatbuffers.IUnpackableObject<SchemaT> {
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'BFBS');
+    builder.finish(offset, "BFBS");
   }
 
   static finishSizePrefixedSchemaBuffer(
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'BFBS', true);
+    builder.finish(offset, "BFBS", true);
   }
 
   unpack(): SchemaT {
@@ -359,7 +359,7 @@ export class SchemaT implements flatbuffers.IGeneratedObject {
     public fileExt: string | Uint8Array | null = null,
     public rootTable: Object_T | null = null,
     public services: ServiceT[] = [],
-    public advancedFeatures: bigint = BigInt('0'),
+    public advancedFeatures: bigint = BigInt("0"),
     public fbsFiles: SchemaFileT[] = [],
   ) {}
 

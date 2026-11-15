@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
 export class A implements flatbuffers.IUnpackableObject<AT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -45,7 +45,7 @@ export class A implements flatbuffers.IUnpackableObject<AT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'UnionUnderlyingType.A';
+    return "UnionUnderlyingType.A";
   }
 
   static startA(builder: flatbuffers.Builder) {

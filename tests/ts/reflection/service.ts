@@ -2,10 +2,10 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {KeyValue, KeyValueT} from '../reflection/key-value.js';
-import {RPCCall, RPCCallT} from '../reflection/rpccall.js';
+import { KeyValue, KeyValueT } from "../reflection/key-value.js";
+import { RPCCall, RPCCallT } from "../reflection/rpccall.js";
 
 export class Service implements flatbuffers.IUnpackableObject<ServiceT> {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -115,7 +115,7 @@ export class Service implements flatbuffers.IUnpackableObject<ServiceT> {
   }
 
   static getFullyQualifiedName(): string {
-    return 'reflection.Service';
+    return "reflection.Service";
   }
 
   static startService(builder: flatbuffers.Builder) {

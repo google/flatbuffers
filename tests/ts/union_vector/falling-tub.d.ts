@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class FallingTub
-  implements flatbuffers.IUnpackableObject<FallingTubT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class FallingTub implements flatbuffers.IUnpackableObject<FallingTubT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): FallingTub;

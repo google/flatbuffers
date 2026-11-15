@@ -63,5 +63,24 @@ pub use crate::verifier::{
 pub use crate::vtable::field_index_to_field_offset;
 pub use bitflags;
 pub use get_root::*;
+pub use ordered_float;
+
+/// HashMap backed by [`ahash::AHasher`] via [`std::hash::BuildHasherDefault`].
+///
+/// Generated Object API map fields use this type instead of
+/// `std::collections::HashMap` for faster, non-cryptographic hashing. Only
+/// available with the `std` feature, since `std::collections::HashMap` has no
+/// `core`/`alloc` equivalent (map/set Object API fields require `std`).
+#[cfg(feature = "std")]
+pub type HashMap<K, V> =
+    std::collections::HashMap<K, V, std::hash::BuildHasherDefault<ahash::AHasher>>;
+
+/// HashSet backed by [`ahash::AHasher`] via [`std::hash::BuildHasherDefault`].
+///
+/// Generated Object API set fields use this type instead of
+/// `std::collections::HashSet` for faster, non-cryptographic hashing. Only
+/// available with the `std` feature (see [`HashMap`]).
+#[cfg(feature = "std")]
+pub type HashSet<V> = std::collections::HashSet<V, std::hash::BuildHasherDefault<ahash::AHasher>>;
 
 // TODO(rw): Split fill ops in builder into fill_small, fill_big like in C++.

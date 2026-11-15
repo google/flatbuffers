@@ -41,6 +41,7 @@
     "@typescript-eslint/parser": "^8.34.1",
     "esbuild": "^0.25.5",
     "eslint": "^9.29.0",
+    "prettier": "3.8.4",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.34.1"
   },

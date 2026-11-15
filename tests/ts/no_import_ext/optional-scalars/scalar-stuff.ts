@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {OptionalByte} from '../optional-scalars/optional-byte';
+import { OptionalByte } from "../optional-scalars/optional-byte";
 
 export class ScalarStuff {
   bb: flatbuffers.ByteBuffer | null = null;
@@ -37,7 +37,7 @@ export class ScalarStuff {
   }
 
   static bufferHasIdentifier(bb: flatbuffers.ByteBuffer): boolean {
-    return bb.__has_identifier('NULL');
+    return bb.__has_identifier("NULL");
   }
 
   justI8(): number {
@@ -132,7 +132,7 @@ export class ScalarStuff {
 
   justI64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 40);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('0');
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("0");
   }
 
   maybeI64(): bigint | null {
@@ -142,12 +142,12 @@ export class ScalarStuff {
 
   defaultI64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 44);
-    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt('42');
+    return offset ? this.bb!.readInt64(this.bb_pos + offset) : BigInt("42");
   }
 
   justU64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 46);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("0");
   }
 
   maybeU64(): bigint | null {
@@ -157,7 +157,7 @@ export class ScalarStuff {
 
   defaultU64(): bigint {
     const offset = this.bb!.__offset(this.bb_pos, 50);
-    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('42');
+    return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt("42");
   }
 
   justF32(): number {
@@ -221,7 +221,7 @@ export class ScalarStuff {
   }
 
   static getFullyQualifiedName(): string {
-    return 'optional_scalars.ScalarStuff';
+    return "optional_scalars.ScalarStuff";
   }
 
   static startScalarStuff(builder: flatbuffers.Builder) {
@@ -301,7 +301,7 @@ export class ScalarStuff {
   }
 
   static addJustI64(builder: flatbuffers.Builder, justI64: bigint) {
-    builder.addFieldInt64(18, justI64, BigInt('0'));
+    builder.addFieldInt64(18, justI64, BigInt("0"));
   }
 
   static addMaybeI64(builder: flatbuffers.Builder, maybeI64: bigint) {
@@ -309,11 +309,11 @@ export class ScalarStuff {
   }
 
   static addDefaultI64(builder: flatbuffers.Builder, defaultI64: bigint) {
-    builder.addFieldInt64(20, defaultI64, BigInt('42'));
+    builder.addFieldInt64(20, defaultI64, BigInt("42"));
   }
 
   static addJustU64(builder: flatbuffers.Builder, justU64: bigint) {
-    builder.addFieldInt64(21, justU64, BigInt('0'));
+    builder.addFieldInt64(21, justU64, BigInt("0"));
   }
 
   static addMaybeU64(builder: flatbuffers.Builder, maybeU64: bigint) {
@@ -321,7 +321,7 @@ export class ScalarStuff {
   }
 
   static addDefaultU64(builder: flatbuffers.Builder, defaultU64: bigint) {
-    builder.addFieldInt64(23, defaultU64, BigInt('42'));
+    builder.addFieldInt64(23, defaultU64, BigInt("42"));
   }
 
   static addJustF32(builder: flatbuffers.Builder, justF32: number) {
@@ -384,14 +384,14 @@ export class ScalarStuff {
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'NULL');
+    builder.finish(offset, "NULL");
   }
 
   static finishSizePrefixedScalarStuffBuffer(
     builder: flatbuffers.Builder,
     offset: flatbuffers.Offset,
   ) {
-    builder.finish(offset, 'NULL', true);
+    builder.finish(offset, "NULL", true);
   }
 
   static createScalarStuff(

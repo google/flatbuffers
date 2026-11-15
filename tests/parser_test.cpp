@@ -935,5 +935,233 @@ void FieldIdentifierTest() {
 #endif
 }
 
+void MapSetSyntaxTest() {
+  using flatbuffers::Parser;
+
+  // Valid map<K, V> syntax
+  TEST_EQ(true, Parser().Parse("table T { m: map<string, int>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse("table T { m: map<int, string>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse("table T { m: map<uint, bool>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse("table T { m: map<long, double>; } root_type T;"));
+
+  // Valid set<V> syntax
+  TEST_EQ(true, Parser().Parse("table T { s: set<string>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse("table T { s: set<int>; } root_type T;"));
+
+  // Deduplication: same map<K,V> in two tables should not fail
+  TEST_EQ(true, Parser().Parse(
+      "table A { m: map<string, int>; } "
+      "table B { m: map<string, int>; } "
+      "root_type A;"));
+
+  // Float/double key rejection
+  TestError("table T { m: map<float, int>; } root_type T;",
+            "floating-point types cannot be map/set keys");
+  TestError("table T { m: map<double, int>; } root_type T;",
+            "floating-point types cannot be map/set keys");
+
+  // Non-scalar/non-string key rejection (table as key)
+  TestError("table K{} table T { m: map<K, int>; } root_type T;",
+            "scalar, enum, or string");
+
+  // Nested vector as map value rejection
+  TestError("table T { m: map<int, [int]>; } root_type T;",
+            "map value type cannot be a vector or array");
+
+  // Union value rejection
+  TestError("union U { } table T { m: map<int, U>; } root_type T;",
+            "union types cannot be map values");
+
+  // --- Detailed attribute and struct inspection ---
+
+  // map<string, int>: verify map_entry attribute, vector base type, entry struct
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse(
+                "table T { m:map<string, int>; } root_type T;"),
+            true);
+    auto *struct_def = parser.structs_.Lookup("T");
+    TEST_NOTNULL(struct_def);
+    auto *field = struct_def->fields.Lookup("m");
+    TEST_NOTNULL(field);
+    TEST_NOTNULL(field->attributes.Lookup("map_entry"));
+    TEST_EQ(field->value.type.base_type, flatbuffers::BASE_TYPE_VECTOR);
+    TEST_NOTNULL(parser.structs_.Lookup("__Map_string_int_Entry"));
+  }
+
+  // set<string>: verify set_entry attribute and entry struct
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse(
+                "table T { s:set<string>; } root_type T;"),
+            true);
+    auto *struct_def = parser.structs_.Lookup("T");
+    TEST_NOTNULL(struct_def);
+    auto *field = struct_def->fields.Lookup("s");
+    TEST_NOTNULL(field);
+    TEST_NOTNULL(field->attributes.Lookup("set_entry"));
+    TEST_NOTNULL(parser.structs_.Lookup("__Set_string_Entry"));
+  }
+
+  // Deduplication: two fields with the same map type share one entry StructDef
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse(
+                "table T { m1:map<string, int>; m2:map<string, int>; }"
+                " root_type T;"),
+            true);
+    auto *t = parser.structs_.Lookup("T");
+    TEST_NOTNULL(t);
+    auto *f1 = t->fields.Lookup("m1");
+    auto *f2 = t->fields.Lookup("m2");
+    TEST_NOTNULL(f1);
+    TEST_NOTNULL(f2);
+    // Both fields must point to the same auto-generated entry struct.
+    TEST_EQ(f1->value.type.struct_def, f2->value.type.struct_def);
+  }
+
+  // Wrong parameter count for map<> (one param) must be rejected
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse("table T { m:map<string>; } root_type T;"), false);
+  }
+
+  // set<> with two parameters must be rejected
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse("table T { s:set<int, string>; } root_type T;"),
+            false);
+  }
+
+  // Nested map type must be rejected
+  {
+    Parser parser;
+    TEST_EQ(
+        parser.Parse(
+            "table T { m:map<string, map<string, int>>; } root_type T;"),
+        false);
+  }
+
+  // map<> with three parameters must be rejected
+  {
+    Parser parser;
+    TEST_EQ(
+        parser.Parse("table T { m:map<string, int, float>; } root_type T;"),
+        false);
+  }
+
+  // set<> with zero parameters must be rejected
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse("table T { s:set<>; } root_type T;"), false);
+  }
+
+  // map<> with zero parameters must be rejected
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse("table T { m:map<>; } root_type T;"), false);
+  }
+
+  // Struct type as set key must be rejected
+  TestError("struct S { x:int; } table T { s:set<S>; } root_type T;",
+            "scalar, enum, or string");
+
+  // Enum key type accepted for map and set
+  TEST_EQ(true, Parser().Parse(
+      "enum E:byte { A, B } table T { m:map<E, int>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse(
+      "enum E:byte { A, B } table T { s:set<E>; } root_type T;"));
+
+  // Bool key accepted for map and set
+  TEST_EQ(true, Parser().Parse(
+      "table T { m:map<bool, string>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse(
+      "table T { s:set<bool>; } root_type T;"));
+
+  // All integer key types accepted
+  TEST_EQ(true, Parser().Parse(
+      "table T { m:map<byte, int>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse(
+      "table T { m:map<ubyte, int>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse(
+      "table T { m:map<short, int>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse(
+      "table T { m:map<ushort, int>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse(
+      "table T { m:map<long, int>; } root_type T;"));
+  TEST_EQ(true, Parser().Parse(
+      "table T { m:map<ulong, int>; } root_type T;"));
+
+  // Entry struct fields are correct for map
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse(
+                "table T { m:map<int, string>; } root_type T;"),
+            true);
+    auto *entry = parser.structs_.Lookup("__Map_int_string_Entry");
+    TEST_NOTNULL(entry);
+    TEST_EQ(entry->has_key, true);
+    TEST_EQ(entry->fields.vec.size(), 2u);  // key + value
+    auto *kf = entry->fields.Lookup("key");
+    TEST_NOTNULL(kf);
+    TEST_EQ(kf->key, true);
+    TEST_EQ(kf->value.type.base_type, flatbuffers::BASE_TYPE_INT);
+    auto *vf = entry->fields.Lookup("value");
+    TEST_NOTNULL(vf);
+    TEST_EQ(vf->value.type.base_type, flatbuffers::BASE_TYPE_STRING);
+  }
+
+  // Entry struct fields are correct for set
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse(
+                "table T { s:set<long>; } root_type T;"),
+            true);
+    auto *entry = parser.structs_.Lookup("__Set_long_Entry");
+    TEST_NOTNULL(entry);
+    TEST_EQ(entry->has_key, true);
+    TEST_EQ(entry->fields.vec.size(), 1u);  // key only
+    auto *kf = entry->fields.Lookup("key");
+    TEST_NOTNULL(kf);
+    TEST_EQ(kf->key, true);
+    TEST_EQ(kf->value.type.base_type, flatbuffers::BASE_TYPE_LONG);
+  }
+
+  // Table value type accepted for map
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse(
+                "table V { x:int; } "
+                "table T { m:map<string, V>; } root_type T;"),
+            true);
+    auto *entry = parser.structs_.Lookup("__Map_string_V_Entry");
+    TEST_NOTNULL(entry);
+    auto *vf = entry->fields.Lookup("value");
+    TEST_NOTNULL(vf);
+    TEST_EQ(vf->value.type.base_type, flatbuffers::BASE_TYPE_STRUCT);
+    TEST_NOTNULL(vf->value.type.struct_def);
+    TEST_EQ_STR(vf->value.type.struct_def->name.c_str(), "V");
+  }
+
+  // Cross-table deduplication: same map type in different tables shares entry
+  {
+    Parser parser;
+    TEST_EQ(parser.Parse(
+                "table A { m:map<string, int>; } "
+                "table B { n:map<string, int>; } "
+                "root_type A;"),
+            true);
+    auto *a = parser.structs_.Lookup("A");
+    auto *b = parser.structs_.Lookup("B");
+    TEST_NOTNULL(a);
+    TEST_NOTNULL(b);
+    auto *fa = a->fields.Lookup("m");
+    auto *fb = b->fields.Lookup("n");
+    TEST_NOTNULL(fa);
+    TEST_NOTNULL(fb);
+    TEST_EQ(fa->value.type.struct_def, fb->value.type.struct_def);
+  }
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

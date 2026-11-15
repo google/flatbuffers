@@ -223,6 +223,14 @@ const static FlatCOption flatc_options[] = {
      "Implement serde::Serialize on generated Rust types."},
     {"", "rust-module-root-file", "",
      "Generate rust code in individual files with a module root file."},
+    {"", "rust-object-api-hashable-floats", "",
+     "Wrap Object API float fields in OrderedFloat so float-bearing types can "
+     "derive Eq/Hash. On by default; pass --rust-object-api-raw-floats to opt "
+     "out."},
+    {"", "rust-object-api-raw-floats", "",
+     "Emit idiomatic plain f32/f64 Object API float fields instead of "
+     "OrderedFloat. Float-bearing types (and any type that transitively "
+     "contains one) then derive only PartialEq/PartialOrd, not Eq/Ord/Hash."},
     {"", "root-type", "T", "Select or override the default root_type."},
     {"", "require-explicit-ids", "",
      "When parsing schemas, require explicit ids (id: x)."},
@@ -639,6 +647,10 @@ FlatCOptions FlatCompiler::ParseFromCommandLineArguments(int argc,
         opts.rust_serialize = true;
       } else if (arg == "--rust-module-root-file") {
         opts.rust_module_root_file = true;
+      } else if (arg == "--rust-object-api-hashable-floats") {
+        opts.rust_object_api_hashable_floats = true;
+      } else if (arg == "--rust-object-api-raw-floats") {
+        opts.rust_object_api_hashable_floats = false;
       } else if (arg == "--require-explicit-ids") {
         opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {

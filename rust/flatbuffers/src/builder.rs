@@ -559,12 +559,9 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         let found = self.strings_pool.binary_search_by(|offset| {
             let ptr = offset.value() as usize;
             let str_memory = &buf[buf.len() - ptr..];
-            let size = u32::from_le_bytes([
-                str_memory[0],
-                str_memory[1],
-                str_memory[2],
-                str_memory[3],
-            ]) as usize;
+            let size =
+                u32::from_le_bytes([str_memory[0], str_memory[1], str_memory[2], str_memory[3]])
+                    as usize;
             let stored = &str_memory[4..4 + size];
             stored.cmp(s.as_bytes())
         });
@@ -572,8 +569,7 @@ impl<'fbb, A: Allocator> FlatBufferBuilder<'fbb, A> {
         match found {
             Ok(index) => Ok(self.strings_pool[index]),
             Err(index) => {
-                let address =
-                    WIPOffset::new(self.try_create_byte_string(s.as_bytes())?.value());
+                let address = WIPOffset::new(self.try_create_byte_string(s.as_bytes())?.value());
                 self.strings_pool.insert(index, address);
                 Ok(address)
             }
@@ -1227,33 +1223,6 @@ impl<T> IndexMut<ReverseIndexRange> for [T] {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use core::sync::atomic::{AtomicUsize, Ordering};
-    use std::alloc::{GlobalAlloc, Layout, System};
-
-    static ALLOC_COUNT: AtomicUsize = AtomicUsize::new(0);
-
-    struct CountingAllocator;
-
-    unsafe impl GlobalAlloc for CountingAllocator {
-        unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-            ALLOC_COUNT.fetch_add(1, Ordering::Relaxed);
-            unsafe { System.alloc(layout) }
-        }
-        unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-            unsafe { System.dealloc(ptr, layout) }
-        }
-    }
-
-    #[global_allocator]
-    static GLOBAL: CountingAllocator = CountingAllocator;
-
-    fn reset_alloc_count() {
-        ALLOC_COUNT.store(0, Ordering::Relaxed);
-    }
-
-    fn alloc_count() -> usize {
-        ALLOC_COUNT.load(Ordering::Relaxed)
-    }
 
     #[test]
     fn reverse_index_test() {
@@ -1277,8 +1246,14 @@ mod tests {
         assert!(builder.written_vtable_revpos.is_empty());
         assert!(builder.strings_pool.is_empty());
 
-        // Reset the allocation counter after builder construction
-        reset_alloc_count();
+        // Capture the preallocated capacities so we can prove the internal vecs
+        // are not reallocated during use. We deliberately avoid counting global
+        // heap allocations: on `std`, `strings_pool` is a `HashMap<String, _>`,
+        // so each unique shared string necessarily allocates an owned `String`
+        // key — an expected cost unrelated to whether the preallocated vecs grow.
+        let field_locs_cap = builder.field_locs.capacity();
+        let vtable_revpos_cap = builder.written_vtable_revpos.capacity();
+        let strings_pool_cap = builder.strings_pool.capacity();
 
         // Add a shared string and verify it lands in the pool
         let s1 = builder.create_shared_string("hello");
@@ -1293,13 +1268,22 @@ mod tests {
         let _s3 = builder.create_shared_string("world");
         assert_eq!(builder.strings_pool.len(), 2);
 
-        // With sufficient preallocated capacity, no additional allocations
-        // should have occurred for the internal vecs during the operations above
-        let allocs = alloc_count();
+        // With sufficient preallocated capacity, none of the internal vecs
+        // should have reallocated during the operations above.
         assert_eq!(
-            allocs, 0,
-            "expected 0 allocations after builder construction, got {}",
-            allocs
+            builder.field_locs.capacity(),
+            field_locs_cap,
+            "field_locs reallocated"
+        );
+        assert_eq!(
+            builder.written_vtable_revpos.capacity(),
+            vtable_revpos_cap,
+            "written_vtable_revpos reallocated"
+        );
+        assert_eq!(
+            builder.strings_pool.capacity(),
+            strings_pool_cap,
+            "strings_pool reallocated"
         );
     }
 

@@ -2,13 +2,14 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
+import * as flatbuffers from "flatbuffers";
 
-import {InnerStruct, InnerStructT} from '../../my-game/example/inner-struct.js';
+import {
+  InnerStruct,
+  InnerStructT,
+} from "../../my-game/example/inner-struct.js";
 
-export class OuterStruct
-  implements flatbuffers.IUnpackableObject<OuterStructT>
-{
+export class OuterStruct implements flatbuffers.IUnpackableObject<OuterStructT> {
   bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
   __init(i: number, bb: flatbuffers.ByteBuffer): OuterStruct {
@@ -45,7 +46,7 @@ export class OuterStruct
   }
 
   static getFullyQualifiedName(): string {
-    return 'MyGame.Example.OuterStruct';
+    return "MyGame.Example.OuterStruct";
   }
 
   static sizeOf(): number {

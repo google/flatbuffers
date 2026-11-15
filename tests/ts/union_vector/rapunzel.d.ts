@@ -1,7 +1,5 @@
-import * as flatbuffers from 'flatbuffers';
-export declare class Rapunzel
-  implements flatbuffers.IUnpackableObject<RapunzelT>
-{
+import * as flatbuffers from "flatbuffers";
+export declare class Rapunzel implements flatbuffers.IUnpackableObject<RapunzelT> {
   bb: flatbuffers.ByteBuffer | null;
   bb_pos: number;
   __init(i: number, bb: flatbuffers.ByteBuffer): Rapunzel;

@@ -2,67 +2,98 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
-import * as flatbuffers from 'flatbuffers';
-
-
+import * as flatbuffers from "flatbuffers";
 
 export class Monster implements flatbuffers.IUnpackableObject<MonsterT> {
-  bb: flatbuffers.ByteBuffer|null = null;
+  bb: flatbuffers.ByteBuffer | null = null;
   bb_pos = 0;
-  __init(i:number, bb:flatbuffers.ByteBuffer):Monster {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-}
+  __init(i: number, bb: flatbuffers.ByteBuffer): Monster {
+    this.bb_pos = i;
+    this.bb = bb;
+    return this;
+  }
 
-static getRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
+  static getRootAsMonster(bb: flatbuffers.ByteBuffer, obj?: Monster): Monster {
+    return (obj || new Monster()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static getSizePrefixedRootAsMonster(bb:flatbuffers.ByteBuffer, obj?:Monster):Monster {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new Monster()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-}
+  static getSizePrefixedRootAsMonster(
+    bb: flatbuffers.ByteBuffer,
+    obj?: Monster,
+  ): Monster {
+    bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+    return (obj || new Monster()).__init(
+      bb.readInt32(bb.position()) + bb.position(),
+      bb,
+    );
+  }
 
-static getFullyQualifiedName(): "MyGame.Example2.Monster" {
-  return 'MyGame.Example2.Monster';
-}
+  static getFullyQualifiedName(): "MyGame.Example2.Monster" {
+    return "MyGame.Example2.Monster";
+  }
 
-static startMonster(builder:flatbuffers.Builder) {
-  builder.startObject(0);
-}
+  static startMonster(builder: flatbuffers.Builder) {
+    builder.startObject(0);
+  }
 
-static endMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
-  const offset = builder.endObject();
-  return offset;
-}
+  static endMonster(builder: flatbuffers.Builder): flatbuffers.Offset {
+    const offset = builder.endObject();
+    return offset;
+  }
 
-static createMonster(builder:flatbuffers.Builder):flatbuffers.Offset {
-  Monster.startMonster(builder);
-  return Monster.endMonster(builder);
-}
+  static createMonster(builder: flatbuffers.Builder): flatbuffers.Offset {
+    Monster.startMonster(builder);
+    return Monster.endMonster(builder);
+  }
 
-serialize():Uint8Array {
-  return this.bb!.bytes();
-}
+  serialize(): Uint8Array {
+    return this.bb!.bytes();
+  }
 
-static deserialize(buffer: Uint8Array):Monster {
-  return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer))
-}
+  static deserialize(buffer: Uint8Array): Monster {
+    return Monster.getRootAsMonster(new flatbuffers.ByteBuffer(buffer));
+  }
 
-unpack(): MonsterT {
-  return new MonsterT();
-}
+  unpack(): MonsterT {
+    return new MonsterT();
+  }
 
+  unpackTo(_o: MonsterT): void {}
 
-unpackTo(_o: MonsterT): void {}
+  unpackFields(...fields: string[]): MonsterT {
+    const t = new MonsterT();
+    const fieldSet = new Set(fields);
+    return t;
+  }
 }
 
 export class MonsterT implements flatbuffers.IGeneratedObject {
-constructor(){}
+  constructor() {}
 
+  pack(builder: flatbuffers.Builder): flatbuffers.Offset {
+    return Monster.createMonster(builder);
+  }
 
-pack(builder:flatbuffers.Builder): flatbuffers.Offset {
-  return Monster.createMonster(builder);
+  clone(): MonsterT {
+    const obj = new MonsterT();
+    return obj;
+  }
+
+  equals(other: MonsterT): boolean {
+    return true;
+  }
 }
+
+export function verifyMonster(
+  verifier: flatbuffers.Verifier,
+  tablePos: number,
+): void {
+  verifier.checkTable(tablePos);
+  try {
+  } finally {
+    verifier.popDepth();
+  }
 }

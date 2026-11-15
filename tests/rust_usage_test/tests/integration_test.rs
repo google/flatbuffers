@@ -583,7 +583,7 @@ mod lifetime_correctness {
         // make sure values retrieved from the 'static buffer are themselves 'static
         let monster: my_game::example::Monster<'static> = my_game::example::root_as_monster(slice).unwrap();
         // this line should compile:
-        let name: Option<&'static str> = unsafe { monster._tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None) };
+        let name: Option<&'static str> = unsafe { monster.tab.get::<flatbuffers::ForwardsUOffset<&str>>(my_game::example::Monster::VT_NAME, None) };
         assert_eq!(name, Some("MyMonster"));
     }
 
