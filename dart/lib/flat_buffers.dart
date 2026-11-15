@@ -44,6 +44,29 @@ class BufferContext {
       _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
   @pragma('vm:prefer-inline')
+  Int8List _asInt8List(int offset, int length) =>
+      _buffer.buffer.asInt8List(_buffer.offsetInBytes + offset, length);
+
+  @pragma('vm:prefer-inline')
+  Uint16List _asUint16List(int offset, int length) {
+    assert(Endian.host == Endian.little);
+    return _buffer.buffer.asUint16List(_buffer.offsetInBytes + offset, length);
+  }
+
+  @pragma('vm:prefer-inline')
+  Uint32List _asUint32List(int offset, int length) {
+    assert(Endian.host == Endian.little);
+    return _buffer.buffer.asUint32List(_buffer.offsetInBytes + offset, length);
+  }
+
+  @pragma('vm:prefer-inline')
+  Float32List _asFloat32List(int offset, int length) {
+    assert(Endian.host == Endian.little);
+    return _buffer.buffer
+        .asFloat32List(_buffer.offsetInBytes + offset, length);
+  }
+
+  @pragma('vm:prefer-inline')
   double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
 
   @pragma('vm:prefer-inline')
@@ -900,6 +923,9 @@ class Float64ListReader extends Reader<List<double>> {
       _FbFloat64List(bc, bc.derefObject(offset));
 }
 
+/// The reader of lists of 32-bit float values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Float32ListReader extends Reader<List<double>> {
   const Float32ListReader();
 
@@ -909,8 +935,18 @@ class Float32ListReader extends Reader<List<double>> {
 
   @override
   @pragma('vm:prefer-inline')
-  List<double> read(BufferContext bc, int offset) =>
-      _FbFloat32List(bc, bc.derefObject(offset));
+  List<double> read(BufferContext bc, int offset) {
+    final listOffset = bc.derefObject(offset);
+    if (Endian.host == Endian.little) {
+      final dataOffset = listOffset + _sizeofUint32;
+      final byteOffset = bc._buffer.offsetInBytes + dataOffset;
+      if (byteOffset % 4 == 0) {
+        final length = bc._getUint32(listOffset);
+        return bc._asFloat32List(dataOffset, length);
+      }
+    }
+    return _FbFloat32List(bc, listOffset);
+  }
 }
 
 class Float64Reader extends Reader<double> {
@@ -962,7 +998,7 @@ class Int32Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt32(offset);
 }
 
-/// The reader of signed 32-bit integers.
+/// The reader of signed 16-bit integers.
 class Int16Reader extends Reader<int> {
   const Int16Reader() : super();
 
@@ -975,7 +1011,7 @@ class Int16Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt16(offset);
 }
 
-/// The reader of 8-bit signed integers.
+/// The reader of signed 8-bit integers.
 class Int8Reader extends Reader<int> {
   const Int8Reader() : super();
 
@@ -1133,8 +1169,18 @@ class Uint32ListReader extends Reader<List<int>> {
 
   @override
   @pragma('vm:prefer-inline')
-  List<int> read(BufferContext bc, int offset) =>
-      _FbUint32List(bc, bc.derefObject(offset));
+  List<int> read(BufferContext bc, int offset) {
+    final listOffset = bc.derefObject(offset);
+    if (Endian.host == Endian.little) {
+      final dataOffset = listOffset + _sizeofUint32;
+      final byteOffset = bc._buffer.offsetInBytes + dataOffset;
+      if (byteOffset % 4 == 0) {
+        final length = bc._getUint32(listOffset);
+        return bc._asUint32List(dataOffset, length);
+      }
+    }
+    return _FbUint32List(bc, listOffset);
+  }
 }
 
 /// The reader of unsigned 64-bit integers.
@@ -1177,8 +1223,18 @@ class Uint16ListReader extends Reader<List<int>> {
 
   @override
   @pragma('vm:prefer-inline')
-  List<int> read(BufferContext bc, int offset) =>
-      _FbUint16List(bc, bc.derefObject(offset));
+  List<int> read(BufferContext bc, int offset) {
+    final listOffset = bc.derefObject(offset);
+    if (Endian.host == Endian.little) {
+      final dataOffset = listOffset + _sizeofUint32;
+      final byteOffset = bc._buffer.offsetInBytes + dataOffset;
+      if (byteOffset % 2 == 0) {
+        final length = bc._getUint32(listOffset);
+        return bc._asUint16List(dataOffset, length);
+      }
+    }
+    return _FbUint16List(bc, listOffset);
+  }
 }
 
 /// The reader of unsigned 32-bit integers.
@@ -1214,9 +1270,10 @@ class Uint8ListReader extends Reader<List<int>> {
   @pragma('vm:prefer-inline')
   List<int> read(BufferContext bc, int offset) {
     final listOffset = bc.derefObject(offset);
-    if (lazy) return _FbUint8List(bc, listOffset);
-
     final length = bc._getUint32(listOffset);
+
+    if (lazy) return bc._asUint8List(listOffset + _sizeofUint32, length);
+
     final result = Uint8List(length);
     var pos = listOffset + _sizeofUint32;
     for (var i = 0; i < length; i++, pos++) {
@@ -1259,9 +1316,10 @@ class Int8ListReader extends Reader<List<int>> {
   @pragma('vm:prefer-inline')
   List<int> read(BufferContext bc, int offset) {
     final listOffset = bc.derefObject(offset);
-    if (lazy) return _FbUint8List(bc, listOffset);
-
     final length = bc._getUint32(listOffset);
+
+    if (lazy) return bc._asInt8List(listOffset + _sizeofUint32, length);
+
     final result = Int8List(length);
     var pos = listOffset + _sizeofUint32;
     for (var i = 0; i < length; i++, pos++) {
@@ -1347,24 +1405,6 @@ class _FbUint16List extends _FbList<int> {
   @override
   @pragma('vm:prefer-inline')
   int operator [](int i) => bc._getUint16(offset + 4 + 2 * i);
-}
-
-/// List backed by 8-bit unsigned integers.
-class _FbUint8List extends _FbList<int> {
-  _FbUint8List(BufferContext bc, int offset) : super(bc, offset);
-
-  @override
-  @pragma('vm:prefer-inline')
-  int operator [](int i) => bc._getUint8(offset + 4 + i);
-}
-
-/// List backed by 8-bit signed integers.
-class _FbInt8List extends _FbList<int> {
-  _FbInt8List(BufferContext bc, int offset) : super(bc, offset);
-
-  @override
-  @pragma('vm:prefer-inline')
-  int operator [](int i) => bc._getInt8(offset + 4 + i);
 }
 
 /// List backed by 8-bit unsigned integers.
