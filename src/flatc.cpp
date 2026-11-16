@@ -937,6 +937,11 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
         parser->file_extension_ = reflection::SchemaExtension();
       }
     }
+    // Resolve the proto root before generation rewrites its namespace.
+    if (opts.proto_mode && !opts.root_type.empty() &&
+        !parser->SetRootType(opts.root_type.c_str())) {
+      Error("unknown root type: " + opts.root_type);
+    }
     std::string filebase =
         flatbuffers::StripPath(flatbuffers::StripExtension(filename));
 
@@ -1005,7 +1010,7 @@ std::unique_ptr<Parser> FlatCompiler::GenerateCode(const FlatCOptions& options,
       }
     }
 
-    if (!opts.root_type.empty()) {
+    if (!opts.proto_mode && !opts.root_type.empty()) {
       if (!parser->SetRootType(opts.root_type.c_str()))
         Error("unknown root type: " + opts.root_type);
       else if (parser->root_struct_def_->fixed)

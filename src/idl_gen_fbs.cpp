@@ -404,6 +404,11 @@ static std::string GenerateFBS(const Parser& parser,
     }
     schema += "}\n\n";
   }
+  if (parser.root_struct_def_) {
+    const auto& root = *parser.root_struct_def_;
+    GenNameSpace(*root.defined_namespace, &schema, &last_namespace);
+    schema += "root_type " + root.name + ";\n";
+  }
   return schema;
 }
 
