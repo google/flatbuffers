@@ -1,0 +1,8 @@
+struct CircularStruct {
+  value:ulong;
+  next:CircularStruct;
+}
+
+table Root {
+  value:CircularStruct;
+}

@@ -1,0 +1,5 @@
+table CircularTable {
+  next:CircularTable;
+}
+
+root_type CircularTable;
