@@ -223,6 +223,23 @@ struct JsonPrinter {
         // clang-format on
         return nullptr;
       }
+      case BASE_TYPE_VECTOR64: {
+        const auto vec_type = type.VectorType();
+        // Same as above, but for vectors with a 64-bit size prefix.
+        // clang-format off
+        switch (vec_type.base_type) {
+        #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
+          case BASE_TYPE_ ## ENUM: { \
+            auto err = PrintVector<CTYPE, uoffset64_t>( \
+                val, vec_type, indent, prev_val); \
+            if (err) return err; \
+            break; }
+          FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
+        #undef FLATBUFFERS_TD
+        }
+        // clang-format on
+        return nullptr;
+      }
       case BASE_TYPE_ARRAY: {
         const auto vec_type = type.VectorType();
         // Call PrintArray above specifically for each element type:
@@ -278,6 +295,23 @@ struct JsonPrinter {
     }
   }
 
+  // Returns the data and size of a [ubyte] field, which may be stored with a
+  // 64-bit offset (`offset64`) and/or a 64-bit size prefix (`vector64`).
+  static const uint8_t* GetByteVector(const FieldDef& fd, const Table* table,
+                                      size_t* size) {
+    if (fd.value.type.base_type == BASE_TYPE_VECTOR64) {
+      auto vec = table->GetPointer64<const Vector64<uint8_t>*>(fd.value.offset);
+      *size = static_cast<size_t>(vec->size());
+      return vec->data();
+    }
+    auto vec =
+        fd.offset64
+            ? table->GetPointer64<const Vector<uint8_t>*>(fd.value.offset)
+            : table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
+    *size = vec->size();
+    return vec->data();
+  }
+
   // Generate text for non-scalar field.
   const char* GenFieldOffset(const FieldDef& fd, const Table* table, bool fixed,
                              int indent, const uint8_t* prev_val) {
@@ -294,18 +328,20 @@ struct JsonPrinter {
       // The caller should really be verifying the whole.
       // If the whole buffer is corrupt, we likely crash before we even get
       // here.
-      auto vec = table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
-      auto root = flexbuffers::GetRoot(vec->data(), vec->size());
+      size_t size = 0;
+      auto data = GetByteVector(fd, table, &size);
+      auto root = flexbuffers::GetRoot(data, size);
       root.ToString(true, opts.strict_json, text);
       return nullptr;
     } else if (fd.nested_flatbuffer && opts.json_nested_flatbuffers) {
-      auto vec = table->GetPointer<const Vector<uint8_t>*>(fd.value.offset);
-      auto root = GetRoot<Table>(vec->data());
+      size_t size = 0;
+      auto root = GetRoot<Table>(GetByteVector(fd, table, &size));
       return GenStruct(*fd.nested_flatbuffer, root, indent);
+    } else if (IsStruct(fd.value.type)) {
+      val = table->GetStruct<const void*>(fd.value.offset);
     } else {
-      val = IsStruct(fd.value.type)
-                ? table->GetStruct<const void*>(fd.value.offset)
-                : table->GetPointer<const void*>(fd.value.offset);
+      val = fd.offset64 ? table->GetPointer64<const void*>(fd.value.offset)
+                        : table->GetPointer<const void*>(fd.value.offset);
     }
     return PrintOffset(val, fd.value.type, indent, prev_val, -1);
   }

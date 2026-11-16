@@ -11,6 +11,8 @@
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/idl.h"
+#include "flatbuffers/util.h"
 #include "tests/64bit/evolution/v1_generated.h"
 #include "tests/64bit/evolution/v2_generated.h"
 #include "tests/64bit/test_64bit_generated.h"
@@ -458,6 +460,43 @@ void Offset64ForceAlign() {
 
   // Finish the buffer.
   FinishRootTableBuffer(builder, root_table_offset);
+}
+
+void Offset64GenTextTest(const std::string& tests_data_path) {
+  std::string schemafile;
+  TEST_EQ(LoadFile((tests_data_path + "64bit/test_64bit.fbs").c_str(), false,
+                   &schemafile),
+          true);
+  Parser parser;
+  parser.opts.indent_step = -1;
+  TEST_EQ(parser.Parse(schemafile.c_str()), true);
+
+  // A small buffer to nest inside the `nested_root` vector64 field.
+  FlatBufferBuilder64 nested_fbb;
+  nested_fbb.Finish(CreateRootTableDirect(nested_fbb, nullptr, 42, nullptr,
+                                          nullptr, nullptr, "nested string"));
+  const std::vector<uint8_t> nested_data(
+      nested_fbb.GetBufferPointer(),
+      nested_fbb.GetBufferPointer() + nested_fbb.GetSize());
+
+  FlatBufferBuilder64 fbb;
+  const std::vector<uint8_t> far_vector = {1, 2, 3};
+  const std::vector<uint8_t> big_bool_vector = {1, 0, 1};
+  const std::vector<uint8_t> big_vector = {5, 6, 7, 8};
+  const std::vector<LeafStruct> big_struct_vector = {LeafStruct(12, 3.5),
+                                                     LeafStruct(78, 9.25)};
+  fbb.Finish(CreateRootTableDirect(fbb, &far_vector, 1234, "far string",
+                                   &big_bool_vector, &big_vector, "near string",
+                                   &nested_data, nullptr, &big_struct_vector));
+
+  std::string text;
+  TEST_NULL(GenText(parser, fbb.GetBufferPointer(), &text));
+  TEST_EQ_STR(text.c_str(),
+              "{far_vector: [1,2,3],a: 1234,far_string: \"far string\","
+              "big_bool_vector: [1,0,1],big_vector: [5,6,7,8],"
+              "near_string: \"near string\","
+              "nested_root: {a: 42,near_string: \"nested string\"},"
+              "big_struct_vector: [{a: 12,b: 3.5},{a: 78,b: 9.25}]}");
 }
 
 }  // namespace tests

@@ -1793,6 +1793,9 @@ int FlatBufferTests(const std::string& tests_data_path) {
   DoNotRequireEofTest(tests_data_path);
   JsonUnionStructTest();
   VectorTableNakedPtrTest();
+#if INCLUDE_64_BIT_TESTS
+  Offset64GenTextTest(tests_data_path);
+#endif
 #else
   // Guard against -Wunused-parameter.
   (void)tests_data_path;
