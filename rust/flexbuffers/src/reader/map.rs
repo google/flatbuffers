@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{deref_offset, unpack_type, Error, Reader, ReaderIterator, VectorReader};
+use super::cursor::{BufferAddress, BufferCursor};
+use super::{unpack_type, Error, Reader, ReaderIterator, VectorReader};
 use crate::BitWidth;
 use crate::Buffer;
 use std::cmp::Ordering;
@@ -24,9 +25,8 @@ use std::iter::{DoubleEndedIterator, ExactSizeIterator, FusedIterator, Iterator}
 /// which may indicate failure due to a missing key or bad data, `idx` returns an Null Reader in
 /// cases of error.
 pub struct MapReader<B> {
-    pub(super) buffer: B,
-    pub(super) values_address: usize,
-    pub(super) keys_address: usize,
+    pub(super) values_cursor: BufferCursor<B>,
+    pub(super) keys_address: BufferAddress,
     pub(super) values_width: BitWidth,
     pub(super) keys_width: BitWidth,
     pub(super) length: usize,
@@ -34,16 +34,17 @@ pub struct MapReader<B> {
 
 impl<B: Buffer> Clone for MapReader<B> {
     fn clone(&self) -> Self {
-        MapReader { buffer: self.buffer.shallow_copy(), ..*self }
+        MapReader { values_cursor: self.values_cursor.clone(), ..*self }
     }
 }
 
 impl<B: Buffer> Default for MapReader<B> {
     fn default() -> Self {
+        let values_cursor = BufferCursor::default();
+        let keys_address = values_cursor.address();
         MapReader {
-            buffer: B::empty(),
-            values_address: usize::default(),
-            keys_address: usize::default(),
+            values_cursor,
+            keys_address,
             values_width: BitWidth::default(),
             keys_width: BitWidth::default(),
             length: usize::default(),
@@ -56,7 +57,7 @@ impl<B: Buffer> std::fmt::Debug for MapReader<B> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // skips buffer field
         f.debug_struct("MapReader")
-            .field("values_address", &self.values_address)
+            .field("values_address", &self.values_cursor.address())
             .field("keys_address", &self.keys_address)
             .field("values_width", &self.values_width)
             .field("keys_width", &self.keys_width)
@@ -78,27 +79,30 @@ impl<B: Buffer> MapReader<B> {
 
     // Using &CStr will eagerly compute the length of the key. &str needs length info AND utf8
     // validation. This version is faster than both.
-    fn lazy_strcmp(&self, key_addr: usize, key: &str) -> Ordering {
-        // TODO: Can we know this won't OOB and panic?
-        let k = self.buffer[key_addr..].iter().take_while(|&&b| b != b'\0');
-        k.cmp(key.as_bytes().iter())
+    fn lazy_strcmp(&self, key_cursor: &BufferCursor<B>, key: &str) -> Result<Ordering, Error> {
+        key_cursor.compare_nul_terminated(key.as_bytes())
     }
 
     /// Returns the index of a given key in the map.
     pub fn index_key(&self, key: &str) -> Option<usize> {
+        self.try_index_key(key).unwrap_or_default()
+    }
+
+    fn try_index_key(&self, target_key: &str) -> Result<Option<usize>, Error> {
         let (mut low, mut high) = (0, self.length);
+        let key_cursor = self.values_cursor.at(self.keys_address)?;
         while low < high {
-            let i = (low + high) / 2;
-            let key_offset_address = self.keys_address + i * self.keys_width.n_bytes();
-            let key_address =
-                deref_offset(&self.buffer, key_offset_address, self.keys_width).ok()?;
-            match self.lazy_strcmp(key_address, key) {
-                Ordering::Equal => return Some(i),
+            let i = low + (high - low) / 2;
+            let candidate_key_cursor = key_cursor
+                .index(i, self.keys_width.n_bytes())?
+                .deref_offset(self.keys_width)?;
+            match self.lazy_strcmp(&candidate_key_cursor, target_key)? {
+                Ordering::Equal => return Ok(Some(i)),
                 Ordering::Less => low = if i == low { i + 1 } else { i },
                 Ordering::Greater => high = i,
             }
         }
-        None
+        Ok(None)
     }
 
     /// Index into a map with a key or usize.
@@ -115,30 +119,28 @@ impl<B: Buffer> MapReader<B> {
         if i >= self.length {
             return Err(Error::IndexOutOfBounds);
         }
-        let data_address = self.values_address + self.values_width.n_bytes() * i;
-        let type_address = self.values_address + self.values_width.n_bytes() * self.length + i;
-        let (fxb_type, width) = self
-            .buffer
-            .get(type_address)
-            .ok_or(Error::FlexbufferOutOfBounds)
-            .and_then(|&b| unpack_type(b))?;
-        Reader::new(self.buffer.shallow_copy(), data_address, fxb_type, width, self.values_width)
+        let data_cursor = self.values_cursor.index(i, self.values_width.n_bytes())?;
+        let type_cursor = self
+            .values_cursor
+            .index(self.length, self.values_width.n_bytes())?
+            .add(i)?;
+        let (fxb_type, width) = unpack_type(type_cursor.read_u8()?)?;
+        Reader::new(data_cursor, fxb_type, width, self.values_width)
     }
 
     fn key_index(&self, k: &str) -> Result<Reader<B>, Error> {
-        let i = self.index_key(k).ok_or(Error::KeyNotFound)?;
+        let i = self.try_index_key(k)?.ok_or(Error::KeyNotFound)?;
         self.usize_index(i)
     }
 
     /// Iterate over the values of the map.
     pub fn iter_values(&self) -> ReaderIterator<B> {
         ReaderIterator::new(VectorReader {
-            reader: Reader {
-                buffer: self.buffer.shallow_copy(),
-                fxb_type: crate::FlexBufferType::Map,
-                width: self.values_width,
-                address: self.values_address,
-            },
+            reader: Reader::direct(
+                self.values_cursor.clone(),
+                crate::FlexBufferType::Map,
+                self.values_width,
+            ),
             length: self.length,
         })
     }
@@ -152,13 +154,13 @@ impl<B: Buffer> MapReader<B> {
     }
 
     pub fn keys_vector(&self) -> VectorReader<B> {
+        let keys_cursor = self.values_cursor.at(self.keys_address).unwrap_or_default();
         VectorReader {
-            reader: Reader {
-                buffer: self.buffer.shallow_copy(),
-                fxb_type: crate::FlexBufferType::VectorKey,
-                width: self.keys_width,
-                address: self.keys_address,
-            },
+            reader: Reader::direct(
+                keys_cursor,
+                crate::FlexBufferType::VectorKey,
+                self.keys_width,
+            ),
             length: self.length,
         }
     }

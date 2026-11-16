@@ -19,6 +19,7 @@ use std::convert::{TryFrom, TryInto};
 use std::fmt;
 use std::ops::Rem;
 use std::str::FromStr;
+mod cursor;
 mod de;
 mod iter;
 mod map;
@@ -29,12 +30,17 @@ pub use iter::ReaderIterator;
 pub use map::MapReader;
 pub use vector::VectorReader;
 
+use cursor::BufferCursor;
+
 /// All the possible errors when reading a flexbuffer.
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum Error {
     /// One of the following data errors occured:
     ///
-    /// *    The read flexbuffer had an offset that pointed outside the flexbuffer.
+    /// *    The encoded data referenced bytes outside the flexbuffer.
+    /// *    Address or length arithmetic overflowed.
+    /// *    A key had no null terminator within the flexbuffer.
+    /// *    A map contained different numbers of keys and values.
     /// *    The 'negative indicies' where length and map keys are stored were out of bounds
     /// *    The buffer was too small to contain a flexbuffer root.
     FlexbufferOutOfBounds,
@@ -147,8 +153,7 @@ macro_rules! as_default {
 pub struct Reader<B> {
     fxb_type: FlexBufferType,
     width: BitWidth,
-    address: usize,
-    buffer: B,
+    cursor: BufferCursor<B>,
 }
 
 impl<B: Buffer> Clone for Reader<B> {
@@ -156,8 +161,7 @@ impl<B: Buffer> Clone for Reader<B> {
         Reader {
             fxb_type: self.fxb_type,
             width: self.width,
-            address: self.address,
-            buffer: self.buffer.shallow_copy(),
+            cursor: self.cursor.clone(),
         }
     }
 }
@@ -167,8 +171,7 @@ impl<B: Buffer> Default for Reader<B> {
         Reader {
             fxb_type: FlexBufferType::default(),
             width: BitWidth::default(),
-            address: usize::default(),
-            buffer: B::empty(),
+            cursor: BufferCursor::default(),
         }
     }
 }
@@ -180,7 +183,7 @@ impl<B> std::fmt::Debug for Reader<B> {
         f.debug_struct("Reader")
             .field("fxb_type", &self.fxb_type)
             .field("width", &self.width)
-            .field("address", &self.address)
+            .field("address", &self.cursor.address())
             .finish()
     }
 }
@@ -193,53 +196,50 @@ macro_rules! try_cast_fn {
     };
 }
 
-fn safe_sub(a: usize, b: usize) -> Result<usize, Error> {
-    a.checked_sub(b).ok_or(Error::FlexbufferOutOfBounds)
-}
-
-fn deref_offset(buffer: &[u8], address: usize, width: BitWidth) -> Result<usize, Error> {
-    let off = read_usize(buffer, address, width);
-    safe_sub(address, off)
-}
-
 impl<B: Buffer> Reader<B> {
     fn new(
-        buffer: B,
-        mut address: usize,
+        mut cursor: BufferCursor<B>,
         mut fxb_type: FlexBufferType,
         width: BitWidth,
         parent_width: BitWidth,
     ) -> Result<Self, Error> {
         if fxb_type.is_reference() {
-            address = deref_offset(&buffer, address, parent_width)?;
+            cursor = cursor.deref_offset(parent_width)?;
             // Indirects were dereferenced.
             if let Some(t) = fxb_type.to_direct() {
                 fxb_type = t;
             }
         }
-        Ok(Reader { address, fxb_type, width, buffer })
+        Ok(Reader { cursor, fxb_type, width })
+    }
+
+    fn direct(cursor: BufferCursor<B>, fxb_type: FlexBufferType, width: BitWidth) -> Self {
+        Reader { cursor, fxb_type, width }
     }
 
     /// Parses the flexbuffer from the given buffer. Assumes the flexbuffer root is the last byte
     /// of the buffer.
     pub fn get_root(buffer: B) -> Result<Self, Error> {
-        let end = buffer.len();
-        if end < 3 {
+        let buffer_len = buffer.len();
+        if buffer_len < 3 {
             return Err(Error::FlexbufferOutOfBounds);
         }
+        let end = BufferCursor::new(buffer, buffer_len)?;
         // Last byte is the root width.
-        let root_width = BitWidth::from_nbytes(buffer[end - 1]).ok_or(Error::InvalidRootWidth)?;
+        let root_width =
+            BitWidth::from_nbytes(end.sub(1)?.read_u8()?).ok_or(Error::InvalidRootWidth)?;
         // Second last byte is root type.
-        let (fxb_type, width) = unpack_type(buffer[end - 2])?;
+        let root_type = end.sub(2)?;
+        let (fxb_type, width) = unpack_type(root_type.read_u8()?)?;
         // Location of root data. (BitWidth bits before root type)
-        let address = safe_sub(end - 2, root_width.n_bytes())?;
-        Self::new(buffer, address, fxb_type, width, root_width)
+        let root = root_type.sub(root_width.n_bytes())?;
+        Self::new(root, fxb_type, width, root_width)
     }
 
     /// Convenience function to get the underlying buffer. By using `shallow_copy`, this preserves
     /// the lifetime that the underlying buffer has.
     pub fn buffer(&self) -> B {
-        self.buffer.shallow_copy()
+        self.cursor.buffer()
     }
 
     /// Returns the FlexBufferType of this Reader.
@@ -255,12 +255,18 @@ impl<B: Buffer> Reader<B> {
     /// Returns the length of the Flexbuffer. If the type has no length, or if an error occurs,
     /// 0 is returned.
     pub fn length(&self) -> usize {
+        self.try_length().unwrap_or_default()
+    }
+
+    fn try_length(&self) -> Result<usize, Error> {
         if let Some(len) = self.fxb_type.fixed_length_vector_length() {
-            len
-        } else if self.fxb_type.has_length_slot() && self.address >= self.width.n_bytes() {
-            read_usize(&self.buffer, self.address - self.width.n_bytes(), self.width)
+            Ok(len)
+        } else if self.fxb_type.has_length_slot() {
+            self.cursor
+                .sub(self.width.n_bytes())?
+                .read_usize(self.width)
         } else {
-            0
+            Ok(0)
         }
     }
     /// Returns true if the flexbuffer is aligned to 8 bytes. This guarantees, for valid
@@ -268,7 +274,7 @@ impl<B: Buffer> Reader<B> {
     /// e.g. with `get_f64s` or `get_i16s`.
     #[inline]
     pub fn is_aligned(&self) -> bool {
-        (self.buffer.as_ptr() as usize).rem(8) == 0
+        (self.cursor.buffer_ptr() as usize).rem(8) == 0
     }
 
     as_default!(as_vector, get_vector, VectorReader<B>);
@@ -304,9 +310,11 @@ impl<B: Buffer> Reader<B> {
         if self.bitwidth().n_bytes() != std::mem::size_of::<T>() {
             self.expect_bw(T::WIDTH)?;
         }
-        let end = self.address + self.length() * std::mem::size_of::<T>();
-        let slice: &[u8] =
-            self.buffer.get(self.address..end).ok_or(Error::FlexbufferOutOfBounds)?;
+        let byte_len = self
+            .try_length()?
+            .checked_mul(std::mem::size_of::<T>())
+            .ok_or(Error::FlexbufferOutOfBounds)?;
+        let slice = self.cursor.bytes(byte_len)?;
 
         // `align_to` is required because the point of this function is to directly hand back a
         // slice of scalars. This can fail because Rust's default allocator is not 16byte aligned
@@ -323,7 +331,11 @@ impl<B: Buffer> Reader<B> {
     /// Otherwise Returns error.
     pub fn get_bool(&self) -> Result<bool, Error> {
         self.expect_type(FlexBufferType::Bool)?;
-        Ok(self.buffer[self.address..self.address + self.width.n_bytes()].iter().any(|&b| b != 0))
+        Ok(self
+            .cursor
+            .bytes(self.width.n_bytes())?
+            .iter()
+            .any(|&b| b != 0))
     }
 
     /// Gets the length of the key if this type is a key.
@@ -332,30 +344,18 @@ impl<B: Buffer> Reader<B> {
     #[inline]
     fn get_key_len(&self) -> Result<usize, Error> {
         self.expect_type(FlexBufferType::Key)?;
-        let (length, _) = self.buffer[self.address..]
-            .iter()
-            .enumerate()
-            .find(|(_, &b)| b == b'\0')
-            .unwrap_or((0, &0));
-        Ok(length)
+        self.cursor.nul_terminated_len()
     }
 
     /// Retrieves the string value up until the first `\0` character.
     pub fn get_key(&self) -> Result<B::BufferString, Error> {
-        let bytes = self
-            .buffer
-            .slice(self.address..self.address + self.get_key_len()?)
-            .ok_or(Error::IndexOutOfBounds)?;
+        let bytes = self.cursor.slice(self.get_key_len()?)?;
         Ok(bytes.buffer_str()?)
     }
 
     pub fn get_blob(&self) -> Result<Blob<B>, Error> {
         self.expect_type(FlexBufferType::Blob)?;
-        Ok(Blob(
-            self.buffer
-                .slice(self.address..self.address + self.length())
-                .ok_or(Error::IndexOutOfBounds)?,
-        ))
+        Ok(Blob(self.cursor.slice(self.try_length()?)?))
     }
 
     pub fn as_blob(&self) -> Blob<B> {
@@ -366,35 +366,37 @@ impl<B: Buffer> Reader<B> {
     /// is out of bounds.
     pub fn get_str(&self) -> Result<B::BufferString, Error> {
         self.expect_type(FlexBufferType::String)?;
-        let bytes = self.buffer.slice(self.address..self.address + self.length());
-        Ok(bytes.ok_or(Error::ReadUsizeOverflowed)?.buffer_str()?)
+        Ok(self.cursor.slice(self.try_length()?)?.buffer_str()?)
     }
 
-    fn get_map_info(&self) -> Result<(usize, BitWidth), Error> {
+    fn get_map_info(&self) -> Result<(BufferCursor<B>, BitWidth), Error> {
         self.expect_type(FlexBufferType::Map)?;
-        if 3 * self.width.n_bytes() >= self.address {
-            return Err(Error::FlexbufferOutOfBounds);
-        }
-        let keys_offset_address = self.address - 3 * self.width.n_bytes();
+        let keys_offset = self.cursor.sub(3 * self.width.n_bytes())?;
         let keys_width = {
-            let kw_addr = self.address - 2 * self.width.n_bytes();
-            let kw = read_usize(&self.buffer, kw_addr, self.width);
+            let kw = self
+                .cursor
+                .sub(2 * self.width.n_bytes())?
+                .read_usize(self.width)?;
             BitWidth::from_nbytes(kw).ok_or(Error::InvalidMapKeysVectorWidth)
         }?;
-        Ok((keys_offset_address, keys_width))
+        Ok((keys_offset, keys_width))
     }
 
     pub fn get_map(&self) -> Result<MapReader<B>, Error> {
-        let (keys_offset_address, keys_width) = self.get_map_info()?;
-        let keys_address = deref_offset(&self.buffer, keys_offset_address, self.width)?;
-        // TODO(cneo): Check that vectors length equals keys length.
+        let (keys_offset, keys_width) = self.get_map_info()?;
+        let keys = keys_offset.deref_offset(self.width)?;
+        let length = self.try_length()?;
+        let keys_length = keys.sub(keys_width.n_bytes())?.read_usize(keys_width)?;
+        if keys_length != length {
+            return Err(Error::FlexbufferOutOfBounds);
+        }
+
         Ok(MapReader {
-            buffer: self.buffer.shallow_copy(),
-            values_address: self.address,
+            values_cursor: self.cursor.clone(),
             values_width: self.width,
-            keys_address,
+            keys_address: keys.address(),
             keys_width,
-            length: self.length(),
+            length,
         })
     }
 
@@ -402,49 +404,19 @@ impl<B: Buffer> Reader<B> {
     /// address is out of bounds.
     pub fn get_u64(&self) -> Result<u64, Error> {
         self.expect_type(FlexBufferType::UInt)?;
-        let cursor = self.buffer.get(self.address..self.address + self.width.n_bytes());
-        match self.width {
-            BitWidth::W8 => cursor.map(|s| s[0] as u8).map(Into::into),
-            BitWidth::W16 => {
-                cursor.and_then(|s| s.try_into().ok()).map(<u16>::from_le_bytes).map(Into::into)
-            }
-            BitWidth::W32 => {
-                cursor.and_then(|s| s.try_into().ok()).map(<u32>::from_le_bytes).map(Into::into)
-            }
-            BitWidth::W64 => cursor.and_then(|s| s.try_into().ok()).map(<u64>::from_le_bytes),
-        }
-        .ok_or(Error::FlexbufferOutOfBounds)
+        self.cursor.read_u64(self.width)
     }
     /// Tries to read a FlexBufferType::Int. Returns Err if the type is not a UInt or if the
     /// address is out of bounds.
     pub fn get_i64(&self) -> Result<i64, Error> {
         self.expect_type(FlexBufferType::Int)?;
-        let cursor = self.buffer.get(self.address..self.address + self.width.n_bytes());
-        match self.width {
-            BitWidth::W8 => cursor.map(|s| s[0] as i8).map(Into::into),
-            BitWidth::W16 => {
-                cursor.and_then(|s| s.try_into().ok()).map(<i16>::from_le_bytes).map(Into::into)
-            }
-            BitWidth::W32 => {
-                cursor.and_then(|s| s.try_into().ok()).map(<i32>::from_le_bytes).map(Into::into)
-            }
-            BitWidth::W64 => cursor.and_then(|s| s.try_into().ok()).map(<i64>::from_le_bytes),
-        }
-        .ok_or(Error::FlexbufferOutOfBounds)
+        self.cursor.read_i64(self.width)
     }
     /// Tries to read a FlexBufferType::Float. Returns Err if the type is not a UInt, if the
     /// address is out of bounds, or if its a f16 or f8 (not currently supported).
     pub fn get_f64(&self) -> Result<f64, Error> {
         self.expect_type(FlexBufferType::Float)?;
-        let cursor = self.buffer.get(self.address..self.address + self.width.n_bytes());
-        match self.width {
-            BitWidth::W8 | BitWidth::W16 => return Err(Error::InvalidPackedType),
-            BitWidth::W32 => {
-                cursor.and_then(|s| s.try_into().ok()).map(f32_from_le_bytes).map(Into::into)
-            }
-            BitWidth::W64 => cursor.and_then(|s| s.try_into().ok()).map(f64_from_le_bytes),
-        }
-        .ok_or(Error::FlexbufferOutOfBounds)
+        self.cursor.read_f64(self.width)
     }
     pub fn as_bool(&self) -> bool {
         use FlexBufferType::*;
@@ -492,7 +464,7 @@ impl<B: Buffer> Reader<B> {
             FlexBufferType::Int => self.get_i64().unwrap_or_default(),
             FlexBufferType::UInt => {
                 self.get_u64().unwrap_or_default().try_into().unwrap_or_default()
-            }
+        }
             FlexBufferType::Float => self.get_f64().unwrap_or_default() as i64,
             FlexBufferType::String => {
                 if let Ok(s) = self.get_str() {
@@ -546,7 +518,7 @@ impl<B: Buffer> Reader<B> {
         if !self.fxb_type.is_vector() {
             self.expect_type(FlexBufferType::Vector)?;
         };
-        Ok(VectorReader { reader: self.clone(), length: self.length() })
+        Ok(VectorReader { reader: self.clone(), length: self.try_length()? })
     }
 }
 
@@ -586,39 +558,6 @@ impl<B: Buffer> fmt::Display for Reader<B> {
             }
             _ => unreachable!("Display not implemented for {:?}", self),
         }
-    }
-}
-
-// TODO(cneo): Use <f..>::from_le_bytes when we move past rustc 1.39.
-fn f32_from_le_bytes(bytes: [u8; 4]) -> f32 {
-    let bits = <u32>::from_le_bytes(bytes);
-    <f32>::from_bits(bits)
-}
-
-fn f64_from_le_bytes(bytes: [u8; 8]) -> f64 {
-    let bits = <u64>::from_le_bytes(bytes);
-    <f64>::from_bits(bits)
-}
-
-fn read_usize(buffer: &[u8], address: usize, width: BitWidth) -> usize {
-    let cursor = &buffer[address..];
-    match width {
-        BitWidth::W8 => cursor[0] as usize,
-        BitWidth::W16 => cursor
-            .get(0..2)
-            .and_then(|s| s.try_into().ok())
-            .map(<u16>::from_le_bytes)
-            .unwrap_or_default() as usize,
-        BitWidth::W32 => cursor
-            .get(0..4)
-            .and_then(|s| s.try_into().ok())
-            .map(<u32>::from_le_bytes)
-            .unwrap_or_default() as usize,
-        BitWidth::W64 => cursor
-            .get(0..8)
-            .and_then(|s| s.try_into().ok())
-            .map(<u64>::from_le_bytes)
-            .unwrap_or_default() as usize,
     }
 }
 
