@@ -196,7 +196,8 @@ class TsGenerator : public BaseGenerator {
                                 SkipDir::OutputPathAndTrailingPathSeparator);
       symbolic_name = definition.defined_namespace->components.back();
     } else {
-      auto def_mod_name = namer_.File(definition, SkipFile::SuffixAndExtension);
+      [[maybe_unused]] auto def_mod_name =
+          namer_.File(definition, SkipFile::SuffixAndExtension);
       symbolic_name = file_name_;
       filepath = path_ + symbolic_name + ".ts";
     }
@@ -286,12 +287,11 @@ class TsGenerator : public BaseGenerator {
         auto base_name =
             namer_.Directories(it.second.ns->components, SkipDir::OutputPath) +
             base_file_name;
-        auto ts_file_path = base_name + ".ts";
+        [[maybe_unused]] auto ts_file_path = base_name + ".ts";
         auto base_name_rel = std::string("./");
         base_name_rel +=
             namer_.Directories(rel_components, SkipDir::OutputPath);
         base_name_rel += base_file_name;
-        auto ts_file_path_rel = base_name_rel + ".ts";
         auto type_name = def.first;
         auto fully_qualified_type_name =
             it.second.ns->GetFullyQualifiedName(type_name);
@@ -311,7 +311,6 @@ class TsGenerator : public BaseGenerator {
       const auto child_ns_level = it.second.ns->components.size() + 1;
       for (const auto& it2 : ns_defs_) {
         if (it2.second.ns->components.size() != child_ns_level) continue;
-        auto ts_file_path = it2.second.path + ".ts";
         code += "export * as " + it2.second.symbolic_name + " from './";
         int count = it2.second.ns->components.size() > 1 ? 2 : 1;
         std::vector<std::string> rel_path;
@@ -1176,7 +1175,6 @@ class TsGenerator : public BaseGenerator {
     if (union_type.enum_def) {
       const auto& enum_def = *union_type.enum_def;
       const auto enum_type = AddImport(imports, dependent, enum_def).name;
-      const std::string union_accessor = "this." + field_name;
 
       const auto union_has_string = UnionHasStringType(enum_def);
       const auto field_binded_method = "this." + field_name + ".bind(this)";
