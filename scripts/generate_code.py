@@ -432,6 +432,9 @@ flatc(
     schema="default_vectors_strings_test.fbs",
 )
 
+# Bool struct
+flatc(LOBSTER_OPTS, schema="MutatingBool.fbs")
+
 # Optional Scalars
 optional_scalars_schema = "optional_scalars.fbs"
 flatc(["--java", "--kotlin", "--lobster"], schema=optional_scalars_schema)
