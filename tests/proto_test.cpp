@@ -281,8 +281,38 @@ void ParseCorruptedProto(const std::string& proto_path) {
   }
 }
 
+static void proto_test_root() {
+  for (const auto& suffix : {"", "converted"}) {
+    IDLOptions opts;
+    opts.proto_mode = true;
+    opts.proto_namespace_suffix = suffix;
+    Parser parser(opts);
+    TEST_EQ(parser.Parse("syntax = \"proto3\"; package example; "
+                         "message Outer { message Inner { int32 value = 1; } } "
+                         "message Last {}"),
+            true);
+    TEST_EQ(parser.SetRootType("example.Outer.Inner"), true);
+    std::string schema;
+    TEST_EQ(
+        NewFBSCodeGenerator(true)->GenerateCodeString(parser, "root", schema),
+        CodeGenerator::Status::OK);
+    Parser generated;
+    TEST_EQ(generated.Parse(schema.c_str()), true);
+    TEST_NOTNULL(generated.root_struct_def_);
+    if (!generated.root_struct_def_) continue;
+    const std::string expected = std::string("example.") +
+                                 (*suffix ? "converted." : "") + "Outer_.Inner";
+    TEST_EQ_STR(generated.root_struct_def_->defined_namespace
+                    ->GetFullyQualifiedName(generated.root_struct_def_->name)
+                    .c_str(),
+                expected.c_str());
+    TEST_EQ(generated.Parse("{}"), true);
+  }
+}
+
 // Parse a .proto schema, output as .fbs
 void ParseProtoTest(const std::string& tests_data_path) {
+  proto_test_root();
   auto proto_path = tests_data_path + "prototest/";
   std::string proto_file;
   TEST_EQ(
