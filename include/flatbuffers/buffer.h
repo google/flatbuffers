@@ -89,11 +89,25 @@ FLATBUFFERS_CONSTEXPR size_t AlignOf() {
 }
 
 // Lexicographically compare two strings (possibly containing nulls), and
+// return negative, 0, or positive.
+static inline int StringCompare(const char* a_data, size_t a_size,
+                                const char* b_data, size_t b_size) {
+  const auto min_size = (std::min)(a_size, b_size);
+  // Guard against memcmp with nullptr, which is UB even if min_size is 0.
+  if (min_size > 0) {
+    const auto cmp = memcmp(a_data, b_data, min_size);
+    if (cmp != 0) return cmp;
+  }
+  if (a_size < b_size) return -1;
+  if (a_size > b_size) return 1;
+  return 0;
+}
+
+// Lexicographically compare two strings (possibly containing nulls), and
 // return true if the first is less than the second.
-static inline bool StringLessThan(const char* a_data, uoffset_t a_size,
-                                  const char* b_data, uoffset_t b_size) {
-  const auto cmp = memcmp(a_data, b_data, (std::min)(a_size, b_size));
-  return cmp == 0 ? a_size < b_size : cmp < 0;
+static inline bool StringLessThan(const char* a_data, size_t a_size,
+                                  const char* b_data, size_t b_size) {
+  return StringCompare(a_data, a_size, b_data, b_size) < 0;
 }
 
 // When we read serialized data from memory, in the case of most scalars,

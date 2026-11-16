@@ -324,6 +324,10 @@ void AccessFlatBufferTest(const uint8_t* flatbuf, size_t length, bool pooled) {
   TEST_EQ(vecoftables->LookupByKey("Wilma"),
           vecoftables->LookupByKey(std::string("Wilma")));
 
+  char char_key[] = "Barney";
+  TEST_EQ(vecoftables->LookupByKey("Barney"),
+          vecoftables->LookupByKey(char_key));
+
 #ifdef FLATBUFFERS_HAS_STRING_VIEW
   // Tests for LookupByKey with a key that is a truncated
   // version of a longer, invalid key.
@@ -340,6 +344,109 @@ void AccessFlatBufferTest(const uint8_t* flatbuf, size_t length, bool pooled) {
   std::string_view invalid_truncated_key = valid_key;
   invalid_truncated_key.remove_suffix(3);  // "Bar"
   TEST_NULL(vecoftables->LookupByKey(invalid_truncated_key));
+
+  // Tests for LookupByKey with a key containing a null byte
+  {
+    flatbuffers::FlatBufferBuilder fbb;
+    std::string key1("A\0B", 3);
+    std::string key2("A\0C", 3);
+    std::string key3("A\0A", 3);
+    std::string key4("A\x7F", 2);
+    std::string key5("A\xC2\xA2", 3); // Cent sign (2 bytes)
+    std::string key6("A\xE2\x82\xAC", 4); // Euro sign (3 bytes)
+    std::string key7("A\xF0\x90\x8D\x88", 5); // Old Italic letter (4 bytes)
+    std::string key8("", 0); // Empty string
+
+    auto m1_name = fbb.CreateString(key1);
+    auto m2_name = fbb.CreateString(key2);
+    auto m3_name = fbb.CreateString(key3);
+    auto m4_name = fbb.CreateString(key4);
+    auto m5_name = fbb.CreateString(key5);
+    auto m6_name = fbb.CreateString(key6);
+    auto m7_name = fbb.CreateString(key7);
+    auto m8_name = fbb.CreateString(key8);
+
+    MonsterBuilder mb1(fbb);
+    mb1.add_name(m1_name);
+    mb1.add_hp(11);
+    auto m1 = mb1.Finish();
+
+    MonsterBuilder mb2(fbb);
+    mb2.add_name(m2_name);
+    mb2.add_hp(22);
+    auto m2 = mb2.Finish();
+
+    MonsterBuilder mb3(fbb);
+    mb3.add_name(m3_name);
+    mb3.add_hp(33);
+    auto m3 = mb3.Finish();
+
+    MonsterBuilder mb4(fbb);
+    mb4.add_name(m4_name);
+    mb4.add_hp(44);
+    auto m4 = mb4.Finish();
+
+    MonsterBuilder mb5(fbb);
+    mb5.add_name(m5_name);
+    mb5.add_hp(55);
+    auto m5 = mb5.Finish();
+
+    MonsterBuilder mb6(fbb);
+    mb6.add_name(m6_name);
+    mb6.add_hp(66);
+    auto m6 = mb6.Finish();
+
+    MonsterBuilder mb7(fbb);
+    mb7.add_name(m7_name);
+    mb7.add_hp(77);
+    auto m7 = mb7.Finish();
+
+    MonsterBuilder mb8(fbb);
+    mb8.add_name(m8_name);
+    mb8.add_hp(88);
+    auto m8 = mb8.Finish();
+
+    std::vector<flatbuffers::Offset<Monster>> mlocs_null;
+    mlocs_null.push_back(m1);
+    mlocs_null.push_back(m2);
+    mlocs_null.push_back(m3);
+    mlocs_null.push_back(m4);
+    mlocs_null.push_back(m5);
+    mlocs_null.push_back(m6);
+    mlocs_null.push_back(m7);
+    mlocs_null.push_back(m8);
+
+    auto vec_null_offset = fbb.CreateVectorOfSortedTables(&mlocs_null);
+
+    auto parent_name = fbb.CreateString("ParentMonster");
+    MonsterBuilder mb(fbb);
+    mb.add_name(parent_name);
+    mb.add_testarrayoftables(vec_null_offset);
+    auto monster_offset = mb.Finish();
+    fbb.Finish(monster_offset);
+
+    auto monster = flatbuffers::GetRoot<Monster>(fbb.GetBufferPointer());
+    auto vec_null = monster->testarrayoftables();
+    TEST_NOTNULL(vec_null->LookupByKey(key1));
+    TEST_EQ(vec_null->LookupByKey(key1)->hp(), 11);
+    TEST_NOTNULL(vec_null->LookupByKey(key2));
+    TEST_EQ(vec_null->LookupByKey(key2)->hp(), 22);
+    TEST_NOTNULL(vec_null->LookupByKey(key3));
+    TEST_EQ(vec_null->LookupByKey(key3)->hp(), 33);
+    TEST_NOTNULL(vec_null->LookupByKey(key4));
+    TEST_EQ(vec_null->LookupByKey(key4)->hp(), 44);
+    TEST_NOTNULL(vec_null->LookupByKey(key5));
+    TEST_EQ(vec_null->LookupByKey(key5)->hp(), 55);
+    TEST_NOTNULL(vec_null->LookupByKey(key6));
+    TEST_EQ(vec_null->LookupByKey(key6)->hp(), 66);
+    TEST_NOTNULL(vec_null->LookupByKey(key7));
+    TEST_EQ(vec_null->LookupByKey(key7)->hp(), 77);
+    TEST_NOTNULL(vec_null->LookupByKey(key8));
+    TEST_EQ(vec_null->LookupByKey(key8)->hp(), 88);
+
+    // Also test that searching for "A" returns null, since it's a different length
+    TEST_NULL(vec_null->LookupByKey(flatbuffers::string_view("A", 1)));
+  }
 #endif  // FLATBUFFERS_HAS_STRING_VIEW
 
   // Test accessing a vector of sorted structs
