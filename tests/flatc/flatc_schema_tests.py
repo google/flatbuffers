@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import json
+import subprocess
+from tempfile import TemporaryDirectory
 from flatc_test import *
 
 
@@ -73,10 +75,20 @@ class SchemaTests:
     )
 
   def CircularStructDependency(self):
-    try:
-      flatc(["-c", "circular_struct_dependency.fbs"])
-      assert False, "Expected flatc to fail on circular struct dependency"
-    except subprocess.CalledProcessError:
-      pass
-    
-    flatc(["-c", "circular_table.fbs"])
+    # Missing input files must not be mistaken for rejection of a cycle.
+    circular_struct = assert_file_exists("circular_struct_dependency.fbs")
+    circular_table = assert_file_exists("circular_table.fbs")
+    with TemporaryDirectory() as output:
+      result = subprocess.run(
+          [str(flatc_path), "--cpp", "-o", output, str(circular_struct)],
+          capture_output=True,
+          text=True,
+      )
+      assert result.returncode != 0, "Expected flatc to reject the struct cycle"
+      assert (
+          "schema has circular struct dependencies" in result.stderr
+      ), result.stderr
+
+      # Tables may refer to themselves because their fields store offsets.
+      flatc(["--cpp", "-o", output, str(circular_table)])
+      assert_file_exists("circular_table_generated.h", Path(output))
