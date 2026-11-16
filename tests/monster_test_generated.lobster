@@ -326,7 +326,7 @@ class Monster : flatbuffers.handle
     def testhashu64_fnv1a() -> int:
         return flatbuffers.field_uint64(buf_, pos_, 50, 0)
     def testarrayofbools(i:int) -> bool:
-        return read_int8_le(buf_, buf_.flatbuffers.field_vector(pos_, 52) + i * 1)
+        return bool(read_int8_le(buf_, buf_.flatbuffers.field_vector(pos_, 52) + i * 1))
     def testarrayofbools_length() -> int:
         return flatbuffers.field_vector_len(buf_, pos_, 52)
     def testf() -> float:
@@ -405,7 +405,7 @@ class Monster : flatbuffers.handle
     def any_ambiguous_as_M3():
         return MyGame.Example.Monster { buf_, flatbuffers.field_table(buf_, pos_, 96) }
     def vector_of_enums(i:int) -> Color:
-        return read_uint8_le(buf_, buf_.flatbuffers.field_vector(pos_, 98) + i * 1)
+        return Color(read_uint8_le(buf_, buf_.flatbuffers.field_vector(pos_, 98) + i * 1))
     def vector_of_enums_length() -> int:
         return flatbuffers.field_vector_len(buf_, pos_, 98)
     def signed_enum() -> Race:
@@ -430,11 +430,11 @@ class Monster : flatbuffers.handle
     def inf_default() -> float:
         return flatbuffers.field_float32(buf_, pos_, 114, inf)
     def positive_inf_default() -> float:
-        return flatbuffers.field_float32(buf_, pos_, 116, +inf)
+        return flatbuffers.field_float32(buf_, pos_, 116, inf)
     def infinity_default() -> float:
         return flatbuffers.field_float32(buf_, pos_, 118, infinity)
     def positive_infinity_default() -> float:
-        return flatbuffers.field_float32(buf_, pos_, 120, +infinity)
+        return flatbuffers.field_float32(buf_, pos_, 120, infinity)
     def negative_inf_default() -> float:
         return flatbuffers.field_float32(buf_, pos_, 122, -inf)
     def negative_infinity_default() -> float:
@@ -615,13 +615,13 @@ struct MonsterBuilder:
         b_.PrependFloat32Slot(55, inf_default, inf)
         return this
     def add_positive_inf_default(positive_inf_default:float):
-        b_.PrependFloat32Slot(56, positive_inf_default, +inf)
+        b_.PrependFloat32Slot(56, positive_inf_default, inf)
         return this
     def add_infinity_default(infinity_default:float):
         b_.PrependFloat32Slot(57, infinity_default, infinity)
         return this
     def add_positive_infinity_default(positive_infinity_default:float):
-        b_.PrependFloat32Slot(58, positive_infinity_default, +infinity)
+        b_.PrependFloat32Slot(58, positive_infinity_default, infinity)
         return this
     def add_negative_inf_default(negative_inf_default:float):
         b_.PrependFloat32Slot(59, negative_inf_default, -inf)

@@ -15,6 +15,7 @@
 import from "../lobster/"
 import monster_test_generated
 import optional_scalars_generated
+import MutatingBool_generated
 
 def check_read_buffer(buf):
     // Check that the given buffer is evaluated correctly as the example Monster.
@@ -32,7 +33,7 @@ def check_read_buffer(buf):
     assert vec.y == 2.0
     assert vec.z == 3.0
     assert vec.test1 == 3.0
-    assert vec.test2 == 2
+    assert vec.test2 == MyGame.Example.Color_Green
 
     let t = vec.test3
     assert t
@@ -110,6 +111,52 @@ def make_monster_from_generated_code():
     b.Finish(mon, "MONS")
 
     return b.SizedCopy()
+
+def test_typed_scalars():
+    let b = flatbuffers.builder {}
+    let colors = [MyGame.Example.Color_Red, MyGame.Example.Color_Green,
+                  MyGame.Example.Color_Blue]
+    let flags = [true, false, true]
+    let enums = b.MyGame.Example.MonsterCreateVectorOfEnumsVector(colors)
+    let bools = b.MyGame.Example.MonsterCreateTestarrayofboolsVector(flags)
+    let mon = MyGame.Example.MonsterBuilder { b }.start()
+        .add_vector_of_enums(enums)
+        .add_testarrayofbools(bools)
+        .end()
+    b.Finish(mon, "MONS")
+    let monster = MyGame.Example.GetRootAsMonster(b.SizedCopy())
+    assert monster.vector_of_enums_length == colors.length
+    assert monster.testarrayofbools_length == flags.length
+    for(colors) color, i:
+        assert monster.vector_of_enums(i) == color
+    for(flags) flag, i:
+        assert monster.testarrayofbools(i) == flag
+    assert monster.positive_inf_default == inf
+    assert monster.positive_infinity_default == infinity
+    assert monster.negative_inf_default == -inf
+    assert monster.negative_infinity_default == -infinity
+
+    let finite = flatbuffers.builder {}
+    let finite_mon = MyGame.Example.MonsterBuilder { finite }.start()
+        .add_positive_inf_default(1.5)
+        .add_positive_infinity_default(-2.5)
+        .end()
+    finite.Finish(finite_mon, "MONS")
+    let finite_monster = MyGame.Example.GetRootAsMonster(finite.SizedCopy())
+    assert finite_monster.positive_inf_default == 1.5
+    assert finite_monster.positive_infinity_default == -2.5
+    assert finite_monster.vector_of_enums_length == 0
+    assert finite_monster.testarrayofbools_length == 0
+
+    for([true, false]) flag:
+        let sb = flatbuffers.builder {}
+        let root = TestMutatingBoolBuilder { sb }.start()
+            .add_b(sb.CreateProperty(flag))
+            .end()
+        sb.Finish(root, nil)
+        let value = GetRootAsTestMutatingBool(sb.SizedCopy()).b
+        assert value
+        assert value.property == flag
 
 def test_optional_scalars():
     def build(add_fields):
@@ -197,6 +244,7 @@ assert not err2
 check_read_buffer(fb3)
 
 // Additional tests.
+test_typed_scalars()
 test_optional_scalars()
 
 print "Lobster test successful!"

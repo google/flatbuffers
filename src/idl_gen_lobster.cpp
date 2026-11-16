@@ -105,6 +105,24 @@ class LobsterGenerator : public BaseGenerator {
     return ctypename[type.base_type];
   }
 
+  std::string ScalarConversion(const Type& type, const std::string& value) {
+    if (IsBool(type.base_type)) return "bool(" + value + ")";
+    if (IsScalar(type.base_type) && type.enum_def)
+      return NormalizedName(*type.enum_def) + "(" + value + ")";
+    return value;
+  }
+
+  std::string ScalarDefault(const FieldDef& field) {
+    if (field.IsOptional())
+      return IsFloat(field.value.type.base_type) ? "0.0" : "0";
+    auto value = field.value.constant;
+    // Lobster has no unary plus operator.
+    if (IsFloat(field.value.type.base_type) && !value.empty() &&
+        value[0] == '+')
+      value.erase(0, 1);
+    return value;
+  }
+
   // Generate a struct field, conditioned on its child type(s).
   void GenStructAccessor(const StructDef& struct_def, const FieldDef& field,
                          std::string* code_ptr) {
@@ -119,15 +137,11 @@ class LobsterGenerator : public BaseGenerator {
               offsets + ")";
 
       } else {
-        auto defval = field.IsOptional()
-                          ? (IsFloat(field.value.type.base_type) ? "0.0" : "0")
-                          : field.value.constant;
+        auto defval = ScalarDefault(field);
         acc = "flatbuffers.field_" + GenTypeName(field.value.type) +
               "(buf_, pos_, " + offsets + ", " + defval + ")";
-        if (IsBool(field.value.type.base_type)) acc = "bool(" + acc + ")";
       }
-      if (field.value.type.enum_def)
-        acc = NormalizedName(*field.value.type.enum_def) + "(" + acc + ")";
+      acc = ScalarConversion(field.value.type, acc);
       if (field.IsOptional()) {
         acc += ", flatbuffers.field_present(buf_, pos_, " + offsets + ")";
         code += def + "() -> " + LobsterType(field.value.type) +
@@ -179,16 +193,18 @@ class LobsterGenerator : public BaseGenerator {
           code += NamespacedName(*field.value.type.struct_def) + " { buf_, " +
                   start + " }\n";
         } else {
+          std::string acc;
           if (IsString(vectortype)) {
             code += def + "(i:int) -> string:\n        return ";
-            code += "flatbuffers.string";
+            acc = "flatbuffers.string";
           } else {
             code += def + "(i:int) -> " + LobsterType(vectortype) +
                     ":\n        return ";
-            code += "read_" + GenTypeName(vectortype) + "_le";
+            acc = "read_" + GenTypeName(vectortype) + "_le";
           }
-          code += "(buf_, buf_.flatbuffers.field_vector(pos_, " + offsets +
-                  ") + i * " + NumToString(InlineSize(vectortype)) + ")\n";
+          acc += "(buf_, buf_.flatbuffers.field_vector(pos_, " + offsets +
+                 ") + i * " + NumToString(InlineSize(vectortype)) + ")";
+          code += ScalarConversion(vectortype, acc) + "\n";
         }
         break;
       }
@@ -234,7 +250,7 @@ class LobsterGenerator : public BaseGenerator {
               "):\n        b_.Prepend" + GenMethod(field.value.type) + "Slot(" +
               NumToString(offset) + ", " + NormalizedName(field);
       if (IsScalar(field.value.type.base_type) && !field.IsOptional())
-        code += ", " + field.value.constant;
+        code += ", " + ScalarDefault(field);
       code += ")\n        return this\n";
     }
     code += "    def end():\n        return b_.EndObject()\n\n";
