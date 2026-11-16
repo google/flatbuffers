@@ -84,6 +84,7 @@ cc_test(
         "-DFLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE",
     ],
     data = [
+        ":64bit/test_64bit.fbs",
         ":alignment_test.fbs",
         ":arrays_test.bfbs",
         ":arrays_test.fbs",
