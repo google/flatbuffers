@@ -41,6 +41,10 @@ namespace flatbuffers {
 /// it is the opposite transformation of GetRoot().
 /// This may be useful if you want to pass on a root and have the recipient
 /// delete the buffer afterwards.
+/// NOTE: Callers must ensure `root` points into a valid FlatBuffer that has
+/// been verified (e.g. via flatbuffers::Verifier) before calling this
+/// function. Passing an unverified or corrupt root pointer may cause reads
+/// outside buffer boundaries.
 inline const uint8_t* GetBufferStartFromRootPointer(const void* root) {
   auto table = reinterpret_cast<const Table*>(root);
   auto vtable = table->GetVTable();
@@ -60,8 +64,13 @@ inline const uint8_t* GetBufferStartFromRootPointer(const void* root) {
   // be 0 or four ASCII characters.
   static_assert(flatbuffers::kFileIdentifierLength == sizeof(uoffset_t),
                 "file_identifier is assumed to be the same size as uoffset_t");
+  // Lower bound: a valid FlatBuffer can start at most FLATBUFFERS_MAX_ALIGNMENT
+  // bytes before `start`. We must not walk the pointer below this bound to
+  // avoid reads outside the buffer on malformed or corrupt input.
+  const auto search_limit = start - FLATBUFFERS_MAX_ALIGNMENT;
   for (auto possible_roots = FLATBUFFERS_MAX_ALIGNMENT / sizeof(uoffset_t) + 1;
        possible_roots; possible_roots--) {
+    if (start <= search_limit) break;
     start -= sizeof(uoffset_t);
     if (ReadScalar<uoffset_t>(start) + start ==
         reinterpret_cast<const uint8_t*>(root))
@@ -69,10 +78,37 @@ inline const uint8_t* GetBufferStartFromRootPointer(const void* root) {
   }
   // We didn't find the root, either the "root" passed isn't really a root,
   // or the buffer is corrupt.
-  // Assert, because calling this function with bad data may cause reads
-  // outside of buffer boundaries.
   FLATBUFFERS_ASSERT(false);
   return nullptr;
+}
+
+/// @brief Bounds-safe version of GetBufferStartFromRootPointer.
+/// Accepts the known buffer start and size so that the backward walk never
+/// reads outside the allocation. Prefer this overload when the buffer
+/// boundaries are known.
+inline const uint8_t* GetBufferStartFromRootPointer(const void* root,
+                                                     const void* buf,
+                                                     size_t buf_size) {
+  auto table = reinterpret_cast<const Table*>(root);
+  auto vtable = table->GetVTable();
+  auto start = (std::min)(vtable, reinterpret_cast<const uint8_t*>(root));
+  start = reinterpret_cast<const uint8_t*>(reinterpret_cast<uintptr_t>(start) &
+                                           ~(sizeof(uoffset_t) - 1));
+  static_assert(flatbuffers::kFileIdentifierLength == sizeof(uoffset_t),
+                "file_identifier is assumed to be the same size as uoffset_t");
+  const auto buf_start = reinterpret_cast<const uint8_t*>(buf);
+  for (auto possible_roots = FLATBUFFERS_MAX_ALIGNMENT / sizeof(uoffset_t) + 1;
+       possible_roots; possible_roots--) {
+    // Never read before the known buffer start.
+    if (start < buf_start + sizeof(uoffset_t)) break;
+    start -= sizeof(uoffset_t);
+    if (ReadScalar<uoffset_t>(start) + start ==
+        reinterpret_cast<const uint8_t*>(root))
+      return start;
+  }
+  FLATBUFFERS_ASSERT(false);
+  return nullptr;
+  (void)buf_size;
 }
 
 /// @brief This return the prefixed size of a FlatBuffer.
