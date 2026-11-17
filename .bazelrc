@@ -16,3 +16,6 @@ build --per_file_copt=external/.*@-Wno-everything --host_per_file_copt=external/
 common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
 # Use "tsc" as the transpiler when ts_project has no `transpiler` set.
 common --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
+# Disable Telemetry
+common --repo_env=DO_NOT_TRACK=1
