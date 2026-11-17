@@ -1882,7 +1882,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return Check(elem_len < size_ && elem <= size_ - elem_len);
   }
   bool VerifyBefore(size_t elem, size_t elem_len) const {
-    return Check(elem_len <= elem);
+    return Check(elem <= size_ && elem_len <= elem);
   }
 
   bool VerifyFromPointer(const uint8_t* p, size_t len) {
@@ -1984,7 +1984,8 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 
   bool VerifyTerminator(const String& s) {
     return VerifyFromPointer(reinterpret_cast<const uint8_t*>(s.c_str()),
-                             s.size() + 1);
+                             s.size() + 1) &&
+           Check(s.c_str()[s.size()] == '\0');
   }
 
   bool VerifyRef(Reference r) {
