@@ -262,8 +262,12 @@ inline void IterateObject(const uint8_t* obj, const TypeTable* type_table,
     auto name = type_table->names ? type_table->names[i] : nullptr;
     const uint8_t* val = nullptr;
     if (type_table->st == ST_TABLE) {
-      val = reinterpret_cast<const Table*>(obj)->GetAddressOf(
-          FieldIndexToOffset(static_cast<voffset_t>(i)));
+      // A non-zero entry in `values` marks a deprecated field. Generated
+      // verifiers skip deprecated fields, so treat them as not present.
+      if (!type_table->values || !type_table->values[i]) {
+        val = reinterpret_cast<const Table*>(obj)->GetAddressOf(
+            FieldIndexToOffset(static_cast<voffset_t>(i)));
+      }
     } else {
       val = obj + type_table->values[i];
     }

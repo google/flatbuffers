@@ -1286,6 +1286,16 @@ class CppGenerator : public BaseGenerator {
         vs += ", ";
       }
       vs += NumToString(struct_def->bytesize);
+    } else if (struct_def &&
+               std::any_of(struct_def->fields.vec.begin(),
+                           struct_def->fields.vec.end(),
+                           [](const FieldDef* f) { return f->deprecated; })) {
+      // Mark deprecated table fields with a non-zero value. Generated
+      // verifiers skip them, so mini reflection must not read them either.
+      for (const auto field : struct_def->fields.vec) {
+        if (!vs.empty()) vs += ", ";
+        vs += field->deprecated ? "1" : "0";
+      }
     }
     code_.SetValue("TYPES", ts);
     code_.SetValue("REFS", rs);
