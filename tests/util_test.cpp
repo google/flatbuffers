@@ -1,5 +1,7 @@
 #include "util_test.h"
 
+#include <locale>
+
 #include "flatbuffers/util.h"
 #include "test_assert.h"
 
@@ -32,6 +34,14 @@ void NumericUtilsTestFloat(const char* lower, const char* upper) {
   TEST_EQ(flatbuffers::StringToNumber(lower, &f), true);
   TEST_EQ(f, -flatbuffers::numeric_limits<T>::infinity());
 }
+
+// Groups digits in threes and uses ',' as the decimal point, like many
+// named locales do.
+struct GroupingNumpunct : std::numpunct<char> {
+  char do_decimal_point() const FLATBUFFERS_OVERRIDE { return ','; }
+  char do_thousands_sep() const FLATBUFFERS_OVERRIDE { return '.'; }
+  std::string do_grouping() const FLATBUFFERS_OVERRIDE { return "\3"; }
+};
 }  // namespace
 
 void NumericUtilsTest() {
@@ -42,6 +52,16 @@ void NumericUtilsTest() {
   NumericUtilsTestInteger<int8_t>("-129", "128");
   NumericUtilsTestFloat<float>("-3.4029e+38", "+3.4029e+38");
   NumericUtilsTestFloat<float>("-1.7977e+308", "+1.7977e+308");
+}
+
+void NumToStringLocaleTest() {
+  const std::locale saved = std::locale::global(
+      std::locale(std::locale::classic(), new GroupingNumpunct));
+  TEST_EQ_STR(flatbuffers::NumToString(1234567).c_str(), "1234567");
+  TEST_EQ_STR(flatbuffers::NumToString(1.5).c_str(), "1.5");
+  TEST_EQ_STR(flatbuffers::FloatToString(1234.5f, 6).c_str(), "1234.5");
+  TEST_EQ_STR(flatbuffers::IntToStringHex(0x1234, 4).c_str(), "1234");
+  std::locale::global(saved);
 }
 
 void IsAsciiUtilsTest() {
