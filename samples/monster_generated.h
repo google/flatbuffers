@@ -851,6 +851,7 @@ inline const ::flatbuffers::TypeTable *MonsterTypeTable() {
     MyGame::Sample::WeaponTypeTable,
     MyGame::Sample::EquipmentTypeTable
   };
+  static const int64_t values[] = { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 };
   static const char * const names[] = {
     "pos",
     "mana",
@@ -865,7 +866,7 @@ inline const ::flatbuffers::TypeTable *MonsterTypeTable() {
     "path"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 11, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }

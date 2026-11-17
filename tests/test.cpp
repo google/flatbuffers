@@ -401,6 +401,140 @@ void UnionVectorTest(const std::string& tests_data_path) {
 }
 #endif
 
+// Records which top-level fields mini reflection reports as present.
+struct PresentFieldsVisitor : public IterationVisitor {
+  size_t depth;
+  std::vector<size_t> seen;
+  std::vector<size_t> present;
+  PresentFieldsVisitor() : depth(0) {}
+  void StartSequence() { depth++; }
+  void EndSequence() { depth--; }
+  void Field(size_t field_idx, size_t /*set_idx*/, ElementaryType /*type*/,
+             bool /*is_vector*/, const TypeTable* /*type_table*/,
+             const char* /*name*/, const uint8_t* val) {
+    if (depth != 1) return;
+    seen.push_back(field_idx);
+    if (val) present.push_back(field_idx);
+  }
+};
+
+// The generated Verify() skips deprecated fields, so a buffer that verifies
+// can hold any value in the vtable slot of a deprecated field. The returned
+// vector holds the buffer followed by `tail`, so a read past the verified
+// region does not fault.
+struct VerifiedTable {
+  std::vector<uint8_t> buf;
+  size_t size;  // bytes given to the verifier
+  size_t root;  // position of the root table
+
+  VerifiedTable(const FlatBufferBuilder& fbb, const std::vector<uint8_t>& tail)
+      : size(fbb.GetSize()) {
+    buf.assign(fbb.GetBufferPointer(), fbb.GetBufferPointer() + size);
+    buf.insert(buf.end(), tail.begin(), tail.end());
+    root = ReadScalar<uoffset_t>(buf.data());
+  }
+
+  // Position of the vtable entry for field `id`.
+  size_t Slot(voffset_t id) const {
+    const auto vtable = root - ReadScalar<soffset_t>(buf.data() + root);
+    TEST_ASSERT(FieldIndexToOffset(id) <
+                ReadScalar<voffset_t>(buf.data() + vtable));
+    return vtable + FieldIndexToOffset(id);
+  }
+};
+
+void MiniReflectDeprecatedTypeTableTest() {
+  // Monster.friendly (id: 4) is the only deprecated field of Monster.
+  const TypeTable* tt = MonsterTypeTable();
+  TEST_EQ_STR(tt->names[4], "friendly");
+  TEST_NOTNULL(tt->values);
+  if (tt->values) {
+    for (size_t i = 0; i < tt->num_elems; i++) {
+      TEST_EQ(tt->values[i] != 0, i == 4);
+    }
+  }
+  // Tables without deprecated fields keep a null `values`.
+  TEST_NULL(StatTypeTable()->values);
+}
+
+void MiniReflectDeprecatedFieldTest() {
+  // Setting inventory (id: 5) makes the vtable long enough to contain the
+  // slot for id 4.
+  FlatBufferBuilder fbb;
+  const auto name = fbb.CreateString("x");
+  const std::vector<uint8_t> inv = {1};
+  const auto inventory = fbb.CreateVector(inv);
+  MonsterBuilder mb(fbb);
+  mb.add_name(name);
+  mb.add_inventory(inventory);
+  FinishMonsterBuffer(fbb, mb.Finish());
+
+  const std::string expected = "{ name: \"x\", inventory: [ 1 ] }";
+  const voffset_t past_end = static_cast<voffset_t>(fbb.GetSize());
+  // 0: absent. past_end - root: the first byte after the verified buffer.
+  // 4: a byte inside the table.
+  for (int i = 0; i < 3; i++) {
+    VerifiedTable m(fbb, std::vector<uint8_t>(8, 0xA7));
+    const auto slot = m.Slot(4);
+    TEST_EQ(ReadScalar<voffset_t>(m.buf.data() + slot), 0);
+    const voffset_t value[] = {0, static_cast<voffset_t>(past_end - m.root), 4};
+    WriteScalar<voffset_t>(m.buf.data() + slot, value[i]);
+
+    Verifier verifier(m.buf.data(), m.size);
+    TEST_ASSERT(VerifyMonsterBuffer(verifier));
+    TEST_EQ_STR(FlatBufferToString(m.buf.data(), MonsterTypeTable()).c_str(),
+                expected.c_str());
+
+    PresentFieldsVisitor visitor;
+    IterateFlatBuffer(m.buf.data(), MonsterTypeTable(), &visitor);
+    TEST_EQ(visitor.seen.size(), MonsterTypeTable()->num_elems);
+    TEST_EQ(visitor.present.size(), 2u);
+  }
+}
+
+void MiniReflectDeprecatedStringTest() {
+  // A table { a:int; s:string (deprecated); b:int; } as flatc would describe
+  // it, so that a deprecated field holding an offset is covered too.
+  static const TypeCode type_codes[] = {
+      {ET_INT, 0, -1}, {ET_STRING, 0, -1}, {ET_INT, 0, -1}};
+  static const int64_t values[] = {0, 1, 0};
+  static const char* const names[] = {"a", "s", "b"};
+  static const TypeTable tt = {ST_TABLE, 3,      type_codes, nullptr,
+                               nullptr,  values, names};
+
+  FlatBufferBuilder fbb;
+  const auto s = fbb.CreateString("old");
+  const auto start = fbb.StartTable();
+  fbb.AddElement<int32_t>(FieldIndexToOffset(0), 1, 0);
+  fbb.AddOffset(FieldIndexToOffset(1), s);
+  fbb.AddElement<int32_t>(FieldIndexToOffset(2), 2, 0);
+  fbb.Finish(Offset<Table>(fbb.EndTable(start)));
+
+  // A string of length 3 placed after the verified buffer.
+  const std::vector<uint8_t> tail = {3, 0, 0, 0, 'b', 'a', 'd', 0};
+  for (int i = 0; i < 2; i++) {
+    VerifiedTable m(fbb, tail);
+    if (i == 1) {
+      // Point the deprecated string at the first byte after the buffer.
+      const auto field =
+          m.root + ReadScalar<voffset_t>(m.buf.data() + m.Slot(1));
+      WriteScalar<uoffset_t>(m.buf.data() + field,
+                             static_cast<uoffset_t>(m.size - field));
+    }
+
+    // What a generated Verify() checks: every field except `s`.
+    Verifier verifier(m.buf.data(), m.size);
+    const auto table = GetRoot<Table>(m.buf.data());
+    TEST_ASSERT(
+        table->VerifyTableStart(verifier) &&
+        table->VerifyField<int32_t>(verifier, FieldIndexToOffset(0), 4) &&
+        table->VerifyField<int32_t>(verifier, FieldIndexToOffset(2), 4) &&
+        verifier.EndTable());
+    TEST_EQ_STR(FlatBufferToString(m.buf.data(), &tt).c_str(),
+                "{ a: 1, b: 2 }");
+  }
+}
+
 void EndianSwapTest() {
   TEST_EQ(flatbuffers::EndianSwap(static_cast<int16_t>(0x1234)), 0x3412);
   TEST_EQ(flatbuffers::EndianSwap(static_cast<int32_t>(0x12345678)),
@@ -1820,6 +1954,9 @@ int FlatBufferTests(const std::string& tests_data_path) {
   UnicodeInvalidSurrogatesTest();
   InvalidUTF8Test();
   UnknownFieldsTest();
+  MiniReflectDeprecatedTypeTableTest();
+  MiniReflectDeprecatedFieldTest();
+  MiniReflectDeprecatedStringTest();
   ParseUnionTest();
   ValidSameNameDifferentNamespaceTest();
   ConformTest();

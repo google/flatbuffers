@@ -4178,6 +4178,7 @@ inline const ::flatbuffers::TypeTable *MonsterTypeTable() {
     MyGame::Example::RaceTypeTable,
     MyGame::Example::LongEnumTypeTable
   };
+  static const int64_t values[] = { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   static const char * const names[] = {
     "pos",
     "mana",
@@ -4243,7 +4244,7 @@ inline const ::flatbuffers::TypeTable *MonsterTypeTable() {
     "double_inf_default"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 62, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 62, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }

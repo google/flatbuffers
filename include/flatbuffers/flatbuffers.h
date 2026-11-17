@@ -235,7 +235,9 @@ struct TypeTable {
   const TypeCode* type_codes;     // num_elems count
   const TypeFunction* type_refs;  // less than num_elems entries (see TypeCode).
   const int16_t* array_sizes;     // less than num_elems entries (see TypeCode).
-  const int64_t* values;  // Only set for non-consecutive enum/union or structs.
+  // Only set for non-consecutive enum/union, structs, or tables with deprecated
+  // fields (where a non-zero value marks a deprecated field).
+  const int64_t* values;
   const char* const* names;  // Only set if compiled with --reflect-names.
 };
 
