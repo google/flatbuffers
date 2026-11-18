@@ -59,23 +59,37 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2
 
-      - name: Clean up stale releases from staging repo
+      - name: Clean up failed staging attempt for this exact version (if any)
         run: |
-          packages=$(gcloud artifacts packages list \
-              --project="oss-exit-gate-prod" \
-              --location="us" \
-              --repository="flatbuffers--pypi" \
-              --format="value(name)" 2>/dev/null)
-
-          echo "${packages}" | xargs -r -I {} sh -c '
-              package_name=$(basename "{}")
-              echo "Deleting package: $package_name..."
-              gcloud artifacts packages delete "{}" \
-                  --project="'"oss-exit-gate-prod"'" \
-                  --location="'"us"'" \
-                  --repository="'"flatbuffers--pypi"'" \
-                  --quiet
-          '
+          python3 - <<'PY'
+          import email, glob, re, subprocess, tarfile, zipfile
+          seen = set()
+          for f in sorted(glob.glob("dist/**/*.whl", recursive=True) + glob.glob("dist/**/*.tar.gz", recursive=True)):
+            try:
+              if f.endswith(".whl"):
+                with zipfile.ZipFile(f) as zf:
+                  meta = [n for n in zf.namelist() if n.endswith(".dist-info/METADATA")][0]
+                  msg = email.message_from_bytes(zf.read(meta))
+              else:
+                with tarfile.open(f) as tf:
+                  info = [m for m in tf.getmembers() if m.name.endswith("/PKG-INFO") or m.name == "PKG-INFO"][0]
+                  msg = email.message_from_bytes(tf.extractfile(info).read())
+              pkg = re.sub(r"[-_.]+", "-", msg["Name"].strip()).lower()
+              ver = msg["Version"].strip()
+            except Exception:
+              continue
+            if (pkg, ver) in seen:
+              continue
+            seen.add((pkg, ver))
+            if subprocess.run([
+                "gcloud", "artifacts", "versions", "describe", ver,
+                f"--package={pkg}", "--project=oss-exit-gate-prod", "--location=us", "--repository=flatbuffers--pypi"
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+              subprocess.run([
+                  "gcloud", "artifacts", "versions", "delete", ver,
+                  f"--package={pkg}", "--project=oss-exit-gate-prod", "--location=us", "--repository=flatbuffers--pypi", "--quiet"
+              ], check=False)
+          PY
 
       - name: Stage to OSS Exit Gate and upload manifest
         env:
