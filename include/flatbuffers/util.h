@@ -537,34 +537,34 @@ inline int ToUTF8(uint32_t ucc, std::string* out) {
   return -1;
 }
 
-// Converts whatever prefix of the incoming string corresponds to a valid
-// UTF-8 sequence into a unicode code. The incoming pointer will have been
-// advanced past all bytes parsed.
-// returns -1 upon corrupt UTF-8 encoding (ignore the incoming pointer in
-// this case).
-inline int FromUTF8(const char** in) {
+namespace internal {
+
+// Decode one code point without consuming more than remaining bytes.
+template <typename Iterator>
+inline int ReadUTF8(Iterator& in, size_t remaining) {
+  if (remaining == 0) return -1;
   int len = 0;
   // Count leading 1 bits.
   for (int mask = 0x80; mask >= 0x04; mask >>= 1) {
-    if (**in & mask) {
+    if (*in & mask) {
       len++;
     } else {
       break;
     }
   }
-  if ((static_cast<unsigned char>(**in) << len) & 0x80)
+  if ((static_cast<unsigned char>(*in) << len) & 0x80)
     return -1;  // Bit after leading 1's must be 0.
-  if (!len) return *(*in)++;
+  if (!len) return *in++;
   // UTF-8 encoded values with a length are between 2 and 4 bytes.
-  if (len < 2 || len > 4) {
+  if (len < 2 || len > 4 || static_cast<size_t>(len) > remaining) {
     return -1;
   }
   // Grab initial bits of the code.
-  int ucc = *(*in)++ & ((1 << (7 - len)) - 1);
+  int ucc = *in++ & ((1 << (7 - len)) - 1);
   for (int i = 0; i < len - 1; i++) {
-    if ((**in & 0xC0) != 0x80) return -1;  // Upper bits must 1 0.
+    if ((*in & 0xC0) != 0x80) return -1;  // Upper bits must 1 0.
     ucc <<= 6;
-    ucc |= *(*in)++ & 0x3F;  // Grab 6 more bits of the code.
+    ucc |= *in++ & 0x3F;  // Grab 6 more bits of the code.
   }
   // UTF-8 cannot encode values between 0xD800 and 0xDFFF (reserved for
   // UTF-16 surrogate pairs).
@@ -593,6 +593,19 @@ inline int FromUTF8(const char** in) {
       break;
   }
   return ucc;
+}
+
+}  // namespace internal
+
+// Converts whatever prefix of the incoming string corresponds to a valid
+// UTF-8 sequence into a unicode code. The incoming pointer will have been
+// advanced past all bytes parsed.
+// returns -1 upon corrupt UTF-8 encoding (ignore the incoming pointer in
+// this case).
+inline int FromUTF8(const char** in) {
+  // This legacy interface takes a NUL-terminated string. A UTF-8 code point
+  // uses at most four bytes, and a NUL cannot be a continuation byte.
+  return internal::ReadUTF8(*in, 4);
 }
 
 #ifndef FLATBUFFERS_PREFER_PRINTF
@@ -628,7 +641,7 @@ inline bool EscapeString(const char* s, size_t length, std::string* _text,
                          bool allow_non_utf8, bool natural_utf8) {
   std::string& text = *_text;
   text += "\"";
-  for (uoffset_t i = 0; i < length; i++) {
+  for (size_t i = 0; i < length; i++) {
     char c = s[i];
     switch (c) {
       case '\n':
@@ -658,7 +671,7 @@ inline bool EscapeString(const char* s, size_t length, std::string* _text,
         } else {
           // Not printable ASCII data. Let's see if it's valid UTF-8 first:
           const char* utf8 = s + i;
-          int ucc = FromUTF8(&utf8);
+          int ucc = internal::ReadUTF8(utf8, length - i);
           if (ucc < 0) {
             if (allow_non_utf8) {
               text += "\\x";
@@ -698,7 +711,7 @@ inline bool EscapeString(const char* s, size_t length, std::string* _text,
               text += IntToStringHex(low_surrogate, 4);
             }
             // Skip past characters recognized.
-            i = static_cast<uoffset_t>(utf8 - s - 1);
+            i = static_cast<size_t>(utf8 - s - 1);
           }
         }
         break;

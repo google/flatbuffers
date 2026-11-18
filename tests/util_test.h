@@ -6,6 +6,7 @@ namespace tests {
 
 void NumericUtilsTest();
 void IsAsciiUtilsTest();
+void BoundedUTF8Test();
 void UtilConvertCase();
 
 }  // namespace tests
