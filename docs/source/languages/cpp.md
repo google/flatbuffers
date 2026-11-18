@@ -53,7 +53,7 @@ and the generated code to read or write FlatBuffers.
 
 For example, here is how you would read a FlatBuffer binary file in C++:
 First, include the library and generated code. Then read the file into
-a `char *` array, which you pass to `GetMonster()`.
+a `char *` array and verify the buffer before passing it to `GetMonster()`.
 
 ```cpp
     #include "flatbuffers/flatbuffers.h"
@@ -65,11 +65,22 @@ a `char *` array, which you pass to `GetMonster()`.
     std::ifstream infile;
     infile.open("monsterdata_test.mon", std::ios::binary | std::ios::in);
     infile.seekg(0,std::ios::end);
-    int length = infile.tellg();
+    std::streamsize length = infile.tellg();
+    if (length <= 0 || length >= FLATBUFFERS_MAX_BUFFER_SIZE) return 1;
     infile.seekg(0,std::ios::beg);
     char *data = new char[length];
-    infile.read(data, length);
+    if (!infile.read(data, length)) {
+      delete[] data;
+      return 1;
+    }
     infile.close();
+
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(data), static_cast<size_t>(length));
+    if (!VerifyMonsterBuffer(verifier)) {
+      delete[] data;
+      return 1;
+    }
 
     auto monster = GetMonster(data);
 ```
@@ -436,33 +447,32 @@ would be wise).
 
 ## Access of untrusted buffers
 
-The generated accessor functions access fields over offsets, which is
-very quick. These offsets are not verified at run-time, so a malformed
-buffer could cause a program to crash by accessing random memory.
+The generated accessors stay fast by using offsets from the buffer without
+run-time bounds checks. By default, `FLATBUFFERS_ASSERT` checks, such as the
+index check in `Vector::Get`, are compiled out in release builds with `NDEBUG`
+defined.
 
-When you're processing large amounts of data from a source you know (e.g.
-your own generated data on disk), this is acceptable, but when reading
-data from the network that can potentially have been modified by an
-attacker, this is undesirable.
+You must verify any buffer from an untrusted source (e.g. the network,
+a file, or IPC) before calling `GetRoot`, `GetMonster`, or any other accessor.
 
-For this reason, you can optionally use a buffer verifier before you
-access the data. This verifier will check all offsets, all sizes of
-fields, and null termination of strings to ensure that when a buffer
-is accessed, all reads will end up inside the buffer.
+Use a `flatbuffers::Verifier` with the generated `Verify<Root>Buffer` function,
+or `VerifySizePrefixed<Root>Buffer` for size-prefixed buffers. The verifier
+checks offsets, field sizes, and string null terminators, so that all reads
+through the accessors stay inside the buffer.
 
-Each root type will have a verification function generated for it,
-e.g. for `Monster`, you can call:
+For example, use `VerifyMonsterBuffer` to verify a `Monster` buffer.
 
 ```cpp
 	Verifier verifier(buf, len);
 	bool ok = VerifyMonsterBuffer(verifier);
 ```
 
-if `ok` is true, the buffer is safe to read.
+Access the buffer only if `ok` is true. Verification checks the buffer's
+structure only. Still check optional fields for null before dereferencing them,
+and check caller-supplied vector indices against `size()`.
 
-Besides untrusted data, this function may be useful to call in debug
-mode, as extra insurance against data being corrupted somewhere along
-the way.
+For trusted data, you can also verify buffers in debug builds to catch
+accidental corruption.
 
 While verifying a buffer isn't "free", it is typically faster than
 a full traversal (since any scalar data is not actually touched),

@@ -24,7 +24,7 @@ Codegen for all basic features | Yes    | Yes   | Yes      | Yes   | Yes    | Ye
 JSON parsing                   | Yes    | No    | No       | No    | No     | No    | No  | Yes    | No  | No      | Yes     | No     | No
 Simple mutation                | Yes    | Yes   | Yes      | Yes   | No     | No    | No  | No     | No  | No      | No      | No     | Yes
 Reflection                     | Yes    | No    | No       | No    | No     | No    | No  | Basic  | No  | No      | No      | No     | No
-Buffer verifier                | Yes    | No    | No       | No    | No     | No    | No  | Yes    | No  | No      | No      | No     | Yes
+Buffer verifier                | Yes    | No    | Yes      | No    | No     | No    | No  | Yes    | No  | No      | No      | Yes    | Yes
 Native Object API              | Yes    | No    | Yes      | Yes   | Yes    | Yes   | Yes | No     | No  | Yes     | No      | No     | Yes
 Optional Scalars               | Yes    | Yes   | Yes      | Yes   | No     | Yes   | Yes | Yes    | No  | No      | Yes     | Yes    | Yes
 Flexbuffers                    | Yes    | Yes   | ?        | ?     | ?      | ?     | ?   | ?      | ?   | ?       | ?       | Yes    | Yes
@@ -38,6 +38,12 @@ Platform: Android              | NDK10d | Yes   | ?        | ?     | ?      | ? 
 Platform: iOS                  | ?      | ?     | ?        | ?     | ?      | ?     | ?   | ?      | ?   | Flutter | Yes     | ?      | Yes
 Engine: Unity                  | ?      | ?     | Yes      | ?     | ?      | ?     | ?   | ?      | ?   | ?       | No      | ?      | No
 Primary authors (github)       | aard   | aard  | ev/js/df | rw    | rw     | ew/ev | kr  | mik    | ch  | df      | aard    | rw/cn  | mi/mz
+
+In languages without a buffer verifier, accessing a malformed buffer can
+throw an exception, panic, or return garbage data. If your runtime lacks a
+verifier, have a trusted component verify the bytes against the reader's
+schema (for example with the C++ or Rust verifier) and pass them to the
+reader unchanged.
 
 Above | Github username
 ----- | -----------------------------
