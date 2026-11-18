@@ -128,11 +128,14 @@ jobs:
       run: ./flattests_cpp17
 
   build-cpp-std:
-    name: Build Windows C++
-    runs-on: windows-2022
+    name: Build Windows C++ (${{ matrix.std }}, ${{ matrix.os.arch }})
+    runs-on: ${{ matrix.os.runner }}
     strategy:
       matrix:
         std: [11, 14, 17, 20, 23]
+        os:
+          - { runner: windows-2022, arch: x64, generator: "Visual Studio 17 2022", sln: FlatBuffers.sln }
+          - { runner: windows-11-arm, arch: ARM64, generator: "Visual Studio 18 2026", sln: FlatBuffers.slnx }
       fail-fast: false
     steps:
     - uses: actions/checkout@v6
@@ -140,12 +143,12 @@ jobs:
       uses: microsoft/setup-msbuild@v2
     - name: cmake
       run: >
-        cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+        cmake -G "${{ matrix.os.generator }}" -A ${{ matrix.os.arch }} -DCMAKE_BUILD_TYPE=Release
         -DFLATBUFFERS_STRICT_MODE=ON
         -DFLATBUFFERS_CPP_STD=${{ matrix.std }}
         -DFLATBUFFERS_BUILD_CPP17=${{ matrix.std >= 17 && 'On' || 'Off'}}
     - name: build
-      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+      run: msbuild.exe ${{ matrix.os.sln }} /p:Configuration=Release /p:Platform=${{ matrix.os.arch }}
     - name: test
       run: Release\flattests.exe
     - name: test C++17
@@ -157,37 +160,49 @@ jobs:
       contents: write
     outputs:
       digests: ${{ steps.hash.outputs.hashes }}
-    name: Build Windows 2022
-    runs-on: windows-2022
+      digests-arm64: ${{ steps.hash-arm64.outputs.hashes }}
+    name: Build Windows ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - { runner: windows-2022, arch: x64, generator: "Visual Studio 17 2022", sln: FlatBuffers.sln, artifact: Windows flatc binary, zip: Windows.flatc.binary.zip }
+          - { runner: windows-11-arm, arch: ARM64, generator: "Visual Studio 18 2026", sln: FlatBuffers.slnx, artifact: Windows ARM64 flatc binary, zip: Windows.ARM64.flatc.binary.zip }
+      fail-fast: false
     steps:
     - uses: actions/checkout@v6
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
     - name: cmake
-      run: cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
+      run: cmake -G "${{ matrix.generator }}" -A ${{ matrix.arch }} -DCMAKE_BUILD_TYPE=Release -DFLATBUFFERS_BUILD_CPP17=ON -DFLATBUFFERS_STRICT_MODE=ON .
     - name: build
-      run: msbuild.exe FlatBuffers.sln /p:Configuration=Release /p:Platform=x64
+      run: msbuild.exe ${{ matrix.sln }} /p:Configuration=Release /p:Platform=${{ matrix.arch }}
     - name: test
       run: Release\flattests.exe
     - name: upload build artifacts
       uses: actions/upload-artifact@v7
       with:
-        name: Windows flatc binary
+        name: ${{ matrix.artifact }}
         path: Release\flatc.exe
     # Below if only for release.
     - name: Zip file
       if: startsWith(github.ref, 'refs/tags/')
-      run: move Release/flatc.exe . && Compress-Archive flatc.exe Windows.flatc.binary.zip
+      run: move Release/flatc.exe . && Compress-Archive flatc.exe ${{ matrix.zip }}
     - name: Release binary
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: Windows.flatc.binary.zip
+        files: ${{ matrix.zip }}
     - name: Generate SLSA subjects
-      if: startsWith(github.ref, 'refs/tags/')
+      if: matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/')
       id: hash
       shell: bash
-      run: echo "hashes=$(sha256sum Windows.flatc.binary.zip | base64 -w0)" >> $GITHUB_OUTPUT
+      run: echo "hashes=$(sha256sum ${{ matrix.zip }} | base64 -w0)" >> $GITHUB_OUTPUT
+    - name: Generate SLSA subjects ARM64
+      if: matrix.arch == 'ARM64' && startsWith(github.ref, 'refs/tags/')
+      id: hash-arm64
+      shell: bash
+      run: echo "hashes=$(sha256sum ${{ matrix.zip }} | base64 -w0)" >> $GITHUB_OUTPUT
 
   build-dotnet-windows:
     name: Build .NET Windows
@@ -621,6 +636,7 @@ jobs:
           MAC_DIGESTS: "${{ needs.build-mac-universal.outputs.digests }}"
           MACINTEL_DIGESTS: "${{ needs.build-mac-intel.outputs.digests }}"
           WINDOWS_DIGESTS: "${{ needs.build-windows.outputs.digests }}"
+          WINDOWSARM64_DIGESTS: "${{ needs.build-windows.outputs.digests-arm64 }}"
         run: |
           set -euo pipefail
           echo "$LINUXGCC_DIGESTS" | base64 -d > checksums.txt
@@ -628,6 +644,7 @@ jobs:
           echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
           echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
           echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
+          echo "$WINDOWSARM64_DIGESTS" | base64 -d >> checksums.txt
           echo "digests=$(cat checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
   provenance:
