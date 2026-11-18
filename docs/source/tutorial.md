@@ -2046,6 +2046,9 @@ functions to get the root object given the buffer.
 
 === "C++"
 
+    Verify untrusted buffers before calling `GetMonster`, as described in
+    [Access of untrusted buffers](languages/cpp.md#access-of-untrusted-buffers).
+
     ```c++
     uint8_t *buffer_pointer = /* the data you just read */;
 
