@@ -1,5 +1,6 @@
 #include "reflection_test.h"
 
+#include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
@@ -13,6 +14,10 @@ namespace flatbuffers {
 namespace tests {
 
 using namespace MyGame::Example;
+
+static void ReflectionAdversarialVerificationTest(
+    const reflection::Schema& schema, const uint8_t* valid_flatbuf,
+    size_t valid_length);
 
 void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
                     size_t length) {
@@ -246,6 +251,259 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
   TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
                               fbb.GetBufferPointer(), fbb.GetSize()),
           true);
+
+  ReflectionAdversarialVerificationTest(schema, fbb.GetBufferPointer(),
+                                        fbb.GetSize());
+}
+
+void ReflectionAdversarialVerificationTest(const reflection::Schema& schema,
+                                           const uint8_t* valid_flatbuf,
+                                           size_t valid_length) {
+  // 1. Null buffer rejection.
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), nullptr, 0), false);
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), nullptr, 1024),
+          false);
+  TEST_EQ(
+      flatbuffers::VerifySizePrefixed(schema, *schema.root_table(), nullptr, 0),
+      false);
+  TEST_EQ(flatbuffers::VerifySizePrefixed(schema, *schema.root_table(), nullptr,
+                                          1024),
+          false);
+
+  // 2. Truncation below minimum buffer size.
+  uint8_t tiny[8] = {0};
+  for (size_t l = 0; l < FLATBUFFERS_MIN_BUFFER_SIZE; ++l) {
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), tiny, l), false);
+    TEST_EQ(
+        flatbuffers::VerifySizePrefixed(schema, *schema.root_table(), tiny, l),
+        false);
+  }
+
+  // 3. Malformed root offsets on min-sized buffers.
+  uint8_t zero_root[16] = {0};
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), zero_root,
+                              sizeof(zero_root)),
+          false);
+
+  uint8_t oob_root[16] = {100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), oob_root,
+                              sizeof(oob_root)),
+          false);
+
+  uint8_t max_root[16] = {0xFF, 0xFF, 0xFF, 0xFF, 0, 0, 0, 0,
+                          0,    0,    0,    0,    0, 0, 0, 0};
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), max_root,
+                              sizeof(max_root)),
+          false);
+
+  // 4. Truncations of an otherwise valid flatbuffer.
+  for (size_t trunc = FLATBUFFERS_MIN_BUFFER_SIZE; trunc < valid_length;
+       trunc += 17) {
+    TEST_EQ(
+        flatbuffers::Verify(schema, *schema.root_table(), valid_flatbuf, trunc),
+        false);
+  }
+
+  // 5. Size-prefixed buffer validation and corruption.
+  flatbuffers::FlatBufferBuilder fbb_sp;
+  auto root_offset_sp =
+      flatbuffers::CopyTable(fbb_sp, schema, *schema.root_table(),
+                             *flatbuffers::GetAnyRoot(valid_flatbuf), true);
+  fbb_sp.FinishSizePrefixed(root_offset_sp, MonsterIdentifier());
+  TEST_EQ(flatbuffers::VerifySizePrefixed(schema, *schema.root_table(),
+                                          fbb_sp.GetBufferPointer(),
+                                          fbb_sp.GetSize()),
+          true);
+
+  // Size prefix exceeds total buffer length.
+  std::vector<uint8_t> corrupted_sp(
+      fbb_sp.GetBufferPointer(), fbb_sp.GetBufferPointer() + fbb_sp.GetSize());
+  uoffset_t bad_prefix = static_cast<uoffset_t>(fbb_sp.GetSize() + 64);
+  memcpy(corrupted_sp.data(), &bad_prefix, sizeof(bad_prefix));
+  TEST_EQ(
+      flatbuffers::VerifySizePrefixed(schema, *schema.root_table(),
+                                      corrupted_sp.data(), corrupted_sp.size()),
+      false);
+
+  // Size prefix buffer truncated below minimum content size.
+  TEST_EQ(flatbuffers::VerifySizePrefixed(schema, *schema.root_table(),
+                                          fbb_sp.GetBufferPointer(),
+                                          sizeof(uoffset_t) + 1),
+          false);
+
+  // 6. Adversarial mutations of table offsets and fields.
+  std::vector<uint8_t> corrupted(valid_flatbuf, valid_flatbuf + valid_length);
+  uoffset_t root_offset = flatbuffers::ReadScalar<uoffset_t>(corrupted.data());
+  soffset_t vtable_offset =
+      flatbuffers::ReadScalar<soffset_t>(corrupted.data() + root_offset);
+  uint8_t* vtable_ptr = corrupted.data() + root_offset - vtable_offset;
+
+  // Wild vtable offset pointing out of bounds.
+  corrupted.assign(valid_flatbuf, valid_flatbuf + valid_length);
+  soffset_t bad_vtable_offset = 0x7FFFFFFF;
+  memcpy(corrupted.data() + root_offset, &bad_vtable_offset,
+         sizeof(bad_vtable_offset));
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), corrupted.data(),
+                              corrupted.size()),
+          false);
+
+  // Missing required field: "name" is required in Monster schema.
+  corrupted.assign(valid_flatbuf, valid_flatbuf + valid_length);
+  root_offset = flatbuffers::ReadScalar<uoffset_t>(corrupted.data());
+  vtable_offset =
+      flatbuffers::ReadScalar<soffset_t>(corrupted.data() + root_offset);
+  vtable_ptr = corrupted.data() + root_offset - vtable_offset;
+  auto name_field = schema.root_table()->fields()->LookupByKey("name");
+  TEST_NOTNULL(name_field);
+  voffset_t name_voffset = name_field->offset();
+  voffset_t zero_field = 0;
+  memcpy(vtable_ptr + name_voffset, &zero_field, sizeof(zero_field));
+  TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), corrupted.data(),
+                              corrupted.size()),
+          false);
+
+  // Corrupted string offset.
+  corrupted.assign(valid_flatbuf, valid_flatbuf + valid_length);
+  root_offset = flatbuffers::ReadScalar<uoffset_t>(corrupted.data());
+  vtable_offset =
+      flatbuffers::ReadScalar<soffset_t>(corrupted.data() + root_offset);
+  vtable_ptr = corrupted.data() + root_offset - vtable_offset;
+  voffset_t name_field_pos =
+      flatbuffers::ReadScalar<voffset_t>(vtable_ptr + name_voffset);
+  if (name_field_pos) {
+    uoffset_t bad_string_offset = 0x7FFFFFF0;
+    memcpy(corrupted.data() + root_offset + name_field_pos, &bad_string_offset,
+           sizeof(bad_string_offset));
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), corrupted.data(),
+                                corrupted.size()),
+            false);
+  }
+
+  // Corrupted vector offset.
+  corrupted.assign(valid_flatbuf, valid_flatbuf + valid_length);
+  root_offset = flatbuffers::ReadScalar<uoffset_t>(corrupted.data());
+  vtable_offset =
+      flatbuffers::ReadScalar<soffset_t>(corrupted.data() + root_offset);
+  vtable_ptr = corrupted.data() + root_offset - vtable_offset;
+  auto inv_field = schema.root_table()->fields()->LookupByKey("inventory");
+  TEST_NOTNULL(inv_field);
+  voffset_t inv_field_pos =
+      flatbuffers::ReadScalar<voffset_t>(vtable_ptr + inv_field->offset());
+  if (inv_field_pos) {
+    uoffset_t bad_vec_offset = 0x7FFFFFF0;
+    memcpy(corrupted.data() + root_offset + inv_field_pos, &bad_vec_offset,
+           sizeof(bad_vec_offset));
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), corrupted.data(),
+                                corrupted.size()),
+            false);
+  }
+
+  // Corrupted table vector element offset.
+  corrupted.assign(valid_flatbuf, valid_flatbuf + valid_length);
+  root_offset = flatbuffers::ReadScalar<uoffset_t>(corrupted.data());
+  vtable_offset =
+      flatbuffers::ReadScalar<soffset_t>(corrupted.data() + root_offset);
+  vtable_ptr = corrupted.data() + root_offset - vtable_offset;
+  auto tables_field =
+      schema.root_table()->fields()->LookupByKey("testarrayoftables");
+  TEST_NOTNULL(tables_field);
+  voffset_t tables_field_pos =
+      flatbuffers::ReadScalar<voffset_t>(vtable_ptr + tables_field->offset());
+  if (tables_field_pos) {
+    uint8_t* vec_ptr = corrupted.data() + root_offset + tables_field_pos;
+    uoffset_t vec_offset = flatbuffers::ReadScalar<uoffset_t>(vec_ptr);
+    uint8_t* vec_data = vec_ptr + vec_offset;
+    uoffset_t vec_len = flatbuffers::ReadScalar<uoffset_t>(vec_data);
+    if (vec_len > 0) {
+      uoffset_t bad_elem_offset = 0x7FFFFFF0;
+      memcpy(vec_data + sizeof(uoffset_t), &bad_elem_offset,
+             sizeof(bad_elem_offset));
+      TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(),
+                                  corrupted.data(), corrupted.size()),
+              false);
+    }
+  }
+
+  // Corrupted union fields:
+  // Inconsistent union: discriminant is set (non-zero) but union value offset
+  // in vtable is 0 (omitted).
+  corrupted.assign(valid_flatbuf, valid_flatbuf + valid_length);
+  root_offset = flatbuffers::ReadScalar<uoffset_t>(corrupted.data());
+  vtable_offset =
+      flatbuffers::ReadScalar<soffset_t>(corrupted.data() + root_offset);
+  vtable_ptr = corrupted.data() + root_offset - vtable_offset;
+  auto utype_field = schema.root_table()->fields()->LookupByKey("test_type");
+  auto uval_field = schema.root_table()->fields()->LookupByKey("test");
+  TEST_NOTNULL(utype_field);
+  TEST_NOTNULL(uval_field);
+  voffset_t utype_field_pos =
+      flatbuffers::ReadScalar<voffset_t>(vtable_ptr + utype_field->offset());
+  if (utype_field_pos) {
+    uint8_t valid_utype = 1;
+    memcpy(corrupted.data() + root_offset + utype_field_pos, &valid_utype,
+           sizeof(valid_utype));
+    voffset_t zero_uval = 0;
+    memcpy(vtable_ptr + uval_field->offset(), &zero_uval, sizeof(zero_uval));
+    TEST_EQ(flatbuffers::Verify(schema, *schema.root_table(), corrupted.data(),
+                                corrupted.size()),
+            false);
+  }
+
+  // 7. Dynamic Union Vector Safety Test:
+  // Tests null pointer dereference prevention on missing union type vector.
+  flatbuffers::IDLOptions idl_opts;
+  idl_opts.lang_to_generate |= flatbuffers::IDLOptions::kBinary;
+  flatbuffers::Parser idl_parser(idl_opts);
+  TEST_EQ(idl_parser.Parse("table Item { id:int; }\n"
+                           "union AnyItem { Item }\n"
+                           "table Container { items:[AnyItem]; }\n"
+                           "root_type Container;\n"),
+          true);
+  TEST_EQ(idl_parser.Parse("{ items_type: [Item], items: [{id: 42}] }"), true);
+  auto container_buf = idl_parser.builder_.Release();
+  idl_parser.Serialize();
+  auto container_schema =
+      reflection::GetSchema(idl_parser.builder_.GetBufferPointer());
+  TEST_NOTNULL(container_schema);
+
+  auto valid_c_buf = container_buf.data();
+  auto valid_c_size = container_buf.size();
+  TEST_EQ(
+      flatbuffers::Verify(*container_schema, *container_schema->root_table(),
+                          valid_c_buf, valid_c_size),
+      true);
+
+  // Inconsistent union vector: values vector present, but types vector zeroed
+  // in vtable! (Prior to our hardening, this dereferenced type_vec as nullptr
+  // in type_vec->size())
+  std::vector<uint8_t> bad_union_vec(valid_c_buf, valid_c_buf + valid_c_size);
+  uoffset_t c_root = flatbuffers::ReadScalar<uoffset_t>(bad_union_vec.data());
+  soffset_t c_vt_offset =
+      flatbuffers::ReadScalar<soffset_t>(bad_union_vec.data() + c_root);
+  uint8_t* c_vt_ptr = bad_union_vec.data() + c_root - c_vt_offset;
+  auto items_field =
+      container_schema->root_table()->fields()->LookupByKey("items");
+  TEST_NOTNULL(items_field);
+  voffset_t utype_voffset = items_field->offset() - sizeof(voffset_t);
+  voffset_t zero_vt = 0;
+  memcpy(c_vt_ptr + utype_voffset, &zero_vt, sizeof(zero_vt));
+  TEST_EQ(
+      flatbuffers::Verify(*container_schema, *container_schema->root_table(),
+                          bad_union_vec.data(), bad_union_vec.size()),
+      false);
+
+  // Inconsistent union vector: types vector present, but values vector zeroed
+  // in vtable!
+  std::vector<uint8_t> bad_union_vals(valid_c_buf, valid_c_buf + valid_c_size);
+  c_root = flatbuffers::ReadScalar<uoffset_t>(bad_union_vals.data());
+  c_vt_offset =
+      flatbuffers::ReadScalar<soffset_t>(bad_union_vals.data() + c_root);
+  c_vt_ptr = bad_union_vals.data() + c_root - c_vt_offset;
+  memcpy(c_vt_ptr + items_field->offset(), &zero_vt, sizeof(zero_vt));
+  TEST_EQ(
+      flatbuffers::Verify(*container_schema, *container_schema->root_table(),
+                          bad_union_vals.data(), bad_union_vals.size()),
+      false);
 }
 
 // Test that ForAllFields with reverse=true iterates fields in descending
@@ -277,11 +535,10 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   // Test forward iteration: fields should come in ascending ID order (0,1,2).
   {
     std::vector<uint16_t> forward_ids;
-    flatbuffers::ForAllFields(
-        stat_object, /*reverse=*/false,
-        [&forward_ids](const reflection::Field* field) {
-          forward_ids.push_back(field->id());
-        });
+    flatbuffers::ForAllFields(stat_object, /*reverse=*/false,
+                              [&forward_ids](const reflection::Field* field) {
+                                forward_ids.push_back(field->id());
+                              });
     TEST_EQ(forward_ids.size(), 3u);
     TEST_EQ(forward_ids[0], 0);  // id
     TEST_EQ(forward_ids[1], 1);  // val
@@ -293,11 +550,10 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   // index 3 - 0 + 1 = 4, which is out of bounds for a size-3 vector.
   {
     std::vector<uint16_t> reverse_ids;
-    flatbuffers::ForAllFields(
-        stat_object, /*reverse=*/true,
-        [&reverse_ids](const reflection::Field* field) {
-          reverse_ids.push_back(field->id());
-        });
+    flatbuffers::ForAllFields(stat_object, /*reverse=*/true,
+                              [&reverse_ids](const reflection::Field* field) {
+                                reverse_ids.push_back(field->id());
+                              });
     TEST_EQ(reverse_ids.size(), 3u);
     TEST_EQ(reverse_ids[0], 2);  // count (highest ID first)
     TEST_EQ(reverse_ids[1], 1);  // val
@@ -311,11 +567,10 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   TEST_NOTNULL(root_table);
   {
     std::vector<uint16_t> forward_ids;
-    flatbuffers::ForAllFields(
-        root_table, /*reverse=*/false,
-        [&forward_ids](const reflection::Field* field) {
-          forward_ids.push_back(field->id());
-        });
+    flatbuffers::ForAllFields(root_table, /*reverse=*/false,
+                              [&forward_ids](const reflection::Field* field) {
+                                forward_ids.push_back(field->id());
+                              });
     // Verify ascending order.
     for (size_t i = 1; i < forward_ids.size(); ++i) {
       TEST_ASSERT(forward_ids[i - 1] < forward_ids[i]);
@@ -323,11 +578,10 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   }
   {
     std::vector<uint16_t> reverse_ids;
-    flatbuffers::ForAllFields(
-        root_table, /*reverse=*/true,
-        [&reverse_ids](const reflection::Field* field) {
-          reverse_ids.push_back(field->id());
-        });
+    flatbuffers::ForAllFields(root_table, /*reverse=*/true,
+                              [&reverse_ids](const reflection::Field* field) {
+                                reverse_ids.push_back(field->id());
+                              });
     // Verify descending order.
     for (size_t i = 1; i < reverse_ids.size(); ++i) {
       TEST_ASSERT(reverse_ids[i - 1] > reverse_ids[i]);
