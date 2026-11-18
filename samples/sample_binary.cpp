@@ -62,6 +62,15 @@ int main(int /*argc*/, const char* /*argv*/[]) {
 
   // Instead, we're going to access it right away (as if we just received it).
 
+  // Always verify buffers from untrusted sources (network or files) before
+  // calling any accessor. Accessors do no bounds checking, and by default
+  // FLATBUFFERS_ASSERT is compiled out in release builds.
+  flatbuffers::Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
+  if (!VerifyMonsterBuffer(verifier)) {
+    printf("FlatBuffer verification failed.\n");
+    return 1;
+  }
+
   // Get access to the root:
   auto monster = GetMonster(builder.GetBufferPointer());
 
