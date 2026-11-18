@@ -324,6 +324,29 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     flex_reuse_tracker_ = rt;
   }
 
+  // Verifies a nested buffer whose root type is only known at run time (for
+  // example from reflection), with a verifier that inherits what is left of
+  // this verifier's depth and table budgets instead of starting from the
+  // defaults. `verify` is called with the nested verifier and returns whether
+  // the nested buffer is valid. Tables verified in the nested buffer are
+  // charged to this verifier, so sibling nested buffers share one budget.
+  template <typename VerifyFn>
+  bool VerifyNestedBuffer(const uint8_t* const nested_buf,
+                          const size_t nested_len, VerifyFn verify) {
+    if (!Check(depth_ < opts_.max_depth)) return false;
+    if (!Check(num_tables_ <= opts_.max_tables)) return false;
+
+    Options nested_opts = opts_;
+    nested_opts.max_depth = opts_.max_depth - depth_;
+    nested_opts.max_tables = opts_.max_tables - num_tables_;
+    VerifierTemplate<TrackVerifierBufferSize> nested_verifier(
+        nested_buf, nested_len, nested_opts);
+    nested_verifier.SetFlexReuseTracker(flex_reuse_tracker_);
+    if (!verify(nested_verifier)) return false;
+    num_tables_ += nested_verifier.num_tables_;
+    return Check(num_tables_ <= opts_.max_tables);
+  }
+
  private:
   const uint8_t* buf_;
   const size_t size_;
