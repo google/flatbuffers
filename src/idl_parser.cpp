@@ -64,10 +64,11 @@ static_assert(BASE_TYPE_VECTOR64 ==
 #define EXPECT(tok) ECHECK(Expect(tok))
 
 static bool ValidateUTF8(const std::string& str) {
-  const char* s = &str[0];
-  const char* const sEnd = s + str.length();
-  while (s < sEnd) {
-    if (FromUTF8(&s) < 0) {
+  auto cursor = str.begin();
+  const auto end = str.end();
+  while (cursor != end) {
+    const auto remaining = static_cast<size_t>(end - cursor);
+    if (internal::ReadUTF8(cursor, remaining) < 0) {
       return false;
     }
   }

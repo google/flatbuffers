@@ -58,6 +58,23 @@ void IsAsciiUtilsTest() {
   }
 }
 
+void BoundedUTF8Test() {
+  // One ASCII letter, a euro sign, and a grinning face.
+  const std::string text = "A\xE2\x82\xAC\xF0\x9F\x98\x80";
+  auto cursor = text.begin();
+  TEST_EQ(0x41, internal::ReadUTF8(cursor, 1));
+  auto prefix = cursor;
+  TEST_EQ(-1, internal::ReadUTF8(prefix, 2));
+  TEST_EQ(0x20AC, internal::ReadUTF8(cursor, 3));
+  TEST_EQ(0x1F600, internal::ReadUTF8(cursor, 4));
+  TEST_ASSERT(cursor == text.end());
+  TEST_EQ(-1, internal::ReadUTF8(cursor, 0));
+
+  std::string escaped;
+  TEST_EQ(true, EscapeString(text.data(), 4, &escaped, false, false));
+  TEST_EQ_STR("\"A\\u20AC\"", escaped.c_str());
+}
+
 void UtilConvertCase() {
   {
     struct TestCase {
