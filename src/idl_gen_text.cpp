@@ -461,11 +461,13 @@ static std::string TextMakeRule(const Parser& parser, const std::string& path,
   if (!parser.builder_.GetSize() || !parser.root_struct_def_) return "";
   std::string filebase =
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
-  std::string make_rule = TextFileName(path, filebase) + ": " + file_name;
+  std::string make_rule =
+      EscapeMakeDep(TextFileName(path, filebase)) + ": " +
+      EscapeMakeDep(file_name);
   auto included_files =
       parser.GetIncludedFilesRecursive(parser.root_struct_def_->file);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
-    make_rule += " " + *it;
+    make_rule += " " + EscapeMakeDep(*it);
   }
   return make_rule;
 }

@@ -273,6 +273,22 @@ std::string StripExtension(const std::string& filepath) {
   return i != std::string::npos ? filepath.substr(0, i) : filepath;
 }
 
+std::string EscapeMakeDep(const std::string& filepath) {
+  std::string escaped;
+  escaped.reserve(filepath.size() * 2);
+  for (const char c : filepath) {
+    switch (c) {
+      case '\\': escaped += "\\\\"; break;
+      case ' ': escaped += "\\ "; break;
+      case '#': escaped += "\\#"; break;
+      case ':': escaped += "\\:"; break;
+      case '$': escaped += "$$"; break;
+      default: escaped += c; break;
+    }
+  }
+  return escaped;
+}
+
 std::string GetExtension(const std::string& filepath) {
   size_t i = filepath.find_last_of('.');
   return i != std::string::npos ? filepath.substr(i + 1) : "";

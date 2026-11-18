@@ -42,7 +42,7 @@ std::string JavaCSharpMakeRule(const bool java, const Parser& parser,
     if (!make_rule.empty()) make_rule += " ";
     std::string directory =
         BaseGenerator::NamespaceDir(parser, path, *enum_def.defined_namespace);
-    make_rule += directory + enum_def.name + file_extension;
+    make_rule += EscapeMakeDep(directory + enum_def.name + file_extension);
   }
 
   for (auto it = parser.structs_.vec.begin(); it != parser.structs_.vec.end();
@@ -51,13 +51,13 @@ std::string JavaCSharpMakeRule(const bool java, const Parser& parser,
     if (!make_rule.empty()) make_rule += " ";
     std::string directory = BaseGenerator::NamespaceDir(
         parser, path, *struct_def.defined_namespace);
-    make_rule += directory + struct_def.name + file_extension;
+    make_rule += EscapeMakeDep(directory + struct_def.name + file_extension);
   }
 
   make_rule += ": ";
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
-    make_rule += " " + *it;
+    make_rule += " " + EscapeMakeDep(*it);
   }
   return make_rule;
 }

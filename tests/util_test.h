@@ -7,6 +7,7 @@ namespace tests {
 void NumericUtilsTest();
 void IsAsciiUtilsTest();
 void UtilConvertCase();
+void EscapeMakeDepTest();
 
 }  // namespace tests
 }  // namespace flatbuffers

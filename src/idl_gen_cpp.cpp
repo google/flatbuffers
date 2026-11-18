@@ -4546,9 +4546,10 @@ static std::string CPPMakeRule(const Parser& parser, const std::string& path,
   cpp::CppGenerator geneartor(parser, path, file_name, parser.opts);
   const auto included_files = parser.GetIncludedFilesRecursive(file_name);
   std::string make_rule =
-      geneartor.GeneratedFileName(path, filebase, parser.opts) + ": ";
+      EscapeMakeDep(geneartor.GeneratedFileName(path, filebase, parser.opts)) +
+      ": ";
   for (const std::string& included_file : included_files) {
-    make_rule += " " + included_file;
+    make_rule += " " + EscapeMakeDep(included_file);
   }
   return make_rule;
 }

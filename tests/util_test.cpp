@@ -169,5 +169,24 @@ void UtilConvertCase() {
   }
 }
 
+void EscapeMakeDepTest() {
+  // Characters special to make must be escaped, backslash first.
+  TEST_EQ(std::string("\\\\"), flatbuffers::EscapeMakeDep("\\"));
+  TEST_EQ(std::string("\\ "), flatbuffers::EscapeMakeDep(" "));
+  TEST_EQ(std::string("\\#"), flatbuffers::EscapeMakeDep("#"));
+  TEST_EQ(std::string("\\:"), flatbuffers::EscapeMakeDep(":"));
+  TEST_EQ(std::string("$$"), flatbuffers::EscapeMakeDep("$"));
+  // Combined special characters.
+  TEST_EQ(std::string("a\\ b\\#c\\:d$$e"),
+          flatbuffers::EscapeMakeDep("a b#c:d$e"));
+  // Trailing backslash.
+  TEST_EQ(std::string("name\\\\"), flatbuffers::EscapeMakeDep("name\\"));
+  // Empty string unchanged.
+  TEST_EQ(std::string(""), flatbuffers::EscapeMakeDep(""));
+  // Ordinary filenames are untouched.
+  TEST_EQ(std::string("dir/file.fbs"),
+          flatbuffers::EscapeMakeDep("dir/file.fbs"));
+}
+
 }  // namespace tests
 }  // namespace flatbuffers

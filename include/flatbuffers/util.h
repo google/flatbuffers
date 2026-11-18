@@ -473,6 +473,11 @@ FLATBUFFERS_CONSTEXPR char kPathSeparator = '/';
 // Returns the path with the extension, if any, removed.
 std::string StripExtension(const std::string& filepath);
 
+// Escapes characters that are special to make in a filename, so the name can
+// be emitted into a make dependency rule. Mirrors how gcc and clang emit
+// -M/-MD depfiles.
+std::string EscapeMakeDep(const std::string& filepath);
+
 // Returns the extension, if any.
 std::string GetExtension(const std::string& filepath);
 

@@ -2405,11 +2405,12 @@ static std::string TSMakeRule(const Parser& parser, const std::string& path,
       flatbuffers::StripPath(flatbuffers::StripExtension(file_name));
   ts::TsGenerator generator(parser, path, file_name);
   std::string make_rule =
-      generator.GeneratedFileName(path, filebase, parser.opts) + ": ";
+      EscapeMakeDep(generator.GeneratedFileName(path, filebase, parser.opts)) +
+      ": ";
 
   auto included_files = parser.GetIncludedFilesRecursive(file_name);
   for (auto it = included_files.begin(); it != included_files.end(); ++it) {
-    make_rule += " " + *it;
+    make_rule += " " + EscapeMakeDep(*it);
   }
   return make_rule;
 }
