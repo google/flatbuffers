@@ -137,12 +137,15 @@ static bool VerifyVector(flatbuffers::Verifier& v,
                                               nested_attr->value()->c_str());
         if (!nested_obj || nested_obj->is_struct()) return false;
         if (!v.Check(vec->size() >= FLATBUFFERS_MIN_BUFFER_SIZE)) return false;
-        Verifier nested_v(vec->Data(), vec->size());
-        nested_v.SetFlexReuseTracker(v.GetFlexReuseTracker());
-        if (!nested_v.VerifyOffset<uoffset_t>(0)) return false;
-        if (!VerifyObject(nested_v, schema, *nested_obj,
-                          flatbuffers::GetAnyRoot(vec->Data()),
-                          /*required=*/true)) {
+        // The nested verifier inherits the remaining depth and table budgets
+        // of `v` and the tables it verifies are charged back to `v`.
+        if (!v.VerifyNestedBuffer(
+                vec->Data(), vec->size(), [&](Verifier& nested_v) {
+                  return nested_v.VerifyOffset<uoffset_t>(0) &&
+                         VerifyObject(nested_v, schema, *nested_obj,
+                                      flatbuffers::GetAnyRoot(vec->Data()),
+                                      /*required=*/true);
+                })) {
           return false;
         }
       } else if (vec_field.attributes()->LookupByKey("flexbuffer")) {

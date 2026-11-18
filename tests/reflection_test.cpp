@@ -297,6 +297,91 @@ void ReflectionTest(const std::string& tests_data_path, uint8_t* flatbuf,
             false);
   }
 
+  // flatbuffers::Verify must pass the caller's max_depth and max_tables
+  // budgets down through nested_flatbuffer vectors instead of restarting each
+  // nested buffer with the defaults (64 and 1000000).
+  {
+    // Builds a chain of `levels` Monsters, each holding the next one in
+    // testnestedflatbuffer. A chain of N levels verifies N tables at depth N.
+    auto build_chain = [](size_t levels) {
+      flatbuffers::FlatBufferBuilder leaf;
+      auto leaf_name = leaf.CreateString("LeafMonster");
+      MonsterBuilder leaf_mb(leaf);
+      leaf_mb.add_name(leaf_name);
+      leaf.Finish(leaf_mb.Finish(), MonsterIdentifier());
+      std::vector<uint8_t> current(leaf.GetBufferPointer(),
+                                   leaf.GetBufferPointer() + leaf.GetSize());
+      for (size_t i = 1; i < levels; ++i) {
+        flatbuffers::FlatBufferBuilder outer;
+        auto nested = outer.CreateVector(current);
+        auto name = outer.CreateString("NestedMonster");
+        MonsterBuilder mb(outer);
+        mb.add_name(name);
+        mb.add_testnestedflatbuffer(nested);
+        outer.Finish(mb.Finish(), MonsterIdentifier());
+        current.assign(outer.GetBufferPointer(),
+                       outer.GetBufferPointer() + outer.GetSize());
+      }
+      return current;
+    };
+    // Builds a root Monster with `siblings` children in testarrayoftables,
+    // each holding a nested chain of `levels` Monsters.
+    auto build_siblings = [&](size_t siblings, size_t levels) {
+      auto chain = build_chain(levels);
+      flatbuffers::FlatBufferBuilder fbb;
+      std::vector<flatbuffers::Offset<Monster>> children;
+      for (size_t i = 0; i < siblings; ++i) {
+        auto nested = fbb.CreateVector(chain);
+        auto name = fbb.CreateString("ChildMonster");
+        MonsterBuilder mb(fbb);
+        mb.add_name(name);
+        mb.add_testnestedflatbuffer(nested);
+        children.push_back(mb.Finish());
+      }
+      auto children_vec = fbb.CreateVector(children);
+      auto root_name = fbb.CreateString("RootMonster");
+      MonsterBuilder root_mb(fbb);
+      root_mb.add_name(root_name);
+      root_mb.add_testarrayoftables(children_vec);
+      fbb.Finish(root_mb.Finish(), MonsterIdentifier());
+      return std::vector<uint8_t>(fbb.GetBufferPointer(),
+                                  fbb.GetBufferPointer() + fbb.GetSize());
+    };
+    auto reflect_verify = [&](const std::vector<uint8_t>& buf, uoffset_t depth,
+                              uoffset_t tables) {
+      return flatbuffers::Verify(schema, *schema.root_table(), buf.data(),
+                                 buf.size(), depth, tables);
+    };
+
+    // Control: a short chain verifies with the default budgets.
+    auto chain2 = build_chain(2);
+    TEST_EQ(reflect_verify(chain2, 64, 1000000), true);
+
+    // Depth: a 32-level chain needs depth 32. Exactly enough passes, one less
+    // fails, and so does a limit well below the chain length.
+    auto chain32 = build_chain(32);
+    TEST_EQ(reflect_verify(chain32, 64, 1000000), true);
+    TEST_EQ(reflect_verify(chain32, 32, 1000000), true);
+    TEST_EQ(reflect_verify(chain32, 31, 1000000), false);
+    TEST_EQ(reflect_verify(chain32, 16, 1000000), false);
+
+    // Tables: a 12-level chain verifies 12 tables.
+    auto chain12 = build_chain(12);
+    TEST_EQ(reflect_verify(chain12, 64, 1000000), true);
+    TEST_EQ(reflect_verify(chain12, 64, 12), true);
+    TEST_EQ(reflect_verify(chain12, 64, 11), false);
+    TEST_EQ(reflect_verify(chain12, 64, 8), false);
+
+    // Siblings: 1 root + 3 children + 3 * 3 nested = 13 tables in total, while
+    // no single branch visits more than 7 of them, so the count has to
+    // accumulate across the nested buffers.
+    auto siblings = build_siblings(3, 3);
+    TEST_EQ(reflect_verify(siblings, 64, 1000000), true);
+    TEST_EQ(reflect_verify(siblings, 64, 13), true);
+    TEST_EQ(reflect_verify(siblings, 64, 12), false);
+    TEST_EQ(reflect_verify(siblings, 64, 8), false);
+  }
+
   // More advanced functionality: changing the size of items in-line!
   // First we put the FlatBuffer inside an std::vector.
   std::vector<uint8_t> resizingbuf(flatbuf, flatbuf + length);
