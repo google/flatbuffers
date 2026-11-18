@@ -62,7 +62,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   // Central location where any verification failures register.
   bool Check(const bool ok) const {
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_DEBUG_VERIFICATION_FAILURE
       if (opts_.assert) { FLATBUFFERS_ASSERT(ok); }
     #endif
@@ -90,27 +90,41 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     return Check((elem & (align - 1)) == 0 || !opts_.check_alignment);
   }
 
+  bool VerifyAlignment(const uint8_t* const p, const size_t align) const {
+    if (!Check(p >= buf_ && p <= buf_ + size_)) return false;
+    return VerifyAlignment(static_cast<size_t>(p - buf_), align);
+  }
+
   // Verify a range indicated by sizeof(T).
   template <typename T>
   bool Verify(const size_t elem) const {
     return VerifyAlignment(elem, sizeof(T)) && Verify(elem, sizeof(T));
   }
 
-  bool VerifyFromPointer(const uint8_t* const p, const size_t len) {
-    return Verify(static_cast<size_t>(p - buf_), len);
+  bool VerifyFromPointer(const uint8_t* const p, const size_t len,
+                         const size_t align = 1) const {
+    if (!Check(p >= buf_ && p <= buf_ + size_)) return false;
+    const auto o = static_cast<size_t>(p - buf_);
+    return VerifyAlignment(o, align) && Verify(o, len);
   }
 
   // Verify relative to a known-good base pointer.
   bool VerifyFieldStruct(const uint8_t* const base, const voffset_t elem_off,
                          const size_t elem_len, const size_t align) const {
-    const auto f = static_cast<size_t>(base - buf_) + elem_off;
+    if (!Check(base >= buf_ && base <= buf_ + size_)) return false;
+    const auto base_off = static_cast<size_t>(base - buf_);
+    if (!Check(elem_off <= size_ && base_off <= size_ - elem_off)) return false;
+    const auto f = base_off + elem_off;
     return VerifyAlignment(f, align) && Verify(f, elem_len);
   }
 
   template <typename T>
   bool VerifyField(const uint8_t* const base, const voffset_t elem_off,
                    const size_t align) const {
-    const auto f = static_cast<size_t>(base - buf_) + elem_off;
+    if (!Check(base >= buf_ && base <= buf_ + size_)) return false;
+    const auto base_off = static_cast<size_t>(base - buf_);
+    if (!Check(elem_off <= size_ && base_off <= size_ - elem_off)) return false;
+    const auto f = base_off + elem_off;
     return VerifyAlignment(f, align) && Verify(f, sizeof(T));
   }
 
@@ -146,6 +160,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   template <typename LenT = uoffset_t>
   bool VerifyVectorOrString(const uint8_t* const vec, const size_t elem_size,
                             size_t* const end = nullptr) const {
+    if (!Check(vec >= buf_ && vec <= buf_ + size_)) return false;
     const auto vec_offset = static_cast<size_t>(vec - buf_);
     // Check we can read the size field.
     if (!Verify<LenT>(vec_offset)) return false;
@@ -183,6 +198,7 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
 
   FLATBUFFERS_SUPPRESS_UBSAN("unsigned-integer-overflow")
   bool VerifyTableStart(const uint8_t* const table) {
+    if (!Check(table >= buf_ && table <= buf_ + size_)) return false;
     // Check the vtable offset.
     const auto tableo = static_cast<size_t>(table - buf_);
     if (!Verify<soffset_t>(tableo)) return false;
@@ -271,13 +287,19 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
     if (!Check(static_cast<SOffsetT>(o) >= 0)) return 0;
     // Must be inside the buffer to create a pointer from it (pointer outside
     // buffer is UB).
+    if (!Check(static_cast<size_t>(o) <= size_ &&
+               start <= size_ - static_cast<size_t>(o)))
+      return 0;
     if (!Verify(start + o, 1)) return 0;
     return o;
   }
 
   template <typename OffsetT = uoffset_t>
   size_t VerifyOffset(const uint8_t* const base, const voffset_t start) const {
-    return VerifyOffset<OffsetT>(static_cast<size_t>(base - buf_) + start);
+    if (!Check(base >= buf_ && base <= buf_ + size_)) return 0;
+    const auto base_offset = static_cast<size_t>(base - buf_);
+    if (!Check(start <= size_ && base_offset <= size_ - start)) return 0;
+    return VerifyOffset<OffsetT>(base_offset + start);
   }
 
   // Called at the start of a table to increase counters measuring data
