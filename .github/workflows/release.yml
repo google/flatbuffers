@@ -52,12 +52,12 @@ jobs:
           python3 -m build .
 
       - name: Authenticate to Google Cloud (OSS Exit Gate)
-        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: 'projects/305452601764/locations/global/workloadIdentityPools/builders/providers/github'
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
       - name: Clean up failed staging attempt for this exact version (if any)
         run: |
