@@ -33,6 +33,12 @@ public class MovieT {
     this.mainCharacter = null;
     this.characters = null;
   }
+
+  public MovieT(CharacterUnion mainCharacter, CharacterUnion[] characters) {
+    this.mainCharacter = mainCharacter;
+    this.characters = characters;
+  }
+
   public static MovieT deserializeFromBinary(byte[] fbBuffer) {
     return Movie.getRootAsMovie(ByteBuffer.wrap(fbBuffer)).unpack();
   }

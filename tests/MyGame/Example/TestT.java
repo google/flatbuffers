@@ -35,5 +35,10 @@ public class TestT {
     this.a = 0;
     this.b = 0;
   }
+
+  public TestT(short a, byte b) {
+    this.a = a;
+    this.b = b;
+  }
 }
 

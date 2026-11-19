@@ -106,7 +106,7 @@ public final class TypeAliases extends com.google.flatbuffers.Table {
   public static int createV8Vector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startV8Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
   public static void addVf64(FlatBufferBuilder builder, int vf64Offset) { builder.addOffset(11, vf64Offset, 0); }
-  public static int createVf64Vector(FlatBufferBuilder builder, double[] data) { builder.startVector(8, data.length, 8); for (int i = data.length - 1; i >= 0; i--) builder.addDouble(data[i]); return builder.endVector(); }
+  public static int createVf64Vector(FlatBufferBuilder builder, double[] data) { return builder.createDoubleVector(data); }
   public static void startVf64Vector(FlatBufferBuilder builder, int numElems) { builder.startVector(8, numElems, 8); }
   public static int endTypeAliases(FlatBufferBuilder builder) {
     int o = builder.endTable();

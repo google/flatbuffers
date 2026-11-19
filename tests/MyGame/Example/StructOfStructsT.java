@@ -41,5 +41,11 @@ public class StructOfStructsT {
     this.b = new MyGame.Example.TestT();
     this.c = new MyGame.Example.AbilityT();
   }
+
+  public StructOfStructsT(MyGame.Example.AbilityT a, MyGame.Example.TestT b, MyGame.Example.AbilityT c) {
+    this.a = a;
+    this.b = b;
+    this.c = c;
+  }
 }
 

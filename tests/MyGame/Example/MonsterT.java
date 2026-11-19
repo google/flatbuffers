@@ -371,6 +371,68 @@ public class MonsterT {
     this.negativeInfinityDefault = Float.NEGATIVE_INFINITY;
     this.doubleInfDefault = Double.POSITIVE_INFINITY;
   }
+
+  public MonsterT(MyGame.Example.Vec3T pos, short mana, short hp, String name, int[] inventory, int color, MyGame.Example.AnyUnion test, MyGame.Example.TestT[] test4, String[] testarrayofstring, MyGame.Example.MonsterT[] testarrayoftables, MyGame.Example.MonsterT enemy, int[] testnestedflatbuffer, MyGame.Example.StatT testempty, boolean testbool, int testhashs32Fnv1, long testhashu32Fnv1, long testhashs64Fnv1, long testhashu64Fnv1, int testhashs32Fnv1a, long testhashu32Fnv1a, long testhashs64Fnv1a, long testhashu64Fnv1a, boolean[] testarrayofbools, float testf, float testf2, float testf3, String[] testarrayofstring2, MyGame.Example.AbilityT[] testarrayofsortedstruct, int[] flex, MyGame.Example.TestT[] test5, long[] vectorOfLongs, double[] vectorOfDoubles, MyGame.InParentNamespaceT parentNamespaceTest, MyGame.Example.ReferrableT[] vectorOfReferrables, long singleWeakReference, long[] vectorOfWeakReferences, MyGame.Example.ReferrableT[] vectorOfStrongReferrables, long coOwningReference, long[] vectorOfCoOwningReferences, long nonOwningReference, long[] vectorOfNonOwningReferences, MyGame.Example.AnyUniqueAliasesUnion anyUnique, MyGame.Example.AnyAmbiguousAliasesUnion anyAmbiguous, int[] vectorOfEnums, byte signedEnum, int[] testrequirednestedflatbuffer, MyGame.Example.StatT[] scalarKeySortedTables, MyGame.Example.TestT nativeInline, long longEnumNonEnumDefault, long longEnumNormalDefault, float nanDefault, float infDefault, float positiveInfDefault, float infinityDefault, float positiveInfinityDefault, float negativeInfDefault, float negativeInfinityDefault, double doubleInfDefault) {
+    this.pos = pos;
+    this.mana = mana;
+    this.hp = hp;
+    this.name = name;
+    this.inventory = inventory;
+    this.color = color;
+    this.test = test;
+    this.test4 = test4;
+    this.testarrayofstring = testarrayofstring;
+    this.testarrayoftables = testarrayoftables;
+    this.enemy = enemy;
+    this.testnestedflatbuffer = testnestedflatbuffer;
+    this.testempty = testempty;
+    this.testbool = testbool;
+    this.testhashs32Fnv1 = testhashs32Fnv1;
+    this.testhashu32Fnv1 = testhashu32Fnv1;
+    this.testhashs64Fnv1 = testhashs64Fnv1;
+    this.testhashu64Fnv1 = testhashu64Fnv1;
+    this.testhashs32Fnv1a = testhashs32Fnv1a;
+    this.testhashu32Fnv1a = testhashu32Fnv1a;
+    this.testhashs64Fnv1a = testhashs64Fnv1a;
+    this.testhashu64Fnv1a = testhashu64Fnv1a;
+    this.testarrayofbools = testarrayofbools;
+    this.testf = testf;
+    this.testf2 = testf2;
+    this.testf3 = testf3;
+    this.testarrayofstring2 = testarrayofstring2;
+    this.testarrayofsortedstruct = testarrayofsortedstruct;
+    this.flex = flex;
+    this.test5 = test5;
+    this.vectorOfLongs = vectorOfLongs;
+    this.vectorOfDoubles = vectorOfDoubles;
+    this.parentNamespaceTest = parentNamespaceTest;
+    this.vectorOfReferrables = vectorOfReferrables;
+    this.singleWeakReference = singleWeakReference;
+    this.vectorOfWeakReferences = vectorOfWeakReferences;
+    this.vectorOfStrongReferrables = vectorOfStrongReferrables;
+    this.coOwningReference = coOwningReference;
+    this.vectorOfCoOwningReferences = vectorOfCoOwningReferences;
+    this.nonOwningReference = nonOwningReference;
+    this.vectorOfNonOwningReferences = vectorOfNonOwningReferences;
+    this.anyUnique = anyUnique;
+    this.anyAmbiguous = anyAmbiguous;
+    this.vectorOfEnums = vectorOfEnums;
+    this.signedEnum = signedEnum;
+    this.testrequirednestedflatbuffer = testrequirednestedflatbuffer;
+    this.scalarKeySortedTables = scalarKeySortedTables;
+    this.nativeInline = nativeInline;
+    this.longEnumNonEnumDefault = longEnumNonEnumDefault;
+    this.longEnumNormalDefault = longEnumNormalDefault;
+    this.nanDefault = nanDefault;
+    this.infDefault = infDefault;
+    this.positiveInfDefault = positiveInfDefault;
+    this.infinityDefault = infinityDefault;
+    this.positiveInfinityDefault = positiveInfinityDefault;
+    this.negativeInfDefault = negativeInfDefault;
+    this.negativeInfinityDefault = negativeInfinityDefault;
+    this.doubleInfDefault = doubleInfDefault;
+  }
+
   public static MonsterT deserializeFromBinary(byte[] fbBuffer) {
     return Monster.getRootAsMonster(ByteBuffer.wrap(fbBuffer)).unpack();
   }
