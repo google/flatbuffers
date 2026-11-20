@@ -206,6 +206,24 @@ fn generated_code_debug_prints_correctly() {
     );
 }
 
+#[cfg(not(feature = "no_std"))]
+#[test]
+fn array_init_drops_initialized_elements_on_panic() {
+    use alloc::sync::Arc;
+
+    let value = Arc::new(());
+    let result = std::panic::catch_unwind(|| {
+        let _: [_; 4] = flatbuffers::array_init(|i| {
+            if i == 2 {
+                panic!("stop after two elements");
+            }
+            Arc::clone(&value)
+        });
+    });
+    assert!(result.is_err());
+    assert_eq!(Arc::strong_count(&value), 1);
+}
+
 #[test]
 #[should_panic]
 fn assert_on_too_small_array_buf() {

@@ -123,24 +123,43 @@ impl<'a, T: Follow<'a> + 'a, const N: usize> IntoIterator for Array<'a, T, N> {
     }
 }
 
+/// Initializes an array, dropping completed elements if the initializer unwinds.
 #[inline]
 pub fn array_init<F, T, const N: usize>(mut initializer: F) -> [T; N]
 where
     F: FnMut(usize) -> T,
 {
-    let mut array: core::mem::MaybeUninit<[T; N]> = core::mem::MaybeUninit::uninit();
-    let mut ptr_i = array.as_mut_ptr() as *mut T;
-
-    // Safety:
-    // array is aligned by T, and has length N
-    unsafe {
-        for i in 0..N {
-            let value_i = initializer(i);
-            ptr_i.write(value_i);
-            ptr_i = ptr_i.add(1);
-        }
-        array.assume_init()
+    struct DropGuard<T> {
+        ptr: *mut T,
+        initialized: usize,
     }
+
+    impl<T> Drop for DropGuard<T> {
+        fn drop(&mut self) {
+            for i in 0..self.initialized {
+                // Safety: The first `initialized` elements have been written and
+                // the array remains alive until the guard is dropped.
+                unsafe { self.ptr.add(i).drop_in_place() };
+            }
+        }
+    }
+
+    let mut array: core::mem::MaybeUninit<[T; N]> = core::mem::MaybeUninit::uninit();
+    let mut guard = DropGuard {
+        ptr: array.as_mut_ptr() as *mut T,
+        initialized: 0,
+    };
+
+    for i in 0..N {
+        let value = initializer(i);
+        // Safety: `i` is within the array and this element has not been written.
+        unsafe { guard.ptr.add(i).write(value) };
+        guard.initialized += 1;
+    }
+
+    core::mem::forget(guard);
+    // Safety: Every element was initialized before the guard was forgotten.
+    unsafe { array.assume_init() }
 }
 
 #[cfg(feature = "serialize")]
