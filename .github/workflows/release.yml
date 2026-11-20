@@ -12,8 +12,8 @@ jobs:
     name: Publish NPM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@11bd71901bbe5b1670ceea64d18b82b4475ff40d # v6.0.1
+      - uses: actions/setup-node@e3811a5c94fe88f2cbfb54e0c4a1dbb3b6a3056d # v6.2.0
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
@@ -29,8 +29,8 @@ jobs:
       run:
         working-directory: ./python
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@11bd71901bbe5b1670ceea64d18b82b4475ff40d # v6.0.1
+      - uses: actions/setup-python@efd7f9cfabdf398aa7ef2a6ae0e5e39005407e55 # v6.2.0
         with:
           python-version: '3.10'
 
@@ -57,8 +57,8 @@ jobs:
       run:
         working-directory: ./net/flatbuffers
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/checkout@11bd71901bbe5b1670ceea64d18b82b4475ff40d # v6.0.1
+      - uses: actions/setup-dotnet@d721baf406d321e6ddccbc2da5262cfc2cc3ec27 # v5.1.0
         with:
           dotnet-version: '8.0.x'
       - name: Build
@@ -80,10 +80,10 @@ jobs:
       run:
         working-directory: ./java
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@11bd71901bbe5b1670ceea64d18b82b4475ff40d # v6.0.1
 
       - name: Set up Maven Central Repository
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@0a89804ed8423fae4cf231a4b47b42b0e00c4181 # v5.1.0
         with:
           java-version: '11'
           distribution: 'adopt'
@@ -108,9 +108,9 @@ jobs:
       run:
         working-directory: ./kotlin
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@11bd71901bbe5b1670ceea64d18b82b4475ff40d # v6.0.1
       - name: Set up Maven Central Repository
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@0a89804ed8423fae4cf231a4b47b42b0e00c4181 # v5.1.0
         with:
           java-version: '11'
           distribution: 'adopt'
@@ -133,20 +133,20 @@ jobs:
     name: Publish crates.io
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@11bd71901bbe5b1670ceea64d18b82b4475ff40d # v6.0.1
+      - uses: actions-rs/toolchain@98942844b0181a94f66d76c7b4a4990a3a1c7883 # v1.0.4
         with:
           toolchain: stable
           override: true
           
       - name: Publish Flatbuffers
-        uses: katyo/publish-crates@v2
+        uses: katyo/publish-crates@c7b32d0a0b25e7b520471a86367a2a3b2c1ee332 # v2.1.1
         with:
           path: ./rust/flatbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
 
       - name: Publish Flexbuffers
-        uses: katyo/publish-crates@v2
+        uses: katyo/publish-crates@c7b32d0a0b25e7b520471a86367a2a3b2c1ee332 # v2.1.1
         with:
           path: ./rust/flexbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
