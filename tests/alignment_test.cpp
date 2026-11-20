@@ -1,7 +1,12 @@
 #include "alignment_test.h"
 
+#include <cstdint>
+#include <cstring>
+#include <vector>
+
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/util.h"
+#include "monster_test_generated.h"
 #include "test_assert.h"
 #include "tests/alignment_test_generated.h"
 

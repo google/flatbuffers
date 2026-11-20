@@ -787,7 +787,6 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   void GenTableReaderFields(const FieldDef& field) {
-    const auto offset = NumToString(field.value.offset);
     const auto field_field = namer_.Field(field);
     const auto type = GenType(field.value.type);
     code_.SetValue("FIELDVAR", namer_.Variable(field));
@@ -1142,7 +1141,6 @@ class SwiftGenerator : public BaseGenerator {
          it != struct_def.fields.vec.end(); ++it) {
       const auto& field = **it;
       if (field.deprecated) continue;
-      const auto offset = NumToString(field.value.offset);
 
       code_.SetValue("FIELDVAR", namer_.Variable(field));
       code_.SetValue("VALUETYPE", GenerateVerifierType(field));
@@ -1382,7 +1380,6 @@ class SwiftGenerator : public BaseGenerator {
       const auto& field = **it;
       if (field.deprecated) continue;
 
-      const auto type = GenType(field.value.type);
       code_.SetValue("FIELDVAR", namer_.Variable(field));
       if (IsArray(field.value.type)) {
         code_.SetValue(

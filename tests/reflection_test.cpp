@@ -1,5 +1,7 @@
 #include "reflection_test.h"
 
+#include <cstring>
+
 #include "flatbuffers/minireflect.h"
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/reflection_generated.h"
@@ -398,15 +400,25 @@ void MiniReflectFixedLengthArrayTest() {
       flatbuf.data(), MyGame::Example::ArrayTableTypeTable());
   TEST_EQ_STR(
       "{ "
-      "a: { a: 2.0, "
-      "b: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], "
-      "c: 12, "
-      "d: [ { a: [ 0, 0 ], b: A, c: [ A, A ], d: [ 0, 0 ] }, "
-      "{ a: [ 0, 0 ], b: A, c: [ A, A ], d: [ 0, 0 ] } ], "
-      "e: 1, f: [ 0, 0 ] } "
-      "}",
-      s.c_str());
-#endif
+      TEST_EQ(
+          flatbuffers::Verify(copy_schema, *copy_schema.root_table(),
+                              dst_fbb.GetBufferPointer(), dst_fbb.GetSize()),
+          true);
+
+      const auto* copied_tbl =
+          flatbuffers::GetAnyRoot(dst_fbb.GetBufferPointer());
+      const auto* copied_vec =
+          copied_tbl->GetPointer<const flatbuffers::Vector<uint8_t>*>(6);
+      TEST_ASSERT(copied_vec != nullptr);
+      TEST_EQ(copied_vec->size(), 1u);
+      TEST_EQ(
+          static_cast<size_t>(copied_vec->Data() - dst_fbb.GetBufferPointer()) %
+              8,
+          0u);
+      TEST_EQ(std::memcmp(copied_vec->Data(), elem_bytes, sizeof(elem_bytes)),
+              0);
+    }
+  }
 }
 
 }  // namespace tests

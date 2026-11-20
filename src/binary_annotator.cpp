@@ -722,8 +722,6 @@ void BinaryAnnotator::BuildTable(const uint64_t table_offset,
     BinaryRegionComment offset_field_comment;
     offset_field_comment.type = BinaryRegionCommentType::TableOffsetField;
     offset_field_comment.name = field->name()->c_str();
-    const std::string offset_prefix =
-        "offset to field `" + std::string(field->name()->c_str()) + "`";
 
     // Validate any field that isn't inline (i.e., non-structs).
     if (!IsInlineField(field)) {
