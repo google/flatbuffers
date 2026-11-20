@@ -71,7 +71,6 @@ static void GenerateImports(const grpc_generator::Service* service,
     auto method = service->method(it);
     auto output = method->get_output_type_name();
     auto input = method->get_input_type_name();
-    auto input_namespace = method->get_input_namespace_parts();
 
     vars["OUTPUT"] = output;
     vars["INPUT"] = input;
@@ -504,7 +503,6 @@ grpc::string GenerateInterface(grpc_generator::File* file,
                                const grpc::string& filename) {
   grpc::string output;
 
-  std::set<grpc::string> generated_functions;
   std::map<grpc::string, grpc::string> vars;
 
   vars["PATH"] = file->package();
