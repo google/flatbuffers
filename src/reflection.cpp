@@ -55,8 +55,23 @@ static bool VerifyVectorOfStructs(flatbuffers::Verifier& v,
   if (required && !p) {
     return false;
   }
-
-  return !p || v.VerifyVectorOrString(p, obj.bytesize());
+  if (!p) {
+    return true;
+  }
+  if (obj.bytesize() <= 0 ||
+      !v.VerifyVectorOrString(p, static_cast<size_t>(obj.bytesize()))) {
+    return false;
+  }
+  if (ReadScalar<uoffset_t>(p) == 0) {
+    return true;
+  }
+  const int32_t minalign = obj.minalign();
+  if (minalign <= 0 || (minalign & (minalign - 1)) != 0) {
+    return false;
+  }
+  return v.VerifyFieldStruct(p, sizeof(uoffset_t),
+                             static_cast<size_t>(obj.bytesize()),
+                             static_cast<size_t>(minalign));
 }
 
 // forward declare to resolve cyclic deps between VerifyObject and VerifyVector
@@ -727,8 +742,11 @@ Offset<const Table*> CopyTable(FlatBufferBuilder& fbb,
           default: {                    // Scalars and structs.
             auto element_size = GetTypeSize(element_base_type);
             auto element_alignment = element_size;  // For primitive elements
-            if (elemobjectdef && elemobjectdef->is_struct())
-              element_size = elemobjectdef->bytesize();
+            if (elemobjectdef && elemobjectdef->is_struct()) {
+              element_size = static_cast<size_t>(elemobjectdef->bytesize());
+              element_alignment =
+                  static_cast<size_t>(elemobjectdef->minalign());
+            }
             fbb.StartVector(vec->size(), element_size, element_alignment);
             fbb.PushBytes(vec->Data(), element_size * vec->size());
             offset = fbb.EndVector(vec->size());

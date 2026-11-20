@@ -18,6 +18,7 @@
 #define FLATBUFFERS_VERIFIER_H_
 
 #include "flatbuffers/base.h"
+#include "flatbuffers/buffer.h"
 #include "flatbuffers/vector.h"
 
 namespace flatbuffers {
@@ -130,7 +131,12 @@ class VerifierTemplate FLATBUFFERS_FINAL_CLASS {
   // Verify a pointer (may be NULL) of a vector to struct.
   template <int&..., typename T, typename LenT>
   bool VerifyVector(const Vector<const T*, LenT>* const vec) const {
-    return VerifyVector(reinterpret_cast<const Vector<T, LenT>*>(vec));
+    if (!vec) return true;
+    const auto* const raw = reinterpret_cast<const uint8_t*>(vec);
+    if (!VerifyVectorOrString<LenT>(raw, sizeof(T))) return false;
+    return ReadScalar<LenT>(raw) == 0 ||
+           VerifyAlignment(static_cast<size_t>(raw - buf_) + sizeof(LenT),
+                           AlignOf<T>());
   }
 
   // Verify a pointer (may be NULL) to string.

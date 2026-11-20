@@ -111,7 +111,7 @@ struct IndirectHelper {
   static const size_t element_stride = sizeof(T);
 
   static return_type Read(const uint8_t* p, const size_t i) {
-    return EndianScalar((reinterpret_cast<const T*>(p))[i]);
+    return ReadScalar<T>(p + i * element_stride);
   }
   static mutable_return_type Read(uint8_t* p, const size_t i) {
     return reinterpret_cast<mutable_return_type>(
