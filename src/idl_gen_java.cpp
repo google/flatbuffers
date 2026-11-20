@@ -2176,7 +2176,6 @@ class JavaGenerator : public BaseGenerator {
       if (field.deprecated) continue;
       if (field.value.type.base_type == BASE_TYPE_UTYPE) continue;
       if (field.value.type.element == BASE_TYPE_UTYPE) continue;
-      const auto get_field = namer_.Method("get", field);
 
       code += "    this." + namer_.Field(field) + " = ";
       const auto type_name =
