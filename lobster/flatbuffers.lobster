@@ -24,15 +24,14 @@ class handle:
 struct offset:
     o:int
 
-enum sizeof:
-    sz_8 = 1
-    sz_16 = 2
-    sz_32 = 4
-    sz_64 = 8
-    sz_voffset = 2
-    sz_uoffset = 4
-    sz_soffset = 4
-    sz_metadata_fields = 2
+let sz_8 = 1
+let sz_16 = 2
+let sz_32 = 4
+let sz_64 = 8
+let sz_voffset = 2
+let sz_uoffset = 4
+let sz_soffset = 4
+let sz_metadata_fields = 2
 
 class builder:
     buf = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"

@@ -654,34 +654,15 @@ class DartGenerator : public BaseGenerator {
 
   std::string NamespaceAliasFromUnionType(Namespace* root_namespace,
                                           const Type& type) {
-    const std::vector<std::string> qualified_name_parts =
-        type.struct_def->defined_namespace->components;
-    if (std::equal(root_namespace->components.begin(),
-                   root_namespace->components.end(),
-                   qualified_name_parts.begin())) {
+    const Namespace& type_namespace = *type.struct_def->defined_namespace;
+    if (root_namespace->components == type_namespace.components) {
       return namer_.Type(*type.struct_def);
     }
 
-    std::string ns;
-
-    for (auto it = qualified_name_parts.begin();
-         it != qualified_name_parts.end(); ++it) {
-      auto& part = *it;
-
-      for (size_t i = 0; i < part.length(); i++) {
-        if (i && !isdigit(part[i]) && part[i] == CharToUpper(part[i])) {
-          ns += "_";
-          ns += CharToLower(part[i]);
-        } else {
-          ns += CharToLower(part[i]);
-        }
-      }
-      if (it != qualified_name_parts.end() - 1) {
-        ns += "_";
-      }
-    }
-
-    return ns + "." + namer_.Type(*type.struct_def);
+    const std::string ns = namer_.Namespace(type_namespace);
+    return ns.empty()
+               ? namer_.Type(*type.struct_def)
+               : ImportAliasName(ns) + "." + namer_.Type(*type.struct_def);
   }
 
   void GenImplementationGetters(

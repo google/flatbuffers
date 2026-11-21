@@ -82,7 +82,7 @@ public struct Table {
   /// - Parameters:
   ///   - type: Type of Element that needs to be read from the buffer
   ///   - o: Offset of the Element
-  public func readBuffer<T>(of type: T.Type, at o: Int32) -> T {
+  public func readBuffer<T: BitwiseCopyable>(of type: T.Type, at o: Int32) -> T {
     bb.read(def: T.self, position: Int(o &+ position))
   }
 
