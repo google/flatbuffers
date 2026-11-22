@@ -1007,9 +1007,16 @@ inline Reference Map::operator[](const std::string& key) const {
 inline Reference GetRoot(const uint8_t* buffer, size_t size) {
   // See Finish() below for the serialization counterpart of this.
   // The root starts at the end of the buffer, so we parse backwards from there.
+  // A valid buffer needs at least 3 bytes: one for the root value, one for the
+  // packed type, and one for the byte width.
+  if (size < 3) return Reference(nullptr, 1, 0);
   auto end = buffer + size;
   auto byte_width = *--end;
   auto packed_type = *--end;
+  if (byte_width == 0 || byte_width > 8 ||
+      static_cast<size_t>(end - buffer) < byte_width) {
+    return Reference(nullptr, 1, 0);
+  }
   end -= byte_width;  // The root data item.
   return Reference(end, byte_width, packed_type);
 }
