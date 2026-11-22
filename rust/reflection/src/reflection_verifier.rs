@@ -48,6 +48,28 @@ pub fn verify_with_options(
     Err(FlatbufferError::InvalidSchema)
 }
 
+// Records that `buf_loc` is reached as object `obj_idx`. The accessor
+// (`SafeBuffer::get_all_fields`) resolves a location to a single object type
+// through this map, and the table dedup below skips a location once it is
+// verified. A location claimed by two different object types would let a later
+// read reinterpret bytes that were only ever verified under the other type, so
+// reject that instead. Forward-only uoffsets keep the root out of this map's
+// conflict range, so same-type sharing (the only legitimate aliasing) still
+// passes.
+fn record_obj_idx(
+    buf_loc_to_obj_idx: &mut HashMap<usize, i32>,
+    buf_loc: usize,
+    obj_idx: i32,
+) -> FlatbufferResult<()> {
+    if let Some(&existing) = buf_loc_to_obj_idx.get(&buf_loc) {
+        if existing != obj_idx {
+            return Err(FlatbufferError::ConflictingObjectType(buf_loc));
+        }
+    }
+    buf_loc_to_obj_idx.insert(buf_loc, obj_idx);
+    Ok(())
+}
+
 fn verify_table(
     verifier: &mut Verifier,
     table_object: &Object,
@@ -111,7 +133,7 @@ fn verify_table(
                     let object_index = field.type_().index();
                     let child_obj = schema.objects().get(object_index.try_into()?);
                     if child_obj.is_struct() {
-                        buf_loc_to_obj_idx.insert(field_pos, object_index);
+                        record_obj_idx(buf_loc_to_obj_idx, field_pos, object_index)?;
                         verify_struct(
                             table_verifier.verifier(),
                             &child_obj,
@@ -122,7 +144,7 @@ fn verify_table(
                     } else {
                         let field_value = table_verifier.verifier().get_uoffset(field_pos)?;
                         let table_pos = field_pos.saturating_add(field_value.try_into()?);
-                        buf_loc_to_obj_idx.insert(table_pos, object_index);
+                        record_obj_idx(buf_loc_to_obj_idx, table_pos, object_index)?;
                         verify_table(
                             table_verifier.verifier(),
                             &child_obj,
@@ -181,7 +203,7 @@ fn verify_struct(
             let child_obj = schema.objects().get(obj_idx.try_into()?);
             if child_obj.is_struct() {
                 let field_pos = struct_pos.saturating_add(field.offset().into());
-                buf_loc_to_obj_idx.insert(field_pos, obj_idx);
+                record_obj_idx(buf_loc_to_obj_idx, field_pos, obj_idx)?;
                 verify_struct(verifier, &child_obj, field_pos, schema, buf_loc_to_obj_idx)?;
             }
         }
@@ -299,7 +321,7 @@ fn verify_vector<'a, 'b, 'c>(
                         end: vector_start.saturating_add(vector_size.try_into()?),
                     };
                     for struct_pos in vector_range.step_by(child_obj.bytesize().try_into()?) {
-                        buf_loc_to_obj_idx.insert(struct_pos, child_obj_idx);
+                        record_obj_idx(buf_loc_to_obj_idx, struct_pos, child_obj_idx)?;
                         verify_struct(
                             verifier,
                             &child_obj,
@@ -319,7 +341,7 @@ fn verify_vector<'a, 'b, 'c>(
                     for element_pos in vector_range.step_by(SIZE_UOFFSET) {
                         let table_pos = element_pos
                             .saturating_add(verifier.get_uoffset(element_pos)?.try_into()?);
-                        buf_loc_to_obj_idx.insert(table_pos, child_obj_idx);
+                        record_obj_idx(buf_loc_to_obj_idx, table_pos, child_obj_idx)?;
                         verify_table(
                             verifier,
                             &child_obj,
@@ -369,7 +391,7 @@ fn verify_union<'a, 'b, 'c>(
             BaseType::String => <&str>::run_verifier(table_verifier.verifier(), union_pos)?,
             BaseType::Obj => {
                 let child_obj = schema.objects().get(enum_type.index().try_into()?);
-                buf_loc_to_obj_idx.insert(union_pos, enum_type.index());
+                record_obj_idx(buf_loc_to_obj_idx, union_pos, enum_type.index())?;
                 if child_obj.is_struct() {
                     verify_struct(
                         table_verifier.verifier(),
