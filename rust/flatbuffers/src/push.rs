@@ -83,6 +83,11 @@ macro_rules! impl_push_for_endian_scalar {
             unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
                 emplace_scalar::<$ty>(dst, *self);
             }
+
+            #[inline]
+            fn alignment() -> PushAlignment {
+                PushAlignment::new(size_of::<$ty>())
+            }
         }
     };
 }
@@ -98,3 +103,23 @@ impl_push_for_endian_scalar!(u64);
 impl_push_for_endian_scalar!(i64);
 impl_push_for_endian_scalar!(f32);
 impl_push_for_endian_scalar!(f64);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn endian_scalar_push_alignment_matches_wire_size() {
+        assert_eq!(<bool as Push>::alignment().value(), 1);
+        assert_eq!(<u8 as Push>::alignment().value(), 1);
+        assert_eq!(<i8 as Push>::alignment().value(), 1);
+        assert_eq!(<u16 as Push>::alignment().value(), 2);
+        assert_eq!(<i16 as Push>::alignment().value(), 2);
+        assert_eq!(<u32 as Push>::alignment().value(), 4);
+        assert_eq!(<i32 as Push>::alignment().value(), 4);
+        assert_eq!(<f32 as Push>::alignment().value(), 4);
+        assert_eq!(<u64 as Push>::alignment().value(), 8);
+        assert_eq!(<i64 as Push>::alignment().value(), 8);
+        assert_eq!(<f64 as Push>::alignment().value(), 8);
+    }
+}
