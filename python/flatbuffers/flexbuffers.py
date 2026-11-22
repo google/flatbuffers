@@ -710,10 +710,10 @@ class Ref:
       return float(self.AsString)
     elif self.IsVector:
       return float(len(self.AsVector))
-    elif self.IsTypedVector():
+    elif self.IsTypedVector:
       return float(len(self.AsTypedVector))
-    elif self.IsFixedTypedVector():
-      return float(len(self.FixedTypedVector))
+    elif self.IsFixedTypedVector:
+      return float(len(self.AsFixedTypedVector))
     else:
       raise self._ConvertError(Type.FLOAT)
 
