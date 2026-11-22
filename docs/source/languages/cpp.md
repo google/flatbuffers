@@ -445,10 +445,13 @@ your own generated data on disk), this is acceptable, but when reading
 data from the network that can potentially have been modified by an
 attacker, this is undesirable.
 
-For this reason, you can optionally use a buffer verifier before you
-access the data. This verifier will check all offsets, all sizes of
+For this reason, you MUST use a buffer verifier before you
+access untrusted data. This verifier will check all offsets, all sizes of
 fields, and null termination of strings to ensure that when a buffer
-is accessed, all reads will end up inside the buffer.
+is accessed, all reads will end up inside the buffer. Skipping verification
+on attacker-controlled input (even 64-128 bytes) can cause OOB read and
+denial-of-service (e.g. claimed length 268435455). Python/Java/JS-TS/Go
+runtimes have no verifier - do not use them with untrusted input.
 
 Each root type will have a verification function generated for it,
 e.g. for `Monster`, you can call:

@@ -61,8 +61,16 @@ int main(int /*argc*/, const char* /*argv*/[]) {
   // access builder.GetBufferPointer() for builder.GetSize() bytes
 
   // Instead, we're going to access it right away (as if we just received it).
+  // WARNING: never call GetRoot/GetMonster on untrusted input without
+  // verifying first - offsets/lengths are unchecked and can cause OOB read/DoS.
+  // Verify the buffer before accessing the root:
+  flatbuffers::Verifier verifier(builder.GetBufferPointer(), builder.GetSize());
+  if (!VerifyMonsterBuffer(verifier)) {
+    printf("Buffer verification failed!\n");
+    return 1;
+  }
 
-  // Get access to the root:
+  // Get access to the root (safe now - buffer was verified):
   auto monster = GetMonster(builder.GetBufferPointer());
 
   // Get and test some scalar types from the FlatBuffer.
