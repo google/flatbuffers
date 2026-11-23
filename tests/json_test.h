@@ -6,6 +6,7 @@
 namespace flatbuffers {
 namespace tests {
 
+void JsonKeyedVectorSortTest(const std::string& tests_data_path);
 void JsonDefaultTest(const std::string& tests_data_path);
 void JsonEnumsTest(const std::string& tests_data_path);
 void JsonOptionalTest(const std::string& tests_data_path, bool default_scalars);

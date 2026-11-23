@@ -13,6 +13,45 @@ namespace tests {
 using namespace MyGame::Example;
 
 // Check stringify of an default enum value to json
+// A table vector with a `key` field is sorted with SimpleQsort after parsing.
+// With a first-element pivot, sorted input produced one-element partitions
+// and one recursion level per element, so a ~2.8 MB JSON of 200k descending
+// keys exhausted the process stack (~8 MB with ~600k elements, one
+// recursion frame per element). The median-of-three pivot and the
+// smaller-partition-first recursion keep the depth logarithmic.
+void JsonKeyedVectorSortTest(const std::string& tests_data_path) {
+  std::string schemafile;
+  TEST_EQ(flatbuffers::LoadFile((tests_data_path + "monster_test.fbs").c_str(),
+                                false, &schemafile),
+          true);
+  flatbuffers::Parser parser;
+  auto include_test_path =
+      flatbuffers::ConCatPathFileName(tests_data_path, "include_test");
+  const char* include_directories[] = { tests_data_path.c_str(),
+                                       include_test_path.c_str(), nullptr };
+  TEST_EQ(parser.Parse(schemafile.c_str(), include_directories), true);
+
+  // 600k strictly descending uint keys: with a first-element pivot every
+  // partition peels off a single element, so the old code recursed ~one
+  // frame per element and exhausted the ~8 MB process stack.
+  std::string json = "{name:\"s\",testarrayofsortedstruct:[";
+  for (size_t i = 0; i < 600000; i++) {
+    json += "{id:" + NumToString(599999u - i) + ",distance:1},";
+  }
+  json += "]}";
+  TEST_EQ(parser.ParseJson(json.c_str()), true);
+
+  const auto* monster =
+      MyGame::Example::GetMonster(parser.builder_.GetBufferPointer());
+  const auto* abilities = monster->testarrayofsortedstruct();
+  TEST_EQ(abilities->size(), 600000u);
+  TEST_EQ(abilities->Get(0)->id(), 0u);
+  TEST_EQ(abilities->Get(599999)->id(), 599999u);
+  for (size_t i = 1; i < abilities->size(); i++) {
+    TEST_ASSERT(abilities->Get(i)->id() >= abilities->Get(i - 1)->id());
+  }
+}
+
 void JsonDefaultTest(const std::string& tests_data_path) {
   // load FlatBuffer schema (.fbs) from disk
   std::string schemafile;

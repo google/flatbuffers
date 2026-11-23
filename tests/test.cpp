@@ -1775,6 +1775,8 @@ int FlatBufferTests(const std::string& tests_data_path) {
   FixedLengthArrayJsonTest(tests_data_path, true);
   ReflectionTest(tests_data_path, flatbuf.data(), flatbuf.size());
   ForAllFieldsReverseTest(tests_data_path);
+  ForAllFieldsInvalidIdTest();
+  VerifyInvalidUnionIndexTest();
   ParseProtoTest(tests_data_path);
   EvolutionTest(tests_data_path);
   UnionDeprecationTest(tests_data_path);
@@ -1785,6 +1787,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   JsonOptionalTest(tests_data_path, true);
   MultiFileNameClashTest(tests_data_path);
   InvalidNestedFlatbufferTest(tests_data_path);
+  JsonKeyedVectorSortTest(tests_data_path);
   JsonDefaultTest(tests_data_path);
   JsonEnumsTest(tests_data_path);
   TestMonsterExtraFloats(tests_data_path);
