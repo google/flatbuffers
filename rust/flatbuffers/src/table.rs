@@ -78,22 +78,41 @@ impl<'a> Follow<'a> for Table<'a> {
     }
 }
 
-/// Returns true if data contains a prefix of `ident`
+/// Returns true if the file identifier in the buffer header matches `ident`.
+///
+/// # Panics
+///
+/// Panics if `ident` is not four bytes long or if the buffer is too short to
+/// contain the identifier.
 #[inline]
 pub fn buffer_has_identifier(data: &[u8], ident: &str, size_prefixed: bool) -> bool {
     assert_eq!(ident.len(), FILE_IDENTIFIER_LENGTH);
 
-    let got = if size_prefixed {
-        assert!(data.len() >= SIZE_SIZEPREFIX + SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
-        // Safety:
-        // Verified data has sufficient bytes
-        unsafe { <SkipSizePrefix<SkipRootOffset<FileIdentifier>>>::follow(data, 0) }
+    let start = if size_prefixed {
+        SIZE_SIZEPREFIX + SIZE_UOFFSET
     } else {
-        assert!(data.len() >= SIZE_UOFFSET + FILE_IDENTIFIER_LENGTH);
-        // Safety:
-        // Verified data has sufficient bytes
-        unsafe { <SkipRootOffset<FileIdentifier>>::follow(data, 0) }
+        SIZE_UOFFSET
     };
 
-    ident.as_bytes() == got
+    ident.as_bytes() == &data[start..start + FILE_IDENTIFIER_LENGTH]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::buffer_has_identifier;
+
+    #[test]
+    fn checks_identifier_at_the_selected_header_offset() {
+        let header = b"\0\0\0\0ABCDWXYZ";
+        assert!(buffer_has_identifier(&header[..8], "ABCD", false));
+        assert!(buffer_has_identifier(header, "WXYZ", true));
+        assert!(!buffer_has_identifier(header, "WXYZ", false));
+        assert!(!buffer_has_identifier(header, "ABCD", true));
+    }
+
+    #[test]
+    #[should_panic]
+    fn rejects_truncated_size_prefixed_header() {
+        buffer_has_identifier(b"\0\0\0\0ABCDWXY", "WXYZ", true);
+    }
 }
