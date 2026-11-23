@@ -96,12 +96,47 @@ jobs:
           GH_RUN_ID: ${{ github.run_id }}
           GH_RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
+          TWINE_PASSWORD="$(gcloud auth print-access-token)"
+          echo "::add-mask::${TWINE_PASSWORD}"
           python3 -m twine upload \
             --repository-url "https://us-python.pkg.dev/oss-exit-gate-prod/flatbuffers--pypi/" \
             -u oauth2accesstoken \
-            -p "$(gcloud auth print-access-token)" \
+            -p "${TWINE_PASSWORD}" \
             dist/*
-          echo '{"publish_all": true}' > manifest.json
+          python3 - dist/* <<'PY'
+          import email, json, re, sys, tarfile, zipfile
+          pairs = set()
+          for path in sys.argv[1:]:
+            if path.endswith(".whl"):
+              with zipfile.ZipFile(path) as zf:
+                for name in zf.namelist():
+                  if name.endswith(".dist-info/METADATA"):
+                    msg = email.message_from_bytes(zf.read(name))
+                    pkg = re.sub(r"[-_.]+", "-", msg["Name"].strip()).lower()
+                    pairs.add((pkg, msg["Version"].strip()))
+                    break
+            elif path.endswith(".tar.gz"):
+              with tarfile.open(path, "r:gz") as tf:
+                for member in tf.getmembers():
+                  if member.name.endswith("/PKG-INFO") and member.name.count("/") == 1:
+                    f = tf.extractfile(member)
+                    if f is not None:
+                      msg = email.message_from_bytes(f.read())
+                      pkg = re.sub(r"[-_.]+", "-", msg["Name"].strip()).lower()
+                      pairs.add((pkg, msg["Version"].strip()))
+                    break
+          if not pairs:
+            raise SystemExit("ERROR: No .whl/.tar.gz package metadata found for manifest.json")
+          manifest = {
+              "publish_all": False,
+              "publishing_groups": [{
+                  "packages": [{"name": pkg, "version": ver} for pkg, ver in sorted(pairs)]
+              }],
+          }
+          with open("manifest.json", "w", encoding="utf-8") as fh:
+            json.dump(manifest, fh, indent=2)
+            fh.write("\n")
+          PY
           gcloud storage cp manifest.json \
             "gs://oss-exit-gate-prod-projects-bucket/flatbuffers/pypi/manifests/manifest-${GH_RUN_ID}-${GH_RUN_ATTEMPT}.json"
 
