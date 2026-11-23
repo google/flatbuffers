@@ -1,5 +1,8 @@
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
+#include <memory>
+#include <new>
 #include <type_traits>
 
 #include "64bit/test_64bit_bfbs_generated.h"
@@ -30,7 +33,13 @@ uint64_t Hash(T value, uint64_t hash) {
 
 uint64_t Hash(double value, uint64_t hash) {
   static_assert(sizeof(double) == sizeof(uint64_t));
-  return (hash * kFnvPrime) ^ static_cast<uint64_t>(value);
+  // Converting a double to uint64_t is undefined when the value is NaN, is
+  // infinite, or is simply outside the range of the target type, and fuzzed
+  // buffers reach all three. Hash the bit pattern instead, which is what the
+  // static_assert above was reaching for anyway.
+  uint64_t bits;
+  std::memcpy(&bits, &value, sizeof(bits));
+  return (hash * kFnvPrime) ^ bits;
 }
 
 uint64_t Hash(const flatbuffers::String* value, uint64_t hash) {
@@ -90,6 +99,35 @@ uint64_t Hash(const RootTable* value, uint64_t hash) {
   return hash;
 }
 
+// libFuzzer makes no promise about the alignment of the data it hands out, and
+// this target additionally consumes a leading flag byte, which leaves the
+// remaining pointer at an odd address. Every flatbuffers accessor assumes the
+// buffer starts at an aligned address -- GetRoot() reads a uoffset_t straight
+// off buf_ -- so reads through such a pointer are misaligned no matter what the
+// library does, and UBSan reports on the very first input that verifies. Copy
+// the payload into an over-aligned allocation first.
+//
+// The allocation is exactly `size` bytes so that ASan still catches reads past
+// the end of the buffer; an oversized static scratch buffer would hide them.
+namespace {
+constexpr std::size_t kBufferAlignment = 32;
+
+struct AlignedDelete {
+  void operator()(uint8_t* p) const noexcept {
+    ::operator delete(p, std::align_val_t(kBufferAlignment));
+  }
+};
+
+using AlignedBuffer = std::unique_ptr<uint8_t[], AlignedDelete>;
+
+AlignedBuffer AlignedCopy(const uint8_t* data, std::size_t size) {
+  AlignedBuffer buffer(static_cast<uint8_t*>(
+      ::operator new(size, std::align_val_t(kBufferAlignment))));
+  std::memcpy(buffer.get(), data, size);
+  return buffer;
+}
+}  // namespace
+
 static int AccessBuffer(const uint8_t* data, size_t size,
                         bool is_size_prefixed) {
   const RootTable* root_table =
@@ -119,6 +157,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   const uint8_t flags = data[0];
   data++;
   size--;
+
+  const AlignedBuffer aligned = AlignedCopy(data, size);
+  data = aligned.get();
 
   Verifier::Options options;
   options.assert = true;
