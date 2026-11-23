@@ -1787,6 +1787,7 @@ int FlatBufferTests(const std::string& tests_data_path) {
   JsonOptionalTest(tests_data_path, true);
   MultiFileNameClashTest(tests_data_path);
   InvalidNestedFlatbufferTest(tests_data_path);
+  JsonKeyedVectorSortTest(tests_data_path);
   JsonDefaultTest(tests_data_path);
   JsonEnumsTest(tests_data_path);
   TestMonsterExtraFloats(tests_data_path);

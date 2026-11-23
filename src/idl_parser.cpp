@@ -275,21 +275,45 @@ static void SwapSerializedTables(Offset<Table>* a, Offset<Table>* b) {
 template <typename T, typename F, typename S>
 static void SimpleQsort(T* begin, T* end, size_t width, F comparator,
                         S swapper) {
-  if (end - begin <= static_cast<ptrdiff_t>(width)) return;
-  auto l = begin + width;
-  auto r = end;
-  while (l < r) {
-    if (comparator(begin, l)) {
-      r -= width;
-      swapper(l, r);
+  while (end - begin > static_cast<ptrdiff_t>(width)) {
+    // Pick the median of the first, middle and last element as the pivot.
+    // A plain first-element pivot produces one-element partitions on
+    // already-sorted input, which untrusted JSON can trivially generate,
+    // degrading to quadratic time and one recursion level per element.
+    if ((end - begin) / static_cast<ptrdiff_t>(width) >= 3) {
+      T* last = end - width;
+      const ptrdiff_t count = (end - begin) / static_cast<ptrdiff_t>(width);
+      T* mid = begin + static_cast<ptrdiff_t>((count / 2) * width);
+      // Order the three samples so that the median ends up at mid. The
+      // swapper may only ever be called for elements in memory order, which
+      // SwapSerializedTables relies on.
+      if (comparator(mid, begin)) swapper(begin, mid);
+      if (comparator(last, mid)) swapper(mid, last);
+      if (comparator(mid, begin)) swapper(begin, mid);
+      swapper(begin, mid);
+    }
+    auto l = begin + width;
+    auto r = end;
+    while (l < r) {
+      if (comparator(begin, l)) {
+        r -= width;
+        swapper(l, r);
+      } else {
+        l += width;
+      }
+    }
+    l -= width;
+    swapper(begin, l);
+    // Recurse into the smaller partition and loop on the larger one, so the
+    // recursion depth stays within log2 of the element count.
+    if (l - begin < end - r) {
+      SimpleQsort(begin, l, width, comparator, swapper);
+      begin = r;
     } else {
-      l += width;
+      SimpleQsort(r, end, width, comparator, swapper);
+      end = l;
     }
   }
-  l -= width;
-  swapper(begin, l);
-  SimpleQsort(begin, l, width, comparator, swapper);
-  SimpleQsort(r, end, width, comparator, swapper);
 }
 
 template <typename T>
