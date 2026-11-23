@@ -1,5 +1,6 @@
 name: Release
-permissions: read-all
+permissions:
+  contents: read
 
 on:
   # For manual tests.
@@ -12,8 +13,10 @@ jobs:
     name: Publish NPM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
@@ -25,12 +28,17 @@ jobs:
   publish-pypi:
     name: Publish PyPi
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         working-directory: ./python
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.10'
 
@@ -43,12 +51,94 @@ jobs:
         run: |
           python3 -m build .
 
-      - name: Upload to PyPi
+      - name: Authenticate to Google Cloud (OSS Exit Gate)
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: 'projects/305452601764/locations/global/workloadIdentityPools/builders/providers/github'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+      - name: Clean up failed staging attempt for this exact version (if any)
         run: |
-          python3 -m twine upload dist/*
+          python3 - <<'PY'
+          import email, glob, re, subprocess, tarfile, zipfile
+          seen = set()
+          for f in sorted(glob.glob("dist/**/*.whl", recursive=True) + glob.glob("dist/**/*.tar.gz", recursive=True)):
+            try:
+              if f.endswith(".whl"):
+                with zipfile.ZipFile(f) as zf:
+                  meta = [n for n in zf.namelist() if n.endswith(".dist-info/METADATA")][0]
+                  msg = email.message_from_bytes(zf.read(meta))
+              else:
+                with tarfile.open(f) as tf:
+                  info = [m for m in tf.getmembers() if m.name.endswith("/PKG-INFO") or m.name == "PKG-INFO"][0]
+                  msg = email.message_from_bytes(tf.extractfile(info).read())
+              pkg = re.sub(r"[-_.]+", "-", msg["Name"].strip()).lower()
+              ver = msg["Version"].strip()
+            except Exception:
+              continue
+            if (pkg, ver) in seen:
+              continue
+            seen.add((pkg, ver))
+            if subprocess.run([
+                "gcloud", "artifacts", "versions", "describe", ver,
+                f"--package={pkg}", "--project=oss-exit-gate-prod", "--location=us", "--repository=flatbuffers--pypi"
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+              subprocess.run([
+                  "gcloud", "artifacts", "versions", "delete", ver,
+                  f"--package={pkg}", "--project=oss-exit-gate-prod", "--location=us", "--repository=flatbuffers--pypi", "--quiet"
+              ], check=False)
+          PY
+
+      - name: Stage to OSS Exit Gate and upload manifest
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TWINE_TOKEN }}
+          GH_RUN_ID: ${{ github.run_id }}
+          GH_RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          TWINE_PASSWORD="$(gcloud auth print-access-token)"
+          echo "::add-mask::${TWINE_PASSWORD}"
+          python3 -m twine upload \
+            --repository-url "https://us-python.pkg.dev/oss-exit-gate-prod/flatbuffers--pypi/" \
+            -u oauth2accesstoken \
+            -p "${TWINE_PASSWORD}" \
+            dist/*
+          python3 - dist/* <<'PY'
+          import email, json, re, sys, tarfile, zipfile
+          pairs = set()
+          for path in sys.argv[1:]:
+            if path.endswith(".whl"):
+              with zipfile.ZipFile(path) as zf:
+                for name in zf.namelist():
+                  if name.endswith(".dist-info/METADATA"):
+                    msg = email.message_from_bytes(zf.read(name))
+                    pkg = re.sub(r"[-_.]+", "-", msg["Name"].strip()).lower()
+                    pairs.add((pkg, msg["Version"].strip()))
+                    break
+            elif path.endswith(".tar.gz"):
+              with tarfile.open(path, "r:gz") as tf:
+                for member in tf.getmembers():
+                  if member.name.endswith("/PKG-INFO") and member.name.count("/") == 1:
+                    f = tf.extractfile(member)
+                    if f is not None:
+                      msg = email.message_from_bytes(f.read())
+                      pkg = re.sub(r"[-_.]+", "-", msg["Name"].strip()).lower()
+                      pairs.add((pkg, msg["Version"].strip()))
+                    break
+          if not pairs:
+            raise SystemExit("ERROR: No .whl/.tar.gz package metadata found for manifest.json")
+          manifest = {
+              "publish_all": False,
+              "publishing_groups": [{
+                  "packages": [{"name": pkg, "version": ver} for pkg, ver in sorted(pairs)]
+              }],
+          }
+          with open("manifest.json", "w", encoding="utf-8") as fh:
+            json.dump(manifest, fh, indent=2)
+            fh.write("\n")
+          PY
+          gcloud storage cp manifest.json \
+            "gs://oss-exit-gate-prod-projects-bucket/flatbuffers/pypi/manifests/manifest-${GH_RUN_ID}-${GH_RUN_ATTEMPT}.json"
 
   publish-nuget:
     name: Publish NuGet
@@ -57,8 +147,10 @@ jobs:
       run:
         working-directory: ./net/flatbuffers
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: '8.0.x'
       - name: Build
@@ -80,10 +172,12 @@ jobs:
       run:
         working-directory: ./java
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Set up Maven Central Repository
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: '11'
           distribution: 'adopt'
@@ -108,9 +202,11 @@ jobs:
       run:
         working-directory: ./kotlin
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Set up Maven Central Repository
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: '11'
           distribution: 'adopt'
@@ -133,20 +229,22 @@ jobs:
     name: Publish crates.io
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1 # zizmor: ignore[archived-uses]
         with:
           toolchain: stable
           override: true
           
       - name: Publish Flatbuffers
-        uses: katyo/publish-crates@v2
+        uses: katyo/publish-crates@02cc2f1ad653fb25c7d1ff9eb590a8a50d06186b # v2
         with:
           path: ./rust/flatbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
 
       - name: Publish Flexbuffers
-        uses: katyo/publish-crates@v2
+        uses: katyo/publish-crates@02cc2f1ad653fb25c7d1ff9eb590a8a50d06186b # v2
         with:
           path: ./rust/flexbuffers
           registry-token: ${{ secrets.CARGO_TOKEN }}
