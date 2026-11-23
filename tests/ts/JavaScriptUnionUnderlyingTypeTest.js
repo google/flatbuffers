@@ -20,8 +20,22 @@ function main() {
   let offset = d.pack(fbb);
   fbb.finish(offset);
 
-  let unpacked = Test.D.getRootAsD(fbb.dataBuffer()).unpack();
+    let unpacked = Test.D.getRootAsD(fbb.dataBuffer()).unpack();
   assert.equal(JSON.stringify(unpacked), JSON.stringify(d));
+
+  let none = new Test.DT();
+  none.testUnionType = Test.ABC.NONE;
+
+  let noneBuilder = new flatbuffers.Builder();
+  let noneOffset = none.pack(noneBuilder);
+  noneBuilder.finish(noneOffset);
+
+  let noneUnpacked = Test.D.getRootAsD(
+    noneBuilder.dataBuffer(),
+  ).unpack();
+
+  assert.equal(noneUnpacked.testUnionType, Test.ABC.NONE);
+  assert.equal(noneUnpacked.testUnion, null);
 }
 
 main()
