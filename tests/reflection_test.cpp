@@ -335,6 +335,114 @@ void ForAllFieldsReverseTest(const std::string& tests_data_path) {
   }
 }
 
+// A schema deserialized from a .bfbs is only structurally verified
+// (VerifySchemaBuffer checks the buffer layout, not the semantics), so the
+// field ids and type indices it carries are untrusted data.
+void ForAllFieldsInvalidIdTest() {
+  auto make_object = [](uint16_t field_id) {
+    flatbuffers::FlatBufferBuilder builder;
+    auto type = reflection::CreateType(builder, reflection::Int);
+    auto name = builder.CreateString("x");
+    auto field =
+        reflection::CreateField(builder, name, type, /*id=*/field_id,
+                                /*offset=*/4);
+    std::vector<flatbuffers::Offset<reflection::Field>> fields = { field };
+    auto fields_vec = builder.CreateVector(fields);
+    auto obj_name = builder.CreateString("T");
+    builder.Finish(reflection::CreateObject(builder, obj_name, fields_vec));
+    return std::string(reinterpret_cast<const char*>(
+                           builder.GetBufferPointer()),
+                       builder.GetSize());
+  };
+
+  // Control: a well-formed one-field object yields exactly one callback.
+  {
+    auto valid = make_object(0);
+    const auto* object =
+        flatbuffers::GetRoot<reflection::Object>(reinterpret_cast<const uint8_t*>(valid.c_str()));
+    uint32_t calls = 0;
+    flatbuffers::ForAllFields(
+        object, /*reverse=*/false,
+        [&calls](const reflection::Field*) { ++calls; });
+    TEST_EQ(calls, 1u);
+  }
+
+  // A field id pointing outside the field vector used to be written into
+  // field_to_id_map unchecked, a heap out-of-bounds write. Id 1 writes right
+  // past a 4-byte allocation (what AddressSanitizer reports as a
+  // heap-buffer-overflow WRITE), while 0xffff writes about 256KiB past it and
+  // can hit an unrelated live object. Both must be skipped instead, and the
+  // callback count is unchanged: one per map slot.
+  {
+    auto adjacent = make_object(1);
+    const auto* object = flatbuffers::GetRoot<reflection::Object>(
+        reinterpret_cast<const uint8_t*>(adjacent.c_str()));
+    uint32_t calls = 0;
+    flatbuffers::ForAllFields(
+        object, /*reverse=*/false,
+        [&calls](const reflection::Field*) { ++calls; });
+    TEST_EQ(calls, 1u);
+  }
+  {
+    auto invalid = make_object(0xffff);
+    const auto* object = flatbuffers::GetRoot<reflection::Object>(
+        reinterpret_cast<const uint8_t*>(invalid.c_str()));
+    uint32_t calls = 0;
+    flatbuffers::ForAllFields(
+        object, /*reverse=*/false,
+        [&calls](const reflection::Field*) { ++calls; });
+    TEST_EQ(calls, 1u);
+  }
+}
+
+// flatbuffers::Verify() must fail closed when a union field's type index
+// points outside schema.enums() instead of indexing the vector unchecked.
+void VerifyInvalidUnionIndexTest() {
+  // Schema: object T with one union field whose type index is -1, and an
+  // empty enum list.
+  flatbuffers::FlatBufferBuilder builder;
+  auto union_type =
+      reflection::CreateType(builder, reflection::Union,
+                             /*element=*/reflection::None, /*index=*/-1);
+  auto field_name = builder.CreateString("u");
+  auto field =
+      reflection::CreateField(builder, field_name, union_type, /*id=*/0,
+                              /*offset=*/6);
+  std::vector<flatbuffers::Offset<reflection::Field>> fields = { field };
+  auto fields_vec = builder.CreateVector(fields);
+  auto obj_name = builder.CreateString("T");
+  auto object = reflection::CreateObject(builder, obj_name, fields_vec);
+  std::vector<flatbuffers::Offset<reflection::Object>> objects = { object };
+  auto objects_vec = builder.CreateVector(objects);
+  auto empty_enums =
+      builder.CreateVector(std::vector<flatbuffers::Offset<reflection::Enum>>());
+  builder.Finish(reflection::CreateSchema(builder, objects_vec, empty_enums,
+                                          /*file_ident=*/0, /*file_ext=*/0,
+                                          /*root_table=*/object));
+  const auto* schema =
+      reflection::GetSchema(builder.GetBufferPointer());
+
+  // Data: a root table where the union value field (voffset 6) and its type
+  // field (voffset 4) are both present, with utype 1 so that VerifyUnion()
+  // actually runs.
+  //   [0..3]    root uoffset, table follows at 8
+  //   [8..11]   table soffset -16, vtable at 24
+  //   [16]      utype byte (table + 8)
+  //   [18..21]  union value uoffset 4, elem at 22
+  //   [24..35]  vtable: vsize 12, tsize 16, slot(4) = 8, slot(6) = 10
+  std::vector<uint8_t> data(36, 0);
+  flatbuffers::WriteScalar<uint32_t>(data.data(), 8u);
+  flatbuffers::WriteScalar<int32_t>(data.data() + 8, -16);
+  data[16] = 1;
+  flatbuffers::WriteScalar<uint32_t>(data.data() + 18, 4u);
+  const uint16_t vtable[6] = { 12, 16, 8, 10, 0, 0 };
+  memcpy(data.data() + 24, vtable, sizeof(vtable));
+
+  TEST_EQ(flatbuffers::Verify(*schema, *schema->root_table(), data.data(),
+                              data.size()),
+          false);
+}
+
 void MiniReflectFlatBuffersTest(uint8_t* flatbuf) {
   auto s =
       flatbuffers::FlatBufferToString(flatbuf, Monster::MiniReflectTypeTable());

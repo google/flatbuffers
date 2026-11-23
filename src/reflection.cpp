@@ -24,6 +24,14 @@ namespace flatbuffers {
 
 namespace {
 
+// A schema deserialized from a .bfbs is only structurally verified (see
+// reflection::VerifySchemaBuffer), so the indices and ids it carries are still
+// untrusted data. Every use of one of them as an index into objects(),
+// enums() or a field vector has to be range-checked first.
+bool IsValidIndex(int32_t index, size_t count) {
+  return index >= 0 && static_cast<size_t>(index) < count;
+}
+
 static void CopyInline(FlatBufferBuilder& fbb,
                        const reflection::Field& fielddef, const Table& table,
                        size_t align, size_t size) {
@@ -70,12 +78,16 @@ static bool VerifyUnion(flatbuffers::Verifier& v,
                         const uint8_t* elem,
                         const reflection::Field& union_field) {
   if (!utype) return true;  // Not present.
-  auto fb_enum = schema.enums()->Get(union_field.type()->index());
+  const int32_t enum_index = union_field.type()->index();
+  if (!IsValidIndex(enum_index, schema.enums()->size())) return false;
+  auto fb_enum = schema.enums()->Get(enum_index);
   if (utype >= fb_enum->values()->size()) return false;
   auto elem_type = fb_enum->values()->Get(utype)->union_type();
   switch (elem_type->base_type()) {
     case reflection::Obj: {
-      auto elem_obj = schema.objects()->Get(elem_type->index());
+      const int32_t elem_index = elem_type->index();
+      if (!IsValidIndex(elem_index, schema.objects()->size())) return false;
+      auto elem_obj = schema.objects()->Get(elem_index);
       if (elem_obj->is_struct()) {
         return v.VerifyFromPointer(elem, elem_obj->bytesize());
       } else {
@@ -130,7 +142,9 @@ static bool VerifyVector(flatbuffers::Verifier& v,
       }
     }
     case reflection::Obj: {
-      auto obj = schema.objects()->Get(vec_field.type()->index());
+      const int32_t obj_index = vec_field.type()->index();
+      if (!IsValidIndex(obj_index, schema.objects()->size())) return false;
+      auto obj = schema.objects()->Get(obj_index);
       if (obj->is_struct()) {
         return VerifyVectorOfStructs(v, table, vec_field.offset(), *obj,
                                      vec_field.required());
@@ -233,7 +247,9 @@ static bool VerifyObject(flatbuffers::Verifier& v,
         if (!VerifyVector(v, schema, *table, *field_def)) return false;
         break;
       case reflection::Obj: {
-        auto child_obj = schema.objects()->Get(field_def->type()->index());
+        const int32_t child_index = field_def->type()->index();
+        if (!IsValidIndex(child_index, schema.objects()->size())) return false;
+        auto child_obj = schema.objects()->Get(child_index);
         if (child_obj->is_struct()) {
           if (!VerifyStruct(v, *table, field_def->offset(), *child_obj,
                             field_def->required())) {
@@ -381,10 +397,15 @@ void ForAllFields(const reflection::Object* object, bool reverse,
   std::vector<uint32_t> field_to_id_map;
   field_to_id_map.resize(object->fields()->size());
 
-  // Create the mapping of field ID to the index into the vector.
+  // Create the mapping of field ID to the index into the vector. The ids in
+  // a schema deserialized from a .bfbs are only structurally verified, so an
+  // id can point outside the field vector; skip those instead of writing
+  // past the end of field_to_id_map.
   for (uint32_t i = 0; i < object->fields()->size(); ++i) {
     auto field = object->fields()->Get(i);
-    field_to_id_map[field->id()] = i;
+    const uint32_t id = field->id();
+    if (id >= field_to_id_map.size()) continue;
+    field_to_id_map[id] = i;
   }
 
   for (size_t i = 0; i < field_to_id_map.size(); ++i) {
