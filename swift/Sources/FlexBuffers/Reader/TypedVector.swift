@@ -41,6 +41,9 @@ public struct TypedVector: FlexBufferVector {
 
   @inline(__always)
   public subscript(index: Int) -> Reference? {
+    precondition(
+      index >= 0 && index < count,
+      "TypedVector index out of bounds")
     let elementOffset = offset &+ (numericCast(index) &* numericCast(byteWidth))
     return Reference(
       byteBuffer: byteBuffer,
