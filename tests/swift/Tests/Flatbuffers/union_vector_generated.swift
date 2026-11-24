@@ -557,11 +557,11 @@ public struct Movie: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, 
       case .mulan:
         try ForwardOffset<Attacker>.verify(&verifier, at: pos, of: Attacker.self)
       case .rapunzel:
-        try Rapunzel.verify(&verifier, at: pos, of: Rapunzel.self)
+        try ForwardOffset<Rapunzel>.verify(&verifier, at: pos, of: Rapunzel.self)
       case .belle:
-        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+        try ForwardOffset<BookReader>.verify(&verifier, at: pos, of: BookReader.self)
       case .bookfan:
-        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+        try ForwardOffset<BookReader>.verify(&verifier, at: pos, of: BookReader.self)
       case .other:
         try ForwardOffset<String>.verify(&verifier, at: pos, of: String.self)
       case .unused:
@@ -575,11 +575,11 @@ public struct Movie: FlatBufferVerifiableTable, FlatbuffersVectorInitializable, 
       case .mulan:
         try ForwardOffset<Attacker>.verify(&verifier, at: pos, of: Attacker.self)
       case .rapunzel:
-        try Rapunzel.verify(&verifier, at: pos, of: Rapunzel.self)
+        try ForwardOffset<Rapunzel>.verify(&verifier, at: pos, of: Rapunzel.self)
       case .belle:
-        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+        try ForwardOffset<BookReader>.verify(&verifier, at: pos, of: BookReader.self)
       case .bookfan:
-        try BookReader.verify(&verifier, at: pos, of: BookReader.self)
+        try ForwardOffset<BookReader>.verify(&verifier, at: pos, of: BookReader.self)
       case .other:
         try ForwardOffset<String>.verify(&verifier, at: pos, of: String.self)
       case .unused:

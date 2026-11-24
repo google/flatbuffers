@@ -1197,11 +1197,8 @@ class SwiftGenerator : public BaseGenerator {
             "try ForwardOffset<String>.verify(&verifier, at: pos, of: "
             "String.self)";
       } else {
-        code_.SetValue("MAINTYPE", ev.union_type.struct_def->fixed
-                                       ? type
-                                       : "ForwardOffset<" + type + ">");
         code_ +=
-            "try {{MAINTYPE}}.verify(&verifier, at: pos, of: "
+            "try ForwardOffset<{{VALUETYPE}}>.verify(&verifier, at: pos, of: "
             "{{VALUETYPE}}.self)";
       }
       Outdent();

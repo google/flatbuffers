@@ -344,6 +344,92 @@ final class FlatbuffersVerifierTests {
   }
 
   @Test
+  func testRejectsOutOfBoundsStructInUnion() throws {
+    var fb = FlatBufferBuilder()
+    let br = fb.create(struct: BookReader(booksRead: 42))
+    let types: [Character] = [.belle, .rapunzel, .mulan]
+    let attackerStart = Attacker.startAttacker(&fb)
+    Attacker.add(swordAttackDamage: 8, &fb)
+    let attacker = Attacker.endAttacker(&fb, start: attackerStart)
+    let chars = [
+      fb.create(struct: BookReader(booksRead: 7)),
+      fb.create(struct: Rapunzel(hairLength: 15)),
+      attacker,
+    ]
+    let tv = fb.createVector(types)
+    let cv = fb.createVector(ofOffsets: chars)
+    let movieOffset = Movie.createMovie(
+      &fb,
+      mainCharacterType: .belle,
+      mainCharacterOffset: Offset(offset: br.o),
+      charactersTypeVectorOffset: tv,
+      charactersVectorOffset: cv)
+    Movie.finish(&fb, end: movieOffset)
+    var validBuffer = fb.sizedBuffer
+    let validMovie: Movie = try getCheckedRoot(
+      byteBuffer: &validBuffer,
+      fileId: Movie.id)
+    #expect(validMovie.mainCharacter(type: BookReader.self)?.booksRead == 42)
+    #expect(validMovie.characters(at: 0, type: BookReader.self)?.booksRead == 7)
+    #expect(validMovie.characters(at: 1, type: Rapunzel.self)?.hairLength == 15)
+    #expect(validMovie.characters(at: 2, type: Attacker.self)?.swordAttackDamage == 8)
+
+    // swiftformat:disable all
+    var singleOob = ByteBuffer(bytes: [
+      20, 0, 0, 0, 77, 79, 86, 73, 10, 0, 12, 0, 4, 0, 8, 0, 0, 0, 0, 0,
+      12, 0, 0, 0, 3, 0, 0, 0, 0, 16, 0, 0,
+    ])
+    // swiftformat:enable all
+    #expect(throws: FlatbuffersErrors.outOfBounds(position: 4128, end: 32)) {
+      try getCheckedRoot(byteBuffer: &singleOob, fileId: Movie.id) as Movie
+    }
+
+    // swiftformat:disable all
+    var vecOob = ByteBuffer(bytes: [
+      20, 0, 0, 0, 77, 79, 86, 73, 12, 0, 12, 0, 0, 0, 0, 0, 4, 0, 8, 0,
+      12, 0, 0, 0, 12, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+      3, 0, 0, 0, 1, 0, 0, 0, 0, 16, 0, 0,
+    ])
+    // swiftformat:enable all
+    #expect(throws: FlatbuffersErrors.outOfBounds(position: 4148, end: 52)) {
+      try getCheckedRoot(byteBuffer: &vecOob, fileId: Movie.id) as Movie
+    }
+  }
+
+  @Test
+  func testRejectsAsymmetricUnionVector() {
+    // swiftformat:disable all
+    var onlyTypes = ByteBuffer(bytes: [
+      20, 0, 0, 0, 77, 79, 86, 73, 12, 0, 8, 0, 0, 0, 0, 0, 4, 0, 0, 0,
+      12, 0, 0, 0, 0, 16, 0, 0,
+    ])
+    // swiftformat:enable all
+    #expect(throws: FlatbuffersErrors.valueNotFound(
+      key: 24,
+      keyName: "charactersType",
+      field: nil,
+      fieldName: "characters"))
+    {
+      try getCheckedRoot(byteBuffer: &onlyTypes, fileId: Movie.id) as Movie
+    }
+
+    // swiftformat:disable all
+    var onlyValues = ByteBuffer(bytes: [
+      20, 0, 0, 0, 77, 79, 86, 73, 12, 0, 8, 0, 0, 0, 0, 0, 0, 0, 4, 0,
+      12, 0, 0, 0, 0, 16, 0, 0,
+    ])
+    // swiftformat:enable all
+    #expect(throws: FlatbuffersErrors.valueNotFound(
+      key: nil,
+      keyName: "charactersType",
+      field: 24,
+      fieldName: "characters"))
+    {
+      try getCheckedRoot(byteBuffer: &onlyValues, fileId: Movie.id) as Movie
+    }
+  }
+
+  @Test
   func testErrorWrongFileId() throws{
     // swiftformat:disable all
     var byteBuffer = ByteBuffer(bytes: [

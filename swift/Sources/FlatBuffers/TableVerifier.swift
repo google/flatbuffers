@@ -178,6 +178,15 @@ public struct TableVerifier {
     let keyVectorPosition = try dereference(key)
     let offsetVectorPosition = try dereference(field)
 
+    if keyVectorPosition == nil && offsetVectorPosition == nil {
+      if required {
+        throw FlatbuffersErrors.requiredFieldDoesntExist(
+          position: field,
+          name: fieldName)
+      }
+      return
+    }
+
     if let keyPos = keyVectorPosition,
        let valPos = offsetVectorPosition
     {
@@ -190,11 +199,11 @@ public struct TableVerifier {
         completion: completion)
       return
     }
-    if required {
-      throw FlatbuffersErrors.requiredFieldDoesntExist(
-        position: field,
-        name: fieldName)
-    }
+    throw FlatbuffersErrors.valueNotFound(
+      key: keyVectorPosition,
+      keyName: unionKeyName,
+      field: offsetVectorPosition,
+      fieldName: fieldName)
   }
 
   /// Finishs the current Table verifier, and subtracts the current
