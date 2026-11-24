@@ -374,6 +374,15 @@ void Offset64SizePrefix() {
 
   // Verify the fields.
   TEST_EQ_STR(root_table->near_string()->c_str(), "some near string");
+
+  // Reject a size prefix whose addition of the prefix width would overflow.
+  const uoffset64_t invalid_size = (std::numeric_limits<uoffset64_t>::max)();
+  WriteScalar(builder.GetBufferPointer(), invalid_size);
+  auto invalid_options = options;
+  invalid_options.assert = false;
+  Verifier invalid_verifier(builder.GetBufferPointer(), builder.GetSize(),
+                            invalid_options);
+  TEST_EQ(VerifySizePrefixedRootTableBuffer(invalid_verifier), false);
 }
 
 void Offset64ManyVectors() {
