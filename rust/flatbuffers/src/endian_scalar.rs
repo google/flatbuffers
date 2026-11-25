@@ -15,6 +15,7 @@
  */
 #![allow(clippy::wrong_self_convention)]
 
+use self::private::TriviallyTransmutable;
 use core::mem::size_of;
 
 mod private {
@@ -23,16 +24,10 @@ mod private {
     ///
     /// For example integral types are TriviallyTransmutable as all bit patterns are valid,
     /// however, `bool` is not trivially transmutable as only `0` and `1` are valid
-    pub trait TriviallyTransmutable {}
-
-    impl TriviallyTransmutable for i8 {}
-    impl TriviallyTransmutable for i16 {}
-    impl TriviallyTransmutable for i32 {}
-    impl TriviallyTransmutable for i64 {}
-    impl TriviallyTransmutable for u8 {}
-    impl TriviallyTransmutable for u16 {}
-    impl TriviallyTransmutable for u32 {}
-    impl TriviallyTransmutable for u64 {}
+    pub trait TriviallyTransmutable {
+        fn read_ne(src: &[u8]) -> Self;
+        fn write_ne(self, dst: &mut [u8]);
+    }
 }
 
 /// Trait for values that must be stored in little-endian byte order, but
@@ -59,6 +54,20 @@ pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
 /// the stdlib.
 macro_rules! impl_endian_scalar {
     ($ty:ident) => {
+        impl TriviallyTransmutable for $ty {
+            #[inline]
+            fn read_ne(src: &[u8]) -> Self {
+                let mut bytes = [0; size_of::<$ty>()];
+                bytes.copy_from_slice(&src[..size_of::<$ty>()]);
+                Self::from_ne_bytes(bytes)
+            }
+
+            #[inline]
+            fn write_ne(self, dst: &mut [u8]) {
+                dst[..size_of::<$ty>()].copy_from_slice(&self.to_ne_bytes());
+            }
+        }
+
         impl EndianScalar for $ty {
             type Scalar = Self;
 
@@ -135,50 +144,80 @@ impl EndianScalar for f64 {
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() >= size_of::<T>()`
+/// Caller must provide space for the wire representation, `T::Scalar`.
 #[inline]
 pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
-    let size = size_of::<T::Scalar>();
-    debug_assert!(
-        s.len() >= size,
-        "insufficient capacity for emplace_scalar, needed {} got {}",
-        size,
-        s.len()
-    );
-
-    let x_le = x.to_little_endian();
-    core::ptr::copy_nonoverlapping(
-        &x_le as *const T::Scalar as *const u8,
-        s.as_mut_ptr() as *mut u8,
-        size,
-    );
+    x.to_little_endian().write_ne(s);
 }
 
 /// Read an EndianScalar from the provided byte slice at the specified location.
 /// Performs endian conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() >= loc + size_of::<T>()`.
+/// Caller must provide space for `T::Scalar` starting at `loc`.
 #[inline]
 pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
-    read_scalar(&s[loc..])
+    T::from_little_endian(T::Scalar::read_ne(&s[loc..]))
 }
 
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
 /// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`.
+/// Caller must provide space for the wire representation, `T::Scalar`.
 #[inline]
 pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
-    let size = size_of::<T::Scalar>();
-    debug_assert!(
-        s.len() >= size,
-        "insufficient capacity for emplace_scalar, needed {} got {}",
-        size,
-        s.len()
-    );
+    T::from_little_endian(T::Scalar::read_ne(s))
+}
 
-    let mut mem = core::mem::MaybeUninit::<T::Scalar>::uninit();
-    // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size);
-    T::from_little_endian(mem.assume_init())
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn check_wire_bytes<T: EndianScalar>(value: T, expected: &[u8]) -> (T, T) {
+        // Write at an offset and check the bytes on either side of the scalar.
+        let mut buf = [0xa5; 10];
+        let end = 1 + expected.len();
+        assert_eq!(expected.len(), size_of::<T::Scalar>());
+        assert!(end < buf.len());
+        // SAFETY: The destination slice has exactly the scalar's wire size.
+        unsafe { emplace_scalar(&mut buf[1..end], value) };
+        assert_eq!(&buf[1..end], expected);
+        assert_eq!((buf[0], buf[end]), (0xa5, 0xa5));
+        // SAFETY: Both reads cover the scalar just written, ending at `end`.
+        unsafe { (read_scalar(&buf[1..end]), read_scalar_at(&buf[..end], 1)) }
+    }
+
+    #[test]
+    fn integer_wire_bytes() {
+        macro_rules! check {
+            ($value:expr) => {{
+                let value = $value;
+                assert_eq!(
+                    check_wire_bytes(value, &value.to_le_bytes()),
+                    (value, value)
+                );
+            }};
+        }
+        check!(0xacu8);
+        check!(0x1234u16);
+        check!(0x12345678u32);
+        check!(0x123456789abcdef0u64);
+        check!(-7i8);
+        check!(-1234i16);
+        check!(-1234567i32);
+        check!(-123456789i64);
+    }
+
+    #[test]
+    fn boolean_and_float_wire_bytes() {
+        assert_eq!(check_wire_bytes(false, &[0]), (false, false));
+        assert_eq!(check_wire_bytes(true, &[1]), (true, true));
+        for &bits in &[0x80000000u32, 0x7fc00042] {
+            let (direct, at) = check_wire_bytes(f32::from_bits(bits), &bits.to_le_bytes());
+            assert_eq!((direct.to_bits(), at.to_bits()), (bits, bits));
+        }
+        for &bits in &[0x8000000000000000u64, 0x7ff8000000000042] {
+            let (direct, at) = check_wire_bytes(f64::from_bits(bits), &bits.to_le_bytes());
+            assert_eq!((direct.to_bits(), at.to_bits()), (bits, bits));
+        }
+    }
 }
