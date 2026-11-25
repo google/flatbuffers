@@ -22,12 +22,13 @@ GitHub page](https://github.com/google/flatbuffers/tree/master/swift).
 
 ## Testing the FlatBuffers Swift library
 
-The code to test the Swift library can be found at `flatbuffers/tests/swift/tests`.
-The test code itself is located in [flatbuffers/tests/swift/tests](https://github.com/google/flatbuffers/blob/master/tests/swift/tests).
+The code to test the Swift library can be found at `flatbuffers/tests/swift/Tests`.
+The test code itself is located in [flatbuffers/tests/swift/Tests](https://github.com/google/flatbuffers/tree/master/tests/swift/Tests).
 
-To run the tests, use the [SwiftTest.sh](https://github.com/google/flatbuffers/blob/master/tests/swift/tests/SwiftTest.sh) shell script.
+To run the tests, run `swift test` from the root of the repository. It uses the
+top-level `Package.swift`, which defines the test targets.
 
-*Note: The shell script requires [Swift](https://swift.org) to
+*Note: Running the tests requires [Swift](https://swift.org) to
 be installed.*
 
 ## Using the FlatBuffers Swift library
