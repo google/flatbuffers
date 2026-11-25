@@ -623,11 +623,29 @@ jobs:
           WINDOWS_DIGESTS: "${{ needs.build-windows.outputs.digests }}"
         run: |
           set -euo pipefail
-          echo "$LINUXGCC_DIGESTS" | base64 -d > checksums.txt
-          echo "$LINUXCLANG_DIGESTS" | base64 -d >> checksums.txt
-          echo "$MAC_DIGESTS" | base64 -d >> checksums.txt
-          echo "$MACINTEL_DIGESTS" | base64 -d >> checksums.txt
-          echo "$WINDOWS_DIGESTS" | base64 -d >> checksums.txt
+          append_digest() {
+            local name=$1 checksum sha256
+            checksum=$(printf '%s' "$2" | base64 -d)
+            checksum=${checksum%$'\r'}
+            sha256=${checksum%% *}
+            if [[ ! "$sha256" =~ ^[0-9a-f]{64}$ ||
+                  ( "$checksum" != "$sha256  $name" &&
+                    "$checksum" != "$sha256 *$name" ) ]]; then
+              printf '::error::Missing or invalid SHA-256 subject for %s\n' "$name" >&2
+              return 1
+            fi
+
+            # The SLSA generator expects the filename without the binary-mode marker.
+            printf '%s  %s\n' "$sha256" "$name"
+          }
+
+          {
+            append_digest Linux.flatc.binary.g++-13.zip "$LINUXGCC_DIGESTS"
+            append_digest Linux.flatc.binary.clang++-18.zip "$LINUXCLANG_DIGESTS"
+            append_digest Mac.flatc.binary.zip "$MAC_DIGESTS"
+            append_digest MacIntel.flatc.binary.zip "$MACINTEL_DIGESTS"
+            append_digest Windows.flatc.binary.zip "$WINDOWS_DIGESTS"
+          } > checksums.txt
           echo "digests=$(cat checksums.txt | base64 -w0)" >> $GITHUB_OUTPUT
 
   provenance:
