@@ -39,6 +39,15 @@ fn main() {
 
     assert!(out_dir.exists());
 
+    let status = Command::new(&flatc)
+        .arg("--rust")
+        .arg("-o")
+        .arg(std::env::var_os("OUT_DIR").unwrap())
+        .arg("float_keys.fbs")
+        .status()
+        .expect("Failed to generate float key test schema");
+    assert!(status.success());
+
     let generated = std::path::Path::new("src/generated");
     #[cfg(target_os = "windows")]
     {

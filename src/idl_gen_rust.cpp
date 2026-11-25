@@ -2502,7 +2502,14 @@ class RustGenerator : public BaseGenerator {
     code_ +=
         "pub fn key_compare_less_than(&self, o: &{{STRUCT_TY}}) -> "
         "bool {";
-    code_ += "    self.{{FIELD}}() < o.{{FIELD}}()";
+    const bool float_key = IsFloat(field.value.type.base_type);
+    if (float_key) {
+      code_ +=
+          "    self.key_compare_with_value(o.{{FIELD}}()) == "
+          "::core::cmp::Ordering::Less";
+    } else {
+      code_ += "    self.{{FIELD}}() < o.{{FIELD}}()";
+    }
     code_ += "}";
     code_ += "";
 
@@ -2511,7 +2518,14 @@ class RustGenerator : public BaseGenerator {
         "pub fn key_compare_with_value(&self, val: {{KEY_TYPE}}) -> "
         "::core::cmp::Ordering {";
     code_ += "    let key = self.{{FIELD}}();";
-    code_ += "    key.cmp({{REF}}val)";
+    if (float_key) {
+      // Keep signed zeros equal and place NaNs after all numeric keys.
+      code_ +=
+          "    key.partial_cmp(&val).unwrap_or_else(|| "
+          "key.is_nan().cmp(&val.is_nan()))";
+    } else {
+      code_ += "    key.cmp({{REF}}val)";
+    }
     code_ += "}";
   }
 

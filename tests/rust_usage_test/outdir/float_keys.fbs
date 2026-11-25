@@ -1,0 +1,9 @@
+namespace FloatKeys;
+
+struct FloatKey {
+  value:float (key);
+}
+
+table DoubleKey {
+  value:double (key);
+}
