@@ -63,7 +63,11 @@ impl<'a> VTable<'a> {
 
     pub fn get_field(&self, idx: usize) -> VOffsetT {
         // TODO(rw): distinguish between None and 0?
-        if idx > self.num_fields() {
+        // Fields occupy indices `0..num_fields()`; `num_fields()` itself is one
+        // past the last entry. The `>` bound below accepted it and read a
+        // VOffsetT at `loc + num_bytes`, one slot past the end of the vtable --
+        // an out-of-bounds read when the vtable ends at the end of the buffer.
+        if idx >= self.num_fields() {
             return 0;
         }
 
@@ -111,5 +115,46 @@ impl<'a> Follow<'a> for VTable<'a> {
     type Inner = VTable<'a>;
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         VTable::init(buf, loc)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::table::Table;
+
+    // A 14-byte root whose vtable has `num_bytes = 6` and a single field entry,
+    // so the vtable ends exactly at the end of the buffer:
+    //   [0..4]  uoffset -> root table @4
+    //   [4..8]  soffset -> vtable @8
+    //   [8..14] vtable: num_bytes=6, object size=4, one field entry
+    const GET_FIELD_ONE_PAST_VTABLE: [u8; 14] = [
+        0x04, 0x00, 0x00, 0x00, 0xfc, 0xff, 0xff, 0xff, 0x06, 0x00, 0x04, 0x00, 0x00, 0x00,
+    ];
+
+    #[test]
+    fn get_field_one_past_the_vtable_is_rejected() {
+        // Safety: `GET_FIELD_ONE_PAST_VTABLE` is a well-formed root table whose
+        // vtable lies at offset 8 and ends at the end of the buffer.
+        let tab = unsafe { Table::new(&GET_FIELD_ONE_PAST_VTABLE, 4) };
+        let vt = tab.vtable();
+        assert_eq!(vt.num_bytes(), 6);
+        assert_eq!(vt.num_fields(), 1);
+        // The one real entry is still readable ...
+        assert_eq!(vt.get_field(0), 0);
+        // ... but `num_fields()` is one past the last entry. Before the fix
+        // this read a VOffsetT at offset `8 + 6 == 14`, past the buffer.
+        assert_eq!(vt.get_field(vt.num_fields()), 0);
+    }
+
+    #[test]
+    fn get_field_reads_present_fields_and_absent_ones_as_zero() {
+        let buf: [u8; 8] = [6, 0, 4, 0, 0x34, 0x12, 0, 0];
+        // Safety: `buf` contains a well-formed vtable at offset 0.
+        let vt = unsafe { VTable::init(&buf, 0) };
+        assert_eq!(vt.num_fields(), 1);
+        assert_eq!(vt.get_field(0), 0x1234);
+        assert_eq!(vt.get_field(1), 0);
+        assert_eq!(vt.get_field(2), 0);
     }
 }
