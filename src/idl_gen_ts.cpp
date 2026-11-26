@@ -1119,35 +1119,49 @@ class TsGenerator : public BaseGenerator {
 
       const auto enum_type = AddImport(imports, enum_def, enum_def).name;
 
-      const auto union_enum_loop = [&](const std::string& accessor_str) {
-        ret += "  switch(" + enum_type + "[type]) {\n";
-        ret += "    case 'NONE': return " + null_keyword_ + "; \n";
+      const bool usesStringEnum =
+    enum_def.underlying_type.base_type == BASE_TYPE_LONG ||
+    enum_def.underlying_type.base_type == BASE_TYPE_ULONG;
 
-        for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
-             ++it) {
-          const auto& ev = **it;
-          if (ev.IsZero()) {
-            continue;
-          }
+const auto union_enum_loop = [&](const std::string& accessor_str) {
+  if (usesStringEnum) {
+    ret += "  switch(" + enum_type + "[type]) {\n";
+    ret += "    case 'NONE': return " + null_keyword_ + ";\n";
+  } else {
+    ret += "  switch(type) {\n";
+    ret += "    case 0: return " + null_keyword_ + ";\n";
+  }
 
-          ret += "    case '" + namer_.Variant(ev) + "': ";
+  for (auto it = enum_def.Vals().begin(); it != enum_def.Vals().end();
+       ++it) {
+    const auto& ev = **it;
+    if (ev.IsZero()) {
+      continue;
+    }
 
-          if (IsString(ev.union_type)) {
-            ret += "return " + accessor_str + "'') as string;";
-          } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
-            const auto type =
-                AddImport(imports, enum_def, *ev.union_type.struct_def).name;
-            ret += "return " + accessor_str + "new " + type + "())! as " +
-                   type + ";";
-          } else {
-            FLATBUFFERS_ASSERT(false);
-          }
-          ret += "\n";
-        }
+    if (usesStringEnum) {
+      ret += "    case '" + namer_.Variant(ev) + "': ";
+    } else {
+      ret += "    case " + enum_def.ToString(ev) + ": ";
+    }
 
-        ret += "    default: return " + null_keyword_ + ";\n";
-        ret += "  }\n";
-      };
+    if (IsString(ev.union_type)) {
+      ret += "return " + accessor_str + "'') as string;";
+    } else if (ev.union_type.base_type == BASE_TYPE_STRUCT) {
+      const auto type =
+          AddImport(imports, enum_def, *ev.union_type.struct_def).name;
+      ret += "return " + accessor_str + "new " + type + "())! as " +
+             type + ";";
+    } else {
+      FLATBUFFERS_ASSERT(false);
+    }
+
+    ret += "\n";
+  }
+
+  ret += "    default: return " + null_keyword_ + ";\n";
+  ret += "  }\n";
+};
 
       union_enum_loop("accessor(");
       ret += "}";
