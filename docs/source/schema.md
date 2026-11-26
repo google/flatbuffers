@@ -450,7 +450,8 @@ Current understood attributes:
 - `bit_flags` (on an unsigned enum): the values of this field indicate bits,
   meaning that any unsigned value N specified in the schema will end up
   representing 1<<N, or if you don't specify values at all, you'll get the
-  sequence 1, 2, 4, 8, ...
+  sequence 1, 2, 4, 8, etc. Note: requires `--scoped-enums` for generated C++ 
+  code to implement bitwise operators
 - `nested_flatbuffer: "table_name"` (on a field): this indicates that the field
   (which must be a vector of ubyte) contains flatbuffer data, for which the root
   type is given by `table_name`. The generated code will then produce a
