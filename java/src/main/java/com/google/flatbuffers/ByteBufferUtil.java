@@ -18,6 +18,7 @@ package com.google.flatbuffers;
 
 import static com.google.flatbuffers.Constants.*;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /// @file
@@ -46,7 +47,7 @@ public class ByteBufferUtil {
    */
   public static ByteBuffer removeSizePrefix(ByteBuffer bb) {
     ByteBuffer s = bb.duplicate();
-    s.position(s.position() + SIZE_PREFIX_LENGTH);
+    ((Buffer) s).position(s.position() + SIZE_PREFIX_LENGTH);
     return s;
   }
 }

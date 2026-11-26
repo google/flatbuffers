@@ -6,6 +6,7 @@ import static java.lang.Character.MIN_SURROGATE;
 import static java.lang.Character.isSurrogatePair;
 import static java.lang.Character.toCodePoint;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -274,7 +275,7 @@ public final class Utf8Safe extends Utf8 {
       }
       if (inIx == inLength) {
         // Successfully encoded the entire string.
-        out.position(outIx + inIx);
+        ((Buffer) out).position(outIx + inIx);
         return;
       }
 
@@ -317,7 +318,7 @@ public final class Utf8Safe extends Utf8 {
       }
 
       // Successfully encoded the entire string.
-      out.position(outIx);
+      ((Buffer) out).position(outIx);
     } catch (IndexOutOfBoundsException e) {
       // TODO(nathanmittler): Consider making the API throw IndexOutOfBoundsException instead.
 
@@ -394,7 +395,7 @@ public final class Utf8Safe extends Utf8 {
     if (out.hasArray()) {
       int start = out.arrayOffset();
       int end = encodeUtf8Array(in, out.array(), start + out.position(), out.remaining());
-      out.position(end - start);
+      ((Buffer) out).position(end - start);
     } else {
       encodeUtf8Buffer(in, out);
     }
