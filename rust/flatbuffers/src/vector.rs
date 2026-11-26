@@ -65,6 +65,20 @@ impl<'a, T: 'a> Vector<'a, T> {
     ///
     /// - UOffsetT element count
     /// - Consecutive list of `T` elements
+    ///
+    /// # Examples
+    ///
+    /// ```compile_fail
+    /// use flatbuffers::Vector;
+    /// let buf = [0u8; 8];
+    /// let vec = Vector::<u8>::new(&buf, 0);
+    /// ```
+    ///
+    /// ```
+    /// use flatbuffers::Vector;
+    /// let buf = [0u8; 8];
+    /// let vec = unsafe { Vector::<u8>::new(&buf, 0) };
+    /// ```
     #[inline(always)]
     pub unsafe fn new(buf: &'a [u8], loc: usize) -> Self {
         Vector(buf, loc, PhantomData)
@@ -155,6 +169,20 @@ impl<'a, T: Follow<'a> + 'a> Vector<'a, T> {
 /// # Safety
 ///
 /// `buf` must contain a value of T at `loc` and have alignment of 1
+///
+/// # Examples
+///
+/// ```compile_fail
+/// use flatbuffers::follow_cast_ref;
+/// let buf = [0u8; 4];
+/// let val: &u8 = follow_cast_ref(&buf, 0);
+/// ```
+///
+/// ```
+/// use flatbuffers::follow_cast_ref;
+/// let buf = [0u8; 4];
+/// let val: &u8 = unsafe { follow_cast_ref(&buf, 0) };
+/// ```
 pub unsafe fn follow_cast_ref<'a, T: Sized + 'a>(buf: &'a [u8], loc: usize) -> &'a T {
     assert_eq!(align_of::<T>(), 1);
     let sz = size_of::<T>();
@@ -219,6 +247,19 @@ impl<'a, T: 'a> VectorIter<'a, T> {
     ///
     /// buf must contain a contiguous sequence of `items_num` values of `T`
     ///
+    /// # Examples
+    ///
+    /// ```compile_fail
+    /// use flatbuffers::VectorIter;
+    /// let buf = [0u8; 8];
+    /// let iter = VectorIter::<u8>::from_slice(&buf, 8);
+    /// ```
+    ///
+    /// ```
+    /// use flatbuffers::VectorIter;
+    /// let buf = [0u8; 8];
+    /// let iter = unsafe { VectorIter::<u8>::from_slice(&buf, 8) };
+    /// ```
     #[inline]
     pub unsafe fn from_slice(buf: &'a [u8], items_num: usize) -> Self {
         VectorIter { buf, loc: 0, remaining: items_num, phantom: PhantomData }
