@@ -55,9 +55,13 @@ meant to be representative of game data, e.g. a scene format.
 
 ### Code for benchmarks
 
-Code for these benchmarks sits in `benchmarks/` in git branch `benchmarks`.
-It sits in its own branch because it has submodule dependencies that the main
-project doesn't need, and the code standards do not meet those of the main
-project. Please read `benchmarks/cpp/README.txt` before working with the code.
+The benchmark code currently tracked in this repository lives under
+`benchmarks/` on the `master` branch. The checked-in C++ benchmark covers
+FlatBuffers and raw structs, with dependencies configured from
+`benchmarks/CMakeLists.txt`.
+
+The comparison table above is historical. The old standalone benchmark branch
+is no longer available, and the current tree does not contain every third-party
+comparison harness used for those results.
 
 <br>
