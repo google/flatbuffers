@@ -1,0 +1,26 @@
+[package]
+name = "flatbuffers-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.flatbuffers]
+path = ".."
+
+# Fuzz the safe reader path of the `flatbuffers` Rust runtime. Run from
+# `rust/flatbuffers`:
+#
+#   cargo +nightly fuzz build rust_verifier
+#   cargo +nightly fuzz run rust_verifier fuzz/corpus/rust_verifier
+[[bin]]
+name = "rust_verifier"
+path = "fuzz_targets/rust_verifier.rs"
+test = false
+doc = false
+bench = false
