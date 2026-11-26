@@ -172,6 +172,45 @@ public class FlexBuffers {
     return (type >= FBT_INT && type <= FBT_KEY) || type == FBT_BOOL;
   }
 
+  private static StringBuilder appendQuoted(StringBuilder sb, String value) {
+    sb.append('"');
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      switch (c) {
+        case '"':
+          sb.append("\\\"");
+          break;
+        case '\\':
+          sb.append("\\\\");
+          break;
+        case '\b':
+          sb.append("\\b");
+          break;
+        case '\f':
+          sb.append("\\f");
+          break;
+        case '\n':
+          sb.append("\\n");
+          break;
+        case '\r':
+          sb.append("\\r");
+          break;
+        case '\t':
+          sb.append("\\t");
+          break;
+        default:
+          if (c < 0x20) {
+            sb.append("\\u00");
+            sb.append("0123456789abcdef".charAt(c >> 4));
+            sb.append("0123456789abcdef".charAt(c & 0xf));
+          } else {
+            sb.append(c);
+          }
+      }
+    }
+    return sb.append('"');
+  }
+
   // return position of the element that the offset is pointing to
   private static int indirect(ReadBuf bb, int offset, int byteWidth) {
     // we assume all offset fits on a int, since ReadBuf operates with that assumption
@@ -687,8 +726,6 @@ public class FlexBuffers {
 
     /** Appends a text(JSON) representation to a `StringBuilder` */
     StringBuilder toString(StringBuilder sb) {
-      // TODO: Original C++ implementation escape strings.
-      // probably we should do it as well.
       switch (type) {
         case FBT_NULL:
           return sb.append("null");
@@ -702,9 +739,9 @@ public class FlexBuffers {
         case FBT_FLOAT:
           return sb.append(asFloat());
         case FBT_KEY:
-          return asKey().toString(sb.append('"')).append('"');
+          return appendQuoted(sb, asKey().toString());
         case FBT_STRING:
-          return sb.append('"').append(asString()).append('"');
+          return appendQuoted(sb, asString());
         case FBT_MAP:
           return asMap().toString(sb);
         case FBT_VECTOR:
@@ -834,9 +871,7 @@ public class FlexBuffers {
     /** Append a text(JSON) representation of the {@link Blob} into a `StringBuilder` */
     @Override
     public StringBuilder toString(StringBuilder sb) {
-      sb.append('"');
-      sb.append(bb.getString(end, size()));
-      return sb.append('"');
+      return appendQuoted(sb, bb.getString(end, size()));
     }
   }
 
@@ -997,7 +1032,7 @@ public class FlexBuffers {
       int size = size();
       Vector vals = values();
       for (int i = 0; i < size; i++) {
-        builder.append('"').append(keys.get(i).toString()).append("\" : ");
+        appendQuoted(builder, keys.get(i).toString()).append(" : ");
         builder.append(vals.get(i).toString());
         if (i != size - 1) builder.append(", ");
       }
