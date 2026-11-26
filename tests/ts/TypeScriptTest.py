@@ -204,6 +204,13 @@ flatc(
     schema="../union_underlying_type_test.fbs",
 )
 
+generated_union = (
+    tests_path / "union-underlying-type" / "abc.ts"
+).read_text()
+
+assert "switch(type) {" in generated_union
+assert "switch(ABC[type])" not in generated_union
+
 flatc(options=["--ts"], schema="../long_namespace.fbs")
 flatc(options=["--ts"], schema="../longer_namespace.fbs")
 
