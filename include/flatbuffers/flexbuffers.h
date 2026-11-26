@@ -237,7 +237,14 @@ class Sized : public Object {
       : Object(data, byte_width), size_(sz) {}
   size_t size() const { return size_; }
   // Access size stored in `byte_width_` bytes before data_ pointer.
+  // REQUIRES: the buffer containing data_ has been verified with
+  // flexbuffers::VerifyBuffer() before calling this, so that
+  // (data_ - byte_width_) is guaranteed to be within the allocation.
   size_t read_size() const {
+    // byte_width_ must be 1, 2, 4, or 8; values outside this range indicate
+    // a corrupt or unverified buffer and would cause an OOB read below.
+    FLATBUFFERS_ASSERT(byte_width_ == 1 || byte_width_ == 2 ||
+                       byte_width_ == 4 || byte_width_ == 8);
     return static_cast<size_t>(ReadUInt64(data_ - byte_width_, byte_width_));
   }
 
@@ -349,7 +356,16 @@ class Map : public Vector {
   Vector Values() const { return Vector(data_, byte_width_); }
 
   TypedVector Keys() const {
+    // A Map's data_ pointer is preceded by three byte_width_-byte fields:
+    // [keys_offset | keys_byte_width | num_values]. Reading these requires
+    // that (data_ - byte_width_ * 3) lies within the buffer. Callers MUST
+    // verify the buffer with flexbuffers::VerifyBuffer() before calling Keys()
+    // on untrusted data; the FlexBuffer Verifier checks VerifyBeforePointer for
+    // exactly this span.
     const size_t num_prefixed_fields = 3;
+    // Guard against byte_width_ overflow in the subtraction.
+    FLATBUFFERS_ASSERT(byte_width_ == 1 || byte_width_ == 2 ||
+                       byte_width_ == 4 || byte_width_ == 8);
     auto keys_offset = data_ - byte_width_ * num_prefixed_fields;
     return TypedVector(Indirect(keys_offset, byte_width_),
                        static_cast<uint8_t>(
@@ -942,7 +958,11 @@ inline uint8_t NullPackedType() { return PackedType(BIT_WIDTH_8, FBT_NULL); }
 // typed" data, you may not want that (someone sends you a 2d vector and you
 // wanted 3d).
 // The Null converts seamlessly into a default value for any other type.
-// TODO(wvo): Could introduce an #ifdef that makes this into an assert?
+//
+// IMPORTANT: `size()` and the packed-type array at (data_ + len*byte_width_)
+// are only safe to read when the buffer has been verified with
+// flexbuffers::VerifyBuffer(). On unverified data a corrupt `len` value can
+// cause reads far outside the buffer allocation (CWE-125).
 inline Reference Vector::operator[](size_t i) const {
   auto len = size();
   if (i >= len) return Reference(nullptr, 1, NullPackedType());
