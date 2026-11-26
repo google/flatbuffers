@@ -233,6 +233,7 @@ NODE_CMD = ["node"]
 
 print("Running TypeScript Tests...")
 check_call(NODE_CMD + ["JavaScriptTest"])
+check_call(NODE_CMD + ["JavaScriptByteBufferBoundsTest"])
 check_call(NODE_CMD + ["JavaScriptUnionVectorTest"])
 check_call(NODE_CMD + ["JavaScriptFlexBuffersTest"])
 check_call(NODE_CMD + ["JavaScriptComplexArraysTest"])
