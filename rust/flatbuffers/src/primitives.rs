@@ -134,7 +134,11 @@ impl<T> Push for WIPOffset<T> {
     #[inline(always)]
     unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
         let n = (SIZE_UOFFSET + written_len - self.value() as usize) as UOffsetT;
-        emplace_scalar::<UOffsetT>(dst, n);
+        // SAFETY:
+        // The caller guarantees `dst` is at least `Self::size()` bytes, which is
+        // `size_of::<ForwardsUOffset<T>>() == SIZE_UOFFSET`, as `emplace_scalar`
+        // requires for a `UOffsetT`.
+        unsafe { emplace_scalar::<UOffsetT>(dst, n) };
     }
 }
 
@@ -143,7 +147,11 @@ impl<T> Push for ForwardsUOffset<T> {
 
     #[inline(always)]
     unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
-        self.value().push(dst, written_len);
+        // SAFETY:
+        // Forwarded to the inner scalar's `Push` impl, which writes exactly
+        // `Self::size()` bytes; the caller guarantees `dst` is that large and
+        // correctly aligned.
+        unsafe { self.value().push(dst, written_len) };
     }
 }
 
@@ -176,8 +184,14 @@ impl<'a, T: Follow<'a>> Follow<'a> for ForwardsUOffset<T> {
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let slice = &buf[loc..loc + SIZE_UOFFSET];
-        let off = read_scalar::<u32>(slice) as usize;
-        T::follow(buf, loc + off)
+        // SAFETY:
+        // `slice` is exactly `SIZE_UOFFSET` bytes, as `read_scalar::<u32>`
+        // requires.
+        let off = unsafe { read_scalar::<u32>(slice) } as usize;
+        // SAFETY:
+        // The caller guarantees a valid `ForwardsUOffset<T>` at `loc`, so the
+        // offset it stores points at a valid `T` within `buf`.
+        unsafe { T::follow(buf, loc + off) }
     }
 }
 
@@ -197,8 +211,14 @@ impl<'a, T: Follow<'a>> Follow<'a> for ForwardsVOffset<T> {
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let slice = &buf[loc..loc + SIZE_VOFFSET];
-        let off = read_scalar::<VOffsetT>(slice) as usize;
-        T::follow(buf, loc + off)
+        // SAFETY:
+        // `slice` is exactly `SIZE_VOFFSET` bytes, as `read_scalar::<VOffsetT>`
+        // requires.
+        let off = unsafe { read_scalar::<VOffsetT>(slice) } as usize;
+        // SAFETY:
+        // The caller guarantees a valid `ForwardsVOffset<T>` at `loc`, so the
+        // offset it stores points at a valid `T` within `buf`.
+        unsafe { T::follow(buf, loc + off) }
     }
 }
 
@@ -207,7 +227,11 @@ impl<T> Push for ForwardsVOffset<T> {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
-        self.value().push(dst, written_len);
+        // SAFETY:
+        // Forwarded to the inner scalar's `Push` impl, which writes exactly
+        // `Self::size()` bytes; the caller guarantees `dst` is that large and
+        // correctly aligned.
+        unsafe { self.value().push(dst, written_len) };
     }
 }
 
@@ -227,8 +251,15 @@ impl<'a, T: Follow<'a>> Follow<'a> for BackwardsSOffset<T> {
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
         let slice = &buf[loc..loc + SIZE_SOFFSET];
-        let off = read_scalar::<SOffsetT>(slice);
-        T::follow(buf, (loc as SOffsetT - off) as usize)
+        // SAFETY:
+        // `slice` is exactly `SIZE_SOFFSET` bytes, as `read_scalar::<SOffsetT>`
+        // requires.
+        let off = unsafe { read_scalar::<SOffsetT>(slice) };
+        // SAFETY:
+        // The caller guarantees a valid `BackwardsSOffset<T>` at `loc`, so
+        // subtracting the stored signed offset yields the location of a valid
+        // `T` within `buf`.
+        unsafe { T::follow(buf, (loc as SOffsetT - off) as usize) }
     }
 }
 
@@ -237,7 +268,11 @@ impl<T> Push for BackwardsSOffset<T> {
 
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], written_len: usize) {
-        self.value().push(dst, written_len);
+        // SAFETY:
+        // Forwarded to the inner scalar's `Push` impl, which writes exactly
+        // `Self::size()` bytes; the caller guarantees `dst` is that large and
+        // correctly aligned.
+        unsafe { self.value().push(dst, written_len) };
     }
 }
 
@@ -248,7 +283,10 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for SkipSizePrefix<T> {
     type Inner = T::Inner;
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        T::follow(buf, loc + SIZE_SIZEPREFIX)
+        // SAFETY:
+        // The caller guarantees a valid `SkipSizePrefix<T>` at `loc`: a valid
+        // size prefix precedes a valid `T`, so skipping it lands on the `T`.
+        unsafe { T::follow(buf, loc + SIZE_SIZEPREFIX) }
     }
 }
 
@@ -259,7 +297,10 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for SkipRootOffset<T> {
     type Inner = T::Inner;
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        T::follow(buf, loc + SIZE_UOFFSET)
+        // SAFETY:
+        // The caller guarantees a valid `SkipRootOffset<T>` at `loc`: a valid
+        // root offset precedes a valid `T`, so skipping it lands on the `T`.
+        unsafe { T::follow(buf, loc + SIZE_UOFFSET) }
     }
 }
 
@@ -282,7 +323,11 @@ impl<'a, T: Follow<'a> + 'a> Follow<'a> for SkipFileIdentifier<T> {
     type Inner = T::Inner;
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        T::follow(buf, loc + FILE_IDENTIFIER_LENGTH)
+        // SAFETY:
+        // The caller guarantees a valid `SkipFileIdentifier<T>` at `loc`: a
+        // valid file identifier precedes a valid `T`, so skipping it lands on
+        // the `T`.
+        unsafe { T::follow(buf, loc + FILE_IDENTIFIER_LENGTH) }
     }
 }
 
@@ -290,7 +335,11 @@ impl<'a> Follow<'a> for bool {
     type Inner = bool;
     #[inline(always)]
     unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-        read_scalar_at::<u8>(buf, loc) != 0
+        // SAFETY:
+        // The caller guarantees a valid `bool` at `loc`, which occupies one byte,
+        // as `read_scalar_at::<u8>` requires. Any bit pattern is read as a `u8`
+        // and then compared, so no invalid `bool` is ever materialized.
+        unsafe { read_scalar_at::<u8>(buf, loc) != 0 }
     }
 }
 
@@ -305,7 +354,11 @@ macro_rules! impl_follow_for_endian_scalar {
             type Inner = $ty;
             #[inline(always)]
             unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-                read_scalar_at::<$ty>(buf, loc)
+                // SAFETY:
+                // The caller guarantees a valid `$ty` at `loc`, so `buf` holds
+                // the `size_of::<$ty::Scalar>()` readable bytes that
+                // `read_scalar_at` requires.
+                unsafe { read_scalar_at::<$ty>(buf, loc) }
             }
         }
     };

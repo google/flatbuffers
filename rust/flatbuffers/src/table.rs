@@ -66,7 +66,11 @@ impl<'a> Table<'a> {
         if o == 0 {
             return default;
         }
-        Some(<T>::follow(self.buf, self.loc + o))
+        // SAFETY:
+        // `Table::new` guarantees a valid table at `self.loc`, so the vtable
+        // lookup yields an in-bounds field offset `o` for this table, and the
+        // caller guarantees the slot's type is `T`.
+        Some(unsafe { <T>::follow(self.buf, self.loc + o) })
     }
 }
 
