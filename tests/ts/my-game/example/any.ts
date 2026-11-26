@@ -18,11 +18,11 @@ export function unionToAny(
   type: Any,
   accessor: (obj:Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum) => Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null
 ): Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null {
-  switch(Any[type]) {
-    case 'NONE': return null; 
-    case 'Monster': return accessor(new Monster())! as Monster;
-    case 'TestSimpleTableWithEnum': return accessor(new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
-    case 'MyGame_Example2_Monster': return accessor(new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
+  switch(type) {
+    case Any.NONE: return null;
+    case Any.Monster: return accessor(new Monster())! as Monster;
+    case Any.TestSimpleTableWithEnum: return accessor(new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case Any.MyGame_Example2_Monster: return accessor(new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
     default: return null;
   }
 }
@@ -32,11 +32,11 @@ export function unionListToAny(
   accessor: (index: number, obj:Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum) => Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null, 
   index: number
 ): Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null {
-  switch(Any[type]) {
-    case 'NONE': return null; 
-    case 'Monster': return accessor(index, new Monster())! as Monster;
-    case 'TestSimpleTableWithEnum': return accessor(index, new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
-    case 'MyGame_Example2_Monster': return accessor(index, new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
+  switch(type) {
+    case Any.NONE: return null;
+    case Any.Monster: return accessor(index, new Monster())! as Monster;
+    case Any.TestSimpleTableWithEnum: return accessor(index, new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case Any.MyGame_Example2_Monster: return accessor(index, new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
     default: return null;
   }
 }

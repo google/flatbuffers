@@ -18,11 +18,11 @@ export function unionToAnyUniqueAliases(
   type: AnyUniqueAliases,
   accessor: (obj:Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum) => Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null
 ): Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null {
-  switch(AnyUniqueAliases[type]) {
-    case 'NONE': return null; 
-    case 'M': return accessor(new Monster())! as Monster;
-    case 'TS': return accessor(new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
-    case 'M2': return accessor(new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
+  switch(type) {
+    case AnyUniqueAliases.NONE: return null;
+    case AnyUniqueAliases.M: return accessor(new Monster())! as Monster;
+    case AnyUniqueAliases.TS: return accessor(new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case AnyUniqueAliases.M2: return accessor(new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
     default: return null;
   }
 }
@@ -32,11 +32,11 @@ export function unionListToAnyUniqueAliases(
   accessor: (index: number, obj:Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum) => Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null, 
   index: number
 ): Monster|MyGame_Example2_Monster|TestSimpleTableWithEnum|null {
-  switch(AnyUniqueAliases[type]) {
-    case 'NONE': return null; 
-    case 'M': return accessor(index, new Monster())! as Monster;
-    case 'TS': return accessor(index, new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
-    case 'M2': return accessor(index, new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
+  switch(type) {
+    case AnyUniqueAliases.NONE: return null;
+    case AnyUniqueAliases.M: return accessor(index, new Monster())! as Monster;
+    case AnyUniqueAliases.TS: return accessor(index, new TestSimpleTableWithEnum())! as TestSimpleTableWithEnum;
+    case AnyUniqueAliases.M2: return accessor(index, new MyGame_Example2_Monster())! as MyGame_Example2_Monster;
     default: return null;
   }
 }
