@@ -29,5 +29,12 @@ cargo test -- --quiet || exit /b 1
 cargo run --bin=flatbuffers_alloc_check || exit /b 1
 cargo run --bin=flexbuffers_alloc_check || exit /b 1
 cargo run --bin=monster_example || exit /b 1
-cd ..
 
+cd ..\..\rust\flatbuffers
+cargo test -- --quiet || exit /b 1
+
+cd ..\flexbuffers
+cargo test -- --quiet || exit /b 1
+
+cd ..\reflection
+cargo test -- --quiet || exit /b 1

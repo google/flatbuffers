@@ -1227,13 +1227,18 @@ impl<T> IndexMut<ReverseIndexRange> for [T] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "std"))]
     use core::sync::atomic::{AtomicUsize, Ordering};
+    #[cfg(not(feature = "std"))]
     use std::alloc::{GlobalAlloc, Layout, System};
 
+    #[cfg(not(feature = "std"))]
     static ALLOC_COUNT: AtomicUsize = AtomicUsize::new(0);
 
+    #[cfg(not(feature = "std"))]
     struct CountingAllocator;
 
+    #[cfg(not(feature = "std"))]
     unsafe impl GlobalAlloc for CountingAllocator {
         unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
             ALLOC_COUNT.fetch_add(1, Ordering::Relaxed);
@@ -1244,13 +1249,16 @@ mod tests {
         }
     }
 
+    #[cfg(not(feature = "std"))]
     #[global_allocator]
     static GLOBAL: CountingAllocator = CountingAllocator;
 
+    #[cfg(not(feature = "std"))]
     fn reset_alloc_count() {
         ALLOC_COUNT.store(0, Ordering::Relaxed);
     }
 
+    #[cfg(not(feature = "std"))]
     fn alloc_count() -> usize {
         ALLOC_COUNT.load(Ordering::Relaxed)
     }
@@ -1264,6 +1272,7 @@ mod tests {
         assert_eq!(idx.to_forward_index(&buf), 4);
     }
 
+    #[cfg(not(feature = "std"))]
     #[test]
     fn with_internal_capacity_preallocates_vecs() {
         let mut builder = FlatBufferBuilder::with_internal_capacity(64, 8, 16, 32);

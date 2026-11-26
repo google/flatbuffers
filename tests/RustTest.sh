@@ -74,3 +74,18 @@ if [[ $RUST_NIGHTLY == 1 ]]; then
   rustup +nightly component add miri
   MIRIFLAGS="-Zmiri-disable-isolation" cargo +nightly miri test
 fi
+
+cd ../../rust/flatbuffers
+cargo test $TARGET_FLAG -- --quiet
+check_test_result "Rust flatbuffers runtime tests"
+
+cargo test $TARGET_FLAG --no-default-features -- --quiet
+check_test_result "Rust flatbuffers runtime tests (no_std)"
+
+cd ../flexbuffers
+cargo test $TARGET_FLAG -- --quiet
+check_test_result "Rust flexbuffers runtime tests"
+
+cd ../reflection
+cargo test $TARGET_FLAG -- --quiet
+check_test_result "Rust reflection runtime tests"

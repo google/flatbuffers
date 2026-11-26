@@ -35,6 +35,9 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 
+#[cfg(all(test, not(feature = "std")))]
+extern crate std;
+
 mod array;
 mod builder;
 mod endian_scalar;
