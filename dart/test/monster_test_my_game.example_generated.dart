@@ -12,14 +12,14 @@ import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 import './monster_test_my_game_generated.dart' as my_game;
 
 ///  Composite components of Monster color.
-enum Color {
-  Red(1),
-  Green(2),
-  Blue(8),
-  _default(0);
+class Color {
+  static const Color Red = Color._(1);
+  static const Color Green = Color._(2);
+  static const Color Blue = Color._(8);
+  static const Color _default = Color._(0);
 
   final int value;
-  const Color(this.value);
+  const Color._(this.value);
 
   factory Color.fromValue(int value) {
     switch (value) {
@@ -32,12 +32,37 @@ enum Color {
       case 0:
         return Color._default;
       default:
-        throw StateError('Invalid value $value for bit flag enum');
+        return Color._(value);
     }
   }
 
   static Color? _createOrNull(int? value) =>
       value == null ? null : Color.fromValue(value);
+
+  static const List<Color> values = <Color>[Red, Green, Blue, _default];
+
+  @override
+  String toString() {
+    switch (value) {
+      case 1:
+        return 'Color.Red';
+      case 2:
+        return 'Color.Green';
+      case 8:
+        return 'Color.Blue';
+      case 0:
+        return 'Color._default';
+      default:
+        return 'Color($value)';
+    }
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is Color && other.value == value;
+
+  @override
+  int get hashCode => value.hashCode;
 
   static const fb.Reader<Color> reader = _ColorReader();
 }
@@ -96,14 +121,14 @@ class _RaceReader extends fb.Reader<Race> {
       Race.fromValue(const fb.Int8Reader().read(bc, offset));
 }
 
-enum LongEnum {
-  LongOne(2),
-  LongTwo(4),
-  LongBig(1099511627776),
-  _default(0);
+class LongEnum {
+  static const LongEnum LongOne = LongEnum._(2);
+  static const LongEnum LongTwo = LongEnum._(4);
+  static const LongEnum LongBig = LongEnum._(1099511627776);
+  static const LongEnum _default = LongEnum._(0);
 
   final int value;
-  const LongEnum(this.value);
+  const LongEnum._(this.value);
 
   factory LongEnum.fromValue(int value) {
     switch (value) {
@@ -116,12 +141,42 @@ enum LongEnum {
       case 0:
         return LongEnum._default;
       default:
-        throw StateError('Invalid value $value for bit flag enum');
+        return LongEnum._(value);
     }
   }
 
   static LongEnum? _createOrNull(int? value) =>
       value == null ? null : LongEnum.fromValue(value);
+
+  static const List<LongEnum> values = <LongEnum>[
+    LongOne,
+    LongTwo,
+    LongBig,
+    _default,
+  ];
+
+  @override
+  String toString() {
+    switch (value) {
+      case 2:
+        return 'LongEnum.LongOne';
+      case 4:
+        return 'LongEnum.LongTwo';
+      case 1099511627776:
+        return 'LongEnum.LongBig';
+      case 0:
+        return 'LongEnum._default';
+      default:
+        return 'LongEnum($value)';
+    }
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is LongEnum && other.value == value;
+
+  @override
+  int get hashCode => value.hashCode;
 
   static const fb.Reader<LongEnum> reader = _LongEnumReader();
 }
