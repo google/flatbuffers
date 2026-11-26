@@ -93,6 +93,10 @@ class BaseGenerator {
  public:
   virtual bool generate() = 0;
 
+  // Modern alternative to bool generate() as this provides a way to
+  // return a specific error message in case of an error and nullptr on success.
+  virtual const char* Generate() { return nullptr; }
+
   static std::string NamespaceDir(const Parser& parser, const std::string& path,
                                   const Namespace& ns,
                                   const bool dasherize = false);
