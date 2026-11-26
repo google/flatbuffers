@@ -1138,8 +1138,13 @@ class KotlinGenerator : public BaseGenerator {
           case BASE_TYPE_UNION:
             GenerateFun(
                 writer, field_name, "obj: " + field_type, return_type, [&]() {
+                  const auto not_found =
+                      field.IsRequired()
+                          ? "throw AssertionError(\"No value for (required) "
+                            "field {{field_name}}\")"
+                          : "null";
                   writer += OffsetWrapperOneLine(
-                      offset_val, bbgetter + "(obj, o + bb_pos)", "null");
+                      offset_val, bbgetter + "(obj, o + bb_pos)", not_found);
                 });
             break;
           default:

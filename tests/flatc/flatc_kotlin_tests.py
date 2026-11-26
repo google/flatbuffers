@@ -17,6 +17,20 @@ from flatc_test import *
 
 class KotlinTests:
 
+  def RequiredUnion(self):
+    flatc(["--kotlin", "required_union.fbs"])
+
+    assert_file_and_contents(
+        "RequiredUnion.kt",
+        [
+            "fun payload(obj: Table) : Table {",
+            "else throw AssertionError(\"No value for (required) field "
+            "payload\")",
+        ],
+    )
+    assert_file_exists("Payload.kt").unlink()
+    assert_file_exists("PayloadUnion.kt").unlink()
+
   def EnumValAttributes(self):
     flatc(["--kotlin", "enum_val_attributes.fbs"])
 
