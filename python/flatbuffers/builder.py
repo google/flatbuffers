@@ -18,9 +18,7 @@ from . import compat
 from . import encode
 from . import number_types as N
 from . import packer
-from .compat import memoryview_type
 from .compat import NumpyRequiredForThisFeature, import_numpy
-from .compat import range_func
 from .number_types import (SOffsetTFlags, UOffsetTFlags, VOffsetTFlags)
 
 np = import_numpy()
