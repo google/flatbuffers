@@ -64,9 +64,6 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
       return;
     }
 
-    // FIXME: Populate-Release loop fails assert(GRPC_SLICE_IS_EMPTY(slice_)) in
-    // SliceAllocator::allocate in the second iteration.
-
     flatbuffers::grpc::MessageBuilder mb;
     std::vector<flatbuffers::DetachedBuffer> buffers;
     for (int i = 0; i < 2; ++i) {
@@ -98,10 +95,6 @@ struct BuilderReuseTests<flatbuffers::grpc::MessageBuilder, SrcBuilder> {
     if (!selector.count(REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN)) {
       return;
     }
-
-    // FIXME: Release-move_assign loop fails assert(p ==
-    // GRPC_SLICE_START_PTR(slice_)) in DetachedBuffer destructor after all the
-    // iterations
 
     flatbuffers::grpc::MessageBuilder dst;
     std::vector<flatbuffers::DetachedBuffer> buffers;
@@ -361,11 +354,7 @@ void message_builder_tests() {
   BuilderTests<MessageBuilder, FlatBufferBuilder>::all_tests();
 
   BuilderReuseTestSelector tests[6] = {
-      // REUSABLE_AFTER_RELEASE,                 // Assertion failed:
-      // (GRPC_SLICE_IS_EMPTY(slice_))
-      // REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN, // Assertion failed: (p ==
-      // GRPC_SLICE_START_PTR(slice_)
-
+      REUSABLE_AFTER_RELEASE, REUSABLE_AFTER_RELEASE_AND_MOVE_ASSIGN,
       REUSABLE_AFTER_RELEASE_RAW, REUSABLE_AFTER_RELEASE_MESSAGE,
       REUSABLE_AFTER_RELEASE_MESSAGE_AND_MOVE_ASSIGN,
       REUSABLE_AFTER_RELEASE_RAW_AND_MOVE_ASSIGN};
