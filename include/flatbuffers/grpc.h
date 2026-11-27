@@ -217,6 +217,16 @@ class MessageBuilder : private detail::SliceAllocatorMember,
     return buf;
   }
 
+  // Releases the buffer as a DetachedBuffer that owns the grpc_slice backing
+  // it. FlatBufferBuilder::Release() would leave the slice in
+  // slice_allocator_, which frees it when the builder is reused or destroyed.
+  DetachedBuffer Release() {
+    size_t size = 0, offset = 0;
+    SliceAllocator* owner = new SliceAllocator();
+    uint8_t* buf = ReleaseRaw(size, offset, owner->slice_);
+    return DetachedBuffer(owner, true, buf, size, buf + offset, size - offset);
+  }
+
   ~MessageBuilder() {}
 
   // GetMessage extracts the subslice of the buffer corresponding to the
